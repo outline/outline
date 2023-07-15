@@ -67,24 +67,24 @@ export const renderApp = async (
   const { shareId } = ctx.params;
   const page = await readIndexFile();
   const environment = `
-    <script>
+    <script nonce="${ctx.state.cspNonce}">
       window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
     </script>
   `;
   const entry = "app/index.tsx";
   const scriptTags = isProduction
-    ? `<script type="module" src="${env.CDN_URL || ""}/static/${
-        readManifestFile()[entry]["file"]
-      }"></script>`
-    : `<script type="module">
+    ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
+        env.CDN_URL || ""
+      }/static/${readManifestFile()[entry]["file"]}"></script>`
+    : `<script type="module" nonce="${ctx.state.cspNonce}">
         import RefreshRuntime from 'http://localhost:3001/static/@react-refresh'
         RefreshRuntime.injectIntoGlobalHook(window)
         window.$RefreshReg$ = () => { }
         window.$RefreshSig$ = () => (type) => type
         window.__vite_plugin_react_preamble_installed__ = true
       </script>
-      <script type="module" src="http://localhost:3001/static/@vite/client"></script>
-      <script type="module" src="http://localhost:3001/static/${entry}"></script>
+      <script type="module" nonce="${ctx.state.cspNonce}" src="http://localhost:3001/static/@vite/client"></script>
+      <script type="module" nonce="${ctx.state.cspNonce}" src="http://localhost:3001/static/${entry}"></script>
     `;
 
   ctx.body = page
@@ -97,7 +97,8 @@ export const renderApp = async (
     .replace(/\{prefetch\}/g, shareId ? "" : prefetchTags)
     .replace(/\{slack-app-id\}/g, env.SLACK_APP_ID || "")
     .replace(/\{cdn-url\}/g, env.CDN_URL || "")
-    .replace(/\{script-tags\}/g, scriptTags);
+    .replace(/\{script-tags\}/g, scriptTags)
+    .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);
 };
 
 export const renderShare = async (ctx: Context, next: Next) => {
