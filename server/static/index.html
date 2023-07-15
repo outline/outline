@@ -53,7 +53,7 @@
   <body>
     <div id="root"></div>
     {env}
-    <script>
+    <script nonce="{csp-nonce}">
       if (
         window.localStorage &&
         window.localStorage.getItem("theme") === "dark"
