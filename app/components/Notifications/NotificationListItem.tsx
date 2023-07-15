@@ -8,7 +8,7 @@ import { s } from "@shared/styles";
 import Notification from "~/models/Notification";
 import CommentEditor from "~/scenes/Document/components/CommentEditor";
 import useStores from "~/hooks/useStores";
-import { hover } from "~/styles";
+import { hover, truncateMultiline } from "~/styles";
 import Avatar from "../Avatar";
 import { AvatarSize } from "../Avatar/Avatar";
 import Flex from "../Flex";
@@ -76,6 +76,8 @@ function NotificationListItem({ notification, onNavigate }: Props) {
 const StyledCommentEditor = styled(CommentEditor)`
   font-size: 0.9em;
   margin-top: 4px;
+
+  ${truncateMultiline(3)}
 `;
 
 const StyledAvatar = styled(Avatar)`
