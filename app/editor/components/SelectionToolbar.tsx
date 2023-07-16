@@ -1,4 +1,3 @@
-import { some } from "lodash";
 import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
@@ -51,8 +50,7 @@ function useIsActive(state: EditorState) {
   }
   if (
     isNodeActive(state.schema.nodes.code_block)(state) ||
-    isNodeActive(state.schema.nodes.code_fence)(state) ||
-    isNodeActive(state.schema.nodes.container_notice)(state)
+    isNodeActive(state.schema.nodes.code_fence)(state)
   ) {
     return true;
   }
@@ -79,10 +77,7 @@ function useIsActive(state: EditorState) {
   }
 
   const slice = selection.content();
-  const fragment = slice.content;
-  const nodes = (fragment as any).content;
-
-  return some(nodes, (n) => n.content.size);
+  return !!slice.content.textBetween(0, slice.content.size);
 }
 
 function useIsDragging() {
@@ -197,7 +192,7 @@ export default function SelectionToolbar(props: Props) {
 
   const { onCreateLink, isTemplate, rtl, canComment, ...rest } = props;
   const { state } = view;
-  const { selection }: { selection: any } = state;
+  const { selection } = state;
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
 
   // no toolbar in read-only without commenting or when dragging
@@ -210,7 +205,8 @@ export default function SelectionToolbar(props: Props) {
   const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
   const link = isMarkActive(state.schema.marks.link)(state);
   const range = getMarkRange(selection.$from, state.schema.marks.link);
-  const isImageSelection = selection.node?.type?.name === "image";
+  const isImageSelection =
+    selection instanceof NodeSelection && selection.node.type.name === "image";
   const isCodeSelection =
     isNodeActive(state.schema.nodes.code_block)(state) ||
     isNodeActive(state.schema.nodes.code_fence)(state);

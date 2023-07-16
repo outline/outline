@@ -50,6 +50,7 @@ import visualbasic from "refractor/lang/visual-basic";
 import yaml from "refractor/lang/yaml";
 import zig from "refractor/lang/zig";
 
+import { Primitive } from "utility-types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { UserPreferences } from "../../types";
 import Storage from "../../utils/Storage";
@@ -175,7 +176,7 @@ export default class CodeFence extends Node {
 
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
-      code_block: (attrs: Record<string, any>) =>
+      code_block: (attrs: Record<string, Primitive>) =>
         toggleBlockType(type, schema.nodes.paragraph, {
           language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
           ...attrs,

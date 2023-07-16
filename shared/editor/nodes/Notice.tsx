@@ -4,6 +4,7 @@ import { wrappingInputRule } from "prosemirror-inputrules";
 import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import * as React from "react";
 import ReactDOM from "react-dom";
+import { Primitive } from "utility-types";
 import toggleWrap from "../commands/toggleWrap";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import noticesRule from "../rules/notices";
@@ -111,7 +112,7 @@ export default class Notice extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, any>) => toggleWrap(type, attrs);
+    return (attrs: Record<string, Primitive>) => toggleWrap(type, attrs);
   }
 
   handleStyleChange = (event: InputEvent) => {

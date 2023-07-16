@@ -1,6 +1,7 @@
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import styled from "styled-components";
+import { Primitive } from "utility-types";
 import { IntegrationType } from "../../types";
 import type { IntegrationSettings } from "../../types";
 import { urlRegex } from "../../utils/urls";
@@ -76,7 +77,7 @@ export class EmbedDescriptor {
   keywords?: string;
   tooltip?: string;
   defaultHidden?: boolean;
-  attrs?: Record<string, any>;
+  attrs?: Record<string, Primitive>;
   visible?: boolean;
   active?: (state: EditorState) => boolean;
   component: typeof React.Component | React.FC<any>;

@@ -8,6 +8,7 @@ import {
 } from "prosemirror-model";
 import { Command, Plugin, Selection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { Primitive } from "utility-types";
 import Storage from "../../utils/Storage";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import splitHeading from "../commands/splitHeading";
@@ -113,7 +114,7 @@ export default class Heading extends Node {
   }
 
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
-    return (attrs: Record<string, any>) =>
+    return (attrs: Record<string, Primitive>) =>
       toggleBlockType(type, schema.nodes.paragraph, attrs);
   }
 

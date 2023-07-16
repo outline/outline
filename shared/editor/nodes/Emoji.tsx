@@ -7,6 +7,7 @@ import {
   Schema,
 } from "prosemirror-model";
 import { Command, TextSelection } from "prosemirror-state";
+import { Primitive } from "utility-types";
 import Suggestion from "../extensions/Suggestion";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { SuggestionsMenuType } from "../plugins/Suggestions";
@@ -77,7 +78,7 @@ export default class Emoji extends Suggestion {
   }
 
   commands({ type }: { type: NodeType; schema: Schema }) {
-    return (attrs: Record<string, string>): Command =>
+    return (attrs: Record<string, Primitive>): Command =>
       (state, dispatch) => {
         const { selection } = state;
         const position =
