@@ -14,7 +14,6 @@ import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import Logger from "~/utils/Logger";
-import history from "~/utils/history";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home", "/logout"];
@@ -102,6 +101,7 @@ export default class AuthStore {
     const data: PersistedData = Storage.get(AUTH_STORE) || {};
 
     this.rehydrate(data);
+    void this.fetch();
 
     // Refresh the auth store every 12 hours that the window is open
     setInterval(this.fetch, 12 * Hour);
@@ -127,7 +127,7 @@ export default class AuthStore {
         // we are signed in and the received data contains no user then sign out
         if (this.authenticated) {
           if (data.user === null) {
-            void this.logout();
+            void this.logout(false, false);
           }
         } else {
           this.rehydrate(data);
@@ -143,7 +143,6 @@ export default class AuthStore {
     this.collaborationToken = data.collaborationToken;
     this.lastSignedIn = getCookie("lastSignedIn");
     this.addPolicies(data.policies);
-    void this.fetch();
   }
 
   addPolicies(policies?: Policy[]) {
@@ -324,8 +323,11 @@ export default class AuthStore {
   logout = async (
     /** Whether the current path should be saved and returned to after login */
     savePath = false,
-    /** Whether the auth token is already expired. */
-    tokenIsExpired = false
+    /**
+     * Whether the auth token should attempt to be revoked, this should be disabled
+     * with requests from ApiClient to prevent infinite loops.
+     */
+    tryRevokingToken = true
   ) => {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
@@ -337,9 +339,9 @@ export default class AuthStore {
       }
     }
 
-    // invalidate authentication token on server and unset auth cookie
-    if (!tokenIsExpired) {
+    if (tryRevokingToken) {
       try {
+        // invalidate authentication token on server and unset auth cookie
         await client.post(`/auth.delete`);
       } catch (err) {
         Logger.error("Failed to delete authentication", err);
@@ -366,7 +368,5 @@ export default class AuthStore {
     // Tell the host application we logged out, if any – allows window cleanup.
     void Desktop.bridge?.onLogout?.();
     this.rootStore.logout();
-
-    history.replace("/");
   };
 }

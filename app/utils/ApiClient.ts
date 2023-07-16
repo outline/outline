@@ -131,8 +131,7 @@ class ApiClient {
 
     // Handle 401, log out user
     if (response.status === 401) {
-      const tokenIsExpired = true;
-      await stores.auth.logout(false, tokenIsExpired);
+      await stores.auth.logout(false, false);
       return;
     }
 
@@ -163,7 +162,7 @@ class ApiClient {
 
     if (response.status === 403) {
       if (error.error === "user_suspended") {
-        await stores.auth.logout();
+        await stores.auth.logout(false, false);
         return;
       }
 
