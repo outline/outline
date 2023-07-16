@@ -22,10 +22,16 @@ export default function TextLength({
     addAttributeOptions(target, propertyName, {
       validate: {
         validLength(value: ProsemirrorData) {
-          const text = ProsemirrorHelper.toPlainText(
-            Node.fromJSON(schema, value),
-            schema
-          );
+          let text;
+
+          try {
+            text = ProsemirrorHelper.toPlainText(
+              Node.fromJSON(schema, value),
+              schema
+            );
+          } catch (err) {
+            throw new Error("Invalid data");
+          }
 
           if (size(text) > max || size(text) < min) {
             throw new Error(msg);
