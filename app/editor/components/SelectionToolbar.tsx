@@ -51,7 +51,8 @@ function useIsActive(state: EditorState) {
   }
   if (
     isNodeActive(state.schema.nodes.code_block)(state) ||
-    isNodeActive(state.schema.nodes.code_fence)(state)
+    isNodeActive(state.schema.nodes.code_fence)(state) ||
+    isNodeActive(state.schema.nodes.container_notice)(state)
   ) {
     return true;
   }

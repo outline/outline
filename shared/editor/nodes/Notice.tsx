@@ -10,15 +10,6 @@ import noticesRule from "../rules/notices";
 import Node from "./Node";
 
 export default class Notice extends Node {
-  get styleOptions() {
-    return Object.entries({
-      info: this.options.dictionary.info,
-      warning: this.options.dictionary.warning,
-      success: this.options.dictionary.success,
-      tip: this.options.dictionary.tip,
-    });
-  }
-
   get name() {
     return "container_notice";
   }
@@ -90,23 +81,8 @@ export default class Notice extends Node {
         },
       ],
       toDOM: (node) => {
-        let icon, actions;
+        let icon;
         if (typeof document !== "undefined") {
-          const select = document.createElement("select");
-          select.addEventListener("change", this.handleStyleChange);
-
-          this.styleOptions.forEach(([key, label]) => {
-            const option = document.createElement("option");
-            option.value = key;
-            option.innerText = label;
-            option.selected = node.attrs.style === key;
-            select.appendChild(option);
-          });
-
-          actions = document.createElement("div");
-          actions.className = "notice-actions";
-          actions.appendChild(select);
-
           let component;
 
           if (node.attrs.style === "tip") {
@@ -128,7 +104,6 @@ export default class Notice extends Node {
           "div",
           { class: `notice-block ${node.attrs.style}` },
           ...(icon ? [icon] : []),
-          ["div", { contentEditable: "false" }, ...(actions ? [actions] : [])],
           ["div", { class: "content" }, 0],
         ];
       },
