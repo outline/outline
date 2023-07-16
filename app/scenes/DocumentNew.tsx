@@ -23,6 +23,10 @@ function DocumentNew() {
   useEffect(() => {
     async function createDocument() {
       const params = queryString.parse(location.search);
+      const parentDocumentId = params.parentDocumentId?.toString();
+      const parentDocument = parentDocumentId
+        ? documents.get(parentDocumentId)
+        : undefined;
       let collection;
 
       try {
@@ -31,7 +35,8 @@ function DocumentNew() {
         }
         const document = await documents.create({
           collectionId: collection?.id,
-          parentDocumentId: params.parentDocumentId?.toString(),
+          parentDocumentId,
+          fullWidth: parentDocument?.fullWidth,
           templateId: params.templateId?.toString(),
           template: params.template === "true" ? true : false,
           title: "",

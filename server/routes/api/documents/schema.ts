@@ -289,6 +289,9 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** Create doc with this template */
     templateId: z.string().uuid().optional(),
 
+    /** Boolean to denote if the doc should occupy full width */
+    fullWidth: z.boolean().optional(),
+
     /** Whether to create a template doc */
     template: z.boolean().optional(),
   }),

@@ -1267,6 +1267,7 @@ router.post(
       publish,
       collectionId,
       parentDocumentId,
+      fullWidth,
       templateId,
       template,
     } = ctx.input.body;
@@ -1320,6 +1321,7 @@ router.post(
         parentDocumentId,
         templateDocument,
         template,
+        fullWidth,
         user,
         editorVersion,
         ip: ctx.request.ip,
