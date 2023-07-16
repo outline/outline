@@ -15,6 +15,7 @@ import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useToasts from "~/hooks/useToasts";
+import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
 import getFormattingMenuItems from "../menus/formatting";
 import getImageMenuItems from "../menus/image";
@@ -48,6 +49,13 @@ function useIsActive(state: EditorState) {
   if (isMarkActive(state.schema.marks.link)(state)) {
     return true;
   }
+  if (
+    isNodeActive(state.schema.nodes.code_block)(state) ||
+    isNodeActive(state.schema.nodes.code_fence)(state)
+  ) {
+    return true;
+  }
+
   if (!selection || selection.empty) {
     return false;
   }
@@ -189,16 +197,10 @@ export default function SelectionToolbar(props: Props) {
   const { onCreateLink, isTemplate, rtl, canComment, ...rest } = props;
   const { state } = view;
   const { selection }: { selection: any } = state;
-  const isCodeSelection = isNodeActive(state.schema.nodes.code_block)(state);
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
 
-  // toolbar is disabled in code blocks, no bold / italic etc
-  if (isCodeSelection || isDragging) {
-    return null;
-  }
-
-  // no toolbar in this circumstance
-  if (readOnly && !canComment) {
+  // no toolbar in read-only without commenting or when dragging
+  if ((readOnly && !canComment) || isDragging) {
     return null;
   }
 
@@ -208,9 +210,15 @@ export default function SelectionToolbar(props: Props) {
   const link = isMarkActive(state.schema.marks.link)(state);
   const range = getMarkRange(selection.$from, state.schema.marks.link);
   const isImageSelection = selection.node?.type?.name === "image";
+  const isCodeSelection =
+    isNodeActive(state.schema.nodes.code_block)(state) ||
+    isNodeActive(state.schema.nodes.code_fence)(state);
 
   let items: MenuItem[] = [];
-  if (isTableSelection) {
+
+  if (isCodeSelection) {
+    items = getCodeMenuItems(state, dictionary);
+  } else if (isTableSelection) {
     items = getTableMenuItems(dictionary);
   } else if (colIndex !== undefined) {
     items = getTableColMenuItems(state, colIndex, rtl, dictionary);

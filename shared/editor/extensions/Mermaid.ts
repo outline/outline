@@ -1,12 +1,16 @@
 import { Node } from "prosemirror-model";
-import { Plugin, PluginKey, Transaction } from "prosemirror-state";
+import {
+  Plugin,
+  PluginKey,
+  TextSelection,
+  Transaction,
+} from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
 import { findBlockNodes } from "../queries/findChildren";
 
 type MermaidState = {
   decorationSet: DecorationSet;
-  diagramVisibility: Record<number, boolean>;
   isDark: boolean;
 };
 
@@ -28,23 +32,14 @@ function getNewState({
   );
 
   blocks.forEach((block) => {
-    const diagramDecorationPos = block.pos + block.node.nodeSize;
     const existingDecorations = pluginState.decorationSet.find(
       block.pos,
-      diagramDecorationPos
+      block.pos + block.node.nodeSize
     );
 
     // Attempt to find the existing diagramId from the decoration, or assign
     // a new one if none exists yet.
-    let diagramId = existingDecorations[0]?.spec["diagramId"];
-    if (diagramId === undefined) {
-      diagramId = uuidv4();
-    }
-
-    // Make the diagram visible by default if it contains source code
-    if (pluginState.diagramVisibility[diagramId] === undefined) {
-      pluginState.diagramVisibility[diagramId] = !!block.node.textContent;
-    }
+    const diagramId = existingDecorations[0]?.spec["diagramId"] ?? uuidv4();
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
@@ -54,13 +49,6 @@ function getNewState({
           document.getElementById(elementId) || document.createElement("div");
         element.id = elementId;
         element.classList.add("mermaid-diagram-wrapper");
-
-        if (pluginState.diagramVisibility[diagramId] === false) {
-          element.classList.add("diagram-hidden");
-          return element;
-        } else {
-          element.classList.remove("diagram-hidden");
-        }
 
         void import("mermaid").then((module) => {
           module.default.initialize({
@@ -78,16 +66,13 @@ function getNewState({
               "mermaid-diagram-" + diagramId,
               block.node.textContent,
               (svgCode) => {
+                element.classList.remove("parse-error");
                 element.innerHTML = svgCode;
               }
             );
           } catch (error) {
-            const errorNode = document.getElementById(
-              "d" + "mermaid-diagram-" + diagramId
-            );
-            if (errorNode) {
-              element.appendChild(errorNode);
-            }
+            element.innerText = "Error rendering diagram";
+            element.classList.add("parse-error");
           }
         });
 
@@ -98,15 +83,10 @@ function getNewState({
       }
     );
 
-    const attributes = { "data-diagram-id": "" + diagramId };
-    if (pluginState.diagramVisibility[diagramId] !== false) {
-      attributes["class"] = "code-hidden";
-    }
-
     const diagramIdDecoration = Decoration.node(
       block.pos,
       block.pos + block.node.nodeSize,
-      attributes,
+      {},
       {
         diagramId,
       }
@@ -118,7 +98,6 @@ function getNewState({
 
   return {
     decorationSet: DecorationSet.create(doc, decorations),
-    diagramVisibility: pluginState.diagramVisibility,
     isDark: pluginState.isDark,
   };
 }
@@ -138,7 +117,6 @@ export default function Mermaid({
       init: (_, { doc }) => {
         const pluginState: MermaidState = {
           decorationSet: DecorationSet.create(doc, []),
-          diagramVisibility: {},
           isDark,
         };
         return pluginState;
@@ -163,11 +141,6 @@ export default function Mermaid({
           pluginState.isDark = themeMeta.isDark;
         }
 
-        if (diagramToggled) {
-          pluginState.diagramVisibility[mermaidMeta.toggleDiagram] =
-            !pluginState.diagramVisibility[mermaidMeta.toggleDiagram];
-        }
-
         if (
           !diagramShown ||
           themeToggled ||
@@ -188,7 +161,6 @@ export default function Mermaid({
             transaction.mapping,
             transaction.doc
           ),
-          diagramVisibility: pluginState.diagramVisibility,
           isDark: pluginState.isDark,
         };
       },
@@ -201,7 +173,7 @@ export default function Mermaid({
         // by updating the plugins metadata
         setTimeout(() => {
           view.dispatch(view.state.tr.setMeta("mermaid", { loaded: true }));
-        }, 10);
+        }, 0);
       }
 
       return {};
@@ -209,6 +181,34 @@ export default function Mermaid({
     props: {
       decorations(state) {
         return this.getState(state)?.decorationSet;
+      },
+      handleDOMEvents: {
+        mousedown(view, event) {
+          const target = event.target as HTMLElement;
+          const diagram = target?.closest(".mermaid-diagram-wrapper");
+          const codeBlock = diagram?.previousElementSibling;
+
+          if (!codeBlock) {
+            return false;
+          }
+
+          const pos = view.posAtDOM(codeBlock, 0);
+          if (!pos) {
+            return false;
+          }
+
+          // select node
+          if (diagram && event.detail === 1) {
+            view.dispatch(
+              view.state.tr
+                .setSelection(TextSelection.near(view.state.doc.resolve(pos)))
+                .scrollIntoView()
+            );
+            return true;
+          }
+
+          return false;
+        },
       },
     },
   });

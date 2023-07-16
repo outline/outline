@@ -3,11 +3,11 @@ import { s } from "@shared/styles";
 
 const Separator = styled.div`
   height: 24px;
-  width: 2px;
-  background: ${s("toolbarItem")};
-  opacity: 0.3;
+  width: 1px;
+  background: ${s("textTertiary")};
+  opacity: 0.5;
   display: inline-block;
-  margin-left: 8px;
+  margin: 0 2px;
 `;
 
 export default Separator;

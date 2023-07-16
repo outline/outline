@@ -20,6 +20,7 @@ export type MenuItem = {
   keywords?: string;
   tooltip?: string;
   label?: string;
+  children?: MenuItem[];
   defaultHidden?: boolean;
   attrs?: Record<string, any>;
   visible?: boolean;

@@ -6,7 +6,7 @@ import refractor from "refractor/core";
 import { findBlockNodes } from "../queries/findChildren";
 
 export const LANGUAGES = {
-  none: "None", // additional entry to disable highlighting
+  none: "Plain text", // additional entry to disable highlighting
   bash: "Bash",
   css: "CSS",
   clike: "C",

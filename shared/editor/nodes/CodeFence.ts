@@ -7,7 +7,8 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { Selection, Plugin, PluginKey } from "prosemirror-state";
+import { Command, Plugin, PluginKey } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
 import bash from "refractor/lang/bash";
 import clike from "refractor/lang/clike";
@@ -61,7 +62,9 @@ import {
 import toggleBlockType from "../commands/toggleBlockType";
 import Mermaid from "../extensions/Mermaid";
 import Prism, { LANGUAGES } from "../extensions/Prism";
+import { isCode } from "../lib/isCode";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { findParentNode } from "../queries/findParentNode";
 import isInCode from "../queries/isInCode";
 import Node from "./Node";
 
@@ -157,77 +160,38 @@ export default class CodeFence extends Node {
           }),
         },
       ],
-      toDOM: (node) => {
-        let actions;
-        if (typeof document !== "undefined") {
-          const button = document.createElement("button");
-          button.innerText = this.options.dictionary.copy;
-          button.type = "button";
-          button.addEventListener("click", this.handleCopyToClipboard);
-
-          const select = document.createElement("select");
-          select.addEventListener("change", this.handleLanguageChange);
-
-          actions = document.createElement("div");
-          actions.className = "code-actions";
-          actions.appendChild(select);
-          actions.appendChild(button);
-
-          this.languageOptions.forEach(([key, label]) => {
-            const option = document.createElement("option");
-            const value = key === "none" ? "" : key;
-            option.value = value;
-            option.innerText = label;
-            option.selected = node.attrs.language === value;
-            select.appendChild(option);
-          });
-
-          // For the Mermaid language we add an extra button to toggle between
-          // source code and a rendered diagram view.
-          if (node.attrs.language === "mermaidjs") {
-            const showSourceButton = document.createElement("button");
-            showSourceButton.innerText = this.options.dictionary.showSource;
-            showSourceButton.type = "button";
-            showSourceButton.classList.add("show-source-button");
-            showSourceButton.addEventListener(
-              "click",
-              this.handleToggleDiagram
-            );
-            actions.prepend(showSourceButton);
-
-            const showDiagramButton = document.createElement("button");
-            showDiagramButton.innerText = this.options.dictionary.showDiagram;
-            showDiagramButton.type = "button";
-            showDiagramButton.classList.add("show-digram-button");
-            showDiagramButton.addEventListener(
-              "click",
-              this.handleToggleDiagram
-            );
-            actions.prepend(showDiagramButton);
-          }
-        }
-
-        return [
-          "div",
-          {
-            class: `code-block ${
-              this.showLineNumbers ? "with-line-numbers" : ""
-            }`,
-            "data-language": node.attrs.language,
-          },
-          ...(actions ? [["div", { contentEditable: "false" }, actions]] : []),
-          ["pre", ["code", { spellCheck: "false" }, 0]],
-        ];
-      },
+      toDOM: (node) => [
+        "div",
+        {
+          class: `code-block ${
+            this.showLineNumbers ? "with-line-numbers" : ""
+          }`,
+          "data-language": node.attrs.language,
+        },
+        ["pre", ["code", { spellCheck: "false" }, 0]],
+      ],
     };
   }
 
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
-    return (attrs: Record<string, any>) =>
-      toggleBlockType(type, schema.nodes.paragraph, {
-        language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
-        ...attrs,
-      });
+    return {
+      code_block: (attrs: Record<string, any>) =>
+        toggleBlockType(type, schema.nodes.paragraph, {
+          language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
+          ...attrs,
+        }),
+      copyToClipboard: (): Command => (state) => {
+        const codeBlock = findParentNode(isCode)(state.selection);
+
+        if (!codeBlock) {
+          return false;
+        }
+
+        copy(codeBlock.node.textContent);
+        this.options.onShowToast(this.options.dictionary.codeCopied);
+        return true;
+      },
+    };
   }
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
@@ -240,75 +204,6 @@ export default class CodeFence extends Node {
       "Ctrl-e": moveToNextNewline,
     };
   }
-
-  handleCopyToClipboard = (event: MouseEvent) => {
-    const { view } = this.editor;
-    const element = event.target;
-    if (!(element instanceof HTMLButtonElement)) {
-      return;
-    }
-    const { top, left } = element.getBoundingClientRect();
-    const result = view.posAtCoords({ top, left });
-
-    if (result) {
-      const node = view.state.doc.nodeAt(result.pos);
-      if (node) {
-        copy(node.textContent);
-        this.options.onShowToast(this.options.dictionary.codeCopied);
-      }
-    }
-  };
-
-  handleLanguageChange = (event: InputEvent) => {
-    const { view } = this.editor;
-    const { tr } = view.state;
-    const element = event.currentTarget;
-    if (!(element instanceof HTMLSelectElement)) {
-      return;
-    }
-
-    const { top, left } = element.getBoundingClientRect();
-    const result = view.posAtCoords({ top, left });
-
-    if (result) {
-      const language = element.value;
-      const transaction = tr
-        .setSelection(Selection.near(view.state.doc.resolve(result.inside)))
-        .setNodeMarkup(result.inside, undefined, {
-          language,
-        });
-
-      view.dispatch(transaction);
-
-      Storage.set(PERSISTENCE_KEY, language);
-    }
-  };
-
-  handleToggleDiagram = (event: InputEvent) => {
-    const { view } = this.editor;
-    const { tr } = view.state;
-    const element = event.currentTarget;
-    if (!(element instanceof HTMLButtonElement)) {
-      return;
-    }
-
-    const { top, left } = element.getBoundingClientRect();
-    const result = view.posAtCoords({ top, left });
-
-    if (!result) {
-      return;
-    }
-
-    const diagramId = element
-      .closest(".code-block")
-      ?.getAttribute("data-diagram-id");
-    if (!diagramId) {
-      return;
-    }
-
-    const transaction = tr.setMeta("mermaid", { toggleDiagram: diagramId });
-    view.dispatch(transaction);
-  };
 
   get plugins() {
     return [
@@ -333,6 +228,24 @@ export default class CodeFence extends Node {
               }
               return $from.sameParent($to) && event.detail === 3;
             },
+          },
+        },
+      }),
+      new Plugin({
+        props: {
+          decorations(state) {
+            const codeBlock = findParentNode(isCode)(state.selection);
+
+            if (!codeBlock) {
+              return null;
+            }
+
+            const decoration = Decoration.node(
+              codeBlock.pos,
+              codeBlock.pos + codeBlock.node.nodeSize,
+              { class: "code-active" }
+            );
+            return DecorationSet.create(state.doc, [decoration]);
           },
         },
       }),

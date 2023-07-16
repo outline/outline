@@ -129,7 +129,7 @@ export default class PasteHandler extends Extension {
             // was pasted.
             const vscodeMeta = vscode ? JSON.parse(vscode) : undefined;
             const pasteCodeLanguage = vscodeMeta?.mode;
-            const supportsCodeBlock = !!view.state.schema.nodes.code_fence;
+            const supportsCodeBlock = !!view.state.schema.nodes.code_block;
 
             if (
               supportsCodeBlock &&
@@ -140,7 +140,7 @@ export default class PasteHandler extends Extension {
               view.dispatch(
                 view.state.tr
                   .replaceSelectionWith(
-                    view.state.schema.nodes.code_fence.create({
+                    view.state.schema.nodes.code_block.create({
                       language: Object.keys(LANGUAGES).includes(vscodeMeta.mode)
                         ? vscodeMeta.mode
                         : null,
