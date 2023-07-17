@@ -22,8 +22,50 @@ const FlexibleWrapper = styled.div`
   gap: 8px;
 `;
 
-function ToolbarMenu(props: Props) {
+function ToolbarDropdown(props: { item: MenuItem }) {
   const menu = useMenuState();
+  const { commands, view } = useEditor();
+  const { item } = props;
+  const { state } = view;
+
+  const items = React.useMemo(() => {
+    const handleClick = (item: MenuItem) => () => {
+      if (!item.name) {
+        return;
+      }
+
+      commands[item.name](
+        typeof item.attrs === "function" ? item.attrs(state) : item.attrs
+      );
+    };
+
+    return item.children?.map((child) => ({
+      type: "button",
+      title: child.label,
+      icon: child.icon,
+      selected: child.active ? child.active(state) : false,
+      onClick: handleClick(child),
+    }));
+  }, [item.children, commands, state]);
+
+  return (
+    <>
+      <MenuButton {...menu}>
+        {(props) => (
+          <ToolbarButton {...props} hovering={menu.visible}>
+            {item.label && <Label>{item.label}</Label>}
+            <Arrow />
+          </ToolbarButton>
+        )}
+      </MenuButton>
+      <ContextMenu aria-label={item.label} {...menu}>
+        <Template {...menu} items={items} />
+      </ContextMenu>
+    </>
+  );
+}
+
+function ToolbarMenu(props: Props) {
   const { commands, view } = useEditor();
   const { items } = props;
   const { state } = view;
@@ -33,10 +75,9 @@ function ToolbarMenu(props: Props) {
       return;
     }
 
-    const attrs =
-      typeof item.attrs === "function" ? item.attrs(state) : item.attrs;
-
-    commands[item.name](attrs);
+    commands[item.name](
+      typeof item.attrs === "function" ? item.attrs(state) : item.attrs
+    );
   };
 
   return (
@@ -56,28 +97,7 @@ function ToolbarMenu(props: Props) {
             key={index}
           >
             {item.children ? (
-              <>
-                <MenuButton {...menu}>
-                  {(props) => (
-                    <ToolbarButton {...props} active={isActive}>
-                      {item.label && <Label>{item.label}</Label>}
-                      <Arrow />
-                    </ToolbarButton>
-                  )}
-                </MenuButton>
-                <ContextMenu {...menu}>
-                  <Template
-                    {...menu}
-                    items={item.children.map((child) => ({
-                      type: "button",
-                      title: child.label,
-                      icon: child.icon,
-                      selected: child.active ? child.active(state) : false,
-                      onClick: handleClick(child),
-                    }))}
-                  />
-                </ContextMenu>
-              </>
+              <ToolbarDropdown item={item} />
             ) : (
               <ToolbarButton onClick={handleClick(item)} active={isActive}>
                 {item.label && <Label>{item.label}</Label>}
@@ -93,6 +113,7 @@ function ToolbarMenu(props: Props) {
 
 const Arrow = styled(ExpandedIcon)`
   margin-right: -4px;
+  color: ${s("textSecondary")};
 `;
 
 const Label = styled.span`

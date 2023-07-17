@@ -16,7 +16,6 @@ export default function codeMenuItems(
       name: "copyToClipboard",
       icon: <CopyIcon />,
       tooltip: dictionary.copy,
-      active: () => false,
     },
     {
       name: "separator",
@@ -33,7 +32,6 @@ export default function codeMenuItems(
           language: value,
         },
       })),
-      active: () => false,
     },
   ];
 }

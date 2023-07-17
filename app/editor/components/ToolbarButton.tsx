@@ -2,7 +2,11 @@ import { transparentize } from "polished";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 
-type Props = { active?: boolean; disabled?: boolean };
+type Props = {
+  active?: boolean;
+  disabled?: boolean;
+  hovering?: boolean;
+};
 
 export default styled.button.attrs((props) => ({
   type: props.type || "button",
@@ -29,6 +33,12 @@ export default styled.button.attrs((props) => ({
   &:hover {
     opacity: 1;
   }
+
+  ${(props) =>
+    props.hovering &&
+    css`
+      opacity: 1;
+    `};
 
   &:disabled {
     opacity: 0.3;
