@@ -1,13 +1,20 @@
+import { differenceInMinutes } from "date-fns";
 import { transparentize } from "polished";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
-import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import { isExternalUrl } from "@shared/utils/urls";
-import HoverPreviewDocument from "~/components/HoverPreviewDocument";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
+import useRequest from "~/hooks/useRequest";
+import useStores from "~/hooks/useStores";
 import { fadeAndSlideDown } from "~/styles/animations";
+import { client } from "~/utils/ApiClient";
+import LoadingIndicator from "./LoadingIndicator";
+import Text from "./Text";
+import Time from "./Time";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;
@@ -21,14 +28,104 @@ type Props = {
   onClose: () => void;
 };
 
-function HoverPreviewInternal({ element, id, onClose }: Props) {
-  const slug = parseDocumentSlug(element.href);
+function Info({ data }: any) {
+  const { t } = useTranslation();
+  const currentUser = useCurrentUser();
+
+  if (data.type === "mention") {
+    if (
+      data.meta.lastViewedAt &&
+      differenceInMinutes(new Date(), new Date(data.meta.lastViewedAt)) < 5
+    ) {
+      return (
+        <Text type="tertiary" size="xsmall">
+          {t("Currently viewing")}
+        </Text>
+      );
+    }
+
+    if (differenceInMinutes(new Date(), new Date(data.meta.lastActiveAt)) < 5) {
+      return (
+        <Text type="tertiary" size="xsmall">
+          {t("Online now")} •&nbsp;
+          {data.meta.lastViewedAt ? (
+            <>
+              {t("Last viewed")}{" "}
+              <Time dateTime={data.meta.lastViewedAt} addSuffix shorten />
+            </>
+          ) : (
+            t("Never viewed")
+          )}
+        </Text>
+      );
+    }
+
+    return (
+      <Text type="tertiary" size="xsmall">
+        {t("Online")}{" "}
+        <Time dateTime={data.meta.lastActiveAt} addSuffix shorten /> •&nbsp;
+        {data.meta.lastViewedAt ? (
+          <>
+            {t("Last viewed")}{" "}
+            <Time dateTime={data.meta.lastViewedAt} addSuffix shorten />
+          </>
+        ) : (
+          t("Never viewed")
+        )}
+      </Text>
+    );
+  }
+
+  return (
+    <Text type="tertiary" size="xsmall">
+      {data.meta.updatedAt === data.meta.createdAt ? (
+        <>
+          {data.meta.createdBy.id === currentUser.id
+            ? t("You created")
+            : t("{{ username }} created", {
+                username: data.meta.createdBy.name,
+              })}{" "}
+          <Time dateTime={data.meta.createdAt} addSuffix shorten />
+        </>
+      ) : (
+        <>
+          {data.meta.createdBy.id === currentUser.id
+            ? t("You updated")
+            : t("{{ username }} updated", {
+                username: data.meta.updatedBy.name,
+              })}{" "}
+          <Time dateTime={data.meta.updatedAt} addSuffix shorten />
+        </>
+      )}
+    </Text>
+  );
+}
+
+function HoverPreviewInternal({ element, onClose }: Props) {
+  const url = element.href || element.dataset.url;
   const [isVisible, setVisible] = React.useState(false);
   const timerClose = React.useRef<ReturnType<typeof setTimeout>>();
   const timerOpen = React.useRef<ReturnType<typeof setTimeout>>();
   const cardRef = React.useRef<HTMLDivElement>(null);
+  const stores = useStores();
+  const { data, request, loading } = useRequest(
+    React.useCallback(
+      () =>
+        client.post("/urls.unfurl", {
+          url,
+          documentId: stores.ui.activeDocumentId,
+        }),
+      [url, stores.ui.activeDocumentId]
+    )
+  );
 
-  const startCloseTimer = () => {
+  React.useEffect(() => {
+    if (!data && !loading) {
+      void request();
+    }
+  }, [data, loading, request]);
+
+  const startCloseTimer = React.useCallback(() => {
     stopOpenTimer();
     timerClose.current = setTimeout(() => {
       if (isVisible) {
@@ -36,7 +133,7 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
       }
       onClose();
     }, DELAY_CLOSE);
-  };
+  }, [isVisible, onClose]);
 
   const stopCloseTimer = () => {
     if (timerClose.current) {
@@ -81,11 +178,9 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
         cardRef.current.removeEventListener("mouseleave", startCloseTimer);
       }
 
-      if (timerClose.current) {
-        clearTimeout(timerClose.current);
-      }
+      stopCloseTimer();
     };
-  }, [element, slug]);
+  }, [element, startCloseTimer, url]);
 
   const anchorBounds = element.getBoundingClientRect();
   const cardBounds = cardRef.current?.getBoundingClientRect();
@@ -94,7 +189,9 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
     : anchorBounds.left;
   const leftOffset = anchorBounds.left - left;
 
-  return (
+  return !data || loading ? (
+    <LoadingIndicator />
+  ) : (
     <Portal>
       <Position
         top={anchorBounds.bottom + window.scrollY}
@@ -102,19 +199,20 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
         aria-hidden
       >
         <div ref={cardRef}>
-          <HoverPreviewDocument url={element.href} id={id}>
-            {(content: React.ReactNode) =>
-              isVisible ? (
-                <Animate>
-                  <Card>
-                    <Margin />
-                    <CardContent>{content}</CardContent>
-                  </Card>
-                  <Pointer offset={leftOffset + anchorBounds.width / 2} />
-                </Animate>
-              ) : null
-            }
-          </HoverPreviewDocument>
+          {isVisible ? (
+            <Animate>
+              <Card>
+                <Margin />
+                <CardContent>
+                  <Content to={data.type !== "mention" ? data.url : undefined}>
+                    <Heading>{data.title}</Heading>
+                    <Info data={data} />
+                  </Content>
+                </CardContent>
+              </Card>
+              <Pointer offset={leftOffset + anchorBounds.width / 2} />
+            </Animate>
+          ) : null}
         </div>
       </Position>
     </Portal>
@@ -124,11 +222,6 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
 function HoverPreview({ element, ...rest }: Props) {
   const isMobile = useMobile();
   if (isMobile) {
-    return null;
-  }
-
-  // previews only work for internal doc links for now
-  if (isExternalUrl(element.href)) {
     return null;
   }
 
@@ -236,6 +329,15 @@ const Pointer = styled.div<{ offset: number }>`
     border: 7px solid transparent;
     border-bottom-color: ${s("background")};
   }
+`;
+
+const Content = styled(Link)`
+  cursor: var(--pointer);
+`;
+
+const Heading = styled.h2`
+  margin: 0 0 0.75em;
+  color: ${s("text")};
 `;
 
 export default HoverPreview;
