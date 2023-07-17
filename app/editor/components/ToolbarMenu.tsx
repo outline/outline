@@ -23,6 +23,9 @@ const FlexibleWrapper = styled.div`
   gap: 8px;
 `;
 
+/*
+ * Renders a dropdown menu in the floating toolbar.
+ */
 function ToolbarDropdown(props: { item: MenuItem }) {
   const menu = useMenuState();
   const { commands, view } = useEditor();

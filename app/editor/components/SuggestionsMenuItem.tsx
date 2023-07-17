@@ -1,7 +1,6 @@
 import * as React from "react";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
-import { s } from "@shared/styles";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import { usePortalContext } from "~/components/Portal";
 
@@ -54,7 +53,8 @@ function SuggestionsMenuItem({
 }
 
 const Shortcut = styled.span<{ $active?: boolean }>`
-  color: ${(props) => (props.$active ? s("white50") : s("textTertiary"))};
+  color: ${(props) =>
+    props.$active ? props.theme.white50 : props.theme.textTertiary};
   flex-grow: 1;
   text-align: right;
 `;
