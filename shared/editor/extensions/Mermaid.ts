@@ -7,6 +7,7 @@ import {
 } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
+import { isCode } from "../lib/isCode";
 import { findBlockNodes } from "../queries/findChildren";
 
 type MermaidState = {
@@ -205,6 +206,60 @@ export default function Mermaid({
                 .scrollIntoView()
             );
             return true;
+          }
+
+          return false;
+        },
+        keydown: (view, event) => {
+          switch (event.key) {
+            case "ArrowDown": {
+              const { selection } = view.state;
+              const $pos = view.state.doc.resolve(selection.from + 1);
+              const nextBlock = $pos.nodeAfter;
+
+              if (
+                nextBlock &&
+                isCode(nextBlock) &&
+                nextBlock.attrs.language === "mermaidjs"
+              ) {
+                view.dispatch(
+                  view.state.tr
+                    .setSelection(
+                      TextSelection.near(
+                        view.state.doc.resolve(selection.to + 1)
+                      )
+                    )
+                    .scrollIntoView()
+                );
+                event.preventDefault();
+                return true;
+              }
+              return false;
+            }
+            case "ArrowUp": {
+              const { selection } = view.state;
+              const $pos = view.state.doc.resolve(selection.from - 1);
+              const prevBlock = $pos.nodeBefore;
+
+              if (
+                prevBlock &&
+                isCode(prevBlock) &&
+                prevBlock.attrs.language === "mermaidjs"
+              ) {
+                view.dispatch(
+                  view.state.tr
+                    .setSelection(
+                      TextSelection.near(
+                        view.state.doc.resolve(selection.from - 2)
+                      )
+                    )
+                    .scrollIntoView()
+                );
+                event.preventDefault();
+                return true;
+              }
+              return false;
+            }
           }
 
           return false;
