@@ -7,6 +7,7 @@ import { MenuItem } from "@shared/editor/types";
 import { s } from "@shared/styles";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
+import { MenuItem as TMenuItem } from "~/types";
 import { useEditor } from "./EditorContext";
 import ToolbarButton from "./ToolbarButton";
 import ToolbarSeparator from "./ToolbarSeparator";
@@ -28,7 +29,7 @@ function ToolbarDropdown(props: { item: MenuItem }) {
   const { item } = props;
   const { state } = view;
 
-  const items = React.useMemo(() => {
+  const items: TMenuItem[] = React.useMemo(() => {
     const handleClick = (item: MenuItem) => () => {
       if (!item.name) {
         return;
@@ -39,13 +40,15 @@ function ToolbarDropdown(props: { item: MenuItem }) {
       );
     };
 
-    return item.children?.map((child) => ({
-      type: "button",
-      title: child.label,
-      icon: child.icon,
-      selected: child.active ? child.active(state) : false,
-      onClick: handleClick(child),
-    }));
+    return item.children
+      ? item.children.map((child) => ({
+          type: "button",
+          title: child.label,
+          icon: child.icon,
+          selected: child.active ? child.active(state) : false,
+          onClick: handleClick(child),
+        }))
+      : [];
   }, [item.children, commands, state]);
 
   return (
