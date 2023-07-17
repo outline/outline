@@ -81,6 +81,9 @@ export default class AuthStore {
   @observable
   isSaving = false;
 
+  @observable
+  isFetching = true;
+
   /* Whether the user is currently suspended. */
   @observable
   isSuspended = false;
@@ -178,6 +181,8 @@ export default class AuthStore {
 
   @action
   fetch = async () => {
+    this.isFetching = true;
+
     try {
       const res = await client.post("/auth.info", undefined, {
         credentials: "same-origin",
@@ -234,6 +239,8 @@ export default class AuthStore {
         this.isSuspended = true;
         this.suspendedContactEmail = err.data.adminEmail;
       }
+    } finally {
+      this.isFetching = false;
     }
   };
 

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Redirect } from "react-router-dom";
 import useStores from "~/hooks/useStores";
 import { changeLanguage } from "~/utils/language";
+import LoadingIndicator from "./LoadingIndicator";
 
 type Props = {
   children: JSX.Element;
@@ -22,6 +23,10 @@ const Authenticated = ({ children }: Props) => {
 
   if (auth.authenticated) {
     return children;
+  }
+
+  if (auth.isFetching) {
+    return <LoadingIndicator />;
   }
 
   void auth.logout(true);
