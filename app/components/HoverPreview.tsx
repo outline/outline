@@ -6,6 +6,7 @@ import { Portal } from "react-portal";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
+import Editor from "~/components/Editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import useRequest from "~/hooks/useRequest";
@@ -77,27 +78,37 @@ function Info({ data }: any) {
   }
 
   return (
-    <Text type="tertiary" size="xsmall">
-      {data.meta.updatedAt === data.meta.createdAt ? (
-        <>
-          {data.meta.createdBy.id === currentUser.id
-            ? t("You created")
-            : t("{{ username }} created", {
-                username: data.meta.createdBy.name,
-              })}{" "}
-          <Time dateTime={data.meta.createdAt} addSuffix shorten />
-        </>
-      ) : (
-        <>
-          {data.meta.createdBy.id === currentUser.id
-            ? t("You updated")
-            : t("{{ username }} updated", {
-                username: data.meta.updatedBy.name,
-              })}{" "}
-          <Time dateTime={data.meta.updatedAt} addSuffix shorten />
-        </>
-      )}
-    </Text>
+    <>
+      <Text type="tertiary" size="xsmall">
+        {data.meta.updatedAt === data.meta.createdAt ? (
+          <>
+            {data.meta.createdBy.id === currentUser.id
+              ? t("You created")
+              : t("{{ username }} created", {
+                  username: data.meta.createdBy.name,
+                })}{" "}
+            <Time dateTime={data.meta.createdAt} addSuffix shorten />
+          </>
+        ) : (
+          <>
+            {data.meta.createdBy.id === currentUser.id
+              ? t("You updated")
+              : t("{{ username }} updated", {
+                  username: data.meta.updatedBy.name,
+                })}{" "}
+            <Time dateTime={data.meta.updatedAt} addSuffix shorten />
+          </>
+        )}
+      </Text>
+      <React.Suspense fallback={<div />}>
+        <Editor
+          key={data.meta.id}
+          defaultValue={data.meta.summary}
+          embedsDisabled
+          readOnly
+        />
+      </React.Suspense>
+    </>
   );
 }
 
@@ -204,7 +215,9 @@ function HoverPreviewInternal({ element, onClose }: Props) {
               <Card>
                 <Margin />
                 <CardContent>
-                  <Content to={data.type !== "mention" ? data.url : undefined}>
+                  <Content
+                    to={data.type !== "mention" ? data.meta.url : undefined}
+                  >
                     <Heading>{data.title}</Heading>
                     <Info data={data} />
                   </Content>

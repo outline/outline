@@ -75,6 +75,8 @@ router.post(
         createdAt: document.createdAt,
         updatedBy: document.updatedBy,
         createdBy: document.createdBy,
+        summary: document.text.trim().split("\n").slice(0, 4).join("\n"),
+        url: document.url,
       },
     };
   }
