@@ -7,7 +7,6 @@ import { MenuItem } from "@shared/editor/types";
 import { s } from "@shared/styles";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
-import EventBoundary from "~/components/EventBoundary";
 import { useEditor } from "./EditorContext";
 import ToolbarButton from "./ToolbarButton";
 import ToolbarSeparator from "./ToolbarSeparator";
@@ -18,7 +17,7 @@ type Props = {
 };
 
 const FlexibleWrapper = styled.div`
-  color: ${s("toolbarItem")};
+  color: ${s("textSecondary")};
   display: flex;
   gap: 8px;
 `;
@@ -57,7 +56,7 @@ function ToolbarMenu(props: Props) {
             key={index}
           >
             {item.children ? (
-              <EventBoundary>
+              <>
                 <MenuButton {...menu}>
                   {(props) => (
                     <ToolbarButton {...props} active={isActive}>
@@ -78,7 +77,7 @@ function ToolbarMenu(props: Props) {
                     }))}
                   />
                 </ContextMenu>
-              </EventBoundary>
+              </>
             ) : (
               <ToolbarButton onClick={handleClick(item)} active={isActive}>
                 {item.label && <Label>{item.label}</Label>}

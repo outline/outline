@@ -5,6 +5,7 @@ import { mergeRefs } from "react-merge-refs";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import MenuIconWrapper from "../MenuIconWrapper";
 
 type Props = {
@@ -115,7 +116,7 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
   min-height: 32px;
   background: none;
   color: ${(props) =>
-    props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
+    props.disabled ? s("textTertiary") : s("textSecondary")};
   justify-content: left;
   align-items: center;
   font-size: 16px;
@@ -143,13 +144,13 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
     &:hover,
     &:focus,
     &.focus-visible {
-      color: ${props.theme.accentText};
-      background: ${props.dangerous ? props.theme.danger : props.theme.accent};
+      color: ${s("accentText")};
+      background: ${props.dangerous ? s("danger") : s("accent")};
       box-shadow: none;
       cursor: var(--pointer);
 
       svg {
-        fill: ${props.theme.accentText};
+        fill: ${s("accentText")};
       }
     }
   }
@@ -159,13 +160,13 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
     props.$active &&
     !props.disabled &&
     `
-      color: ${props.theme.accentText};
-      background: ${props.dangerous ? props.theme.danger : props.theme.accent};
+      color: ${s("accentText")};
+      background: ${props.dangerous ? s("danger") : s("accent")};
       box-shadow: none;
       cursor: var(--pointer);
 
       svg {
-        fill: ${props.theme.accentText};
+        fill: ${s("accentText")};
       }
     `}
 
