@@ -215,7 +215,7 @@ export default function SelectionToolbar(props: Props) {
   let items: MenuItem[] = [];
 
   if (isCodeSelection) {
-    items = getCodeMenuItems(state, dictionary);
+    items = getCodeMenuItems(state, readOnly, dictionary);
   } else if (isTableSelection) {
     items = getTableMenuItems(dictionary);
   } else if (colIndex !== undefined) {
