@@ -38,6 +38,8 @@ export const LANGUAGES = {
   ruby: "Ruby",
   rust: "Rust",
   scala: "Scala",
+  sass: "Sass",
+  scss: "SCSS",
   sql: "SQL",
   solidity: "Solidity",
   swift: "Swift",
