@@ -1,9 +1,10 @@
 import { NodeType } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
+import { Primitive } from "utility-types";
 import { findParentNode } from "./findParentNode";
 
 const isNodeActive =
-  (type: NodeType, attrs: Record<string, any> = {}) =>
+  (type: NodeType, attrs: Record<string, Primitive> = {}) =>
   (state: EditorState) => {
     if (!type) {
       return false;

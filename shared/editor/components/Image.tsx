@@ -302,8 +302,8 @@ const ResizeLeft = styled.div<{ $dragging: boolean }>`
     height: 15%;
     min-height: 20px;
     border-radius: 4px;
-    background: ${s("toolbarBackground")};
-    box-shadow: 0 0 0 1px ${s("toolbarItem")};
+    background: ${s("menuBackground")};
+    box-shadow: 0 0 0 1px ${s("textSecondary")};
     opacity: 0.75;
   }
 `;

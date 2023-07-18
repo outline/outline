@@ -3,8 +3,8 @@ import { s } from "@shared/styles";
 
 const Input = styled.input`
   font-size: 15px;
-  background: ${s("toolbarInput")};
-  color: ${s("toolbarItem")};
+  background: ${s("inputBorder")};
+  color: ${s("text")};
   border-radius: 2px;
   padding: 3px 8px;
   border: 0;

@@ -1,5 +1,5 @@
 /* eslint-disable no-irregular-whitespace */
-import { darken, lighten, transparentize } from "polished";
+import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css } from "styled-components";
 
 export type Props = {
@@ -1033,106 +1033,25 @@ mark {
   height: 16px;
 }
 
-.code-actions,
-.notice-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  position: absolute;
-  z-index: 1;
-  top: 8px;
-  right: 8px;
-}
-
-.notice-actions {
-  ${props.rtl ? "left" : "right"}: 8px;
-}
-
-.code-block,
-.notice-block {
+.code-block {
   position: relative;
+}
 
-  select,
-  button {
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: ${props.theme.buttonNeutralBackground};
-    color: ${props.theme.buttonNeutralText};
-    box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${
-      props.theme.buttonNeutralBorder
-    } 0 0 0 1px inset;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 500;
-    text-decoration: none;
-    flex-shrink: 0;
-    cursor: var(--pointer);
-    user-select: none;
-    appearance: none !important;
-    padding: 6px 8px;
-    display: none;
-
-    &::-moz-focus-inner {
-      padding: 0;
-      border: 0;
-    }
-
-    &:hover:not(:disabled) {
-      background-color: ${darken(0.05, props.theme.buttonNeutralBackground)};
-      box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${
-        props.theme.buttonNeutralBorder
-      } 0 0 0 1px inset;
-    }
+.code-block[data-language=mermaidjs] {
+  pre {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: -12px;
+    overflow: hidden;
   }
 
-  select {
-    background-image: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" clip-rule="evenodd" d="M9.03087 9C8.20119 9 7.73238 9.95209 8.23824 10.6097L11.2074 14.4696C11.6077 14.99 12.3923 14.99 12.7926 14.4696L15.7618 10.6097C16.2676 9.95209 15.7988 9 14.9691 9L9.03087 9Z" fill="currentColor"/> </svg>');
-    background-repeat: no-repeat;
-    background-position: center right;
-    padding-right: 20px;
-  }
-
-  &:focus-within,
-  &:hover {
-    select {
-      display: ${props.readOnly ? "none" : "inline"};
-    }
-
-    button {
-      display: inline;
-    }
-  }
-
-  select:focus,
-  select:active,
-  button:focus,
-  button:active {
-    display: inline;
-  }
-
-  button.show-source-button {
+  &:not(.code-active) {
     display: none;
   }
-  button.show-diagram-button {
-    display: inline;
-  }
+}
 
-  &.code-hidden {
-    button,
-    select,
-    button.show-diagram-button {
-      display: none;
-    }
-
-    button.show-source-button {
-      display: inline;
-    }
-
-    pre {
-      display: none;
-    }
-  }
+.ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
+  display: none;
 }
 
 .code-block.with-line-numbers {
@@ -1144,7 +1063,7 @@ mark {
     content: attr(data-line-numbers);
     position: absolute;
     padding-left: 1em;
-    left: 0;
+    left: 1px;
     top: calc(1px + 0.75em);
     width: calc(var(--line-number-gutter-width,0) * 1em + .25em);
     word-break: break-all;
@@ -1175,8 +1094,9 @@ mark {
     font-family: ${props.theme.fontFamily};
   }
 
-  &.diagram-hidden {
-    display: none;
+  &.parse-error {
+    font-size: 14px;
+    color: ${props.theme.brand.red};
   }
 }
 

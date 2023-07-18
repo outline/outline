@@ -149,7 +149,7 @@ const ContextMenu: React.FC<Props> = ({
                   style={
                     maxHeight && topAnchor
                       ? {
-                          maxHeight,
+                          maxHeight: `min(${maxHeight}px, 75vh)`,
                         }
                       : undefined
                   }

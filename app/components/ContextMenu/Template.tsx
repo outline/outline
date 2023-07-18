@@ -135,6 +135,7 @@ function Template({ items, actions, context, ...menu }: Props) {
           return (
             <MenuItem
               as={Link}
+              id={`${item.title}-${index}`}
               to={item.to}
               key={index}
               disabled={item.disabled}
@@ -150,6 +151,7 @@ function Template({ items, actions, context, ...menu }: Props) {
         if (item.type === "link") {
           return (
             <MenuItem
+              id={`${item.title}-${index}`}
               href={item.href}
               key={index}
               disabled={item.disabled}
@@ -168,6 +170,7 @@ function Template({ items, actions, context, ...menu }: Props) {
           return (
             <MenuItem
               as="button"
+              id={`${item.title}-${index}`}
               onClick={item.onClick}
               disabled={item.disabled}
               selected={item.selected}
@@ -186,6 +189,7 @@ function Template({ items, actions, context, ...menu }: Props) {
             <BaseMenuItem
               key={index}
               as={SubMenu}
+              id={`${item.title}-${index}`}
               templateItems={item.items}
               parentMenuState={menu}
               title={<Title title={item.title} icon={item.icon} />}

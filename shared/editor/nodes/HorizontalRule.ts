@@ -2,6 +2,7 @@ import Token from "markdown-it/lib/token";
 import { InputRule } from "prosemirror-inputrules";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command } from "prosemirror-state";
+import { Primitive } from "utility-types";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
 
@@ -27,7 +28,7 @@ export default class HorizontalRule extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, any>): Command =>
+    return (attrs: Record<string, Primitive>): Command =>
       (state, dispatch) => {
         dispatch?.(
           state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
