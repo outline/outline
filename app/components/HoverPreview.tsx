@@ -119,7 +119,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   const timerOpen = React.useRef<ReturnType<typeof setTimeout>>();
   const cardRef = React.useRef<HTMLDivElement>(null);
   const stores = useStores();
-  const { data, request, loading, cleanup } = useRequest(() =>
+  const { data, request, loading } = useRequest(() =>
     client.post("/urls.unfurl", {
       url,
       documentId: stores.ui.activeDocumentId,
@@ -127,12 +127,10 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   );
 
   React.useEffect(() => {
-    if (!data && !loading) {
+    if ((!data && !loading) || (data && data.url !== url && !loading)) {
       void request();
     }
-
-    return () => cleanup();
-  }, [data, loading, request, cleanup]);
+  }, [data, loading, request, url]);
 
   const startCloseTimer = React.useCallback(() => {
     stopOpenTimer();

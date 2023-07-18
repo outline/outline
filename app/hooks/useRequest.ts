@@ -9,8 +9,6 @@ type RequestResponse<T> = {
   loading: boolean;
   /** Function to start the request. */
   request: () => Promise<T | undefined>;
-  /** Cleanup function, to be invoked upon unmount */
-  cleanup: () => void;
 };
 
 /**
@@ -41,13 +39,5 @@ export default function useRequest<T = unknown>(
     return undefined;
   }, [requestFn]);
 
-  const cleanup = React.useCallback(() => {
-    if ((data || error) && !loading) {
-      setData(undefined);
-      setLoading(false);
-      setError(undefined);
-    }
-  }, [data, loading, error]);
-
-  return { data, loading, error, request, cleanup };
+  return { data, loading, error, request };
 }
