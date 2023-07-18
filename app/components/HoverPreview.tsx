@@ -203,7 +203,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   ) : (
     <Portal>
       <Position
-        top={anchorBounds.bottom + window.scrollY}
+        top={anchorBounds.bottom + window.scrollY + 1}
         left={left}
         aria-hidden
       >
