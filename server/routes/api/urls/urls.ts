@@ -52,6 +52,7 @@ router.post(
           id: mentionedUser.id,
           lastActiveAt: mentionedUser.lastActiveAt,
           lastViewedAt: lastView ? lastView.updatedAt : undefined,
+          url: "",
         },
       };
 

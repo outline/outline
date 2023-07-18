@@ -215,9 +215,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
               <Card>
                 <Margin />
                 <CardContent>
-                  <Content
-                    to={data.type !== "mention" ? data.meta.url : undefined}
-                  >
+                  <Content to={data.meta.url}>
                     <Heading>{data.title}</Heading>
                     <Info data={data} />
                   </Content>
@@ -346,6 +344,7 @@ const Pointer = styled.div<{ offset: number }>`
 
 const Content = styled(Link)`
   cursor: var(--pointer);
+  ${(props) => (!props.to ? "pointer-events: none" : "")}
 `;
 
 const Heading = styled.h2`
