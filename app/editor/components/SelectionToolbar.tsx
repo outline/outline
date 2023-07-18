@@ -49,8 +49,9 @@ function useIsActive(state: EditorState) {
     return true;
   }
   if (
-    isNodeActive(state.schema.nodes.code_block)(state) ||
-    isNodeActive(state.schema.nodes.code_fence)(state)
+    (isNodeActive(state.schema.nodes.code_block)(state) ||
+      isNodeActive(state.schema.nodes.code_fence)(state)) &&
+    selection.from > 0
   ) {
     return true;
   }
