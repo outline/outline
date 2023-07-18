@@ -127,7 +127,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   );
 
   React.useEffect(() => {
-    if ((!data && !loading) || (data && data.url !== url && !loading)) {
+    if ((!data || (data && data.url !== url)) && !loading) {
       void request();
     }
   }, [data, loading, request, url]);
@@ -159,19 +159,22 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   };
 
   React.useEffect(() => {
-    startOpenTimer();
+    if (data && !loading) {
+      startOpenTimer();
 
-    if (cardRef.current) {
-      cardRef.current.addEventListener("mouseenter", stopCloseTimer);
+      if (cardRef.current) {
+        cardRef.current.addEventListener("mouseenter", stopCloseTimer);
+      }
+
+      if (cardRef.current) {
+        cardRef.current.addEventListener("mouseleave", startCloseTimer);
+      }
+
+      element.addEventListener("mouseout", startCloseTimer);
+      element.addEventListener("mouseover", stopCloseTimer);
+      element.addEventListener("mouseover", startOpenTimer);
     }
 
-    if (cardRef.current) {
-      cardRef.current.addEventListener("mouseleave", startCloseTimer);
-    }
-
-    element.addEventListener("mouseout", startCloseTimer);
-    element.addEventListener("mouseover", stopCloseTimer);
-    element.addEventListener("mouseover", startOpenTimer);
     return () => {
       element.removeEventListener("mouseout", startCloseTimer);
       element.removeEventListener("mouseover", stopCloseTimer);
@@ -187,7 +190,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
 
       stopCloseTimer();
     };
-  }, [element, startCloseTimer, url]);
+  }, [element, startCloseTimer, data, loading]);
 
   const anchorBounds = element.getBoundingClientRect();
   const cardBounds = cardRef.current?.getBoundingClientRect();
