@@ -110,8 +110,6 @@ export default function Mermaid({
   name: string;
   isDark: boolean;
 }) {
-  let diagramShown = false;
-
   return new Plugin({
     key: new PluginKey("mermaid"),
     state: {
@@ -133,23 +131,15 @@ export default function Mermaid({
         const codeBlockChanged =
           transaction.docChanged && [nodeName, previousNodeName].includes(name);
         const ySyncEdit = !!transaction.getMeta("y-sync$");
-        const mermaidMeta = transaction.getMeta("mermaid");
         const themeMeta = transaction.getMeta("theme");
-        const diagramToggled = mermaidMeta?.toggleDiagram !== undefined;
+        const mermaidMeta = transaction.getMeta("mermaid");
         const themeToggled = themeMeta?.isDark !== undefined;
 
         if (themeToggled) {
           pluginState.isDark = themeMeta.isDark;
         }
 
-        if (
-          !diagramShown ||
-          themeToggled ||
-          codeBlockChanged ||
-          diagramToggled ||
-          ySyncEdit
-        ) {
-          diagramShown = true;
+        if (mermaidMeta || themeToggled || codeBlockChanged || ySyncEdit) {
           return getNewState({
             doc: transaction.doc,
             name,
@@ -167,16 +157,7 @@ export default function Mermaid({
       },
     },
     view: (view) => {
-      if (!diagramShown) {
-        // we don't draw diagrams on code blocks on the first render as part of mounting
-        // as it's expensive (relative to the rest of the document). Instead let
-        // it render without a diagram and then trigger a defered render of Mermaid
-        // by updating the plugins metadata
-        setTimeout(() => {
-          view.dispatch(view.state.tr.setMeta("mermaid", { loaded: true }));
-        }, 0);
-      }
-
+      view.dispatch(view.state.tr.setMeta("mermaid", { loaded: true }));
       return {};
     },
     props: {
