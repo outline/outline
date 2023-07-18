@@ -131,10 +131,10 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   );
 
   React.useEffect(() => {
-    if (!data && !loading) {
+    if ((!data && !loading) || (data && data.url !== url && !loading)) {
       void request();
     }
-  }, [data, loading, request]);
+  }, [data, loading, request, url]);
 
   const startCloseTimer = React.useCallback(() => {
     stopOpenTimer();
