@@ -117,7 +117,7 @@
     "jsonwebtoken": "^9.0.0",
     "jszip": "^3.10.1",
     "katex": "^0.16.7",
-    "kbar": "0.1.0-beta.40",
+    "kbar": "0.1.0-beta.41",
     "koa": "^2.14.2",
     "koa-body": "^6.0.1",
     "koa-compress": "^5.1.0",
