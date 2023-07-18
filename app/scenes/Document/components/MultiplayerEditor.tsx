@@ -106,11 +106,13 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       presence.updateFromAwarenessChangeEvent(documentId, event);
 
       event.states.forEach(({ user, scrollY }) => {
-        if (scrollY !== undefined && user?.id === ui.observingUserId) {
-          window.scrollTo({
-            top: scrollY * window.innerHeight,
-            behavior: "smooth",
-          });
+        if (user) {
+          if (scrollY !== undefined && user.id === ui.observingUserId) {
+            window.scrollTo({
+              top: scrollY * window.innerHeight,
+              behavior: "smooth",
+            });
+          }
         }
       });
     });
