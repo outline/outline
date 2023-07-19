@@ -104,14 +104,16 @@ function Info({ data }: any) {
           </>
         )}
       </Description>
-      <React.Suspense fallback={<div />}>
-        <Summary
-          key={data.meta.id}
-          defaultValue={data.meta.summary}
-          embedsDisabled
-          readOnly
-        />
-      </React.Suspense>
+      <Summary>
+        <React.Suspense fallback={<div />}>
+          <Editor
+            key={data.meta.id}
+            defaultValue={data.meta.summary}
+            embedsDisabled
+            readOnly
+          />
+        </React.Suspense>
+      </Summary>
     </>
   );
 }
@@ -385,7 +387,7 @@ const Description = styled(Text)`
   padding-top: 2px;
 `;
 
-const Summary = styled(Editor)`
+const Summary = styled.div`
   margin-top: 8px;
 `;
 
