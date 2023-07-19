@@ -190,7 +190,6 @@
   "{{ count }} member_plural": "{{ count }} members",
   "Group members": "Group members",
   "Online now": "Online now",
-  "Last viewed": "Last viewed",
   "Online": "Online",
   "{{ username }} created": "{{ username }} created",
   "{{ username }} updated": "{{ username }} updated",

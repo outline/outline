@@ -45,14 +45,14 @@ router.post(
       const lastView = head(orderBy(document.views, ["updatedAt"], ["desc"]));
 
       ctx.body = {
-        url,
+        url: mentionedUser.avatarUrl,
         type: "mention",
         title: mentionedUser.name,
         meta: {
           id: mentionedUser.id,
           lastActiveAt: mentionedUser.lastActiveAt,
           lastViewedAt: lastView ? lastView.updatedAt : undefined,
-          url: "",
+          color: mentionedUser.color,
         },
       };
 
@@ -67,7 +67,7 @@ router.post(
     authorize(user, "read", document);
 
     ctx.body = {
-      url,
+      url: document.url,
       type: "document",
       title: document.titleWithDefault,
       meta: {
@@ -77,7 +77,6 @@ router.post(
         updatedBy: document.updatedBy,
         createdBy: document.createdBy,
         summary: document.text.trim().split("\n").slice(0, 4).join("\n"),
-        url: document.url,
       },
     };
   }

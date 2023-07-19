@@ -9,10 +9,14 @@ import { depths, s } from "@shared/styles";
 import Editor from "~/components/Editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
+import usePrevious from "~/hooks/usePrevious";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { fadeAndSlideDown } from "~/styles/animations";
 import { client } from "~/utils/ApiClient";
+import Avatar from "./Avatar";
+import { AvatarSize } from "./Avatar/Avatar";
+import Flex from "./Flex";
 import LoadingIndicator from "./LoadingIndicator";
 import Text from "./Text";
 import Time from "./Time";
@@ -39,47 +43,47 @@ function Info({ data }: any) {
       differenceInMinutes(new Date(), new Date(data.meta.lastViewedAt)) < 5
     ) {
       return (
-        <Text type="tertiary" size="xsmall">
+        <Description type="tertiary" size="xsmall">
           {t("Currently viewing")}
-        </Text>
+        </Description>
       );
     }
 
     if (differenceInMinutes(new Date(), new Date(data.meta.lastActiveAt)) < 5) {
       return (
-        <Text type="tertiary" size="xsmall">
+        <Description type="tertiary" size="xsmall">
           {t("Online now")} •&nbsp;
           {data.meta.lastViewedAt ? (
             <>
-              {t("Last viewed")}{" "}
+              {t("Viewed")}{" "}
               <Time dateTime={data.meta.lastViewedAt} addSuffix shorten />
             </>
           ) : (
             t("Never viewed")
           )}
-        </Text>
+        </Description>
       );
     }
 
     return (
-      <Text type="tertiary" size="xsmall">
+      <Description type="tertiary" size="xsmall">
         {t("Online")}{" "}
         <Time dateTime={data.meta.lastActiveAt} addSuffix shorten /> •&nbsp;
         {data.meta.lastViewedAt ? (
           <>
-            {t("Last viewed")}{" "}
+            {t("Viewed")}{" "}
             <Time dateTime={data.meta.lastViewedAt} addSuffix shorten />
           </>
         ) : (
           t("Never viewed")
         )}
-      </Text>
+      </Description>
     );
   }
 
   return (
     <>
-      <Text type="tertiary" size="xsmall">
+      <Description type="tertiary" size="xsmall">
         {data.meta.updatedAt === data.meta.createdAt ? (
           <>
             {data.meta.createdBy.id === currentUser.id
@@ -99,9 +103,9 @@ function Info({ data }: any) {
             <Time dateTime={data.meta.updatedAt} addSuffix shorten />
           </>
         )}
-      </Text>
+      </Description>
       <React.Suspense fallback={<div />}>
-        <Editor
+        <Summary
           key={data.meta.id}
           defaultValue={data.meta.summary}
           embedsDisabled
@@ -125,12 +129,14 @@ function HoverPreviewInternal({ element, onClose }: Props) {
       documentId: stores.ui.activeDocumentId,
     })
   );
+  const prevUrl = usePrevious(url);
+  const urlChanged = url !== prevUrl;
 
   React.useEffect(() => {
-    if ((!data || (data && data.url !== url)) && !loading) {
+    if (urlChanged) {
       void request();
     }
-  }, [data, loading, request, url]);
+  }, [urlChanged, request]);
 
   const startCloseTimer = React.useCallback(() => {
     stopOpenTimer();
@@ -214,10 +220,31 @@ function HoverPreviewInternal({ element, onClose }: Props) {
               <Card>
                 <Margin />
                 <CardContent>
-                  <Content to={data.meta.url}>
-                    <Heading>{data.title}</Heading>
-                    <Info data={data} />
-                  </Content>
+                  {data.type === "mention" ? (
+                    <Content to="">
+                      <Flex gap={12}>
+                        <Avatar
+                          model={{
+                            avatarUrl: data.url,
+                            initial: data.title ? data.title[0] : "?",
+                            color: data.meta.color,
+                          }}
+                          size={AvatarSize.XLarge}
+                        />
+                        <Flex column>
+                          <Heading>{data.title}</Heading>
+                          <Info data={data} />
+                        </Flex>
+                      </Flex>
+                    </Content>
+                  ) : (
+                    <Content to={data.url}>
+                      <Flex column>
+                        <Heading>{data.title}</Heading>
+                        <Info data={data} />
+                      </Flex>
+                    </Content>
+                  )}
                 </CardContent>
               </Card>
               <Pointer offset={leftOffset + anchorBounds.width / 2} />
@@ -343,12 +370,23 @@ const Pointer = styled.div<{ offset: number }>`
 
 const Content = styled(Link)`
   cursor: var(--pointer);
-  ${(props) => (!props.to ? "pointer-events: none" : "")}
+  margin-bottom: 0;
+  ${(props) => (!props.to ? "pointer-events: none;" : "")}
 `;
 
 const Heading = styled.h2`
-  margin: 0 0 0.75em;
+  font-size: 1.25em;
+  margin: 2px 0 0 0;
   color: ${s("text")};
+`;
+
+const Description = styled(Text)`
+  margin-bottom: 0;
+  padding-top: 2px;
+`;
+
+const Summary = styled(Editor)`
+  margin-top: 8px;
 `;
 
 export default HoverPreview;
