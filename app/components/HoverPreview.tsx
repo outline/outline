@@ -1,13 +1,10 @@
-import { differenceInMinutes } from "date-fns";
 import { transparentize } from "polished";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import Editor from "~/components/Editor";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useRequest from "~/hooks/useRequest";
@@ -19,7 +16,6 @@ import { AvatarSize } from "./Avatar/Avatar";
 import Flex from "./Flex";
 import LoadingIndicator from "./LoadingIndicator";
 import Text from "./Text";
-import Time from "./Time";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;
@@ -32,91 +28,6 @@ type Props = {
   /* A callback on close of the hover preview */
   onClose: () => void;
 };
-
-function Info({ data }: any) {
-  const { t } = useTranslation();
-  const currentUser = useCurrentUser();
-
-  if (data.type === "mention") {
-    if (
-      data.meta.lastViewedAt &&
-      differenceInMinutes(new Date(), new Date(data.meta.lastViewedAt)) < 5
-    ) {
-      return (
-        <Description type="tertiary" size="xsmall">
-          {t("Currently viewing")}
-        </Description>
-      );
-    }
-
-    if (differenceInMinutes(new Date(), new Date(data.meta.lastActiveAt)) < 5) {
-      return (
-        <Description type="tertiary" size="xsmall">
-          {t("Online now")} •&nbsp;
-          {data.meta.lastViewedAt ? (
-            <>
-              {t("Viewed")}{" "}
-              <Time dateTime={data.meta.lastViewedAt} addSuffix shorten />
-            </>
-          ) : (
-            t("Never viewed")
-          )}
-        </Description>
-      );
-    }
-
-    return (
-      <Description type="tertiary" size="xsmall">
-        {t("Online")}{" "}
-        <Time dateTime={data.meta.lastActiveAt} addSuffix shorten /> •&nbsp;
-        {data.meta.lastViewedAt ? (
-          <>
-            {t("Viewed")}{" "}
-            <Time dateTime={data.meta.lastViewedAt} addSuffix shorten />
-          </>
-        ) : (
-          t("Never viewed")
-        )}
-      </Description>
-    );
-  }
-
-  return (
-    <>
-      <Description type="tertiary" size="xsmall">
-        {data.meta.updatedAt === data.meta.createdAt ? (
-          <>
-            {data.meta.createdBy.id === currentUser.id
-              ? t("You created")
-              : t("{{ username }} created", {
-                  username: data.meta.createdBy.name,
-                })}{" "}
-            <Time dateTime={data.meta.createdAt} addSuffix shorten />
-          </>
-        ) : (
-          <>
-            {data.meta.createdBy.id === currentUser.id
-              ? t("You updated")
-              : t("{{ username }} updated", {
-                  username: data.meta.updatedBy.name,
-                })}{" "}
-            <Time dateTime={data.meta.updatedAt} addSuffix shorten />
-          </>
-        )}
-      </Description>
-      <Summary>
-        <React.Suspense fallback={<div />}>
-          <Editor
-            key={data.meta.id}
-            defaultValue={data.meta.summary}
-            embedsDisabled
-            readOnly
-          />
-        </React.Suspense>
-      </Summary>
-    </>
-  );
-}
 
 function HoverPreviewInternal({ element, onClose }: Props) {
   const url = element.href || element.dataset.url;
@@ -235,7 +146,9 @@ function HoverPreviewInternal({ element, onClose }: Props) {
                         />
                         <Flex column>
                           <Heading>{data.title}</Heading>
-                          <Info data={data} />
+                          <Description type="tertiary" size="xsmall">
+                            {data.description}
+                          </Description>
                         </Flex>
                       </Flex>
                     </Content>
@@ -243,7 +156,19 @@ function HoverPreviewInternal({ element, onClose }: Props) {
                     <Content to={data.url}>
                       <Flex column>
                         <Heading>{data.title}</Heading>
-                        <Info data={data} />
+                        <Description type="tertiary" size="xsmall">
+                          {data.description}
+                        </Description>
+                        <Summary>
+                          <React.Suspense fallback={<div />}>
+                            <Editor
+                              key={data.meta.id}
+                              defaultValue={data.meta.summary}
+                              embedsDisabled
+                              readOnly
+                            />
+                          </React.Suspense>
+                        </Summary>
                       </Flex>
                     </Content>
                   )}
