@@ -56,7 +56,10 @@ const ContextMenu: React.FC<Props> = ({
   ...rest
 }) => {
   const previousVisible = usePrevious(rest.visible);
-  const maxHeight = useMenuHeight(rest.visible, rest.unstable_disclosureRef);
+  const maxHeight = useMenuHeight({
+    visible: rest.visible,
+    elementRef: rest.unstable_disclosureRef,
+  });
   const backgroundRef = React.useRef<HTMLDivElement>(null);
   const { ui } = useStores();
   const { t } = useTranslation();
@@ -147,9 +150,9 @@ const ContextMenu: React.FC<Props> = ({
                   ref={backgroundRef}
                   hiddenScrollbars
                   style={
-                    maxHeight && topAnchor
+                    topAnchor
                       ? {
-                          maxHeight: `min(${maxHeight}px, 75vh)`,
+                          maxHeight,
                         }
                       : undefined
                   }
