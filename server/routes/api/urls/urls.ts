@@ -52,7 +52,7 @@ router.post(
       const lastActiveAt = mentionedUser.lastActiveAt;
       let description;
       if (lastViewedAt && differenceInMinutes(new Date(), lastViewedAt) < 5) {
-        description = t("Currently viewing", { ...opts(user) });
+        description = t("Viewed just now", { ...opts(user) });
       } else if (
         lastActiveAt &&
         differenceInMinutes(new Date(), lastActiveAt) < 5
