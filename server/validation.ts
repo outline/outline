@@ -2,6 +2,7 @@ import { isArrayLike } from "lodash";
 import { Primitive } from "utility-types";
 import validator from "validator";
 import isUUID from "validator/lib/isUUID";
+import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { isUrl } from "@shared/utils/urls";
 import { CollectionPermission } from "../shared/types";
@@ -199,15 +200,8 @@ export class ValidateURL {
         return false;
       }
 
-      const matches = url.match(
-        /^mention:\/\/([a-z0-9-]+)\/([a-z]+)\/([a-z0-9-]+)$/
-      );
-      if (!matches) {
-        return false;
-      }
-
-      const [id, mentionType, modelId] = matches.slice(1);
-      return isUUID(id) && mentionType === "user" && isUUID(modelId);
+      const { id, mentionType, modelId } = parseMentionUrl(url);
+      return id && isUUID(id) && mentionType === "user" && isUUID(modelId);
     } catch (err) {
       return false;
     }
