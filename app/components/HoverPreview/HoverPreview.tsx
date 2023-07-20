@@ -1,21 +1,17 @@
 import { transparentize } from "polished";
 import * as React from "react";
 import { Portal } from "react-portal";
-import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
-import Editor from "~/components/Editor";
+import LoadingIndicator from "~/components/LoadingIndicator";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { fadeAndSlideDown } from "~/styles/animations";
 import { client } from "~/utils/ApiClient";
-import Avatar from "./Avatar";
-import { AvatarSize } from "./Avatar/Avatar";
-import Flex from "./Flex";
-import LoadingIndicator from "./LoadingIndicator";
-import Text from "./Text";
+import HoverPreviewDocument from "./HoverPreviewDocument";
+import HoverPreviewMention from "./HoverPreviewMention";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;
@@ -29,7 +25,7 @@ type Props = {
   onClose: () => void;
 };
 
-function HoverPreviewInternal({ element, onClose }: Props) {
+function HoverPreviewInternal({ element, id, onClose }: Props) {
   const url = element.href || element.dataset.url;
   const [isVisible, setVisible] = React.useState(false);
   const timerClose = React.useRef<ReturnType<typeof setTimeout>>();
@@ -134,43 +130,20 @@ function HoverPreviewInternal({ element, onClose }: Props) {
                 <Margin />
                 <CardContent>
                   {data.type === "mention" ? (
-                    <Content to="">
-                      <Flex gap={12}>
-                        <Avatar
-                          model={{
-                            avatarUrl: data.thumbnailUrl,
-                            initial: data.title ? data.title[0] : "?",
-                            color: data.meta.color,
-                          }}
-                          size={AvatarSize.XLarge}
-                        />
-                        <Flex column>
-                          <Heading>{data.title}</Heading>
-                          <Description type="tertiary" size="xsmall">
-                            {data.description}
-                          </Description>
-                        </Flex>
-                      </Flex>
-                    </Content>
+                    <HoverPreviewMention
+                      url={data.thumbnailUrl}
+                      title={data.title}
+                      description={data.description}
+                      color={data.meta.color}
+                    />
                   ) : (
-                    <Content to={data.url}>
-                      <Flex column>
-                        <Heading>{data.title}</Heading>
-                        <Description type="tertiary" size="xsmall">
-                          {data.description}
-                        </Description>
-                        <Summary>
-                          <React.Suspense fallback={<div />}>
-                            <Editor
-                              key={data.meta.id}
-                              defaultValue={data.meta.summary}
-                              embedsDisabled
-                              readOnly
-                            />
-                          </React.Suspense>
-                        </Summary>
-                      </Flex>
-                    </Content>
+                    <HoverPreviewDocument
+                      id={id}
+                      url={data.url}
+                      title={data.title}
+                      description={data.description}
+                      summary={data.meta.summary}
+                    />
                   )}
                 </CardContent>
               </Card>
@@ -293,27 +266,6 @@ const Pointer = styled.div<{ offset: number }>`
     border: 7px solid transparent;
     border-bottom-color: ${s("background")};
   }
-`;
-
-const Content = styled(Link)`
-  cursor: var(--pointer);
-  margin-bottom: 0;
-  ${(props) => (!props.to ? "pointer-events: none;" : "")}
-`;
-
-const Heading = styled.h2`
-  font-size: 1.25em;
-  margin: 2px 0 0 0;
-  color: ${s("text")};
-`;
-
-const Description = styled(Text)`
-  margin-bottom: 0;
-  padding-top: 2px;
-`;
-
-const Summary = styled.div`
-  margin-top: 8px;
 `;
 
 export default HoverPreview;
