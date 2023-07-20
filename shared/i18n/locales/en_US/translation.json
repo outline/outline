@@ -899,14 +899,14 @@
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as a https request with a JSON payload in near real-time.": "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as a https request with a JSON payload in near real-time.",
   "Inactive": "Inactive",
   "Create a webhook": "Create a webhook",
-  "You updated {{ someTimeAgo }}": "You updated {{ someTimeAgo }}",
-  "{{ user }} updated {{ someTimeAgo }}": "{{ user }} updated {{ someTimeAgo }}",
-  "You created {{ someTimeAgo }}": "You created {{ someTimeAgo }}",
-  "{{ user }} created {{ someTimeAgo }}": "{{ user }} created {{ someTimeAgo }}",
   "Never logged in": "Never logged in",
   "Online now": "Online now",
   "Online {{ someTimeAgo }}": "Online {{ someTimeAgo }}",
   "Viewed just now": "Viewed just now",
   "Viewed {{ someTimeAgo }}": "Viewed {{ someTimeAgo }}",
+  "You updated {{ someTimeAgo }}": "You updated {{ someTimeAgo }}",
+  "{{ user }} updated {{ someTimeAgo }}": "{{ user }} updated {{ someTimeAgo }}",
+  "You created {{ someTimeAgo }}": "You created {{ someTimeAgo }}",
+  "{{ user }} created {{ someTimeAgo }}": "{{ user }} created {{ someTimeAgo }}",
   "Uploading": "Uploading"
 }

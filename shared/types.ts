@@ -209,5 +209,19 @@ export const NotificationEventDefaults = {
   [NotificationEventType.ExportCompleted]: true,
 };
 
+export enum UnfurlType {
+  Mention = "mention",
+  Document = "document",
+}
+
+export type Unfurl<T = unknown> = {
+  url?: string;
+  type: T;
+  title: string;
+  description: string;
+  thumbnailUrl?: string | null;
+  meta: Record<string, string>;
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ProsemirrorData = Record<string, any>;

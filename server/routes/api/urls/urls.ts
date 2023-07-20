@@ -7,6 +7,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, User } from "@server/models";
 import { authorize } from "@server/policies";
+import { presentDocument, presentMention } from "@server/presenters/unfurls";
 import { APIContext } from "@server/types";
 import * as T from "./schema";
 
@@ -41,22 +42,7 @@ router.post(
       authorize(user, "read", mentionedUser);
       authorize(user, "read", document);
 
-      const lastOnlineInfo = mentionedUser.lastOnlineInfo();
-      const lastViewedInfo = mentionedUser.lastViewedInfoFor(document);
-
-      const description = `${lastOnlineInfo} • ${lastViewedInfo}`;
-
-      ctx.body = {
-        url,
-        type: "mention",
-        title: mentionedUser.name,
-        description,
-        thumbnailUrl: mentionedUser.avatarUrl,
-        meta: {
-          id: mentionedUser.id,
-          color: mentionedUser.color,
-        },
-      };
+      ctx.body = presentMention(mentionedUser, document);
 
       return;
     }
@@ -68,18 +54,7 @@ router.post(
     }
     authorize(user, "read", document);
 
-    const description = document.lastActivityInfo({ viewer: user });
-
-    ctx.body = {
-      url: document.url,
-      type: "document",
-      title: document.titleWithDefault,
-      description,
-      meta: {
-        id: document.id,
-        summary: document.getSummary(),
-      },
-    };
+    ctx.body = presentDocument(document, user);
   }
 );
 

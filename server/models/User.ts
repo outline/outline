@@ -1,15 +1,7 @@
 import crypto from "crypto";
-import {
-  addHours,
-  addMinutes,
-  differenceInMinutes,
-  formatDistanceToNowStrict,
-  subMinutes,
-} from "date-fns";
-import { t } from "i18next";
+import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import { Context } from "koa";
-import { head, orderBy } from "lodash";
 import { Transaction, QueryTypes, SaveOptions, Op } from "sequelize";
 import {
   Table,
@@ -41,10 +33,8 @@ import {
   NotificationEventDefaults,
 } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
-import { dateLocale } from "@shared/utils/date";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
-import { opts } from "@server/utils/i18n";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
@@ -52,7 +42,6 @@ import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import CollectionUser from "./CollectionUser";
-import Document from "./Document";
 import Star from "./Star";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
@@ -424,50 +413,6 @@ class User extends ParanoidModel {
     return this.save({
       hooks: false,
     });
-  };
-
-  lastOnlineInfo = () => {
-    const locale = dateLocale(this.language);
-
-    let info: string;
-    if (!this.lastActiveAt) {
-      info = t("Never logged in", { ...opts(this) });
-    } else if (differenceInMinutes(new Date(), this.lastActiveAt) < 5) {
-      info = t("Online now", { ...opts(this) });
-    } else {
-      info = t("Online {{ someTimeAgo }}", {
-        someTimeAgo: formatDistanceToNowStrict(this.lastActiveAt, {
-          addSuffix: true,
-          locale,
-        }),
-        ...opts(this),
-      });
-    }
-
-    return info;
-  };
-
-  lastViewedInfoFor = (document: Document) => {
-    const lastView = head(orderBy(document.views, ["updatedAt"], ["desc"]));
-    const lastViewedAt = lastView ? lastView.updatedAt : undefined;
-    const locale = dateLocale(this.language);
-
-    let info: string;
-    if (!lastViewedAt) {
-      info = t("Never viewed", { ...opts(this) });
-    } else if (differenceInMinutes(new Date(), lastViewedAt) < 5) {
-      info = t("Viewed just now", { ...opts(this) });
-    } else {
-      info = t("Viewed {{ someTimeAgo }}", {
-        someTimeAgo: formatDistanceToNowStrict(lastViewedAt, {
-          addSuffix: true,
-          locale,
-        }),
-        ...opts(this),
-      });
-    }
-
-    return info;
   };
 
   updateSignedIn = (ip: string) => {
