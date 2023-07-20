@@ -89,10 +89,11 @@ router.post(
       }
 
       ctx.body = {
-        url: mentionedUser.avatarUrl,
+        url,
         type: "mention",
         title: mentionedUser.name,
         description,
+        thumbnailUrl: mentionedUser.avatarUrl,
         meta: {
           id: mentionedUser.id,
           color: mentionedUser.color,

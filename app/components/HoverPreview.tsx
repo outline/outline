@@ -138,7 +138,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
                       <Flex gap={12}>
                         <Avatar
                           model={{
-                            avatarUrl: data.url,
+                            avatarUrl: data.thumbnailUrl,
                             initial: data.title ? data.title[0] : "?",
                             color: data.meta.color,
                           }}
