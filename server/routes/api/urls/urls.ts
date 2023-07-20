@@ -20,29 +20,29 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.UrlsUnfurlReq>) => {
     const { url, documentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const { user: actor } = ctx.state.auth;
     const { transaction } = ctx.state;
     const urlObj = new URL(url);
     if (urlObj.protocol === "mention:") {
       const { modelId: userId } = parseMentionUrl(url);
 
-      const [mentionedUser, document] = await Promise.all([
+      const [user, document] = await Promise.all([
         User.findByPk(userId, { transaction }),
         Document.findByPk(documentId!, {
           userId,
           transaction,
         }),
       ]);
-      if (!mentionedUser) {
+      if (!user) {
         throw NotFoundError("Mentioned user does not exist");
       }
       if (!document) {
         throw NotFoundError("Document does not exist");
       }
-      authorize(user, "read", mentionedUser);
-      authorize(user, "read", document);
+      authorize(actor, "read", user);
+      authorize(actor, "read", document);
 
-      ctx.body = presentMention(mentionedUser, document);
+      ctx.body = presentMention(user, document);
 
       return;
     }
@@ -52,9 +52,9 @@ router.post(
     if (!document) {
       throw NotFoundError("Document does not exist");
     }
-    authorize(user, "read", document);
+    authorize(actor, "read", document);
 
-    ctx.body = presentDocument(document, user);
+    ctx.body = presentDocument(document, actor);
   }
 );
 
