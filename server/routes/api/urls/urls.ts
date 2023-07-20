@@ -157,7 +157,7 @@ router.post(
       description,
       meta: {
         id: document.id,
-        summary: document.text.trim().split("\n").slice(0, 4).join("\n"),
+        summary: document.getSummary(),
       },
     };
   }
