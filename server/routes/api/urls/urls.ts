@@ -1,8 +1,4 @@
-import { differenceInMinutes, formatDistanceToNowStrict } from "date-fns";
-import { t } from "i18next";
 import Router from "koa-router";
-import { head, orderBy } from "lodash";
-import { dateLocale } from "@shared/utils/date";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { NotFoundError } from "@server/errors";
@@ -12,7 +8,6 @@ import validate from "@server/middlewares/validate";
 import { Document, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { APIContext } from "@server/types";
-import { opts } from "@server/utils/i18n";
 import * as T from "./schema";
 
 const router = new Router();
@@ -27,7 +22,6 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     const urlObj = new URL(url);
-    const locale = dateLocale(user.language);
     if (urlObj.protocol === "mention:") {
       const { modelId: userId } = parseMentionUrl(url);
 
@@ -47,46 +41,10 @@ router.post(
       authorize(user, "read", mentionedUser);
       authorize(user, "read", document);
 
-      const lastView = head(orderBy(document.views, ["updatedAt"], ["desc"]));
-      const lastViewedAt = lastView ? lastView.updatedAt : undefined;
-      const lastActiveAt = mentionedUser.lastActiveAt;
-      let description;
-      if (lastViewedAt && differenceInMinutes(new Date(), lastViewedAt) < 5) {
-        description = t("Viewed just now", { ...opts(user) });
-      } else if (
-        lastActiveAt &&
-        differenceInMinutes(new Date(), lastActiveAt) < 5
-      ) {
-        description = lastViewedAt
-          ? t("Online now • Viewed {{ lastViewedAt }}", {
-              lastViewedAt: formatDistanceToNowStrict(lastViewedAt, {
-                addSuffix: true,
-                locale,
-              }),
-              ...opts(user),
-            })
-          : t("Online now • Never viewed", { ...opts(user) });
-      } else {
-        description = lastViewedAt
-          ? t("Online {{ lastActiveAt }} • Viewed {{ lastViewedAt }}", {
-              lastActiveAt: formatDistanceToNowStrict(lastActiveAt!, {
-                addSuffix: true,
-                locale,
-              }),
-              lastViewedAt: formatDistanceToNowStrict(lastViewedAt, {
-                addSuffix: true,
-                locale,
-              }),
-              ...opts(user),
-            })
-          : t("Online {{ lastActiveAt }} • Never viewed", {
-              lastActiveAt: formatDistanceToNowStrict(lastActiveAt!, {
-                addSuffix: true,
-                locale,
-              }),
-              ...opts(user),
-            });
-      }
+      const lastOnlineInfo = mentionedUser.lastOnlineInfo();
+      const lastViewedInfo = mentionedUser.lastViewedInfoFor(document);
+
+      const description = `${lastOnlineInfo} • ${lastViewedInfo}`;
 
       ctx.body = {
         url,
@@ -110,45 +68,7 @@ router.post(
     }
     authorize(user, "read", document);
 
-    let description;
-
-    if (document.createdAt === document.updatedAt) {
-      description =
-        document.createdById === user.id
-          ? t("You created {{ createdAt }}", {
-              createdAt: formatDistanceToNowStrict(document.createdAt, {
-                addSuffix: true,
-                locale,
-              }),
-              ...opts(user),
-            })
-          : t("{{ username }} created {{ createdAt }}", {
-              userName: document.createdBy.name,
-              createdAt: formatDistanceToNowStrict(document.createdAt, {
-                addSuffix: true,
-                locale,
-              }),
-              ...opts(user),
-            });
-    } else {
-      description =
-        document.updatedBy.id === user.id
-          ? t("You updated {{ updatedAt }}", {
-              updatedAt: formatDistanceToNowStrict(document.updatedAt, {
-                addSuffix: true,
-                locale,
-              }),
-              ...opts(user),
-            })
-          : t("{{ username }} updated {{ updatedAt }}", {
-              username: document.updatedBy.name,
-              updatedAt: formatDistanceToNowStrict(document.updatedAt, {
-                addSuffix: true,
-                locale,
-              }),
-              ...opts(user),
-            });
-    }
+    const description = document.lastActivityInfo({ viewer: user });
 
     ctx.body = {
       url: document.url,

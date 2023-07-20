@@ -1,3 +1,5 @@
+import { formatDistanceToNowStrict } from "date-fns";
+import { t } from "i18next";
 import { compact, uniq } from "lodash";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
@@ -31,10 +33,12 @@ import {
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { NavigationNode } from "@shared/types";
+import { dateLocale } from "@shared/utils/date";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
+import { opts } from "@server/utils/i18n";
 import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
@@ -792,6 +796,56 @@ class Document extends ParanoidModel {
       url: this.url,
       children,
     };
+  };
+
+  lastActivityInfo = ({ viewer }: { viewer: User }) => {
+    const locale = dateLocale(viewer.language);
+    const wasUpdated = this.createdAt !== this.updatedAt;
+
+    let info: string;
+    if (wasUpdated) {
+      const lastUpdatedByViewer = this.updatedBy.id === viewer.id;
+      if (lastUpdatedByViewer) {
+        info = t("You updated {{ someTimeAgo }}", {
+          someTimeAgo: formatDistanceToNowStrict(this.updatedAt, {
+            addSuffix: true,
+            locale,
+          }),
+          ...opts(viewer),
+        });
+      } else {
+        info = t("{{ user }} updated {{ someTimeAgo }}", {
+          user: this.updatedBy.name,
+          someTimeAgo: formatDistanceToNowStrict(this.updatedAt, {
+            addSuffix: true,
+            locale,
+          }),
+          ...opts(viewer),
+        });
+      }
+    } else {
+      const lastCreatedByViewer = this.createdById === viewer.id;
+      if (lastCreatedByViewer) {
+        info = t("You created {{ someTimeAgo }}", {
+          someTimeAgo: formatDistanceToNowStrict(this.createdAt, {
+            addSuffix: true,
+            locale,
+          }),
+          ...opts(viewer),
+        });
+      } else {
+        info = t("{{ user }} created {{ someTimeAgo }}", {
+          user: this.createdBy.name,
+          someTimeAgo: formatDistanceToNowStrict(this.createdAt, {
+            addSuffix: true,
+            locale,
+          }),
+          ...opts(viewer),
+        });
+      }
+    }
+
+    return info;
   };
 }
 
