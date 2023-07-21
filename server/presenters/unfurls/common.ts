@@ -14,8 +14,8 @@ export const presentLastOnlineInfoFor = (user: User) => {
   } else if (differenceInMinutes(new Date(), user.lastActiveAt) < 5) {
     info = t("Online now", { ...opts(user) });
   } else {
-    info = t("Online {{ someTimeAgo }}", {
-      someTimeAgo: formatDistanceToNowStrict(user.lastActiveAt, {
+    info = t("Online {{ timeAgo }}", {
+      timeAgo: formatDistanceToNowStrict(user.lastActiveAt, {
         addSuffix: true,
         locale,
       }),
@@ -37,8 +37,8 @@ export const presentLastViewedInfoFor = (user: User, document: Document) => {
   } else if (differenceInMinutes(new Date(), lastViewedAt) < 5) {
     info = t("Viewed just now", { ...opts(user) });
   } else {
-    info = t("Viewed {{ someTimeAgo }}", {
-      someTimeAgo: formatDistanceToNowStrict(lastViewedAt, {
+    info = t("Viewed {{ timeAgo }}", {
+      timeAgo: formatDistanceToNowStrict(lastViewedAt, {
         addSuffix: true,
         locale,
       }),
@@ -60,17 +60,17 @@ export const presentLastActivityInfoFor = (
   if (wasUpdated) {
     const lastUpdatedByViewer = document.updatedBy.id === viewer.id;
     if (lastUpdatedByViewer) {
-      info = t("You updated {{ someTimeAgo }}", {
-        someTimeAgo: formatDistanceToNowStrict(document.updatedAt, {
+      info = t("You updated {{ timeAgo }}", {
+        timeAgo: formatDistanceToNowStrict(document.updatedAt, {
           addSuffix: true,
           locale,
         }),
         ...opts(viewer),
       });
     } else {
-      info = t("{{ user }} updated {{ someTimeAgo }}", {
+      info = t("{{ user }} updated {{ timeAgo }}", {
         user: document.updatedBy.name,
-        someTimeAgo: formatDistanceToNowStrict(document.updatedAt, {
+        timeAgo: formatDistanceToNowStrict(document.updatedAt, {
           addSuffix: true,
           locale,
         }),
@@ -80,17 +80,17 @@ export const presentLastActivityInfoFor = (
   } else {
     const lastCreatedByViewer = document.createdById === viewer.id;
     if (lastCreatedByViewer) {
-      info = t("You created {{ someTimeAgo }}", {
-        someTimeAgo: formatDistanceToNowStrict(document.createdAt, {
+      info = t("You created {{ timeAgo }}", {
+        timeAgo: formatDistanceToNowStrict(document.createdAt, {
           addSuffix: true,
           locale,
         }),
         ...opts(viewer),
       });
     } else {
-      info = t("{{ user }} created {{ someTimeAgo }}", {
+      info = t("{{ user }} created {{ timeAgo }}", {
         user: document.createdBy.name,
-        someTimeAgo: formatDistanceToNowStrict(document.createdAt, {
+        timeAgo: formatDistanceToNowStrict(document.createdAt, {
           addSuffix: true,
           locale,
         }),

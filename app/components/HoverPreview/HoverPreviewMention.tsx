@@ -2,7 +2,7 @@ import * as React from "react";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import Flex from "~/components/Flex";
-import { Preview, Title, Description } from "./styles";
+import { Preview, Title, Description } from "./Components";
 
 type Props = {
   /** Resource url, avatar url in case of user mention */
@@ -17,26 +17,24 @@ type Props = {
 
 function HoverPreviewMention({ url, title, description, color }: Props) {
   return (
-    <>
-      <Preview to="">
-        <Flex gap={12}>
-          <Avatar
-            model={{
-              avatarUrl: url,
-              initial: title ? title[0] : "?",
-              color,
-            }}
-            size={AvatarSize.XLarge}
-          />
-          <Flex column>
-            <Title>{title}</Title>
-            <Description type="tertiary" size="xsmall">
-              {description}
-            </Description>
-          </Flex>
+    <Preview to="">
+      <Flex gap={12}>
+        <Avatar
+          model={{
+            avatarUrl: url,
+            initial: title ? title[0] : "?",
+            color,
+          }}
+          size={AvatarSize.XLarge}
+        />
+        <Flex column>
+          <Title>{title}</Title>
+          <Description type="tertiary" size="xsmall">
+            {description}
+          </Description>
         </Flex>
-      </Preview>
-    </>
+      </Flex>
+    </Preview>
   );
 }
 

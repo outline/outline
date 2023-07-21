@@ -3,7 +3,6 @@ import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
-import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, User } from "@server/models";
 import { authorize } from "@server/policies";
@@ -17,20 +16,18 @@ router.post(
   "urls.unfurl",
   auth(),
   validate(T.UrlsUnfurlSchema),
-  transaction(),
   async (ctx: APIContext<T.UrlsUnfurlReq>) => {
     const { url, documentId } = ctx.input.body;
     const { user: actor } = ctx.state.auth;
-    const { transaction } = ctx.state;
     const urlObj = new URL(url);
+
     if (urlObj.protocol === "mention:") {
       const { modelId: userId } = parseMentionUrl(url);
 
       const [user, document] = await Promise.all([
-        User.findByPk(userId, { transaction }),
+        User.findByPk(userId),
         Document.findByPk(documentId!, {
           userId,
-          transaction,
         }),
       ]);
       if (!user) {
@@ -47,8 +44,10 @@ router.post(
       return;
     }
 
-    const docId = parseDocumentSlug(url);
-    const document = await Document.findByPk(docId!, { transaction });
+    const previewDocumentId = parseDocumentSlug(url);
+    const document = previewDocumentId
+      ? await Document.findByPk(previewDocumentId)
+      : undefined;
     if (!document) {
       throw NotFoundError("Document does not exist");
     }
