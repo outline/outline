@@ -22,6 +22,10 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
     const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {
+      if (userIdsMentioned.includes(mention.modelId)) {
+        continue;
+      }
+
       const recipient = await User.findByPk(mention.modelId);
 
       if (
