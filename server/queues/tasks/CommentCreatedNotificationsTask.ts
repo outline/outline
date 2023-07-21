@@ -40,6 +40,10 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
     const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {
+      if (userIdsMentioned.includes(mention.modelId)) {
+        continue;
+      }
+
       const recipient = await User.findByPk(mention.modelId);
 
       if (

@@ -32,6 +32,10 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
     const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {
+      if (userIdsMentioned.includes(mention.modelId)) {
+        continue;
+      }
+
       const recipient = await User.findByPk(mention.modelId);
       if (
         recipient &&

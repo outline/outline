@@ -21,11 +21,13 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
     const mentions = ProsemirrorHelper.parseMentions(
       ProsemirrorHelper.toProsemirror(comment.data)
     ).filter((mention) => event.data.newMentionIds.includes(mention.id));
-    if (mentions.length === 0) {
-      return;
-    }
+    const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {
+      if (userIdsMentioned.includes(mention.modelId)) {
+        continue;
+      }
+
       const recipient = await User.findByPk(mention.modelId);
 
       if (
