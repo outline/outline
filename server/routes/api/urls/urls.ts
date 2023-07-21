@@ -40,11 +40,15 @@ router.post(
       authorize(actor, "read", document);
 
       ctx.body = presentMention(user, document);
-
       return;
     }
 
     const previewDocumentId = parseDocumentSlug(url);
+    if (!previewDocumentId) {
+      ctx.response.status = 204;
+      return;
+    }
+
     const document = previewDocumentId
       ? await Document.findByPk(previewDocumentId)
       : undefined;

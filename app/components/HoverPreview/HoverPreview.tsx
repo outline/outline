@@ -3,9 +3,9 @@ import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
+import { UnfurlType } from "@shared/types";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import useMobile from "~/hooks/useMobile";
-import usePrevious from "~/hooks/usePrevious";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { fadeAndSlideDown } from "~/styles/animations";
@@ -38,14 +38,12 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
       documentId: stores.ui.activeDocumentId,
     })
   );
-  const prevUrl = usePrevious(url);
-  const urlChanged = url !== prevUrl;
 
   React.useEffect(() => {
-    if (urlChanged) {
+    if (url) {
       void request();
     }
-  }, [urlChanged, request]);
+  }, [url]);
 
   const startCloseTimer = React.useCallback(() => {
     stopOpenTimer();
@@ -74,15 +72,14 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
   };
 
   React.useEffect(() => {
+    const card = cardRef.current;
+
     if (data && !loading) {
       startOpenTimer();
 
-      if (cardRef.current) {
-        cardRef.current.addEventListener("mouseenter", stopCloseTimer);
-      }
-
-      if (cardRef.current) {
-        cardRef.current.addEventListener("mouseleave", startCloseTimer);
+      if (card) {
+        card.addEventListener("mouseenter", stopCloseTimer);
+        card.addEventListener("mouseleave", startCloseTimer);
       }
 
       element.addEventListener("mouseout", startCloseTimer);
@@ -95,12 +92,9 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
       element.removeEventListener("mouseover", stopCloseTimer);
       element.removeEventListener("mouseover", startOpenTimer);
 
-      if (cardRef.current) {
-        cardRef.current.removeEventListener("mouseenter", stopCloseTimer);
-      }
-
-      if (cardRef.current) {
-        cardRef.current.removeEventListener("mouseleave", startCloseTimer);
+      if (card) {
+        card.removeEventListener("mouseenter", stopCloseTimer);
+        card.removeEventListener("mouseleave", startCloseTimer);
       }
 
       stopCloseTimer();
@@ -114,9 +108,11 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
     : anchorBounds.left;
   const leftOffset = anchorBounds.left - left;
 
-  return !data || loading ? (
-    <LoadingIndicator />
-  ) : (
+  if (!data && loading) {
+    return <LoadingIndicator />;
+  }
+
+  return (
     <Portal>
       <Position
         top={anchorBounds.bottom + window.scrollY}
@@ -129,14 +125,14 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
               <Card>
                 <Margin />
                 <CardContent>
-                  {data.type === "mention" ? (
+                  {data.type === UnfurlType.Mention ? (
                     <HoverPreviewMention
                       url={data.thumbnailUrl}
                       title={data.title}
                       description={data.description}
                       color={data.meta.color}
                     />
-                  ) : (
+                  ) : data.type === UnfurlType.Document ? (
                     <HoverPreviewDocument
                       id={id}
                       url={data.url}
@@ -144,7 +140,7 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
                       description={data.description}
                       summary={data.meta.summary}
                     />
-                  )}
+                  ) : null}
                 </CardContent>
               </Card>
               <Pointer offset={leftOffset + anchorBounds.width / 2} />
