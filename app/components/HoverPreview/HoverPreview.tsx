@@ -15,6 +15,8 @@ import HoverPreviewMention from "./HoverPreviewMention";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;
+const CARD_PADDING = 16;
+const CARD_MAX_WIDTH = 375;
 
 type Props = {
   /* The document associated with the editor, if any */
@@ -104,7 +106,10 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
   const anchorBounds = element.getBoundingClientRect();
   const cardBounds = cardRef.current?.getBoundingClientRect();
   const left = cardBounds
-    ? Math.min(anchorBounds.left, window.innerWidth - 16 - 350)
+    ? Math.min(
+        anchorBounds.left,
+        window.innerWidth - CARD_PADDING - CARD_MAX_WIDTH
+      )
     : anchorBounds.left;
   const leftOffset = anchorBounds.left - left;
 
@@ -126,7 +131,7 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
         <div ref={cardRef}>
           {isVisible ? (
             <Animate>
-              <Card>
+              <Card fadeOut={data.type !== UnfurlType.Mention}>
                 <Margin />
                 <CardContent>
                   {data.type === UnfurlType.Mention ? (
@@ -189,14 +194,15 @@ const CardContent = styled.div`
 `;
 
 // &:after — gradient mask for overflow text
-const Card = styled.div`
+const Card = styled.div<{ fadeOut?: boolean }>`
   backdrop-filter: blur(10px);
-  background: ${s("background")};
+  background: ${(props) => props.theme.menuBackground};
   border-radius: 4px;
   box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.3),
     0 0 1px 1px rgba(0, 0, 0, 0.05);
-  padding: 16px;
-  width: 350px;
+  padding: ${CARD_PADDING}px;
+  min-width: 350px;
+  max-width: ${CARD_MAX_WIDTH}px;
   font-size: 0.9em;
   position: relative;
 
@@ -205,25 +211,28 @@ const Card = styled.div`
     display: none;
   }
 
-  &:after {
-    content: "";
-    display: block;
-    position: absolute;
-    pointer-events: none;
-    background: linear-gradient(
-      90deg,
-      ${(props) => transparentize(1, props.theme.background)} 0%,
-      ${(props) => transparentize(1, props.theme.background)} 75%,
-      ${s("background")} 90%
-    );
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 1.7em;
-    border-bottom: 16px solid ${s("background")};
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-  }
+  ${(props) =>
+    props.fadeOut !== false
+      ? `&:after {
+          content: "";
+          display: block;
+          position: absolute;
+          pointer-events: none;
+          background: linear-gradient(
+            90deg,
+            ${transparentize(1, props.theme.menuBackground)} 0%,
+            ${transparentize(1, props.theme.menuBackground)} 75%,
+            ${props.theme.menuBackground} 90%
+          );
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 1.7em;
+          border-bottom: 16px solid ${props.theme.menuBackground};
+          border-bottom-left-radius: 4px;
+          border-bottom-right-radius: 4px;
+        }`
+      : ""}
 `;
 
 const Position = styled.div<{ fixed?: boolean; top?: number; left?: number }>`
