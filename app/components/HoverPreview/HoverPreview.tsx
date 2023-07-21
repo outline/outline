@@ -112,6 +112,10 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
     return <LoadingIndicator />;
   }
 
+  if (!data) {
+    return null;
+  }
+
   return (
     <Portal>
       <Position
