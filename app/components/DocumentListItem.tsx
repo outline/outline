@@ -258,7 +258,6 @@ const Heading = styled.h3<{ rtl?: boolean }>`
   display: flex;
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   align-items: center;
-  height: 24px;
   margin-top: 0;
   margin-bottom: 0.25em;
   white-space: nowrap;
