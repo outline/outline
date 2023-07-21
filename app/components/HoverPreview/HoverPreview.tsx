@@ -19,15 +19,13 @@ const CARD_PADDING = 16;
 const CARD_MAX_WIDTH = 375;
 
 type Props = {
-  /* The document associated with the editor, if any */
-  id?: string;
   /* The HTML element that is being hovered over */
   element: HTMLAnchorElement;
   /* A callback on close of the hover preview */
   onClose: () => void;
 };
 
-function HoverPreviewInternal({ element, id, onClose }: Props) {
+function HoverPreviewInternal({ element, onClose }: Props) {
   const url = element.href || element.dataset.url;
   const [isVisible, setVisible] = React.useState(false);
   const timerClose = React.useRef<ReturnType<typeof setTimeout>>();
@@ -143,7 +141,7 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
                     />
                   ) : data.type === UnfurlType.Document ? (
                     <HoverPreviewDocument
-                      id={id}
+                      id={data.meta.id}
                       url={data.url}
                       title={data.title}
                       description={data.description}
