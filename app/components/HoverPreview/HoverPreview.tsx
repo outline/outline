@@ -32,18 +32,22 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   const timerOpen = React.useRef<ReturnType<typeof setTimeout>>();
   const cardRef = React.useRef<HTMLDivElement>(null);
   const stores = useStores();
-  const { data, request, loading } = useRequest(() =>
-    client.post("/urls.unfurl", {
-      url,
-      documentId: stores.ui.activeDocumentId,
-    })
+  const { data, request, loading } = useRequest(
+    React.useCallback(
+      () =>
+        client.post("/urls.unfurl", {
+          url,
+          documentId: stores.ui.activeDocumentId,
+        }),
+      [url, stores.ui.activeDocumentId]
+    )
   );
 
   React.useEffect(() => {
     if (url) {
       void request();
     }
-  }, [url]);
+  }, [url, request]);
 
   const startCloseTimer = React.useCallback(() => {
     stopOpenTimer();
@@ -101,15 +105,15 @@ function HoverPreviewInternal({ element, onClose }: Props) {
     };
   }, [element, startCloseTimer, data, loading]);
 
-  const anchorBounds = element.getBoundingClientRect();
+  const elemBounds = element.getBoundingClientRect();
   const cardBounds = cardRef.current?.getBoundingClientRect();
   const left = cardBounds
     ? Math.min(
-        anchorBounds.left,
+        elemBounds.left,
         window.innerWidth - CARD_PADDING - CARD_MAX_WIDTH
       )
-    : anchorBounds.left;
-  const leftOffset = anchorBounds.left - left;
+    : elemBounds.left;
+  const leftOffset = elemBounds.left - left;
 
   if (loading) {
     return <LoadingIndicator />;
@@ -122,7 +126,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   return (
     <Portal>
       <Position
-        top={anchorBounds.bottom + window.scrollY}
+        top={elemBounds.bottom + window.scrollY}
         left={left}
         aria-hidden
       >
@@ -150,7 +154,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
                   ) : null}
                 </CardContent>
               </Card>
-              <Pointer offset={leftOffset + anchorBounds.width / 2} />
+              <Pointer offset={leftOffset + elemBounds.width / 2} />
             </Animate>
           ) : null}
         </div>
