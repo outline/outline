@@ -111,7 +111,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
     : anchorBounds.left;
   const leftOffset = anchorBounds.left - left;
 
-  if (!data && loading) {
+  if (loading) {
     return <LoadingIndicator />;
   }
 
