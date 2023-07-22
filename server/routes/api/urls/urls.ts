@@ -30,7 +30,7 @@ router.post(
       const [user, document] = await Promise.all([
         User.findByPk(userId),
         Document.findByPk(documentId!, {
-          userId,
+          userId: actor.id,
         }),
       ]);
       if (!user) {
@@ -53,7 +53,9 @@ router.post(
     }
 
     const document = previewDocumentId
-      ? await Document.findByPk(previewDocumentId)
+      ? await Document.findByPk(previewDocumentId, {
+          userId: actor.id,
+        })
       : undefined;
     if (!document) {
       throw NotFoundError("Document does not exist");
