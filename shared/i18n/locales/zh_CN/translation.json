@@ -899,5 +899,14 @@
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as a https request with a JSON payload in near real-time.": "网络钩子用于 {{appName}} 中有事件发生时通知您的应用程序。事件是以带JSON格式数据的 https 请求的形式，接近实时地发送。",
   "Inactive": "未激活",
   "Create a webhook": "创建 Webhook",
+  "Never logged in": "Never logged in",
+  "Online now": "Online now",
+  "Online {{ timeAgo }}": "Online {{ timeAgo }}",
+  "Viewed just now": "Viewed just now",
+  "Viewed {{ timeAgo }}": "Viewed {{ timeAgo }}",
+  "You updated {{ timeAgo }}": "You updated {{ timeAgo }}",
+  "{{ user }} updated {{ timeAgo }}": "{{ user }} updated {{ timeAgo }}",
+  "You created {{ timeAgo }}": "You created {{ timeAgo }}",
+  "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
   "Uploading": "上传中"
 }
