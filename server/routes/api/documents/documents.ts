@@ -906,7 +906,7 @@ router.post(
     authorize(user, "update", document);
 
     if (collection && insightsEnabled !== undefined) {
-      authorize(user, "update", collection);
+      authorize(user, "manage", document);
     }
 
     if (publish) {

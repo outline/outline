@@ -200,8 +200,8 @@ function countWords(text: string): number {
 
 const Manage = styled(Flex)`
   border: 1px solid ${s("inputBorder")};
-  broder-bottom-width: 2px;
-  border-radius: 4px;
+  border-bottom-width: 2px;
+  border-radius: 8px;
   margin: 16px;
   padding: 16px 16px 0;
 
