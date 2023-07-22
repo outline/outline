@@ -899,5 +899,14 @@
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as a https request with a JSON payload in near real-time.": "웹훅은 {{appName}} 에서 이벤트가 발생할 때 애플리케이션에 알리는 데 사용할 수 있습니다. 이벤트는 JSON 페이로드와 함께 https 요청으로 거의 실시간 전송됩니다.",
   "Inactive": "비활성화",
   "Create a webhook": "웹훅 만들기",
+  "Never logged in": "Never logged in",
+  "Online now": "Online now",
+  "Online {{ timeAgo }}": "Online {{ timeAgo }}",
+  "Viewed just now": "Viewed just now",
+  "Viewed {{ timeAgo }}": "Viewed {{ timeAgo }}",
+  "You updated {{ timeAgo }}": "You updated {{ timeAgo }}",
+  "{{ user }} updated {{ timeAgo }}": "{{ user }} updated {{ timeAgo }}",
+  "You created {{ timeAgo }}": "You created {{ timeAgo }}",
+  "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
   "Uploading": "업로드 중"
 }
