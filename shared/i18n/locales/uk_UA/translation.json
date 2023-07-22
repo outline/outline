@@ -899,5 +899,14 @@
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as a https request with a JSON payload in near real-time.": "Вебхуки можна використовувати для сповіщення вашої програми, коли події відбуваються в {{appName}}. Події надсилаються як https-запит з кодом JSON майже в реальному часі.",
   "Inactive": "Неактивний",
   "Create a webhook": "Створити вебхук",
+  "Never logged in": "Never logged in",
+  "Online now": "Online now",
+  "Online {{ timeAgo }}": "Online {{ timeAgo }}",
+  "Viewed just now": "Viewed just now",
+  "Viewed {{ timeAgo }}": "Viewed {{ timeAgo }}",
+  "You updated {{ timeAgo }}": "You updated {{ timeAgo }}",
+  "{{ user }} updated {{ timeAgo }}": "{{ user }} updated {{ timeAgo }}",
+  "You created {{ timeAgo }}": "You created {{ timeAgo }}",
+  "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
   "Uploading": "Завантажується"
 }
