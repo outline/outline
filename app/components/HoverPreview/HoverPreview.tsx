@@ -5,7 +5,9 @@ import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import { UnfurlType } from "@shared/types";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
+import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { fadeAndSlideDown } from "~/styles/animations";
@@ -14,7 +16,7 @@ import HoverPreviewDocument from "./HoverPreviewDocument";
 import HoverPreviewMention from "./HoverPreviewMention";
 
 const DELAY_OPEN = 300;
-const DELAY_CLOSE = 300;
+const DELAY_CLOSE = 600;
 const CARD_PADDING = 16;
 const CARD_MAX_WIDTH = 375;
 
@@ -32,6 +34,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   const timerOpen = React.useRef<ReturnType<typeof setTimeout>>();
   const cardRef = React.useRef<HTMLDivElement>(null);
   const stores = useStores();
+
   const { data, request, loading } = useRequest(
     React.useCallback(
       () =>
@@ -45,40 +48,51 @@ function HoverPreviewInternal({ element, onClose }: Props) {
 
   React.useEffect(() => {
     if (url) {
+      stopOpenTimer();
       void request();
     }
   }, [url, request]);
 
-  const startCloseTimer = React.useCallback(() => {
-    stopOpenTimer();
-    timerClose.current = setTimeout(() => {
-      if (isVisible) {
-        setVisible(false);
-      }
+  const stopOpenTimer = () => {
+    if (timerOpen.current) {
+      clearTimeout(timerOpen.current);
+      timerOpen.current = undefined;
+    }
+  };
+
+  const closePreview = React.useCallback(() => {
+    if (isVisible) {
+      stopOpenTimer();
+      setVisible(false);
       onClose();
-    }, DELAY_CLOSE);
+    }
   }, [isVisible, onClose]);
+
+  useOnClickOutside(cardRef, closePreview);
+  useKeyDown("Escape", closePreview);
 
   const stopCloseTimer = () => {
     if (timerClose.current) {
       clearTimeout(timerClose.current);
+      timerClose.current = undefined;
     }
   };
 
   const startOpenTimer = () => {
-    timerOpen.current = setTimeout(() => setVisible(true), DELAY_OPEN);
-  };
-
-  const stopOpenTimer = () => {
-    if (timerOpen.current) {
-      clearTimeout(timerOpen.current);
+    if (!timerOpen.current) {
+      timerOpen.current = setTimeout(() => setVisible(true), DELAY_OPEN);
     }
   };
+
+  const startCloseTimer = React.useCallback(() => {
+    stopOpenTimer();
+    timerClose.current = setTimeout(closePreview, DELAY_CLOSE);
+  }, [closePreview]);
 
   React.useEffect(() => {
     const card = cardRef.current;
 
-    if (data && !loading) {
+    if (data) {
       startOpenTimer();
 
       if (card) {
@@ -103,7 +117,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
 
       stopCloseTimer();
     };
-  }, [element, startCloseTimer, data, loading]);
+  }, [element, startCloseTimer, data]);
 
   const elemBounds = element.getBoundingClientRect();
   const cardBounds = cardRef.current?.getBoundingClientRect();
@@ -275,7 +289,7 @@ const Pointer = styled.div<{ offset: number }>`
 
   &:after {
     border: 7px solid transparent;
-    border-bottom-color: ${s("background")};
+    border-bottom-color: ${s("menuBackground")};
   }
 `;
 
