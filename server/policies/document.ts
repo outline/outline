@@ -277,6 +277,20 @@ allow(User, "archive", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
+allow(User, "manage", Document, (user, document) => {
+  if (!document || !document.isActive || document.isDraft) {
+    return false;
+  }
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
+  if (cannot(user, "update", document.collection)) {
+    return false;
+  }
+  return user.teamId === document.teamId;
+});
+
 allow(User, "unarchive", Document, (user, document) => {
   if (!document) {
     return false;

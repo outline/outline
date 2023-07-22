@@ -68,6 +68,10 @@ export default class Document extends ParanoidModel {
 
   @Field
   @observable
+  insightsEnabled: boolean;
+
+  @Field
+  @observable
   templateId: string | undefined;
 
   @Field
