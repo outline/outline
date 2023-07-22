@@ -1,8 +1,8 @@
 import { format as formatDate, formatDistanceToNow } from "date-fns";
 import * as React from "react";
+import { dateLocale, locales } from "@shared/utils/date";
 import Tooltip from "~/components/Tooltip";
 import useUserLocale from "~/hooks/useUserLocale";
-import { dateLocale, locales } from "~/utils/i18n";
 
 let callbacks: (() => void)[] = [];
 

@@ -13,9 +13,9 @@ import {
   getCurrentDateTimeAsString,
   getCurrentTimeAsString,
   unicodeCLDRtoBCP47,
+  dateLocale,
 } from "@shared/utils/date";
 import User from "~/models/User";
-import { dateLocale } from "~/utils/i18n";
 
 export function dateToHeading(
   dateTime: string,

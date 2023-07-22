@@ -8,6 +8,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { dateLocale } from "@shared/utils/date";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
@@ -24,7 +25,6 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import useUserLocale from "~/hooks/useUserLocale";
-import { dateLocale } from "~/utils/i18n";
 
 type Props = {
   document: Document;
