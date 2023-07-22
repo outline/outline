@@ -14,8 +14,8 @@ dotenv.config({
   silent: true,
 });
 
-export default () => {
-  return defineConfig({
+export default () =>
+  defineConfig({
     root: "./",
     publicDir: "./server/static",
     base: (process.env.CDN_URL ?? "") + "/static/",
@@ -51,6 +51,22 @@ export default () => {
           modifyURLPrefix: {
             "": `${process.env.CDN_URL ?? ""}/static/`,
           },
+          runtimeCaching: [
+            {
+              urlPattern: /api\/urls\.unfurl$/,
+              handler: "CacheOnly",
+              options: {
+                cacheName: "unfurl-cache",
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 60 * 60,
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+          ],
         },
         manifest: {
           name: "Outline",
@@ -124,4 +140,3 @@ export default () => {
       },
     },
   });
-};
