@@ -145,7 +145,7 @@ function Insights() {
               </Content>
             </>
           )}
-          {can.manage && (
+          {can.updateInsights && (
             <Manage>
               <Flex column>
                 <Text size="small" weight="bold">

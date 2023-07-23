@@ -277,7 +277,7 @@ allow(User, "archive", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, "manage", Document, (user, document) => {
+allow(User, "updateInsights", Document, (user, document) => {
   if (!document || !document.isActive || document.isDraft) {
     return false;
   }
