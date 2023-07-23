@@ -5,6 +5,7 @@ import teamUpdater from "@server/commands/teamUpdater";
 import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Event, Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
@@ -20,7 +21,9 @@ router.post(
   rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
   validate(T.TeamsUpdateSchema),
+  transaction(),
   async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
+    const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
     const team = await Team.findByPk(user.teamId, {
       include: [{ model: TeamDomain }],
@@ -32,6 +35,7 @@ router.post(
       user,
       team,
       ip: ctx.request.ip,
+      transaction,
     });
 
     ctx.body = {

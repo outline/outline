@@ -352,7 +352,7 @@ export default class Document extends ParanoidModel {
 
   @action
   save = async (
-    fields: Partial<Document> | undefined,
+    fields?: Partial<Document> | undefined,
     options?: SaveOptions | undefined
   ) => {
     const params = fields ?? this.toAPI();
