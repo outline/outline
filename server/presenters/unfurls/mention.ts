@@ -2,16 +2,17 @@ import { Unfurl, UnfurlType } from "@shared/types";
 import { Document, User } from "@server/models";
 import { presentLastOnlineInfoFor, presentLastViewedInfoFor } from "./common";
 
-function presentMention(
+async function presentMention(
   user: User,
   document: Document
-): Unfurl<UnfurlType.Mention> {
+): Promise<Unfurl<UnfurlType.Mention>> {
+  const lastOnlineInfo = presentLastOnlineInfoFor(user);
+  const lastViewedInfo = await presentLastViewedInfoFor(user, document);
+
   return {
     type: UnfurlType.Mention,
     title: user.name,
-    description: `${presentLastOnlineInfoFor(
-      user
-    )} • ${presentLastViewedInfoFor(user, document)}`,
+    description: `${lastOnlineInfo} • ${lastViewedInfo}`,
     thumbnailUrl: user.avatarUrl,
     meta: {
       id: user.id,

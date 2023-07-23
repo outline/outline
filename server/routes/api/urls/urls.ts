@@ -42,7 +42,7 @@ router.post(
       authorize(actor, "read", user);
       authorize(actor, "read", document);
 
-      ctx.body = presentMention(user, document);
+      ctx.body = await presentMention(user, document);
       return;
     }
 
