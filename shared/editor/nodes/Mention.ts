@@ -91,7 +91,7 @@ export default class Mention extends Suggestion {
               if (
                 target instanceof HTMLSpanElement &&
                 this.editor.elementRef.current?.contains(target) &&
-                !target.className.includes("ProseMirror-widget") &&
+                target.className.includes("mention") &&
                 (!view.editable || (view.editable && !view.hasFocus()))
               ) {
                 if (this.options.onHoverLink) {

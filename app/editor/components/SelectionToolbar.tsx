@@ -1,3 +1,4 @@
+import { some } from "lodash";
 import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
@@ -78,7 +79,10 @@ function useIsActive(state: EditorState) {
   }
 
   const slice = selection.content();
-  return !!slice.content.textBetween(0, slice.content.size);
+  const fragment = slice.content;
+  const nodes = (fragment as any).content;
+
+  return some(nodes, (n) => n.content.size);
 }
 
 function useIsDragging() {
@@ -215,7 +219,7 @@ export default function SelectionToolbar(props: Props) {
   let items: MenuItem[] = [];
 
   if (isCodeSelection) {
-    items = getCodeMenuItems(state, dictionary);
+    items = getCodeMenuItems(state, readOnly, dictionary);
   } else if (isTableSelection) {
     items = getTableMenuItems(dictionary);
   } else if (colIndex !== undefined) {

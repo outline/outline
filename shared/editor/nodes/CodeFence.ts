@@ -39,7 +39,9 @@ import powershell from "refractor/lang/powershell";
 import python from "refractor/lang/python";
 import ruby from "refractor/lang/ruby";
 import rust from "refractor/lang/rust";
+import sass from "refractor/lang/sass";
 import scala from "refractor/lang/scala";
+import scss from "refractor/lang/scss";
 import solidity from "refractor/lang/solidity";
 import sql from "refractor/lang/sql";
 import swift from "refractor/lang/swift";
@@ -105,6 +107,8 @@ const DEFAULT_LANGUAGE = "javascript";
   scala,
   sql,
   solidity,
+  sass,
+  scss,
   swift,
   toml,
   typescript,

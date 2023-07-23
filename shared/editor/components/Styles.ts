@@ -245,6 +245,7 @@ width: 100%;
   padding-right: 4px;
   font-weight: 500;
   font-size: 0.9em;
+  cursor: default;
 }
 
 > div {

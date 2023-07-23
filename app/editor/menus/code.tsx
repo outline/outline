@@ -7,8 +7,12 @@ import { Dictionary } from "~/hooks/useDictionary";
 
 export default function codeMenuItems(
   state: EditorState,
+  readOnly: boolean | undefined,
   dictionary: Dictionary
 ): MenuItem[] {
+  if (readOnly) {
+    return [];
+  }
   const node = state.selection.$from.node();
 
   return [

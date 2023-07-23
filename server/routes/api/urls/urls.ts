@@ -3,11 +3,13 @@ import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { Document, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentDocument, presentMention } from "@server/presenters/unfurls";
 import { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { Iframely } from "@server/utils/unfurl";
 import * as T from "./schema";
 
@@ -15,6 +17,7 @@ const router = new Router();
 
 router.post(
   "urls.unfurl",
+  rateLimiter(RateLimiterStrategy.OneThousandPerHour),
   auth(),
   validate(T.UrlsUnfurlSchema),
   async (ctx: APIContext<T.UrlsUnfurlReq>) => {
@@ -28,7 +31,7 @@ router.post(
       const [user, document] = await Promise.all([
         User.findByPk(userId),
         Document.findByPk(documentId!, {
-          userId,
+          userId: actor.id,
         }),
       ]);
       if (!user) {
@@ -47,7 +50,9 @@ router.post(
     const previewDocumentId = parseDocumentSlug(url);
     if (previewDocumentId) {
       const document = previewDocumentId
-        ? await Document.findByPk(previewDocumentId)
+        ? await Document.findByPk(previewDocumentId, {
+            userId: actor.id,
+          })
         : undefined;
       if (!document) {
         throw NotFoundError("Document does not exist");
