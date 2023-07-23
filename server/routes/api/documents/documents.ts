@@ -892,18 +892,8 @@ router.post(
   auth(),
   validate(T.DocumentsUpdateSchema),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
-    const {
-      id,
-      title,
-      text,
-      fullWidth,
-      publish,
-      templateId,
-      collectionId,
-      append,
-      apiVersion,
-      done,
-    } = ctx.input.body;
+    const { id, apiVersion, insightsEnabled, publish, collectionId, ...input } =
+      ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
     const { user } = ctx.state.auth;
     let collection: Collection | null | undefined;
@@ -914,6 +904,10 @@ router.post(
     });
     collection = document?.collection;
     authorize(user, "update", document);
+
+    if (collection && insightsEnabled !== undefined) {
+      authorize(user, "updateInsights", document);
+    }
 
     if (publish) {
       if (!document.collectionId) {
@@ -932,16 +926,12 @@ router.post(
       await documentUpdater({
         document,
         user,
-        title,
-        text,
-        fullWidth,
+        ...input,
         publish,
         collectionId,
-        append,
-        templateId,
+        insightsEnabled,
         editorVersion,
         transaction,
-        done,
         ip: ctx.request.ip,
       });
 

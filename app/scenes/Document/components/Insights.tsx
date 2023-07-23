@@ -12,9 +12,11 @@ import DocumentViews from "~/components/DocumentViews";
 import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
+import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useKeyDown from "~/hooks/useKeyDown";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useTextSelection from "~/hooks/useTextSelection";
 import { documentPath } from "~/utils/routeHelpers";
@@ -30,6 +32,7 @@ function Insights() {
   const { editor } = useDocumentContext();
   const text = editor?.getPlainText();
   const stats = useTextStats(text ?? "", selectedText);
+  const can = usePolicy(document);
   const documentViews = document ? views.inDocument(document.id) : [];
 
   const onCloseInsights = () => {
@@ -83,57 +86,86 @@ function Insights() {
               </List>
             </Text>
           </Content>
-          <Content column>
-            <Heading>{t("Contributors")}</Heading>
-            <Text type="secondary" size="small">
-              {t(`Created`)} <Time dateTime={document.createdAt} addSuffix />.
-              <br />
-              {t(`Last updated`)}{" "}
-              <Time dateTime={document.updatedAt} addSuffix />.
-            </Text>
-            <ListSpacing>
-              <PaginatedList
-                aria-label={t("Contributors")}
-                items={document.collaborators}
-                renderItem={(model: User) => (
-                  <ListItem
-                    key={model.id}
-                    title={model.name}
-                    image={<Avatar model={model} size={32} />}
-                    subtitle={
-                      model.id === document.createdBy.id
-                        ? t("Creator")
-                        : model.id === document.updatedBy.id
-                        ? t("Last edited")
-                        : t("Previously edited")
-                    }
-                    border={false}
-                    small
+          {document.insightsEnabled && (
+            <>
+              <Content column>
+                <Heading>{t("Contributors")}</Heading>
+                <Text type="secondary" size="small">
+                  {t(`Created`)}{" "}
+                  <Time dateTime={document.createdAt} addSuffix />.
+                  <br />
+                  {t(`Last updated`)}{" "}
+                  <Time dateTime={document.updatedAt} addSuffix />.
+                </Text>
+                <ListSpacing>
+                  <PaginatedList
+                    aria-label={t("Contributors")}
+                    items={document.collaborators}
+                    renderItem={(model: User) => (
+                      <ListItem
+                        key={model.id}
+                        title={model.name}
+                        image={<Avatar model={model} size={32} />}
+                        subtitle={
+                          model.id === document.createdBy.id
+                            ? t("Creator")
+                            : model.id === document.updatedBy.id
+                            ? t("Last edited")
+                            : t("Previously edited")
+                        }
+                        border={false}
+                        small
+                      />
+                    )}
                   />
+                </ListSpacing>
+              </Content>
+              <Content column>
+                <Heading>{t("Views")}</Heading>
+                <Text type="secondary" size="small">
+                  {documentViews.length <= 1
+                    ? t("No one else has viewed yet")
+                    : t(
+                        `Viewed {{ count }} times by {{ teamMembers }} people`,
+                        {
+                          count: documentViews.reduce(
+                            (memo, view) => memo + view.count,
+                            0
+                          ),
+                          teamMembers: documentViews.length,
+                        }
+                      )}
+                  .
+                </Text>
+                {documentViews.length > 1 && (
+                  <ListSpacing>
+                    <DocumentViews document={document} isOpen />
+                  </ListSpacing>
                 )}
+              </Content>
+            </>
+          )}
+          {can.updateInsights && (
+            <Manage>
+              <Flex column>
+                <Text size="small" weight="bold">
+                  {t("Viewer insights")}
+                </Text>
+                <Text type="secondary" size="small">
+                  {t(
+                    "As an admin you can manage if team members can see who has viewed this document"
+                  )}
+                </Text>
+              </Flex>
+              <Switch
+                checked={document.insightsEnabled}
+                onChange={async (ev) => {
+                  document.insightsEnabled = ev.currentTarget.checked;
+                  await document.save();
+                }}
               />
-            </ListSpacing>
-          </Content>
-          <Content column>
-            <Heading>{t("Views")}</Heading>
-            <Text type="secondary" size="small">
-              {documentViews.length <= 1
-                ? t("No one else has viewed yet")
-                : t(`Viewed {{ count }} times by {{ teamMembers }} people`, {
-                    count: documentViews.reduce(
-                      (memo, view) => memo + view.count,
-                      0
-                    ),
-                    teamMembers: documentViews.length,
-                  })}
-              .
-            </Text>
-            {documentViews.length > 1 && (
-              <ListSpacing>
-                <DocumentViews document={document} isOpen />
-              </ListSpacing>
-            )}
-          </Content>
+            </Manage>
+          )}
         </>
       ) : null}
     </Sidebar>
@@ -165,6 +197,17 @@ function countWords(text: string): number {
   // Hyphenated words are counted as two words
   return t ? t.replace(/-/g, " ").split(/\s+/g).length : 0;
 }
+
+const Manage = styled(Flex)`
+  border: 1px solid ${s("inputBorder")};
+  border-bottom-width: 2px;
+  border-radius: 8px;
+  margin: 16px;
+  padding: 16px 16px 0;
+
+  position: absolute;
+  bottom: 0;
+`;
 
 const ListSpacing = styled("div")`
   margin-top: -0.5em;
