@@ -1,8 +1,7 @@
 import { differenceInMinutes, formatDistanceToNowStrict } from "date-fns";
 import { t } from "i18next";
-import { head, orderBy } from "lodash";
 import { dateLocale } from "@shared/utils/date";
-import { Document, User } from "@server/models";
+import { Document, User, View } from "@server/models";
 import { opts } from "@server/utils/i18n";
 
 export const presentLastOnlineInfoFor = (user: User) => {
@@ -26,8 +25,17 @@ export const presentLastOnlineInfoFor = (user: User) => {
   return info;
 };
 
-export const presentLastViewedInfoFor = (user: User, document: Document) => {
-  const lastView = head(orderBy(document.views, ["updatedAt"], ["desc"]));
+export const presentLastViewedInfoFor = async (
+  user: User,
+  document: Document
+) => {
+  const lastView = await View.findOne({
+    where: {
+      userId: user.id,
+      documentId: document.id,
+    },
+    order: [["updatedAt", "DESC"]],
+  });
   const lastViewedAt = lastView ? lastView.updatedAt : undefined;
   const locale = dateLocale(user.language);
 
