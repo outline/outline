@@ -160,8 +160,9 @@ function Insights() {
               <Switch
                 checked={document.insightsEnabled}
                 onChange={async (ev) => {
-                  document.insightsEnabled = ev.currentTarget.checked;
-                  await document.save();
+                  await document.save({
+                    insightsEnabled: ev.currentTarget.checked,
+                  });
                 }}
               />
             </Manage>

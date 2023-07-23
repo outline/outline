@@ -159,7 +159,7 @@ export const publishDocument = createAction({
     }
 
     if (document?.collectionId) {
-      await document.save({
+      await document.save(undefined, {
         publish: true,
       });
       stores.toasts.showToast(t("Document published"), {

@@ -84,7 +84,6 @@ export default class Document extends ParanoidModel {
   /**
    * Whether team members can see who has viewed this document.
    */
-  @Field
   @observable
   insightsEnabled: boolean;
 
@@ -352,12 +351,18 @@ export default class Document extends ParanoidModel {
   templatize = () => this.store.templatize(this.id);
 
   @action
-  save = async (options?: SaveOptions | undefined) => {
-    const params = this.toAPI();
+  save = async (
+    fields: Partial<Document> | undefined,
+    options?: SaveOptions | undefined
+  ) => {
+    const params = fields ?? this.toAPI();
     this.isSaving = true;
 
     try {
-      const model = await this.store.save({ ...params, id: this.id }, options);
+      const model = await this.store.save(
+        { ...params, ...fields, id: this.id },
+        options
+      );
 
       // if saving is successful set the new values on the model itself
       set(this, { ...params, ...model });
