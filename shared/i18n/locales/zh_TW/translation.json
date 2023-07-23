@@ -511,6 +511,8 @@
   "No one else has viewed yet": "尚未有人查看",
   "Viewed {{ count }} times by {{ teamMembers }} people": "{{ teamMembers }} 人共瀏覽過 {{ count }} 次",
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "{{ teamMembers }} 人共瀏覽過 {{ count }} 次",
+  "Viewer insights": "Viewer insights",
+  "As an admin you can manage if team members can see who has viewed this document": "As an admin you can manage if team members can see who has viewed this document",
   "Sorry, it looks like you don’t have permission to access the document": "抱歉，您似乎沒有權限存取該文件",
   "Sorry, this document is too large - edits will no longer be persisted.": "抱歉，這個文件太大 - 將不再保留編輯內容。",
   "Sorry, the last change could not be persisted – please reload the page": "抱歉，無法保留上次更改 - 請重新加載頁面",
