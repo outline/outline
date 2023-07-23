@@ -511,6 +511,8 @@
   "No one else has viewed yet": "Nessun altro ha ancora visualizzato",
   "Viewed {{ count }} times by {{ teamMembers }} people": "Visto {{ count }} volta da {{ teamMembers }} persone",
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Visto {{ count }} volte da {{ teamMembers }} persone",
+  "Viewer insights": "Viewer insights",
+  "As an admin you can manage if team members can see who has viewed this document": "As an admin you can manage if team members can see who has viewed this document",
   "Sorry, it looks like you don’t have permission to access the document": "Spiacenti, sembra che tu non abbia i permessi per accedere al documento",
   "Sorry, this document is too large - edits will no longer be persisted.": "Sorry, this document is too large - edits will no longer be persisted.",
   "Sorry, the last change could not be persisted – please reload the page": "Spiacenti, non è stato possibile mantenere l'ultima modifica. Si prega di ricaricare la pagina",
