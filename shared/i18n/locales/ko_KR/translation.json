@@ -511,6 +511,8 @@
   "No one else has viewed yet": "아직 다른 사람이 보지 않았습니다.",
   "Viewed {{ count }} times by {{ teamMembers }} people": "{{ teamMembers }} 명에 의해 {{ count }} 회 조회됨",
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "{{ teamMembers }} 명에 의해 {{ count }} 회 조회됨",
+  "Viewer insights": "Viewer insights",
+  "As an admin you can manage if team members can see who has viewed this document": "As an admin you can manage if team members can see who has viewed this document",
   "Sorry, it looks like you don’t have permission to access the document": "죄송합니다. 문서에 액세스할 수 있는 권한이 없는 것 같습니다.",
   "Sorry, this document is too large - edits will no longer be persisted.": "죄송합니다. 문서가 너무 커서 수정사항이 더 이상 유지되지 않습니다.",
   "Sorry, the last change could not be persisted – please reload the page": "죄송합니다. 마지막 변경 사항을 유지할 수 없습니다. 페이지를 새로고침하세요.",
