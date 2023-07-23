@@ -89,13 +89,14 @@ router.post(
 
     const comment = await Comment.findByPk(id, {
       transaction,
+      rejectOnEmpty: true,
       lock: {
         level: transaction.LOCK.UPDATE,
         of: Comment,
       },
     });
     const document = await Document.findByPk(comment.documentId, {
-      userId: user.id
+      userId: user.id,
     });
     authorize(user, "comment", document);
     authorize(user, "update", comment);
@@ -127,9 +128,10 @@ router.post(
 
     const comment = await Comment.findByPk(id, {
       transaction,
+      rejectOnEmpty: true,
     });
     const document = await Document.findByPk(comment.documentId, {
-      userId: user.id
+      userId: user.id,
     });
     authorize(user, "comment", document);
     authorize(user, "delete", comment);
