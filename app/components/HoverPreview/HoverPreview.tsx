@@ -34,6 +34,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   const timerOpen = React.useRef<ReturnType<typeof setTimeout>>();
   const cardRef = React.useRef<HTMLDivElement>(null);
   const stores = useStores();
+
   const { data, request, loading } = useRequest(
     React.useCallback(
       () =>
