@@ -8,6 +8,7 @@ import { Document, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentDocument, presentMention } from "@server/presenters/unfurls";
 import { APIContext } from "@server/types";
+import { Iframely } from "@server/utils/unfurl";
 import * as T from "./schema";
 
 const router = new Router();
@@ -44,20 +45,21 @@ router.post(
     }
 
     const previewDocumentId = parseDocumentSlug(url);
-    if (!previewDocumentId) {
-      ctx.response.status = 204;
+    if (previewDocumentId) {
+      const document = previewDocumentId
+        ? await Document.findByPk(previewDocumentId)
+        : undefined;
+      if (!document) {
+        throw NotFoundError("Document does not exist");
+      }
+      authorize(actor, "read", document);
+
+      ctx.body = presentDocument(document, actor);
       return;
     }
 
-    const document = previewDocumentId
-      ? await Document.findByPk(previewDocumentId)
-      : undefined;
-    if (!document) {
-      throw NotFoundError("Document does not exist");
-    }
-    authorize(actor, "read", document);
-
-    ctx.body = presentDocument(document, actor);
+    const data = await Iframely.unfurl(url);
+    ctx.body = data;
   }
 );
 

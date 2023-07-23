@@ -602,6 +602,24 @@ export class Environment {
   );
 
   /**
+   * Iframely url
+   */
+  @IsOptional()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+    protocols: ["http", "https"],
+  })
+  public IFRAMELY_URL = process.env.IFRAMELY_URL ?? "https://iframe.ly";
+
+  /**
+   * Iframely API key
+   */
+  @IsOptional()
+  @CannotUseWithout("IFRAMELY_URL")
+  public IFRAMELY_API_KEY = this.toOptionalString(process.env.IFRAMELY_API_KEY);
+
+  /**
    * The product name
    */
   public APP_NAME = "Outline";
