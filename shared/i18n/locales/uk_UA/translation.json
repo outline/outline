@@ -511,6 +511,8 @@
   "No one else has viewed yet": "Ще ніхто не переглядав",
   "Viewed {{ count }} times by {{ teamMembers }} people": "Переглянуто {{ count }} раз {{ teamMembers }} людьми",
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Переглянуто {{ count }} разів {{ teamMembers }} людьми",
+  "Viewer insights": "Viewer insights",
+  "As an admin you can manage if team members can see who has viewed this document": "As an admin you can manage if team members can see who has viewed this document",
   "Sorry, it looks like you don’t have permission to access the document": "Вибачте, схоже, у вас немає дозволу на доступ до документа",
   "Sorry, this document is too large - edits will no longer be persisted.": "На жаль, цей документ завеликий – зміни більше не зберігатимуться.",
   "Sorry, the last change could not be persisted – please reload the page": "На жаль, не вдалося зберегти останню зміну – перезавантажте сторінку",
