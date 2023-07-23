@@ -214,13 +214,15 @@ export enum UnfurlType {
   Document = "document",
 }
 
-export type Unfurl<T = unknown> = {
+export type OEmbedType = "photo" | "video" | "rich";
+
+export type Unfurl<T = OEmbedType> = {
   url?: string;
   type: T;
   title: string;
   description: string;
   thumbnailUrl?: string | null;
-  meta: Record<string, string>;
+  meta?: Record<string, string>;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

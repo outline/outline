@@ -8,6 +8,7 @@ import validate from "@server/middlewares/validate";
 import { Document, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentDocument, presentMention } from "@server/presenters/unfurls";
+import presentUnfurl from "@server/presenters/unfurls/unfurl";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { Iframely } from "@server/utils/unfurl";
@@ -62,7 +63,7 @@ router.post(
     }
 
     const data = await Iframely.unfurl(url);
-    ctx.body = data;
+    ctx.body = presentUnfurl(data);
   }
 );
 
