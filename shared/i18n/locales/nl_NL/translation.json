@@ -511,6 +511,8 @@
   "No one else has viewed yet": "Nog niet door andere bekeken",
   "Viewed {{ count }} times by {{ teamMembers }} people": "{{ count }} keer bekeken door {{ teamMembers }} personen",
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "{{ count }} keer bekeken door {{ teamMembers }} personen",
+  "Viewer insights": "Viewer insights",
+  "As an admin you can manage if team members can see who has viewed this document": "As an admin you can manage if team members can see who has viewed this document",
   "Sorry, it looks like you don’t have permission to access the document": "Sorry, het lijkt erop dat je geen toestemming hebt om het document te openen",
   "Sorry, this document is too large - edits will no longer be persisted.": "Sorry, dit document is te groot - bewerkingen zullen niet langer blijven bestaan.",
   "Sorry, the last change could not be persisted – please reload the page": "Sorry, de laatste wijziging kon niet worden bewaard - laad de pagina opnieuw",
