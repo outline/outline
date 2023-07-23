@@ -196,6 +196,9 @@ class Document extends ParanoidModel {
   @Column
   fullWidth: boolean;
 
+  @Column
+  insightsEnabled: boolean;
+
   @SimpleLength({
     max: 255,
     msg: `editorVersion must be 255 characters or less`,

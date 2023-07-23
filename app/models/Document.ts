@@ -46,42 +46,75 @@ export default class Document extends ParanoidModel {
 
   @Field
   @observable
-  collectionId?: string | null;
-
-  @Field
-  @observable
   id: string;
 
+  /**
+   * The id of the collection that this document belongs to, if any.
+   */
+  @Field
+  @observable
+  collectionId?: string | null;
+
+  /**
+   * The text content of the document as Markdown.
+   */
   @observable
   text: string;
 
+  /**
+   * The title of the document.
+   */
   @Field
   @observable
   title: string;
 
+  /**
+   * Whether this is a template.
+   */
   @observable
   template: boolean;
 
+  /**
+   * Whether the document layout is displayed full page width.
+   */
   @Field
   @observable
   fullWidth: boolean;
 
+  /**
+   * Whether team members can see who has viewed this document.
+   */
+  @Field
+  @observable
+  insightsEnabled: boolean;
+
+  /**
+   * A reference to the template that this document was created from.
+   */
   @Field
   @observable
   templateId: string | undefined;
 
+  /**
+   * The id of the parent document that this is a child of, if any.
+   */
   @Field
   @observable
   parentDocumentId: string | undefined;
 
+  @observable
   collaboratorIds: string[];
 
+  @observable
   createdBy: User;
 
+  @observable
   updatedBy: User;
 
+  @observable
   publishedAt: string | undefined;
 
+  @observable
   archivedAt: string;
 
   url: string;
