@@ -63,6 +63,9 @@ router.post(
     }
 
     const data = await Iframely.unfurl(url);
+    if (data.error) {
+      ctx.response.status = data.status;
+    }
     ctx.body = presentUnfurl(data);
   }
 );

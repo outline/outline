@@ -93,7 +93,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   React.useEffect(() => {
     const card = cardRef.current;
 
-    if (data) {
+    if (data && !data.error) {
       startOpenTimer();
 
       if (card) {
@@ -134,7 +134,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
     return <LoadingIndicator />;
   }
 
-  if (!data) {
+  if (!data || data.error) {
     return null;
   }
 
