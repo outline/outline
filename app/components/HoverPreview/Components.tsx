@@ -27,6 +27,10 @@ export const Info: React.FC = ({ children }) => (
   </StyledText>
 );
 
+export const Description: React.FC = styled(StyledText)`
+  margin-top: 0.5em;
+`;
+
 export const DescriptionContainer = styled.div`
   margin-top: 0.5em;
 `;

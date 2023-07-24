@@ -13,6 +13,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import HoverPreviewDocument from "./HoverPreviewDocument";
+import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
 
 const DELAY_OPEN = 300;
@@ -167,7 +168,14 @@ function HoverPreviewInternal({ element, onClose }: Props) {
                       description={data.description}
                       info={data.meta.info}
                     />
-                  ) : null}
+                  ) : (
+                    <HoverPreviewLink
+                      url={data.url}
+                      thumbnailUrl={data.thumbnailUrl}
+                      title={data.title}
+                      description={data.description}
+                    />
+                  )}
                 </CardContent>
               </Card>
               <Pointer offset={leftOffset + elemBounds.width / 2} />
@@ -196,7 +204,7 @@ const Animate = styled(m.div)`
 
 const CardContent = styled.div`
   overflow: hidden;
-  max-height: 20em;
+  max-height: 20.5em;
   user-select: none;
 `;
 
