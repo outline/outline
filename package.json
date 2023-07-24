@@ -62,7 +62,7 @@
     "@hocuspocus/extension-throttle": "1.1.2",
     "@hocuspocus/provider": "1.1.2",
     "@hocuspocus/server": "1.1.2",
-    "@joplin/turndown-plugin-gfm": "^1.0.47",
+    "@joplin/turndown-plugin-gfm": "^1.0.49",
     "@juggle/resize-observer": "^3.4.0",
     "@outlinewiki/koa-passport": "^4.2.1",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
