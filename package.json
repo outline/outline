@@ -106,7 +106,7 @@
     "gemoji": "6.x",
     "glob": "^8.1.0",
     "http-errors": "2.0.0",
-    "i18next": "^22.5.0",
+    "i18next": "^22.5.1",
     "i18next-fs-backend": "^2.1.1",
     "i18next-http-backend": "^2.2.0",
     "inline-css": "^4.0.2",
