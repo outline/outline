@@ -46,105 +46,114 @@ function Insights() {
   return (
     <Sidebar title={t("Insights")} onClose={onCloseInsights}>
       {document ? (
-        <>
-          <Content column>
-            <Heading>{t("Stats")}</Heading>
-            <Text type="secondary" size="small">
-              <List>
-                {stats.total.words > 0 && (
+        <Flex
+          column
+          shrink={false}
+          style={{ minHeight: "100%" }}
+          justify="space-between"
+        >
+          <div>
+            <Content column>
+              <Heading>{t("Stats")}</Heading>
+              <Text type="secondary" size="small">
+                <List>
+                  {stats.total.words > 0 && (
+                    <li>
+                      {t(`{{ count }} minute read`, {
+                        count: stats.total.readingTime,
+                      })}
+                    </li>
+                  )}
                   <li>
-                    {t(`{{ count }} minute read`, {
-                      count: stats.total.readingTime,
+                    {t(`{{ count }} words`, { count: stats.total.words })}
+                  </li>
+                  <li>
+                    {t(`{{ count }} characters`, {
+                      count: stats.total.characters,
                     })}
                   </li>
-                )}
-                <li>{t(`{{ count }} words`, { count: stats.total.words })}</li>
-                <li>
-                  {t(`{{ count }} characters`, {
-                    count: stats.total.characters,
-                  })}
-                </li>
-                <li>
-                  {t(`{{ number }} emoji`, { number: stats.total.emoji })}
-                </li>
-                {stats.selected.characters === 0 ? (
-                  <li>{t("No text selected")}</li>
-                ) : (
-                  <>
-                    <li>
-                      {t(`{{ count }} words selected`, {
-                        count: stats.selected.words,
-                      })}
-                    </li>
-                    <li>
-                      {t(`{{ count }} characters selected`, {
-                        count: stats.selected.characters,
-                      })}
-                    </li>
-                  </>
-                )}
-              </List>
-            </Text>
-          </Content>
-          {document.insightsEnabled && (
-            <>
-              <Content column>
-                <Heading>{t("Contributors")}</Heading>
-                <Text type="secondary" size="small">
-                  {t(`Created`)}{" "}
-                  <Time dateTime={document.createdAt} addSuffix />.
-                  <br />
-                  {t(`Last updated`)}{" "}
-                  <Time dateTime={document.updatedAt} addSuffix />.
-                </Text>
-                <ListSpacing>
-                  <PaginatedList
-                    aria-label={t("Contributors")}
-                    items={document.collaborators}
-                    renderItem={(model: User) => (
-                      <ListItem
-                        key={model.id}
-                        title={model.name}
-                        image={<Avatar model={model} size={32} />}
-                        subtitle={
-                          model.id === document.createdBy.id
-                            ? t("Creator")
-                            : model.id === document.updatedBy.id
-                            ? t("Last edited")
-                            : t("Previously edited")
-                        }
-                        border={false}
-                        small
-                      />
-                    )}
-                  />
-                </ListSpacing>
-              </Content>
-              <Content column>
-                <Heading>{t("Views")}</Heading>
-                <Text type="secondary" size="small">
-                  {documentViews.length <= 1
-                    ? t("No one else has viewed yet")
-                    : t(
-                        `Viewed {{ count }} times by {{ teamMembers }} people`,
-                        {
-                          count: documentViews.reduce(
-                            (memo, view) => memo + view.count,
-                            0
-                          ),
-                          teamMembers: documentViews.length,
-                        }
-                      )}
-                  .
-                </Text>
-                {documentViews.length > 1 && (
+                  <li>
+                    {t(`{{ number }} emoji`, { number: stats.total.emoji })}
+                  </li>
+                  {stats.selected.characters === 0 ? (
+                    <li>{t("No text selected")}</li>
+                  ) : (
+                    <>
+                      <li>
+                        {t(`{{ count }} words selected`, {
+                          count: stats.selected.words,
+                        })}
+                      </li>
+                      <li>
+                        {t(`{{ count }} characters selected`, {
+                          count: stats.selected.characters,
+                        })}
+                      </li>
+                    </>
+                  )}
+                </List>
+              </Text>
+            </Content>
+            {document.insightsEnabled && (
+              <>
+                <Content column>
+                  <Heading>{t("Contributors")}</Heading>
+                  <Text type="secondary" size="small">
+                    {t(`Created`)}{" "}
+                    <Time dateTime={document.createdAt} addSuffix />.
+                    <br />
+                    {t(`Last updated`)}{" "}
+                    <Time dateTime={document.updatedAt} addSuffix />.
+                  </Text>
                   <ListSpacing>
-                    <DocumentViews document={document} isOpen />
+                    <PaginatedList
+                      aria-label={t("Contributors")}
+                      items={document.collaborators}
+                      renderItem={(model: User) => (
+                        <ListItem
+                          key={model.id}
+                          title={model.name}
+                          image={<Avatar model={model} size={32} />}
+                          subtitle={
+                            model.id === document.createdBy.id
+                              ? t("Creator")
+                              : model.id === document.updatedBy.id
+                              ? t("Last edited")
+                              : t("Previously edited")
+                          }
+                          border={false}
+                          small
+                        />
+                      )}
+                    />
                   </ListSpacing>
-                )}
-              </Content>
-            </>
-          )}
+                </Content>
+                <Content column>
+                  <Heading>{t("Views")}</Heading>
+                  <Text type="secondary" size="small">
+                    {documentViews.length <= 1
+                      ? t("No one else has viewed yet")
+                      : t(
+                          `Viewed {{ count }} times by {{ teamMembers }} people`,
+                          {
+                            count: documentViews.reduce(
+                              (memo, view) => memo + view.count,
+                              0
+                            ),
+                            teamMembers: documentViews.length,
+                          }
+                        )}
+                    .
+                  </Text>
+                  {documentViews.length > 1 && (
+                    <ListSpacing>
+                      <DocumentViews document={document} isOpen />
+                    </ListSpacing>
+                  )}
+                </Content>
+              </>
+            )}
+          </div>
           {can.updateInsights && (
             <Manage>
               <Flex column>
@@ -167,7 +176,7 @@ function Insights() {
               />
             </Manage>
           )}
-        </>
+        </Flex>
       ) : null}
     </Sidebar>
   );
@@ -200,14 +209,13 @@ function countWords(text: string): number {
 }
 
 const Manage = styled(Flex)`
+  background: ${s("background")};
   border: 1px solid ${s("inputBorder")};
   border-bottom-width: 2px;
   border-radius: 8px;
   margin: 16px;
   padding: 16px 16px 0;
-
-  position: absolute;
-  bottom: 0;
+  justify-self: flex-end;
 `;
 
 const ListSpacing = styled("div")`
