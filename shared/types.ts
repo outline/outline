@@ -220,7 +220,7 @@ export type Unfurl<T = OEmbedType> = {
   url?: string;
   type: T;
   title: string;
-  description: string;
+  description?: string;
   thumbnailUrl?: string | null;
   meta?: Record<string, string>;
 };

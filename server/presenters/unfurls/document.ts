@@ -10,10 +10,10 @@ function presentDocument(
     url: document.url,
     type: UnfurlType.Document,
     title: document.titleWithDefault,
-    description: presentLastActivityInfoFor(document, viewer),
+    description: document.getSummary(),
     meta: {
       id: document.id,
-      summary: document.getSummary(),
+      info: presentLastActivityInfoFor(document, viewer),
     },
   };
 }

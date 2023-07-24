@@ -156,7 +156,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
                     <HoverPreviewMention
                       url={data.thumbnailUrl}
                       title={data.title}
-                      description={data.description}
+                      info={data.meta.info}
                       color={data.meta.color}
                     />
                   ) : data.type === UnfurlType.Document ? (
@@ -165,7 +165,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
                       url={data.url}
                       title={data.title}
                       description={data.description}
-                      summary={data.meta.summary}
+                      info={data.meta.info}
                     />
                   ) : null}
                 </CardContent>

@@ -12,11 +12,11 @@ async function presentMention(
   return {
     type: UnfurlType.Mention,
     title: user.name,
-    description: `${lastOnlineInfo} • ${lastViewedInfo}`,
     thumbnailUrl: user.avatarUrl,
     meta: {
       id: user.id,
       color: user.color,
+      info: `${lastOnlineInfo} • ${lastViewedInfo}`,
     },
   };
 }
