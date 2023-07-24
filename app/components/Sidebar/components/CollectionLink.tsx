@@ -37,7 +37,7 @@ const CollectionLink: React.FC<Props> = ({
   expanded,
   onDisclosureClick,
   isDraggingAnyCollection,
-}) => {
+}: Props) => {
   const itemRef = React.useRef<
     NavigationNode & { depth: number; active: boolean; collectionId: string }
   >();

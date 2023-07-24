@@ -15,6 +15,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
 type Props = {
+  children?: React.ReactNode;
   showCollection?: boolean;
   showPublished?: boolean;
   showLastViewed?: boolean;
@@ -36,7 +37,7 @@ const DocumentMeta: React.FC<Props> = ({
   replace,
   to,
   ...rest
-}) => {
+}: Props) => {
   const { t } = useTranslation();
   const { collections } = useStores();
   const user = useCurrentUser();

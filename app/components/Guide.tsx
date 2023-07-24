@@ -6,6 +6,7 @@ import Scrollable from "~/components/Scrollable";
 import usePrevious from "~/hooks/usePrevious";
 
 type Props = {
+  children?: React.ReactNode;
   isOpen: boolean;
   title?: string;
   onRequestClose: () => void;
@@ -17,7 +18,7 @@ const Guide: React.FC<Props> = ({
   title = "Untitled",
   onRequestClose,
   ...rest
-}) => {
+}: Props) => {
   const dialog = useDialogState({
     animated: 250,
   });

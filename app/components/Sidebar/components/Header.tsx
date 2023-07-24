@@ -9,12 +9,13 @@ type Props = {
   /** Unique header id – if passed the header will become toggleable */
   id?: string;
   title: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 /**
  * Toggleable sidebar header
  */
-export const Header: React.FC<Props> = ({ id, title, children }) => {
+export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
   const [firstRender, setFirstRender] = React.useState(true);
   const [expanded, setExpanded] = usePersistedState<boolean>(
     `sidebar-header-${id}`,

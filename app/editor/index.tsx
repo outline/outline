@@ -863,11 +863,13 @@ const EditorContainer = styled(Styles)<{ focusedCommentId?: string }>`
 `;
 
 const LazyLoadedEditor = React.forwardRef<Editor, Props>(
-  (props: Props, ref) => (
-    <WithTheme>
-      {(theme) => <Editor theme={theme} {...props} ref={ref} />}
-    </WithTheme>
-  )
+  function _LazyLoadedEditor(props: Props, ref) {
+    return (
+      <WithTheme>
+        {(theme) => <Editor theme={theme} {...props} ref={ref} />}
+      </WithTheme>
+    );
+  }
 );
 
 const observe = (

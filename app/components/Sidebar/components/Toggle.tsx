@@ -12,41 +12,42 @@ type Props = {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
-const Toggle = React.forwardRef<HTMLButtonElement, Props>(
-  ({ direction = "left", onClick, style }: Props, ref) => {
-    const { t } = useTranslation();
-    const [hovering, setHovering] = React.useState(false);
-    const positionRef = React.useRef<HTMLDivElement>(null);
+const Toggle = React.forwardRef<HTMLButtonElement, Props>(function Toggle_(
+  { direction = "left", onClick, style }: Props,
+  ref
+) {
+  const { t } = useTranslation();
+  const [hovering, setHovering] = React.useState(false);
+  const positionRef = React.useRef<HTMLDivElement>(null);
 
-    // Not using CSS hover here so that we can disable pointer events on this
-    // div and allow click through to the editor elements behind.
-    useEventListener("mousemove", (event: MouseEvent) => {
-      if (!positionRef.current) {
-        return;
-      }
+  // Not using CSS hover here so that we can disable pointer events on this
+  // div and allow click through to the editor elements behind.
+  useEventListener("mousemove", (event: MouseEvent) => {
+    if (!positionRef.current) {
+      return;
+    }
 
-      const bound = positionRef.current.getBoundingClientRect();
-      const withinBounds =
-        event.clientX >= bound.left && event.clientX <= bound.right;
-      if (withinBounds !== hovering) {
-        setHovering(withinBounds);
-      }
-    });
+    const bound = positionRef.current.getBoundingClientRect();
+    const withinBounds =
+      event.clientX >= bound.left && event.clientX <= bound.right;
+    if (withinBounds !== hovering) {
+      setHovering(withinBounds);
+    }
+  });
 
-    return (
-      <Positioner style={style} ref={positionRef} $hovering={hovering}>
-        <ToggleButton
-          ref={ref}
-          $direction={direction}
-          onClick={onClick}
-          aria-label={t("Toggle sidebar")}
-        >
-          <Arrow />
-        </ToggleButton>
-      </Positioner>
-    );
-  }
-);
+  return (
+    <Positioner style={style} ref={positionRef} $hovering={hovering}>
+      <ToggleButton
+        ref={ref}
+        $direction={direction}
+        onClick={onClick}
+        aria-label={t("Toggle sidebar")}
+      >
+        <Arrow />
+      </ToggleButton>
+    </Positioner>
+  );
+});
 
 export const ToggleButton = styled.button<{ $direction?: "left" | "right" }>`
   opacity: 0;

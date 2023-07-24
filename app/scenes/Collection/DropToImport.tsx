@@ -12,6 +12,7 @@ type Props = {
   disabled: boolean;
   accept: string;
   collectionId: string;
+  children?: React.ReactNode;
 };
 
 const DropToImport: React.FC<Props> = ({
@@ -19,7 +20,7 @@ const DropToImport: React.FC<Props> = ({
   disabled,
   accept,
   collectionId,
-}) => {
+}: Props) => {
   const { handleFiles, isImporting } = useImportDocument(collectionId);
   const { showToast } = useToasts();
   const { t } = useTranslation();

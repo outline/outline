@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -51,11 +51,9 @@ function APITokenNew({ onSubmit }: Props) {
   return (
     <form onSubmit={handleSubmit}>
       <Text type="secondary">
-        <Trans>
-          Name your token something that will help you to remember it's use in
-          the future, for example "local development", "production", or
-          "continuous integration".
-        </Trans>
+        {t(
+          `Name your token something that will help you to remember it's use in the future, for example "local development", "production", or "continuous integration".`
+        )}
       </Text>
       <Flex>
         <Input

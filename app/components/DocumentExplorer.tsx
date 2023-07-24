@@ -335,16 +335,21 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   const innerElementType = React.forwardRef<
     HTMLDivElement,
     React.HTMLAttributes<HTMLDivElement>
-  >(({ style, ...rest }, ref) => (
-    <div
-      ref={ref}
-      style={{
-        ...style,
-        height: `${parseFloat(style?.height + "") + VERTICAL_PADDING * 2}px`,
-      }}
-      {...rest}
-    />
-  ));
+  >(function innerElementType(
+    { style, ...rest }: React.HTMLAttributes<HTMLDivElement>,
+    ref
+  ) {
+    return (
+      <div
+        ref={ref}
+        style={{
+          ...style,
+          height: `${parseFloat(style?.height + "") + VERTICAL_PADDING * 2}px`,
+        }}
+        {...rest}
+      />
+    );
+  });
 
   return (
     <Container tabIndex={-1} onKeyDown={handleKeyDown}>

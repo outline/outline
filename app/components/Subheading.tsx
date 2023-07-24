@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 
 type Props = {
+  children?: React.ReactNode;
   sticky?: boolean;
 };
 
@@ -34,7 +35,7 @@ const Background = styled.div<{ sticky?: boolean }>`
   z-index: 1;
 `;
 
-const Subheading: React.FC<Props> = ({ children, sticky, ...rest }) => (
+const Subheading: React.FC<Props> = ({ children, sticky, ...rest }: Props) => (
   <Background sticky={sticky}>
     <H3 {...rest}>
       <Underline>{children}</Underline>

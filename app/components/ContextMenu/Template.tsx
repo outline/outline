@@ -44,37 +44,35 @@ type SubMenuProps = MenuStateReturn & {
   title: React.ReactNode;
 };
 
-const SubMenu = React.forwardRef(
-  (
-    { templateItems, title, parentMenuState, ...rest }: SubMenuProps,
-    ref: React.LegacyRef<HTMLButtonElement>
-  ) => {
-    const { t } = useTranslation();
-    const theme = useTheme();
-    const menu = useMenuState();
+const SubMenu = React.forwardRef(function _Template(
+  { templateItems, title, parentMenuState, ...rest }: SubMenuProps,
+  ref: React.LegacyRef<HTMLButtonElement>
+) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const menu = useMenuState();
 
-    return (
-      <>
-        <MenuButton ref={ref} {...menu} {...rest}>
-          {(props) => (
-            <MenuAnchor disclosure {...props}>
-              {title} <Disclosure color={theme.textTertiary} />
-            </MenuAnchor>
-          )}
-        </MenuButton>
-        <ContextMenu
-          {...menu}
-          aria-label={t("Submenu")}
-          onClick={parentMenuState.hide}
-          parentMenuState={parentMenuState}
-        >
-          <MouseSafeArea parentRef={menu.unstable_popoverRef} />
-          <Template {...menu} items={templateItems} />
-        </ContextMenu>
-      </>
-    );
-  }
-);
+  return (
+    <>
+      <MenuButton ref={ref} {...menu} {...rest}>
+        {(props) => (
+          <MenuAnchor disclosure {...props}>
+            {title} <Disclosure color={theme.textTertiary} />
+          </MenuAnchor>
+        )}
+      </MenuButton>
+      <ContextMenu
+        {...menu}
+        aria-label={t("Submenu")}
+        onClick={parentMenuState.hide}
+        parentMenuState={parentMenuState}
+      >
+        <MouseSafeArea parentRef={menu.unstable_popoverRef} />
+        <Template {...menu} items={templateItems} />
+      </ContextMenu>
+    </>
+  );
+});
 
 export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
   return items
