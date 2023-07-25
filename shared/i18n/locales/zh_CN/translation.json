@@ -875,6 +875,7 @@
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "将 {{appName}} 集合连接到 Slack 频道，当文档发布或更新时，消息将自动发布到 Slack。",
   "Connect": "连接",
   "The Slack integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "Slack 集成当前已禁用。请设置相关的环境变量并重新启动服务器以启用此集成。",
+  "How to use {{ command }}": "How to use {{ command }}",
   "To search your knowledgebase use {{ command }}. \nYou’ve already learned how to get help with {{ command2 }}.": "要搜索您的知识库，请使用 {{ command }}。 \n您已经学会了如何获得有关 {{ command2 }} 的帮助。",
   "Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.": "抱歉，我们找不到适合您团队的集成。前往您的 {{ appName }} 设置进行设置。",
   "It looks like you haven’t signed in to {{ appName }} yet, so results may be limited": "您似乎还没有登录到 {{ appName }} ，所以结果可能会被限制",
