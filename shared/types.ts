@@ -225,10 +225,5 @@ export type Unfurl<T = OEmbedType> = {
   meta?: Record<string, string>;
 };
 
-export type IframelyErrorResponse = {
-  status: number;
-  error: string;
-};
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ProsemirrorData = Record<string, any>;
