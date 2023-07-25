@@ -217,7 +217,10 @@ router.post("hooks.slack", async (ctx: APIContext) => {
   if (text.trim() === "help" || !text.trim()) {
     ctx.body = {
       response_type: "ephemeral",
-      text: "How to use /outline",
+      text: t("How to use {{ command }}", {
+        command: "/outline",
+        ...opts(user),
+      }),
       attachments: [
         {
           text: t(
