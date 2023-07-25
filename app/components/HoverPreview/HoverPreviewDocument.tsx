@@ -1,7 +1,14 @@
 import * as React from "react";
 import Editor from "~/components/Editor";
 import Flex from "~/components/Flex";
-import { Preview, Title, Info, DescriptionContainer } from "./Components";
+import {
+  Preview,
+  Title,
+  Info,
+  DescriptionContainer,
+  Card,
+  CardContent,
+} from "./Components";
 
 type Props = {
   /** Document id associated with the editor, if any */
@@ -19,20 +26,24 @@ type Props = {
 function HoverPreviewDocument({ id, url, title, info, description }: Props) {
   return (
     <Preview to={url}>
-      <Flex column>
-        <Title>{title}</Title>
-        <Info>{info}</Info>
-        <DescriptionContainer>
-          <React.Suspense fallback={<div />}>
-            <Editor
-              key={id}
-              defaultValue={description}
-              embedsDisabled
-              readOnly
-            />
-          </React.Suspense>
-        </DescriptionContainer>
-      </Flex>
+      <Card>
+        <CardContent>
+          <Flex column>
+            <Title>{title}</Title>
+            <Info>{info}</Info>
+            <DescriptionContainer>
+              <React.Suspense fallback={<div />}>
+                <Editor
+                  key={id}
+                  defaultValue={description}
+                  embedsDisabled
+                  readOnly
+                />
+              </React.Suspense>
+            </DescriptionContainer>
+          </Flex>
+        </CardContent>
+      </Card>
     </Preview>
   );
 }

@@ -1,7 +1,16 @@
 import * as React from "react";
+import styled from "styled-components";
 import Img from "@shared/editor/components/Img";
 import Flex from "~/components/Flex";
-import { Preview, Title, Description } from "./Components";
+import {
+  Preview,
+  Title,
+  Description,
+  Card,
+  CardContent,
+  CARD_WIDTH,
+  THUMBNAIL_HEIGHT,
+} from "./Components";
 
 type Props = {
   /** Link url */
@@ -16,16 +25,26 @@ type Props = {
 
 function HoverPreviewLink({ url, thumbnailUrl, title, description }: Props) {
   return (
-    <Preview to={url}>
-      <Flex gap={12} column>
-        <Img src={thumbnailUrl} alt={""} />
-        <Flex column>
-          <Title>{title}</Title>
-          <Description>{description}</Description>
-        </Flex>
+    <Preview to={{ pathname: url }} target="_blank" rel="noopener noreferrer">
+      <Flex column>
+        {thumbnailUrl ? <Thumbnail src={thumbnailUrl} alt={""} /> : null}
+        <Card>
+          <CardContent>
+            <Flex column>
+              <Title>{title}</Title>
+              <Description>{description}</Description>
+            </Flex>
+          </CardContent>
+        </Card>
       </Flex>
     </Preview>
   );
 }
+
+const Thumbnail = styled(Img)`
+  object-fit: cover;
+  max-width: ${CARD_WIDTH}px;
+  height: ${THUMBNAIL_HEIGHT}px;
+`;
 
 export default HoverPreviewLink;

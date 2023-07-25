@@ -1,5 +1,4 @@
 import { m } from "framer-motion";
-import { transparentize } from "polished";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
@@ -12,14 +11,13 @@ import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
+import { CARD_WIDTH, CARD_PADDING } from "./Components";
 import HoverPreviewDocument from "./HoverPreviewDocument";
 import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 600;
-const CARD_PADDING = 16;
-const CARD_MAX_WIDTH = 375;
 
 type Props = {
   /* The HTML element that is being hovered over */
@@ -123,10 +121,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   const elemBounds = element.getBoundingClientRect();
   const cardBounds = cardRef.current?.getBoundingClientRect();
   const left = cardBounds
-    ? Math.min(
-        elemBounds.left,
-        window.innerWidth - CARD_PADDING - CARD_MAX_WIDTH
-      )
+    ? Math.min(elemBounds.left, window.innerWidth - CARD_PADDING - CARD_WIDTH)
     : elemBounds.left;
   const leftOffset = elemBounds.left - left;
 
@@ -151,33 +146,29 @@ function HoverPreviewInternal({ element, onClose }: Props) {
               initial={{ opacity: 0, y: -20, pointerEvents: "none" }}
               animate={{ opacity: 1, y: 0, pointerEvents: "auto" }}
             >
-              <Card fadeOut={data.type !== UnfurlType.Mention}>
-                <CardContent>
-                  {data.type === UnfurlType.Mention ? (
-                    <HoverPreviewMention
-                      url={data.thumbnailUrl}
-                      title={data.title}
-                      info={data.meta.info}
-                      color={data.meta.color}
-                    />
-                  ) : data.type === UnfurlType.Document ? (
-                    <HoverPreviewDocument
-                      id={data.meta.id}
-                      url={data.url}
-                      title={data.title}
-                      description={data.description}
-                      info={data.meta.info}
-                    />
-                  ) : (
-                    <HoverPreviewLink
-                      url={data.url}
-                      thumbnailUrl={data.thumbnailUrl}
-                      title={data.title}
-                      description={data.description}
-                    />
-                  )}
-                </CardContent>
-              </Card>
+              {data.type === UnfurlType.Mention ? (
+                <HoverPreviewMention
+                  url={data.thumbnailUrl}
+                  title={data.title}
+                  info={data.meta.info}
+                  color={data.meta.color}
+                />
+              ) : data.type === UnfurlType.Document ? (
+                <HoverPreviewDocument
+                  id={data.meta.id}
+                  url={data.url}
+                  title={data.title}
+                  description={data.description}
+                  info={data.meta.info}
+                />
+              ) : (
+                <HoverPreviewLink
+                  url={data.url}
+                  thumbnailUrl={data.thumbnailUrl}
+                  title={data.title}
+                  description={data.description}
+                />
+              )}
               <Pointer offset={leftOffset + elemBounds.width / 2} />
             </Animate>
           ) : null}
@@ -200,64 +191,6 @@ const Animate = styled(m.div)`
   @media print {
     display: none;
   }
-`;
-
-const CardContent = styled.div`
-  overflow: hidden;
-  max-height: 20.5em;
-  user-select: none;
-`;
-
-// &:after — gradient mask for overflow text
-const Card = styled.div<{ fadeOut?: boolean }>`
-  backdrop-filter: blur(10px);
-  background: ${(props) => props.theme.menuBackground};
-  border-radius: 4px;
-  box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.3),
-    0 0 1px 1px rgba(0, 0, 0, 0.05);
-  padding: ${CARD_PADDING}px;
-  min-width: 350px;
-  max-width: ${CARD_MAX_WIDTH}px;
-  font-size: 0.9em;
-  position: relative;
-
-  .placeholder,
-  .heading-anchor {
-    display: none;
-  }
-
-  // fills the gap between the card and pointer to avoid a dead zone
-  &::before {
-    content: "";
-    position: absolute;
-    top: -10px;
-    left: 0;
-    right: 0;
-    height: 10px;
-  }
-
-  ${(props) =>
-    props.fadeOut !== false
-      ? `&:after {
-          content: "";
-          display: block;
-          position: absolute;
-          pointer-events: none;
-          background: linear-gradient(
-            90deg,
-            ${transparentize(1, props.theme.menuBackground)} 0%,
-            ${transparentize(1, props.theme.menuBackground)} 75%,
-            ${props.theme.menuBackground} 90%
-          );
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 1.7em;
-          border-bottom: 16px solid ${props.theme.menuBackground};
-          border-bottom-left-radius: 4px;
-          border-bottom-right-radius: 4px;
-        }`
-      : ""}
 `;
 
 const Position = styled.div<{ fixed?: boolean; top?: number; left?: number }>`
