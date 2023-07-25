@@ -875,6 +875,7 @@
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Połącz kolekcje {{appName}} z kanałami Slack, a wiadomości będą automatycznie publikowane w Slack po opublikowaniu lub zaktualizowaniu dokumentów.",
   "Connect": "Połącz",
   "The Slack integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "Integracja ze Slackiem jest obecnie wyłączona. Ustaw powiązane zmienne środowiskowe i zrestartuj serwer, aby włączyć integrację.",
+  "How to use {{ command }}": "How to use {{ command }}",
   "To search your knowledgebase use {{ command }}. \nYou’ve already learned how to get help with {{ command2 }}.": "Aby przeszukać swoją bazę wiedzy, użyj {{ command }}. \nNauczyłeś się już, jak uzyskać pomoc w {{ command2 }}.",
   "Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.": "Przepraszamy, nie znaleźliśmy integracji dla Twojego zespołu. Przejdź do ustawień {{ appName }}, aby je skonfigurować.",
   "It looks like you haven’t signed in to {{ appName }} yet, so results may be limited": "Wygląda na to, że nie zalogowałeś się jeszcze do {{ appName }}, więc wyniki mogą być niepełne",
