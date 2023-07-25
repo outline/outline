@@ -16,6 +16,7 @@ import useStores from "~/hooks/useStores";
 import { isModKey } from "~/utils/keyboard";
 
 type Props = {
+  children?: React.ReactNode;
   title?: string;
   sidebar?: React.ReactNode;
   sidebarRight?: React.ReactNode;
@@ -26,7 +27,7 @@ const Layout: React.FC<Props> = ({
   children,
   sidebar,
   sidebarRight,
-}) => {
+}: Props) => {
   const { ui } = useStores();
   const sidebarCollapsed = !sidebar || ui.sidebarIsClosed;
 

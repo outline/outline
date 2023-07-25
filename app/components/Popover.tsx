@@ -25,7 +25,7 @@ const Popover: React.FC<Props> = ({
   flex,
   mobilePosition,
   ...rest
-}) => {
+}: Props) => {
   const isMobile = useMobile();
 
   if (isMobile) {

@@ -8,6 +8,7 @@ import { hover } from "~/styles";
 type Props = Omit<React.ComponentProps<typeof NavLink>, "children"> & {
   to: string;
   exact?: boolean;
+  children?: React.ReactNode;
 };
 
 const TabLink = styled(NavLink)`
@@ -44,7 +45,7 @@ const transition = {
   damping: 30,
 };
 
-const Tab: React.FC<Props> = ({ children, ...rest }) => {
+const Tab: React.FC<Props> = ({ children, ...rest }: Props) => {
   const theme = useTheme();
   const activeStyle = {
     color: theme.textSecondary,

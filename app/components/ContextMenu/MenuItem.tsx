@@ -22,6 +22,7 @@ type Props = {
   level?: number;
   icon?: React.ReactElement;
   children?: React.ReactNode;
+  ref?: React.LegacyRef<HTMLButtonElement> | undefined;
 };
 
 const MenuItem = (
@@ -80,7 +81,7 @@ const MenuItem = (
         </MenuAnchor>
       );
     },
-    [active, as, hide, icon, onClick, ref, selected]
+    [active, as, hide, icon, onClick, ref, children, selected]
   );
 
   return (

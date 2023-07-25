@@ -46,6 +46,7 @@ type Props = MenuStateReturn & {
   onClose?: () => void;
   /** Called when the context menu is clicked. */
   onClick?: (ev: React.MouseEvent) => void;
+  children?: React.ReactNode;
 };
 
 const ContextMenu: React.FC<Props> = ({
@@ -54,7 +55,7 @@ const ContextMenu: React.FC<Props> = ({
   onClose,
   parentMenuState,
   ...rest
-}) => {
+}: Props) => {
   const previousVisible = usePrevious(rest.visible);
   const maxHeight = useMenuHeight({
     visible: rest.visible,

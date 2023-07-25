@@ -1,8 +1,9 @@
+/* eslint-disable react/prop-types */
 import * as React from "react";
 import Tooltip, { Props as TooltipProps } from "~/components/Tooltip";
 import { Action, ActionContext } from "~/types";
 
-export type Props = React.ComponentPropsWithoutRef<"button"> & {
+export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** Show the button in a disabled state */
   disabled?: boolean;
   /** Hide the button entirely if action is not applicable */
@@ -18,11 +19,11 @@ export type Props = React.ComponentPropsWithoutRef<"button"> & {
 /**
  * Button that can be used to trigger an action definition.
  */
-const ActionButton = React.forwardRef(
-  (
+const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
+  function _ActionButton(
     { action, context, tooltip, hideOnActionDisabled, ...rest }: Props,
     ref: React.Ref<HTMLButtonElement>
-  ) => {
+  ) {
     const [executing, setExecuting] = React.useState(false);
     const disabled = rest.disabled;
 

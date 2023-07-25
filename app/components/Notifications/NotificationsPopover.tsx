@@ -7,7 +7,11 @@ import { depths } from "@shared/styles";
 import Popover from "~/components/Popover";
 import Notifications from "./Notifications";
 
-const NotificationsPopover: React.FC = ({ children }) => {
+type Props = {
+  children?: React.ReactNode;
+};
+
+const NotificationsPopover: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
   const scrollableRef = React.useRef<HTMLDivElement>(null);
 

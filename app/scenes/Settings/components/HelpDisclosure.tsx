@@ -10,10 +10,11 @@ import Button from "~/components/Button";
 import Text from "~/components/Text";
 
 type Props = {
+  children?: React.ReactNode;
   title: React.ReactNode;
 };
 
-const HelpDisclosure: React.FC<Props> = ({ title, children }) => {
+const HelpDisclosure: React.FC<Props> = ({ title, children }: Props) => {
   const disclosure = useDisclosureState({ animated: true });
   const theme = useTheme();
 

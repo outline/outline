@@ -2,10 +2,14 @@ import * as React from "react";
 import Logger from "~/utils/Logger";
 import { loadPolyfills } from "~/utils/polyfills";
 
+type Props = {
+  children?: React.ReactNode;
+};
+
 /**
  * Asyncronously load required polyfills. Should wrap the React tree.
  */
-export const LazyPolyfill: React.FC = ({ children }) => {
+export const LazyPolyfill: React.FC = ({ children }: Props) => {
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   React.useEffect(() => {
