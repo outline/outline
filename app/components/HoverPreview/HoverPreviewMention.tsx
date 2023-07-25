@@ -29,7 +29,7 @@ function HoverPreviewMention({ url, title, info, color }: Props) {
               }}
               size={AvatarSize.XLarge}
             />
-            <Flex column>
+            <Flex column gap={2} justify="center">
               <Title>{title}</Title>
               <Info>{info}</Info>
             </Flex>

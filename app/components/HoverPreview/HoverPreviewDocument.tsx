@@ -28,7 +28,7 @@ function HoverPreviewDocument({ id, url, title, info, description }: Props) {
     <Preview to={url}>
       <Card>
         <CardContent>
-          <Flex column>
+          <Flex column gap={2}>
             <Title>{title}</Title>
             <Info>{info}</Info>
             <DescriptionContainer>

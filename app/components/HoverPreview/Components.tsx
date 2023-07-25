@@ -13,7 +13,6 @@ export const THUMBNAIL_HEIGHT = 200;
 
 const StyledText = styled(Text)`
   margin-bottom: 0;
-  padding-top: 0.125em;
 `;
 
 export const Preview = styled(Link)`
@@ -28,7 +27,7 @@ export const Preview = styled(Link)`
 
 export const Title = styled.h2`
   font-size: 1.25em;
-  margin: 0.125em 0 0 0;
+  margin: 0;
   color: ${s("text")};
 `;
 
