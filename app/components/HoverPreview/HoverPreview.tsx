@@ -1,3 +1,4 @@
+import { m } from "framer-motion";
 import { transparentize } from "polished";
 import * as React from "react";
 import { Portal } from "react-portal";
@@ -10,7 +11,6 @@ import useMobile from "~/hooks/useMobile";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import { fadeAndSlideDown } from "~/styles/animations";
 import { client } from "~/utils/ApiClient";
 import HoverPreviewDocument from "./HoverPreviewDocument";
 import HoverPreviewMention from "./HoverPreviewMention";
@@ -146,9 +146,11 @@ function HoverPreviewInternal({ element, onClose }: Props) {
       >
         <div ref={cardRef}>
           {isVisible ? (
-            <Animate>
+            <Animate
+              initial={{ opacity: 0, y: -20, pointerEvents: "none" }}
+              animate={{ opacity: 1, y: 0, pointerEvents: "auto" }}
+            >
               <Card fadeOut={data.type !== UnfurlType.Mention}>
-                <Margin />
                 <CardContent>
                   {data.type === UnfurlType.Mention ? (
                     <HoverPreviewMention
@@ -186,21 +188,10 @@ function HoverPreview({ element, ...rest }: Props) {
   return <HoverPreviewInternal {...rest} element={element} />;
 }
 
-const Animate = styled.div`
-  animation: ${fadeAndSlideDown} 150ms ease;
-
+const Animate = styled(m.div)`
   @media print {
     display: none;
   }
-`;
-
-// fills the gap between the card and pointer to avoid a dead zone
-const Margin = styled.div`
-  position: absolute;
-  top: -11px;
-  left: 0;
-  right: 0;
-  height: 11px;
 `;
 
 const CardContent = styled.div`
@@ -225,6 +216,16 @@ const Card = styled.div<{ fadeOut?: boolean }>`
   .placeholder,
   .heading-anchor {
     display: none;
+  }
+
+  // fills the gap between the card and pointer to avoid a dead zone
+  &::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: 10px;
   }
 
   ${(props) =>
