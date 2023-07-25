@@ -51,7 +51,7 @@ router.post(
     const previewDocumentId = parseDocumentSlug(url);
     if (previewDocumentId) {
       const document = previewDocumentId
-        ? await Document.findByPk(previewDocumentId)
+        ? await Document.findByPk(previewDocumentId, { userId: actor.id })
         : undefined;
       if (!document) {
         throw NotFoundError("Document does not exist");
