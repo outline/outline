@@ -64,7 +64,8 @@ router.post(
 
     const data = await Iframely.unfurl(url);
     if (data.error) {
-      ctx.response.status = data.status;
+      ctx.response.status = 204;
+      return;
     }
     ctx.body = presentUnfurl(data);
   }
