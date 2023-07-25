@@ -875,6 +875,7 @@
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Hubungkan {{appName}} koleksi ke saluran Slack. Pesan akan diposting secara otomatis ke Slack saat dokumen diterbitkan atau diperbarui.",
   "Connect": "Hubungkan",
   "The Slack integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "Integrasi Slack saat ini dinonaktifkan. Harap atur variabel lingkungan terkait dan mulai ulang server untuk mengaktifkan integrasi.",
+  "How to use {{ command }}": "How to use {{ command }}",
   "To search your knowledgebase use {{ command }}. \nYou’ve already learned how to get help with {{ command2 }}.": "Untuk mencari dokumen a gunakan {{ command }}. \nAnda telah mempelajari cara mendapatkan bantuan dengan {{ command2 }}.",
   "Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.": "Maaf, kami tidak dapat menemukan integrasi untuk tim Anda. Buka pengaturan {{ appName }} Anda untuk menyiapkannya.",
   "It looks like you haven’t signed in to {{ appName }} yet, so results may be limited": "Sepertinya Anda belum masuk ke {{ appName }} , hasil yang Anda lihat mungkin terbatas",
