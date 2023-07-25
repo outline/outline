@@ -268,6 +268,11 @@ width: 100%;
   padding: ${props.editorStyle?.padding ?? "initial"};
   margin: ${props.editorStyle?.margin ?? "initial"};
 
+  .ProseMirror {
+    padding: 0;
+    margin: 0;
+  }
+
   & > .ProseMirror-yjs-cursor {
     display: none;
   }
