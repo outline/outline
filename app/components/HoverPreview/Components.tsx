@@ -1,7 +1,6 @@
 import { transparentize } from "polished";
-import * as React from "react";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import Text from "~/components/Text";
 
@@ -10,6 +9,12 @@ export const CARD_PADDING = 16;
 export const CARD_WIDTH = 375;
 
 export const THUMBNAIL_HEIGHT = 200;
+
+const NUMBER_OF_LINES = 10;
+
+const sharedVars = css`
+  --line-height: 1.6em;
+`;
 
 const StyledText = styled(Text)`
   margin-bottom: 0;
@@ -31,23 +36,20 @@ export const Title = styled.h2`
   color: ${s("text")};
 `;
 
-export const Info: React.FC = ({ children }: { children: string }) => (
-  <StyledText type="tertiary" size="xsmall">
-    {children}
-  </StyledText>
-);
+export const Info = styled(StyledText).attrs(() => ({
+  type: "tertiary",
+  size: "xsmall",
+}))``;
 
-export const Description: React.FC = styled(StyledText)`
+export const Description = styled(StyledText)`
+  ${sharedVars}
   margin-top: 0.5em;
-`;
-
-export const DescriptionContainer = styled.div`
-  margin-top: 0.5em;
+  line-height: var(--line-height);
+  max-height: calc(var(--line-height) * ${NUMBER_OF_LINES});
 `;
 
 export const CardContent = styled.div`
   overflow: hidden;
-  max-height: 20.5em;
   user-select: none;
 `;
 
@@ -78,6 +80,7 @@ export const Card = styled.div<{ fadeOut?: boolean; $borderRadius?: string }>`
   ${(props) =>
     props.fadeOut !== false
       ? `&:after {
+          ${sharedVars}
           content: "";
           display: block;
           position: absolute;
@@ -91,7 +94,7 @@ export const Card = styled.div<{ fadeOut?: boolean; $borderRadius?: string }>`
           bottom: 0;
           left: 0;
           right: 0;
-          height: 1.7em;
+          height: var(--line-height);
           border-bottom: 16px solid ${props.theme.menuBackground};
           border-bottom-left-radius: 4px;
           border-bottom-right-radius: 4px;

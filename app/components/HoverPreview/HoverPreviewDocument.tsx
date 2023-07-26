@@ -5,9 +5,9 @@ import {
   Preview,
   Title,
   Info,
-  DescriptionContainer,
   Card,
   CardContent,
+  Description,
 } from "./Components";
 
 type Props = {
@@ -31,7 +31,7 @@ function HoverPreviewDocument({ id, url, title, info, description }: Props) {
           <Flex column gap={2}>
             <Title>{title}</Title>
             <Info>{info}</Info>
-            <DescriptionContainer>
+            <Description as="div">
               <React.Suspense fallback={<div />}>
                 <Editor
                   key={id}
@@ -40,7 +40,7 @@ function HoverPreviewDocument({ id, url, title, info, description }: Props) {
                   readOnly
                 />
               </React.Suspense>
-            </DescriptionContainer>
+            </Description>
           </Flex>
         </CardContent>
       </Card>
