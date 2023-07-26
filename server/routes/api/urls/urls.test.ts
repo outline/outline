@@ -1,6 +1,13 @@
 import { User } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
+import { Iframely } from "@server/utils/unfurl";
+
+jest.mock("@server/utils/unfurl", () => ({
+  Iframely: {
+    unfurl: jest.fn(),
+  },
+}));
 
 const server = getTestServer();
 
@@ -136,5 +143,60 @@ describe("#urls.unfurl", () => {
     expect(body.type).toEqual("document");
     expect(body.title).toEqual(document.titleWithDefault);
     expect(body.meta.id).toEqual(document.id);
+  });
+
+  it("should succeed with status 200 ok for a valid external url", async () => {
+    (Iframely.unfurl as jest.Mock).mockResolvedValue(
+      Promise.resolve({
+        url: "https://www.flickr.com",
+        type: "rich",
+        title: "Flickr",
+        description:
+          "The safest and most inclusive global community of photography enthusiasts. The best place for inspiration, connection, and sharing!",
+        thumbnail_url:
+          "https://farm4.staticflickr.com/3914/15118079089_489aa62638_b.jpg",
+      })
+    );
+
+    const res = await server.post("/api/urls.unfurl", {
+      body: {
+        token: user.getJwtToken(),
+        url: "https://www.flickr.com",
+      },
+    });
+
+    const body = await res.json();
+
+    expect(Iframely.unfurl).toHaveBeenCalledWith("https://www.flickr.com");
+    expect(res.status).toEqual(200);
+    expect(body.url).toEqual("https://www.flickr.com");
+    expect(body.type).toEqual("rich");
+    expect(body.title).toEqual("Flickr");
+    expect(body.description).toEqual(
+      "The safest and most inclusive global community of photography enthusiasts. The best place for inspiration, connection, and sharing!"
+    );
+    expect(body.thumbnailUrl).toEqual(
+      "https://farm4.staticflickr.com/3914/15118079089_489aa62638_b.jpg"
+    );
+  });
+
+  it("should succeed with status 204 no content for a non-existing external url", async () => {
+    (Iframely.unfurl as jest.Mock).mockResolvedValue(
+      Promise.resolve({
+        status: 404,
+        error:
+          "Iframely could not fetch the given URL. The content is no longer available at the origin.",
+      })
+    );
+
+    const res = await server.post("/api/urls.unfurl", {
+      body: {
+        token: user.getJwtToken(),
+        url: "https://random.url",
+      },
+    });
+
+    expect(Iframely.unfurl).toHaveBeenCalledWith("https://random.url");
+    expect(res.status).toEqual(204);
   });
 });
