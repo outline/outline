@@ -11,7 +11,7 @@ import { presentDocument, presentMention } from "@server/presenters/unfurls";
 import presentUnfurl from "@server/presenters/unfurls/unfurl";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import { Iframely } from "@server/utils/unfurl";
+import resolvers from "@server/utils/unfurl";
 import * as T from "./schema";
 
 const router = new Router();
@@ -62,12 +62,14 @@ router.post(
       return;
     }
 
-    const data = await Iframely.unfurl(url);
-    if (data.error) {
-      ctx.response.status = 204;
-      return;
+    if (resolvers.Iframely) {
+      const data = await resolvers.Iframely.unfurl(url);
+      return data.error
+        ? (ctx.response.status = 204)
+        : (ctx.body = presentUnfurl(data));
     }
-    ctx.body = presentUnfurl(data);
+
+    ctx.response.status = 204;
   }
 );
 
