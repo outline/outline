@@ -617,7 +617,7 @@ export class Environment {
    */
   @IsOptional()
   @CannotUseWithout("IFRAMELY_URL")
-  public IFRAMELY_API_KEY = process.env.IFRAMELY_API_KEY ?? "";
+  public IFRAMELY_API_KEY = this.toOptionalString(process.env.IFRAMELY_API_KEY);
 
   /**
    * The product name
