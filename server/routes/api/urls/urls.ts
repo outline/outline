@@ -69,7 +69,7 @@ router.post(
         : (ctx.body = presentUnfurl(data));
     }
 
-    ctx.response.status = 204;
+    return (ctx.response.status = 204);
   }
 );
 
