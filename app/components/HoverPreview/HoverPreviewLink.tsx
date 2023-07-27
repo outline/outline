@@ -17,7 +17,7 @@ type Props = {
   url: string;
   /** Title for the preview card */
   title: string;
-  /** Url for thumbnail served by the link provider*/
+  /** Url for thumbnail served by the link provider */
   thumbnailUrl: string;
   /** Some description about the link provider */
   description: string;
