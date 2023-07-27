@@ -26,9 +26,8 @@ class Iframely {
         response.cache_age
       );
     } catch (err) {
-      // just log it as a warning to not disrupt the flow,
-      // can skip caching and directly return response
-      Logger.warn("Could not cache Iframely response", err);
+      // just log it, can skip caching and directly return response
+      Logger.error("Could not cache Iframely response", err);
     }
   }
 
@@ -48,9 +47,8 @@ class Iframely {
         return JSON.parse(val);
       }
     } catch (err) {
-      // just log it as a warning to not disrupt the flow,
-      // response can still be obtained using the fetch call
-      Logger.warn("Could not fetch cached Iframely response", err);
+      // just log it, response can still be obtained using the fetch call
+      Logger.error("Could not fetch cached Iframely response", err);
     }
   }
 
