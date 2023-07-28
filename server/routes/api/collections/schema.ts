@@ -140,3 +140,15 @@ export const CollectionsMembershipsSchema = BaseSchema.extend({
 export type CollectionsMembershipsReq = z.infer<
   typeof CollectionsMembershipsSchema
 >;
+
+export const CollectionsExportSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    format: z
+      .nativeEnum(FileOperationFormat)
+      .default(FileOperationFormat.MarkdownZip),
+    includeAttachments: z.boolean().default(true),
+  }),
+});
+
+export type CollectionsExportReq = z.infer<typeof CollectionsExportSchema>;

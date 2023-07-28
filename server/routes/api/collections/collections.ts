@@ -548,20 +548,13 @@ router.post(
   "collections.export",
   rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
+  validate(T.CollectionsExportSchema),
   transaction(),
-  async (ctx: APIContext) => {
+  async (ctx: APIContext<T.CollectionsExportReq>) => {
     const { transaction } = ctx.state;
-    const { id } = ctx.request.body;
-    const {
-      format = FileOperationFormat.MarkdownZip,
-      includeAttachments = true,
-    } = ctx.request.body;
-
-    assertUuid(id, "id is required");
-    assertIn(format, Object.values(FileOperationFormat), "Invalid format");
-    assertBoolean(includeAttachments, "includeAttachments must be a boolean");
-
+    const { id, format, includeAttachments } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const team = await Team.findByPk(user.teamId);
     authorize(user, "createExport", team);
 
