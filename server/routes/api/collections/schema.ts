@@ -43,3 +43,11 @@ export const CollectionsCreateSchema = BaseSchema.extend({
 });
 
 export type CollectionsCreateReq = z.infer<typeof CollectionsCreateSchema>;
+
+export const CollectionsInfoSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
+export type CollectionsInfoReq = z.infer<typeof CollectionsInfoSchema>;

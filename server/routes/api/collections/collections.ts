@@ -123,21 +123,25 @@ router.post(
   }
 );
 
-router.post("collections.info", auth(), async (ctx: APIContext) => {
-  const { id } = ctx.request.body;
-  assertPresent(id, "id is required");
-  const { user } = ctx.state.auth;
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findByPk(id);
+router.post(
+  "collections.info",
+  auth(),
+  validate(T.CollectionsInfoSchema),
+  async (ctx: APIContext<T.CollectionsInfoReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(id);
 
-  authorize(user, "read", collection);
+    authorize(user, "read", collection);
 
-  ctx.body = {
-    data: presentCollection(collection),
-    policies: presentPolicies(user, [collection]),
-  };
-});
+    ctx.body = {
+      data: presentCollection(collection),
+      policies: presentPolicies(user, [collection]),
+    };
+  }
+);
 
 router.post("collections.documents", auth(), async (ctx: APIContext) => {
   const { id } = ctx.request.body;
