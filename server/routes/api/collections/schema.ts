@@ -128,3 +128,15 @@ export const CollectionsRemoveUserSchema = BaseSchema.extend({
 export type CollectionsRemoveUserReq = z.infer<
   typeof CollectionsRemoveUserSchema
 >;
+
+export const CollectionsMembershipsSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    query: z.string().optional(),
+    permission: z.nativeEnum(CollectionPermission).optional(),
+  }),
+});
+
+export type CollectionsMembershipsReq = z.infer<
+  typeof CollectionsMembershipsSchema
+>;

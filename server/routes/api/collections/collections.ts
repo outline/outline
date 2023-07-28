@@ -485,9 +485,9 @@ router.post(
   "collections.memberships",
   auth(),
   pagination(),
-  async (ctx: APIContext) => {
-    const { id, query, permission } = ctx.request.body;
-    assertUuid(id, "id is required");
+  validate(T.CollectionsMembershipsSchema),
+  async (ctx: APIContext<T.CollectionsMembershipsReq>) => {
+    const { id, query, permission } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const collection = await Collection.scope({
@@ -509,7 +509,6 @@ router.post(
     }
 
     if (permission) {
-      assertCollectionPermission(permission);
       where = { ...where, permission };
     }
 
