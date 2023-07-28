@@ -1,7 +1,7 @@
 import { isUndefined } from "lodash";
 import { z } from "zod";
 import { randomElement } from "@shared/random";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, FileOperationFormat } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import { Collection } from "@server/models";
 import { ValidateColor, ValidateIcon, ValidateIndex } from "@server/validation";
@@ -61,3 +61,14 @@ export const CollectionsDocumentsSchema = BaseSchema.extend({
 export type CollectionsDocumentsReq = z.infer<
   typeof CollectionsDocumentsSchema
 >;
+
+export const CollectionsImportSchema = BaseSchema.extend({
+  body: z.object({
+    attachmentId: z.string().uuid(),
+    format: z
+      .nativeEnum(FileOperationFormat)
+      .default(FileOperationFormat.MarkdownZip),
+  }),
+});
+
+export type CollectionsImportReq = z.infer<typeof CollectionsImportSchema>;

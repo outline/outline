@@ -166,20 +166,17 @@ router.post(
   "collections.import",
   rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
+  validate(T.CollectionsImportSchema),
   transaction(),
-  async (ctx: APIContext) => {
+  async (ctx: APIContext<T.CollectionsImportReq>) => {
     const { transaction } = ctx.state;
-    const { attachmentId, format = FileOperationFormat.MarkdownZip } =
-      ctx.request.body;
-    assertUuid(attachmentId, "attachmentId is required");
+    const { attachmentId, format } = ctx.input.body;
 
     const { user } = ctx.state.auth;
     authorize(user, "importCollection", user.team);
 
     const attachment = await Attachment.findByPk(attachmentId);
     authorize(user, "read", attachment);
-
-    assertIn(format, Object.values(FileOperationFormat), "Invalid format");
 
     const fileOperation = await FileOperation.create(
       {
