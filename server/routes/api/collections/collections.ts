@@ -310,9 +310,9 @@ router.post(
   "collections.group_memberships",
   auth(),
   pagination(),
-  async (ctx: APIContext) => {
-    const { id, query, permission } = ctx.request.body;
-    assertUuid(id, "id is required");
+  validate(T.CollectionsGroupMembershipsSchema),
+  async (ctx: APIContext<T.CollectionsGroupMembershipsReq>) => {
+    const { id, query, permission } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const collection = await Collection.scope({

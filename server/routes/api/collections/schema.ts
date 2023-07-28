@@ -95,3 +95,15 @@ export const CollectionsRemoveGroupSchema = BaseSchema.extend({
 export type CollectionsRemoveGroupReq = z.infer<
   typeof CollectionsRemoveGroupSchema
 >;
+
+export const CollectionsGroupMembershipsSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    query: z.string().optional(),
+    permission: z.nativeEnum(CollectionPermission).optional(),
+  }),
+});
+
+export type CollectionsGroupMembershipsReq = z.infer<
+  typeof CollectionsGroupMembershipsSchema
+>;
