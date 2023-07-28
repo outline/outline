@@ -117,3 +117,14 @@ export const CollectionsAddUserSchema = BaseSchema.extend({
 });
 
 export type CollectionsAddUserReq = z.infer<typeof CollectionsAddUserSchema>;
+
+export const CollectionsRemoveUserSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    userId: z.string().uuid(),
+  }),
+});
+
+export type CollectionsRemoveUserReq = z.infer<
+  typeof CollectionsRemoveUserSchema
+>;

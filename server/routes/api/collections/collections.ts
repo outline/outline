@@ -445,12 +445,11 @@ router.post(
   "collections.remove_user",
   auth(),
   transaction(),
-  async (ctx: APIContext) => {
+  validate(T.CollectionsRemoveUserSchema),
+  async (ctx: APIContext<T.CollectionsRemoveUserReq>) => {
     const { auth, transaction } = ctx.state;
     const actor = auth.user;
-    const { id, userId } = ctx.request.body;
-    assertUuid(id, "id is required");
-    assertUuid(userId, "userId is required");
+    const { id, userId } = ctx.input.body;
 
     const collection = await Collection.scope({
       method: ["withMembership", actor.id],
