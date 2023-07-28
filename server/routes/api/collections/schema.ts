@@ -201,3 +201,9 @@ export const CollectionsListSchema = BaseSchema.extend({
 });
 
 export type CollectionsListReq = z.infer<typeof CollectionsListSchema>;
+
+export const CollectionsDeleteSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+  }),
+});

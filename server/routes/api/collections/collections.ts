@@ -796,12 +796,12 @@ router.post(
 router.post(
   "collections.delete",
   auth(),
+  validate(T.CollectionsDeleteSchema),
   transaction(),
-  async (ctx: APIContext) => {
+  async (ctx: APIContext<T.CollectionsDeleteReq>) => {
     const { transaction } = ctx.state;
-    const { id } = ctx.request.body;
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
-    assertUuid(id, "id is required");
 
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
