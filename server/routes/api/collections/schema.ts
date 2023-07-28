@@ -152,3 +152,16 @@ export const CollectionsExportSchema = BaseSchema.extend({
 });
 
 export type CollectionsExportReq = z.infer<typeof CollectionsExportSchema>;
+
+export const CollectionsExportAllSchema = BaseSchema.extend({
+  body: z.object({
+    format: z
+      .nativeEnum(FileOperationFormat)
+      .default(FileOperationFormat.MarkdownZip),
+    includeAttachments: z.boolean().default(true),
+  }),
+});
+
+export type CollectionsExportAllReq = z.infer<
+  typeof CollectionsExportAllSchema
+>;

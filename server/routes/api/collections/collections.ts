@@ -4,7 +4,6 @@ import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
 import {
   CollectionPermission,
-  FileOperationFormat,
   FileOperationState,
   FileOperationType,
 } from "@shared/types";
@@ -42,12 +41,10 @@ import { collectionIndexing } from "@server/utils/indexing";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import {
   assertUuid,
-  assertIn,
   assertPresent,
   assertHexColor,
   assertIndexCharacters,
   assertCollectionPermission,
-  assertBoolean,
 } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -586,19 +583,14 @@ router.post(
   "collections.export_all",
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth(),
+  validate(T.CollectionsExportAllSchema),
   transaction(),
-  async (ctx: APIContext) => {
+  async (ctx: APIContext<T.CollectionsExportAllReq>) => {
     const { transaction } = ctx.state;
-    const {
-      format = FileOperationFormat.MarkdownZip,
-      includeAttachments = true,
-    } = ctx.request.body;
+    const { format, includeAttachments } = ctx.input.body;
     const { user } = ctx.state.auth;
     const team = await Team.findByPk(user.teamId);
     authorize(user, "createExport", team);
-
-    assertIn(format, Object.values(FileOperationFormat), "Invalid format");
-    assertBoolean(includeAttachments, "includeAttachments must be a boolean");
 
     const fileOperation = await collectionExporter({
       user,
