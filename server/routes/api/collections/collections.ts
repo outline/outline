@@ -375,12 +375,11 @@ router.post(
   "collections.add_user",
   auth(),
   transaction(),
-  async (ctx: APIContext) => {
+  validate(T.CollectionsAddUserSchema),
+  async (ctx: APIContext<T.CollectionsAddUserReq>) => {
     const { auth, transaction } = ctx.state;
     const actor = auth.user;
-    const { id, userId, permission } = ctx.request.body;
-    assertUuid(id, "id is required");
-    assertUuid(userId, "userId is required");
+    const { id, userId, permission } = ctx.input.body;
 
     const collection = await Collection.scope({
       method: ["withMembership", actor.id],
@@ -398,10 +397,6 @@ router.post(
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
-
-    if (permission) {
-      assertCollectionPermission(permission);
-    }
 
     if (!membership) {
       membership = await CollectionUser.create(

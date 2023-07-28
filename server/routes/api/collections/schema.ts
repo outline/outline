@@ -107,3 +107,13 @@ export const CollectionsGroupMembershipsSchema = BaseSchema.extend({
 export type CollectionsGroupMembershipsReq = z.infer<
   typeof CollectionsGroupMembershipsSchema
 >;
+
+export const CollectionsAddUserSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    userId: z.string().uuid(),
+    permission: z.nativeEnum(CollectionPermission).optional(),
+  }),
+});
+
+export type CollectionsAddUserReq = z.infer<typeof CollectionsAddUserSchema>;
