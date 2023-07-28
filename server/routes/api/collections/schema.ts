@@ -72,3 +72,15 @@ export const CollectionsImportSchema = BaseSchema.extend({
 });
 
 export type CollectionsImportReq = z.infer<typeof CollectionsImportSchema>;
+
+export const CollectionsAddGroupSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    groupId: z.string().uuid(),
+    permission: z
+      .nativeEnum(CollectionPermission)
+      .default(CollectionPermission.ReadWrite),
+  }),
+});
+
+export type CollectionsAddGroupsReq = z.infer<typeof CollectionsAddGroupSchema>;

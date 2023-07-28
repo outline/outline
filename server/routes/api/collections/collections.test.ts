@@ -499,6 +499,31 @@ describe("#collections.add_group", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("should fail with status 400 bad request when permission is null", async () => {
+    const user = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      permission: null,
+    });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/collections.add_group", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        groupId: group.id,
+        permission: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "permission: Expected 'read' | 'read_write' | 'admin', received null"
+    );
+  });
+
   it("should require group in team", async () => {
     const user = await buildUser();
     const collection = await buildCollection({

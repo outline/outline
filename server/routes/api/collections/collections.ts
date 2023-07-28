@@ -214,65 +214,62 @@ router.post(
   }
 );
 
-router.post("collections.add_group", auth(), async (ctx: APIContext) => {
-  const {
-    id,
-    groupId,
-    permission = CollectionPermission.ReadWrite,
-  } = ctx.request.body;
-  assertUuid(id, "id is required");
-  assertUuid(groupId, "groupId is required");
-  assertCollectionPermission(permission);
+router.post(
+  "collections.add_group",
+  auth(),
+  validate(T.CollectionsAddGroupSchema),
+  async (ctx: APIContext<T.CollectionsAddGroupsReq>) => {
+    const { id, groupId, permission } = ctx.input.body;
+    const { user } = ctx.state.auth;
 
-  const { user } = ctx.state.auth;
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(id);
+    authorize(user, "update", collection);
 
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findByPk(id);
-  authorize(user, "update", collection);
+    const group = await Group.findByPk(groupId);
+    authorize(user, "read", group);
 
-  const group = await Group.findByPk(groupId);
-  authorize(user, "read", group);
-
-  let membership = await CollectionGroup.findOne({
-    where: {
-      collectionId: id,
-      groupId,
-    },
-  });
-
-  if (!membership) {
-    membership = await CollectionGroup.create({
-      collectionId: id,
-      groupId,
-      permission,
-      createdById: user.id,
+    let membership = await CollectionGroup.findOne({
+      where: {
+        collectionId: id,
+        groupId,
+      },
     });
-  } else if (permission) {
-    membership.permission = permission;
-    await membership.save();
+
+    if (!membership) {
+      membership = await CollectionGroup.create({
+        collectionId: id,
+        groupId,
+        permission,
+        createdById: user.id,
+      });
+    } else {
+      membership.permission = permission;
+      await membership.save();
+    }
+
+    await Event.create({
+      name: "collections.add_group",
+      collectionId: collection.id,
+      teamId: collection.teamId,
+      actorId: user.id,
+      modelId: groupId,
+      data: {
+        name: group.name,
+      },
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      data: {
+        collectionGroupMemberships: [
+          presentCollectionGroupMembership(membership),
+        ],
+      },
+    };
   }
-
-  await Event.create({
-    name: "collections.add_group",
-    collectionId: collection.id,
-    teamId: collection.teamId,
-    actorId: user.id,
-    modelId: groupId,
-    data: {
-      name: group.name,
-    },
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    data: {
-      collectionGroupMemberships: [
-        presentCollectionGroupMembership(membership),
-      ],
-    },
-  };
-});
+);
 
 router.post("collections.remove_group", auth(), async (ctx: APIContext) => {
   const { id, groupId } = ctx.request.body;
