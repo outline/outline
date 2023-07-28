@@ -2,20 +2,19 @@ import fractionalIndex from "fractional-index";
 import invariant from "invariant";
 import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
-import { randomElement } from "@shared/random";
 import {
   CollectionPermission,
   FileOperationFormat,
   FileOperationState,
   FileOperationType,
 } from "@shared/types";
-import { colorPalette } from "@shared/utils/collections";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
+import validate from "@server/middlewares/validate";
 import {
   Collection,
   CollectionUser,
@@ -50,87 +49,79 @@ import {
   assertCollectionPermission,
   assertBoolean,
 } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
-router.post("collections.create", auth(), async (ctx: APIContext) => {
-  const {
-    name,
-    color = randomElement(colorPalette),
-    description,
-    permission,
-    sharing,
-    icon,
-    sort = Collection.DEFAULT_SORT,
-  } = ctx.request.body;
-  let { index } = ctx.request.body;
-  assertPresent(name, "name is required");
+router.post(
+  "collections.create",
+  auth(),
+  validate(T.CollectionsCreateSchema),
+  async (ctx: APIContext<T.CollectionsCreateReq>) => {
+    const { name, color, description, permission, sharing, icon, sort } =
+      ctx.input.body;
+    let { index } = ctx.input.body;
 
-  if (color) {
-    assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
-  }
+    const { user } = ctx.state.auth;
+    authorize(user, "createCollection", user.team);
 
-  const { user } = ctx.state.auth;
-  authorize(user, "createCollection", user.team);
+    if (!index) {
+      const collections = await Collection.findAll({
+        where: {
+          teamId: user.teamId,
+          deletedAt: null,
+        },
+        attributes: ["id", "index", "updatedAt"],
+        limit: 1,
+        order: [
+          // using LC_COLLATE:"C" because we need byte order to drive the sorting
+          Sequelize.literal('"collection"."index" collate "C"'),
+          ["updatedAt", "DESC"],
+        ],
+      });
 
-  if (index) {
-    assertIndexCharacters(index);
-  } else {
-    const collections = await Collection.findAll({
-      where: {
-        teamId: user.teamId,
-        deletedAt: null,
-      },
-      attributes: ["id", "index", "updatedAt"],
-      limit: 1,
-      order: [
-        // using LC_COLLATE:"C" because we need byte order to drive the sorting
-        Sequelize.literal('"collection"."index" collate "C"'),
-        ["updatedAt", "DESC"],
-      ],
-    });
+      index = fractionalIndex(
+        null,
+        collections.length ? collections[0].index : null
+      );
+    }
 
-    index = fractionalIndex(
-      null,
-      collections.length ? collections[0].index : null
-    );
-  }
-
-  index = await removeIndexCollision(user.teamId, index);
-  const collection = await Collection.create({
-    name,
-    description,
-    icon,
-    color,
-    teamId: user.teamId,
-    createdById: user.id,
-    permission: permission ? permission : null,
-    sharing,
-    sort,
-    index,
-  });
-  await Event.create({
-    name: "collections.create",
-    collectionId: collection.id,
-    teamId: collection.teamId,
-    actorId: user.id,
-    data: {
+    index = await removeIndexCollision(user.teamId, index);
+    const collection = await Collection.create({
       name,
-    },
-    ip: ctx.request.ip,
-  });
-  // we must reload the collection to get memberships for policy presenter
-  const reloaded = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findByPk(collection.id);
-  invariant(reloaded, "collection not found");
+      description,
+      icon,
+      color,
+      teamId: user.teamId,
+      createdById: user.id,
+      permission,
+      sharing,
+      sort,
+      index,
+    });
+    await Event.create({
+      name: "collections.create",
+      collectionId: collection.id,
+      teamId: collection.teamId,
+      actorId: user.id,
+      data: {
+        name,
+      },
+      ip: ctx.request.ip,
+    });
+    // we must reload the collection to get memberships for policy presenter
+    const reloaded = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(collection.id);
+    invariant(reloaded, "collection not found");
 
-  ctx.body = {
-    data: presentCollection(reloaded),
-    policies: presentPolicies(user, [reloaded]),
-  };
-});
+    ctx.body = {
+      data: presentCollection(reloaded),
+      policies: presentPolicies(user, [reloaded]),
+    };
+  }
+);
 
 router.post("collections.info", auth(), async (ctx: APIContext) => {
   const { id } = ctx.request.body;
