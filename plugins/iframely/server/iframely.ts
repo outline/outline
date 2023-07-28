@@ -8,6 +8,7 @@ class Iframely {
   private static apiUrl = `${env.IFRAMELY_URL}/api`;
   private static apiKey = env.IFRAMELY_API_KEY;
   private static cacheKeyPrefix = "unfurl";
+  private static defaultCacheExpiry = 86400;
 
   private static cacheKey(url: string) {
     return `${this.cacheKeyPrefix}-${url}`;
@@ -23,7 +24,7 @@ class Iframely {
         this.cacheKey(url),
         JSON.stringify(response),
         "EX",
-        response.cache_age
+        response.cache_age || this.defaultCacheExpiry
       );
     } catch (err) {
       // just log it, can skip caching and directly return response
