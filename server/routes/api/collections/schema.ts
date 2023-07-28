@@ -193,3 +193,11 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
 });
 
 export type CollectionsUpdateReq = z.infer<typeof CollectionsUpdateSchema>;
+
+export const CollectionsListSchema = BaseSchema.extend({
+  body: z.object({
+    includeListOnly: z.boolean().default(false),
+  }),
+});
+
+export type CollectionsListReq = z.infer<typeof CollectionsListSchema>;

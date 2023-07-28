@@ -747,9 +747,10 @@ router.post(
 router.post(
   "collections.list",
   auth(),
+  validate(T.CollectionsListSchema),
   pagination(),
-  async (ctx: APIContext) => {
-    const { includeListOnly } = ctx.request.body;
+  async (ctx: APIContext<T.CollectionsListReq>) => {
+    const { includeListOnly } = ctx.input.body;
     const { user } = ctx.state.auth;
     const collectionIds = await user.collectionIds();
     const where: WhereOptions<Collection> =
