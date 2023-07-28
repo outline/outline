@@ -84,3 +84,14 @@ export const CollectionsAddGroupSchema = BaseSchema.extend({
 });
 
 export type CollectionsAddGroupsReq = z.infer<typeof CollectionsAddGroupSchema>;
+
+export const CollectionsRemoveGroupSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    groupId: z.string().uuid(),
+  }),
+});
+
+export type CollectionsRemoveGroupReq = z.infer<
+  typeof CollectionsRemoveGroupSchema
+>;

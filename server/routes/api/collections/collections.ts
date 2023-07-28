@@ -271,38 +271,40 @@ router.post(
   }
 );
 
-router.post("collections.remove_group", auth(), async (ctx: APIContext) => {
-  const { id, groupId } = ctx.request.body;
-  assertUuid(id, "id is required");
-  assertUuid(groupId, "groupId is required");
+router.post(
+  "collections.remove_group",
+  auth(),
+  validate(T.CollectionsRemoveGroupSchema),
+  async (ctx: APIContext<T.CollectionsRemoveGroupReq>) => {
+    const { id, groupId } = ctx.input.body;
+    const { user } = ctx.state.auth;
 
-  const { user } = ctx.state.auth;
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(id);
+    authorize(user, "update", collection);
 
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findByPk(id);
-  authorize(user, "update", collection);
+    const group = await Group.findByPk(groupId);
+    authorize(user, "read", group);
 
-  const group = await Group.findByPk(groupId);
-  authorize(user, "read", group);
+    await collection.$remove("group", group);
+    await Event.create({
+      name: "collections.remove_group",
+      collectionId: collection.id,
+      teamId: collection.teamId,
+      actorId: user.id,
+      modelId: groupId,
+      data: {
+        name: group.name,
+      },
+      ip: ctx.request.ip,
+    });
 
-  await collection.$remove("group", group);
-  await Event.create({
-    name: "collections.remove_group",
-    collectionId: collection.id,
-    teamId: collection.teamId,
-    actorId: user.id,
-    modelId: groupId,
-    data: {
-      name: group.name,
-    },
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 router.post(
   "collections.group_memberships",
