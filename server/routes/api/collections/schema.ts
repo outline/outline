@@ -165,3 +165,31 @@ export const CollectionsExportAllSchema = BaseSchema.extend({
 export type CollectionsExportAllReq = z.infer<
   typeof CollectionsExportAllSchema
 >;
+
+export const CollectionsUpdateSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    name: z.string().optional(),
+    description: z.string().nullish(),
+    icon: z
+      .string()
+      .max(ValidateIcon.maxLength, {
+        message: `Must be ${ValidateIcon.maxLength} or fewer characters long`,
+      })
+      .nullish(),
+    permission: z.nativeEnum(CollectionPermission).nullish(),
+    color: z
+      .string()
+      .regex(ValidateColor.regex, { message: ValidateColor.message })
+      .nullish(),
+    sort: z
+      .object({
+        field: z.union([z.literal("title"), z.literal("index")]),
+        direction: z.union([z.literal("asc"), z.literal("desc")]),
+      })
+      .optional(),
+    sharing: z.boolean().optional(),
+  }),
+});
+
+export type CollectionsUpdateReq = z.infer<typeof CollectionsUpdateSchema>;

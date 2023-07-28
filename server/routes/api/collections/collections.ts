@@ -42,9 +42,7 @@ import removeIndexCollision from "@server/utils/removeIndexCollision";
 import {
   assertUuid,
   assertPresent,
-  assertHexColor,
   assertIndexCharacters,
-  assertCollectionPermission,
 } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -613,15 +611,12 @@ router.post(
 router.post(
   "collections.update",
   auth(),
+  validate(T.CollectionsUpdateSchema),
   transaction(),
-  async (ctx: APIContext) => {
+  async (ctx: APIContext<T.CollectionsUpdateReq>) => {
     const { transaction } = ctx.state;
     const { id, name, description, icon, permission, color, sort, sharing } =
-      ctx.request.body;
-
-    if (color) {
-      assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
-    }
+      ctx.input.body;
 
     const { user } = ctx.state.auth;
     const collection = await Collection.scope({
@@ -670,9 +665,6 @@ router.post(
     }
 
     if (permission !== undefined) {
-      if (permission) {
-        assertCollectionPermission(permission);
-      }
       privacyChanged = permission !== collection.permission;
       collection.permission = permission ? permission : null;
     }
