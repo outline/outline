@@ -51,3 +51,13 @@ export const CollectionsInfoSchema = BaseSchema.extend({
 });
 
 export type CollectionsInfoReq = z.infer<typeof CollectionsInfoSchema>;
+
+export const CollectionsDocumentsSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
+export type CollectionsDocumentsReq = z.infer<
+  typeof CollectionsDocumentsSchema
+>;

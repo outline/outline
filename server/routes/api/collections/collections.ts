@@ -143,20 +143,24 @@ router.post(
   }
 );
 
-router.post("collections.documents", auth(), async (ctx: APIContext) => {
-  const { id } = ctx.request.body;
-  assertPresent(id, "id is required");
-  const { user } = ctx.state.auth;
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findByPk(id);
+router.post(
+  "collections.documents",
+  auth(),
+  validate(T.CollectionsDocumentsSchema),
+  async (ctx: APIContext<T.CollectionsDocumentsReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(id);
 
-  authorize(user, "readDocument", collection);
+    authorize(user, "readDocument", collection);
 
-  ctx.body = {
-    data: collection.documentStructure || [],
-  };
-});
+    ctx.body = {
+      data: collection.documentStructure || [],
+    };
+  }
+);
 
 router.post(
   "collections.import",
