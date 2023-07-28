@@ -39,11 +39,6 @@ import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
-import {
-  assertUuid,
-  assertPresent,
-  assertIndexCharacters,
-} from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -852,14 +847,12 @@ router.post(
 router.post(
   "collections.move",
   auth(),
+  validate(T.CollectionsMoveSchema),
   transaction(),
-  async (ctx: APIContext) => {
+  async (ctx: APIContext<T.CollectionsMoveReq>) => {
     const { transaction } = ctx.state;
-    const id = ctx.request.body.id;
-    let index = ctx.request.body.index;
-    assertPresent(index, "index is required");
-    assertIndexCharacters(index);
-    assertUuid(id, "id must be a uuid");
+    const { id } = ctx.input.body;
+    let { index } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const collection = await Collection.findByPk(id, {

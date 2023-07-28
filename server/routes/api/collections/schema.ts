@@ -207,3 +207,19 @@ export const CollectionsDeleteSchema = BaseSchema.extend({
     id: z.string().uuid(),
   }),
 });
+
+export type CollectionsDeleteReq = z.infer<typeof CollectionsDeleteSchema>;
+
+export const CollectionsMoveSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    index: z
+      .string()
+      .regex(ValidateIndex.regex, { message: ValidateIndex.message })
+      .max(ValidateIndex.maxLength, {
+        message: `Must be ${ValidateIndex.maxLength} or fewer characters long`,
+      }),
+  }),
+});
+
+export type CollectionsMoveReq = z.infer<typeof CollectionsMoveSchema>;
