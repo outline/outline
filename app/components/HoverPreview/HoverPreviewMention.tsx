@@ -17,7 +17,7 @@ type Props = {
 
 function HoverPreviewMention({ url, title, info, color }: Props) {
   return (
-    <Preview to="">
+    <Preview as="div">
       <Card fadeOut={false}>
         <CardContent>
           <Flex gap={12}>

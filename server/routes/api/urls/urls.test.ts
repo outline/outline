@@ -1,7 +1,7 @@
 import { User } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import { Iframely } from "@server/utils/unfurl";
+import resolvers from "@server/utils/unfurl";
 
 jest.mock("@server/utils/unfurl", () => ({
   Iframely: {
@@ -146,7 +146,7 @@ describe("#urls.unfurl", () => {
   });
 
   it("should succeed with status 200 ok for a valid external url", async () => {
-    (Iframely.unfurl as jest.Mock).mockResolvedValue(
+    (resolvers.Iframely.unfurl as jest.Mock).mockResolvedValue(
       Promise.resolve({
         url: "https://www.flickr.com",
         type: "rich",
@@ -167,7 +167,9 @@ describe("#urls.unfurl", () => {
 
     const body = await res.json();
 
-    expect(Iframely.unfurl).toHaveBeenCalledWith("https://www.flickr.com");
+    expect(resolvers.Iframely.unfurl).toHaveBeenCalledWith(
+      "https://www.flickr.com"
+    );
     expect(res.status).toEqual(200);
     expect(body.url).toEqual("https://www.flickr.com");
     expect(body.type).toEqual("rich");
@@ -181,7 +183,7 @@ describe("#urls.unfurl", () => {
   });
 
   it("should succeed with status 204 no content for a non-existing external url", async () => {
-    (Iframely.unfurl as jest.Mock).mockResolvedValue(
+    (resolvers.Iframely.unfurl as jest.Mock).mockResolvedValue(
       Promise.resolve({
         status: 404,
         error:
@@ -196,7 +198,9 @@ describe("#urls.unfurl", () => {
       },
     });
 
-    expect(Iframely.unfurl).toHaveBeenCalledWith("https://random.url");
+    expect(resolvers.Iframely.unfurl).toHaveBeenCalledWith(
+      "https://random.url"
+    );
     expect(res.status).toEqual(204);
   });
 });

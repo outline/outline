@@ -17,7 +17,7 @@ type Props = {
   url: string;
   /** Title for the preview card */
   title: string;
-  /** Url for thumbnail served by the link provider*/
+  /** Url for thumbnail served by the link provider */
   thumbnailUrl: string;
   /** Some description about the link provider */
   description: string;
@@ -25,7 +25,7 @@ type Props = {
 
 function HoverPreviewLink({ url, thumbnailUrl, title, description }: Props) {
   return (
-    <Preview to={{ pathname: url }} target="_blank" rel="noopener noreferrer">
+    <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
       <Flex column>
         {thumbnailUrl ? <Thumbnail src={thumbnailUrl} alt={""} /> : null}
         <Card>
