@@ -48,6 +48,8 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   React.useEffect(() => {
     if (url) {
       stopOpenTimer();
+      setVisible(false);
+
       void request();
     }
   }, [url, request]);
