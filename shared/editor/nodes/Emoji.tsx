@@ -26,9 +26,10 @@ export default class Emoji extends Suggestion {
   }
 
   get defaultOptions() {
-    const languageIsUsingColon = languagesUsingColon.includes(
-      navigator?.language.slice(0, 2)
-    );
+    const languageIsUsingColon =
+      typeof window === "undefined"
+        ? false
+        : languagesUsingColon.includes(window.navigator.language.slice(0, 2));
 
     return {
       type: SuggestionsMenuType.Emoji,
