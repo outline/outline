@@ -2,7 +2,6 @@ import invariant from "invariant";
 import Router from "koa-router";
 import teamCreator from "@server/commands/teamCreator";
 import teamUpdater from "@server/commands/teamUpdater";
-import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -49,7 +48,9 @@ router.post(
   "teams.create",
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth(),
+  transaction(),
   async (ctx: APIContext) => {
+    const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
     const { name } = ctx.request.body;
 
@@ -73,41 +74,37 @@ router.post(
       "Team must have at least one authentication provider"
     );
 
-    const [team, newUser] = await sequelize.transaction(async (transaction) => {
-      const team = await teamCreator({
-        name,
-        subdomain: name,
-        authenticationProviders,
-        ip: ctx.ip,
-        transaction,
-      });
-
-      const newUser = await User.create(
-        {
-          teamId: team.id,
-          name: user.name,
-          email: user.email,
-          isAdmin: true,
-        },
-        { transaction }
-      );
-
-      await Event.create(
-        {
-          name: "users.create",
-          actorId: user.id,
-          userId: newUser.id,
-          teamId: newUser.teamId,
-          data: {
-            name: newUser.name,
-          },
-          ip: ctx.ip,
-        },
-        { transaction }
-      );
-
-      return [team, newUser];
+    const team = await teamCreator({
+      name,
+      subdomain: name,
+      authenticationProviders,
+      ip: ctx.ip,
+      transaction,
     });
+
+    const newUser = await User.create(
+      {
+        teamId: team.id,
+        name: user.name,
+        email: user.email,
+        isAdmin: true,
+      },
+      { transaction }
+    );
+
+    await Event.create(
+      {
+        name: "users.create",
+        actorId: user.id,
+        userId: newUser.id,
+        teamId: newUser.teamId,
+        data: {
+          name: newUser.name,
+        },
+        ip: ctx.ip,
+      },
+      { transaction }
+    );
 
     ctx.body = {
       success: true,

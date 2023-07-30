@@ -3,8 +3,8 @@ import { Sequelize } from "sequelize";
 import starCreator from "@server/commands/starCreator";
 import starDestroyer from "@server/commands/starDestroyer";
 import starUpdater from "@server/commands/starUpdater";
-import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, Star, Collection } from "@server/models";
 import { authorize } from "@server/policies";
@@ -24,7 +24,9 @@ router.post(
   "stars.create",
   auth(),
   validate(T.StarsCreateSchema),
+  transaction(),
   async (ctx: APIContext<T.StarsCreateReq>) => {
+    const { transaction } = ctx.state;
     const { documentId, collectionId, index } = ctx.input.body;
     const { user } = ctx.state.auth;
 
@@ -42,16 +44,15 @@ router.post(
       authorize(user, "star", collection);
     }
 
-    const star = await sequelize.transaction(async (transaction) =>
-      starCreator({
-        user,
-        documentId,
-        collectionId,
-        ip: ctx.request.ip,
-        index,
-        transaction,
-      })
-    );
+    const star = await starCreator({
+      user,
+      documentId,
+      collectionId,
+      ip: ctx.request.ip,
+      index,
+      transaction,
+    });
+
     ctx.body = {
       data: presentStar(star),
       policies: presentPolicies(user, [star]),
