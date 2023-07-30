@@ -13,15 +13,28 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { SuggestionsMenuType } from "../plugins/Suggestions";
 import emojiRule from "../rules/emoji";
 
+/**
+ * Languages using the colon character with a space infront in standard
+ * punctuation. In this case the trigger is only matched once there is additional
+ * text after the colon.
+ */
+const languagesUsingColon = ["fr"];
+
 export default class Emoji extends Suggestion {
   get type() {
     return "node";
   }
 
   get defaultOptions() {
+    const languageIsUsingColon = languagesUsingColon.includes(
+      navigator?.language.slice(0, 2)
+    );
+
     return {
       type: SuggestionsMenuType.Emoji,
-      openRegex: /(?:^|\s):([0-9a-zA-Z_+-]+)?$/,
+      openRegex: new RegExp(
+        `(?:^|\\s):([0-9a-zA-Z_+-]+)${languageIsUsingColon ? "+" : "?"}$`
+      ),
       closeRegex:
         /(?:^|\s):(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/,
       enabledInTable: true,
