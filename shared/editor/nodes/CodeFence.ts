@@ -199,6 +199,10 @@ export default class CodeFence extends Node {
     };
   }
 
+  get allowInReadOnly() {
+    return true;
+  }
+
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),

@@ -10,21 +10,21 @@ export default function codeMenuItems(
   readOnly: boolean | undefined,
   dictionary: Dictionary
 ): MenuItem[] {
-  if (readOnly) {
-    return [];
-  }
   const node = state.selection.$from.node();
 
   return [
     {
       name: "copyToClipboard",
       icon: <CopyIcon />,
+      label: readOnly ? dictionary.copy : undefined,
       tooltip: dictionary.copy,
     },
     {
       name: "separator",
+      visible: !readOnly,
     },
     {
+      visible: !readOnly,
       name: "code_block",
       icon: <ExpandedIcon />,
       label: LANGUAGES[node.attrs.language ?? "none"],
