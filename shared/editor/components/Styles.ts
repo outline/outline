@@ -40,8 +40,9 @@ const mathStyle = (props: Props) => css`
   }
 
   .math-node.empty-math .math-render::before {
-    content: "(empty math)";
-    color: ${props.theme.brand.red};
+    content: "Empty math";
+    color: ${props.theme.placeholder};
+    font-size: 14px;
   }
 
   .math-node .math-render.parse-error::before {
@@ -91,13 +92,18 @@ const mathStyle = (props: Props) => css`
     display: block;
   }
 
-  math-block.ProseMirror-selectednode {
+  math-block.ProseMirror-selectednode,
+  math-block.empty-math {
     border-radius: 4px;
     border: 1px solid ${props.theme.codeBorder};
     background: ${props.theme.codeBackground};
     padding: 0.75em 1em;
     font-family: ${props.theme.fontFamilyMono};
     font-size: 90%;
+  }
+
+  math-block.empty-math {
+    text-align: center;
   }
 
   math-block .math-src .ProseMirror {
@@ -1102,11 +1108,13 @@ mark {
   }
 
   &.empty {
+    font-family: ${props.theme.fontFamilyMono};
     font-size: 14px;
     color: ${props.theme.placeholder};
   }
 
   &.parse-error {
+    font-family: ${props.theme.fontFamilyMono};
     font-size: 14px;
     color: ${props.theme.brand.red};
   }
