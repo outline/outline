@@ -131,6 +131,10 @@ export default function SelectionToolbar(props: Props) {
         return;
       }
 
+      if (!window.getSelection()?.isCollapsed) {
+        return;
+      }
+
       const { dispatch } = view;
       dispatch(
         view.state.tr.setSelection(new TextSelection(view.state.doc.resolve(0)))
