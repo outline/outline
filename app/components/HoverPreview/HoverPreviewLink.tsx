@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import {
   Preview,
@@ -44,6 +45,7 @@ const Thumbnail = styled.img`
   object-fit: cover;
   max-width: ${CARD_WIDTH}px;
   height: ${THUMBNAIL_HEIGHT}px;
+  background: ${s("menuBackground")};
 `;
 
 export default HoverPreviewLink;
