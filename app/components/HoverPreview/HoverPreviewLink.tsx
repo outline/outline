@@ -1,6 +1,5 @@
 import * as React from "react";
 import styled from "styled-components";
-import Img from "@shared/editor/components/Img";
 import Flex from "~/components/Flex";
 import {
   Preview,
@@ -41,7 +40,7 @@ function HoverPreviewLink({ url, thumbnailUrl, title, description }: Props) {
   );
 }
 
-const Thumbnail = styled(Img)`
+const Thumbnail = styled.img`
   object-fit: cover;
   max-width: ${CARD_WIDTH}px;
   height: ${THUMBNAIL_HEIGHT}px;
