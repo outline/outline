@@ -23,7 +23,7 @@ export default class OrderedList extends Node {
         },
       },
       content: "list_item+",
-      group: "block",
+      group: "block list",
       parseDOM: [
         {
           tag: "ol",
