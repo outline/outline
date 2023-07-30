@@ -1089,6 +1089,7 @@ mark {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 1.6em;
   background: ${props.theme.codeBackground};
   border-radius: 6px;
   border: 1px solid ${props.theme.codeBorder};
@@ -1098,6 +1099,11 @@ mark {
 
   * {
     font-family: ${props.theme.fontFamily};
+  }
+
+  &.empty {
+    font-size: 14px;
+    color: ${props.theme.placeholder};
   }
 
   &.parse-error {

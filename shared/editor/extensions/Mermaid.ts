@@ -67,13 +67,20 @@ function getNewState({
               "mermaid-diagram-" + diagramId,
               block.node.textContent,
               (svgCode) => {
-                element.classList.remove("parse-error");
+                element.classList.remove("parse-error", "empty");
                 element.innerHTML = svgCode;
               }
             );
           } catch (error) {
-            element.innerText = "Error rendering diagram";
-            element.classList.add("parse-error");
+            const isEmpty = block.node.textContent.trim().length === 0;
+
+            if (isEmpty) {
+              element.innerText = "Empty diagram";
+              element.classList.add("empty");
+            } else {
+              element.innerText = "Error rendering diagram";
+              element.classList.add("parse-error");
+            }
           }
         });
 
