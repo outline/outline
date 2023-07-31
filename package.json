@@ -326,7 +326,7 @@
     "rollup-plugin-webpack-stats": "^0.2.0",
     "terser": "^5.18.2",
     "typescript": "^5.0.0",
-    "vite-plugin-static-copy": "^0.13.0",
+    "vite-plugin-static-copy": "^0.17.0",
     "yarn-deduplicate": "^6.0.2"
   },
   "resolutions": {
