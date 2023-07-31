@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import { UnfurlType } from "@shared/types";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import useEventListener from "~/hooks/useEventListener";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
@@ -71,6 +72,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
 
   useOnClickOutside(cardRef, closePreview);
   useKeyDown("Escape", closePreview);
+  useEventListener("scroll", closePreview, window, { capture: true });
 
   const stopCloseTimer = () => {
     if (timerClose.current) {
