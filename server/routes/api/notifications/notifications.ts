@@ -120,21 +120,24 @@ router.post(
 
 router.get(
   "notifications.pixel",
+  validate(T.NotificationsPixelSchema),
   transaction(),
   async (ctx: APIContext<T.NotificationsPixelReq>) => {
     const { id, token } = ctx.input.query;
-    const notification = await Notification.findByPk(id);
+    const notification = await Notification.unscoped().findByPk(id);
 
     if (!notification || !safeEqual(token, notification.pixelToken)) {
       throw AuthenticationError();
     }
 
-    await notificationUpdater({
-      notification,
-      viewedAt: new Date(),
-      ip: ctx.request.ip,
-      transaction: ctx.state.transaction,
-    });
+    if (!notification.viewedAt) {
+      await notificationUpdater({
+        notification,
+        viewedAt: new Date(),
+        ip: ctx.request.ip,
+        transaction: ctx.state.transaction,
+      });
+    }
 
     ctx.response.set("Content-Type", "image/gif");
     ctx.body = pixel;
