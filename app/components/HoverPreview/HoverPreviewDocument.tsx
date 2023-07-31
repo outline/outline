@@ -23,10 +23,13 @@ type Props = {
   description: string;
 };
 
-function HoverPreviewDocument({ id, url, title, info, description }: Props) {
+const HoverPreviewDocument = React.forwardRef(function _HoverPreviewDocument(
+  { id, url, title, info, description }: Props,
+  ref: React.Ref<HTMLDivElement>
+) {
   return (
     <Preview to={url}>
-      <Card>
+      <Card ref={ref}>
         <CardContent>
           <Flex column gap={2}>
             <Title>{title}</Title>
@@ -46,6 +49,6 @@ function HoverPreviewDocument({ id, url, title, info, description }: Props) {
       </Card>
     </Preview>
   );
-}
+});
 
 export default HoverPreviewDocument;
