@@ -1,4 +1,4 @@
-import { IntegrationType } from "@shared/types";
+import { IntegrationService, IntegrationType } from "@shared/types";
 import { UserCreatableIntegrationService } from "@server/models/Integration";
 import {
   buildAdmin,
@@ -44,6 +44,30 @@ describe("#integrations.update", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should succeed with status 200 ok when settings are updated", async () => {
+    const admin = await buildAdmin();
+
+    const integration = await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+      service: IntegrationService.Diagrams,
+      type: IntegrationType.Embed,
+      settings: { url: "https://example.com" },
+    });
+
+    const res = await server.post("/api/integrations.update", {
+      body: {
+        token: admin.getJwtToken(),
+        id: integration.id,
+        settings: { url: "https://foo.bar" },
+      },
+    });
+
+    const body = await res.json();
+    expect(body.data.id).toEqual(integration.id);
+    expect(body.data.settings.url).toEqual("https://foo.bar");
   });
 });
 

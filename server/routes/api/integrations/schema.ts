@@ -52,3 +52,29 @@ export const IntegrationsCreateSchema = BaseSchema.extend({
 });
 
 export type IntegrationsCreateReq = z.infer<typeof IntegrationsCreateSchema>;
+
+export const IntegrationsUpdateSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of integration that needs update */
+    id: z.string().uuid(),
+
+    /** Integration config/settings */
+    settings: z
+      .object({ url: z.string().url() })
+      .or(
+        z.object({
+          url: z.string().url(),
+          channel: z.string(),
+          channelId: z.string(),
+        })
+      )
+      .or(z.object({ measurementId: z.string() }))
+      .or(z.object({ serviceTeamId: z.string() }))
+      .optional(),
+
+    /** Integration events */
+    events: z.array(z.string()).optional().default([]),
+  }),
+});
+
+export type IntegrationsUpdateReq = z.infer<typeof IntegrationsUpdateSchema>;

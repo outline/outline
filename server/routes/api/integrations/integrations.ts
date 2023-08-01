@@ -1,5 +1,4 @@
 import Router from "koa-router";
-import { has } from "lodash";
 import { WhereOptions } from "sequelize";
 import { IntegrationType } from "@shared/types";
 import auth from "@server/middlewares/authentication";
@@ -9,7 +8,7 @@ import Integration from "@server/models/Integration";
 import { authorize } from "@server/policies";
 import { presentIntegration } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertUuid, assertArray, assertUrl } from "@server/validation";
+import { assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -76,19 +75,13 @@ router.post(
 router.post(
   "integrations.update",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { id, events = [], settings } = ctx.request.body;
-    assertUuid(id, "id is required");
-
+  validate(T.IntegrationsUpdateSchema),
+  async (ctx: APIContext<T.IntegrationsUpdateReq>) => {
+    const { id, events, settings } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const integration = await Integration.findByPk(id);
     authorize(user, "update", integration);
-
-    assertArray(events, "events must be an array");
-
-    if (has(settings, "url")) {
-      assertUrl(settings.url);
-    }
 
     if (integration.type === IntegrationType.Post) {
       integration.events = events.filter((event: string) =>
