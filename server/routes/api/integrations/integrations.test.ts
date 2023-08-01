@@ -1,3 +1,5 @@
+import { IntegrationType } from "@shared/types";
+import { UserCreatableIntegrationService } from "@server/models/Integration";
 import {
   buildAdmin,
   buildTeam,
@@ -42,5 +44,44 @@ describe("#integrations.update", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+});
+
+describe("#integrations.create", () => {
+  it("should fail with status 400 bad request for an invalid url value supplied in settings param", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", {
+      body: {
+        token: admin.getJwtToken(),
+        type: IntegrationType.Embed,
+        service: UserCreatableIntegrationService.Diagrams,
+        settings: { url: "not a url" },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("url: Invalid url");
+  });
+
+  it("should succeed with status 200 ok for an integration without url", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", {
+      body: {
+        token: admin.getJwtToken(),
+        type: IntegrationType.Analytics,
+        service: UserCreatableIntegrationService.GoogleAnalytics,
+        settings: { measurementId: "123" },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.type).toEqual(IntegrationType.Analytics);
+    expect(body.data.service).toEqual(
+      UserCreatableIntegrationService.GoogleAnalytics
+    );
+    expect(body.data.settings).not.toBeFalsy();
+    expect(body.data.settings.measurementId).toEqual("123");
   });
 });

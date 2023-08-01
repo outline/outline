@@ -5,18 +5,11 @@ import { IntegrationType } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Event } from "@server/models";
-import Integration, {
-  UserCreatableIntegrationService,
-} from "@server/models/Integration";
+import Integration from "@server/models/Integration";
 import { authorize } from "@server/policies";
 import { presentIntegration } from "@server/presenters";
 import { APIContext } from "@server/types";
-import {
-  assertUuid,
-  assertArray,
-  assertIn,
-  assertUrl,
-} from "@server/validation";
+import { assertUuid, assertArray, assertUrl } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -59,19 +52,12 @@ router.post(
 router.post(
   "integrations.create",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { type, service, settings } = ctx.request.body;
-
-    assertIn(type, Object.values(IntegrationType));
-
+  validate(T.IntegrationsCreateSchema),
+  async (ctx: APIContext<T.IntegrationsCreateReq>) => {
+    const { type, service, settings } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     authorize(user, "createIntegration", user.team);
-
-    assertIn(service, Object.values(UserCreatableIntegrationService));
-
-    if (has(settings, "url")) {
-      assertUrl(settings.url);
-    }
 
     const integration = await Integration.create({
       userId: user.id,

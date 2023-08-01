@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { IntegrationType } from "@shared/types";
 import { Integration } from "@server/models";
+import { UserCreatableIntegrationService } from "@server/models/Integration";
 import BaseSchema from "../BaseSchema";
 
 export const IntegrationsListSchema = BaseSchema.extend({
@@ -25,3 +26,29 @@ export const IntegrationsListSchema = BaseSchema.extend({
 });
 
 export type IntegrationsListReq = z.infer<typeof IntegrationsListSchema>;
+
+export const IntegrationsCreateSchema = BaseSchema.extend({
+  body: z.object({
+    /** Integration type */
+    type: z.nativeEnum(IntegrationType),
+
+    /** Integration service */
+    service: z.nativeEnum(UserCreatableIntegrationService),
+
+    /** Integration config/settings */
+    settings: z
+      .object({ url: z.string().url() })
+      .or(
+        z.object({
+          url: z.string().url(),
+          channel: z.string(),
+          channelId: z.string(),
+        })
+      )
+      .or(z.object({ measurementId: z.string() }))
+      .or(z.object({ serviceTeamId: z.string() }))
+      .optional(),
+  }),
+});
+
+export type IntegrationsCreateReq = z.infer<typeof IntegrationsCreateSchema>;
