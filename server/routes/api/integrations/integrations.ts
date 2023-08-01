@@ -17,7 +17,7 @@ import {
   assertIn,
   assertUrl,
 } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
 
 const router = new Router();
 
