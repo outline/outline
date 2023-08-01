@@ -2,13 +2,13 @@ import Router from "koa-router";
 import { WhereOptions } from "sequelize";
 import { IntegrationType } from "@shared/types";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Event } from "@server/models";
+import { Event, IntegrationAuthentication } from "@server/models";
 import Integration from "@server/models/Integration";
 import { authorize } from "@server/policies";
 import { presentIntegration } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -102,15 +102,27 @@ router.post(
 router.post(
   "integrations.delete",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { id } = ctx.request.body;
-    assertUuid(id, "id is required");
-
+  transaction(),
+  validate(T.IntegrationsDeleteSchema),
+  async (ctx: APIContext<T.IntegrationsDeleteReq>) => {
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const integration = await Integration.findByPk(id);
+    const { transaction } = ctx.state;
+
+    const integration = await Integration.findByPk(id, { transaction });
     authorize(user, "delete", integration);
 
-    await integration.destroy();
+    await integration.destroy({ transaction });
+    // also remove the corresponding authentication if it exists
+    if (integration.authenticationId) {
+      await IntegrationAuthentication.destroy({
+        where: {
+          id: integration.authenticationId,
+        },
+        transaction,
+      });
+    }
+
     await Event.create({
       name: "integrations.delete",
       modelId: integration.id,

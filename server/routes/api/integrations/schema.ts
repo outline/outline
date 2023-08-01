@@ -78,3 +78,12 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
 });
 
 export type IntegrationsUpdateReq = z.infer<typeof IntegrationsUpdateSchema>;
+
+export const IntegrationsDeleteSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of integration to be deleted */
+    id: z.string().uuid(),
+  }),
+});
+
+export type IntegrationsDeleteReq = z.infer<typeof IntegrationsDeleteSchema>;
