@@ -30,6 +30,8 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
   color: ${s("text")};
   height: 30px;
   min-width: 0;
+  font-size: 15px;
+
   ${ellipsis()}
   ${undraggableOnDesktop()}
 
