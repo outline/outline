@@ -102,8 +102,8 @@ router.post(
 router.post(
   "integrations.delete",
   auth({ admin: true }),
-  transaction(),
   validate(T.IntegrationsDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.IntegrationsDeleteReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
@@ -123,13 +123,16 @@ router.post(
       });
     }
 
-    await Event.create({
-      name: "integrations.delete",
-      modelId: integration.id,
-      teamId: integration.teamId,
-      actorId: user.id,
-      ip: ctx.request.ip,
-    });
+    await Event.create(
+      {
+        name: "integrations.delete",
+        modelId: integration.id,
+        teamId: integration.teamId,
+        actorId: user.id,
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
 
     ctx.body = {
       success: true,
