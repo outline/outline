@@ -36,6 +36,21 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
     }
   });
 
+  const handleKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+
+        if (ev.shiftKey) {
+          editor?.commands?.prevSearchMatch();
+        } else {
+          editor?.commands?.nextSearchMatch();
+        }
+      }
+    },
+    [editor?.commands]
+  );
+
   const handleReplace = React.useCallback(
     (ev) => {
       ev.preventDefault();
@@ -104,6 +119,7 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
           value={searchTerm}
           placeholder={t("Find")}
           onChange={handleChangeFind}
+          onKeyDown={handleKeyDown}
         />
 
         {showReplace && (
@@ -112,6 +128,7 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
               placeholder={t("Replace")}
               value={replaceTerm}
               onKeyDown={handleReplaceKeyDown}
+              onRequestSubmit={handleReplaceAll}
               onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
             />
             <Flex gap={8}>

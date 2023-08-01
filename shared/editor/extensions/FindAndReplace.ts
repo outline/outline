@@ -85,6 +85,8 @@ export default class FindAndReplace extends Extension {
   public find(searchTerm: string): Command {
     return (state, dispatch) => {
       this.searchTerm = searchTerm;
+      this.currentResultIndex = 0;
+
       this.updateView(state, dispatch);
       return false;
     };
@@ -93,6 +95,7 @@ export default class FindAndReplace extends Extension {
   public clear(): Command {
     return (state, dispatch) => {
       this.searchTerm = "";
+      this.currentResultIndex = 0;
 
       this.updateView(state, dispatch);
       return false;
@@ -102,12 +105,17 @@ export default class FindAndReplace extends Extension {
   private goToMatch(direction: number): Command {
     return (state, dispatch) => {
       if (direction > 0) {
-        this.currentResultIndex = Math.min(
-          this.currentResultIndex + 1,
-          this.results.length - 1
-        );
+        if (this.currentResultIndex === this.results.length - 1) {
+          this.currentResultIndex = 0;
+        } else {
+          this.currentResultIndex += 1;
+        }
       } else {
-        this.currentResultIndex = Math.max(this.currentResultIndex - 1, 0);
+        if (this.currentResultIndex === 0) {
+          this.currentResultIndex = this.results.length - 1;
+        } else {
+          this.currentResultIndex -= 1;
+        }
       }
 
       this.updateView(state, dispatch);
