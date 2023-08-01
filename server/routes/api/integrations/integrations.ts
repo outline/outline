@@ -3,6 +3,7 @@ import { has } from "lodash";
 import { WhereOptions } from "sequelize";
 import { IntegrationType } from "@shared/types";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import { Event } from "@server/models";
 import Integration, {
   UserCreatableIntegrationService,
@@ -11,13 +12,13 @@ import { authorize } from "@server/policies";
 import { presentIntegration } from "@server/presenters";
 import { APIContext } from "@server/types";
 import {
-  assertSort,
   assertUuid,
   assertArray,
   assertIn,
   assertUrl,
 } from "@server/validation";
 import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
@@ -25,21 +26,16 @@ router.post(
   "integrations.list",
   auth(),
   pagination(),
-  async (ctx: APIContext) => {
-    let { direction } = ctx.request.body;
+  validate(T.IntegrationsListSchema),
+  async (ctx: APIContext<T.IntegrationsListReq>) => {
+    const { direction, type, sort } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const { type, sort = "updatedAt" } = ctx.request.body;
-    if (direction !== "ASC") {
-      direction = "DESC";
-    }
-    assertSort(sort, Integration);
 
     let where: WhereOptions<Integration> = {
       teamId: user.teamId,
     };
 
     if (type) {
-      assertIn(type, Object.values(IntegrationType));
       where = {
         ...where,
         type,
