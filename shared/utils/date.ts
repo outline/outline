@@ -1,6 +1,7 @@
 /* eslint-disable import/no-duplicates */
 import { subDays, subMonths, subWeeks, subYears } from "date-fns";
 import {
+  cs,
   de,
   enUS,
   es,
@@ -13,7 +14,6 @@ import {
   ptBR,
   pt,
   pl,
-  ru,
   tr,
   vi,
   zhCN,
@@ -102,6 +102,7 @@ export function getCurrentDateTimeAsString(locales?: Intl.LocalesArgument) {
 }
 
 const locales = {
+  cs_CZ: cs,
   de_DE: de,
   en_US: enUS,
   es_ES: es,
@@ -114,7 +115,6 @@ const locales = {
   pt_BR: ptBR,
   pt_PT: pt,
   pl_PL: pl,
-  ru_RU: ru,
   tr_TR: tr,
   vi_VN: vi,
   zh_CN: zhCN,
