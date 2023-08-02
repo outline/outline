@@ -23,24 +23,53 @@ export default class FindAndReplace extends Extension {
 
   public commands() {
     return {
+      /**
+       * Find all matching results in the document for the given options
+       *
+       * @param attrs.text The search query
+       * @param attrs.caseSensitive Whether the search should be case sensitive
+       * @param attrs.regexEnabled Whether the search should be a regex
+       *
+       * @returns A command that finds all matching results
+       */
       find: (attrs: {
         text: string;
         caseSensitive?: boolean;
         regexEnabled?: boolean;
       }) => this.find(attrs.text, attrs.caseSensitive, attrs.regexEnabled),
+
+      /**
+       * Find and highlight the next matching result in the document
+       */
       nextSearchMatch: () => this.goToMatch(1),
+
+      /**
+       * Find and highlight the previous matching result in the document
+       */
       prevSearchMatch: () => this.goToMatch(-1),
+
+      /**
+       * Replace the current highlighted result with the given text
+       *
+       * @param attrs.text The text to replace the current result with
+       */
       replace: (attrs: { text: string }) => this.replace(attrs.text),
+
+      /**
+       * Replace all matching results with the given text
+       *
+       * @param attrs.text The text to replace all results with
+       */
       replaceAll: (attrs: { text: string }) => this.replaceAll(attrs.text),
+
+      /**
+       * Clear the current search
+       */
       clearSearch: () => this.clear(),
     };
   }
 
-  private get findRegExp() {
-    return RegExp(this.searchTerm, !this.options.caseSensitive ? "gui" : "gu");
-  }
-
-  public get decorations() {
+  private get decorations() {
     return this.results.map((deco, index) =>
       Decoration.inline(deco.from, deco.to, {
         class:
@@ -54,15 +83,14 @@ export default class FindAndReplace extends Extension {
 
   public replace(replace: string): Command {
     return (state, dispatch) => {
-      const firstResult = this.results[0];
+      const result = this.results[this.currentResultIndex];
 
-      if (!firstResult) {
+      if (!result) {
         return false;
       }
 
-      const { from, to } = this.results[0];
-      dispatch?.(state.tr.insertText(replace, from, to));
-      this.find(this.searchTerm);
+      const { from, to } = result;
+      dispatch?.(state.tr.insertText(replace, from, to).setMeta(pluginKey, {}));
 
       return true;
     };
@@ -88,11 +116,12 @@ export default class FindAndReplace extends Extension {
 
   public find(
     searchTerm: string,
-    caseSensitive = this.defaultOptions.caseSensitive,
-    regexEnabled = this.defaultOptions.regexEnabled
+    caseSensitive = this.options.caseSensitive,
+    regexEnabled = this.options.regexEnabled
   ): Command {
     return (state, dispatch) => {
       this.options.caseSensitive = caseSensitive;
+      this.options.regexEnabled = regexEnabled;
       this.searchTerm = regexEnabled ? searchTerm : escapeRegExp(searchTerm);
       this.currentResultIndex = 0;
 
@@ -109,6 +138,10 @@ export default class FindAndReplace extends Extension {
       dispatch?.(state.tr.setMeta(pluginKey, {}));
       return true;
     };
+  }
+
+  private get findRegExp() {
+    return RegExp(this.searchTerm, !this.options.caseSensitive ? "gui" : "gu");
   }
 
   private goToMatch(direction: number): Command {
