@@ -21,12 +21,12 @@ import {
   Length as SimpleLength,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
-import { CollectionPermission } from "@shared/types";
+import type { CollectionSort } from "@shared/types";
+import { CollectionPermission, NavigationNode } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { CollectionValidation } from "@shared/validations";
 import slugify from "@server/utils/slugify";
-import type { NavigationNode, CollectionSort } from "~/types";
 import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
@@ -153,7 +153,7 @@ class Collection extends ParanoidModel {
     msg: `description must be ${CollectionValidation.maxDescriptionLength} characters or less`,
   })
   @Column
-  description: string;
+  description: string | null;
 
   @Length({
     max: 50,
@@ -167,8 +167,8 @@ class Collection extends ParanoidModel {
   color: string | null;
 
   @Length({
-    max: 50,
-    msg: `index must 50 characters or less`,
+    max: 100,
+    msg: `index must be 100 characters or less`,
   })
   @Column
   index: string | null;
@@ -254,21 +254,17 @@ class Collection extends ParanoidModel {
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    if (model.permission !== CollectionPermission.ReadWrite) {
-      return CollectionUser.findOrCreate({
-        where: {
-          collectionId: model.id,
-          userId: model.createdById,
-        },
-        defaults: {
-          permission: CollectionPermission.ReadWrite,
-          createdById: model.createdById,
-        },
-        transaction: options.transaction,
-      });
-    }
-
-    return undefined;
+    return CollectionUser.findOrCreate({
+      where: {
+        collectionId: model.id,
+        userId: model.createdById,
+      },
+      defaults: {
+        permission: CollectionPermission.Admin,
+        createdById: model.createdById,
+      },
+      transaction: options.transaction,
+    });
   }
 
   // associations
@@ -396,6 +392,17 @@ class Collection extends ParanoidModel {
     });
   }
 
+  /**
+   * Convenience method to return if a collection is considered private.
+   * This means that a membership is required to view it rather than just being
+   * a workspace member.
+   *
+   * @returns boolean
+   */
+  get isPrivate() {
+    return !this.permission;
+  }
+
   getDocumentTree = (documentId: string): NavigationNode | null => {
     if (!this.documentStructure) {
       return null;
@@ -450,10 +457,11 @@ class Collection extends ParanoidModel {
           parentDocumentId: documentId,
         },
       });
-      childDocuments.forEach(async (child) => {
+
+      for (const child of childDocuments) {
         await loopChildren(child.id, opts);
         await child.destroy(opts);
-      });
+      }
     };
 
     await loopChildren(document.id, options);
@@ -477,12 +485,10 @@ class Collection extends ParanoidModel {
       id: string
     ) => {
       children = await Promise.all(
-        children.map(async (childDocument) => {
-          return {
-            ...childDocument,
-            children: await removeFromChildren(childDocument.children, id),
-          };
-        })
+        children.map(async (childDocument) => ({
+          ...childDocument,
+          children: await removeFromChildren(childDocument.children, id),
+        }))
       );
       const match = find(children, {
         id,
@@ -554,7 +560,7 @@ class Collection extends ParanoidModel {
    */
   updateDocument = async function (
     updatedDocument: Document,
-    options?: { transaction?: Transaction | null }
+    options?: { transaction?: Transaction | null | undefined }
   ) {
     if (!this.documentStructure) {
       return;
@@ -562,22 +568,23 @@ class Collection extends ParanoidModel {
 
     const { id } = updatedDocument;
 
-    const updateChildren = (documents: NavigationNode[]) => {
-      return documents.map((document) => {
-        if (document.id === id) {
-          document = {
-            ...(updatedDocument.toJSON() as NavigationNode),
-            children: document.children,
-          };
-        } else {
-          document.children = updateChildren(document.children);
-        }
+    const updateChildren = (documents: NavigationNode[]) =>
+      Promise.all(
+        documents.map(async (document) => {
+          if (document.id === id) {
+            document = {
+              ...(await updatedDocument.toNavigationNode(options)),
+              children: document.children,
+            };
+          } else {
+            document.children = await updateChildren(document.children);
+          }
 
-        return document;
-      });
-    };
+          return document;
+        })
+      );
 
-    this.documentStructure = updateChildren(this.documentStructure);
+    this.documentStructure = await updateChildren(this.documentStructure);
     // Sequelize doesn't seem to set the value with splice on JSONB field
     // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
     this.changed("documentStructure", true);
@@ -602,7 +609,10 @@ class Collection extends ParanoidModel {
     }
 
     // If moving existing document with children, use existing structure
-    const documentJson = { ...document.toJSON(), ...options.documentJson };
+    const documentJson = {
+      ...(await document.toNavigationNode(options)),
+      ...options.documentJson,
+    };
 
     if (!document.parentDocumentId) {
       // Note: Index is supported on DB level but it's being ignored
@@ -614,8 +624,8 @@ class Collection extends ParanoidModel {
       );
     } else {
       // Recursively place document
-      const placeDocument = (documentList: NavigationNode[]) => {
-        return documentList.map((childDocument) => {
+      const placeDocument = (documentList: NavigationNode[]) =>
+        documentList.map((childDocument) => {
           if (document.parentDocumentId === childDocument.id) {
             childDocument.children.splice(
               index !== undefined ? index : childDocument.children.length,
@@ -628,7 +638,6 @@ class Collection extends ParanoidModel {
 
           return childDocument;
         });
-      };
 
       this.documentStructure = placeDocument(this.documentStructure);
     }

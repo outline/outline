@@ -1,33 +1,34 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Helmet } from "react-helmet";
-import { cdnPath } from "@shared/utils/urls";
+import { Helmet } from "react-helmet-async";
+import env from "~/env";
 import useStores from "~/hooks/useStores";
+import { useTeamContext } from "./TeamContext";
 
 type Props = {
   title: React.ReactNode;
   favicon?: string;
 };
 
+const originalShortcutHref = document
+  .querySelector('link[rel="shortcut icon"]')
+  ?.getAttribute("href") as string;
+
 const PageTitle = ({ title, favicon }: Props) => {
   const { auth } = useStores();
-  const { team } = auth;
+  const team = useTeamContext() ?? auth.team;
 
   return (
     <Helmet>
       <title>
-        {team?.name ? `${title} - ${team.name}` : `${title} - Outline`}
+        {team?.name ? `${title} - ${team.name}` : `${title} - ${env.APP_NAME}`}
       </title>
-      {favicon ? (
-        <link rel="shortcut icon" href={favicon} />
-      ) : (
-        <link
-          rel="shortcut icon"
-          type="image/png"
-          href={cdnPath("/images/favicon-32.png")}
-          sizes="32x32"
-        />
-      )}
+      <link
+        rel="shortcut icon"
+        type="image/png"
+        href={favicon ?? originalShortcutHref}
+        key={favicon ?? originalShortcutHref}
+      />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </Helmet>
   );

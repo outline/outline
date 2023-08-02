@@ -15,8 +15,8 @@ function Abstract(props: Props) {
 }
 
 Abstract.ENABLED = [
-  new RegExp("https?://share\\.(?:go)?abstract\\.com/(.*)$"),
-  new RegExp("https?://app\\.(?:go)?abstract\\.com/(?:share|embed)/(.*)$"),
+  new RegExp("^https?://share\\.(?:go)?abstract\\.com/(.*)$"),
+  new RegExp("^https?://app\\.(?:go)?abstract\\.com/(?:share|embed)/(.*)$"),
 ];
 
 export default Abstract;

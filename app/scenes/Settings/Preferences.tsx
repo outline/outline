@@ -51,10 +51,7 @@ function Preferences() {
   };
 
   return (
-    <Scene
-      title={t("Preferences")}
-      icon={<SettingsIcon color="currentColor" />}
-    >
+    <Scene title={t("Preferences")} icon={<SettingsIcon />}>
       <Heading>{t("Preferences")}</Heading>
       <Text type="secondary">
         <Trans>Manage settings that affect your personal experience.</Trans>
@@ -90,29 +87,29 @@ function Preferences() {
         />
       </SettingRow>
       <SettingRow
-        name="useCursorPointer"
+        name={UserPreference.UseCursorPointer}
         label={t("Use pointer cursor")}
         description={t(
           "Show a hand cursor when hovering over interactive elements."
         )}
       >
         <Switch
-          id="useCursorPointer"
-          name="useCursorPointer"
-          checked={user.getPreference(UserPreference.UseCursorPointer, true)}
+          id={UserPreference.UseCursorPointer}
+          name={UserPreference.UseCursorPointer}
+          checked={user.getPreference(UserPreference.UseCursorPointer)}
           onChange={handlePreferenceChange}
         />
       </SettingRow>
       <SettingRow
-        name="codeBlockLineNumbers"
+        name={UserPreference.CodeBlockLineNumers}
         label={t("Show line numbers")}
         description={t("Show line numbers on code blocks in documents.")}
         border={false}
       >
         <Switch
-          id="codeBlockLineNumbers"
-          name="codeBlockLineNumbers"
-          checked={user.getPreference(UserPreference.CodeBlockLineNumers, true)}
+          id={UserPreference.CodeBlockLineNumers}
+          name={UserPreference.CodeBlockLineNumers}
+          checked={user.getPreference(UserPreference.CodeBlockLineNumers)}
           onChange={handlePreferenceChange}
         />
       </SettingRow>
@@ -120,16 +117,16 @@ function Preferences() {
       <Heading as="h2">{t("Behavior")}</Heading>
       <SettingRow
         border={false}
-        name="rememberLastPath"
+        name={UserPreference.RememberLastPath}
         label={t("Remember previous location")}
         description={t(
           "Automatically return to the document you were last viewing when the app is re-opened."
         )}
       >
         <Switch
-          id="rememberLastPath"
-          name="rememberLastPath"
-          checked={!!user.preferences?.rememberLastPath}
+          id={UserPreference.RememberLastPath}
+          name={UserPreference.RememberLastPath}
+          checked={!!user.getPreference(UserPreference.RememberLastPath)}
           onChange={handlePreferenceChange}
         />
       </SettingRow>

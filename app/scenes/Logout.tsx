@@ -4,7 +4,7 @@ import useStores from "~/hooks/useStores";
 
 const Logout = () => {
   const { auth } = useStores();
-  auth.logout();
+  void auth.logout();
   return <Redirect to="/" />;
 };
 

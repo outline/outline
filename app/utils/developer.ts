@@ -4,7 +4,7 @@ export async function deleteAllDatabases() {
 
   for (const database of databases) {
     if (database.name) {
-      await window.indexedDB.deleteDatabase(database.name);
+      window.indexedDB.deleteDatabase(database.name);
     }
   }
 }

@@ -1,10 +1,10 @@
 import { disableBodyScroll, enableBodyScroll } from "body-scroll-lock";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Menu } from "reakit/Menu";
+import { Menu, MenuStateReturn } from "reakit/Menu";
 import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import useMenuContext from "~/hooks/useMenuContext";
 import useMenuHeight from "~/hooks/useMenuHeight";
@@ -36,30 +36,37 @@ export type Placement =
   | "left"
   | "left-start";
 
-type Props = {
-  "aria-label": string;
-  visible?: boolean;
-  placement?: Placement;
-  animating?: boolean;
-  unstable_disclosureRef?: React.RefObject<HTMLElement | null>;
+type Props = MenuStateReturn & {
+  "aria-label"?: string;
+  /** The parent menu state if this is a submenu. */
+  parentMenuState?: Omit<MenuStateReturn, "items">;
+  /** Called when the context menu is opened. */
   onOpen?: () => void;
+  /** Called when the context menu is closed. */
   onClose?: () => void;
-  hide?: () => void;
+  /** Called when the context menu is clicked. */
+  onClick?: (ev: React.MouseEvent) => void;
+  children?: React.ReactNode;
 };
 
 const ContextMenu: React.FC<Props> = ({
   children,
   onOpen,
   onClose,
+  parentMenuState,
   ...rest
-}) => {
+}: Props) => {
   const previousVisible = usePrevious(rest.visible);
-  const maxHeight = useMenuHeight(rest.visible, rest.unstable_disclosureRef);
+  const maxHeight = useMenuHeight({
+    visible: rest.visible,
+    elementRef: rest.unstable_disclosureRef,
+  });
   const backgroundRef = React.useRef<HTMLDivElement>(null);
   const { ui } = useStores();
   const { t } = useTranslation();
   const { setIsMenuOpen } = useMenuContext();
   const isMobile = useMobile();
+  const isSubMenu = !!parentMenuState;
 
   useUnmount(() => {
     setIsMenuOpen(false);
@@ -67,19 +74,17 @@ const ContextMenu: React.FC<Props> = ({
 
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {
-      if (onOpen) {
-        onOpen();
-      }
-      if (rest["aria-label"] !== t("Submenu")) {
+      onOpen?.();
+
+      if (!isSubMenu) {
         setIsMenuOpen(true);
       }
     }
 
     if (!rest.visible && previousVisible) {
-      if (onClose) {
-        onClose();
-      }
-      if (rest["aria-label"] !== t("Submenu")) {
+      onClose?.();
+
+      if (!isSubMenu) {
         setIsMenuOpen(false);
       }
     }
@@ -90,7 +95,7 @@ const ContextMenu: React.FC<Props> = ({
     rest.visible,
     ui.sidebarCollapsed,
     setIsMenuOpen,
-    rest,
+    isSubMenu,
     t,
   ]);
 
@@ -99,13 +104,15 @@ const ContextMenu: React.FC<Props> = ({
   // https://github.com/ariakit/ariakit/issues/469
   React.useEffect(() => {
     const scrollElement = backgroundRef.current;
-    if (rest.visible && scrollElement) {
-      disableBodyScroll(scrollElement);
+    if (rest.visible && scrollElement && !isSubMenu) {
+      disableBodyScroll(scrollElement, {
+        reserveScrollBarGap: true,
+      });
     }
     return () => {
-      scrollElement && enableBodyScroll(scrollElement);
+      scrollElement && !isSubMenu && enableBodyScroll(scrollElement);
     };
-  }, [rest.visible]);
+  }, [isSubMenu, rest.visible]);
 
   // Perf win – don't render anything until the menu has been opened
   if (!rest.visible && !previousVisible) {
@@ -144,7 +151,7 @@ const ContextMenu: React.FC<Props> = ({
                   ref={backgroundRef}
                   hiddenScrollbars
                   style={
-                    maxHeight && topAnchor
+                    topAnchor
                       ? {
                           maxHeight,
                         }
@@ -171,7 +178,7 @@ export const Backdrop = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: ${(props) => props.theme.backdrop};
+  background: ${s("backdrop")};
   z-index: ${depths.menu - 1};
 `;
 
@@ -203,7 +210,7 @@ export const Background = styled(Scrollable)<BackgroundProps>`
   animation: ${mobileContextMenu} 200ms ease;
   transform-origin: 50% 100%;
   max-width: 100%;
-  background: ${(props) => props.theme.menuBackground};
+  background: ${s("menuBackground")};
   border-radius: 6px;
   padding: 6px;
   min-width: 180px;

@@ -1,27 +1,28 @@
 import * as React from "react";
-import ImageZoom from "react-medium-image-zoom";
 import Frame from "../components/Frame";
+import ImageZoom from "../components/ImageZoom";
 import { EmbedProps as Props } from ".";
 
-const IFRAME_REGEX = /^https:\/\/(invis\.io\/.*)|(projects\.invisionapp\.com\/share\/.*)$/;
-const IMAGE_REGEX = /^https:\/\/(opal\.invisionapp\.com\/static-signed\/live-embed\/.*)$/;
+const IFRAME_REGEX =
+  /^https:\/\/(invis\.io\/.*)|(projects\.invisionapp\.com\/share\/.*)$/;
+const IMAGE_REGEX =
+  /^https:\/\/(opal\.invisionapp\.com\/static-signed\/live-embed\/.*)$/;
 
 function InVision(props: Props) {
   if (IMAGE_REGEX.test(props.attrs.href)) {
     return (
-      <ImageZoom
-        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-        className={props.isSelected ? "ProseMirror-selectednode" : ""}
-        image={{
-          src: props.attrs.href,
-          alt: "InVision Embed",
-          style: {
-            maxWidth: "100%",
-            maxHeight: "75vh",
-          },
-        }}
-        shouldRespectMaxDimension
-      />
+      <div className={props.isSelected ? "ProseMirror-selectednode" : ""}>
+        <ImageZoom zoomMargin={24}>
+          <img
+            src={props.attrs.href}
+            alt="InVision Embed"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "75vh",
+            }}
+          />
+        </ImageZoom>
+      </div>
     );
   }
 

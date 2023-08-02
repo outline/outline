@@ -1,7 +1,11 @@
 import * as React from "react";
 import styled from "styled-components";
 
-export default function Spinner(props: React.HTMLAttributes<HTMLOrSVGElement>) {
+type Props = React.HTMLAttributes<HTMLOrSVGElement> & {
+  color?: string;
+};
+
+export default function Spinner({ color, ...props }: Props) {
   return (
     <SVG
       width="16px"
@@ -11,13 +15,14 @@ export default function Spinner(props: React.HTMLAttributes<HTMLOrSVGElement>) {
       {...props}
     >
       <Circle
+        $color={color}
         fill="none"
         strokeWidth="2"
         strokeLinecap="round"
         cx="8"
         cy="8"
         r="6"
-      ></Circle>
+      />
     </SVG>
   );
 }
@@ -36,7 +41,7 @@ const SVG = styled.svg`
   margin: 4px;
 `;
 
-const Circle = styled.circle`
+const Circle = styled.circle<{ $color?: string }>`
   @keyframes dash {
     0% {
       stroke-dashoffset: 47;
@@ -51,7 +56,7 @@ const Circle = styled.circle`
     }
   }
 
-  stroke: ${(props) => props.theme.textSecondary};
+  stroke: ${(props) => props.$color || props.theme.textSecondary};
   stroke-dasharray: 46;
   stroke-dashoffset: 0;
   transform-origin: center;

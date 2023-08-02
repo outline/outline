@@ -25,6 +25,7 @@ import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
+import DragPlaceholder from "./components/DragPlaceholder";
 import HeaderButton, { HeaderButtonProps } from "./components/HeaderButton";
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
@@ -42,8 +43,8 @@ function AppSidebar() {
 
   React.useEffect(() => {
     if (!user.isViewer) {
-      documents.fetchDrafts();
-      documents.fetchTemplates();
+      void documents.fetchDrafts();
+      void documents.fetchTemplates();
     }
   }, [documents, user.isViewer]);
 
@@ -61,6 +62,8 @@ function AppSidebar() {
       <HistoryNavigation />
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
+          <DragPlaceholder />
+
           <OrganizationMenu>
             {(props: HeaderButtonProps) => (
               <HeaderButton
@@ -85,20 +88,20 @@ function AppSidebar() {
             <Section>
               <SidebarLink
                 to={homePath()}
-                icon={<HomeIcon color="currentColor" />}
+                icon={<HomeIcon />}
                 exact={false}
                 label={t("Home")}
               />
               <SidebarLink
                 to={searchPath()}
-                icon={<SearchIcon color="currentColor" />}
+                icon={<SearchIcon />}
                 label={t("Search")}
                 exact={false}
               />
               {can.createDocument && (
                 <SidebarLink
                   to={draftsPath()}
-                  icon={<EditIcon color="currentColor" />}
+                  icon={<EditIcon />}
                   label={
                     <Flex align="center" justify="space-between">
                       {t("Drafts")}
@@ -121,7 +124,7 @@ function AppSidebar() {
                 <>
                   <SidebarLink
                     to={templatesPath()}
-                    icon={<ShapesIcon color="currentColor" />}
+                    icon={<ShapesIcon />}
                     exact={false}
                     label={t("Templates")}
                     active={

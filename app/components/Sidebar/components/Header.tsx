@@ -1,6 +1,7 @@
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import styled, { keyframes } from "styled-components";
+import { s } from "@shared/styles";
 import usePersistedState from "~/hooks/usePersistedState";
 import { undraggableOnDesktop } from "~/styles";
 
@@ -8,12 +9,13 @@ type Props = {
   /** Unique header id – if passed the header will become toggleable */
   id?: string;
   title: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 /**
  * Toggleable sidebar header
  */
-export const Header: React.FC<Props> = ({ id, title, children }) => {
+export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
   const [firstRender, setFirstRender] = React.useState(true);
   const [expanded, setExpanded] = usePersistedState<boolean>(
     `sidebar-header-${id}`,
@@ -35,9 +37,7 @@ export const Header: React.FC<Props> = ({ id, title, children }) => {
       <H3>
         <Button onClick={handleClick} disabled={!id}>
           {title}
-          {id && (
-            <Disclosure expanded={expanded} color="currentColor" size={20} />
-          )}
+          {id && <Disclosure expanded={expanded} size={20} />}
         </Button>
       </H3>
       {expanded && (firstRender ? children : <Fade>{children}</Fade>)}
@@ -67,7 +67,7 @@ const Button = styled.button`
   font-size: 13px;
   font-weight: 600;
   user-select: none;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   letter-spacing: 0.03em;
   margin: 0;
   padding: 4px 2px 4px 12px;
@@ -81,7 +81,7 @@ const Button = styled.button`
 
   &:not(:disabled):hover,
   &:not(:disabled):active {
-    color: ${(props) => props.theme.textSecondary};
+    color: ${s("textSecondary")};
     cursor: var(--pointer);
   }
 `;

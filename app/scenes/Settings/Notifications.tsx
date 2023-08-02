@@ -1,8 +1,20 @@
 import { debounce } from "lodash";
 import { observer } from "mobx-react";
-import { EmailIcon } from "outline-icons";
+import {
+  AcademicCapIcon,
+  CheckboxIcon,
+  CollectionIcon,
+  CommentIcon,
+  EditIcon,
+  EmailIcon,
+  PublishIcon,
+  StarredIcon,
+  UserIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { NotificationEventType } from "@shared/types";
+import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import Notice from "~/components/Notice";
@@ -11,48 +23,67 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Notifications() {
-  const { notificationSettings } = useStores();
   const { showToast } = useToasts();
   const user = useCurrentUser();
   const { t } = useTranslation();
 
   const options = [
     {
-      event: "documents.publish",
+      event: NotificationEventType.PublishDocument,
+      icon: <PublishIcon />,
       title: t("Document published"),
       description: t(
         "Receive a notification whenever a new document is published"
       ),
     },
     {
-      event: "documents.update",
+      event: NotificationEventType.UpdateDocument,
+      icon: <EditIcon />,
       title: t("Document updated"),
       description: t(
-        "Receive a notification when a document you created is edited"
+        "Receive a notification when a document you are subscribed to is edited"
       ),
     },
     {
-      event: "collections.create",
+      event: NotificationEventType.CreateComment,
+      icon: <CommentIcon />,
+      title: t("Comment posted"),
+      description: t(
+        "Receive a notification when a document you are subscribed to or a thread you participated in receives a comment"
+      ),
+    },
+    {
+      event: NotificationEventType.MentionedInComment,
+      icon: <EmailIcon />,
+      title: t("Mentioned"),
+      description: t(
+        "Receive a notification when someone mentions you in a document or comment"
+      ),
+    },
+    {
+      event: NotificationEventType.CreateCollection,
+      icon: <CollectionIcon />,
       title: t("Collection created"),
       description: t(
         "Receive a notification whenever a new collection is created"
       ),
     },
     {
-      event: "emails.invite_accepted",
+      event: NotificationEventType.InviteAccepted,
+      icon: <UserIcon />,
       title: t("Invite accepted"),
       description: t(
         "Receive a notification when someone you invited creates an account"
       ),
     },
     {
-      event: "emails.export_completed",
+      event: NotificationEventType.ExportCompleted,
+      icon: <CheckboxIcon checked />,
       title: t("Export completed"),
       description: t(
         "Receive a notification when an export you requested has been completed"
@@ -60,23 +91,19 @@ function Notifications() {
     },
     {
       visible: isCloudHosted,
-      event: "emails.onboarding",
+      icon: <AcademicCapIcon />,
+      event: NotificationEventType.Onboarding,
       title: t("Getting started"),
-      description: t(
-        "Tips on getting started with Outline’s features and functionality"
-      ),
+      description: t("Tips on getting started with features and functionality"),
     },
     {
       visible: isCloudHosted,
-      event: "emails.features",
+      icon: <StarredIcon />,
+      event: NotificationEventType.Features,
       title: t("New features"),
       description: t("Receive an email when new features of note are added"),
     },
   ];
-
-  React.useEffect(() => {
-    notificationSettings.fetchPage({});
-  }, [notificationSettings]);
 
   const showSuccessMessage = debounce(() => {
     showToast(t("Notifications saved"), {
@@ -86,24 +113,18 @@ function Notifications() {
 
   const handleChange = React.useCallback(
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const setting = notificationSettings.getByEvent(ev.target.name);
-
-      if (ev.target.checked) {
-        await notificationSettings.save({
-          event: ev.target.name,
-        });
-      } else if (setting) {
-        await notificationSettings.delete(setting);
-      }
-
+      await user.setNotificationEventType(
+        ev.target.name as NotificationEventType,
+        ev.target.checked
+      );
       showSuccessMessage();
     },
-    [notificationSettings, showSuccessMessage]
+    [user, showSuccessMessage]
   );
   const showSuccessNotice = window.location.search === "?success";
 
   return (
-    <Scene title={t("Notifications")} icon={<EmailIcon color="currentColor" />}>
+    <Scene title={t("Notifications")} icon={<EmailIcon />}>
       <Heading>{t("Notifications")}</Heading>
 
       {showSuccessNotice && (
@@ -132,12 +153,17 @@ function Notifications() {
           <h2>{t("Notifications")}</h2>
 
           {options.map((option) => {
-            const setting = notificationSettings.getByEvent(option.event);
+            const setting = user.subscribedToEventType(option.event);
 
             return (
               <SettingRow
+                key={option.event}
                 visible={option.visible}
-                label={option.title}
+                label={
+                  <Flex align="center" gap={4}>
+                    {option.icon} {option.title}
+                  </Flex>
+                }
                 name={option.event}
                 description={option.description}
               >
@@ -147,10 +173,6 @@ function Notifications() {
                   name={option.event}
                   checked={!!setting}
                   onChange={handleChange}
-                  disabled={
-                    (setting && setting.isSaving) ||
-                    notificationSettings.isFetching
-                  }
                 />
               </SettingRow>
             );

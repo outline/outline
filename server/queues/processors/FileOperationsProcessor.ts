@@ -1,11 +1,11 @@
 import invariant from "invariant";
+import { FileOperationFormat, FileOperationType } from "@shared/types";
 import { FileOperation } from "@server/models";
-import {
-  FileOperationFormat,
-  FileOperationType,
-} from "@server/models/FileOperation";
 import { Event as TEvent, FileOperationEvent } from "@server/types";
+import ExportHTMLZipTask from "../tasks/ExportHTMLZipTask";
+import ExportJSONTask from "../tasks/ExportJSONTask";
 import ExportMarkdownZipTask from "../tasks/ExportMarkdownZipTask";
+import ImportJSONTask from "../tasks/ImportJSONTask";
 import ImportMarkdownZipTask from "../tasks/ImportMarkdownZipTask";
 import ImportNotionTask from "../tasks/ImportNotionTask";
 import BaseProcessor from "./BaseProcessor";
@@ -34,14 +34,29 @@ export default class FileOperationsProcessor extends BaseProcessor {
             fileOperationId: event.modelId,
           });
           break;
+        case FileOperationFormat.JSON:
+          await ImportJSONTask.schedule({
+            fileOperationId: event.modelId,
+          });
+          break;
         default:
       }
     }
 
     if (fileOperation.type === FileOperationType.Export) {
       switch (fileOperation.format) {
+        case FileOperationFormat.HTMLZip:
+          await ExportHTMLZipTask.schedule({
+            fileOperationId: event.modelId,
+          });
+          break;
         case FileOperationFormat.MarkdownZip:
           await ExportMarkdownZipTask.schedule({
+            fileOperationId: event.modelId,
+          });
+          break;
+        case FileOperationFormat.JSON:
+          await ExportJSONTask.schedule({
             fileOperationId: event.modelId,
           });
           break;

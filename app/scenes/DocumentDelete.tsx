@@ -8,7 +8,7 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import { collectionUrl, documentUrl } from "~/utils/routeHelpers";
+import { collectionPath, documentPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -23,7 +23,9 @@ function DocumentDelete({ document, onSubmit }: Props) {
   const [isArchiving, setArchiving] = React.useState(false);
   const { showToast } = useToasts();
   const canArchive = !document.isDraft && !document.isArchived;
-  const collection = collections.get(document.collectionId);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const nestedDocumentsCount = collection
     ? collection.getDocumentChildren(document.id).length
     : 0;
@@ -43,14 +45,14 @@ function DocumentDelete({ document, onSubmit }: Props) {
             const parent = documents.get(document.parentDocumentId);
 
             if (parent) {
-              history.push(documentUrl(parent));
+              history.push(documentPath(parent));
               onSubmit();
               return;
             }
           }
 
           // otherwise, redirect to the collection home
-          history.push(collectionUrl(collection?.url || "/"));
+          history.push(collectionPath(collection?.url || "/"));
         }
 
         onSubmit();

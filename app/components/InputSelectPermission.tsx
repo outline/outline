@@ -21,7 +21,7 @@ export default function InputSelectPermission(
         value = "";
       }
 
-      onChange(value);
+      onChange?.(value);
     },
     [onChange]
   );

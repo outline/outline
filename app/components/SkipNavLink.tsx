@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import { id } from "~/components/SkipNavContent";
 
 export default function SkipNavLink() {
@@ -23,9 +23,9 @@ const Anchor = styled.a`
     position: fixed;
     top: 12px;
     left: 12px;
-    background: ${(props) => props.theme.background};
-    color: ${(props) => props.theme.text};
-    outline-color: ${(props) => props.theme.primary};
+    background: ${s("background")};
+    color: ${s("text")};
+    outline-color: ${s("accent")};
     z-index: ${depths.popover};
     width: auto;
     height: auto;

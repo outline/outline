@@ -16,9 +16,7 @@ export default class ComponentView {
   node: ProsemirrorNode;
   view: EditorView;
   getPos: () => number;
-  decorations: Decoration<{
-    [key: string]: any;
-  }>[];
+  decorations: Decoration[];
 
   isSelected = false;
   dom: HTMLElement | null;
@@ -39,9 +37,7 @@ export default class ComponentView {
       node: ProsemirrorNode;
       view: EditorView;
       getPos: () => number;
-      decorations: Decoration<{
-        [key: string]: any;
-      }>[];
+      decorations: Decoration[];
     }
   ) {
     this.component = component;
@@ -68,6 +64,7 @@ export default class ComponentView {
     const children = this.component({
       theme,
       node: this.node,
+      view: this.view,
       isSelected: this.isSelected,
       isEditable: this.view.editable,
       getPos: this.getPos,

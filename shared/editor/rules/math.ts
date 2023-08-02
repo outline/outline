@@ -2,6 +2,13 @@ import MarkdownIt from "markdown-it";
 import StateBlock from "markdown-it/lib/rules_block/state_block";
 import StateInline from "markdown-it/lib/rules_inline/state_inline";
 
+export const REGEX_INLINE_MATH_DOLLARS = /\$\$(.+)\$\$/;
+
+export const REGEX_BLOCK_MATH_DOLLARS = /\$\$\$\s+$/;
+
+const inlineMathDelimiter = "$$";
+const blockMathDelimiter = "$$$";
+
 // test if potential opening or closing delimiter
 // assumes that there is a "$" at state.src[pos]
 function isValidDelimiter(state: StateInline, pos: number) {
@@ -32,7 +39,10 @@ function isValidDelimiter(state: StateInline, pos: number) {
 function mathInline(state: StateInline, silent: boolean): boolean {
   let match, token, res, pos;
 
-  if (state.src[state.pos] !== "$") {
+  if (
+    state.src.slice(state.pos, state.pos + inlineMathDelimiter.length) !==
+    inlineMathDelimiter
+  ) {
     return false;
   }
 
@@ -49,10 +59,10 @@ function mathInline(state: StateInline, silent: boolean): boolean {
   // this loop will assume that the first leading backtick can not
   // be the first character in state.src, which is known since
   // we have found an opening delimiter already
-  const start = state.pos + 1;
+  const start = state.pos + inlineMathDelimiter.length;
   match = start;
-  while ((match = state.src.indexOf("$", match)) !== 1) {
-    // found potential $, look for escapes, pos will point to
+  while ((match = state.src.indexOf(inlineMathDelimiter, match)) !== 1) {
+    // found potential delimeter, look for escapes, pos will point to
     // first non escape when complete
     pos = match - 1;
     while (state.src[pos] === "\\") {
@@ -75,12 +85,12 @@ function mathInline(state: StateInline, silent: boolean): boolean {
     return true;
   }
 
-  // check if we have empty content (ex. $$) do not parse
+  // check if we have empty content (ex. $$$$) do not parse
   if (match - start === 0) {
     if (!silent) {
-      state.pending += "$$";
+      state.pending += inlineMathDelimiter + inlineMathDelimiter;
     }
-    state.pos = start + 1;
+    state.pos = start + inlineMathDelimiter.length;
     return true;
   }
 
@@ -96,11 +106,11 @@ function mathInline(state: StateInline, silent: boolean): boolean {
 
   if (!silent) {
     token = state.push("math_inline", "math", 0);
-    token.markup = "$";
+    token.markup = inlineMathDelimiter;
     token.content = state.src.slice(start, match);
   }
 
-  state.pos = match + 1;
+  state.pos = match + inlineMathDelimiter.length;
   return true;
 }
 
@@ -118,22 +128,26 @@ function mathDisplay(
     pos = state.bMarks[start] + state.tShift[start],
     max = state.eMarks[start];
 
-  if (pos + 2 > max) {
+  if (pos + blockMathDelimiter.length > max) {
     return false;
   }
-  if (state.src.slice(pos, pos + 2) !== "$$") {
+  if (
+    state.src.slice(pos, pos + blockMathDelimiter.length) !== blockMathDelimiter
+  ) {
     return false;
   }
 
-  pos += 2;
+  pos += blockMathDelimiter.length;
   firstLine = state.src.slice(pos, max);
 
   if (silent) {
     return true;
   }
-  if (firstLine.trim().slice(-2) === "$$") {
+  if (
+    firstLine.trim().slice(-blockMathDelimiter.length) === blockMathDelimiter
+  ) {
     // Single line expression
-    firstLine = firstLine.trim().slice(0, -2);
+    firstLine = firstLine.trim().slice(0, -blockMathDelimiter.length);
     found = true;
   }
 
@@ -152,8 +166,8 @@ function mathDisplay(
       break;
     }
 
-    if (state.src.slice(pos, max).trim().slice(-2) === "$$") {
-      lastPos = state.src.slice(0, max).lastIndexOf("$$");
+    if (state.src.slice(pos, max).trim().slice(-3) === blockMathDelimiter) {
+      lastPos = state.src.slice(0, max).lastIndexOf(blockMathDelimiter);
       lastLine = state.src.slice(pos, lastPos);
       found = true;
     }
@@ -168,7 +182,7 @@ function mathDisplay(
     state.getLines(start + 1, next, state.tShift[start], true) +
     (lastLine && lastLine.trim() ? lastLine : "");
   token.map = [start, state.line];
-  token.markup = "$$";
+  token.markup = blockMathDelimiter;
   return true;
 }
 

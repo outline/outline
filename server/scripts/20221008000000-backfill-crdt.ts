@@ -81,5 +81,5 @@ export default async function main(exit = false) {
 }
 
 if (process.env.NODE_ENV !== "test") {
-  main(true);
+  void main(true);
 }

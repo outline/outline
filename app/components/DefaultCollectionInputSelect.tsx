@@ -2,8 +2,8 @@ import { HomeIcon } from "outline-icons";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Optional } from "utility-types";
-import CollectionIcon from "~/components/CollectionIcon";
 import Flex from "~/components/Flex";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import InputSelect from "~/components/InputSelect";
 import { IconWrapper } from "~/components/Sidebar/components/SidebarLink";
 import useStores from "~/hooks/useStores";
@@ -28,7 +28,7 @@ const DefaultCollectionInputSelect = ({
   const { showToast } = useToasts();
 
   React.useEffect(() => {
-    async function load() {
+    async function fetchData() {
       if (!collections.isLoaded && !fetching && !fetchError) {
         try {
           setFetching(true);
@@ -48,7 +48,7 @@ const DefaultCollectionInputSelect = ({
         }
       }
     }
-    load();
+    void fetchData();
   }, [showToast, fetchError, t, fetching, collections]);
 
   const options = React.useMemo(
@@ -73,7 +73,7 @@ const DefaultCollectionInputSelect = ({
             label: (
               <Flex align="center">
                 <IconWrapper>
-                  <HomeIcon color="currentColor" />
+                  <HomeIcon />
                 </IconWrapper>
                 {t("Home")}
               </Flex>

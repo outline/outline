@@ -3,12 +3,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
+import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Event from "~/models/Event";
 import Empty from "~/components/Empty";
 import PaginatedEventList from "~/components/PaginatedEventList";
 import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
-import { documentUrl } from "~/utils/routeHelpers";
+import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
 
 const EMPTY_ARRAY: Event[] = [];
@@ -26,7 +27,7 @@ function History() {
 
   const onCloseHistory = () => {
     if (document) {
-      history.push(documentUrl(document));
+      history.push(documentPath(document));
     } else {
       history.goBack();
     }
@@ -41,8 +42,8 @@ function History() {
       eventsInDocument.unshift(
         new Event(
           {
-            id: "live",
-            name: "documents.live_editing",
+            id: RevisionHelper.latestId(document.id),
+            name: "revisions.create",
             documentId: document.id,
             createdAt: document.updatedAt,
             actor: document.updatedBy,

@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
+import { hideScrollbars } from "@shared/styles";
 import useWindowSize from "~/hooks/useWindowSize";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
@@ -94,16 +95,7 @@ const Wrapper = styled.div<{
   }};
   transition: box-shadow 100ms ease-in-out;
 
-  ${(props) =>
-    props.$hiddenScrollbars &&
-    `
-    -ms-overflow-style: none;
-    overflow: -moz-scrollbars-none;
-    scrollbar-width: none;
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  `}
+  ${(props) => props.$hiddenScrollbars && hideScrollbars()}
 `;
 
 export default observer(React.forwardRef(Scrollable));

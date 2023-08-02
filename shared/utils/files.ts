@@ -4,7 +4,11 @@
  * @param bytes filesize in bytes
  * @returns Human readable filesize as a string
  */
-export function bytesToHumanReadable(bytes: number) {
+export function bytesToHumanReadable(bytes: number | undefined) {
+  if (!bytes) {
+    return "0 Bytes";
+  }
+
   const out = ("0".repeat((bytes.toString().length * 2) % 3) + bytes).match(
     /.{3}/g
   );

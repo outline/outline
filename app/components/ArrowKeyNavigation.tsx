@@ -20,6 +20,10 @@ function ArrowKeyNavigation(
   const handleKeyDown = React.useCallback(
     (ev) => {
       if (onEscape) {
+        if (ev.nativeEvent.isComposing) {
+          return;
+        }
+
         if (ev.key === "Escape") {
           onEscape(ev);
         }

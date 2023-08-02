@@ -4,11 +4,13 @@ import { sequelize } from "@server/database/sequelize";
 import InviteReminderEmail from "@server/emails/templates/InviteReminderEmail";
 import { User } from "@server/models";
 import { UserFlag } from "@server/models/User";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
 
 type Props = undefined;
 
 export default class InviteReminderTask extends BaseTask<Props> {
+  static cron = TaskSchedule.Daily;
+
   public async perform() {
     const users = await User.scope("invited").findAll({
       attributes: ["id"],
@@ -40,14 +42,14 @@ export default class InviteReminderTask extends BaseTask<Props> {
           invitedBy &&
           user.getFlag(UserFlag.InviteReminderSent) === 0
         ) {
-          await InviteReminderEmail.schedule({
+          await new InviteReminderEmail({
             to: user.email,
             name: user.name,
             actorName: invitedBy.name,
             actorEmail: invitedBy.email,
             teamName: user.team.name,
             teamUrl: user.team.url,
-          });
+          }).schedule();
 
           user.incrementFlag(UserFlag.InviteReminderSent);
           await user.save({ transaction });

@@ -5,23 +5,23 @@ import bodyParser from "koa-body";
 import Router from "koa-router";
 import { AuthenticationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import coalesceBody from "@server/middlewares/coaleseBody";
 import { Collection, Team, View } from "@server/models";
-import providers from "./providers";
+import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
+import { AppState, AppContext, APIContext } from "@server/types";
 
-const app = new Koa();
+const app = new Koa<AppState, AppContext>();
 const router = new Router();
 
 router.use(passport.initialize());
 
 // dynamically load available authentication provider routes
-providers.forEach((provider) => {
-  if (provider.enabled) {
-    router.use("/", provider.router.routes());
-  }
+AuthenticationHelper.providers.forEach((provider) => {
+  router.use("/", provider.router.routes());
 });
 
-router.get("/redirect", auth(), async (ctx) => {
-  const { user } = ctx.state;
+router.get("/redirect", auth(), async (ctx: APIContext) => {
+  const { user } = ctx.state.auth;
   const jwtToken = user.getJwtToken();
 
   if (jwtToken === ctx.params.token) {
@@ -32,8 +32,7 @@ router.get("/redirect", auth(), async (ctx) => {
   await user.updateActiveAt(ctx, true);
 
   ctx.cookies.set("accessToken", jwtToken, {
-    httpOnly: false,
-    sameSite: true,
+    sameSite: "lax",
     expires: addMonths(new Date(), 3),
   });
   const [team, collection, view] = await Promise.all([
@@ -72,6 +71,7 @@ router.get("/redirect", auth(), async (ctx) => {
 });
 
 app.use(bodyParser());
+app.use(coalesceBody());
 app.use(router.routes());
 
 export default app;

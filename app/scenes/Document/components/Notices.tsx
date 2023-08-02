@@ -39,8 +39,7 @@ export default function Notices({ document, readOnly }: Props) {
           icon={<ShapesIcon />}
           description={
             <Trans>
-              Highlight some text and use the{" "}
-              <PlaceholderIcon color="currentColor" /> control to add
+              Highlight some text and use the <PlaceholderIcon /> control to add
               placeholders that can be filled out when creating new documents
             </Trans>
           }

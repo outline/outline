@@ -14,11 +14,9 @@ describe("userProvisioner", () => {
     const authentications = await existing.$get("authentications");
     const existingAuth = authentications[0];
     const newEmail = "test@example.com";
-    const newUsername = "tname";
     const result = await userProvisioner({
       name: existing.name,
       email: newEmail,
-      username: newUsername,
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
       ip,
@@ -35,7 +33,6 @@ describe("userProvisioner", () => {
     expect(authentication?.scopes.length).toEqual(1);
     expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
-    expect(user.username).toEqual(newUsername);
     expect(isNewUser).toEqual(false);
   });
 
@@ -54,7 +51,6 @@ describe("userProvisioner", () => {
     const result = await userProvisioner({
       name: existing.name,
       email,
-      username: "new-username",
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
       ip,
@@ -90,7 +86,6 @@ describe("userProvisioner", () => {
     const result = await userProvisioner({
       name: existing.name,
       email,
-      username: "new-username",
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
       ip,
@@ -172,7 +167,6 @@ describe("userProvisioner", () => {
     const result = await userProvisioner({
       name: "Test Name",
       email: "test@example.com",
-      username: "tname",
       teamId: team.id,
       ip,
       authentication: {
@@ -188,7 +182,6 @@ describe("userProvisioner", () => {
     expect(authentication?.scopes.length).toEqual(1);
     expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual("test@example.com");
-    expect(user.username).toEqual("tname");
     expect(user.isAdmin).toEqual(false);
     expect(user.isViewer).toEqual(false);
     expect(isNewUser).toEqual(true);
@@ -203,7 +196,6 @@ describe("userProvisioner", () => {
     const result = await userProvisioner({
       name: "Test Name",
       email: "test@example.com",
-      username: "tname",
       teamId: team.id,
       isAdmin: true,
       ip,
@@ -227,7 +219,6 @@ describe("userProvisioner", () => {
     const result = await userProvisioner({
       name: "Test Name",
       email: "test@example.com",
-      username: "tname",
       teamId: team.id,
       ip,
       authentication: {
@@ -238,13 +229,11 @@ describe("userProvisioner", () => {
       },
     });
     const { user: tname } = result;
-    expect(tname.username).toEqual("tname");
     expect(tname.isAdmin).toEqual(false);
     expect(tname.isViewer).toEqual(true);
     const tname2Result = await userProvisioner({
       name: "Test2 Name",
       email: "tes2@example.com",
-      username: "tname2",
       teamId: team.id,
       isAdmin: false,
       ip,
@@ -256,7 +245,6 @@ describe("userProvisioner", () => {
       },
     });
     const { user: tname2 } = tname2Result;
-    expect(tname2.username).toEqual("tname2");
     expect(tname2.isAdmin).toEqual(false);
     expect(tname2.isViewer).toEqual(true);
   });

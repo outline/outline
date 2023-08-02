@@ -28,9 +28,7 @@ const createKeyPredicate = (keyFilter: KeyFilter) =>
   typeof keyFilter === "function"
     ? keyFilter
     : typeof keyFilter === "string"
-    ? (event: KeyboardEvent) =>
-        event.key === keyFilter ||
-        event.code === `Key${keyFilter.toUpperCase()}`
+    ? (event: KeyboardEvent) => event.key === keyFilter
     : keyFilter
     ? (_event: KeyboardEvent) => true
     : (_event: KeyboardEvent) => false;
@@ -57,7 +55,7 @@ export default function useKeyDown(
     return () => {
       callbacks = callbacks.filter((cb) => cb.callback !== handler);
     };
-  }, []);
+  }, [fn, predicate, options]);
 }
 
 window.addEventListener("keydown", (event) => {

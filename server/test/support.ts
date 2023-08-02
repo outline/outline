@@ -6,12 +6,11 @@ import { User, Document, Collection, Team } from "@server/models";
 import onerror from "@server/onerror";
 import webService from "@server/services/web";
 
-export const seed = async () => {
-  return sequelize.transaction(async (transaction) => {
+export const seed = async () =>
+  sequelize.transaction(async (transaction) => {
     const team = await Team.create(
       {
         name: "Team",
-        collaborativeEditing: false,
         authenticationProviders: [
           {
             name: "slack",
@@ -28,7 +27,6 @@ export const seed = async () => {
     const admin = await User.create(
       {
         email: "admin@example.com",
-        username: "admin",
         name: "Admin User",
         teamId: team.id,
         isAdmin: true,
@@ -89,7 +87,9 @@ export const seed = async () => {
       },
       { transaction }
     );
-    await document.publish(collection.createdById, { transaction });
+    await document.publish(collection.createdById, collection.id, {
+      transaction,
+    });
     await collection.reload({ transaction });
     return {
       user,
@@ -99,7 +99,6 @@ export const seed = async () => {
       team,
     };
   });
-};
 
 export function getTestServer() {
   const app = webService();

@@ -4,9 +4,9 @@ import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import Star from "~/models/Star";
+import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
@@ -22,7 +22,6 @@ function Starred() {
   const [displayedStarsCount, setDisplayedStarsCount] = React.useState(
     STARRED_PAGINATION_LIMIT
   );
-  const { showToast } = useToasts();
   const { stars } = useStores();
   const { t } = useTranslation();
 
@@ -34,18 +33,15 @@ function Starred() {
           offset,
         });
       } catch (error) {
-        showToast(t("Starred documents could not be loaded"), {
-          type: "error",
-        });
         setFetchError(error);
       }
     },
-    [stars, showToast, t]
+    [stars]
   );
 
   React.useEffect(() => {
-    fetchResults();
-  }, [fetchResults]);
+    void fetchResults();
+  }, []);
 
   const handleShowMore = async () => {
     await fetchResults(displayedStarsCount);
@@ -55,8 +51,10 @@ function Starred() {
   // Drop to reorder document
   const [{ isOverReorder, isDraggingAnyStar }, dropToReorder] = useDrop({
     accept: "star",
-    drop: async (item: Star) => {
-      item?.save({ index: fractionalIndex(null, stars.orderedData[0].index) });
+    drop: async (item: { star: Star }) => {
+      void item.star.save({
+        index: fractionalIndex(null, stars.orderedData[0].index),
+      });
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
@@ -93,7 +91,9 @@ function Starred() {
             )}
             {(stars.isFetching || fetchError) && !stars.orderedData.length && (
               <Flex column>
-                <PlaceholderCollections />
+                <DelayedMount>
+                  <PlaceholderCollections />
+                </DelayedMount>
               </Flex>
             )}
           </Relative>

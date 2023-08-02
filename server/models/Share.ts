@@ -7,7 +7,10 @@ import {
   Scopes,
   DataType,
   Default,
+  AllowNull,
+  Is,
 } from "sequelize-typescript";
+import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -31,39 +34,31 @@ import Fix from "./decorators/Fix";
   ],
 }))
 @Scopes(() => ({
-  withCollectionPermissions: (userId: string) => {
-    return {
-      include: [
-        {
-          model: Document.scope("withDrafts"),
-          paranoid: true,
-          as: "document",
-          include: [
-            {
-              attributes: [
-                "id",
-                "permission",
-                "sharing",
-                "teamId",
-                "deletedAt",
-              ],
-              model: Collection.scope({
-                method: ["withMembership", userId],
-              }),
-              as: "collection",
-            },
-          ],
-        },
-        {
-          association: "user",
-          paranoid: false,
-        },
-        {
-          association: "team",
-        },
-      ],
-    };
-  },
+  withCollectionPermissions: (userId: string) => ({
+    include: [
+      {
+        model: Document.scope("withDrafts"),
+        paranoid: true,
+        as: "document",
+        include: [
+          {
+            attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
+            model: Collection.scope({
+              method: ["withMembership", userId],
+            }),
+            as: "collection",
+          },
+        ],
+      },
+      {
+        association: "user",
+        paranoid: false,
+      },
+      {
+        association: "team",
+      },
+    ],
+  }),
 }))
 @Table({ tableName: "shares", modelName: "share" })
 @Fix
@@ -85,6 +80,14 @@ class Share extends IdModel {
   @Column
   views: number;
 
+  @AllowNull
+  @Is({
+    args: SHARE_URL_SLUG_REGEX,
+    msg: "Must be only alphanumeric and dashes",
+  })
+  @Column
+  urlId: string | null | undefined;
+
   // getters
 
   get isRevoked() {
@@ -92,7 +95,9 @@ class Share extends IdModel {
   }
 
   get canonicalUrl() {
-    return `${this.team.url}/s/${this.id}`;
+    return this.urlId
+      ? `${this.team.url}/s/${this.urlId}`
+      : `${this.team.url}/s/${this.id}`;
   }
 
   // associations

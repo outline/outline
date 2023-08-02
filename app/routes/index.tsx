@@ -4,43 +4,14 @@ import DesktopRedirect from "~/scenes/DesktopRedirect";
 import DelayedMount from "~/components/DelayedMount";
 import FullscreenLoading from "~/components/FullscreenLoading";
 import Route from "~/components/ProfiledRoute";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 
-const Authenticated = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "preload-authenticated" */
-      "~/components/Authenticated"
-    )
-);
-const AuthenticatedRoutes = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "preload-authenticated-routes" */
-      "./authenticated"
-    )
-);
-const SharedDocument = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "shared-document" */
-      "~/scenes/Document/Shared"
-    )
-);
-const Login = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "login" */
-      "~/scenes/Login"
-    )
-);
-const Logout = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "logout" */
-      "~/scenes/Logout"
-    )
-);
+const Authenticated = lazyWithRetry(() => import("~/components/Authenticated"));
+const AuthenticatedRoutes = lazyWithRetry(() => import("./authenticated"));
+const SharedDocument = lazyWithRetry(() => import("~/scenes/Document/Shared"));
+const Login = lazyWithRetry(() => import("~/scenes/Login"));
+const Logout = lazyWithRetry(() => import("~/scenes/Logout"));
 
 export default function Routes() {
   return (

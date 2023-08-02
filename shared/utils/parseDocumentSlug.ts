@@ -17,7 +17,7 @@ export default function parseDocumentSlug(url: string) {
     }
   }
 
-  return parsed.lastIndexOf("/doc/") === 0
-    ? parsed.replace(/^\/doc\//, "").split("#")[0]
-    : undefined;
+  const split = parsed.split("#")[0].split("/");
+  const indexOfDoc = split.indexOf("doc");
+  return split[indexOfDoc + 1] ?? undefined;
 }

@@ -1,6 +1,13 @@
-import { isNull } from "lodash";
+import { isNil, isNull } from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { CollectionPermission } from "@shared/types";
+import {
+  CollectionPermission,
+  FileOperationState,
+  FileOperationType,
+  IntegrationService,
+  IntegrationType,
+  NotificationEventType,
+} from "@shared/types";
 import {
   Share,
   Team,
@@ -20,11 +27,10 @@ import {
   WebhookDelivery,
   ApiKey,
   Subscription,
+  Notification,
+  SearchQuery,
+  Pin,
 } from "@server/models";
-import {
-  FileOperationState,
-  FileOperationType,
-} from "@server/models/FileOperation";
 
 let count = 1;
 
@@ -121,7 +127,6 @@ export function buildTeam(overrides: Record<string, any> = {}) {
   return Team.create(
     {
       name: `Team ${count}`,
-      collaborativeEditing: false,
       authenticationProviders: [
         {
           name: "slack",
@@ -180,7 +185,6 @@ export async function buildUser(overrides: Partial<User> = {}) {
     {
       email: `user${count}@example.com`,
       name: `User ${count}`,
-      username: `user${count}`,
       createdAt: new Date("2018-01-01T00:00:00.000Z"),
       updatedAt: new Date("2018-01-02T00:00:00.000Z"),
       lastActiveAt: new Date("2018-01-03T00:00:00.000Z"),
@@ -241,15 +245,15 @@ export async function buildIntegration(overrides: Partial<Integration> = {}) {
     teamId: overrides.teamId,
   });
   const authentication = await IntegrationAuthentication.create({
-    service: "slack",
+    service: IntegrationService.Slack,
     userId: user.id,
     teamId: user.teamId,
     token: "fake-access-token",
     scopes: ["example", "scopes", "here"],
   });
   return Integration.create({
-    type: "post",
-    service: "slack",
+    service: IntegrationService.Slack,
+    type: IntegrationType.Post,
     events: ["documents.update", "documents.publish"],
     settings: {
       serviceTeamId: "slack_team_id",
@@ -365,14 +369,19 @@ export async function buildDocument(
   }
 
   count++;
-  return Document.create({
-    title: `Document ${count}`,
-    text: "This is the text in an example document",
-    publishedAt: isNull(overrides.collectionId) ? null : new Date(),
-    lastModifiedById: overrides.userId,
-    createdById: overrides.userId,
-    ...overrides,
-  });
+  return Document.create(
+    {
+      title: `Document ${count}`,
+      text: "This is the text in an example document",
+      publishedAt: isNull(overrides.collectionId) ? null : new Date(),
+      lastModifiedById: overrides.userId,
+      createdById: overrides.userId,
+      ...overrides,
+    },
+    {
+      silent: overrides.createdAt || overrides.updatedAt ? true : false,
+    }
+  );
 }
 
 export async function buildFileOperation(
@@ -487,4 +496,79 @@ export async function buildWebhookDelivery(
   }
 
   return WebhookDelivery.create(overrides);
+}
+
+export async function buildNotification(
+  overrides: Partial<Notification> = {}
+): Promise<Notification> {
+  if (!overrides.event) {
+    overrides.event = NotificationEventType.UpdateDocument;
+  }
+
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.userId = user.id;
+  }
+
+  return Notification.create(overrides);
+}
+
+export async function buildSearchQuery(
+  overrides: Partial<SearchQuery> = {}
+): Promise<SearchQuery> {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.source) {
+    overrides.source = "app";
+  }
+
+  if (isNil(overrides.query)) {
+    overrides.query = "query";
+  }
+
+  if (isNil(overrides.results)) {
+    overrides.results = 1;
+  }
+
+  return SearchQuery.create(overrides);
+}
+
+export async function buildPin(overrides: Partial<Pin> = {}): Promise<Pin> {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.createdById) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.createdById = user.id;
+  }
+
+  if (!overrides.documentId) {
+    const document = await buildDocument({
+      teamId: overrides.teamId,
+    });
+    overrides.documentId = document.id;
+  }
+
+  return Pin.create(overrides);
 }

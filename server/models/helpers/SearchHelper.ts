@@ -2,9 +2,8 @@ import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
 import { find, map } from "lodash";
 import queryParser from "pg-tsquery";
-import { Op, QueryTypes } from "sequelize";
+import { Op, QueryTypes, WhereOptions } from "sequelize";
 import { DateFilter } from "@shared/types";
-import unescape from "@shared/utils/unescape";
 import { sequelize } from "@server/database/sequelize";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
@@ -31,7 +30,7 @@ type SearchOptions = {
   /** The query offset for pagination */
   offset?: number;
   /** Limit results to a collection. Authorization is presumed to have been done before passing to this helper. */
-  collectionId?: string;
+  collectionId?: string | null;
   /** Limit results to a shared document. */
   share?: Share;
   /** Limit results to a date range. */
@@ -170,6 +169,122 @@ export default class SearchHelper {
     return SearchHelper.buildResponse(results, documents, count);
   }
 
+  public static async searchTitlesForUser(
+    user: User,
+    query: string,
+    options: SearchOptions = {}
+  ): Promise<Document[]> {
+    const { limit = 15, offset = 0 } = options;
+
+    const where: WhereOptions<Document> = {
+      teamId: user.teamId,
+      title: {
+        [Op.iLike]: `%${query}%`,
+      },
+      [Op.and]: [],
+    };
+
+    // Ensure we're filtering by the users accessible collections. If
+    // collectionId is passed as an option it is assumed that the authorization
+    // has already been done in the router
+    if (options.collectionId) {
+      where[Op.and].push({
+        collectionId: options.collectionId,
+      });
+    } else {
+      where[Op.and].push({
+        [Op.or]: [
+          {
+            collectionId: {
+              [Op.in]: await user.collectionIds(),
+            },
+          },
+          {
+            collectionId: {
+              [Op.is]: null,
+            },
+            createdById: user.id,
+          },
+        ],
+      });
+    }
+
+    if (options.dateFilter) {
+      where[Op.and].push({
+        updatedAt: {
+          [Op.gt]: sequelize.literal(
+            `now() - interval '1 ${options.dateFilter}'`
+          ),
+        },
+      });
+    }
+
+    if (!options.includeArchived) {
+      where[Op.and].push({
+        archivedAt: {
+          [Op.is]: null,
+        },
+      });
+    }
+
+    if (options.includeDrafts) {
+      where[Op.and].push({
+        [Op.or]: [
+          {
+            publishedAt: {
+              [Op.ne]: null,
+            },
+          },
+          {
+            createdById: user.id,
+          },
+        ],
+      });
+    } else {
+      where[Op.and].push({
+        publishedAt: {
+          [Op.ne]: null,
+        },
+      });
+    }
+
+    if (options.collaboratorIds) {
+      where[Op.and].push({
+        collaboratorIds: {
+          [Op.contains]: options.collaboratorIds,
+        },
+      });
+    }
+
+    return await Document.scope([
+      "withoutState",
+      "withDrafts",
+      {
+        method: ["withViews", user.id],
+      },
+      {
+        method: ["withCollectionPermissions", user.id],
+      },
+    ]).findAll({
+      where,
+      order: [["updatedAt", "DESC"]],
+      include: [
+        {
+          model: User,
+          as: "createdBy",
+          paranoid: false,
+        },
+        {
+          model: User,
+          as: "updatedBy",
+          paranoid: false,
+        },
+      ],
+      offset,
+      limit,
+    });
+  }
+
   public static async searchForUser(
     user: User,
     query: string,
@@ -294,7 +409,7 @@ export default class SearchHelper {
     return {
       results: map(results, (result) => ({
         ranking: result.searchRanking,
-        context: removeMarkdown(unescape(result.searchContext), {
+        context: removeMarkdown(result.searchContext, {
           stripHTML: false,
         }),
         document: find(documents, {

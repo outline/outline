@@ -4,7 +4,9 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { s, ellipsis } from "@shared/styles";
 import Document from "~/models/Document";
+import Revision from "~/models/Revision";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import DocumentTasks from "~/components/DocumentTasks";
 import Flex from "~/components/Flex";
@@ -13,11 +15,13 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
 type Props = {
+  children?: React.ReactNode;
   showCollection?: boolean;
   showPublished?: boolean;
   showLastViewed?: boolean;
   showParentDocuments?: boolean;
   document: Document;
+  revision?: Revision;
   replace?: boolean;
   to?: LocationDescriptor;
 };
@@ -28,11 +32,12 @@ const DocumentMeta: React.FC<Props> = ({
   showLastViewed,
   showParentDocuments,
   document,
+  revision,
   children,
   replace,
   to,
   ...rest
-}) => {
+}: Props) => {
   const { t } = useTranslation();
   const { collections } = useStores();
   const user = useCurrentUser();
@@ -56,12 +61,23 @@ const DocumentMeta: React.FC<Props> = ({
     return null;
   }
 
-  const collection = collections.get(document.collectionId);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const lastUpdatedByCurrentUser = user.id === updatedBy.id;
   const userName = updatedBy.name;
   let content;
 
-  if (deletedAt) {
+  if (revision) {
+    content = (
+      <span>
+        {revision.createdBy?.id === user.id
+          ? t("You updated")
+          : t("{{ userName }} updated", { userName })}{" "}
+        <Time dateTime={revision.createdAt} addSuffix />
+      </span>
+    );
+  } else if (deletedAt) {
     content = (
       <span>
         {lastUpdatedByCurrentUser
@@ -184,7 +200,7 @@ const DocumentMeta: React.FC<Props> = ({
 
 const Container = styled(Flex)<{ rtl?: boolean }>`
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
@@ -192,8 +208,7 @@ const Container = styled(Flex)<{ rtl?: boolean }>`
 `;
 
 const Viewed = styled.span`
-  text-overflow: ellipsis;
-  overflow: hidden;
+  ${ellipsis()}
 `;
 
 const Modified = styled.span<{ highlight?: boolean }>`

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { depths } from "@shared/styles";
 import useStores from "~/hooks/useStores";
+import { draggableOnDesktop } from "~/styles";
 
 const transition = {
   type: "spring",
@@ -56,6 +57,7 @@ const Banner = styled(m.div)<{ $color: string }>`
   background: ${(props) => props.$color};
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
+  ${draggableOnDesktop()}
 `;
 
 export default observer(ObservingBanner);

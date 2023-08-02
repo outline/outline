@@ -13,7 +13,7 @@ function Archive() {
   const { t } = useTranslation();
   const { documents } = useStores();
   return (
-    <Scene icon={<ArchiveIcon color="currentColor" />} title={t("Archive")}>
+    <Scene icon={<ArchiveIcon />} title={t("Archive")}>
       <Heading>{t("Archive")}</Heading>
       <PaginatedDocumentList
         documents={documents.archived}

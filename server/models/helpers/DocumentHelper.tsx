@@ -3,25 +3,26 @@ import {
   yDocToProsemirrorJSON,
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
-import { escapeRegExp } from "lodash";
-import { Node, DOMSerializer } from "prosemirror-model";
-import * as React from "react";
-import { renderToString } from "react-dom/server";
-import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
+import { escapeRegExp, startCase } from "lodash";
+import { Node } from "prosemirror-model";
 import * as Y from "yjs";
-import EditorContainer from "@shared/editor/components/Styles";
-import GlobalStyles from "@shared/styles/globals";
-import light from "@shared/styles/theme";
-import { isRTL } from "@shared/utils/rtl";
-import unescape from "@shared/utils/unescape";
+import textBetween from "@shared/editor/lib/textBetween";
+import {
+  getCurrentDateAsString,
+  getCurrentDateTimeAsString,
+  getCurrentTimeAsString,
+  unicodeCLDRtoBCP47,
+} from "@shared/utils/date";
 import { parser, schema } from "@server/editor";
-import Logger from "@server/logging/Logger";
-import Document from "@server/models/Document";
+import { trace } from "@server/logging/tracing";
+import type Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
+import User from "@server/models/User";
 import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getSignedUrl } from "@server/utils/s3";
 import Attachment from "../Attachment";
+import ProsemirrorHelper from "./ProsemirrorHelper";
 
 type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
@@ -30,12 +31,18 @@ type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
+  /**
+   * Whether to replace attachment urls with pre-signed versions. If set to a
+   * number then the urls will be signed for that many seconds. (defaults to false)
+   */
+  signedUrls?: boolean | number;
 };
 
+@trace()
 export default class DocumentHelper {
   /**
    * Returns the document as a Prosemirror Node. This method uses the
-   * collaborative state if available, otherwise it falls back to Markdown->HTML.
+   * collaborative state if available, otherwise it falls back to Markdown.
    *
    * @param document The document or revision to convert
    * @returns The document content as a Prosemirror Node
@@ -46,7 +53,25 @@ export default class DocumentHelper {
       Y.applyUpdate(ydoc, document.state);
       return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     }
-    return parser.parse(document.text);
+    return parser.parse(document.text) || Node.fromJSON(schema, {});
+  }
+
+  /**
+   * Returns the document as plain text. This method uses the
+   * collaborative state if available, otherwise it falls back to Markdown.
+   *
+   * @param document The document or revision to convert
+   * @returns The document content as plain text without formatting.
+   */
+  static toPlainText(document: Document | Revision) {
+    const node = DocumentHelper.toProsemirror(document);
+    const textSerializers = Object.fromEntries(
+      Object.entries(schema.nodes)
+        .filter(([, node]) => node.spec.toPlainText)
+        .map(([name, node]) => [name, node.spec.toPlainText])
+    );
+
+    return textBetween(node, 0, node.content.size, textSerializers);
   }
 
   /**
@@ -57,7 +82,7 @@ export default class DocumentHelper {
    * @returns The document title and content as a Markdown string
    */
   static toMarkdown(document: Document | Revision) {
-    const text = unescape(document.text);
+    const text = document.text.replace(/\n\\\n/g, "\n\n");
 
     if (document.version) {
       return `# ${document.title}\n\n${text}`;
@@ -74,79 +99,34 @@ export default class DocumentHelper {
    * @param options Options for the HTML output
    * @returns The document title and content as a HTML string
    */
-  static toHTML(document: Document | Revision, options?: HTMLOptions) {
+  static async toHTML(document: Document | Revision, options?: HTMLOptions) {
     const node = DocumentHelper.toProsemirror(document);
-    const sheet = new ServerStyleSheet();
-    let html, styleTags;
+    let output = ProsemirrorHelper.toHTML(node, {
+      title: options?.includeTitle !== false ? document.title : undefined,
+      includeStyles: options?.includeStyles,
+      centered: options?.centered,
+    });
 
-    const Centered = options?.centered
-      ? styled.article`
-          max-width: 46em;
-          margin: 0 auto;
-          padding: 0 1em;
-        `
-      : "article";
-
-    const rtl = isRTL(document.title);
-    const children = (
-      <>
-        {options?.includeTitle !== false && (
-          <h1 dir={rtl ? "rtl" : "ltr"}>{document.title}</h1>
-        )}
-        <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl}>
-          <div id="content" className="ProseMirror"></div>
-        </EditorContainer>
-      </>
-    );
-
-    // First render the containing document which has all the editor styles,
-    // global styles, layout and title.
-    try {
-      html = renderToString(
-        sheet.collectStyles(
-          <ThemeProvider theme={light}>
-            <>
-              {options?.includeStyles === false ? (
-                <article>{children}</article>
-              ) : (
-                <>
-                  <GlobalStyles />
-                  <Centered>{children}</Centered>
-                </>
-              )}
-            </>
-          </ThemeProvider>
-        )
+    if (options?.signedUrls && "teamId" in document) {
+      output = await DocumentHelper.attachmentsToSignedUrls(
+        output,
+        document.teamId,
+        typeof options.signedUrls === "number" ? options.signedUrls : undefined
       );
-      styleTags = sheet.getStyleTags();
-    } catch (error) {
-      Logger.error("Failed to render styles on document export", error, {
-        id: document.id,
-      });
-    } finally {
-      sheet.seal();
     }
 
-    // Render the Prosemirror document using virtual DOM and serialize the
-    // result to a string
-    const dom = new JSDOM(
-      `<!DOCTYPE html>${
-        options?.includeStyles === false ? "" : styleTags
-      }${html}`
-    );
-    const doc = dom.window.document;
-    const target = doc.getElementById("content");
+    return output;
+  }
 
-    DOMSerializer.fromSchema(schema).serializeFragment(
-      node.content,
-      {
-        document: doc,
-      },
-      // @ts-expect-error incorrect library type, third argument is target node
-      target
-    );
-
-    return dom.serialize();
+  /**
+   * Parse a list of mentions contained in a document or revision
+   *
+   * @param document Document or Revision
+   * @returns An array of mentions in passed document or revision
+   */
+  static parseMentions(document: Document | Revision) {
+    const node = DocumentHelper.toProsemirror(document);
+    return ProsemirrorHelper.parseMentions(node);
   }
 
   /**
@@ -157,17 +137,17 @@ export default class DocumentHelper {
    * @param options Options passed to HTML generation
    * @returns The diff as a HTML string
    */
-  static diff(
+  static async diff(
     before: Document | Revision | null,
     after: Revision,
     options?: HTMLOptions
   ) {
     if (!before) {
-      return DocumentHelper.toHTML(after, options);
+      return await DocumentHelper.toHTML(after, options);
     }
 
-    const beforeHTML = DocumentHelper.toHTML(before, options);
-    const afterHTML = DocumentHelper.toHTML(after, options);
+    const beforeHTML = await DocumentHelper.toHTML(before, options);
+    const afterHTML = await DocumentHelper.toHTML(after, options);
     const beforeDOM = new JSDOM(beforeHTML);
     const afterDOM = new JSDOM(afterHTML);
 
@@ -198,7 +178,7 @@ export default class DocumentHelper {
    * @param options Options passed to HTML generation
    * @returns The diff as a HTML string
    */
-  static toEmailDiff(
+  static async toEmailDiff(
     before: Document | Revision | null,
     after: Revision,
     options?: HTMLOptions
@@ -207,13 +187,19 @@ export default class DocumentHelper {
       return "";
     }
 
-    const html = DocumentHelper.diff(before, after, options);
+    const html = await DocumentHelper.diff(before, after, options);
     const dom = new JSDOM(html);
     const doc = dom.window.document;
 
-    const containsDiffElement = (node: Element | null) => {
-      return node && node.innerHTML.includes("data-operation-index");
-    };
+    const containsDiffElement = (node: Element | null) =>
+      node && node.innerHTML.includes("data-operation-index");
+
+    // The diffing lib isn't able to catch all changes currently, e.g. changing
+    // the type of a mark will result in an empty diff.
+    // see: https://github.com/tnwinc/htmldiff.js/issues/10
+    if (!containsDiffElement(doc.querySelector("#content"))) {
+      return;
+    }
 
     // We use querySelectorAll to get a static NodeList as we'll be modifying
     // it as we iterate, rather than getting content.childNodes.
@@ -234,36 +220,77 @@ export default class DocumentHelper {
         previousNodeRemoved = false;
         previousDiffClipped = true;
 
-        // If the block node does not contain a diff tag and the previous
-        // block node did not contain a diff tag then remove the previous.
-      } else {
-        if (
-          childNode.nodeName === "P" &&
-          childNode.textContent &&
-          childNode.nextElementSibling?.nodeName === "P" &&
-          containsDiffElement(childNode.nextElementSibling)
-        ) {
-          if (previousDiffClipped) {
-            childNode.parentElement?.insertBefore(
-              br.cloneNode(true),
-              childNode
-            );
+        // Special case for largetables, as this block can get very large we
+        // want to clip it to only the changed rows and surrounding context.
+        if (childNode.classList.contains("table-wrapper")) {
+          const rows = childNode.querySelectorAll("tr");
+          if (rows.length < 3) {
+            continue;
           }
-          previousNodeRemoved = false;
-          continue;
+
+          let previousRowRemoved = false;
+          let previousRowDiffClipped = false;
+
+          for (const row of rows) {
+            if (containsDiffElement(row)) {
+              const cells = row.querySelectorAll("td");
+              if (previousRowRemoved && previousRowDiffClipped) {
+                const tr = doc.createElement("tr");
+                const br = doc.createElement("td");
+                br.colSpan = cells.length;
+                br.innerHTML = "…";
+                br.className = "diff-context-break";
+                tr.appendChild(br);
+                childNode.parentElement?.insertBefore(tr, childNode);
+              }
+              previousRowRemoved = false;
+              previousRowDiffClipped = true;
+              continue;
+            }
+
+            if (containsDiffElement(row.nextElementSibling)) {
+              previousRowRemoved = false;
+              continue;
+            }
+
+            if (containsDiffElement(row.previousElementSibling)) {
+              previousRowRemoved = false;
+              continue;
+            }
+
+            previousRowRemoved = true;
+            row.remove();
+          }
         }
-        if (
-          childNode.nodeName === "P" &&
-          childNode.textContent &&
-          childNode.previousElementSibling?.nodeName === "P" &&
-          containsDiffElement(childNode.previousElementSibling)
-        ) {
-          previousNodeRemoved = false;
-          continue;
-        }
-        previousNodeRemoved = true;
-        childNode.remove();
+
+        continue;
       }
+
+      // If the block node does not contain a diff tag and the previous
+      // block node did not contain a diff tag then remove the previous.
+      if (
+        childNode.nodeName === "P" &&
+        childNode.textContent &&
+        childNode.nextElementSibling?.nodeName === "P" &&
+        containsDiffElement(childNode.nextElementSibling)
+      ) {
+        if (previousDiffClipped) {
+          childNode.parentElement?.insertBefore(br.cloneNode(true), childNode);
+        }
+        previousNodeRemoved = false;
+        continue;
+      }
+      if (
+        childNode.nodeName === "P" &&
+        childNode.textContent &&
+        childNode.previousElementSibling?.nodeName === "P" &&
+        containsDiffElement(childNode.previousElementSibling)
+      ) {
+        previousNodeRemoved = false;
+        continue;
+      }
+      previousNodeRemoved = true;
+      childNode.remove();
     }
 
     const head = doc.querySelector("head");
@@ -277,7 +304,7 @@ export default class DocumentHelper {
    *
    * @param text The text either html or markdown which contains urls to be converted
    * @param teamId The team context
-   * @param expiresIn The time that signed urls should expire in (ms)
+   * @param expiresIn The time that signed urls should expire (in seconds)
    * @returns The replaced text
    */
   static async attachmentsToSignedUrls(
@@ -305,6 +332,24 @@ export default class DocumentHelper {
       })
     );
     return text;
+  }
+
+  /**
+   * Replaces template variables in the given text with the current date and time.
+   *
+   * @param text The text to replace the variables in
+   * @param user The user to get the language/locale from
+   * @returns The text with the variables replaced
+   */
+  static replaceTemplateVariables(text: string, user: User) {
+    const locales = user.language
+      ? unicodeCLDRtoBCP47(user.language)
+      : undefined;
+
+    return text
+      .replace("{date}", startCase(getCurrentDateAsString(locales)))
+      .replace("{time}", startCase(getCurrentTimeAsString(locales)))
+      .replace("{datetime}", startCase(getCurrentDateTimeAsString(locales)));
   }
 
   /**

@@ -1,60 +1,74 @@
-import fs from "fs";
-import path from "path";
 import * as React from "react";
 import ReactDOMServer from "react-dom/server";
 import env from "@server/env";
+import readManifestFile, { ManifestStructure } from "./readManifestFile";
+
+const isProduction = env.ENVIRONMENT === "production";
 
 const prefetchTags = [];
 
-if (process.env.AWS_S3_UPLOAD_BUCKET_URL) {
+if (env.AWS_S3_ACCELERATE_URL) {
   prefetchTags.push(
     <link
-      rel="dns-prefetch"
-      href={process.env.AWS_S3_UPLOAD_BUCKET_URL}
-      key="dns"
+      rel="preconnect"
+      href={env.AWS_S3_ACCELERATE_URL}
+      key={env.AWS_S3_ACCELERATE_URL}
+    />
+  );
+} else if (env.AWS_S3_UPLOAD_BUCKET_URL) {
+  prefetchTags.push(
+    <link
+      rel="preconnect"
+      href={env.AWS_S3_UPLOAD_BUCKET_URL}
+      key={env.AWS_S3_UPLOAD_BUCKET_URL}
     />
   );
 }
-
-let manifestData = {};
-
-try {
-  const manifest = fs.readFileSync(
-    path.join(__dirname, "../../app/manifest.json"),
-    "utf8"
+if (env.CDN_URL) {
+  prefetchTags.push(
+    <link rel="preconnect" href={env.CDN_URL} key={env.CDN_URL} />
   );
-  manifestData = JSON.parse(manifest);
-} catch (err) {
-  // no-op
 }
 
-Object.values(manifestData).forEach((filename) => {
-  if (typeof filename !== "string") {
-    return;
-  }
-  if (!env.CDN_URL) {
-    return;
-  }
+if (isProduction) {
+  const manifest = readManifestFile();
 
-  if (filename.endsWith(".js")) {
-    //  Preload resources you have high-confidence will be used in the current
-    // page.Prefetch resources likely to be used for future navigations
-    const shouldPreload =
-      filename.includes("/main") ||
-      filename.includes("/runtime") ||
-      filename.includes("preload-");
+  const returnFileAndImportsFromManifest = (
+    manifest: ManifestStructure,
+    file: string
+  ): string[] => [
+    manifest[file]["file"],
+    ...manifest[file]["imports"].map(
+      (entry: string) => manifest[entry]["file"]
+    ),
+  ];
 
-    if (shouldPreload) {
+  Array.from([
+    ...returnFileAndImportsFromManifest(manifest, "app/index.tsx"),
+    ...returnFileAndImportsFromManifest(manifest, "app/editor/index.tsx"),
+  ]).forEach((file) => {
+    if (file.endsWith(".js")) {
       prefetchTags.push(
-        <link rel="preload" href={filename} key={filename} as="script" />
+        <link
+          rel="prefetch"
+          href={`${env.CDN_URL || ""}/static/${file}`}
+          key={file}
+          as="script"
+          crossOrigin="anonymous"
+        />
+      );
+    } else if (file.endsWith(".css")) {
+      prefetchTags.push(
+        <link
+          rel="prefetch"
+          href={`${env.CDN_URL || ""}/static/${file}`}
+          key={file}
+          as="style"
+          crossOrigin="anonymous"
+        />
       );
     }
-  } else if (filename.endsWith(".css")) {
-    prefetchTags.push(
-      <link rel="prefetch" href={filename} key={filename} as="style" />
-    );
-  }
-});
+  });
+}
 
-// @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Element[]' is not assignable to ... Remove this comment to see the full error message
-export default ReactDOMServer.renderToString(prefetchTags);
+export default ReactDOMServer.renderToString(<>{prefetchTags}</>);

@@ -1,5 +1,5 @@
 import { observable, action } from "mobx";
-import { USER_PRESENCE_INTERVAL } from "@shared/constants";
+import { AwarenessChangeEvent } from "~/types";
 
 type DocumentPresence = Map<
   string,
@@ -15,19 +15,11 @@ export default class PresenceStore {
 
   timeouts: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
-  // called to setup when we get the initial state from document.presence
-  // websocket message. overrides any existing state
-  @action
-  init(documentId: string, userIds: string[], editingIds: string[]) {
-    this.data.set(documentId, new Map());
-    userIds.forEach((userId) =>
-      this.touch(documentId, userId, editingIds.includes(userId))
-    );
-  }
+  offlineTimeout = 30000;
 
-  // called when a user leave the room – user.leave websocket message.
+  // called when a user leaves the document
   @action
-  leave(documentId: string, userId: string) {
+  public leave(documentId: string, userId: string) {
     const existing = this.data.get(documentId);
 
     if (existing) {
@@ -35,23 +27,29 @@ export default class PresenceStore {
     }
   }
 
-  @action
-  update(documentId: string, userId: string, isEditing: boolean) {
-    const existing = this.data.get(documentId) || new Map();
-    existing.set(userId, {
-      isEditing,
-      userId,
+  public updateFromAwarenessChangeEvent(
+    documentId: string,
+    event: AwarenessChangeEvent
+  ) {
+    const presence = this.data.get(documentId);
+    let existingUserIds = (presence ? Array.from(presence.values()) : []).map(
+      (p) => p.userId
+    );
+
+    event.states.forEach((state) => {
+      const { user, cursor } = state;
+      if (user) {
+        this.update(documentId, user.id, !!cursor);
+        existingUserIds = existingUserIds.filter((id) => id !== user.id);
+      }
     });
-    this.data.set(documentId, existing);
+
+    existingUserIds.forEach((userId) => {
+      this.leave(documentId, userId);
+    });
   }
 
-  // called when a user presence message is received – user.presence websocket
-  // message.
-  // While in edit mode a message is sent every USER_PRESENCE_INTERVAL, if
-  // the other clients don't receive within USER_PRESENCE_INTERVAL*2 then a
-  // timeout is triggered causing the users presence to default back to not
-  // editing state as a safety measure.
-  touch(documentId: string, userId: string, isEditing: boolean) {
+  public touch(documentId: string, userId: string, isEditing: boolean) {
     const id = `${documentId}-${userId}`;
     let timeout = this.timeouts.get(id);
 
@@ -62,20 +60,28 @@ export default class PresenceStore {
 
     this.update(documentId, userId, isEditing);
 
-    if (isEditing) {
-      timeout = setTimeout(() => {
-        this.update(documentId, userId, false);
-      }, USER_PRESENCE_INTERVAL * 2);
-      this.timeouts.set(id, timeout);
-    }
+    timeout = setTimeout(() => {
+      this.leave(documentId, userId);
+    }, this.offlineTimeout);
+    this.timeouts.set(id, timeout);
   }
 
-  get(documentId: string): DocumentPresence | null | undefined {
+  @action
+  private update(documentId: string, userId: string, isEditing: boolean) {
+    const existing = this.data.get(documentId) || new Map();
+    existing.set(userId, {
+      isEditing,
+      userId,
+    });
+    this.data.set(documentId, existing);
+  }
+
+  public get(documentId: string): DocumentPresence | null | undefined {
     return this.data.get(documentId);
   }
 
   @action
-  clear() {
+  public clear() {
     this.data.clear();
   }
 }

@@ -1,21 +1,25 @@
 import { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { RouteComponentProps, useLocation, Redirect } from "react-router-dom";
-import styled, { useTheme } from "styled-components";
+import styled, { ThemeProvider } from "styled-components";
 import { setCookie } from "tiny-cookie";
+import { s } from "@shared/styles";
+import { NavigationNode, PublicTeam } from "@shared/types";
+import type { Theme } from "~/stores/UiStore";
 import DocumentModel from "~/models/Document";
-import Team from "~/models/Team";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
+import { TeamContext } from "~/components/TeamContext";
 import Text from "~/components/Text";
+import env from "~/env";
+import useBuildTheme from "~/hooks/useBuildTheme";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { NavigationNode } from "~/types";
 import { AuthorizationError, OfflineError } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
@@ -27,7 +31,7 @@ const EMPTY_OBJECT = {};
 
 type Response = {
   document: DocumentModel;
-  team?: Team;
+  team?: PublicTeam;
   sharedTree?: NavigationNode | undefined;
 };
 
@@ -80,7 +84,6 @@ function useDocumentId(documentSlug: string, response?: Response) {
 
 function SharedDocumentScene(props: Props) {
   const { ui, auth } = useStores();
-  const theme = useTheme();
   const location = useLocation();
   const searchParams = React.useMemo(
     () => new URLSearchParams(location.search),
@@ -92,11 +95,17 @@ function SharedDocumentScene(props: Props) {
   const { documents } = useStores();
   const { shareId, documentSlug } = props.match.params;
   const documentId = useDocumentId(documentSlug, response);
+  const themeOverride = ["dark", "light"].includes(
+    searchParams.get("theme") || ""
+  )
+    ? (searchParams.get("theme") as Theme)
+    : undefined;
   const can = usePolicy(response?.document.id ?? "");
+  const theme = useBuildTheme(response?.team?.customTheme, themeOverride);
 
   React.useEffect(() => {
     if (!auth.user) {
-      changeLanguage(detectLanguage(), i18n);
+      void changeLanguage(detectLanguage(), i18n);
     }
   }, [auth, i18n]);
 
@@ -122,7 +131,7 @@ function SharedDocumentScene(props: Props) {
         setError(err);
       }
     }
-    fetchData();
+    void fetchData();
   }, [documents, documentSlug, shareId, ui]);
 
   if (error) {
@@ -136,9 +145,10 @@ function SharedDocumentScene(props: Props) {
             config?.name && isCloudHosted ? (
               <Content>
                 {t(
-                  "{{ teamName }} is using Outline to share documents, please login to continue.",
+                  "{{ teamName }} is using {{ appName }} to share documents, please login to continue.",
                   {
                     teamName: config.name,
+                    appName: env.APP_NAME,
                   }
                 )}
               </Content>
@@ -159,14 +169,6 @@ function SharedDocumentScene(props: Props) {
     return <Redirect to={response.document.url} />;
   }
 
-  const sidebar = response.sharedTree?.children.length ? (
-    <Sidebar
-      rootNode={response.sharedTree}
-      team={response.team}
-      shareId={shareId}
-    />
-  ) : undefined;
-
   return (
     <>
       <Helmet>
@@ -175,21 +177,32 @@ function SharedDocumentScene(props: Props) {
           href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
         />
       </Helmet>
-      <Layout title={response.document.title} sidebar={sidebar}>
-        <Document
-          abilities={EMPTY_OBJECT}
-          document={response.document}
-          sharedTree={response.sharedTree}
-          shareId={shareId}
-          readOnly
-        />
-      </Layout>
+      <TeamContext.Provider value={response.team}>
+        <ThemeProvider theme={theme}>
+          <Layout
+            title={response.document.title}
+            sidebar={
+              response.sharedTree?.children.length ? (
+                <Sidebar rootNode={response.sharedTree} shareId={shareId} />
+              ) : undefined
+            }
+          >
+            <Document
+              abilities={EMPTY_OBJECT}
+              document={response.document}
+              sharedTree={response.sharedTree}
+              shareId={shareId}
+              readOnly
+            />
+          </Layout>
+        </ThemeProvider>
+      </TeamContext.Provider>
     </>
   );
 }
 
 const Content = styled(Text)`
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   text-align: center;
   margin-top: -8px;
 `;

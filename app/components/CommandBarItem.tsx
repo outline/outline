@@ -2,8 +2,10 @@ import { ActionImpl } from "kbar";
 import { ArrowIcon, BackIcon } from "outline-icons";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
+import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
+import Text from "./Text";
 
 type Props = {
   action: ActionImpl;
@@ -38,10 +40,9 @@ function CommandBarItem(
             // @ts-expect-error no icon on ActionImpl
             React.cloneElement(action.icon, {
               size: 22,
-              color: "currentColor",
             })
           ) : (
-            <ArrowIcon color="currentColor" />
+            <ArrowIcon />
           )}
         </Icon>
 
@@ -55,44 +56,59 @@ function CommandBarItem(
         {action.children?.length ? "…" : ""}
       </Content>
       {action.shortcut?.length ? (
-        <div
-          style={{
-            display: "grid",
-            gridAutoFlow: "column",
-            gap: "4px",
-          }}
-        >
-          {action.shortcut.map((sc: string) => (
-            <Key key={sc}>{sc}</Key>
+        <Shortcut>
+          {action.shortcut.map((sc: string, index) => (
+            <React.Fragment key={sc}>
+              {index > 0 ? (
+                <>
+                  {" "}
+                  <Text size="xsmall" as="span" type="secondary">
+                    then
+                  </Text>{" "}
+                </>
+              ) : (
+                ""
+              )}
+              {sc.split("+").map((s) => (
+                <Key key={s}>{s}</Key>
+              ))}
+            </React.Fragment>
           ))}
-        </div>
+        </Shortcut>
       ) : null}
     </Item>
   );
 }
+
+const Shortcut = styled.div`
+  display: grid;
+  grid-auto-flow: column;
+  gap: 4px;
+`;
 
 const Icon = styled(Flex)`
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   flex-shrink: 0;
 `;
 
 const Ancestor = styled.span`
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
 `;
 
 const Content = styled(Flex)`
-  overflow: hidden;
-  text-overflow: ellipsis;
+  ${ellipsis()}
   flex-shrink: 1;
 `;
 
 const Item = styled.div<{ active?: boolean }>`
-  font-size: 15px;
-  padding: 10px 16px;
+  font-size: 14px;
+  padding: 9px 12px;
+  margin: 0 8px;
+  border-radius: 4px;
   background: ${(props) =>
     props.active ? props.theme.menuItemSelected : "none"};
   display: flex;
@@ -100,9 +116,8 @@ const Item = styled.div<{ active?: boolean }>`
   justify-content: space-between;
   cursor: var(--pointer);
 
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
+  ${ellipsis()}
+  user-select: none;
   min-width: 0;
 
   ${(props) =>

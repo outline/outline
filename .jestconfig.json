@@ -1,11 +1,9 @@
 {
+  "workerIdleMemoryLimit": "0.75",
   "projects": [
     {
       "displayName": "server",
-      "verbose": false,
-      "roots": [
-        "<rootDir>/server"
-      ],
+      "roots": ["<rootDir>/server", "<rootDir>/plugins"],
       "moduleNameMapper": {
         "^@server/(.*)$": "<rootDir>/server/$1",
         "^@shared/(.*)$": "<rootDir>/shared/$1"
@@ -14,33 +12,22 @@
         "<rootDir>/__mocks__/console.js",
         "<rootDir>/server/test/env.ts"
       ],
-      "setupFilesAfterEnv": [
-        "<rootDir>/server/test/setup.ts"
-      ],
+      "setupFilesAfterEnv": ["<rootDir>/server/test/setup.ts"],
       "testEnvironment": "node",
       "runner": "@getoutline/jest-runner-serial"
     },
     {
       "displayName": "app",
-      "verbose": false,
-      "roots": [
-        "<rootDir>/app"
-      ],
+      "roots": ["<rootDir>/app"],
       "moduleNameMapper": {
         "^~/(.*)$": "<rootDir>/app/$1",
         "^@shared/(.*)$": "<rootDir>/shared/$1",
         "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js",
         "^uuid$": "<rootDir>/node_modules/uuid/dist/index.js"
       },
-      "modulePaths": [
-        "<rootDir>/app"
-      ],
-      "setupFiles": [
-        "<rootDir>/__mocks__/window.js"
-      ],
-      "setupFilesAfterEnv": [
-        "<rootDir>/app/test/setup.ts"
-      ],
+      "modulePaths": ["<rootDir>/app"],
+      "setupFiles": ["<rootDir>/__mocks__/window.js"],
+      "setupFilesAfterEnv": ["<rootDir>/app/test/setup.ts"],
       "testEnvironment": "jsdom",
       "testEnvironmentOptions": {
         "url": "http://localhost"
@@ -48,37 +35,25 @@
     },
     {
       "displayName": "shared-node",
-      "verbose": false,
-      "roots": [
-        "<rootDir>/shared"
-      ],
+      "roots": ["<rootDir>/shared"],
       "moduleNameMapper": {
         "^@server/(.*)$": "<rootDir>/server/$1",
         "^@shared/(.*)$": "<rootDir>/shared/$1"
       },
-      "setupFiles": [
-        "<rootDir>/__mocks__/console.js"
-      ],
-      "setupFilesAfterEnv": [
-        "<rootDir>/shared/test/setup.ts"
-      ],
+      "setupFiles": ["<rootDir>/__mocks__/console.js"],
+      "setupFilesAfterEnv": ["<rootDir>/shared/test/setup.ts"],
       "testEnvironment": "node"
     },
     {
       "displayName": "shared-jsdom",
-      "verbose": false,
-      "roots": [
-        "<rootDir>/shared"
-      ],
+      "roots": ["<rootDir>/shared"],
       "moduleNameMapper": {
         "^~/(.*)$": "<rootDir>/app/$1",
         "^@shared/(.*)$": "<rootDir>/shared/$1",
         "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js",
         "^uuid$": "<rootDir>/node_modules/uuid/dist/index.js"
       },
-      "setupFiles": [
-        "<rootDir>/__mocks__/window.js"
-      ],
+      "setupFiles": ["<rootDir>/__mocks__/window.js"],
       "testEnvironment": "jsdom",
       "testEnvironmentOptions": {
         "url": "http://localhost"

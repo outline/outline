@@ -1,12 +1,13 @@
 import * as React from "react";
 
+const isSupported = "IntersectionObserver" in window;
+
 /**
  * Hook to return if a given ref is visible on screen.
  *
  * @returns boolean if the node is visible
  */
 export default function useOnScreen(ref: React.RefObject<HTMLElement>) {
-  const isSupported = "IntersectionObserver" in window;
   const [isIntersecting, setIntersecting] = React.useState(!isSupported);
 
   React.useEffect(() => {
@@ -28,7 +29,7 @@ export default function useOnScreen(ref: React.RefObject<HTMLElement>) {
         observer?.unobserve(element);
       }
     };
-  }, []);
+  }, [ref]);
 
   return isIntersecting;
 }

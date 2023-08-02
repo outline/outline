@@ -12,7 +12,6 @@ import Heading from "~/components/Heading";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
-import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -25,16 +24,13 @@ function Groups() {
   const { groups } = useStores();
   const team = useCurrentTeam();
   const can = usePolicy(team);
-  const [
-    newGroupModalOpen,
-    handleNewGroupModalOpen,
-    handleNewGroupModalClose,
-  ] = useBoolean();
+  const [newGroupModalOpen, handleNewGroupModalOpen, handleNewGroupModalClose] =
+    useBoolean();
 
   return (
     <Scene
       title={t("Groups")}
-      icon={<GroupIcon color="currentColor" />}
+      icon={<GroupIcon />}
       actions={
         <>
           {can.createGroup && (
@@ -57,11 +53,15 @@ function Groups() {
           Groups can be used to organize and manage the people on your team.
         </Trans>
       </Text>
-      <Subheading>{t("All groups")}</Subheading>
       <PaginatedList
         items={groups.orderedData}
         empty={<Empty>{t("No groups have been created yet")}</Empty>}
         fetch={groups.fetchPage}
+        heading={
+          <h2>
+            <Trans>All</Trans>
+          </h2>
+        }
         renderItem={(item: Group) => (
           <GroupListItem
             key={item.id}

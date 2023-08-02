@@ -29,13 +29,8 @@ class Metrics {
       return;
     }
 
-    const instanceId = process.env.INSTANCE_ID || process.env.HEROKU_DYNO_ID;
-
-    if (!instanceId) {
-      throw new Error(
-        "INSTANCE_ID or HEROKU_DYNO_ID must be set when using DataDog"
-      );
-    }
+    const instanceId =
+      process.env.INSTANCE_ID || process.env.HEROKU_DYNO_ID || process.pid;
 
     return ddMetrics.gauge(key, value, [...tags, `instance:${instanceId}`]);
   }
@@ -46,6 +41,16 @@ class Metrics {
     }
 
     return ddMetrics.increment(key);
+  }
+
+  flush(): Promise<void> {
+    if (!this.enabled) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      ddMetrics.flush(resolve, reject);
+    });
   }
 }
 

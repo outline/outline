@@ -8,8 +8,7 @@ type Options = {
 export const compressImage = async (
   file: File | Blob,
   options?: Options
-): Promise<Blob> => {
-  return new Promise((resolve, reject) => {
+): Promise<Blob> =>
+  new Promise((resolve, reject) => {
     new Compressor(file, { ...options, success: resolve, error: reject });
   });
-};

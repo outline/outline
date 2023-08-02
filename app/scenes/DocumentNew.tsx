@@ -9,7 +9,7 @@ import Flex from "~/components/Flex";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import { editDocumentUrl } from "~/utils/routeHelpers";
+import { documentEditPath } from "~/utils/routeHelpers";
 
 function DocumentNew() {
   const history = useHistory();
@@ -23,18 +23,26 @@ function DocumentNew() {
   useEffect(() => {
     async function createDocument() {
       const params = queryString.parse(location.search);
+      const parentDocumentId = params.parentDocumentId?.toString();
+      const parentDocument = parentDocumentId
+        ? documents.get(parentDocumentId)
+        : undefined;
+      let collection;
 
       try {
-        const collection = await collections.fetch(id);
+        if (id) {
+          collection = await collections.fetch(id);
+        }
         const document = await documents.create({
-          collectionId: collection.id,
-          parentDocumentId: params.parentDocumentId?.toString(),
+          collectionId: collection?.id,
+          parentDocumentId,
+          fullWidth: parentDocument?.fullWidth,
           templateId: params.templateId?.toString(),
           template: params.template === "true" ? true : false,
           title: "",
           text: "",
         });
-        history.replace(editDocumentUrl(document), location.state);
+        history.replace(documentEditPath(document), location.state);
       } catch (err) {
         showToast(t("Couldn’t create the document, try again?"), {
           type: "error",
@@ -43,7 +51,7 @@ function DocumentNew() {
       }
     }
 
-    createDocument();
+    void createDocument();
   });
 
   return (

@@ -6,9 +6,11 @@ import * as React from "react";
 import { io, Socket } from "socket.io-client";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
+import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import FileOperation from "~/models/FileOperation";
 import Group from "~/models/Group";
+import Notification from "~/models/Notification";
 import Pin from "~/models/Pin";
 import Star from "~/models/Star";
 import Subscription from "~/models/Subscription";
@@ -28,9 +30,8 @@ type SocketWithAuthentication = Socket & {
   authenticated?: boolean;
 };
 
-export const WebsocketContext = React.createContext<SocketWithAuthentication | null>(
-  null
-);
+export const WebsocketContext =
+  React.createContext<SocketWithAuthentication | null>(null);
 
 type Props = RootStore;
 
@@ -69,6 +70,7 @@ class WebsocketProvider extends React.Component<Props> {
       transports: ["websocket"],
       reconnectionDelay: 1000,
       reconnectionDelayMax: 30000,
+      withCredentials: true,
     });
     invariant(this.socket, "Socket should be defined");
 
@@ -83,29 +85,11 @@ class WebsocketProvider extends React.Component<Props> {
       stars,
       memberships,
       policies,
-      presence,
-      views,
+      comments,
       subscriptions,
       fileOperations,
+      notifications,
     } = this.props;
-    if (!auth.token) {
-      return;
-    }
-
-    this.socket.on("connect", () => {
-      // immediately send current users token to the websocket backend where it
-      // is verified, if all goes well an 'authenticated' message will be
-      // received in response
-      this.socket?.emit("authentication", {
-        token: auth.token,
-      });
-    });
-
-    this.socket.on("disconnect", () => {
-      // when the socket is disconnected we need to clear all presence state as
-      // it's no longer reliable.
-      presence.clear();
-    });
 
     // on reconnection, reset the transports option, as the Websocket
     // connection may have failed (caused by proxy, firewall, browser, ...)
@@ -173,7 +157,7 @@ class WebsocketProvider extends React.Component<Props> {
                 id: document.collectionId,
               });
 
-              if (!existing) {
+              if (!existing && document.collectionId) {
                 event.collectionIds.push({
                   id: document.collectionId,
                 });
@@ -194,7 +178,7 @@ class WebsocketProvider extends React.Component<Props> {
             }
 
             try {
-              await collections.fetch(collectionId, {
+              await collection?.fetchDocuments({
                 force: true,
               });
             } catch (err) {
@@ -261,6 +245,20 @@ class WebsocketProvider extends React.Component<Props> {
       }
     );
 
+    this.socket.on("comments.create", (event: PartialWithId<Comment>) => {
+      comments.add(event);
+    });
+
+    this.socket.on("comments.update", (event: PartialWithId<Comment>) => {
+      comments.add(event);
+    });
+
+    this.socket.on("comments.delete", (event: WebsocketEntityDeletedEvent) => {
+      comments.inThread(event.modelId).forEach((comment) => {
+        comments.remove(comment.id);
+      });
+    });
+
     this.socket.on("groups.create", (event: PartialWithId<Group>) => {
       groups.add(event);
     });
@@ -277,15 +275,32 @@ class WebsocketProvider extends React.Component<Props> {
       collections.add(event);
     });
 
+    this.socket.on("collections.update", (event: PartialWithId<Collection>) => {
+      if (
+        "sharing" in event &&
+        event.sharing !== collections.get(event.id)?.sharing
+      ) {
+        documents.all.forEach((document) => {
+          policies.remove(document.id);
+        });
+      }
+
+      collections.add(event);
+    });
+
     this.socket.on(
       "collections.delete",
       action((event: WebsocketEntityDeletedEvent) => {
         const collectionId = event.modelId;
         const deletedAt = new Date().toISOString();
-
         const deletedDocuments = documents.inCollection(collectionId);
         deletedDocuments.forEach((doc) => {
-          doc.deletedAt = deletedAt;
+          if (!doc.publishedAt) {
+            // draft is to be detached from collection, not deleted
+            doc.collectionId = null;
+          } else {
+            doc.deletedAt = deletedAt;
+          }
           policies.remove(doc.id);
         });
         documents.removeCollectionDocuments(collectionId);
@@ -296,8 +311,28 @@ class WebsocketProvider extends React.Component<Props> {
     );
 
     this.socket.on("teams.update", (event: PartialWithId<Team>) => {
+      if ("sharing" in event && event.sharing !== auth.team?.sharing) {
+        documents.all.forEach((document) => {
+          policies.remove(document.id);
+        });
+      }
+
       auth.team?.updateFromJson(event);
     });
+
+    this.socket.on(
+      "notifications.create",
+      (event: PartialWithId<Notification>) => {
+        notifications.add(event);
+      }
+    );
+
+    this.socket.on(
+      "notifications.update",
+      (event: PartialWithId<Notification>) => {
+        notifications.add(event);
+      }
+    );
 
     this.socket.on("pins.create", (event: PartialWithId<Pin>) => {
       pins.add(event);
@@ -323,13 +358,20 @@ class WebsocketProvider extends React.Component<Props> {
       stars.remove(event.modelId);
     });
 
+    this.socket.on(
+      "user.typing",
+      (event: { userId: string; documentId: string; commentId: string }) => {
+        comments.setTyping(event);
+      }
+    );
+
     // received when a user is given access to a collection
     // if the user is us then we go ahead and load the collection from API.
     this.socket.on(
       "collections.add_user",
-      action((event: WebsocketCollectionUserEvent) => {
+      async (event: WebsocketCollectionUserEvent) => {
         if (auth.user && event.userId === auth.user.id) {
-          collections.fetch(event.collectionId, {
+          await collections.fetch(event.collectionId, {
             force: true,
           });
         }
@@ -338,7 +380,7 @@ class WebsocketProvider extends React.Component<Props> {
         documents.inCollection(event.collectionId).forEach((document) => {
           policies.remove(document.id);
         });
-      })
+      }
     );
 
     // received when a user is removed from having access to a collection
@@ -346,15 +388,29 @@ class WebsocketProvider extends React.Component<Props> {
     // or otherwise just remove any membership state we have for that user.
     this.socket.on(
       "collections.remove_user",
-      action((event: WebsocketCollectionUserEvent) => {
+      async (event: WebsocketCollectionUserEvent) => {
         if (auth.user && event.userId === auth.user.id) {
-          collections.remove(event.collectionId);
-          memberships.removeCollectionMemberships(event.collectionId);
+          // check if we still have access to the collection
+          try {
+            await collections.fetch(event.collectionId, {
+              force: true,
+            });
+          } catch (err) {
+            if (
+              err instanceof AuthorizationError ||
+              err instanceof NotFoundError
+            ) {
+              collections.remove(event.collectionId);
+              memberships.remove(`${event.userId}-${event.collectionId}`);
+              return;
+            }
+          }
+
           documents.removeCollectionDocuments(event.collectionId);
         } else {
           memberships.remove(`${event.userId}-${event.collectionId}`);
         }
-      })
+      }
     );
 
     this.socket.on(
@@ -406,33 +462,6 @@ class WebsocketProvider extends React.Component<Props> {
     // to leave a specific room. Forward that to the ws server.
     this.socket.on("leave", (event: any) => {
       this.socket?.emit("leave", event);
-    });
-
-    // received whenever we join a document room, the payload includes
-    // userIds that are present/viewing and those that are editing.
-    this.socket.on("document.presence", (event: any) => {
-      presence.init(event.documentId, event.userIds, event.editingIds);
-    });
-
-    // received whenever a new user joins a document room, aka they
-    // navigate to / start viewing a document
-    this.socket.on("user.join", (event: any) => {
-      presence.touch(event.documentId, event.userId, event.isEditing);
-      views.touch(event.documentId, event.userId);
-    });
-
-    // received whenever a new user leaves a document room, aka they
-    // navigate away / stop viewing a document
-    this.socket.on("user.leave", (event: any) => {
-      presence.leave(event.documentId, event.userId);
-      views.touch(event.documentId, event.userId);
-    });
-
-    // received when another client in a document room wants to change
-    // or update it's presence. Currently the only property is whether
-    // the client is in editing state or not.
-    this.socket.on("user.presence", (event: any) => {
-      presence.touch(event.documentId, event.userId, event.isEditing);
     });
   };
 

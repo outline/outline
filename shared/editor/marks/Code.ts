@@ -1,13 +1,14 @@
+import codemark from "prosemirror-codemark";
 import { toggleMark } from "prosemirror-commands";
 import {
   MarkSpec,
   MarkType,
   Node as ProsemirrorNode,
   Mark as ProsemirrorMark,
+  Slice,
 } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
-import moveLeft from "../commands/moveLeft";
-import moveRight from "../commands/moveRight";
+import { EditorView } from "prosemirror-view";
 import markInputRule from "../lib/markInputRule";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Mark from "./Mark";
@@ -40,7 +41,7 @@ export default class Code extends Mark {
 
   get schema(): MarkSpec {
     return {
-      excludes: "_",
+      excludes: "comment mention link placeholder highlight em strong",
       parseDOM: [{ tag: "code.inline", preserveWhitespace: true }],
       toDOM: () => ["code", { class: "inline", spellCheck: "false" }],
     };
@@ -55,18 +56,22 @@ export default class Code extends Mark {
     // https://github.com/ProseMirror/prosemirror/issues/515
     return {
       "Mod`": toggleMark(type),
-      ArrowLeft: moveLeft(),
-      ArrowRight: moveRight(),
     };
   }
 
   get plugins() {
     return [
+      ...codemark({ markType: this.editor.schema.marks.code_inline }),
       new Plugin({
         props: {
           // Typing a character inside of two backticks will wrap the character
           // in an inline code mark.
-          handleTextInput: (view, from: number, to: number, text: string) => {
+          handleTextInput: (
+            view: EditorView,
+            from: number,
+            to: number,
+            text: string
+          ) => {
             const { state } = view;
 
             // Prevent access out of document bounds
@@ -99,7 +104,7 @@ export default class Code extends Mark {
 
           // Pasting a character inside of two backticks will wrap the character
           // in an inline code mark.
-          handlePaste: (view, _event, slice) => {
+          handlePaste: (view: EditorView, _event: Event, slice: Slice) => {
             const { state } = view;
             const { from, to } = state.selection;
 

@@ -15,6 +15,9 @@ type Props = {
   savingText?: string;
   /** If true, the submit button will be a dangerous red */
   danger?: boolean;
+  /** Keep the submit button disabled */
+  disabled?: boolean;
+  children?: React.ReactNode;
 };
 
 const ConfirmationDialog: React.FC<Props> = ({
@@ -23,7 +26,8 @@ const ConfirmationDialog: React.FC<Props> = ({
   submitText,
   savingText,
   danger,
-}) => {
+  disabled = false,
+}: Props) => {
   const [isSaving, setIsSaving] = React.useState(false);
   const { dialogs } = useStores();
   const { showToast } = useToasts();
@@ -50,8 +54,13 @@ const ConfirmationDialog: React.FC<Props> = ({
     <Flex column>
       <form onSubmit={handleSubmit}>
         <Text type="secondary">{children}</Text>
-        <Button type="submit" disabled={isSaving} danger={danger} autoFocus>
-          {isSaving ? savingText : submitText}
+        <Button
+          type="submit"
+          disabled={isSaving || disabled}
+          danger={danger}
+          autoFocus
+        >
+          {isSaving && savingText ? savingText : submitText}
         </Button>
       </form>
     </Flex>

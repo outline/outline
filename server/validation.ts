@@ -1,6 +1,10 @@
 import { isArrayLike } from "lodash";
 import { Primitive } from "utility-types";
 import validator from "validator";
+import isUUID from "validator/lib/isUUID";
+import parseMentionUrl from "@shared/utils/parseMentionUrl";
+import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import { isUrl } from "@shared/utils/urls";
 import { CollectionPermission } from "../shared/types";
 import { validateColorHex } from "../shared/utils/color";
 import { validateIndexCharacters } from "../shared/utils/indexCharacters";
@@ -89,7 +93,7 @@ export function assertUrl(
       require_valid_protocol: true,
     })
   ) {
-    throw ValidationError(message ?? `${String(value)} is an invalid url!`);
+    throw ValidationError(message ?? `${String(value)} is an invalid url`);
   }
 }
 
@@ -105,9 +109,7 @@ export function assertBoolean(
   message?: string
 ): asserts value {
   if (typeof value !== "boolean") {
-    throw ValidationError(
-      message ?? `${String(value)} is a ${typeof value}, not a boolean!`
-    );
+    throw ValidationError(message ?? `${String(value)} is not a boolean`);
   }
 }
 
@@ -167,3 +169,43 @@ export const assertCollectionPermission = (
 ) => {
   assertIn(value, [...Object.values(CollectionPermission), null], message);
 };
+
+export class ValidateDocumentId {
+  /**
+   * Checks if documentId is valid. A valid documentId is either
+   * a UUID or a url slug matching a particular regex.
+   *
+   * @param documentId
+   * @returns true if documentId is valid, false otherwise
+   */
+  public static isValid = (documentId: string) =>
+    isUUID(documentId) || SLUG_URL_REGEX.test(documentId);
+
+  public static message = "Must be uuid or url slug";
+}
+
+export class ValidateIndex {
+  public static regex = new RegExp("^[\x20-\x7E]+$");
+  public static message = "Must be between x20 to x7E ASCII";
+}
+
+export class ValidateURL {
+  public static isValidMentionUrl = (url: string) => {
+    if (!isUrl(url)) {
+      return false;
+    }
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.protocol !== "mention:") {
+        return false;
+      }
+
+      const { id, mentionType, modelId } = parseMentionUrl(url);
+      return id && isUUID(id) && mentionType === "user" && isUUID(modelId);
+    } catch (err) {
+      return false;
+    }
+  };
+
+  public static message = "Must be a valid url";
+}

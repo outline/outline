@@ -8,7 +8,7 @@ import useToasts from "~/hooks/useToasts";
 let importingLock = false;
 
 export default function useImportDocument(
-  collectionId?: string,
+  collectionId?: string | null,
   documentId?: string
 ): {
   handleFiles: (files: File[]) => Promise<void>;

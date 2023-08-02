@@ -1,5 +1,6 @@
 import { pick } from "lodash";
-import { set, computed, observable } from "mobx";
+import { set, observable } from "mobx";
+import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "./decorators/Field";
 
 export default abstract class BaseModel {
@@ -9,6 +10,9 @@ export default abstract class BaseModel {
   @observable
   isSaving: boolean;
 
+  @observable
+  isNew: boolean;
+
   createdAt: string;
 
   updatedAt: string;
@@ -17,6 +21,7 @@ export default abstract class BaseModel {
 
   constructor(fields: Record<string, any>, store: any) {
     this.updateFromJson(fields);
+    this.isNew = !this.id;
     this.store = store;
   }
 
@@ -32,10 +37,19 @@ export default abstract class BaseModel {
         params = this.toAPI();
       }
 
-      const model = await this.store.save({ ...params, id: this.id }, options);
+      const model = await this.store.save(
+        {
+          ...params,
+          id: this.id,
+        },
+        {
+          ...options,
+          isNew: this.isNew,
+        }
+      );
 
       // if saving is successful set the new values on the model itself
-      set(this, { ...params, ...model });
+      set(this, { ...params, ...model, isNew: false });
 
       this.persistedAttributes = this.toAPI();
 
@@ -46,19 +60,16 @@ export default abstract class BaseModel {
   };
 
   updateFromJson = (data: any) => {
-    set(this, data);
+    set(this, { ...data, isNew: false });
     this.persistedAttributes = this.toAPI();
   };
 
-  fetch = (options?: any) => {
-    return this.store.fetch(this.id, options);
-  };
+  fetch = (options?: any) => this.store.fetch(this.id, options);
 
-  refresh = () => {
-    return this.fetch({
+  refresh = () =>
+    this.fetch({
       force: true,
     });
-  };
 
   delete = async () => {
     this.isSaving = true;
@@ -94,7 +105,9 @@ export default abstract class BaseModel {
       if (
         // eslint-disable-next-line no-prototype-builtins
         this.hasOwnProperty(property) &&
-        !["persistedAttributes", "store", "isSaving"].includes(property)
+        !["persistedAttributes", "store", "isSaving", "isNew"].includes(
+          property
+        )
       ) {
         output[property] = this[property];
       }
@@ -113,22 +126,12 @@ export default abstract class BaseModel {
     const attributes = this.toAPI();
 
     if (Object.keys(attributes).length === 0) {
-      console.warn("Checking dirty on model with no @Field decorators");
+      Logger.warn("Checking dirty on model with no @Field decorators");
     }
 
     return (
       JSON.stringify(this.persistedAttributes) !== JSON.stringify(attributes)
     );
-  }
-
-  /**
-   * Returns a boolean indicating whether the model has been persisted to db
-   *
-   * @returns boolean true if the model has never been persisted
-   */
-  @computed
-  get isNew(): boolean {
-    return !this.id;
   }
 
   protected persistedAttributes: Partial<BaseModel> = {};

@@ -1,7 +1,7 @@
 import { Transaction } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import { Attachment, Event, User } from "@server/models";
-import { uploadToS3FromBuffer } from "@server/utils/s3";
+import { uploadToS3 } from "@server/utils/s3";
 
 export default async function attachmentCreator({
   id,
@@ -24,7 +24,13 @@ export default async function attachmentCreator({
 }) {
   const key = `uploads/${user.id}/${uuidv4()}/${name}`;
   const acl = process.env.AWS_S3_ACL || "private";
-  const url = await uploadToS3FromBuffer(buffer, type, key, acl);
+  const url = await uploadToS3({
+    body: buffer,
+    contentType: type,
+    contentLength: buffer.length,
+    key,
+    acl,
+  });
   const attachment = await Attachment.create(
     {
       id,

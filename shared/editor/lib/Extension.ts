@@ -1,16 +1,11 @@
 import { PluginSimple } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
 import { NodeType, MarkType, Schema } from "prosemirror-model";
-import { EditorState, Plugin } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import { Command, Plugin } from "prosemirror-state";
+import { Primitive } from "utility-types";
 import { Editor } from "../../../app/editor";
-import { Dispatch } from "../types";
 
-export type Command = (state: EditorState, dispatch: Dispatch) => boolean;
-
-export type CommandFactory = (
-  attrs?: Record<string, any>
-) => (state: EditorState, dispatch: Dispatch, view: EditorView) => boolean;
+export type CommandFactory = (attrs?: Record<string, Primitive>) => Command;
 
 export default class Extension {
   options: any;
@@ -47,6 +42,10 @@ export default class Extension {
     return {};
   }
 
+  get allowInReadOnly(): boolean {
+    return false;
+  }
+
   keys(_options: {
     type?: NodeType | MarkType;
     schema: Schema;
@@ -64,7 +63,7 @@ export default class Extension {
   commands(_options: {
     type?: NodeType | MarkType;
     schema: Schema;
-  }): Record<string, CommandFactory> | CommandFactory {
+  }): Record<string, CommandFactory> | CommandFactory | undefined {
     return {};
   }
 }

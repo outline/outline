@@ -1,8 +1,8 @@
 import { format as formatDate, formatDistanceToNow } from "date-fns";
 import * as React from "react";
+import { dateLocale, locales } from "@shared/utils/date";
 import Tooltip from "~/components/Tooltip";
 import useUserLocale from "~/hooks/useUserLocale";
-import { dateLocale, locales } from "~/utils/i18n";
 
 let callbacks: (() => void)[] = [];
 
@@ -21,6 +21,7 @@ function eachMinute(fn: () => void) {
 }
 
 type Props = {
+  children?: React.ReactNode;
   dateTime: string;
   tooltipDelay?: number;
   addSuffix?: boolean;
@@ -37,7 +38,7 @@ const LocaleTime: React.FC<Props> = ({
   format,
   relative,
   tooltipDelay,
-}) => {
+}: Props) => {
   const userLocale: string = useUserLocale() || "";
   const dateFormatLong = {
     en_US: "MMMM do, yyyy h:mm a",

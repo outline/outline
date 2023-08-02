@@ -20,10 +20,13 @@ function getJWTPayload(token: string) {
   }
 }
 
-export async function getUserForJWT(token: string): Promise<User> {
+export async function getUserForJWT(
+  token: string,
+  allowedTypes = ["session", "transfer"]
+): Promise<User> {
   const payload = getJWTPayload(token);
 
-  if (payload.type === "email-signin") {
+  if (!allowedTypes.includes(payload.type)) {
     throw AuthenticationError("Invalid token");
   }
 

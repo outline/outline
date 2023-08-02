@@ -5,6 +5,7 @@ import { createAction } from "~/actions";
 import { DeveloperSection } from "~/actions/sections";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
+import Logger from "~/utils/Logger";
 import { deleteAllDatabases } from "~/utils/developer";
 
 export const clearIndexedDB = createAction({
@@ -35,16 +36,27 @@ export const createTestUsers = createAction({
   },
 });
 
+export const toggleDebugLogging = createAction({
+  name: ({ t }) => t("Toggle debug logging"),
+  icon: <ToolsIcon />,
+  section: DeveloperSection,
+  perform: async ({ t }) => {
+    Logger.debugLoggingEnabled = !Logger.debugLoggingEnabled;
+    stores.toasts.showToast(
+      Logger.debugLoggingEnabled
+        ? t("Debug logging enabled")
+        : t("Debug logging disabled")
+    );
+  },
+});
+
 export const developer = createAction({
-  name: ({ t }) => t("Developer"),
+  name: ({ t }) => t("Development"),
   keywords: "debug",
   icon: <ToolsIcon />,
   iconInContextMenu: false,
   section: DeveloperSection,
-  visible: ({ event }) =>
-    env.ENVIRONMENT === "development" ||
-    (event instanceof KeyboardEvent && event.altKey),
-  children: [clearIndexedDB, createTestUsers],
+  children: [clearIndexedDB, toggleDebugLogging, createTestUsers],
 });
 
 export const rootDeveloperActions = [developer];

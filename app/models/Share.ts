@@ -20,6 +20,10 @@ class Share extends BaseModel {
   @observable
   documentId: string;
 
+  @Field
+  @observable
+  urlId: string;
+
   documentTitle: string;
 
   documentUrl: string;

@@ -1,5 +1,7 @@
 import { Transaction } from "sequelize";
-import { Subscription, Event, User } from "@server/models";
+import { sequelize } from "@server/database/sequelize";
+import { Subscription, Event, User, Document } from "@server/models";
+import { DocumentEvent, RevisionEvent } from "@server/types";
 
 type Props = {
   /** The user creating the subscription */
@@ -41,7 +43,7 @@ export default async function subscriptionCreator({
 
   // If the subscription was deleted, then just restore the existing row.
   if (subscription.deletedAt && resubscribe) {
-    subscription.restore({ transaction });
+    await subscription.restore({ transaction });
 
     await Event.create(
       {
@@ -72,3 +74,32 @@ export default async function subscriptionCreator({
 
   return subscription;
 }
+
+/**
+ * Create any new subscriptions that might be missing for collaborators in the
+ * document on publish and revision creation. This does mean that there is a
+ * short period of time where the user is not subscribed after editing until a
+ * revision is created.
+ *
+ * @param document The document to create subscriptions for
+ * @param event The event that triggered the subscription creation
+ */
+export const createSubscriptionsForDocument = async (
+  document: Document,
+  event: DocumentEvent | RevisionEvent
+): Promise<void> => {
+  await sequelize.transaction(async (transaction) => {
+    const users = await document.collaborators({ transaction });
+
+    for (const user of users) {
+      await subscriptionCreator({
+        user,
+        documentId: document.id,
+        event: "documents.update",
+        resubscribe: false,
+        transaction,
+        ip: event.ip,
+      });
+    }
+  });
+};

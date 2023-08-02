@@ -9,6 +9,12 @@ describe("YouTube", () => {
     ).toBeTruthy();
   });
 
+  test("to be enabled on video link with timestamp", () => {
+    expect(
+      "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=123s".match(match)
+    ).toBeTruthy();
+  });
+
   test("to be enabled on embed link", () => {
     expect(
       "https://www.youtube.com/embed?v=dQw4w9WgXcQ".match(match)
@@ -17,6 +23,10 @@ describe("YouTube", () => {
 
   test("to be enabled on shortlink", () => {
     expect("https://youtu.be/dQw4w9WgXcQ".match(match)).toBeTruthy();
+  });
+
+  test("to be enabled on shortlink with timestamp", () => {
+    expect("https://youtu.be/dQw4w9WgXcQ?t=123".match(match)).toBeTruthy();
   });
 
   test("to not be enabled elsewhere", () => {

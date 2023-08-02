@@ -5,6 +5,7 @@ import * as React from "react";
 import AvatarEditor from "react-avatar-editor";
 import Dropzone from "react-dropzone";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { AttachmentPreset } from "@shared/types";
 import { AttachmentValidation } from "@shared/validations";
 import RootStore from "~/stores/RootStore";
@@ -53,7 +54,7 @@ class ImageUpload extends React.Component<RootStore & Props> {
     this.isUploading = true;
     // allow the UI to update before converting the canvas to a Blob
     // for large images this can cause the page rendering to hang.
-    setImmediate(this.uploadImage);
+    setTimeout(this.uploadImage, 0);
   };
 
   uploadImage = async () => {
@@ -70,7 +71,7 @@ class ImageUpload extends React.Component<RootStore & Props> {
         name: this.file.name,
         preset: AttachmentPreset.Avatar,
       });
-      this.props.onSuccess(attachment.url);
+      void this.props.onSuccess(attachment.url);
     } catch (err) {
       this.props.onError(err.message);
     } finally {
@@ -170,7 +171,7 @@ const RangeInput = styled.input`
     height: 16px;
     width: 16px;
     border-radius: 50%;
-    background: ${(props) => props.theme.text};
+    background: ${s("text")};
     cursor: var(--pointer);
   }
 

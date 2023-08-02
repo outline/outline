@@ -20,7 +20,11 @@ import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import separator from "~/menus/separator";
 
-const AccountMenu: React.FC = ({ children }) => {
+type Props = {
+  children?: React.ReactNode;
+};
+
+const AccountMenu: React.FC = ({ children }: Props) => {
   const menu = useMenuState({
     placement: "bottom-end",
     modal: true,
@@ -36,8 +40,8 @@ const AccountMenu: React.FC = ({ children }) => {
     }
   }, [menu, theme, previousTheme]);
 
-  const actions = React.useMemo(() => {
-    return [
+  const actions = React.useMemo(
+    () => [
       openKeyboardShortcuts,
       downloadApp,
       openAPIDocumentation,
@@ -50,8 +54,9 @@ const AccountMenu: React.FC = ({ children }) => {
       navigateToAccountPreferences,
       separator(),
       logout,
-    ];
-  }, []);
+    ],
+    []
+  );
 
   return (
     <>

@@ -10,10 +10,13 @@ import { parser } from "@server/editor";
  * @returns An array of document identifiers
  */
 export default function parseDocumentIds(text: string): string[] {
-  const value = parser.parse(text);
+  const doc = parser.parse(text);
   const identifiers: string[] = [];
+  if (!doc) {
+    return identifiers;
+  }
 
-  function findLinks(node: Node) {
+  doc.descendants((node: Node) => {
     // get text nodes
     if (node.type.name === "text") {
       // get marks for text nodes
@@ -28,15 +31,12 @@ export default function parseDocumentIds(text: string): string[] {
           }
         }
       });
+
+      return false;
     }
 
-    if (!node.content.size) {
-      return;
-    }
+    return true;
+  });
 
-    node.content.descendants(findLinks);
-  }
-
-  findLinks(value);
   return identifiers;
 }

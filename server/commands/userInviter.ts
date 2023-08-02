@@ -80,14 +80,14 @@ export default async function userInviter({
       ip,
     });
 
-    await InviteEmail.schedule({
+    await new InviteEmail({
       to: invite.email,
       name: invite.name,
       actorName: user.name,
       actorEmail: user.email,
       teamName: team.name,
       teamUrl: team.url,
-    });
+    }).schedule();
 
     if (env.ENVIRONMENT === "development") {
       Logger.info(

@@ -5,7 +5,11 @@ ARG APP_PATH
 WORKDIR $APP_PATH
 
 # ---
-FROM node:16.14.2-alpine3.15 AS runner
+FROM node:18-alpine AS runner
+
+RUN apk update && apk add --no-cache curl && apk add --no-cache ca-certificates
+
+LABEL org.opencontainers.image.source="https://github.com/outline/outline"
 
 ARG APP_PATH
 WORKDIR $APP_PATH

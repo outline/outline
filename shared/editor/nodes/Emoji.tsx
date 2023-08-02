@@ -1,19 +1,47 @@
 import nameToEmoji from "gemoji/name-to-emoji.json";
 import Token from "markdown-it/lib/token";
-import { InputRule } from "prosemirror-inputrules";
-import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
-import { EditorState, TextSelection, Plugin } from "prosemirror-state";
+import {
+  NodeSpec,
+  Node as ProsemirrorNode,
+  NodeType,
+  Schema,
+} from "prosemirror-model";
+import { Command, TextSelection } from "prosemirror-state";
+import { Primitive } from "utility-types";
+import Suggestion from "../extensions/Suggestion";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { run } from "../plugins/BlockMenuTrigger";
-import isInCode from "../queries/isInCode";
+import { SuggestionsMenuType } from "../plugins/Suggestions";
 import emojiRule from "../rules/emoji";
-import { Dispatch, EventType } from "../types";
-import Node from "./Node";
 
-const OPEN_REGEX = /(?:^|\s):([0-9a-zA-Z_+-]+)?$/;
-const CLOSE_REGEX = /(?:^|\s):(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/;
+/**
+ * Languages using the colon character with a space infront in standard
+ * punctuation. In this case the trigger is only matched once there is additional
+ * text after the colon.
+ */
+const languagesUsingColon = ["fr"];
 
-export default class Emoji extends Node {
+export default class Emoji extends Suggestion {
+  get type() {
+    return "node";
+  }
+
+  get defaultOptions() {
+    const languageIsUsingColon =
+      typeof window === "undefined"
+        ? false
+        : languagesUsingColon.includes(window.navigator.language.slice(0, 2));
+
+    return {
+      type: SuggestionsMenuType.Emoji,
+      openRegex: new RegExp(
+        `(?:^|\\s):([0-9a-zA-Z_+-]+)${languageIsUsingColon ? "+" : "?"}$`
+      ),
+      closeRegex:
+        /(?:^|\s):(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/,
+      enabledInTable: true,
+    };
+  }
+
   get name() {
     return "emoji";
   }
@@ -63,120 +91,23 @@ export default class Emoji extends Node {
     return [emojiRule];
   }
 
-  get plugins() {
-    return [
-      new Plugin({
-        props: {
-          handleClick: () => {
-            this.editor.events.emit(EventType.emojiMenuClose);
-            return false;
-          },
-          handleKeyDown: (view, event) => {
-            // Prosemirror input rules are not triggered on backspace, however
-            // we need them to be evaluted for the filter trigger to work
-            // correctly. This additional handler adds inputrules-like handling.
-            if (event.key === "Backspace") {
-              // timeout ensures that the delete has been handled by prosemirror
-              // and any characters removed, before we evaluate the rule.
-              setTimeout(() => {
-                const { pos } = view.state.selection.$from;
-                return run(view, pos, pos, OPEN_REGEX, (state, match) => {
-                  if (match) {
-                    this.editor.events.emit(EventType.emojiMenuOpen, match[1]);
-                  } else {
-                    this.editor.events.emit(EventType.emojiMenuClose);
-                  }
-                  return null;
-                });
-              });
-            }
-
-            // If the query is active and we're navigating the block menu then
-            // just ignore the key events in the editor itself until we're done
-            if (
-              event.key === "Enter" ||
-              event.key === "ArrowUp" ||
-              event.key === "ArrowDown" ||
-              event.key === "Tab"
-            ) {
-              const { pos } = view.state.selection.$from;
-
-              return run(view, pos, pos, OPEN_REGEX, (state, match) => {
-                // just tell Prosemirror we handled it and not to do anything
-                return match ? true : null;
-              });
-            }
-
-            return false;
-          },
-        },
-      }),
-    ];
-  }
-
-  commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, string>) => (
-      state: EditorState,
-      dispatch: Dispatch
-    ) => {
-      const { selection } = state;
-      const position =
-        selection instanceof TextSelection
-          ? selection.$cursor?.pos
-          : selection.$to.pos;
-      if (position === undefined) {
-        return false;
-      }
-
-      const node = type.create(attrs);
-      const transaction = state.tr.insert(position, node);
-      dispatch(transaction);
-      return true;
-    };
-  }
-
-  inputRules({ type }: { type: NodeType }): InputRule[] {
-    return [
-      new InputRule(/^:([a-zA-Z0-9_+-]+):$/, (state, match, start, end) => {
-        const [okay, markup] = match;
-        const { tr } = state;
-        if (okay) {
-          tr.replaceWith(
-            start - 1,
-            end,
-            type.create({
-              "data-name": markup,
-              markup,
-            })
-          );
+  commands({ type }: { type: NodeType; schema: Schema }) {
+    return (attrs: Record<string, Primitive>): Command =>
+      (state, dispatch) => {
+        const { selection } = state;
+        const position =
+          selection instanceof TextSelection
+            ? selection.$cursor?.pos
+            : selection.$to.pos;
+        if (position === undefined) {
+          return false;
         }
 
-        return tr;
-      }),
-      // main regex should match only:
-      // :word
-      new InputRule(OPEN_REGEX, (state, match) => {
-        if (
-          match &&
-          state.selection.$from.parent.type.name === "paragraph" &&
-          !isInCode(state)
-        ) {
-          this.editor.events.emit(EventType.emojiMenuOpen, match[1]);
-        }
-        return null;
-      }),
-      // invert regex should match some of these scenarios:
-      // :<space>word
-      // :<space>
-      // :word<space>
-      // :)
-      new InputRule(CLOSE_REGEX, (state, match) => {
-        if (match) {
-          this.editor.events.emit(EventType.emojiMenuClose);
-        }
-        return null;
-      }),
-    ];
+        const node = type.create(attrs);
+        const transaction = state.tr.insert(position, node);
+        dispatch?.(transaction);
+        return true;
+      };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
@@ -189,9 +120,7 @@ export default class Emoji extends Node {
   parseMarkdown() {
     return {
       node: "emoji",
-      getAttrs: (tok: Token) => {
-        return { "data-name": tok.markup.trim() };
-      },
+      getAttrs: (tok: Token) => ({ "data-name": tok.markup.trim() }),
     };
   }
 }

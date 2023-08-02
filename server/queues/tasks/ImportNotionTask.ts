@@ -6,16 +6,16 @@ import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
 import Logger from "@server/logging/Logger";
 import { FileOperation, User } from "@server/models";
-import { zipAsFileTree, FileTreeNode } from "@server/utils/zip";
+import ZipHelper, { FileTreeNode } from "@server/utils/ZipHelper";
 import ImportTask, { StructuredImportData } from "./ImportTask";
 
 export default class ImportNotionTask extends ImportTask {
   public async parseData(
-    buffer: Buffer,
+    stream: NodeJS.ReadableStream,
     fileOperation: FileOperation
   ): Promise<StructuredImportData> {
-    const zip = await JSZip.loadAsync(buffer);
-    const tree = zipAsFileTree(zip);
+    const zip = await JSZip.loadAsync(stream);
+    const tree = ZipHelper.toFileTree(zip);
     return this.parseFileTree({ fileOperation, zip, tree });
   }
 
@@ -35,10 +35,9 @@ export default class ImportNotionTask extends ImportTask {
     fileOperation: FileOperation;
     tree: FileTreeNode[];
   }): Promise<StructuredImportData> {
-    const user = await User.findByPk(fileOperation.userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await User.findByPk(fileOperation.userId, {
+      rejectOnEmpty: true,
+    });
 
     const output: StructuredImportData = {
       collections: [],
@@ -51,10 +50,6 @@ export default class ImportNotionTask extends ImportTask {
       collectionId: string,
       parentDocumentId?: string
     ): Promise<void> => {
-      if (!user) {
-        throw new Error("User not found");
-      }
-
       await Promise.all(
         children.map(async (child) => {
           // Ignore the CSV's for databases upfront
@@ -93,7 +88,7 @@ export default class ImportNotionTask extends ImportTask {
           const { title, text } = await documentImporter({
             mimeType: mimeType || "text/markdown",
             fileName: name,
-            content: await zipObject.async("string"),
+            content: zipObject ? await zipObject.async("string") : "",
             user,
             ip: user.lastActiveIp || undefined,
           });
@@ -245,7 +240,7 @@ export default class ImportNotionTask extends ImportTask {
     }
 
     for (const collection of output.collections) {
-      if (collection.description) {
+      if (typeof collection.description === "string") {
         collection.description = replaceInternalLinksAndImages(
           collection.description
         );
@@ -292,7 +287,8 @@ export default class ImportNotionTask extends ImportTask {
   /**
    * Regex to find markdown images of all types
    */
-  private ImageRegex = /!\[(?<alt>[^\][]*?)]\((?<filename>[^\][]*?)(?=“|\))“?(?<title>[^\][”]+)?”?\)/g;
+  private ImageRegex =
+    /!\[(?<alt>[^\][]*?)]\((?<filename>[^\][]*?)(?=“|\))“?(?<title>[^\][”]+)?”?\)/g;
 
   /**
    * Regex to find markdown links containing ID's that look like UUID's with the
@@ -303,5 +299,6 @@ export default class ImportNotionTask extends ImportTask {
   /**
    * Regex to find Notion document UUID's in the title of a document.
    */
-  private NotionUUIDRegex = /\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}|[0-9a-fA-F]{32})$/;
+  private NotionUUIDRegex =
+    /\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}|[0-9a-fA-F]{32})$/;
 }

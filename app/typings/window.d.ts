@@ -1,5 +1,15 @@
 declare global {
+  interface ImportMeta {
+    /**
+     * A special feature that allows you to get all matching modules starting from some base directory.
+     */
+    glob: (pattern: string, option?: { eager: boolean }) => any;
+  }
+
   interface Window {
+    dataLayer: any[];
+    gtag: (...args: any[]) => void;
+
     DesktopBridge: {
       /**
        * The name of the platform running on.
@@ -45,6 +55,11 @@ declare global {
        * Set the language used by the spellchecker on Windows/Linux.
        */
       setSpellCheckerLanguages: (languages: string[]) => Promise<void>;
+
+      /**
+       * Set the badge on the app icon.
+       */
+      setNotificationCount: (count: number) => Promise<void>;
 
       /**
        * Registers a callback to be called when the window is focused.

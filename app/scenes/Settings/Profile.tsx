@@ -61,7 +61,7 @@ const Profile = () => {
   const { isSaving } = auth;
 
   return (
-    <Scene title={t("Profile")} icon={<ProfileIcon color="currentColor" />}>
+    <Scene title={t("Profile")} icon={<ProfileIcon />}>
       <Heading>{t("Profile")}</Heading>
       <Text type="secondary">
         <Trans>Manage how you appear to other members of the workspace.</Trans>

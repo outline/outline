@@ -4,6 +4,7 @@ import * as React from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { AttachmentPreset } from "@shared/types";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
@@ -114,7 +115,7 @@ const DropzoneContainer = styled.div<{
       ? props.theme.secondaryBackground
       : props.theme.background};
   border-radius: 8px;
-  border: 1px dashed ${(props) => props.theme.divider};
+  border: 1px dashed ${s("divider")};
   padding: 52px;
   text-align: center;
   font-size: 15px;
@@ -122,7 +123,7 @@ const DropzoneContainer = styled.div<{
   opacity: ${(props) => (props.$disabled ? 0.5 : 1)};
 
   &:hover {
-    background: ${(props) => props.theme.secondaryBackground};
+    background: ${s("secondaryBackground")};
   }
 `;
 

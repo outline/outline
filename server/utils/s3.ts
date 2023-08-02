@@ -85,21 +85,28 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
   }${AWS_S3_UPLOAD_BUCKET_NAME}`;
 };
 
-export const uploadToS3FromBuffer = async (
-  buffer: Buffer,
-  contentType: string,
-  key: string,
-  acl: string
-) => {
+export const uploadToS3 = async ({
+  body,
+  contentLength,
+  contentType,
+  key,
+  acl,
+}: {
+  body: S3.Body;
+  contentLength: number;
+  contentType: string;
+  key: string;
+  acl: string;
+}) => {
   await s3
     .putObject({
       ACL: acl,
       Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
       Key: key,
       ContentType: contentType,
-      ContentLength: buffer.length,
+      ContentLength: contentLength,
       ContentDisposition: "attachment",
-      Body: buffer,
+      Body: body,
     })
     .promise();
   const endpoint = publicS3Endpoint(true);
@@ -143,21 +150,20 @@ export const uploadToS3FromUrl = async (
   }
 };
 
-export const deleteFromS3 = (key: string) => {
-  return s3
+export const deleteFromS3 = (key: string) =>
+  s3
     .deleteObject({
       Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
       Key: key,
     })
     .promise();
-};
 
-export const getSignedUrl = async (key: string, expiresInMs = 60) => {
+export const getSignedUrl = async (key: string, expiresIn = 60) => {
   const isDocker = AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
   const params = {
     Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,
-    Expires: expiresInMs,
+    Expires: expiresIn,
     ResponseContentDisposition: "attachment",
   };
 
@@ -178,20 +184,34 @@ export const getAWSKeyForFileOp = (teamId: string, name: string) => {
   return `${bucket}/${teamId}/${uuidv4()}/${name}-export.zip`;
 };
 
-export const getFileByKey = async (key: string) => {
-  const params = {
-    Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
-    Key: key,
-  };
-
+export const getFileStream = (key: string) => {
   try {
-    const data = await s3.getObject(params).promise();
-    return data.Body || null;
+    return s3
+      .getObject({
+        Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
+        Key: key,
+      })
+      .createReadStream();
   } catch (err) {
-    Logger.error("Error getting file from S3 by key", err, {
+    Logger.error("Error getting file stream from S3 ", err, {
       key,
     });
   }
 
   return null;
+};
+
+export const getFileBuffer = async (key: string) => {
+  const response = await s3
+    .getObject({
+      Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
+      Key: key,
+    })
+    .promise();
+
+  if (response.Body) {
+    return response.Body as Blob;
+  }
+
+  throw new Error("Error getting file buffer from S3");
 };

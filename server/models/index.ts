@@ -12,6 +12,8 @@ export { default as CollectionGroup } from "./CollectionGroup";
 
 export { default as CollectionUser } from "./CollectionUser";
 
+export { default as Comment } from "./Comment";
+
 export { default as Document } from "./Document";
 
 export { default as Event } from "./Event";
@@ -27,8 +29,6 @@ export { default as Integration } from "./Integration";
 export { default as IntegrationAuthentication } from "./IntegrationAuthentication";
 
 export { default as Notification } from "./Notification";
-
-export { default as NotificationSetting } from "./NotificationSetting";
 
 export { default as Pin } from "./Pin";
 

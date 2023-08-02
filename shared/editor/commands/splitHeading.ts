@@ -1,11 +1,10 @@
 import { NodeType } from "prosemirror-model";
-import { EditorState, TextSelection } from "prosemirror-state";
-import { findBlockNodes } from "prosemirror-utils";
+import { Command, TextSelection } from "prosemirror-state";
+import { findBlockNodes } from "../queries/findChildren";
 import findCollapsedNodes from "../queries/findCollapsedNodes";
-import { Dispatch } from "../types";
 
-export default function splitHeading(type: NodeType) {
-  return (state: EditorState, dispatch: Dispatch): boolean => {
+export default function splitHeading(type: NodeType): Command {
+  return (state, dispatch): boolean => {
     const { $from, from, $to, to } = state.selection;
 
     // check we're in a matching heading node
@@ -33,7 +32,7 @@ export default function splitHeading(type: NodeType) {
         );
 
         // Move the selection into the new heading node and make sure it's on screen
-        dispatch(
+        dispatch?.(
           transaction
             .setSelection(
               TextSelection.near(transaction.doc.resolve($from.before()))
@@ -75,7 +74,7 @@ export default function splitHeading(type: NodeType) {
       );
 
       // Move the selection into the new heading node and make sure it's on screen
-      dispatch(
+      dispatch?.(
         transaction
           .setSelection(
             TextSelection.near(

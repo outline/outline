@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/node";
 import env from "@server/env";
-import { ContextWithState } from "../types";
+import { AppContext } from "@server/types";
 
 if (env.SENTRY_DSN) {
   Sentry.init({
@@ -29,12 +29,9 @@ if (env.SENTRY_DSN) {
   });
 }
 
-export function requestErrorHandler(error: any, ctx: ContextWithState) {
+export function requestErrorHandler(error: any, ctx: AppContext) {
   // we don't need to report every time a request stops to the bug tracker
   if (error.code === "EPIPE" || error.code === "ECONNRESET") {
-    console.warn("Connection error", {
-      error,
-    });
     return;
   }
 
@@ -46,17 +43,17 @@ export function requestErrorHandler(error: any, ctx: ContextWithState) {
         scope.setTag("request_id", requestId as string);
       }
 
-      const authType = ctx.state?.authType ?? undefined;
+      const authType = ctx.state?.auth?.type ?? undefined;
       if (authType) {
         scope.setTag("auth_type", authType);
       }
 
-      const teamId = ctx.state?.user?.teamId ?? undefined;
+      const teamId = ctx.state?.auth?.user?.teamId ?? undefined;
       if (teamId) {
         scope.setTag("team_id", teamId);
       }
 
-      const userId = ctx.state?.user?.id ?? undefined;
+      const userId = ctx.state?.auth?.user?.id ?? undefined;
       if (userId) {
         scope.setUser({
           id: userId,
@@ -69,6 +66,7 @@ export function requestErrorHandler(error: any, ctx: ContextWithState) {
       Sentry.captureException(error);
     });
   } else {
+    // eslint-disable-next-line no-console
     console.error(error);
   }
 }

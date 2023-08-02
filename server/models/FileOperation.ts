@@ -8,30 +8,17 @@ import {
   Table,
   DataType,
 } from "sequelize-typescript";
-import { deleteFromS3, getFileByKey } from "@server/utils/s3";
+import {
+  FileOperationFormat,
+  FileOperationState,
+  FileOperationType,
+} from "@shared/types";
+import { deleteFromS3, getFileStream } from "@server/utils/s3";
 import Collection from "./Collection";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
-
-export enum FileOperationType {
-  Import = "import",
-  Export = "export",
-}
-
-export enum FileOperationFormat {
-  MarkdownZip = "outline-markdown",
-  Notion = "notion",
-}
-
-export enum FileOperationState {
-  Creating = "creating",
-  Uploading = "uploading",
-  Complete = "complete",
-  Error = "error",
-  Expired = "expired",
-}
 
 @DefaultScope(() => ({
   include: [
@@ -71,8 +58,14 @@ class FileOperation extends IdModel {
   @Column(DataType.BIGINT)
   size: number;
 
+  @Column(DataType.BOOLEAN)
+  includeAttachments: boolean;
+
+  /**
+   * Mark the current file operation as expired and remove the file from storage.
+   */
   expire = async function () {
-    this.state = "expired";
+    this.state = FileOperationState.Expired;
     try {
       await deleteFromS3(this.key);
     } catch (err) {
@@ -83,8 +76,11 @@ class FileOperation extends IdModel {
     await this.save();
   };
 
-  get buffer() {
-    return getFileByKey(this.key);
+  /**
+   * The file operation contents as a readable stream.
+   */
+  get stream() {
+    return getFileStream(this.key);
   }
 
   // hooks

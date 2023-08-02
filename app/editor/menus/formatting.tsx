@@ -11,7 +11,10 @@ import {
   TodoListIcon,
   InputIcon,
   HighlightIcon,
+  CommentIcon,
   ItalicIcon,
+  OutdentIcon,
+  IndentIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
@@ -26,6 +29,7 @@ import { Dictionary } from "~/hooks/useDictionary";
 export default function formattingMenuItems(
   state: EditorState,
   isTemplate: boolean,
+  isMobile: boolean,
   dictionary: Dictionary
 ): MenuItem[] {
   const { schema } = state;
@@ -135,6 +139,18 @@ export default function formattingMenuItems(
       visible: (allowBlocks || isList) && !isCode,
     },
     {
+      name: "outdentList",
+      tooltip: dictionary.outdent,
+      icon: <OutdentIcon />,
+      visible: isList && isMobile,
+    },
+    {
+      name: "indentList",
+      tooltip: dictionary.indent,
+      icon: <IndentIcon />,
+      visible: isList && isMobile,
+    },
+    {
       name: "separator",
       visible: !isCode,
     },
@@ -144,6 +160,13 @@ export default function formattingMenuItems(
       icon: <LinkIcon />,
       active: isMarkActive(schema.marks.link),
       attrs: { href: "" },
+      visible: !isCode,
+    },
+    {
+      name: "comment",
+      tooltip: dictionary.comment,
+      icon: <CommentIcon />,
+      active: isMarkActive(schema.marks.comment),
       visible: !isCode,
     },
   ];

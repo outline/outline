@@ -40,23 +40,23 @@ import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton, MenuItem } from "reakit/Menu";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import { colorPalette } from "@shared/utils/collections";
 import ContextMenu from "~/components/ContextMenu";
 import Flex from "~/components/Flex";
 import { LabelText } from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+import DelayedMount from "./DelayedMount";
 
 const style = {
   width: 30,
   height: 30,
 };
-const TwitterPicker = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "twitter-picker" */
-      "react-color/lib/components/twitter/Twitter"
-    )
+
+const TwitterPicker = lazyWithRetry(
+  () => import("react-color/lib/components/twitter/Twitter")
 );
 
 export const icons = {
@@ -241,24 +241,36 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
         aria-label={t("Choose icon")}
       >
         <Icons>
-          {Object.keys(icons).map((name) => {
-            return (
-              <MenuItem
-                key={name}
-                onClick={() => onChange(color, name)}
-                {...menu}
-              >
-                {(props) => (
-                  <IconButton style={style} {...props}>
-                    <Icon as={icons[name].component} color={color} size={30} />
-                  </IconButton>
-                )}
-              </MenuItem>
-            );
-          })}
+          {Object.keys(icons).map((name, index) => (
+            <MenuItem
+              key={name}
+              onClick={() => onChange(color, name)}
+              {...menu}
+            >
+              {(props) => (
+                <IconButton
+                  style={
+                    {
+                      ...style,
+                      "--delay": `${index * 8}ms`,
+                    } as React.CSSProperties
+                  }
+                  {...props}
+                >
+                  <Icon as={icons[name].component} color={color} size={30} />
+                </IconButton>
+              )}
+            </MenuItem>
+          ))}
         </Icons>
-        <Flex>
-          <React.Suspense fallback={<Loading>{t("Loading")}…</Loading>}>
+        <Colors>
+          <React.Suspense
+            fallback={
+              <DelayedMount>
+                <Text>{t("Loading")}…</Text>
+              </DelayedMount>
+            }
+          >
             <ColorPicker
               color={color}
               onChange={(color) => onChange(color.hex, icon)}
@@ -266,6 +278,10 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
               triangle="hide"
               styles={{
                 default: {
+                  body: {
+                    padding: 0,
+                    marginRight: -8,
+                  },
                   hash: {
                     color: theme.text,
                     background: theme.inputBorder,
@@ -279,7 +295,7 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
               }}
             />
           </React.Suspense>
-        </Flex>
+        </Colors>
       </ContextMenu>
     </Wrapper>
   );
@@ -287,6 +303,11 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
 
 const Icon = styled.svg`
   transition: fill 150ms ease-in-out;
+  transition-delay: var(--delay);
+`;
+
+const Colors = styled(Flex)`
+  padding: 8px;
 `;
 
 const Label = styled.label`
@@ -294,7 +315,7 @@ const Label = styled.label`
 `;
 
 const Icons = styled.div`
-  padding: 16px 8px 0 16px;
+  padding: 8px;
 
   ${breakpoint("tablet")`
     width: 276px;
@@ -302,7 +323,7 @@ const Icons = styled.div`
 `;
 
 const Button = styled(NudeButton)`
-  border: 1px solid ${(props) => props.theme.inputBorder};
+  border: 1px solid ${s("inputBorder")};
   width: 32px;
   height: 32px;
 `;
@@ -314,18 +335,10 @@ const IconButton = styled(NudeButton)`
   height: 30px;
 `;
 
-const Loading = styled(Text)`
-  padding: 16px;
-`;
-
 const ColorPicker = styled(TwitterPicker)`
   box-shadow: none !important;
   background: transparent !important;
-  width: auto !important;
-
-  ${breakpoint("tablet")`
-    width: 276px;
-  `};
+  width: 100% !important;
 `;
 
 const Wrapper = styled("div")`

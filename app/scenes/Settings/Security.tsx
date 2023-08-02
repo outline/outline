@@ -6,11 +6,11 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useTheme } from "styled-components";
 import { TeamPreference } from "@shared/types";
-import AuthLogo from "~/components/AuthLogo";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import InputSelect from "~/components/InputSelect";
+import PluginIcon from "~/components/PluginIcon";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -38,13 +38,15 @@ function Security() {
     inviteRequired: team.inviteRequired,
   });
 
-  const { data: providers, loading, request } = useRequest(() =>
-    authenticationProviders.fetchPage({})
-  );
+  const {
+    data: providers,
+    loading,
+    request,
+  } = useRequest(() => authenticationProviders.fetchPage({}));
 
   React.useEffect(() => {
     if (!providers && !loading) {
-      request();
+      void request();
     }
   }, [loading, providers, request]);
 
@@ -137,7 +139,7 @@ function Security() {
   );
 
   return (
-    <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
+    <Scene title={t("Security")} icon={<PadlockIcon />}>
       <Heading>{t("Security")}</Heading>
       <Text type="secondary">
         <Trans>
@@ -155,8 +157,7 @@ function Security() {
             key={provider.name}
             label={
               <Flex gap={8} align="center">
-                <AuthLogo providerName={provider.name} color="currentColor" />{" "}
-                {provider.displayName}
+                <PluginIcon id={provider.name} /> {provider.displayName}
               </Flex>
             }
             name={provider.name}
@@ -165,15 +166,20 @@ function Security() {
             })}
           >
             <Flex align="center">
-              <CheckboxIcon color={theme.primary} checked />{" "}
-              <Text type="secondary">{t("Connected")}</Text>
+              <CheckboxIcon
+                color={provider.isActive ? theme.accent : undefined}
+                checked={provider.isActive}
+              />{" "}
+              <Text type="secondary">
+                {provider.isActive ? t("Connected") : t("Disabled")}
+              </Text>
             </Flex>
           </SettingRow>
         ))}
       <SettingRow
         label={
           <Flex gap={8} align="center">
-            <EmailIcon color="currentColor" /> {t("Email")}
+            <EmailIcon /> {t("Email")}
           </Flex>
         }
         name="guestSignin"
@@ -260,7 +266,7 @@ function Security() {
       >
         <Switch
           id={TeamPreference.ViewersCanExport}
-          checked={team.getPreference(TeamPreference.ViewersCanExport, true)}
+          checked={team.getPreference(TeamPreference.ViewersCanExport)}
           onChange={handlePreferenceChange}
         />
       </SettingRow>

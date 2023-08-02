@@ -1,12 +1,14 @@
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 
 type Props = {
+  children?: React.ReactNode;
   sticky?: boolean;
 };
 
 const H3 = styled.h3`
-  border-bottom: 1px solid ${(props) => props.theme.divider};
+  border-bottom: 1px solid ${s("divider")};
   margin: 12px 0;
   line-height: 1;
 `;
@@ -16,7 +18,7 @@ const Underline = styled.div`
   font-weight: 500;
   font-size: 14px;
   line-height: 1.5;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   padding-top: 6px;
   padding-bottom: 6px;
 `;
@@ -28,19 +30,17 @@ const Background = styled.div<{ sticky?: boolean }>`
   ${(props) => (props.sticky ? "top: 54px;" : "")}
   margin: 0 -8px;
   padding: 0 8px;
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
+  background: ${s("background")};
+  transition: ${s("backgroundTransition")};
   z-index: 1;
 `;
 
-const Subheading: React.FC<Props> = ({ children, sticky, ...rest }) => {
-  return (
-    <Background sticky={sticky}>
-      <H3 {...rest}>
-        <Underline>{children}</Underline>
-      </H3>
-    </Background>
-  );
-};
+const Subheading: React.FC<Props> = ({ children, sticky, ...rest }: Props) => (
+  <Background sticky={sticky}>
+    <H3 {...rest}>
+      <Underline>{children}</Underline>
+    </H3>
+  </Background>
+);
 
 export default Subheading;

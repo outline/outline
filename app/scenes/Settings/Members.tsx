@@ -16,6 +16,7 @@ import InputSearch from "~/components/InputSearch";
 import Modal from "~/components/Modal";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import env from "~/env";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
@@ -27,11 +28,8 @@ import UserStatusFilter from "./components/UserStatusFilter";
 function Members() {
   const location = useLocation();
   const history = useHistory();
-  const [
-    inviteModalOpen,
-    handleInviteModalOpen,
-    handleInviteModalClose,
-  ] = useBoolean();
+  const [inviteModalOpen, handleInviteModalOpen, handleInviteModalClose] =
+    useBoolean();
   const team = useCurrentTeam();
   const { users } = useStores();
   const { t } = useTranslation();
@@ -70,7 +68,7 @@ function Members() {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [query, sort, filter, page, direction, users, users.counts.all]);
 
   React.useEffect(() => {
@@ -142,10 +140,12 @@ function Members() {
     [params, history, location.pathname]
   );
 
+  const appName = env.APP_NAME;
+
   return (
     <Scene
       title={t("Members")}
-      icon={<UserIcon color="currentColor" />}
+      icon={<UserIcon />}
       actions={
         <>
           {can.inviteUser && (
@@ -168,9 +168,9 @@ function Members() {
       <Heading>{t("Members")}</Heading>
       <Text type="secondary">
         <Trans>
-          Everyone that has signed into Outline appears here. It’s possible that
-          there are other users who have access through {team.signinMethods} but
-          haven’t signed in yet.
+          Everyone that has signed into {{ appName }} is listed here. It’s
+          possible that there are other users who have access through{" "}
+          {team.signinMethods} but haven’t signed in yet.
         </Trans>
       </Text>
       <Flex gap={8}>

@@ -2,7 +2,6 @@ import {
   mathBackspaceCmd,
   insertMathCmd,
   makeInlineMathInputRule,
-  REGEX_INLINE_MATH_DOLLARS,
   mathSchemaSpec,
 } from "@benrbray/prosemirror-math";
 import { PluginSimple } from "markdown-it";
@@ -18,11 +17,10 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { EditorState, Plugin } from "prosemirror-state";
+import { Command, Plugin } from "prosemirror-state";
+import MathPlugin from "../extensions/Math";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import MathPlugin from "../plugins/Math";
-import mathRule from "../rules/math";
-import { Dispatch } from "../types";
+import mathRule, { REGEX_INLINE_MATH_DOLLARS } from "../rules/math";
 import Node from "./Node";
 
 export default class Math extends Node {
@@ -35,8 +33,8 @@ export default class Math extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return () => (state: EditorState, dispatch: Dispatch) => {
-      dispatch(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
+    return (): Command => (state, dispatch) => {
+      dispatch?.(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
       return true;
     };
   }
@@ -71,9 +69,9 @@ export default class Math extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.write("$");
+    state.write("$$");
     state.text(node.textContent, false);
-    state.write("$");
+    state.write("$$");
   }
 
   parseMarkdown() {

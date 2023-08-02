@@ -1,4 +1,4 @@
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/tracing";
 import { Document } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import presentUser from "./user";
@@ -7,7 +7,7 @@ type Options = {
   isPublic?: boolean;
 };
 
-async function present(
+async function presentDocument(
   document: Document,
   options: Options | null | undefined = {}
 ) {
@@ -15,7 +15,6 @@ async function present(
     isPublic: false,
     ...options,
   };
-  await document.migrateVersion();
   const text = options.isPublic
     ? await DocumentHelper.attachmentsToSignedUrls(
         document.text,
@@ -43,6 +42,7 @@ async function present(
     templateId: document.templateId,
     collaboratorIds: [],
     revision: document.revisionCount,
+    insightsEnabled: document.insightsEnabled,
     fullWidth: document.fullWidth,
     collectionId: undefined,
     parentDocumentId: undefined,
@@ -64,7 +64,6 @@ async function present(
   return data;
 }
 
-export default APM.traceFunction({
-  serviceName: "presenter",
-  spanName: "document",
-})(present);
+export default traceFunction({
+  spanName: "presenters",
+})(presentDocument);

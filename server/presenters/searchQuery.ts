@@ -1,6 +1,6 @@
 import { SearchQuery } from "@server/models";
 
-export default function present(searchQuery: SearchQuery) {
+export default function presentSearchQuery(searchQuery: SearchQuery) {
   return {
     id: searchQuery.id,
     query: searchQuery.query,

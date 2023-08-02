@@ -4,18 +4,20 @@ import {
   Team,
   User,
   Collection,
+  Comment,
   Document,
   Group,
+  Notification,
 } from "@server/models";
 import { _abilities, _can, _cannot, _authorize } from "./cancan";
 import "./apiKey";
 import "./attachment";
 import "./authenticationProvider";
 import "./collection";
+import "./comment";
 import "./document";
 import "./fileOperation";
 import "./integration";
-import "./notificationSetting";
 import "./pins";
 import "./searchQuery";
 import "./share";
@@ -25,6 +27,7 @@ import "./user";
 import "./team";
 import "./group";
 import "./webhookSubscription";
+import "./notification";
 
 type Policy = Record<string, boolean>;
 
@@ -47,12 +50,14 @@ export function serialize(
   model: User,
   target:
     | Attachment
+    | Collection
+    | Comment
     | FileOperation
     | Team
-    | Collection
     | Document
     | User
     | Group
+    | Notification
     | null
 ): Policy {
   const output = {};

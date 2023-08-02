@@ -1,11 +1,14 @@
 import { m } from "framer-motion";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
+import { s } from "@shared/styles";
 import NavLink from "~/components/NavLink";
+import { hover } from "~/styles";
 
 type Props = Omit<React.ComponentProps<typeof NavLink>, "children"> & {
   to: string;
   exact?: boolean;
+  children?: React.ReactNode;
 };
 
 const TabLink = styled(NavLink)`
@@ -15,12 +18,13 @@ const TabLink = styled(NavLink)`
   font-weight: 500;
   font-size: 14px;
   cursor: var(--pointer);
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
+  user-select: none;
   margin-right: 24px;
   padding: 6px 0;
 
-  &:hover {
-    color: ${(props) => props.theme.textSecondary};
+  &: ${hover} {
+    color: ${s("textSecondary")};
   }
 `;
 
@@ -31,9 +35,8 @@ const Active = styled(m.div)`
   right: 0;
   height: 3px;
   width: 100%;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
-  background: ${(props) => props.theme.textSecondary};
+  border-radius: 3px;
+  background: ${s("textSecondary")};
 `;
 
 const transition = {
@@ -42,7 +45,7 @@ const transition = {
   damping: 30,
 };
 
-const Tab: React.FC<Props> = ({ children, ...rest }) => {
+const Tab: React.FC<Props> = ({ children, ...rest }: Props) => {
   const theme = useTheme();
   const activeStyle = {
     color: theme.textSecondary,

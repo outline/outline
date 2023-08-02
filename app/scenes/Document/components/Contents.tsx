@@ -1,7 +1,9 @@
+import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import Text from "~/components/Text";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 
@@ -100,21 +102,29 @@ const Sticky = styled.div`
   top: 80px;
   max-height: calc(100vh - 80px);
 
-  box-shadow: 1px 0 0 ${(props) => props.theme.divider};
-  margin-top: 40px;
+  background: ${s("background")};
+  transition: ${s("backgroundTransition")};
+
+  margin-top: 72px;
   margin-right: 52px;
   min-width: 204px;
-  width: 204px;
+  width: 228px;
   min-height: 40px;
   overflow-y: auto;
+  padding: 4px 16px;
+  border-radius: 8px;
+
+  @supports (backdrop-filter: blur(20px)) {
+    backdrop-filter: blur(20px);
+    background: ${(props) => transparentize(0.2, props.theme.background)};
+  }
 `;
 
 const Heading = styled.h3`
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  color: ${(props) => props.theme.sidebarText};
-  letter-spacing: 0.04em;
+  color: ${s("textTertiary")};
+  letter-spacing: 0.03em;
 `;
 
 const Empty = styled(Text)`
@@ -128,21 +138,19 @@ const ListItem = styled.li<{ level: number; active?: boolean }>`
   margin-bottom: 8px;
   padding-right: 2em;
   line-height: 1.3;
-  border-right: 3px solid
-    ${(props) => (props.active ? props.theme.divider : "transparent")};
 
   a {
-    color: ${(props) =>
-      props.active ? props.theme.primary : props.theme.text};
+    font-weight: ${(props) => (props.active ? "600" : "inherit")};
+    color: ${(props) => (props.active ? props.theme.accent : props.theme.text)};
   }
 `;
 
 const Link = styled.a`
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   font-size: 14px;
 
   &:hover {
-    color: ${(props) => props.theme.primary};
+    color: ${s("accent")};
   }
 `;
 

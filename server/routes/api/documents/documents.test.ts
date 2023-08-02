@@ -1,3 +1,4 @@
+import { subDays } from "date-fns";
 import { CollectionPermission } from "@shared/types";
 import {
   Document,
@@ -7,6 +8,8 @@ import {
   CollectionUser,
   SearchQuery,
   Event,
+  User,
+  CollectionGroup,
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import {
@@ -17,6 +20,7 @@ import {
   buildDraftDocument,
   buildViewer,
   buildTeam,
+  buildGroup,
 } from "@server/test/factories";
 import { seed, getTestServer } from "@server/test/support";
 
@@ -29,9 +33,7 @@ describe("#documents.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual(
-      "ValidationError: one of id or shareId is required"
-    );
+    expect(body.message).toEqual("one of id or shareId is required");
   });
 
   it("should return published document", async () => {
@@ -232,7 +234,7 @@ describe("#documents.info", () => {
       expect(body.data.document.id).toEqual(document.id);
       expect(body.data.document.createdBy).toEqual(undefined);
       expect(body.data.document.updatedBy).toEqual(undefined);
-      expect(body.data.sharedTree).toEqual(document.toJSON());
+      expect(body.data.sharedTree).toEqual(await document.toNavigationNode());
     });
     it("should not return sharedTree if child documents not shared", async () => {
       const { document, user } = await seed();
@@ -466,10 +468,12 @@ describe("#documents.info", () => {
   it("should require a valid shareId", async () => {
     const res = await server.post("/api/documents.info", {
       body: {
-        shareId: 123,
+        shareId: "share_id",
       },
     });
+    const body = await res.json();
     expect(res.status).toEqual(400);
+    expect(body.message).toEqual("shareId: Invalid input");
   });
 });
 
@@ -549,113 +553,6 @@ describe("#documents.export", () => {
     expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
   });
 
-  it("should return document from shareId without token", async () => {
-    const { document, user } = await seed();
-    const share = await buildShare({
-      documentId: document.id,
-      teamId: document.teamId,
-      userId: user.id,
-    });
-    const res = await server.post("/api/documents.export", {
-      body: {
-        shareId: share.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
-  });
-
-  it("should not return document from revoked shareId", async () => {
-    const { document, user } = await seed();
-    const share = await buildShare({
-      documentId: document.id,
-      teamId: document.teamId,
-      userId: user.id,
-    });
-    await share.revoke(user.id);
-    const res = await server.post("/api/documents.export", {
-      body: {
-        shareId: share.id,
-      },
-    });
-    expect(res.status).toEqual(400);
-  });
-
-  it("should not return document from archived shareId", async () => {
-    const { document, user } = await seed();
-    const share = await buildShare({
-      documentId: document.id,
-      teamId: document.teamId,
-      userId: user.id,
-    });
-    await document.archive(user.id);
-    const res = await server.post("/api/documents.export", {
-      body: {
-        shareId: share.id,
-      },
-    });
-    expect(res.status).toEqual(400);
-  });
-
-  it("should return document from shareId with token", async () => {
-    const { user, document } = await seed();
-    const share = await buildShare({
-      documentId: document.id,
-      teamId: document.teamId,
-      userId: user.id,
-    });
-    const res = await server.post("/api/documents.export", {
-      body: {
-        token: user.getJwtToken(),
-        shareId: share.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
-  });
-
-  it("should return draft document from shareId with token", async () => {
-    const { user, document } = await seed();
-    document.publishedAt = null;
-    await document.save();
-    const share = await buildShare({
-      documentId: document.id,
-      teamId: document.teamId,
-      userId: user.id,
-    });
-    const res = await server.post("/api/documents.export", {
-      body: {
-        token: user.getJwtToken(),
-        shareId: share.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
-  });
-
-  it("should return document from shareId in collection not a member of", async () => {
-    const { user, document, collection } = await seed();
-    const share = await buildShare({
-      documentId: document.id,
-      teamId: document.teamId,
-      userId: user.id,
-    });
-    collection.permission = null;
-    await collection.save();
-    const res = await server.post("/api/documents.export", {
-      body: {
-        token: user.getJwtToken(),
-        shareId: share.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
-  });
-
   it("should require authorization without token", async () => {
     const { document } = await seed();
     const res = await server.post("/api/documents.export", {
@@ -676,15 +573,6 @@ describe("#documents.export", () => {
       },
     });
     expect(res.status).toEqual(403);
-  });
-
-  it("should require a valid shareId", async () => {
-    const res = await server.post("/api/documents.export", {
-      body: {
-        shareId: 123,
-      },
-    });
-    expect(res.status).toEqual(400);
   });
 });
 
@@ -807,6 +695,12 @@ describe("#documents.list", () => {
     const { user, collection } = await seed();
     collection.permission = null;
     await collection.save();
+    await CollectionUser.destroy({
+      where: {
+        userId: user.id,
+        collectionId: collection.id,
+      },
+    });
     const res = await server.post("/api/documents.list", {
       body: {
         token: user.getJwtToken(),
@@ -878,12 +772,18 @@ describe("#documents.list", () => {
     const { user, collection } = await seed();
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
-      createdById: user.id,
-      collectionId: collection.id,
-      userId: user.id,
-      permission: CollectionPermission.Read,
-    });
+    await CollectionUser.update(
+      {
+        userId: user.id,
+        permission: CollectionPermission.Read,
+      },
+      {
+        where: {
+          createdById: user.id,
+          collectionId: collection.id,
+        },
+      }
+    );
     const res = await server.post("/api/documents.list", {
       body: {
         token: user.getJwtToken(),
@@ -1003,6 +903,12 @@ describe("#documents.drafts", () => {
     await document.save();
     collection.permission = null;
     await collection.save();
+    await CollectionUser.destroy({
+      where: {
+        userId: user.id,
+        collectionId: collection.id,
+      },
+    });
     const res = await server.post("/api/documents.drafts", {
       body: {
         token: user.getJwtToken(),
@@ -1046,6 +952,88 @@ describe("#documents.search_titles", () => {
     expect(body.data[0].id).toEqual(document.id);
   });
 
+  it("should allow filtering of results by date", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+      createdAt: subDays(new Date(), 365),
+      updatedAt: subDays(new Date(), 365),
+    });
+    const res = await server.post("/api/documents.search_titles", {
+      body: {
+        token: user.getJwtToken(),
+        query: "SECRET",
+        dateFilter: "day",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should allow filtering to include archived", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/documents.search_titles", {
+      body: {
+        token: user.getJwtToken(),
+        query: "SECRET",
+        includeArchived: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should allow filtering to include drafts", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+    });
+    const res = await server.post("/api/documents.search_titles", {
+      body: {
+        token: user.getJwtToken(),
+        query: "SECRET",
+        includeDrafts: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should allow filtering to include a user", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+    });
+    const res = await server.post("/api/documents.search_titles", {
+      body: {
+        token: user.getJwtToken(),
+        query: "SECRET",
+        userId: user.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
   it("should not include archived or deleted documents", async () => {
     const user = await buildUser();
     await buildDocument({
@@ -1078,20 +1066,6 @@ describe("#documents.search_titles", () => {
 });
 
 describe("#documents.search", () => {
-  it("should fail for invalid shareId", async () => {
-    const { user } = await seed();
-    const res = await server.post("/api/documents.search", {
-      body: {
-        token: user.getJwtToken(),
-        query: "much",
-        shareId: "invalid",
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(400);
-    expect(body.message).toEqual("shareId: Invalid uuid");
-  });
-
   it("should return results", async () => {
     const { user } = await seed();
     const res = await server.post("/api/documents.search", {
@@ -1599,21 +1573,18 @@ describe("#documents.search", () => {
       },
     });
 
-    return new Promise((resolve) => {
-      // setTimeout is needed here because SearchQuery is saved asynchronously
-      // in order to not slow down the response time.
-      setTimeout(async () => {
-        const searchQuery = await SearchQuery.findAll({
-          where: {
-            query: "my term",
-          },
-        });
-        expect(searchQuery.length).toBe(1);
-        expect(searchQuery[0].results).toBe(0);
-        expect(searchQuery[0].source).toBe("app");
-        resolve(undefined);
-      }, 100);
+    // setTimeout is needed here because SearchQuery is saved asynchronously
+    // in order to not slow down the response time.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const searchQuery = await SearchQuery.findAll({
+      where: {
+        query: "my term",
+      },
     });
+    expect(searchQuery.length).toBe(1);
+    expect(searchQuery[0].results).toBe(0);
+    expect(searchQuery[0].source).toBe("app");
   });
 });
 
@@ -1836,6 +1807,12 @@ describe("#documents.viewed", () => {
     });
     collection.permission = null;
     await collection.save();
+    await CollectionUser.destroy({
+      where: {
+        userId: user.id,
+        collectionId: collection.id,
+      },
+    });
     const res = await server.post("/api/documents.viewed", {
       body: {
         token: user.getJwtToken(),
@@ -1869,8 +1846,28 @@ describe("#documents.move", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
-      "ValidationError: infinite loop detected, cannot nest a document inside itself"
+      "infinite loop detected, cannot nest a document inside itself"
     );
+  });
+
+  it("should fail if attempting to nest doc within a draft", async () => {
+    const { user, document, collection } = await seed();
+    const draft = await buildDraftDocument({
+      userId: user.id,
+      teamId: document.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.move", {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+        parentDocumentId: draft.id,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("Cannot move document inside a draft");
   });
 
   it("should require id", async () => {
@@ -2265,6 +2262,19 @@ describe("#documents.create", () => {
     expect(body.message).toEqual("collectionId: Invalid uuid");
   });
 
+  it("should succeed if collectionId is null", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: null,
+        title: "new document",
+        text: "hello",
+      },
+    });
+    expect(res.status).toEqual(200);
+  });
+
   it("should fail for invalid parentDocumentId", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/documents.create", {
@@ -2333,7 +2343,7 @@ describe("#documents.create", () => {
 
     expect(res.status).toEqual(400);
     expect(body.message).toBe(
-      "ValidationError: collectionId is required to create a template document"
+      "collectionId is required to create a template document"
     );
   });
 
@@ -2351,9 +2361,7 @@ describe("#documents.create", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(400);
-    expect(body.message).toBe(
-      "ValidationError: collectionId is required to publish"
-    );
+    expect(body.message).toBe("collectionId is required to publish");
   });
 
   it("should not allow creating a nested doc without a collection", async () => {
@@ -2371,7 +2379,7 @@ describe("#documents.create", () => {
 
     expect(res.status).toEqual(400);
     expect(body.message).toBe(
-      "ValidationError: collectionId is required to create a nested document"
+      "collectionId is required to create a nested document"
     );
   });
 
@@ -2469,7 +2477,6 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
       },
     });
     const body = await res.json();
@@ -2492,7 +2499,6 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
         publish: true,
       },
     });
@@ -2517,7 +2523,6 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
         collectionId: collection.id,
         publish: true,
       },
@@ -2540,7 +2545,6 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
         collectionId: collection.id,
         publish: true,
       },
@@ -2595,7 +2599,6 @@ describe("#documents.update", () => {
         id: template.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: template.revisionCount,
         publish: true,
       },
     });
@@ -2614,19 +2617,24 @@ describe("#documents.update", () => {
     await document.save();
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
-      createdById: user.id,
-      collectionId: collection.id,
-      userId: user.id,
-      permission: CollectionPermission.ReadWrite,
-    });
+    await CollectionUser.update(
+      {
+        userId: user.id,
+        permission: CollectionPermission.ReadWrite,
+      },
+      {
+        where: {
+          createdById: user.id,
+          collectionId: collection.id,
+        },
+      }
+    );
     const res = await server.post("/api/documents.update", {
       body: {
         token: user.getJwtToken(),
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
         publish: true,
       },
     });
@@ -2647,25 +2655,9 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
       },
     });
     expect(res.status).toEqual(403);
-  });
-
-  it("should fail if document lastRevision does not match", async () => {
-    const { user, document } = await seed();
-    const res = await server.post("/api/documents.update", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-        text: "Updated text",
-        lastRevision: 123,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(400);
-    expect(body).toMatchSnapshot();
   });
 
   it("should update document details for children", async () => {
@@ -2682,7 +2674,7 @@ describe("#documents.update", () => {
             title: "Another doc",
             children: [],
           },
-          { ...document.toJSON(), children: [] },
+          { ...(await document.toNavigationNode()), children: [] },
         ],
       },
     ];
@@ -2700,45 +2692,55 @@ describe("#documents.update", () => {
   });
 
   it("allows editing by read-write collection user", async () => {
-    const { admin, document, collection } = await seed();
+    const { user, document, collection } = await seed();
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
-      collectionId: collection.id,
-      userId: admin.id,
-      createdById: admin.id,
-      permission: CollectionPermission.ReadWrite,
-    });
+    await CollectionUser.update(
+      {
+        createdById: user.id,
+        permission: CollectionPermission.ReadWrite,
+      },
+      {
+        where: {
+          collectionId: collection.id,
+          userId: user.id,
+        },
+      }
+    );
     const res = await server.post("/api/documents.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: user.getJwtToken(),
         id: document.id,
         text: "Changed text",
-        lastRevision: document.revisionCount,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.text).toBe("Changed text");
-    expect(body.data.updatedBy.id).toBe(admin.id);
+    expect(body.data.updatedBy.id).toBe(user.id);
   });
 
   it("does not allow editing by read-only collection user", async () => {
     const { user, document, collection } = await seed();
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
-      collectionId: collection.id,
-      userId: user.id,
-      createdById: user.id,
-      permission: CollectionPermission.Read,
-    });
+    await CollectionUser.update(
+      {
+        createdById: user.id,
+        permission: CollectionPermission.Read,
+      },
+      {
+        where: {
+          collectionId: collection.id,
+          userId: user.id,
+        },
+      }
+    );
     const res = await server.post("/api/documents.update", {
       body: {
         token: user.getJwtToken(),
         id: document.id,
         text: "Changed text",
-        lastRevision: document.revisionCount,
       },
     });
     expect(res.status).toEqual(403);
@@ -2748,12 +2750,17 @@ describe("#documents.update", () => {
     const { user, document, collection } = await seed();
     collection.permission = CollectionPermission.Read;
     await collection.save();
+    await CollectionUser.destroy({
+      where: {
+        userId: user.id,
+        collectionId: collection.id,
+      },
+    });
     const res = await server.post("/api/documents.update", {
       body: {
         token: user.getJwtToken(),
         id: document.id,
         text: "Changed text",
-        lastRevision: document.revisionCount,
       },
     });
     expect(res.status).toEqual(403);
@@ -2766,7 +2773,6 @@ describe("#documents.update", () => {
         token: user.getJwtToken(),
         id: document.id,
         text: "Additional text",
-        lastRevision: document.revisionCount,
         append: true,
       },
     });
@@ -2782,7 +2788,6 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        lastRevision: document.revisionCount,
         title: "Updated Title",
         append: true,
       },
@@ -2798,7 +2803,6 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        lastRevision: document.revisionCount,
         title: "Updated Title",
         text: "",
       },
@@ -2814,7 +2818,6 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        lastRevision: document.revisionCount,
         title: document.title,
         text: document.text,
       },
@@ -2877,6 +2880,34 @@ describe("#documents.update", () => {
     const body = await res.json();
     expect(res.status).toBe(400);
     expect(body.message).toBe("id: Required");
+  });
+
+  describe("apiVersion=2", () => {
+    it("should successfully publish a draft", async () => {
+      const { user, team, collection } = await seed();
+      const document = await buildDraftDocument({
+        title: "title",
+        text: "text",
+        teamId: team.id,
+      });
+
+      const res = await server.post("/api/documents.update", {
+        body: {
+          apiVersion: 2,
+          token: user.getJwtToken(),
+          id: document.id,
+          title: "Updated title",
+          text: "Updated text",
+          collectionId: collection.id,
+          publish: true,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.document.collectionId).toBe(collection.id);
+      expect(body.data.document.title).toBe("Updated title");
+      expect(body.data.document.text).toBe("Updated text");
+    });
   });
 });
 
@@ -2967,6 +2998,35 @@ describe("#documents.delete", () => {
     expect(deletedDoc).toBeDefined();
     expect(deletedDoc).not.toBeNull();
     expect(deletedDoc?.deletedAt).toBeTruthy();
+  });
+
+  it("should delete a draft under deleted collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+      deletedAt: new Date(),
+    });
+    const document = await buildDocument({
+      createdById: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/documents.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+
+    expect(res.status).toBe(200);
+    const deletedDoc = await Document.findByPk(document.id, {
+      paranoid: false,
+    });
+    expect(deletedDoc).not.toBe(null);
+    expect(deletedDoc?.deletedAt).not.toBe(null);
   });
 
   it("should allow permanently deleting a document", async () => {
@@ -3119,5 +3179,234 @@ describe("#documents.unpublish", () => {
       },
     });
     expect(res.status).toEqual(401);
+  });
+});
+
+describe("#documents.users", () => {
+  it("should return all users when collection is not private", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const [alan, bret, ken] = await Promise.all([
+      buildUser({
+        name: "Alan Kay",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Bret Victor",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Ken Thompson",
+        teamId: user.teamId,
+      }),
+    ]);
+
+    const res = await server.post("/api/documents.users", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.length).toBe(4);
+
+    const memberIds = body.data.map((u: User) => u.id);
+    expect(memberIds).toContain(alan.id);
+    expect(memberIds).toContain(bret.id);
+    expect(memberIds).toContain(ken.id);
+    expect(memberIds).toContain(user.id);
+  });
+
+  it("should return document users with names matching the search query", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const [alan, bret, ken, jamie] = await Promise.all([
+      buildUser({
+        name: "Alan Kay",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Bret Victor",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Ken Thompson",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Jamie Zawinsky",
+        teamId: user.teamId,
+      }),
+    ]);
+    const group = await buildGroup({
+      name: "Hackers",
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+
+    // add people to group
+    await Promise.all([
+      group.$add("user", ken, {
+        through: {
+          createdById: user.id,
+        },
+      }),
+      group.$add("user", jamie, {
+        through: {
+          createdById: user.id,
+        },
+      }),
+    ]);
+
+    // add people and groups to collection
+    await Promise.all([
+      CollectionUser.create({
+        collectionId: collection.id,
+        userId: alan.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+      CollectionUser.create({
+        collectionId: collection.id,
+        userId: bret.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+      CollectionUser.create({
+        collectionId: collection.id,
+        userId: ken.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+      CollectionGroup.create({
+        collectionId: collection.id,
+        groupId: group.id,
+        permission: CollectionPermission.ReadWrite,
+        createdById: user.id,
+      }),
+    ]);
+
+    const res = await server.post("/api/documents.users", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        query: "Al",
+      },
+    });
+    const body = await res.json();
+
+    const anotherRes = await server.post("/api/documents.users", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        query: "e",
+      },
+    });
+    const anotherBody = await anotherRes.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.length).toBe(1);
+    expect(body.data[0].id).toContain(alan.id);
+    expect(body.data[0].name).toBe(alan.name);
+
+    expect(anotherRes.status).toBe(200);
+    expect(anotherBody.data.length).toBe(4);
+    const memberIds = anotherBody.data.map((u: User) => u.id);
+    const memberNames = anotherBody.data.map((u: User) => u.name);
+    expect(memberIds).toContain(bret.id);
+    expect(memberIds).toContain(ken.id);
+    expect(memberIds).toContain(jamie.id);
+    expect(memberNames).toContain(bret.name);
+    expect(memberNames).toContain(ken.name);
+    expect(memberNames).toContain(jamie.name);
+  });
+
+  it("should not return suspended users", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const [alan, bret, ken] = await Promise.all([
+      buildUser({
+        name: "Alan Kay",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Bret Victor",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Ken Thompson",
+        teamId: user.teamId,
+      }),
+    ]);
+
+    // add people to collection
+    await Promise.all([
+      CollectionUser.create({
+        collectionId: collection.id,
+        userId: alan.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+      CollectionUser.create({
+        collectionId: collection.id,
+        userId: bret.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+      CollectionUser.create({
+        collectionId: collection.id,
+        userId: ken.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+    ]);
+
+    // suspend Alan
+    alan.suspendedAt = new Date();
+    await alan.save();
+
+    const res = await server.post("/api/documents.users", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.length).toBe(3);
+
+    const memberIds = body.data.map((u: User) => u.id);
+    expect(memberIds).not.toContain(alan.id);
+    expect(memberIds).toContain(bret.id);
+    expect(memberIds).toContain(ken.id);
   });
 });

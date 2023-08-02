@@ -1,6 +1,7 @@
 import isPrintableKeyEvent from "is-printable-key-event";
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import useOnScreen from "~/hooks/useOnScreen";
 
 type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
@@ -30,67 +31,76 @@ export type RefHandle = {
  * Defines a content editable component with the same interface as a native
  * HTMLInputElement (or, as close as we can get).
  */
-const ContentEditable = React.forwardRef(
-  (
-    {
-      disabled,
-      onChange,
-      onInput,
-      onBlur,
-      onKeyDown,
-      value,
-      children,
-      className,
-      maxLength,
-      autoFocus,
-      placeholder,
-      readOnly,
-      dir,
-      onClick,
-      ...rest
-    }: Props,
-    ref: React.RefObject<RefHandle>
-  ) => {
-    const contentRef = React.useRef<HTMLSpanElement>(null);
-    const [innerValue, setInnerValue] = React.useState<string>(value);
-    const lastValue = React.useRef("");
-    const parentRef = React.useRef<HTMLDivElement>(null);
+const ContentEditable = React.forwardRef(function _ContentEditable(
+  {
+    disabled,
+    onChange,
+    onInput,
+    onBlur,
+    onKeyDown,
+    value,
+    children,
+    className,
+    maxLength,
+    autoFocus,
+    placeholder,
+    readOnly,
+    dir,
+    onClick,
+    ...rest
+  }: Props,
+  ref: React.RefObject<RefHandle>
+) {
+  const contentRef = React.useRef<HTMLSpanElement>(null);
+  const [innerValue, setInnerValue] = React.useState<string>(value);
+  const lastValue = React.useRef(value);
+  const parentRef = React.useRef<HTMLDivElement>(null);
 
-    React.useImperativeHandle(ref, () => ({
-      element: () => {
-        return parentRef.current;
-      },
-      focus: () => {
-        contentRef.current?.focus();
-      },
-      focusAtStart: () => {
-        if (contentRef.current) {
-          contentRef.current.focus();
+  React.useImperativeHandle(ref, () => ({
+    element: () => parentRef.current,
+    focus: () => {
+      if (contentRef.current) {
+        contentRef.current.focus();
+        // looks unnecessary but required because of https://github.com/outline/outline/issues/5198
+        if (!contentRef.current.innerText) {
           placeCaret(contentRef.current, true);
         }
-      },
-      focusAtEnd: () => {
-        if (contentRef.current) {
-          contentRef.current.focus();
-          placeCaret(contentRef.current, false);
-        }
-      },
-      getComputedDirection: () => {
-        if (contentRef.current) {
-          return window.getComputedStyle(contentRef.current).direction;
-        }
-        return "ltr";
-      },
-    }));
+      }
+    },
+    focusAtStart: () => {
+      if (contentRef.current) {
+        contentRef.current.focus();
+        placeCaret(contentRef.current, true);
+      }
+    },
+    focusAtEnd: () => {
+      if (contentRef.current) {
+        contentRef.current.focus();
+        placeCaret(contentRef.current, false);
+      }
+    },
+    getComputedDirection: () => {
+      if (contentRef.current) {
+        return window.getComputedStyle(contentRef.current).direction;
+      }
+      return "ltr";
+    },
+  }));
 
-    const wrappedEvent = (
+  const wrappedEvent =
+    (
       callback:
         | React.FocusEventHandler<HTMLSpanElement>
         | React.FormEventHandler<HTMLSpanElement>
         | React.KeyboardEventHandler<HTMLSpanElement>
         | undefined
-    ) => (event: any) => {
-      const text = contentRef.current?.innerText || "";
+    ) =>
+    (event: any) => {
+      if (readOnly) {
+        return;
+      }
+
+      const text = event.currentTarget.textContent || "";
 
       if (maxLength && isPrintableKeyEvent(event) && text.length >= maxLength) {
         event?.preventDefault();
@@ -99,65 +109,65 @@ const ContentEditable = React.forwardRef(
 
       if (text !== lastValue.current) {
         lastValue.current = text;
-        onChange && onChange(text);
+        onChange?.(text);
       }
 
       callback?.(event);
     };
 
-    // This is to account for being within a React.Suspense boundary, in this
-    // case the component may be rendered with display: none. React 18 may solve
-    // this in the future by delaying useEffect hooks:
-    // https://github.com/facebook/react/issues/14536#issuecomment-861980492
-    const isVisible = useOnScreen(contentRef);
+  // This is to account for being within a React.Suspense boundary, in this
+  // case the component may be rendered with display: none. React 18 may solve
+  // this in the future by delaying useEffect hooks:
+  // https://github.com/facebook/react/issues/14536#issuecomment-861980492
+  const isVisible = useOnScreen(contentRef);
 
-    React.useEffect(() => {
-      if (autoFocus && isVisible && !disabled && !readOnly) {
-        contentRef.current?.focus();
-      }
-    }, [autoFocus, disabled, isVisible, readOnly, contentRef]);
+  React.useEffect(() => {
+    if (autoFocus && isVisible && !disabled && !readOnly) {
+      contentRef.current?.focus();
+    }
+  }, [autoFocus, disabled, isVisible, readOnly, contentRef]);
 
-    React.useEffect(() => {
-      if (value !== contentRef.current?.innerText) {
-        setInnerValue(value);
-      }
-    }, [value, contentRef]);
+  React.useEffect(() => {
+    if (contentRef.current && value !== contentRef.current.textContent) {
+      setInnerValue(value);
+    }
+  }, [value, contentRef]);
 
-    // Ensure only plain text can be pasted into input when pasting from another
-    // rich text source
-    const handlePaste = React.useCallback(
-      (event: React.ClipboardEvent<HTMLSpanElement>) => {
-        event.preventDefault();
-        const text = event.clipboardData.getData("text/plain");
-        window.document.execCommand("insertText", false, text);
-      },
-      []
-    );
+  // Ensure only plain text can be pasted into input when pasting from another
+  // rich text source. Note: If `onPaste` prop is passed then it takes
+  // priority over this behavior.
+  const handlePaste = React.useCallback(
+    (event: React.ClipboardEvent<HTMLSpanElement>) => {
+      event.preventDefault();
+      const text = event.clipboardData.getData("text/plain");
+      window.document.execCommand("insertText", false, text);
+    },
+    []
+  );
 
-    const childrenArr = React.Children.toArray(children);
+  const childrenArr = React.Children.toArray(children);
 
-    return (
-      <div className={className} dir={dir} onClick={onClick} ref={parentRef}>
-        {childrenArr.length > 1 ? childrenArr[0] : null}
-        <Content
-          ref={contentRef}
-          contentEditable={!disabled && !readOnly}
-          onInput={wrappedEvent(onInput)}
-          onBlur={wrappedEvent(onBlur)}
-          onKeyDown={wrappedEvent(onKeyDown)}
-          onPaste={handlePaste}
-          data-placeholder={placeholder}
-          suppressContentEditableWarning
-          role="textbox"
-          {...rest}
-        >
-          {innerValue}
-        </Content>
-        {childrenArr.length > 1 ? childrenArr[1] : childrenArr[0]}
-      </div>
-    );
-  }
-);
+  return (
+    <div className={className} dir={dir} onClick={onClick} ref={parentRef}>
+      {childrenArr.length > 1 ? childrenArr[0] : null}
+      <Content
+        ref={contentRef}
+        contentEditable={!disabled && !readOnly}
+        onInput={wrappedEvent(onInput)}
+        onBlur={wrappedEvent(onBlur)}
+        onKeyDown={wrappedEvent(onKeyDown)}
+        onPaste={handlePaste}
+        data-placeholder={placeholder}
+        suppressContentEditableWarning
+        role="textbox"
+        {...rest}
+      >
+        {innerValue}
+      </Content>
+      {childrenArr.length > 1 ? childrenArr[1] : childrenArr[0]}
+    </div>
+  );
+});
 
 function placeCaret(element: HTMLElement, atStart: boolean) {
   if (
@@ -174,13 +184,14 @@ function placeCaret(element: HTMLElement, atStart: boolean) {
 }
 
 const Content = styled.span`
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
-  color: ${(props) => props.theme.text};
-  -webkit-text-fill-color: ${(props) => props.theme.text};
+  background: ${s("background")};
+  transition: ${s("backgroundTransition")};
+  color: ${s("text")};
+  -webkit-text-fill-color: ${s("text")};
   outline: none;
   resize: none;
   cursor: text;
+  word-break: anywhere;
 
   &:empty {
     display: inline-block;
@@ -188,8 +199,8 @@ const Content = styled.span`
 
   &:empty::before {
     display: inline-block;
-    color: ${(props) => props.theme.placeholder};
-    -webkit-text-fill-color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
+    -webkit-text-fill-color: ${s("placeholder")};
     content: attr(data-placeholder);
     pointer-events: none;
     height: 0;

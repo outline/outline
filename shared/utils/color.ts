@@ -19,9 +19,8 @@ export const palette = [
   darken(0.2, theme.brand.yellow),
 ];
 
-export const validateColorHex = (color: string) => {
-  return /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(color);
-};
+export const validateColorHex = (color: string) =>
+  /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(color);
 
 export const stringToColor = (input: string) => {
   const inputAsNumber = parseInt(md5(input).toString(), 16);

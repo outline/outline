@@ -1,48 +1,72 @@
 import { Transaction } from "sequelize";
 import { Document, Event, User } from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 
-export default async function documentCreator({
-  title = "",
-  text = "",
-  id,
-  publish,
-  collectionId,
-  parentDocumentId,
-  templateDocument,
-  importId,
-  createdAt,
-  // allows override for import
-  updatedAt,
-  template,
-  user,
-  editorVersion,
-  publishedAt,
-  source,
-  ip,
-  transaction,
-}: {
+type Props = {
   id?: string;
+  urlId?: string;
   title: string;
-  text: string;
+  text?: string;
+  state?: Buffer;
   publish?: boolean;
-  collectionId?: string;
+  collectionId?: string | null;
   parentDocumentId?: string | null;
   importId?: string;
-  templateDocument?: Document | null;
   publishedAt?: Date;
   template?: boolean;
+  templateDocument?: Document | null;
+  fullWidth?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
   user: User;
   editorVersion?: string;
   source?: "import";
   ip?: string;
-  transaction: Transaction;
-}): Promise<Document> {
+  transaction?: Transaction;
+};
+
+export default async function documentCreator({
+  title = "",
+  text = "",
+  state,
+  id,
+  urlId,
+  publish,
+  collectionId,
+  parentDocumentId,
+  template,
+  templateDocument,
+  fullWidth,
+  importId,
+  createdAt,
+  // allows override for import
+  updatedAt,
+  user,
+  editorVersion,
+  publishedAt,
+  source,
+  ip,
+  transaction,
+}: Props): Promise<Document> {
   const templateId = templateDocument ? templateDocument.id : undefined;
+
+  if (urlId) {
+    const existing = await Document.unscoped().findOne({
+      attributes: ["id"],
+      transaction,
+      where: {
+        urlId,
+      },
+    });
+    if (existing) {
+      urlId = undefined;
+    }
+  }
+
   const document = await Document.create(
     {
       id,
+      urlId,
       parentDocumentId,
       editorVersion,
       collectionId,
@@ -54,12 +78,17 @@ export default async function documentCreator({
       createdById: user.id,
       template,
       templateId,
+      fullWidth,
       publishedAt,
       importId,
-      title: templateDocument ? templateDocument.title : title,
+      title: templateDocument
+        ? DocumentHelper.replaceTemplateVariables(templateDocument.title, user)
+        : title,
       text: templateDocument ? templateDocument.text : text,
+      state,
     },
     {
+      silent: !!createdAt,
       transaction,
     }
   );
@@ -83,7 +112,7 @@ export default async function documentCreator({
   );
 
   if (publish) {
-    await document.publish(user.id, { transaction });
+    await document.publish(user.id, collectionId!, { transaction });
     await Event.create(
       {
         name: "documents.publish",

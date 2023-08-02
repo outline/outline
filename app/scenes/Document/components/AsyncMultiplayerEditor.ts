@@ -1,11 +1,5 @@
-import * as React from "react";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 
-const MultiplayerEditor = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "preload-multiplayer-editor" */
-      "./MultiplayerEditor"
-    )
-);
+const MultiplayerEditor = lazyWithRetry(() => import("./MultiplayerEditor"));
 
 export default MultiplayerEditor;

@@ -1,12 +1,13 @@
 import styled from "styled-components";
+import { s } from "@shared/styles";
 
 const Separator = styled.div`
-  height: 24px;
-  width: 2px;
-  background: ${(props) => props.theme.toolbarItem};
-  opacity: 0.3;
+  height: 36px;
+  width: 1px;
+  background: ${s("textTertiary")};
+  opacity: 0.25;
   display: inline-block;
-  margin-left: 8px;
+  margin: -6px 2px;
 `;
 
 export default Separator;

@@ -1,8 +1,10 @@
 import Queue from "bull";
 import { snakeCase } from "lodash";
+import { Second } from "@shared/utils/time";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
 import Redis from "../redis";
+import ShutdownHelper, { ShutdownOrder } from "./ShutdownHelper";
 
 export function createQueue(
   name: string,
@@ -51,11 +53,16 @@ export function createQueue(
   });
 
   if (env.ENVIRONMENT !== "test") {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setInterval(async () => {
       Metrics.gauge(`${prefix}.count`, await queue.count());
       Metrics.gauge(`${prefix}.delayed_count`, await queue.getDelayedCount());
-    }, 5 * 1000);
+    }, 5 * Second);
   }
+
+  ShutdownHelper.add(name, ShutdownOrder.normal, async () => {
+    await queue.close();
+  });
 
   return queue;
 }

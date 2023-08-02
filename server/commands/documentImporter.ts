@@ -7,8 +7,9 @@ import { Transaction } from "sequelize";
 import utf8 from "utf8";
 import parseTitle from "@shared/utils/parseTitle";
 import { DocumentValidation } from "@shared/validations";
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
+import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
 import dataURItoBuffer from "@server/utils/dataURItoBuffer";
 import parseImages from "@server/utils/parseImages";
 import turndownService from "@server/utils/turndown";
@@ -30,8 +31,7 @@ const importMapping: ImportableFile[] = [
     getMarkdown: docxToMarkdown,
   },
   {
-    type:
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     getMarkdown: docxToMarkdown,
   },
   {
@@ -57,7 +57,10 @@ async function fileToMarkdown(content: Buffer | string): Promise<string> {
 
 async function docxToMarkdown(content: Buffer | string): Promise<string> {
   if (content instanceof Buffer) {
-    const { value: html } = await mammoth.convertToHtml({ buffer: content });
+    const { value: html } = await mammoth.convertToHtml({
+      buffer: content,
+    });
+
     return turndownService.turndown(html);
   }
 
@@ -147,6 +150,7 @@ async function documentImporter({
 }): Promise<{
   text: string;
   title: string;
+  state: Buffer;
 }> {
   const fileInfo = importMapping.filter((item) => {
     if (item.type === mimeType) {
@@ -223,13 +227,22 @@ async function documentImporter({
   // It's better to truncate particularly long titles than fail the import
   title = truncate(title, { length: DocumentValidation.maxTitleLength });
 
+  const ydoc = ProsemirrorHelper.toYDoc(text);
+  const state = ProsemirrorHelper.toState(ydoc);
+
+  if (state.length > DocumentValidation.maxStateLength) {
+    throw InvalidRequestError(
+      `The document is too large to import, please reduce the length and try again`
+    );
+  }
+
   return {
     text,
+    state,
     title,
   };
 }
 
-export default APM.traceFunction({
-  serviceName: "command",
+export default traceFunction({
   spanName: "documentImporter",
 })(documentImporter);

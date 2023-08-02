@@ -2,6 +2,7 @@ import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
 
 type Props = React.ComponentProps<typeof Button> & {
@@ -21,7 +22,7 @@ function Disclosure({ onClick, root, expanded, ...rest }: Props) {
       aria-label={expanded ? t("Collapse") : t("Expand")}
       {...rest}
     >
-      <StyledCollapsedIcon expanded={expanded} size={20} color="currentColor" />
+      <StyledCollapsedIcon expanded={expanded} size={20} />
     </Button>
   );
 }
@@ -30,11 +31,11 @@ const Button = styled(NudeButton)<{ $root?: boolean }>`
   position: absolute;
   left: -24px;
   flex-shrink: 0;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
 
   &:hover {
-    color: ${(props) => props.theme.text};
-    background: ${(props) => props.theme.sidebarControlHoverBackground};
+    color: ${s("text")};
+    background: ${s("sidebarControlHoverBackground")};
   }
 
   ${(props) =>

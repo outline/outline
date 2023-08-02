@@ -23,8 +23,8 @@ function Toasts() {
 
 const List = styled.ol`
   position: fixed;
-  left: ${(props) => props.theme.hpadding};
-  bottom: ${(props) => props.theme.vpadding};
+  left: 16px;
+  bottom: 16px;
   list-style: none;
   margin: 0;
   padding: 0;

@@ -9,6 +9,7 @@ import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import Button, { Inner } from "~/components/Button";
 import Text from "~/components/Text";
 import useMenuHeight from "~/hooks/useMenuHeight";
@@ -42,12 +43,11 @@ export type Props = {
   icon?: React.ReactNode;
   options: Option[];
   note?: React.ReactNode;
-  onChange: (value: string | null) => void;
+  onChange?: (value: string | null) => void;
 };
 
-const getOptionFromValue = (options: Option[], value: string | null) => {
-  return options.find((option) => option.value === value);
-};
+const getOptionFromValue = (options: Option[], value: string | null) =>
+  options.find((option) => option.value === value);
 
 const InputSelect = (props: Props) => {
   const {
@@ -85,11 +85,11 @@ const InputSelect = (props: Props) => {
   const contentRef = React.useRef<HTMLDivElement>(null);
   const minWidth = buttonRef.current?.offsetWidth || 0;
   const margin = 8;
-  const menuMaxHeight = useMenuHeight(
-    select.visible,
-    select.unstable_disclosureRef,
-    margin
-  );
+  const menuMaxHeight = useMenuHeight({
+    visible: select.visible,
+    elementRef: select.unstable_disclosureRef,
+    margin,
+  });
   const maxHeight = Math.min(
     menuMaxHeight ?? 0,
     window.innerHeight -
@@ -108,11 +108,7 @@ const InputSelect = (props: Props) => {
     }
     previousValue.current = select.selectedValue;
 
-    async function load() {
-      await onChange(select.selectedValue);
-    }
-
-    load();
+    onChange?.(select.selectedValue);
   }, [onChange, select.selectedValue]);
 
   React.useLayoutEffect(() => {
@@ -218,7 +214,7 @@ const Background = styled(ContextMenuBackground)`
 `;
 
 const Placeholder = styled.span`
-  color: ${(props) => props.theme.placeholder};
+  color: ${s("placeholder")};
 `;
 
 const Spacer = styled.div`
@@ -236,7 +232,7 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
   cursor: default;
 
   &:hover:not(:disabled) {
-    background: ${(props) => props.theme.buttonNeutralBackground};
+    background: ${s("buttonNeutralBackground")};
   }
 
   ${(props) =>
@@ -276,7 +272,7 @@ const Positioner = styled(Position)`
     ${StyledSelectOption} {
       &[aria-selected="true"] {
         color: ${(props) => props.theme.white};
-        background: ${(props) => props.theme.primary};
+        background: ${s("accent")};
         box-shadow: none;
         cursor: var(--pointer);
 

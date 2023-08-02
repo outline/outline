@@ -5,6 +5,7 @@ import {
   AlignImageLeftIcon,
   AlignImageRightIcon,
   AlignImageCenterIcon,
+  AlignFullWidthIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
@@ -23,6 +24,9 @@ export default function imageMenuItems(
   const isRightAligned = isNodeActive(schema.nodes.image, {
     layoutClass: "right-50",
   });
+  const isFullWidthAligned = isNodeActive(schema.nodes.image, {
+    layoutClass: "full-width",
+  });
 
   return [
     {
@@ -40,7 +44,8 @@ export default function imageMenuItems(
       active: (state) =>
         isNodeActive(schema.nodes.image)(state) &&
         !isLeftAligned(state) &&
-        !isRightAligned(state),
+        !isRightAligned(state) &&
+        !isFullWidthAligned(state),
     },
     {
       name: "alignRight",
@@ -48,6 +53,13 @@ export default function imageMenuItems(
       icon: <AlignImageRightIcon />,
       visible: true,
       active: isRightAligned,
+    },
+    {
+      name: "alignFullWidth",
+      tooltip: dictionary.alignFullWidth,
+      icon: <AlignFullWidthIcon />,
+      visible: true,
+      active: isFullWidthAligned,
     },
     {
       name: "separator",
@@ -58,21 +70,18 @@ export default function imageMenuItems(
       tooltip: dictionary.downloadImage,
       icon: <DownloadIcon />,
       visible: !!fetch,
-      active: () => false,
     },
     {
       name: "replaceImage",
       tooltip: dictionary.replaceImage,
       icon: <ReplaceIcon />,
       visible: true,
-      active: () => false,
     },
     {
       name: "deleteImage",
       tooltip: dictionary.deleteImage,
       icon: <TrashIcon />,
       visible: true,
-      active: () => false,
     },
   ];
 }

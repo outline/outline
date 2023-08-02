@@ -8,8 +8,8 @@ export default function useCollectionDocuments(
   activeDocument: Document | undefined
 ) {
   return React.useMemo(() => {
-    if (!collection) {
-      return [];
+    if (!collection?.sortedDocuments) {
+      return undefined;
     }
 
     const insertDraftDocument =

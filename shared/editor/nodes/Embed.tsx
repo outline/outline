@@ -1,12 +1,13 @@
 import Token from "markdown-it/lib/token";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import { Command } from "prosemirror-state";
 import * as React from "react";
+import { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
 import DisabledEmbed from "../components/DisabledEmbed";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
-import { ComponentProps, Dispatch } from "../types";
+import { ComponentProps } from "../types";
 import Node from "./Node";
 
 const cache = {};
@@ -114,27 +115,28 @@ export default class Embed extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, any>) => (
-      state: EditorState,
-      dispatch: Dispatch
-    ) => {
-      dispatch(
-        state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
-      );
-      return true;
-    };
+    return (attrs: Record<string, Primitive>): Command =>
+      (state, dispatch) => {
+        dispatch?.(
+          state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
+        );
+        return true;
+      };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.ensureNewLine();
+    if (!state.inTable) {
+      state.ensureNewLine();
+    }
+
+    const href = node.attrs.href.replace(/_/g, "%5F");
+
     state.write(
-      "[" +
-        state.esc(node.attrs.href, false) +
-        "](" +
-        state.esc(node.attrs.href, false) +
-        ")"
+      "[" + state.esc(href, false) + "](" + state.esc(href, false) + ")"
     );
-    state.write("\n\n");
+    if (!state.inTable) {
+      state.write("\n\n");
+    }
   }
 
   parseMarkdown() {

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Primitive } from "utility-types";
+import Storage from "@shared/utils/Storage";
 import Logger from "~/utils/Logger";
-import Storage from "~/utils/Storage";
 import useEventListener from "./useEventListener";
 
 type Options = {
@@ -18,7 +18,7 @@ type Options = {
  * @param options Options for the hook
  * @returns Tuple of the current value and a function to update it
  */
-export default function usePersistedState<T extends Primitive>(
+export default function usePersistedState<T extends Primitive | object>(
   key: string,
   defaultValue: T,
   options?: Options

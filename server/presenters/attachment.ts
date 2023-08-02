@@ -1,6 +1,6 @@
 import { Attachment } from "@server/models";
 
-export default function present(attachment: Attachment) {
+export default function presentAttachment(attachment: Attachment) {
   return {
     documentId: attachment.documentId,
     contentType: attachment.contentType,

@@ -28,18 +28,12 @@ function AddPeopleToGroup(props: Props) {
   const { t } = useTranslation();
 
   const [query, setQuery] = React.useState("");
-  const [
-    inviteModalOpen,
-    handleInviteModalOpen,
-    handleInviteModalClose,
-  ] = useBoolean(false);
+  const [inviteModalOpen, handleInviteModalOpen, handleInviteModalClose] =
+    useBoolean(false);
 
   const { fetchPage: fetchUsers } = users;
   const debouncedFetch = React.useMemo(
-    () =>
-      debounce((query) => {
-        fetchUsers({ query });
-      }, 250),
+    () => debounce((query) => fetchUsers({ query }), 250),
     [fetchUsers]
   );
 
@@ -47,7 +41,7 @@ function AddPeopleToGroup(props: Props) {
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       const updatedQuery = ev.target.value;
       setQuery(updatedQuery);
-      debouncedFetch(updatedQuery);
+      void debouncedFetch(updatedQuery);
     },
     [debouncedFetch]
   );

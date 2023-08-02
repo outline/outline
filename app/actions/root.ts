@@ -2,6 +2,7 @@ import { rootCollectionActions } from "./definitions/collections";
 import { rootDeveloperActions } from "./definitions/developer";
 import { rootDocumentActions } from "./definitions/documents";
 import { rootNavigationActions } from "./definitions/navigation";
+import { rootNotificationActions } from "./definitions/notifications";
 import { rootRevisionActions } from "./definitions/revisions";
 import { rootSettingsActions } from "./definitions/settings";
 import { rootTeamActions } from "./definitions/teams";
@@ -12,6 +13,7 @@ export default [
   ...rootDocumentActions,
   ...rootUserActions,
   ...rootNavigationActions,
+  ...rootNotificationActions,
   ...rootRevisionActions,
   ...rootSettingsActions,
   ...rootDeveloperActions,

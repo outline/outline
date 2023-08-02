@@ -7,7 +7,7 @@ import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
-import useAuthorizedSettingsConfig from "~/hooks/useAuthorizedSettingsConfig";
+import useSettingsConfig from "~/hooks/useSettingsConfig";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Sidebar from "./Sidebar";
@@ -21,7 +21,7 @@ import Version from "./components/Version";
 function SettingsSidebar() {
   const { t } = useTranslation();
   const history = useHistory();
-  const configs = useAuthorizedSettingsConfig();
+  const configs = useSettingsConfig();
   const groupedConfig = groupBy(configs, "group");
 
   const returnToApp = React.useCallback(() => {
@@ -33,7 +33,7 @@ function SettingsSidebar() {
       <HistoryNavigation />
       <HeaderButton
         title={t("Return to App")}
-        image={<StyledBackIcon color="currentColor" />}
+        image={<StyledBackIcon />}
         onClick={returnToApp}
         minHeight={Desktop.hasInsetTitlebar() ? undefined : 48}
       />
@@ -47,7 +47,7 @@ function SettingsSidebar() {
                   <SidebarLink
                     key={item.path}
                     to={item.path}
-                    icon={<item.icon color="currentColor" />}
+                    icon={<item.icon />}
                     label={item.name}
                   />
                 ))}

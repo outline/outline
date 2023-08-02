@@ -11,7 +11,7 @@ export default function SearchActions() {
 
   React.useEffect(() => {
     if (!searches.isLoaded) {
-      searches.fetchPage({});
+      void searches.fetchPage({});
     }
   }, [searches]);
 
@@ -20,7 +20,8 @@ export default function SearchActions() {
   }));
 
   useCommandBarActions(
-    searchQuery ? [searchDocumentsForQuery(searchQuery)] : []
+    searchQuery ? [searchDocumentsForQuery(searchQuery)] : [],
+    [searchQuery]
   );
 
   useCommandBarActions(searches.recent.map(navigateToRecentSearchQuery));

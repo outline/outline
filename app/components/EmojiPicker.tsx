@@ -15,13 +15,13 @@ type Props = {
   emojiPresent: boolean;
 };
 
-const EmojiPicker: React.FC<Props> = ({
+function EmojiPicker({
   disclosure,
   onEmojiChange,
   pickerTheme,
   emojiPresent,
   ...pickerOptions
-}) => {
+}: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
 
@@ -82,7 +82,7 @@ const EmojiPicker: React.FC<Props> = ({
       </PickerPopover>
     </>
   );
-};
+}
 
 const RemoveButton = styled(Button)`
   margin-left: -12px;

@@ -4,12 +4,15 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
+import { ellipsis } from "@shared/styles";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import Separator from "~/components/ContextMenu/Separator";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { replaceTitleVariables } from "~/utils/date";
 
 type Props = {
   document: Document;
@@ -20,6 +23,7 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
   const menu = useMenuState({
     modal: true,
   });
+  const user = useCurrentUser();
   const { documents } = useStores();
   const { t } = useTranslation();
   const templates = documents.templates;
@@ -43,7 +47,9 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
       {...menu}
     >
       <TemplateItem>
-        <strong>{template.titleWithDefault}</strong>
+        <strong>
+          {replaceTitleVariables(template.titleWithDefault, user)}
+        </strong>
         <br />
         <Author>
           {t("By {{ author }}", {
@@ -76,6 +82,7 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
 
 const TemplateItem = styled.div`
   text-align: left;
+  ${ellipsis()}
 `;
 
 const Author = styled.div`

@@ -2,42 +2,48 @@ import { observer } from "mobx-react";
 import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { FileOperationType } from "@shared/types";
 import { cdnPath } from "@shared/utils/urls";
 import FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
+import MarkdownIcon from "~/components/Icons/MarkdownIcon";
+import OutlineIcon from "~/components/Icons/OutlineIcon";
 import Item from "~/components/List/Item";
-import OutlineLogo from "~/components/OutlineLogo";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import env from "~/env";
 import useStores from "~/hooks/useStores";
 import FileOperationListItem from "./components/FileOperationListItem";
+import ImportJSONDialog from "./components/ImportJSONDialog";
+import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
 import ImportNotionDialog from "./components/ImportNotionDialog";
-import ImportOutlineDialog from "./components/ImportOutlineDialog";
 
 function Import() {
   const { t } = useTranslation();
   const { dialogs, fileOperations } = useStores();
+  const appName = env.APP_NAME;
 
   return (
-    <Scene title={t("Import")} icon={<NewDocumentIcon color="currentColor" />}>
+    <Scene title={t("Import")} icon={<NewDocumentIcon />}>
       <Heading>{t("Import")}</Heading>
       <Text type="secondary">
         <Trans>
           Quickly transfer your existing documents, pages, and files from other
-          tools and services into Outline. You can also drag and drop any HTML,
-          Markdown, and text documents directly into Collections in the app.
+          tools and services into {{ appName }}. You can also drag and drop any
+          HTML, Markdown, and text documents directly into Collections in the
+          app.
         </Trans>
       </Text>
 
       <div>
         <Item
           border={false}
-          image={<OutlineLogo size={28} fill="currentColor" />}
-          title="Outline"
+          image={<MarkdownIcon size={28} />}
+          title={t("Markdown")}
           subtitle={t(
-            "Import a backup file that was previously exported from Outline"
+            "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)"
           )}
           actions={
             <Button
@@ -46,7 +52,33 @@ function Import() {
                 dialogs.openModal({
                   title: t("Import data"),
                   isCentered: true,
-                  content: <ImportOutlineDialog />,
+                  content: <ImportMarkdownDialog />,
+                });
+              }}
+              neutral
+            >
+              {t("Import")}…
+            </Button>
+          }
+        />
+        <Item
+          border={false}
+          image={<OutlineIcon size={28} cover />}
+          title="JSON"
+          subtitle={t(
+            "Import a JSON data file exported from another {{ appName }} instance",
+            {
+              appName,
+            }
+          )}
+          actions={
+            <Button
+              type="submit"
+              onClick={() => {
+                dialogs.openModal({
+                  title: t("Import data"),
+                  isCentered: true,
+                  content: <ImportJSONDialog />,
                 });
               }}
               neutral
@@ -93,7 +125,7 @@ function Import() {
         items={fileOperations.imports}
         fetch={fileOperations.fetchPage}
         options={{
-          type: "import",
+          type: FileOperationType.Import,
         }}
         heading={
           <h2>

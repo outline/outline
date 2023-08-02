@@ -45,6 +45,10 @@ function InputSearchPage({
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      if (ev.nativeEvent.isComposing) {
+        return;
+      }
+
       if (ev.key === "Enter") {
         ev.preventDefault();
         history.push(
@@ -68,7 +72,7 @@ function InputSearchPage({
 
   return (
     <InputMaxWidth
-      innerRef={inputRef}
+      ref={inputRef}
       type="search"
       placeholder={placeholder || `${t("Search")}…`}
       value={value}

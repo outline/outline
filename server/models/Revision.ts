@@ -1,4 +1,4 @@
-import { FindOptions, Op } from "sequelize";
+import { Op, SaveOptions } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -9,15 +9,12 @@ import {
   IsNumeric,
   Length as SimpleLength,
 } from "sequelize-typescript";
-import MarkdownSerializer from "slate-md-serializer";
 import { DocumentValidation } from "@shared/validations";
 import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
-
-const serializer = new MarkdownSerializer();
 
 @DefaultScope(() => ({
   include: [
@@ -77,24 +74,26 @@ class Revision extends IdModel {
     });
   }
 
+  static buildFromDocument(document: Document) {
+    return this.build({
+      title: document.title,
+      text: document.text,
+      userId: document.lastModifiedById,
+      editorVersion: document.editorVersion,
+      version: document.version,
+      documentId: document.id,
+      // revision time is set to the last time document was touched as this
+      // handler can be debounced in the case of an update
+      createdAt: document.updatedAt,
+    });
+  }
+
   static createFromDocument(
     document: Document,
-    options?: FindOptions<Revision>
+    options?: SaveOptions<Revision>
   ) {
-    return this.create(
-      {
-        title: document.title,
-        text: document.text,
-        userId: document.lastModifiedById,
-        editorVersion: document.editorVersion,
-        version: document.version,
-        documentId: document.id,
-        // revision time is set to the last time document was touched as this
-        // handler can be debounced in the case of an update
-        createdAt: document.updatedAt,
-      },
-      options
-    );
+    const revision = this.buildFromDocument(document);
+    return revision.save(options);
   }
 
   // instance methods
@@ -110,35 +109,6 @@ class Revision extends IdModel {
       order: [["createdAt", "DESC"]],
     });
   }
-
-  migrateVersion = function () {
-    let migrated = false;
-
-    // migrate from document version 0 -> 1
-    if (!this.version) {
-      // removing the title from the document text attribute
-      this.text = this.text.replace(/^#\s(.*)\n/, "");
-      this.version = 1;
-      migrated = true;
-    }
-
-    // migrate from document version 1 -> 2
-    if (this.version === 1) {
-      const nodes = serializer.deserialize(this.text);
-      this.text = serializer.serialize(nodes, {
-        version: 2,
-      });
-      this.version = 2;
-      migrated = true;
-    }
-
-    if (migrated) {
-      return this.save({
-        silent: true,
-        hooks: false,
-      });
-    }
-  };
 }
 
 export default Revision;

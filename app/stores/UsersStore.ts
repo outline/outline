@@ -143,11 +143,10 @@ export default class UsersStore extends BaseStore<User> {
   };
 
   @action
-  resendInvite = async (user: User) => {
-    return client.post(`/users.resendInvite`, {
+  resendInvite = async (user: User) =>
+    client.post(`/users.resendInvite`, {
       id: user.id,
     });
-  };
 
   @action
   fetchCounts = async (teamId: string): Promise<any> => {
@@ -160,8 +159,27 @@ export default class UsersStore extends BaseStore<User> {
   };
 
   @action
+  fetchDocumentUsers = async (params: {
+    id: string;
+    query?: string;
+  }): Promise<User[]> => {
+    try {
+      const res = await client.post("/documents.users", params);
+      invariant(res?.data, "User list not available");
+      let response: User[] = [];
+      runInAction("DocumentsStore#fetchUsers", () => {
+        response = res.data.map(this.add);
+        this.addPolicies(res.policies);
+      });
+      return response;
+    } catch (err) {
+      return Promise.resolve([]);
+    }
+  };
+
+  @action
   async delete(user: User, options: Record<string, any> = {}) {
-    super.delete(user, options);
+    await super.delete(user, options);
 
     if (!user.isSuspended && user.lastActiveAt) {
       this.counts.active -= 1;

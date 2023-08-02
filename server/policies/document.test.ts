@@ -34,6 +34,7 @@ describe("read_write collection", () => {
     expect(abilities.delete).toEqual(true);
     expect(abilities.share).toEqual(true);
     expect(abilities.move).toEqual(true);
+    expect(abilities.comment).toEqual(true);
   });
 
   it("should allow read permissions for viewer", async () => {
@@ -59,6 +60,9 @@ describe("read_write collection", () => {
     expect(abilities.delete).toEqual(false);
     expect(abilities.share).toEqual(false);
     expect(abilities.move).toEqual(false);
+    expect(abilities.subscribe).toEqual(true);
+    expect(abilities.unsubscribe).toEqual(true);
+    expect(abilities.comment).toEqual(true);
   });
 });
 
@@ -85,6 +89,9 @@ describe("read collection", () => {
     expect(abilities.delete).toEqual(false);
     expect(abilities.share).toEqual(false);
     expect(abilities.move).toEqual(false);
+    expect(abilities.subscribe).toEqual(true);
+    expect(abilities.unsubscribe).toEqual(true);
+    expect(abilities.comment).toEqual(true);
   });
 });
 
@@ -111,6 +118,9 @@ describe("private collection", () => {
     expect(abilities.delete).toEqual(false);
     expect(abilities.share).toEqual(false);
     expect(abilities.move).toEqual(false);
+    expect(abilities.subscribe).toEqual(false);
+    expect(abilities.unsubscribe).toEqual(false);
+    expect(abilities.comment).toEqual(false);
   });
 });
 
@@ -128,7 +138,7 @@ describe("no collection", () => {
     expect(abilities.createChildDocument).toEqual(false);
     expect(abilities.delete).toEqual(true);
     expect(abilities.download).toEqual(true);
-    expect(abilities.move).toEqual(false);
+    expect(abilities.move).toEqual(true);
     expect(abilities.permanentDelete).toEqual(false);
     expect(abilities.pin).toEqual(false);
     expect(abilities.pinToHome).toEqual(false);
@@ -143,5 +153,6 @@ describe("no collection", () => {
     expect(abilities.unstar).toEqual(true);
     expect(abilities.unsubscribe).toEqual(false);
     expect(abilities.update).toEqual(true);
+    expect(abilities.comment).toEqual(true);
   });
 });

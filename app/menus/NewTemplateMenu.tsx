@@ -4,11 +4,12 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
+import { ellipsis } from "@shared/styles";
 import Button from "~/components/Button";
-import CollectionIcon from "~/components/CollectionIcon";
 import ContextMenu from "~/components/ContextMenu";
 import Header from "~/components/ContextMenu/Header";
 import Template from "~/components/ContextMenu/Template";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -67,9 +68,7 @@ function NewTemplateMenu() {
 }
 
 const CollectionName = styled.div`
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  ${ellipsis()}
 `;
 
 export default observer(NewTemplateMenu);

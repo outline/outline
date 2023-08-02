@@ -1,12 +1,13 @@
 import { InputRule } from "prosemirror-inputrules";
-import { TokenConfig } from "prosemirror-markdown";
+import { ParseSpec } from "prosemirror-markdown";
 import {
   NodeSpec,
   Node as ProsemirrorNode,
   NodeType,
   Schema,
 } from "prosemirror-model";
-import Extension, { Command, CommandFactory } from "../lib/Extension";
+import { Command } from "prosemirror-state";
+import Extension, { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 
 export default abstract class Node extends Extension {
@@ -37,11 +38,11 @@ export default abstract class Node extends Extension {
     return {};
   }
 
-  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode): void {
-    console.error("toMarkdown not implemented", state, node);
+  toMarkdown(_state: MarkdownSerializerState, _node: ProsemirrorNode) {
+    throw new Error("toMarkdown not implemented");
   }
 
-  parseMarkdown(): TokenConfig | void {
+  parseMarkdown(): ParseSpec | void {
     return undefined;
   }
 }

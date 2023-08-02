@@ -1,9 +1,9 @@
 import Token from "markdown-it/lib/token";
 import { InputRule } from "prosemirror-inputrules";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import { Command } from "prosemirror-state";
+import { Primitive } from "utility-types";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class HorizontalRule extends Node {
@@ -20,31 +20,29 @@ export default class HorizontalRule extends Node {
       },
       group: "block",
       parseDOM: [{ tag: "hr" }],
-      toDOM: (node) => {
-        return [
-          "hr",
-          { class: node.attrs.markup === "***" ? "page-break" : "" },
-        ];
-      },
+      toDOM: (node) => [
+        "hr",
+        { class: node.attrs.markup === "***" ? "page-break" : "" },
+      ],
     };
   }
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, any>) => (
-      state: EditorState,
-      dispatch: Dispatch
-    ) => {
-      dispatch(
-        state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
-      );
-      return true;
-    };
+    return (attrs: Record<string, Primitive>): Command =>
+      (state, dispatch) => {
+        dispatch?.(
+          state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
+        );
+        return true;
+      };
   }
 
-  keys({ type }: { type: NodeType }) {
+  keys({ type }: { type: NodeType }): Record<string, Command> {
     return {
-      "Mod-_": (state: EditorState, dispatch: Dispatch) => {
-        dispatch(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
+      "Mod-_": (state, dispatch) => {
+        dispatch?.(
+          state.tr.replaceSelectionWith(type.create()).scrollIntoView()
+        );
         return true;
       },
     };

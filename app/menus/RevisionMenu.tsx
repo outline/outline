@@ -33,12 +33,12 @@ function RevisionMenu({ document, className }: Props) {
     <>
       <OverflowMenuButton
         className={className}
-        iconColor="currentColor"
         aria-label={t("Show menu")}
         {...menu}
       />
       <ContextMenu {...menu} aria-label={t("Revision options")}>
         <Template
+          {...menu}
           items={[
             actionToMenuItem(restoreRevision, context),
             separator(),

@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import useToasts from "~/hooks/useToasts";
 
 type Props = {
@@ -46,6 +47,15 @@ function EditableTitle({
     [originalValue]
   );
 
+  const stopPropagation = React.useCallback((event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  }, []);
+
+  const handleFocus = React.useCallback((event) => {
+    event.target.select();
+  }, []);
+
   const handleSave = React.useCallback(
     async (ev) => {
       ev.preventDefault();
@@ -85,9 +95,11 @@ function EditableTitle({
             dir="auto"
             type="text"
             value={value}
+            onClick={stopPropagation}
             onKeyDown={handleKeyDown}
             onChange={handleChange}
             onBlur={handleSave}
+            onFocus={handleFocus}
             autoFocus
             {...rest}
           />
@@ -102,17 +114,17 @@ function EditableTitle({
 }
 
 const Input = styled.input`
-  color: ${(props) => props.theme.sidebarText};
-  background: ${(props) => props.theme.background};
+  color: ${s("text")};
+  background: ${s("background")};
   width: calc(100% + 12px);
   border-radius: 3px;
-  border: 1px solid ${(props) => props.theme.inputBorderFocused};
+  border: 0;
   padding: 5px 6px;
   margin: -4px;
-  height: 32px;
+  height: 30px;
 
   &:focus {
-    outline-color: ${(props) => props.theme.primary};
+    outline-color: ${s("accent")};
   }
 `;
 

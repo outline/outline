@@ -48,8 +48,6 @@ export function changelogUrl(): string {
   return "https://www.getoutline.com/changelog";
 }
 
-export function signin(service = "slack"): string {
-  return `/auth/${service}`;
-}
-
 export const SLUG_URL_REGEX = /^(?:[0-9a-zA-Z-_~]*-)?([a-zA-Z0-9]{10,15})$/;
+
+export const SHARE_URL_SLUG_REGEX = /^[0-9a-z-]+$/;

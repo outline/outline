@@ -20,11 +20,15 @@ import {
   AllowNull,
   AfterUpdate,
 } from "sequelize-typescript";
-import { CollectionPermission, TeamPreference } from "@shared/types";
+import { TeamPreferenceDefaults } from "@shared/constants";
+import {
+  CollectionPermission,
+  TeamPreference,
+  TeamPreferences,
+} from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
-import isCloudHosted from "@server/utils/isCloudHosted";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
@@ -39,8 +43,6 @@ import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
 const readFile = util.promisify(fs.readFile);
-
-export type TeamPreferences = Record<string, unknown>;
 
 @Scopes(() => ({
   withDomains: {
@@ -67,9 +69,9 @@ class Team extends ParanoidModel {
   @Unique
   @Length({
     min: 2,
-    max: isCloudHosted ? 32 : 255,
+    max: env.isCloudHosted() ? 32 : 255,
     msg: `subdomain must be between 2 and ${
-      isCloudHosted ? 32 : 255
+      env.isCloudHosted() ? 32 : 255
     } characters`,
   })
   @Is({
@@ -135,10 +137,6 @@ class Team extends ParanoidModel {
   @Column
   memberCollectionCreate: boolean;
 
-  @Default(true)
-  @Column
-  collaborativeEditing: boolean;
-
   @Default("member")
   @IsIn([["viewer", "member"]])
   @Column
@@ -185,7 +183,10 @@ class Team extends ParanoidModel {
    * @param value Sets the preference value
    * @returns The current team preferences
    */
-  public setPreference = (preference: TeamPreference, value: boolean) => {
+  public setPreference = <T extends keyof TeamPreferences>(
+    preference: T,
+    value: TeamPreferences[T]
+  ) => {
     if (!this.preferences) {
       this.preferences = {};
     }
@@ -196,23 +197,22 @@ class Team extends ParanoidModel {
   };
 
   /**
-   * Returns the passed preference value
+   * Returns the value of the given preference.
    *
-   * @param preference The user preference to retrieve
-   * @param fallback An optional fallback value, defaults to false.
-   * @returns The preference value if set, else undefined
+   * @param preference The team preference to retrieve
+   * @returns The preference value if set, else the default value
    */
-  public getPreference = (preference: TeamPreference, fallback = false) => {
-    return this.preferences?.[preference] ?? fallback;
-  };
+  public getPreference = (preference: TeamPreference) =>
+    this.preferences?.[preference] ??
+    TeamPreferenceDefaults[preference] ??
+    false;
 
   provisionFirstCollection = async (userId: string) => {
     await this.sequelize!.transaction(async (transaction) => {
       const collection = await Collection.create(
         {
           name: "Welcome",
-          description:
-            "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!",
+          description: `This collection is a quick guide to what ${env.APP_NAME} is all about. Feel free to delete this collection once your team is up to speed with the basics!`,
           teamId: this.id,
           createdById: userId,
           sort: Collection.DEFAULT_SORT,
@@ -252,7 +252,9 @@ class Team extends ParanoidModel {
           },
           { transaction }
         );
-        await document.publish(collection.createdById, { transaction });
+        await document.publish(collection.createdById, collection.id, {
+          transaction,
+        });
       }
     });
   };
@@ -333,6 +335,7 @@ class Team extends ParanoidModel {
       if (attachment) {
         await DeleteAttachmentTask.schedule({
           attachmentId: attachment.id,
+          teamId: model.id,
         });
       }
     }

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import { ReactHookWrappedInput as Input } from "~/components/Input";
+import Input from "~/components/Input";
 import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
@@ -19,9 +19,11 @@ function UserDelete() {
   const { auth } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
-  const { register, handleSubmit: formHandleSubmit, formState } = useForm<
-    FormData
-  >();
+  const {
+    register,
+    handleSubmit: formHandleSubmit,
+    formState,
+  } = useForm<FormData>();
 
   const handleRequestDelete = React.useCallback(
     async (ev: React.SyntheticEvent) => {
@@ -43,7 +45,7 @@ function UserDelete() {
     async (data: FormData) => {
       try {
         await auth.deleteUser(data);
-        auth.logout();
+        await auth.logout();
       } catch (error) {
         showToast(error.message, {
           type: "error",
@@ -56,6 +58,7 @@ function UserDelete() {
   const inputProps = register("code", {
     required: true,
   });
+  const appName = env.APP_NAME;
 
   return (
     <Flex column>
@@ -91,8 +94,8 @@ function UserDelete() {
               <Trans>
                 Are you sure? Deleting your account will destroy identifying
                 data associated with your user and cannot be undone. You will be
-                immediately logged out of Outline and all your API tokens will
-                be revoked.
+                immediately logged out of {{ appName }} and all your API tokens
+                will be revoked.
               </Trans>
             </Text>
           </>

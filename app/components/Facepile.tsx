@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
@@ -59,8 +60,8 @@ const More = styled.div<{ size: number }>`
   height: ${(props) => props.size}px;
   border-radius: 100%;
   background: ${(props) => props.theme.slate};
-  color: ${(props) => props.theme.text};
-  border: 2px solid ${(props) => props.theme.background};
+  color: ${s("text")};
+  border: 2px solid ${s("background")};
   text-align: center;
   font-size: 11px;
   font-weight: 600;

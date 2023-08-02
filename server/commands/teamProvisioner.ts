@@ -6,7 +6,7 @@ import {
   InvalidAuthenticationError,
   MaximumTeamsError,
 } from "@server/errors";
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
 
 type TeamProvisionerResult = {
@@ -72,7 +72,7 @@ async function teamProvisioner({
     };
   } else if (teamId) {
     // The user is attempting to log into a team with an unfamiliar SSO provider
-    if (env.DEPLOYMENT === "hosted") {
+    if (env.isCloudHosted()) {
       throw InvalidAuthenticationError();
     }
 
@@ -106,8 +106,8 @@ async function teamProvisioner({
   }
 
   // We cannot find an existing team, so we create a new one
-  const team = await sequelize.transaction((transaction) => {
-    return teamCreator({
+  const team = await sequelize.transaction((transaction) =>
+    teamCreator({
       name,
       domain,
       subdomain,
@@ -115,8 +115,8 @@ async function teamProvisioner({
       authenticationProviders: [authenticationProvider],
       ip,
       transaction,
-    });
-  });
+    })
+  );
 
   return {
     team,
@@ -125,7 +125,6 @@ async function teamProvisioner({
   };
 }
 
-export default APM.traceFunction({
-  serviceName: "command",
+export default traceFunction({
   spanName: "teamProvisioner",
 })(teamProvisioner);

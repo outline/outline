@@ -3,11 +3,12 @@ import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { s, ellipsis } from "@shared/styles";
+import { NavigationNode } from "@shared/types";
 import Document from "~/models/Document";
-import EmojiIcon from "~/components/EmojiIcon";
 import Flex from "~/components/Flex";
+import EmojiIcon from "~/components/Icons/EmojiIcon";
 import { hover } from "~/styles";
-import { NavigationNode } from "~/types";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -31,24 +32,22 @@ const DocumentLink = styled(Link)`
   &:${hover},
   &:active,
   &:focus {
-    background: ${(props) => props.theme.listItemHoverBackground};
+    background: ${s("listItemHoverBackground")};
   }
 `;
 
 const Content = styled(Flex)`
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   margin-left: -4px;
 `;
 
 const Title = styled.div`
-  overflow: hidden;
-  text-overflow: ellipsis;
+  ${ellipsis()}
   font-size: 14px;
   font-weight: 500;
   line-height: 1.25;
   padding-top: 3px;
-  white-space: nowrap;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
@@ -76,11 +75,7 @@ function ReferenceListItem({
       {...rest}
     >
       <Content gap={4} dir="auto">
-        {emoji ? (
-          <EmojiIcon emoji={emoji} />
-        ) : (
-          <DocumentIcon color="currentColor" />
-        )}
+        {emoji ? <EmojiIcon emoji={emoji} /> : <DocumentIcon />}
         <Title>
           {emoji ? document.title.replace(emoji, "") : document.title}
         </Title>

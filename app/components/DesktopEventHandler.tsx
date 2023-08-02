@@ -30,7 +30,7 @@ export default function DesktopEventHandler() {
         action: {
           text: "Install now",
           onClick: () => {
-            Desktop.bridge?.restartAndInstall();
+            void Desktop.bridge?.restartAndInstall();
           },
         },
       });

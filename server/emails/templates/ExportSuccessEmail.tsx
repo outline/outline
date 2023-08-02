@@ -1,6 +1,9 @@
 import * as React from "react";
-import { NotificationSetting } from "@server/models";
-import BaseEmail from "./BaseEmail";
+import { NotificationEventType } from "@shared/types";
+import env from "@server/env";
+import { User } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -9,12 +12,15 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type Props = {
-  to: string;
+type Props = EmailProps & {
   userId: string;
   id: string;
   teamUrl: string;
   teamId: string;
+};
+
+type BeforeSendProps = {
+  unsubscribeUrl: string;
 };
 
 /**
@@ -22,16 +28,13 @@ type Props = {
  * for download in the settings section.
  */
 export default class ExportSuccessEmail extends BaseEmail<Props> {
-  protected async beforeSend({ userId, teamId }: Props) {
-    const notificationSetting = await NotificationSetting.findOne({
-      where: {
-        userId,
-        teamId,
-        event: "emails.export_completed",
-      },
-    });
-
-    return notificationSetting !== null;
+  protected async beforeSend({ userId }: Props) {
+    return {
+      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
+        await User.findByPk(userId, { rejectOnEmpty: true }),
+        NotificationEventType.ExportCompleted
+      ),
+    };
   }
 
   protected subject() {
@@ -39,7 +42,7 @@ export default class ExportSuccessEmail extends BaseEmail<Props> {
   }
 
   protected preview() {
-    return "Here's your request data export from Outline";
+    return `Here's your request data export from ${env.APP_NAME}`;
   }
 
   protected renderAsText() {
@@ -50,7 +53,7 @@ Your requested data export is complete, the exported files are also available in
 `;
   }
 
-  protected render({ id, teamUrl }: Props) {
+  protected render({ id, teamUrl, unsubscribeUrl }: Props & BeforeSendProps) {
     return (
       <EmailTemplate>
         <Header />
@@ -77,7 +80,7 @@ Your requested data export is complete, the exported files are also available in
           </p>
         </Body>
 
-        <Footer />
+        <Footer unsubscribeUrl={unsubscribeUrl} />
       </EmailTemplate>
     );
   }

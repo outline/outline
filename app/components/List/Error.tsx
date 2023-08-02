@@ -2,6 +2,7 @@ import { DisconnectedIcon, WarningIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Empty from "~/components/Empty";
 import useEventListener from "~/hooks/useEventListener";
 import { OfflineError } from "~/utils/errors";
@@ -20,17 +21,17 @@ export default function LoadingError({ error, retry, ...rest }: Props) {
   const message =
     error instanceof OfflineError ? (
       <>
-        <DisconnectedIcon color="currentColor" /> {t("You’re offline.")}
+        <DisconnectedIcon /> {t("You’re offline.")}
       </>
     ) : (
       <>
-        <WarningIcon color="currentColor" /> {t("Sorry, an error occurred.")}
+        <WarningIcon /> {t("Sorry, an error occurred.")}
       </>
     );
 
   return (
     <Content {...rest}>
-      <Flex align="center" gap={4}>
+      <Flex align="center" gap={4} wrap>
         {message}{" "}
         <ButtonLink onClick={() => retry()}>{t("Click to retry")}…</ButtonLink>
       </Flex>
@@ -43,10 +44,10 @@ const Content = styled(Empty)`
   white-space: nowrap;
 
   ${ButtonLink} {
-    color: ${(props) => props.theme.textTertiary};
+    color: ${s("textTertiary")};
 
     &:hover {
-      color: ${(props) => props.theme.textSecondary};
+      color: ${s("textSecondary")};
       text-decoration: underline;
     }
   }

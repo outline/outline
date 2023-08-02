@@ -2,8 +2,10 @@ import { CheckboxIcon, InfoIcon, WarningIcon } from "outline-icons";
 import { darken } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import { fadeAndScaleIn, pulse } from "~/styles/animations";
 import { Toast as TToast } from "~/types";
+import Spinner from "./Spinner";
 
 type Props = {
   onRequestClose: () => void;
@@ -56,10 +58,10 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
       onMouseLeave={handleResume}
     >
       <Container onClick={action ? undefined : onRequestClose}>
-        {type === "info" && <InfoIcon color="currentColor" />}
-        {type === "success" && <CheckboxIcon checked color="currentColor" />}
-        {type === "warning" ||
-          (type === "error" && <WarningIcon color="currentColor" />)}
+        {type === "loading" && <Spinner />}
+        {type === "info" && <InfoIcon />}
+        {type === "success" && <CheckboxIcon checked />}
+        {(type === "warning" || type === "error") && <WarningIcon />}
         <Message>{toast.message}</Message>
         {action && <Action onClick={action.onClick}>{action.text}</Action>}
       </Container>
@@ -70,7 +72,7 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
 const Action = styled.span`
   display: inline-block;
   padding: 4px 8px;
-  color: ${(props) => props.theme.toastText};
+  color: ${s("toastText")};
   background: ${(props) => darken(0.05, props.theme.toastBackground)};
   border-radius: 4px;
   margin-left: 8px;
@@ -97,8 +99,8 @@ const Container = styled.div`
   animation: ${fadeAndScaleIn} 100ms ease;
   margin: 8px 0;
   padding: 0 12px;
-  color: ${(props) => props.theme.toastText};
-  background: ${(props) => props.theme.toastBackground};
+  color: ${s("toastText")};
+  background: ${s("toastBackground")};
   font-size: 15px;
   border-radius: 5px;
   cursor: default;

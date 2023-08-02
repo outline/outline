@@ -5,7 +5,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -63,7 +63,6 @@ function Header({ left, title, actions, hasSidebar }: Props) {
             <MobileMenuButton
               onClick={ui.toggleMobileSidebar}
               icon={<MenuIcon />}
-              iconColor="currentColor"
               neutral
             />
           )}
@@ -113,7 +112,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
   top: 0;
   z-index: ${depths.header};
   position: sticky;
-  background: ${(props) => props.theme.background};
+  background: ${s("background")};
 
   ${(props) =>
     props.$passThrough
@@ -132,7 +131,11 @@ const Wrapper = styled(Flex)<WrapperProps>`
   min-height: 64px;
   justify-content: flex-start;
   ${draggableOnDesktop()}
-  ${fadeOnDesktopBackgrounded()}
+
+  button,
+  [role="button"] {
+    ${fadeOnDesktopBackgrounded()}
+  }
 
   @supports (backdrop-filter: blur(20px)) {
     backdrop-filter: blur(20px);

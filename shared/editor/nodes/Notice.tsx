@@ -1,23 +1,16 @@
 import Token from "markdown-it/lib/token";
-import { WarningIcon, InfoIcon, StarredIcon } from "outline-icons";
+import { WarningIcon, InfoIcon, StarredIcon, DoneIcon } from "outline-icons";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import * as React from "react";
 import ReactDOM from "react-dom";
+import { Primitive } from "utility-types";
 import toggleWrap from "../commands/toggleWrap";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import noticesRule from "../rules/notices";
 import Node from "./Node";
 
 export default class Notice extends Node {
-  get styleOptions() {
-    return Object.entries({
-      info: this.options.dictionary.info,
-      warning: this.options.dictionary.warning,
-      tip: this.options.dictionary.tip,
-    });
-  }
-
   get name() {
     return "container_notice";
   }
@@ -33,7 +26,8 @@ export default class Notice extends Node {
           default: "info",
         },
       },
-      content: "block+",
+      content:
+        "(list | blockquote | hr | paragraph | heading | code_block | code_fence | attachment)+",
       group: "block",
       defining: true,
       draggable: true,
@@ -41,42 +35,66 @@ export default class Notice extends Node {
         {
           tag: "div.notice-block",
           preserveWhitespace: "full",
-          contentElement: "div.content",
+          contentElement: (node: HTMLDivElement) =>
+            node.querySelector("div.content") || node,
           getAttrs: (dom: HTMLDivElement) => ({
             style: dom.className.includes("tip")
               ? "tip"
               : dom.className.includes("warning")
+              ? "warning"
+              : dom.className.includes("success")
+              ? "success"
+              : undefined,
+          }),
+        },
+        // Quill editor parsing
+        {
+          tag: "div.ql-hint",
+          preserveWhitespace: "full",
+          getAttrs: (dom: HTMLDivElement) => ({
+            style: dom.dataset.hint,
+          }),
+        },
+        // GitBook parsing
+        {
+          tag: "div.alert.theme-admonition",
+          preserveWhitespace: "full",
+          getAttrs: (dom: HTMLDivElement) => ({
+            style: dom.className.includes("warning")
+              ? "warning"
+              : dom.className.includes("success")
+              ? "success"
+              : undefined,
+          }),
+        },
+        // Confluence parsing
+        {
+          tag: "div.confluence-information-macro",
+          preserveWhitespace: "full",
+          getAttrs: (dom: HTMLDivElement) => ({
+            style: dom.className.includes("confluence-information-macro-tip")
+              ? "success"
+              : dom.className.includes("confluence-information-macro-note")
+              ? "tip"
+              : dom.className.includes("confluence-information-macro-warning")
               ? "warning"
               : undefined,
           }),
         },
       ],
       toDOM: (node) => {
-        let icon, actions;
+        let icon;
         if (typeof document !== "undefined") {
-          const select = document.createElement("select");
-          select.addEventListener("change", this.handleStyleChange);
-
-          this.styleOptions.forEach(([key, label]) => {
-            const option = document.createElement("option");
-            option.value = key;
-            option.innerText = label;
-            option.selected = node.attrs.style === key;
-            select.appendChild(option);
-          });
-
-          actions = document.createElement("div");
-          actions.className = "notice-actions";
-          actions.appendChild(select);
-
           let component;
 
           if (node.attrs.style === "tip") {
-            component = <StarredIcon color="currentColor" />;
+            component = <StarredIcon />;
           } else if (node.attrs.style === "warning") {
-            component = <WarningIcon color="currentColor" />;
+            component = <WarningIcon />;
+          } else if (node.attrs.style === "success") {
+            component = <DoneIcon />;
           } else {
-            component = <InfoIcon color="currentColor" />;
+            component = <InfoIcon />;
           }
 
           icon = document.createElement("div");
@@ -88,7 +106,6 @@ export default class Notice extends Node {
           "div",
           { class: `notice-block ${node.attrs.style}` },
           ...(icon ? [icon] : []),
-          ["div", { contentEditable: "false" }, ...(actions ? [actions] : [])],
           ["div", { class: "content" }, 0],
         ];
       },
@@ -96,7 +113,7 @@ export default class Notice extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, any>) => toggleWrap(type, attrs);
+    return (attrs: Record<string, Primitive>) => toggleWrap(type, attrs);
   }
 
   handleStyleChange = (event: InputEvent) => {

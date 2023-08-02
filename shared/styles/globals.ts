@@ -1,8 +1,10 @@
 import { createGlobalStyle } from "styled-components";
 import styledNormalize from "styled-normalize";
-import { breakpoints, depths } from ".";
+import { breakpoints, depths, s } from ".";
 
-type Props = { useCursorPointer?: boolean };
+type Props = {
+  useCursorPointer?: boolean;
+};
 
 export default createGlobalStyle<Props>`
   ${styledNormalize}
@@ -35,7 +37,7 @@ export default createGlobalStyle<Props>`
   body {
     font-size: 16px;
     line-height: 1.5;
-    color: ${(props) => props.theme.text};
+    color: ${s("text")};
     overscroll-behavior-y: none;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
@@ -100,7 +102,7 @@ export default createGlobalStyle<Props>`
   hr {
     border: 0;
     height: 0;
-    border-top: 1px solid ${(props) => props.theme.divider};
+    border-top: 1px solid ${s("divider")};
   }
 
   .js-focus-visible :focus:not(.focus-visible) {
@@ -108,7 +110,7 @@ export default createGlobalStyle<Props>`
   }
 
   .js-focus-visible .focus-visible {
-    outline-color: ${(props) => props.theme.primary};
+    outline-color: ${s("accent")};
     outline-offset: -1px;
   }
 `;

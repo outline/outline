@@ -27,7 +27,6 @@ export class StateStore {
     const state = buildState(host, token, client);
 
     ctx.cookies.set(this.key, state, {
-      httpOnly: false,
       expires: addMinutes(new Date(), 10),
       domain: getCookieDomain(ctx.hostname),
     });
@@ -54,7 +53,6 @@ export class StateStore {
 
     // Destroy the one-time pad token and ensure it matches
     ctx.cookies.set(this.key, "", {
-      httpOnly: false,
       expires: subMinutes(new Date(), 1),
       domain: getCookieDomain(ctx.hostname),
     });
@@ -102,7 +100,7 @@ export async function getTeamFromContext(ctx: Context) {
   const domain = parseDomain(host);
 
   let team;
-  if (env.DEPLOYMENT !== "hosted") {
+  if (!env.isCloudHosted()) {
     team = await Team.findOne();
   } else if (domain.custom) {
     team = await Team.findOne({ where: { domain: domain.host } });

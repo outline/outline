@@ -14,10 +14,7 @@ let errorHtmlCache: Buffer | undefined;
 
 const readErrorFile = (): Buffer => {
   if (isDev) {
-    return (
-      errorHtmlCache ??
-      (errorHtmlCache = fs.readFileSync(path.join(__dirname, "error.dev.html")))
-    );
+    return fs.readFileSync(path.join(__dirname, "error.dev.html"));
   }
 
   if (isProd) {
@@ -82,8 +79,25 @@ export default function onerror(app: Koa) {
       err = newError;
     }
 
-    if (err.code === "ENOENT") {
+    if (err instanceof ValidationError) {
+      // @ts-expect-error status is not a property on ValidationError
+      err.status = 400;
+
+      if (err.errors && err.errors[0]) {
+        err.message = `${err.errors[0].message} (${err.errors[0].path})`;
+      }
+    }
+
+    if (
+      err.code === "ENOENT" ||
+      err instanceof EmptyResultError ||
+      /Not found/i.test(err.message)
+    ) {
       err.status = 404;
+    }
+
+    if (/Authorization error/i.test(err.message)) {
+      err.status = 403;
     }
 
     if (typeof err.status !== "number" || !http.STATUS_CODES[err.status]) {
@@ -134,47 +148,37 @@ export default function onerror(app: Koa) {
 
 function json(err: any, ctx: Context) {
   ctx.status = err.status;
-  let message = err.message || err.name;
-  let error;
+  let message;
+  let id;
 
-  if (err instanceof ValidationError) {
-    // super basic form error handling
-    ctx.status = 400;
-
-    if (err.errors && err.errors[0]) {
-      message = `${err.errors[0].message} (${err.errors[0].path})`;
-    }
+  if (ctx.status === 400) {
+    message = "Validation error";
+    id = "validation_error";
   }
-
-  if (err instanceof EmptyResultError || /Not found/i.test(message)) {
+  if (ctx.status === 401) {
+    message = "Authentication error";
+    id = "authentication_error";
+  }
+  if (ctx.status === 403) {
+    message = "Authorization error";
+    id = "authorization_error";
+  }
+  if (ctx.status === 404) {
     message = "Resource not found";
-    ctx.status = 404;
-    error = "not_found";
+    id = "not_found";
   }
-
-  if (/Authorization error/i.test(message)) {
-    ctx.status = 403;
-    error = "authorization_error";
-  }
-
   if (ctx.status === 500) {
     message = "Internal server error";
-    error = "internal_server_error";
+    id = "internal_server_error";
   }
 
   ctx.body = {
     ok: false,
-    error: snakeCase(err.id || error),
+    error: snakeCase(err.id || id),
     status: ctx.status,
-    message,
-    data: err.errorData,
+    message: err.message || message || err.name,
+    data: err.errorData ?? undefined,
   };
-
-  // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
-  if (!ctx.body.data) {
-    // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
-    delete ctx.body.data;
-  }
 }
 
 /**
@@ -188,6 +192,7 @@ function html(err: any, ctx: Context) {
   const page = readErrorFile();
   ctx.body = page
     .toString()
+    .replace(/\/\/inject-message\/\//g, escape(err.message))
     .replace(/\/\/inject-status\/\//g, escape(err.status))
     .replace(/\/\/inject-stack\/\//g, escape(err.stack));
   ctx.type = "html";

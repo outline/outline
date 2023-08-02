@@ -7,6 +7,7 @@ import { SettingsSection } from "~/actions/sections";
 
 export const changeToDarkTheme = createAction({
   name: ({ t }) => t("Dark"),
+  analyticsName: "Change to dark theme",
   icon: <MoonIcon />,
   iconInContextMenu: false,
   keywords: "theme dark night",
@@ -17,6 +18,7 @@ export const changeToDarkTheme = createAction({
 
 export const changeToLightTheme = createAction({
   name: ({ t }) => t("Light"),
+  analyticsName: "Change to light theme",
   icon: <SunIcon />,
   iconInContextMenu: false,
   keywords: "theme light day",
@@ -27,6 +29,7 @@ export const changeToLightTheme = createAction({
 
 export const changeToSystemTheme = createAction({
   name: ({ t }) => t("System"),
+  analyticsName: "Change to system theme",
   icon: <BrowserIcon />,
   iconInContextMenu: false,
   keywords: "theme system default",
@@ -38,9 +41,11 @@ export const changeToSystemTheme = createAction({
 export const changeTheme = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? t("Appearance") : t("Change theme"),
+  analyticsName: "Change theme",
   placeholder: ({ t }) => t("Change theme to"),
-  icon: () =>
-    stores.ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
+  icon: function _Icon() {
+    return stores.ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />;
+  },
   keywords: "appearance display",
   section: SettingsSection,
   children: [changeToLightTheme, changeToDarkTheme, changeToSystemTheme],

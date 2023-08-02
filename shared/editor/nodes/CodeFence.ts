@@ -7,14 +7,8 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import {
-  EditorState,
-  Selection,
-  TextSelection,
-  Transaction,
-  Plugin,
-  PluginKey,
-} from "prosemirror-state";
+import { Command, Plugin, PluginKey } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
 import bash from "refractor/lang/bash";
 import clike from "refractor/lang/clike";
@@ -26,14 +20,17 @@ import go from "refractor/lang/go";
 import graphql from "refractor/lang/graphql";
 import groovy from "refractor/lang/groovy";
 import haskell from "refractor/lang/haskell";
+import hcl from "refractor/lang/hcl";
 import ini from "refractor/lang/ini";
 import java from "refractor/lang/java";
 import javascript from "refractor/lang/javascript";
 import json from "refractor/lang/json";
+import jsx from "refractor/lang/jsx";
 import kotlin from "refractor/lang/kotlin";
 import lisp from "refractor/lang/lisp";
 import lua from "refractor/lang/lua";
 import markup from "refractor/lang/markup";
+import nix from "refractor/lang/nix";
 import objectivec from "refractor/lang/objectivec";
 import ocaml from "refractor/lang/ocaml";
 import perl from "refractor/lang/perl";
@@ -42,25 +39,36 @@ import powershell from "refractor/lang/powershell";
 import python from "refractor/lang/python";
 import ruby from "refractor/lang/ruby";
 import rust from "refractor/lang/rust";
+import sass from "refractor/lang/sass";
 import scala from "refractor/lang/scala";
+import scss from "refractor/lang/scss";
 import solidity from "refractor/lang/solidity";
 import sql from "refractor/lang/sql";
 import swift from "refractor/lang/swift";
 import toml from "refractor/lang/toml";
+import tsx from "refractor/lang/tsx";
 import typescript from "refractor/lang/typescript";
 import visualbasic from "refractor/lang/visual-basic";
 import yaml from "refractor/lang/yaml";
 import zig from "refractor/lang/zig";
 
-import { UserPreferences } from "@shared/types";
+import { Primitive } from "utility-types";
 import { Dictionary } from "~/hooks/useDictionary";
-
+import { UserPreferences } from "../../types";
+import Storage from "../../utils/Storage";
+import {
+  newlineInCode,
+  insertSpaceTab,
+  moveToNextNewline,
+  moveToPreviousNewline,
+} from "../commands/codeFence";
 import toggleBlockType from "../commands/toggleBlockType";
+import Mermaid from "../extensions/Mermaid";
+import Prism, { LANGUAGES } from "../extensions/Prism";
+import { isCode } from "../lib/isCode";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import Mermaid from "../plugins/Mermaid";
-import Prism, { LANGUAGES } from "../plugins/Prism";
+import { findParentNode } from "../queries/findParentNode";
 import isInCode from "../queries/isInCode";
-import { Dispatch } from "../types";
 import Node from "./Node";
 
 const PERSISTENCE_KEY = "rme-code-language";
@@ -77,14 +85,17 @@ const DEFAULT_LANGUAGE = "javascript";
   graphql,
   groovy,
   haskell,
+  hcl,
   ini,
   java,
   javascript,
+  jsx,
   json,
   kotlin,
   lisp,
   lua,
   markup,
+  nix,
   objectivec,
   ocaml,
   perl,
@@ -96,9 +107,12 @@ const DEFAULT_LANGUAGE = "javascript";
   scala,
   sql,
   solidity,
+  sass,
+  scss,
   swift,
   toml,
   typescript,
+  tsx,
   visualbasic,
   yaml,
   zig,
@@ -144,193 +158,61 @@ export default class CodeFence extends Node {
         {
           tag: ".code-block",
           preserveWhitespace: "full",
-          contentElement: "code",
-          getAttrs: (dom: HTMLDivElement) => {
-            return {
-              language: dom.dataset.language,
-            };
-          },
+          contentElement: (node: HTMLElement) =>
+            node.querySelector("code") || node,
+          getAttrs: (dom: HTMLDivElement) => ({
+            language: dom.dataset.language,
+          }),
         },
       ],
-      toDOM: (node) => {
-        let actions;
-        if (typeof document !== "undefined") {
-          const button = document.createElement("button");
-          button.innerText = this.options.dictionary.copy;
-          button.type = "button";
-          button.addEventListener("click", this.handleCopyToClipboard);
-
-          const select = document.createElement("select");
-          select.addEventListener("change", this.handleLanguageChange);
-
-          actions = document.createElement("div");
-          actions.className = "code-actions";
-          actions.appendChild(select);
-          actions.appendChild(button);
-
-          this.languageOptions.forEach(([key, label]) => {
-            const option = document.createElement("option");
-            const value = key === "none" ? "" : key;
-            option.value = value;
-            option.innerText = label;
-            option.selected = node.attrs.language === value;
-            select.appendChild(option);
-          });
-
-          // For the Mermaid language we add an extra button to toggle between
-          // source code and a rendered diagram view.
-          if (node.attrs.language === "mermaidjs") {
-            const showSourceButton = document.createElement("button");
-            showSourceButton.innerText = this.options.dictionary.showSource;
-            showSourceButton.type = "button";
-            showSourceButton.classList.add("show-source-button");
-            showSourceButton.addEventListener(
-              "click",
-              this.handleToggleDiagram
-            );
-            actions.prepend(showSourceButton);
-
-            const showDiagramButton = document.createElement("button");
-            showDiagramButton.innerText = this.options.dictionary.showDiagram;
-            showDiagramButton.type = "button";
-            showDiagramButton.classList.add("show-digram-button");
-            showDiagramButton.addEventListener(
-              "click",
-              this.handleToggleDiagram
-            );
-            actions.prepend(showDiagramButton);
-          }
-        }
-
-        return [
-          "div",
-          {
-            class: `code-block ${
-              this.showLineNumbers ? "with-line-numbers" : ""
-            }`,
-            "data-language": node.attrs.language,
-          },
-          ...(actions ? [["div", { contentEditable: "false" }, actions]] : []),
-          ["pre", ["code", { spellCheck: "false" }, 0]],
-        ];
-      },
+      toDOM: (node) => [
+        "div",
+        {
+          class: `code-block ${
+            this.showLineNumbers ? "with-line-numbers" : ""
+          }`,
+          "data-language": node.attrs.language,
+        },
+        ["pre", ["code", { spellCheck: "false" }, 0]],
+      ],
     };
   }
 
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
-    return (attrs: Record<string, any>) =>
-      toggleBlockType(type, schema.nodes.paragraph, {
-        language: localStorage?.getItem(PERSISTENCE_KEY) || DEFAULT_LANGUAGE,
-        ...attrs,
-      });
+    return {
+      code_block: (attrs: Record<string, Primitive>) =>
+        toggleBlockType(type, schema.nodes.paragraph, {
+          language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
+          ...attrs,
+        }),
+      copyToClipboard: (): Command => (state) => {
+        const codeBlock = findParentNode(isCode)(state.selection);
+
+        if (!codeBlock) {
+          return false;
+        }
+
+        copy(codeBlock.node.textContent);
+        this.options.onShowToast(this.options.dictionary.codeCopied);
+        return true;
+      },
+    };
+  }
+
+  get allowInReadOnly() {
+    return true;
   }
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),
-      "Shift-Enter": (state: EditorState, dispatch: Dispatch) => {
-        if (!isInCode(state)) {
-          return false;
-        }
-        const {
-          tr,
-          selection,
-        }: { tr: Transaction; selection: TextSelection } = state;
-        const text = selection?.$anchor?.nodeBefore?.text;
-
-        let newText = "\n";
-
-        if (text) {
-          const splitByNewLine = text.split("\n");
-          const numOfSpaces = splitByNewLine[splitByNewLine.length - 1].search(
-            /\S|$/
-          );
-          newText += " ".repeat(numOfSpaces);
-        }
-
-        dispatch(tr.insertText(newText, selection.from, selection.to));
-        return true;
-      },
-      Tab: (state: EditorState, dispatch: Dispatch) => {
-        if (!isInCode(state)) {
-          return false;
-        }
-
-        const { tr, selection } = state;
-        dispatch(tr.insertText("  ", selection.from, selection.to));
-        return true;
-      },
+      Tab: insertSpaceTab,
+      Enter: newlineInCode,
+      "Shift-Enter": newlineInCode,
+      "Ctrl-a": moveToPreviousNewline,
+      "Ctrl-e": moveToNextNewline,
     };
   }
-
-  handleCopyToClipboard = (event: MouseEvent) => {
-    const { view } = this.editor;
-    const element = event.target;
-    if (!(element instanceof HTMLButtonElement)) {
-      return;
-    }
-    const { top, left } = element.getBoundingClientRect();
-    const result = view.posAtCoords({ top, left });
-
-    if (result) {
-      const node = view.state.doc.nodeAt(result.pos);
-      if (node) {
-        copy(node.textContent);
-        this.options.onShowToast(this.options.dictionary.codeCopied);
-      }
-    }
-  };
-
-  handleLanguageChange = (event: InputEvent) => {
-    const { view } = this.editor;
-    const { tr } = view.state;
-    const element = event.currentTarget;
-    if (!(element instanceof HTMLSelectElement)) {
-      return;
-    }
-
-    const { top, left } = element.getBoundingClientRect();
-    const result = view.posAtCoords({ top, left });
-
-    if (result) {
-      const language = element.value;
-      const transaction = tr
-        .setSelection(Selection.near(view.state.doc.resolve(result.inside)))
-        .setNodeMarkup(result.inside, undefined, {
-          language,
-        });
-
-      view.dispatch(transaction);
-
-      localStorage?.setItem(PERSISTENCE_KEY, language);
-    }
-  };
-
-  handleToggleDiagram = (event: InputEvent) => {
-    const { view } = this.editor;
-    const { tr } = view.state;
-    const element = event.currentTarget;
-    if (!(element instanceof HTMLButtonElement)) {
-      return;
-    }
-
-    const { top, left } = element.getBoundingClientRect();
-    const result = view.posAtCoords({ top, left });
-
-    if (!result) {
-      return;
-    }
-
-    const diagramId = element
-      .closest(".code-block")
-      ?.getAttribute("data-diagram-id");
-    if (!diagramId) {
-      return;
-    }
-
-    const transaction = tr.setMeta("mermaid", { toggleDiagram: diagramId });
-    view.dispatch(transaction);
-  };
 
   get plugins() {
     return [
@@ -338,7 +220,10 @@ export default class CodeFence extends Node {
         name: this.name,
         lineNumbers: this.showLineNumbers,
       }),
-      Mermaid({ name: this.name }),
+      Mermaid({
+        name: this.name,
+        isDark: this.editor.props.theme.isDark,
+      }),
       new Plugin({
         key: new PluginKey("triple-click"),
         props: {
@@ -355,13 +240,31 @@ export default class CodeFence extends Node {
           },
         },
       }),
+      new Plugin({
+        props: {
+          decorations(state) {
+            const codeBlock = findParentNode(isCode)(state.selection);
+
+            if (!codeBlock) {
+              return null;
+            }
+
+            const decoration = Decoration.node(
+              codeBlock.pos,
+              codeBlock.pos + codeBlock.node.nodeSize,
+              { class: "code-active" }
+            );
+            return DecorationSet.create(state.doc, [decoration]);
+          },
+        },
+      }),
     ];
   }
 
   inputRules({ type }: { type: NodeType }) {
     return [
       textblockTypeInputRule(/^```$/, type, () => ({
-        language: localStorage?.getItem(PERSISTENCE_KEY) || DEFAULT_LANGUAGE,
+        language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
       })),
     ];
   }

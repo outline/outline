@@ -1,7 +1,7 @@
-import { APM } from "@server/logging/tracing";
+import { colorPalette } from "@shared/utils/collections";
 import Collection from "@server/models/Collection";
 
-function present(collection: Collection) {
+export default function presentCollection(collection: Collection) {
   return {
     id: collection.id,
     url: collection.url,
@@ -11,17 +11,11 @@ function present(collection: Collection) {
     sort: collection.sort,
     icon: collection.icon,
     index: collection.index,
-    color: collection.color || "#4E5C6E",
+    color: collection.color || colorPalette[0],
     permission: collection.permission,
     sharing: collection.sharing,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,
-    documents: collection.documentStructure || [],
   };
 }
-
-export default APM.traceFunction({
-  serviceName: "presenter",
-  spanName: "collection",
-})(present);

@@ -8,6 +8,7 @@ import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
+import { s } from "@shared/styles";
 import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
@@ -50,218 +51,221 @@ type Props = {
 const lineHeight = "1.25";
 const fontSize = "2.25em";
 
-const EditableTitle = React.forwardRef(
-  (
-    {
-      document,
-      readOnly,
-      onChange,
-      onSave,
-      onGoToNextInput,
-      onBlur,
-      starrable,
-      placeholder,
-    }: Props,
-    ref: React.RefObject<RefHandle>
-  ) => {
-    const { editor } = useDocumentContext();
-    const theme = useTheme();
-    const pickerTheme = usePickerTheme();
-    const isMobile = useMobile();
-    const activeElement = useActiveElement();
-    const can = usePolicy(document.id);
+const EditableTitle = React.forwardRef(function _EditableTitle(
+  {
+    document,
+    readOnly,
+    onChange,
+    onSave,
+    onGoToNextInput,
+    onBlur,
+    starrable,
+    placeholder,
+  }: Props,
+  ref: React.RefObject<RefHandle>
+) {
+  const { editor } = useDocumentContext();
+  const theme = useTheme();
+  const pickerTheme = usePickerTheme();
+  const isMobile = useMobile();
+  const activeElement = useActiveElement();
+  const can = usePolicy(document.id);
 
-    const [isFocused, setFocus] = React.useState<boolean>(false);
+  const [isFocused, setFocus] = React.useState<boolean>(false);
 
-    React.useEffect(() => {
-      if (
-        activeElement &&
-        (activeElement.id === "emoji-picker" ||
-          ref.current?.element()?.contains(activeElement) ||
-          window.document
-            .getElementById("emoji-picker")
-            ?.contains(activeElement))
-      ) {
-        setFocus(true);
-      } else {
-        setFocus(false);
+  React.useEffect(() => {
+    if (
+      activeElement &&
+      (activeElement.id === "emoji-picker" ||
+        ref.current?.element()?.contains(activeElement) ||
+        window.document.getElementById("emoji-picker")?.contains(activeElement))
+    ) {
+      setFocus(true);
+    } else {
+      setFocus(false);
+    }
+  }, [activeElement, ref]);
+
+  const handleClick = React.useCallback(() => {
+    ref.current?.focus();
+  }, [ref]);
+
+  const handleKeyDown = React.useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.nativeEvent.isComposing) {
+        return;
       }
-    }, [activeElement, ref]);
+      if (event.key === "Enter") {
+        event.preventDefault();
 
-    const handleClick = React.useCallback(() => {
-      ref.current?.focus();
-    }, [ref]);
-
-    const handleKeyDown = React.useCallback(
-      (event: React.KeyboardEvent) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-
-          if (isModKey(event)) {
-            onSave?.({
-              done: true,
-            });
-            return;
-          }
-
-          onGoToNextInput(true);
-          return;
-        }
-
-        if (event.key === "Tab" || event.key === "ArrowDown") {
-          event.preventDefault();
-          onGoToNextInput();
-          return;
-        }
-
-        if (event.key === "p" && isModKey(event) && event.shiftKey) {
-          event.preventDefault();
+        if (isModKey(event)) {
           onSave?.({
-            publish: true,
             done: true,
           });
           return;
         }
 
-        if (event.key === "s" && isModKey(event)) {
-          event.preventDefault();
-          onSave?.({});
-          return;
-        }
-      },
-      [onGoToNextInput, onSave]
-    );
+        onGoToNextInput(true);
+        return;
+      }
 
-    const handleChange = React.useCallback(
-      (text: string) => {
-        if (/\/date\s$/.test(text)) {
-          onChange(getCurrentDateAsString());
-          ref.current?.focusAtEnd();
-        } else if (/\/time$/.test(text)) {
-          onChange(getCurrentTimeAsString());
-          ref.current?.focusAtEnd();
-        } else if (/\/datetime$/.test(text)) {
-          onChange(getCurrentDateTimeAsString());
-          ref.current?.focusAtEnd();
-        } else {
-          onChange(text);
-        }
-      },
-      [ref, onChange]
-    );
-
-    // Custom paste handling so that if a multiple lines are pasted we
-    // only take the first line and insert the rest directly into the editor.
-    const handlePaste = React.useCallback(
-      (event: React.ClipboardEvent) => {
+      if (event.key === "Tab" || event.key === "ArrowDown") {
         event.preventDefault();
+        onGoToNextInput();
+        return;
+      }
 
-        const text = event.clipboardData.getData("text/plain");
-        const html = event.clipboardData.getData("text/html");
-        const [firstLine, ...rest] = text.split(`\n`);
-        const content = rest.join(`\n`).trim();
+      if (event.key === "p" && isModKey(event) && event.shiftKey) {
+        event.preventDefault();
+        onSave?.({
+          publish: true,
+          done: true,
+        });
+        return;
+      }
 
-        window.document.execCommand(
-          "insertText",
-          false,
-          firstLine.replace(/^#+\s?/, "")
-        );
+      if (event.key === "s" && isModKey(event)) {
+        event.preventDefault();
+        onSave?.({});
+        return;
+      }
+    },
+    [onGoToNextInput, onSave]
+  );
 
-        if (editor && content) {
-          const { view, pasteParser } = editor;
-          let slice;
+  const handleChange = React.useCallback(
+    (text: string) => {
+      if (/\/date\s$/.test(text)) {
+        onChange(getCurrentDateAsString());
+        ref.current?.focusAtEnd();
+      } else if (/\/time$/.test(text)) {
+        onChange(getCurrentTimeAsString());
+        ref.current?.focusAtEnd();
+      } else if (/\/datetime$/.test(text)) {
+        onChange(getCurrentDateTimeAsString());
+        ref.current?.focusAtEnd();
+      } else {
+        onChange(text);
+      }
+    },
+    [ref, onChange]
+  );
 
-          if (isMarkdown(text)) {
-            const paste = pasteParser.parse(normalizePastedMarkdown(content));
+  // Custom paste handling so that if a multiple lines are pasted we
+  // only take the first line and insert the rest directly into the editor.
+  const handlePaste = React.useCallback(
+    (event: React.ClipboardEvent) => {
+      event.preventDefault();
+
+      const text = event.clipboardData.getData("text/plain");
+      const html = event.clipboardData.getData("text/html");
+      const [firstLine, ...rest] = text.split(`\n`);
+      const content = rest.join(`\n`).trim();
+
+      window.document.execCommand(
+        "insertText",
+        false,
+        firstLine.replace(/^#+\s?/, "")
+      );
+
+      if (editor && content) {
+        const { view, pasteParser } = editor;
+        let slice;
+
+        if (isMarkdown(text)) {
+          const paste = pasteParser.parse(normalizePastedMarkdown(content));
+          if (paste) {
             slice = paste.slice(0);
-          } else {
-            const defaultSlice = __parseFromClipboard(
-              view,
-              text,
-              html,
-              false,
-              view.state.selection.$from
-            );
-
-            // remove first node from slice
-            slice = defaultSlice.content.firstChild
-              ? new Slice(
-                  defaultSlice.content.cut(
-                    defaultSlice.content.firstChild.nodeSize
-                  ),
-                  defaultSlice.openStart,
-                  defaultSlice.openEnd
-                )
-              : defaultSlice;
           }
+        } else {
+          const defaultSlice = __parseFromClipboard(
+            view,
+            text,
+            html,
+            false,
+            view.state.selection.$from
+          );
 
+          // remove first node from slice
+          slice = defaultSlice.content.firstChild
+            ? new Slice(
+                defaultSlice.content.cut(
+                  defaultSlice.content.firstChild.nodeSize
+                ),
+                defaultSlice.openStart,
+                defaultSlice.openEnd
+              )
+            : defaultSlice;
+        }
+
+        if (slice) {
           view.dispatch(
             view.state.tr
               .setSelection(Selection.atStart(view.state.doc))
               .replaceSelection(slice)
           );
         }
-      },
-      [editor]
-    );
+      }
+    },
+    [editor]
+  );
 
-    const handleEmojiChange = React.useCallback(
-      async (emoji: string | null) => {
-        if (document.emoji !== emoji) {
-          document.emoji = emoji;
-          await document.save();
-        }
-      },
-      [document]
-    );
+  const handleEmojiChange = React.useCallback(
+    async (emoji: string | null) => {
+      if (document.emoji !== emoji) {
+        document.emoji = emoji;
+        await document.save();
+      }
+    },
+    [document]
+  );
 
-    const value =
-      !document.title && readOnly ? document.titleWithDefault : document.title;
+  const value =
+    !document.title && readOnly ? document.titleWithDefault : document.title;
 
-    return (
-      <Title
-        onClick={handleClick}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        onPaste={handlePaste}
-        onBlur={onBlur}
-        placeholder={placeholder}
-        value={value}
-        $isStarred={document.isStarred}
-        $containsEmoji={!!document.emoji}
-        $isFocused={isFocused}
-        autoFocus={!document.title}
-        maxLength={DocumentValidation.maxTitleLength}
-        readOnly={readOnly}
-        dir="auto"
-        ref={ref}
-      >
-        {(!isMobile || isFocused || document.emoji) && can.update && (
-          <EmojiPicker
-            disclosure={
-              <EmojiButton size={32}>
-                {document.emoji ? (
-                  <Emoji size="24px" native={document.emoji} />
-                ) : (
-                  <AnimatedEmoji size={32} color={theme.textTertiary} />
-                )}
-              </EmojiButton>
-            }
-            onEmojiChange={handleEmojiChange}
-            emojiPresent={!!document.emoji}
-            pickerTheme={pickerTheme}
-          />
-        )}
-        {!can.update && document.emoji && (
-          <EmojiButton size={32}>
-            <Emoji size="24px" native={document.emoji} />
-          </EmojiButton>
-        )}
-        {starrable !== false && <StarButton document={document} size={32} />}
-      </Title>
-    );
-  }
-);
+  return (
+    <Title
+      onClick={handleClick}
+      onChange={handleChange}
+      onKeyDown={handleKeyDown}
+      onPaste={handlePaste}
+      onBlur={onBlur}
+      placeholder={placeholder}
+      value={value}
+      $isStarred={document.isStarred}
+      $containsEmoji={!!document.emoji}
+      $isFocused={isFocused}
+      autoFocus={!document.title}
+      maxLength={DocumentValidation.maxTitleLength}
+      readOnly={readOnly}
+      dir="auto"
+      ref={ref}
+    >
+      {(!isMobile || isFocused || document.emoji) && can.update && (
+        <EmojiPicker
+          disclosure={
+            <EmojiButton size={32}>
+              {document.emoji ? (
+                <Emoji size="24px" native={document.emoji} />
+              ) : (
+                <AnimatedEmoji size={32} color={theme.textTertiary} />
+              )}
+            </EmojiButton>
+          }
+          onEmojiChange={handleEmojiChange}
+          emojiPresent={!!document.emoji}
+          pickerTheme={pickerTheme}
+        />
+      )}
+      {!can.update && document.emoji && (
+        <EmojiButton size={32}>
+          <Emoji size="24px" native={document.emoji} />
+        </EmojiButton>
+      )}
+      {starrable !== false && <StarButton document={document} size={32} />}
+    </Title>
+  );
+});
 
 const StarButton = styled(Star)`
   position: relative;
@@ -321,8 +325,8 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 
   &::placeholder {
-    color: ${(props) => props.theme.placeholder};
-    -webkit-text-fill-color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
+    -webkit-text-fill-color: ${s("placeholder")};
   }
 
   ${AnimatedStar} {

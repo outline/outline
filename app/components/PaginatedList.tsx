@@ -11,7 +11,7 @@ import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DelayedMount from "~/components/DelayedMount";
 import PlaceholderList from "~/components/List/Placeholder";
 import withStores from "~/components/withStores";
-import { dateToHeading } from "~/utils/dates";
+import { dateToHeading } from "~/utils/date";
 
 export interface PaginatedItem {
   id: string;
@@ -70,7 +70,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
   allowLoadMore = true;
 
   componentDidMount() {
-    this.fetchResults();
+    void this.fetchResults();
   }
 
   componentDidUpdate(prevProps: Props<T>) {
@@ -79,7 +79,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
       !isEqual(prevProps.options, this.props.options)
     ) {
       this.reset();
-      this.fetchResults();
+      void this.fetchResults();
     }
   }
 
@@ -99,7 +99,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
     }
     this.isFetching = true;
     const counter = ++this.fetchCounter;
-    const limit = DEFAULT_PAGINATION_LIMIT;
+    const limit = this.props.options?.limit ?? DEFAULT_PAGINATION_LIMIT;
     this.error = undefined;
 
     try {

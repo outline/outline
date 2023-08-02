@@ -1,25 +1,20 @@
 import { useKBar, KBarPositioner, KBarAnimator, KBarSearch } from "kbar";
 import { observer } from "mobx-react";
-import { QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import CommandBarResults from "~/components/CommandBarResults";
 import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
-import useSettingsActions from "~/hooks/useSettingsAction";
-import useStores from "~/hooks/useStores";
+import useSettingsActions from "~/hooks/useSettingsActions";
 import { CommandBarAction } from "~/types";
-import { metaDisplay } from "~/utils/keyboard";
-import Text from "./Text";
 
 function CommandBar() {
   const { t } = useTranslation();
-  const { ui } = useStores();
   const settingsActions = useSettingsActions();
   const commandBarActions = React.useMemo(
     () => [...rootActions, settingsActions],
@@ -30,9 +25,9 @@ function CommandBar() {
 
   const { rootAction } = useKBar((state) => ({
     rootAction: state.currentRootActionId
-      ? ((state.actions[
+      ? (state.actions[
           state.currentRootActionId
-        ] as unknown) as CommandBarAction)
+        ] as unknown as CommandBarAction)
       : undefined,
   }));
 
@@ -50,17 +45,6 @@ function CommandBar() {
               }…`}
             />
             <CommandBarResults />
-            {ui.commandBarOpenedFromSidebar && (
-              <Hint size="small" type="tertiary">
-                <QuestionMarkIcon size={18} color="currentColor" />
-                {t(
-                  "Open search from anywhere with the {{ shortcut }} shortcut",
-                  {
-                    shortcut: `${metaDisplay} + k`,
-                  }
-                )}
-              </Hint>
-            )}
           </Animator>
         </Positioner>
       </KBarPortal>
@@ -68,7 +52,11 @@ function CommandBar() {
   );
 }
 
-const KBarPortal: React.FC = ({ children }) => {
+type Props = {
+  children?: React.ReactNode;
+};
+
+const KBarPortal: React.FC = ({ children }: Props) => {
   const { showing } = useKBar((state) => ({
     showing: state.visualState !== "hidden",
   }));
@@ -80,16 +68,6 @@ const KBarPortal: React.FC = ({ children }) => {
   return <Portal>{children}</Portal>;
 };
 
-const Hint = styled(Text)`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border-top: 1px solid ${(props) => props.theme.background};
-  margin: 1px 0 0;
-  padding: 6px 16px;
-  width: 100%;
-`;
-
 const Positioner = styled(KBarPositioner)`
   z-index: ${depths.commandBar};
 `;
@@ -99,12 +77,12 @@ const SearchInput = styled(KBarSearch)`
   width: 100%;
   outline: none;
   border: none;
-  background: ${(props) => props.theme.menuBackground};
-  color: ${(props) => props.theme.text};
+  background: ${s("menuBackground")};
+  color: ${s("text")};
 
   &:disabled,
   &::placeholder {
-    color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
   }
 `;
 
@@ -112,8 +90,8 @@ const Animator = styled(KBarAnimator)`
   max-width: 600px;
   max-height: 75vh;
   width: 90vw;
-  background: ${(props) => props.theme.menuBackground};
-  color: ${(props) => props.theme.text};
+  background: ${s("menuBackground")};
+  color: ${s("text")};
   border-radius: 8px;
   overflow: hidden;
   box-shadow: rgb(0 0 0 / 40%) 0px 16px 60px;

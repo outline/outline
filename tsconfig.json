@@ -20,10 +20,11 @@
     "resolveJsonModule": true,
     "strictNullChecks": true,
     "noEmit": true,
+    "skipLibCheck": true,
+    "ignoreDeprecations": "5.0",
     "suppressImplicitAnyIndexErrors": true,
     "target": "es2020",
     "paths": {
-      "prosemirror-markdown": ["./node_modules/@types/prosemirror-markdown"],
       "@server/*": ["./server/*"],
       "@shared/*": ["./shared/*"],
       "~/*": ["./app/*"]

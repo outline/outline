@@ -1,10 +1,10 @@
-import { observable } from "mobx";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
+import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
 
 const RealTextarea = styled.textarea<{ hasIcon?: boolean }>`
@@ -13,11 +13,11 @@ const RealTextarea = styled.textarea<{ hasIcon?: boolean }>`
   padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
 
   &:disabled,
   &::placeholder {
-    color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
   }
 `;
 
@@ -27,24 +27,21 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
   padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   height: 30px;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  ${ellipsis()}
   ${undraggableOnDesktop()}
 
   &:disabled,
   &::placeholder {
-    color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
   }
 
   &:-webkit-autofill,
   &:-webkit-autofill:hover,
   &:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0px 1000px ${(props) => props.theme.background}
-      inset;
+    -webkit-box-shadow: 0 0 0px 1000px ${s("background")} inset;
   }
 
   &::-webkit-search-cancel-button {
@@ -99,7 +96,7 @@ export const Outline = styled(Flex)<{
   font-weight: normal;
   align-items: center;
   overflow: hidden;
-  background: ${(props) => props.theme.background};
+  background: ${s("background")};
 
   /* Prevents an issue where input placeholder appears in a selected style when double clicking title bar */
   user-select: none;
@@ -120,92 +117,123 @@ export type Props = React.InputHTMLAttributes<
   flex?: boolean;
   short?: boolean;
   margin?: string | number;
+  error?: string;
   icon?: React.ReactNode;
-  innerRef?: React.Ref<any>;
+  /* Callback is triggered with the CMD+Enter keyboard combo */
+  onRequestSubmit?: (
+    ev: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => unknown;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
   onBlur?: (ev: React.SyntheticEvent) => unknown;
 };
 
-@observer
-class Input extends React.Component<Props> {
-  input = this.props.innerRef;
+function Input(
+  props: Props,
+  ref: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
+) {
+  const [focused, setFocused] = React.useState(false);
 
-  @observable
-  focused = false;
+  const handleBlur = (ev: React.SyntheticEvent) => {
+    setFocused(false);
 
-  handleBlur = (ev: React.SyntheticEvent) => {
-    this.focused = false;
-
-    if (this.props.onBlur) {
-      this.props.onBlur(ev);
+    if (props.onBlur) {
+      props.onBlur(ev);
     }
   };
 
-  handleFocus = (ev: React.SyntheticEvent) => {
-    this.focused = true;
+  const handleFocus = (ev: React.SyntheticEvent) => {
+    setFocused(true);
 
-    if (this.props.onFocus) {
-      this.props.onFocus(ev);
+    if (props.onFocus) {
+      props.onFocus(ev);
     }
   };
 
-  render() {
-    const {
-      type = "text",
-      icon,
-      label,
-      margin,
-      className,
-      short,
-      flex,
-      labelHidden,
-      onFocus,
-      onBlur,
-      ...rest
-    } = this.props;
+  const handleKeyDown = (
+    ev: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (ev.key === "Enter" && ev.metaKey) {
+      if (props.onRequestSubmit) {
+        props.onRequestSubmit(ev);
+      }
+    }
 
-    const wrappedLabel = <LabelText>{label}</LabelText>;
+    if (props.onKeyDown) {
+      props.onKeyDown(ev);
+    }
+  };
 
-    return (
-      <Wrapper className={className} short={short} flex={flex}>
-        <label>
-          {label &&
-            (labelHidden ? (
-              <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
-            ) : (
-              wrappedLabel
-            ))}
-          <Outline focused={this.focused} margin={margin}>
-            {icon && <IconWrapper>{icon}</IconWrapper>}
-            {type === "textarea" ? (
-              <RealTextarea
-                ref={this.props.innerRef}
-                onBlur={this.handleBlur}
-                onFocus={this.handleFocus}
-                hasIcon={!!icon}
-                {...rest}
-              />
-            ) : (
-              <RealInput
-                ref={this.props.innerRef}
-                onBlur={this.handleBlur}
-                onFocus={this.handleFocus}
-                hasIcon={!!icon}
-                type={type}
-                {...rest}
-              />
-            )}
-          </Outline>
-        </label>
-      </Wrapper>
-    );
-  }
+  const {
+    type = "text",
+    icon,
+    label,
+    margin,
+    error,
+    className,
+    short,
+    flex,
+    labelHidden,
+    onFocus,
+    onBlur,
+    children,
+    ...rest
+  } = props;
+
+  const wrappedLabel = <LabelText>{label}</LabelText>;
+
+  return (
+    <Wrapper className={className} short={short} flex={flex}>
+      <label>
+        {label &&
+          (labelHidden ? (
+            <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
+          ) : (
+            wrappedLabel
+          ))}
+        <Outline focused={focused} margin={margin}>
+          {icon && <IconWrapper>{icon}</IconWrapper>}
+          {type === "textarea" ? (
+            <RealTextarea
+              ref={ref as React.RefObject<HTMLTextAreaElement>}
+              onBlur={handleBlur}
+              onFocus={handleFocus}
+              onKeyDown={handleKeyDown}
+              hasIcon={!!icon}
+              {...rest}
+            />
+          ) : (
+            <RealInput
+              ref={ref as React.RefObject<HTMLInputElement>}
+              onBlur={handleBlur}
+              onFocus={handleFocus}
+              onKeyDown={handleKeyDown}
+              hasIcon={!!icon}
+              type={type}
+              {...rest}
+            />
+          )}
+          {children}
+        </Outline>
+      </label>
+      {error && (
+        <TextWrapper>
+          <StyledText type="danger" size="xsmall">
+            {error}
+          </StyledText>
+        </TextWrapper>
+      )}
+    </Wrapper>
+  );
 }
 
-export const ReactHookWrappedInput = React.forwardRef(
-  (props: Omit<Props, "innerRef">, ref: React.Ref<any>) => {
-    return <Input {...{ ...props, innerRef: ref }} />;
-  }
-);
+export const TextWrapper = styled.span`
+  min-height: 16px;
+  display: block;
+  margin-top: -16px;
+`;
 
-export default Input;
+export const StyledText = styled(Text)`
+  margin-bottom: 0;
+`;
+
+export default React.forwardRef(Input);

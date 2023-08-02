@@ -1,37 +1,44 @@
 import { Transaction } from "sequelize";
-import { APM } from "@server/logging/tracing";
-import { Collection, Event, Team, User, FileOperation } from "@server/models";
 import {
+  FileOperationFormat,
   FileOperationType,
   FileOperationState,
-  FileOperationFormat,
-} from "@server/models/FileOperation";
+} from "@shared/types";
+import { traceFunction } from "@server/logging/tracing";
+import { Collection, Event, Team, User, FileOperation } from "@server/models";
 import { getAWSKeyForFileOp } from "@server/utils/s3";
+
+type Props = {
+  collection?: Collection;
+  team: Team;
+  user: User;
+  format?: FileOperationFormat;
+  includeAttachments?: boolean;
+  ip: string;
+  transaction: Transaction;
+};
 
 async function collectionExporter({
   collection,
   team,
   user,
+  format = FileOperationFormat.MarkdownZip,
+  includeAttachments = true,
   ip,
   transaction,
-}: {
-  collection?: Collection;
-  team: Team;
-  user: User;
-  ip: string;
-  transaction: Transaction;
-}) {
+}: Props) {
   const collectionId = collection?.id;
   const key = getAWSKeyForFileOp(user.teamId, collection?.name || team.name);
   const fileOperation = await FileOperation.create(
     {
       type: FileOperationType.Export,
       state: FileOperationState.Creating,
-      format: FileOperationFormat.MarkdownZip,
+      format,
       key,
       url: null,
       size: 0,
       collectionId,
+      includeAttachments,
       userId: user.id,
       teamId: user.teamId,
     },
@@ -49,7 +56,8 @@ async function collectionExporter({
       collectionId,
       ip,
       data: {
-        type: FileOperationType.Import,
+        type: FileOperationType.Export,
+        format,
       },
     },
     {
@@ -66,7 +74,6 @@ async function collectionExporter({
   return fileOperation;
 }
 
-export default APM.traceFunction({
-  serviceName: "command",
+export default traceFunction({
   spanName: "collectionExporter",
 })(collectionExporter);

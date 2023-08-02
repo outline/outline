@@ -42,7 +42,7 @@ const Circle = ({
       style={{
         transition: "stroke-dashoffset 0.6s ease 0s",
       }}
-    ></circle>
+    />
   );
 };
 
@@ -63,7 +63,7 @@ const CircularProgressBar = ({
         <Circle color={theme.progressBarBackground} offset={offset} />
         {percentage > 0 && (
           <Circle
-            color={theme.primary}
+            color={theme.accent}
             percentage={percentage}
             offset={offset}
           />

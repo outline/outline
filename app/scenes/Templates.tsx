@@ -25,7 +25,7 @@ function Templates(props: RouteComponentProps<{ sort: string }>) {
 
   return (
     <Scene
-      icon={<ShapesIcon color="currentColor" />}
+      icon={<ShapesIcon />}
       title={t("Templates")}
       actions={
         <Action>

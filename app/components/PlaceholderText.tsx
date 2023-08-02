@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { randomInteger } from "@shared/random";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import { pulsate } from "~/styles/animations";
 
@@ -30,7 +31,7 @@ const Mask = styled(Flex)<{
     props.height ? props.height : props.header ? 24 : 18}px;
   margin-bottom: 6px;
   border-radius: 6px;
-  background-color: ${(props) => props.theme.divider};
+  background-color: ${s("divider")};
   animation: ${pulsate} 2s infinite;
   animation-delay: ${(props) => props.delay || 0}s;
 

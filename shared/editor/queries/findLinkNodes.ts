@@ -1,8 +1,8 @@
 import { Node } from "prosemirror-model";
-import { findTextNodes, NodeWithPos } from "prosemirror-utils";
+import { findChildren, NodeWithPos } from "./findChildren";
 
 export default function findLinkNodes(doc: Node): NodeWithPos[] {
-  const textNodes = findTextNodes(doc);
+  const textNodes = findChildren(doc, (child) => child.isText);
   const nodes: NodeWithPos[] = [];
 
   for (const nodeWithPos of textNodes) {

@@ -10,6 +10,7 @@ const Flex = styled.div<{
   column?: boolean;
   align?: AlignValues;
   justify?: JustifyValues;
+  wrap?: boolean;
   shrink?: boolean;
   reverse?: boolean;
   gap?: number;
@@ -26,7 +27,9 @@ const Flex = styled.div<{
       : "row"};
   align-items: ${({ align }) => align};
   justify-content: ${({ justify }) => justify};
-  flex-shrink: ${({ shrink }) => (shrink ? 1 : "initial")};
+  flex-wrap: ${({ wrap }) => (wrap ? "wrap" : "initial")};
+  flex-shrink: ${({ shrink }) =>
+    shrink === true ? 1 : shrink === false ? 0 : "initial"};
   gap: ${({ gap }) => (gap ? `${gap}px` : "initial")};
   min-height: 0;
   min-width: 0;

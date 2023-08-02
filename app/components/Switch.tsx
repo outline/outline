@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { LabelText } from "~/components/Input";
 import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
@@ -82,8 +83,11 @@ const Input = styled.label<{ width: number; height: number }>`
   display: inline-block;
   width: ${(props) => props.width}px;
   height: ${(props) => props.height}px;
-  margin-right: 8px;
   flex-shrink: 0;
+
+  &:not(:last-child) {
+    margin-right: 8px;
+  }
 `;
 
 const Slider = styled.span<{ width: number; height: number }>`
@@ -124,11 +128,11 @@ const HiddenInput = styled.input<{ width: number; height: number }>`
   }
 
   &:checked + ${Slider} {
-    background-color: ${(props) => props.theme.primary};
+    background-color: ${s("accent")};
   }
 
   &:focus + ${Slider} {
-    box-shadow: 0 0 1px ${(props) => props.theme.primary};
+    box-shadow: 0 0 1px ${s("accent")};
   }
 
   &:checked + ${Slider}:before {

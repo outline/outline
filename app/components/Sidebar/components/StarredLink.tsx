@@ -5,11 +5,14 @@ import { StarredIcon } from "outline-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
+import { getEmptyImage } from "react-dnd-html5-backend";
 import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
+import parseTitle from "@shared/utils/parseTitle";
 import Star from "~/models/Star";
-import EmojiIcon from "~/components/EmojiIcon";
 import Fade from "~/components/Fade";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
+import EmojiIcon from "~/components/Icons/EmojiIcon";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
@@ -32,8 +35,45 @@ function useLocationStateStarred() {
   return location.state?.starred;
 }
 
-function StarredLink({ star }: Props) {
+function useLabelAndIcon({ documentId, collectionId }: Star) {
+  const { collections, documents } = useStores();
   const theme = useTheme();
+
+  if (documentId) {
+    const document = documents.get(documentId);
+    if (document) {
+      const { emoji } = parseTitle(document?.title);
+
+      return {
+        label: emoji
+          ? document.title.replace(emoji, "")
+          : document.titleWithDefault,
+        icon: emoji ? (
+          <EmojiIcon emoji={emoji} />
+        ) : (
+          <StarredIcon color={theme.yellow} />
+        ),
+      };
+    }
+  }
+
+  if (collectionId) {
+    const collection = collections.get(collectionId);
+    if (collection) {
+      return {
+        label: collection.name,
+        icon: <CollectionIcon collection={collection} />,
+      };
+    }
+  }
+
+  return {
+    label: "",
+    icon: <StarredIcon color={theme.yellow} />,
+  };
+}
+
+function StarredLink({ star }: Props) {
   const { ui, collections, documents } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId, collectionId } = star;
@@ -50,13 +90,9 @@ function StarredLink({ star }: Props) {
   }, [star.collectionId, ui.activeCollectionId, locationStateStarred]);
 
   useEffect(() => {
-    async function load() {
-      if (documentId) {
-        await documents.fetch(documentId);
-      }
+    if (documentId) {
+      void documents.fetch(documentId);
     }
-
-    load();
   }, [documentId, documents]);
 
   const handleDisclosureClick = React.useCallback(
@@ -68,23 +104,33 @@ function StarredLink({ star }: Props) {
     []
   );
 
+  const { label, icon } = useLabelAndIcon(star);
+
   // Draggable
-  const [{ isDragging }, drag] = useDrag({
+  const [{ isDragging }, drag, preview] = useDrag({
     type: "star",
-    item: () => star,
+    item: () => ({
+      star,
+      title: label,
+      icon,
+    }),
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
     canDrag: () => true,
   });
 
+  React.useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: true });
+  }, [preview]);
+
   // Drop to reorder
   const [{ isOverReorder, isDraggingAny }, dropToReorder] = useDrop({
     accept: "star",
-    drop: (item: Star) => {
+    drop: (item: { star: Star }) => {
       const next = star?.next();
 
-      item?.save({
+      void item.star.save({
         index: fractionalIndex(star?.index || null, next?.index || null),
       });
     },
@@ -102,11 +148,13 @@ function StarredLink({ star }: Props) {
       return null;
     }
 
-    const collection = collections.get(document.collectionId);
     const { emoji } = document;
     const label = emoji
       ? document.title.replace(emoji, "")
       : document.titleWithDefault;
+    const collection = document.collectionId
+      ? collections.get(document.collectionId)
+      : undefined;
     const childDocuments = collection
       ? collection.getDocumentChildren(documentId)
       : [];
@@ -123,13 +171,7 @@ function StarredLink({ star }: Props) {
             }}
             expanded={hasChildDocuments && !isDragging ? expanded : undefined}
             onDisclosureClick={handleDisclosureClick}
-            icon={
-              emoji ? (
-                <EmojiIcon emoji={emoji} />
-              ) : (
-                <StarredIcon color={theme.yellow} />
-              )
-            }
+            icon={icon}
             isActive={(match, location: Location<{ starred?: boolean }>) =>
               !!match && location.state?.starred === true
             }
@@ -201,7 +243,8 @@ function StarredLink({ star }: Props) {
 
 const Draggable = styled.div<{ $isDragging?: boolean }>`
   position: relative;
-  opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
+  transition: opacity 250ms ease;
+  opacity: ${(props) => (props.$isDragging ? 0.1 : 1)};
 `;
 
 export default observer(StarredLink);

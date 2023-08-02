@@ -1,9 +1,10 @@
 ARG APP_PATH=/opt/outline
-FROM node:16.14.2-alpine3.15 AS deps
+FROM node:18-alpine AS deps
 
 ARG APP_PATH
 WORKDIR $APP_PATH
 COPY ./package.json ./yarn.lock ./
+COPY ./patches ./patches
 
 RUN yarn install --no-optional --frozen-lockfile --network-timeout 1000000 && \
   yarn cache clean

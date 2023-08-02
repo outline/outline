@@ -1,5 +1,5 @@
 import { Location, LocationDescriptor } from "history";
-import { TFunction } from "react-i18next";
+import { TFunction } from "i18next";
 import RootStore from "~/stores/RootStore";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
@@ -76,7 +76,7 @@ export type ActionContext = {
   isCommandBar: boolean;
   isButton: boolean;
   inStarredSection?: boolean;
-  activeCollectionId: string | undefined;
+  activeCollectionId?: string | null;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;
   currentTeamId: string | undefined;
@@ -89,6 +89,7 @@ export type ActionContext = {
 export type Action = {
   type?: undefined;
   id: string;
+  analyticsName?: string;
   name: ((context: ActionContext) => string) | string;
   section: ((context: ActionContext) => string) | string;
   shortcut?: string[];
@@ -99,7 +100,7 @@ export type Action = {
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: (context: ActionContext) => boolean;
   visible?: (context: ActionContext) => boolean;
-  perform?: (context: ActionContext) => void;
+  perform?: (context: ActionContext) => Promise<any> | any;
   children?: ((context: ActionContext) => Action[]) | Action[];
 };
 
@@ -124,7 +125,7 @@ export type Toast = {
   id: string;
   createdAt: string;
   message: string;
-  type: "warning" | "error" | "info" | "success";
+  type: "warning" | "error" | "info" | "success" | "loading";
   timeout?: number;
   reoccurring?: number;
   action?: {
@@ -177,7 +178,7 @@ export type SearchResult = {
 };
 
 export type ToastOptions = {
-  type: "warning" | "error" | "info" | "success";
+  type: "warning" | "error" | "info" | "success" | "loading";
   timeout?: number;
   action?: {
     text: string;
@@ -215,3 +216,7 @@ export type WebsocketEvent =
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent
   | WebsocketEntitiesEvent;
+
+export type AwarenessChangeEvent = {
+  states: { user?: { id: string }; cursor: any; scrollY: number | undefined }[];
+};

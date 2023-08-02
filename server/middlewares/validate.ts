@@ -1,16 +1,20 @@
 import { Next } from "koa";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 import { ValidationError } from "@server/errors";
-import { APIContext } from "@server/types";
+import { APIContext, BaseReq } from "@server/types";
 
-export default function validate<T extends z.ZodTypeAny>(schema: T) {
-  return async function validateMiddleware(ctx: APIContext<T>, next: Next) {
+export default function validate<T extends z.ZodType<BaseReq>>(schema: T) {
+  return async function validateMiddleware(ctx: APIContext, next: Next) {
     try {
-      ctx.input = schema.parse(ctx.request.body);
+      ctx.input = schema.parse(ctx.request);
     } catch (err) {
-      const { path, message } = err.issues[0];
-      const [prefix = "ValidationError"] = path;
-      throw ValidationError(`${prefix}: ${message}`);
+      if (err instanceof ZodError) {
+        const { path, message } = err.issues[0];
+        const errMessage =
+          path.length > 0 ? `${path[path.length - 1]}: ${message}` : message;
+        throw ValidationError(errMessage);
+      }
+      ctx.throw(err);
     }
     return next();
   };

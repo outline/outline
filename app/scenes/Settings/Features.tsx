@@ -33,7 +33,7 @@ function Features() {
   };
 
   return (
-    <Scene title={t("Features")} icon={<BeakerIcon color="currentColor" />}>
+    <Scene title={t("Features")} icon={<BeakerIcon />}>
       <Heading>{t("Features")}</Heading>
       <Text type="secondary">
         <Trans>
@@ -41,38 +41,34 @@ function Features() {
           the experience for all members of the workspace.
         </Trans>
       </Text>
-      {team.collaborativeEditing && (
-        <SettingRow
+      <SettingRow
+        name={TeamPreference.SeamlessEdit}
+        label={t("Seamless editing")}
+        description={t(
+          `When enabled documents are always editable for team members that have permission. When disabled there is a separate editing view.`
+        )}
+      >
+        <Switch
+          id={TeamPreference.SeamlessEdit}
           name={TeamPreference.SeamlessEdit}
-          label={t("Seamless editing")}
-          description={t(
-            `When enabled documents are always editable for team members that have permission. When disabled there is a separate editing view.`
-          )}
-        >
-          <Switch
-            id={TeamPreference.SeamlessEdit}
-            name={TeamPreference.SeamlessEdit}
-            checked={team.getPreference(TeamPreference.SeamlessEdit, true)}
-            onChange={handlePreferenceChange}
-          />
-        </SettingRow>
-      )}
-      {team.avatarUrl && (
-        <SettingRow
-          name={TeamPreference.PublicBranding}
-          label={t("Public branding")}
-          description={t(
-            "Show your team’s logo on public pages like login and shared documents."
-          )}
-        >
-          <Switch
-            id={TeamPreference.PublicBranding}
-            name={TeamPreference.PublicBranding}
-            checked={team.getPreference(TeamPreference.PublicBranding, false)}
-            onChange={handlePreferenceChange}
-          />
-        </SettingRow>
-      )}
+          checked={team.getPreference(TeamPreference.SeamlessEdit)}
+          onChange={handlePreferenceChange}
+        />
+      </SettingRow>
+      <SettingRow
+        name={TeamPreference.Commenting}
+        label={t("Commenting")}
+        description={t(
+          "When enabled team members can add comments to documents."
+        )}
+      >
+        <Switch
+          id={TeamPreference.Commenting}
+          name={TeamPreference.Commenting}
+          checked={team.getPreference(TeamPreference.Commenting)}
+          onChange={handlePreferenceChange}
+        />
+      </SettingRow>
     </Scene>
   );
 }
