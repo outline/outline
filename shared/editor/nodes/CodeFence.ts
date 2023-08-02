@@ -172,8 +172,9 @@ export default class CodeFence extends Node {
       toDOM: (node) => [
         "div",
         {
-          class: `code-block ${this.showLineNumbers ? "with-line-numbers" : ""
-            }`,
+          class: `code-block ${
+            this.showLineNumbers ? "with-line-numbers" : ""
+          }`,
           "data-language": node.attrs.language,
         },
         ["pre", ["code", { spellCheck: "false" }, 0]],
