@@ -46,7 +46,6 @@ import {
 import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
-import FindAndReplace from "./FindAndReplace";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
@@ -534,10 +533,6 @@ class DocumentScene extends React.Component<Props> {
                             </ReferencesWrapper>
                           </>
                         )}
-                        <FindAndReplace
-                          showReplace={!readOnly}
-                          editorRef={this.editor}
-                        />
                       </Editor>
 
                       {showContents && (

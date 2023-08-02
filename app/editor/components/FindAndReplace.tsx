@@ -14,18 +14,18 @@ import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import Popover from "~/components/Popover";
 import Tooltip from "~/components/Tooltip";
-import type { Editor } from "~/editor";
 import useKeyDown from "~/hooks/useKeyDown";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import { isModKey, metaDisplay } from "~/utils/keyboard";
+import { useEditor } from "./EditorContext";
 
 type Props = {
-  editorRef: React.RefObject<Editor>;
-  showReplace: boolean;
+  readOnly?: boolean;
 };
 
-export default function FindAndReplace({ editorRef, showReplace }: Props) {
-  const editor = editorRef.current;
+export default function FindAndReplace({ readOnly }: Props) {
+  const showReplace = !readOnly;
+  const editor = useEditor();
   const contentRef = React.useRef<HTMLDivElement>(null);
   const selectionRef = React.useRef<string | undefined>();
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -53,7 +53,7 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
     setCaseSensitive((state) => {
       const caseSensitive = !state;
 
-      editor?.commands?.find({
+      editor.commands.find({
         text: searchTerm,
         caseSensitive,
         regexEnabled,
@@ -61,13 +61,13 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
 
       return caseSensitive;
     });
-  }, [regexEnabled, editor?.commands, searchTerm]);
+  }, [regexEnabled, editor.commands, searchTerm]);
 
   const handleRegex = React.useCallback(() => {
     setRegex((state) => {
       const regexEnabled = !state;
 
-      editor?.commands?.find({
+      editor.commands.find({
         text: searchTerm,
         caseSensitive,
         regexEnabled,
@@ -75,7 +75,7 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
 
       return regexEnabled;
     });
-  }, [caseSensitive, editor?.commands, searchTerm]);
+  }, [caseSensitive, editor.commands, searchTerm]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
@@ -83,29 +83,29 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
         ev.preventDefault();
 
         if (ev.shiftKey) {
-          editor?.commands?.prevSearchMatch();
+          editor.commands.prevSearchMatch();
         } else {
-          editor?.commands?.nextSearchMatch();
+          editor.commands.nextSearchMatch();
         }
       }
     },
-    [editor?.commands]
+    [editor.commands]
   );
 
   const handleReplace = React.useCallback(
     (ev) => {
       ev.preventDefault();
-      editor?.commands?.replace({ text: replaceTerm });
+      editor.commands.replace({ text: replaceTerm });
     },
-    [editor?.commands, replaceTerm]
+    [editor.commands, replaceTerm]
   );
 
   const handleReplaceAll = React.useCallback(
     (ev) => {
       ev.preventDefault();
-      editor?.commands?.replaceAll({ text: replaceTerm });
+      editor.commands.replaceAll({ text: replaceTerm });
     },
-    [editor?.commands, replaceTerm]
+    [editor.commands, replaceTerm]
   );
 
   const handleChangeFind = React.useCallback(
@@ -114,13 +114,13 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
       ev.stopPropagation();
       setSearchTerm(ev.currentTarget.value);
 
-      editor?.commands?.find({
+      editor.commands.find({
         text: ev.currentTarget.value,
         caseSensitive,
         regexEnabled,
       });
     },
-    [caseSensitive, editor?.commands, regexEnabled]
+    [caseSensitive, editor.commands, regexEnabled]
   );
 
   const handleReplaceKeyDown = React.useCallback(
@@ -148,7 +148,7 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
     if (popover.visible) {
       if (selectionRef.current) {
         setSearchTerm(selectionRef.current);
-        editor?.commands?.find({
+        editor.commands.find({
           text: selectionRef.current,
           caseSensitive,
           regexEnabled,
@@ -156,7 +156,7 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
       }
       inputRef.current?.setSelectionRange(0, searchTerm.length);
     } else {
-      editor?.commands?.clearSearch();
+      editor.commands.clearSearch();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [popover.visible]);
@@ -236,7 +236,7 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
           placement="bottom"
         >
           <ButtonSmall
-            onClick={() => editor?.commands?.prevSearchMatch()}
+            onClick={() => editor.commands.prevSearchMatch()}
             neutral
             borderOnHover
             icon={<CaretUpIcon />}
@@ -249,7 +249,7 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
           placement="bottom"
         >
           <ButtonSmall
-            onClick={() => editor?.commands?.nextSearchMatch()}
+            onClick={() => editor.commands.nextSearchMatch()}
             neutral
             borderOnHover
             icon={<CaretDownIcon />}
