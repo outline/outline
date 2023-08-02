@@ -156,6 +156,7 @@ export type NavigationNode = {
   id: string;
   title: string;
   url: string;
+  emoji?: string;
   children: NavigationNode[];
   isDraft?: boolean;
   collectionId?: string;
