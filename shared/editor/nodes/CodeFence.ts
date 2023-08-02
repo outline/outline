@@ -48,6 +48,8 @@ import swift from "refractor/lang/swift";
 import toml from "refractor/lang/toml";
 import tsx from "refractor/lang/tsx";
 import typescript from "refractor/lang/typescript";
+import verilog from "refractor/lang/verilog";
+import vhdl from "refractor/lang/vhdl";
 import visualbasic from "refractor/lang/visual-basic";
 import yaml from "refractor/lang/yaml";
 import zig from "refractor/lang/zig";
@@ -113,6 +115,8 @@ const DEFAULT_LANGUAGE = "javascript";
   toml,
   typescript,
   tsx,
+  verilog,
+  vhdl,
   visualbasic,
   yaml,
   zig,
@@ -168,9 +172,8 @@ export default class CodeFence extends Node {
       toDOM: (node) => [
         "div",
         {
-          class: `code-block ${
-            this.showLineNumbers ? "with-line-numbers" : ""
-          }`,
+          class: `code-block ${this.showLineNumbers ? "with-line-numbers" : ""
+            }`,
           "data-language": node.attrs.language,
         },
         ["pre", ["code", { spellCheck: "false" }, 0]],

@@ -47,6 +47,8 @@ export const LANGUAGES = {
   tsx: "TSX",
   typescript: "TypeScript",
   vb: "Visual Basic",
+  verilog: "Verilog",
+  vhdl: "VHDL",
   yaml: "YAML",
   zig: "Zig",
 };
