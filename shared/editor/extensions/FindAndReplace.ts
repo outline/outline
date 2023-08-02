@@ -1,8 +1,10 @@
 import { Node } from "prosemirror-model";
-import { Command, EditorState, Plugin, Transaction } from "prosemirror-state";
+import { Command, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import Extension from "../lib/Extension";
+
+const pluginKey = new PluginKey("find-and-replace");
 
 export default class FindAndReplace extends Extension {
   public get name() {
@@ -11,17 +13,16 @@ export default class FindAndReplace extends Extension {
 
   public get defaultOptions() {
     return {
-      autoSelectNext: true,
-      findClassName: "find-result",
-      currentResultClassName: "current-result",
-      searching: false,
+      resultClassName: "find-result",
+      resultCurrentClassName: "current-result",
       caseSensitive: false,
     };
   }
 
   public commands() {
     return {
-      find: (attrs: { text: string }) => this.find(attrs.text),
+      find: (attrs: { text: string; caseSensitive?: boolean }) =>
+        this.find(attrs.text, attrs.caseSensitive),
       nextSearchMatch: () => this.goToMatch(1),
       prevSearchMatch: () => this.goToMatch(-1),
       replace: (attrs: { text: string }) => this.replace(attrs.text),
@@ -38,9 +39,9 @@ export default class FindAndReplace extends Extension {
     return this.results.map((deco, index) =>
       Decoration.inline(deco.from, deco.to, {
         class:
-          this.options.findClassName +
+          this.options.resultClassName +
           (this.currentResultIndex === index
-            ? ` ${this.options.currentResultClassName}`
+            ? ` ${this.options.resultCurrentClassName}`
             : ""),
       })
     );
@@ -76,19 +77,21 @@ export default class FindAndReplace extends Extension {
       });
 
       dispatch?.(tr);
-
-      this.find(this.searchTerm);
       return true;
     };
   }
 
-  public find(searchTerm: string): Command {
+  public find(
+    searchTerm: string,
+    caseSensitive = this.defaultOptions.caseSensitive
+  ): Command {
     return (state, dispatch) => {
+      this.options.caseSensitive = caseSensitive;
       this.searchTerm = searchTerm;
       this.currentResultIndex = 0;
 
-      this.updateView(state, dispatch);
-      return false;
+      dispatch?.(state.tr.setMeta(pluginKey, {}));
+      return true;
     };
   }
 
@@ -97,8 +100,8 @@ export default class FindAndReplace extends Extension {
       this.searchTerm = "";
       this.currentResultIndex = 0;
 
-      this.updateView(state, dispatch);
-      return false;
+      dispatch?.(state.tr.setMeta(pluginKey, {}));
+      return true;
     };
   }
 
@@ -118,10 +121,10 @@ export default class FindAndReplace extends Extension {
         }
       }
 
-      this.updateView(state, dispatch);
+      dispatch?.(state.tr.setMeta(pluginKey, {}));
 
       const element = window.document.querySelector(
-        `.${this.options.currentResultClassName}`
+        `.${this.options.resultCurrentClassName}`
       );
       if (element) {
         void scrollIntoView(element, {
@@ -129,7 +132,7 @@ export default class FindAndReplace extends Extension {
           block: "center",
         });
       }
-      return false;
+      return true;
     };
   }
 
@@ -150,12 +153,6 @@ export default class FindAndReplace extends Extension {
     };
 
     return offset;
-  }
-
-  public updateView({ tr }: EditorState, dispatch?: (tr: Transaction) => void) {
-    this.isUpdating = true;
-    dispatch?.(tr);
-    this.isUpdating = false;
   }
 
   private search(doc: Node) {
@@ -216,23 +213,28 @@ export default class FindAndReplace extends Extension {
     return true;
   }
 
+  get focusAfterExecution() {
+    return false;
+  }
+
   get plugins() {
     return [
       new Plugin({
+        key: pluginKey,
         state: {
-          init() {
-            return DecorationSet.empty;
-          },
-          apply: (tr, old) => {
-            if (this.isUpdating || this.options.searching) {
+          init: () => DecorationSet.empty,
+          apply: (tr, decorationSet) => {
+            const action = tr.getMeta(pluginKey);
+
+            if (action) {
               return this.createDeco(tr.doc);
             }
 
             if (tr.docChanged) {
-              return old.map(tr.mapping, tr.doc);
+              return decorationSet.map(tr.mapping, tr.doc);
             }
 
-            return old;
+            return decorationSet;
           },
         },
         props: {
@@ -244,8 +246,7 @@ export default class FindAndReplace extends Extension {
     ];
   }
 
-  private results: { from: number; to: number }[];
+  private results: { from: number; to: number }[] = [];
   private currentResultIndex = 0;
   private searchTerm = "";
-  private isUpdating = false;
 }
