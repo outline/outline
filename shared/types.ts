@@ -95,13 +95,14 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { measurementId: string }
   : T extends IntegrationType.Post
   ? { url: string; channel: string; channelId: string }
-  : T extends IntegrationType.Post
+  : T extends IntegrationType.Command
   ? { serviceTeamId: string }
   :
       | { url: string }
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string }
-      | { measurementId: string };
+      | { measurementId: string }
+      | undefined;
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
