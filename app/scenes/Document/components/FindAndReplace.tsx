@@ -16,6 +16,7 @@ import Popover from "~/components/Popover";
 import Tooltip from "~/components/Tooltip";
 import type { Editor } from "~/editor";
 import useKeyDown from "~/hooks/useKeyDown";
+import useOnClickOutside from "~/hooks/useOnClickOutside";
 import { isModKey, metaDisplay } from "~/utils/keyboard";
 
 type Props = {
@@ -25,6 +26,7 @@ type Props = {
 
 export default function FindAndReplace({ editorRef, showReplace }: Props) {
   const editor = editorRef.current;
+  const contentRef = React.useRef<HTMLDivElement>(null);
   const selectionRef = React.useRef<string | undefined>();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
@@ -37,6 +39,7 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
   const popover = usePopoverState();
 
   useKeyDown("Escape", popover.hide);
+  useOnClickOutside(contentRef, popover.hide);
 
   useKeyDown("f", (ev: KeyboardEvent) => {
     if (isModKey(ev) && !popover.visible) {
@@ -160,7 +163,7 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
 
   return (
     <Popover {...popover} style={style} aria-label={t("Find and replace")}>
-      <Content>
+      <Content ref={contentRef}>
         <Flex>
           <Input
             ref={inputRef}
