@@ -1,15 +1,22 @@
+import {
+  CaretDownIcon,
+  CaretUpIcon,
+  CaseSensitiveIcon,
+  RegexIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState } from "reakit/Popover";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { depths } from "@shared/styles";
 import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import Popover from "~/components/Popover";
+import Tooltip from "~/components/Tooltip";
 import type { Editor } from "~/editor";
 import useKeyDown from "~/hooks/useKeyDown";
-import { isModKey } from "~/utils/keyboard";
+import { isModKey, metaDisplay } from "~/utils/keyboard";
 
 type Props = {
   editorRef: React.RefObject<Editor>;
@@ -21,6 +28,9 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
   const selectionRef = React.useRef<string | undefined>();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
+  const theme = useTheme();
+  const [caseSensitive, setCaseSensitive] = React.useState(false);
+  const [regexEnabled, setRegex] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [replaceTerm, setReplaceTerm] = React.useState("");
 
@@ -35,6 +45,34 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
       popover.show();
     }
   });
+
+  const handleCaseSensitive = React.useCallback(() => {
+    setCaseSensitive((state) => {
+      const caseSensitive = !state;
+
+      editor?.commands?.find({
+        text: searchTerm,
+        caseSensitive,
+        regexEnabled,
+      });
+
+      return caseSensitive;
+    });
+  }, [regexEnabled, editor?.commands, searchTerm]);
+
+  const handleRegex = React.useCallback(() => {
+    setRegex((state) => {
+      const regexEnabled = !state;
+
+      editor?.commands?.find({
+        text: searchTerm,
+        caseSensitive,
+        regexEnabled,
+      });
+
+      return regexEnabled;
+    });
+  }, [caseSensitive, editor?.commands, searchTerm]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
@@ -72,9 +110,14 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
       ev.preventDefault();
       ev.stopPropagation();
       setSearchTerm(ev.currentTarget.value);
-      editor?.commands?.find({ text: ev.currentTarget.value });
+
+      editor?.commands?.find({
+        text: ev.currentTarget.value,
+        caseSensitive,
+        regexEnabled,
+      });
     },
-    [editor?.commands]
+    [caseSensitive, editor?.commands, regexEnabled]
   );
 
   const handleReplaceKeyDown = React.useCallback(
@@ -102,7 +145,11 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
     if (popover.visible) {
       if (selectionRef.current) {
         setSearchTerm(selectionRef.current);
-        editor?.commands?.find({ text: searchTerm });
+        editor?.commands?.find({
+          text: selectionRef.current,
+          caseSensitive,
+          regexEnabled,
+        });
       }
       inputRef.current?.setSelectionRange(0, searchTerm.length);
     } else {
@@ -114,46 +161,97 @@ export default function FindAndReplace({ editorRef, showReplace }: Props) {
   return (
     <Popover {...popover} style={style} aria-label={t("Find and replace")}>
       <Content>
-        <Input
-          ref={inputRef}
-          value={searchTerm}
-          placeholder={t("Find")}
-          onChange={handleChangeFind}
-          onKeyDown={handleKeyDown}
-        />
-
+        <Flex>
+          <Input
+            ref={inputRef}
+            maxLength={255}
+            value={searchTerm}
+            placeholder={t("Find")}
+            onChange={handleChangeFind}
+            onKeyDown={handleKeyDown}
+          />
+          <Tooltip
+            tooltip={t("Match case")}
+            shortcut={`⌥+${metaDisplay}+c`}
+            delay={500}
+            placement="bottom"
+          >
+            <ButtonSmall
+              onClick={handleCaseSensitive}
+              icon={
+                <CaseSensitiveIcon
+                  color={caseSensitive ? theme.accent : theme.textSecondary}
+                />
+              }
+              neutral
+              borderOnHover
+            />
+          </Tooltip>
+          <Tooltip
+            tooltip={t("Enable regex")}
+            shortcut={`⌥+${metaDisplay}+r`}
+            delay={500}
+            placement="bottom"
+          >
+            <ButtonSmall
+              onClick={handleRegex}
+              icon={
+                <RegexIcon
+                  color={regexEnabled ? theme.accent : theme.textSecondary}
+                />
+              }
+              neutral
+              borderOnHover
+            />
+          </Tooltip>
+        </Flex>
         {showReplace && (
           <>
             <Input
-              placeholder={t("Replace")}
+              maxLength={255}
               value={replaceTerm}
+              placeholder={t("Replace")}
               onKeyDown={handleReplaceKeyDown}
               onRequestSubmit={handleReplaceAll}
               onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
             />
             <Flex gap={8}>
-              <ButtonSmall type="button" onClick={handleReplace} neutral>
+              <ButtonSmall onClick={handleReplace} neutral>
                 {t("Replace")}
               </ButtonSmall>
-              <ButtonSmall type="button" onClick={handleReplaceAll} neutral>
+              <ButtonSmall onClick={handleReplaceAll} neutral>
                 {t("Replace all")}
               </ButtonSmall>
             </Flex>
           </>
         )}
 
-        <ButtonSmall
-          onClick={() => editor?.commands?.prevSearchMatch()}
-          neutral
+        <Tooltip
+          tooltip={t("Previous match")}
+          shortcut={`shift+enter`}
+          delay={500}
+          placement="bottom"
         >
-          {t("Previous")}
-        </ButtonSmall>
-        <ButtonSmall
-          onClick={() => editor?.commands?.nextSearchMatch()}
-          neutral
+          <ButtonSmall
+            onClick={() => editor?.commands?.prevSearchMatch()}
+            neutral
+            borderOnHover
+            icon={<CaretUpIcon />}
+          />
+        </Tooltip>
+        <Tooltip
+          tooltip={t("Next match")}
+          shortcut={`enter`}
+          delay={500}
+          placement="bottom"
         >
-          {t("Next")}
-        </ButtonSmall>
+          <ButtonSmall
+            onClick={() => editor?.commands?.nextSearchMatch()}
+            neutral
+            borderOnHover
+            icon={<CaretDownIcon />}
+          />
+        </Tooltip>
       </Content>
     </Popover>
   );

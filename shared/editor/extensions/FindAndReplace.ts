@@ -1,3 +1,4 @@
+import { escapeRegExp } from "lodash";
 import { Node } from "prosemirror-model";
 import { Command, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -16,13 +17,17 @@ export default class FindAndReplace extends Extension {
       resultClassName: "find-result",
       resultCurrentClassName: "current-result",
       caseSensitive: false,
+      regexEnabled: false,
     };
   }
 
   public commands() {
     return {
-      find: (attrs: { text: string; caseSensitive?: boolean }) =>
-        this.find(attrs.text, attrs.caseSensitive),
+      find: (attrs: {
+        text: string;
+        caseSensitive?: boolean;
+        regexEnabled?: boolean;
+      }) => this.find(attrs.text, attrs.caseSensitive, attrs.regexEnabled),
       nextSearchMatch: () => this.goToMatch(1),
       prevSearchMatch: () => this.goToMatch(-1),
       replace: (attrs: { text: string }) => this.replace(attrs.text),
@@ -83,11 +88,12 @@ export default class FindAndReplace extends Extension {
 
   public find(
     searchTerm: string,
-    caseSensitive = this.defaultOptions.caseSensitive
+    caseSensitive = this.defaultOptions.caseSensitive,
+    regexEnabled = this.defaultOptions.regexEnabled
   ): Command {
     return (state, dispatch) => {
       this.options.caseSensitive = caseSensitive;
-      this.searchTerm = searchTerm;
+      this.searchTerm = regexEnabled ? searchTerm : escapeRegExp(searchTerm);
       this.currentResultIndex = 0;
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
