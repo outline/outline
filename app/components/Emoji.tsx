@@ -22,18 +22,16 @@ const Emoji: React.FC<Props> = ({
   fallback,
   set,
   skin,
-}: Props) => {
-  return (
-    <em-emoji
-      id={id}
-      shortcodes={shortcodes}
-      native={native}
-      size={size}
-      fallback={fallback}
-      set={set}
-      skin={skin}
-    />
-  );
-};
+}: Props) => (
+  <em-emoji
+    id={id}
+    shortcodes={shortcodes}
+    native={native}
+    size={size}
+    fallback={fallback}
+    set={set}
+    skin={skin}
+  />
+);
 
 export default Emoji;
