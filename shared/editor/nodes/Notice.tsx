@@ -26,7 +26,8 @@ export default class Notice extends Node {
           default: "info",
         },
       },
-      content: "(list | blockquote | hr | paragraph | heading | attachment)+",
+      content:
+        "(list | blockquote | hr | paragraph | heading | code_block | code_fence | attachment)+",
       group: "block",
       defining: true,
       draggable: true,
