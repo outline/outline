@@ -29,6 +29,7 @@ type Props = {
 
 export default function FindAndReplace({ readOnly }: Props) {
   const editor = useEditor();
+  const finalFocusRef = React.useRef<HTMLElement>(editor.view.dom);
   const selectionRef = React.useRef<string | undefined>();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
@@ -224,6 +225,7 @@ export default function FindAndReplace({ readOnly }: Props) {
     <Portal>
       <Popover
         {...popover}
+        unstable_finalFocusRef={finalFocusRef}
         style={style}
         aria-label={t("Find and replace")}
         width={420}

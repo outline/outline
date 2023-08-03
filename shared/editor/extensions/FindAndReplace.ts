@@ -141,7 +141,14 @@ export default class FindAndReplace extends Extension {
   }
 
   private get findRegExp() {
-    return RegExp(this.searchTerm, !this.options.caseSensitive ? "gui" : "gu");
+    try {
+      return RegExp(
+        this.searchTerm.replace(/\\+$/, ""),
+        !this.options.caseSensitive ? "gui" : "gu"
+      );
+    } catch (err) {
+      return RegExp("");
+    }
   }
 
   private goToMatch(direction: number): Command {
