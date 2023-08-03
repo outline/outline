@@ -46,6 +46,10 @@ export default class Extension {
     return false;
   }
 
+  get focusAfterExecution(): boolean {
+    return true;
+  }
+
   keys(_options: {
     type?: NodeType | MarkType;
     schema: Schema;
