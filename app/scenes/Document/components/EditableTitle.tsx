@@ -25,7 +25,6 @@ import NudeButton from "~/components/NudeButton";
 import Star, { AnimatedStar } from "~/components/Star";
 import useActiveElement from "~/hooks/useActiveElement";
 import useMobile from "~/hooks/useMobile";
-import usePickerTheme from "~/hooks/usePickerTheme";
 import usePolicy from "~/hooks/usePolicy";
 import { hover } from "~/styles";
 import { isModKey } from "~/utils/keyboard";
@@ -66,7 +65,7 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
 ) {
   const { editor } = useDocumentContext();
   const theme = useTheme();
-  const pickerTheme = usePickerTheme();
+
   const isMobile = useMobile();
   const activeElement = useActiveElement();
   const can = usePolicy(document.id);
@@ -254,7 +253,6 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
           }
           onEmojiChange={handleEmojiChange}
           emojiPresent={!!document.emoji}
-          pickerTheme={pickerTheme}
         />
       )}
       {!can.update && document.emoji && (

@@ -3,27 +3,26 @@ import Picker from "@emoji-mart/react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
-import styled, { useTheme } from "styled-components";
-import { depths } from "@shared/styles";
+import styled from "styled-components";
+import { depths, s } from "@shared/styles";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
+import usePickerTheme from "~/hooks/usePickerTheme";
 
 type Props = {
   disclosure: React.ReactElement;
   onEmojiChange: (emoji: string | null) => void;
-  pickerTheme: string;
   emojiPresent: boolean;
 };
 
 function EmojiPicker({
   disclosure,
   onEmojiChange,
-  pickerTheme,
   emojiPresent,
   ...pickerOptions
 }: Props) {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const pickerTheme = usePickerTheme();
 
   const popover = usePopoverState({
     placement: "bottom-start",
@@ -53,16 +52,11 @@ function EmojiPicker({
         aria-label="emoji-picker"
       >
         {emojiPresent && (
-          <RemoveButton
-            neutral
-            hasText
-            onClick={() => handleEmojiChange(null)}
-            theme={theme}
-          >
+          <RemoveButton neutral hasText onClick={() => handleEmojiChange(null)}>
             {t("Remove")}
           </RemoveButton>
         )}
-        <PickerStyles theme={theme} ref={pickerRef}>
+        <PickerStyles ref={pickerRef}>
           <Picker
             data={data}
             onEmojiSelect={handleEmojiChange}
@@ -111,7 +105,7 @@ const PickerStyles = styled.div`
   em-emoji-picker {
     --shadow: none;
     --border-radius: 0;
-    --rgb-background: ${(props) => props.theme.menuBackground};
+    --rgb-background: ${s("menuBackground")};
     margin-left: auto;
     margin-right: auto;
     min-height: 443px;
