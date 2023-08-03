@@ -172,15 +172,20 @@ export default function FindAndReplace({ readOnly }: Props) {
 
   React.useEffect(() => {
     if (popover.visible) {
-      if (selectionRef.current) {
-        setSearchTerm(selectionRef.current);
+      const selection = selectionRef.current;
+      if (selection) {
+        setSearchTerm(selection);
+
         editor.commands.find({
-          text: selectionRef.current,
+          text: selection,
           caseSensitive,
           regexEnabled,
         });
+
+        requestAnimationFrame(() => {
+          inputRef.current?.setSelectionRange(0, selection.length);
+        });
       }
-      inputRef.current?.setSelectionRange(0, searchTerm.length);
     } else {
       editor.commands.clearSearch();
     }
