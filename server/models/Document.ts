@@ -1,4 +1,4 @@
-import { compact, uniq } from "lodash";
+import { compact, isNil, uniq } from "lodash";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
 import {
@@ -788,6 +788,7 @@ class Document extends ParanoidModel {
       id: this.id,
       title: this.title,
       url: this.url,
+      emoji: isNil(this.emoji) ? undefined : this.emoji,
       children,
     };
   };
