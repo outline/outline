@@ -16,7 +16,7 @@ import Popover from "~/components/Popover";
 import Tooltip from "~/components/Tooltip";
 import useKeyDown from "~/hooks/useKeyDown";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
-import { isModKey, metaDisplay } from "~/utils/keyboard";
+import { altDisplay, isModKey, metaDisplay } from "~/utils/keyboard";
 import { useEditor } from "./EditorContext";
 
 type Props = {
@@ -41,13 +41,32 @@ export default function FindAndReplace({ readOnly }: Props) {
   useKeyDown("Escape", popover.hide);
   useOnClickOutside(contentRef, popover.hide);
 
-  useKeyDown("f", (ev: KeyboardEvent) => {
-    if (isModKey(ev) && !popover.visible) {
-      selectionRef.current = window.getSelection()?.toString();
+  useKeyDown(
+    (ev) => isModKey(ev) && !popover.visible && ev.code === "KeyF",
+    (ev) => {
       ev.preventDefault();
+      selectionRef.current = window.getSelection()?.toString();
       popover.show();
     }
-  });
+  );
+
+  useKeyDown(
+    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyR" && popover.visible,
+    (ev) => {
+      ev.preventDefault();
+      setRegex((state) => !state);
+    },
+    { allowInInput: true }
+  );
+
+  useKeyDown(
+    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyC" && popover.visible,
+    (ev) => {
+      ev.preventDefault();
+      setCaseSensitive((state) => !state);
+    },
+    { allowInInput: true }
+  );
 
   const handleCaseSensitive = React.useCallback(() => {
     setCaseSensitive((state) => {
@@ -175,7 +194,7 @@ export default function FindAndReplace({ readOnly }: Props) {
           />
           <Tooltip
             tooltip={t("Match case")}
-            shortcut={`⌥+${metaDisplay}+c`}
+            shortcut={`${altDisplay}+${metaDisplay}+c`}
             delay={500}
             placement="bottom"
           >
@@ -192,7 +211,7 @@ export default function FindAndReplace({ readOnly }: Props) {
           </Tooltip>
           <Tooltip
             tooltip={t("Enable regex")}
-            shortcut={`⌥+${metaDisplay}+r`}
+            shortcut={`${altDisplay}+${metaDisplay}+r`}
             delay={500}
             placement="bottom"
           >
@@ -231,7 +250,7 @@ export default function FindAndReplace({ readOnly }: Props) {
 
         <Tooltip
           tooltip={t("Previous match")}
-          shortcut={`shift+enter`}
+          shortcut="shift+enter"
           delay={500}
           placement="bottom"
         >
@@ -244,7 +263,7 @@ export default function FindAndReplace({ readOnly }: Props) {
         </Tooltip>
         <Tooltip
           tooltip={t("Next match")}
-          shortcut={`enter`}
+          shortcut="enter"
           delay={500}
           placement="bottom"
         >
