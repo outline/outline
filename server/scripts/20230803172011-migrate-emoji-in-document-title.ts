@@ -16,6 +16,7 @@ export default async function main(exit = false) {
       limit,
       offset: page * limit,
       order: [["createdAt", "ASC"]],
+      paranoid: false,
     });
 
     for (const document of documents) {
