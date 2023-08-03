@@ -15,6 +15,7 @@ import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
 import Popover from "~/components/Popover";
+import { Portal } from "~/components/Portal";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Tooltip from "~/components/Tooltip";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -161,7 +162,7 @@ export default function FindAndReplace({ readOnly }: Props) {
 
   const style: React.CSSProperties = React.useMemo(
     () => ({
-      position: "fixed",
+      position: "absolute",
       left: "initial",
       top: 60,
       right: 16,
@@ -187,6 +188,7 @@ export default function FindAndReplace({ readOnly }: Props) {
         });
       }
     } else {
+      setShowReplace(false);
       editor.commands.clearSearch();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -218,70 +220,74 @@ export default function FindAndReplace({ readOnly }: Props) {
   );
 
   return (
-    <Popover
-      {...popover}
-      style={style}
-      aria-label={t("Find and replace")}
-      width={420}
-    >
-      <Content column>
-        <Flex gap={8}>
-          <Input
-            ref={inputRef}
-            maxLength={255}
-            value={searchTerm}
-            placeholder={`${t("Find")}…`}
-            onChange={handleChangeFind}
-            onKeyDown={handleKeyDown}
-          >
-            <Flex gap={8}>
-              <Tooltip
-                tooltip={t("Match case")}
-                shortcut={`${altDisplay}+${metaDisplay}+c`}
-                delay={500}
-                placement="bottom"
-              >
-                <ButtonSmall onClick={handleCaseSensitive}>
-                  <CaseSensitiveIcon
-                    color={caseSensitive ? theme.accent : theme.textSecondary}
-                  />
-                </ButtonSmall>
-              </Tooltip>
-              <Tooltip
-                tooltip={t("Enable regex")}
-                shortcut={`${altDisplay}+${metaDisplay}+r`}
-                delay={500}
-                placement="bottom"
-              >
-                <ButtonSmall onClick={handleRegex}>
-                  <RegexIcon
-                    color={regexEnabled ? theme.accent : theme.textSecondary}
-                  />
-                </ButtonSmall>
-              </Tooltip>
-            </Flex>
-          </Input>
-          {navigation}
-          {!readOnly && (
-            <Tooltip tooltip={t("More options")} delay={500} placement="bottom">
-              <ButtonLarge onClick={handleMore}>
-                <MoreIcon color={theme.textSecondary} />
-              </ButtonLarge>
-            </Tooltip>
-          )}
-        </Flex>
-        <ResizingHeightContainer>
-          {showReplace && (
-            <Flex gap={8}>
-              <Input
-                maxLength={255}
-                value={replaceTerm}
-                placeholder={t("Replacement")}
-                onKeyDown={handleReplaceKeyDown}
-                onRequestSubmit={handleReplaceAll}
-                onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
-              />
+    <Portal>
+      <Popover
+        {...popover}
+        style={style}
+        aria-label={t("Find and replace")}
+        width={420}
+      >
+        <Content column>
+          <Flex gap={8}>
+            <StyledInput
+              ref={inputRef}
+              maxLength={255}
+              value={searchTerm}
+              placeholder={`${t("Find")}…`}
+              onChange={handleChangeFind}
+              onKeyDown={handleKeyDown}
+            >
               <Flex gap={8}>
+                <Tooltip
+                  tooltip={t("Match case")}
+                  shortcut={`${altDisplay}+${metaDisplay}+c`}
+                  delay={500}
+                  placement="bottom"
+                >
+                  <ButtonSmall onClick={handleCaseSensitive}>
+                    <CaseSensitiveIcon
+                      color={caseSensitive ? theme.accent : theme.textSecondary}
+                    />
+                  </ButtonSmall>
+                </Tooltip>
+                <Tooltip
+                  tooltip={t("Enable regex")}
+                  shortcut={`${altDisplay}+${metaDisplay}+r`}
+                  delay={500}
+                  placement="bottom"
+                >
+                  <ButtonSmall onClick={handleRegex}>
+                    <RegexIcon
+                      color={regexEnabled ? theme.accent : theme.textSecondary}
+                    />
+                  </ButtonSmall>
+                </Tooltip>
+              </Flex>
+            </StyledInput>
+            {navigation}
+            {!readOnly && (
+              <Tooltip
+                tooltip={t("More options")}
+                delay={500}
+                placement="bottom"
+              >
+                <ButtonLarge onClick={handleMore}>
+                  <MoreIcon color={theme.textSecondary} />
+                </ButtonLarge>
+              </Tooltip>
+            )}
+          </Flex>
+          <ResizingHeightContainer>
+            {showReplace && (
+              <Flex gap={8}>
+                <StyledInput
+                  maxLength={255}
+                  value={replaceTerm}
+                  placeholder={t("Replacement")}
+                  onKeyDown={handleReplaceKeyDown}
+                  onRequestSubmit={handleReplaceAll}
+                  onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
+                />
                 <Button onClick={handleReplace} neutral>
                   {t("Replace")}
                 </Button>
@@ -289,13 +295,17 @@ export default function FindAndReplace({ readOnly }: Props) {
                   {t("Replace all")}
                 </Button>
               </Flex>
-            </Flex>
-          )}
-        </ResizingHeightContainer>
-      </Content>
-    </Popover>
+            )}
+          </ResizingHeightContainer>
+        </Content>
+      </Popover>
+    </Portal>
   );
 }
+
+const StyledInput = styled(Input)`
+  flex: 1;
+`;
 
 const ButtonSmall = styled(NudeButton)`
   &:hover,
