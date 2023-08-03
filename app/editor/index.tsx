@@ -783,7 +783,7 @@ export class Editor extends React.PureComponent<
                   onClickLink={this.props.onClickLink}
                   onCreateLink={this.props.onCreateLink}
                 />
-                <FindAndReplace readOnly={readOnly} />
+                {this.commands.find && <FindAndReplace readOnly={readOnly} />}
               </>
             )}
             {!readOnly && this.view && (

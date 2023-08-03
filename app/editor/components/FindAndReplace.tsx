@@ -2,17 +2,20 @@ import {
   CaretDownIcon,
   CaretUpIcon,
   CaseSensitiveIcon,
+  MoreIcon,
   RegexIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState } from "reakit/Popover";
 import styled, { useTheme } from "styled-components";
-import { depths } from "@shared/styles";
-import ButtonSmall from "~/components/ButtonSmall";
+import { depths, s } from "@shared/styles";
+import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
+import NudeButton from "~/components/NudeButton";
 import Popover from "~/components/Popover";
+import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Tooltip from "~/components/Tooltip";
 import useKeyDown from "~/hooks/useKeyDown";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
@@ -24,13 +27,12 @@ type Props = {
 };
 
 export default function FindAndReplace({ readOnly }: Props) {
-  const showReplace = !readOnly;
   const editor = useEditor();
-  const contentRef = React.useRef<HTMLDivElement>(null);
   const selectionRef = React.useRef<string | undefined>();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
   const theme = useTheme();
+  const [showReplace, setShowReplace] = React.useState(false);
   const [caseSensitive, setCaseSensitive] = React.useState(false);
   const [regexEnabled, setRegex] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -39,7 +41,7 @@ export default function FindAndReplace({ readOnly }: Props) {
   const popover = usePopoverState();
 
   useKeyDown("Escape", popover.hide);
-  useOnClickOutside(contentRef, popover.hide);
+  useOnClickOutside(popover.unstable_referenceRef, popover.hide);
 
   useKeyDown(
     (ev) => isModKey(ev) && !popover.visible && ev.code === "KeyF",
@@ -66,6 +68,11 @@ export default function FindAndReplace({ readOnly }: Props) {
       setCaseSensitive((state) => !state);
     },
     { allowInInput: true }
+  );
+
+  const handleMore = React.useCallback(
+    () => setShowReplace((state) => !state),
+    []
   );
 
   const handleCaseSensitive = React.useCallback(() => {
@@ -180,105 +187,124 @@ export default function FindAndReplace({ readOnly }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [popover.visible]);
 
+  const navigation = (
+    <>
+      <Tooltip
+        tooltip={t("Previous match")}
+        shortcut="shift+enter"
+        delay={500}
+        placement="bottom"
+      >
+        <ButtonLarge onClick={() => editor.commands.prevSearchMatch()}>
+          <CaretUpIcon />
+        </ButtonLarge>
+      </Tooltip>
+      <Tooltip
+        tooltip={t("Next match")}
+        shortcut="enter"
+        delay={500}
+        placement="bottom"
+      >
+        <ButtonLarge onClick={() => editor.commands.nextSearchMatch()}>
+          <CaretDownIcon />
+        </ButtonLarge>
+      </Tooltip>
+    </>
+  );
+
   return (
-    <Popover {...popover} style={style} aria-label={t("Find and replace")}>
-      <Content ref={contentRef}>
-        <Flex>
+    <Popover
+      {...popover}
+      style={style}
+      aria-label={t("Find and replace")}
+      width={420}
+    >
+      <Content column>
+        <Flex gap={8}>
           <Input
             ref={inputRef}
             maxLength={255}
             value={searchTerm}
-            placeholder={t("Find")}
+            placeholder={`${t("Find")}…`}
             onChange={handleChangeFind}
             onKeyDown={handleKeyDown}
-          />
-          <Tooltip
-            tooltip={t("Match case")}
-            shortcut={`${altDisplay}+${metaDisplay}+c`}
-            delay={500}
-            placement="bottom"
           >
-            <ButtonSmall
-              onClick={handleCaseSensitive}
-              icon={
-                <CaseSensitiveIcon
-                  color={caseSensitive ? theme.accent : theme.textSecondary}
-                />
-              }
-              neutral
-              borderOnHover
-            />
-          </Tooltip>
-          <Tooltip
-            tooltip={t("Enable regex")}
-            shortcut={`${altDisplay}+${metaDisplay}+r`}
-            delay={500}
-            placement="bottom"
-          >
-            <ButtonSmall
-              onClick={handleRegex}
-              icon={
-                <RegexIcon
-                  color={regexEnabled ? theme.accent : theme.textSecondary}
-                />
-              }
-              neutral
-              borderOnHover
-            />
-          </Tooltip>
-        </Flex>
-        {showReplace && (
-          <>
-            <Input
-              maxLength={255}
-              value={replaceTerm}
-              placeholder={t("Replace")}
-              onKeyDown={handleReplaceKeyDown}
-              onRequestSubmit={handleReplaceAll}
-              onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
-            />
             <Flex gap={8}>
-              <ButtonSmall onClick={handleReplace} neutral>
-                {t("Replace")}
-              </ButtonSmall>
-              <ButtonSmall onClick={handleReplaceAll} neutral>
-                {t("Replace all")}
-              </ButtonSmall>
+              <Tooltip
+                tooltip={t("Match case")}
+                shortcut={`${altDisplay}+${metaDisplay}+c`}
+                delay={500}
+                placement="bottom"
+              >
+                <ButtonSmall onClick={handleCaseSensitive}>
+                  <CaseSensitiveIcon
+                    color={caseSensitive ? theme.accent : theme.textSecondary}
+                  />
+                </ButtonSmall>
+              </Tooltip>
+              <Tooltip
+                tooltip={t("Enable regex")}
+                shortcut={`${altDisplay}+${metaDisplay}+r`}
+                delay={500}
+                placement="bottom"
+              >
+                <ButtonSmall onClick={handleRegex}>
+                  <RegexIcon
+                    color={regexEnabled ? theme.accent : theme.textSecondary}
+                  />
+                </ButtonSmall>
+              </Tooltip>
             </Flex>
-          </>
-        )}
-
-        <Tooltip
-          tooltip={t("Previous match")}
-          shortcut="shift+enter"
-          delay={500}
-          placement="bottom"
-        >
-          <ButtonSmall
-            onClick={() => editor.commands.prevSearchMatch()}
-            neutral
-            borderOnHover
-            icon={<CaretUpIcon />}
-          />
-        </Tooltip>
-        <Tooltip
-          tooltip={t("Next match")}
-          shortcut="enter"
-          delay={500}
-          placement="bottom"
-        >
-          <ButtonSmall
-            onClick={() => editor.commands.nextSearchMatch()}
-            neutral
-            borderOnHover
-            icon={<CaretDownIcon />}
-          />
-        </Tooltip>
+          </Input>
+          {navigation}
+          {!readOnly && (
+            <Tooltip tooltip={t("More options")} delay={500} placement="bottom">
+              <ButtonLarge onClick={handleMore}>
+                <MoreIcon color={theme.textSecondary} />
+              </ButtonLarge>
+            </Tooltip>
+          )}
+        </Flex>
+        <ResizingHeightContainer>
+          {showReplace && (
+            <Flex gap={8}>
+              <Input
+                maxLength={255}
+                value={replaceTerm}
+                placeholder={t("Replacement")}
+                onKeyDown={handleReplaceKeyDown}
+                onRequestSubmit={handleReplaceAll}
+                onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
+              />
+              <Flex gap={8}>
+                <Button onClick={handleReplace} neutral>
+                  {t("Replace")}
+                </Button>
+                <Button onClick={handleReplaceAll} neutral>
+                  {t("Replace all")}
+                </Button>
+              </Flex>
+            </Flex>
+          )}
+        </ResizingHeightContainer>
       </Content>
     </Popover>
   );
 }
 
-const Content = styled.div`
+const ButtonSmall = styled(NudeButton)`
+  &:hover,
+  &[aria-expanded="true"] {
+    background: ${s("sidebarControlHoverBackground")};
+  }
+`;
+
+const ButtonLarge = styled(ButtonSmall)`
+  width: 32px;
+  height: 32px;
+`;
+
+const Content = styled(Flex)`
   padding: 8px 0;
+  margin-bottom: -16px;
 `;
