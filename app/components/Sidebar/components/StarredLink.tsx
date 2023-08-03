@@ -8,7 +8,6 @@ import { useDrag, useDrop } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
-import parseTitle from "@shared/utils/parseTitle";
 import Star from "~/models/Star";
 import Fade from "~/components/Fade";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
@@ -42,7 +41,7 @@ function useLabelAndIcon({ documentId, collectionId }: Star) {
   if (documentId) {
     const document = documents.get(documentId);
     if (document) {
-      const { emoji } = parseTitle(document?.title);
+      const { emoji } = document;
 
       return {
         label: emoji
