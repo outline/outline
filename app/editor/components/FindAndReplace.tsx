@@ -238,7 +238,7 @@ export default function FindAndReplace({ readOnly }: Props) {
               onChange={handleChangeFind}
               onKeyDown={handleKeyDown}
             >
-              <Flex gap={8}>
+              <SearchModifiers gap={8}>
                 <Tooltip
                   tooltip={t("Match case")}
                   shortcut={`${altDisplay}+${metaDisplay}+c`}
@@ -263,7 +263,7 @@ export default function FindAndReplace({ readOnly }: Props) {
                     />
                   </ButtonSmall>
                 </Tooltip>
-              </Flex>
+              </SearchModifiers>
             </StyledInput>
             {navigation}
             {!readOnly && (
@@ -303,6 +303,10 @@ export default function FindAndReplace({ readOnly }: Props) {
     </Portal>
   );
 }
+
+const SearchModifiers = styled(Flex)`
+  margin-right: 4px;
+`;
 
 const StyledInput = styled(Input)`
   flex: 1;
