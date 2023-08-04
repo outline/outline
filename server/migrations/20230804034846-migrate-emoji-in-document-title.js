@@ -8,13 +8,21 @@ module.exports = {
       return;
     }
 
+    if (process.env.NODE_ENV === "test") {
+      return;
+    }
+
+    const rootDir = "build";
+
     const { Document } = require(path.join(
       process.cwd(),
-      "build/server/models"
+      rootDir,
+      "server/models"
     ));
     const { default: parseTitle } = require(path.join(
       process.cwd(),
-      "build/shared/utils/parseTitle"
+      rootDir,
+      "shared/utils/parseTitle"
     ));
 
     await Document.scope(["withoutState", "withDrafts"]).findAllInBatches(
