@@ -1,5 +1,6 @@
 import "./bootstrap";
 import parseTitle from "@shared/utils/parseTitle";
+import { sequelize } from "@server/database/sequelize";
 import { Document } from "@server/models";
 
 const limit = 100;
@@ -25,9 +26,12 @@ export default async function main(exit = false) {
         if (emoji) {
           document.emoji = emoji;
           document.title = strippedTitle;
-          await document.save({
-            silent: true,
-          });
+          await sequelize.transaction(async (transaction) =>
+            document.save({
+              silent: true,
+              transaction,
+            })
+          );
         }
       } catch (err) {
         console.error(`Failed at ${document.id}:`, err);
