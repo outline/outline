@@ -25,33 +25,39 @@ module.exports = {
       "shared/utils/parseTitle"
     ));
 
-    await Document.scope(["withoutState", "withDrafts"]).findAllInBatches(
-      {
-        limit: 100,
-        offset: 0,
-        order: [["createdAt", "ASC"]],
-        paranoid: false,
-      },
-      async (documents) => {
-        for (const document of documents) {
-          try {
-            const { emoji, strippedTitle } = parseTitle(document.title);
-            if (emoji) {
-              document.emoji = emoji;
-              document.title = strippedTitle;
-              await queryInterface.sequelize.transaction(async (transaction) =>
-                document.save({
+    await queryInterface.sequelize.transaction(async (transaction) =>
+      Document.unscoped().findAllInBatches(
+        {
+          attributes: {
+            exclude: ["state"],
+          },
+          limit: 100,
+          offset: 0,
+          order: [["createdAt", "ASC"]],
+          paranoid: false,
+          lock: Sequelize.Transaction.LOCK.UPDATE,
+          transaction,
+        },
+        async (documents) => {
+          for (const document of documents) {
+            try {
+              const { emoji, strippedTitle } = parseTitle(document.title);
+              if (emoji) {
+                document.emoji = emoji;
+                document.title = strippedTitle;
+
+                await document.save({
                   silent: true,
                   transaction,
-                })
-              );
+                });
+              }
+            } catch (err) {
+              console.error(`Failed at ${document.id}:`, err);
+              continue;
             }
-          } catch (err) {
-            console.error(`Failed at ${document.id}:`, err);
-            continue;
           }
         }
-      }
+      )
     );
   },
 

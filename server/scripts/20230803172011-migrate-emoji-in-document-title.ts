@@ -1,4 +1,5 @@
 import "./bootstrap";
+import { Transaction } from "sequelize";
 import parseTitle from "@shared/utils/parseTitle";
 import { sequelize } from "@server/database/sequelize";
 import { Document } from "@server/models";
@@ -10,36 +11,39 @@ page = Number.isNaN(page) ? 0 : page;
 export default async function main(exit = false) {
   const work = async (page: number): Promise<void> => {
     console.log(`Backfill document emoji from title… page ${page}`);
-    const documents = await Document.scope([
-      "withoutState",
-      "withDrafts",
-    ]).findAll({
-      limit,
-      offset: page * limit,
-      order: [["createdAt", "ASC"]],
-      paranoid: false,
-    });
+    await sequelize.transaction(async (transaction) => {
+      const documents = await Document.unscoped().findAll({
+        attributes: {
+          exclude: ["state"],
+        },
+        limit,
+        offset: page * limit,
+        order: [["createdAt", "ASC"]],
+        paranoid: false,
+        lock: Transaction.LOCK.UPDATE,
+        transaction,
+      });
 
-    for (const document of documents) {
-      try {
-        const { emoji, strippedTitle } = parseTitle(document.title);
-        if (emoji) {
-          document.emoji = emoji;
-          document.title = strippedTitle;
-          await sequelize.transaction(async (transaction) =>
-            document.save({
+      for (const document of documents) {
+        try {
+          const { emoji, strippedTitle } = parseTitle(document.title);
+          if (emoji) {
+            document.emoji = emoji;
+            document.title = strippedTitle;
+
+            await document.save({
               silent: true,
               transaction,
-            })
-          );
+            });
+          }
+        } catch (err) {
+          console.error(`Failed at ${document.id}:`, err);
+          continue;
         }
-      } catch (err) {
-        console.error(`Failed at ${document.id}:`, err);
-        continue;
       }
-    }
 
-    return documents.length === limit ? work(page + 1) : undefined;
+      return documents.length === limit ? work(page + 1) : undefined;
+    });
   };
 
   await work(page);
