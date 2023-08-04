@@ -20,6 +20,7 @@ import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Tooltip from "~/components/Tooltip";
 import useKeyDown from "~/hooks/useKeyDown";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
+import Desktop from "~/utils/Desktop";
 import { altDisplay, isModKey, metaDisplay } from "~/utils/keyboard";
 import { useEditor } from "./EditorContext";
 
@@ -39,14 +40,40 @@ export default function FindAndReplace({ readOnly }: Props) {
   const [regexEnabled, setRegex] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [replaceTerm, setReplaceTerm] = React.useState("");
-
   const popover = usePopoverState();
+  const { show } = popover;
 
+  // Hooks for desktop app menu items
+  React.useEffect(() => {
+    if (!Desktop.bridge) {
+      return;
+    }
+    if ("onFindInPage" in Desktop.bridge) {
+      Desktop.bridge.onFindInPage(() => {
+        selectionRef.current = window.getSelection()?.toString();
+        show();
+      });
+    }
+    if ("onReplaceInPage" in Desktop.bridge) {
+      Desktop.bridge.onReplaceInPage(() => {
+        setShowReplace(true);
+        show();
+      });
+    }
+  }, [show]);
+
+  // Close handlers
   useKeyDown("Escape", popover.hide);
   useOnClickOutside(popover.unstable_referenceRef, popover.hide);
 
+  // Keyboard shortcuts
   useKeyDown(
-    (ev) => isModKey(ev) && !popover.visible && ev.code === "KeyF",
+    (ev) =>
+      isModKey(ev) &&
+      !popover.visible &&
+      ev.code === "KeyF" &&
+      // Handler is through AppMenu on desktop app
+      !Desktop.isElectron(),
     (ev) => {
       ev.preventDefault();
       selectionRef.current = window.getSelection()?.toString();
@@ -72,6 +99,7 @@ export default function FindAndReplace({ readOnly }: Props) {
     { allowInInput: true }
   );
 
+  // Callbacks
   const handleMore = React.useCallback(
     () => setShowReplace((state) => !state),
     []
@@ -122,18 +150,24 @@ export default function FindAndReplace({ readOnly }: Props) {
 
   const handleReplace = React.useCallback(
     (ev) => {
+      if (readOnly) {
+        return;
+      }
       ev.preventDefault();
       editor.commands.replace({ text: replaceTerm });
     },
-    [editor.commands, replaceTerm]
+    [editor.commands, readOnly, replaceTerm]
   );
 
   const handleReplaceAll = React.useCallback(
     (ev) => {
+      if (readOnly) {
+        return;
+      }
       ev.preventDefault();
       editor.commands.replaceAll({ text: replaceTerm });
     },
-    [editor.commands, replaceTerm]
+    [editor.commands, readOnly, replaceTerm]
   );
 
   const handleChangeFind = React.useCallback(
@@ -281,7 +315,7 @@ export default function FindAndReplace({ readOnly }: Props) {
             )}
           </Flex>
           <ResizingHeightContainer>
-            {showReplace && (
+            {showReplace && !readOnly && (
               <Flex gap={8}>
                 <StyledInput
                   maxLength={255}

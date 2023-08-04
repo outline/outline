@@ -177,6 +177,7 @@ function Input(
     labelHidden,
     onFocus,
     onBlur,
+    onRequestSubmit,
     children,
     ...rest
   } = props;
