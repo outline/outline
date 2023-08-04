@@ -72,8 +72,8 @@ export default function FindAndReplace({ readOnly }: Props) {
       isModKey(ev) &&
       !popover.visible &&
       ev.code === "KeyF" &&
-      // Handler is through AppMenu on desktop app
-      !Desktop.isElectron(),
+      // Keyboard handler is through the AppMenu on Desktop v1.2.0+
+      !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
     (ev) => {
       ev.preventDefault();
       selectionRef.current = window.getSelection()?.toString();
