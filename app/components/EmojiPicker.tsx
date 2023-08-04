@@ -4,7 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
-import { depths, s } from "@shared/styles";
+import { depths } from "@shared/styles";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
 import usePickerTheme from "~/hooks/usePickerTheme";
@@ -105,7 +105,6 @@ const PickerStyles = styled.div`
   em-emoji-picker {
     --shadow: none;
     --border-radius: 0;
-    --rgb-background: ${s("menuBackground")};
     margin-left: auto;
     margin-right: auto;
     min-height: 443px;
