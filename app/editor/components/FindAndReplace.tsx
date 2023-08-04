@@ -30,7 +30,9 @@ type Props = {
 
 export default function FindAndReplace({ readOnly }: Props) {
   const editor = useEditor();
-  const finalFocusRef = React.useRef<HTMLElement>(editor.view.dom);
+  const finalFocusRef = React.useRef<HTMLElement>(
+    editor.view.dom.parentElement
+  );
   const selectionRef = React.useRef<string | undefined>();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
