@@ -1,6 +1,6 @@
-import { format as formatDate, formatDistanceToNow } from "date-fns";
+import { format as formatDate } from "date-fns";
 import * as React from "react";
-import { dateLocale, locales } from "@shared/utils/date";
+import { dateLocale, dateToRelative, locales } from "@shared/utils/date";
 import Tooltip from "~/components/Tooltip";
 import useUserLocale from "~/hooks/useUserLocale";
 
@@ -60,26 +60,21 @@ const LocaleTime: React.FC<Props> = ({
     };
   }, []);
 
+  const date = new Date(Date.parse(dateTime));
   const locale = dateLocale(userLocale);
-  let relativeContent = formatDistanceToNow(Date.parse(dateTime), {
+  const relativeContent = dateToRelative(date, {
     addSuffix,
     locale,
+    shorten,
   });
 
-  if (shorten) {
-    relativeContent = relativeContent
-      .replace("about", "")
-      .replace("less than a minute ago", "just now")
-      .replace("minute", "min");
-  }
-
-  const tooltipContent = formatDate(Date.parse(dateTime), formatLocaleLong, {
+  const tooltipContent = formatDate(date, formatLocaleLong, {
     locale,
   });
   const content =
     relative !== false
       ? relativeContent
-      : formatDate(Date.parse(dateTime), formatLocale, {
+      : formatDate(date, formatLocale, {
           locale,
         });
 

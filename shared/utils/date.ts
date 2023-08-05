@@ -1,5 +1,12 @@
 /* eslint-disable import/no-duplicates */
-import { subDays, subMonths, subWeeks, subYears } from "date-fns";
+import {
+  addSeconds,
+  formatDistanceToNow,
+  subDays,
+  subMonths,
+  subWeeks,
+  subYears,
+} from "date-fns";
 import {
   cs,
   de,
@@ -38,6 +45,44 @@ export function subtractDate(date: Date, period: DateFilter) {
     default:
       return date;
   }
+}
+
+/**
+ * Returns a humanized relative time string for the given date.
+ *
+ * @param date The date to convert
+ * @param options The options to pass to date-fns
+ * @returns The relative time string
+ */
+export function dateToRelative(
+  date: Date | number,
+  options?: {
+    includeSeconds?: boolean;
+    addSuffix?: boolean;
+    locale?: Locale | undefined;
+    shorten?: boolean;
+  }
+) {
+  const now = new Date();
+  const parsedDateTime = new Date(date);
+
+  // Protect against "in less than a minute" when users computer clock is off.
+  const normalizedDateTime =
+    parsedDateTime > now && parsedDateTime < addSeconds(now, 60)
+      ? now
+      : parsedDateTime;
+
+  const output = formatDistanceToNow(normalizedDateTime, options);
+
+  // Some tweaks to make english language shorter.
+  if (options?.shorten) {
+    return output
+      .replace("about", "")
+      .replace("less than a minute ago", "just now")
+      .replace("minute", "min");
+  }
+
+  return output;
 }
 
 /**

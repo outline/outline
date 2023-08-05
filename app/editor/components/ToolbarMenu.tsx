@@ -105,7 +105,10 @@ function ToolbarMenu(props: Props) {
             {item.children ? (
               <ToolbarDropdown item={item} />
             ) : (
-              <ToolbarButton onClick={handleClick(item)} active={isActive}>
+              <ToolbarButton
+                onClick={handleClick(item)}
+                active={isActive && !item.label}
+              >
                 {item.label && <Label>{item.label}</Label>}
                 {item.icon}
               </ToolbarButton>
