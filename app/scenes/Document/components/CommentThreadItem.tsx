@@ -1,4 +1,4 @@
-import { differenceInMilliseconds, formatDistanceToNow } from "date-fns";
+import { differenceInMilliseconds } from "date-fns";
 import { toJS } from "mobx";
 import { observer } from "mobx-react";
 import { darken } from "polished";
@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
+import { dateToRelative } from "@shared/utils/date";
 import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
@@ -37,9 +38,9 @@ function useShowTime(
   }
 
   const previousTimeStamp = previousCreatedAt
-    ? formatDistanceToNow(Date.parse(previousCreatedAt))
+    ? dateToRelative(Date.parse(previousCreatedAt))
     : undefined;
-  const currentTimeStamp = formatDistanceToNow(Date.parse(createdAt));
+  const currentTimeStamp = dateToRelative(Date.parse(createdAt));
 
   const msSincePreviousComment = previousCreatedAt
     ? differenceInMilliseconds(
