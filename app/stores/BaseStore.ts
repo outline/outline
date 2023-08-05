@@ -220,7 +220,7 @@ export default abstract class BaseStore<T extends BaseModel> {
   }
 
   @action
-  fetchPage = async (params: FetchPageParams | undefined): Promise<T[]> => {
+  fetchPage = async (params?: FetchPageParams | undefined): Promise<T[]> => {
     if (!this.actions.includes(RPCAction.List)) {
       throw new Error(`Cannot list ${this.modelName}`);
     }

@@ -12,6 +12,7 @@ import {
   SettingsIcon,
   ExportIcon,
   ImportIcon,
+  GlobeIcon,
 } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -23,6 +24,7 @@ import Features from "~/scenes/Settings/Features";
 import GoogleAnalytics from "~/scenes/Settings/GoogleAnalytics";
 import Groups from "~/scenes/Settings/Groups";
 import Import from "~/scenes/Settings/Import";
+import LinkedAccounts from "~/scenes/Settings/LinkedAccounts";
 import Members from "~/scenes/Settings/Members";
 import Notifications from "~/scenes/Settings/Notifications";
 import Preferences from "~/scenes/Settings/Preferences";
@@ -80,6 +82,14 @@ const useSettingsConfig = () => {
         icon: EmailIcon,
       },
       {
+        name: t("Linked Accounts"),
+        path: settingsPath("linked-accounts"),
+        component: LinkedAccounts,
+        enabled: true,
+        group: t("Account"),
+        icon: LinkIcon,
+      },
+      {
         name: t("API Tokens"),
         path: settingsPath("tokens"),
         component: ApiKeys,
@@ -134,7 +144,7 @@ const useSettingsConfig = () => {
         component: Shares,
         enabled: true,
         group: t("Workspace"),
-        icon: LinkIcon,
+        icon: GlobeIcon,
       },
       {
         name: t("Import"),
