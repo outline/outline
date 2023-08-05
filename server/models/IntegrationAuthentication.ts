@@ -34,6 +34,16 @@ class IntegrationAuthentication extends IdModel {
     setEncryptedColumn(this, "token", value);
   }
 
+  @Column(DataType.BLOB)
+  @Encrypted
+  get refreshToken() {
+    return getEncryptedColumn(this, "refreshToken");
+  }
+
+  set refreshToken(value: string) {
+    setEncryptedColumn(this, "refreshToken", value);
+  }
+
   // associations
 
   @BelongsTo(() => User, "userId")
