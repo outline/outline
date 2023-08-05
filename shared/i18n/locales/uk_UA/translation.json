@@ -523,7 +523,6 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Переглянуто {{ count }} разів {{ teamMembers }} людьми",
   "Viewer insights": "Статистика глядачів",
   "As an admin you can manage if team members can see who has viewed this document": "Як адміністратор ви можете контролювати, чи можуть члени команди бачити, хто переглядав цей документ",
-  "Sorry, it looks like you don’t have permission to access the document": "Вибачте, схоже, у вас немає дозволу на доступ до документа",
   "Sorry, this document is too large - edits will no longer be persisted.": "На жаль, цей документ завеликий – зміни більше не зберігатимуться.",
   "Sorry, the last change could not be persisted – please reload the page": "На жаль, не вдалося зберегти останню зміну – перезавантажте сторінку",
   "This template will be permanently deleted in <2></2> unless restored.": "Цей шаблон буде остаточно видалено через <2></2> якщо не буде відновлено.",
