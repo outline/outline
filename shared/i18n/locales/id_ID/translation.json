@@ -523,7 +523,6 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Dilihat {{ count }} kali oleh {{ teamMembers }} orang",
   "Viewer insights": "Viewer insights",
   "As an admin you can manage if team members can see who has viewed this document": "As an admin you can manage if team members can see who has viewed this document",
-  "Sorry, it looks like you don’t have permission to access the document": "Maaf, sepertinya Anda tidak punya izin untuk mengakses dokumen",
   "Sorry, this document is too large - edits will no longer be persisted.": "Maaf, dokumen ini terlalu besar - pengeditan tidak dapat dilakukan.",
   "Sorry, the last change could not be persisted – please reload the page": "Maaf, perubahan terakhir tidak dapat disimpan – muat ulang halaman",
   "This template will be permanently deleted in <2></2> unless restored.": "Template ini akan dihapus secara permanen di <2></2> kecuali dipulihkan.",
