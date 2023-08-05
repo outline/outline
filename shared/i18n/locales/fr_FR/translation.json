@@ -523,7 +523,6 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Vue {{ count }} fois par les membres de {{ teamMembers }}",
   "Viewer insights": "Viewer insights",
   "As an admin you can manage if team members can see who has viewed this document": "En tant qu'administrateur, vous pouvez gérer si les membres de l'équipe peuvent voir qui a consulté ce document",
-  "Sorry, it looks like you don’t have permission to access the document": "Désolé, il semble que vous n’ayez pas la permission d’accéder à ce document",
   "Sorry, this document is too large - edits will no longer be persisted.": "Désolé, ce document est trop volumineux - les modifications ne seront plus conservées.",
   "Sorry, the last change could not be persisted – please reload the page": "Désolé, la dernière modification n'a pas pu être enregistrée - veuillez recharger la page",
   "This template will be permanently deleted in <2></2> unless restored.": "Ce modèle sera définitivement supprimé dans <2></2> sauf s'il est restauré.",
