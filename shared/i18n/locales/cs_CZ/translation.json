@@ -523,7 +523,6 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Zobrazeno {{ count }} krát {{ teamMembers }} lidmi",
   "Viewer insights": "Statistiky shlédnutí",
   "As an admin you can manage if team members can see who has viewed this document": "Jako správce můžete spravovat, zda členové týmu uvidí, kdo si tento dokument prohlížel",
-  "Sorry, it looks like you don’t have permission to access the document": "Je nám líto, zdá se, že nemáte oprávnění k přístupu k dokumentu",
   "Sorry, this document is too large - edits will no longer be persisted.": "Je nám líto, ale tento dokument je příliš velký - úpravy již nebudou pokračovat.",
   "Sorry, the last change could not be persisted – please reload the page": "Je nám líto, poslední změna nemohla být zachována - prosím znovu načtěte stránku",
   "This template will be permanently deleted in <2></2> unless restored.": "Tato šablona bude trvale odstraněna v <2></2> dokud nebude obnovena.",
