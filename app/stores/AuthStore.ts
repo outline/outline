@@ -5,7 +5,6 @@ import { getCookie, setCookie, removeCookie } from "tiny-cookie";
 import { CustomTheme, TeamPreferences, UserPreferences } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
-import { Hour } from "@shared/utils/time";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Team from "~/models/Team";
@@ -105,9 +104,6 @@ export default class AuthStore {
 
     this.rehydrate(data);
     void this.fetch();
-
-    // Refresh the auth store every 12 hours that the window is open
-    setInterval(this.fetch, 12 * Hour);
 
     // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
@@ -238,7 +234,10 @@ export default class AuthStore {
       if (err.error === "user_suspended") {
         this.isSuspended = true;
         this.suspendedContactEmail = err.data.adminEmail;
+        return;
       }
+
+      throw err;
     } finally {
       this.isFetching = false;
     }

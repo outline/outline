@@ -94,12 +94,9 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     );
 
     provider.on("authenticationFailed", () => {
-      showToast(
-        t(
-          "Sorry, it looks like you don’t have permission to access the document"
-        )
-      );
-      history.replace(homePath());
+      void auth.fetch().catch(() => {
+        history.replace(homePath());
+      });
     });
 
     provider.on("awarenessChange", (event: AwarenessChangeEvent) => {
