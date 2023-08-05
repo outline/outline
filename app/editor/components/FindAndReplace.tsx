@@ -2,8 +2,8 @@ import {
   CaretDownIcon,
   CaretUpIcon,
   CaseSensitiveIcon,
-  MoreIcon,
   RegexIcon,
+  ReplaceIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -35,6 +35,7 @@ export default function FindAndReplace({ readOnly }: Props) {
   );
   const selectionRef = React.useRef<string | undefined>();
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const inputReplaceRef = React.useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
   const theme = useTheme();
   const [showReplace, setShowReplace] = React.useState(false);
@@ -102,10 +103,10 @@ export default function FindAndReplace({ readOnly }: Props) {
   );
 
   // Callbacks
-  const handleMore = React.useCallback(
-    () => setShowReplace((state) => !state),
-    []
-  );
+  const handleMore = React.useCallback(() => {
+    setShowReplace((state) => !state);
+    setTimeout(() => inputReplaceRef.current?.focus(), 100);
+  }, []);
 
   const handleCaseSensitive = React.useCallback(() => {
     setCaseSensitive((state) => {
@@ -306,12 +307,12 @@ export default function FindAndReplace({ readOnly }: Props) {
             {navigation}
             {!readOnly && (
               <Tooltip
-                tooltip={t("More options")}
+                tooltip={t("Replace options")}
                 delay={500}
                 placement="bottom"
               >
                 <ButtonLarge onClick={handleMore}>
-                  <MoreIcon color={theme.textSecondary} />
+                  <ReplaceIcon color={theme.textSecondary} />
                 </ButtonLarge>
               </Tooltip>
             )}
@@ -322,6 +323,7 @@ export default function FindAndReplace({ readOnly }: Props) {
                 <StyledInput
                   maxLength={255}
                   value={replaceTerm}
+                  ref={inputReplaceRef}
                   placeholder={t("Replacement")}
                   onKeyDown={handleReplaceKeyDown}
                   onRequestSubmit={handleReplaceAll}
