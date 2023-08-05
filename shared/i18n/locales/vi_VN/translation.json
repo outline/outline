@@ -523,7 +523,6 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Đã xem {{ count }} lần bởi {{ teamMembers }} người",
   "Viewer insights": "Viewer insights",
   "As an admin you can manage if team members can see who has viewed this document": "As an admin you can manage if team members can see who has viewed this document",
-  "Sorry, it looks like you don’t have permission to access the document": "Xin lỗi, có vẻ như bạn không có quyền truy cập vào tài liệu",
   "Sorry, this document is too large - edits will no longer be persisted.": "Rất tiếc, tài liệu này quá lớn - các chỉnh sửa sẽ không còn được duy trì.",
   "Sorry, the last change could not be persisted – please reload the page": "Xin lỗi, không thể tiếp tục thay đổi cuối cùng - vui lòng tải lại trang",
   "This template will be permanently deleted in <2></2> unless restored.": "Mẫu này sẽ bị xóa vĩnh viễn sau <2></2> trừ khi được khôi phục.",
