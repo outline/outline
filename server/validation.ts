@@ -187,6 +187,7 @@ export class ValidateDocumentId {
 export class ValidateIndex {
   public static regex = new RegExp("^[\x20-\x7E]+$");
   public static message = "Must be between x20 to x7E ASCII";
+  public static maxLength = 100;
 }
 
 export class ValidateURL {
@@ -208,4 +209,13 @@ export class ValidateURL {
   };
 
   public static message = "Must be a valid url";
+}
+
+export class ValidateColor {
+  public static regex = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
+  public static message = "Must be a hex value (please use format #FFFFFF)";
+}
+
+export class ValidateIcon {
+  public static maxLength = 50;
 }
