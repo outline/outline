@@ -8,4 +8,12 @@ export default class AuthenticationProvidersStore extends BaseStore<Authenticati
   constructor(rootStore: RootStore) {
     super(rootStore, AuthenticationProvider);
   }
+
+  getAllByName(name: string) {
+    return this.orderedData.filter((provider) => provider.name === name);
+  }
+
+  getByName(name: string) {
+    return this.orderedData.find((provider) => provider.name === name);
+  }
 }
