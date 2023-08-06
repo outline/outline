@@ -3,6 +3,8 @@ import { observer } from "mobx-react";
 import { LinkIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
+import { setCookie } from "tiny-cookie";
 import SlackLogo from "~/components/AuthLogo/SlackLogo";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
@@ -11,9 +13,12 @@ import List from "~/components/List";
 import PlaceholderList from "~/components/List/Placeholder";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import { client } from "~/utils/ApiClient";
+import DisconnectAccountDialog from "./components/DisconnectAccountDialog";
 import Integration from "./components/Integration";
 
 function LinkedAccounts() {
@@ -29,29 +34,30 @@ function LinkedAccounts() {
     true
   );
 
-  const sections = partition(
+  const accounts = partition(
     [
       {
         isEnabled: authenticationProviders.getByName("google")?.isEnabled,
         isActive: authenticationProviders.getByName("google")?.isActive,
-        Component: GoogleAuthSection,
+        Component: GoogleAuthAccount,
       },
       {
         isEnabled: authenticationProviders.getByName("slack")?.isEnabled,
         isActive: authenticationProviders.getByName("slack")?.isActive,
-        Component: SlackAuthSection,
+        Component: SlackAuthAccount,
       },
     ],
     "isActive"
   );
 
+  const appName = env.APP_NAME;
   const loading = loadingAuthenticationProviders || loadingIntegrations;
   const isEmpty =
     authenticationProviders.orderedData.length === 0 &&
     integrations.orderedData.length === 0;
-  const activeIntegrations = sections[0].filter((section) => section.isEnabled);
-  const inactiveIntegrations = sections[1].filter(
-    (section) => section.isEnabled
+  const activeIntegrations = accounts[0].filter((account) => account.isEnabled);
+  const inactiveIntegrations = accounts[1].filter(
+    (account) => account.isEnabled
   );
 
   return (
@@ -59,7 +65,7 @@ function LinkedAccounts() {
       <Heading>{t("Linked Accounts")}</Heading>
       <Text type="secondary">
         <Trans>
-          Manage the third-party services that are connected to your account.
+          Manage the third-party services that are connected to {{ appName }}.
         </Trans>
       </Text>
       {loading && isEmpty ? (
@@ -69,16 +75,16 @@ function LinkedAccounts() {
           {activeIntegrations.length > 0 && (
             <List>
               <Heading as="h2">{t("Connected")}</Heading>
-              {activeIntegrations.map((section, index) => (
-                <section.Component key={index} />
+              {activeIntegrations.map(({ Component }, index) => (
+                <Component key={index} />
               ))}
             </List>
           )}
           {inactiveIntegrations.length > 0 && (
             <List>
               <Heading as="h2">{t("Available")}</Heading>
-              {inactiveIntegrations.map((section, index) => (
-                <section.Component key={index} />
+              {inactiveIntegrations.map(({ Component }, index) => (
+                <Component key={index} />
               ))}
             </List>
           )}
@@ -88,19 +94,36 @@ function LinkedAccounts() {
   );
 }
 
-function GoogleAuthSection() {
+function GoogleAuthAccount() {
   const { t } = useTranslation();
-  const { authenticationProviders } = useStores();
+  const location = useLocation();
+  const { dialogs, authenticationProviders } = useStores();
   const team = useCurrentTeam();
   const integration = authenticationProviders.getByName("google");
   const isActive = integration?.isActive ?? false;
 
   const connect = () => {
-    //
+    setCookie("postLoginRedirectPath", location.pathname);
+    window.location.href = "/auth/google";
   };
 
   const disconnect = () => {
-    //
+    dialogs.openModal({
+      title: t("Disconnect account"),
+      isCentered: true,
+      content: (
+        <DisconnectAccountDialog
+          title="Google"
+          isAuthentication
+          onSubmit={() => {
+            void client.post("/userAuthentications.delete", {
+              authenticationProviderId: integration?.id,
+            });
+            dialogs.closeAllModals();
+          }}
+        />
+      ),
+    });
   };
 
   return (
@@ -114,11 +137,7 @@ function GoogleAuthSection() {
       icon={<GoogleIcon />}
       actions={
         isActive ? (
-          <Button
-            kind="secondary"
-            onClick={disconnect}
-            disabled={!team.guestSignin}
-          >
+          <Button neutral onClick={disconnect} disabled={!team.guestSignin}>
             {t("Disconnect")}
           </Button>
         ) : (
@@ -129,19 +148,30 @@ function GoogleAuthSection() {
   );
 }
 
-function SlackAuthSection() {
+function SlackAuthAccount() {
   const { t } = useTranslation();
-  const { authenticationProviders } = useStores();
+  const { dialogs, authenticationProviders } = useStores();
   const team = useCurrentTeam();
   const integration = authenticationProviders.getByName("slack");
   const isActive = integration?.isActive ?? false;
 
-  const connect = () => {
-    //
-  };
-
   const disconnect = () => {
-    //
+    dialogs.openModal({
+      title: t("Disconnect account"),
+      isCentered: true,
+      content: (
+        <DisconnectAccountDialog
+          title="Slack"
+          isAuthentication
+          onSubmit={() => {
+            void client.post("/userAuthentications.delete", {
+              authenticationProviderId: integration?.id,
+            });
+            dialogs.closeAllModals();
+          }}
+        />
+      ),
+    });
   };
 
   return (
@@ -155,15 +185,13 @@ function SlackAuthSection() {
       icon={<SlackLogo size={16} fill="currentColor" />}
       actions={
         isActive ? (
-          <Button
-            kind="secondary"
-            onClick={disconnect}
-            disabled={!team.guestSignin}
-          >
+          <Button neutral onClick={disconnect} disabled={!team.guestSignin}>
             {t("Disconnect")}
           </Button>
         ) : (
-          <Button onClick={connect}>{t("Connect")}</Button>
+          <Button as="a" href="/auth/slack">
+            {t("Connect")}
+          </Button>
         )
       }
     />

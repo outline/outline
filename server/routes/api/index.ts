@@ -33,6 +33,7 @@ import stars from "./stars";
 import subscriptions from "./subscriptions";
 import teams from "./teams";
 import urls from "./urls";
+import userAuthentications from "./userAuthentications";
 import users from "./users";
 import views from "./views";
 
@@ -68,7 +69,6 @@ glob
 router.use("/", auth.routes());
 router.use("/", authenticationProviders.routes());
 router.use("/", events.routes());
-router.use("/", users.routes());
 router.use("/", collections.routes());
 router.use("/", comments.routes());
 router.use("/", documents.routes());
@@ -88,6 +88,8 @@ router.use("/", cron.routes());
 router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
 router.use("/", urls.routes());
+router.use("/", userAuthentications.routes());
+router.use("/", users.routes());
 
 if (env.ENVIRONMENT === "development") {
   router.use("/", developer.routes());
