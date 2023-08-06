@@ -65,7 +65,7 @@ class AuthenticationProvider extends Model {
   @Column(DataType.UUID)
   teamId: string;
 
-  @HasMany(() => UserAuthentication, "providerId")
+  @HasMany(() => UserAuthentication, "authenticationProviderId")
   userAuthentications: UserAuthentication[];
 
   // instance methods

@@ -2,7 +2,11 @@ import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { AuthenticationProvider, Event } from "@server/models";
+import {
+  AuthenticationProvider,
+  Event,
+  UserAuthentication,
+} from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { authorize } from "@server/policies";
 import {
@@ -16,7 +20,7 @@ const router = new Router();
 
 router.post(
   "authenticationProviders.info",
-  auth({ admin: true }),
+  auth(),
   validate(T.AuthenticationProvidersInfoSchema),
   async (ctx: APIContext<T.AuthenticationProvidersInfoReq>) => {
     const { id } = ctx.input.body;
@@ -77,37 +81,44 @@ router.post(
   }
 );
 
-router.post(
-  "authenticationProviders.list",
-  auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { user } = ctx.state.auth;
-    authorize(user, "read", user.team);
+router.post("authenticationProviders.list", auth(), async (ctx: APIContext) => {
+  const { user } = ctx.state.auth;
+  authorize(user, "read", user.team);
 
-    const teamAuthenticationProviders = (await user.team.$get(
-      "authenticationProviders"
-    )) as AuthenticationProvider[];
+  const teamAuthenticationProviders = await AuthenticationProvider.findAll({
+    where: {
+      teamId: user.teamId,
+    },
+    include: [
+      {
+        model: UserAuthentication,
+        required: false,
+        where: {
+          userId: user.id,
+        },
+      },
+    ],
+  });
 
-    const data = AuthenticationHelper.providers
-      .filter((p) => p.id !== "email")
-      .map((p) => {
-        const row = teamAuthenticationProviders.find((t) => t.name === p.id);
+  const data = AuthenticationHelper.providers
+    .filter((p) => p.id !== "email")
+    .map((p) => {
+      const row = teamAuthenticationProviders.find((t) => t.name === p.id);
 
-        return {
-          id: p.id,
-          name: p.id,
-          displayName: p.name,
-          isEnabled: false,
-          isConnected: false,
-          ...(row ? presentAuthenticationProvider(row) : {}),
-        };
-      })
-      .sort((a) => (a.isEnabled ? -1 : 1));
+      return {
+        id: p.id,
+        name: p.id,
+        displayName: p.name,
+        isEnabled: false,
+        isConnected: false,
+        ...(row ? presentAuthenticationProvider(row) : {}),
+      };
+    })
+    .sort((a) => (a.isEnabled ? -1 : 1));
 
-    ctx.body = {
-      data,
-    };
-  }
-);
+  ctx.body = {
+    data,
+  };
+});
 
 export default router;
