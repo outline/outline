@@ -21,7 +21,7 @@ export const IntegrationsListSchema = BaseSchema.extend({
       .default("updatedAt"),
 
     /** Integration type */
-    type: z.nativeEnum(IntegrationType),
+    type: z.nativeEnum(IntegrationType).optional(),
   }),
 });
 
