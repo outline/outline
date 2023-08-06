@@ -1,6 +1,4 @@
 import * as React from "react";
-import styled from "styled-components";
-import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import {
   Preview,
@@ -8,8 +6,7 @@ import {
   Description,
   Card,
   CardContent,
-  CARD_WIDTH,
-  THUMBNAIL_HEIGHT,
+  Thumbnail,
 } from "./Components";
 
 type Props = {
@@ -23,12 +20,15 @@ type Props = {
   description: string;
 };
 
-function HoverPreviewLink({ url, thumbnailUrl, title, description }: Props) {
+const HoverPreviewLink = React.forwardRef(function _HoverPreviewLink(
+  { url, thumbnailUrl, title, description }: Props,
+  ref: React.Ref<HTMLDivElement>
+) {
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
       <Flex column>
         {thumbnailUrl ? <Thumbnail src={thumbnailUrl} alt={""} /> : null}
-        <Card>
+        <Card ref={ref}>
           <CardContent>
             <Flex column>
               <Title>{title}</Title>
@@ -39,13 +39,6 @@ function HoverPreviewLink({ url, thumbnailUrl, title, description }: Props) {
       </Flex>
     </Preview>
   );
-}
-
-const Thumbnail = styled.img`
-  object-fit: cover;
-  max-width: ${CARD_WIDTH}px;
-  height: ${THUMBNAIL_HEIGHT}px;
-  background: ${s("menuBackground")};
-`;
+});
 
 export default HoverPreviewLink;

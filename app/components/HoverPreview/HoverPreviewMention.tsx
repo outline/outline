@@ -15,10 +15,13 @@ type Props = {
   color: string;
 };
 
-function HoverPreviewMention({ url, title, info, color }: Props) {
+const HoverPreviewMention = React.forwardRef(function _HoverPreviewMention(
+  { url, title, info, color }: Props,
+  ref: React.Ref<HTMLDivElement>
+) {
   return (
     <Preview as="div">
-      <Card fadeOut={false}>
+      <Card fadeOut={false} ref={ref}>
         <CardContent>
           <Flex gap={12}>
             <Avatar
@@ -38,6 +41,6 @@ function HoverPreviewMention({ url, title, info, color }: Props) {
       </Card>
     </Preview>
   );
-}
+});
 
 export default HoverPreviewMention;

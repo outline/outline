@@ -4,11 +4,7 @@ import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import Text from "~/components/Text";
 
-export const CARD_PADDING = 16;
-
-export const CARD_WIDTH = 375;
-
-export const THUMBNAIL_HEIGHT = 200;
+export const CARD_MARGIN = 16;
 
 const NUMBER_OF_LINES = 10;
 
@@ -28,6 +24,8 @@ export const Preview = styled(Link)`
     0 0 1px 1px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   position: absolute;
+  min-width: 350px;
+  max-width: 375px;
 `;
 
 export const Title = styled.h2`
@@ -39,13 +37,21 @@ export const Title = styled.h2`
 export const Info = styled(StyledText).attrs(() => ({
   type: "tertiary",
   size: "xsmall",
-}))``;
+}))`
+  white-space: nowrap;
+`;
 
 export const Description = styled(StyledText)`
   ${sharedVars}
   margin-top: 0.5em;
   line-height: var(--line-height);
   max-height: calc(var(--line-height) * ${NUMBER_OF_LINES});
+`;
+
+export const Thumbnail = styled.img`
+  object-fit: cover;
+  height: 200px;
+  background: ${s("menuBackground")};
 `;
 
 export const CardContent = styled.div`
@@ -57,8 +63,7 @@ export const CardContent = styled.div`
 export const Card = styled.div<{ fadeOut?: boolean; $borderRadius?: string }>`
   backdrop-filter: blur(10px);
   background: ${s("menuBackground")};
-  padding: ${CARD_PADDING}px;
-  width: ${CARD_WIDTH}px;
+  padding: 16px;
   font-size: 0.9em;
   position: relative;
 
