@@ -236,8 +236,6 @@ export default class AuthStore {
         this.suspendedContactEmail = err.data.adminEmail;
         return;
       }
-
-      throw err;
     } finally {
       this.isFetching = false;
     }
