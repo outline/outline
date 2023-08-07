@@ -97,6 +97,7 @@ const PickerPopover = styled(Popover)`
     padding-top: 8px;
     padding-bottom: 0;
     max-height: 488px;
+    overflow: unset;
   }
 `;
 
@@ -108,6 +109,7 @@ const PickerStyles = styled.div`
     --border-radius: 0;
     --font-family: ${s("fontFamily")};
     --rgb-background: ${(props) => hexToRgb(props.theme.menuBackground)};
+    --border-radius: 6px;
     margin-left: auto;
     margin-right: auto;
     min-height: 443px;
