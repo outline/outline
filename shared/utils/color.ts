@@ -26,3 +26,16 @@ export const stringToColor = (input: string) => {
   const inputAsNumber = parseInt(md5(input).toString(), 16);
   return palette[inputAsNumber % palette.length];
 };
+
+export const hexToRgb = (hex: string) => {
+  if (!validateColorHex(hex)) {
+    throw Error("Invalid hex color!");
+  }
+  const isThreeDigitHex = /^#[0-9a-f]{3}$/i.test(hex);
+  const color = isThreeDigitHex ? `#${hex.slice(1).repeat(2)}` : hex;
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
+  return result!
+    .slice(1)
+    .map((c) => parseInt(c, 16))
+    .join(", ");
+};
