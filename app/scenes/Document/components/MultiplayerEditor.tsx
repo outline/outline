@@ -175,7 +175,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       window.removeEventListener("wheel", finishObserving);
       window.removeEventListener("scroll", syncScrollPosition);
       provider?.destroy();
-      localProvider?.destroy();
+      void localProvider?.destroy();
       setRemoteProvider(null);
       ui.setMultiplayerStatus(undefined);
     };
@@ -190,6 +190,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     token,
     currentUser.id,
     isMounted,
+    auth,
   ]);
 
   const user = React.useMemo(
