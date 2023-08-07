@@ -101,7 +101,7 @@
     "focus-visible": "^5.2.0",
     "fractional-index": "^1.0.0",
     "framer-motion": "^4.1.17",
-    "fs-extra": "^11.1.0",
+    "fs-extra": "^11.1.1",
     "fuzzy-search": "^3.2.1",
     "gemoji": "6.x",
     "glob": "^8.1.0",
