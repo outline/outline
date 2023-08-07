@@ -79,6 +79,7 @@ export enum IntegrationType {
 
 export enum IntegrationService {
   Diagrams = "diagrams",
+  Grist = "grist",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
 }
@@ -98,11 +99,11 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   : T extends IntegrationType.Command
   ? { serviceTeamId: string }
   :
-      | { url: string }
-      | { url: string; channel: string; channelId: string }
-      | { serviceTeamId: string }
-      | { measurementId: string }
-      | undefined;
+  | { url: string }
+  | { url: string; channel: string; channelId: string }
+  | { serviceTeamId: string }
+  | { measurementId: string }
+  | undefined;
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
@@ -191,10 +192,10 @@ export enum NotificationChannelType {
 
 export type NotificationSettings = {
   [key in NotificationEventType]?:
-    | {
-        [key in NotificationChannelType]?: boolean;
-      }
-    | boolean;
+  | {
+    [key in NotificationChannelType]?: boolean;
+  }
+  | boolean;
 };
 
 export const NotificationEventDefaults = {

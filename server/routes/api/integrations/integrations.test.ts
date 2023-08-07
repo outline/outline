@@ -49,7 +49,7 @@ describe("#integrations.update", () => {
     expect(res.status).toEqual(403);
   });
 
-  it("should succeed with status 200 ok when settings are updated", async () => {
+  it("should succeed with status 200 ok when diagram integration settings are updated", async () => {
     const admin = await buildAdmin();
 
     const integration = await buildIntegration({
@@ -71,6 +71,30 @@ describe("#integrations.update", () => {
     const body = await res.json();
     expect(body.data.id).toEqual(integration.id);
     expect(body.data.settings.url).toEqual("https://foo.bar");
+  });
+
+  it("should succeed with status 200 ok when grist integration settings are updated", async () => {
+    const admin = await buildAdmin();
+
+    const integration = await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+      service: IntegrationService.Grist,
+      type: IntegrationType.Embed,
+      settings: { url: "https://example.com" },
+    });
+
+    const res = await server.post("/api/integrations.update", {
+      body: {
+        token: admin.getJwtToken(),
+        id: integration.id,
+        settings: { url: "https://grist.example.com" },
+      },
+    });
+
+    const body = await res.json();
+    expect(body.data.id).toEqual(integration.id);
+    expect(body.data.settings.url).toEqual("https://grist.example.com");
   });
 });
 
@@ -110,6 +134,25 @@ describe("#integrations.create", () => {
     );
     expect(body.data.settings).not.toBeFalsy();
     expect(body.data.settings.measurementId).toEqual("123");
+  });
+
+  it("should succeed with status 200 ok for an grist integration", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", {
+      body: {
+        token: admin.getJwtToken(),
+        type: IntegrationType.Embed,
+        service: UserCreatableIntegrationService.Grist,
+        settings: { url: "https://grist.example.com" },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.type).toEqual(IntegrationType.Embed);
+    expect(body.data.service).toEqual(UserCreatableIntegrationService.Grist);
+    expect(body.data.settings).not.toBeFalsy();
+    expect(body.data.settings.url).toEqual("https://grist.example.com");
   });
 });
 
