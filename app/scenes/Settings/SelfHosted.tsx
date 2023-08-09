@@ -128,7 +128,7 @@ function SelfHosted() {
           border={false}
         >
           <Input
-            placeholder="https://grist.example.com/"
+            placeholder="https://docs.getgrist.com/"
             pattern="https?://.*"
             {...register("gristUrl")}
           />
