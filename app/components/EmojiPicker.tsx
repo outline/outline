@@ -1,29 +1,28 @@
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+import { SmileyIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { depths, s } from "@shared/styles";
 import { hexToRgb } from "@shared/utils/color";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
 import usePickerTheme from "~/hooks/usePickerTheme";
+import { hover } from "~/styles";
+import Emoji from "./Emoji";
+import NudeButton from "./NudeButton";
 
 type Props = {
-  disclosure: React.ReactElement;
-  onEmojiChange: (emoji: string | null) => void;
-  emojiPresent: boolean;
+  value?: string | null;
+  onChange: (emoji: string | null) => void;
 };
 
-function EmojiPicker({
-  disclosure,
-  onEmojiChange,
-  emojiPresent,
-  ...pickerOptions
-}: Props) {
+function EmojiPicker({ value, onChange, ...pickerOptions }: Props) {
   const { t } = useTranslation();
   const pickerTheme = usePickerTheme();
+  const theme = useTheme();
 
   const popover = usePopoverState({
     placement: "bottom-start",
@@ -34,15 +33,21 @@ function EmojiPicker({
 
   const handleEmojiChange = (emoji: any) => {
     popover.hide();
-    emoji ? onEmojiChange(emoji.native) : onEmojiChange(null);
+    emoji ? onChange(emoji.native) : onChange(null);
   };
 
   return (
     <>
       <PopoverDisclosure {...popover} onClick={(e) => e.stopPropagation()}>
-        {(disclosureProps) =>
-          disclosure ? React.cloneElement(disclosure, disclosureProps) : null
-        }
+        {(props) => (
+          <EmojiButton size={32} {...props}>
+            {value ? (
+              <Emoji size="24px" native={value} />
+            ) : (
+              <AnimatedEmoji size={32} color={theme.textTertiary} />
+            )}
+          </EmojiButton>
+        )}
       </PopoverDisclosure>
       <PickerPopover
         {...popover}
@@ -50,10 +55,10 @@ function EmojiPicker({
         tabIndex={0}
         onClick={(e) => e.stopPropagation()}
         width={352}
-        aria-label="emoji-picker"
+        aria-label={t("Emoji Picker")}
       >
-        {emojiPresent && (
-          <RemoveButton neutral hasText onClick={() => handleEmojiChange(null)}>
+        {value && (
+          <RemoveButton neutral onClick={() => handleEmojiChange(null)}>
             {t("Remove")}
           </RemoveButton>
         )}
@@ -78,6 +83,46 @@ function EmojiPicker({
     </>
   );
 }
+
+const PlaceholderEmoji = styled(SmileyIcon)`
+  margin-top: 2px;
+  margin-left: -4px;
+`;
+
+export const AnimatedEmoji = styled(PlaceholderEmoji)`
+  flex-shrink: 0;
+
+  &: ${hover} {
+    transition: all 100ms ease-in-out;
+    transform: scale(1.1);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
+
+  @media print {
+    display: none;
+  }
+`;
+
+export const EmojiButton = styled(NudeButton)`
+  position: absolute;
+  top: 6px;
+  left: -36px;
+  z-index: 2;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  &[aria-expanded="true"] {
+    ${AnimatedEmoji} {
+      opacity: 1;
+      border: 0;
+      border-radius: 4px;
+      box-shadow: ${(props) =>
+        `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`};
+    }
+  }
+`;
 
 const RemoveButton = styled(Button)`
   margin-left: -12px;
