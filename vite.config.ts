@@ -38,6 +38,13 @@ export default () =>
       port: 3001,
       host: true,
       https: httpsConfig,
+      fs:
+        process.env.NODE_ENV === "development"
+          ? {
+              // Allow serving files from one level up to the project root
+              allow: [".."],
+            }
+          : { strict: true },
     },
     plugins: [
       // https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme
