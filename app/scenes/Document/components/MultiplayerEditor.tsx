@@ -94,12 +94,9 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     );
 
     provider.on("authenticationFailed", () => {
-      showToast(
-        t(
-          "Sorry, it looks like you don’t have permission to access the document"
-        )
-      );
-      history.replace(homePath());
+      void auth.fetch().catch(() => {
+        history.replace(homePath());
+      });
     });
 
     provider.on("awarenessChange", (event: AwarenessChangeEvent) => {
@@ -178,7 +175,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       window.removeEventListener("wheel", finishObserving);
       window.removeEventListener("scroll", syncScrollPosition);
       provider?.destroy();
-      localProvider?.destroy();
+      void localProvider?.destroy();
       setRemoteProvider(null);
       ui.setMultiplayerStatus(undefined);
     };
@@ -193,6 +190,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     token,
     currentUser.id,
     isMounted,
+    auth,
   ]);
 
   const user = React.useMemo(

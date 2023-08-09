@@ -162,7 +162,7 @@ export class Environment {
    */
   @IsNumber()
   @IsOptional()
-  public PORT = this.toOptionalNumber(process.env.PORT);
+  public PORT = this.toOptionalNumber(process.env.PORT) ?? 3000;
 
   /**
    * Optional extra debugging. Comma separated

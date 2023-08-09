@@ -1,6 +1,6 @@
 /* eslint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
-import styled, { DefaultTheme, css } from "styled-components";
+import styled, { DefaultTheme, css, keyframes } from "styled-components";
 
 export type Props = {
   rtl: boolean;
@@ -10,6 +10,12 @@ export type Props = {
   grow?: boolean;
   theme: DefaultTheme;
 };
+
+export const pulse = keyframes`
+  0% { box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.75) }
+  50% { box-shadow: 0 0 0 4px rgba(255, 213, 0, 0.75) }
+  100% { box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.75) }
+`;
 
 const codeMarkCursor = () => css`
   /* Based on https://github.com/curvenote/editor/blob/main/packages/prosemirror-codemark/src/codemark.css */
@@ -229,6 +235,17 @@ const codeBlockStyle = (props: Props) => css`
 
   .token.entity {
     cursor: help;
+  }
+`;
+
+const findAndReplaceStyle = () => css`
+  .find-result {
+    background: rgba(255, 213, 0, 0.25);
+
+    &.current-result {
+      background: rgba(255, 213, 0, 0.75);
+      animation: ${pulse} 150ms 1;
+    }
   }
 `;
 
@@ -1481,6 +1498,7 @@ const EditorContainer = styled.div<Props>`
   ${mathStyle}
   ${codeMarkCursor}
   ${codeBlockStyle}
+  ${findAndReplaceStyle}
 `;
 
 export default EditorContainer;

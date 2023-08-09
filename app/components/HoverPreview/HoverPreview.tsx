@@ -12,7 +12,7 @@ import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
-import { CARD_WIDTH, CARD_PADDING } from "./Components";
+import { CARD_MARGIN } from "./Components";
 import HoverPreviewDocument from "./HoverPreviewDocument";
 import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
@@ -34,6 +34,35 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   const timerOpen = React.useRef<ReturnType<typeof setTimeout>>();
   const cardRef = React.useRef<HTMLDivElement>(null);
   const stores = useStores();
+  const [cardLeft, setCardLeft] = React.useState(0);
+  const [cardTop, setCardTop] = React.useState(0);
+  const [pointerOffset, setPointerOffset] = React.useState(0);
+
+  React.useLayoutEffect(() => {
+    if (isVisible && cardRef.current) {
+      const elem = element.getBoundingClientRect();
+      const card = cardRef.current.getBoundingClientRect();
+
+      const top = elem.bottom + window.scrollY;
+      setCardTop(top);
+
+      let left = elem.left;
+      let pointerOffset = elem.width / 2;
+      if (left + card.width > window.innerWidth) {
+        // shift card leftwards by the amount it went out of screen
+        let shiftBy = left + card.width - window.innerWidth;
+        // shift a littler further to leave some margin between card and window boundary
+        shiftBy += CARD_MARGIN;
+        left -= shiftBy;
+
+        // shift pointer rightwards by same amount so as to position it back correctly
+        pointerOffset += shiftBy;
+      }
+      setCardLeft(left);
+
+      setPointerOffset(pointerOffset);
+    }
+  }, [isVisible, element]);
 
   const { data, request, loading } = useRequest(
     React.useCallback(
@@ -122,13 +151,6 @@ function HoverPreviewInternal({ element, onClose }: Props) {
     };
   }, [element, startCloseTimer, data]);
 
-  const elemBounds = element.getBoundingClientRect();
-  const cardBounds = cardRef.current?.getBoundingClientRect();
-  const left = cardBounds
-    ? Math.min(elemBounds.left, window.innerWidth - CARD_PADDING - CARD_WIDTH)
-    : elemBounds.left;
-  const leftOffset = elemBounds.left - left;
-
   if (loading) {
     return <LoadingIndicator />;
   }
@@ -139,44 +161,41 @@ function HoverPreviewInternal({ element, onClose }: Props) {
 
   return (
     <Portal>
-      <Position
-        top={elemBounds.bottom + window.scrollY}
-        left={left}
-        aria-hidden
-      >
-        <div ref={cardRef}>
-          {isVisible ? (
-            <Animate
-              initial={{ opacity: 0, y: -20, pointerEvents: "none" }}
-              animate={{ opacity: 1, y: 0, pointerEvents: "auto" }}
-            >
-              {data.type === UnfurlType.Mention ? (
-                <HoverPreviewMention
-                  url={data.thumbnailUrl}
-                  title={data.title}
-                  info={data.meta.info}
-                  color={data.meta.color}
-                />
-              ) : data.type === UnfurlType.Document ? (
-                <HoverPreviewDocument
-                  id={data.meta.id}
-                  url={data.url}
-                  title={data.title}
-                  description={data.description}
-                  info={data.meta.info}
-                />
-              ) : (
-                <HoverPreviewLink
-                  url={data.url}
-                  thumbnailUrl={data.thumbnailUrl}
-                  title={data.title}
-                  description={data.description}
-                />
-              )}
-              <Pointer offset={leftOffset + elemBounds.width / 2} />
-            </Animate>
-          ) : null}
-        </div>
+      <Position top={cardTop} left={cardLeft} aria-hidden>
+        {isVisible ? (
+          <Animate
+            initial={{ opacity: 0, y: -20, pointerEvents: "none" }}
+            animate={{ opacity: 1, y: 0, pointerEvents: "auto" }}
+          >
+            {data.type === UnfurlType.Mention ? (
+              <HoverPreviewMention
+                ref={cardRef}
+                url={data.thumbnailUrl}
+                title={data.title}
+                info={data.meta.info}
+                color={data.meta.color}
+              />
+            ) : data.type === UnfurlType.Document ? (
+              <HoverPreviewDocument
+                ref={cardRef}
+                id={data.meta.id}
+                url={data.url}
+                title={data.title}
+                description={data.description}
+                info={data.meta.info}
+              />
+            ) : (
+              <HoverPreviewLink
+                ref={cardRef}
+                url={data.url}
+                thumbnailUrl={data.thumbnailUrl}
+                title={data.title}
+                description={data.description}
+              />
+            )}
+            <Pointer offset={pointerOffset} />
+          </Animate>
+        ) : null}
       </Position>
     </Portal>
   );

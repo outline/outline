@@ -305,10 +305,11 @@ class Collection extends ParanoidModel {
   @Column(DataType.UUID)
   teamId: string;
 
-  static DEFAULT_SORT = {
-    field: "index",
-    direction: "asc",
-  };
+  static DEFAULT_SORT: { field: "title" | "index"; direction: "asc" | "desc" } =
+    {
+      field: "index",
+      direction: "asc",
+    };
 
   /**
    * Returns an array of unique userIds that are members of a collection,

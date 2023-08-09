@@ -287,7 +287,7 @@ describe("#team.update", () => {
       body: {
         token: admin.getJwtToken(),
         id: collection.id,
-        permission: "",
+        permission: null,
       },
     });
 

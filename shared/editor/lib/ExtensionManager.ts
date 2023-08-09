@@ -209,7 +209,9 @@ export default class ExtensionManager {
           if (!view.editable && !extension.allowInReadOnly) {
             return false;
           }
-          view.focus();
+          if (extension.focusAfterExecution) {
+            view.focus();
+          }
           return callback(attrs)(view.state, view.dispatch, view);
         };
 
