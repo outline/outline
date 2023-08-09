@@ -27,6 +27,7 @@ import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
 import GoogleForms from "./GoogleForms";
 import GoogleLookerStudio from "./GoogleLookerStudio";
+import GoogleMaps from "./GoogleMaps";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
 import Grist from "./Grist";
@@ -218,6 +219,13 @@ const embeds: EmbedDescriptor[] = [
     keywords: "diagrams drawio",
     icon: <Img src="/images/diagrams.png" alt="Diagrams.net" />,
     component: Diagrams,
+  }),
+  new EmbedDescriptor({
+    title: "Google Maps",
+    keywords: "maps",
+    icon: <Img src="/images/google-maps.png" alt="Google Maps" />,
+    component: GoogleMaps,
+    visible: true,
   }),
   new EmbedDescriptor({
     title: "Google Drawings",
