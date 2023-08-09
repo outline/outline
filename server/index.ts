@@ -128,16 +128,17 @@ async function start(id: number, disconnect: () => void) {
   });
   server.on("listening", () => {
     const address = server.address();
+    const port = (address as AddressInfo).port;
 
     Logger.info(
       "lifecycle",
-      `Listening on ${useHTTPS ? "https" : "http"}://localhost:${
-        (address as AddressInfo).port
+      `Listening on ${useHTTPS ? "https" : "http"}://localhost:${port} / ${
+        env.URL
       }`
     );
   });
 
-  server.listen(normalizedPortFlag || env.PORT || "3000");
+  server.listen(normalizedPortFlag || env.PORT);
   server.setTimeout(env.REQUEST_TIMEOUT);
 
   ShutdownHelper.add(
