@@ -60,7 +60,7 @@ describe("email", () => {
         email: user.email,
       },
       headers: {
-        host: "example.localoutline.com",
+        host: "example.outline.dev",
       },
     });
     const body = await res.json();
@@ -85,7 +85,7 @@ describe("email", () => {
         email: user.email,
       },
       headers: {
-        host: "example.localoutline.com",
+        host: "example.outline.dev",
       },
     });
 
@@ -109,7 +109,7 @@ describe("email", () => {
         email: user.email,
       },
       headers: {
-        host: "example.localoutline.com",
+        host: "example.outline.dev",
       },
     });
     const body = await res.json();
@@ -129,7 +129,7 @@ describe("email", () => {
         email: "user@example.com",
       },
       headers: {
-        host: "example.localoutline.com",
+        host: "example.outline.dev",
       },
     });
     const body = await res.json();
@@ -159,7 +159,7 @@ describe("email", () => {
           email,
         },
         headers: {
-          host: "example.localoutline.com",
+          host: "example.outline.dev",
         },
       });
       const body = await res.json();
@@ -189,7 +189,7 @@ describe("email", () => {
           email,
         },
         headers: {
-          host: "example.localoutline.com",
+          host: "example.outline.dev",
         },
       });
       const body = await res.json();

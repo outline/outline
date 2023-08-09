@@ -121,7 +121,7 @@ describe("#auth.config", () => {
     });
     const res = await server.post("/api/auth.config", {
       headers: {
-        host: `example.localoutline.com`,
+        host: `example.outline.dev`,
       },
     });
     const body = await res.json();
@@ -170,7 +170,7 @@ describe("#auth.config", () => {
     });
     const res = await server.post("/api/auth.config", {
       headers: {
-        host: "example.localoutline.com",
+        host: "example.outline.dev",
       },
     });
     const body = await res.json();
@@ -197,7 +197,7 @@ describe("#auth.config", () => {
     });
     const res = await server.post("/api/auth.config", {
       headers: {
-        host: "example.localoutline.com",
+        host: "example.outline.dev",
       },
     });
     const body = await res.json();
