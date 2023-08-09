@@ -17,7 +17,11 @@ import readManifestFile from "@server/utils/readManifestFile";
 const isProduction = env.ENVIRONMENT === "production";
 const isDevelopment = env.ENVIRONMENT === "development";
 const isTest = env.ENVIRONMENT === "test";
+
 const readFile = util.promisify(fs.readFile);
+const entry = "app/index.tsx";
+const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
+
 let indexHtmlCache: Buffer | undefined;
 
 const readIndexFile = async (): Promise<Buffer> => {
@@ -71,20 +75,20 @@ export const renderApp = async (
       window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
     </script>
   `;
-  const entry = "app/index.tsx";
+
   const scriptTags = isProduction
     ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
         env.CDN_URL || ""
       }/static/${readManifestFile()[entry]["file"]}"></script>`
     : `<script type="module" nonce="${ctx.state.cspNonce}">
-        import RefreshRuntime from 'http://localhost:3001/static/@react-refresh'
+        import RefreshRuntime from "${viteHost}/static/@react-refresh"
         RefreshRuntime.injectIntoGlobalHook(window)
         window.$RefreshReg$ = () => { }
         window.$RefreshSig$ = () => (type) => type
         window.__vite_plugin_react_preamble_installed__ = true
       </script>
-      <script type="module" nonce="${ctx.state.cspNonce}" src="http://localhost:3001/static/@vite/client"></script>
-      <script type="module" nonce="${ctx.state.cspNonce}" src="http://localhost:3001/static/${entry}"></script>
+      <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/@vite/client"></script>
+      <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/${entry}"></script>
     `;
 
   ctx.body = page

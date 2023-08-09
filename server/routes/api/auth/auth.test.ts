@@ -105,7 +105,7 @@ describe("#auth.config", () => {
   });
 
   it("should return available providers for team subdomain", async () => {
-    env.URL = sharedEnv.URL = "http://localoutline.com";
+    env.URL = sharedEnv.URL = "https://app.outline.dev";
     env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
     env.DEPLOYMENT = "hosted";
 
@@ -155,7 +155,7 @@ describe("#auth.config", () => {
   });
 
   it("should return email provider for team when guest signin enabled", async () => {
-    env.URL = sharedEnv.URL = "http://localoutline.com";
+    env.URL = sharedEnv.URL = "https://app.outline.dev";
     env.DEPLOYMENT = "hosted";
 
     await buildTeam({
@@ -181,7 +181,7 @@ describe("#auth.config", () => {
   });
 
   it("should not return provider when disabled", async () => {
-    env.URL = sharedEnv.URL = "http://localoutline.com";
+    env.URL = sharedEnv.URL = "https://app.outline.dev";
     env.DEPLOYMENT = "hosted";
 
     await buildTeam({

@@ -25,13 +25,15 @@ export function getSSLOptions() {
           ? Buffer.from(env.SSL_KEY, "base64").toString("ascii")
           : undefined) ||
         safeReadFile("private.key") ||
-        safeReadFile("private.pem"),
+        safeReadFile("private.pem") ||
+        safeReadFile("server/config/certs/private.key"),
       cert:
         (env.SSL_CERT
           ? Buffer.from(env.SSL_CERT, "base64").toString("ascii")
           : undefined) ||
         safeReadFile("public.cert") ||
-        safeReadFile("public.pem"),
+        safeReadFile("public.pem") ||
+        safeReadFile("server/config/certs/public.cert"),
     };
   } catch (err) {
     return {

@@ -16,6 +16,7 @@
     "lint": "eslint app server shared plugins",
     "prepare": "husky install",
     "postinstall": "yarn patch-package",
+    "install-local-ssl": "node ./server/scripts/install-local-ssl.js",
     "heroku-postbuild": "yarn build && yarn db:migrate",
     "db:create-migration": "sequelize migration:create",
     "db:create": "sequelize db:create",
