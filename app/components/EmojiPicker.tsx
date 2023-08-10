@@ -10,6 +10,7 @@ import { hexToRgb } from "@shared/utils/color";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
 import usePickerTheme from "~/hooks/usePickerTheme";
+import useUserLocale from "~/hooks/useUserLocale";
 import { hover } from "~/styles";
 import Emoji from "./Emoji";
 import NudeButton from "./NudeButton";
@@ -19,10 +20,32 @@ type Props = {
   onChange: (emoji: string | null) => void;
 };
 
+const locales = {
+  cs_CZ: "cs",
+  de_DE: "de",
+  en_US: "en",
+  es_ES: "es",
+  fa_IR: "fa",
+  fr_FR: "fr",
+  it_IT: "it",
+  ja_JP: "ja",
+  ko_KR: "kr",
+  nl_NL: "nl",
+  pt_BR: "pt",
+  pt_PT: "pt",
+  pl_PL: "pl",
+  tr_TR: "tr",
+  vi_VN: "vi",
+  zh_CN: "zh",
+  zh_TW: "zh",
+};
+
 function EmojiPicker({ value, onChange, ...pickerOptions }: Props) {
   const { t } = useTranslation();
   const pickerTheme = usePickerTheme();
   const theme = useTheme();
+  const language = useUserLocale();
+  const locale = language && locales[language] ? locales[language] : "en";
 
   const popover = usePopoverState({
     placement: "bottom-start",
@@ -64,6 +87,7 @@ function EmojiPicker({ value, onChange, ...pickerOptions }: Props) {
         )}
         <PickerStyles ref={pickerRef}>
           <Picker
+            locale={locale}
             data={data}
             onEmojiSelect={handleEmojiChange}
             theme={pickerTheme}
