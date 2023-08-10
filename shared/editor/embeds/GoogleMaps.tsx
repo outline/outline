@@ -4,13 +4,13 @@ import { EmbedProps as Props } from ".";
 
 function GoogleMaps(props: Props) {
   const { matches } = props.attrs;
-  const source = matches[1];
+  const source = matches[0];
 
   return <Frame {...props} src={source} title={`GoogleMaps`} />;
 }
 
 GoogleMaps.ENABLED = [
-  /src="(https:\/\/www\.google\.com\/maps\/embed[^"]+)"/, // Extract src from google maps iframe embed code
+  /https:\/\/www\.google\.com\/maps\/embed\?[^"]*/, // Match valid google maps embed URL
 ];
 
 export default GoogleMaps;
