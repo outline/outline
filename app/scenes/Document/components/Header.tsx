@@ -138,7 +138,7 @@ function DocumentHeader({
           to={documentEditPath(document)}
           neutral
         >
-          {t("Edit")}
+          {isMobile ? null : t("Edit")}
         </Button>
       </Tooltip>
     </Action>

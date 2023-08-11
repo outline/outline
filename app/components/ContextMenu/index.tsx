@@ -151,7 +151,7 @@ const ContextMenu: React.FC<Props> = ({
                   ref={backgroundRef}
                   hiddenScrollbars
                   style={
-                    topAnchor
+                    topAnchor && !isMobile
                       ? {
                           maxHeight,
                         }
