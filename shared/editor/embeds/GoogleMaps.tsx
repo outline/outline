@@ -6,11 +6,11 @@ function GoogleMaps(props: Props) {
   const { matches } = props.attrs;
   const source = matches[0];
 
-  return <Frame {...props} src={source} title={`GoogleMaps`} />;
+  return <Frame {...props} src={source} title="Google Maps" />;
 }
 
 GoogleMaps.ENABLED = [
-  /https:\/\/www\.google\.com\/maps\/embed\?[^"]*/, // Match valid google maps embed URL
+  new RegExp("^https?://www\\.google\\.com/maps/embed\\?(.*)$"),
 ];
 
 export default GoogleMaps;
