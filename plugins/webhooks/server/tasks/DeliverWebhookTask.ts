@@ -1,5 +1,4 @@
-import fetch from "fetch-with-proxy";
-import { FetchError } from "node-fetch";
+import fetch, { FetchError } from "node-fetch";
 import { useAgent } from "request-filtering-agent";
 import { Op } from "sequelize";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
