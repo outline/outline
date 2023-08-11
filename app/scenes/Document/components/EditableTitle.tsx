@@ -24,8 +24,6 @@ import EmojiPicker, {
   EmojiButton,
 } from "~/components/EmojiPicker";
 import Star, { AnimatedStar } from "~/components/Star";
-import useActiveElement from "~/hooks/useActiveElement";
-import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import { isModKey } from "~/utils/keyboard";
 
@@ -63,30 +61,34 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
   }: Props,
   ref: React.RefObject<RefHandle>
 ) {
+  const [isFocused, setFocus] = React.useState(false);
   const { editor } = useDocumentContext();
 
-  const isMobile = useMobile();
-  const activeElement = useActiveElement();
   const can = usePolicy(document.id);
-
-  const [isFocused, setFocus] = React.useState<boolean>(false);
-
-  React.useEffect(() => {
-    if (
-      activeElement &&
-      (activeElement.id === "emoji-picker" ||
-        ref.current?.element()?.contains(activeElement) ||
-        window.document.getElementById("emoji-picker")?.contains(activeElement))
-    ) {
-      setFocus(true);
-    } else {
-      setFocus(false);
-    }
-  }, [activeElement, ref]);
 
   const handleClick = React.useCallback(() => {
     ref.current?.focus();
   }, [ref]);
+
+  const handleBlur = React.useCallback(
+    (ev: React.FocusEvent<HTMLSpanElement>) => {
+      // Do nothing and simply return if the related target is the parent
+      // or a sibling of the current target element(the <span>
+      // containing document title)
+      if (
+        ev.currentTarget.parentElement === ev.relatedTarget ||
+        (ev.relatedTarget &&
+          ev.currentTarget.parentElement === ev.relatedTarget.parentElement)
+      ) {
+        return;
+      }
+      if (onBlur) {
+        onBlur(ev);
+      }
+      setFocus(false);
+    },
+    [onBlur]
+  );
 
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent) => {
@@ -210,13 +212,19 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
 
   const handleEmojiChange = React.useCallback(
     async (emoji: string | null) => {
+      // Restore focus on title
+      ref.current?.focus();
       if (document.emoji !== emoji) {
         document.emoji = emoji;
         await document.save();
       }
     },
-    [document]
+    [document, ref]
   );
+
+  const handleFocus = React.useCallback(() => {
+    setFocus(true);
+  }, [setFocus]);
 
   const value =
     !document.title && readOnly ? document.titleWithDefault : document.title;
@@ -227,12 +235,13 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       onPaste={handlePaste}
-      onBlur={onBlur}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       placeholder={placeholder}
       value={value}
       $isStarred={document.isStarred}
-      $containsEmoji={!!document.emoji}
       $isFocused={isFocused}
+      $containsEmoji={!!document.emoji}
       autoFocus={!document.title}
       maxLength={DocumentValidation.maxTitleLength}
       readOnly={readOnly}
@@ -240,9 +249,12 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
       ref={ref}
     >
       {can.update ? (
-        (!isMobile || isFocused || document.emoji) && (
-          <EmojiPicker value={document.emoji} onChange={handleEmojiChange} />
-        )
+        <EmojiPicker
+          value={document.emoji}
+          onChange={handleEmojiChange}
+          // Restore focus on title
+          onClickOutside={handleClick}
+        />
       ) : document.emoji ? (
         <EmojiButton size={32}>
           <Emoji size="24px" native={document.emoji} />
@@ -301,6 +313,8 @@ const Title = styled(ContentEditable)<TitleProps>`
 
   ${AnimatedEmoji} {
     opacity: ${(props) => (props.$containsEmoji ? "1 !important" : 0.5)};
+    display: ${(props: TitleProps) =>
+      props.$isFocused || props.$containsEmoji ? "flex" : "none"};
   }
 
   ${breakpoint("tablet")`
@@ -314,6 +328,7 @@ const Title = styled(ContentEditable)<TitleProps>`
     ${AnimatedEmoji} {
       opacity: ${(props: TitleProps) =>
         props.$containsEmoji ? "1 !important" : 0};
+      display: flex;
     }
 
     &:hover {

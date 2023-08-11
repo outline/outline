@@ -9,6 +9,7 @@ type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
   readOnly?: boolean;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
   onChange?: (text: string) => void;
+  onFocus?: React.FocusEventHandler<HTMLSpanElement> | undefined;
   onBlur?: React.FocusEventHandler<HTMLSpanElement> | undefined;
   onInput?: React.FormEventHandler<HTMLSpanElement> | undefined;
   onKeyDown?: React.KeyboardEventHandler<HTMLSpanElement> | undefined;
@@ -20,7 +21,6 @@ type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
 };
 
 export type RefHandle = {
-  element: () => HTMLElement | null;
   focus: () => void;
   focusAtStart: () => void;
   focusAtEnd: () => void;
@@ -36,6 +36,7 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
     disabled,
     onChange,
     onInput,
+    onFocus,
     onBlur,
     onKeyDown,
     value,
@@ -54,10 +55,8 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
   const contentRef = React.useRef<HTMLSpanElement>(null);
   const [innerValue, setInnerValue] = React.useState<string>(value);
   const lastValue = React.useRef(value);
-  const parentRef = React.useRef<HTMLDivElement>(null);
 
   React.useImperativeHandle(ref, () => ({
-    element: () => parentRef.current,
     focus: () => {
       if (contentRef.current) {
         contentRef.current.focus();
@@ -148,12 +147,13 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
   const childrenArr = React.Children.toArray(children);
 
   return (
-    <div className={className} dir={dir} onClick={onClick} ref={parentRef}>
+    <div className={className} dir={dir} onClick={onClick} tabIndex={-1}>
       {childrenArr.length > 1 ? childrenArr[0] : null}
       <Content
         ref={contentRef}
         contentEditable={!disabled && !readOnly}
         onInput={wrappedEvent(onInput)}
+        onFocus={wrappedEvent(onFocus)}
         onBlur={wrappedEvent(onBlur)}
         onKeyDown={wrappedEvent(onKeyDown)}
         onPaste={handlePaste}

@@ -17,7 +17,8 @@ import NudeButton from "./NudeButton";
 
 type Props = {
   value?: string | null;
-  onChange: (emoji: string | null) => void;
+  onChange: (emoji: string | null) => Promise<void>;
+  onClickOutside: () => void;
 };
 
 const locales = {
@@ -40,7 +41,14 @@ const locales = {
   zh_TW: "zh",
 };
 
-function EmojiPicker({ value, onChange, ...pickerOptions }: Props) {
+const DEFAULT_EMOJIS_PER_LINE = 9;
+
+function EmojiPicker({
+  value,
+  onChange,
+  onClickOutside,
+  ...pickerOptions
+}: Props) {
   const { t } = useTranslation();
   const pickerTheme = usePickerTheme();
   const theme = useTheme();
@@ -52,18 +60,56 @@ function EmojiPicker({ value, onChange, ...pickerOptions }: Props) {
     modal: true,
   });
 
+  const [emojisPerLine, setEmojisPerLine] = React.useState(
+    DEFAULT_EMOJIS_PER_LINE
+  );
+
   const pickerRef = React.useRef<HTMLDivElement>(null);
 
-  const handleEmojiChange = (emoji: any) => {
-    popover.hide();
-    emoji ? onChange(emoji.native) : onChange(null);
-  };
+  React.useEffect(() => {
+    if (popover.visible && pickerRef.current) {
+      // 28 is picker's observed width when perLine is set to 0
+      // and 36 is the default emojiButtonSize
+      // Ref: https://github.com/missive/emoji-mart#options--props
+      setEmojisPerLine(Math.floor((pickerRef.current.clientWidth - 28) / 36));
+    }
+  }, [popover.visible]);
+
+  const handleEmojiChange = React.useCallback(
+    async (emoji) => {
+      popover.hide();
+      const val = emoji ? emoji.native : null;
+      await onChange(val);
+    },
+    [popover, onChange]
+  );
+
+  const handleClick = React.useCallback(
+    (ev: React.MouseEvent) => {
+      ev.stopPropagation();
+      if (popover.visible) {
+        popover.hide();
+      } else {
+        popover.show();
+      }
+    },
+    [popover]
+  );
+
+  const handleClickOutside = React.useCallback(() => {
+    // It was observed that onClickOutside got triggered
+    // even when the picker wasn't open or opened at all.
+    // Hence, this guard here...
+    if (popover.visible) {
+      onClickOutside();
+    }
+  }, [popover.visible, onClickOutside]);
 
   return (
     <>
-      <PopoverDisclosure {...popover} onClick={(e) => e.stopPropagation()}>
+      <PopoverDisclosure {...popover}>
         {(props) => (
-          <EmojiButton size={32} {...props}>
+          <EmojiButton size={32} {...props} onClick={handleClick}>
             {value ? (
               <Emoji size="24px" native={value} />
             ) : (
@@ -74,8 +120,10 @@ function EmojiPicker({ value, onChange, ...pickerOptions }: Props) {
       </PopoverDisclosure>
       <PickerPopover
         {...popover}
-        baseId="emoji-picker"
         tabIndex={0}
+        // This prevents picker from closing when any of its
+        // children are focused, e.g, clicking on search bar or
+        // a click on skin tone button
         onClick={(e) => e.stopPropagation()}
         width={352}
         aria-label={t("Emoji Picker")}
@@ -92,14 +140,8 @@ function EmojiPicker({ value, onChange, ...pickerOptions }: Props) {
             onEmojiSelect={handleEmojiChange}
             theme={pickerTheme}
             previewPosition="none"
-            perLine={
-              // 28 is picker's observed width when perLine is set to 0
-              // and 36 is the default emojiButtonSize
-              // Ref: https://github.com/missive/emoji-mart#options--props
-              popover.visible && pickerRef.current
-                ? Math.floor((pickerRef.current.clientWidth - 28) / 36)
-                : 9
-            }
+            perLine={emojisPerLine}
+            onClickOutside={handleClickOutside}
             {...pickerOptions}
           />
         </PickerStyles>
