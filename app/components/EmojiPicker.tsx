@@ -193,7 +193,7 @@ export const EmojiButton = styled(NudeButton)`
 const RemoveButton = styled(Button)`
   margin-left: -12px;
   margin-bottom: 8px;
-  border-radius: 16px;
+  border-radius: 6px;
   height: 24px;
   font-size: 12px;
   > :first-child {
