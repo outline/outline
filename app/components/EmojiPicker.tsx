@@ -217,7 +217,6 @@ const PickerStyles = styled.div`
   margin-right: -24px;
   em-emoji-picker {
     --shadow: none;
-    --border-radius: 0;
     --font-family: ${s("fontFamily")};
     --rgb-background: ${(props) => hexToRgb(props.theme.menuBackground)};
     --border-radius: 6px;
