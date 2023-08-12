@@ -42,7 +42,6 @@ const locales = {
 };
 
 const DEFAULT_EMOJIS_PER_LINE = 9;
-const DEFAULT_SKIN_TONE = "1";
 
 function EmojiPicker({
   value,
@@ -65,8 +64,6 @@ function EmojiPicker({
     DEFAULT_EMOJIS_PER_LINE
   );
 
-  const [skinTone, setSkinTone] = React.useState(DEFAULT_SKIN_TONE);
-
   const pickerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -82,7 +79,6 @@ function EmojiPicker({
     async (emoji) => {
       popover.hide();
       const val = emoji ? emoji.native : null;
-      val && setSkinTone(emoji.skin);
       await onChange(val);
     },
     [popover, onChange]
@@ -115,7 +111,7 @@ function EmojiPicker({
         {(props) => (
           <EmojiButton size={32} {...props} onClick={handleClick}>
             {value ? (
-              <Emoji size="24px" native={value} skin={skinTone} />
+              <Emoji size="24px" native={value} />
             ) : (
               <AnimatedEmoji size={32} color={theme.textTertiary} />
             )}
