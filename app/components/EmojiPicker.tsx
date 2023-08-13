@@ -152,6 +152,14 @@ export const AnimatedEmoji = styled(PlaceholderEmoji)`
   }
 `;
 
+export const EmojiWrapper = styled.span`
+  width: 36px;
+  position: absolute;
+  top: -2px;
+  left: -36px;
+  z-index: 2;
+`;
+
 export const EmojiButton = styled(NudeButton)`
   position: absolute;
   top: 6px;

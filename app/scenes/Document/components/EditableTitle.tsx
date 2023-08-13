@@ -21,7 +21,7 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import Emoji from "~/components/Emoji";
 import EmojiPicker, {
   AnimatedEmoji,
-  EmojiButton,
+  EmojiWrapper,
 } from "~/components/EmojiPicker";
 import Star, { AnimatedStar } from "~/components/Star";
 import usePolicy from "~/hooks/usePolicy";
@@ -256,9 +256,9 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
           onClickOutside={handleClick}
         />
       ) : document.emoji ? (
-        <EmojiButton size={32}>
+        <EmojiWrapper>
           <Emoji size="24px" native={document.emoji} />
-        </EmojiButton>
+        </EmojiWrapper>
       ) : null}
 
       {starrable !== false && <StarButton document={document} size={32} />}
