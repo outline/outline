@@ -4,15 +4,15 @@ import parseTitle from "@shared/utils/parseTitle";
 import { sequelize } from "@server/database/sequelize";
 import { Document } from "@server/models";
 
-const limit = 100;
 let page = parseInt(process.argv[2], 10);
 page = Number.isNaN(page) ? 0 : page;
 
-export default async function main(exit = false) {
+export default async function main(exit = false, limit = 100) {
   const work = async (page: number): Promise<void> => {
     console.log(`Backfill document emoji from title… page ${page}`);
+    let documents: Document[] = [];
     await sequelize.transaction(async (transaction) => {
-      const documents = await Document.unscoped().findAll({
+      documents = await Document.unscoped().findAll({
         attributes: {
           exclude: ["state"],
         },
@@ -41,19 +41,20 @@ export default async function main(exit = false) {
           continue;
         }
       }
-
-      return documents.length === limit ? work(page + 1) : undefined;
     });
+    return documents.length === limit ? work(page + 1) : undefined;
   };
 
   await work(page);
 
+  console.log("Backfill complete");
+
   if (exit) {
-    console.log("Backfill complete");
     process.exit(0);
   }
-} // In the test suite we import the script rather than run via node CLI
+}
 
+// In the test suite we import the script rather than run via node CLI
 if (process.env.NODE_ENV !== "test") {
   void main(true);
 }

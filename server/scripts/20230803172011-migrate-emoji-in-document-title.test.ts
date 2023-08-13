@@ -94,4 +94,27 @@ describe("#work", () => {
     expect(doc?.title).toEqual("Title with spaces");
     expect(doc?.emoji).toEqual("🤨");
   });
+
+  it("should correctly paginate and update title emojis", async () => {
+    const buildManyDocuments = [];
+    for (let i = 1; i <= 10; i++) {
+      buildManyDocuments.push(buildDocument({ title: "🚵🏼‍♂️ Title" }));
+    }
+
+    const manyDocuments = await Promise.all(buildManyDocuments);
+
+    for (const document of manyDocuments) {
+      expect(document.title).toEqual("🚵🏼‍♂️ Title");
+      expect(document.emoji).toBeNull();
+    }
+
+    await script(false, 2);
+
+    const documents = await Document.unscoped().findAll();
+
+    for (const document of documents) {
+      expect(document.title).toEqual("Title");
+      expect(document.emoji).toEqual("🚵🏼‍♂️");
+    }
+  });
 });
