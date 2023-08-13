@@ -1,12 +1,12 @@
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { SmileyIcon } from "outline-icons";
+import { parseToRgb } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled, { useTheme } from "styled-components";
 import { depths, s } from "@shared/styles";
-import { hexToRgb } from "@shared/utils/color";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
 import usePickerTheme from "~/hooks/usePickerTheme";
@@ -218,7 +218,8 @@ const PickerStyles = styled.div`
   em-emoji-picker {
     --shadow: none;
     --font-family: ${s("fontFamily")};
-    --rgb-background: ${(props) => hexToRgb(props.theme.menuBackground)};
+    --rgb-background: ${(props) =>
+      Object.values(parseToRgb(props.theme.menuBackground)).join(", ")};
     --border-radius: 6px;
     margin-left: auto;
     margin-right: auto;
