@@ -21,26 +21,6 @@ type Props = {
   onClickOutside: () => void;
 };
 
-const locales = {
-  cs_CZ: "cs",
-  de_DE: "de",
-  en_US: "en",
-  es_ES: "es",
-  fa_IR: "fa",
-  fr_FR: "fr",
-  it_IT: "it",
-  ja_JP: "ja",
-  ko_KR: "kr",
-  nl_NL: "nl",
-  pt_BR: "pt",
-  pt_PT: "pt",
-  pl_PL: "pl",
-  tr_TR: "tr",
-  vi_VN: "vi",
-  zh_CN: "zh",
-  zh_TW: "zh",
-};
-
 const DEFAULT_EMOJIS_PER_LINE = 9;
 
 function EmojiPicker({
@@ -52,8 +32,8 @@ function EmojiPicker({
   const { t } = useTranslation();
   const pickerTheme = usePickerTheme();
   const theme = useTheme();
-  const language = useUserLocale();
-  const locale = language && locales[language] ? locales[language] : "en";
+  const locale = useUserLocale();
+  const lang = locale ? locale.split("_")[0] : "en";
 
   const popover = usePopoverState({
     placement: "bottom-start",
@@ -135,7 +115,8 @@ function EmojiPicker({
         )}
         <PickerStyles ref={pickerRef}>
           <Picker
-            locale={locale}
+            // https://github.com/missive/emoji-mart/issues/800
+            locale={lang === "ko" ? "kr" : lang}
             data={data}
             onEmojiSelect={handleEmojiChange}
             theme={pickerTheme}
