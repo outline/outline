@@ -42,7 +42,7 @@ const styleSrc = [
 
 // Allow to load assets from Vite
 if (!isProduction) {
-  scriptSrc.push("127.0.0.1:3001");
+  scriptSrc.push(env.URL.replace(`:${env.PORT}`, ":3001"));
   scriptSrc.push("localhost:3001");
 }
 
