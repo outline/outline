@@ -4,7 +4,7 @@ import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
-import Emoji from "~/components/Emoji";
+import { Emoji } from "~/components/EmojiPicker";
 import EventBoundary from "~/components/EventBoundary";
 import NudeButton from "~/components/NudeButton";
 import useEmojiWidth from "~/hooks/useEmojiWidth";
@@ -146,7 +146,7 @@ function SidebarLink(
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {emoji && (
             <EmojiWrapper width={emojiWidth}>
-              <Emoji native={emoji} />
+              <Emoji>{emoji}</Emoji>
             </EmojiWrapper>
           )}
           <Label>{label}</Label>

@@ -5,14 +5,14 @@ import { parseToRgb } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
-import styled, { useTheme } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 import { depths, s } from "@shared/styles";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
 import usePickerTheme from "~/hooks/usePickerTheme";
 import useUserLocale from "~/hooks/useUserLocale";
 import { hover } from "~/styles";
-import Emoji from "./Emoji";
+import Flex from "./Flex";
 import NudeButton from "./NudeButton";
 
 type Props = {
@@ -89,9 +89,11 @@ function EmojiPicker({
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          <EmojiButton size={32} {...props} onClick={handleClick}>
+          <EmojiButton {...props} onClick={handleClick}>
             {value ? (
-              <Emoji size="24px" native={value} />
+              <Emoji size={24} align="center" justify="center">
+                {value}
+              </Emoji>
             ) : (
               <AnimatedEmoji size={32} color={theme.textTertiary} />
             )}
@@ -131,12 +133,7 @@ function EmojiPicker({
   );
 }
 
-const PlaceholderEmoji = styled(SmileyIcon)`
-  margin-top: 2px;
-  margin-left: -4px;
-`;
-
-export const AnimatedEmoji = styled(PlaceholderEmoji)`
+export const AnimatedEmoji = styled(SmileyIcon)`
   flex-shrink: 0;
 
   &: ${hover} {
@@ -152,22 +149,28 @@ export const AnimatedEmoji = styled(PlaceholderEmoji)`
   }
 `;
 
-export const EmojiWrapper = styled.span`
-  width: 36px;
+export const Emoji = styled(Flex)<{ size?: number }>`
+  height: 100%;
+  ${(props) => (props.size ? `font-size: ${props.size}px` : "")}
+`;
+
+const EmojiWrapperStyles = css`
   position: absolute;
-  top: -2px;
-  left: -36px;
+  top: 8px;
+  left: -34px;
+  height: 32px;
   z-index: 2;
 `;
 
+export const EmojiWrapper = styled.span`
+  ${EmojiWrapperStyles}
+`;
+
 export const EmojiButton = styled(NudeButton)`
-  position: absolute;
-  top: 6px;
-  left: -36px;
-  z-index: 2;
-  width: 36px;
+  ${EmojiWrapperStyles}
   display: flex;
   align-items: center;
+  justify-content: center;
   &[aria-expanded="true"] {
     ${AnimatedEmoji} {
       opacity: 1;

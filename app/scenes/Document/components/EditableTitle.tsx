@@ -18,10 +18,10 @@ import { DocumentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
-import Emoji from "~/components/Emoji";
 import EmojiPicker, {
   AnimatedEmoji,
   EmojiWrapper,
+  Emoji,
 } from "~/components/EmojiPicker";
 import Star, { AnimatedStar } from "~/components/Star";
 import usePolicy from "~/hooks/usePolicy";
@@ -257,7 +257,7 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
         />
       ) : document.emoji ? (
         <EmojiWrapper>
-          <Emoji size="24px" native={document.emoji} />
+          <Emoji size={24}>{document.emoji}</Emoji>
         </EmojiWrapper>
       ) : null}
 
