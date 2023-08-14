@@ -851,6 +851,8 @@
   "Allow members to create new collections within the knowledge base": "Allow members to create new collections within the knowledge base",
   "Draw.io deployment": "Draw.io deployment",
   "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.": "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.",
+  "Grist deployment": "Grist deployment",
+  "Add your self-hosted grist installation URL here.": "Add your self-hosted grist installation URL here.",
   "Sharing is currently disabled.": "اشتراک‌گذاری در حال حاضر غیرفعال است.",
   "You can globally enable and disable public document sharing in the <em>security settings</em>.": "از <em>تنظیمات امنیتی</em> می‌توانید امکان اشتراک‌گذاری عمومی سندها را در سطح کل سیستم فعال و غیرفعال کنید.",
   "Documents that have been shared are listed below. Anyone that has the public link can access a read-only version of the document until the link has been revoked.": "سندهای اشتراک‌گذاری شده در اینجا فهرست شده‌اند. هر فردی با پیوند عمومی تا پیش از حذف پیوند می‌تواند به صورت فقط خواندنی به سند مربوطه دسترسی داشته باشد.",
