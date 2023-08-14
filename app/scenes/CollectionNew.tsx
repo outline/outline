@@ -56,6 +56,7 @@ class CollectionNew extends React.Component<Props> {
         icon: this.icon,
         color: this.color,
         permission: this.permission,
+        documents: [],
       },
       this.props.collections
     );
