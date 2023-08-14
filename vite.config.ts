@@ -1,7 +1,5 @@
 import fs from "fs";
 import path from "path";
-// eslint-disable-next-line import/no-unresolved
-import { optimizeLodashImports } from "@optimize-lodash/rollup-plugin";
 import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import dotenv from "dotenv";
@@ -124,8 +122,6 @@ export default () =>
           ],
         },
       }),
-      // Convert lodash imports to single imports
-      optimizeLodashImports(),
       // Generate a stats.json file for webpack that will be consumed by RelativeCI
       webpackStats(),
     ],
