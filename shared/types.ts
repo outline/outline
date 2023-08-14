@@ -79,6 +79,7 @@ export enum IntegrationType {
 
 export enum IntegrationService {
   Diagrams = "diagrams",
+  Grist = "grist",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
 }

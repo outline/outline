@@ -18,6 +18,7 @@ import Fix from "./decorators/Fix";
 
 export enum UserCreatableIntegrationService {
   Diagrams = "diagrams",
+  Grist = "grist",
   GoogleAnalytics = "google-analytics",
 }
 

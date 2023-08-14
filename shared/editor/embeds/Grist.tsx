@@ -24,4 +24,6 @@ function Grist(props: Props) {
 
 Grist.ENABLED = [new RegExp("^https?://([a-z.-]+\\.)?getgrist\\.com/(.+)$")];
 
+Grist.URL_PATH_REGEX = /(.+)/;
+
 export default Grist;
