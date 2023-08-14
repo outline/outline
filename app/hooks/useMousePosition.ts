@@ -1,4 +1,4 @@
-import { throttle } from "lodash";
+import throttle from "lodash/throttle";
 import * as React from "react";
 import useEventListener from "./useEventListener";
 import useIsMounted from "./useIsMounted";

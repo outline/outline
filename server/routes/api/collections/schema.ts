@@ -1,4 +1,4 @@
-import { isUndefined } from "lodash";
+import isUndefined from "lodash/isUndefined";
 import { z } from "zod";
 import { randomElement } from "@shared/random";
 import { CollectionPermission, FileOperationFormat } from "@shared/types";

@@ -1,4 +1,4 @@
-import { pick } from "lodash";
+import pick from "lodash/pick";
 import { set, observable } from "mobx";
 import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "./decorators/Field";

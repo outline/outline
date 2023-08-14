@@ -1,7 +1,7 @@
 import querystring from "querystring";
 import { addMonths } from "date-fns";
 import { Context } from "koa";
-import { pick } from "lodash";
+import pick from "lodash/pick";
 import { Client } from "@shared/types";
 import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";

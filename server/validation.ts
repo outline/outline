@@ -1,4 +1,4 @@
-import { isArrayLike } from "lodash";
+import isArrayLike from "lodash/isArrayLike";
 import { Primitive } from "utility-types";
 import validator from "validator";
 import isUUID from "validator/lib/isUUID";

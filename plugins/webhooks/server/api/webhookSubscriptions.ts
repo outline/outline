@@ -1,5 +1,6 @@
 import Router from "koa-router";
-import { compact, isEmpty } from "lodash";
+import compact from "lodash/compact";
+import isEmpty from "lodash/isEmpty";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { WebhookSubscription, Event } from "@server/models";

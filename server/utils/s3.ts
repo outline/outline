@@ -1,7 +1,7 @@
 import util from "util";
 import AWS, { S3 } from "aws-sdk";
 import fetch from "fetch-with-proxy";
-import { compact } from "lodash";
+import compact from "lodash/compact";
 import { useAgent } from "request-filtering-agent";
 import { v4 as uuidv4 } from "uuid";
 import Logger from "@server/logging/Logger";

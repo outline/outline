@@ -1,4 +1,4 @@
-import { size } from "lodash";
+import size from "lodash/size";
 import { addAttributeOptions } from "sequelize-typescript";
 
 /**

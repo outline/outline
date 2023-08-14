@@ -1,4 +1,4 @@
-import { uniq } from "lodash";
+import uniq from "lodash/uniq";
 import { QueryTypes } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";

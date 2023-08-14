@@ -1,5 +1,6 @@
 import Router from "koa-router";
-import { isNull, isUndefined } from "lodash";
+import isNull from "lodash/isNull";
+import isUndefined from "lodash/isUndefined";
 import { WhereOptions, Op } from "sequelize";
 import { NotificationEventType } from "@shared/types";
 import notificationUpdater from "@server/commands/notificationUpdater";

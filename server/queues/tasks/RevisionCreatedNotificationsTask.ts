@@ -1,5 +1,5 @@
 import { subHours } from "date-fns";
-import { differenceBy } from "lodash";
+import differenceBy from "lodash/differenceBy";
 import { Op } from "sequelize";
 import { NotificationEventType } from "@shared/types";
 import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";

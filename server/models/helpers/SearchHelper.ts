@@ -1,6 +1,7 @@
 import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
-import { find, map } from "lodash";
+import find from "lodash/find";
+import map from "lodash/map";
 import queryParser from "pg-tsquery";
 import { Op, QueryTypes, WhereOptions } from "sequelize";
 import { DateFilter } from "@shared/types";

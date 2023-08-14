@@ -1,4 +1,4 @@
-import { has } from "lodash";
+import has from "lodash/has";
 import { Transaction } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import env from "@server/env";

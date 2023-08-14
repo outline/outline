@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { isEmpty } from "lodash";
+import isEmpty from "lodash/isEmpty";
 import { migrations } from "@server/database/sequelize";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";

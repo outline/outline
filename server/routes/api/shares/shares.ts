@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { isUndefined } from "lodash";
+import isUndefined from "lodash/isUndefined";
 import { Op, WhereOptions } from "sequelize";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";

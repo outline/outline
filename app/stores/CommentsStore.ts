@@ -1,5 +1,6 @@
 import invariant from "invariant";
-import { filter, orderBy } from "lodash";
+import filter from "lodash/filter";
+import orderBy from "lodash/orderBy";
 import { action, runInAction, computed } from "mobx";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";

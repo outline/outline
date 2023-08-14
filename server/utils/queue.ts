@@ -1,5 +1,5 @@
 import Queue from "bull";
-import { snakeCase } from "lodash";
+import snakeCase from "lodash/snakeCase";
 import { Second } from "@shared/utils/time";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
