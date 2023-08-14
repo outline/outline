@@ -89,7 +89,7 @@ function EmojiPicker({
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          <EmojiButton {...props} onClick={handleClick}>
+          <EmojiButton size={32} {...props} onClick={handleClick}>
             {value ? (
               <Emoji size={24} align="center" justify="center">
                 {value}
@@ -157,12 +157,13 @@ export const Emoji = styled(Flex)<{ size?: number }>`
 const EmojiWrapperStyles = css`
   position: absolute;
   top: 8px;
-  left: -34px;
+  left: -38px;
   height: 32px;
+  width: 32px;
   z-index: 2;
 `;
 
-export const EmojiWrapper = styled.span`
+export const EmojiWrapper = styled(Flex)`
   ${EmojiWrapperStyles}
 `;
 
@@ -171,14 +172,12 @@ export const EmojiButton = styled(NudeButton)`
   display: flex;
   align-items: center;
   justify-content: center;
-  &[aria-expanded="true"] {
-    ${AnimatedEmoji} {
-      opacity: 1;
-      border: 0;
-      border-radius: 4px;
-      box-shadow: ${(props) =>
-        `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`};
-    }
+  &: ${hover}, &[aria-expanded= "true"] {
+    opacity: 1;
+    border: 0;
+    border-radius: 4px;
+    box-shadow: ${(props) =>
+      `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`};
   }
 `;
 

@@ -256,7 +256,7 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
           onClickOutside={handleClick}
         />
       ) : document.emoji ? (
-        <EmojiWrapper>
+        <EmojiWrapper align="center" justify="center">
           <Emoji size={24}>{document.emoji}</Emoji>
         </EmojiWrapper>
       ) : null}
