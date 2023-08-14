@@ -1,4 +1,4 @@
-import { isEqual } from "lodash";
+import isEqual from "lodash/isEqual";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";

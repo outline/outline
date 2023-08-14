@@ -1,4 +1,4 @@
-import { escapeRegExp } from "lodash";
+import escapeRegExp from "lodash/escapeRegExp";
 import * as React from "react";
 import replace from "string-replace-to-array";
 import styled from "styled-components";

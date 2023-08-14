@@ -1,4 +1,4 @@
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import { AllSelection } from "prosemirror-state";

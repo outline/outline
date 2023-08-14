@@ -1,4 +1,6 @@
-import { isEqual, filter, includes } from "lodash";
+import filter from "lodash/filter";
+import includes from "lodash/includes";
+import isEqual from "lodash/isEqual";
 import randomstring from "randomstring";
 import * as React from "react";
 import { useEffect } from "react";
@@ -269,9 +271,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           needs to function.
         </Trans>
       </Text>
-
       <EventCheckbox label={t("All events")} value="*" />
-
       <FieldSet disabled={isAllEventSelected}>
         <GroupGrid isMobile={isMobile}>
           {Object.entries(WEBHOOK_EVENTS)
