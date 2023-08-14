@@ -61,8 +61,11 @@ export const openDocument = createAction({
         // cache if the document is renamed
         id: path.url,
         name: path.title,
-        icon: () =>
-          stores.documents.get(path.id)?.isStarred ? <StarredIcon /> : null,
+        icon: function _Icon() {
+          return stores.documents.get(path.id)?.isStarred ? (
+            <StarredIcon />
+          ) : null;
+        },
         section: DocumentSection,
         perform: () => history.push(path.url),
       }));
@@ -98,13 +101,13 @@ export const starDocument = createAction({
       !document?.isStarred && stores.policies.abilities(activeDocumentId).star
     );
   },
-  perform: ({ activeDocumentId, stores }) => {
+  perform: async ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.star();
+    await document?.star();
   },
 });
 
@@ -124,13 +127,13 @@ export const unstarDocument = createAction({
       stores.policies.abilities(activeDocumentId).unstar
     );
   },
-  perform: ({ activeDocumentId, stores }) => {
+  perform: async ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.unstar();
+    await document?.unstar();
   },
 });
 
@@ -159,7 +162,7 @@ export const publishDocument = createAction({
     }
 
     if (document?.collectionId) {
-      await document.save({
+      await document.save(undefined, {
         publish: true,
       });
       stores.toasts.showToast(t("Document published"), {
@@ -186,14 +189,14 @@ export const unpublishDocument = createAction({
     }
     return stores.policies.abilities(activeDocumentId).unpublish;
   },
-  perform: ({ activeDocumentId, stores, t }) => {
+  perform: async ({ activeDocumentId, stores, t }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
 
-    document?.unpublish();
+    await document?.unpublish();
 
     stores.toasts.showToast(t("Document unpublished"), {
       type: "success",
@@ -218,14 +221,14 @@ export const subscribeDocument = createAction({
       stores.policies.abilities(activeDocumentId).subscribe
     );
   },
-  perform: ({ activeDocumentId, stores, t }) => {
+  perform: async ({ activeDocumentId, stores, t }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
 
-    document?.subscribe();
+    await document?.subscribe();
 
     stores.toasts.showToast(t("Subscribed to document notifications"), {
       type: "success",
@@ -250,14 +253,14 @@ export const unsubscribeDocument = createAction({
       stores.policies.abilities(activeDocumentId).unsubscribe
     );
   },
-  perform: ({ activeDocumentId, stores, currentUserId, t }) => {
+  perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
     if (!activeDocumentId || !currentUserId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
 
-    document?.unsubscribe(currentUserId);
+    await document?.unsubscribe(currentUserId);
 
     stores.toasts.showToast(t("Unsubscribed from document notifications"), {
       type: "success",
@@ -274,13 +277,13 @@ export const downloadDocumentAsHTML = createAction({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ activeDocumentId, stores }) => {
+  perform: async ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.download(ExportContentType.Html);
+    await document?.download(ExportContentType.Html);
   },
 });
 
@@ -321,13 +324,13 @@ export const downloadDocumentAsMarkdown = createAction({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ activeDocumentId, stores }) => {
+  perform: async ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.download(ExportContentType.Markdown);
+    await document?.download(ExportContentType.Markdown);
   },
 });
 
@@ -404,13 +407,19 @@ export const pinDocumentToCollection = createAction({
       return;
     }
 
-    const document = stores.documents.get(activeDocumentId);
-    await document?.pin(document.collectionId);
+    try {
+      const document = stores.documents.get(activeDocumentId);
+      await document?.pin(document.collectionId);
 
-    const collection = stores.collections.get(activeCollectionId);
+      const collection = stores.collections.get(activeCollectionId);
 
-    if (!collection || !location.pathname.startsWith(collection?.url)) {
-      stores.toasts.showToast(t("Pinned to collection"));
+      if (!collection || !location.pathname.startsWith(collection?.url)) {
+        stores.toasts.showToast(t("Pinned to collection"));
+      }
+    } catch (err) {
+      stores.toasts.showToast(err.message, {
+        type: "error",
+      });
     }
   },
 });
@@ -443,10 +452,16 @@ export const pinDocumentToHome = createAction({
     }
     const document = stores.documents.get(activeDocumentId);
 
-    await document?.pin();
+    try {
+      await document?.pin();
 
-    if (location.pathname !== homePath()) {
-      stores.toasts.showToast(t("Pinned to team home"));
+      if (location.pathname !== homePath()) {
+        stores.toasts.showToast(t("Pinned to team home"));
+      }
+    } catch (err) {
+      stores.toasts.showToast(err.message, {
+        type: "error",
+      });
     }
   },
 });

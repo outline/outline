@@ -156,10 +156,12 @@ koa.use(async (ctx, next) => {
   ctx.set("Timing-Allow-Origin", timingOrigins.join(", "));
   await next();
 });
+
 koa.use(apexRedirect());
 if (env.ENVIRONMENT === "test") {
   koa.use(errors.routes());
 }
+
 koa.use(router.routes());
 
 export default koa;

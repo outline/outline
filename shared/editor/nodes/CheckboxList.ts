@@ -16,7 +16,7 @@ export default class CheckboxList extends Node {
 
   get schema(): NodeSpec {
     return {
-      group: "block",
+      group: "block list",
       content: "checkbox_item+",
       toDOM: () => ["ul", { class: this.name }, 0],
       parseDOM: [

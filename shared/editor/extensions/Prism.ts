@@ -6,7 +6,7 @@ import refractor from "refractor/core";
 import { findBlockNodes } from "../queries/findChildren";
 
 export const LANGUAGES = {
-  none: "None", // additional entry to disable highlighting
+  none: "Plain text", // additional entry to disable highlighting
   bash: "Bash",
   css: "CSS",
   clike: "C",
@@ -17,6 +17,7 @@ export const LANGUAGES = {
   graphql: "GraphQL",
   groovy: "Groovy",
   haskell: "Haskell",
+  hcl: "HCL",
   markup: "HTML",
   ini: "INI",
   java: "Java",
@@ -37,6 +38,8 @@ export const LANGUAGES = {
   ruby: "Ruby",
   rust: "Rust",
   scala: "Scala",
+  sass: "Sass",
+  scss: "SCSS",
   sql: "SQL",
   solidity: "Solidity",
   swift: "Swift",
@@ -44,6 +47,8 @@ export const LANGUAGES = {
   tsx: "TSX",
   typescript: "TypeScript",
   vb: "Visual Basic",
+  verilog: "Verilog",
+  vhdl: "VHDL",
   yaml: "YAML",
   zig: "Zig",
 };

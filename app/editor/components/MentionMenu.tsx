@@ -54,7 +54,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
 
   React.useEffect(() => {
     if (isActive) {
-      request();
+      void request();
     }
   }, [request, isActive]);
 

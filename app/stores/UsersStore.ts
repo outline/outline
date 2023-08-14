@@ -179,7 +179,7 @@ export default class UsersStore extends BaseStore<User> {
 
   @action
   async delete(user: User, options: Record<string, any> = {}) {
-    super.delete(user, options);
+    await super.delete(user, options);
 
     if (!user.isSuspended && user.lastActiveAt) {
       this.counts.active -= 1;

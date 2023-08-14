@@ -82,7 +82,7 @@ export default function LinkToolbar({
           )
       );
 
-      createAndInsertLink(view, title, href, {
+      return createAndInsertLink(view, title, href, {
         onCreateLink,
         onShowToast: showToast,
         dictionary,

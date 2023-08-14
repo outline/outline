@@ -3,6 +3,7 @@ import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { DefaultTheme } from "styled-components";
+import { Primitive } from "utility-types";
 
 export type PlainTextSerializer = (node: ProsemirrorNode) => string;
 
@@ -20,8 +21,11 @@ export type MenuItem = {
   keywords?: string;
   tooltip?: string;
   label?: string;
+  children?: MenuItem[];
   defaultHidden?: boolean;
-  attrs?: Record<string, any>;
+  attrs?:
+    | Record<string, Primitive>
+    | ((state: EditorState) => Record<string, Primitive>);
   visible?: boolean;
   active?: (state: EditorState) => boolean;
   appendSpace?: boolean;

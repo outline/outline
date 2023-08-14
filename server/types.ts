@@ -446,3 +446,7 @@ export type CollectionJSONExport = {
     [id: string]: AttachmentJSONExport;
   };
 };
+
+export type UnfurlResolver = {
+  unfurl: (url: string) => Promise<any>;
+};

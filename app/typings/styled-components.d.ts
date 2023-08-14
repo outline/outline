@@ -9,10 +9,6 @@ declare module "styled-components" {
     text: string;
     cursor: string;
     divider: string;
-    toolbarBackground: string;
-    toolbarHoverBackground: string;
-    toolbarInput: string;
-    toolbarItem: string;
     tableDivider: string;
     tableSelected: string;
     tableSelectedBackground: string;
@@ -38,6 +34,7 @@ declare module "styled-components" {
     codeProperty: string;
     codeTag: string;
     codeString: string;
+    codeClassName: string;
     codeSelector: string;
     codeAttr: string;
     codeEntity: string;

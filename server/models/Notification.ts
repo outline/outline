@@ -196,6 +196,16 @@ class Notification extends Model {
     hash.update(`${this.id}-${env.SECRET_KEY}`);
     return hash.digest("hex");
   }
+
+  /**
+   * Returns a URL that can be used to mark this notification as read
+   * without being logged in.
+   *
+   * @returns A URL
+   */
+  public get pixelUrl() {
+    return `${env.URL}/api/notifications.pixel?token=${this.pixelToken}&id=${this.id}`;
+  }
 }
 
 export default Notification;

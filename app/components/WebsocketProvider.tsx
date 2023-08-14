@@ -70,6 +70,7 @@ class WebsocketProvider extends React.Component<Props> {
       transports: ["websocket"],
       reconnectionDelay: 1000,
       reconnectionDelayMax: 30000,
+      withCredentials: true,
     });
     invariant(this.socket, "Socket should be defined");
 
@@ -89,18 +90,6 @@ class WebsocketProvider extends React.Component<Props> {
       fileOperations,
       notifications,
     } = this.props;
-    if (!auth.token) {
-      return;
-    }
-
-    this.socket.on("connect", () => {
-      // immediately send current users token to the websocket backend where it
-      // is verified, if all goes well an 'authenticated' message will be
-      // received in response
-      this.socket?.emit("authentication", {
-        token: auth.token,
-      });
-    });
 
     // on reconnection, reset the transports option, as the Websocket
     // connection may have failed (caused by proxy, firewall, browser, ...)
@@ -287,6 +276,15 @@ class WebsocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("collections.update", (event: PartialWithId<Collection>) => {
+      if (
+        "sharing" in event &&
+        event.sharing !== collections.get(event.id)?.sharing
+      ) {
+        documents.all.forEach((document) => {
+          policies.remove(document.id);
+        });
+      }
+
       collections.add(event);
     });
 
@@ -313,6 +311,12 @@ class WebsocketProvider extends React.Component<Props> {
     );
 
     this.socket.on("teams.update", (event: PartialWithId<Team>) => {
+      if ("sharing" in event && event.sharing !== auth.team?.sharing) {
+        documents.all.forEach((document) => {
+          policies.remove(document.id);
+        });
+      }
+
       auth.team?.updateFromJson(event);
     });
 
@@ -365,9 +369,9 @@ class WebsocketProvider extends React.Component<Props> {
     // if the user is us then we go ahead and load the collection from API.
     this.socket.on(
       "collections.add_user",
-      action((event: WebsocketCollectionUserEvent) => {
+      async (event: WebsocketCollectionUserEvent) => {
         if (auth.user && event.userId === auth.user.id) {
-          collections.fetch(event.collectionId, {
+          await collections.fetch(event.collectionId, {
             force: true,
           });
         }
@@ -376,7 +380,7 @@ class WebsocketProvider extends React.Component<Props> {
         documents.inCollection(event.collectionId).forEach((document) => {
           policies.remove(document.id);
         });
-      })
+      }
     );
 
     // received when a user is removed from having access to a collection

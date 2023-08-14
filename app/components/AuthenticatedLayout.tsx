@@ -37,7 +37,11 @@ const DocumentInsights = lazyWithRetry(
 );
 const CommandBar = lazyWithRetry(() => import("~/components/CommandBar"));
 
-const AuthenticatedLayout: React.FC = ({ children }) => {
+type Props = {
+  children?: React.ReactNode;
+};
+
+const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const { ui, auth } = useStores();
   const location = useLocation();
   const can = usePolicy(ui.activeCollectionId);
@@ -97,7 +101,10 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
     team?.getPreference(TeamPreference.Commenting);
 
   const sidebarRight = (
-    <AnimatePresence>
+    <AnimatePresence
+      initial={false}
+      key={ui.activeDocumentId ? "active" : "inactive"}
+    >
       {(showHistory || showInsights || showComments) && (
         <Route path={`/doc/${slug}`}>
           <SidebarRight>

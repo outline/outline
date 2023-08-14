@@ -40,7 +40,7 @@ function Starred() {
   );
 
   React.useEffect(() => {
-    fetchResults();
+    void fetchResults();
   }, []);
 
   const handleShowMore = async () => {
@@ -52,7 +52,7 @@ function Starred() {
   const [{ isOverReorder, isDraggingAnyStar }, dropToReorder] = useDrop({
     accept: "star",
     drop: async (item: { star: Star }) => {
-      item.star.save({
+      void item.star.save({
         index: fractionalIndex(null, stars.orderedData[0].index),
       });
     },

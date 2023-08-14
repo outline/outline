@@ -156,7 +156,7 @@ const useSettingsConfig = () => {
         name: t("Self Hosted"),
         path: integrationSettingsPath("self-hosted"),
         component: SelfHosted,
-        enabled: can.update,
+        enabled: can.update && !isCloudHosted,
         group: t("Integrations"),
         icon: BuildingBlocksIcon,
       },

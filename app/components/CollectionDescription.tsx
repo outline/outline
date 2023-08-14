@@ -71,9 +71,9 @@ function CollectionDescription({ collection }: Props) {
   );
 
   const handleChange = React.useCallback(
-    (getValue) => {
+    async (getValue) => {
       setDirty(true);
-      handleSave(getValue);
+      await handleSave(getValue);
     },
     [handleSave]
   );

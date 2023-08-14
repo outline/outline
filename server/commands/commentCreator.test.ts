@@ -17,7 +17,20 @@ describe("commentCreator", () => {
 
     const comment = await commentCreator({
       documentId: document.id,
-      data: { text: "test" },
+      data: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "test",
+              },
+            ],
+          },
+        ],
+      },
       user,
       ip,
     });

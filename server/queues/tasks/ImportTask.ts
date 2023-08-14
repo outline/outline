@@ -308,6 +308,12 @@ export default abstract class ImportTask extends BaseTask<Props> {
             }
           }
 
+          const truncatedDescription = description
+            ? truncate(description, {
+                length: CollectionValidation.maxDescriptionLength,
+              })
+            : null;
+
           // check if collection with name exists
           const response = await Collection.findOrCreate({
             where: {
@@ -317,11 +323,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             defaults: {
               ...options,
               id: item.id,
-              description: description
-                ? truncate(description, {
-                    length: CollectionValidation.maxDescriptionLength,
-                  })
-                : null,
+              description: truncatedDescription,
               createdById: fileOperation.userId,
               permission: CollectionPermission.ReadWrite,
               importId: fileOperation.id,
@@ -341,7 +343,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
               {
                 ...options,
                 id: item.id,
-                description,
+                description: truncatedDescription,
                 color: item.color,
                 icon: item.icon,
                 sort: item.sort,

@@ -39,6 +39,6 @@ const SpotifyFrame = styled(Frame)`
   border-radius: 13px;
 `;
 
-Spotify.ENABLED = [new RegExp("https?://open\\.spotify\\.com/(.*)$")];
+Spotify.ENABLED = [new RegExp("^https?://open\\.spotify\\.com/(.*)$")];
 
 export default Spotify;

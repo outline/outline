@@ -5,12 +5,16 @@ import {
   Column,
   Table,
   Scopes,
+  Length,
   DefaultScope,
 } from "sequelize-typescript";
+import type { ProsemirrorData } from "@shared/types";
+import { CommentValidation } from "@shared/validations";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import TextLength from "./validators/TextLength";
 
 @DefaultScope(() => ({
   include: [
@@ -35,8 +39,16 @@ import Fix from "./decorators/Fix";
 @Table({ tableName: "comments", modelName: "comment" })
 @Fix
 class Comment extends ParanoidModel {
+  @TextLength({
+    max: CommentValidation.maxLength,
+    msg: `Comment must be less than ${CommentValidation.maxLength} characters`,
+  })
+  @Length({
+    max: CommentValidation.maxLength * 10,
+    msg: `Comment data is too large`,
+  })
   @Column(DataType.JSONB)
-  data: Record<string, any>;
+  data: ProsemirrorData;
 
   // associations
 

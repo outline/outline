@@ -1,3 +1,4 @@
+import fs from "fs";
 import path from "path";
 // eslint-disable-next-line import/no-unresolved
 import { optimizeLodashImports } from "@optimize-lodash/rollup-plugin";
@@ -5,7 +6,7 @@ import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import dotenv from "dotenv";
 import { webpackStats } from "rollup-plugin-webpack-stats";
-import { defineConfig } from "vite";
+import { CommonServerOptions, defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 
@@ -14,14 +15,36 @@ dotenv.config({
   silent: true,
 });
 
-export default () => {
-  return defineConfig({
+let httpsConfig: CommonServerOptions["https"] | undefined;
+
+if (process.env.NODE_ENV === "development") {
+  try {
+    httpsConfig = {
+      key: fs.readFileSync("./server/config/certs/private.key"),
+      cert: fs.readFileSync("./server/config/certs/public.cert"),
+    };
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn("No local SSL certs found, HTTPS will not be available");
+  }
+}
+
+export default () =>
+  defineConfig({
     root: "./",
     publicDir: "./server/static",
     base: (process.env.CDN_URL ?? "") + "/static/",
     server: {
       port: 3001,
       host: true,
+      https: httpsConfig,
+      fs:
+        process.env.NODE_ENV === "development"
+          ? {
+              // Allow serving files from one level up to the project root
+              allow: [".."],
+            }
+          : { strict: true },
     },
     plugins: [
       // https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme
@@ -51,6 +74,22 @@ export default () => {
           modifyURLPrefix: {
             "": `${process.env.CDN_URL ?? ""}/static/`,
           },
+          runtimeCaching: [
+            {
+              urlPattern: /api\/urls\.unfurl$/,
+              handler: "CacheOnly",
+              options: {
+                cacheName: "unfurl-cache",
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 60 * 60,
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+          ],
         },
         manifest: {
           name: "Outline",
@@ -124,4 +163,3 @@ export default () => {
       },
     },
   });
-};

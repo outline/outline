@@ -43,8 +43,9 @@ export const changeTheme = createAction({
     isContextMenu ? t("Appearance") : t("Change theme"),
   analyticsName: "Change theme",
   placeholder: ({ t }) => t("Change theme to"),
-  icon: () =>
-    stores.ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,
+  icon: function _Icon() {
+    return stores.ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />;
+  },
   keywords: "appearance display",
   section: SettingsSection,
   children: [changeToLightTheme, changeToDarkTheme, changeToSystemTheme],

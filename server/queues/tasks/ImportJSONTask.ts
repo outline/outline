@@ -62,7 +62,7 @@ export default class ImportJSONTask extends ImportTask {
       documents: { [id: string]: DocumentJSONExport },
       collectionId: string
     ) {
-      Object.values(documents).forEach(async (node) => {
+      Object.values(documents).forEach((node) => {
         const id = uuidv4();
         output.documents.push({
           ...node,
@@ -89,7 +89,7 @@ export default class ImportJSONTask extends ImportTask {
     async function mapAttachments(attachments: {
       [id: string]: AttachmentJSONExport;
     }) {
-      Object.values(attachments).forEach(async (node) => {
+      Object.values(attachments).forEach((node) => {
         const id = uuidv4();
         const zipObject = zip.files[node.key];
         const mimeType = mime.lookup(node.key) || "application/octet-stream";
@@ -135,7 +135,7 @@ export default class ImportJSONTask extends ImportTask {
       });
 
       if (Object.values(item.documents).length) {
-        await mapDocuments(item.documents, collectionId);
+        mapDocuments(item.documents, collectionId);
       }
 
       if (Object.values(item.attachments).length) {

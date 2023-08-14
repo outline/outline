@@ -29,7 +29,7 @@ function Home() {
   const { t } = useTranslation();
 
   React.useEffect(() => {
-    pins.fetchPage();
+    void pins.fetchPage();
   }, [pins]);
 
   const canManageTeam = usePolicy(team).manage;

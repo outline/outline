@@ -46,6 +46,7 @@ import BlockMenu from "./components/BlockMenu";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
 import EmojiMenu from "./components/EmojiMenu";
+import FindAndReplace from "./components/FindAndReplace";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
 import MentionMenu from "./components/MentionMenu";
@@ -233,7 +234,7 @@ export class Editor extends React.PureComponent<
     window.addEventListener("theme-changed", this.dispatchThemeChanged);
 
     if (this.props.scrollTo) {
-      this.scrollToAnchor(this.props.scrollTo);
+      void this.scrollToAnchor(this.props.scrollTo);
     }
 
     this.calculateDir();
@@ -263,7 +264,7 @@ export class Editor extends React.PureComponent<
     }
 
     if (this.props.scrollTo && this.props.scrollTo !== prevProps.scrollTo) {
-      this.scrollToAnchor(this.props.scrollTo);
+      void this.scrollToAnchor(this.props.scrollTo);
     }
 
     // Focus at the end of the document if switching from readOnly and autoFocus
@@ -512,9 +513,13 @@ export class Editor extends React.PureComponent<
 
     try {
       this.mutationObserver?.disconnect();
-      this.mutationObserver = observe(hash, (element) => {
-        element.scrollIntoView({ behavior: "smooth" });
-      });
+      this.mutationObserver = observe(
+        hash,
+        (element) => {
+          element.scrollIntoView();
+        },
+        this.elementRef.current || undefined
+      );
     } catch (err) {
       // querySelector will throw an error if the hash begins with a number
       // or contains a period. This is protected against now by safeSlugify
@@ -766,17 +771,20 @@ export class Editor extends React.PureComponent<
               ref={this.elementRef}
             />
             {this.view && (
-              <SelectionToolbar
-                rtl={isRTL}
-                readOnly={readOnly}
-                canComment={this.props.canComment}
-                isTemplate={this.props.template === true}
-                onOpen={this.handleOpenSelectionToolbar}
-                onClose={this.handleCloseSelectionToolbar}
-                onSearchLink={this.props.onSearchLink}
-                onClickLink={this.props.onClickLink}
-                onCreateLink={this.props.onCreateLink}
-              />
+              <>
+                <SelectionToolbar
+                  rtl={isRTL}
+                  readOnly={readOnly}
+                  canComment={this.props.canComment}
+                  isTemplate={this.props.template === true}
+                  onOpen={this.handleOpenSelectionToolbar}
+                  onClose={this.handleCloseSelectionToolbar}
+                  onSearchLink={this.props.onSearchLink}
+                  onClickLink={this.props.onClickLink}
+                  onCreateLink={this.props.onCreateLink}
+                />
+                {this.commands.find && <FindAndReplace readOnly={readOnly} />}
+              </>
             )}
             {!readOnly && this.view && (
               <>
@@ -859,11 +867,13 @@ const EditorContainer = styled(Styles)<{ focusedCommentId?: string }>`
 `;
 
 const LazyLoadedEditor = React.forwardRef<Editor, Props>(
-  (props: Props, ref) => (
-    <WithTheme>
-      {(theme) => <Editor theme={theme} {...props} ref={ref} />}
-    </WithTheme>
-  )
+  function _LazyLoadedEditor(props: Props, ref) {
+    return (
+      <WithTheme>
+        {(theme) => <Editor theme={theme} {...props} ref={ref} />}
+      </WithTheme>
+    );
+  }
 );
 
 const observe = (
@@ -879,7 +889,13 @@ const observe = (
       callback(match as HTMLElement);
     }
   });
-  observer.observe(targetNode, { childList: true, subtree: true });
+
+  if (targetNode.querySelector(selector)) {
+    callback(targetNode.querySelector(selector) as HTMLElement);
+  } else {
+    observer.observe(targetNode, { childList: true, subtree: true });
+  }
+
   return observer;
 };
 

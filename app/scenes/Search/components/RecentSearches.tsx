@@ -18,7 +18,7 @@ function RecentSearches() {
   const [isPreloaded] = React.useState(searches.recent.length > 0);
 
   React.useEffect(() => {
-    searches.fetchPage({});
+    void searches.fetchPage({});
   }, [searches]);
 
   const content = searches.recent.length ? (
@@ -32,9 +32,9 @@ function RecentSearches() {
               <Tooltip tooltip={t("Remove search")} delay={150}>
                 <RemoveButton
                   aria-label={t("Remove search")}
-                  onClick={(ev) => {
+                  onClick={async (ev) => {
                     ev.preventDefault();
-                    searchQuery.delete();
+                    await searchQuery.delete();
                   }}
                 >
                   <CloseIcon />

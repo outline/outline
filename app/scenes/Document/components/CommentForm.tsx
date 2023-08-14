@@ -69,14 +69,14 @@ function CommentForm({
   const { comments } = useStores();
   const user = useCurrentUser();
 
-  const reset = React.useCallback(() => {
+  const reset = React.useCallback(async () => {
     const isEmpty = editorRef.current?.isEmpty() ?? true;
 
     if (isEmpty && thread?.isNew) {
       if (thread.id) {
         editor?.removeComment(thread.id);
       }
-      thread.delete();
+      await thread.delete();
     }
   }, [editor, thread]);
 
@@ -173,11 +173,11 @@ function CommentForm({
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     setData(undefined);
     setForceRender((s) => ++s);
     setInputFocused(false);
-    reset();
+    await reset();
   };
 
   const handleFocus = () => {

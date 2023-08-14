@@ -1,6 +1,7 @@
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import styled from "styled-components";
+import { Primitive } from "utility-types";
 import { IntegrationType } from "../../types";
 import type { IntegrationSettings } from "../../types";
 import { urlRegex } from "../../utils/urls";
@@ -26,6 +27,7 @@ import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
 import GoogleForms from "./GoogleForms";
 import GoogleLookerStudio from "./GoogleLookerStudio";
+import GoogleMaps from "./GoogleMaps";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
 import Grist from "./Grist";
@@ -76,7 +78,7 @@ export class EmbedDescriptor {
   keywords?: string;
   tooltip?: string;
   defaultHidden?: boolean;
-  attrs?: Record<string, any>;
+  attrs?: Record<string, Primitive>;
   visible?: boolean;
   active?: (state: EditorState) => boolean;
   component: typeof React.Component | React.FC<any>;
@@ -217,6 +219,13 @@ const embeds: EmbedDescriptor[] = [
     keywords: "diagrams drawio",
     icon: <Img src="/images/diagrams.png" alt="Diagrams.net" />,
     component: Diagrams,
+  }),
+  new EmbedDescriptor({
+    title: "Google Maps",
+    keywords: "maps",
+    icon: <Img src="/images/google-maps.png" alt="Google Maps" />,
+    component: GoogleMaps,
+    visible: true,
   }),
   new EmbedDescriptor({
     title: "Google Drawings",

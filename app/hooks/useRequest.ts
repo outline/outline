@@ -1,4 +1,5 @@
 import * as React from "react";
+import useIsMounted from "./useIsMounted";
 
 type RequestResponse<T> = {
   /** The return value of the request function. */
@@ -20,6 +21,7 @@ type RequestResponse<T> = {
 export default function useRequest<T = unknown>(
   requestFn: () => Promise<T>
 ): RequestResponse<T> {
+  const isMounted = useIsMounted();
   const [data, setData] = React.useState<T>();
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState();
@@ -28,16 +30,23 @@ export default function useRequest<T = unknown>(
     setLoading(true);
     try {
       const response = await requestFn();
-      setData(response);
+
+      if (isMounted()) {
+        setData(response);
+      }
       return response;
     } catch (err) {
-      setError(err);
+      if (isMounted()) {
+        setError(err);
+      }
     } finally {
-      setLoading(false);
+      if (isMounted()) {
+        setLoading(false);
+      }
     }
 
     return undefined;
-  }, [requestFn]);
+  }, [requestFn, isMounted]);
 
   return { data, loading, error, request };
 }

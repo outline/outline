@@ -4,7 +4,7 @@ import {
 } from "@benrbray/prosemirror-math";
 import { PluginSimple } from "markdown-it";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { Command } from "prosemirror-state";
+import { Command, TextSelection } from "prosemirror-state";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import mathRule, { REGEX_BLOCK_MATH_DOLLARS } from "../rules/math";
 import Node from "./Node";
@@ -24,7 +24,14 @@ export default class MathBlock extends Node {
 
   commands({ type }: { type: NodeType }) {
     return (): Command => (state, dispatch) => {
-      dispatch?.(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
+      const tr = state.tr.replaceSelectionWith(type.create());
+      dispatch?.(
+        tr
+          .setSelection(
+            TextSelection.near(tr.doc.resolve(state.selection.from - 1))
+          )
+          .scrollIntoView()
+      );
       return true;
     };
   }

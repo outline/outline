@@ -57,7 +57,7 @@ function Collaborators(props: Props) {
 
     if (!isEqual(requestedUserIds, ids) && ids.length > 0) {
       setRequestedUserIds(ids);
-      users.fetchPage({ ids, limit: 100 });
+      void users.fetchPage({ ids, limit: 100 });
     }
   }, [document, users, presentIds, document.collaboratorIds, requestedUserIds]);
 

@@ -1,6 +1,7 @@
 import { t } from "i18next";
 import Router from "koa-router";
 import { escapeRegExp } from "lodash";
+import { Op } from "sequelize";
 import { IntegrationService } from "@shared/types";
 import env from "@server/env";
 import { AuthenticationError, InvalidRequestError } from "@server/errors";
@@ -153,6 +154,7 @@ router.post("hooks.slack", async (ctx: APIContext) => {
   verifySlackToken(token);
 
   let user, team;
+
   // attempt to find the corresponding team for this request based on the team_id
   team = await Team.findOne({
     include: [
@@ -195,6 +197,7 @@ router.post("hooks.slack", async (ctx: APIContext) => {
     // via integration
     const integration = await Integration.findOne({
       where: {
+        service: IntegrationService.Slack,
         settings: {
           serviceTeamId: team_id,
         },
@@ -216,7 +219,10 @@ router.post("hooks.slack", async (ctx: APIContext) => {
   if (text.trim() === "help" || !text.trim()) {
     ctx.body = {
       response_type: "ephemeral",
-      text: "How to use /outline",
+      text: t("How to use {{ command }}", {
+        command: "/outline",
+        ...opts(user),
+      }),
       attachments: [
         {
           text: t(
@@ -255,6 +261,7 @@ router.post("hooks.slack", async (ctx: APIContext) => {
   if (!user) {
     const auth = await IntegrationAuthentication.findOne({
       where: {
+        scopes: { [Op.contains]: ["identity.email"] },
         service: IntegrationService.Slack,
         teamId: team.id,
       },
@@ -299,13 +306,17 @@ router.post("hooks.slack", async (ctx: APIContext) => {
   const { results, totalCount } = user
     ? await SearchHelper.searchForUser(user, text, options)
     : await SearchHelper.searchForTeam(team, text, options);
-  SearchQuery.create({
+
+  void SearchQuery.create({
     userId: user ? user.id : null,
     teamId: team.id,
     source: "slack",
     query: text,
     results: totalCount,
+  }).catch((err) => {
+    Logger.error("Failed to create search query", err);
   });
+
   const haventSignedIn = t(
     `It looks like you haven’t signed in to {{ appName }} yet, so results may be limited`,
     {

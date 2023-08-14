@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
@@ -23,6 +24,11 @@ router.post(
       userId: user.id,
     });
     authorize(user, "read", document);
+
+    if (!document.insightsEnabled) {
+      throw ValidationError("Insights are not enabled for this document");
+    }
+
     const views = await View.findByDocument(documentId, { includeSuspended });
 
     ctx.body = {

@@ -196,6 +196,9 @@ class Document extends ParanoidModel {
   @Column
   fullWidth: boolean;
 
+  @Column
+  insightsEnabled: boolean;
+
   @SimpleLength({
     max: 255,
     msg: `editorVersion must be 255 characters or less`,
@@ -568,12 +571,12 @@ class Document extends ParanoidModel {
           parentDocumentId,
         },
       });
-      childDocuments.forEach(async (child) => {
+      for (const child of childDocuments) {
         await archiveChildren(child.id);
         child.archivedAt = archivedAt;
         child.lastModifiedById = userId;
         await child.save(options);
-      });
+      }
     };
 
     await archiveChildren(this.id);

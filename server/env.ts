@@ -162,7 +162,7 @@ export class Environment {
    */
   @IsNumber()
   @IsOptional()
-  public PORT = this.toOptionalNumber(process.env.PORT);
+  public PORT = this.toOptionalNumber(process.env.PORT) ?? 3000;
 
   /**
    * Optional extra debugging. Comma separated
@@ -541,6 +541,16 @@ export class Environment {
     this.toOptionalNumber(process.env.RATE_LIMITER_REQUESTS) ?? 1000;
 
   /**
+   * Set max allowed realtime connections before throttling. Defaults to 50
+   * requests/ip/duration window.
+   */
+  @IsOptional()
+  @IsNumber()
+  public RATE_LIMITER_COLLABORATION_REQUESTS =
+    this.toOptionalNumber(process.env.RATE_LIMITER_COLLABORATION_REQUESTS) ??
+    50;
+
+  /**
    * Set fixed duration window(in secs) for default rate limiter, elapsing which
    * the request quota is reset (the bucket is refilled with tokens).
    */
@@ -559,6 +569,22 @@ export class Environment {
     this.toOptionalNumber(process.env.AWS_S3_UPLOAD_MAX_SIZE) ?? 100000000;
 
   /**
+   * Optional AWS S3 endpoint URL for file attachments.
+   */
+  @IsOptional()
+  public AWS_S3_ACCELERATE_URL = this.toOptionalString(
+    process.env.AWS_S3_ACCELERATE_URL
+  );
+
+  /**
+   * Optional AWS S3 endpoint URL for file attachments.
+   */
+  @IsOptional()
+  public AWS_S3_UPLOAD_BUCKET_URL = this.toOptionalString(
+    process.env.AWS_S3_UPLOAD_BUCKET_URL
+  );
+
+  /**
    * Set default AWS S3 ACL for file attachments.
    */
   @IsOptional()
@@ -574,6 +600,24 @@ export class Environment {
     this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ?? 100000000,
     this.AWS_S3_UPLOAD_MAX_SIZE
   );
+
+  /**
+   * Iframely url
+   */
+  @IsOptional()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+    protocols: ["http", "https"],
+  })
+  public IFRAMELY_URL = process.env.IFRAMELY_URL ?? "https://iframe.ly";
+
+  /**
+   * Iframely API key
+   */
+  @IsOptional()
+  @CannotUseWithout("IFRAMELY_URL")
+  public IFRAMELY_API_KEY = this.toOptionalString(process.env.IFRAMELY_API_KEY);
 
   /**
    * The product name

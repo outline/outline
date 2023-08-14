@@ -94,7 +94,7 @@ class Search extends React.Component<Props> {
   handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
     if (ev.key === "Enter") {
       this.updateLocation(ev.currentTarget.value);
-      this.fetchResults();
+      void this.fetchResults();
       return;
     }
 
@@ -143,7 +143,7 @@ class Search extends React.Component<Props> {
     this.allowLoadMore = true;
     // To prevent "no results" showing before debounce kicks in
     this.isLoading = true;
-    this.fetchResults();
+    void this.fetchResults();
   };
 
   handleTermChange = () => {
@@ -153,7 +153,7 @@ class Search extends React.Component<Props> {
     this.allowLoadMore = true;
     // To prevent "no results" showing before debounce kicks in
     this.isLoading = true;
-    this.fetchResults();
+    void this.fetchResults();
   };
 
   handleFilterChange = (search: {

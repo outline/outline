@@ -3,6 +3,7 @@ import { InputRule } from "prosemirror-inputrules";
 import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
 import { TextSelection, NodeSelection, Command } from "prosemirror-state";
 import * as React from "react";
+import { Primitive } from "utility-types";
 import { getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import { AttachmentValidation } from "../../validations";
@@ -136,9 +137,11 @@ export default class SimpleImage extends Node {
     };
 
   handleMouseDown = (ev: React.MouseEvent<HTMLParagraphElement>) => {
+    // always prevent clicks in caption from bubbling to the editor
+    ev.stopPropagation();
+
     if (document.activeElement !== ev.currentTarget) {
       ev.preventDefault();
-      ev.stopPropagation();
       ev.currentTarget.focus();
     }
   };
@@ -214,7 +217,7 @@ export default class SimpleImage extends Node {
         return true;
       },
       createImage:
-        (attrs: Record<string, any>): Command =>
+        (attrs: Record<string, Primitive>): Command =>
         (state, dispatch) => {
           const { selection } = state;
           const position =

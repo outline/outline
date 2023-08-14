@@ -14,17 +14,17 @@ export default function dividerMenuItems(
   return [
     {
       name: "hr",
-      tooltip: dictionary.pageBreak,
-      attrs: { markup: "***" },
-      active: isNodeActive(schema.nodes.hr, { markup: "***" }),
-      icon: <PageBreakIcon />,
-    },
-    {
-      name: "hr",
       tooltip: dictionary.hr,
       attrs: { markup: "---" },
       active: isNodeActive(schema.nodes.hr, { markup: "---" }),
       icon: <HorizontalRuleIcon />,
+    },
+    {
+      name: "hr",
+      tooltip: dictionary.pageBreak,
+      attrs: { markup: "***" },
+      active: isNodeActive(schema.nodes.hr, { markup: "***" }),
+      icon: <PageBreakIcon />,
     },
   ];
 }

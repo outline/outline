@@ -42,7 +42,7 @@ function GoogleAnalytics() {
   });
 
   React.useEffect(() => {
-    integrations.fetchPage({
+    void integrations.fetchPage({
       type: IntegrationType.Analytics,
     });
   }, [integrations]);

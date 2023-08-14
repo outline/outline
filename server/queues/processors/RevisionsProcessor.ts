@@ -7,13 +7,19 @@ import BaseProcessor from "./BaseProcessor";
 export default class RevisionsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",
+    "documents.update",
     "documents.update.debounced",
   ];
 
   async perform(event: DocumentEvent | RevisionEvent) {
     switch (event.name) {
       case "documents.publish":
-      case "documents.update.debounced": {
+      case "documents.update.debounced":
+      case "documents.update": {
+        if (event.name === "documents.update" && !event.data.done) {
+          return;
+        }
+
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
         });

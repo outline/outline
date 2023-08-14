@@ -8,7 +8,6 @@ import * as Y from "yjs";
 import MultiplayerExtension from "@shared/editor/extensions/Multiplayer";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import env from "~/env";
-import useCurrentToken from "~/hooks/useCurrentToken";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useIdle from "~/hooks/useIdle";
 import useIsMounted from "~/hooks/useIsMounted";
@@ -45,8 +44,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const history = useHistory();
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
-  const { presence, ui } = useStores();
-  const token = useCurrentToken();
+  const { presence, auth, ui } = useStores();
   const [showCursorNames, setShowCursorNames] = React.useState(false);
   const [remoteProvider, setRemoteProvider] =
     React.useState<HocuspocusProvider | null>(null);
@@ -54,6 +52,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const [isRemoteSynced, setRemoteSynced] = React.useState(false);
   const [ydoc] = React.useState(() => new Y.Doc());
   const { showToast } = useToasts();
+  const token = auth.collaborationToken;
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
   const isMounted = useIsMounted();
@@ -95,23 +94,22 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     );
 
     provider.on("authenticationFailed", () => {
-      showToast(
-        t(
-          "Sorry, it looks like you don’t have permission to access the document"
-        )
-      );
-      history.replace(homePath());
+      void auth.fetch().catch(() => {
+        history.replace(homePath());
+      });
     });
 
     provider.on("awarenessChange", (event: AwarenessChangeEvent) => {
       presence.updateFromAwarenessChangeEvent(documentId, event);
 
       event.states.forEach(({ user, scrollY }) => {
-        if (scrollY !== undefined && user?.id === ui.observingUserId) {
-          window.scrollTo({
-            top: scrollY * window.innerHeight,
-            behavior: "smooth",
-          });
+        if (user) {
+          if (scrollY !== undefined && user.id === ui.observingUserId) {
+            window.scrollTo({
+              top: scrollY * window.innerHeight,
+              behavior: "smooth",
+            });
+          }
         }
       });
     });
@@ -177,7 +175,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       window.removeEventListener("wheel", finishObserving);
       window.removeEventListener("scroll", syncScrollPosition);
       provider?.destroy();
-      localProvider?.destroy();
+      void localProvider?.destroy();
       setRemoteProvider(null);
       ui.setMultiplayerStatus(undefined);
     };
@@ -188,10 +186,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     documentId,
     ui,
     presence,
-    token,
     ydoc,
+    token,
     currentUser.id,
     isMounted,
+    auth,
   ]);
 
   const user = React.useMemo(
@@ -220,7 +219,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
   React.useEffect(() => {
     if (isLocalSynced && isRemoteSynced) {
-      onSynced?.();
+      void onSynced?.();
     }
   }, [onSynced, isLocalSynced, isRemoteSynced]);
 
@@ -236,14 +235,14 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       !isVisible &&
       remoteProvider.status === WebSocketStatus.Connected
     ) {
-      remoteProvider.disconnect();
+      void remoteProvider.disconnect();
     }
 
     if (
       (!isIdle || isVisible) &&
       remoteProvider.status === WebSocketStatus.Disconnected
     ) {
-      remoteProvider.connect();
+      void remoteProvider.connect();
     }
   }, [remoteProvider, isIdle, isVisible]);
 
@@ -284,6 +283,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
           embedsDisabled={props.embedsDisabled}
           defaultValue={props.defaultValue}
           extensions={props.extensions}
+          scrollTo={props.scrollTo}
           readOnly
           ref={ref}
         />

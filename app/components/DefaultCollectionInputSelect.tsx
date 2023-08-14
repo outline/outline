@@ -28,7 +28,7 @@ const DefaultCollectionInputSelect = ({
   const { showToast } = useToasts();
 
   React.useEffect(() => {
-    async function load() {
+    async function fetchData() {
       if (!collections.isLoaded && !fetching && !fetchError) {
         try {
           setFetching(true);
@@ -48,7 +48,7 @@ const DefaultCollectionInputSelect = ({
         }
       }
     }
-    load();
+    void fetchData();
   }, [showToast, fetchError, t, fetching, collections]);
 
   const options = React.useMemo(

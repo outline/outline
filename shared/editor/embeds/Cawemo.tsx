@@ -2,7 +2,7 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = new RegExp("https?://cawemo.com/(?:share|embed)/(.*)$");
+const URL_REGEX = new RegExp("^https?://cawemo.com/(?:share|embed)/(.*)$");
 
 export default function Cawemo(props: Props) {
   const { matches } = props.attrs;

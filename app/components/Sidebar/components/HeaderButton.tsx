@@ -17,7 +17,7 @@ export type HeaderButtonProps = React.ComponentProps<typeof Button> & {
 };
 
 const HeaderButton = React.forwardRef<HTMLButtonElement, HeaderButtonProps>(
-  (
+  function _HeaderButton(
     {
       showDisclosure,
       showMoreMenu,
@@ -28,25 +28,27 @@ const HeaderButton = React.forwardRef<HTMLButtonElement, HeaderButtonProps>(
       ...rest
     }: HeaderButtonProps,
     ref
-  ) => (
-    <Flex justify="space-between" align="center" shrink={false}>
-      <Button
-        {...rest}
-        minHeight={minHeight}
-        as="button"
-        ref={ref}
-        role="button"
-      >
-        <Title gap={8} align="center">
-          {image}
-          {title}
-        </Title>
-        {showDisclosure && <ExpandedIcon />}
-        {showMoreMenu && <MoreIcon />}
-      </Button>
-      {children}
-    </Flex>
-  )
+  ) {
+    return (
+      <Flex justify="space-between" align="center" shrink={false}>
+        <Button
+          {...rest}
+          minHeight={minHeight}
+          as="button"
+          ref={ref}
+          role="button"
+        >
+          <Title gap={8} align="center">
+            {image}
+            {title}
+          </Title>
+          {showDisclosure && <ExpandedIcon />}
+          {showMoreMenu && <MoreIcon />}
+        </Button>
+        {children}
+      </Flex>
+    );
+  }
 );
 
 const Title = styled(Flex)`

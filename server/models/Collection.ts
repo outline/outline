@@ -305,10 +305,11 @@ class Collection extends ParanoidModel {
   @Column(DataType.UUID)
   teamId: string;
 
-  static DEFAULT_SORT = {
-    field: "index",
-    direction: "asc",
-  };
+  static DEFAULT_SORT: { field: "title" | "index"; direction: "asc" | "desc" } =
+    {
+      field: "index",
+      direction: "asc",
+    };
 
   /**
    * Returns an array of unique userIds that are members of a collection,
@@ -457,10 +458,11 @@ class Collection extends ParanoidModel {
           parentDocumentId: documentId,
         },
       });
-      childDocuments.forEach(async (child) => {
+
+      for (const child of childDocuments) {
         await loopChildren(child.id, opts);
         await child.destroy(opts);
-      });
+      }
     };
 
     await loopChildren(document.id, options);

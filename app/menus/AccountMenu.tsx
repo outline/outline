@@ -20,7 +20,11 @@ import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import separator from "~/menus/separator";
 
-const AccountMenu: React.FC = ({ children }) => {
+type Props = {
+  children?: React.ReactNode;
+};
+
+const AccountMenu: React.FC = ({ children }: Props) => {
   const menu = useMenuState({
     placement: "bottom-end",
     modal: true,

@@ -53,8 +53,8 @@ export class ViewsExtension implements Extension {
 
     // Set up an interval to update the last viewed at timestamp continuously
     // while the user is connected. This should only be done once per socket.
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const interval = setInterval(updateView, 30 * Second);
-    updateView();
 
     this.intervalsBySocket.set(socketId, interval);
   }
@@ -69,5 +69,16 @@ export class ViewsExtension implements Extension {
       clearInterval(interval);
       this.intervalsBySocket.delete(socketId);
     }
+  }
+
+  /**
+   * onDestroy hook
+   * @param data The destroy payload
+   */
+  async onDestroy() {
+    this.intervalsBySocket.forEach((interval, socketId) => {
+      clearInterval(interval);
+      this.intervalsBySocket.delete(socketId);
+    });
   }
 }

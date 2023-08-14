@@ -41,7 +41,7 @@ export class Mailer {
         "SMTP_USERNAME not provided, generating test account…"
       );
 
-      this.getTestTransportOptions().then((options) => {
+      void this.getTestTransportOptions().then((options) => {
         if (!options) {
           Logger.info(
             "email",

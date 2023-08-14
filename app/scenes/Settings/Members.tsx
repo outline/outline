@@ -68,7 +68,7 @@ function Members() {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [query, sort, filter, page, direction, users, users.counts.all]);
 
   React.useEffect(() => {

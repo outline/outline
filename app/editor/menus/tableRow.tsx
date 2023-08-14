@@ -15,7 +15,6 @@ export default function tableRowMenuItems(
       tooltip: dictionary.addRowBefore,
       icon: <InsertAboveIcon />,
       attrs: { index: index - 1 },
-      active: () => false,
       visible: index !== 0,
     },
     {
@@ -23,7 +22,6 @@ export default function tableRowMenuItems(
       tooltip: dictionary.addRowAfter,
       icon: <InsertBelowIcon />,
       attrs: { index },
-      active: () => false,
     },
     {
       name: "separator",
@@ -32,7 +30,6 @@ export default function tableRowMenuItems(
       name: "deleteRow",
       tooltip: dictionary.deleteRow,
       icon: <TrashIcon />,
-      active: () => false,
     },
   ];
 }

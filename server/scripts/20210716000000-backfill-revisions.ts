@@ -55,5 +55,5 @@ export default async function main(exit = false) {
 } // In the test suite we import the script rather than run via node CLI
 
 if (process.env.NODE_ENV !== "test") {
-  main(true);
+  void main(true);
 }

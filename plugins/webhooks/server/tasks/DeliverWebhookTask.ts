@@ -1,4 +1,4 @@
-import fetch from "fetch-with-proxy";
+import fetch, { FetchError } from "node-fetch";
 import { useAgent } from "request-filtering-agent";
 import { Op } from "sequelize";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
@@ -515,16 +515,26 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: RevisionEvent
   ): Promise<void> {
-    const model = await Revision.findByPk(event.modelId, {
-      paranoid: false,
-    });
+    const [model, document] = await Promise.all([
+      Revision.findByPk(event.modelId, {
+        paranoid: false,
+      }),
+      Document.findByPk(event.documentId, {
+        paranoid: false,
+      }),
+    ]);
+
+    const data = {
+      ...(model ? await presentRevision(model) : {}),
+      collectionId: document ? document.collectionId : undefined,
+    };
 
     await this.sendWebhook({
       event,
       subscription,
       payload: {
         id: event.modelId,
-        model: model && (await presentRevision(model)),
+        model: data,
       },
     });
   }
@@ -590,10 +600,17 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
-      Logger.error("Failed to send webhook", err, {
-        event,
-        deliveryId: delivery.id,
-      });
+      if (err instanceof FetchError && env.DEPLOYMENT === "hosted") {
+        Logger.warn(`Failed to send webhook: ${err.message}`, {
+          event,
+          deliveryId: delivery.id,
+        });
+      } else {
+        Logger.error("Failed to send webhook", err, {
+          event,
+          deliveryId: delivery.id,
+        });
+      }
       status = "failed";
     }
 

@@ -64,6 +64,9 @@ const EditableTitle = React.forwardRef(
 
     const handleKeyDown = React.useCallback(
       (event: React.KeyboardEvent) => {
+        if (event.nativeEvent.isComposing) {
+          return;
+        }
         if (event.key === "Enter") {
           event.preventDefault();
 

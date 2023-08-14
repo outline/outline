@@ -1,4 +1,4 @@
-import { isNull } from "lodash";
+import { isNil, isNull } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import {
   CollectionPermission,
@@ -28,6 +28,8 @@ import {
   ApiKey,
   Subscription,
   Notification,
+  SearchQuery,
+  Pin,
 } from "@server/models";
 
 let count = 1;
@@ -516,4 +518,57 @@ export async function buildNotification(
   }
 
   return Notification.create(overrides);
+}
+
+export async function buildSearchQuery(
+  overrides: Partial<SearchQuery> = {}
+): Promise<SearchQuery> {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.source) {
+    overrides.source = "app";
+  }
+
+  if (isNil(overrides.query)) {
+    overrides.query = "query";
+  }
+
+  if (isNil(overrides.results)) {
+    overrides.results = 1;
+  }
+
+  return SearchQuery.create(overrides);
+}
+
+export async function buildPin(overrides: Partial<Pin> = {}): Promise<Pin> {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.createdById) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.createdById = user.id;
+  }
+
+  if (!overrides.documentId) {
+    const document = await buildDocument({
+      teamId: overrides.teamId,
+    });
+    overrides.documentId = document.id;
+  }
+
+  return Pin.create(overrides);
 }

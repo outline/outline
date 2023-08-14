@@ -2,26 +2,44 @@ import * as React from "react";
 import useMobile from "~/hooks/useMobile";
 import useWindowSize from "~/hooks/useWindowSize";
 
-const useMenuHeight = (
-  visible: void | boolean,
-  unstable_disclosureRef?: React.RefObject<HTMLElement | null>,
-  margin = 8
-) => {
-  const [maxHeight, setMaxHeight] = React.useState<number | undefined>();
+const useMenuHeight = ({
+  visible,
+  elementRef,
+  maxViewportHeight = 70,
+  margin = 8,
+}: {
+  /** Whether the menu is visible. */
+  visible: void | boolean;
+  /** The maximum height of the menu as a percentage of the viewport. */
+  maxViewportHeight?: number;
+  /** A ref pointing to the element for the menu disclosure. */
+  elementRef?: React.RefObject<HTMLElement | null>;
+  /** The margin to apply to the positioning. */
+  margin?: number;
+}) => {
+  const [maxHeight, setMaxHeight] = React.useState<number | undefined>(10);
   const isMobile = useMobile();
   const { height: windowHeight } = useWindowSize();
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (visible && !isMobile) {
+      const maxHeight = (windowHeight / 100) * maxViewportHeight;
+
       setMaxHeight(
-        unstable_disclosureRef?.current
-          ? windowHeight -
-              unstable_disclosureRef.current.getBoundingClientRect().bottom -
-              margin
-          : undefined
+        Math.min(
+          maxHeight,
+          elementRef?.current
+            ? windowHeight -
+                elementRef.current.getBoundingClientRect().bottom -
+                margin
+            : 0
+        )
       );
+    } else {
+      setMaxHeight(0);
     }
-  }, [visible, unstable_disclosureRef, windowHeight, margin, isMobile]);
+  }, [visible, elementRef, windowHeight, margin, isMobile, maxViewportHeight]);
+
   return maxHeight;
 };
 

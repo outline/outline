@@ -3,6 +3,7 @@
   "parserOptions": {
     "sourceType": "module",
     "extraFileExtensions": [".json"],
+    "project": "./tsconfig.json",
     "ecmaFeatures": {
       "jsx": true
     }
@@ -36,6 +37,14 @@
       "component": true,
       "html": true
     }],
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/await-thenable": "error",
+    "@typescript-eslint/no-misused-promises": [
+      "error",
+      {
+        "checksVoidReturn": false
+      }
+    ],
     "@typescript-eslint/no-unused-vars": [
       "error",
       {

@@ -52,7 +52,7 @@ function DocumentPublish({ document }: Props) {
       }
 
       document.collectionId = collectionId;
-      await document.save({ publish: true });
+      await document.save(undefined, { publish: true });
 
       showToast(t("Document published"), {
         type: "success",

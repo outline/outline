@@ -51,9 +51,9 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
     ref.current?.focus();
   };
 
-  const prefetchRevision = () => {
+  const prefetchRevision = async () => {
     if (event.name === "revisions.create" && event.modelId) {
-      revisions.fetch(event.modelId);
+      await revisions.fetch(event.modelId);
     }
   };
 
@@ -160,15 +160,16 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
   );
 };
 
-const BaseItem = React.forwardRef(
-  ({ to, ...rest }: ItemProps, ref?: React.Ref<HTMLAnchorElement>) => {
-    if (to) {
-      return <CompositeListItem to={to} ref={ref} {...rest} />;
-    }
-
-    return <ListItem ref={ref} {...rest} />;
+const BaseItem = React.forwardRef(function _BaseItem(
+  { to, ...rest }: ItemProps,
+  ref?: React.Ref<HTMLAnchorElement>
+) {
+  if (to) {
+    return <CompositeListItem to={to} ref={ref} {...rest} />;
   }
-);
+
+  return <ListItem ref={ref} {...rest} />;
+});
 
 const Subtitle = styled.span`
   svg {

@@ -1,0 +1,5 @@
+{
+  "name": "Iframely",
+  "description": "Integrate Iframely to enable unfurling of arbitrary urls",
+  "requiredEnvVars": ["IFRAMELY_URL", "IFRAMELY_API_KEY"]
+}

@@ -2,7 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import Avatar, { IAvatar } from "~/components/Avatar/Avatar";
+import Avatar, { AvatarSize, IAvatar } from "~/components/Avatar/Avatar";
 import Flex from "~/components/Flex";
 import ImageUpload, { Props as ImageUploadProps } from "./ImageUpload";
 
@@ -16,7 +16,7 @@ export default function ImageInput({ model, ...rest }: Props) {
   return (
     <ImageBox>
       <ImageUpload {...rest}>
-        <StyledAvatar model={model} size={64} />
+        <StyledAvatar model={model} size={AvatarSize.XXLarge} />
         <Flex auto align="center" justify="center" className="upload">
           {t("Upload")}
         </Flex>

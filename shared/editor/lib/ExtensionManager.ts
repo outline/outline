@@ -3,11 +3,11 @@ import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
+import { Primitive } from "utility-types";
 import type { Editor } from "~/editor";
-import type Mark from "../marks/Mark";
-import type Node from "../nodes/Node";
-import type Extension from "./Extension";
-import { CommandFactory } from "./Extension";
+import Mark from "../marks/Mark";
+import Node from "../nodes/Node";
+import Extension, { CommandFactory } from "./Extension";
 import makeRules from "./markdown/rules";
 import { MarkdownSerializer } from "./markdown/serializer";
 
@@ -204,21 +204,23 @@ export default class ExtensionManager {
 
         const apply = (
           callback: CommandFactory,
-          attrs: Record<string, any>
+          attrs: Record<string, Primitive>
         ) => {
           if (!view.editable && !extension.allowInReadOnly) {
             return false;
           }
-          view.focus();
+          if (extension.focusAfterExecution) {
+            view.focus();
+          }
           return callback(attrs)(view.state, view.dispatch, view);
         };
 
         const handle = (_name: string, _value: CommandFactory) => {
           if (Array.isArray(_value)) {
-            commands[_name] = (attrs: Record<string, any>) =>
+            commands[_name] = (attrs: Record<string, Primitive>) =>
               _value.forEach((callback) => apply(callback, attrs));
           } else if (typeof _value === "function") {
-            commands[_name] = (attrs: Record<string, any>) =>
+            commands[_name] = (attrs: Record<string, Primitive>) =>
               apply(_value, attrs);
           }
         };

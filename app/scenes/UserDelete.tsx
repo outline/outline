@@ -45,7 +45,7 @@ function UserDelete() {
     async (data: FormData) => {
       try {
         await auth.deleteUser(data);
-        auth.logout();
+        await auth.logout();
       } catch (error) {
         showToast(error.message, {
           type: "error",
