@@ -1,5 +1,5 @@
+import { isTouchDevice } from "@shared/utils/browser";
 import Desktop from "~/utils/Desktop";
-import { isTouchDevice } from "~/utils/browser";
 
 /**
  * Returns "hover" on a non-touch device and "active" on a touch device. To
