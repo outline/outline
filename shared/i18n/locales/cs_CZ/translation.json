@@ -851,6 +851,8 @@
   "Allow members to create new collections within the knowledge base": "Umožnit členům vytvářet nové sbírky v rámci znalostní báze",
   "Draw.io deployment": "Využití aplikace Draw.io",
   "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.": "Přidejte sem svou vlastní instalační adresu draw.io, abyste povolili automatické vkládání diagramů do dokumentů.",
+  "Grist deployment": "Grist deployment",
+  "Add your self-hosted grist installation URL here.": "Add your self-hosted grist installation URL here.",
   "Sharing is currently disabled.": "Sdílení je momentálně zakázáno.",
   "You can globally enable and disable public document sharing in the <em>security settings</em>.": "Můžete globálně povolit a zakázat sdílení dokumentů v nastavení <em>zabezpečení</em>.",
   "Documents that have been shared are listed below. Anyone that has the public link can access a read-only version of the document until the link has been revoked.": "Dokumenty, které byly sdíleny, jsou uvedeny níže. Kdokoli, kdo má veřejný odkaz, má přístup k verzi dokumentu pouze pro čtení, dokud nebude odkaz odstranět.",
