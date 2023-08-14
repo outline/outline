@@ -851,6 +851,8 @@
   "Allow members to create new collections within the knowledge base": "允许成员在知识库中创建新的文档集",
   "Draw.io deployment": "部署于 Draw.io",
   "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.": "在此处添加您自托管 draw.io 安装地址，以支持在文档中自动嵌入图表。",
+  "Grist deployment": "Grist deployment",
+  "Add your self-hosted grist installation URL here.": "Add your self-hosted grist installation URL here.",
   "Sharing is currently disabled.": "共享功能当前被禁用。",
   "You can globally enable and disable public document sharing in the <em>security settings</em>.": "您可以在<em>安全设置</em> 中对共享文档功能进行全局启用或禁用。",
   "Documents that have been shared are listed below. Anyone that has the public link can access a read-only version of the document until the link has been revoked.": "这是您分享给其他人的所有文档，在您撤销链接之前，任何人都可以通过该链接阅读该文档",
