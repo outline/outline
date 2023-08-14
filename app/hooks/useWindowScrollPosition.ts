@@ -2,7 +2,7 @@
 // maintained.
 import throttle from "lodash/throttle";
 import { useState, useEffect } from "react";
-import { supportsPassiveListener } from "~/utils/browser";
+import { supportsPassiveListener } from "@shared/utils/browser";
 
 const getPosition = () => ({
   x: window.pageXOffset,

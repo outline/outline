@@ -1,4 +1,4 @@
-import { isMac, isWindows } from "./browser";
+import { isMac, isWindows } from "@shared/utils/browser";
 
 export default class Desktop {
   /**

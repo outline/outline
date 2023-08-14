@@ -3,12 +3,12 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { isMac } from "@shared/utils/browser";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useKeyDown from "~/hooks/useKeyDown";
 import Desktop from "~/utils/Desktop";
-import { isMac } from "~/utils/browser";
 
 function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
   const { t } = useTranslation();
