@@ -7,7 +7,7 @@ import {
   format as formatDate,
 } from "date-fns";
 import { TFunction } from "i18next";
-import { startCase } from "lodash";
+import startCase from "lodash/startCase";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,

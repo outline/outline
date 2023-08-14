@@ -10,7 +10,7 @@ import Koa from "koa";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
 import Router from "koa-router";
-import { uniq } from "lodash";
+import uniq from "lodash/uniq";
 import { AddressInfo } from "net";
 import stoppable from "stoppable";
 import throng from "throng";

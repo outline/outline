@@ -1,4 +1,4 @@
-import { uniqBy } from "lodash";
+import uniqBy from "lodash/uniqBy";
 import { computed } from "mobx";
 import SearchQuery from "~/models/SearchQuery";
 import BaseStore, { RPCAction } from "./BaseStore";

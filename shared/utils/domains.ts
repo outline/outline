@@ -1,4 +1,4 @@
-import { trim } from "lodash";
+import trim from "lodash/trim";
 import env from "../env";
 
 type Domain = {

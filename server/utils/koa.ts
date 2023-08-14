@@ -1,6 +1,6 @@
 import formidable from "formidable";
 import { Request } from "koa";
-import { isArray } from "lodash";
+import isArray from "lodash/isArray";
 
 /**
  * Get the first file from an incoming koa request

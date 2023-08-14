@@ -1,4 +1,4 @@
-import { noop } from "lodash";
+import noop from "lodash/noop";
 import React from "react";
 
 type MenuContextType = {

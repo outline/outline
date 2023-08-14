@@ -1,6 +1,7 @@
 import path from "path";
 import JSZip from "jszip";
-import { compact, escapeRegExp } from "lodash";
+import compact from "lodash/compact";
+import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
 import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";

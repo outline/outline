@@ -1,7 +1,10 @@
 /* eslint-disable no-console */
 import { IncomingMessage } from "http";
 import chalk from "chalk";
-import { isEmpty, isArray, isObject, isString } from "lodash";
+import isArray from "lodash/isArray";
+import isEmpty from "lodash/isEmpty";
+import isObject from "lodash/isObject";
+import isString from "lodash/isString";
 import winston from "winston";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";

@@ -1,5 +1,5 @@
 import fs from "fs";
-import { truncate } from "lodash";
+import truncate from "lodash/truncate";
 import { FileOperationState, NotificationEventType } from "@shared/types";
 import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
 import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";

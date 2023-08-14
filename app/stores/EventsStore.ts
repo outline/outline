@@ -1,4 +1,5 @@
-import { sortBy, filter } from "lodash";
+import filter from "lodash/filter";
+import sortBy from "lodash/sortBy";
 import { computed } from "mobx";
 import Event from "~/models/Event";
 import BaseStore, { RPCAction } from "./BaseStore";

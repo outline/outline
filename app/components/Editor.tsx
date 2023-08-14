@@ -1,4 +1,6 @@
-import { deburr, difference, sortBy } from "lodash";
+import deburr from "lodash/deburr";
+import difference from "lodash/difference";
+import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";

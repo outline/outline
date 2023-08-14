@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { some } from "lodash";
+import some from "lodash/some";
 import { CollectionPermission } from "@shared/types";
 import { Collection, User, Team } from "@server/models";
 import { AdminRequiredError } from "../errors";

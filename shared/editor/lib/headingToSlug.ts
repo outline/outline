@@ -1,4 +1,4 @@
-import { escape } from "lodash";
+import escape from "lodash/escape";
 import { Node } from "prosemirror-model";
 import slugify from "slugify";
 

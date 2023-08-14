@@ -1,4 +1,4 @@
-import { throttle } from "lodash";
+import throttle from "lodash/throttle";
 import { observer } from "mobx-react";
 import { MenuIcon } from "outline-icons";
 import { transparentize } from "polished";

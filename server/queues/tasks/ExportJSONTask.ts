@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { omit } from "lodash";
+import omit from "lodash/omit";
 import { NavigationNode } from "@shared/types";
 import { parser } from "@server/editor";
 import env from "@server/env";

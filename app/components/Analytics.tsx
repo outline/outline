@@ -1,6 +1,6 @@
 /* eslint-disable prefer-rest-params */
 /* global ga */
-import { escape } from "lodash";
+import escape from "lodash/escape";
 import * as React from "react";
 import { IntegrationService } from "@shared/types";
 import env from "~/env";

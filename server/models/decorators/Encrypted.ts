@@ -1,4 +1,4 @@
-import { isNil } from "lodash";
+import isNil from "lodash/isNil";
 import vaults from "@server/database/vaults";
 import Logger from "@server/logging/Logger";
 

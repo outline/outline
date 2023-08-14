@@ -1,7 +1,7 @@
 import { existsSync } from "fs";
 import path from "path";
 import glob from "glob";
-import { startCase } from "lodash";
+import startCase from "lodash/startCase";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { UnfurlResolver } from "@server/types";

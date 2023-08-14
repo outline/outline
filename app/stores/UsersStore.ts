@@ -1,5 +1,6 @@
 import invariant from "invariant";
-import { filter, orderBy } from "lodash";
+import filter from "lodash/filter";
+import orderBy from "lodash/orderBy";
 import { observable, computed, action, runInAction } from "mobx";
 import { Role } from "@shared/types";
 import User from "~/models/User";

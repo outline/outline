@@ -1,4 +1,4 @@
-import { uniqBy } from "lodash";
+import uniqBy from "lodash/uniqBy";
 import { Role } from "@shared/types";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";

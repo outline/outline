@@ -1,4 +1,4 @@
-import { intersection } from "lodash";
+import intersection from "lodash/intersection";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";

@@ -1,5 +1,5 @@
 import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
-import { throttle } from "lodash";
+import throttle from "lodash/throttle";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";

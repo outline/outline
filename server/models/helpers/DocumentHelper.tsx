@@ -3,7 +3,8 @@ import {
   yDocToProsemirrorJSON,
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
-import { escapeRegExp, startCase } from "lodash";
+import escapeRegExp from "lodash/escapeRegExp";
+import startCase from "lodash/startCase";
 import { Node } from "prosemirror-model";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";

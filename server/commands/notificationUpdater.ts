@@ -1,4 +1,4 @@
-import { isUndefined } from "lodash";
+import isUndefined from "lodash/isUndefined";
 import { Transaction } from "sequelize";
 import { Event, Notification } from "@server/models";
 

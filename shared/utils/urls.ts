@@ -1,4 +1,4 @@
-import { escapeRegExp } from "lodash";
+import escapeRegExp from "lodash/escapeRegExp";
 import env from "../env";
 import { parseDomain } from "./domains";
 

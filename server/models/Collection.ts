@@ -1,4 +1,7 @@
-import { find, findIndex, remove, uniq } from "lodash";
+import find from "lodash/find";
+import findIndex from "lodash/findIndex";
+import remove from "lodash/remove";
+import uniq from "lodash/uniq";
 import randomstring from "randomstring";
 import { Identifier, Transaction, Op, FindOptions } from "sequelize";
 import {
