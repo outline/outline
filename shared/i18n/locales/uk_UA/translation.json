@@ -851,6 +851,8 @@
   "Allow members to create new collections within the knowledge base": "Дозвольте учасникам створювати нові колекції в базі знань",
   "Draw.io deployment": "Розгортання Draw.io",
   "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.": "Додайте сюди URL-адресу інсталяції для самостійного розміщення draw.io, щоб увімкнути автоматичне вбудовування діаграм у документи.",
+  "Grist deployment": "Grist deployment",
+  "Add your self-hosted grist installation URL here.": "Add your self-hosted grist installation URL here.",
   "Sharing is currently disabled.": "Наразі спільний доступ вимкнено.",
   "You can globally enable and disable public document sharing in the <em>security settings</em>.": "Ви можете глобально ввімкнути та вимкнути спільний доступ до публічних документів у <em>налаштуваннях безпеки</em>.",
   "Documents that have been shared are listed below. Anyone that has the public link can access a read-only version of the document until the link has been revoked.": "Нижче наведено документи, до яких надано спільний доступ. Будь-хто, хто має загальнодоступне посилання, може отримати доступ до версії документа лише для читання, доки посилання не буде відкликано.",
