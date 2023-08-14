@@ -851,6 +851,8 @@
   "Allow members to create new collections within the knowledge base": "Cho phép các thành viên tạo bộ sưu tập mới trong cơ sở tri thức",
   "Draw.io deployment": "Triển khai Draw.io",
   "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.": "Thêm url cài đặt draw.io tự lưu trữ của bạn tại đây để cho phép tự động nhúng sơ đồ vào tài liệu.",
+  "Grist deployment": "Grist deployment",
+  "Add your self-hosted grist installation URL here.": "Add your self-hosted grist installation URL here.",
   "Sharing is currently disabled.": "Chia sẻ hiện đang bị vô hiệu hóa.",
   "You can globally enable and disable public document sharing in the <em>security settings</em>.": "Bạn có thể bật và tắt chia sẻ tài liệu công khai trên toàn cầu trong <em>cài đặt bảo mật</em>.",
   "Documents that have been shared are listed below. Anyone that has the public link can access a read-only version of the document until the link has been revoked.": "Các tài liệu đã được chia sẻ được liệt kê dưới đây. Bất kỳ ai có liên kết công khai đều có thể truy cập phiên bản chỉ đọc của tài liệu cho đến khi liên kết bị thu hồi.",
