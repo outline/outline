@@ -5939,10 +5939,10 @@ elkjs@^0.8.2:
   resolved "https://registry.yarnpkg.com/elkjs/-/elkjs-0.8.2.tgz#c37763c5a3e24e042e318455e0147c912a7c248e"
   integrity sha512-L6uRgvZTH+4OF5NE/MBbzQx/WYpru1xCBE9respNj6qznEewGUIfhzmm7horWWxbNO2M0WckQypGctR8lH79xQ==
 
-email-providers@^1.13.1:
-  version "1.13.1"
-  resolved "https://registry.yarnpkg.com/email-providers/-/email-providers-1.13.1.tgz#dfaea33a7744035510f0f64ed44098e7077f68c9"
-  integrity sha512-+BPUngcWMy9piqS33yeOcqJXYhIxet94UbK1B/uDOGfjLav4YlDAf9/RhplRypSDBSKx92STNH0PcwgCJnNATw==
+email-providers@^1.14.0:
+  version "1.14.0"
+  resolved "https://registry.yarnpkg.com/email-providers/-/email-providers-1.14.0.tgz#a353f56390f9a8b42ba1843a1701c1f5fcd332ee"
+  integrity sha512-9PjNtvOzhnl5mtyAnxe7tUQ/SWnplbJjk0w6+8fKIjFFOQizqB+H+9dvOdwOVz07iOHt2zvl0Yb1bFAl1il0pA==
 
 emittery@^0.12.1:
   version "0.12.1"
