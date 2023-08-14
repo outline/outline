@@ -851,6 +851,8 @@
   "Allow members to create new collections within the knowledge base": "Zezwalaj członkom na tworzenie nowych kolekcji w bazie wiedzy",
   "Draw.io deployment": "Wdrożenie Draw.io",
   "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.": "Dodaj tutaj adres swojej instalacji draw.io, aby umożliwić automatyczne osadzanie schematów w dokumentach.",
+  "Grist deployment": "Grist deployment",
+  "Add your self-hosted grist installation URL here.": "Add your self-hosted grist installation URL here.",
   "Sharing is currently disabled.": "Udostępnianie jest obecnie wyłączone.",
   "You can globally enable and disable public document sharing in the <em>security settings</em>.": "Możesz globalnie włączać i wyłączać publiczne udostępnianie dokumentów w <em>ustawieniach zabezpieczeń</em>.",
   "Documents that have been shared are listed below. Anyone that has the public link can access a read-only version of the document until the link has been revoked.": "Dokumenty udostępnione są wymienione poniżej. Każdy, kto ma link publiczny, może uzyskać dostęp do wersji dokumentu tylko do odczytu do czasu cofnięcia linku.",
