@@ -94,7 +94,7 @@
     "date-fns": "^2.30.0",
     "dd-trace": "^3.32.1",
     "dotenv": "^4.0.0",
-    "email-providers": "^1.13.1",
+    "email-providers": "^1.14.0",
     "emoji-regex": "^10.2.1",
     "es6-error": "^4.1.1",
     "fetch-retry": "^5.0.5",
