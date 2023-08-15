@@ -1,7 +1,7 @@
 import { Document } from "@server/models";
 import { buildDocument, buildDraftDocument } from "@server/test/factories";
 import { setupTestDatabase } from "@server/test/support";
-import script from "./20230803172011-migrate-emoji-in-document-title";
+import script from "./20230815063834-migrate-emoji-in-document-title";
 
 setupTestDatabase();
 
