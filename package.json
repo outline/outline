@@ -24,6 +24,7 @@
     "db:rollback": "sequelize db:migrate:undo",
     "db:reset": "sequelize db:drop && sequelize db:create && sequelize db:migrate",
     "upgrade": "git fetch && git pull && yarn install && yarn heroku-postbuild",
+    "test:db:migrate": "NODE_ENV=test yarn sequelize db:migrate --env=test",
     "test": "jest --config=.jestconfig.json --forceExit",
     "test:app": "jest --config=.jestconfig.json --selectProjects app",
     "test:shared": "jest --config=.jestconfig.json --selectProjects shared-node shared-jsdom",
