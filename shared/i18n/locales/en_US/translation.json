@@ -105,6 +105,7 @@
   "previously edited": "previously edited",
   "You": "You",
   "Viewers": "Viewers",
+  "Collection deleted": "Collection deleted",
   "I’m sure – Delete": "I’m sure – Delete",
   "Deleting": "Deleting",
   "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
