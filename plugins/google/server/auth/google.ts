@@ -1,7 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import type { Context } from "koa";
 import Router from "koa-router";
-import { capitalize } from "lodash";
+import capitalize from "lodash/capitalize";
 import { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
 import { slugifyDomain } from "@shared/utils/domains";

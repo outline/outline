@@ -1,11 +1,12 @@
 import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
-import { throttle } from "lodash";
+import throttle from "lodash/throttle";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import MultiplayerExtension from "@shared/editor/extensions/Multiplayer";
+import { supportsPassiveListener } from "@shared/utils/browser";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -16,7 +17,6 @@ import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { AwarenessChangeEvent } from "~/types";
 import Logger from "~/utils/Logger";
-import { supportsPassiveListener } from "~/utils/browser";
 import { homePath } from "~/utils/routeHelpers";
 
 type Props = EditorProps & {

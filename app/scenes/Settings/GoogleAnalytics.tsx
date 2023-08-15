@@ -1,4 +1,4 @@
-import { find } from "lodash";
+import find from "lodash/find";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";

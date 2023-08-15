@@ -1,4 +1,4 @@
-import { trim } from "lodash";
+import trim from "lodash/trim";
 import { action, computed, observable, reaction, runInAction } from "mobx";
 import {
   CollectionPermission,

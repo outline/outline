@@ -1,4 +1,4 @@
-import { isMac } from "~/utils/browser";
+import { isMac } from "@shared/utils/browser";
 
 export const altDisplay = isMac() ? "⌥" : "Alt";
 

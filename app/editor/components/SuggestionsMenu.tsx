@@ -1,5 +1,5 @@
 import commandScore from "command-score";
-import { capitalize } from "lodash";
+import capitalize from "lodash/capitalize";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";

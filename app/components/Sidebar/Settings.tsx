@@ -1,4 +1,4 @@
-import { groupBy } from "lodash";
+import groupBy from "lodash/groupBy";
 import { observer } from "mobx-react";
 import { BackIcon } from "outline-icons";
 import * as React from "react";

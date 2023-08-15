@@ -1,5 +1,10 @@
 import FuzzySearch from "fuzzy-search";
-import { includes, difference, concat, filter, map, fill } from "lodash";
+import concat from "lodash/concat";
+import difference from "lodash/difference";
+import fill from "lodash/fill";
+import filter from "lodash/filter";
+import includes from "lodash/includes";
+import map from "lodash/map";
 import { observer } from "mobx-react";
 import { StarredIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";

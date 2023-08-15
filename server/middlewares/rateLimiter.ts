@@ -1,5 +1,5 @@
 import { Context, Next } from "koa";
-import { defaults } from "lodash";
+import defaults from "lodash/defaults";
 import env from "@server/env";
 import { RateLimitExceededError } from "@server/errors";
 import Logger from "@server/logging/Logger";

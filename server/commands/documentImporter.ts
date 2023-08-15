@@ -1,6 +1,6 @@
 import path from "path";
 import emojiRegex from "emoji-regex";
-import { truncate } from "lodash";
+import truncate from "lodash/truncate";
 import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
 import { Transaction } from "sequelize";

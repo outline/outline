@@ -58,6 +58,7 @@ import { Primitive } from "utility-types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { UserPreferences } from "../../types";
 import Storage from "../../utils/Storage";
+import { isMac } from "../../utils/browser";
 import {
   newlineInCode,
   insertSpaceTab,
@@ -208,14 +209,22 @@ export default class CodeFence extends Node {
   }
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
-    return {
+    const output = {
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),
       Tab: insertSpaceTab,
       Enter: newlineInCode,
       "Shift-Enter": newlineInCode,
-      "Ctrl-a": moveToPreviousNewline,
-      "Ctrl-e": moveToNextNewline,
     };
+
+    if (isMac()) {
+      return {
+        ...output,
+        "Ctrl-a": moveToPreviousNewline,
+        "Ctrl-e": moveToNextNewline,
+      };
+    }
+
+    return output;
   }
 
   get plugins() {

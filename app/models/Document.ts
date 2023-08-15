@@ -1,5 +1,5 @@
 import { addDays, differenceInDays } from "date-fns";
-import { floor } from "lodash";
+import floor from "lodash/floor";
 import { action, autorun, computed, observable, set } from "mobx";
 import { ExportContentType } from "@shared/types";
 import type { NavigationNode } from "@shared/types";

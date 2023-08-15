@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import JSZip from "jszip";
-import { find } from "lodash";
+import find from "lodash/find";
 import tmp from "tmp";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import { ValidationError } from "@server/errors";

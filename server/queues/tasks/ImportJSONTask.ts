@@ -1,5 +1,6 @@
 import JSZip from "jszip";
-import { escapeRegExp, find } from "lodash";
+import escapeRegExp from "lodash/escapeRegExp";
+import find from "lodash/find";
 import mime from "mime-types";
 import { Node } from "prosemirror-model";
 import { v4 as uuidv4 } from "uuid";

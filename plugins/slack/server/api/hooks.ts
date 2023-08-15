@@ -1,6 +1,6 @@
 import { t } from "i18next";
 import Router from "koa-router";
-import { escapeRegExp } from "lodash";
+import escapeRegExp from "lodash/escapeRegExp";
 import { Op } from "sequelize";
 import { IntegrationService } from "@shared/types";
 import env from "@server/env";

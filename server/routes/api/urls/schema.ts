@@ -1,4 +1,4 @@
-import { isNil } from "lodash";
+import isNil from "lodash/isNil";
 import { z } from "zod";
 import { isUrl } from "@shared/utils/urls";
 import { ValidateURL } from "@server/validation";

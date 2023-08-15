@@ -1,7 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import type { Context } from "koa";
 import Router from "koa-router";
-import { get } from "lodash";
+import get from "lodash/get";
 import { Strategy } from "passport-oauth2";
 import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";

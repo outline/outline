@@ -1,4 +1,7 @@
-import { reduce, filter, find, orderBy } from "lodash";
+import filter from "lodash/filter";
+import find from "lodash/find";
+import orderBy from "lodash/orderBy";
+import reduce from "lodash/reduce";
 import View from "~/models/View";
 import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";

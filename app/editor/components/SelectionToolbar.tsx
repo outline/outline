@@ -1,4 +1,4 @@
-import { some } from "lodash";
+import some from "lodash/some";
 import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";

@@ -1,5 +1,6 @@
 import invariant from "invariant";
-import { debounce, isEmpty } from "lodash";
+import debounce from "lodash/debounce";
+import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
 import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";

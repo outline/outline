@@ -1,5 +1,5 @@
 import { yDocToProsemirrorJSON } from "@getoutline/y-prosemirror";
-import { uniq } from "lodash";
+import uniq from "lodash/uniq";
 import { Node } from "prosemirror-model";
 import * as Y from "yjs";
 import { sequelize } from "@server/database/sequelize";

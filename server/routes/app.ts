@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import util from "util";
 import { Context, Next } from "koa";
-import { escape } from "lodash";
+import escape from "lodash/escape";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import { IntegrationType, TeamPreference } from "@shared/types";

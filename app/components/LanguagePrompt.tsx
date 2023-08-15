@@ -1,4 +1,4 @@
-import { find } from "lodash";
+import find from "lodash/find";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";

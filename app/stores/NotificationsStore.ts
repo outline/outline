@@ -1,5 +1,6 @@
 import invariant from "invariant";
-import { orderBy, sortBy } from "lodash";
+import orderBy from "lodash/orderBy";
+import sortBy from "lodash/sortBy";
 import { action, computed, runInAction } from "mobx";
 import Notification from "~/models/Notification";
 import { PaginationParams } from "~/types";
