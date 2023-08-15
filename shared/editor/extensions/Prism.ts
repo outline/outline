@@ -74,9 +74,10 @@ function getDecorations({
   lineNumbers?: boolean;
 }) {
   const decorations: Decoration[] = [];
-  const blocks: { node: Node; pos: number }[] = findBlockNodes(doc).filter(
-    (item) => item.node.type.name === name
-  );
+  const blocks: { node: Node; pos: number }[] = findBlockNodes(
+    doc,
+    true
+  ).filter((item) => item.node.type.name === name);
 
   function parseNodes(
     nodes: refractor.RefractorNode[],
