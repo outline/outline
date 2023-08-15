@@ -261,7 +261,7 @@ class Document extends ParanoidModel {
   // hooks
 
   @BeforeSave
-  static async updateTitleInCollectionStructure(
+  static async updateCollectionStructure(
     model: Document,
     { transaction }: SaveOptions<Document>
   ) {
@@ -271,7 +271,7 @@ class Document extends ParanoidModel {
       model.archivedAt ||
       model.template ||
       !model.publishedAt ||
-      !model.changed("title") ||
+      !(model.changed("title") || model.changed("emoji")) ||
       !model.collectionId
     ) {
       return;
