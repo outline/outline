@@ -1,6 +1,6 @@
 import compact from "lodash/compact";
+import isNil from "lodash/isNil";
 import uniq from "lodash/uniq";
-import isNil from "lodash/uniq";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
 import {
