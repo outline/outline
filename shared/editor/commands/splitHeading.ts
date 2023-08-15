@@ -1,5 +1,6 @@
 import { NodeType } from "prosemirror-model";
 import { Command, TextSelection } from "prosemirror-state";
+import { key } from "../plugins/FoldingHeaders";
 import { findBlockNodes } from "../queries/findChildren";
 import findCollapsedNodes from "../queries/findCollapsedNodes";
 
@@ -15,7 +16,7 @@ export default function splitHeading(type: NodeType): Command {
     // is the selection at the beginning of the node
     const startPos = $from.before() + 1;
     if (startPos === from) {
-      const collapsedNodes = findCollapsedNodes(state.doc);
+      const collapsedNodes = findCollapsedNodes(state, key.getState(state));
       const allBlocks = findBlockNodes(state.doc);
       const previousBlock = allBlocks
         .filter((a) => a.pos + a.node.nodeSize < startPos)
@@ -57,7 +58,7 @@ export default function splitHeading(type: NodeType): Command {
     if (endPos === to) {
       // Find the next visible block after this one. It takes into account nested
       // collapsed headings and reaching the end of the document
-      const collapsedNodes = findCollapsedNodes(state.doc);
+      const collapsedNodes = findCollapsedNodes(state, key.getState(state));
       const allBlocks = findBlockNodes(state.doc);
       const visibleBlocks = allBlocks.filter(
         (a) => !collapsedNodes.find((b) => b.pos === a.pos)

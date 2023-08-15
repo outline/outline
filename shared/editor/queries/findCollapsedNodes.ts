@@ -1,8 +1,12 @@
-import { Node } from "prosemirror-model";
+import { EditorState } from "prosemirror-state";
+import { DecorationSet } from "prosemirror-view";
 import { findBlockNodes, NodeWithPos } from "./findChildren";
 
-export default function findCollapsedNodes(doc: Node): NodeWithPos[] {
-  const blocks = findBlockNodes(doc);
+export default function findCollapsedNodes(
+  state: EditorState,
+  decorations: DecorationSet
+): NodeWithPos[] {
+  const blocks = findBlockNodes(state.doc);
   const nodes: NodeWithPos[] = [];
 
   let withinCollapsedHeading;
@@ -13,7 +17,13 @@ export default function findCollapsedNodes(doc: Node): NodeWithPos[] {
         !withinCollapsedHeading ||
         block.node.attrs.level <= withinCollapsedHeading
       ) {
-        if (block.node.attrs.collapsed) {
+        if (
+          decorations.find(
+            block.pos,
+            block.pos + block.node.nodeSize,
+            (spec) => spec.collapsed
+          ).length
+        ) {
           if (!withinCollapsedHeading) {
             withinCollapsedHeading = block.node.attrs.level;
           }

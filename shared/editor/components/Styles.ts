@@ -658,16 +658,16 @@ h6:not(.placeholder):before {
   top: -2px;
   width: 26px;
   height: 24px;
+}
 
-  &.collapsed {
+.collapsed-heading {
+  .heading-actions {
     opacity: 1;
   }
-
-  &.collapsed .heading-anchor {
+  .heading-anchor {
     opacity: 0;
   }
-
-  &.collapsed .heading-fold {
+  .heading-fold {
     opacity: 1;
   }
 }
@@ -692,15 +692,15 @@ h6 {
   display: inline-block;
   transform-origin: center;
   padding: 0;
+}
 
-  &.collapsed {
-    svg {
-      transform: rotate(${props.rtl ? "90deg" : "-90deg"});
-      pointer-events: none;
-    }
-    transition-delay: 0.1s;
-    opacity: 1;
+.collapsed-heading .heading-fold {
+  svg {
+    transform: rotate(${props.rtl ? "90deg" : "-90deg"});
+    pointer-events: none;
   }
+  transition-delay: 0.1s;
+  opacity: 1;
 }
 
 .placeholder:before {
