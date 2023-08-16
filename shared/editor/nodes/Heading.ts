@@ -149,6 +149,13 @@ export default class Heading extends Node {
           Storage.remove(persistKey);
         }
 
+        if (!this.editor.props.readOnly) {
+          tr.setNodeMarkup(result.inside, undefined, {
+            ...node.attrs,
+            collapsed,
+          });
+        }
+
         view.dispatch(
           tr.setMeta(key, {
             from: result.inside,

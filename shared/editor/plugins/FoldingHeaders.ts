@@ -1,3 +1,4 @@
+import { recreateTransform } from "@fellow/prosemirror-recreate-transform";
 import { EditorState, Plugin, PluginKey, Transaction } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { Editor } from "../../../app/editor";
@@ -45,7 +46,6 @@ export class FoldingHeadersPlugin extends Plugin {
             ),
           ];
 
-          console.log({ decorations });
           return DecorationSet.create(state.doc, decorations);
         },
         apply: (
@@ -54,7 +54,12 @@ export class FoldingHeadersPlugin extends Plugin {
           _oldState: EditorState,
           newState: EditorState
         ) => {
-          set = set.map(tr.mapping, tr.doc);
+          const { mapping } = recreateTransform(tr.before, tr.doc, {
+            complexSteps: true,
+            wordDiffs: false,
+            simplifyDiff: true,
+          });
+          set = set.map(mapping, tr.doc);
           const action = tr.getMeta(key);
 
           if (!action && !tr.docChanged) {
@@ -85,15 +90,15 @@ export class FoldingHeadersPlugin extends Plugin {
             undefined,
             (spec) => spec.collapsed
           );
-          const newSet = DecorationSet.create(newState.doc, foldedHeadingDecos);
-          const collapsedNodes = findCollapsedNodes(newState, newSet);
+          set = DecorationSet.create(newState.doc, foldedHeadingDecos);
+          const collapsedNodes = findCollapsedNodes(newState, set);
 
-          console.log({
-            collapsedNodes,
-            foldedHeadingDecos,
-          });
+          // console.log({
+          //   collapsedNodes,
+          //   foldedHeadingDecos,
+          // });
 
-          return newSet.add(
+          return set.add(
             newState.doc,
             collapsedNodes.map((block) =>
               Decoration.node(block.pos, block.pos + block.node.nodeSize, {
@@ -102,24 +107,6 @@ export class FoldingHeadersPlugin extends Plugin {
             )
           );
         },
-      },
-      appendTransaction: (transactions, oldState, newState) => {
-        if (editor.props.readOnly) {
-          return;
-        }
-
-        const { tr } = newState;
-        let modified = false;
-
-        for (const transaction of transactions) {
-          const action = transaction.getMeta(key);
-          if (action) {
-            tr.setNodeMarkup(action.from, undefined, action.attrs);
-            modified = true;
-          }
-        }
-
-        return modified ? tr : null;
       },
       props: {
         decorations: (state) => this.getState(state),
