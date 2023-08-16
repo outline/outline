@@ -1,4 +1,4 @@
 export const TooManyConnections = {
-  code: 4404,
+  code: 4503,
   reason: "Too Many Connections",
 };

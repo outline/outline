@@ -14,17 +14,40 @@ function ConnectionStatus() {
   const theme = useTheme();
   const { t } = useTranslation();
 
+  const codeToMessage = {
+    1009: {
+      title: t("Document is too large"),
+      body: t(
+        "This document has reached the maximum size and can no longer be edited"
+      ),
+    },
+    4401: {
+      title: t("Authentication failed"),
+      body: t("Please try logging out and back in again"),
+    },
+    4403: {
+      title: t("Authorization failed"),
+      body: t("You may have lost access to this document, try reloading"),
+    },
+    4503: {
+      title: t("Too many users connected to document"),
+      body: t("Your edits will sync once other users leave the document"),
+    },
+  };
+
+  const message = ui.multiplayerErrorCode
+    ? codeToMessage[ui.multiplayerErrorCode]
+    : undefined;
+
   return ui.multiplayerStatus === "connecting" ||
     ui.multiplayerStatus === "disconnected" ? (
     <Tooltip
       tooltip={
-        ui.multiplayerErrorCode === 4404 ? (
+        message ? (
           <Centered>
-            <strong>{t("Too many users connected to document")}</strong>
+            <strong>{message.title}</strong>
             <br />
-            {t(
-              "Edits you make will sync once others leave and a connection is established"
-            )}
+            {message.body}
           </Centered>
         ) : (
           <Centered>

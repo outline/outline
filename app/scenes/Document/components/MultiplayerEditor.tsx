@@ -140,7 +140,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
         ui.setMultiplayerStatus("disconnected", ev.event.code);
       }
 
-      if ("code" in ev.event && ev.event.code === 4404) {
+      if ("code" in ev.event && ev.event.code === 4503) {
         ui.setMultiplayerStatus("disconnected", ev.event.code);
       }
     });
