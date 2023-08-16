@@ -70,6 +70,10 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
     ref.current?.focus();
   }, [ref]);
 
+  const restoreFocus = React.useCallback(() => {
+    ref.current?.focusAtEnd();
+  }, [ref]);
+
   const handleBlur = React.useCallback(
     (ev: React.FocusEvent<HTMLSpanElement>) => {
       // Do nothing and simply return if the related target is the parent
@@ -213,7 +217,7 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
   const handleEmojiChange = React.useCallback(
     async (emoji: string | null) => {
       // Restore focus on title
-      ref.current?.focus();
+      restoreFocus();
       if (document.emoji !== emoji) {
         document.emoji = emoji;
         await document.save();
@@ -253,7 +257,7 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
           value={document.emoji}
           onChange={handleEmojiChange}
           // Restore focus on title
-          onClickOutside={handleClick}
+          onClickOutside={restoreFocus}
         />
       ) : document.emoji ? (
         <EmojiWrapper align="center" justify="center">
