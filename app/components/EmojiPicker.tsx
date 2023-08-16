@@ -89,7 +89,7 @@ function EmojiPicker({
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          <EmojiButton size={32} {...props} onClick={handleClick}>
+          <EmojiButton {...props} onClick={handleClick}>
             {value ? (
               <Emoji size={24} align="center" justify="center">
                 {value}
@@ -156,10 +156,10 @@ export const Emoji = styled(Flex)<{ size?: number }>`
 
 const EmojiWrapperStyles = css`
   position: absolute;
-  top: 8px;
-  left: -38px;
-  height: 32px;
-  width: 32px;
+  top: 6px;
+  left: -36px;
+  height: 36px;
+  width: 36px;
   z-index: 2;
 `;
 
