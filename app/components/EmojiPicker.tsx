@@ -157,7 +157,7 @@ export const Emoji = styled(Flex)<{ size?: number }>`
 const EmojiWrapperStyles = css`
   position: absolute;
   top: 6px;
-  left: -36px;
+  left: -40px;
   height: 36px;
   width: 36px;
   z-index: 2;

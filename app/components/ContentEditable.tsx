@@ -1,7 +1,7 @@
 import isPrintableKeyEvent from "is-printable-key-event";
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
+import { extraArea, s } from "@shared/styles";
 import useOnScreen from "~/hooks/useOnScreen";
 
 type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
@@ -147,7 +147,7 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
   const childrenArr = React.Children.toArray(children);
 
   return (
-    <div className={className} dir={dir} onClick={onClick} tabIndex={-1}>
+    <Container className={className} dir={dir} onClick={onClick} tabIndex={-1}>
       {childrenArr.length > 1 ? childrenArr[0] : null}
       <Content
         ref={contentRef}
@@ -165,7 +165,7 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
         {innerValue}
       </Content>
       {childrenArr.length > 1 ? childrenArr[1] : childrenArr[0]}
-    </div>
+    </Container>
   );
 });
 
@@ -182,6 +182,10 @@ function placeCaret(element: HTMLElement, atStart: boolean) {
     sel?.addRange(range);
   }
 }
+
+const Container = styled.div`
+  ${extraArea(4)}
+`;
 
 const Content = styled.span`
   background: ${s("background")};
