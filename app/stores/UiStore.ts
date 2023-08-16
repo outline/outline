@@ -69,6 +69,9 @@ class UiStore {
   @observable
   multiplayerStatus: ConnectionStatus;
 
+  @observable
+  multiplayerErrorCode?: number;
+
   constructor() {
     // Rehydrate
     const data: Partial<UiStore> = Storage.get(UI_STORE) || {};
@@ -133,8 +136,12 @@ class UiStore {
   };
 
   @action
-  setMultiplayerStatus = (status: ConnectionStatus): void => {
+  setMultiplayerStatus = (
+    status: ConnectionStatus,
+    errorCode?: number
+  ): void => {
     this.multiplayerStatus = status;
+    this.multiplayerErrorCode = errorCode;
   };
 
   @action

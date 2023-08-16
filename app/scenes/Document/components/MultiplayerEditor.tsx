@@ -137,11 +137,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     provider.on("close", (ev: MessageEvent) => {
       if ("code" in ev.event && ev.event.code === 1009) {
         provider.shouldConnect = false;
-        showToast(
-          t(
-            "Sorry, this document is too large - edits will no longer be persisted."
-          )
-        );
+        ui.setMultiplayerStatus("disconnected", ev.event.code);
+      }
+
+      if ("code" in ev.event && ev.event.code === 4404) {
+        ui.setMultiplayerStatus("disconnected", ev.event.code);
       }
     });
 
@@ -164,9 +164,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       );
     }
 
-    provider.on("status", (ev: ConnectionStatusEvent) =>
-      ui.setMultiplayerStatus(ev.status)
-    );
+    provider.on("status", (ev: ConnectionStatusEvent) => {
+      if (ui.multiplayerStatus !== ev.status) {
+        ui.setMultiplayerStatus(ev.status, undefined);
+      }
+    });
 
     setRemoteProvider(provider);
 
@@ -177,7 +179,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       provider?.destroy();
       void localProvider?.destroy();
       setRemoteProvider(null);
-      ui.setMultiplayerStatus(undefined);
+      ui.setMultiplayerStatus(undefined, undefined);
     };
   }, [
     history,

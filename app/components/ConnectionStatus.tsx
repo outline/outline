@@ -18,11 +18,21 @@ function ConnectionStatus() {
     ui.multiplayerStatus === "disconnected" ? (
     <Tooltip
       tooltip={
-        <Centered>
-          <strong>{t("Server connection lost")}</strong>
-          <br />
-          {t("Edits you make will sync once you’re online")}
-        </Centered>
+        ui.multiplayerErrorCode === 4404 ? (
+          <Centered>
+            <strong>{t("Too many users connected to document")}</strong>
+            <br />
+            {t(
+              "Edits you make will sync once others leave and a connection is established"
+            )}
+          </Centered>
+        ) : (
+          <Centered>
+            <strong>{t("Server connection lost")}</strong>
+            <br />
+            {t("Edits you make will sync once you’re online")}
+          </Centered>
+        )
       }
       placement="bottom"
     >
