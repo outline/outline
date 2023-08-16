@@ -15,7 +15,6 @@ import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { NavigationNode } from "@shared/types";
-import parseTitle from "@shared/utils/parseTitle";
 import DocumentExplorerNode from "~/components/DocumentExplorerNode";
 import DocumentExplorerSearchResult from "~/components/DocumentExplorerSearchResult";
 import Flex from "~/components/Flex";
@@ -226,8 +225,8 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
       title = node.title;
     } else {
       const doc = documents.get(node.id);
-      const { strippedTitle, emoji } = parseTitle(node.title);
-      title = strippedTitle;
+      const emoji = node.emoji;
+      title = node.title;
 
       if (emoji) {
         icon = <EmojiIcon emoji={emoji} />;
@@ -238,7 +237,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
       }
 
       path = ancestors(node)
-        .map((a) => parseTitle(a.title).strippedTitle)
+        .map((a) => a.title)
         .join(" / ");
     }
 
