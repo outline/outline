@@ -173,7 +173,9 @@ export const EmojiButton = styled(NudeButton)`
   align-items: center;
   justify-content: center;
   &: ${hover}, &[aria-expanded= "true"] {
-    opacity: 1;
+    ${AnimatedEmoji} {
+      opacity: 1;
+    }
     border: 0;
     border-radius: 4px;
     box-shadow: ${(props) =>
