@@ -146,7 +146,7 @@ function SidebarLink(
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {emoji && (
             <EmojiWrapper width={emojiWidth}>
-              <Emoji>{emoji}</Emoji>
+              <Emoji align="center">{emoji}</Emoji>
             </EmojiWrapper>
           )}
           <Label>{label}</Label>
@@ -178,6 +178,7 @@ export const IconWrapper = styled.span`
 `;
 
 const EmojiWrapper = styled(IconWrapper)<{ width?: number }>`
+  margin-right: 0;
   width: ${(props) => (props.width ? `${props.width}px` : "100%")};
 `;
 

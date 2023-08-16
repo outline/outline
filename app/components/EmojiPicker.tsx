@@ -150,7 +150,7 @@ export const AnimatedEmoji = styled(SmileyIcon)`
 `;
 
 export const Emoji = styled(Flex)<{ size?: number }>`
-  height: 100%;
+  line-height: 1.6;
   ${(props) => (props.size ? `font-size: ${props.size}px` : "")}
 `;
 
