@@ -231,7 +231,7 @@ export default function SelectionToolbar(props: Props) {
   } else if (rowIndex !== undefined) {
     items = getTableRowMenuItems(state, rowIndex, dictionary);
   } else if (isImageSelection) {
-    items = getImageMenuItems(state, dictionary);
+    items = readOnly ? [] : getImageMenuItems(state, dictionary);
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, dictionary);
   } else if (readOnly) {
