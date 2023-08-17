@@ -1,5 +1,6 @@
+import data, { type Emoji as TEmoji, EmojiMartData } from "@emoji-mart/data";
 import FuzzySearch from "fuzzy-search";
-import gemojies from "gemoji";
+import snakeCase from "lodash/snakeCase";
 import React from "react";
 import EmojiMenuItem from "./EmojiMenuItem";
 import SuggestionsMenu, {
@@ -14,14 +15,14 @@ type Emoji = {
   attrs: { markup: string; "data-name": string };
 };
 
-const searcher = new FuzzySearch<{
-  names: string[];
-  description: string;
-  emoji: string;
-}>(gemojies, ["names"], {
-  caseSensitive: true,
-  sort: true,
-});
+const searcher = new FuzzySearch<TEmoji>(
+  Object.values((data as EmojiMartData).emojis),
+  ["keywords"],
+  {
+    caseSensitive: true,
+    sort: true,
+  }
+);
 
 type Props = Omit<
   SuggestionsMenuProps<Emoji>,
@@ -34,14 +35,17 @@ const EmojiMenu = (props: Props) => {
   const items = React.useMemo(() => {
     const n = search.toLowerCase();
     const result = searcher.search(n).map((item) => {
-      const description = item.description;
-      const name = item.names[0];
+      // We snake_case the shortcode for backwards compatability with gemoji to
+      // avoid multiple formats being written into documents.
+      const shortcode = snakeCase(item.id);
+      const emoji = item.skins[0].native;
+
       return {
-        ...item,
         name: "emoji",
-        title: name,
-        description,
-        attrs: { markup: name, "data-name": name },
+        title: emoji,
+        description: item.name,
+        emoji,
+        attrs: { markup: shortcode, "data-name": shortcode },
       };
     });
 
