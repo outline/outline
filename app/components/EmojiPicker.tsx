@@ -6,7 +6,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled, { css, useTheme } from "styled-components";
-import { depths, s } from "@shared/styles";
+import { depths, extraArea, s } from "@shared/styles";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
 import usePickerTheme from "~/hooks/usePickerTheme";
@@ -181,6 +181,7 @@ export const EmojiButton = styled(NudeButton)`
     box-shadow: ${(props) =>
       `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`};
   }
+  ${extraArea(4)}
 `;
 
 const RemoveButton = styled(Button)`
