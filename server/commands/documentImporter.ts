@@ -1,5 +1,6 @@
 import path from "path";
 import emojiRegex from "emoji-regex";
+import escapeRegExp from "lodash/escapeRegExp";
 import truncate from "lodash/truncate";
 import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
@@ -221,7 +222,10 @@ async function documentImporter({
       ip,
       transaction,
     });
-    text = text.replace(uri, attachment.redirectUrl);
+    text = text.replace(
+      new RegExp(escapeRegExp(uri), "g"),
+      attachment.redirectUrl
+    );
   }
 
   // It's better to truncate particularly long titles than fail the import
