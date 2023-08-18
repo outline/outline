@@ -442,6 +442,7 @@ const List = styled.dl`
   overflow: hidden;
   padding: 0;
   margin: 0;
+  user-select: none;
 `;
 
 const Keys = styled.dt`
