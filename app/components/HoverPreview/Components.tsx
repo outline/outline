@@ -4,7 +4,7 @@ import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import Text from "~/components/Text";
 
-export const CARD_MARGIN = 16;
+export const CARD_MARGIN = 10;
 
 const NUMBER_OF_LINES = 10;
 
