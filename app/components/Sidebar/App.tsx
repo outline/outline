@@ -26,7 +26,9 @@ import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import DragPlaceholder from "./components/DragPlaceholder";
-import HeaderButton, { HeaderButtonProps } from "./components/HeaderButton";
+import FullWidthButton, {
+  FullWidthButtonProps,
+} from "./components/FullWidthButton";
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SidebarAction from "./components/SidebarAction";
@@ -65,8 +67,8 @@ function AppSidebar() {
           <DragPlaceholder />
 
           <OrganizationMenu>
-            {(props: HeaderButtonProps) => (
-              <HeaderButton
+            {(props: FullWidthButtonProps) => (
+              <FullWidthButton
                 {...props}
                 title={team.name}
                 image={

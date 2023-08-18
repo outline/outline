@@ -3,9 +3,11 @@ import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
-import { undraggableOnDesktop } from "~/styles";
+import { draggableOnDesktop, undraggableOnDesktop } from "~/styles";
+import Desktop from "~/utils/Desktop";
 
-export type HeaderButtonProps = React.ComponentProps<typeof Button> & {
+export type FullWidthButtonProps = React.ComponentProps<typeof Button> & {
+  position: "top" | "bottom";
   title: React.ReactNode;
   image: React.ReactNode;
   minHeight?: number;
@@ -16,40 +18,53 @@ export type HeaderButtonProps = React.ComponentProps<typeof Button> & {
   children?: React.ReactNode;
 };
 
-const HeaderButton = React.forwardRef<HTMLButtonElement, HeaderButtonProps>(
-  function _HeaderButton(
-    {
-      showDisclosure,
-      showMoreMenu,
-      image,
-      title,
-      minHeight = 0,
-      children,
-      ...rest
-    }: HeaderButtonProps,
-    ref
-  ) {
-    return (
-      <Flex justify="space-between" align="center" shrink={false}>
-        <Button
-          {...rest}
-          minHeight={minHeight}
-          as="button"
-          ref={ref}
-          role="button"
-        >
-          <Title gap={8} align="center">
-            {image}
-            {title}
-          </Title>
-          {showDisclosure && <ExpandedIcon />}
-          {showMoreMenu && <MoreIcon />}
-        </Button>
-        {children}
-      </Flex>
-    );
-  }
-);
+const FullWidthButton = React.forwardRef<
+  HTMLButtonElement,
+  FullWidthButtonProps
+>(function _FullWidthButton(
+  {
+    position = "top",
+    showDisclosure,
+    showMoreMenu,
+    image,
+    title,
+    minHeight = 0,
+    children,
+    ...rest
+  }: FullWidthButtonProps,
+  ref
+) {
+  return (
+    <Container
+      justify="space-between"
+      align="center"
+      shrink={false}
+      $position={position}
+    >
+      <Button
+        {...rest}
+        minHeight={minHeight}
+        as="button"
+        ref={ref}
+        role="button"
+      >
+        <Title gap={8} align="center">
+          {image}
+          {title}
+        </Title>
+        {showDisclosure && <ExpandedIcon />}
+        {showMoreMenu && <MoreIcon />}
+      </Button>
+      {children}
+    </Container>
+  );
+});
+
+const Container = styled(Flex)<{ $position: "top" | "bottom" }>`
+  padding-top: ${(props) =>
+    props.$position === "top" && Desktop.hasInsetTitlebar() ? 36 : 0}px;
+  ${draggableOnDesktop()}
+`;
 
 const Title = styled(Flex)`
   color: ${s("text")};
@@ -99,4 +114,4 @@ const Button = styled(Flex)<{ minHeight: number }>`
   }
 `;
 
-export default HeaderButton;
+export default FullWidthButton;
