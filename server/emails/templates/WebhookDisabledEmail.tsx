@@ -17,7 +17,10 @@ type Props = EmailProps & {
  * Email sent to the creator of a webhook when the webhook has become disabled
  * due to repeated failure.
  */
-export default class WebhookDisabledEmail extends BaseEmail<Props> {
+export default class WebhookDisabledEmail extends BaseEmail<
+  Props,
+  Record<string, any>
+> {
   protected subject() {
     return `Warning: Webhook disabled`;
   }

@@ -24,7 +24,10 @@ type BeforeSendProps = {
 /**
  * Email sent to a user when their data export has failed for some reason.
  */
-export default class ExportFailureEmail extends BaseEmail<Props> {
+export default class ExportFailureEmail extends BaseEmail<
+  Props,
+  BeforeSendProps
+> {
   protected async beforeSend({ userId }: Props) {
     return {
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(

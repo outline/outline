@@ -21,7 +21,10 @@ type Props = EmailProps & {
  * Email sent to an external user when an admin sends them an invite and they
  * haven't signed in after a few days.
  */
-export default class InviteReminderEmail extends BaseEmail<Props> {
+export default class InviteReminderEmail extends BaseEmail<
+  Props,
+  Record<string, any>
+> {
   protected subject({ actorName, teamName }: Props) {
     return `Reminder: ${actorName} invited you to join ${teamName}’s knowledge base`;
   }

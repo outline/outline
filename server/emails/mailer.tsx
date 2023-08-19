@@ -20,6 +20,7 @@ type SendMailOptions = {
   text: string;
   component: JSX.Element;
   headCSS?: string;
+  unsubscribeUrl?: string;
 };
 
 /**
@@ -94,6 +95,14 @@ export class Mailer {
         subject: data.subject,
         html,
         text: data.text,
+        list: data.unsubscribeUrl
+          ? {
+              unsubscribe: {
+                url: data.unsubscribeUrl,
+                comment: "Unsubscribe from these emails",
+              },
+            }
+          : undefined,
         attachments: env.isCloudHosted()
           ? undefined
           : [
