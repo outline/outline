@@ -1,4 +1,4 @@
-import { includes } from "lodash";
+import includes from "lodash/includes";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
