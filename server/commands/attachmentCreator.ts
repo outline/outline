@@ -24,7 +24,7 @@ export default async function attachmentCreator({
 }) {
   const key = `uploads/${user.id}/${uuidv4()}/${name}`;
   const acl = process.env.AWS_S3_ACL || "private";
-  const url = await FileStorage.uploadFile({
+  const url = await FileStorage.upload({
     body: buffer,
     contentType: type,
     contentLength: buffer.length,

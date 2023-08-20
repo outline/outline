@@ -61,7 +61,7 @@ export default abstract class BaseStorage {
    * @param acl The ACL to use
    * @returns The URL of the file
    */
-  public abstract uploadFile({
+  public abstract upload({
     body,
     contentLength,
     contentType,
@@ -83,7 +83,7 @@ export default abstract class BaseStorage {
    * @param acl The ACL to use
    * @returns The URL of the file
    */
-  public abstract uploadFileFromUrl(
+  public abstract uploadFromUrl(
     url: string,
     key: string,
     acl: string

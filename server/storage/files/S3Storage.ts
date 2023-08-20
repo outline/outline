@@ -9,20 +9,19 @@ import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
 
 export default class S3Storage extends BaseStorage {
-  private client = new AWS.S3({
-    s3BucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : undefined,
-    s3ForcePathStyle: env.AWS_S3_FORCE_PATH_STYLE,
-    accessKeyId: env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-    region: env.AWS_REGION,
-    endpoint: env.AWS_S3_ACCELERATE_URL
-      ? env.AWS_S3_ACCELERATE_URL
-      : env.AWS_S3_UPLOAD_BUCKET_NAME &&
-        env.AWS_S3_UPLOAD_BUCKET_URL.includes(env.AWS_S3_UPLOAD_BUCKET_NAME)
-      ? undefined
-      : new AWS.Endpoint(env.AWS_S3_UPLOAD_BUCKET_URL),
-    signatureVersion: "v4",
-  });
+  constructor() {
+    super();
+
+    this.client = new AWS.S3({
+      s3BucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : undefined,
+      s3ForcePathStyle: env.AWS_S3_FORCE_PATH_STYLE,
+      accessKeyId: env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+      region: env.AWS_REGION,
+      endpoint: this.getEndpoint(),
+      signatureVersion: "v4",
+    });
+  }
 
   public async getPresignedPost(
     key: string,
@@ -81,7 +80,7 @@ export default class S3Storage extends BaseStorage {
     }`;
   }
 
-  public uploadFile = async ({
+  public upload = async ({
     body,
     contentLength,
     contentType,
@@ -114,7 +113,7 @@ export default class S3Storage extends BaseStorage {
     return `${endpoint}/${key}`;
   };
 
-  public async uploadFileFromUrl(url: string, key: string, acl: string) {
+  public async uploadFromUrl(url: string, key: string, acl: string) {
     invariant(
       env.AWS_S3_UPLOAD_BUCKET_NAME,
       "AWS_S3_UPLOAD_BUCKET_NAME is required"
@@ -229,5 +228,27 @@ export default class S3Storage extends BaseStorage {
     }
 
     throw new Error("Error getting file buffer from S3");
+  }
+
+  private client: AWS.S3;
+
+  private getEndpoint() {
+    if (env.AWS_S3_ACCELERATE_URL) {
+      return env.AWS_S3_ACCELERATE_URL;
+    }
+
+    // support old path-style S3 uploads and new virtual host uploads by
+    // checking for the bucket name in the endpoint url.
+    if (
+      env.AWS_S3_UPLOAD_BUCKET_NAME &&
+      env.AWS_S3_FORCE_PATH_STYLE === false
+    ) {
+      const url = new URL(env.AWS_S3_UPLOAD_BUCKET_URL);
+      if (url.hostname.startsWith(env.AWS_S3_UPLOAD_BUCKET_NAME + ".")) {
+        return undefined;
+      }
+    }
+
+    return new AWS.Endpoint(env.AWS_S3_UPLOAD_BUCKET_URL);
   }
 }
