@@ -1,5 +1,5 @@
-import { sequelize } from "@server/database/sequelize";
 import { Subscription, Event } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { setupTestDatabase } from "@server/test/support";
 import subscriptionCreator from "./subscriptionCreator";

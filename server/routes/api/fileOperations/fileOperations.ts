@@ -7,8 +7,8 @@ import validate from "@server/middlewares/validate";
 import { FileOperation, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
+import { getSignedUrl } from "@server/storage/interfaces/s3";
 import { APIContext } from "@server/types";
-import { getSignedUrl } from "@server/utils/s3";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 

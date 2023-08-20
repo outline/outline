@@ -1,4 +1,3 @@
-import { sequelize } from "@server/database/sequelize";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import {
   DomainNotAllowedError,
@@ -6,6 +5,7 @@ import {
   InviteRequiredError,
 } from "@server/errors";
 import { Event, Team, User, UserAuthentication } from "@server/models";
+import { sequelize } from "@server/storage/database";
 
 type UserProvisionerResult = {
   user: User;

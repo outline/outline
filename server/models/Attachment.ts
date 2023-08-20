@@ -16,7 +16,7 @@ import {
   getFileStream,
   getSignedUrl,
   getFileBuffer,
-} from "@server/utils/s3";
+} from "@server/storage/interfaces/s3";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";

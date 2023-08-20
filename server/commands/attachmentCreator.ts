@@ -1,7 +1,7 @@
 import { Transaction } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import { Attachment, Event, User } from "@server/models";
-import { uploadToS3 } from "@server/utils/s3";
+import { uploadToS3 } from "@server/storage/interfaces/s3";
 
 export default async function attachmentCreator({
   id,

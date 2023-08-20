@@ -1,10 +1,10 @@
 import TestServer from "fetch-test-server";
 import { v4 as uuidv4 } from "uuid";
 import { CollectionPermission } from "@shared/types";
-import { sequelize } from "@server/database/sequelize";
 import { User, Document, Collection, Team } from "@server/models";
 import onerror from "@server/onerror";
 import webService from "@server/services/web";
+import { sequelize } from "@server/storage/database";
 
 export const seed = async () =>
   sequelize.transaction(async (transaction) => {

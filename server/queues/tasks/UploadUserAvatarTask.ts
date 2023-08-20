@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { User } from "@server/models";
-import { uploadToS3FromUrl } from "@server/utils/s3";
+import { uploadToS3FromUrl } from "@server/storage/interfaces/s3";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {

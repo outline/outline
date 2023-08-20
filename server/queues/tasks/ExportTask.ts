@@ -6,7 +6,7 @@ import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
 import Logger from "@server/logging/Logger";
 import { Collection, Event, FileOperation, Team, User } from "@server/models";
 import fileOperationPresenter from "@server/presenters/fileOperation";
-import { uploadToS3 } from "@server/utils/s3";
+import { uploadToS3 } from "@server/storage/interfaces/s3";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {

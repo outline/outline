@@ -13,7 +13,7 @@ import {
   FileOperationState,
   FileOperationType,
 } from "@shared/types";
-import { deleteFromS3, getFileStream } from "@server/utils/s3";
+import { deleteFromS3, getFileStream } from "@server/storage/interfaces/s3";
 import Collection from "./Collection";
 import Team from "./Team";
 import User from "./User";

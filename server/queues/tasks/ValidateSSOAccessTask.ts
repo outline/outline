@@ -1,6 +1,6 @@
-import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
 import { User, UserAuthentication } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {

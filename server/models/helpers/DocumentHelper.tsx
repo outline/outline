@@ -19,9 +19,9 @@ import { trace } from "@server/logging/tracing";
 import type Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
 import User from "@server/models/User";
+import { getSignedUrl } from "@server/storage/interfaces/s3";
 import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
-import { getSignedUrl } from "@server/utils/s3";
 import Attachment from "../Attachment";
 import ProsemirrorHelper from "./ProsemirrorHelper";
 
