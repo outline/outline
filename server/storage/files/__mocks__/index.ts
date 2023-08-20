@@ -1,5 +1,5 @@
 export default {
-  uploadFile: jest.fn().mockReturnValue("/endpoint/key"),
+  upload: jest.fn().mockReturnValue("/endpoint/key"),
 
   getPublicEndpoint: jest.fn().mockReturnValue("http://mock"),
 
