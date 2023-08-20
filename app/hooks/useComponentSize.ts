@@ -26,7 +26,7 @@ export default function useComponentSize(ref: React.RefObject<HTMLElement>): {
     }
 
     return () => sizeObserver.disconnect();
-  }, [ref]);
+  }, [ref, size.height, size.width]);
 
   return size;
 }

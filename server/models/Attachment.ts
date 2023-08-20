@@ -10,13 +10,7 @@ import {
   DataType,
   IsNumeric,
 } from "sequelize-typescript";
-import {
-  publicS3Endpoint,
-  deleteFromS3,
-  getFileStream,
-  getSignedUrl,
-  getFileBuffer,
-} from "@server/utils/s3";
+import FileStorage from "@server/storage/files";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
@@ -76,14 +70,14 @@ class Attachment extends IdModel {
    * Get the contents of this attachment as a readable stream.
    */
   get stream() {
-    return getFileStream(this.key);
+    return FileStorage.getFileStream(this.key);
   }
 
   /**
    * Get the contents of this attachment as a buffer.
    */
   get buffer() {
-    return getFileBuffer(this.key);
+    return FileStorage.getFileBuffer(this.key);
   }
 
   /**
@@ -105,21 +99,21 @@ class Attachment extends IdModel {
    * a signed URL must be used.
    */
   get canonicalUrl() {
-    return encodeURI(`${publicS3Endpoint()}/${this.key}`);
+    return encodeURI(`${FileStorage.getPublicEndpoint()}/${this.key}`);
   }
 
   /**
    * Get a signed URL with the default expirt to download the attachment from storage.
    */
   get signedUrl() {
-    return getSignedUrl(this.key);
+    return FileStorage.getSignedUrl(this.key);
   }
 
   // hooks
 
   @BeforeDestroy
   static async deleteAttachmentFromS3(model: Attachment) {
-    await deleteFromS3(model.key);
+    await FileStorage.deleteFile(model.key);
   }
 
   // associations

@@ -1,4 +1,4 @@
-import { isEmpty } from "lodash";
+import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
@@ -189,6 +189,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if the doc should occupy full width */
     fullWidth: z.boolean().optional(),
 
+    /** Boolean to denote if insights should be visible on the doc */
+    insightsEnabled: z.boolean().optional(),
+
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
@@ -288,6 +291,9 @@ export const DocumentsCreateSchema = BaseSchema.extend({
 
     /** Create doc with this template */
     templateId: z.string().uuid().optional(),
+
+    /** Boolean to denote if the doc should occupy full width */
+    fullWidth: z.boolean().optional(),
 
     /** Whether to create a template doc */
     template: z.boolean().optional(),

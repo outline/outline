@@ -1,4 +1,6 @@
-import { cloneDeep, debounce, isEqual } from "lodash";
+import cloneDeep from "lodash/cloneDeep";
+import debounce from "lodash/debounce";
+import isEqual from "lodash/isEqual";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import { Node } from "prosemirror-model";
@@ -307,7 +309,7 @@ class DocumentScene extends React.Component<Props> {
     this.isPublishing = !!options.publish;
 
     try {
-      const savedDocument = await document.save(options);
+      const savedDocument = await document.save(undefined, options);
       this.isEditorDirty = false;
 
       if (options.done) {

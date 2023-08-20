@@ -46,6 +46,7 @@ import BlockMenu from "./components/BlockMenu";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
 import EmojiMenu from "./components/EmojiMenu";
+import FindAndReplace from "./components/FindAndReplace";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
 import MentionMenu from "./components/MentionMenu";
@@ -770,17 +771,20 @@ export class Editor extends React.PureComponent<
               ref={this.elementRef}
             />
             {this.view && (
-              <SelectionToolbar
-                rtl={isRTL}
-                readOnly={readOnly}
-                canComment={this.props.canComment}
-                isTemplate={this.props.template === true}
-                onOpen={this.handleOpenSelectionToolbar}
-                onClose={this.handleCloseSelectionToolbar}
-                onSearchLink={this.props.onSearchLink}
-                onClickLink={this.props.onClickLink}
-                onCreateLink={this.props.onCreateLink}
-              />
+              <>
+                <SelectionToolbar
+                  rtl={isRTL}
+                  readOnly={readOnly}
+                  canComment={this.props.canComment}
+                  isTemplate={this.props.template === true}
+                  onOpen={this.handleOpenSelectionToolbar}
+                  onClose={this.handleCloseSelectionToolbar}
+                  onSearchLink={this.props.onSearchLink}
+                  onClickLink={this.props.onClickLink}
+                  onCreateLink={this.props.onCreateLink}
+                />
+                {this.commands.find && <FindAndReplace readOnly={readOnly} />}
+              </>
             )}
             {!readOnly && this.view && (
               <>
@@ -863,11 +867,13 @@ const EditorContainer = styled(Styles)<{ focusedCommentId?: string }>`
 `;
 
 const LazyLoadedEditor = React.forwardRef<Editor, Props>(
-  (props: Props, ref) => (
-    <WithTheme>
-      {(theme) => <Editor theme={theme} {...props} ref={ref} />}
-    </WithTheme>
-  )
+  function _LazyLoadedEditor(props: Props, ref) {
+    return (
+      <WithTheme>
+        {(theme) => <Editor theme={theme} {...props} ref={ref} />}
+      </WithTheme>
+    );
+  }
 );
 
 const observe = (

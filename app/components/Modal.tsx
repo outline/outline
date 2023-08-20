@@ -19,7 +19,9 @@ import Desktop from "~/utils/Desktop";
 import ErrorBoundary from "./ErrorBoundary";
 
 let openModals = 0;
+
 type Props = {
+  children?: React.ReactNode;
   isOpen: boolean;
   isCentered?: boolean;
   title?: React.ReactNode;
@@ -32,7 +34,7 @@ const Modal: React.FC<Props> = ({
   isCentered,
   title = "Untitled",
   onRequestClose,
-}) => {
+}: Props) => {
   const dialog = useDialogState({
     animated: 250,
   });

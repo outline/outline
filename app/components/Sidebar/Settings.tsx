@@ -1,4 +1,4 @@
-import { groupBy } from "lodash";
+import groupBy from "lodash/groupBy";
 import { observer } from "mobx-react";
 import { BackIcon } from "outline-icons";
 import * as React from "react";
@@ -11,8 +11,8 @@ import useSettingsConfig from "~/hooks/useSettingsConfig";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Sidebar from "./Sidebar";
+import FullWidthButton from "./components/FullWidthButton";
 import Header from "./components/Header";
-import HeaderButton from "./components/HeaderButton";
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SidebarLink from "./components/SidebarLink";
@@ -31,7 +31,7 @@ function SettingsSidebar() {
   return (
     <Sidebar>
       <HistoryNavigation />
-      <HeaderButton
+      <FullWidthButton
         title={t("Return to App")}
         image={<StyledBackIcon />}
         onClick={returnToApp}

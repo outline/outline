@@ -44,37 +44,35 @@ type SubMenuProps = MenuStateReturn & {
   title: React.ReactNode;
 };
 
-const SubMenu = React.forwardRef(
-  (
-    { templateItems, title, parentMenuState, ...rest }: SubMenuProps,
-    ref: React.LegacyRef<HTMLButtonElement>
-  ) => {
-    const { t } = useTranslation();
-    const theme = useTheme();
-    const menu = useMenuState();
+const SubMenu = React.forwardRef(function _Template(
+  { templateItems, title, parentMenuState, ...rest }: SubMenuProps,
+  ref: React.LegacyRef<HTMLButtonElement>
+) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const menu = useMenuState();
 
-    return (
-      <>
-        <MenuButton ref={ref} {...menu} {...rest}>
-          {(props) => (
-            <MenuAnchor disclosure {...props}>
-              {title} <Disclosure color={theme.textTertiary} />
-            </MenuAnchor>
-          )}
-        </MenuButton>
-        <ContextMenu
-          {...menu}
-          aria-label={t("Submenu")}
-          onClick={parentMenuState.hide}
-          parentMenuState={parentMenuState}
-        >
-          <MouseSafeArea parentRef={menu.unstable_popoverRef} />
-          <Template {...menu} items={templateItems} />
-        </ContextMenu>
-      </>
-    );
-  }
-);
+  return (
+    <>
+      <MenuButton ref={ref} {...menu} {...rest}>
+        {(props) => (
+          <MenuAnchor disclosure {...props}>
+            {title} <Disclosure color={theme.textTertiary} />
+          </MenuAnchor>
+        )}
+      </MenuButton>
+      <ContextMenu
+        {...menu}
+        aria-label={t("Submenu")}
+        onClick={parentMenuState.hide}
+        parentMenuState={parentMenuState}
+      >
+        <MouseSafeArea parentRef={menu.unstable_popoverRef} />
+        <Template {...menu} items={templateItems} />
+      </ContextMenu>
+    </>
+  );
+});
 
 export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
   return items
@@ -135,6 +133,7 @@ function Template({ items, actions, context, ...menu }: Props) {
           return (
             <MenuItem
               as={Link}
+              id={`${item.title}-${index}`}
               to={item.to}
               key={index}
               disabled={item.disabled}
@@ -150,6 +149,7 @@ function Template({ items, actions, context, ...menu }: Props) {
         if (item.type === "link") {
           return (
             <MenuItem
+              id={`${item.title}-${index}`}
               href={item.href}
               key={index}
               disabled={item.disabled}
@@ -168,6 +168,7 @@ function Template({ items, actions, context, ...menu }: Props) {
           return (
             <MenuItem
               as="button"
+              id={`${item.title}-${index}`}
               onClick={item.onClick}
               disabled={item.disabled}
               selected={item.selected}
@@ -186,6 +187,7 @@ function Template({ items, actions, context, ...menu }: Props) {
             <BaseMenuItem
               key={index}
               as={SubMenu}
+              id={`${item.title}-${index}`}
               templateItems={item.items}
               parentMenuState={menu}
               title={<Title title={item.title} icon={item.icon} />}

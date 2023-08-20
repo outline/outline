@@ -17,6 +17,7 @@ type Props = {
   danger?: boolean;
   /** Keep the submit button disabled */
   disabled?: boolean;
+  children?: React.ReactNode;
 };
 
 const ConfirmationDialog: React.FC<Props> = ({
@@ -26,7 +27,7 @@ const ConfirmationDialog: React.FC<Props> = ({
   savingText,
   danger,
   disabled = false,
-}) => {
+}: Props) => {
   const [isSaving, setIsSaving] = React.useState(false);
   const { dialogs } = useStores();
   const { showToast } = useToasts();

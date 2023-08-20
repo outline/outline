@@ -1,8 +1,8 @@
 import "./bootstrap";
 import teamCreator from "@server/commands/teamCreator";
-import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import { Team, User } from "@server/models";
+import { sequelize } from "@server/storage/database";
 
 const email = process.argv[2];
 

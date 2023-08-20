@@ -1,12 +1,12 @@
 import fs from "fs";
-import { truncate } from "lodash";
+import truncate from "lodash/truncate";
 import { FileOperationState, NotificationEventType } from "@shared/types";
 import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
 import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
 import Logger from "@server/logging/Logger";
 import { Collection, Event, FileOperation, Team, User } from "@server/models";
 import fileOperationPresenter from "@server/presenters/fileOperation";
-import { uploadToS3 } from "@server/utils/s3";
+import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -60,7 +60,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
       });
 
       const stat = await fs.promises.stat(filePath);
-      const url = await uploadToS3({
+      const url = await FileStorage.upload({
         body: fs.createReadStream(filePath),
         contentLength: stat.size,
         contentType: "application/zip",

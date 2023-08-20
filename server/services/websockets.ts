@@ -4,17 +4,18 @@ import cookie from "cookie";
 import Koa from "koa";
 import IO from "socket.io";
 import { createAdapter } from "socket.io-redis";
+import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import { Collection, User } from "@server/models";
 import { can } from "@server/policies";
+import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { getUserForJWT } from "@server/utils/jwt";
 import { websocketQueue } from "../queues";
 import WebsocketsProcessor from "../queues/processors/WebsocketsProcessor";
-import Redis from "../redis";
 
 type SocketWithAuth = IO.Socket & {
   client: IO.Socket["client"] & {
@@ -207,7 +208,7 @@ async function authenticate(socket: SocketWithAuth) {
   const { accessToken } = cookies;
 
   if (!accessToken) {
-    throw new Error("No access token");
+    throw AuthenticationError("No access token");
   }
 
   const user = await getUserForJWT(accessToken);

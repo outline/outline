@@ -3,6 +3,7 @@ import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
+import { Primitive } from "utility-types";
 import { Editor } from "~/editor";
 import Mark from "../marks/Mark";
 import Node from "../nodes/Node";
@@ -203,21 +204,23 @@ export default class ExtensionManager {
 
         const apply = (
           callback: CommandFactory,
-          attrs: Record<string, any>
+          attrs: Record<string, Primitive>
         ) => {
           if (!view.editable && !extension.allowInReadOnly) {
             return false;
           }
-          view.focus();
+          if (extension.focusAfterExecution) {
+            view.focus();
+          }
           return callback(attrs)(view.state, view.dispatch, view);
         };
 
         const handle = (_name: string, _value: CommandFactory) => {
           if (Array.isArray(_value)) {
-            commands[_name] = (attrs: Record<string, any>) =>
+            commands[_name] = (attrs: Record<string, Primitive>) =>
               _value.forEach((callback) => apply(callback, attrs));
           } else if (typeof _value === "function") {
-            commands[_name] = (attrs: Record<string, any>) =>
+            commands[_name] = (attrs: Record<string, Primitive>) =>
               apply(_value, attrs);
           }
         };

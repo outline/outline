@@ -1,15 +1,16 @@
 import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
-import { find, map } from "lodash";
+import find from "lodash/find";
+import map from "lodash/map";
 import queryParser from "pg-tsquery";
 import { Op, QueryTypes, WhereOptions } from "sequelize";
 import { DateFilter } from "@shared/types";
-import { sequelize } from "@server/database/sequelize";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
 import Share from "@server/models/Share";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
+import { sequelize } from "@server/storage/database";
 
 type SearchResponse = {
   results: {

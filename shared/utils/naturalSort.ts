@@ -1,5 +1,5 @@
 import emojiRegex from "emoji-regex";
-import { deburr } from "lodash";
+import deburr from "lodash/deburr";
 import naturalSort from "natural-sort";
 
 type NaturalSortOptions = {

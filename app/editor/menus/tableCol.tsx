@@ -61,13 +61,11 @@ export default function tableColMenuItems(
       name: rtl ? "addColumnAfter" : "addColumnBefore",
       tooltip: rtl ? dictionary.addColumnAfter : dictionary.addColumnBefore,
       icon: <InsertLeftIcon />,
-      active: () => false,
     },
     {
       name: rtl ? "addColumnBefore" : "addColumnAfter",
       tooltip: rtl ? dictionary.addColumnBefore : dictionary.addColumnAfter,
       icon: <InsertRightIcon />,
-      active: () => false,
     },
     {
       name: "separator",
@@ -76,7 +74,6 @@ export default function tableColMenuItems(
       name: "deleteColumn",
       tooltip: dictionary.deleteColumn,
       icon: <TrashIcon />,
-      active: () => false,
     },
   ];
 }

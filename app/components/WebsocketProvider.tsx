@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { find } from "lodash";
+import find from "lodash/find";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";

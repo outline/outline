@@ -11,7 +11,7 @@ import {
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
-jest.mock("@server/utils/s3");
+jest.mock("@server/storage/files");
 
 const server = getTestServer();
 

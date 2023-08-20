@@ -1,6 +1,6 @@
-import fetch from "fetch-with-proxy";
 import Logger from "@server/logging/Logger";
 import { AuthenticationError, InvalidRequestError } from "../errors";
+import fetch from "./fetch";
 
 export default abstract class OAuthClient {
   private clientId: string;

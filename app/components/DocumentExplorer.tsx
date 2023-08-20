@@ -1,5 +1,10 @@
 import FuzzySearch from "fuzzy-search";
-import { includes, difference, concat, filter, map, fill } from "lodash";
+import concat from "lodash/concat";
+import difference from "lodash/difference";
+import fill from "lodash/fill";
+import filter from "lodash/filter";
+import includes from "lodash/includes";
+import map from "lodash/map";
 import { observer } from "mobx-react";
 import { StarredIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
@@ -335,16 +340,21 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   const innerElementType = React.forwardRef<
     HTMLDivElement,
     React.HTMLAttributes<HTMLDivElement>
-  >(({ style, ...rest }, ref) => (
-    <div
-      ref={ref}
-      style={{
-        ...style,
-        height: `${parseFloat(style?.height + "") + VERTICAL_PADDING * 2}px`,
-      }}
-      {...rest}
-    />
-  ));
+  >(function innerElementType(
+    { style, ...rest }: React.HTMLAttributes<HTMLDivElement>,
+    ref
+  ) {
+    return (
+      <div
+        ref={ref}
+        style={{
+          ...style,
+          height: `${parseFloat(style?.height + "") + VERTICAL_PADDING * 2}px`,
+        }}
+        {...rest}
+      />
+    );
+  });
 
   return (
     <Container tabIndex={-1} onKeyDown={handleKeyDown}>

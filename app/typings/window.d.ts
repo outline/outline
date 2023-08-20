@@ -96,6 +96,16 @@ declare global {
        * Go forward in history, if possible
        */
       goForward: () => void;
+
+      /**
+       * Registers a callback to be called when the application wants to open the find in page dialog.
+       */
+      onFindInPage: (callback: () => void) => void;
+
+      /**
+       * Registers a callback to be called when the application wants to open the replace in page dialog.
+       */
+      onReplaceInPage: (callback: () => void) => void;
     };
   }
 }

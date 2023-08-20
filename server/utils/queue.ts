@@ -1,9 +1,9 @@
 import Queue from "bull";
-import { snakeCase } from "lodash";
+import snakeCase from "lodash/snakeCase";
 import { Second } from "@shared/utils/time";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
-import Redis from "../redis";
+import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "./ShutdownHelper";
 
 export function createQueue(

@@ -1,5 +1,4 @@
 import { Transaction } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
 import { traceFunction } from "@server/logging/tracing";
 import {
@@ -19,6 +18,7 @@ import {
   SearchQuery,
   Share,
 } from "@server/models";
+import { sequelize } from "@server/storage/database";
 
 async function teamPermanentDeleter(team: Team) {
   if (!team.deletedAt) {

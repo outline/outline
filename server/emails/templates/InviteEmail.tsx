@@ -20,7 +20,7 @@ type Props = EmailProps & {
 /**
  * Email sent to an external user when an admin sends them an invite.
  */
-export default class InviteEmail extends BaseEmail<Props> {
+export default class InviteEmail extends BaseEmail<Props, Record<string, any>> {
   protected subject({ actorName, teamName }: Props) {
     return `${actorName} invited you to join ${teamName}’s knowledge base`;
   }

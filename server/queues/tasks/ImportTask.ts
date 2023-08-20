@@ -1,5 +1,4 @@
-import { S3 } from "aws-sdk";
-import { truncate } from "lodash";
+import truncate from "lodash/truncate";
 import {
   CollectionPermission,
   CollectionSort,
@@ -8,7 +7,6 @@ import {
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
-import { sequelize } from "@server/database/sequelize";
 import { serializer } from "@server/editor";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -20,6 +18,7 @@ import {
   FileOperation,
   Attachment,
 } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -207,7 +206,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
    * @returns A promise that resolves to the structured data
    */
   protected abstract parseData(
-    data: S3.Body,
+    data: Buffer | NodeJS.ReadableStream,
     fileOperation: FileOperation
   ): Promise<StructuredImportData>;
 

@@ -1,4 +1,4 @@
-import { isEmpty } from "lodash";
+import isEmpty from "lodash/isEmpty";
 import z from "zod";
 import { FileOperationType } from "@shared/types";
 import { FileOperation } from "@server/models";

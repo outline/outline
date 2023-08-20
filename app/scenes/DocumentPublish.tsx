@@ -1,4 +1,4 @@
-import { flatten } from "lodash";
+import flatten from "lodash/flatten";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -52,7 +52,7 @@ function DocumentPublish({ document }: Props) {
       }
 
       document.collectionId = collectionId;
-      await document.save({ publish: true });
+      await document.save(undefined, { publish: true });
 
       showToast(t("Document published"), {
         type: "success",

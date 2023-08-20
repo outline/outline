@@ -2,7 +2,8 @@
 import path from "path";
 import { glob } from "glob";
 import Router from "koa-router";
-import { find, sortBy } from "lodash";
+import find from "lodash/find";
+import sortBy from "lodash/sortBy";
 import env from "@server/env";
 import Team from "@server/models/Team";
 

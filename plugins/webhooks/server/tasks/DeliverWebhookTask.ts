@@ -1,6 +1,4 @@
-import fetch from "fetch-with-proxy";
 import { FetchError } from "node-fetch";
-import { useAgent } from "request-filtering-agent";
 import { Op } from "sequelize";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
 import env from "@server/env";
@@ -64,6 +62,7 @@ import {
   ViewEvent,
   WebhookSubscriptionEvent,
 } from "@server/types";
+import fetch from "@server/utils/fetch";
 import presentWebhook, { WebhookPayload } from "../presenters/webhook";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
 
@@ -597,7 +596,6 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         body: JSON.stringify(requestBody),
         redirect: "error",
         timeout: 5000,
-        agent: useAgent(subscription.url),
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {

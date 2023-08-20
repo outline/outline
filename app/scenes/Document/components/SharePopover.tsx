@@ -1,6 +1,6 @@
-import { formatDistanceToNow } from "date-fns";
 import invariant from "invariant";
-import { debounce, isEmpty } from "lodash";
+import debounce from "lodash/debounce";
+import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
 import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
@@ -8,6 +8,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { dateLocale, dateToRelative } from "@shared/utils/date";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
@@ -24,7 +25,6 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import useUserLocale from "~/hooks/useUserLocale";
-import { dateLocale } from "~/utils/i18n";
 
 type Props = {
   document: Document;
@@ -193,13 +193,10 @@ function SharePopover({
               <>
                 .{" "}
                 {t("The shared link was last accessed {{ timeAgo }}.", {
-                  timeAgo: formatDistanceToNow(
-                    Date.parse(share?.lastAccessedAt),
-                    {
-                      addSuffix: true,
-                      locale,
-                    }
-                  ),
+                  timeAgo: dateToRelative(Date.parse(share?.lastAccessedAt), {
+                    addSuffix: true,
+                    locale,
+                  }),
                 })}
               </>
             )}

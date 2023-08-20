@@ -1,23 +1,16 @@
 import Router from "koa-router";
-import { has } from "lodash";
 import { WhereOptions } from "sequelize";
 import { IntegrationType } from "@shared/types";
 import auth from "@server/middlewares/authentication";
-import { Event } from "@server/models";
-import Integration, {
-  UserCreatableIntegrationService,
-} from "@server/models/Integration";
+import { transaction } from "@server/middlewares/transaction";
+import validate from "@server/middlewares/validate";
+import { Event, IntegrationAuthentication } from "@server/models";
+import Integration from "@server/models/Integration";
 import { authorize } from "@server/policies";
 import { presentIntegration } from "@server/presenters";
 import { APIContext } from "@server/types";
-import {
-  assertSort,
-  assertUuid,
-  assertArray,
-  assertIn,
-  assertUrl,
-} from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
@@ -25,21 +18,16 @@ router.post(
   "integrations.list",
   auth(),
   pagination(),
-  async (ctx: APIContext) => {
-    let { direction } = ctx.request.body;
+  validate(T.IntegrationsListSchema),
+  async (ctx: APIContext<T.IntegrationsListReq>) => {
+    const { direction, type, sort } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const { type, sort = "updatedAt" } = ctx.request.body;
-    if (direction !== "ASC") {
-      direction = "DESC";
-    }
-    assertSort(sort, Integration);
 
     let where: WhereOptions<Integration> = {
       teamId: user.teamId,
     };
 
     if (type) {
-      assertIn(type, Object.values(IntegrationType));
       where = {
         ...where,
         type,
@@ -63,19 +51,12 @@ router.post(
 router.post(
   "integrations.create",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { type, service, settings } = ctx.request.body;
-
-    assertIn(type, Object.values(IntegrationType));
-
+  validate(T.IntegrationsCreateSchema),
+  async (ctx: APIContext<T.IntegrationsCreateReq>) => {
+    const { type, service, settings } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     authorize(user, "createIntegration", user.team);
-
-    assertIn(service, Object.values(UserCreatableIntegrationService));
-
-    if (has(settings, "url")) {
-      assertUrl(settings.url);
-    }
 
     const integration = await Integration.create({
       userId: user.id,
@@ -94,19 +75,13 @@ router.post(
 router.post(
   "integrations.update",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { id, events = [], settings } = ctx.request.body;
-    assertUuid(id, "id is required");
-
+  validate(T.IntegrationsUpdateSchema),
+  async (ctx: APIContext<T.IntegrationsUpdateReq>) => {
+    const { id, events, settings } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const integration = await Integration.findByPk(id);
     authorize(user, "update", integration);
-
-    assertArray(events, "events must be an array");
-
-    if (has(settings, "url")) {
-      assertUrl(settings.url);
-    }
 
     if (integration.type === IntegrationType.Post) {
       integration.events = events.filter((event: string) =>
@@ -127,22 +102,37 @@ router.post(
 router.post(
   "integrations.delete",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { id } = ctx.request.body;
-    assertUuid(id, "id is required");
-
+  validate(T.IntegrationsDeleteSchema),
+  transaction(),
+  async (ctx: APIContext<T.IntegrationsDeleteReq>) => {
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const integration = await Integration.findByPk(id);
+    const { transaction } = ctx.state;
+
+    const integration = await Integration.findByPk(id, { transaction });
     authorize(user, "delete", integration);
 
-    await integration.destroy();
-    await Event.create({
-      name: "integrations.delete",
-      modelId: integration.id,
-      teamId: integration.teamId,
-      actorId: user.id,
-      ip: ctx.request.ip,
-    });
+    await integration.destroy({ transaction });
+    // also remove the corresponding authentication if it exists
+    if (integration.authenticationId) {
+      await IntegrationAuthentication.destroy({
+        where: {
+          id: integration.authenticationId,
+        },
+        transaction,
+      });
+    }
+
+    await Event.create(
+      {
+        name: "integrations.delete",
+        modelId: integration.id,
+        teamId: integration.teamId,
+        actorId: user.id,
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
 
     ctx.body = {
       success: true,

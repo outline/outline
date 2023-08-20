@@ -2,6 +2,7 @@ import Token from "markdown-it/lib/token";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command } from "prosemirror-state";
 import * as React from "react";
+import { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
 import DisabledEmbed from "../components/DisabledEmbed";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -26,7 +27,7 @@ export default class Embed extends Node {
       },
       parseDOM: [
         {
-          tag: "iframe.embed",
+          tag: "iframe",
           getAttrs: (dom: HTMLIFrameElement) => {
             const { embeds } = this.editor.props;
             const href = dom.getAttribute("src") || "";
@@ -42,7 +43,7 @@ export default class Embed extends Node {
               }
             }
 
-            return {};
+            return false;
           },
         },
       ],
@@ -114,7 +115,7 @@ export default class Embed extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, any>): Command =>
+    return (attrs: Record<string, Primitive>): Command =>
       (state, dispatch) => {
         dispatch?.(
           state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()

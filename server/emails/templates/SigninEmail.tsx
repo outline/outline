@@ -20,7 +20,7 @@ type Props = EmailProps & {
 /**
  * Email sent to a user when they request a magic sign-in link.
  */
-export default class SigninEmail extends BaseEmail<Props> {
+export default class SigninEmail extends BaseEmail<Props, Record<string, any>> {
   protected subject() {
     return "Magic signin link";
   }

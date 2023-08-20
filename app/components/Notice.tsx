@@ -5,11 +5,12 @@ import Flex from "./Flex";
 import Text from "./Text";
 
 type Props = {
+  children?: React.ReactNode;
   icon?: JSX.Element;
   description?: JSX.Element;
 };
 
-const Notice: React.FC<Props> = ({ children, icon, description }) => (
+const Notice: React.FC<Props> = ({ children, icon, description }: Props) => (
   <Container>
     <Flex as="span" gap={8}>
       {icon}

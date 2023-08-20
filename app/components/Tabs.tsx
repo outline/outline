@@ -57,7 +57,11 @@ export const Separator = styled.span`
   margin-top: 6px;
 `;
 
-const Tabs: React.FC = ({ children }) => {
+type Props = {
+  children?: React.ReactNode;
+};
+
+const Tabs: React.FC = ({ children }: Props) => {
   const ref = React.useRef<any>();
   const [shadowVisible, setShadow] = React.useState(false);
   const { width } = useWindowSize();

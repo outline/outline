@@ -1,12 +1,15 @@
 import { NodeSelection } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import * as React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+import { isCode } from "@shared/editor/lib/isCode";
+import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { depths, s } from "@shared/styles";
 import { Portal } from "~/components/Portal";
 import useComponentSize from "~/hooks/useComponentSize";
 import useEventListener from "~/hooks/useEventListener";
 import useMediaQuery from "~/hooks/useMediaQuery";
+import useMobile from "~/hooks/useMobile";
 import useViewportHeight from "~/hooks/useViewportHeight";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
@@ -23,6 +26,7 @@ const defaultPosition = {
   top: 0,
   offset: 0,
   maxWidth: 1000,
+  blockSelection: false,
   visible: false,
 };
 
@@ -37,6 +41,7 @@ function usePosition({
   const { selection } = view.state;
   const { width: menuWidth, height: menuHeight } = useComponentSize(menuRef);
   const viewportHeight = useViewportHeight();
+  const isMobile = useMobile();
   const isTouchDevice = useMediaQuery("(hover: none) and (pointer: coarse)");
 
   if (!active || !menuWidth || !menuHeight || !menuRef.current) {
@@ -45,13 +50,14 @@ function usePosition({
 
   // If we're on a mobile device then stick the floating toolbar to the bottom
   // of the screen above the virtual keyboard.
-  if (isTouchDevice && viewportHeight) {
+  if (isTouchDevice && isMobile && viewportHeight) {
     return {
       left: 0,
       right: 0,
       top: viewportHeight - menuHeight,
       offset: 0,
       maxWidth: 1000,
+      blockSelection: false,
       visible: true,
     };
   }
@@ -84,6 +90,17 @@ function usePosition({
         top: 0,
         left: 0,
       } as DOMRect);
+
+  // position at the top right of code blocks
+  const codeBlock = findParentNode(isCode)(view.state.selection);
+
+  if (codeBlock) {
+    const element = view.nodeDOM(codeBlock.pos);
+    const bounds = (element as HTMLElement).getBoundingClientRect();
+    selectionBounds.top = bounds.top;
+    selectionBounds.left = bounds.right - menuWidth;
+    selectionBounds.right = bounds.right;
+  }
 
   // tables are an oddity, and need their own positioning logic
   const isColSelection =
@@ -145,7 +162,7 @@ function usePosition({
       visible: true,
     };
   } else {
-    // calcluate the horizontal center of the selection
+    // calculate the horizontal center of the selection
     const halfSelection =
       Math.abs(selectionBounds.right - selectionBounds.left) / 2;
     const centerOfSelection = selectionBounds.left + halfSelection;
@@ -178,6 +195,7 @@ function usePosition({
       top: Math.round(top - offsetParent.top),
       offset: Math.round(offset),
       maxWidth: offsetParent.width,
+      blockSelection: codeBlock || isColSelection || isRowSelection,
       visible: true,
     };
   }
@@ -211,6 +229,7 @@ const FloatingToolbar = React.forwardRef(
       <Portal>
         <Wrapper
           active={props.active && position.visible}
+          arrow={!position.blockSelection}
           ref={menuRef}
           $offset={position.offset}
           style={{
@@ -227,41 +246,52 @@ const FloatingToolbar = React.forwardRef(
   }
 );
 
-const Wrapper = styled.div<{
+type WrapperProps = {
   active?: boolean;
+  arrow?: boolean;
   $offset: number;
-}>`
+};
+
+const arrow = (props: WrapperProps) =>
+  props.arrow
+    ? css`
+        &::before {
+          content: "";
+          display: block;
+          width: 24px;
+          height: 24px;
+          transform: translateX(-50%) rotate(45deg);
+          background: ${s("menuBackground")};
+          border-radius: 3px;
+          z-index: -1;
+          position: absolute;
+          bottom: -2px;
+          left: calc(50% - ${props.$offset || 0}px);
+          pointer-events: none;
+        }
+      `
+    : "";
+
+const Wrapper = styled.div<WrapperProps>`
   will-change: opacity, transform;
-  padding: 8px 16px;
+  padding: 6px;
   position: absolute;
   z-index: ${depths.editorToolbar};
   opacity: 0;
-  background-color: ${s("toolbarBackground")};
+  background-color: ${s("menuBackground")};
+  box-shadow: ${s("menuShadow")};
   border-radius: 4px;
   transform: scale(0.95);
   transition: opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
     transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   transition-delay: 150ms;
   line-height: 0;
-  height: 40px;
+  height: 36px;
   box-sizing: border-box;
   pointer-events: none;
   white-space: nowrap;
 
-  &::before {
-    content: "";
-    display: block;
-    width: 24px;
-    height: 24px;
-    transform: translateX(-50%) rotate(45deg);
-    background: ${s("toolbarBackground")};
-    border-radius: 3px;
-    z-index: -1;
-    position: absolute;
-    bottom: -2px;
-    left: calc(50% - ${(props) => props.$offset || 0}px);
-    pointer-events: none;
-  }
+  ${arrow}
 
   * {
     box-sizing: border-box;

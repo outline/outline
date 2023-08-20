@@ -1,4 +1,5 @@
-import { compact, uniq } from "lodash";
+import compact from "lodash/compact";
+import uniq from "lodash/uniq";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
 import {
@@ -192,6 +193,9 @@ class Document extends ParanoidModel {
 
   @Column
   fullWidth: boolean;
+
+  @Column
+  insightsEnabled: boolean;
 
   @SimpleLength({
     max: 255,
@@ -762,11 +766,12 @@ class Document extends ParanoidModel {
    * @param options Optional transaction to use for the query
    * @returns Promise resolving to a NavigationNode
    */
-  toNavigationNode = async (options?: {
-    transaction?: Transaction | null | undefined;
-  }): Promise<NavigationNode> => {
+  toNavigationNode = async (
+    options?: FindOptions<Document>
+  ): Promise<NavigationNode> => {
     const childDocuments = await (this.constructor as typeof Document)
       .unscoped()
+      .scope("withoutState")
       .findAll({
         where: {
           teamId: this.teamId,

@@ -1,6 +1,6 @@
 import Router from "koa-router";
-import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { AuthenticationProvider, Event } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
@@ -36,45 +36,38 @@ router.post(
   "authenticationProviders.update",
   auth({ admin: true }),
   validate(T.AuthenticationProvidersUpdateSchema),
+  transaction(),
   async (ctx: APIContext<T.AuthenticationProvidersUpdateReq>) => {
+    const { transaction } = ctx.state;
     const { id, isEnabled } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const authenticationProvider = await sequelize.transaction(
-      async (transaction) => {
-        const authenticationProvider = await AuthenticationProvider.findByPk(
-          id,
-          {
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-          }
-        );
+    const authenticationProvider = await AuthenticationProvider.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
 
-        authorize(user, "update", authenticationProvider);
-        const enabled = !!isEnabled;
+    authorize(user, "update", authenticationProvider);
+    const enabled = !!isEnabled;
 
-        if (enabled) {
-          await authenticationProvider.enable({ transaction });
-        } else {
-          await authenticationProvider.disable({ transaction });
-        }
+    if (enabled) {
+      await authenticationProvider.enable({ transaction });
+    } else {
+      await authenticationProvider.disable({ transaction });
+    }
 
-        await Event.create(
-          {
-            name: "authenticationProviders.update",
-            data: {
-              enabled,
-            },
-            modelId: id,
-            teamId: user.teamId,
-            actorId: user.id,
-            ip: ctx.request.ip,
-          },
-          { transaction }
-        );
-
-        return authenticationProvider;
-      }
+    await Event.create(
+      {
+        name: "authenticationProviders.update",
+        data: {
+          enabled,
+        },
+        modelId: id,
+        teamId: user.teamId,
+        actorId: user.id,
+        ip: ctx.request.ip,
+      },
+      { transaction }
     );
 
     ctx.body = {

@@ -12,7 +12,6 @@ import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import documentUpdater from "@server/commands/documentUpdater";
-import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import {
   NotFoundError,
@@ -24,6 +23,7 @@ import {
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import {
   Backlink,
@@ -891,19 +891,11 @@ router.post(
   "documents.update",
   auth(),
   validate(T.DocumentsUpdateSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
-    const {
-      id,
-      title,
-      text,
-      fullWidth,
-      publish,
-      templateId,
-      collectionId,
-      append,
-      apiVersion,
-      done,
-    } = ctx.input.body;
+    const { transaction } = ctx.state;
+    const { id, apiVersion, insightsEnabled, publish, collectionId, ...input } =
+      ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
     const { user } = ctx.state.auth;
     let collection: Collection | null | undefined;
@@ -914,6 +906,10 @@ router.post(
     });
     collection = document?.collection;
     authorize(user, "update", document);
+
+    if (collection && insightsEnabled !== undefined) {
+      authorize(user, "updateInsights", document);
+    }
 
     if (publish) {
       if (!document.collectionId) {
@@ -928,31 +924,23 @@ router.post(
       authorize(user, "createDocument", collection);
     }
 
-    collection = await sequelize.transaction(async (transaction) => {
-      await documentUpdater({
-        document,
-        user,
-        title,
-        text,
-        fullWidth,
-        publish,
-        collectionId,
-        append,
-        templateId,
-        editorVersion,
-        transaction,
-        done,
-        ip: ctx.request.ip,
-      });
-
-      if (!document.collectionId) {
-        return null;
-      }
-
-      return await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(document.collectionId, { transaction });
+    await documentUpdater({
+      document,
+      user,
+      ...input,
+      publish,
+      collectionId,
+      insightsEnabled,
+      editorVersion,
+      transaction,
+      ip: ctx.request.ip,
     });
+
+    collection = document.collectionId
+      ? await Collection.scope({
+          method: ["withMembership", user.id],
+        }).findByPk(document.collectionId, { transaction })
+      : null;
 
     document.updatedBy = user;
     document.collection = collection;
@@ -976,7 +964,9 @@ router.post(
   "documents.move",
   auth(),
   validate(T.DocumentsMoveSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsMoveReq>) => {
+    const { transaction } = ctx.state;
     const { id, collectionId, parentDocumentId, index } = ctx.input.body;
     const { user } = ctx.state.auth;
     const document = await Document.findByPk(id, {
@@ -1000,18 +990,15 @@ router.post(
       }
     }
 
-    const { documents, collections, collectionChanged } =
-      await sequelize.transaction(async (transaction) =>
-        documentMover({
-          user,
-          document,
-          collectionId,
-          parentDocumentId,
-          index,
-          ip: ctx.request.ip,
-          transaction,
-        })
-      );
+    const { documents, collections, collectionChanged } = await documentMover({
+      user,
+      document,
+      collectionId,
+      parentDocumentId,
+      index,
+      ip: ctx.request.ip,
+      transaction,
+    });
 
     ctx.body = {
       data: {
@@ -1177,6 +1164,7 @@ router.post(
   "documents.import",
   auth(),
   validate(T.DocumentsImportSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsImportReq>) => {
     if (!ctx.is("multipart/form-data")) {
       throw InvalidRequestError("Request type must be multipart/form-data");
@@ -1197,6 +1185,7 @@ router.post(
       );
     }
 
+    const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
 
     const collection = await Collection.scope({
@@ -1223,28 +1212,26 @@ router.post(
     }
 
     const content = await fs.readFile(file.filepath);
-    const document = await sequelize.transaction(async (transaction) => {
-      const { text, state, title } = await documentImporter({
-        user,
-        fileName: file.originalFilename ?? file.newFilename,
-        mimeType: file.mimetype ?? "",
-        content,
-        ip: ctx.request.ip,
-        transaction,
-      });
+    const { text, state, title } = await documentImporter({
+      user,
+      fileName: file.originalFilename ?? file.newFilename,
+      mimeType: file.mimetype ?? "",
+      content,
+      ip: ctx.request.ip,
+      transaction,
+    });
 
-      return documentCreator({
-        source: "import",
-        title,
-        text,
-        state,
-        publish,
-        collectionId,
-        parentDocumentId,
-        user,
-        ip: ctx.request.ip,
-        transaction,
-      });
+    const document = await documentCreator({
+      source: "import",
+      title,
+      text,
+      state,
+      publish,
+      collectionId,
+      parentDocumentId,
+      user,
+      ip: ctx.request.ip,
+      transaction,
     });
 
     document.collection = collection;
@@ -1260,6 +1247,7 @@ router.post(
   "documents.create",
   auth(),
   validate(T.DocumentsCreateSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsCreateReq>) => {
     const {
       title = "",
@@ -1267,11 +1255,13 @@ router.post(
       publish,
       collectionId,
       parentDocumentId,
+      fullWidth,
       templateId,
       template,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
+    const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
 
     let collection;
@@ -1311,21 +1301,20 @@ router.post(
       authorize(user, "read", templateDocument);
     }
 
-    const document = await sequelize.transaction(async (transaction) =>
-      documentCreator({
-        title,
-        text,
-        publish,
-        collectionId,
-        parentDocumentId,
-        templateDocument,
-        template,
-        user,
-        editorVersion,
-        ip: ctx.request.ip,
-        transaction,
-      })
-    );
+    const document = await documentCreator({
+      title,
+      text,
+      publish,
+      collectionId,
+      parentDocumentId,
+      templateDocument,
+      template,
+      fullWidth,
+      user,
+      editorVersion,
+      ip: ctx.request.ip,
+      transaction,
+    });
 
     document.collection = collection;
 

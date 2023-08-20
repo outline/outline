@@ -14,6 +14,7 @@ import {
   BrowserIcon,
 } from "outline-icons";
 import * as React from "react";
+import { isMac } from "@shared/utils/browser";
 import {
   developersUrl,
   changelogUrl,
@@ -26,7 +27,6 @@ import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";
 import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
 import Desktop from "~/utils/Desktop";
-import { isMac } from "~/utils/browser";
 import history from "~/utils/history";
 import isCloudHosted from "~/utils/isCloudHosted";
 import {

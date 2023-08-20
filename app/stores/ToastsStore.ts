@@ -1,4 +1,4 @@
-import { orderBy } from "lodash";
+import orderBy from "lodash/orderBy";
 import { observable, action, computed } from "mobx";
 import { v4 as uuidv4 } from "uuid";
 import { Toast, ToastOptions } from "~/types";

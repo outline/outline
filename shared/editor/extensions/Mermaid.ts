@@ -1,12 +1,17 @@
 import { Node } from "prosemirror-model";
-import { Plugin, PluginKey, Transaction } from "prosemirror-state";
+import {
+  Plugin,
+  PluginKey,
+  TextSelection,
+  Transaction,
+} from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
+import { isCode } from "../lib/isCode";
 import { findBlockNodes } from "../queries/findChildren";
 
 type MermaidState = {
   decorationSet: DecorationSet;
-  diagramVisibility: Record<number, boolean>;
   isDark: boolean;
 };
 
@@ -28,23 +33,14 @@ function getNewState({
   );
 
   blocks.forEach((block) => {
-    const diagramDecorationPos = block.pos + block.node.nodeSize;
     const existingDecorations = pluginState.decorationSet.find(
       block.pos,
-      diagramDecorationPos
+      block.pos + block.node.nodeSize
     );
 
     // Attempt to find the existing diagramId from the decoration, or assign
     // a new one if none exists yet.
-    let diagramId = existingDecorations[0]?.spec["diagramId"];
-    if (diagramId === undefined) {
-      diagramId = uuidv4();
-    }
-
-    // Make the diagram visible by default if it contains source code
-    if (pluginState.diagramVisibility[diagramId] === undefined) {
-      pluginState.diagramVisibility[diagramId] = !!block.node.textContent;
-    }
+    const diagramId = existingDecorations[0]?.spec["diagramId"] ?? uuidv4();
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
@@ -54,13 +50,6 @@ function getNewState({
           document.getElementById(elementId) || document.createElement("div");
         element.id = elementId;
         element.classList.add("mermaid-diagram-wrapper");
-
-        if (pluginState.diagramVisibility[diagramId] === false) {
-          element.classList.add("diagram-hidden");
-          return element;
-        } else {
-          element.classList.remove("diagram-hidden");
-        }
 
         void import("mermaid").then((module) => {
           module.default.initialize({
@@ -78,15 +67,19 @@ function getNewState({
               "mermaid-diagram-" + diagramId,
               block.node.textContent,
               (svgCode) => {
+                element.classList.remove("parse-error", "empty");
                 element.innerHTML = svgCode;
               }
             );
           } catch (error) {
-            const errorNode = document.getElementById(
-              "d" + "mermaid-diagram-" + diagramId
-            );
-            if (errorNode) {
-              element.appendChild(errorNode);
+            const isEmpty = block.node.textContent.trim().length === 0;
+
+            if (isEmpty) {
+              element.innerText = "Empty diagram";
+              element.classList.add("empty");
+            } else {
+              element.innerText = "Error rendering diagram";
+              element.classList.add("parse-error");
             }
           }
         });
@@ -98,15 +91,10 @@ function getNewState({
       }
     );
 
-    const attributes = { "data-diagram-id": "" + diagramId };
-    if (pluginState.diagramVisibility[diagramId] !== false) {
-      attributes["class"] = "code-hidden";
-    }
-
     const diagramIdDecoration = Decoration.node(
       block.pos,
       block.pos + block.node.nodeSize,
-      attributes,
+      {},
       {
         diagramId,
       }
@@ -118,7 +106,6 @@ function getNewState({
 
   return {
     decorationSet: DecorationSet.create(doc, decorations),
-    diagramVisibility: pluginState.diagramVisibility,
     isDark: pluginState.isDark,
   };
 }
@@ -130,15 +117,12 @@ export default function Mermaid({
   name: string;
   isDark: boolean;
 }) {
-  let diagramShown = false;
-
   return new Plugin({
     key: new PluginKey("mermaid"),
     state: {
       init: (_, { doc }) => {
         const pluginState: MermaidState = {
           decorationSet: DecorationSet.create(doc, []),
-          diagramVisibility: {},
           isDark,
         };
         return pluginState;
@@ -154,28 +138,15 @@ export default function Mermaid({
         const codeBlockChanged =
           transaction.docChanged && [nodeName, previousNodeName].includes(name);
         const ySyncEdit = !!transaction.getMeta("y-sync$");
-        const mermaidMeta = transaction.getMeta("mermaid");
         const themeMeta = transaction.getMeta("theme");
-        const diagramToggled = mermaidMeta?.toggleDiagram !== undefined;
+        const mermaidMeta = transaction.getMeta("mermaid");
         const themeToggled = themeMeta?.isDark !== undefined;
 
         if (themeToggled) {
           pluginState.isDark = themeMeta.isDark;
         }
 
-        if (diagramToggled) {
-          pluginState.diagramVisibility[mermaidMeta.toggleDiagram] =
-            !pluginState.diagramVisibility[mermaidMeta.toggleDiagram];
-        }
-
-        if (
-          !diagramShown ||
-          themeToggled ||
-          codeBlockChanged ||
-          diagramToggled ||
-          ySyncEdit
-        ) {
-          diagramShown = true;
+        if (mermaidMeta || themeToggled || codeBlockChanged || ySyncEdit) {
           return getNewState({
             doc: transaction.doc,
             name,
@@ -188,27 +159,99 @@ export default function Mermaid({
             transaction.mapping,
             transaction.doc
           ),
-          diagramVisibility: pluginState.diagramVisibility,
           isDark: pluginState.isDark,
         };
       },
     },
     view: (view) => {
-      if (!diagramShown) {
-        // we don't draw diagrams on code blocks on the first render as part of mounting
-        // as it's expensive (relative to the rest of the document). Instead let
-        // it render without a diagram and then trigger a defered render of Mermaid
-        // by updating the plugins metadata
-        setTimeout(() => {
-          view.dispatch(view.state.tr.setMeta("mermaid", { loaded: true }));
-        }, 10);
-      }
-
+      view.dispatch(view.state.tr.setMeta("mermaid", { loaded: true }));
       return {};
     },
     props: {
       decorations(state) {
         return this.getState(state)?.decorationSet;
+      },
+      handleDOMEvents: {
+        mousedown(view, event) {
+          const target = event.target as HTMLElement;
+          const diagram = target?.closest(".mermaid-diagram-wrapper");
+          const codeBlock = diagram?.previousElementSibling;
+
+          if (!codeBlock) {
+            return false;
+          }
+
+          const pos = view.posAtDOM(codeBlock, 0);
+          if (!pos) {
+            return false;
+          }
+
+          // select node
+          if (diagram && event.detail === 1) {
+            view.dispatch(
+              view.state.tr
+                .setSelection(TextSelection.near(view.state.doc.resolve(pos)))
+                .scrollIntoView()
+            );
+            return true;
+          }
+
+          return false;
+        },
+        keydown: (view, event) => {
+          switch (event.key) {
+            case "ArrowDown": {
+              const { selection } = view.state;
+              const $pos = view.state.doc.resolve(selection.from + 1);
+              const nextBlock = $pos.nodeAfter;
+
+              if (
+                nextBlock &&
+                isCode(nextBlock) &&
+                nextBlock.attrs.language === "mermaidjs"
+              ) {
+                view.dispatch(
+                  view.state.tr
+                    .setSelection(
+                      TextSelection.near(
+                        view.state.doc.resolve(selection.to + 1)
+                      )
+                    )
+                    .scrollIntoView()
+                );
+                event.preventDefault();
+                return true;
+              }
+              return false;
+            }
+            case "ArrowUp": {
+              const { selection } = view.state;
+              const $pos = view.state.doc.resolve(selection.from - 1);
+              const prevBlock = $pos.nodeBefore;
+
+              if (
+                prevBlock &&
+                isCode(prevBlock) &&
+                prevBlock.attrs.language === "mermaidjs"
+              ) {
+                view.dispatch(
+                  view.state.tr
+                    .setSelection(
+                      TextSelection.near(
+                        view.state.doc.resolve(selection.from - 2)
+                      )
+                    )
+                    .scrollIntoView()
+                );
+                event.preventDefault();
+                return true;
+              }
+              return false;
+            }
+          }
+
+          return false;
+        },
       },
     },
   });

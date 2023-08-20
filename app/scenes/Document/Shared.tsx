@@ -8,6 +8,7 @@ import styled, { ThemeProvider } from "styled-components";
 import { setCookie } from "tiny-cookie";
 import { s } from "@shared/styles";
 import { NavigationNode, PublicTeam } from "@shared/types";
+import type { Theme } from "~/stores/UiStore";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
@@ -94,8 +95,13 @@ function SharedDocumentScene(props: Props) {
   const { documents } = useStores();
   const { shareId, documentSlug } = props.match.params;
   const documentId = useDocumentId(documentSlug, response);
+  const themeOverride = ["dark", "light"].includes(
+    searchParams.get("theme") || ""
+  )
+    ? (searchParams.get("theme") as Theme)
+    : undefined;
   const can = usePolicy(response?.document.id ?? "");
-  const theme = useBuildTheme(response?.team?.customTheme);
+  const theme = useBuildTheme(response?.team?.customTheme, themeOverride);
 
   React.useEffect(() => {
     if (!auth.user) {

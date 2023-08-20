@@ -1,6 +1,6 @@
 import { subHours, subMinutes } from "date-fns";
 import Router from "koa-router";
-import { uniqBy } from "lodash";
+import uniqBy from "lodash/uniqBy";
 import { TeamPreference } from "@shared/types";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";

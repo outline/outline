@@ -1,4 +1,5 @@
-import { flattenDeep, padStart } from "lodash";
+import flattenDeep from "lodash/flattenDeep";
+import padStart from "lodash/padStart";
 import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -6,7 +7,7 @@ import refractor from "refractor/core";
 import { findBlockNodes } from "../queries/findChildren";
 
 export const LANGUAGES = {
-  none: "None", // additional entry to disable highlighting
+  none: "Plain text", // additional entry to disable highlighting
   bash: "Bash",
   css: "CSS",
   clike: "C",
@@ -38,6 +39,8 @@ export const LANGUAGES = {
   ruby: "Ruby",
   rust: "Rust",
   scala: "Scala",
+  sass: "Sass",
+  scss: "SCSS",
   sql: "SQL",
   solidity: "Solidity",
   swift: "Swift",
@@ -45,6 +48,8 @@ export const LANGUAGES = {
   tsx: "TSX",
   typescript: "TypeScript",
   vb: "Visual Basic",
+  verilog: "Verilog",
+  vhdl: "VHDL",
   yaml: "YAML",
   zig: "Zig",
 };
@@ -69,9 +74,10 @@ function getDecorations({
   lineNumbers?: boolean;
 }) {
   const decorations: Decoration[] = [];
-  const blocks: { node: Node; pos: number }[] = findBlockNodes(doc).filter(
-    (item) => item.node.type.name === name
-  );
+  const blocks: { node: Node; pos: number }[] = findBlockNodes(
+    doc,
+    true
+  ).filter((item) => item.node.type.name === name);
 
   function parseNodes(
     nodes: refractor.RefractorNode[],

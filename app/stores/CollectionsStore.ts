@@ -1,5 +1,8 @@
 import invariant from "invariant";
-import { concat, find, last, sortBy } from "lodash";
+import concat from "lodash/concat";
+import find from "lodash/find";
+import last from "lodash/last";
+import sortBy from "lodash/sortBy";
 import { computed, action } from "mobx";
 import {
   CollectionPermission,

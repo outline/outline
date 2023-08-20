@@ -1,5 +1,6 @@
 import invariant from "invariant";
-import { lowerFirst, orderBy } from "lodash";
+import lowerFirst from "lodash/lowerFirst";
+import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
 import { Class } from "utility-types";
 import RootStore from "~/stores/RootStore";

@@ -8,7 +8,7 @@ import useEventListener from "./useEventListener";
  * @param callback The handler to call when a click outside the element is detected.
  */
 export default function useOnClickOutside(
-  ref: React.RefObject<HTMLElement>,
+  ref: React.RefObject<HTMLElement | null>,
   callback?: (event: MouseEvent | TouchEvent) => void
 ) {
   const listener = React.useCallback(

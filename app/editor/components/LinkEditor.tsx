@@ -10,7 +10,7 @@ import { Selection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
+import { s, hideScrollbars } from "@shared/styles";
 import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
@@ -396,23 +396,24 @@ class LinkEditor extends React.Component<Props, State> {
 }
 
 const Wrapper = styled(Flex)`
-  margin-left: -8px;
-  margin-right: -8px;
   pointer-events: all;
   gap: 8px;
 `;
 
 const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
-  background: ${s("toolbarBackground")};
+  background: ${s("menuBackground")};
+  box-shadow: ${(props) => (props.$hasResults ? s("menuShadow") : "none")};
+  clip-path: inset(0px -100px -100px -100px);
   position: absolute;
   top: 100%;
   width: 100%;
   height: auto;
   left: 0;
-  margin: -8px 0 0;
+  margin-top: -6px;
   border-radius: 0 0 4px 4px;
   padding: ${(props) => (props.$hasResults ? "8px 0" : "0")};
-  max-height: 260px;
+  max-height: 240px;
+  ${hideScrollbars()}
 
   @media (hover: none) and (pointer: coarse) {
     position: fixed;

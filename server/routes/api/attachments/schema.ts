@@ -1,4 +1,4 @@
-import { isEmpty } from "lodash";
+import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
 import { AttachmentPreset } from "@shared/types";
 import BaseSchema from "@server/routes/api/BaseSchema";

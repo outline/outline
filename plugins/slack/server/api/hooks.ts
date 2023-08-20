@@ -1,6 +1,7 @@
 import { t } from "i18next";
 import Router from "koa-router";
-import { escapeRegExp } from "lodash";
+import escapeRegExp from "lodash/escapeRegExp";
+import { Op } from "sequelize";
 import { IntegrationService } from "@shared/types";
 import env from "@server/env";
 import { AuthenticationError, InvalidRequestError } from "@server/errors";
@@ -196,6 +197,7 @@ router.post("hooks.slack", async (ctx: APIContext) => {
     // via integration
     const integration = await Integration.findOne({
       where: {
+        service: IntegrationService.Slack,
         settings: {
           serviceTeamId: team_id,
         },
@@ -217,7 +219,10 @@ router.post("hooks.slack", async (ctx: APIContext) => {
   if (text.trim() === "help" || !text.trim()) {
     ctx.body = {
       response_type: "ephemeral",
-      text: "How to use /outline",
+      text: t("How to use {{ command }}", {
+        command: "/outline",
+        ...opts(user),
+      }),
       attachments: [
         {
           text: t(
@@ -256,6 +261,7 @@ router.post("hooks.slack", async (ctx: APIContext) => {
   if (!user) {
     const auth = await IntegrationAuthentication.findOne({
       where: {
+        scopes: { [Op.contains]: ["identity.email"] },
         service: IntegrationService.Slack,
         teamId: team.id,
       },

@@ -1,4 +1,5 @@
 import Bull from "bull";
+import * as React from "react";
 import mailer from "@server/emails/mailer";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
@@ -11,7 +12,10 @@ export interface EmailProps {
   to: string | null;
 }
 
-export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
+export default abstract class BaseEmail<
+  T extends EmailProps,
+  S extends Record<string, any>
+> {
   private props: T;
   private metadata?: NotificationMetadata;
 
@@ -84,6 +88,9 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
     }
 
     const data = { ...this.props, ...(bsResponse ?? ({} as S)) };
+    const notification = this.metadata?.notificationId
+      ? await Notification.unscoped().findByPk(this.metadata?.notificationId)
+      : undefined;
 
     try {
       await mailer.sendMail({
@@ -91,9 +98,15 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
         fromName: this.fromName?.(data),
         subject: this.subject(data),
         previewText: this.preview(data),
-        component: this.render(data),
+        component: (
+          <>
+            {this.render(data)}
+            {notification ? this.pixel(notification) : null}
+          </>
+        ),
         text: this.renderAsText(data),
         headCSS: this.headCSS?.(data),
+        unsubscribeUrl: data.unsubscribeUrl,
       });
       Metrics.increment("email.sent", {
         templateName,
@@ -105,22 +118,18 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
       throw err;
     }
 
-    if (this.metadata?.notificationId) {
+    if (notification) {
       try {
-        await Notification.update(
-          {
-            emailedAt: new Date(),
-          },
-          {
-            where: {
-              id: this.metadata.notificationId,
-            },
-          }
-        );
+        notification.emailedAt = new Date();
+        await notification.save();
       } catch (err) {
         Logger.error(`Failed to update notification`, err, this.metadata);
       }
     }
+  }
+
+  private pixel(notification: Notification) {
+    return <img src={notification.pixelUrl} width="1" height="1" />;
   }
 
   /**

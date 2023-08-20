@@ -1,6 +1,6 @@
 import { Transaction } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
 import { Subscription, Event, User, Document } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import { DocumentEvent, RevisionEvent } from "@server/types";
 
 type Props = {

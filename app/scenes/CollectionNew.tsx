@@ -1,4 +1,4 @@
-import { intersection } from "lodash";
+import intersection from "lodash/intersection";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -56,6 +56,7 @@ class CollectionNew extends React.Component<Props> {
         icon: this.icon,
         color: this.color,
         permission: this.permission,
+        documents: [],
       },
       this.props.collections
     );

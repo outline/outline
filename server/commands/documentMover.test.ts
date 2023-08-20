@@ -1,5 +1,5 @@
-import { sequelize } from "@server/database/sequelize";
 import Pin from "@server/models/Pin";
+import { sequelize } from "@server/storage/database";
 import { buildDocument, buildCollection } from "@server/test/factories";
 import { setupTestDatabase, seed } from "@server/test/support";
 import documentMover from "./documentMover";

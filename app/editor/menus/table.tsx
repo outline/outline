@@ -9,7 +9,6 @@ export default function tableMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "deleteTable",
       tooltip: dictionary.deleteTable,
       icon: <TrashIcon />,
-      active: () => false,
     },
   ];
 }

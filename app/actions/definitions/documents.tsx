@@ -61,8 +61,11 @@ export const openDocument = createAction({
         // cache if the document is renamed
         id: path.url,
         name: path.title,
-        icon: () =>
-          stores.documents.get(path.id)?.isStarred ? <StarredIcon /> : null,
+        icon: function _Icon() {
+          return stores.documents.get(path.id)?.isStarred ? (
+            <StarredIcon />
+          ) : null;
+        },
         section: DocumentSection,
         perform: () => history.push(path.url),
       }));
@@ -159,7 +162,7 @@ export const publishDocument = createAction({
     }
 
     if (document?.collectionId) {
-      await document.save({
+      await document.save(undefined, {
         publish: true,
       });
       stores.toasts.showToast(t("Document published"), {

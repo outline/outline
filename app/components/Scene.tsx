@@ -11,6 +11,7 @@ type Props = {
   left?: React.ReactNode;
   actions?: React.ReactNode;
   centered?: boolean;
+  children?: React.ReactNode;
 };
 
 const Scene: React.FC<Props> = ({
@@ -21,7 +22,7 @@ const Scene: React.FC<Props> = ({
   left,
   children,
   centered,
-}) => (
+}: Props) => (
   <FillWidth>
     <PageTitle title={textTitle || title} />
     <Header

@@ -1,5 +1,5 @@
 import { isHexColor } from "class-validator";
-import { pickBy } from "lodash";
+import pickBy from "lodash/pickBy";
 import { observer } from "mobx-react";
 import { TeamIcon } from "outline-icons";
 import { useRef, useState } from "react";

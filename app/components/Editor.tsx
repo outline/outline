@@ -1,5 +1,6 @@
-import { formatDistanceToNow } from "date-fns";
-import { deburr, difference, sortBy } from "lodash";
+import deburr from "lodash/deburr";
+import difference from "lodash/difference";
+import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
@@ -10,6 +11,7 @@ import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { AttachmentPreset } from "@shared/types";
 import { Heading } from "@shared/utils/ProsemirrorHelper";
+import { dateLocale, dateToRelative } from "@shared/utils/date";
 import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
@@ -23,6 +25,7 @@ import useDictionary from "~/hooks/useDictionary";
 import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import useUserLocale from "~/hooks/useUserLocale";
 import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
 import { isModKey } from "~/utils/keyboard";
@@ -60,6 +63,8 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     onCreateCommentMark,
     onDeleteCommentMark,
   } = props;
+  const userLocale = useUserLocale();
+  const locale = dateLocale(userLocale);
   const { auth, comments, documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
@@ -92,8 +97,10 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
 
         try {
           const document = await documents.fetch(slug);
-          const time = formatDistanceToNow(Date.parse(document.updatedAt), {
+          const time = dateToRelative(Date.parse(document.updatedAt), {
             addSuffix: true,
+            shorten: true,
+            locale,
           });
 
           return [
@@ -349,7 +356,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         )}
         {activeLinkElement && !shareId && (
           <HoverPreview
-            id={props.id}
             element={activeLinkElement}
             onClose={handleLinkInactive}
           />

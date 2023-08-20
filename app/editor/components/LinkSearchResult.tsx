@@ -60,8 +60,7 @@ const IconWrapper = styled.span<{ selected: boolean }>`
   margin-right: 4px;
   height: 24px;
   opacity: 0.8;
-  color: ${(props) =>
-    props.selected ? props.theme.accentText : props.theme.toolbarItem};
+  color: ${(props) => (props.selected ? s("accentText") : s("textSecondary"))};
 `;
 
 const ListItem = styled.div<{
@@ -72,11 +71,9 @@ const ListItem = styled.div<{
   align-items: center;
   padding: 8px;
   border-radius: 4px;
-  margin: 0 8px;
-  color: ${(props) =>
-    props.selected ? props.theme.accentText : props.theme.toolbarItem};
-  background: ${(props) =>
-    props.selected ? props.theme.accent : "transparent"};
+  margin: 0 6px;
+  color: ${(props) => (props.selected ? s("accentText") : s("textSecondary"))};
+  background: ${(props) => (props.selected ? s("accent") : "transparent")};
   font-family: ${s("fontFamily")};
   text-decoration: none;
   overflow: hidden;

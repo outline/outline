@@ -1,10 +1,10 @@
 import chalk from "chalk";
-import { isEmpty } from "lodash";
-import { migrations } from "@server/database/sequelize";
+import isEmpty from "lodash/isEmpty";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
+import { migrations } from "@server/storage/database";
 
 export async function checkPendingMigrations() {
   try {

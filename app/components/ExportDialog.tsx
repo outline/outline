@@ -99,7 +99,7 @@ function ExportDialog({ collection, onSubmit }: Props) {
       )}
       <Flex gap={12} column>
         {items.map((item) => (
-          <Option>
+          <Option key={item.value}>
             <input
               type="radio"
               name="format"

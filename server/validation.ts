@@ -1,8 +1,10 @@
-import { isArrayLike } from "lodash";
+import isArrayLike from "lodash/isArrayLike";
 import { Primitive } from "utility-types";
 import validator from "validator";
 import isUUID from "validator/lib/isUUID";
+import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import { isUrl } from "@shared/utils/urls";
 import { CollectionPermission } from "../shared/types";
 import { validateColorHex } from "../shared/utils/color";
 import { validateIndexCharacters } from "../shared/utils/indexCharacters";
@@ -185,4 +187,35 @@ export class ValidateDocumentId {
 export class ValidateIndex {
   public static regex = new RegExp("^[\x20-\x7E]+$");
   public static message = "Must be between x20 to x7E ASCII";
+  public static maxLength = 100;
+}
+
+export class ValidateURL {
+  public static isValidMentionUrl = (url: string) => {
+    if (!isUrl(url)) {
+      return false;
+    }
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.protocol !== "mention:") {
+        return false;
+      }
+
+      const { id, mentionType, modelId } = parseMentionUrl(url);
+      return id && isUUID(id) && mentionType === "user" && isUUID(modelId);
+    } catch (err) {
+      return false;
+    }
+  };
+
+  public static message = "Must be a valid url";
+}
+
+export class ValidateColor {
+  public static regex = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
+  public static message = "Must be a hex value (please use format #FFFFFF)";
+}
+
+export class ValidateIcon {
+  public static maxLength = 50;
 }

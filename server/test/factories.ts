@@ -1,4 +1,5 @@
-import { isNil, isNull } from "lodash";
+import isNil from "lodash/isNil";
+import isNull from "lodash/isNull";
 import { v4 as uuidv4 } from "uuid";
 import {
   CollectionPermission,

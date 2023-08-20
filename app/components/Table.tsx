@@ -1,4 +1,4 @@
-import { isEqual } from "lodash";
+import isEqual from "lodash/isEqual";
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
@@ -121,9 +121,12 @@ function Table({
       <InnerTable {...getTableProps()}>
         <thead>
           {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
+            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
               {headerGroup.headers.map((column) => (
-                <Head {...column.getHeaderProps(column.getSortByToggleProps())}>
+                <Head
+                  {...column.getHeaderProps(column.getSortByToggleProps())}
+                  key={column.id}
+                >
                   <SortWrapper
                     align="center"
                     $sortable={!column.disableSortBy}
@@ -146,7 +149,7 @@ function Table({
           {rows.map((row) => {
             prepareRow(row);
             return (
-              <Row {...row.getRowProps()}>
+              <Row {...row.getRowProps()} key={row.id}>
                 {row.cells.map((cell) => (
                   <Cell
                     {...cell.getCellProps([
@@ -155,6 +158,7 @@ function Table({
                         className: cell.column.className,
                       },
                     ])}
+                    key={cell.column.id}
                   >
                     {cell.render("Cell")}
                   </Cell>

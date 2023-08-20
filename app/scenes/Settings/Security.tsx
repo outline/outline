@@ -1,4 +1,4 @@
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import { CheckboxIcon, EmailIcon, PadlockIcon } from "outline-icons";
 import { useState } from "react";

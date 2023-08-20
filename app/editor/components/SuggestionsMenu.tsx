@@ -1,5 +1,5 @@
 import commandScore from "command-score";
-import { capitalize } from "lodash";
+import capitalize from "lodash/capitalize";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
@@ -212,11 +212,13 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       handleClearSearch();
 
       const command = item.name ? commands[item.name] : undefined;
+      const attrs =
+        typeof item.attrs === "function" ? item.attrs(view.state) : item.attrs;
 
       if (command) {
-        command(item.attrs);
+        command(attrs);
       } else {
-        commands[`create${capitalize(item.name)}`](item.attrs);
+        commands[`create${capitalize(item.name)}`](attrs);
       }
       if ("appendSpace" in item) {
         const { dispatch } = view;

@@ -12,7 +12,7 @@ import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
-jest.mock("@server/utils/s3");
+jest.mock("@server/storage/files");
 
 describe("#fileOperations.info", () => {
   it("should return fileOperation", async () => {

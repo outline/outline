@@ -1,9 +1,10 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import LoadingIndicator from "~/components/LoadingIndicator";
+import { Redirect } from "react-router-dom";
 import useStores from "~/hooks/useStores";
 import { changeLanguage } from "~/utils/language";
+import LoadingIndicator from "./LoadingIndicator";
 
 type Props = {
   children: JSX.Element;
@@ -24,7 +25,12 @@ const Authenticated = ({ children }: Props) => {
     return children;
   }
 
-  return <LoadingIndicator />;
+  if (auth.isFetching) {
+    return <LoadingIndicator />;
+  }
+
+  void auth.logout(true);
+  return <Redirect to="/" />;
 };
 
 export default observer(Authenticated);

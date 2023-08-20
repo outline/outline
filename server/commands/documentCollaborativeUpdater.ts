@@ -1,11 +1,11 @@
 import { yDocToProsemirrorJSON } from "@getoutline/y-prosemirror";
-import { uniq } from "lodash";
+import uniq from "lodash/uniq";
 import { Node } from "prosemirror-model";
 import * as Y from "yjs";
-import { sequelize } from "@server/database/sequelize";
 import { schema, serializer } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
+import { sequelize } from "@server/storage/database";
 
 type Props = {
   /** The document ID to update */
