@@ -1,5 +1,4 @@
 import teamCreator from "@server/commands/teamCreator";
-import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import {
   DomainNotAllowedError,
@@ -8,6 +7,7 @@ import {
 } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
+import { sequelize } from "@server/storage/database";
 
 type TeamProvisionerResult = {
   team: Team;

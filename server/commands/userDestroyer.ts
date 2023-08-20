@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
 import { Event, User } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import { ValidationError } from "../errors";
 
 export default async function userDestroyer({

@@ -1,9 +1,9 @@
 import { subDays } from "date-fns";
 import { Op } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
 import InviteReminderEmail from "@server/emails/templates/InviteReminderEmail";
 import { User } from "@server/models";
 import { UserFlag } from "@server/models/User";
+import { sequelize } from "@server/storage/database";
 import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
 
 type Props = undefined;

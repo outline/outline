@@ -12,9 +12,9 @@ import { Attachment, Document, Event } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import { presentAttachment } from "@server/presenters";
+import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import { getPresignedPost, publicS3Endpoint } from "@server/utils/s3";
 import { assertIn } from "@server/validation";
 import * as T from "./schema";
 
@@ -90,7 +90,7 @@ router.post(
       { transaction }
     );
 
-    const presignedPost = await getPresignedPost(
+    const presignedPost = await FileStorage.getPresignedPost(
       key,
       acl,
       maxUploadSize,
@@ -99,7 +99,7 @@ router.post(
 
     ctx.body = {
       data: {
-        uploadUrl: publicS3Endpoint(),
+        uploadUrl: FileStorage.getPublicEndpoint(),
         form: {
           "Cache-Control": "max-age=31557600",
           "Content-Type": contentType,

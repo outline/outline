@@ -19,9 +19,9 @@ import { trace } from "@server/logging/tracing";
 import type Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
 import User from "@server/models/User";
+import FileStorage from "@server/storage/files";
 import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
-import { getSignedUrl } from "@server/utils/s3";
 import Attachment from "../Attachment";
 import ProsemirrorHelper from "./ProsemirrorHelper";
 
@@ -324,7 +324,10 @@ export default class DocumentHelper {
         });
 
         if (attachment) {
-          const signedUrl = await getSignedUrl(attachment.key, expiresIn);
+          const signedUrl = await FileStorage.getSignedUrl(
+            attachment.key,
+            expiresIn
+          );
           text = text.replace(
             new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
             signedUrl

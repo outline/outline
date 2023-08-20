@@ -5,11 +5,11 @@ import {
   Extension,
 } from "@hocuspocus/server";
 import * as Y from "yjs";
-import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
+import { sequelize } from "@server/storage/database";
 import documentCollaborativeUpdater from "../commands/documentCollaborativeUpdater";
 
 @trace()
