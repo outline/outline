@@ -12,7 +12,10 @@ export interface EmailProps {
   to: string | null;
 }
 
-export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
+export default abstract class BaseEmail<
+  T extends EmailProps,
+  S extends Record<string, any>
+> {
   private props: T;
   private metadata?: NotificationMetadata;
 
@@ -103,6 +106,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
         ),
         text: this.renderAsText(data),
         headCSS: this.headCSS?.(data),
+        unsubscribeUrl: data.unsubscribeUrl,
       });
       Metrics.increment("email.sent", {
         templateName,

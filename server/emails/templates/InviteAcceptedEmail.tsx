@@ -25,7 +25,10 @@ type BeforeSendProps = {
 /**
  * Email sent to a user when someone they invited successfully signs up.
  */
-export default class InviteAcceptedEmail extends BaseEmail<Props> {
+export default class InviteAcceptedEmail extends BaseEmail<
+  Props,
+  BeforeSendProps
+> {
   protected async beforeSend({ inviterId }: Props) {
     return {
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(

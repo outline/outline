@@ -27,7 +27,10 @@ type BeforeSendProps = {
  * Email sent to a user when their data export has completed and is available
  * for download in the settings section.
  */
-export default class ExportSuccessEmail extends BaseEmail<Props> {
+export default class ExportSuccessEmail extends BaseEmail<
+  Props,
+  BeforeSendProps
+> {
   protected async beforeSend({ userId }: Props) {
     return {
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
