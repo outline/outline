@@ -66,6 +66,10 @@ export const languageOptions = [
     value: "tr_TR",
   },
   {
+    label: "Українська (Ukrainian)",
+    value: "uk_UA",
+  },
+  {
     label: "Tiếng Việt (Vietnamese)",
     value: "vi_VN",
   },
