@@ -1,4 +1,3 @@
-import { Readable } from "stream";
 import truncate from "lodash/truncate";
 import {
   CollectionPermission,
@@ -207,7 +206,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
    * @returns A promise that resolves to the structured data
    */
   protected abstract parseData(
-    data: Buffer | Uint8Array | Blob | string | Readable,
+    data: Buffer | NodeJS.ReadableStream,
     fileOperation: FileOperation
   ): Promise<StructuredImportData>;
 
