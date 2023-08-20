@@ -1,5 +1,7 @@
 import { Readable } from "stream";
 import { PresignedPost } from "aws-sdk/clients/s3";
+import Logger from "@server/logging/Logger";
+import fetch from "@server/utils/fetch";
 
 export default abstract class BaseStorage {
   /**
@@ -83,11 +85,31 @@ export default abstract class BaseStorage {
    * @param acl The ACL to use
    * @returns The URL of the file
    */
-  public abstract uploadFromUrl(
-    url: string,
-    key: string,
-    acl: string
-  ): Promise<string | undefined>;
+  public async uploadFromUrl(url: string, key: string, acl: string) {
+    const endpoint = this.getPublicEndpoint(true);
+    if (url.startsWith("/api") || url.startsWith(endpoint)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(url);
+      const buffer = await res.buffer();
+      return this.upload({
+        body: buffer,
+        contentLength: res.headers["content-length"],
+        contentType: res.headers["content-type"],
+        key,
+        acl,
+      });
+    } catch (err) {
+      Logger.error("Error uploading to S3 from URL", err, {
+        url,
+        key,
+        acl,
+      });
+      return;
+    }
+  }
 
   /**
    * Delete a file from the storage provider.

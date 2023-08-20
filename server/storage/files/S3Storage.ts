@@ -1,9 +1,7 @@
 import util from "util";
 import AWS, { S3 } from "aws-sdk";
-import fetch from "fetch-with-proxy";
 import invariant from "invariant";
 import compact from "lodash/compact";
-import { useAgent } from "request-filtering-agent";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
@@ -112,44 +110,6 @@ export default class S3Storage extends BaseStorage {
     const endpoint = this.getPublicEndpoint(true);
     return `${endpoint}/${key}`;
   };
-
-  public async uploadFromUrl(url: string, key: string, acl: string) {
-    invariant(
-      env.AWS_S3_UPLOAD_BUCKET_NAME,
-      "AWS_S3_UPLOAD_BUCKET_NAME is required"
-    );
-
-    const endpoint = this.getPublicEndpoint(true);
-    if (url.startsWith("/api") || url.startsWith(endpoint)) {
-      return;
-    }
-
-    try {
-      const res = await fetch(url, {
-        agent: useAgent(url),
-      });
-      const buffer = await res.buffer();
-      await this.client
-        .putObject({
-          ACL: acl,
-          Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,
-          Key: key,
-          ContentType: res.headers["content-type"],
-          ContentLength: res.headers["content-length"],
-          ContentDisposition: "attachment",
-          Body: buffer,
-        })
-        .promise();
-      return `${endpoint}/${key}`;
-    } catch (err) {
-      Logger.error("Error uploading to S3 from URL", err, {
-        url,
-        key,
-        acl,
-      });
-      return;
-    }
-  }
 
   public async deleteFile(key: string) {
     invariant(

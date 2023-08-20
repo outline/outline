@@ -1,6 +1,4 @@
-import fetchWithProxy from "fetch-with-proxy";
-import fetch, { FetchError } from "node-fetch";
-import { useAgent } from "request-filtering-agent";
+import { FetchError } from "node-fetch";
 import { Op } from "sequelize";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
 import env from "@server/env";
@@ -64,6 +62,7 @@ import {
   ViewEvent,
   WebhookSubscriptionEvent,
 } from "@server/types";
+import fetch from "@server/utils/fetch";
 import presentWebhook, { WebhookPayload } from "../presenters/webhook";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
 
@@ -591,21 +590,12 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         requestHeaders["Outline-Signature"] = signature;
       }
 
-      // In cloud-hosted environment we don't use fetchWithProxy as it prevents
-      // the use of the request agent parameter, and is not required.
-      //
-      // In self-hosted, webhooks support proxying and are also allowed to
-      // connect to internal services, so use fetchWithProxy without the filtering
-      // agent.
-      const fetchMethod = env.isCloudHosted() ? fetch : fetchWithProxy;
-
-      response = await fetchMethod(subscription.url, {
+      response = await fetch(subscription.url, {
         method: "POST",
         headers: requestHeaders,
         body: JSON.stringify(requestBody),
         redirect: "error",
         timeout: 5000,
-        agent: env.isCloudHosted() ? useAgent(subscription.url) : undefined,
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
