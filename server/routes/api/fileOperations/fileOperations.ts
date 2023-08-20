@@ -7,7 +7,7 @@ import validate from "@server/middlewares/validate";
 import { FileOperation, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
-import { getSignedUrl } from "@server/storage/interfaces/s3";
+import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -84,7 +84,7 @@ const handleFileOperationsRedirect = async (
     throw ValidationError(`${fileOperation.type} is not complete yet`);
   }
 
-  const accessUrl = await getSignedUrl(fileOperation.key);
+  const accessUrl = await FileStorage.getSignedUrl(fileOperation.key);
   ctx.redirect(accessUrl);
 };
 

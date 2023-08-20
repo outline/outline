@@ -1,4 +1,4 @@
-import { S3 } from "aws-sdk";
+import { Readable } from "stream";
 import truncate from "lodash/truncate";
 import {
   CollectionPermission,
@@ -207,7 +207,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
    * @returns A promise that resolves to the structured data
    */
   protected abstract parseData(
-    data: S3.Body,
+    data: Buffer | Uint8Array | Blob | string | Readable,
     fileOperation: FileOperation
   ): Promise<StructuredImportData>;
 

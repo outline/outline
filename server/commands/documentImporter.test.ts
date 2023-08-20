@@ -5,7 +5,7 @@ import { buildUser } from "@server/test/factories";
 import { setupTestDatabase } from "@server/test/support";
 import documentImporter from "./documentImporter";
 
-jest.mock("@server/storage/interfaces/s3");
+jest.mock("@server/storage/files");
 
 setupTestDatabase();
 

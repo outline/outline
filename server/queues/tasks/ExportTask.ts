@@ -6,7 +6,7 @@ import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
 import Logger from "@server/logging/Logger";
 import { Collection, Event, FileOperation, Team, User } from "@server/models";
 import fileOperationPresenter from "@server/presenters/fileOperation";
-import { uploadToS3 } from "@server/storage/interfaces/s3";
+import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -60,7 +60,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
       });
 
       const stat = await fs.promises.stat(filePath);
-      const url = await uploadToS3({
+      const url = await FileStorage.uploadFile({
         body: fs.createReadStream(filePath),
         contentLength: stat.size,
         contentType: "application/zip",
