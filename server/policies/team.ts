@@ -14,13 +14,23 @@ allow(User, "share", Team, (user, team) => {
 
 allow(User, "createTeam", Team, () => {
   if (!env.isCloudHosted()) {
-    throw IncorrectEditionError("createTeam only available on cloud");
+    throw IncorrectEditionError("Workspace creation only available on cloud");
   }
 });
 
-allow(User, ["update", "delete", "manage"], Team, (user, team) => {
+allow(User, "update", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) {
     return false;
+  }
+  return user.isAdmin;
+});
+
+allow(User, "delete", Team, (user, team) => {
+  if (!team || user.isViewer || user.teamId !== team.id) {
+    return false;
+  }
+  if (!env.isCloudHosted()) {
+    throw IncorrectEditionError("Workspace deletion only available on cloud");
   }
   return user.isAdmin;
 });

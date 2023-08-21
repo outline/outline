@@ -55,12 +55,6 @@ router.post(
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth(),
   async (ctx: APIContext) => {
-    if (!env.isCloudHosted()) {
-      throw ValidationError(
-        "This endpoint is not available in single-tenant instances"
-      );
-    }
-
     const { user } = ctx.state.auth;
     const { team } = user;
     authorize(user, "delete", team);
@@ -85,12 +79,6 @@ router.post(
   validate(T.TeamsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.TeamsDeleteSchemaReq>) => {
-    if (!env.isCloudHosted()) {
-      throw ValidationError(
-        "This endpoint is not available in single-tenant instances"
-      );
-    }
-
     const { auth, transaction } = ctx.state;
     const { code } = ctx.input.body;
     const { user } = auth;
