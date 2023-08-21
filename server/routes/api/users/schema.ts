@@ -36,7 +36,7 @@ export type UsersUpdateReq = z.infer<typeof UsersUpdateSchema>;
 
 export const UsersDeleteSchema = BaseSchema.extend({
   body: z.object({
-    code: z.string(),
+    code: z.string().optional(),
     id: z.string().uuid().optional(),
   }),
 });

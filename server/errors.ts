@@ -144,7 +144,7 @@ export function MaximumTeamsError(
 export function TeamPendingDeletionError(
   message = "The workspace is pending deletion"
 ) {
-  return httpErrors(400, message, {
+  return httpErrors(403, message, {
     id: "pending_deletion",
   });
 }

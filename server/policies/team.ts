@@ -14,8 +14,9 @@ allow(User, "share", Team, (user, team) => {
 
 allow(User, "createTeam", Team, () => {
   if (!env.isCloudHosted()) {
-    throw IncorrectEditionError("Workspace creation only available on cloud");
+    throw IncorrectEditionError("Functionality is only available on cloud");
   }
+  return true;
 });
 
 allow(User, "update", Team, (user, team) => {
@@ -25,12 +26,12 @@ allow(User, "update", Team, (user, team) => {
   return user.isAdmin;
 });
 
-allow(User, "delete", Team, (user, team) => {
+allow(User, ["delete", "audit"], Team, (user, team) => {
+  if (!env.isCloudHosted()) {
+    throw IncorrectEditionError("Functionality is only available on cloud");
+  }
   if (!team || user.isViewer || user.teamId !== team.id) {
     return false;
-  }
-  if (!env.isCloudHosted()) {
-    throw IncorrectEditionError("Workspace deletion only available on cloud");
   }
   return user.isAdmin;
 });

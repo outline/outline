@@ -48,7 +48,7 @@ router.post(
       type,
     };
     const team = await Team.findByPk(user.teamId);
-    authorize(user, "manage", team);
+    authorize(user, "update", team);
 
     const [exports, total] = await Promise.all([
       FileOperation.findAll({
