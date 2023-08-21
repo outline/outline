@@ -10,7 +10,7 @@ export default async function teamDestroyer({
   user: User;
   team: Team;
   ip: string;
-  transaction: Transaction;
+  transaction?: Transaction;
 }) {
   await Event.create(
     {

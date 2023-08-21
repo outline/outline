@@ -28,7 +28,6 @@ import {
   assertSort,
   assertPresent,
   assertArray,
-  assertUuid,
 } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -449,15 +448,15 @@ router.post(
   "users.delete",
   rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
+  validate(T.UsersDeleteSchema),
   transaction(),
-  async (ctx: APIContext) => {
+  async (ctx: APIContext<T.UsersDeleteSchemaReq>) => {
     const { transaction } = ctx.state;
-    const { id, code = "" } = ctx.request.body;
+    const { id, code } = ctx.request.body;
     const actor = ctx.state.auth.user;
     let user: User;
 
     if (id) {
-      assertUuid(id, "id must be a UUID");
       user = await User.findByPk(id, {
         rejectOnEmpty: true,
       });

@@ -11,7 +11,7 @@ export default async function userDestroyer({
   user: User;
   actor: User;
   ip: string;
-  transaction: Transaction;
+  transaction?: Transaction;
 }) {
   const { teamId } = user;
   const usersCount = await User.count({
