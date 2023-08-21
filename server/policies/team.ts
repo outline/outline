@@ -18,7 +18,7 @@ allow(User, "createTeam", Team, () => {
   }
 });
 
-allow(User, ["update", "manage"], Team, (user, team) => {
+allow(User, ["update", "delete", "manage"], Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) {
     return false;
   }

@@ -1,7 +1,11 @@
 import invariant from "invariant";
 import Router from "koa-router";
 import teamCreator from "@server/commands/teamCreator";
+import teamDestroyer from "@server/commands/teamDestroyer";
 import teamUpdater from "@server/commands/teamUpdater";
+import ConfirmTeamDeleteEmail from "@server/emails/templates/ConfirmTeamDeleteEmail";
+import env from "@server/env";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -11,9 +15,11 @@ import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { safeEqual } from "@server/utils/crypto";
 import * as T from "./schema";
 
 const router = new Router();
+const emailEnabled = !!(env.SMTP_HOST || env.ENVIRONMENT === "development");
 
 router.post(
   "team.update",
@@ -40,6 +46,75 @@ router.post(
     ctx.body = {
       data: presentTeam(updatedTeam),
       policies: presentPolicies(user, [updatedTeam]),
+    };
+  }
+);
+
+router.post(
+  "teams.requestDelete",
+  rateLimiter(RateLimiterStrategy.FivePerHour),
+  auth(),
+  async (ctx: APIContext) => {
+    if (!env.isCloudHosted()) {
+      throw ValidationError(
+        "This endpoint is not available in single-tenant instances"
+      );
+    }
+
+    const { user } = ctx.state.auth;
+    const { team } = user;
+    authorize(user, "delete", team);
+
+    if (emailEnabled) {
+      await new ConfirmTeamDeleteEmail({
+        to: user.email,
+        deleteConfirmationCode: team.getDeleteConfirmationCode(user),
+      }).schedule();
+    }
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
+  "teams.delete",
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  auth(),
+  validate(T.TeamsDeleteSchema),
+  transaction(),
+  async (ctx: APIContext<T.TeamsDeleteSchemaReq>) => {
+    if (!env.isCloudHosted()) {
+      throw ValidationError(
+        "This endpoint is not available in single-tenant instances"
+      );
+    }
+
+    const { auth, transaction } = ctx.state;
+    const { code } = ctx.input.body;
+    const { user } = auth;
+    const { team } = user;
+
+    authorize(user, "delete", team);
+
+    if (emailEnabled) {
+      const deleteConfirmationCode = team.getDeleteConfirmationCode(user);
+
+      if (!safeEqual(code, deleteConfirmationCode)) {
+        throw ValidationError("The confirmation code was incorrect");
+      }
+    }
+
+    await teamDestroyer({
+      team,
+      user,
+      transaction,
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      success: true,
     };
   }
 );

@@ -449,7 +449,9 @@ router.post(
   "users.delete",
   rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
+  transaction(),
   async (ctx: APIContext) => {
+    const { transaction } = ctx.state;
     const { id, code = "" } = ctx.request.body;
     const actor = ctx.state.auth.user;
     let user: User;
@@ -478,6 +480,7 @@ router.post(
       user,
       actor,
       ip: ctx.request.ip,
+      transaction,
     });
 
     ctx.body = {
