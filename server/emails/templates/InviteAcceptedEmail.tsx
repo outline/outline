@@ -46,6 +46,21 @@ export default class InviteAcceptedEmail extends BaseEmail<
     return `Great news, ${invitedName}, accepted your invitation`;
   }
 
+  protected markup({ teamUrl }: Props) {
+    const url = teamUrl;
+    const name = `Open ${env.APP_NAME}`;
+
+    return JSON.stringify({
+      "@context": "http://schema.org",
+      "@type": "EmailMessage",
+      potentialAction: {
+        "@type": "ViewAction",
+        url,
+        name,
+      },
+    });
+  }
+
   protected renderAsText({ invitedName, teamUrl }: Props): string {
     return `
 Great news, ${invitedName} just accepted your invitation and has created an account. You can now start collaborating on documents.
@@ -60,7 +75,10 @@ Open ${env.APP_NAME}: ${teamUrl}
     unsubscribeUrl,
   }: Props & BeforeSendProps) {
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview({ invitedName } as Props)}
+        markup={this.markup({ teamUrl } as Props)}
+      >
         <Header />
 
         <Body>

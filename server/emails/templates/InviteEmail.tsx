@@ -29,6 +29,21 @@ export default class InviteEmail extends BaseEmail<Props, Record<string, any>> {
     return `${env.APP_NAME} is a place for your team to build and share knowledge.`;
   }
 
+  protected markup({ teamUrl }: Props) {
+    const url = `${teamUrl}?ref=invite-email`;
+    const name = "Join now";
+
+    return JSON.stringify({
+      "@context": "http://schema.org",
+      "@type": "EmailMessage",
+      potentialAction: {
+        "@type": "ViewAction",
+        url,
+        name,
+      },
+    });
+  }
+
   protected renderAsText({
     teamName,
     actorName,
@@ -48,7 +63,10 @@ Join now: ${teamUrl}
 
   protected render({ teamName, actorName, actorEmail, teamUrl }: Props) {
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview()}
+        markup={this.markup({ teamUrl } as Props)}
+      >
         <Header />
 
         <Body>

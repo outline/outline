@@ -116,6 +116,21 @@ export default class CommentCreatedEmail extends BaseEmail<
       : `${actorName} commented on the document`;
   }
 
+  protected markup({ teamUrl, document, commentId }: Props): string {
+    const url = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
+    const name = "View Thread";
+
+    return JSON.stringify({
+      "@context": "http://schema.org",
+      "@type": "EmailMessage",
+      potentialAction: {
+        "@type": "ViewAction",
+        url,
+        name,
+      },
+    });
+  }
+
   protected fromName({ actorName }: Props): string {
     return actorName;
   }
@@ -150,7 +165,10 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
     const link = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
 
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview({ isReply, actorName } as Props)}
+        markup={this.markup({ teamUrl, document, commentId } as Props)}
+      >
         <Header />
 
         <Body>

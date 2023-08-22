@@ -45,6 +45,21 @@ export default class ExportFailureEmail extends BaseEmail<
     return "Sorry, your requested data export has failed";
   }
 
+  protected markup({ teamUrl }: Props): string {
+    const url = `${teamUrl}/settings/export`;
+    const name = "Go to export";
+
+    return JSON.stringify({
+      "@context": "http://schema.org",
+      "@type": "EmailMessage",
+      potentialAction: {
+        "@type": "ViewAction",
+        url,
+        name,
+      },
+    });
+  }
+
   protected renderAsText() {
     return `
 Your Data Export
@@ -56,7 +71,10 @@ section to try again – if the problem persists please contact support.
 
   protected render({ teamUrl, unsubscribeUrl }: Props & BeforeSendProps) {
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview()}
+        markup={this.markup({ teamUrl } as Props)}
+      >
         <Header />
         <Body>
           <Heading>Your Data Export</Heading>

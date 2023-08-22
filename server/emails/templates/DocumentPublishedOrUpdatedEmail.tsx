@@ -117,6 +117,21 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     return `${actorName} ${this.eventName(eventType)} a document`;
   }
 
+  protected markup({ teamUrl, document }: Props): string {
+    const url = `${teamUrl}${document.url}?ref=notification-email`;
+    const name = "View Document";
+
+    return JSON.stringify({
+      "@context": "http://schema.org",
+      "@type": "EmailMessage",
+      potentialAction: {
+        "@type": "ViewAction",
+        url,
+        name,
+      },
+    });
+  }
+
   protected renderAsText({
     actorName,
     teamUrl,
@@ -148,7 +163,10 @@ Open Document: ${teamUrl}${document.url}
     const eventName = this.eventName(eventType);
 
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview({ actorName, eventType } as Props)}
+        markup={this.markup({ teamUrl, document } as Props)}
+      >
         <Header />
 
         <Body>

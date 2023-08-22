@@ -43,6 +43,21 @@ export default class DocumentMentionedEmail extends BaseEmail<
     return `${actorName} mentioned you`;
   }
 
+  protected markup({ teamUrl, document }: Props): string {
+    const url = `${teamUrl}${document.url}?ref=notification-email`;
+    const name = "View Document";
+
+    return JSON.stringify({
+      "@context": "http://schema.org",
+      "@type": "EmailMessage",
+      potentialAction: {
+        "@type": "ViewAction",
+        url,
+        name,
+      },
+    });
+  }
+
   protected fromName({ actorName }: Props) {
     return actorName;
   }
@@ -61,7 +76,10 @@ Open Document: ${teamUrl}${document.url}
     const link = `${teamUrl}${document.url}?ref=notification-email`;
 
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview({ actorName } as Props)}
+        markup={this.markup({ teamUrl, document } as Props)}
+      >
         <Header />
 
         <Body>

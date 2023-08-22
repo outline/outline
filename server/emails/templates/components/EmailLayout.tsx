@@ -2,14 +2,57 @@ import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import theme from "@shared/styles/theme";
 
-const EmailLayout: React.FC = ({ children }) => (
-  <Table width="550">
-    <TBody>
+const EmailLayout: React.FC<{
+  bgcolor?: string;
+  previewText: string;
+  markup?: string;
+}> = ({ previewText, bgcolor = "#FFFFFF", markup, children }) => (
+  <>
+    {markup ? (
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: markup }}
+      />
+    ) : null}
+    <Table
+      bgcolor={bgcolor}
+      id="__bodyTable__"
+      width="100%"
+      style={{
+        WebkitFontSmoothing: "antialiased",
+        width: "100% !important",
+        background: `${bgcolor}`,
+        WebkitTextSizeAdjust: "none",
+        margin: 0,
+        padding: 0,
+        minWidth: "100%",
+      }}
+    >
       <TR>
-        <TD align="left">{children}</TD>
+        <TD align="center">
+          <span
+            style={{
+              display: "none !important",
+              color: `${bgcolor}`,
+              margin: 0,
+              padding: 0,
+              fontSize: "1px",
+              lineHeight: "1px",
+            }}
+          >
+            {previewText}
+          </span>
+          <Table width="550">
+            <TBody>
+              <TR>
+                <TD align="left">{children}</TD>
+              </TR>
+            </TBody>
+          </Table>
+        </TD>
       </TR>
-    </TBody>
-  </Table>
+    </Table>
+  </>
 );
 
 export default EmailLayout;
