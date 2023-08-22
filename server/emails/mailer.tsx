@@ -72,6 +72,7 @@ export class Mailer {
       );
     }
 
+    // the template below is a slightly modified form of https://github.com/revivek/oy/blob/master/src/utils/HTML4.js
     return `
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
     <html
