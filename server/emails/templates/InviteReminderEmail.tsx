@@ -33,21 +33,6 @@ export default class InviteReminderEmail extends BaseEmail<
     return `${env.APP_NAME} is a place for your team to build and share knowledge.`;
   }
 
-  protected markup({ teamUrl }: Props) {
-    const url = `${teamUrl}?ref=invite-reminder-email`;
-    const name = "Join now";
-
-    return JSON.stringify({
-      "@context": "http://schema.org",
-      "@type": "EmailMessage",
-      potentialAction: {
-        "@type": "ViewAction",
-        url,
-        name,
-      },
-    });
-  }
-
   protected renderAsText({
     teamName,
     actorName,
@@ -67,10 +52,11 @@ If you haven't signed up yet, you can do so here: ${teamUrl}
   }
 
   protected render({ teamName, actorName, actorEmail, teamUrl }: Props) {
+    const inviteLink = `${teamUrl}?ref=invite-reminder-email`;
     return (
       <EmailTemplate
         previewText={this.preview()}
-        markup={this.markup({ teamUrl } as Props)}
+        goToAction={{ url: inviteLink, name: "Join now" }}
       >
         <Header />
 
@@ -87,9 +73,7 @@ If you haven't signed up yet, you can do so here: ${teamUrl}
           <p>If you haven't signed up yet, you can do so here:</p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}?ref=invite-reminder-email`}>
-              Join now
-            </Button>
+            <Button href={inviteLink}>Join now</Button>
           </p>
         </Body>
 

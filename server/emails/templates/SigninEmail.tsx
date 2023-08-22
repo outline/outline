@@ -29,21 +29,6 @@ export default class SigninEmail extends BaseEmail<Props, Record<string, any>> {
     return `Here’s your link to signin to ${env.APP_NAME}.`;
   }
 
-  protected markup({ token, client }: Props) {
-    const url = this.signinLink(token, client);
-    const name = "Sign In";
-
-    return JSON.stringify({
-      "@context": "http://schema.org",
-      "@type": "EmailMessage",
-      potentialAction: {
-        "@type": "ViewAction",
-        url,
-        name,
-      },
-    });
-  }
-
   protected renderAsText({ token, teamUrl, client }: Props): string {
     return `
 Use the link below to signin to ${env.APP_NAME}:
@@ -63,7 +48,7 @@ signin page at: ${teamUrl}
     return (
       <EmailTemplate
         previewText={this.preview()}
-        markup={this.markup({ token, client } as Props)}
+        goToAction={{ url: this.signinLink(token, client), name: "Sign In" }}
       >
         <Header />
 

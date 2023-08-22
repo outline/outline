@@ -43,21 +43,6 @@ export default class DocumentMentionedEmail extends BaseEmail<
     return `${actorName} mentioned you`;
   }
 
-  protected markup({ teamUrl, document }: Props): string {
-    const url = `${teamUrl}${document.url}?ref=notification-email`;
-    const name = "View Document";
-
-    return JSON.stringify({
-      "@context": "http://schema.org",
-      "@type": "EmailMessage",
-      potentialAction: {
-        "@type": "ViewAction",
-        url,
-        name,
-      },
-    });
-  }
-
   protected fromName({ actorName }: Props) {
     return actorName;
   }
@@ -73,12 +58,12 @@ Open Document: ${teamUrl}${document.url}
   }
 
   protected render({ document, actorName, teamUrl }: Props) {
-    const link = `${teamUrl}${document.url}?ref=notification-email`;
+    const documentLink = `${teamUrl}${document.url}?ref=notification-email`;
 
     return (
       <EmailTemplate
         previewText={this.preview({ actorName } as Props)}
-        markup={this.markup({ teamUrl, document } as Props)}
+        goToAction={{ url: documentLink, name: "View Document" }}
       >
         <Header />
 
@@ -86,10 +71,10 @@ Open Document: ${teamUrl}${document.url}
           <Heading>You were mentioned</Heading>
           <p>
             {actorName} mentioned you in the document{" "}
-            <a href={link}>{document.title}</a>.
+            <a href={documentLink}>{document.title}</a>.
           </p>
           <p>
-            <Button href={link}>Open Document</Button>
+            <Button href={documentLink}>Open Document</Button>
           </p>
         </Body>
       </EmailTemplate>

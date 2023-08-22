@@ -117,21 +117,6 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     return `${actorName} ${this.eventName(eventType)} a document`;
   }
 
-  protected markup({ teamUrl, document }: Props): string {
-    const url = `${teamUrl}${document.url}?ref=notification-email`;
-    const name = "View Document";
-
-    return JSON.stringify({
-      "@context": "http://schema.org",
-      "@type": "EmailMessage",
-      potentialAction: {
-        "@type": "ViewAction",
-        url,
-        name,
-      },
-    });
-  }
-
   protected renderAsText({
     actorName,
     teamUrl,
@@ -159,13 +144,13 @@ Open Document: ${teamUrl}${document.url}
     unsubscribeUrl,
     body,
   }: Props) {
-    const link = `${teamUrl}${document.url}?ref=notification-email`;
+    const documentLink = `${teamUrl}${document.url}?ref=notification-email`;
     const eventName = this.eventName(eventType);
 
     return (
       <EmailTemplate
         previewText={this.preview({ actorName, eventType } as Props)}
-        markup={this.markup({ teamUrl, document } as Props)}
+        goToAction={{ url: documentLink, name: "View Document" }}
       >
         <Header />
 
@@ -175,8 +160,8 @@ Open Document: ${teamUrl}${document.url}
           </Heading>
           <p>
             {actorName} {eventName} the document{" "}
-            <a href={link}>{document.title}</a>, in the {collection.name}{" "}
-            collection.
+            <a href={documentLink}>{document.title}</a>, in the{" "}
+            {collection.name} collection.
           </p>
           {body && (
             <>
@@ -188,7 +173,7 @@ Open Document: ${teamUrl}${document.url}
             </>
           )}
           <p>
-            <Button href={link}>Open Document</Button>
+            <Button href={documentLink}>Open Document</Button>
           </p>
         </Body>
 

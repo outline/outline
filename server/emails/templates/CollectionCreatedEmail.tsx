@@ -57,21 +57,6 @@ export default class CollectionCreatedEmail extends BaseEmail<
     return `${collection.user.name} created a collection`;
   }
 
-  protected markup({ teamUrl, collection }: Props) {
-    const url = `${teamUrl}${collection.url}`;
-    const name = "View Collection";
-
-    return JSON.stringify({
-      "@context": "http://schema.org",
-      "@type": "EmailMessage",
-      potentialAction: {
-        "@type": "ViewAction",
-        url,
-        name,
-      },
-    });
-  }
-
   protected renderAsText({ teamUrl, collection }: Props) {
     return `
 ${collection.name}
@@ -83,10 +68,12 @@ Open Collection: ${teamUrl}${collection.url}
   }
 
   protected render({ collection, teamUrl, unsubscribeUrl }: Props) {
+    const collectionLink = `${teamUrl}${collection.url}`;
+
     return (
       <EmailTemplate
         previewText={this.preview({ collection } as Props)}
-        markup={this.markup({ teamUrl, collection } as Props)}
+        goToAction={{ url: collectionLink, name: "View Collections" }}
       >
         <Header />
 
@@ -98,9 +85,7 @@ Open Collection: ${teamUrl}${collection.url}
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}${collection.url}`}>
-              Open Collection
-            </Button>
+            <Button href={collectionLink}>Open Collection</Button>
           </p>
         </Body>
 

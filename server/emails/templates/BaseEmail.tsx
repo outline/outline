@@ -150,16 +150,6 @@ export default abstract class BaseEmail<
   protected abstract preview(props: S & T): string;
 
   /**
-   * Returns the markup for the email message, email clients like Gmail
-   * use this markup to highlight important user actions
-   * within the inbox itself, like opening a document or a thread.
-   *
-   * @param props Props in email constructor
-   * @returns The structured markup string consisting of defined actions
-   */
-  protected markup?(props: S & T): string;
-
-  /**
    * Returns a plain-text version of the email, this is the text that will be
    * shown if the email client does not support or want HTML.
    *

@@ -29,21 +29,6 @@ export default class WebhookDisabledEmail extends BaseEmail<
     return `Your webhook (${webhookName}) has been disabled`;
   }
 
-  protected markup({ teamUrl }: Props) {
-    const url = `${teamUrl}/settings/webhooks`;
-    const name = "View Settings";
-
-    return JSON.stringify({
-      "@context": "http://schema.org",
-      "@type": "EmailMessage",
-      potentialAction: {
-        "@type": "ViewAction",
-        url,
-        name,
-      },
-    });
-  }
-
   protected renderAsText({ webhookName, teamUrl }: Props): string {
     return `
 Your webhook (${webhookName}) has been automatically disabled as the last 25 
@@ -54,10 +39,11 @@ Webhook settings: ${teamUrl}/settings/webhooks
   }
 
   protected render({ webhookName, teamUrl }: Props) {
+    const webhookSettingsLink = `${teamUrl}/settings/webhooks`;
     return (
       <EmailTemplate
         previewText={this.preview({ webhookName } as Props)}
-        markup={this.markup({ teamUrl } as Props)}
+        goToAction={{ url: webhookSettingsLink, name: "View Settings" }}
       >
         <Header />
 
@@ -70,9 +56,7 @@ Webhook settings: ${teamUrl}/settings/webhooks
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={teamUrl + "/settings/webhooks"}>
-              Webhook settings
-            </Button>
+            <Button href={webhookSettingsLink}>Webhook settings</Button>
           </p>
         </Body>
 

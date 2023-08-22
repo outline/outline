@@ -48,21 +48,6 @@ export default class ExportSuccessEmail extends BaseEmail<
     return `Here's your request data export from ${env.APP_NAME}`;
   }
 
-  protected markup({ id, teamUrl }: Props): string {
-    const url = `${teamUrl}/api/fileOperations.redirect?id=${id}`;
-    const name = "Download";
-
-    return JSON.stringify({
-      "@context": "http://schema.org",
-      "@type": "EmailMessage",
-      potentialAction: {
-        "@type": "ViewAction",
-        url,
-        name,
-      },
-    });
-  }
-
   protected renderAsText() {
     return `
 Your Data Export
@@ -72,10 +57,12 @@ Your requested data export is complete, the exported files are also available in
   }
 
   protected render({ id, teamUrl, unsubscribeUrl }: Props & BeforeSendProps) {
+    const downloadLink = `${teamUrl}/api/fileOperations.redirect?id=${id}`;
+
     return (
       <EmailTemplate
         previewText={this.preview()}
-        markup={this.markup({ id, teamUrl } as Props)}
+        goToAction={{ url: downloadLink, name: "Download" }}
       >
         <Header />
 
@@ -95,9 +82,7 @@ Your requested data export is complete, the exported files are also available in
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}/api/fileOperations.redirect?id=${id}`}>
-              Download
-            </Button>
+            <Button href={downloadLink}>Download</Button>
           </p>
         </Body>
 

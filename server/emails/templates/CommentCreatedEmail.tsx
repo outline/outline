@@ -116,21 +116,6 @@ export default class CommentCreatedEmail extends BaseEmail<
       : `${actorName} commented on the document`;
   }
 
-  protected markup({ teamUrl, document, commentId }: Props): string {
-    const url = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
-    const name = "View Thread";
-
-    return JSON.stringify({
-      "@context": "http://schema.org",
-      "@type": "EmailMessage",
-      potentialAction: {
-        "@type": "ViewAction",
-        url,
-        name,
-      },
-    });
-  }
-
   protected fromName({ actorName }: Props): string {
     return actorName;
   }
@@ -162,12 +147,12 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
     unsubscribeUrl,
     body,
   }: Props) {
-    const link = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
+    const threadLink = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
 
     return (
       <EmailTemplate
         previewText={this.preview({ isReply, actorName } as Props)}
-        markup={this.markup({ teamUrl, document, commentId } as Props)}
+        goToAction={{ url: threadLink, name: "View Thread" }}
       >
         <Header />
 
@@ -175,7 +160,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
           <Heading>{document.title}</Heading>
           <p>
             {actorName} {isReply ? "replied to a thread in" : "commented on"}{" "}
-            <a href={link}>{document.title}</a>{" "}
+            <a href={threadLink}>{document.title}</a>{" "}
             {collection.name ? `in the ${collection.name} collection` : ""}.
           </p>
           {body && (
@@ -188,7 +173,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
             </>
           )}
           <p>
-            <Button href={link}>Open Thread</Button>
+            <Button href={threadLink}>Open Thread</Button>
           </p>
         </Body>
 

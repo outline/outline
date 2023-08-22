@@ -29,21 +29,6 @@ export default class WelcomeEmail extends BaseEmail<
     return `${env.APP_NAME} is a place for your team to build and share knowledge.`;
   }
 
-  protected markup({ teamUrl }: Props) {
-    const url = `${teamUrl}/home?ref=welcome-email`;
-    const name = `Open ${env.APP_NAME}`;
-
-    return JSON.stringify({
-      "@context": "http://schema.org",
-      "@type": "EmailMessage",
-      potentialAction: {
-        "@type": "ViewAction",
-        url,
-        name,
-      },
-    });
-  }
-
   protected renderAsText({ teamUrl }: Props) {
     return `
 Welcome to ${env.APP_NAME}!
@@ -59,10 +44,12 @@ ${teamUrl}/home
   }
 
   protected render({ teamUrl }: Props) {
+    const welcomLink = `${teamUrl}/home?ref=welcome-email`;
+
     return (
       <EmailTemplate
         previewText={this.preview()}
-        markup={this.markup({ teamUrl } as Props)}
+        goToAction={{ url: welcomLink, name: `Open ${env.APP_NAME}` }}
       >
         <Header />
 
@@ -83,9 +70,7 @@ ${teamUrl}/home
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}/home?ref=welcome-email`}>
-              Open {env.APP_NAME}
-            </Button>
+            <Button href={welcomLink}>Open {env.APP_NAME}</Button>
           </p>
         </Body>
 

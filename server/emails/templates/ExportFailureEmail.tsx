@@ -45,21 +45,6 @@ export default class ExportFailureEmail extends BaseEmail<
     return "Sorry, your requested data export has failed";
   }
 
-  protected markup({ teamUrl }: Props): string {
-    const url = `${teamUrl}/settings/export`;
-    const name = "Go to export";
-
-    return JSON.stringify({
-      "@context": "http://schema.org",
-      "@type": "EmailMessage",
-      potentialAction: {
-        "@type": "ViewAction",
-        url,
-        name,
-      },
-    });
-  }
-
   protected renderAsText() {
     return `
 Your Data Export
@@ -70,28 +55,26 @@ section to try again – if the problem persists please contact support.
   }
 
   protected render({ teamUrl, unsubscribeUrl }: Props & BeforeSendProps) {
+    const exportLink = `${teamUrl}/settings/export`;
+
     return (
       <EmailTemplate
         previewText={this.preview()}
-        markup={this.markup({ teamUrl } as Props)}
+        goToAction={{ url: exportLink, name: "Go to export" }}
       >
         <Header />
         <Body>
           <Heading>Your Data Export</Heading>
           <p>
             Sorry, your requested data export has failed, please visit the{" "}
-            <a
-              href={`${teamUrl}/settings/export`}
-              rel="noreferrer"
-              target="_blank"
-            >
+            <a href={exportLink} rel="noreferrer" target="_blank">
               admin section
             </a>
             . to try again – if the problem persists please contact support.
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}/settings/export`}>Go to export</Button>
+            <Button href={exportLink}>Go to export</Button>
           </p>
         </Body>
         <Footer unsubscribeUrl={unsubscribeUrl} />
