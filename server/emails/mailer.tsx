@@ -129,8 +129,7 @@ export class Mailer {
       {
         title: data.subject,
         headCSS: [baseStyles, data.headCSS].join(" "),
-        previewText: data.previewText ?? "",
-      },
+      } as Oy.RenderOptions,
       this.template
     );
 
