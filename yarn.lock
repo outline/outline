@@ -5503,10 +5503,10 @@ date-fns@^2.28.0, date-fns@^2.29.1, date-fns@^2.30.0:
   dependencies:
     "@babel/runtime" "^7.21.0"
 
-dd-trace@^3.32.1:
-  version "3.32.1"
-  resolved "https://registry.yarnpkg.com/dd-trace/-/dd-trace-3.32.1.tgz#f9ae34c78f163b484f21556d364bb9a33de5fb20"
-  integrity sha512-5Q157u+ly9v94ZmRBWijOXuuVxsm3pA3ei0Nhhu2D9/gHp/ECldDkn5qUEX/y7/x1KKLKApq/XieSD3uhRLIKQ==
+dd-trace@^3.33.0:
+  version "3.33.0"
+  resolved "https://registry.yarnpkg.com/dd-trace/-/dd-trace-3.33.0.tgz#d541cdae130cacbe6730d0100d91043e60aa84c4"
+  integrity sha512-ed7XMiWVAfF51V6dGwPA6TlhTIPUMxE62arc4U2SzS6n0B41tZHpc0n53NnfdaBnDp19epIgbtHdCm3sT00SJg==
   dependencies:
     "@datadog/native-appsec" "^3.2.0"
     "@datadog/native-iast-rewriter" "2.0.1"
