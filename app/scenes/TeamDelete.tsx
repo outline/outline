@@ -7,6 +7,7 @@ import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
 import env from "~/env";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -14,10 +15,15 @@ type FormData = {
   code: string;
 };
 
-function UserDelete() {
+type Props = {
+  onSubmit: () => void;
+};
+
+function TeamDelete({ onSubmit }: Props) {
   const [isWaitingCode, setWaitingCode] = React.useState(false);
   const { auth } = useStores();
   const { showToast } = useToasts();
+  const team = useCurrentTeam();
   const { t } = useTranslation();
   const {
     register,
@@ -30,7 +36,7 @@ function UserDelete() {
       ev.preventDefault();
 
       try {
-        await auth.requestDeleteUser();
+        await auth.requestDeleteTeam();
         setWaitingCode(true);
       } catch (error) {
         showToast(error.message, {
@@ -44,21 +50,23 @@ function UserDelete() {
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
-        await auth.deleteUser(data);
+        await auth.deleteTeam(data);
         await auth.logout();
+        onSubmit();
       } catch (error) {
         showToast(error.message, {
           type: "error",
         });
       }
     },
-    [auth, showToast]
+    [auth, onSubmit, showToast]
   );
 
   const inputProps = register("code", {
     required: true,
   });
   const appName = env.APP_NAME;
+  const workspaceName = team.name;
 
   return (
     <Flex column>
@@ -68,7 +76,7 @@ function UserDelete() {
             <Text type="secondary">
               <Trans>
                 A confirmation code has been sent to your email address, please
-                enter the code below to permanantly destroy your account.
+                enter the code below to permanantly destroy this workspace.
               </Trans>
             </Text>
             <Input
@@ -84,10 +92,9 @@ function UserDelete() {
           <>
             <Text type="secondary">
               <Trans>
-                Are you sure? Deleting your account will destroy identifying
-                data associated with your user and cannot be undone. You will be
-                immediately logged out of {{ appName }} and all your API tokens
-                will be revoked.
+                Deleting the <strong>{{ workspaceName }}</strong> workspace will
+                destroy all collections, documents, users, and associated data.
+                You will be immediately logged out of {{ appName }}.
               </Trans>
             </Text>
           </>
@@ -104,7 +111,7 @@ function UserDelete() {
           >
             {formState.isSubmitting
               ? `${t("Deleting")}…`
-              : t("Delete my account")}
+              : t("Delete workspace")}
           </Button>
         )}
       </form>
@@ -112,4 +119,4 @@ function UserDelete() {
   );
 }
 
-export default observer(UserDelete);
+export default observer(TeamDelete);

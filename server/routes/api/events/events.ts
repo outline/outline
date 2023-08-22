@@ -42,7 +42,7 @@ router.post(
     }
 
     if (auditLog) {
-      authorize(user, "manage", user.team);
+      authorize(user, "audit", user.team);
       where.name = Event.AUDIT_EVENTS;
     }
 

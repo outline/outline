@@ -362,7 +362,7 @@ describe("accountProvisioner", () => {
       }
 
       expect(error.message).toEqual(
-        "The maximum number of teams has been reached"
+        "The maximum number of workspaces has been reached"
       );
     });
 

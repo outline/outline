@@ -241,16 +241,29 @@ export default class AuthStore {
     }
   };
 
-  @action
-  requestDelete = () => client.post(`/users.requestDelete`);
+  requestDeleteUser = () => client.post(`/users.requestDelete`);
+
+  requestDeleteTeam = () => client.post(`/teams.requestDelete`);
 
   @action
   deleteUser = async (data: { code: string }) => {
     await client.post(`/users.delete`, data);
-    runInAction("AuthStore#updateUser", () => {
+    runInAction("AuthStore#deleteUser", () => {
       this.user = null;
       this.team = null;
       this.collaborationToken = null;
+      this.availableTeams = this.availableTeams?.filter(
+        (team) => team.id !== this.team?.id
+      );
+      this.policies = [];
+    });
+  };
+
+  @action
+  deleteTeam = async (data: { code: string }) => {
+    await client.post(`/teams.delete`, data);
+    runInAction("AuthStore#deleteTeam", () => {
+      this.user = null;
       this.availableTeams = this.availableTeams?.filter(
         (team) => team.id !== this.team?.id
       );

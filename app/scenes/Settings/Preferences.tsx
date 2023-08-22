@@ -47,6 +47,7 @@ function Preferences() {
     dialogs.openModal({
       title: t("Delete account"),
       content: <UserDelete />,
+      isCentered: true,
     });
   };
 
@@ -131,8 +132,7 @@ function Preferences() {
         />
       </SettingRow>
 
-      <p>&nbsp;</p>
-
+      <Heading as="h2">{t("Danger")}</Heading>
       <SettingRow
         name="delete"
         label={t("Delete account")}
