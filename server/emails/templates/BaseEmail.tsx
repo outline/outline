@@ -155,7 +155,7 @@ export default abstract class BaseEmail<
    * within the inbox itself, like opening a document or a thread.
    *
    * @param props Props in email constructor
-   * @returns The preview text as a string
+   * @returns The structured markup string consisting of defined actions
    */
   protected markup?(props: S & T): string;
 
