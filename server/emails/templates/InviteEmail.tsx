@@ -50,10 +50,7 @@ Join now: ${teamUrl}
     const inviteLink = `${teamUrl}?ref=invite-email`;
 
     return (
-      <EmailTemplate
-        previewText={this.preview()}
-        goToAction={{ url: inviteLink, name: "Join now" }}
-      >
+      <EmailTemplate previewText={this.preview()}>
         <Header />
 
         <Body>

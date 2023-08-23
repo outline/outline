@@ -41,10 +41,7 @@ Webhook settings: ${teamUrl}/settings/webhooks
   protected render({ webhookName, teamUrl }: Props) {
     const webhookSettingsLink = `${teamUrl}/settings/webhooks`;
     return (
-      <EmailTemplate
-        previewText={this.preview({ webhookName } as Props)}
-        goToAction={{ url: webhookSettingsLink, name: "View Settings" }}
-      >
+      <EmailTemplate previewText={this.preview({ webhookName } as Props)}>
         <Header />
 
         <Body>

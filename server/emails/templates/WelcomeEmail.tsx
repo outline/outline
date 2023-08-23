@@ -47,10 +47,7 @@ ${teamUrl}/home
     const welcomLink = `${teamUrl}/home?ref=welcome-email`;
 
     return (
-      <EmailTemplate
-        previewText={this.preview()}
-        goToAction={{ url: welcomLink, name: `Open ${env.APP_NAME}` }}
-      >
+      <EmailTemplate previewText={this.preview()}>
         <Header />
 
         <Body>

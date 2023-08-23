@@ -60,10 +60,7 @@ Open ${env.APP_NAME}: ${teamUrl}
     unsubscribeUrl,
   }: Props & BeforeSendProps) {
     return (
-      <EmailTemplate
-        previewText={this.preview({ invitedName } as Props)}
-        goToAction={{ url: teamUrl, name: `Open ${env.APP_NAME}` }}
-      >
+      <EmailTemplate previewText={this.preview({ invitedName } as Props)}>
         <Header />
 
         <Body>

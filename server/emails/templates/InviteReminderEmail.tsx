@@ -54,10 +54,7 @@ If you haven't signed up yet, you can do so here: ${teamUrl}
   protected render({ teamName, actorName, actorEmail, teamUrl }: Props) {
     const inviteLink = `${teamUrl}?ref=invite-reminder-email`;
     return (
-      <EmailTemplate
-        previewText={this.preview()}
-        goToAction={{ url: inviteLink, name: "Join now" }}
-      >
+      <EmailTemplate previewText={this.preview()}>
         <Header />
 
         <Body>

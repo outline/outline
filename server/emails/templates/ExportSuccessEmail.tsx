@@ -62,7 +62,7 @@ Your requested data export is complete, the exported files are also available in
     return (
       <EmailTemplate
         previewText={this.preview()}
-        goToAction={{ url: downloadLink, name: "Download" }}
+        goToAction={{ url: downloadLink, name: "Download export" }}
       >
         <Header />
 

@@ -73,7 +73,7 @@ Open Collection: ${teamUrl}${collection.url}
     return (
       <EmailTemplate
         previewText={this.preview({ collection } as Props)}
-        goToAction={{ url: collectionLink, name: "View Collections" }}
+        goToAction={{ url: collectionLink, name: "View Collection" }}
       >
         <Header />
 

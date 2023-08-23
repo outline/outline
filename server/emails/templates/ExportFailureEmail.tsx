@@ -58,10 +58,7 @@ section to try again – if the problem persists please contact support.
     const exportLink = `${teamUrl}/settings/export`;
 
     return (
-      <EmailTemplate
-        previewText={this.preview()}
-        goToAction={{ url: exportLink, name: "Go to export" }}
-      >
+      <EmailTemplate previewText={this.preview()}>
         <Header />
         <Body>
           <Heading>Your Data Export</Heading>
