@@ -1,5 +1,5 @@
+import { isTouchDevice } from "@shared/utils/browser";
 import Desktop from "~/utils/Desktop";
-import { isTouchDevice } from "~/utils/browser";
 
 /**
  * Returns "hover" on a non-touch device and "active" on a touch device. To
@@ -38,3 +38,16 @@ export const fadeOnDesktopBackgrounded = () => {
     body.backgrounded & { opacity: 0.75; }
   `;
 };
+
+/**
+ * Truncate multiline text.
+ *
+ * @returns string of CSS
+ */
+export const truncateMultiline = (lines: number) => `
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: ${lines};
+  overflow: hidden;
+  overflow-wrap: anywhere;
+`;

@@ -1,5 +1,5 @@
 import { subHours } from "date-fns";
-import { differenceBy } from "lodash";
+import differenceBy from "lodash/differenceBy";
 import { Op } from "sequelize";
 import { NotificationEventType } from "@shared/types";
 import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";
@@ -32,6 +32,10 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
     const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {
+      if (userIdsMentioned.includes(mention.modelId)) {
+        continue;
+      }
+
       const recipient = await User.findByPk(mention.modelId);
       if (
         recipient &&

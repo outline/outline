@@ -80,6 +80,7 @@ export enum IntegrationType {
 export enum IntegrationService {
   Diagrams = "diagrams",
   Kroki = "kroki",
+  Grist = "grist",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
 }
@@ -96,13 +97,14 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { measurementId: string }
   : T extends IntegrationType.Post
   ? { url: string; channel: string; channelId: string }
-  : T extends IntegrationType.Post
+  : T extends IntegrationType.Command
   ? { serviceTeamId: string }
   :
       | { url: string }
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string }
-      | { measurementId: string };
+      | { measurementId: string }
+      | undefined;
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
@@ -209,3 +211,22 @@ export const NotificationEventDefaults = {
   [NotificationEventType.Features]: true,
   [NotificationEventType.ExportCompleted]: true,
 };
+
+export enum UnfurlType {
+  Mention = "mention",
+  Document = "document",
+}
+
+export type OEmbedType = "photo" | "video" | "rich";
+
+export type Unfurl<T = OEmbedType> = {
+  url?: string;
+  type: T;
+  title: string;
+  description?: string;
+  thumbnailUrl?: string | null;
+  meta?: Record<string, string>;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ProsemirrorData = Record<string, any>;

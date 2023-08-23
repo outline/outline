@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { isEmpty } from "lodash";
+import isEmpty from "lodash/isEmpty";
 import { SaveOptions } from "sequelize";
 import {
   Column,

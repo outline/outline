@@ -1,14 +1,13 @@
 import Token from "markdown-it/lib/token";
 import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
-import {
-  isTableSelected,
-  isRowSelected,
-  getCellsInColumn,
-  selectRow,
-  selectTable,
-} from "prosemirror-utils";
 import { DecorationSet, Decoration } from "prosemirror-view";
+import { selectRow, selectTable } from "../commands/table";
+import {
+  getCellsInColumn,
+  isRowSelected,
+  isTableSelected,
+} from "../queries/table";
 import Node from "./Node";
 
 export default class TableCell extends Node {
@@ -55,17 +54,17 @@ export default class TableCell extends Node {
       new Plugin({
         props: {
           decorations: (state) => {
-            const { doc, selection } = state;
+            const { doc } = state;
             const decorations: Decoration[] = [];
-            const cells = getCellsInColumn(0)(selection);
+            const cells = getCellsInColumn(0)(state);
 
             if (cells) {
-              cells.forEach(({ pos }, index) => {
+              cells.forEach((pos, index) => {
                 if (index === 0) {
                   decorations.push(
                     Decoration.widget(pos + 1, () => {
                       let className = "grip-table";
-                      const selected = isTableSelected(selection);
+                      const selected = isTableSelected(state);
                       if (selected) {
                         className += " selected";
                       }
@@ -74,7 +73,7 @@ export default class TableCell extends Node {
                       grip.addEventListener("mousedown", (event) => {
                         event.preventDefault();
                         event.stopImmediatePropagation();
-                        this.editor.view.dispatch(selectTable(state.tr));
+                        this.editor.view.dispatch(selectTable(state));
                       });
                       return grip;
                     })
@@ -82,7 +81,7 @@ export default class TableCell extends Node {
                 }
                 decorations.push(
                   Decoration.widget(pos + 1, () => {
-                    const rowSelected = isRowSelected(index)(selection);
+                    const rowSelected = isRowSelected(index)(state);
 
                     let className = "grip-row";
                     if (rowSelected) {
@@ -100,10 +99,7 @@ export default class TableCell extends Node {
                       event.preventDefault();
                       event.stopImmediatePropagation();
                       this.editor.view.dispatch(
-                        selectRow(
-                          index,
-                          event.metaKey || event.shiftKey
-                        )(state.tr)
+                        selectRow(index, event.metaKey || event.shiftKey)(state)
                       );
                     });
                     return grip;

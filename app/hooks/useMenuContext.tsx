@@ -1,4 +1,4 @@
-import { noop } from "lodash";
+import noop from "lodash/noop";
 import React from "react";
 
 type MenuContextType = {
@@ -8,7 +8,11 @@ type MenuContextType = {
 
 const MenuContext = React.createContext<MenuContextType | null>(null);
 
-export const MenuProvider: React.FC = ({ children }) => {
+type Props = {
+  children?: React.ReactNode;
+};
+
+export const MenuProvider: React.FC = ({ children }: Props) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const memoized = React.useMemo(
     () => ({

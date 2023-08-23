@@ -1,4 +1,4 @@
-import { groupBy } from "lodash";
+import groupBy from "lodash/groupBy";
 import Logger from "@server/logging/Logger";
 import { timeout } from "./timers";
 

@@ -1,3 +1,4 @@
+import throttle from "lodash/throttle";
 import * as React from "react";
 import { Minute } from "@shared/utils/time";
 
@@ -34,10 +35,10 @@ export default function useIdle(timeToIdle: number = 3 * Minute) {
   }, [timeToIdle]);
 
   React.useEffect(() => {
-    const handleUserActivityEvent = () => {
+    const handleUserActivityEvent = throttle(() => {
       setIsIdle(false);
       onActivity();
-    };
+    }, 1000);
 
     activityEvents.forEach((eventName) =>
       window.addEventListener(eventName, handleUserActivityEvent)

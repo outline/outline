@@ -1,6 +1,7 @@
 import path from "path";
 import emojiRegex from "emoji-regex";
-import { truncate } from "lodash";
+import escapeRegExp from "lodash/escapeRegExp";
+import truncate from "lodash/truncate";
 import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
 import { Transaction } from "sequelize";
@@ -9,6 +10,7 @@ import parseTitle from "@shared/utils/parseTitle";
 import { DocumentValidation } from "@shared/validations";
 import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
+import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
 import dataURItoBuffer from "@server/utils/dataURItoBuffer";
 import parseImages from "@server/utils/parseImages";
 import turndownService from "@server/utils/turndown";
@@ -56,7 +58,10 @@ async function fileToMarkdown(content: Buffer | string): Promise<string> {
 
 async function docxToMarkdown(content: Buffer | string): Promise<string> {
   if (content instanceof Buffer) {
-    const { value: html } = await mammoth.convertToHtml({ buffer: content });
+    const { value: html } = await mammoth.convertToHtml({
+      buffer: content,
+    });
+
     return turndownService.turndown(html);
   }
 
@@ -146,6 +151,7 @@ async function documentImporter({
 }): Promise<{
   text: string;
   title: string;
+  state: Buffer;
 }> {
   const fileInfo = importMapping.filter((item) => {
     if (item.type === mimeType) {
@@ -216,14 +222,27 @@ async function documentImporter({
       ip,
       transaction,
     });
-    text = text.replace(uri, attachment.redirectUrl);
+    text = text.replace(
+      new RegExp(escapeRegExp(uri), "g"),
+      attachment.redirectUrl
+    );
   }
 
   // It's better to truncate particularly long titles than fail the import
   title = truncate(title, { length: DocumentValidation.maxTitleLength });
 
+  const ydoc = ProsemirrorHelper.toYDoc(text);
+  const state = ProsemirrorHelper.toState(ydoc);
+
+  if (state.length > DocumentValidation.maxStateLength) {
+    throw InvalidRequestError(
+      `The document is too large to import, please reduce the length and try again`
+    );
+  }
+
   return {
     text,
+    state,
     title,
   };
 }

@@ -1,12 +1,13 @@
-import { flattenDeep, padStart } from "lodash";
+import flattenDeep from "lodash/flattenDeep";
+import padStart from "lodash/padStart";
 import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
-import { findBlockNodes } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
+import { findBlockNodes } from "../queries/findChildren";
 
 export const LANGUAGES = {
-  none: "None", // additional entry to disable highlighting
+  none: "Plain text", // additional entry to disable highlighting
   bash: "Bash",
   css: "CSS",
   clike: "C",
@@ -17,6 +18,7 @@ export const LANGUAGES = {
   graphql: "GraphQL",
   groovy: "Groovy",
   haskell: "Haskell",
+  hcl: "HCL",
   markup: "HTML",
   ini: "INI",
   java: "Java",
@@ -37,6 +39,8 @@ export const LANGUAGES = {
   ruby: "Ruby",
   rust: "Rust",
   scala: "Scala",
+  sass: "Sass",
+  scss: "SCSS",
   sql: "SQL",
   solidity: "Solidity",
   swift: "Swift",
@@ -44,6 +48,8 @@ export const LANGUAGES = {
   tsx: "TSX",
   typescript: "TypeScript",
   vb: "Visual Basic",
+  verilog: "Verilog",
+  vhdl: "VHDL",
   yaml: "YAML",
   zig: "Zig",
 };
@@ -68,25 +74,31 @@ function getDecorations({
   lineNumbers?: boolean;
 }) {
   const decorations: Decoration[] = [];
-  const blocks: { node: Node; pos: number }[] = findBlockNodes(doc).filter(
-    (item) => item.node.type.name === name
-  );
+  const blocks: { node: Node; pos: number }[] = findBlockNodes(
+    doc,
+    true
+  ).filter((item) => item.node.type.name === name);
 
   function parseNodes(
     nodes: refractor.RefractorNode[],
     classNames: string[] = []
-  ): any {
-    return nodes.map((node) => {
-      if (node.type === "element") {
-        const classes = [...classNames, ...(node.properties.className || [])];
-        return parseNodes(node.children, classes);
-      }
+  ): {
+    text: string;
+    classes: string[];
+  }[] {
+    return flattenDeep(
+      nodes.map((node) => {
+        if (node.type === "element") {
+          const classes = [...classNames, ...(node.properties.className || [])];
+          return parseNodes(node.children, classes);
+        }
 
-      return {
-        text: node.value,
-        classes: classNames,
-      };
-    });
+        return {
+          text: node.value,
+          classes: classNames,
+        };
+      })
+    );
   }
 
   blocks.forEach((block) => {
@@ -125,7 +137,7 @@ function getDecorations({
       }
 
       const nodes = refractor.highlight(block.node.textContent, language);
-      const newDecorations = flattenDeep(parseNodes(nodes))
+      const newDecorations = parseNodes(nodes)
         .map((node: ParsedNode) => {
           const from = startPos;
           const to = from + node.text.length;
@@ -180,7 +192,7 @@ export default function Prism({
   return new Plugin({
     key: new PluginKey("prism"),
     state: {
-      init: (_: Plugin, { doc }) => DecorationSet.create(doc, []),
+      init: (_, { doc }) => DecorationSet.create(doc, []),
       apply: (transaction: Transaction, decorationSet, oldState, state) => {
         const nodeName = state.selection.$head.parent.type.name;
         const previousNodeName = oldState.selection.$head.parent.type.name;

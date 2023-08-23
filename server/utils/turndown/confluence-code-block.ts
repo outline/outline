@@ -1,4 +1,4 @@
-import { repeat } from "lodash";
+import repeat from "lodash/repeat";
 import TurndownService from "turndown";
 
 const highlightRegExp = /brush: ([a-z0-9]+);/;

@@ -9,7 +9,7 @@ import {
   Node,
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
-import { EditorState, Plugin } from "prosemirror-state";
+import { Command, EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
@@ -17,7 +17,7 @@ import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
 import getMarkRange from "../queries/getMarkRange";
 import isMarkActive from "../queries/isMarkActive";
-import { EventType, Dispatch } from "../types";
+import { EventType } from "../types";
 import Mark from "./Mark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
@@ -113,9 +113,9 @@ export default class Link extends Mark {
     ];
   }
 
-  keys({ type }: { type: MarkType }) {
+  keys({ type }: { type: MarkType }): Record<string, Command> {
     return {
-      "Mod-k": (state: EditorState, dispatch: Dispatch) => {
+      "Mod-k": (state, dispatch) => {
         if (state.selection.empty) {
           this.editor.events.emit(EventType.LinkToolbarOpen);
           return true;
@@ -123,7 +123,7 @@ export default class Link extends Mark {
 
         return toggleMark(type, { href: "" })(state, dispatch);
       },
-      "Mod-Enter": (state: EditorState) => {
+      "Mod-Enter": (state) => {
         if (isMarkActive(type)(state)) {
           const range = getMarkRange(
             state.selection.$from,
@@ -285,27 +285,24 @@ export default class Link extends Mark {
 
   toMarkdown() {
     return {
-      open(
+      open: (
         _state: MarkdownSerializerState,
         mark: ProsemirrorMark,
         parent: Node,
         index: number
-      ) {
-        return isPlainURL(mark, parent, index, 1) ? "<" : "[";
-      },
-      close(
+      ) => (isPlainURL(mark, parent, index, 1) ? "<" : "["),
+      close: (
         state: MarkdownSerializerState,
         mark: ProsemirrorMark,
         parent: Node,
         index: number
-      ) {
-        return isPlainURL(mark, parent, index, -1)
+      ) =>
+        isPlainURL(mark, parent, index, -1)
           ? ">"
           : "](" +
-              state.esc(mark.attrs.href) +
-              (mark.attrs.title ? " " + state.quote(mark.attrs.title) : "") +
-              ")";
-      },
+            state.esc(mark.attrs.href) +
+            (mark.attrs.title ? " " + quote(mark.attrs.title) : "") +
+            ")",
     };
   }
 
@@ -318,4 +315,10 @@ export default class Link extends Mark {
       }),
     };
   }
+}
+
+function quote(str: string) {
+  const wrap =
+    str.indexOf('"') === -1 ? '""' : str.indexOf("'") === -1 ? "''" : "()";
+  return wrap[0] + str + wrap[1];
 }

@@ -75,6 +75,11 @@ const insertFiles = function (
     const { tr } = view.state;
 
     if (upload.isImage) {
+      // Skip if the editor does not support images.
+      if (!view.state.schema.nodes.image) {
+        continue;
+      }
+
       // insert a placeholder at this position, or mark an existing file as being
       // replaced
       tr.setMeta(uploadPlaceholderPlugin, {
@@ -88,6 +93,11 @@ const insertFiles = function (
       });
       view.dispatch(tr);
     } else if (!attachmentPlaceholdersSet) {
+      // Skip if the editor does not support attachments.
+      if (!view.state.schema.nodes.attachment) {
+        continue;
+      }
+
       const attachmentsToUpload = filesToUpload.filter(
         (i) => i.isImage === false
       );
@@ -146,8 +156,8 @@ const insertFiles = function (
             }
           };
 
-          newImg.onerror = (event) => {
-            throw new Error(`Error loading image: ${event}`);
+          newImg.onerror = () => {
+            throw new Error(`Error loading image: ${src}`);
           };
 
           newImg.src = src;

@@ -17,6 +17,7 @@ import {
 } from "~/utils/routeHelpers";
 
 type Props = {
+  children?: React.ReactNode;
   document: Document;
   onlyText?: boolean;
 };
@@ -58,7 +59,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
   document,
   children,
   onlyText,
-}) => {
+}: Props) => {
   const { collections } = useStores();
   const { t } = useTranslation();
   const category = useCategory(document);
@@ -129,7 +130,11 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     );
   }
 
-  return <Breadcrumb items={items} children={children} highlightFirstItem />;
+  return (
+    <Breadcrumb items={items} highlightFirstItem>
+      {children}
+    </Breadcrumb>
+  );
 };
 
 const SmallSlash = styled(GoToIcon)`

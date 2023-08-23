@@ -60,7 +60,7 @@ describe("email", () => {
         email: user.email,
       },
       headers: {
-        host: "example.localoutline.com",
+        host: "example.outline.dev",
       },
     });
     const body = await res.json();
@@ -71,7 +71,7 @@ describe("email", () => {
   });
 
   it("should not send email when user is on another subdomain but respond with success", async () => {
-    env.URL = sharedEnv.URL = "http://localoutline.com";
+    env.URL = sharedEnv.URL = "https://app.outline.dev";
     env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
     env.DEPLOYMENT = "hosted";
 
@@ -85,7 +85,7 @@ describe("email", () => {
         email: user.email,
       },
       headers: {
-        host: "example.localoutline.com",
+        host: "example.outline.dev",
       },
     });
 
@@ -109,7 +109,7 @@ describe("email", () => {
         email: user.email,
       },
       headers: {
-        host: "example.localoutline.com",
+        host: "example.outline.dev",
       },
     });
     const body = await res.json();
@@ -129,7 +129,7 @@ describe("email", () => {
         email: "user@example.com",
       },
       headers: {
-        host: "example.localoutline.com",
+        host: "example.outline.dev",
       },
     });
     const body = await res.json();
@@ -141,7 +141,7 @@ describe("email", () => {
   describe("with multiple users matching email", () => {
     it("should default to current subdomain with SSO", async () => {
       const spy = jest.spyOn(SigninEmail.prototype, "schedule");
-      env.URL = sharedEnv.URL = "http://localoutline.com";
+      env.URL = sharedEnv.URL = "https://app.outline.dev";
       env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
       const email = "sso-user@example.org";
       const team = await buildTeam({
@@ -159,7 +159,7 @@ describe("email", () => {
           email,
         },
         headers: {
-          host: "example.localoutline.com",
+          host: "example.outline.dev",
         },
       });
       const body = await res.json();
@@ -171,7 +171,7 @@ describe("email", () => {
 
     it("should default to current subdomain with guest email", async () => {
       const spy = jest.spyOn(SigninEmail.prototype, "schedule");
-      env.URL = sharedEnv.URL = "http://localoutline.com";
+      env.URL = sharedEnv.URL = "https://app.outline.dev";
       env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
       const email = "guest-user@example.org";
       const team = await buildTeam({
@@ -189,7 +189,7 @@ describe("email", () => {
           email,
         },
         headers: {
-          host: "example.localoutline.com",
+          host: "example.outline.dev",
         },
       });
       const body = await res.json();

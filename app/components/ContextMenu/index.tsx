@@ -46,6 +46,7 @@ type Props = MenuStateReturn & {
   onClose?: () => void;
   /** Called when the context menu is clicked. */
   onClick?: (ev: React.MouseEvent) => void;
+  children?: React.ReactNode;
 };
 
 const ContextMenu: React.FC<Props> = ({
@@ -54,9 +55,12 @@ const ContextMenu: React.FC<Props> = ({
   onClose,
   parentMenuState,
   ...rest
-}) => {
+}: Props) => {
   const previousVisible = usePrevious(rest.visible);
-  const maxHeight = useMenuHeight(rest.visible, rest.unstable_disclosureRef);
+  const maxHeight = useMenuHeight({
+    visible: rest.visible,
+    elementRef: rest.unstable_disclosureRef,
+  });
   const backgroundRef = React.useRef<HTMLDivElement>(null);
   const { ui } = useStores();
   const { t } = useTranslation();
@@ -147,7 +151,7 @@ const ContextMenu: React.FC<Props> = ({
                   ref={backgroundRef}
                   hiddenScrollbars
                   style={
-                    maxHeight && topAnchor
+                    topAnchor && !isMobile
                       ? {
                           maxHeight,
                         }

@@ -1,5 +1,6 @@
 import JSZip from "jszip";
-import { escapeRegExp, find } from "lodash";
+import escapeRegExp from "lodash/escapeRegExp";
+import find from "lodash/find";
 import mime from "mime-types";
 import { Node } from "prosemirror-model";
 import { v4 as uuidv4 } from "uuid";
@@ -62,7 +63,7 @@ export default class ImportJSONTask extends ImportTask {
       documents: { [id: string]: DocumentJSONExport },
       collectionId: string
     ) {
-      Object.values(documents).forEach(async (node) => {
+      Object.values(documents).forEach((node) => {
         const id = uuidv4();
         output.documents.push({
           ...node,
@@ -89,7 +90,7 @@ export default class ImportJSONTask extends ImportTask {
     async function mapAttachments(attachments: {
       [id: string]: AttachmentJSONExport;
     }) {
-      Object.values(attachments).forEach(async (node) => {
+      Object.values(attachments).forEach((node) => {
         const id = uuidv4();
         const zipObject = zip.files[node.key];
         const mimeType = mime.lookup(node.key) || "application/octet-stream";
@@ -135,7 +136,7 @@ export default class ImportJSONTask extends ImportTask {
       });
 
       if (Object.values(item.documents).length) {
-        await mapDocuments(item.documents, collectionId);
+        mapDocuments(item.documents, collectionId);
       }
 
       if (Object.values(item.attachments).length) {
@@ -147,22 +148,14 @@ export default class ImportJSONTask extends ImportTask {
     // and replace them out with attachment redirect urls before continuing.
     for (const document of output.documents) {
       for (const attachment of output.attachments) {
-        const encodedPath = encodeURI(attachment.path);
-
-        // Pull the collection and subdirectory out of the path name, upload
-        // folders in an export are relative to the document itself
-        const normalizedAttachmentPath = encodedPath.replace(
-          /(.*)uploads\//,
-          "uploads/"
+        const encodedPath = encodeURI(
+          `/api/attachments.redirect?id=${attachment.sourceId}`
         );
 
-        const reference = `<<${attachment.id}>>`;
-        document.text = document.text
-          .replace(new RegExp(escapeRegExp(encodedPath), "g"), reference)
-          .replace(
-            new RegExp(`/?${escapeRegExp(normalizedAttachmentPath)}`, "g"),
-            reference
-          );
+        document.text = document.text.replace(
+          new RegExp(escapeRegExp(encodedPath), "g"),
+          `<<${attachment.id}>>`
+        );
       }
     }
 

@@ -1,4 +1,4 @@
-import { trim } from "lodash";
+import trim from "lodash/trim";
 import { action, computed, observable, reaction, runInAction } from "mobx";
 import {
   CollectionPermission,
@@ -266,9 +266,10 @@ export default class Collection extends ParanoidModel {
   @action
   unstar = async () => this.store.unstar(this);
 
-  export = (format: FileOperationFormat) =>
+  export = (format: FileOperationFormat, includeAttachments: boolean) =>
     client.post("/collections.export", {
       id: this.id,
       format,
+      includeAttachments,
     });
 }

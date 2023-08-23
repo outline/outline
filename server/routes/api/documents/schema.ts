@@ -1,4 +1,4 @@
-import { isEmpty } from "lodash";
+import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
@@ -189,6 +189,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if the doc should occupy full width */
     fullWidth: z.boolean().optional(),
 
+    /** Boolean to denote if insights should be visible on the doc */
+    insightsEnabled: z.boolean().optional(),
+
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
@@ -203,6 +206,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
 
     /** Version of the API to be used */
     apiVersion: z.number().optional(),
+
+    /** Whether the editing session is complete */
+    done: z.boolean().optional(),
   }),
 }).refine((req) => !(req.body.append && !req.body.text), {
   message: "text is required while appending",
@@ -285,6 +291,9 @@ export const DocumentsCreateSchema = BaseSchema.extend({
 
     /** Create doc with this template */
     templateId: z.string().uuid().optional(),
+
+    /** Boolean to denote if the doc should occupy full width */
+    fullWidth: z.boolean().optional(),
 
     /** Whether to create a template doc */
     template: z.boolean().optional(),

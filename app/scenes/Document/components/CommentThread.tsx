@@ -1,4 +1,4 @@
-import { throttle } from "lodash";
+import throttle from "lodash/throttle";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -114,7 +114,7 @@ function CommentThread({
           if (!topRef.current) {
             return;
           }
-          scrollIntoView(topRef.current, {
+          return scrollIntoView(topRef.current, {
             scrollMode: "if-needed",
             behavior: "smooth",
             block: "end",

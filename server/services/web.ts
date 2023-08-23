@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+import crypto from "crypto";
 import { Server } from "https";
 import Koa from "koa";
 import {
@@ -27,8 +28,6 @@ const isProduction = env.ENVIRONMENT === "production";
 const defaultSrc = ["'self'"];
 const scriptSrc = [
   "'self'",
-  "'unsafe-inline'",
-  "'unsafe-eval'",
   "gist.github.com",
   "www.googletagmanager.com",
   "cdn.zapier.com",
@@ -43,7 +42,7 @@ const styleSrc = [
 
 // Allow to load assets from Vite
 if (!isProduction) {
-  scriptSrc.push("127.0.0.1:3001");
+  scriptSrc.push(env.URL.replace(`:${env.PORT}`, ":3001"));
   scriptSrc.push("localhost:3001");
 }
 
@@ -57,8 +56,8 @@ if (env.CDN_URL) {
   defaultSrc.push(env.CDN_URL);
 }
 
-export default function init(app: Koa = new Koa(), server?: Server): Koa {
-  initI18n();
+export default function init(app: Koa = new Koa(), server?: Server) {
+  void initI18n();
 
   if (isProduction) {
     // Force redirect to HTTPS protocol unless explicitly disabled
@@ -86,7 +85,7 @@ export default function init(app: Koa = new Koa(), server?: Server): Koa {
 
   // Monitor server connections
   if (server) {
-    setInterval(async () => {
+    setInterval(() => {
       server.getConnections((err, count) => {
         if (err) {
           return;
@@ -103,19 +102,22 @@ export default function init(app: Koa = new Koa(), server?: Server): Koa {
   // Sets common security headers by default, such as no-sniff, hsts, hide powered
   // by etc, these are applied after auth and api so they are only returned on
   // standard non-XHR accessed routes
-  app.use(
-    contentSecurityPolicy({
+  app.use((ctx, next) => {
+    ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
+
+    return contentSecurityPolicy({
       directives: {
         defaultSrc,
-        scriptSrc,
         styleSrc,
+        scriptSrc: [...scriptSrc, `'nonce-${ctx.state.cspNonce}'`],
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
-        connectSrc: ["*"], // Do not use connect-src: because self + websockets does not work in
+        // Do not use connect-src: because self + websockets does not work in
         // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
+        connectSrc: ["*"],
       },
-    })
-  );
+    })(ctx, next);
+  });
 
   // Allow DNS prefetching for performance, we do not care about leaking requests
   // to our own CDN's
@@ -129,6 +131,8 @@ export default function init(app: Koa = new Koa(), server?: Server): Koa {
       policy: "no-referrer",
     })
   );
+
   app.use(mount(routes));
+
   return app;
 }

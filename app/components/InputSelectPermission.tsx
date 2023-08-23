@@ -18,7 +18,7 @@ export default function InputSelectPermission(
   const handleChange = React.useCallback(
     (value) => {
       if (value === "no_access") {
-        value = "";
+        value = null;
       }
 
       onChange?.(value);

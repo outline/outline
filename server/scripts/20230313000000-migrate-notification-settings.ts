@@ -1,7 +1,7 @@
 import "./bootstrap";
 import { QueryTypes } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
 import { User } from "@server/models";
+import { sequelize } from "@server/storage/database";
 
 const limit = 100;
 let page = parseInt(process.argv[2], 10);
@@ -58,5 +58,5 @@ export default async function main(exit = false) {
 } // In the test suite we import the script rather than run via node CLI
 
 if (process.env.NODE_ENV !== "test") {
-  main(true);
+  void main(true);
 }

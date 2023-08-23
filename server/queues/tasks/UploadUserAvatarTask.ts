@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { User } from "@server/models";
-import { uploadToS3FromUrl } from "@server/utils/s3";
+import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -20,7 +20,7 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
-    const avatarUrl = await uploadToS3FromUrl(
+    const avatarUrl = await FileStorage.uploadFromUrl(
       props.avatarUrl,
       `avatars/${user.id}/${uuidv4()}`,
       "public-read"

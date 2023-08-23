@@ -7,7 +7,11 @@ import useBuildTheme from "~/hooks/useBuildTheme";
 import useStores from "~/hooks/useStores";
 import { TooltipStyles } from "./Tooltip";
 
-const Theme: React.FC = ({ children }) => {
+type Props = {
+  children?: React.ReactNode;
+};
+
+const Theme: React.FC = ({ children }: Props) => {
   const { auth, ui } = useStores();
   const theme = useBuildTheme(
     auth.team?.getPreference(TeamPreference.CustomTheme) ||
@@ -29,8 +33,7 @@ const Theme: React.FC = ({ children }) => {
         <TooltipStyles />
         <GlobalStyles
           useCursorPointer={auth.user?.getPreference(
-            UserPreference.UseCursorPointer,
-            true
+            UserPreference.UseCursorPointer
           )}
         />
         {children}

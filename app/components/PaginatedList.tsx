@@ -1,4 +1,4 @@
-import { isEqual } from "lodash";
+import isEqual from "lodash/isEqual";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -70,7 +70,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
   allowLoadMore = true;
 
   componentDidMount() {
-    this.fetchResults();
+    void this.fetchResults();
   }
 
   componentDidUpdate(prevProps: Props<T>) {
@@ -79,7 +79,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
       !isEqual(prevProps.options, this.props.options)
     ) {
       this.reset();
-      this.fetchResults();
+      void this.fetchResults();
     }
   }
 

@@ -1,4 +1,4 @@
-import { compact } from "lodash";
+import compact from "lodash/compact";
 import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
 

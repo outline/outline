@@ -1,4 +1,4 @@
-import { find } from "lodash";
+import find from "lodash/find";
 import * as React from "react";
 import embeds, { EmbedDescriptor } from "@shared/editor/embeds";
 import { IntegrationType } from "@shared/types";
@@ -29,7 +29,7 @@ export default function useEmbeds(loadIfMissing = false) {
     }
 
     if (!integrations.isLoaded && !integrations.isFetching && loadIfMissing) {
-      fetchEmbedIntegrations();
+      void fetchEmbedIntegrations();
     }
   }, [integrations, loadIfMissing]);
 

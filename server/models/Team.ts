@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { URL } from "url";
@@ -174,6 +175,22 @@ class Team extends ParanoidModel {
 
     url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
+  }
+
+  /**
+   * Returns a code that can be used to delete the user's team. The code will
+   * be rotated when the user signs out.
+   *
+   * @returns The deletion code.
+   */
+  public getDeleteConfirmationCode(user: User) {
+    return crypto
+      .createHash("md5")
+      .update(`${this.id}${user.jwtSecret}`)
+      .digest("hex")
+      .replace(/[l1IoO0]/gi, "")
+      .slice(0, 8)
+      .toUpperCase();
   }
 
   /**

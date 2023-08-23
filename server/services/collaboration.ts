@@ -1,12 +1,14 @@
 import http, { IncomingMessage } from "http";
 import { Duplex } from "stream";
 import url from "url";
+import { Throttle } from "@hocuspocus/extension-throttle";
 import { Server } from "@hocuspocus/server";
 import Koa from "koa";
 import WebSocket from "ws";
 import { DocumentValidation } from "@shared/validations";
 import { ConnectionLimitExtension } from "@server/collaboration/ConnectionLimitExtension";
 import { ViewsExtension } from "@server/collaboration/ViewsExtension";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import AuthenticationExtension from "../collaboration/AuthenticationExtension";
@@ -30,6 +32,12 @@ export default function init(
     timeout: 30000,
     maxDebounce: 10000,
     extensions: [
+      new Throttle({
+        throttle: env.RATE_LIMITER_COLLABORATION_REQUESTS,
+        consideredSeconds: env.RATE_LIMITER_DURATION_WINDOW,
+        // Ban time is defined in minutes
+        banTime: 5,
+      }),
       new ConnectionLimitExtension(),
       new AuthenticationExtension(),
       new PersistenceExtension(),

@@ -1,6 +1,6 @@
-import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
 import { User, UserAuthentication } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -20,14 +20,15 @@ export default class ValidateSSOAccessTask extends BaseTask<Props> {
       }
 
       // Check the validity of all the user's associated authentications.
-      const valid = await Promise.all(
+      // @ts-expect-error TODO: Need to setup nested tsconfig with ES2021
+      const valid = await Promise.any(
         userAuthentications.map(async (authentication) =>
           authentication.validateAccess({ transaction })
         )
       );
 
       // If any are valid then we're done here.
-      if (valid.includes(true)) {
+      if (valid) {
         return;
       }
 

@@ -1,4 +1,7 @@
-import { find, findIndex, remove, uniq } from "lodash";
+import find from "lodash/find";
+import findIndex from "lodash/findIndex";
+import remove from "lodash/remove";
+import uniq from "lodash/uniq";
 import randomstring from "randomstring";
 import { Identifier, Transaction, Op, FindOptions } from "sequelize";
 import {
@@ -167,8 +170,8 @@ class Collection extends ParanoidModel {
   color: string | null;
 
   @Length({
-    max: 50,
-    msg: `index must 50 characters or less`,
+    max: 100,
+    msg: `index must be 100 characters or less`,
   })
   @Column
   index: string | null;
@@ -305,10 +308,11 @@ class Collection extends ParanoidModel {
   @Column(DataType.UUID)
   teamId: string;
 
-  static DEFAULT_SORT = {
-    field: "index",
-    direction: "asc",
-  };
+  static DEFAULT_SORT: { field: "title" | "index"; direction: "asc" | "desc" } =
+    {
+      field: "index",
+      direction: "asc",
+    };
 
   /**
    * Returns an array of unique userIds that are members of a collection,
@@ -457,10 +461,11 @@ class Collection extends ParanoidModel {
           parentDocumentId: documentId,
         },
       });
-      childDocuments.forEach(async (child) => {
+
+      for (const child of childDocuments) {
         await loopChildren(child.id, opts);
         await child.destroy(opts);
-      });
+      }
     };
 
     await loopChildren(document.id, options);

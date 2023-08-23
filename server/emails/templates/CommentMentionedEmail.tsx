@@ -130,17 +130,20 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
     unsubscribeUrl,
     body,
   }: Props) {
-    const link = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
+    const threadLink = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
 
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview({ actorName } as Props)}
+        goToAction={{ url: threadLink, name: "View Thread" }}
+      >
         <Header />
 
         <Body>
           <Heading>{document.title}</Heading>
           <p>
             {actorName} mentioned you in a comment on{" "}
-            <a href={link}>{document.title}</a>{" "}
+            <a href={threadLink}>{document.title}</a>{" "}
             {collection.name ? `in the ${collection.name} collection` : ""}.
           </p>
           {body && (
@@ -153,7 +156,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
             </>
           )}
           <p>
-            <Button href={link}>Open Thread</Button>
+            <Button href={threadLink}>Open Thread</Button>
           </p>
         </Body>
 

@@ -17,7 +17,7 @@ export default class BulletList extends Node {
   get schema(): NodeSpec {
     return {
       content: "list_item+",
-      group: "block",
+      group: "block list",
       parseDOM: [{ tag: "ul" }],
       toDOM: () => ["ul", 0],
     };

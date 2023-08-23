@@ -7,15 +7,15 @@ import {
   format as formatDate,
 } from "date-fns";
 import { TFunction } from "i18next";
-import { startCase } from "lodash";
+import startCase from "lodash/startCase";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,
   getCurrentTimeAsString,
   unicodeCLDRtoBCP47,
+  dateLocale,
 } from "@shared/utils/date";
 import User from "~/models/User";
-import { dateLocale } from "~/utils/i18n";
 
 export function dateToHeading(
   dateTime: string,

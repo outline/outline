@@ -6,12 +6,19 @@ import {
   NodeType,
   Schema,
 } from "prosemirror-model";
-import { EditorState, TextSelection } from "prosemirror-state";
+import { Command, TextSelection } from "prosemirror-state";
+import { Primitive } from "utility-types";
 import Suggestion from "../extensions/Suggestion";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { SuggestionsMenuType } from "../plugins/Suggestions";
 import emojiRule from "../rules/emoji";
-import { Dispatch } from "../types";
+
+/**
+ * Languages using the colon character with a space infront in standard
+ * punctuation. In this case the trigger is only matched once there is additional
+ * text after the colon.
+ */
+const languagesUsingColon = ["fr"];
 
 export default class Emoji extends Suggestion {
   get type() {
@@ -19,9 +26,16 @@ export default class Emoji extends Suggestion {
   }
 
   get defaultOptions() {
+    const languageIsUsingColon =
+      typeof window === "undefined"
+        ? false
+        : languagesUsingColon.includes(window.navigator.language.slice(0, 2));
+
     return {
       type: SuggestionsMenuType.Emoji,
-      openRegex: /(?:^|\s):([0-9a-zA-Z_+-]+)?$/,
+      openRegex: new RegExp(
+        `(?:^|\\s):([0-9a-zA-Z_+-]+)${languageIsUsingColon ? "+" : "?"}$`
+      ),
       closeRegex:
         /(?:^|\s):(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/,
       enabledInTable: true,
@@ -78,8 +92,8 @@ export default class Emoji extends Suggestion {
   }
 
   commands({ type }: { type: NodeType; schema: Schema }) {
-    return (attrs: Record<string, string>) =>
-      (state: EditorState, dispatch: Dispatch) => {
+    return (attrs: Record<string, Primitive>): Command =>
+      (state, dispatch) => {
         const { selection } = state;
         const position =
           selection instanceof TextSelection
@@ -91,7 +105,7 @@ export default class Emoji extends Suggestion {
 
         const node = type.create(attrs);
         const transaction = state.tr.insert(position, node);
-        dispatch(transaction);
+        dispatch?.(transaction);
         return true;
       };
   }

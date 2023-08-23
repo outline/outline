@@ -1,4 +1,4 @@
-import { isEmpty } from "lodash";
+import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
 import { NotificationEventType } from "@shared/types";
 import BaseSchema from "../BaseSchema";

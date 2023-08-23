@@ -1,5 +1,5 @@
-import { sequelize } from "@server/database/sequelize";
 import { Event } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { setupTestDatabase } from "@server/test/support";
 import documentUpdater from "./documentUpdater";

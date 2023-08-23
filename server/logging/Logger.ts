@@ -1,11 +1,15 @@
 /* eslint-disable no-console */
 import { IncomingMessage } from "http";
 import chalk from "chalk";
-import { isEmpty, isArray, isObject, isString } from "lodash";
+import isArray from "lodash/isArray";
+import isEmpty from "lodash/isEmpty";
+import isObject from "lodash/isObject";
+import isString from "lodash/isString";
 import winston from "winston";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
 import Sentry from "@server/logging/sentry";
+import ShutdownHelper from "@server/utils/ShutdownHelper";
 import * as Tracing from "./tracer";
 
 const isProduction = env.ENVIRONMENT === "production";
@@ -30,7 +34,20 @@ class Logger {
 
   public constructor() {
     this.output = winston.createLogger({
-      level: env.LOG_LEVEL,
+      // The check for log level validity is here in addition to the ENV validation
+      // as entering an incorrect LOG_LEVEL in env could otherwise prevent the
+      // related error message from being displayed.
+      level: [
+        "error",
+        "warn",
+        "info",
+        "http",
+        "verbose",
+        "debug",
+        "silly",
+      ].includes(env.LOG_LEVEL)
+        ? env.LOG_LEVEL
+        : "info",
     });
     this.output.add(
       new winston.transports.Console({
@@ -142,11 +159,25 @@ class Logger {
         stack: error.stack,
       });
     } else {
-      console.error(message, {
-        error,
-        extra,
-      });
+      console.error(message);
+      console.error(error);
+
+      if (extra) {
+        console.error(extra);
+      }
     }
+  }
+
+  /**
+   * Report a fatal error and shut down the server
+   *
+   * @param message A description of the error
+   * @param error The error that occurred
+   * @param extra Arbitrary data to be logged that will appear in prod logs
+   */
+  public fatal(message: string, error: Error, extra?: Extra) {
+    this.error(message, error, extra);
+    void ShutdownHelper.execute();
   }
 
   /**

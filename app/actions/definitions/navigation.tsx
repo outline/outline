@@ -14,6 +14,7 @@ import {
   BrowserIcon,
 } from "outline-icons";
 import * as React from "react";
+import { isMac } from "@shared/utils/browser";
 import {
   developersUrl,
   changelogUrl,
@@ -26,7 +27,6 @@ import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";
 import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
 import Desktop from "~/utils/Desktop";
-import { isMac } from "~/utils/browser";
 import history from "~/utils/history";
 import isCloudHosted from "~/utils/isCloudHosted";
 import {
@@ -142,6 +142,14 @@ export const openAPIDocumentation = createAction({
   perform: () => window.open(developersUrl()),
 });
 
+export const toggleSidebar = createAction({
+  name: ({ t }) => t("Toggle sidebar"),
+  analyticsName: "Toggle sidebar",
+  keywords: "hide show navigation",
+  section: NavigationSection,
+  perform: ({ stores }) => stores.ui.toggleCollapsedSidebar(),
+});
+
 export const openFeedbackUrl = createAction({
   name: ({ t }) => t("Send us feedback"),
   analyticsName: "Open feedback",
@@ -217,5 +225,6 @@ export const rootNavigationActions = [
   openBugReportUrl,
   openChangelog,
   openKeyboardShortcuts,
+  toggleSidebar,
   logout,
 ];

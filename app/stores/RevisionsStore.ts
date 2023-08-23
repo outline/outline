@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { filter } from "lodash";
+import filter from "lodash/filter";
 import { action, runInAction } from "mobx";
 import BaseStore, { RPCAction } from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
@@ -46,6 +46,16 @@ export default class RevisionsStore extends BaseStore<Revision> {
 
     return revisions;
   }
+
+  /**
+   * Fetches the latest revision for the given document.
+   *
+   * @returns A promise that resolves to the latest revision for the given document
+   */
+  fetchLatest = async (documentId: string) => {
+    const res = await client.post(`/revisions.info`, { documentId });
+    return this.add(res.data);
+  };
 
   @action
   fetchPage = async (

@@ -8,7 +8,7 @@ export function detectLanguage() {
   return `${ln}_${region}`;
 }
 
-export function changeLanguage(
+export async function changeLanguage(
   toLanguageString: string | null | undefined,
   i18n: i18n
 ) {
@@ -19,7 +19,7 @@ export function changeLanguage(
   if (locale && i18n.languages?.[0] !== locale) {
     // Languages are stored in en_US format in the database, however the
     // frontend translation framework (i18next) expects en-US
-    i18n.changeLanguage(locale);
-    Desktop.bridge?.setSpellCheckerLanguages(["en-US", locale]);
+    await i18n.changeLanguage(locale);
+    await Desktop.bridge?.setSpellCheckerLanguages(["en-US", locale]);
   }
 }

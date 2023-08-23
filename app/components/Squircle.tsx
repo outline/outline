@@ -5,9 +5,10 @@ import Flex from "./Flex";
 type Props = {
   size?: number;
   color?: string;
+  children?: React.ReactNode;
 };
 
-const Squircle: React.FC<Props> = ({ color, size = 28, children }) => (
+const Squircle: React.FC<Props> = ({ color, size = 28, children }: Props) => (
   <Wrapper
     style={{ width: size, height: size }}
     align="center"

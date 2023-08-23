@@ -1,4 +1,4 @@
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import { AllSelection } from "prosemirror-state";
@@ -128,7 +128,7 @@ class DocumentScene extends React.Component<Props> {
       this.props.document.hasEmptyTitle &&
       this.props.document.isPersistedOnce
     ) {
-      this.props.document.delete();
+      void this.props.document.delete();
     }
   }
 
@@ -140,11 +140,15 @@ class DocumentScene extends React.Component<Props> {
     }
 
     const { view, parser } = editorRef;
-    view.dispatch(
-      view.state.tr
-        .setSelection(new AllSelection(view.state.doc))
-        .replaceSelectionWith(parser.parse(template.text))
-    );
+    const doc = parser.parse(template.text);
+
+    if (doc) {
+      view.dispatch(
+        view.state.tr
+          .setSelection(new AllSelection(view.state.doc))
+          .replaceSelectionWith(doc)
+      );
+    }
 
     this.isEditorDirty = true;
 
@@ -163,7 +167,8 @@ class DocumentScene extends React.Component<Props> {
 
     this.props.document.text = template.text;
     this.updateIsDirty();
-    this.onSave({
+
+    return this.onSave({
       autosave: true,
       publish: false,
       done: false,
@@ -185,7 +190,7 @@ class DocumentScene extends React.Component<Props> {
     });
 
     if (response) {
-      this.replaceDocument(response.data);
+      await this.replaceDocument(response.data);
       toasts.showToast(t("Document restored"));
       history.replace(this.props.document.url, history.location.state);
     }
@@ -240,7 +245,7 @@ class DocumentScene extends React.Component<Props> {
     }
 
     if (document?.collectionId) {
-      this.onSave({
+      void this.onSave({
         publish: true,
         done: true,
       });
@@ -300,7 +305,7 @@ class DocumentScene extends React.Component<Props> {
     this.isPublishing = !!options.publish;
 
     try {
-      const savedDocument = await document.save(options);
+      const savedDocument = await document.save(undefined, options);
       this.isEditorDirty = false;
 
       if (options.done) {
@@ -320,12 +325,14 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  autosave = debounce(() => {
-    this.onSave({
-      done: false,
-      autosave: true,
-    });
-  }, AUTOSAVE_DELAY);
+  autosave = debounce(
+    () =>
+      this.onSave({
+        done: false,
+        autosave: true,
+      }),
+    AUTOSAVE_DELAY
+  );
 
   updateIsDirty = () => {
     const { document } = this.props;
@@ -366,7 +373,7 @@ class DocumentScene extends React.Component<Props> {
     this.title = value;
     this.props.document.title = value;
     this.updateIsDirty();
-    this.autosave();
+    void this.autosave();
   });
 
   goBack = () => {
@@ -447,8 +454,8 @@ class DocumentScene extends React.Component<Props> {
             <Header
               document={document}
               documentHasHeadings={hasHeadings}
+              revision={revision}
               shareId={shareId}
-              isRevision={!!revision}
               isDraft={document.isDraft}
               isEditing={!readOnly && !team?.seamlessEditing}
               isSaving={this.isSaving}
@@ -506,10 +513,11 @@ class DocumentScene extends React.Component<Props> {
                         onPublish={this.onPublish}
                         onCancel={this.goBack}
                         readOnly={readOnly}
-                        readOnlyWriteCheckboxes={readOnly && abilities.update}
+                        canUpdate={abilities.update}
+                        canComment={abilities.comment}
                       >
                         {shareId && (
-                          <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                          <ReferencesWrapper>
                             <PublicReferences
                               shareId={shareId}
                               documentId={document.id}
@@ -520,9 +528,7 @@ class DocumentScene extends React.Component<Props> {
                         {!isShare && !revision && (
                           <>
                             <MarkAsViewed document={document} />
-                            <ReferencesWrapper
-                              isOnlyTitle={document.isOnlyTitle}
-                            >
+                            <ReferencesWrapper>
                               <References document={document} />
                             </ReferencesWrapper>
                           </>
@@ -572,8 +578,8 @@ const Background = styled(Container)`
   transition: ${s("backgroundTransition")};
 `;
 
-const ReferencesWrapper = styled.div<{ isOnlyTitle?: boolean }>`
-  margin-top: ${(props) => (props.isOnlyTitle ? -45 : 16)}px;
+const ReferencesWrapper = styled.div`
+  margin-top: 16px;
 
   @media print {
     display: none;

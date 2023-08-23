@@ -1,8 +1,8 @@
-import { formatDistanceToNow } from "date-fns";
-import { sortBy } from "lodash";
+import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { dateToRelative } from "@shared/utils/date";
 import Document from "~/models/Document";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
@@ -53,7 +53,7 @@ function DocumentViews({ document, isOpen }: Props) {
                 ? t("Currently editing")
                 : t("Currently viewing")
               : t("Viewed {{ timeAgo }} ago", {
-                  timeAgo: formatDistanceToNow(
+                  timeAgo: dateToRelative(
                     view ? Date.parse(view.lastViewedAt) : new Date()
                   ),
                 });

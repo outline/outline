@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import documentMover from "@server/commands/documentMover";
-import { sequelize } from "@server/database/sequelize";
 import { Collection, Document, User } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import BaseTask from "./BaseTask";
 
 type Props = {
@@ -26,6 +26,7 @@ export default class DetachDraftsFromCollectionTask extends BaseTask<Props> {
     const documents = await Document.scope("withDrafts").findAll({
       where: {
         collectionId: props.collectionId,
+        template: false,
         publishedAt: {
           [Op.is]: null,
         },

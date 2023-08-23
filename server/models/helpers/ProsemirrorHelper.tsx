@@ -1,13 +1,16 @@
+import { prosemirrorToYDoc } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
-import { Node, DOMSerializer } from "prosemirror-model";
+import { Node, DOMSerializer, Fragment } from "prosemirror-model";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
+import * as Y from "yjs";
 import EditorContainer from "@shared/editor/components/Styles";
+import embeds from "@shared/editor/embeds";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
 import { isRTL } from "@shared/utils/rtl";
-import { schema } from "@server/editor";
+import { schema, parser } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 
@@ -31,9 +34,65 @@ type MentionAttrs = {
 @trace()
 export default class ProsemirrorHelper {
   /**
-   * Returns the data as a Prosemirror Node.
+   * Returns the input text as a Y.Doc.
    *
-   * @param node The node to parse
+   * @param markdown The text to parse
+   * @returns The content as a Y.Doc.
+   */
+  static toYDoc(markdown: string, fieldName = "default"): Y.Doc {
+    let node = parser.parse(markdown);
+
+    // in the editor embeds are created at runtime by converting links into
+    // embeds where they match.Because we're converting to a CRDT structure on
+    //  the server we need to mimic this behavior.
+    function urlsToEmbeds(node: Node): Node | null {
+      if (node.type.name === "paragraph") {
+        // @ts-expect-error content
+        for (const textNode of node.content.content) {
+          for (const embed of embeds) {
+            if (textNode.text && embed.matcher(textNode.text)) {
+              return schema.nodes.embed.createAndFill({
+                href: textNode.text,
+              });
+            }
+          }
+        }
+      }
+
+      if (node.content) {
+        const contentAsArray =
+          node.content instanceof Fragment
+            ? // @ts-expect-error content
+              node.content.content
+            : node.content;
+        // @ts-expect-error content
+        node.content = Fragment.fromArray(contentAsArray.map(urlsToEmbeds));
+      }
+
+      return node;
+    }
+
+    if (node) {
+      node = urlsToEmbeds(node);
+    }
+
+    return node ? prosemirrorToYDoc(node, fieldName) : new Y.Doc();
+  }
+
+  /**
+   * Returns the input Y.Doc encoded as a YJS state update.
+   *
+   * @param ydoc The Y.Doc to encode
+   * @returns The content as a YJS state update
+   */
+  static toState(ydoc: Y.Doc) {
+    return Buffer.from(Y.encodeStateAsUpdate(ydoc));
+  }
+
+  /**
+   * Converts a plain object into a Prosemirror Node.
+   *
+   * @param data The object to parse
    * @returns The content as a Prosemirror Node
    */
   static toProsemirror(data: Record<string, any>) {

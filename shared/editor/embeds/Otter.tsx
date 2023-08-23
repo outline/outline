@@ -14,6 +14,6 @@ function Otter(props: Props) {
   );
 }
 
-Otter.ENABLED = [new RegExp("https?://otter\\.ai/[su]/(.*)$")];
+Otter.ENABLED = [new RegExp("^https?://otter\\.ai/[su]/(.*)$")];
 
 export default Otter;

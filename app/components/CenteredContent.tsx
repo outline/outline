@@ -3,6 +3,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
 type Props = {
+  children?: React.ReactNode;
   withStickyHeader?: boolean;
 };
 
@@ -26,7 +27,7 @@ const Content = styled.div`
   `};
 `;
 
-const CenteredContent: React.FC<Props> = ({ children, ...rest }) => (
+const CenteredContent: React.FC<Props> = ({ children, ...rest }: Props) => (
   <Container {...rest}>
     <Content>{children}</Content>
   </Container>

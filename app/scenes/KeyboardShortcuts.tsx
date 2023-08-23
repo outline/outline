@@ -2,10 +2,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { isMac } from "@shared/utils/browser";
 import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import Key from "~/components/Key";
-import { isMac } from "~/utils/browser";
 import { metaDisplay, altDisplay } from "~/utils/keyboard";
 
 function KeyboardShortcuts() {
@@ -442,6 +442,7 @@ const List = styled.dl`
   overflow: hidden;
   padding: 0;
   margin: 0;
+  user-select: none;
 `;
 
 const Keys = styled.dt`

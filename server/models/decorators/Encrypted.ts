@@ -1,6 +1,6 @@
-import { isNil } from "lodash";
-import vaults from "@server/database/vaults";
+import isNil from "lodash/isNil";
 import Logger from "@server/logging/Logger";
+import vaults from "@server/storage/vaults";
 
 const key = "sequelize:vault";
 

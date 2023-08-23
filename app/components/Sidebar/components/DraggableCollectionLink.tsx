@@ -51,7 +51,7 @@ function DraggableCollectionLink({
   ] = useDrop({
     accept: "collection",
     drop: (item: DragObject) => {
-      collections.move(
+      void collections.move(
         item.id,
         fractionalIndex(collection.index, belowCollectionIndex)
       );

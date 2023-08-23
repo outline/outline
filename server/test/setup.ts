@@ -1,16 +1,13 @@
-import Redis from "@server/redis";
+import Redis from "@server/storage/redis";
 
 // NOTE: this require must come after the ENV var override
 // so that sequelize uses the test config variables
-require("@server/database/sequelize");
+require("@server/storage/database");
 
 jest.mock("bull");
 
 // This is needed for the relative manual mock to be picked up
 jest.mock("../queues");
-
-// Avoid "Yjs was already imported" errors in the test environment
-jest.mock("yjs");
 
 // We never want to make real S3 requests in test environment
 jest.mock("aws-sdk", () => {
@@ -25,7 +22,5 @@ jest.mock("aws-sdk", () => {
     Endpoint: jest.fn(),
   };
 });
-
-jest.mock("@getoutline/y-prosemirror", () => ({}));
 
 afterAll(() => Redis.defaultClient.disconnect());

@@ -1,4 +1,4 @@
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -33,10 +33,7 @@ function AddPeopleToGroup(props: Props) {
 
   const { fetchPage: fetchUsers } = users;
   const debouncedFetch = React.useMemo(
-    () =>
-      debounce((query) => {
-        fetchUsers({ query });
-      }, 250),
+    () => debounce((query) => fetchUsers({ query }), 250),
     [fetchUsers]
   );
 
@@ -44,7 +41,7 @@ function AddPeopleToGroup(props: Props) {
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       const updatedQuery = ev.target.value;
       setQuery(updatedQuery);
-      debouncedFetch(updatedQuery);
+      void debouncedFetch(updatedQuery);
     },
     [debouncedFetch]
   );

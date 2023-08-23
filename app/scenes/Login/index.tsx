@@ -1,4 +1,4 @@
-import { find } from "lodash";
+import find from "lodash/find";
 import { observer } from "mobx-react";
 import { BackIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
@@ -101,7 +101,7 @@ function Login({ children }: Props) {
   // Try to detect the user's language and show the login page on its idiom
   // if translation is available
   React.useEffect(() => {
-    changeLanguage(detectLanguage(), i18n);
+    void changeLanguage(detectLanguage(), i18n);
   }, [i18n]);
 
   React.useEffect(() => {

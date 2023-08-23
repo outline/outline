@@ -85,11 +85,11 @@ const InputSelect = (props: Props) => {
   const contentRef = React.useRef<HTMLDivElement>(null);
   const minWidth = buttonRef.current?.offsetWidth || 0;
   const margin = 8;
-  const menuMaxHeight = useMenuHeight(
-    select.visible,
-    select.unstable_disclosureRef,
-    margin
-  );
+  const menuMaxHeight = useMenuHeight({
+    visible: select.visible,
+    elementRef: select.unstable_disclosureRef,
+    margin,
+  });
   const maxHeight = Math.min(
     menuMaxHeight ?? 0,
     window.innerHeight -
@@ -108,11 +108,7 @@ const InputSelect = (props: Props) => {
     }
     previousValue.current = select.selectedValue;
 
-    async function load() {
-      await onChange?.(select.selectedValue);
-    }
-
-    load();
+    onChange?.(select.selectedValue);
   }, [onChange, select.selectedValue]);
 
   React.useLayoutEffect(() => {

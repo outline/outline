@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
 import { NavigationNode, TeamPreference } from "@shared/types";
+import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import Error404 from "~/scenes/Error404";
@@ -59,7 +60,14 @@ function DataLoader({ match, children }: Props) {
     documents.getByUrl(match.params.documentSlug) ??
     documents.get(match.params.documentSlug);
 
-  const revision = revisionId ? revisions.get(revisionId) : undefined;
+  const revision = revisionId
+    ? revisions.get(
+        revisionId === "latest"
+          ? RevisionHelper.latestId(document?.id)
+          : revisionId
+      )
+    : undefined;
+
   const sharedTree = document
     ? documents.getSharedTree(document.id)
     : undefined;
@@ -78,7 +86,7 @@ function DataLoader({ match, children }: Props) {
         setError(err);
       }
     }
-    fetchDocument();
+    void fetchDocument();
   }, [ui, documents, document, shareId, documentSlug]);
 
   React.useEffect(() => {
@@ -91,8 +99,21 @@ function DataLoader({ match, children }: Props) {
         }
       }
     }
-    fetchRevision();
+    void fetchRevision();
   }, [revisions, revisionId]);
+
+  React.useEffect(() => {
+    async function fetchRevision() {
+      if (document && revisionId === "latest") {
+        try {
+          await revisions.fetchLatest(document.id);
+        } catch (err) {
+          setError(err);
+        }
+      }
+    }
+    void fetchRevision();
+  }, [document, revisionId, revisions]);
 
   React.useEffect(() => {
     async function fetchSubscription() {
@@ -107,7 +128,7 @@ function DataLoader({ match, children }: Props) {
         }
       }
     }
-    fetchSubscription();
+    void fetchSubscription();
   }, [document?.id, subscriptions, revisionId]);
 
   React.useEffect(() => {
@@ -122,7 +143,7 @@ function DataLoader({ match, children }: Props) {
         }
       }
     }
-    fetchViews();
+    void fetchViews();
   }, [document?.id, document?.isDeleted, revisionId, views]);
 
   const onCreateLink = React.useCallback(
@@ -159,7 +180,7 @@ function DataLoader({ match, children }: Props) {
       // when viewing a public share link
       if (can.read) {
         if (team?.getPreference(TeamPreference.Commenting)) {
-          comments.fetchDocumentComments(document.id, {
+          void comments.fetchDocumentComments(document.id, {
             limit: 100,
           });
         }

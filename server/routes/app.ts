@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import util from "util";
 import { Context, Next } from "koa";
-import { escape } from "lodash";
+import escape from "lodash/escape";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import { IntegrationType, TeamPreference } from "@shared/types";
@@ -17,7 +17,11 @@ import readManifestFile from "@server/utils/readManifestFile";
 const isProduction = env.ENVIRONMENT === "production";
 const isDevelopment = env.ENVIRONMENT === "development";
 const isTest = env.ENVIRONMENT === "test";
+
 const readFile = util.promisify(fs.readFile);
+const entry = "app/index.tsx";
+const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
+
 let indexHtmlCache: Buffer | undefined;
 
 const readIndexFile = async (): Promise<Buffer> => {
@@ -67,24 +71,24 @@ export const renderApp = async (
   const { shareId } = ctx.params;
   const page = await readIndexFile();
   const environment = `
-    <script>
+    <script nonce="${ctx.state.cspNonce}">
       window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
     </script>
   `;
-  const entry = "app/index.tsx";
+
   const scriptTags = isProduction
-    ? `<script type="module" src="${env.CDN_URL || ""}/static/${
-        readManifestFile()[entry]["file"]
-      }"></script>`
-    : `<script type="module">
-        import RefreshRuntime from 'http://localhost:3001/static/@react-refresh'
+    ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
+        env.CDN_URL || ""
+      }/static/${readManifestFile()[entry]["file"]}"></script>`
+    : `<script type="module" nonce="${ctx.state.cspNonce}">
+        import RefreshRuntime from "${viteHost}/static/@react-refresh"
         RefreshRuntime.injectIntoGlobalHook(window)
         window.$RefreshReg$ = () => { }
         window.$RefreshSig$ = () => (type) => type
         window.__vite_plugin_react_preamble_installed__ = true
       </script>
-      <script type="module" src="http://localhost:3001/static/@vite/client"></script>
-      <script type="module" src="http://localhost:3001/static/${entry}"></script>
+      <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/@vite/client"></script>
+      <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/${entry}"></script>
     `;
 
   ctx.body = page
@@ -97,7 +101,8 @@ export const renderApp = async (
     .replace(/\{prefetch\}/g, shareId ? "" : prefetchTags)
     .replace(/\{slack-app-id\}/g, env.SLACK_APP_ID || "")
     .replace(/\{cdn-url\}/g, env.CDN_URL || "")
-    .replace(/\{script-tags\}/g, scriptTags);
+    .replace(/\{script-tags\}/g, scriptTags)
+    .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);
 };
 
 export const renderShare = async (ctx: Context, next: Next) => {

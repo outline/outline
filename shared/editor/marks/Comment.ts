@@ -1,12 +1,10 @@
 import { toggleMark } from "prosemirror-commands";
 import { MarkSpec, MarkType, Schema } from "prosemirror-model";
-import { EditorState, Plugin } from "prosemirror-state";
+import { Command, Plugin } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
 import collapseSelection from "../commands/collapseSelection";
-import { Command } from "../lib/Extension";
 import chainTransactions from "../lib/chainTransactions";
 import isMarkActive from "../queries/isMarkActive";
-import { Dispatch } from "../types";
 import Mark from "./Mark";
 
 export default class Comment extends Mark {
@@ -21,18 +19,43 @@ export default class Comment extends Mark {
         userId: {},
       },
       inclusive: false,
-      parseDOM: [{ tag: "span.comment-marker" }],
+      parseDOM: [
+        {
+          tag: "span.comment-marker",
+          getAttrs: (dom: HTMLSpanElement) => {
+            // Ignore comment markers from other documents
+            const documentId = dom.getAttribute("data-document-id");
+            if (documentId && documentId !== this.editor?.props.id) {
+              return false;
+            }
+
+            return {
+              id: dom.getAttribute("id")?.replace("comment-", ""),
+              userId: dom.getAttribute("data-user-id"),
+            };
+          },
+        },
+      ],
       toDOM: (node) => [
         "span",
-        { class: "comment-marker", id: `comment-${node.attrs.id}` },
+        {
+          class: "comment-marker",
+          id: `comment-${node.attrs.id}`,
+          "data-user-id": node.attrs.userId,
+          "data-document-id": this.editor?.props.id,
+        },
       ],
     };
+  }
+
+  get allowInReadOnly() {
+    return true;
   }
 
   keys({ type }: { type: MarkType }): Record<string, Command> {
     return this.options.onCreateCommentMark
       ? {
-          "Mod-Alt-m": (state: EditorState, dispatch: Dispatch) => {
+          "Mod-Alt-m": (state, dispatch) => {
             if (isMarkActive(state.schema.marks.comment)(state)) {
               return false;
             }
@@ -53,7 +76,7 @@ export default class Comment extends Mark {
 
   commands({ type }: { type: MarkType; schema: Schema }) {
     return this.options.onCreateCommentMark
-      ? () => (state: EditorState, dispatch: Dispatch) => {
+      ? (): Command => (state, dispatch) => {
           if (isMarkActive(state.schema.marks.comment)(state)) {
             return false;
           }
@@ -85,7 +108,7 @@ export default class Comment extends Mark {
       new Plugin({
         props: {
           handleDOMEvents: {
-            mouseup: (view, event: MouseEvent) => {
+            mouseup: (_view, event: MouseEvent) => {
               if (
                 !(event.target instanceof HTMLSpanElement) ||
                 !event.target.classList.contains("comment-marker")

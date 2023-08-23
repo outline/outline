@@ -1,4 +1,5 @@
-import { uniq, compact } from "lodash";
+import compact from "lodash/compact";
+import uniq from "lodash/uniq";
 
 const attachmentRedirectRegex =
   /\/api\/attachments\.redirect\?id=(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;

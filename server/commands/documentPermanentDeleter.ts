@@ -1,9 +1,9 @@
-import { uniq } from "lodash";
+import uniq from "lodash/uniq";
 import { QueryTypes } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
 import { Document, Attachment } from "@server/models";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
+import { sequelize } from "@server/storage/database";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 
 export default async function documentPermanentDeleter(documents: Document[]) {

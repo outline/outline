@@ -200,6 +200,7 @@ const Link = styled(NavLink)<{
   text-overflow: ellipsis;
   padding: 6px 16px;
   border-radius: 4px;
+  min-height: 32px;
   transition: background 50ms, color 50ms;
   user-select: none;
   background: ${(props) =>
@@ -291,7 +292,7 @@ const Label = styled.div`
   position: relative;
   width: 100%;
   max-height: 4.8em;
-  line-height: 1.6;
+  line-height: 24px;
 
   * {
     unicode-bidi: plaintext;

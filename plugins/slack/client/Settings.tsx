@@ -1,4 +1,4 @@
-import { find } from "lodash";
+import find from "lodash/find";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -30,10 +30,10 @@ function Slack() {
   const error = query.get("error");
 
   React.useEffect(() => {
-    collections.fetchPage({
+    void collections.fetchPage({
       limit: 100,
     });
-    integrations.fetchPage({
+    void integrations.fetchPage({
       limit: 100,
     });
   }, [collections, integrations]);

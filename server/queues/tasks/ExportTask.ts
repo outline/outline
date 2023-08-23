@@ -1,12 +1,12 @@
 import fs from "fs";
-import { truncate } from "lodash";
+import truncate from "lodash/truncate";
 import { FileOperationState, NotificationEventType } from "@shared/types";
 import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
 import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
 import Logger from "@server/logging/Logger";
 import { Collection, Event, FileOperation, Team, User } from "@server/models";
 import fileOperationPresenter from "@server/presenters/fileOperation";
-import { uploadToS3 } from "@server/utils/s3";
+import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -40,14 +40,18 @@ export default abstract class ExportTask extends BaseTask<Props> {
       },
     });
 
+    let filePath: string | undefined;
+
     try {
-      Logger.info("task", `ExportTask processing data for ${fileOperationId}`);
+      Logger.info("task", `ExportTask processing data for ${fileOperationId}`, {
+        includeAttachments: fileOperation.includeAttachments,
+      });
 
       await this.updateFileOperation(fileOperation, {
         state: FileOperationState.Creating,
       });
 
-      const filePath = await this.export(collections, fileOperation);
+      filePath = await this.export(collections, fileOperation);
 
       Logger.info("task", `ExportTask uploading data for ${fileOperationId}`);
 
@@ -56,7 +60,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
       });
 
       const stat = await fs.promises.stat(filePath);
-      const url = await uploadToS3({
+      const url = await FileStorage.upload({
         body: fs.createReadStream(filePath),
         contentLength: stat.size,
         contentType: "application/zip",
@@ -93,6 +97,12 @@ export default abstract class ExportTask extends BaseTask<Props> {
         }).schedule();
       }
       throw error;
+    } finally {
+      if (filePath) {
+        void fs.promises.unlink(filePath).catch((error) => {
+          Logger.error(`Failed to delete temporary file ${filePath}`, error);
+        });
+      }
     }
   }
 

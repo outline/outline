@@ -64,6 +64,9 @@ const EditableTitle = React.forwardRef(
 
     const handleKeyDown = React.useCallback(
       (event: React.KeyboardEvent) => {
+        if (event.nativeEvent.isComposing) {
+          return;
+        }
         if (event.key === "Enter") {
           event.preventDefault();
 
@@ -143,7 +146,9 @@ const EditableTitle = React.forwardRef(
 
           if (isMarkdown(text)) {
             const paste = pasteParser.parse(normalizePastedMarkdown(content));
-            slice = paste.slice(0);
+            if (paste) {
+              slice = paste.slice(0);
+            }
           } else {
             const defaultSlice = __parseFromClipboard(
               view,
@@ -165,11 +170,13 @@ const EditableTitle = React.forwardRef(
               : defaultSlice;
           }
 
-          view.dispatch(
-            view.state.tr
-              .setSelection(Selection.atStart(view.state.doc))
-              .replaceSelection(slice)
-          );
+          if (slice) {
+            view.dispatch(
+              view.state.tr
+                .setSelection(Selection.atStart(view.state.doc))
+                .replaceSelection(slice)
+            );
+          }
         }
       },
       [editor]

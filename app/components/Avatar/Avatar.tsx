@@ -4,9 +4,11 @@ import useBoolean from "~/hooks/useBoolean";
 import Initials from "./Initials";
 
 export enum AvatarSize {
-  Small = 18,
+  Small = 16,
   Medium = 24,
   Large = 32,
+  XLarge = 48,
+  XXLarge = 64,
 }
 
 export interface IAvatar {

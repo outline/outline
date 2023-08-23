@@ -89,7 +89,9 @@ export default class CheckboxItem extends Node {
 
   keys({ type }: { type: NodeType }) {
     return {
-      Enter: splitListItem(type),
+      Enter: splitListItem(type, {
+        checked: false,
+      }),
       Tab: sinkListItem(type),
       "Shift-Tab": liftListItem(type),
       "Mod-]": sinkListItem(type),

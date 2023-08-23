@@ -1,5 +1,6 @@
-import fetch from "fetch-with-proxy";
+import Logger from "@server/logging/Logger";
 import { AuthenticationError, InvalidRequestError } from "../errors";
+import fetch from "./fetch";
 
 export default abstract class OAuthClient {
   private clientId: string;
@@ -41,18 +42,22 @@ export default abstract class OAuthClient {
     return data;
   };
 
-  rotateToken = async (
-    refreshToken: string
+  async rotateToken(
+    _accessToken: string,
+    refreshToken: string,
+    endpoint = this.endpoints.token
   ): Promise<{
     accessToken: string;
     refreshToken?: string;
     expiresAt: Date;
-  }> => {
+  }> {
     let data;
     let response;
 
     try {
-      response = await fetch(this.endpoints.token, {
+      Logger.debug("utils", "Rotating token", { endpoint });
+
+      response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -79,5 +84,5 @@ export default abstract class OAuthClient {
       accessToken: data.access_token,
       expiresAt: new Date(Date.now() + data.expires_in * 1000),
     };
-  };
+  }
 }

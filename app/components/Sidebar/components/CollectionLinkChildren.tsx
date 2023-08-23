@@ -57,7 +57,7 @@ function CollectionLinkChildren({
       if (!collection) {
         return;
       }
-      documents.move(item.id, collection.id, undefined, 0);
+      void documents.move(item.id, collection.id, undefined, 0);
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),

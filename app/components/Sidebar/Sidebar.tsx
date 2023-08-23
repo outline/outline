@@ -11,13 +11,15 @@ import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
-import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
+import { fadeOnDesktopBackgrounded } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import Avatar from "../Avatar";
 import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
-import HeaderButton, { HeaderButtonProps } from "./components/HeaderButton";
+import FullWidthButton, {
+  FullWidthButtonProps,
+} from "./components/FullWidthButton";
 import ResizeBorder from "./components/ResizeBorder";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 
@@ -27,197 +29,203 @@ type Props = {
   children: React.ReactNode;
 };
 
-const Sidebar = React.forwardRef<HTMLDivElement, Props>(
-  ({ children }: Props, ref: React.RefObject<HTMLDivElement>) => {
-    const [isCollapsing, setCollapsing] = React.useState(false);
-    const theme = useTheme();
-    const { t } = useTranslation();
-    const { ui, auth } = useStores();
-    const location = useLocation();
-    const previousLocation = usePrevious(location);
-    const { isMenuOpen } = useMenuContext();
-    const { user } = auth;
-    const width = ui.sidebarWidth;
-    const collapsed = ui.sidebarIsClosed && !isMenuOpen;
-    const maxWidth = theme.sidebarMaxWidth;
-    const minWidth = theme.sidebarMinWidth + 16; // padding
+const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
+  { children }: Props,
+  ref: React.RefObject<HTMLDivElement>
+) {
+  const [isCollapsing, setCollapsing] = React.useState(false);
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const { ui, auth } = useStores();
+  const location = useLocation();
+  const previousLocation = usePrevious(location);
+  const { isMenuOpen } = useMenuContext();
+  const { user } = auth;
+  const width = ui.sidebarWidth;
+  const collapsed = ui.sidebarIsClosed && !isMenuOpen;
+  const maxWidth = theme.sidebarMaxWidth;
+  const minWidth = theme.sidebarMinWidth + 16; // padding
 
-    const setWidth = ui.setSidebarWidth;
-    const [offset, setOffset] = React.useState(0);
-    const [isAnimating, setAnimating] = React.useState(false);
-    const [isResizing, setResizing] = React.useState(false);
-    const isSmallerThanMinimum = width < minWidth;
+  const setWidth = ui.setSidebarWidth;
+  const [offset, setOffset] = React.useState(0);
+  const [isAnimating, setAnimating] = React.useState(false);
+  const [isResizing, setResizing] = React.useState(false);
+  const isSmallerThanMinimum = width < minWidth;
 
-    const handleDrag = React.useCallback(
-      (event: MouseEvent) => {
-        // suppresses text selection
-        event.preventDefault();
-        // this is simple because the sidebar is always against the left edge
-        const width = Math.min(event.pageX - offset, maxWidth);
-        const isSmallerThanCollapsePoint = width < minWidth / 2;
+  const handleDrag = React.useCallback(
+    (event: MouseEvent) => {
+      // suppresses text selection
+      event.preventDefault();
+      // this is simple because the sidebar is always against the left edge
+      const width = Math.min(event.pageX - offset, maxWidth);
+      const isSmallerThanCollapsePoint = width < minWidth / 2;
 
-        if (isSmallerThanCollapsePoint) {
-          setWidth(theme.sidebarCollapsedWidth);
-        } else {
-          setWidth(width);
-        }
-      },
-      [theme, offset, minWidth, maxWidth, setWidth]
-    );
-
-    const handleStopDrag = React.useCallback(() => {
-      setResizing(false);
-
-      if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
-      }
-
-      if (isSmallerThanMinimum) {
-        const isSmallerThanCollapsePoint = width < minWidth / 2;
-
-        if (isSmallerThanCollapsePoint) {
-          setAnimating(false);
-          setCollapsing(true);
-          ui.collapseSidebar();
-        } else {
-          setWidth(minWidth);
-          setAnimating(true);
-        }
+      if (isSmallerThanCollapsePoint) {
+        setWidth(theme.sidebarCollapsedWidth);
       } else {
         setWidth(width);
       }
-    }, [ui, isSmallerThanMinimum, minWidth, width, setWidth]);
+    },
+    [theme, offset, minWidth, maxWidth, setWidth]
+  );
 
-    const handleMouseDown = React.useCallback(
-      (event) => {
-        setOffset(event.pageX - width);
-        setResizing(true);
+  const handleStopDrag = React.useCallback(() => {
+    setResizing(false);
+
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    if (isSmallerThanMinimum) {
+      const isSmallerThanCollapsePoint = width < minWidth / 2;
+
+      if (isSmallerThanCollapsePoint) {
         setAnimating(false);
-      },
-      [width]
-    );
-
-    React.useEffect(() => {
-      if (isAnimating) {
-        setTimeout(() => setAnimating(false), ANIMATION_MS);
+        setCollapsing(true);
+        ui.collapseSidebar();
+      } else {
+        setWidth(minWidth);
+        setAnimating(true);
       }
-    }, [isAnimating]);
+    } else {
+      setWidth(width);
+    }
+  }, [ui, isSmallerThanMinimum, minWidth, width, setWidth]);
 
-    React.useEffect(() => {
-      if (isCollapsing) {
-        setTimeout(() => {
-          setWidth(minWidth);
-          setCollapsing(false);
-        }, ANIMATION_MS);
-      }
-    }, [setWidth, minWidth, isCollapsing]);
+  const handleMouseDown = React.useCallback(
+    (event) => {
+      setOffset(event.pageX - width);
+      setResizing(true);
+      setAnimating(false);
+    },
+    [width]
+  );
 
-    React.useEffect(() => {
-      if (isResizing) {
-        document.addEventListener("mousemove", handleDrag);
-        document.addEventListener("mouseup", handleStopDrag);
-      }
+  React.useEffect(() => {
+    if (isAnimating) {
+      setTimeout(() => setAnimating(false), ANIMATION_MS);
+    }
+  }, [isAnimating]);
 
-      return () => {
-        document.removeEventListener("mousemove", handleDrag);
-        document.removeEventListener("mouseup", handleStopDrag);
-      };
-    }, [isResizing, handleDrag, handleStopDrag]);
+  React.useEffect(() => {
+    if (isCollapsing) {
+      setTimeout(() => {
+        setWidth(minWidth);
+        setCollapsing(false);
+      }, ANIMATION_MS);
+    }
+  }, [setWidth, minWidth, isCollapsing]);
 
-    const handleReset = React.useCallback(() => {
-      ui.setSidebarWidth(theme.sidebarWidth);
-    }, [ui, theme.sidebarWidth]);
+  React.useEffect(() => {
+    if (isResizing) {
+      document.addEventListener("mousemove", handleDrag);
+      document.addEventListener("mouseup", handleStopDrag);
+    }
 
-    React.useEffect(() => {
-      ui.setSidebarResizing(isResizing);
-    }, [ui, isResizing]);
+    return () => {
+      document.removeEventListener("mousemove", handleDrag);
+      document.removeEventListener("mouseup", handleStopDrag);
+    };
+  }, [isResizing, handleDrag, handleStopDrag]);
 
-    React.useEffect(() => {
-      if (location !== previousLocation) {
-        ui.hideMobileSidebar();
-      }
-    }, [ui, location, previousLocation]);
+  const handleReset = React.useCallback(() => {
+    ui.setSidebarWidth(theme.sidebarWidth);
+  }, [ui, theme.sidebarWidth]);
 
-    const style = React.useMemo(
-      () => ({
-        width: `${width}px`,
-      }),
-      [width]
-    );
+  React.useEffect(() => {
+    ui.setSidebarResizing(isResizing);
+  }, [ui, isResizing]);
 
-    const toggleStyle = React.useMemo(
-      () => ({
-        right: "auto",
-        marginLeft: `${collapsed ? theme.sidebarCollapsedWidth : width}px`,
-      }),
-      [width, theme.sidebarCollapsedWidth, collapsed]
-    );
+  React.useEffect(() => {
+    if (location !== previousLocation) {
+      ui.hideMobileSidebar();
+    }
+  }, [ui, location, previousLocation]);
 
-    return (
-      <>
-        <Container
-          ref={ref}
-          style={style}
-          $isAnimating={isAnimating}
-          $isSmallerThanMinimum={isSmallerThanMinimum}
-          $mobileSidebarVisible={ui.mobileSidebarVisible}
-          $collapsed={collapsed}
-          column
-        >
-          {ui.mobileSidebarVisible && (
-            <Portal>
-              <Backdrop onClick={ui.toggleMobileSidebar} />
-            </Portal>
-          )}
-          {children}
+  const style = React.useMemo(
+    () => ({
+      width: `${width}px`,
+    }),
+    [width]
+  );
 
-          {user && (
-            <AccountMenu>
-              {(props: HeaderButtonProps) => (
-                <HeaderButton
-                  {...props}
-                  showMoreMenu
-                  title={user.name}
-                  image={
-                    <StyledAvatar
-                      alt={user.name}
-                      model={user}
-                      size={24}
-                      showBorder={false}
+  const toggleStyle = React.useMemo(
+    () => ({
+      right: "auto",
+      marginLeft: `${collapsed ? theme.sidebarCollapsedWidth : width}px`,
+    }),
+    [width, theme.sidebarCollapsedWidth, collapsed]
+  );
+
+  return (
+    <>
+      <Container
+        ref={ref}
+        style={style}
+        $isAnimating={isAnimating}
+        $isSmallerThanMinimum={isSmallerThanMinimum}
+        $mobileSidebarVisible={ui.mobileSidebarVisible}
+        $collapsed={collapsed}
+        column
+      >
+        {ui.mobileSidebarVisible && (
+          <Portal>
+            <Backdrop onClick={ui.toggleMobileSidebar} />
+          </Portal>
+        )}
+        {children}
+
+        {user && (
+          <AccountMenu>
+            {(props: FullWidthButtonProps) => (
+              <FullWidthButton
+                {...props}
+                showMoreMenu
+                title={user.name}
+                position="bottom"
+                image={
+                  <StyledAvatar
+                    alt={user.name}
+                    model={user}
+                    size={24}
+                    showBorder={false}
+                  />
+                }
+              >
+                <NotificationsPopover>
+                  {(rest: FullWidthButtonProps) => (
+                    <FullWidthButton
+                      {...rest}
+                      position="bottom"
+                      image={<NotificationIcon />}
                     />
-                  }
-                >
-                  <NotificationsPopover>
-                    {(rest: HeaderButtonProps) => (
-                      <HeaderButton {...rest} image={<NotificationIcon />} />
-                    )}
-                  </NotificationsPopover>
-                </HeaderButton>
-              )}
-            </AccountMenu>
-          )}
-          <ResizeBorder
-            onMouseDown={handleMouseDown}
-            onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
-          />
-          {ui.sidebarIsClosed && (
-            <Toggle
-              onClick={ui.toggleCollapsedSidebar}
-              direction={"right"}
-              aria-label={t("Expand")}
-            />
-          )}
-        </Container>
-        <Toggle
-          style={toggleStyle}
-          onClick={ui.toggleCollapsedSidebar}
-          direction={ui.sidebarIsClosed ? "right" : "left"}
-          aria-label={ui.sidebarIsClosed ? t("Expand") : t("Collapse")}
+                  )}
+                </NotificationsPopover>
+              </FullWidthButton>
+            )}
+          </AccountMenu>
+        )}
+        <ResizeBorder
+          onMouseDown={handleMouseDown}
+          onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
         />
-      </>
-    );
-  }
-);
+        {ui.sidebarIsClosed && (
+          <Toggle
+            onClick={ui.toggleCollapsedSidebar}
+            direction={"right"}
+            aria-label={t("Expand")}
+          />
+        )}
+      </Container>
+      <Toggle
+        style={toggleStyle}
+        onClick={ui.toggleCollapsedSidebar}
+        direction={ui.sidebarIsClosed ? "right" : "left"}
+        aria-label={ui.sidebarIsClosed ? t("Expand") : t("Collapse")}
+      />
+    </>
+  );
+});
 
 const StyledAvatar = styled(Avatar)`
   margin-left: 4px;
@@ -258,8 +266,6 @@ const Container = styled(Flex)<ContainerProps>`
   z-index: ${depths.sidebar};
   max-width: 80%;
   min-width: 280px;
-  padding-top: ${Desktop.hasInsetTitlebar() ? 36 : 0}px;
-  ${draggableOnDesktop()}
   ${fadeOnDesktopBackgrounded()}
 
   ${Positioner} {

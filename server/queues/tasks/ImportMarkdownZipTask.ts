@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { escapeRegExp } from "lodash";
+import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
 import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
@@ -60,6 +60,13 @@ export default class ImportMarkdownZipTask extends ImportTask {
           }
 
           const zipObject = zip.files[child.path];
+          if (!zipObject) {
+            Logger.info("task", "Zip file referenced path that doesn't exist", {
+              path: child.path,
+            });
+            return;
+          }
+
           const id = uuidv4();
 
           // this is an attachment

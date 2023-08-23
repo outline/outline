@@ -1,4 +1,4 @@
-import { sortBy } from "lodash";
+import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
 import { LinkIcon, WarningIcon } from "outline-icons";
 import * as React from "react";
@@ -53,7 +53,7 @@ function Shares() {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [query, sort, page, direction, shares]);
 
   React.useEffect(() => {
@@ -70,7 +70,7 @@ function Shares() {
     <Scene title={t("Shared Links")} icon={<LinkIcon />}>
       <Heading>{t("Shared Links")}</Heading>
 
-      {can.manage && !canShareDocuments && (
+      {can.update && !canShareDocuments && (
         <>
           <Notice icon={<WarningIcon />}>
             {t("Sharing is currently disabled.")}{" "}
@@ -95,7 +95,7 @@ function Shares() {
 
       <SharesTable
         data={data}
-        canManage={can.manage}
+        canManage={can.update}
         isLoading={isLoading}
         page={page}
         pageSize={limit}

@@ -5,12 +5,12 @@ import {
   Extension,
 } from "@hocuspocus/server";
 import * as Y from "yjs";
-import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
+import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
+import { sequelize } from "@server/storage/database";
 import documentCollaborativeUpdater from "../commands/documentCollaborativeUpdater";
-import markdownToYDoc from "./utils/markdownToYDoc";
 
 @trace()
 export default class PersistenceExtension implements Extension {
@@ -51,11 +51,11 @@ export default class PersistenceExtension implements Extension {
         "database",
         `Document ${documentId} is not in state, creating from markdown`
       );
-      const ydoc = markdownToYDoc(document.text, fieldName);
-      const state = Y.encodeStateAsUpdate(ydoc);
+      const ydoc = ProsemirrorHelper.toYDoc(document.text, fieldName);
+      const state = ProsemirrorHelper.toState(ydoc);
       await document.update(
         {
-          state: Buffer.from(state),
+          state,
         },
         {
           silent: true,
@@ -82,6 +82,7 @@ export default class PersistenceExtension implements Extension {
     document,
     context,
     documentName,
+    clientsCount,
   }: onStoreDocumentPayload) {
     const [, documentId] = documentName.split(".");
 
@@ -105,6 +106,7 @@ export default class PersistenceExtension implements Extension {
         // TODO: Right now we're attributing all changes to the last editor,
         // It would be nice in the future to have multiple editors per revision.
         userId: collaboratorIds.pop(),
+        isLastConnection: clientsCount === 0,
       });
     } catch (err) {
       Logger.error("Unable to persist document", err, {

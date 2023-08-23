@@ -1,5 +1,5 @@
 import { isHexColor } from "class-validator";
-import { pickBy } from "lodash";
+import pickBy from "lodash/pickBy";
 import { observer } from "mobx-react";
 import { TeamIcon } from "outline-icons";
 import { useRef, useState } from "react";
@@ -20,18 +20,22 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import isCloudHosted from "~/utils/isCloudHosted";
+import TeamDelete from "../TeamDelete";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 
 function Details() {
-  const { auth, ui } = useStores();
+  const { auth, dialogs, ui } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const theme = useTheme();
+  const can = usePolicy(team);
+
   const form = useRef<HTMLFormElement>(null);
   const [accent, setAccent] = useState<null | undefined | string>(
     team.preferences?.customTheme?.accent
@@ -124,6 +128,14 @@ function Details() {
     },
     [showToast, t]
   );
+
+  const showDeleteWorkspace = () => {
+    dialogs.openModal({
+      title: t("Delete workspace"),
+      content: <TeamDelete onSubmit={dialogs.closeAllModals} />,
+      isCentered: true,
+    });
+  };
 
   const onSelectCollection = React.useCallback(async (value: string) => {
     const defaultCollectionId = value === "home" ? null : value;
@@ -222,6 +234,7 @@ function Details() {
           </SettingRow>
           {team.avatarUrl && (
             <SettingRow
+              border={false}
               name={TeamPreference.PublicBranding}
               label={t("Public branding")}
               description={t(
@@ -287,6 +300,28 @@ function Details() {
           <Button type="submit" disabled={auth.isSaving || !isValid}>
             {auth.isSaving ? `${t("Saving")}…` : t("Save")}
           </Button>
+
+          {can.delete && (
+            <>
+              <p>&nbsp;</p>
+
+              <Heading as="h2">{t("Danger")}</Heading>
+              <SettingRow
+                name="delete"
+                border={false}
+                label={t("Delete workspace")}
+                description={t(
+                  "You can delete this entire workspace including collections, documents, and users."
+                )}
+              >
+                <span>
+                  <Button onClick={showDeleteWorkspace} neutral>
+                    {t("Delete workspace")}…
+                  </Button>
+                </span>
+              </SettingRow>
+            </>
+          )}
         </form>
       </Scene>
     </ThemeProvider>

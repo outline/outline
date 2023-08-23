@@ -36,7 +36,7 @@ export default function Version() {
       }
     }
 
-    loadReleases();
+    void loadReleases();
   }, []);
 
   return (

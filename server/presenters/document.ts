@@ -41,6 +41,7 @@ async function presentDocument(
     templateId: document.templateId,
     collaboratorIds: [],
     revision: document.revisionCount,
+    insightsEnabled: document.insightsEnabled,
     fullWidth: document.fullWidth,
     collectionId: undefined,
     parentDocumentId: undefined,

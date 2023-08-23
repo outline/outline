@@ -1,4 +1,4 @@
-import { find } from "lodash";
+import find from "lodash/find";
 import { observer } from "mobx-react";
 import { BuildingBlocksIcon } from "outline-icons";
 import * as React from "react";
@@ -17,6 +17,7 @@ import SettingRow from "./components/SettingRow";
 type FormData = {
   drawIoUrl: string;
   krokiIoUrl: string;
+  gristUrl: string;
 };
 
 function SelfHosted() {
@@ -24,14 +25,19 @@ function SelfHosted() {
   const { t } = useTranslation();
   const { showToast } = useToasts();
 
-  const integrationdiagrams = find(integrations.orderedData, {
+  const integrationDiagrams = find(integrations.orderedData, {
     type: IntegrationType.Embed,
     service: IntegrationService.Diagrams,
   }) as Integration<IntegrationType.Embed> | undefined;
 
-  const integrationkroki = find(integrations.orderedData, {
+  const integrationKroki = find(integrations.orderedData, {
     type: IntegrationType.Embed,
     service: IntegrationService.Kroki,
+  }) as Integration<IntegrationType.Embed> | undefined;
+  
+  const integrationGrist = find(integrations.orderedData, {
+    type: IntegrationType.Embed,
+    service: IntegrationService.Grist,
   }) as Integration<IntegrationType.Embed> | undefined;
 
   const {
@@ -42,30 +48,32 @@ function SelfHosted() {
   } = useForm<FormData>({
     mode: "all",
     defaultValues: {
-      drawIoUrl: integrationdiagrams?.settings.url,
-      krokiIoUrl: integrationkroki?.settings.url,
+      drawIoUrl: integrationDiagrams?.settings.url,
+      gristUrl: integrationGrist?.settings.url,
+      krokiIoUrl: integrationKroki?.settings.url,
     },
   });
 
   React.useEffect(() => {
-    integrations.fetchPage({
+    void integrations.fetchPage({
       type: IntegrationType.Embed,
     });
   }, [integrations]);
 
   React.useEffect(() => {
     reset({
-      drawIoUrl: integrationdiagrams?.settings.url,
-      krokiIoUrl: integrationkroki?.settings.url,
+      drawIoUrl: integrationDiagrams?.settings.url,
+      gristUrl: integrationGrist?.settings.url,
+      krokiIoUrl: integrationKroki?.settings.url,
     });
-  }, [integrationdiagrams, integrationkroki, reset]);
+  }, [integrationDiagrams, integrationGrist, integrationKroki, reset]);
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
         if (data.drawIoUrl) {
           await integrations.save({
-            id: integrationdiagrams?.id,
+            id: integrationDiagrams?.id,
             type: IntegrationType.Embed,
             service: IntegrationService.Diagrams,
             settings: {
@@ -76,9 +84,22 @@ function SelfHosted() {
           await integrationdiagrams?.delete();
         }
 
+        if (data.gristUrl) {
+          await integrations.save({
+            id: integrationGrist?.id,
+            type: IntegrationType.Embed,
+            service: IntegrationService.Grist,
+            settings: {
+              url: data.gristUrl,
+            },
+          });
+        } else {
+          await integrationGrist?.delete();
+        }
+        
         if (data.krokiIoUrl) {
           await integrations.save({
-            id: integrationkroki?.id,
+            id: integrationKroki?.id,
             type: IntegrationType.Embed,
             service: IntegrationService.Kroki,
             settings: {
@@ -98,7 +119,7 @@ function SelfHosted() {
         });
       }
     },
-    [integrations, integrationdiagrams, integrationkroki, t, showToast]
+    [integrations, integrationDiagrams, integrationGrist, integrationKroki,t, showToast]
   );
 
   return (
@@ -133,6 +154,18 @@ function SelfHosted() {
             placeholder="https://app.kroki.io/"
             pattern="https?://.*"
             {...register("krokiIoUrl")}
+        </SettingRow>
+            
+        <SettingRow>
+          label={t("Grist deployment")}
+          name="gristUrl"
+          description={t("Add your self-hosted grist installation URL here.")}
+          border={false}
+        >
+          <Input
+            placeholder="https://docs.getgrist.com/"
+            pattern="https?://.*"
+            {...register("gristUrl")}
           />
         </SettingRow>
 

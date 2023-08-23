@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
+import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Event from "~/models/Event";
 import Empty from "~/components/Empty";
 import PaginatedEventList from "~/components/PaginatedEventList";
@@ -41,8 +42,8 @@ function History() {
       eventsInDocument.unshift(
         new Event(
           {
-            id: "live",
-            name: "documents.live_editing",
+            id: RevisionHelper.latestId(document.id),
+            name: "revisions.create",
             documentId: document.id,
             createdAt: document.updatedAt,
             actor: document.updatedBy,

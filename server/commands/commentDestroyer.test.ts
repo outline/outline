@@ -18,7 +18,20 @@ describe("commentDestroyer", () => {
     const comment = await Comment.create({
       teamId: document.teamId,
       documentId: document.id,
-      data: { text: "test" },
+      data: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "test",
+              },
+            ],
+          },
+        ],
+      },
       createdById: user.id,
     });
 

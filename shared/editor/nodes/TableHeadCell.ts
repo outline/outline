@@ -1,12 +1,10 @@
 import Token from "markdown-it/lib/token";
 import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
-import {
-  isColumnSelected,
-  getCellsInRow,
-  selectColumn,
-} from "prosemirror-utils";
 import { DecorationSet, Decoration } from "prosemirror-view";
+import { selectColumn } from "../commands/table";
+import { getCellsInRow, isColumnSelected } from "../queries/table";
+
 import Node from "./Node";
 
 export default class TableHeadCell extends Node {
@@ -53,15 +51,15 @@ export default class TableHeadCell extends Node {
       new Plugin({
         props: {
           decorations: (state) => {
-            const { doc, selection } = state;
+            const { doc } = state;
             const decorations: Decoration[] = [];
-            const cells = getCellsInRow(0)(selection);
+            const cells = getCellsInRow(0)(state);
 
             if (cells) {
-              cells.forEach(({ pos }, index) => {
+              cells.forEach((pos, index) => {
                 decorations.push(
                   Decoration.widget(pos + 1, () => {
-                    const colSelected = isColumnSelected(index)(selection);
+                    const colSelected = isColumnSelected(index)(state);
                     let className = "grip-column";
                     if (colSelected) {
                       className += " selected";
@@ -80,7 +78,7 @@ export default class TableHeadCell extends Node {
                         selectColumn(
                           index,
                           event.metaKey || event.shiftKey
-                        )(state.tr)
+                        )(state)
                       );
                     });
                     return grip;

@@ -1,4 +1,4 @@
-import { filter } from "lodash";
+import filter from "lodash/filter";
 import { computed } from "mobx";
 import { IntegrationService } from "@shared/types";
 import naturalSort from "@shared/utils/naturalSort";

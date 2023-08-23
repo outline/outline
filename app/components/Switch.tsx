@@ -83,8 +83,11 @@ const Input = styled.label<{ width: number; height: number }>`
   display: inline-block;
   width: ${(props) => props.width}px;
   height: ${(props) => props.height}px;
-  margin-right: 8px;
   flex-shrink: 0;
+
+  &:not(:last-child) {
+    margin-right: 8px;
+  }
 `;
 
 const Slider = styled.span<{ width: number; height: number }>`

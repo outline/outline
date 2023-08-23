@@ -15,13 +15,13 @@ describe("i18n env is unset", () => {
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Saving"));
 
-  it("translation if changed to de-DE", () => {
-    i18n.changeLanguage("de-DE");
+  it("translation if changed to de-DE", async () => {
+    await i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
 
-  it("translation if changed to pt-PT", () => {
-    i18n.changeLanguage("pt-PT");
+  it("translation if changed to pt-PT", async () => {
+    await i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
@@ -36,13 +36,13 @@ describe("i18n env is en-US", () => {
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Saving"));
 
-  it("translation if changed to de-DE", () => {
-    i18n.changeLanguage("de-DE");
+  it("translation if changed to de-DE", async () => {
+    await i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
 
-  it("translation if changed to pt-PT", () => {
-    i18n.changeLanguage("pt-PT");
+  it("translation if changed to pt-PT", async () => {
+    await i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
@@ -58,13 +58,13 @@ describe("i18n env is de-DE", () => {
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Speichert"));
 
-  it("translation if changed to en-US", () => {
-    i18n.changeLanguage("en-US");
+  it("translation if changed to en-US", async () => {
+    await i18n.changeLanguage("en-US");
     expect(i18n.t("Saving")).toBe("Saving");
   });
 
-  it("translation if changed to pt-PT", () => {
-    i18n.changeLanguage("pt-PT");
+  it("translation if changed to pt-PT", async () => {
+    await i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
@@ -80,13 +80,13 @@ describe("i18n env is pt-PT", () => {
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("A guardar"));
 
-  it("translation if changed to en-US", () => {
-    i18n.changeLanguage("en-US");
+  it("translation if changed to en-US", async () => {
+    await i18n.changeLanguage("en-US");
     expect(i18n.t("Saving")).toBe("Saving");
   });
 
-  it("translation if changed to de-DE", () => {
-    i18n.changeLanguage("de-DE");
+  it("translation if changed to de-DE", async () => {
+    await i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
 });

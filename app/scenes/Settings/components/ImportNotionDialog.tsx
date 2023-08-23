@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Trans } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { FileOperationFormat } from "@shared/types";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
@@ -8,6 +8,7 @@ import DropToImport from "./DropToImport";
 import HelpDisclosure from "./HelpDisclosure";
 
 function ImportNotionDialog() {
+  const { t } = useTranslation();
   const { dialogs } = useStores();
 
   return (
@@ -17,10 +18,11 @@ function ImportNotionDialog() {
           onSubmit={dialogs.closeAllModals}
           format={FileOperationFormat.Notion}
         >
-          <Trans>
-            Drag and drop the zip file from Notion's HTML export option, or
-            click to upload
-          </Trans>
+          <>
+            {t(
+              `Drag and drop the zip file from Notion's HTML export option, or click to upload`
+            )}
+          </>
         </DropToImport>
       </Text>
       <HelpDisclosure title={<Trans>Where do I find the file?</Trans>}>

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Avatar from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar/Avatar";
 import FilterOptions from "~/components/FilterOptions";
 import useStores from "~/hooks/useStores";
 
@@ -18,7 +19,7 @@ function UserFilter(props: Props) {
   const { users } = useStores();
 
   React.useEffect(() => {
-    users.fetchPage({
+    void users.fetchPage({
       limit: 100,
     });
   }, [users]);
@@ -27,7 +28,7 @@ function UserFilter(props: Props) {
     const userOptions = users.all.map((user) => ({
       key: user.id,
       label: user.name,
-      icon: <Avatar model={user} showBorder={false} size={18} />,
+      icon: <Avatar model={user} showBorder={false} size={AvatarSize.Small} />,
     }));
     return [
       {

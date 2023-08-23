@@ -1,13 +1,14 @@
 import { toggleMark } from "prosemirror-commands";
 import { InputRule } from "prosemirror-inputrules";
-import { TokenConfig } from "prosemirror-markdown";
+import { ParseSpec } from "prosemirror-markdown";
 import {
   MarkSpec,
   MarkType,
   Node as ProsemirrorNode,
   Schema,
 } from "prosemirror-model";
-import Extension, { Command, CommandFactory } from "../lib/Extension";
+import { Command } from "prosemirror-state";
+import Extension, { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 
 export default abstract class Mark extends Extension {
@@ -35,7 +36,7 @@ export default abstract class Mark extends Extension {
     throw new Error("toMarkdown not implemented");
   }
 
-  parseMarkdown(): TokenConfig | void {
+  parseMarkdown(): ParseSpec | void {
     return undefined;
   }
 

@@ -1,12 +1,8 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Switch, Redirect, RouteComponentProps } from "react-router-dom";
-import Archive from "~/scenes/Archive";
 import DocumentNew from "~/scenes/DocumentNew";
-import Drafts from "~/scenes/Drafts";
 import Error404 from "~/scenes/Error404";
-import Templates from "~/scenes/Templates";
-import Trash from "~/scenes/Trash";
 import AuthenticatedLayout from "~/components/AuthenticatedLayout";
 import CenteredContent from "~/components/CenteredContent";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
@@ -14,13 +10,18 @@ import Route from "~/components/ProfiledRoute";
 import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 
-const SettingsRoutes = React.lazy(() => import("./settings"));
-const Document = React.lazy(() => import("~/scenes/Document"));
-const Collection = React.lazy(() => import("~/scenes/Collection"));
-const Home = React.lazy(() => import("~/scenes/Home"));
-const Search = React.lazy(() => import("~/scenes/Search"));
+const SettingsRoutes = lazyWithRetry(() => import("./settings"));
+const Archive = lazyWithRetry(() => import("~/scenes/Archive"));
+const Collection = lazyWithRetry(() => import("~/scenes/Collection"));
+const Document = lazyWithRetry(() => import("~/scenes/Document"));
+const Drafts = lazyWithRetry(() => import("~/scenes/Drafts"));
+const Home = lazyWithRetry(() => import("~/scenes/Home"));
+const Templates = lazyWithRetry(() => import("~/scenes/Templates"));
+const Search = lazyWithRetry(() => import("~/scenes/Search"));
+const Trash = lazyWithRetry(() => import("~/scenes/Trash"));
 
 const RedirectDocument = ({
   match,

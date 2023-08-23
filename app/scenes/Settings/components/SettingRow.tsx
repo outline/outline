@@ -6,6 +6,7 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 
 type Props = {
+  children?: React.ReactNode;
   label: React.ReactNode;
   description?: React.ReactNode;
   name: string;
@@ -63,7 +64,7 @@ const SettingRow: React.FC<Props> = ({
   label,
   border,
   children,
-}) => {
+}: Props) => {
   if (visible === false) {
     return null;
   }

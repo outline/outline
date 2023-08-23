@@ -70,21 +70,18 @@ export default function imageMenuItems(
       tooltip: dictionary.downloadImage,
       icon: <DownloadIcon />,
       visible: !!fetch,
-      active: () => false,
     },
     {
       name: "replaceImage",
       tooltip: dictionary.replaceImage,
       icon: <ReplaceIcon />,
       visible: true,
-      active: () => false,
     },
     {
       name: "deleteImage",
       tooltip: dictionary.deleteImage,
       icon: <TrashIcon />,
       visible: true,
-      active: () => false,
     },
   ];
 }

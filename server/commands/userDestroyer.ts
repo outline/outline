@@ -1,5 +1,4 @@
-import { Op } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
+import { Op, Transaction } from "sequelize";
 import { Event, User } from "@server/models";
 import { ValidationError } from "../errors";
 
@@ -7,10 +6,12 @@ export default async function userDestroyer({
   user,
   actor,
   ip,
+  transaction,
 }: {
   user: User;
   actor: User;
   ip: string;
+  transaction?: Transaction;
 }) {
   const { teamId } = user;
   const usersCount = await User.count({
@@ -20,7 +21,9 @@ export default async function userDestroyer({
   });
 
   if (usersCount === 1) {
-    throw ValidationError("Cannot delete last user on the team.");
+    throw ValidationError(
+      "Cannot delete last user on the team, delete the workspace instead."
+    );
   }
 
   if (user.isAdmin) {
@@ -41,33 +44,23 @@ export default async function userDestroyer({
     }
   }
 
-  const transaction = await sequelize.transaction();
-  let response;
-
-  try {
-    response = await user.destroy({
-      transaction,
-    });
-    await Event.create(
-      {
-        name: "users.delete",
-        actorId: actor.id,
-        userId: user.id,
-        teamId,
-        data: {
-          name: user.name,
-        },
-        ip,
+  await Event.create(
+    {
+      name: "users.delete",
+      actorId: actor.id,
+      userId: user.id,
+      teamId,
+      data: {
+        name: user.name,
       },
-      {
-        transaction,
-      }
-    );
-    await transaction.commit();
-  } catch (err) {
-    await transaction.rollback();
-    throw err;
-  }
+      ip,
+    },
+    {
+      transaction,
+    }
+  );
 
-  return response;
+  return user.destroy({
+    transaction,
+  });
 }

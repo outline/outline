@@ -25,12 +25,14 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     pathInZip,
     documentId,
     format = FileOperationFormat.MarkdownZip,
+    includeAttachments,
     pathMap,
   }: {
     zip: JSZip;
     pathInZip: string;
     documentId: string;
     format: FileOperationFormat;
+    includeAttachments: boolean;
     pathMap: Map<string, string>;
   }) {
     Logger.debug("task", `Adding document to archive`, { documentId });
@@ -42,9 +44,11 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     let text =
       format === FileOperationFormat.HTMLZip
         ? await DocumentHelper.toHTML(document, { centered: true })
-        : await DocumentHelper.toMarkdown(document);
+        : DocumentHelper.toMarkdown(document);
 
-    const attachmentIds = parseAttachmentIds(document.text);
+    const attachmentIds = includeAttachments
+      ? parseAttachmentIds(document.text)
+      : [];
     const attachments = attachmentIds.length
       ? await Attachment.findAll({
           where: {
@@ -117,13 +121,15 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
    * @param zip The JSZip instance to add files to
    * @param collections The collections to export
    * @param format The format to export in
+   * @param includeAttachments Whether to include attachments in the export
    *
    * @returns The path to the zip file in tmp.
    */
   protected async addCollectionsToArchive(
     zip: JSZip,
     collections: Collection[],
-    format: FileOperationFormat
+    format: FileOperationFormat,
+    includeAttachments = true
   ) {
     const pathMap = this.createPathMap(collections, format);
     Logger.debug(
@@ -139,6 +145,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         zip,
         pathInZip,
         documentId,
+        includeAttachments,
         format,
         pathMap,
       });

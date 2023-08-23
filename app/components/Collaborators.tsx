@@ -1,4 +1,7 @@
-import { sortBy, filter, uniq, isEqual } from "lodash";
+import filter from "lodash/filter";
+import isEqual from "lodash/isEqual";
+import sortBy from "lodash/sortBy";
+import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -57,7 +60,7 @@ function Collaborators(props: Props) {
 
     if (!isEqual(requestedUserIds, ids) && ids.length > 0) {
       setRequestedUserIds(ids);
-      users.fetchPage({ ids, limit: 100 });
+      void users.fetchPage({ ids, limit: 100 });
     }
   }, [document, users, presentIds, document.collaboratorIds, requestedUserIds]);
 

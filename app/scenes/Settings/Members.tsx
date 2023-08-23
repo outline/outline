@@ -1,4 +1,4 @@
-import { sortBy } from "lodash";
+import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
 import { PlusIcon, UserIcon } from "outline-icons";
 import * as React from "react";
@@ -68,7 +68,7 @@ function Members() {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [query, sort, filter, page, direction, users, users.counts.all]);
 
   React.useEffect(() => {
@@ -184,7 +184,7 @@ function Members() {
       </Flex>
       <PeopleTable
         data={data}
-        canManage={can.manage}
+        canManage={can.update}
         isLoading={isLoading}
         page={page}
         pageSize={limit}

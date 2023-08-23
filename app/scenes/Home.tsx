@@ -29,10 +29,10 @@ function Home() {
   const { t } = useTranslation();
 
   React.useEffect(() => {
-    pins.fetchPage();
+    void pins.fetchPage();
   }, [pins]);
 
-  const canManageTeam = usePolicy(team).manage;
+  const can = usePolicy(team);
 
   return (
     <Scene
@@ -49,7 +49,7 @@ function Home() {
     >
       {!ui.languagePromptDismissed && <LanguagePrompt />}
       <Heading>{t("Home")}</Heading>
-      <PinnedDocuments pins={pins.home} canUpdate={canManageTeam} />
+      <PinnedDocuments pins={pins.home} canUpdate={can.update} />
       <Documents>
         <Tabs>
           <Tab to="/home" exact>

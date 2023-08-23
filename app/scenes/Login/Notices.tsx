@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import { WarningIcon } from "outline-icons";
 import * as React from "react";
 import { Trans } from "react-i18next";
@@ -36,7 +37,13 @@ export default function Notices() {
           Please use a Google Workspaces account instead.
         </Trans>
       )}
-      {notice === "maximum-teams" && (
+      {notice === "pending-deletion" && (
+        <Trans>
+          The workspace associated with your user is scheduled for deletion and
+          cannot at accessed at this time.
+        </Trans>
+      )}
+      {notice === "maximum-reached" && (
         <Trans>
           The workspace you authenticated with is not authorized on this
           installation. Try another?

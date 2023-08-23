@@ -5,6 +5,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { Optional } from "utility-types";
 import { s } from "../../styles";
+import { sanitizeUrl } from "../../utils/urls";
 
 type Props = Omit<Optional<HTMLIFrameElement>, "children"> & {
   src?: string;
@@ -56,6 +57,7 @@ class Frame extends React.Component<PropsWithRef> {
       canonicalUrl,
       isSelected,
       referrerPolicy,
+      className = "",
       src,
     } = this.props;
     const withBar = !!(icon || canonicalUrl);
@@ -66,19 +68,21 @@ class Frame extends React.Component<PropsWithRef> {
         height={height}
         $withBar={withBar}
         $border={border}
-        className={isSelected ? "ProseMirror-selectednode" : ""}
+        className={
+          isSelected ? `ProseMirror-selectednode ${className}` : className
+        }
       >
         {this.isLoaded && (
           <Iframe
             ref={forwardedRef}
             $withBar={withBar}
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-downloads"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-downloads allow-storage-access-by-user-activation"
             width={width}
             height={height}
             frameBorder="0"
             title="embed"
             loading="lazy"
-            src={src}
+            src={sanitizeUrl(src)}
             referrerPolicy={referrerPolicy}
             allowFullScreen
           />

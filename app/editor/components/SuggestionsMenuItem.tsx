@@ -25,7 +25,7 @@ function SuggestionsMenuItem({
   const ref = React.useCallback(
     (node) => {
       if (selected && node) {
-        scrollIntoView(node, {
+        void scrollIntoView(node, {
           scrollMode: "if-needed",
           block: "nearest",
           boundary: (parent) =>

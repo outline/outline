@@ -1,6 +1,6 @@
 import { Transaction } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
 import { Subscription, Event, User, Document } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import { DocumentEvent, RevisionEvent } from "@server/types";
 
 type Props = {
@@ -43,7 +43,7 @@ export default async function subscriptionCreator({
 
   // If the subscription was deleted, then just restore the existing row.
   if (subscription.deletedAt && resubscribe) {
-    subscription.restore({ transaction });
+    await subscription.restore({ transaction });
 
     await Event.create(
       {

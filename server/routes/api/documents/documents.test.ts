@@ -1573,21 +1573,18 @@ describe("#documents.search", () => {
       },
     });
 
-    return new Promise((resolve) => {
-      // setTimeout is needed here because SearchQuery is saved asynchronously
-      // in order to not slow down the response time.
-      setTimeout(async () => {
-        const searchQuery = await SearchQuery.findAll({
-          where: {
-            query: "my term",
-          },
-        });
-        expect(searchQuery.length).toBe(1);
-        expect(searchQuery[0].results).toBe(0);
-        expect(searchQuery[0].source).toBe("app");
-        resolve(undefined);
-      }, 100);
+    // setTimeout is needed here because SearchQuery is saved asynchronously
+    // in order to not slow down the response time.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const searchQuery = await SearchQuery.findAll({
+      where: {
+        query: "my term",
+      },
     });
+    expect(searchQuery.length).toBe(1);
+    expect(searchQuery[0].results).toBe(0);
+    expect(searchQuery[0].source).toBe("app");
   });
 });
 

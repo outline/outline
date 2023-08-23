@@ -1,4 +1,4 @@
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -17,7 +17,7 @@ import useStores from "~/hooks/useStores";
 import { SearchResult } from "~/types";
 import SearchListItem from "./SearchListItem";
 
-type Props = { shareId: string };
+type Props = React.HTMLAttributes<HTMLInputElement> & { shareId: string };
 
 function SearchPopover({ shareId }: Props) {
   const { t } = useTranslation();
@@ -32,6 +32,7 @@ function SearchPopover({ shareId }: Props) {
 
   const [query, setQuery] = React.useState("");
   const searchResults = documents.searchResults(query);
+  const { show, hide } = popover;
 
   const [cachedQuery, setCachedQuery] = React.useState(query);
   const [cachedSearchResults, setCachedSearchResults] = React.useState<
@@ -42,9 +43,9 @@ function SearchPopover({ shareId }: Props) {
     if (searchResults) {
       setCachedQuery(query);
       setCachedSearchResults(searchResults);
-      popover.show();
+      show();
     }
-  }, [searchResults, query, popover.show]);
+  }, [searchResults, query, show]);
 
   const performSearch = React.useCallback(
     async ({ query, ...options }) => {
@@ -88,10 +89,14 @@ function SearchPopover({ shareId }: Props) {
 
   const handleSearchInputFocus = React.useCallback(() => {
     focusRef.current = searchInputRef.current;
-  }, []);
+  }, [searchInputRef]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      if (ev.nativeEvent.isComposing) {
+        return;
+      }
+
       if (ev.key === "Enter") {
         if (searchResults) {
           popover.show();
@@ -137,12 +142,12 @@ function SearchPopover({ shareId }: Props) {
   );
 
   const handleSearchItemClick = React.useCallback(() => {
-    popover.hide();
+    hide();
     if (searchInputRef.current) {
       searchInputRef.current.value = "";
       focusRef.current = document.getElementById(bodyContentId);
     }
-  }, [popover.hide]);
+  }, [searchInputRef, hide]);
 
   useKeyDown("/", (ev) => {
     if (
