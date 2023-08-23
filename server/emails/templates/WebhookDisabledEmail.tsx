@@ -39,8 +39,9 @@ Webhook settings: ${teamUrl}/settings/webhooks
   }
 
   protected render({ webhookName, teamUrl }: Props) {
+    const webhookSettingsLink = `${teamUrl}/settings/webhooks`;
     return (
-      <EmailTemplate>
+      <EmailTemplate previewText={this.preview({ webhookName } as Props)}>
         <Header />
 
         <Body>
@@ -52,9 +53,7 @@ Webhook settings: ${teamUrl}/settings/webhooks
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={teamUrl + "/settings/webhooks"}>
-              Webhook settings
-            </Button>
+            <Button href={webhookSettingsLink}>Webhook settings</Button>
           </p>
         </Body>
 

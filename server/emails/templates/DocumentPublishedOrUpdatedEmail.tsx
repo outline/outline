@@ -144,11 +144,14 @@ Open Document: ${teamUrl}${document.url}
     unsubscribeUrl,
     body,
   }: Props) {
-    const link = `${teamUrl}${document.url}?ref=notification-email`;
+    const documentLink = `${teamUrl}${document.url}?ref=notification-email`;
     const eventName = this.eventName(eventType);
 
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview({ actorName, eventType } as Props)}
+        goToAction={{ url: documentLink, name: "View Document" }}
+      >
         <Header />
 
         <Body>
@@ -157,8 +160,8 @@ Open Document: ${teamUrl}${document.url}
           </Heading>
           <p>
             {actorName} {eventName} the document{" "}
-            <a href={link}>{document.title}</a>, in the {collection.name}{" "}
-            collection.
+            <a href={documentLink}>{document.title}</a>, in the{" "}
+            {collection.name} collection.
           </p>
           {body && (
             <>
@@ -170,7 +173,7 @@ Open Document: ${teamUrl}${document.url}
             </>
           )}
           <p>
-            <Button href={link}>Open Document</Button>
+            <Button href={documentLink}>Open Document</Button>
           </p>
         </Body>
 

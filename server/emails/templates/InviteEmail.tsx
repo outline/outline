@@ -47,8 +47,10 @@ Join now: ${teamUrl}
   }
 
   protected render({ teamName, actorName, actorEmail, teamUrl }: Props) {
+    const inviteLink = `${teamUrl}?ref=invite-email`;
+
     return (
-      <EmailTemplate>
+      <EmailTemplate previewText={this.preview()}>
         <Header />
 
         <Body>
@@ -62,7 +64,7 @@ Join now: ${teamUrl}
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}?ref=invite-email`}>Join now</Button>
+            <Button href={inviteLink}>Join now</Button>
           </p>
         </Body>
 

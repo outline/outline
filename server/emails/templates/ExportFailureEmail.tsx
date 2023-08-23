@@ -55,25 +55,23 @@ section to try again – if the problem persists please contact support.
   }
 
   protected render({ teamUrl, unsubscribeUrl }: Props & BeforeSendProps) {
+    const exportLink = `${teamUrl}/settings/export`;
+
     return (
-      <EmailTemplate>
+      <EmailTemplate previewText={this.preview()}>
         <Header />
         <Body>
           <Heading>Your Data Export</Heading>
           <p>
             Sorry, your requested data export has failed, please visit the{" "}
-            <a
-              href={`${teamUrl}/settings/export`}
-              rel="noreferrer"
-              target="_blank"
-            >
+            <a href={exportLink} rel="noreferrer" target="_blank">
               admin section
             </a>
             . to try again – if the problem persists please contact support.
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}/settings/export`}>Go to export</Button>
+            <Button href={exportLink}>Go to export</Button>
           </p>
         </Body>
         <Footer unsubscribeUrl={unsubscribeUrl} />

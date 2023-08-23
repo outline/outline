@@ -46,7 +46,10 @@ signin page at: ${teamUrl}
     }
 
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview()}
+        goToAction={{ url: this.signinLink(token, client), name: "Sign In" }}
+      >
         <Header />
 
         <Body>
