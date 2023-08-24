@@ -34,7 +34,7 @@ function SelfHosted() {
     type: IntegrationType.Embed,
     service: IntegrationService.Kroki,
   }) as Integration<IntegrationType.Embed> | undefined;
-  
+
   const integrationGrist = find(integrations.orderedData, {
     type: IntegrationType.Embed,
     service: IntegrationService.Grist,
@@ -81,7 +81,7 @@ function SelfHosted() {
             },
           });
         } else {
-          await integrationdiagrams?.delete();
+          await integrationDiagrams?.delete();
         }
 
         if (data.gristUrl) {
@@ -96,7 +96,7 @@ function SelfHosted() {
         } else {
           await integrationGrist?.delete();
         }
-        
+
         if (data.krokiIoUrl) {
           await integrations.save({
             id: integrationKroki?.id,
@@ -107,7 +107,7 @@ function SelfHosted() {
             },
           });
         } else {
-          await integrationkroki?.delete();
+          await integrationKroki?.delete();
         }
 
         showToast(t("Settings saved"), {
@@ -119,7 +119,14 @@ function SelfHosted() {
         });
       }
     },
-    [integrations, integrationDiagrams, integrationGrist, integrationKroki,t, showToast]
+    [
+      integrations,
+      integrationDiagrams,
+      integrationGrist,
+      integrationKroki,
+      t,
+      showToast,
+    ]
   );
 
   return (
@@ -154,9 +161,10 @@ function SelfHosted() {
             placeholder="https://app.kroki.io/"
             pattern="https?://.*"
             {...register("krokiIoUrl")}
+          />
         </SettingRow>
-            
-        <SettingRow>
+
+        <SettingRow
           label={t("Grist deployment")}
           name="gristUrl"
           description={t("Add your self-hosted grist installation URL here.")}
