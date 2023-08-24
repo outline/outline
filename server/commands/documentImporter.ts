@@ -236,7 +236,7 @@ async function documentImporter({
 
   if (state.length > DocumentValidation.maxStateLength) {
     throw InvalidRequestError(
-      `The document is too large to import, please reduce the length and try again`
+      `The document "${title}" is too large to import, please reduce the length and try again`
     );
   }
 
