@@ -589,14 +589,12 @@ export class Environment {
    * The name of the AWS S3 region to use.
    */
   @IsOptional()
-  @CannotUseWithout("AWS_ACCESS_KEY_ID")
   public AWS_REGION = this.toOptionalString(process.env.AWS_REGION);
 
   /**
    * Optional AWS S3 endpoint URL for file attachments.
    */
   @IsOptional()
-  @CannotUseWithout("AWS_ACCESS_KEY_ID")
   public AWS_S3_ACCELERATE_URL = this.toOptionalString(
     process.env.AWS_S3_ACCELERATE_URL
   );
@@ -605,14 +603,12 @@ export class Environment {
    * Optional AWS S3 endpoint URL for file attachments.
    */
   @IsOptional()
-  @CannotUseWithout("AWS_ACCESS_KEY_ID")
   public AWS_S3_UPLOAD_BUCKET_URL = process.env.AWS_S3_UPLOAD_BUCKET_URL ?? "";
 
   /**
    * The bucket name to store file attachments in.
    */
   @IsOptional()
-  @CannotUseWithout("AWS_ACCESS_KEY_ID")
   public AWS_S3_UPLOAD_BUCKET_NAME = this.toOptionalString(
     process.env.AWS_S3_UPLOAD_BUCKET_NAME
   );
@@ -622,7 +618,6 @@ export class Environment {
    * S3-compatible storage providers.
    */
   @IsOptional()
-  @CannotUseWithout("AWS_ACCESS_KEY_ID")
   public AWS_S3_FORCE_PATH_STYLE = this.toBoolean(
     process.env.AWS_S3_FORCE_PATH_STYLE ?? "true"
   );
