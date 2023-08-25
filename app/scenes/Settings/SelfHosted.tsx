@@ -158,7 +158,7 @@ function SelfHosted() {
           border={false}
         >
           <Input
-            placeholder="https://app.kroki.io/"
+            placeholder="https://kroki.io/"
             pattern="https?://.*"
             {...register("krokiIoUrl")}
           />
