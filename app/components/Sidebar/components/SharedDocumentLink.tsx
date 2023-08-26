@@ -8,7 +8,6 @@ import Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { descendants } from "~/utils/tree";
-import Disclosure from "./Disclosure";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
@@ -110,14 +109,10 @@ function DocumentLink(
             title: node.title,
           },
         }}
-        label={
-          <>
-            {hasChildDocuments && depth !== 0 && (
-              <Disclosure expanded={expanded} onClick={handleDisclosureClick} />
-            )}
-            {title}
-          </>
-        }
+        expanded={hasChildDocuments && depth !== 0 ? expanded : undefined}
+        onDisclosureClick={handleDisclosureClick}
+        emoji={node.emoji}
+        label={title}
         depth={depth}
         exact={false}
         scrollIntoViewIfNeeded={!document?.isStarred}

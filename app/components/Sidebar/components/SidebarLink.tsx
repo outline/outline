@@ -156,6 +156,7 @@ const Content = styled.span`
 
   ${Disclosure} {
     margin-top: 2px;
+    margin-left: 2px;
   }
 `;
 
