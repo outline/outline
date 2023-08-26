@@ -20,6 +20,7 @@ import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import EmojiPicker, { Emoji, EmojiButton } from "~/components/EmojiPicker";
 import Flex from "~/components/Flex";
+import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import { isModKey } from "~/utils/keyboard";
 
@@ -54,7 +55,7 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
   }: Props,
   ref: React.RefObject<RefHandle>
 ) {
-  const [isFocused, setFocus] = React.useState(false);
+  const [emojiPickerIsOpen, handleOpen, handleClose] = useBoolean();
   const { editor } = useDocumentContext();
 
   const can = usePolicy(document.id);
@@ -82,7 +83,6 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
       if (onBlur) {
         onBlur(ev);
       }
-      setFocus(false);
     },
     [onBlur]
   );
@@ -219,10 +219,6 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
     [document, restoreFocus]
   );
 
-  const handleFocus = React.useCallback(() => {
-    setFocus(true);
-  }, [setFocus]);
-
   const value =
     !document.title && readOnly ? document.titleWithDefault : document.title;
 
@@ -232,11 +228,10 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       onPaste={handlePaste}
-      onFocus={handleFocus}
       onBlur={handleBlur}
       placeholder={placeholder}
       value={value}
-      $isFocused={isFocused}
+      $emojiPickerIsOpen={emojiPickerIsOpen}
       $containsEmoji={!!document.emoji}
       autoFocus={!document.title}
       maxLength={DocumentValidation.maxTitleLength}
@@ -249,6 +244,8 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
           <StyledEmojiPicker
             value={document.emoji}
             onChange={handleEmojiChange}
+            onOpen={handleOpen}
+            onClose={handleClose}
             // Restore focus on title
             onClickOutside={restoreFocus}
             autoFocus
@@ -277,7 +274,7 @@ const EmojiWrapper = styled(Flex)`
 
 type TitleProps = {
   $containsEmoji: boolean;
-  $isFocused: boolean;
+  $emojiPickerIsOpen: boolean;
 };
 
 const Title = styled(ContentEditable)<TitleProps>`
@@ -286,7 +283,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   margin-top: 1em;
   margin-bottom: 0.5em;
   margin-left: ${(props) =>
-    props.$containsEmoji || props.$isFocused ? "35px" : "0px"};
+    props.$containsEmoji || props.$emojiPickerIsOpen ? "40px" : "0px"};
   font-size: ${fontSize};
   font-weight: 500;
   border: 0;
@@ -302,13 +299,26 @@ const Title = styled(ContentEditable)<TitleProps>`
     -webkit-text-fill-color: ${s("placeholder")};
   }
 
+  &:focus-within,
+  &:focus {
+    margin-left: 40px;
+
+    ${EmojiButton} {
+      opacity: 1 !important;
+    }
+  }
+
+  ${EmojiButton} {
+    opacity: ${(props: TitleProps) =>
+      props.$containsEmoji ? "1 !important" : 0};
+  }
+
   ${breakpoint("tablet")`
     margin-left: 0;
 
-    ${EmojiButton} {
-      opacity: ${(props: TitleProps) =>
-        props.$containsEmoji ? "1 !important" : 0};
-      display: flex;
+    &:focus-within,
+    &:focus {
+      margin-left: 0;
     }
 
     &:hover {

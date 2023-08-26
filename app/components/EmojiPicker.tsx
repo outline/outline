@@ -14,6 +14,32 @@ import useUserLocale from "~/hooks/useUserLocale";
 import { hover } from "~/styles";
 import Flex from "./Flex";
 
+/* Locales supported by emoji-mart */
+const supportedLocales = [
+  "en",
+  "ar",
+  "be",
+  "cs",
+  "de",
+  "es",
+  "fa",
+  "fi",
+  "fr",
+  "hi",
+  "it",
+  "ja",
+  "kr",
+  "nl",
+  "pl",
+  "pt",
+  "ru",
+  "sa",
+  "tr",
+  "uk",
+  "vi",
+  "zh",
+];
+
 /**
  * React hook to derive emoji picker's theme from UI theme
  *
@@ -35,6 +61,10 @@ type Props = {
   value?: string | null;
   /** Callback when an emoji is selected */
   onChange: (emoji: string | null) => void | Promise<void>;
+  /** Callback when the picker is opened */
+  onOpen?: () => void;
+  /** Callback when the picker is closed */
+  onClose?: () => void;
   /** Callback when the picker is clicked outside of */
   onClickOutside: () => void;
   /** Whether to auto focus the search input on open */
@@ -45,6 +75,8 @@ type Props = {
 
 function EmojiPicker({
   value,
+  onOpen,
+  onClose,
   onChange,
   onClickOutside,
   autoFocus,
@@ -64,6 +96,14 @@ function EmojiPicker({
   const [emojisPerLine, setEmojisPerLine] = React.useState(9);
 
   const pickerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (popover.visible) {
+      onOpen?.();
+    } else {
+      onClose?.();
+    }
+  }, [popover.visible, onOpen, onClose]);
 
   React.useEffect(() => {
     if (popover.visible && pickerRef.current) {
@@ -143,7 +183,13 @@ function EmojiPicker({
         <PickerStyles ref={pickerRef}>
           <Picker
             // https://github.com/missive/emoji-mart/issues/800
-            locale={locale === "ko" ? "kr" : locale}
+            locale={
+              locale === "ko"
+                ? "kr"
+                : supportedLocales.includes(locale)
+                ? locale
+                : "en"
+            }
             data={data}
             onEmojiSelect={handleEmojiChange}
             theme={pickerTheme}
