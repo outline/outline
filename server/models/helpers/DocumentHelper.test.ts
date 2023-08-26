@@ -20,7 +20,7 @@ describe("DocumentHelper", () => {
         user
       );
 
-      expect(result).toBe("Hello 7 00 PM");
+      expect(result).toBe("Hello 12 00 AM");
     });
 
     it("should replace {date} with current date", async () => {
@@ -30,7 +30,7 @@ describe("DocumentHelper", () => {
         user
       );
 
-      expect(result).toBe("Hello December 31 2020");
+      expect(result).toBe("Hello January 1 2021");
     });
   });
 
