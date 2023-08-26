@@ -158,7 +158,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         onGoToNextInput={handleGoToNextInput}
         onChange={onChangeTitle}
         onBlur={handleBlur}
-        starrable={!shareId}
         placeholder={t("Untitled")}
       />
       {!shareId && (

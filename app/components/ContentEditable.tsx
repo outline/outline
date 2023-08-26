@@ -144,11 +144,9 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
     []
   );
 
-  const childrenArr = React.Children.toArray(children);
-
   return (
     <div className={className} dir={dir} onClick={onClick} tabIndex={-1}>
-      {childrenArr.length > 1 ? childrenArr[0] : null}
+      {children}
       <Content
         ref={contentRef}
         contentEditable={!disabled && !readOnly}
@@ -164,7 +162,6 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
       >
         {innerValue}
       </Content>
-      {childrenArr.length > 1 ? childrenArr[1] : childrenArr[0]}
     </div>
   );
 });

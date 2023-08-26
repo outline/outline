@@ -20,7 +20,6 @@ import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import EmojiPicker, { Emoji, EmojiButton } from "~/components/EmojiPicker";
 import Flex from "~/components/Flex";
-import Star, { AnimatedStar } from "~/components/Star";
 import usePolicy from "~/hooks/usePolicy";
 import { isModKey } from "~/utils/keyboard";
 
@@ -30,8 +29,6 @@ type Props = {
   placeholder: string;
   /** Should the title be editable, policies will also be considered separately */
   readOnly?: boolean;
-  /** Whether the title show the option to star, policies will also be considered separately (defaults to true) */
-  starrable?: boolean;
   /** Callback called on any edits to text */
   onChange: (text: string) => void;
   /** Callback called when the user expects to move to the "next" input */
@@ -53,7 +50,6 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
     onSave,
     onGoToNextInput,
     onBlur,
-    starrable,
     placeholder,
   }: Props,
   ref: React.RefObject<RefHandle>
@@ -220,7 +216,7 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
         await document.save();
       }
     },
-    [document, ref]
+    [document, restoreFocus]
   );
 
   const handleFocus = React.useCallback(() => {
@@ -240,7 +236,6 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
       onBlur={handleBlur}
       placeholder={placeholder}
       value={value}
-      $isStarred={document.isStarred}
       $isFocused={isFocused}
       $containsEmoji={!!document.emoji}
       autoFocus={!document.title}
@@ -264,8 +259,6 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
           <Emoji size={24}>{document.emoji}</Emoji>
         </EmojiWrapper>
       ) : null}
-
-      {starrable !== false && <StarButton document={document} size={32} />}
     </Title>
   );
 });
@@ -282,21 +275,7 @@ const EmojiWrapper = styled(Flex)`
   width: 32px;
 `;
 
-const StarButton = styled(Star)`
-  position: relative;
-  top: 4px;
-  left: 10px;
-  overflow: hidden;
-  width: 24px;
-
-  svg {
-    position: relative;
-    left: -4px;
-  }
-`;
-
 type TitleProps = {
-  $isStarred: boolean;
   $containsEmoji: boolean;
   $isFocused: boolean;
 };
@@ -323,17 +302,8 @@ const Title = styled(ContentEditable)<TitleProps>`
     -webkit-text-fill-color: ${s("placeholder")};
   }
 
-  ${AnimatedStar} {
-    opacity: ${(props) => (props.$isStarred ? "1 !important" : 0.5)};
-  }
-
   ${breakpoint("tablet")`
-    margin-left: 0px;
-
-    ${AnimatedStar} {
-      opacity: ${(props: TitleProps) =>
-        props.$isStarred ? "1 !important" : 0};
-    }
+    margin-left: 0;
 
     ${EmojiButton} {
       opacity: ${(props: TitleProps) =>
@@ -342,7 +312,6 @@ const Title = styled(ContentEditable)<TitleProps>`
     }
 
     &:hover {
-      ${AnimatedStar},
       ${EmojiButton} {
         opacity: 0.5;
 

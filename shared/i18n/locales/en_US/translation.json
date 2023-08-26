@@ -244,6 +244,8 @@
   "{{ releasesBehind }} versions behind_plural": "{{ releasesBehind }} versions behind",
   "Return to App": "Back to App",
   "Installation": "Installation",
+  "Unstar document": "Unstar document",
+  "Star document": "Star document",
   "No results": "No results",
   "Previous page": "Previous page",
   "Next page": "Next page",
