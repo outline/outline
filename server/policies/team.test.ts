@@ -12,7 +12,6 @@ it("should allow reading only", async () => {
   });
   const abilities = serialize(user, team);
   expect(abilities.read).toEqual(true);
-  expect(abilities.manage).toEqual(false);
   expect(abilities.createTeam).toEqual(false);
   expect(abilities.createAttachment).toEqual(true);
   expect(abilities.createCollection).toEqual(true);
@@ -28,7 +27,6 @@ it("should allow admins to manage", async () => {
   });
   const abilities = serialize(admin, team);
   expect(abilities.read).toEqual(true);
-  expect(abilities.manage).toEqual(true);
   expect(abilities.createTeam).toEqual(false);
   expect(abilities.createAttachment).toEqual(true);
   expect(abilities.createCollection).toEqual(true);
@@ -46,7 +44,6 @@ it("should allow creation on hosted envs", async () => {
   });
   const abilities = serialize(admin, team);
   expect(abilities.read).toEqual(true);
-  expect(abilities.manage).toEqual(true);
   expect(abilities.createTeam).toEqual(true);
   expect(abilities.createAttachment).toEqual(true);
   expect(abilities.createCollection).toEqual(true);

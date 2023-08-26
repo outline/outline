@@ -134,10 +134,18 @@ export function OAuthStateMismatchError(
 }
 
 export function MaximumTeamsError(
-  message = "The maximum number of teams has been reached"
+  message = "The maximum number of workspaces has been reached"
 ) {
   return httpErrors(400, message, {
-    id: "maximum_teams",
+    id: "maximum_reached",
+  });
+}
+
+export function TeamPendingDeletionError(
+  message = "The workspace is pending deletion"
+) {
+  return httpErrors(403, message, {
+    id: "pending_deletion",
   });
 }
 
@@ -160,7 +168,7 @@ export function MicrosoftGraphError(
 }
 
 export function TeamDomainRequiredError(
-  message = "Unable to determine team from current domain or subdomain"
+  message = "Unable to determine workspace from current domain or subdomain"
 ) {
   return httpErrors(400, message, {
     id: "domain_required",

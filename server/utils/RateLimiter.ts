@@ -4,7 +4,7 @@ import {
   RateLimiterMemory,
 } from "rate-limiter-flexible";
 import env from "@server/env";
-import Redis from "@server/redis";
+import Redis from "@server/storage/redis";
 
 export default class RateLimiter {
   constructor() {

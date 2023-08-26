@@ -7,8 +7,8 @@ import validate from "@server/middlewares/validate";
 import { FileOperation, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
+import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
-import { getSignedUrl } from "@server/utils/s3";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -48,7 +48,7 @@ router.post(
       type,
     };
     const team = await Team.findByPk(user.teamId);
-    authorize(user, "manage", team);
+    authorize(user, "update", team);
 
     const [exports, total] = await Promise.all([
       FileOperation.findAll({
@@ -84,7 +84,7 @@ const handleFileOperationsRedirect = async (
     throw ValidationError(`${fileOperation.type} is not complete yet`);
   }
 
-  const accessUrl = await getSignedUrl(fileOperation.key);
+  const accessUrl = await FileStorage.getSignedUrl(fileOperation.key);
   ctx.redirect(accessUrl);
 };
 

@@ -11,7 +11,10 @@
       {
         "checksVoidReturn": true
       }
-    ]
+    ],
+    "no-restricted-imports": ["error", {
+      "paths": ["fetch-with-proxy", "node-fetch"]
+    }]
   },
   "overrides": [
     {

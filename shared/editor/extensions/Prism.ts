@@ -9,9 +9,10 @@ import { findBlockNodes } from "../queries/findChildren";
 export const LANGUAGES = {
   none: "Plain text", // additional entry to disable highlighting
   bash: "Bash",
-  css: "CSS",
   clike: "C",
+  cpp: "C++",
   csharp: "C#",
+  css: "CSS",
   elixir: "Elixir",
   erlang: "Erlang",
   go: "Go",
@@ -74,9 +75,10 @@ function getDecorations({
   lineNumbers?: boolean;
 }) {
   const decorations: Decoration[] = [];
-  const blocks: { node: Node; pos: number }[] = findBlockNodes(doc).filter(
-    (item) => item.node.type.name === name
-  );
+  const blocks: { node: Node; pos: number }[] = findBlockNodes(
+    doc,
+    true
+  ).filter((item) => item.node.type.name === name);
 
   function parseNodes(
     nodes: refractor.RefractorNode[],

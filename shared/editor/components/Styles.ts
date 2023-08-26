@@ -1074,13 +1074,19 @@ mark {
     overflow: hidden;
   }
 
+  /* Hide code without display none so toolbar can still be positioned against it */
   &:not(.code-active) {
-    display: none;
+    height: 0;
+    margin: -0.5em 0;
+    overflow: hidden;
   }
 }
 
+/* Hide code without display none so toolbar can still be positioned against it */
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
-  display: none;
+  height: 0;
+  margin: -0.5em 0;
+  overflow: hidden;
 }
 
 .code-block.with-line-numbers {

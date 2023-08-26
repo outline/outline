@@ -1,8 +1,8 @@
-import fetch from "fetch-with-proxy";
 import env from "@server/env";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
-import Redis from "@server/redis";
+import Redis from "@server/storage/redis";
+import fetch from "@server/utils/fetch";
 
 class Iframely {
   private static apiUrl = `${env.IFRAMELY_URL}/api`;

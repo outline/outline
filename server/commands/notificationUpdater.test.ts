@@ -1,6 +1,6 @@
 import { NotificationEventType } from "@shared/types";
-import { sequelize } from "@server/database/sequelize";
 import { Event } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import {
   buildUser,
   buildNotification,

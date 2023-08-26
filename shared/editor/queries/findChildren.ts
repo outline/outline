@@ -50,8 +50,9 @@ export function findChildren(
  * are blocks.
  *
  * @param node The node to iterate over
+ * @param descend Whether to descend into a node
  * @returns Child nodes that are blocks
  */
-export function findBlockNodes(node: Node): NodeWithPos[] {
-  return findChildren(node, (child) => child.isBlock);
+export function findBlockNodes(node: Node, descend = false): NodeWithPos[] {
+  return findChildren(node, (child) => child.isBlock, descend);
 }

@@ -184,7 +184,7 @@ function Members() {
       </Flex>
       <PeopleTable
         data={data}
-        canManage={can.manage}
+        canManage={can.update}
         isLoading={isLoading}
         page={page}
         pageSize={limit}

@@ -11,13 +11,15 @@ import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
-import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
+import { fadeOnDesktopBackgrounded } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import Avatar from "../Avatar";
 import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
-import HeaderButton, { HeaderButtonProps } from "./components/HeaderButton";
+import FullWidthButton, {
+  FullWidthButtonProps,
+} from "./components/FullWidthButton";
 import ResizeBorder from "./components/ResizeBorder";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 
@@ -175,11 +177,12 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
         {user && (
           <AccountMenu>
-            {(props: HeaderButtonProps) => (
-              <HeaderButton
+            {(props: FullWidthButtonProps) => (
+              <FullWidthButton
                 {...props}
                 showMoreMenu
                 title={user.name}
+                position="bottom"
                 image={
                   <StyledAvatar
                     alt={user.name}
@@ -190,11 +193,15 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
                 }
               >
                 <NotificationsPopover>
-                  {(rest: HeaderButtonProps) => (
-                    <HeaderButton {...rest} image={<NotificationIcon />} />
+                  {(rest: FullWidthButtonProps) => (
+                    <FullWidthButton
+                      {...rest}
+                      position="bottom"
+                      image={<NotificationIcon />}
+                    />
                   )}
                 </NotificationsPopover>
-              </HeaderButton>
+              </FullWidthButton>
             )}
           </AccountMenu>
         )}
@@ -259,8 +266,6 @@ const Container = styled(Flex)<ContainerProps>`
   z-index: ${depths.sidebar};
   max-width: 80%;
   min-width: 280px;
-  padding-top: ${Desktop.hasInsetTitlebar() ? 36 : 0}px;
-  ${draggableOnDesktop()}
   ${fadeOnDesktopBackgrounded()}
 
   ${Positioner} {

@@ -24,10 +24,10 @@
     "db:rollback": "sequelize db:migrate:undo",
     "db:reset": "sequelize db:drop && sequelize db:create && sequelize db:migrate",
     "upgrade": "git fetch && git pull && yarn install && yarn heroku-postbuild",
-    "test": "jest --config=.jestconfig.json --forceExit",
-    "test:app": "jest --config=.jestconfig.json --selectProjects app",
-    "test:shared": "jest --config=.jestconfig.json --selectProjects shared-node shared-jsdom",
-    "test:server": "jest --config=.jestconfig.json --selectProjects server",
+    "test": "TZ=UTC jest --config=.jestconfig.json --forceExit",
+    "test:app": "TZ=UTC jest --config=.jestconfig.json --selectProjects app",
+    "test:shared": "TZ=UTC jest --config=.jestconfig.json --selectProjects shared-node shared-jsdom",
+    "test:server": "TZ=UTC jest --config=.jestconfig.json --selectProjects server",
     "vite:dev": "vite",
     "vite:build": "vite build",
     "vite:preview": "vite preview"
@@ -94,7 +94,7 @@
     "crypto-js": "^4.1.1",
     "datadog-metrics": "^0.11.0",
     "date-fns": "^2.30.0",
-    "dd-trace": "^3.32.1",
+    "dd-trace": "^3.33.0",
     "dotenv": "^4.0.0",
     "emoji-mart": "^5.5.2",
     "email-providers": "^1.14.0",
@@ -172,7 +172,7 @@
     "query-string": "^7.1.3",
     "quoted-printable": "^1.0.1",
     "randomstring": "1.2.3",
-    "rate-limiter-flexible": "^2.4.1",
+    "rate-limiter-flexible": "^2.4.2",
     "react": "^17.0.2",
     "react-avatar-editor": "^13.0.0",
     "react-color": "^2.17.3",
@@ -296,7 +296,7 @@
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "babel-eslint": "^10.1.0",
-    "babel-jest": "^29.6.1",
+    "babel-jest": "^29.6.3",
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-typescript-metadata": "^0.3.2",
     "babel-plugin-tsconfig-paths-module-resolver": "^1.0.4",
@@ -304,7 +304,7 @@
     "concurrently": "^7.6.0",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.7",
-    "eslint": "^8.45.0",
+    "eslint": "^8.47.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-import-resolver-typescript": "^3.5.4",
     "eslint-plugin-es": "^4.1.0",
@@ -343,5 +343,5 @@
     "qs": "6.9.7",
     "rollup": "^3.14.0"
   },
-  "version": "0.70.2"
+  "version": "0.71.0"
 }

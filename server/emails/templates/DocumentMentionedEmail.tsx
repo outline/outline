@@ -58,20 +58,23 @@ Open Document: ${teamUrl}${document.url}
   }
 
   protected render({ document, actorName, teamUrl }: Props) {
-    const link = `${teamUrl}${document.url}?ref=notification-email`;
+    const documentLink = `${teamUrl}${document.url}?ref=notification-email`;
 
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview({ actorName } as Props)}
+        goToAction={{ url: documentLink, name: "View Document" }}
+      >
         <Header />
 
         <Body>
           <Heading>You were mentioned</Heading>
           <p>
             {actorName} mentioned you in the document{" "}
-            <a href={link}>{document.title}</a>.
+            <a href={documentLink}>{document.title}</a>.
           </p>
           <p>
-            <Button href={link}>Open Document</Button>
+            <Button href={documentLink}>Open Document</Button>
           </p>
         </Body>
       </EmailTemplate>

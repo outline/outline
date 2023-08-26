@@ -1,12 +1,12 @@
 import crypto from "crypto";
-import fetch from "fetch-with-proxy";
 import env from "@server/env";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
-import Redis from "@server/redis";
+import Redis from "@server/storage/redis";
 import packageInfo from "../../package.json";
+import fetch from "./fetch";
 
 const UPDATES_URL = "https://updates.getoutline.com";
 const UPDATES_KEY = "UPDATES_KEY";

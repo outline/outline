@@ -569,6 +569,29 @@ export class Environment {
     this.toOptionalNumber(process.env.AWS_S3_UPLOAD_MAX_SIZE) ?? 100000000;
 
   /**
+   * Access key ID for AWS S3.
+   */
+  @IsOptional()
+  public AWS_ACCESS_KEY_ID = this.toOptionalString(
+    process.env.AWS_ACCESS_KEY_ID
+  );
+
+  /**
+   * Secret key for AWS S3.
+   */
+  @IsOptional()
+  @CannotUseWithout("AWS_ACCESS_KEY_ID")
+  public AWS_SECRET_ACCESS_KEY = this.toOptionalString(
+    process.env.AWS_SECRET_ACCESS_KEY
+  );
+
+  /**
+   * The name of the AWS S3 region to use.
+   */
+  @IsOptional()
+  public AWS_REGION = this.toOptionalString(process.env.AWS_REGION);
+
+  /**
    * Optional AWS S3 endpoint URL for file attachments.
    */
   @IsOptional()
@@ -580,8 +603,23 @@ export class Environment {
    * Optional AWS S3 endpoint URL for file attachments.
    */
   @IsOptional()
-  public AWS_S3_UPLOAD_BUCKET_URL = this.toOptionalString(
-    process.env.AWS_S3_UPLOAD_BUCKET_URL
+  public AWS_S3_UPLOAD_BUCKET_URL = process.env.AWS_S3_UPLOAD_BUCKET_URL ?? "";
+
+  /**
+   * The bucket name to store file attachments in.
+   */
+  @IsOptional()
+  public AWS_S3_UPLOAD_BUCKET_NAME = this.toOptionalString(
+    process.env.AWS_S3_UPLOAD_BUCKET_NAME
+  );
+
+  /**
+   * Whether to force path style URLs for S3 objects, this is required for some
+   * S3-compatible storage providers.
+   */
+  @IsOptional()
+  public AWS_S3_FORCE_PATH_STYLE = this.toBoolean(
+    process.env.AWS_S3_FORCE_PATH_STYLE ?? "true"
   );
 
   /**

@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
-import fetch from "fetch-with-proxy";
 import type { Context } from "koa";
 import {
   StateStoreStoreCallback,
@@ -11,6 +10,7 @@ import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { Team } from "@server/models";
 import { OAuthStateMismatchError } from "../errors";
+import fetch from "./fetch";
 
 export class StateStore {
   key = "state";

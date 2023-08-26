@@ -68,8 +68,13 @@ Open Collection: ${teamUrl}${collection.url}
   }
 
   protected render({ collection, teamUrl, unsubscribeUrl }: Props) {
+    const collectionLink = `${teamUrl}${collection.url}`;
+
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview({ collection } as Props)}
+        goToAction={{ url: collectionLink, name: "View Collection" }}
+      >
         <Header />
 
         <Body>
@@ -80,9 +85,7 @@ Open Collection: ${teamUrl}${collection.url}
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}${collection.url}`}>
-              Open Collection
-            </Button>
+            <Button href={collectionLink}>Open Collection</Button>
           </p>
         </Body>
 

@@ -21,7 +21,10 @@ type Props = EmailProps & {
  * Email sent to an external user when an admin sends them an invite and they
  * haven't signed in after a few days.
  */
-export default class InviteReminderEmail extends BaseEmail<Props> {
+export default class InviteReminderEmail extends BaseEmail<
+  Props,
+  Record<string, any>
+> {
   protected subject({ actorName, teamName }: Props) {
     return `Reminder: ${actorName} invited you to join ${teamName}’s knowledge base`;
   }
@@ -49,8 +52,9 @@ If you haven't signed up yet, you can do so here: ${teamUrl}
   }
 
   protected render({ teamName, actorName, actorEmail, teamUrl }: Props) {
+    const inviteLink = `${teamUrl}?ref=invite-reminder-email`;
     return (
-      <EmailTemplate>
+      <EmailTemplate previewText={this.preview()}>
         <Header />
 
         <Body>
@@ -66,9 +70,7 @@ If you haven't signed up yet, you can do so here: ${teamUrl}
           <p>If you haven't signed up yet, you can do so here:</p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}?ref=invite-reminder-email`}>
-              Join now
-            </Button>
+            <Button href={inviteLink}>Join now</Button>
           </p>
         </Body>
 

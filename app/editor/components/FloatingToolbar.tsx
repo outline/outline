@@ -9,6 +9,7 @@ import { Portal } from "~/components/Portal";
 import useComponentSize from "~/hooks/useComponentSize";
 import useEventListener from "~/hooks/useEventListener";
 import useMediaQuery from "~/hooks/useMediaQuery";
+import useMobile from "~/hooks/useMobile";
 import useViewportHeight from "~/hooks/useViewportHeight";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
@@ -40,6 +41,7 @@ function usePosition({
   const { selection } = view.state;
   const { width: menuWidth, height: menuHeight } = useComponentSize(menuRef);
   const viewportHeight = useViewportHeight();
+  const isMobile = useMobile();
   const isTouchDevice = useMediaQuery("(hover: none) and (pointer: coarse)");
 
   if (!active || !menuWidth || !menuHeight || !menuRef.current) {
@@ -48,7 +50,7 @@ function usePosition({
 
   // If we're on a mobile device then stick the floating toolbar to the bottom
   // of the screen above the virtual keyboard.
-  if (isTouchDevice && viewportHeight) {
+  if (isTouchDevice && isMobile && viewportHeight) {
     return {
       left: 0,
       right: 0,

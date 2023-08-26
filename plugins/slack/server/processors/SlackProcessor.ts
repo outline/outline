@@ -1,5 +1,4 @@
 import { differenceInMilliseconds } from "date-fns";
-import fetch from "fetch-with-proxy";
 import { Op } from "sequelize";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { Minute } from "@shared/utils/time";
@@ -12,6 +11,7 @@ import {
   RevisionEvent,
   Event,
 } from "@server/types";
+import fetch from "@server/utils/fetch";
 import presentMessageAttachment from "../presenters/messageAttachment";
 
 export default class SlackProcessor extends BaseProcessor {

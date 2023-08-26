@@ -93,6 +93,7 @@ export default async function documentUpdater({
     teamId: document.teamId,
     actorId: user.id,
     data: {
+      done,
       title: document.title,
     },
     ip,
