@@ -1,3 +1,4 @@
+import uniq from "lodash/uniq";
 import { Node } from "prosemirror-model";
 import { parser } from "@server/editor";
 
@@ -24,5 +25,5 @@ export default function parseImages(text: string): string[] {
     return true;
   });
 
-  return images;
+  return uniq(images);
 }

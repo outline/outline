@@ -6,8 +6,12 @@ import { JSDOM } from "jsdom";
 import escapeRegExp from "lodash/escapeRegExp";
 import startCase from "lodash/startCase";
 import { Node } from "prosemirror-model";
+import { SaveOptions } from "sequelize";
+import { v4 as uuidv4 } from "uuid";
+
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
+import { AttachmentPreset } from "@shared/types";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,
@@ -22,7 +26,9 @@ import User from "@server/models/User";
 import FileStorage from "@server/storage/files";
 import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import parseImages from "@server/utils/parseImages";
 import Attachment from "../Attachment";
+import AttachmentHelper from "./AttachmentHelper";
 import ProsemirrorHelper from "./ProsemirrorHelper";
 
 type HTMLOptions = {
@@ -351,9 +357,60 @@ export default class DocumentHelper {
       : undefined;
 
     return text
-      .replace("{date}", startCase(getCurrentDateAsString(locales)))
-      .replace("{time}", startCase(getCurrentTimeAsString(locales)))
-      .replace("{datetime}", startCase(getCurrentDateTimeAsString(locales)));
+      .replace(/{date}/g, startCase(getCurrentDateAsString(locales)))
+      .replace(/{time}/g, startCase(getCurrentTimeAsString(locales)))
+      .replace(/{datetime}/g, startCase(getCurrentDateTimeAsString(locales)));
+  }
+
+  static async replaceImagesWithAttachments(
+    text: string,
+    user: User,
+    options: SaveOptions
+  ) {
+    let output = text;
+    const images = parseImages(text);
+
+    await Promise.all(
+      images.map(async (imageUrl) => {
+        const modelId = uuidv4();
+        const acl = AttachmentHelper.presetToAcl(
+          AttachmentPreset.DocumentAttachment
+        );
+        const key = AttachmentHelper.getKey({
+          acl,
+          id: modelId,
+          name: "image",
+          userId: user.id,
+        });
+
+        const res = await FileStorage.uploadFromUrl(imageUrl, key, acl);
+
+        if (res) {
+          const attachment = await Attachment.create(
+            {
+              id: modelId,
+              key,
+              acl,
+              size: res.contentLength,
+              expiresAt: AttachmentHelper.presetToExpiry(
+                AttachmentPreset.DocumentAttachment
+              ),
+              contentType: res.contentType,
+              teamId: user.teamId,
+              userId: user.id,
+            },
+            options
+          );
+
+          output = output.replace(
+            new RegExp(escapeRegExp(imageUrl), "g"),
+            attachment.redirectUrl
+          );
+        }
+      })
+    );
+
+    return output;
   }
 
   /**
