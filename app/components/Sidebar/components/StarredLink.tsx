@@ -41,14 +41,10 @@ function useLabelAndIcon({ documentId, collectionId }: Star) {
   if (documentId) {
     const document = documents.get(documentId);
     if (document) {
-      const { emoji } = document;
-
       return {
-        label: emoji
-          ? document.title.replace(emoji, "")
-          : document.titleWithDefault,
-        icon: emoji ? (
-          <EmojiIcon emoji={emoji} />
+        label: document.titleWithDefault,
+        icon: document.emoji ? (
+          <EmojiIcon emoji={document.emoji} />
         ) : (
           <StarredIcon color={theme.yellow} />
         ),

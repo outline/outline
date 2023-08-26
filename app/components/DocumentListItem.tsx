@@ -24,6 +24,7 @@ import usePolicy from "~/hooks/usePolicy";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { hover } from "~/styles";
 import { newDocumentPath } from "~/utils/routeHelpers";
+import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
   document: Document;
@@ -73,9 +74,6 @@ function DocumentListItem(
     !document.isDraft && !document.isArchived && !document.isTemplate;
   const can = usePolicy(team);
   const canCollection = usePolicy(document.collectionId);
-  const title = document.emoji
-    ? `${document.emoji} ${document.titleWithDefault}`
-    : document.titleWithDefault;
 
   return (
     <CompositeItem
@@ -95,7 +93,17 @@ function DocumentListItem(
     >
       <Content>
         <Heading dir={document.dir}>
-          <Title text={title} highlight={highlight} dir={document.dir} />
+          {document.emoji && (
+            <>
+              <EmojiIcon emoji={document.emoji} size={24} />
+              &nbsp;
+            </>
+          )}
+          <Title
+            text={document.titleWithDefault}
+            highlight={highlight}
+            dir={document.dir}
+          />
           {document.isBadgedNew && document.createdBy.id !== user.id && (
             <Badge yellow>{t("New")}</Badge>
           )}

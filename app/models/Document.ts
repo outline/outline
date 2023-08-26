@@ -67,6 +67,9 @@ export default class Document extends ParanoidModel {
   @observable
   title: string;
 
+  /**
+   * An emoji to use as the document icon.
+   */
   @Field
   @observable
   emoji: string | undefined | null;

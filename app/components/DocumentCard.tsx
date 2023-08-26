@@ -111,7 +111,7 @@ function DocumentCard(props: Props) {
 
             {document.emoji ? (
               <Squircle color={theme.slateLight}>
-                <EmojiIcon emoji={document.emoji} size={26} />
+                <EmojiIcon emoji={document.emoji} size={24} />
               </Squircle>
             ) : (
               <Squircle color={collection?.color}>
