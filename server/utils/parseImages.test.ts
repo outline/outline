@@ -10,7 +10,8 @@ it("should return an array of images", () => {
   ![internal](/attachments/image.png)
   `);
   expect(result.length).toBe(1);
-  expect(result[0]).toBe("/attachments/image.png");
+  expect(result[0].alt).toBe("internal");
+  expect(result[0].src).toBe("/attachments/image.png");
 });
 
 it("should return deeply nested images", () => {
@@ -18,10 +19,11 @@ it("should return deeply nested images", () => {
   
 - one
   - two
-    - three ![internal](/attachments/image.png)
+    - three ![oh my](/attachments/image.png)
   `);
   expect(result.length).toBe(1);
-  expect(result[0]).toBe("/attachments/image.png");
+  expect(result[0].alt).toBe("oh my");
+  expect(result[0].src).toBe("/attachments/image.png");
 });
 
 it("should not return non document links", () => {

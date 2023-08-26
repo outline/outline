@@ -362,6 +362,15 @@ export default class DocumentHelper {
       .replace(/{datetime}/g, startCase(getCurrentDateTimeAsString(locales)));
   }
 
+  /**
+   * Replaces remote and base64 encoded images in the given text with attachment
+   * urls and uploads the images to the storage provider.
+   *
+   * @param text The text to replace the images in
+   * @param user The user context
+   * @param options The options to pass to the save method
+   * @returns The text with the images replaced
+   */
   static async replaceImagesWithAttachments(
     text: string,
     user: User,
@@ -371,7 +380,7 @@ export default class DocumentHelper {
     const images = parseImages(text);
 
     await Promise.all(
-      images.map(async (imageUrl) => {
+      images.map(async (image) => {
         const modelId = uuidv4();
         const acl = AttachmentHelper.presetToAcl(
           AttachmentPreset.DocumentAttachment
@@ -379,11 +388,11 @@ export default class DocumentHelper {
         const key = AttachmentHelper.getKey({
           acl,
           id: modelId,
-          name: "image",
+          name: image.alt ?? "image",
           userId: user.id,
         });
 
-        const res = await FileStorage.uploadFromUrl(imageUrl, key, acl);
+        const res = await FileStorage.uploadFromUrl(image.src, key, acl);
 
         if (res) {
           const attachment = await Attachment.create(
@@ -392,9 +401,6 @@ export default class DocumentHelper {
               key,
               acl,
               size: res.contentLength,
-              expiresAt: AttachmentHelper.presetToExpiry(
-                AttachmentPreset.DocumentAttachment
-              ),
               contentType: res.contentType,
               teamId: user.teamId,
               userId: user.id,
@@ -403,7 +409,7 @@ export default class DocumentHelper {
           );
 
           output = output.replace(
-            new RegExp(escapeRegExp(imageUrl), "g"),
+            new RegExp(escapeRegExp(image.src), "g"),
             attachment.redirectUrl
           );
         }
