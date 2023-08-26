@@ -90,7 +90,8 @@ export default async function documentCreator({
           user
         ),
         user,
-        { transaction }
+        ip,
+        transaction
       ),
       state,
     },

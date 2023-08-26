@@ -136,6 +136,7 @@ async function documentImporter({
   fileName,
   content,
   user,
+  ip,
   transaction,
 }: {
   user: User;
@@ -203,9 +204,12 @@ async function documentImporter({
   // to match our hardbreak parser.
   text = text.replace(/<br>/gi, "\\n");
 
-  text = await DocumentHelper.replaceImagesWithAttachments(text, user, {
-    transaction,
-  });
+  text = await DocumentHelper.replaceImagesWithAttachments(
+    text,
+    user,
+    ip,
+    transaction
+  );
 
   // It's better to truncate particularly long titles than fail the import
   title = truncate(title, { length: DocumentValidation.maxTitleLength });

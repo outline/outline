@@ -6,9 +6,7 @@ import { JSDOM } from "jsdom";
 import escapeRegExp from "lodash/escapeRegExp";
 import startCase from "lodash/startCase";
 import { Node } from "prosemirror-model";
-import { SaveOptions } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
-
+import { Transaction } from "sequelize";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
 import { AttachmentPreset } from "@shared/types";
@@ -18,6 +16,7 @@ import {
   getCurrentTimeAsString,
   unicodeCLDRtoBCP47,
 } from "@shared/utils/date";
+import attachmentCreator from "@server/commands/attachmentCreator";
 import { parser, schema } from "@server/editor";
 import { trace } from "@server/logging/tracing";
 import type Document from "@server/models/Document";
@@ -28,7 +27,6 @@ import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import parseImages from "@server/utils/parseImages";
 import Attachment from "../Attachment";
-import AttachmentHelper from "./AttachmentHelper";
 import ProsemirrorHelper from "./ProsemirrorHelper";
 
 type HTMLOptions = {
@@ -368,46 +366,31 @@ export default class DocumentHelper {
    *
    * @param text The text to replace the images in
    * @param user The user context
-   * @param options The options to pass to the save method
+   * @param ip The IP address of the user
+   * @param transaction The transaction to use for the database operations
    * @returns The text with the images replaced
    */
   static async replaceImagesWithAttachments(
     text: string,
     user: User,
-    options: SaveOptions
+    ip?: string,
+    transaction?: Transaction
   ) {
     let output = text;
     const images = parseImages(text);
 
     await Promise.all(
       images.map(async (image) => {
-        const modelId = uuidv4();
-        const acl = AttachmentHelper.presetToAcl(
-          AttachmentPreset.DocumentAttachment
-        );
-        const key = AttachmentHelper.getKey({
-          acl,
-          id: modelId,
+        const attachment = await attachmentCreator({
           name: image.alt ?? "image",
-          userId: user.id,
+          url: image.src,
+          preset: AttachmentPreset.DocumentAttachment,
+          user,
+          ip,
+          transaction,
         });
 
-        const res = await FileStorage.uploadFromUrl(image.src, key, acl);
-
-        if (res) {
-          const attachment = await Attachment.create(
-            {
-              id: modelId,
-              key,
-              acl,
-              size: res.contentLength,
-              contentType: res.contentType,
-              teamId: user.teamId,
-              userId: user.id,
-            },
-            options
-          );
-
+        if (attachment) {
           output = output.replace(
             new RegExp(escapeRegExp(image.src), "g"),
             attachment.redirectUrl
