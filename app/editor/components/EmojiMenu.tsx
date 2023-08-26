@@ -1,5 +1,6 @@
 import data, { type Emoji as TEmoji, EmojiMartData } from "@emoji-mart/data";
 import FuzzySearch from "fuzzy-search";
+import capitalize from "lodash/capitalize";
 import snakeCase from "lodash/snakeCase";
 import React from "react";
 import EmojiMenuItem from "./EmojiMenuItem";
@@ -43,7 +44,7 @@ const EmojiMenu = (props: Props) => {
       return {
         name: "emoji",
         title: emoji,
-        description: item.name,
+        description: capitalize(item.name.toLowerCase()),
         emoji,
         attrs: { markup: shortcode, "data-name": shortcode },
       };
