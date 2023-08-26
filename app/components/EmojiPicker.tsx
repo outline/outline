@@ -96,7 +96,7 @@ function EmojiPicker({
             onClick={handleClick}
             icon={
               value ? (
-                <Emoji size={24} align="center" justify="center">
+                <Emoji size={32} align="center" justify="center">
                   {value}
                 </Emoji>
               ) : (

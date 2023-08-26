@@ -21,6 +21,7 @@ import Button from "~/components/Button";
 import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Header from "~/components/Header";
+import EmojiIcon from "~/components/Icons/EmojiIcon";
 import Tooltip from "~/components/Tooltip";
 import { publishDocument } from "~/actions/definitions/documents";
 import { restoreRevision } from "~/actions/definitions/revisions";
@@ -204,6 +205,11 @@ function DocumentHeader({
         }
         title={
           <>
+            {document.emoji && (
+              <>
+                <EmojiIcon size={24} emoji={document.emoji} />{" "}
+              </>
+            )}
             {document.title}{" "}
             {document.isArchived && (
               <ArchivedBadge>{t("Archived")}</ArchivedBadge>
