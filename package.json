@@ -107,7 +107,6 @@
     "framer-motion": "^4.1.17",
     "fs-extra": "^11.1.1",
     "fuzzy-search": "^3.2.1",
-    "gemoji": "6.x",
     "glob": "^8.1.0",
     "http-errors": "2.0.0",
     "i18next": "^22.5.1",
