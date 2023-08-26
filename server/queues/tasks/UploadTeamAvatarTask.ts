@@ -20,14 +20,14 @@ export default class UploadTeamAvatarTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
-    const avatarUrl = await FileStorage.uploadFromUrl(
+    const res = await FileStorage.uploadFromUrl(
       props.avatarUrl,
       `avatars/${team.id}/${uuidv4()}`,
       "public-read"
     );
 
-    if (avatarUrl) {
-      await team.update({ avatarUrl });
+    if (res?.url) {
+      await team.update({ avatarUrl: res?.url });
     }
   }
 

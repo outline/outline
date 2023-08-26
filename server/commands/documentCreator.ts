@@ -84,7 +84,15 @@ export default async function documentCreator({
       title: templateDocument
         ? DocumentHelper.replaceTemplateVariables(templateDocument.title, user)
         : title,
-      text: templateDocument ? templateDocument.text : text,
+      text: await DocumentHelper.replaceImagesWithAttachments(
+        DocumentHelper.replaceTemplateVariables(
+          templateDocument ? templateDocument.text : text,
+          user
+        ),
+        user,
+        ip,
+        transaction
+      ),
       state,
     },
     {
@@ -112,7 +120,11 @@ export default async function documentCreator({
   );
 
   if (publish) {
-    await document.publish(user.id, collectionId!, { transaction });
+    if (!collectionId) {
+      throw new Error("Collection ID is required to publish");
+    }
+
+    await document.publish(user.id, collectionId, { transaction });
     await Event.create(
       {
         name: "documents.publish",

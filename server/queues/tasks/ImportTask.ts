@@ -1,5 +1,6 @@
 import truncate from "lodash/truncate";
 import {
+  AttachmentPreset,
   CollectionPermission,
   CollectionSort,
   FileOperationState,
@@ -243,6 +244,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             Logger.debug("task", `ImportTask persisting attachment ${item.id}`);
             const attachment = await attachmentCreator({
               source: "import",
+              preset: AttachmentPreset.DocumentAttachment,
               id: item.id,
               name: item.name,
               type: item.mimeType,
@@ -251,7 +253,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
               ip,
               transaction,
             });
-            attachments.set(item.id, attachment);
+            if (attachment) {
+              attachments.set(item.id, attachment);
+            }
           })
         );
 
