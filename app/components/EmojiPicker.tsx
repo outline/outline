@@ -5,8 +5,8 @@ import { parseToRgb } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
-import styled, { css, useTheme } from "styled-components";
-import { depths, extraArea, s } from "@shared/styles";
+import styled, { useTheme } from "styled-components";
+import { depths, s } from "@shared/styles";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
 import usePickerTheme from "~/hooks/usePickerTheme";
@@ -21,15 +21,18 @@ type Props = {
   onChange: (emoji: string | null) => void | Promise<void>;
   /** Callback when the picker is clicked outside of */
   onClickOutside: () => void;
+  /** Whether to auto focus the search input on open */
+  autoFocus?: boolean;
+  /** Class name to apply to the trigger button */
+  className?: string;
 };
-
-const DEFAULT_EMOJIS_PER_LINE = 9;
 
 function EmojiPicker({
   value,
   onChange,
   onClickOutside,
-  ...pickerOptions
+  autoFocus,
+  className,
 }: Props) {
   const { t } = useTranslation();
   const pickerTheme = usePickerTheme();
@@ -42,9 +45,7 @@ function EmojiPicker({
     unstable_offset: [0, 0],
   });
 
-  const [emojisPerLine, setEmojisPerLine] = React.useState(
-    DEFAULT_EMOJIS_PER_LINE
-  );
+  const [emojisPerLine, setEmojisPerLine] = React.useState(9);
 
   const pickerRef = React.useRef<HTMLDivElement>(null);
 
@@ -60,8 +61,7 @@ function EmojiPicker({
   const handleEmojiChange = React.useCallback(
     async (emoji) => {
       popover.hide();
-      const val = emoji ? emoji.native : null;
-      await onChange(val);
+      await onChange(emoji ? emoji.native : null);
     },
     [popover, onChange]
   );
@@ -93,6 +93,7 @@ function EmojiPicker({
         {(props) => (
           <EmojiButton
             {...props}
+            className={className}
             onClick={handleClick}
             icon={
               value ? (
@@ -100,7 +101,7 @@ function EmojiPicker({
                   {value}
                 </Emoji>
               ) : (
-                <EmojiIcon size={32} color={theme.textTertiary} />
+                <StyledSmileyIcon size={32} color={theme.textTertiary} />
               )
             }
             neutral
@@ -133,7 +134,7 @@ function EmojiPicker({
             previewPosition="none"
             perLine={emojisPerLine}
             onClickOutside={handleClickOutside}
-            {...pickerOptions}
+            autoFocus={autoFocus}
           />
         </PickerStyles>
       </PickerPopover>
@@ -141,11 +142,17 @@ function EmojiPicker({
   );
 }
 
-export const EmojiIcon = styled(SmileyIcon)`
-  flex-shrink: 0;
+export const EmojiButton = styled(Button)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
 
-  @media print {
-    display: none;
+  &: ${hover},
+  &:active,
+  &[aria-expanded= "true"] {
+    opacity: 1 !important;
   }
 `;
 
@@ -154,32 +161,12 @@ export const Emoji = styled(Flex)<{ size?: number }>`
   ${(props) => (props.size ? `font-size: ${props.size}px` : "")}
 `;
 
-const EmojiWrapperStyles = css`
-  position: absolute;
-  top: 6px;
-  left: -40px;
-  height: 36px;
-  width: 36px;
-  z-index: 2;
-`;
+const StyledSmileyIcon = styled(SmileyIcon)`
+  flex-shrink: 0;
 
-export const EmojiWrapper = styled(Flex)`
-  ${EmojiWrapperStyles}
-`;
-
-export const EmojiButton = styled(Button)`
-  ${EmojiWrapperStyles}
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &: ${hover},
-  &:active,
-  &[aria-expanded= "true"] {
-    opacity: 1 !important;
+  @media print {
+    display: none;
   }
-
-  ${extraArea(4)}
 `;
 
 const RemoveButton = styled(Button)`

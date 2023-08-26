@@ -29,5 +29,5 @@ const Span = styled.span<{ $size: number }>`
   width: ${(props) => props.$size}px;
   height: ${(props) => props.$size}px;
   text-indent: -0.15em;
-  font-size: 14px;
+  font-size: ${(props) => props.$size - 10}px;
 `;

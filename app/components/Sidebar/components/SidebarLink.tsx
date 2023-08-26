@@ -4,10 +4,9 @@ import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
-import { Emoji } from "~/components/EmojiPicker";
 import EventBoundary from "~/components/EventBoundary";
+import EmojiIcon from "~/components/Icons/EmojiIcon";
 import NudeButton from "~/components/NudeButton";
-import useEmojiWidth from "~/hooks/useEmojiWidth";
 import useUnmount from "~/hooks/useUnmount";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
@@ -88,10 +87,6 @@ function SidebarLink(
     [theme.text, theme.sidebarActiveBackground, style]
   );
 
-  const emojiWidth = useEmojiWidth(emoji, {
-    fontSize: "15px",
-    lineHeight: "1.6",
-  });
   const handleMouseEnter = React.useCallback(() => {
     if (timer.current) {
       clearTimeout(timer.current);
@@ -144,11 +139,7 @@ function SidebarLink(
             />
           )}
           {icon && <IconWrapper>{icon}</IconWrapper>}
-          {emoji && (
-            <EmojiWrapper width={emojiWidth}>
-              <Emoji align="center">{emoji}</Emoji>
-            </EmojiWrapper>
-          )}
+          {emoji && <EmojiIcon emoji={emoji} />}
           <Label>{label}</Label>
         </Content>
       </Link>
@@ -175,11 +166,6 @@ export const IconWrapper = styled.span`
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
-`;
-
-const EmojiWrapper = styled(IconWrapper)<{ width?: number }>`
-  margin: 0;
-  width: ${(props) => (props.width ? `${props.width}px` : "100%")};
 `;
 
 const Actions = styled(EventBoundary)<{ showActions?: boolean }>`

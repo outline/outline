@@ -7,7 +7,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
-import { s } from "@shared/styles";
+import { extraArea, s } from "@shared/styles";
 import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
@@ -18,11 +18,8 @@ import { DocumentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
-import EmojiPicker, {
-  EmojiWrapper,
-  Emoji,
-  EmojiButton,
-} from "~/components/EmojiPicker";
+import EmojiPicker, { Emoji, EmojiButton } from "~/components/EmojiPicker";
+import Flex from "~/components/Flex";
 import Star, { AnimatedStar } from "~/components/Star";
 import usePolicy from "~/hooks/usePolicy";
 import { isModKey } from "~/utils/keyboard";
@@ -253,12 +250,15 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
       ref={ref}
     >
       {can.update ? (
-        <EmojiPicker
-          value={document.emoji}
-          onChange={handleEmojiChange}
-          // Restore focus on title
-          onClickOutside={restoreFocus}
-        />
+        <EmojiWrapper align="center" justify="center">
+          <StyledEmojiPicker
+            value={document.emoji}
+            onChange={handleEmojiChange}
+            // Restore focus on title
+            onClickOutside={restoreFocus}
+            autoFocus
+          />
+        </EmojiWrapper>
       ) : document.emoji ? (
         <EmojiWrapper align="center" justify="center">
           <Emoji size={24}>{document.emoji}</Emoji>
@@ -269,6 +269,18 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
     </Title>
   );
 });
+
+const StyledEmojiPicker = styled(EmojiPicker)`
+  ${extraArea(8)}
+`;
+
+const EmojiWrapper = styled(Flex)`
+  position: absolute;
+  top: 8px;
+  left: -40px;
+  height: 32px;
+  width: 32px;
+`;
 
 const StarButton = styled(Star)`
   position: relative;
