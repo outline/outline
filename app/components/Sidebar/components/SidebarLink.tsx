@@ -178,7 +178,7 @@ export const IconWrapper = styled.span`
 `;
 
 const EmojiWrapper = styled(IconWrapper)<{ width?: number }>`
-  margin-right: 0;
+  margin: 0;
   width: ${(props) => (props.width ? `${props.width}px` : "100%")};
 `;
 

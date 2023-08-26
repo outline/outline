@@ -13,11 +13,13 @@ import usePickerTheme from "~/hooks/usePickerTheme";
 import useUserLocale from "~/hooks/useUserLocale";
 import { hover } from "~/styles";
 import Flex from "./Flex";
-import NudeButton from "./NudeButton";
 
 type Props = {
+  /** The selected emoji, if any */
   value?: string | null;
-  onChange: (emoji: string | null) => Promise<void>;
+  /** Callback when an emoji is selected */
+  onChange: (emoji: string | null) => void | Promise<void>;
+  /** Callback when the picker is clicked outside of */
   onClickOutside: () => void;
 };
 
@@ -32,12 +34,12 @@ function EmojiPicker({
   const { t } = useTranslation();
   const pickerTheme = usePickerTheme();
   const theme = useTheme();
-  const locale = useUserLocale();
-  const lang = locale ? locale.split("_")[0] : "en";
+  const locale = useUserLocale(true) ?? "en";
 
   const popover = usePopoverState({
     placement: "bottom-start",
     modal: true,
+    unstable_offset: [0, 0],
   });
 
   const [emojisPerLine, setEmojisPerLine] = React.useState(
@@ -89,15 +91,21 @@ function EmojiPicker({
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          <EmojiButton {...props} onClick={handleClick}>
-            {value ? (
-              <Emoji size={24} align="center" justify="center">
-                {value}
-              </Emoji>
-            ) : (
-              <AnimatedEmoji size={32} color={theme.textTertiary} />
-            )}
-          </EmojiButton>
+          <EmojiButton
+            {...props}
+            onClick={handleClick}
+            icon={
+              value ? (
+                <Emoji size={24} align="center" justify="center">
+                  {value}
+                </Emoji>
+              ) : (
+                <EmojiIcon size={32} color={theme.textTertiary} />
+              )
+            }
+            neutral
+            borderOnHover
+          />
         )}
       </PopoverDisclosure>
       <PickerPopover
@@ -118,7 +126,7 @@ function EmojiPicker({
         <PickerStyles ref={pickerRef}>
           <Picker
             // https://github.com/missive/emoji-mart/issues/800
-            locale={lang === "ko" ? "kr" : lang}
+            locale={locale === "ko" ? "kr" : locale}
             data={data}
             onEmojiSelect={handleEmojiChange}
             theme={pickerTheme}
@@ -133,16 +141,8 @@ function EmojiPicker({
   );
 }
 
-export const AnimatedEmoji = styled(SmileyIcon)`
+export const EmojiIcon = styled(SmileyIcon)`
   flex-shrink: 0;
-
-  &: ${hover} {
-    transition: all 100ms ease-in-out;
-    transform: scale(1.1);
-  }
-  &:active {
-    transform: scale(0.95);
-  }
 
   @media print {
     display: none;
@@ -167,20 +167,18 @@ export const EmojiWrapper = styled(Flex)`
   ${EmojiWrapperStyles}
 `;
 
-export const EmojiButton = styled(NudeButton)`
+export const EmojiButton = styled(Button)`
   ${EmojiWrapperStyles}
   display: flex;
   align-items: center;
   justify-content: center;
-  &: ${hover}, &[aria-expanded= "true"] {
-    ${AnimatedEmoji} {
-      opacity: 1;
-    }
-    border: 0;
-    border-radius: 4px;
-    box-shadow: ${(props) =>
-      `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`};
+
+  &: ${hover},
+  &:active,
+  &[aria-expanded= "true"] {
+    opacity: 1 !important;
   }
+
   ${extraArea(4)}
 `;
 
@@ -189,7 +187,8 @@ const RemoveButton = styled(Button)`
   margin-bottom: 8px;
   border-radius: 6px;
   height: 24px;
-  font-size: 12px;
+  font-size: 13px;
+
   > :first-child {
     min-height: unset;
     line-height: unset;

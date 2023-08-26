@@ -1,11 +1,15 @@
 import useStores from "./useStores";
 
-export default function useUserLocale() {
+export default function useUserLocale(
+  /** Whether to only return the language code */
+  languageCode?: boolean
+) {
   const { auth } = useStores();
 
-  if (!auth.user || !auth.user.language) {
+  if (!auth.user?.language) {
     return undefined;
   }
 
-  return auth.user.language;
+  const { language } = auth.user;
+  return languageCode ? language.split("_")[0] : language;
 }

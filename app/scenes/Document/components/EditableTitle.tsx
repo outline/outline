@@ -19,9 +19,9 @@ import Document from "~/models/Document";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import EmojiPicker, {
-  AnimatedEmoji,
   EmojiWrapper,
   Emoji,
+  EmojiButton,
 } from "~/components/EmojiPicker";
 import Star, { AnimatedStar } from "~/components/Star";
 import usePolicy from "~/hooks/usePolicy";
@@ -315,12 +315,6 @@ const Title = styled(ContentEditable)<TitleProps>`
     opacity: ${(props) => (props.$isStarred ? "1 !important" : 0.5)};
   }
 
-  ${AnimatedEmoji} {
-    opacity: ${(props) => (props.$containsEmoji ? "1 !important" : 0.5)};
-    display: ${(props: TitleProps) =>
-      props.$isFocused || props.$containsEmoji ? "flex" : "none"};
-  }
-
   ${breakpoint("tablet")`
     margin-left: 0px;
 
@@ -329,22 +323,15 @@ const Title = styled(ContentEditable)<TitleProps>`
         props.$isStarred ? "1 !important" : 0};
     }
 
-    ${AnimatedEmoji} {
+    ${EmojiButton} {
       opacity: ${(props: TitleProps) =>
         props.$containsEmoji ? "1 !important" : 0};
       display: flex;
     }
 
     &:hover {
-      ${AnimatedStar} {
-        opacity: 0.5;
-
-        &:hover {
-          opacity: 1;
-        }
-      }
-
-      ${AnimatedEmoji} {
+      ${AnimatedStar},
+      ${EmojiButton} {
         opacity: 0.5;
 
         &:hover {
