@@ -22,12 +22,13 @@ import {
 import { useDocumentContext } from "../../../components/DocumentContext";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
-import EditableTitle from "./EditableTitle";
+import DocumentTitle from "./DocumentTitle";
 
 const extensions = withComments(richExtensions);
 
 type Props = Omit<EditorProps, "extensions" | "editorStyle"> & {
-  onChangeTitle: (text: string) => void;
+  onChangeTitle: (title: string) => void;
+  onChangeEmoji: (emoji: string | null) => void;
   id: string;
   document: Document;
   isDraft: boolean;
@@ -56,6 +57,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const {
     document,
     onChangeTitle,
+    onChangeEmoji,
     isDraft,
     shareId,
     readOnly,
@@ -151,12 +153,19 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
 
   return (
     <Flex auto column>
-      <EditableTitle
+      <DocumentTitle
         ref={titleRef}
         readOnly={readOnly}
-        document={document}
+        documentId={document.id}
+        title={
+          !document.title && readOnly
+            ? document.titleWithDefault
+            : document.title
+        }
+        emoji={document.emoji}
+        onChangeTitle={onChangeTitle}
+        onChangeEmoji={onChangeEmoji}
         onGoToNextInput={handleGoToNextInput}
-        onChange={onChangeTitle}
         onBlur={handleBlur}
         placeholder={t("Untitled")}
       />

@@ -15,7 +15,6 @@ import {
   getCurrentTimeAsString,
 } from "@shared/utils/date";
 import { DocumentValidation } from "@shared/validations";
-import Document from "~/models/Document";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import EmojiPicker, { Emoji, EmojiButton } from "~/components/EmojiPicker";
@@ -25,15 +24,22 @@ import usePolicy from "~/hooks/usePolicy";
 import { isModKey } from "~/utils/keyboard";
 
 type Props = {
-  document: Document;
+  /** ID of the associated document */
+  documentId: string;
+  /** Document to display */
+  title: string;
+  /** Emoji to display */
+  emoji?: string | null;
   /** Placeholder to display when the document has no title */
-  placeholder: string;
+  placeholder?: string;
   /** Should the title be editable, policies will also be considered separately */
   readOnly?: boolean;
   /** Callback called on any edits to text */
-  onChange: (text: string) => void;
+  onChangeTitle?: (text: string) => void;
+  /** Callback called when the user selects an emoji */
+  onChangeEmoji?: (emoji: string | null) => void;
   /** Callback called when the user expects to move to the "next" input */
-  onGoToNextInput: (insertParagraph?: boolean) => void;
+  onGoToNextInput?: (insertParagraph?: boolean) => void;
   /** Callback called when the user expects to save (CMD+S) */
   onSave?: (options: { publish?: boolean; done?: boolean }) => void;
   /** Callback called when focus leaves the input */
@@ -43,11 +49,14 @@ type Props = {
 const lineHeight = "1.25";
 const fontSize = "2.25em";
 
-const EditableTitle = React.forwardRef(function _EditableTitle(
+const DocumentTitle = React.forwardRef(function _DocumentTitle(
   {
-    document,
+    documentId,
+    title,
+    emoji,
     readOnly,
-    onChange,
+    onChangeTitle,
+    onChangeEmoji,
     onSave,
     onGoToNextInput,
     onBlur,
@@ -58,7 +67,7 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
   const [emojiPickerIsOpen, handleOpen, handleClose] = useBoolean();
   const { editor } = useDocumentContext();
 
-  const can = usePolicy(document.id);
+  const can = usePolicy(documentId);
 
   const handleClick = React.useCallback(() => {
     ref.current?.focus();
@@ -102,13 +111,13 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
           return;
         }
 
-        onGoToNextInput(true);
+        onGoToNextInput?.(true);
         return;
       }
 
       if (event.key === "Tab" || event.key === "ArrowDown") {
         event.preventDefault();
-        onGoToNextInput();
+        onGoToNextInput?.();
         return;
       }
 
@@ -131,21 +140,23 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
   );
 
   const handleChange = React.useCallback(
-    (text: string) => {
-      if (/\/date\s$/.test(text)) {
-        onChange(getCurrentDateAsString());
+    (value: string) => {
+      let title = value;
+
+      if (/\/date\s$/.test(value)) {
+        title = getCurrentDateAsString();
         ref.current?.focusAtEnd();
-      } else if (/\/time$/.test(text)) {
-        onChange(getCurrentTimeAsString());
+      } else if (/\/time$/.test(value)) {
+        title = getCurrentTimeAsString();
         ref.current?.focusAtEnd();
-      } else if (/\/datetime$/.test(text)) {
-        onChange(getCurrentDateTimeAsString());
+      } else if (/\/datetime$/.test(value)) {
+        title = getCurrentDateTimeAsString();
         ref.current?.focusAtEnd();
-      } else {
-        onChange(text);
       }
+
+      onChangeTitle?.(title);
     },
-    [ref, onChange]
+    [ref, onChangeTitle]
   );
 
   // Custom paste handling so that if a multiple lines are pasted we
@@ -208,19 +219,15 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
   );
 
   const handleEmojiChange = React.useCallback(
-    async (emoji: string | null) => {
+    async (value: string | null) => {
       // Restore focus on title
       restoreFocus();
-      if (document.emoji !== emoji) {
-        document.emoji = emoji;
-        await document.save();
+      if (emoji !== value) {
+        onChangeEmoji?.(value);
       }
     },
-    [document, restoreFocus]
+    [emoji, onChangeEmoji, restoreFocus]
   );
-
-  const value =
-    !document.title && readOnly ? document.titleWithDefault : document.title;
 
   return (
     <Title
@@ -230,19 +237,19 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
       onPaste={handlePaste}
       onBlur={handleBlur}
       placeholder={placeholder}
-      value={value}
+      value={title}
       $emojiPickerIsOpen={emojiPickerIsOpen}
-      $containsEmoji={!!document.emoji}
+      $containsEmoji={!!emoji}
       autoFocus={!document.title}
       maxLength={DocumentValidation.maxTitleLength}
       readOnly={readOnly}
       dir="auto"
       ref={ref}
     >
-      {can.update ? (
+      {can.update && !readOnly ? (
         <EmojiWrapper align="center" justify="center">
           <StyledEmojiPicker
-            value={document.emoji}
+            value={emoji}
             onChange={handleEmojiChange}
             onOpen={handleOpen}
             onClose={handleClose}
@@ -251,9 +258,9 @@ const EditableTitle = React.forwardRef(function _EditableTitle(
             autoFocus
           />
         </EmojiWrapper>
-      ) : document.emoji ? (
+      ) : emoji ? (
         <EmojiWrapper align="center" justify="center">
-          <Emoji size={24}>{document.emoji}</Emoji>
+          <Emoji size={32}>{emoji}</Emoji>
         </EmojiWrapper>
       ) : null}
     </Title>
@@ -338,4 +345,4 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 `;
 
-export default observer(EditableTitle);
+export default observer(DocumentTitle);
