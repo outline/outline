@@ -1,5 +1,5 @@
 import "./bootstrap";
-import { Transaction } from "sequelize";
+import { Transaction, Op } from "sequelize";
 import parseTitle from "@shared/utils/parseTitle";
 import { Document } from "@server/models";
 import { sequelize } from "@server/storage/database";
@@ -7,7 +7,7 @@ import { sequelize } from "@server/storage/database";
 let page = parseInt(process.argv[2], 10);
 page = Number.isNaN(page) ? 0 : page;
 
-export default async function main(exit = false, limit = 100) {
+export default async function main(exit = false, limit = 1000) {
   const work = async (page: number): Promise<void> => {
     console.log(`Backfill document emoji from title… page ${page}`);
     let documents: Document[] = [];
@@ -15,6 +15,11 @@ export default async function main(exit = false, limit = 100) {
       documents = await Document.unscoped().findAll({
         attributes: {
           exclude: ["state"],
+        },
+        where: {
+          editorVersion: {
+            [Op.ne]: null,
+          },
         },
         limit,
         offset: page * limit,
@@ -31,10 +36,14 @@ export default async function main(exit = false, limit = 100) {
             document.emoji = emoji;
             document.title = strippedTitle;
 
-            await document.save({
-              silent: true,
-              transaction,
-            });
+            if (document.changed()) {
+              console.log(`Migrating ${document.id}…`);
+
+              await document.save({
+                silent: true,
+                transaction,
+              });
+            }
           }
         } catch (err) {
           console.error(`Failed at ${document.id}:`, err);

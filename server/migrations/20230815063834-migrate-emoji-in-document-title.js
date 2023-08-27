@@ -4,7 +4,7 @@ const { execSync } = require("child_process");
 const path = require("path");
 
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  async up() {
     if (
       process.env.NODE_ENV === "test" ||
       process.env.DEPLOYMENT === "hosted"
@@ -19,10 +19,10 @@ module.exports = {
       `server/scripts/${scriptName}`
     );
 
-    execSync(`node ${scriptPath}`);
+    execSync(`node ${scriptPath}`, { stdio: "inherit" });
   },
 
-  async down(queryInterface, Sequelize) {
+  async down() {
     // noop
   },
 };
