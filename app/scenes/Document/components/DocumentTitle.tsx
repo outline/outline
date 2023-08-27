@@ -231,6 +231,8 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
     [emoji, onChangeEmoji, restoreFocus]
   );
 
+  const emojiIcon = <Emoji size={32}>{emoji}</Emoji>;
+
   return (
     <Title
       onClick={handleClick}
@@ -250,13 +252,12 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
     >
       {can.update && !readOnly ? (
         <EmojiWrapper align="center" justify="center">
-          <React.Suspense fallback={<Emoji size={32}>{emoji}</Emoji>}>
+          <React.Suspense fallback={emojiIcon}>
             <StyledEmojiPicker
               value={emoji}
               onChange={handleEmojiChange}
               onOpen={handleOpen}
               onClose={handleClose}
-              // Restore focus on title
               onClickOutside={restoreFocus}
               autoFocus
             />
@@ -264,7 +265,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
         </EmojiWrapper>
       ) : emoji ? (
         <EmojiWrapper align="center" justify="center">
-          <Emoji size={32}>{emoji}</Emoji>
+          {emojiIcon}
         </EmojiWrapper>
       ) : null}
     </Title>

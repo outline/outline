@@ -1,12 +1,12 @@
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { SmileyIcon } from "outline-icons";
-import { parseToRgb } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled, { useTheme } from "styled-components";
 import { depths, s } from "@shared/styles";
+import { toRGB } from "@shared/utils/color";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
 import useStores from "~/hooks/useStores";
@@ -265,9 +265,5 @@ const PickerStyles = styled.div`
     min-height: 443px;
   }
 `;
-
-function toRGB(color: string) {
-  return Object.values(parseToRgb(color)).join(", ");
-}
 
 export default EmojiPicker;
