@@ -17,11 +17,13 @@ import {
 import { DocumentValidation } from "@shared/validations";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
-import EmojiPicker, { Emoji, EmojiButton } from "~/components/EmojiPicker";
+import { Emoji, EmojiButton } from "~/components/EmojiPicker/components";
 import Flex from "~/components/Flex";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import { isModKey } from "~/utils/keyboard";
+
+const EmojiPicker = React.lazy(() => import("~/components/EmojiPicker"));
 
 type Props = {
   /** ID of the associated document */
@@ -248,15 +250,17 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
     >
       {can.update && !readOnly ? (
         <EmojiWrapper align="center" justify="center">
-          <StyledEmojiPicker
-            value={emoji}
-            onChange={handleEmojiChange}
-            onOpen={handleOpen}
-            onClose={handleClose}
-            // Restore focus on title
-            onClickOutside={restoreFocus}
-            autoFocus
-          />
+          <React.Suspense fallback={<Emoji size={32}>{emoji}</Emoji>}>
+            <StyledEmojiPicker
+              value={emoji}
+              onChange={handleEmojiChange}
+              onOpen={handleOpen}
+              onClose={handleClose}
+              // Restore focus on title
+              onClickOutside={restoreFocus}
+              autoFocus
+            />
+          </React.Suspense>
         </EmojiWrapper>
       ) : emoji ? (
         <EmojiWrapper align="center" justify="center">

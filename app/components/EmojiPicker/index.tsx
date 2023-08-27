@@ -11,8 +11,7 @@ import Button from "~/components/Button";
 import Popover from "~/components/Popover";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
-import { hover } from "~/styles";
-import Flex from "./Flex";
+import { Emoji, EmojiButton } from "./components";
 
 /* Locales supported by emoji-mart */
 const supportedLocales = [
@@ -220,25 +219,6 @@ function EmojiPicker({
     </>
   );
 }
-
-export const EmojiButton = styled(Button)`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-
-  &: ${hover},
-  &:active,
-  &[aria-expanded= "true"] {
-    opacity: 1 !important;
-  }
-`;
-
-export const Emoji = styled(Flex)<{ size?: number }>`
-  line-height: 1.6;
-  ${(props) => (props.size ? `font-size: ${props.size}px` : "")}
-`;
 
 const StyledSmileyIcon = styled(SmileyIcon)`
   flex-shrink: 0;
