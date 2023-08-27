@@ -17,7 +17,7 @@ export default async function main(exit = false, limit = 1000) {
           exclude: ["state"],
         },
         where: {
-          editorVersion: {
+          version: {
             [Op.ne]: null,
           },
         },

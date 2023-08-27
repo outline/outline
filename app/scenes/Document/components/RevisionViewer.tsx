@@ -28,9 +28,9 @@ function RevisionViewer(props: Props) {
   return (
     <Flex auto column>
       <DocumentTitle
-        documentId={document.id}
+        documentId={revision.documentId}
         title={revision.title}
-        emoji={document.emoji}
+        emoji={revision.emoji}
         readOnly
       />
       <DocumentMeta
