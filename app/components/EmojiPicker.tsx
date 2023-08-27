@@ -277,13 +277,17 @@ const PickerStyles = styled.div`
   em-emoji-picker {
     --shadow: none;
     --font-family: ${s("fontFamily")};
-    --rgb-background: ${(props) =>
-      Object.values(parseToRgb(props.theme.menuBackground)).join(", ")};
+    --rgb-background: ${(props) => toRGB(props.theme.menuBackground)};
+    --rgb-accent: ${(props) => toRGB(props.theme.accent)};
     --border-radius: 6px;
     margin-left: auto;
     margin-right: auto;
     min-height: 443px;
   }
 `;
+
+function toRGB(color: string) {
+  return Object.values(parseToRgb(color)).join(", ");
+}
 
 export default EmojiPicker;
