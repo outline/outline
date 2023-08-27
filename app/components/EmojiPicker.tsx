@@ -143,6 +143,20 @@ function EmojiPicker({
     }
   }, [popover.visible, onClickOutside]);
 
+  // Auto focus search input when picker is opened
+  React.useLayoutEffect(() => {
+    if (autoFocus && popover.visible) {
+      requestAnimationFrame(() => {
+        const searchInput = pickerRef.current
+          ?.querySelector("em-emoji-picker")
+          ?.shadowRoot?.querySelector(
+            "input[type=search]"
+          ) as HTMLInputElement | null;
+        searchInput?.focus();
+      });
+    }
+  }, [autoFocus, popover.visible]);
+
   return (
     <>
       <PopoverDisclosure {...popover}>
@@ -175,30 +189,33 @@ function EmojiPicker({
         width={352}
         aria-label={t("Emoji Picker")}
       >
-        {value && (
-          <RemoveButton neutral onClick={() => handleEmojiChange(null)}>
-            {t("Remove")}
-          </RemoveButton>
+        {popover.visible && (
+          <>
+            {value && (
+              <RemoveButton neutral onClick={() => handleEmojiChange(null)}>
+                {t("Remove")}
+              </RemoveButton>
+            )}
+            <PickerStyles ref={pickerRef}>
+              <Picker
+                // https://github.com/missive/emoji-mart/issues/800
+                locale={
+                  locale === "ko"
+                    ? "kr"
+                    : supportedLocales.includes(locale)
+                    ? locale
+                    : "en"
+                }
+                data={data}
+                onEmojiSelect={handleEmojiChange}
+                theme={pickerTheme}
+                previewPosition="none"
+                perLine={emojisPerLine}
+                onClickOutside={handleClickOutside}
+              />
+            </PickerStyles>
+          </>
         )}
-        <PickerStyles ref={pickerRef}>
-          <Picker
-            // https://github.com/missive/emoji-mart/issues/800
-            locale={
-              locale === "ko"
-                ? "kr"
-                : supportedLocales.includes(locale)
-                ? locale
-                : "en"
-            }
-            data={data}
-            onEmojiSelect={handleEmojiChange}
-            theme={pickerTheme}
-            previewPosition="none"
-            perLine={emojisPerLine}
-            onClickOutside={handleClickOutside}
-            autoFocus={autoFocus}
-          />
-        </PickerStyles>
       </PickerPopover>
     </>
   );
