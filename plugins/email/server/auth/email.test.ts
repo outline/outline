@@ -1,17 +1,13 @@
-import sharedEnv from "@shared/env";
 import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
-import env from "@server/env";
 import { AuthenticationProvider } from "@server/models";
 import { buildUser, buildGuestUser, buildTeam } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import { getTestServer, setCloudHosted } from "@server/test/support";
 
 const server = getTestServer();
 
 describe("email", () => {
-  beforeEach(() => {
-    env.URL = sharedEnv.URL = "https://app.outline.dev";
-  });
+  beforeEach(setCloudHosted);
 
   it("should require email param", async () => {
     const res = await server.post("/auth/email", {
@@ -146,10 +142,10 @@ describe("email", () => {
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
+
   describe("with multiple users matching email", () => {
     it("should default to current subdomain with SSO", async () => {
       const spy = jest.spyOn(SigninEmail.prototype, "schedule");
-      env.URL = sharedEnv.URL = "https://app.outline.dev";
       const email = "sso-user@example.org";
       const team = await buildTeam({
         subdomain: "example",
@@ -178,7 +174,6 @@ describe("email", () => {
 
     it("should default to current subdomain with guest email", async () => {
       const spy = jest.spyOn(SigninEmail.prototype, "schedule");
-      env.URL = sharedEnv.URL = "https://app.outline.dev";
       const email = "guest-user@example.org";
       const team = await buildTeam({
         subdomain: "example",

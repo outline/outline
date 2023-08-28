@@ -1,7 +1,10 @@
-import env from "@server/env";
 import TeamDomain from "@server/models/TeamDomain";
 import { buildTeam, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
+import {
+  setCloudHosted,
+  setSelfHosted,
+  setupTestDatabase,
+} from "@server/test/support";
 import teamProvisioner from "./teamProvisioner";
 
 setupTestDatabase();
@@ -10,9 +13,7 @@ describe("teamProvisioner", () => {
   const ip = "127.0.0.1";
 
   describe("hosted", () => {
-    beforeEach(() => {
-      env.URL = "https://app.outline.dev";
-    });
+    beforeEach(setCloudHosted);
 
     it("should create team and authentication provider", async () => {
       const result = await teamProvisioner({
@@ -127,9 +128,7 @@ describe("teamProvisioner", () => {
   });
 
   describe("self hosted", () => {
-    beforeEach(() => {
-      env.URL = "https://example.com";
-    });
+    beforeEach(setSelfHosted);
 
     it("should allow creating first team", async () => {
       const { team, isNewTeam } = await teamProvisioner({

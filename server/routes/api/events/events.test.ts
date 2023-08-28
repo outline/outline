@@ -1,13 +1,10 @@
-import env from "@server/env";
 import { buildEvent, buildUser } from "@server/test/factories";
-import { seed, getTestServer } from "@server/test/support";
+import { seed, getTestServer, setCloudHosted } from "@server/test/support";
 
 const server = getTestServer();
 
 describe("#events.list", () => {
-  beforeEach(() => {
-    env.URL = "https://app.outline.dev";
-  });
+  beforeEach(setCloudHosted);
 
   it("should only return activity events", async () => {
     const { user, admin, document, collection } = await seed();

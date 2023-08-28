@@ -1,10 +1,14 @@
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
-import env from "@server/env";
 import { TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
 import { buildUser, buildTeam } from "@server/test/factories";
-import { setupTestDatabase, seed } from "@server/test/support";
+import {
+  setupTestDatabase,
+  seed,
+  setCloudHosted,
+  setSelfHosted,
+} from "@server/test/support";
 import accountProvisioner from "./accountProvisioner";
 
 setupTestDatabase();
@@ -13,9 +17,7 @@ describe("accountProvisioner", () => {
   const ip = "127.0.0.1";
 
   describe("hosted", () => {
-    beforeEach(() => {
-      env.URL = "https://app.outline.dev";
-    });
+    beforeEach(setCloudHosted);
 
     it("should create a new user and team", async () => {
       const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
@@ -325,9 +327,7 @@ describe("accountProvisioner", () => {
   });
 
   describe("self hosted", () => {
-    beforeEach(() => {
-      env.URL = "https://example.com";
-    });
+    beforeEach(setSelfHosted);
 
     it("should fail if existing team and domain not in allowed list", async () => {
       let error;

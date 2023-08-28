@@ -1,7 +1,9 @@
-import sharedEnv from "@shared/env";
-import env from "@server/env";
 import { buildUser, buildTeam } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import {
+  getTestServer,
+  setCloudHosted,
+  setSelfHosted,
+} from "@server/test/support";
 
 const mockTeamInSessionId = "1e023d05-951c-41c6-9012-c9fa0402e1c3";
 
@@ -14,6 +16,8 @@ jest.mock("@server/utils/authentication", () => ({
 const server = getTestServer();
 
 describe("#auth.info", () => {
+  beforeEach(setCloudHosted);
+
   it("should return current authentication", async () => {
     const team = await buildTeam();
     const team2 = await buildTeam();
@@ -93,8 +97,6 @@ describe("#auth.delete", () => {
 
 describe("#auth.config", () => {
   it("should return available SSO providers", async () => {
-    env.URL = sharedEnv.URL = "https://app.outline.dev";
-
     const res = await server.post("/api/auth.config");
     const body = await res.json();
     expect(res.status).toEqual(200);
@@ -105,8 +107,6 @@ describe("#auth.config", () => {
   });
 
   it("should return available providers for team subdomain", async () => {
-    env.URL = sharedEnv.URL = "https://app.outline.dev";
-
     await buildTeam({
       guestSignin: false,
       subdomain: "example",
@@ -129,8 +129,6 @@ describe("#auth.config", () => {
   });
 
   it("should return available providers for team custom domain", async () => {
-    env.URL = sharedEnv.URL = "https://app.outline.dev";
-
     await buildTeam({
       guestSignin: false,
       domain: "docs.mycompany.com",
@@ -153,8 +151,6 @@ describe("#auth.config", () => {
   });
 
   it("should return email provider for team when guest signin enabled", async () => {
-    env.URL = sharedEnv.URL = "https://app.outline.dev";
-
     await buildTeam({
       guestSignin: true,
       subdomain: "example",
@@ -178,8 +174,6 @@ describe("#auth.config", () => {
   });
 
   it("should not return provider when disabled", async () => {
-    env.URL = sharedEnv.URL = "https://app.outline.dev";
-
     await buildTeam({
       guestSignin: false,
       subdomain: "example",
@@ -202,9 +196,9 @@ describe("#auth.config", () => {
   });
 
   describe("self hosted", () => {
-    it("should return all configured providers but respect email setting", async () => {
-      env.URL = sharedEnv.URL = "https://example.com";
+    beforeEach(setSelfHosted);
 
+    it("should return all configured providers but respect email setting", async () => {
       await buildTeam({
         guestSignin: false,
         authenticationProviders: [
@@ -224,8 +218,6 @@ describe("#auth.config", () => {
     });
 
     it("should return email provider for team when guest signin enabled", async () => {
-      env.URL = sharedEnv.URL = "https://example.com";
-
       await buildTeam({
         guestSignin: true,
         authenticationProviders: [
