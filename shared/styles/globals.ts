@@ -76,13 +76,13 @@ export default createGlobalStyle<Props>`
   h4,
   h5,
   h6 {
-    font-weight: 400;
+    font-weight: 500;
     line-height: 1.25;
     margin-top: 1em;
     margin-bottom: 0.5em;
   }
   h1 { font-size: 36px; }
-  h2 { font-size: 28px; }
+  h2 { font-size: 26px; }
   h3 { font-size: 22px; }
   h4 { font-size: 18px; }
   h5 { font-size: 16px; }
