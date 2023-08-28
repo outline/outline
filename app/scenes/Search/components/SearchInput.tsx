@@ -55,7 +55,7 @@ const StyledInput = styled.input`
   width: 100%;
   padding: 10px 10px 10px 60px;
   font-size: 36px;
-  font-weight: 400;
+  font-weight: 500;
   outline: none;
   border: 0;
   background: ${s("sidebarBackground")};

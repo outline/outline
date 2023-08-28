@@ -49,8 +49,7 @@ const Title = styled.div`
   line-height: 1.25;
   padding-top: 3px;
   color: ${s("text")};
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: ${s("fontFamily")};
 `;
 
 function ReferenceListItem({
