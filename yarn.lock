@@ -843,13 +843,13 @@
     "@babel/helper-annotate-as-pure" "^7.22.5"
     "@babel/helper-plugin-utils" "^7.22.5"
 
-"@babel/plugin-transform-regenerator@^7.18.6", "@babel/plugin-transform-regenerator@^7.20.0":
-  version "7.20.5"
-  resolved "https://registry.yarnpkg.com/@babel/plugin-transform-regenerator/-/plugin-transform-regenerator-7.20.5.tgz#57cda588c7ffb7f4f8483cc83bdcea02a907f04d"
-  integrity sha512-kW/oO7HPBtntbsahzQ0qSE3tFvkFwnbozz3NWFhLGqH75vLEg+sCGngLlhVkePlCs3Jv0dBBHDzCHxNiFAQKCQ==
+"@babel/plugin-transform-regenerator@^7.18.6", "@babel/plugin-transform-regenerator@^7.22.10":
+  version "7.22.10"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-transform-regenerator/-/plugin-transform-regenerator-7.22.10.tgz#8ceef3bd7375c4db7652878b0241b2be5d0c3cca"
+  integrity sha512-F28b1mDt8KcT5bUyJc/U9nwzw6cV+UmTeRlXYIl2TNqMMJif0Jeey9/RQ3C4NOd2zp0/TRsDns9ttj2L523rsw==
   dependencies:
-    "@babel/helper-plugin-utils" "^7.20.2"
-    regenerator-transform "^0.15.1"
+    "@babel/helper-plugin-utils" "^7.22.5"
+    regenerator-transform "^0.15.2"
 
 "@babel/plugin-transform-reserved-words@^7.18.6":
   version "7.18.6"
@@ -11365,10 +11365,10 @@ regenerator-runtime@^0.13.11, regenerator-runtime@^0.13.4:
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.13.11.tgz#f6dca3e7ceec20590d07ada785636a90cdca17f9"
   integrity sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==
 
-regenerator-transform@^0.15.1:
-  version "0.15.1"
-  resolved "https://registry.yarnpkg.com/regenerator-transform/-/regenerator-transform-0.15.1.tgz#f6c4e99fc1b4591f780db2586328e4d9a9d8dc56"
-  integrity sha512-knzmNAcuyxV+gQCufkYcvOqX/qIIfHLv0u5x79kRxuGojfYVky1f15TzZEu2Avte8QGepvUNTnLskf8E6X6Vyg==
+regenerator-transform@^0.15.2:
+  version "0.15.2"
+  resolved "https://registry.yarnpkg.com/regenerator-transform/-/regenerator-transform-0.15.2.tgz#5bbae58b522098ebdf09bca2f83838929001c7a4"
+  integrity sha512-hfMp2BoF0qOk3uc5V20ALGDS2ddjQaLrdl7xrGXvAIow7qeWRM2VA2HuCHkUKk9slq3VwEwLNK3DFBqDfPGYtg==
   dependencies:
     "@babel/runtime" "^7.8.4"
 

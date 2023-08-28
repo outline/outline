@@ -50,7 +50,7 @@
     "@babel/core": "^7.22.5",
     "@babel/plugin-proposal-decorators": "^7.21.0",
     "@babel/plugin-transform-destructuring": "^7.22.5",
-    "@babel/plugin-transform-regenerator": "^7.20.0",
+    "@babel/plugin-transform-regenerator": "^7.22.10",
     "@babel/preset-env": "^7.20.0",
     "@babel/preset-react": "^7.22.5",
     "@benrbray/prosemirror-math": "^0.2.2",
