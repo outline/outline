@@ -9,6 +9,10 @@ import { getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("email", () => {
+  beforeEach(() => {
+    env.URL = sharedEnv.URL = "https://app.outline.dev";
+  });
+
   it("should require email param", async () => {
     const res = await server.post("/auth/email", {
       body: {},
@@ -21,10 +25,18 @@ describe("email", () => {
 
   it("should respond with redirect location when user is SSO enabled", async () => {
     const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
-    const user = await buildUser();
+    const team = await buildTeam({
+      subdomain: "example",
+    });
+    const user = await buildUser({
+      teamId: team.id,
+    });
     const res = await server.post("/auth/email", {
       body: {
         email: user.email,
+      },
+      headers: {
+        host: "example.outline.dev",
       },
     });
     const body = await res.json();
@@ -71,8 +83,6 @@ describe("email", () => {
   });
 
   it("should not send email when user is on another subdomain but respond with success", async () => {
-    env.URL = sharedEnv.URL = "https://app.outline.dev";
-
     const user = await buildUser();
     const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
     await buildTeam({
