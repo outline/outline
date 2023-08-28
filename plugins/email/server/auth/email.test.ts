@@ -72,8 +72,6 @@ describe("email", () => {
 
   it("should not send email when user is on another subdomain but respond with success", async () => {
     env.URL = sharedEnv.URL = "https://app.outline.dev";
-    env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
-    env.DEPLOYMENT = "hosted";
 
     const user = await buildUser();
     const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
@@ -142,7 +140,6 @@ describe("email", () => {
     it("should default to current subdomain with SSO", async () => {
       const spy = jest.spyOn(SigninEmail.prototype, "schedule");
       env.URL = sharedEnv.URL = "https://app.outline.dev";
-      env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
       const email = "sso-user@example.org";
       const team = await buildTeam({
         subdomain: "example",
@@ -172,7 +169,6 @@ describe("email", () => {
     it("should default to current subdomain with guest email", async () => {
       const spy = jest.spyOn(SigninEmail.prototype, "schedule");
       env.URL = sharedEnv.URL = "https://app.outline.dev";
-      env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
       const email = "guest-user@example.org";
       const team = await buildTeam({
         subdomain: "example",

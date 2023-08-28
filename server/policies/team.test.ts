@@ -6,6 +6,8 @@ import { serialize } from "./index";
 setupTestDatabase();
 
 it("should allow reading only", async () => {
+  env.URL = "https://example.com";
+
   const team = await buildTeam();
   const user = await buildUser({
     teamId: team.id,
@@ -21,6 +23,8 @@ it("should allow reading only", async () => {
 });
 
 it("should allow admins to manage", async () => {
+  env.URL = "https://example.com";
+
   const team = await buildTeam();
   const admin = await buildAdmin({
     teamId: team.id,
@@ -36,7 +40,7 @@ it("should allow admins to manage", async () => {
 });
 
 it("should allow creation on hosted envs", async () => {
-  env.DEPLOYMENT = "hosted";
+  env.URL = "https://app.outline.dev";
 
   const team = await buildTeam();
   const admin = await buildAdmin({

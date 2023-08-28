@@ -11,7 +11,7 @@ describe("teamProvisioner", () => {
 
   describe("hosted", () => {
     beforeEach(() => {
-      env.DEPLOYMENT = "hosted";
+      env.URL = "https://app.outline.dev";
     });
 
     it("should create team and authentication provider", async () => {
@@ -128,7 +128,7 @@ describe("teamProvisioner", () => {
 
   describe("self hosted", () => {
     beforeEach(() => {
-      env.DEPLOYMENT = undefined;
+      env.URL = "https://example.com";
     });
 
     it("should allow creating first team", async () => {

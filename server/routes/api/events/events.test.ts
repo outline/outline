@@ -6,7 +6,7 @@ const server = getTestServer();
 
 describe("#events.list", () => {
   beforeEach(() => {
-    env.DEPLOYMENT = "hosted";
+    env.URL = "https://app.outline.dev";
   });
 
   it("should only return activity events", async () => {

@@ -22,7 +22,7 @@ export default class AzureClient extends OAuthClient {
     refreshToken?: string;
     expiresAt: Date;
   }> {
-    if (env.isCloudHosted()) {
+    if (env.isCloudHosted) {
       return super.rotateToken(accessToken, refreshToken);
     }
 

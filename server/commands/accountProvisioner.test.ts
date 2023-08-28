@@ -14,7 +14,7 @@ describe("accountProvisioner", () => {
 
   describe("hosted", () => {
     beforeEach(() => {
-      env.DEPLOYMENT = "hosted";
+      env.URL = "https://app.outline.dev";
     });
 
     it("should create a new user and team", async () => {
@@ -326,7 +326,7 @@ describe("accountProvisioner", () => {
 
   describe("self hosted", () => {
     beforeEach(() => {
-      env.DEPLOYMENT = undefined;
+      env.URL = "https://example.com";
     });
 
     it("should fail if existing team and domain not in allowed list", async () => {

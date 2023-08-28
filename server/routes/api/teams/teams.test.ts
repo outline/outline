@@ -7,7 +7,7 @@ const server = getTestServer();
 
 describe("teams.create", () => {
   it("creates a team", async () => {
-    env.DEPLOYMENT = "hosted";
+    env.URL = "https://app.outline.dev";
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/teams.create", {
@@ -23,7 +23,7 @@ describe("teams.create", () => {
   });
 
   it("requires a cloud hosted deployment", async () => {
-    env.DEPLOYMENT = "";
+    env.URL = "https://example.com";
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/teams.create", {

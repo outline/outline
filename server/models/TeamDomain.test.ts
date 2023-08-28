@@ -37,7 +37,7 @@ describe("team domain model", () => {
     });
 
     it("should not allow creation of domains within restricted list", async () => {
-      env.DEPLOYMENT = "hosted";
+      env.URL = "https://app.outline.dev";
       const TeamDomain = await import("./TeamDomain");
       const team = await buildTeam();
       const user = await buildAdmin({ teamId: team.id });
@@ -57,7 +57,7 @@ describe("team domain model", () => {
     });
 
     it("should ignore casing and spaces when creating domains", async () => {
-      env.DEPLOYMENT = "hosted";
+      env.URL = "https://app.outline.dev";
       const TeamDomain = await import("./TeamDomain");
       const team = await buildTeam();
       const user = await buildAdmin({ teamId: team.id });
