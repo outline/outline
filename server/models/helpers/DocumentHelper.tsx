@@ -381,6 +381,13 @@ export default class DocumentHelper {
 
     await Promise.all(
       images.map(async (image) => {
+        // Skip attempting to fetch images that are not valid urls
+        try {
+          new URL(image.src);
+        } catch {
+          return;
+        }
+
         const attachment = await attachmentCreator({
           name: image.alt ?? "image",
           url: image.src,
