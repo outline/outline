@@ -11,9 +11,9 @@ import { homePath, sharedDocumentPath } from "~/utils/routeHelpers";
 import { useTeamContext } from "../TeamContext";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
-import FullWidthButton from "./components/FullWidthButton";
 import Section from "./components/Section";
 import DocumentLink from "./components/SharedDocumentLink";
+import SidebarButton from "./components/SidebarButton";
 
 type Props = {
   rootNode: NavigationNode;
@@ -28,7 +28,7 @@ function SharedSidebar({ rootNode, shareId }: Props) {
   return (
     <Sidebar>
       {team && (
-        <FullWidthButton
+        <SidebarButton
           title={team.name}
           image={<TeamLogo model={team} size={32} alt={t("Logo")} />}
           onClick={() =>

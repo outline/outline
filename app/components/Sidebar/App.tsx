@@ -10,7 +10,7 @@ import * as React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
@@ -33,12 +33,10 @@ import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import DragPlaceholder from "./components/DragPlaceholder";
-import FullWidthButton, {
-  FullWidthButtonProps,
-} from "./components/FullWidthButton";
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SidebarAction from "./components/SidebarAction";
+import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import TrashLink from "./components/TrashLink";
@@ -49,7 +47,6 @@ function AppSidebar() {
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
-  const theme = useTheme();
 
   React.useEffect(() => {
     if (!user.isViewer) {
@@ -75,8 +72,8 @@ function AppSidebar() {
           <DragPlaceholder />
 
           <OrganizationMenu>
-            {(props: FullWidthButtonProps) => (
-              <FullWidthButton
+            {(props: SidebarButtonProps) => (
+              <SidebarButton
                 {...props}
                 title={team.name}
                 image={
@@ -95,11 +92,11 @@ function AppSidebar() {
                 >
                   <ToggleButton
                     position="bottom"
-                    image={<SidebarIcon color={theme.textTertiary} />}
+                    image={<SidebarIcon />}
                     onClick={ui.toggleCollapsedSidebar}
                   />
                 </Tooltip>
-              </FullWidthButton>
+              </SidebarButton>
             )}
           </OrganizationMenu>
           <Scrollable flex shadow>
@@ -166,7 +163,7 @@ function AppSidebar() {
   );
 }
 
-const ToggleButton = styled(FullWidthButton)`
+const ToggleButton = styled(SidebarButton)`
   opacity: 0;
   transition: opacity 100ms ease-in-out;
 `;

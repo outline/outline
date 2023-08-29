@@ -16,10 +16,8 @@ import Desktop from "~/utils/Desktop";
 import Avatar from "../Avatar";
 import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
-import FullWidthButton, {
-  FullWidthButtonProps,
-} from "./components/FullWidthButton";
 import ResizeBorder from "./components/ResizeBorder";
+import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 
 const ANIMATION_MS = 250;
 
@@ -168,8 +166,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
         {user && (
           <AccountMenu>
-            {(props: FullWidthButtonProps) => (
-              <FullWidthButton
+            {(props: SidebarButtonProps) => (
+              <SidebarButton
                 {...props}
                 showMoreMenu
                 title={user.name}
@@ -185,15 +183,15 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
                 }
               >
                 <NotificationsPopover>
-                  {(rest: FullWidthButtonProps) => (
-                    <FullWidthButton
+                  {(rest: SidebarButtonProps) => (
+                    <SidebarButton
                       {...rest}
                       position="bottom"
                       image={<NotificationIcon />}
                     />
                   )}
                 </NotificationsPopover>
-              </FullWidthButton>
+              </SidebarButton>
             )}
           </AccountMenu>
         )}

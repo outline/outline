@@ -11,10 +11,10 @@ import useSettingsConfig from "~/hooks/useSettingsConfig";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Sidebar from "./Sidebar";
-import FullWidthButton from "./components/FullWidthButton";
 import Header from "./components/Header";
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
+import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Version from "./components/Version";
 
@@ -31,7 +31,7 @@ function SettingsSidebar() {
   return (
     <Sidebar>
       <HistoryNavigation />
-      <FullWidthButton
+      <SidebarButton
         title={t("Return to App")}
         image={<StyledBackIcon />}
         onClick={returnToApp}
