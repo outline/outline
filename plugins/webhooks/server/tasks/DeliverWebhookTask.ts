@@ -599,7 +599,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
-      if (err instanceof FetchError && env.DEPLOYMENT === "hosted") {
+      if (err instanceof FetchError && env.isCloudHosted) {
         Logger.warn(`Failed to send webhook: ${err.message}`, {
           event,
           deliveryId: delivery.id,

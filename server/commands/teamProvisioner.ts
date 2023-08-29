@@ -78,7 +78,7 @@ async function teamProvisioner({
     };
   } else if (teamId) {
     // The user is attempting to log into a team with an unfamiliar SSO provider
-    if (env.isCloudHosted()) {
+    if (env.isCloudHosted) {
       throw InvalidAuthenticationError();
     }
 

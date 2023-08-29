@@ -164,7 +164,7 @@ export class Mailer {
               },
             }
           : undefined,
-        attachments: env.isCloudHosted()
+        attachments: env.isCloudHosted
           ? undefined
           : [
               {

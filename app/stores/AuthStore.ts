@@ -13,6 +13,7 @@ import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import Logger from "~/utils/Logger";
+import isCloudHosted from "~/utils/isCloudHosted";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home", "/logout"];
@@ -212,7 +213,7 @@ export default class AuthStore {
             return;
           }
         } else if (
-          env.SUBDOMAINS_ENABLED &&
+          isCloudHosted &&
           parseDomain(hostname).teamSubdomain !== (team.subdomain ?? "")
         ) {
           window.location.href = `${team.url}${pathname}`;
@@ -372,7 +373,7 @@ export default class AuthStore {
       const sessions = JSON.parse(getCookie("sessions") || "{}");
       delete sessions[team.id];
       setCookie("sessions", JSON.stringify(sessions), {
-        domain: getCookieDomain(window.location.hostname),
+        domain: getCookieDomain(window.location.hostname, isCloudHosted),
       });
     }
 

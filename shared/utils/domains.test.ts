@@ -169,27 +169,27 @@ describe("#slugifyDomain", () => {
 describe("#getCookieDomain", () => {
   beforeEach(() => {
     env.URL = "https://example.com";
-    env.SUBDOMAINS_ENABLED = true;
   });
 
   it("returns the normalized app host when on the host domain", () => {
-    expect(getCookieDomain("subdomain.example.com")).toBe("example.com");
-    expect(getCookieDomain("www.example.com")).toBe("example.com");
-    expect(getCookieDomain("http://example.com:3000")).toBe("example.com");
-    expect(getCookieDomain("myteam.example.com/document/12345?q=query")).toBe(
+    expect(getCookieDomain("subdomain.example.com", true)).toBe("example.com");
+    expect(getCookieDomain("www.example.com", true)).toBe("example.com");
+    expect(getCookieDomain("http://example.com:3000", true)).toBe(
       "example.com"
     );
+    expect(
+      getCookieDomain("myteam.example.com/document/12345?q=query", true)
+    ).toBe("example.com");
   });
 
   it("returns the input if not on the host domain", () => {
-    expect(getCookieDomain("www.blogspot.com")).toBe("www.blogspot.com");
-    expect(getCookieDomain("anything else")).toBe("anything else");
+    expect(getCookieDomain("www.blogspot.com", true)).toBe("www.blogspot.com");
+    expect(getCookieDomain("anything else", true)).toBe("anything else");
   });
 
-  it("always returns the input when subdomains are not enabled", () => {
-    env.SUBDOMAINS_ENABLED = false;
-    expect(getCookieDomain("example.com")).toBe("example.com");
-    expect(getCookieDomain("www.blogspot.com")).toBe("www.blogspot.com");
-    expect(getCookieDomain("anything else")).toBe("anything else");
+  it("always returns the input when not cloud hosted", () => {
+    expect(getCookieDomain("example.com", false)).toBe("example.com");
+    expect(getCookieDomain("www.blogspot.com", false)).toBe("www.blogspot.com");
+    expect(getCookieDomain("anything else", false)).toBe("anything else");
   });
 });

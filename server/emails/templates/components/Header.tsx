@@ -14,7 +14,7 @@ export default () => (
           <img
             alt={env.APP_NAME}
             src={
-              env.isCloudHosted()
+              env.isCloudHosted
                 ? `${url}/email/header-logo.png`
                 : "cid:header-image"
             }

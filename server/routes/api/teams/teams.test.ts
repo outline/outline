@@ -1,13 +1,18 @@
-import env from "@server/env";
 import { TeamDomain } from "@server/models";
 import { buildAdmin, buildCollection, buildTeam } from "@server/test/factories";
-import { seed, getTestServer } from "@server/test/support";
+import {
+  seed,
+  getTestServer,
+  setCloudHosted,
+  setSelfHosted,
+} from "@server/test/support";
 
 const server = getTestServer();
 
 describe("teams.create", () => {
   it("creates a team", async () => {
-    env.DEPLOYMENT = "hosted";
+    setCloudHosted();
+
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/teams.create", {
@@ -23,7 +28,8 @@ describe("teams.create", () => {
   });
 
   it("requires a cloud hosted deployment", async () => {
-    env.DEPLOYMENT = "";
+    setSelfHosted();
+
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/teams.create", {

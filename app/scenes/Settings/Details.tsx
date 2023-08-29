@@ -18,7 +18,6 @@ import InputColor from "~/components/InputColor";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
-import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -255,7 +254,7 @@ function Details() {
           <Heading as="h2">{t("Behavior")}</Heading>
 
           <SettingRow
-            visible={env.SUBDOMAINS_ENABLED && isCloudHosted}
+            visible={isCloudHosted}
             label={t("Subdomain")}
             name="subdomain"
             description={

@@ -70,9 +70,9 @@ class Team extends ParanoidModel {
   @Unique
   @Length({
     min: 2,
-    max: env.isCloudHosted() ? 32 : 255,
+    max: env.isCloudHosted ? 32 : 255,
     msg: `subdomain must be between 2 and ${
-      env.isCloudHosted() ? 32 : 255
+      env.isCloudHosted ? 32 : 255
     } characters`,
   })
   @Is({
@@ -169,7 +169,7 @@ class Team extends ParanoidModel {
       return `${url.protocol}//${this.domain}${url.port ? `:${url.port}` : ""}`;
     }
 
-    if (!this.subdomain || !env.SUBDOMAINS_ENABLED) {
+    if (!this.subdomain || !env.isCloudHosted) {
       return env.URL;
     }
 

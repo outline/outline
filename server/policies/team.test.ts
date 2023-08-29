@@ -1,11 +1,16 @@
-import env from "@server/env";
 import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
+import {
+  setCloudHosted,
+  setSelfHosted,
+  setupTestDatabase,
+} from "@server/test/support";
 import { serialize } from "./index";
 
 setupTestDatabase();
 
 it("should allow reading only", async () => {
+  setSelfHosted();
+
   const team = await buildTeam();
   const user = await buildUser({
     teamId: team.id,
@@ -21,6 +26,8 @@ it("should allow reading only", async () => {
 });
 
 it("should allow admins to manage", async () => {
+  setSelfHosted();
+
   const team = await buildTeam();
   const admin = await buildAdmin({
     teamId: team.id,
@@ -36,7 +43,7 @@ it("should allow admins to manage", async () => {
 });
 
 it("should allow creation on hosted envs", async () => {
-  env.DEPLOYMENT = "hosted";
+  setCloudHosted();
 
   const team = await buildTeam();
   const admin = await buildAdmin({
