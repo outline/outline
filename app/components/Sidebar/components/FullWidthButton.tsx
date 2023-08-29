@@ -1,4 +1,4 @@
-import { ExpandedIcon, MoreIcon } from "outline-icons";
+import { MoreIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -12,7 +12,6 @@ export type FullWidthButtonProps = React.ComponentProps<typeof Button> & {
   image: React.ReactNode;
   minHeight?: number;
   rounded?: boolean;
-  showDisclosure?: boolean;
   showMoreMenu?: boolean;
   onClick: React.MouseEventHandler<HTMLButtonElement>;
   children?: React.ReactNode;
@@ -24,7 +23,6 @@ const FullWidthButton = React.forwardRef<
 >(function _FullWidthButton(
   {
     position = "top",
-    showDisclosure,
     showMoreMenu,
     image,
     title,
@@ -43,7 +41,8 @@ const FullWidthButton = React.forwardRef<
     >
       <Button
         {...rest}
-        minHeight={minHeight}
+        $minHeight={minHeight}
+        $position={position}
         as="button"
         ref={ref}
         role="button"
@@ -52,7 +51,6 @@ const FullWidthButton = React.forwardRef<
           {image}
           {title}
         </Title>
-        {showDisclosure && <ExpandedIcon />}
         {showMoreMenu && <MoreIcon />}
       </Button>
       {children}
@@ -75,19 +73,22 @@ const Title = styled(Flex)`
   overflow: hidden;
 `;
 
-const Button = styled(Flex)<{ minHeight: number }>`
+const Button = styled(Flex)<{
+  $minHeight: number;
+  $position: "top" | "bottom";
+}>`
   flex: 1;
   color: ${s("textTertiary")};
   align-items: center;
-  padding: 8px 4px;
+  padding: 4px;
   font-size: 15px;
   font-weight: 500;
   border-radius: 4px;
-  margin: 8px 0;
   border: 0;
+  margin: ${(props) => (props.$position === "top" ? 16 : 8)}px 0;
   background: none;
   flex-shrink: 0;
-  min-height: ${(props) => props.minHeight}px;
+  min-height: ${(props) => props.$minHeight}px;
 
   -webkit-appearance: none;
   text-decoration: none;

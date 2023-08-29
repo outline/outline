@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
@@ -21,21 +20,20 @@ import FullWidthButton, {
   FullWidthButtonProps,
 } from "./components/FullWidthButton";
 import ResizeBorder from "./components/ResizeBorder";
-import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 
 const ANIMATION_MS = 250;
 
 type Props = {
   children: React.ReactNode;
+  className?: string;
 };
 
 const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
-  { children }: Props,
+  { children, className }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
   const theme = useTheme();
-  const { t } = useTranslation();
   const { ui, auth } = useStores();
   const location = useLocation();
   const previousLocation = usePrevious(location);
@@ -149,14 +147,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     [width]
   );
 
-  const toggleStyle = React.useMemo(
-    () => ({
-      right: "auto",
-      marginLeft: `${collapsed ? theme.sidebarCollapsedWidth : width}px`,
-    }),
-    [width, theme.sidebarCollapsedWidth, collapsed]
-  );
-
   return (
     <>
       <Container
@@ -166,6 +156,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
         $isSmallerThanMinimum={isSmallerThanMinimum}
         $mobileSidebarVisible={ui.mobileSidebarVisible}
         $collapsed={collapsed}
+        className={className}
         column
       >
         {ui.mobileSidebarVisible && (
@@ -184,11 +175,12 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
                 title={user.name}
                 position="bottom"
                 image={
-                  <StyledAvatar
+                  <Avatar
                     alt={user.name}
                     model={user}
                     size={24}
                     showBorder={false}
+                    style={{ marginLeft: 4 }}
                   />
                 }
               >
@@ -209,27 +201,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
           onMouseDown={handleMouseDown}
           onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
         />
-        {ui.sidebarIsClosed && (
-          <Toggle
-            onClick={ui.toggleCollapsedSidebar}
-            direction={"right"}
-            aria-label={t("Expand")}
-          />
-        )}
       </Container>
-      <Toggle
-        style={toggleStyle}
-        onClick={ui.toggleCollapsedSidebar}
-        direction={ui.sidebarIsClosed ? "right" : "left"}
-        aria-label={ui.sidebarIsClosed ? t("Expand") : t("Collapse")}
-      />
     </>
   );
 });
-
-const StyledAvatar = styled(Avatar)`
-  margin-left: 4px;
-`;
 
 const Backdrop = styled.a`
   animation: ${fadeIn} 250ms ease-in-out;
@@ -268,10 +243,6 @@ const Container = styled(Flex)<ContainerProps>`
   min-width: 280px;
   ${fadeOnDesktopBackgrounded()}
 
-  ${Positioner} {
-    display: none;
-  }
-
   @media print {
     display: none;
     transform: none;
@@ -294,14 +265,6 @@ const Container = styled(Flex)<ContainerProps>`
           : props.$isSmallerThanMinimum
           ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
           : "none"};
-
-      ${Positioner} {
-        display: block;
-      }
-
-      ${ToggleButton} {
-        opacity: 1;
-      }
     }
 
     &:not(:hover):not(:focus-within) > div {

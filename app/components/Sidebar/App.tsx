@@ -1,10 +1,16 @@
 import { observer } from "mobx-react";
-import { EditIcon, SearchIcon, ShapesIcon, HomeIcon } from "outline-icons";
+import {
+  EditIcon,
+  SearchIcon,
+  ShapesIcon,
+  HomeIcon,
+  SidebarIcon,
+} from "outline-icons";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
@@ -14,7 +20,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import OrganizationMenu from "~/menus/OrganizationMenu";
-import Desktop from "~/utils/Desktop";
+import { metaDisplay } from "~/utils/keyboard";
 import {
   homePath,
   draftsPath,
@@ -22,6 +28,7 @@ import {
   searchPath,
 } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
+import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
@@ -38,10 +45,11 @@ import TrashLink from "./components/TrashLink";
 
 function AppSidebar() {
   const { t } = useTranslation();
-  const { documents } = useStores();
+  const { documents, ui } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
+  const theme = useTheme();
 
   React.useEffect(() => {
     if (!user.isViewer) {
@@ -60,7 +68,7 @@ function AppSidebar() {
   );
 
   return (
-    <Sidebar ref={handleSidebarRef}>
+    <StyledSidebar ref={handleSidebarRef}>
       <HistoryNavigation />
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
@@ -74,16 +82,24 @@ function AppSidebar() {
                 image={
                   <TeamLogo
                     model={team}
-                    size={Desktop.hasInsetTitlebar() ? 24 : 32}
+                    size={24}
                     alt={t("Logo")}
+                    style={{ marginLeft: 4 }}
                   />
                 }
-                style={
-                  // Move the logo over to align with smaller size
-                  Desktop.hasInsetTitlebar() ? { paddingLeft: 8 } : undefined
-                }
-                showDisclosure
-              />
+              >
+                <Tooltip
+                  tooltip={t("Toggle sidebar")}
+                  shortcut={`${metaDisplay}+.`}
+                  delay={500}
+                >
+                  <ToggleButton
+                    position="bottom"
+                    image={<SidebarIcon color={theme.textTertiary} />}
+                    onClick={ui.toggleCollapsedSidebar}
+                  />
+                </Tooltip>
+              </FullWidthButton>
             )}
           </OrganizationMenu>
           <Scrollable flex shadow>
@@ -146,9 +162,21 @@ function AppSidebar() {
           </Scrollable>
         </DndProvider>
       )}
-    </Sidebar>
+    </StyledSidebar>
   );
 }
+
+const ToggleButton = styled(FullWidthButton)`
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+`;
+
+const StyledSidebar = styled(Sidebar)`
+  &:hover {
+    ${ToggleButton} {
+      opacity: 1;
+  }
+`;
 
 const Drafts = styled(Text)`
   margin: 0 4px;
