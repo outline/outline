@@ -1,9 +1,8 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import { useLocation } from "react-router-dom";
-import styled, { useTheme } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import Flex from "~/components/Flex";
@@ -17,25 +16,23 @@ import Desktop from "~/utils/Desktop";
 import Avatar from "../Avatar";
 import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
-import FullWidthButton, {
-  FullWidthButtonProps,
-} from "./components/FullWidthButton";
 import ResizeBorder from "./components/ResizeBorder";
-import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
+import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
+import ToggleButton from "./components/ToggleButton";
 
 const ANIMATION_MS = 250;
 
 type Props = {
   children: React.ReactNode;
+  className?: string;
 };
 
 const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
-  { children }: Props,
+  { children, className }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
   const theme = useTheme();
-  const { t } = useTranslation();
   const { ui, auth } = useStores();
   const location = useLocation();
   const previousLocation = usePrevious(location);
@@ -48,6 +45,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
   const setWidth = ui.setSidebarWidth;
   const [offset, setOffset] = React.useState(0);
+  const [isHovering, setHovering] = React.useState(false);
   const [isAnimating, setAnimating] = React.useState(false);
   const [isResizing, setResizing] = React.useState(false);
   const isSmallerThanMinimum = width < minWidth;
@@ -101,6 +99,22 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     [width]
   );
 
+  const handlePointerMove = React.useCallback(() => {
+    setHovering(true);
+  }, []);
+
+  const handlePointerLeave = React.useCallback(
+    (ev) => {
+      setHovering(
+        ev.pageX < width &&
+          ev.pageX > 0 &&
+          ev.pageY < window.innerHeight &&
+          ev.pageY > 0
+      );
+    },
+    [width]
+  );
+
   React.useEffect(() => {
     if (isAnimating) {
       setTimeout(() => setAnimating(false), ANIMATION_MS);
@@ -149,23 +163,19 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     [width]
   );
 
-  const toggleStyle = React.useMemo(
-    () => ({
-      right: "auto",
-      marginLeft: `${collapsed ? theme.sidebarCollapsedWidth : width}px`,
-    }),
-    [width, theme.sidebarCollapsedWidth, collapsed]
-  );
-
   return (
     <>
       <Container
         ref={ref}
         style={style}
+        $isHovering={isHovering}
         $isAnimating={isAnimating}
         $isSmallerThanMinimum={isSmallerThanMinimum}
         $mobileSidebarVisible={ui.mobileSidebarVisible}
         $collapsed={collapsed}
+        className={className}
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
         column
       >
         {ui.mobileSidebarVisible && (
@@ -177,31 +187,32 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
         {user && (
           <AccountMenu>
-            {(props: FullWidthButtonProps) => (
-              <FullWidthButton
+            {(props: SidebarButtonProps) => (
+              <SidebarButton
                 {...props}
                 showMoreMenu
                 title={user.name}
                 position="bottom"
                 image={
-                  <StyledAvatar
+                  <Avatar
                     alt={user.name}
                     model={user}
                     size={24}
                     showBorder={false}
+                    style={{ marginLeft: 4 }}
                   />
                 }
               >
                 <NotificationsPopover>
-                  {(rest: FullWidthButtonProps) => (
-                    <FullWidthButton
+                  {(rest: SidebarButtonProps) => (
+                    <SidebarButton
                       {...rest}
                       position="bottom"
                       image={<NotificationIcon />}
                     />
                   )}
                 </NotificationsPopover>
-              </FullWidthButton>
+              </SidebarButton>
             )}
           </AccountMenu>
         )}
@@ -209,27 +220,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
           onMouseDown={handleMouseDown}
           onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
         />
-        {ui.sidebarIsClosed && (
-          <Toggle
-            onClick={ui.toggleCollapsedSidebar}
-            direction={"right"}
-            aria-label={t("Expand")}
-          />
-        )}
       </Container>
-      <Toggle
-        style={toggleStyle}
-        onClick={ui.toggleCollapsedSidebar}
-        direction={ui.sidebarIsClosed ? "right" : "left"}
-        aria-label={ui.sidebarIsClosed ? t("Expand") : t("Collapse")}
-      />
     </>
   );
 });
-
-const StyledAvatar = styled(Avatar)`
-  margin-left: 4px;
-`;
 
 const Backdrop = styled.a`
   animation: ${fadeIn} 250ms ease-in-out;
@@ -247,8 +241,24 @@ type ContainerProps = {
   $mobileSidebarVisible: boolean;
   $isAnimating: boolean;
   $isSmallerThanMinimum: boolean;
+  $isHovering: boolean;
   $collapsed: boolean;
 };
+
+const hoverStyles = (props: ContainerProps) => `
+  transform: none;
+  box-shadow: ${
+    props.$collapsed
+      ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
+      : props.$isSmallerThanMinimum
+      ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
+      : "none"
+  };
+
+  ${ToggleButton} {
+    opacity: 1;
+  }
+`;
 
 const Container = styled(Flex)<ContainerProps>`
   position: fixed;
@@ -256,7 +266,8 @@ const Container = styled(Flex)<ContainerProps>`
   bottom: 0;
   width: 100%;
   background: ${s("sidebarBackground")};
-  transition: box-shadow 100ms ease-in-out, transform 100ms ease-out,
+  transition: box-shadow 100ms ease-in-out, opacity 100ms ease-in-out,
+    transform 100ms ease-out,
     ${s("backgroundTransition")}
       ${(props: ContainerProps) =>
         props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
@@ -268,13 +279,13 @@ const Container = styled(Flex)<ContainerProps>`
   min-width: 280px;
   ${fadeOnDesktopBackgrounded()}
 
-  ${Positioner} {
-    display: none;
-  }
-
   @media print {
     display: none;
     transform: none;
+  }
+
+  & > div {
+    opacity: ${(props) => (props.$collapsed && !props.$isHovering ? "0" : "1")};
   }
 
   ${breakpoint("tablet")`
@@ -285,28 +296,14 @@ const Container = styled(Flex)<ContainerProps>`
         ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
         : 0});
 
-    &:hover,
+    ${(props: ContainerProps) => props.$isHovering && css(hoverStyles)}
+
     &:focus-within {
-      transform: none;
-      box-shadow: ${(props: ContainerProps) =>
-        props.$collapsed
-          ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
-          : props.$isSmallerThanMinimum
-          ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
-          : "none"};
+      ${hoverStyles}
 
-      ${Positioner} {
-        display: block;
-      }
-
-      ${ToggleButton} {
+      & > div {
         opacity: 1;
-      }
-    }
-
-    &:not(:hover):not(:focus-within) > div {
-      opacity: ${(props: ContainerProps) => (props.$collapsed ? "0" : "1")};
-      transition: opacity 100ms ease-in-out;
+      }    
     }
   `};
 `;

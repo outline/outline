@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { EditIcon, SearchIcon, ShapesIcon, HomeIcon } from "outline-icons";
+import {
+  EditIcon,
+  SearchIcon,
+  ShapesIcon,
+  HomeIcon,
+  SidebarIcon,
+} from "outline-icons";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -14,7 +20,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import OrganizationMenu from "~/menus/OrganizationMenu";
-import Desktop from "~/utils/Desktop";
+import { metaDisplay } from "~/utils/keyboard";
 import {
   homePath,
   draftsPath,
@@ -22,23 +28,23 @@ import {
   searchPath,
 } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
+import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import DragPlaceholder from "./components/DragPlaceholder";
-import FullWidthButton, {
-  FullWidthButtonProps,
-} from "./components/FullWidthButton";
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SidebarAction from "./components/SidebarAction";
+import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
+import ToggleButton from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
 
 function AppSidebar() {
   const { t } = useTranslation();
-  const { documents } = useStores();
+  const { documents, ui } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
@@ -59,6 +65,15 @@ function AppSidebar() {
     [dndArea]
   );
 
+  const handleToggleSidebar = React.useCallback(
+    (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      ui.toggleCollapsedSidebar();
+    },
+    [ui]
+  );
+
   return (
     <Sidebar ref={handleSidebarRef}>
       <HistoryNavigation />
@@ -67,23 +82,31 @@ function AppSidebar() {
           <DragPlaceholder />
 
           <OrganizationMenu>
-            {(props: FullWidthButtonProps) => (
-              <FullWidthButton
+            {(props: SidebarButtonProps) => (
+              <SidebarButton
                 {...props}
                 title={team.name}
                 image={
                   <TeamLogo
                     model={team}
-                    size={Desktop.hasInsetTitlebar() ? 24 : 32}
+                    size={24}
                     alt={t("Logo")}
+                    style={{ marginLeft: 4 }}
                   />
                 }
-                style={
-                  // Move the logo over to align with smaller size
-                  Desktop.hasInsetTitlebar() ? { paddingLeft: 8 } : undefined
-                }
-                showDisclosure
-              />
+              >
+                <Tooltip
+                  tooltip={t("Toggle sidebar")}
+                  shortcut={`${metaDisplay}+.`}
+                  delay={500}
+                >
+                  <ToggleButton
+                    position="bottom"
+                    image={<SidebarIcon />}
+                    onClick={handleToggleSidebar}
+                  />
+                </Tooltip>
+              </SidebarButton>
             )}
           </OrganizationMenu>
           <Scrollable flex shadow>
