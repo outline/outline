@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Portal } from "react-portal";
 import { useLocation } from "react-router-dom";
-import styled, { useTheme } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import Flex from "~/components/Flex";
@@ -18,6 +18,7 @@ import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
 import ResizeBorder from "./components/ResizeBorder";
 import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
+import ToggleButton from "./components/ToggleButton";
 
 const ANIMATION_MS = 250;
 
@@ -44,6 +45,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
   const setWidth = ui.setSidebarWidth;
   const [offset, setOffset] = React.useState(0);
+  const [isHovering, setHovering] = React.useState(false);
   const [isAnimating, setAnimating] = React.useState(false);
   const [isResizing, setResizing] = React.useState(false);
   const isSmallerThanMinimum = width < minWidth;
@@ -93,6 +95,22 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       setOffset(event.pageX - width);
       setResizing(true);
       setAnimating(false);
+    },
+    [width]
+  );
+
+  const handlePointerMove = React.useCallback(() => {
+    setHovering(true);
+  }, []);
+
+  const handlePointerLeave = React.useCallback(
+    (ev) => {
+      setHovering(
+        ev.pageX < width &&
+          ev.pageX > 0 &&
+          ev.pageY < window.innerHeight &&
+          ev.pageY > 0
+      );
     },
     [width]
   );
@@ -150,11 +168,14 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       <Container
         ref={ref}
         style={style}
+        $isHovering={isHovering}
         $isAnimating={isAnimating}
         $isSmallerThanMinimum={isSmallerThanMinimum}
         $mobileSidebarVisible={ui.mobileSidebarVisible}
         $collapsed={collapsed}
         className={className}
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
         column
       >
         {ui.mobileSidebarVisible && (
@@ -220,8 +241,24 @@ type ContainerProps = {
   $mobileSidebarVisible: boolean;
   $isAnimating: boolean;
   $isSmallerThanMinimum: boolean;
+  $isHovering: boolean;
   $collapsed: boolean;
 };
+
+const hoverStyles = (props: ContainerProps) => `
+  transform: none;
+  box-shadow: ${
+    props.$collapsed
+      ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
+      : props.$isSmallerThanMinimum
+      ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
+      : "none"
+  };
+
+  ${ToggleButton} {
+    opacity: 1;
+  }
+`;
 
 const Container = styled(Flex)<ContainerProps>`
   position: fixed;
@@ -229,7 +266,8 @@ const Container = styled(Flex)<ContainerProps>`
   bottom: 0;
   width: 100%;
   background: ${s("sidebarBackground")};
-  transition: box-shadow 100ms ease-in-out, transform 100ms ease-out,
+  transition: box-shadow 100ms ease-in-out, opacity 100ms ease-in-out,
+    transform 100ms ease-out,
     ${s("backgroundTransition")}
       ${(props: ContainerProps) =>
         props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
@@ -246,6 +284,10 @@ const Container = styled(Flex)<ContainerProps>`
     transform: none;
   }
 
+  & > div {
+    opacity: ${(props) => (props.$collapsed && !props.$isHovering ? "0" : "1")};
+  }
+
   ${breakpoint("tablet")`
     margin: 0;
     min-width: 0;
@@ -254,20 +296,14 @@ const Container = styled(Flex)<ContainerProps>`
         ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
         : 0});
 
-    &:hover,
-    &:focus-within {
-      transform: none;
-      box-shadow: ${(props: ContainerProps) =>
-        props.$collapsed
-          ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
-          : props.$isSmallerThanMinimum
-          ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
-          : "none"};
-    }
+    ${(props: ContainerProps) => props.$isHovering && css(hoverStyles)}
 
-    &:not(:hover):not(:focus-within) > div {
-      opacity: ${(props: ContainerProps) => (props.$collapsed ? "0" : "1")};
-      transition: opacity 100ms ease-in-out;
+    &:focus-within {
+      ${hoverStyles}
+
+      & > div {
+        opacity: 1;
+      }    
     }
   `};
 `;

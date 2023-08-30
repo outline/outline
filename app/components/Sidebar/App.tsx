@@ -39,6 +39,7 @@ import SidebarAction from "./components/SidebarAction";
 import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
+import ToggleButton from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
 
 function AppSidebar() {
@@ -64,8 +65,17 @@ function AppSidebar() {
     [dndArea]
   );
 
+  const handleToggleSidebar = React.useCallback(
+    (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      ui.toggleCollapsedSidebar();
+    },
+    [ui]
+  );
+
   return (
-    <StyledSidebar ref={handleSidebarRef}>
+    <Sidebar ref={handleSidebarRef}>
       <HistoryNavigation />
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
@@ -93,7 +103,7 @@ function AppSidebar() {
                   <ToggleButton
                     position="bottom"
                     image={<SidebarIcon />}
-                    onClick={ui.toggleCollapsedSidebar}
+                    onClick={handleToggleSidebar}
                   />
                 </Tooltip>
               </SidebarButton>
@@ -159,21 +169,9 @@ function AppSidebar() {
           </Scrollable>
         </DndProvider>
       )}
-    </StyledSidebar>
+    </Sidebar>
   );
 }
-
-const ToggleButton = styled(SidebarButton)`
-  opacity: 0;
-  transition: opacity 100ms ease-in-out;
-`;
-
-const StyledSidebar = styled(Sidebar)`
-  &:hover {
-    ${ToggleButton} {
-      opacity: 1;
-  }
-`;
 
 const Drafts = styled(Text)`
   margin: 0 4px;
