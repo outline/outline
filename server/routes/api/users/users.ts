@@ -17,155 +17,147 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Event, User, Team } from "@server/models";
-import { UserFlag, UserRole } from "@server/models/User";
+import { UserFlag } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { safeEqual } from "@server/utils/crypto";
-import {
-  assertIn,
-  assertSort,
-  assertPresent,
-  assertArray,
-} from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
 const emailEnabled = !!(env.SMTP_HOST || env.ENVIRONMENT === "development");
 
-router.post("users.list", auth(), pagination(), async (ctx: APIContext) => {
-  let { direction } = ctx.request.body;
-  const { sort = "createdAt", query, filter, ids } = ctx.request.body;
-  if (direction !== "ASC") {
-    direction = "DESC";
-  }
-  assertSort(sort, User);
-
-  if (filter) {
-    assertIn(
+router.post(
+  "users.list",
+  auth(),
+  pagination(),
+  validate(T.UsersListSchema),
+  async (ctx: APIContext<T.UsersListReq>) => {
+    const {
+      sort = "createdAt",
+      direction,
+      query,
       filter,
-      ["invited", "viewers", "admins", "members", "active", "all", "suspended"],
-      "Invalid filter"
-    );
-  }
+      ids,
+    } = ctx.input.body;
 
-  const actor = ctx.state.auth.user;
-  let where: WhereOptions<User> = {
-    teamId: actor.teamId,
-  };
-
-  // Filter out suspended users if we're not an admin
-  if (!actor.isAdmin) {
-    where = {
-      ...where,
-      suspendedAt: {
-        [Op.eq]: null,
-      },
+    const actor = ctx.state.auth.user;
+    let where: WhereOptions<User> = {
+      teamId: actor.teamId,
     };
-  }
 
-  switch (filter) {
-    case "invited": {
-      where = { ...where, lastActiveAt: null };
-      break;
+    // Filter out suspended users if we're not an admin
+    if (!actor.isAdmin) {
+      where = {
+        ...where,
+        suspendedAt: {
+          [Op.eq]: null,
+        },
+      };
     }
 
-    case "viewers": {
-      where = { ...where, isViewer: true };
-      break;
-    }
+    switch (filter) {
+      case "invited": {
+        where = { ...where, lastActiveAt: null };
+        break;
+      }
 
-    case "admins": {
-      where = { ...where, isAdmin: true };
-      break;
-    }
+      case "viewers": {
+        where = { ...where, isViewer: true };
+        break;
+      }
 
-    case "members": {
-      where = { ...where, isAdmin: false, isViewer: false };
-      break;
-    }
+      case "admins": {
+        where = { ...where, isAdmin: true };
+        break;
+      }
 
-    case "suspended": {
-      if (actor.isAdmin) {
+      case "members": {
+        where = { ...where, isAdmin: false, isViewer: false };
+        break;
+      }
+
+      case "suspended": {
+        if (actor.isAdmin) {
+          where = {
+            ...where,
+            suspendedAt: {
+              [Op.ne]: null,
+            },
+          };
+        }
+        break;
+      }
+
+      case "active": {
+        where = {
+          ...where,
+          lastActiveAt: {
+            [Op.ne]: null,
+          },
+          suspendedAt: {
+            [Op.is]: null,
+          },
+        };
+        break;
+      }
+
+      case "all": {
+        break;
+      }
+
+      default: {
         where = {
           ...where,
           suspendedAt: {
-            [Op.ne]: null,
+            [Op.is]: null,
           },
         };
+        break;
       }
-      break;
     }
 
-    case "active": {
+    if (query) {
       where = {
         ...where,
-        lastActiveAt: {
-          [Op.ne]: null,
-        },
-        suspendedAt: {
-          [Op.is]: null,
+        name: {
+          [Op.iLike]: `%${query}%`,
         },
       };
-      break;
     }
 
-    case "all": {
-      break;
-    }
-
-    default: {
+    if (ids) {
       where = {
         ...where,
-        suspendedAt: {
-          [Op.is]: null,
-        },
+        id: ids,
       };
-      break;
     }
-  }
 
-  if (query) {
-    where = {
-      ...where,
-      name: {
-        [Op.iLike]: `%${query}%`,
-      },
+    const [users, total] = await Promise.all([
+      User.findAll({
+        where,
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      User.count({
+        where,
+      }),
+    ]);
+
+    ctx.body = {
+      pagination: { ...ctx.state.pagination, total },
+      data: users.map((user) =>
+        presentUser(user, {
+          includeDetails: can(actor, "readDetails", user),
+        })
+      ),
+      policies: presentPolicies(actor, users),
     };
   }
-
-  if (ids) {
-    assertArray(ids, "ids must be an array of UUIDs");
-    where = {
-      ...where,
-      id: ids,
-    };
-  }
-
-  const [users, total] = await Promise.all([
-    User.findAll({
-      where,
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    }),
-    User.count({
-      where,
-    }),
-  ]);
-
-  ctx.body = {
-    pagination: { ...ctx.state.pagination, total },
-    data: users.map((user) =>
-      presentUser(user, {
-        includeDetails: can(actor, "readDetails", user),
-      })
-    ),
-    policies: presentPolicies(actor, users),
-  };
-});
+);
 
 router.post("users.count", auth(), async (ctx: APIContext) => {
   const { user } = ctx.state.auth;
@@ -178,20 +170,25 @@ router.post("users.count", auth(), async (ctx: APIContext) => {
   };
 });
 
-router.post("users.info", auth(), async (ctx: APIContext) => {
-  const { id } = ctx.request.body;
-  const actor = ctx.state.auth.user;
-  const user = id ? await User.findByPk(id) : actor;
-  authorize(actor, "read", user);
-  const includeDetails = can(actor, "readDetails", user);
+router.post(
+  "users.info",
+  auth(),
+  validate(T.UsersInfoSchema),
+  async (ctx: APIContext<T.UsersInfoReq>) => {
+    const { id } = ctx.input.body;
+    const actor = ctx.state.auth.user;
+    const user = id ? await User.findByPk(id) : actor;
+    authorize(actor, "read", user);
+    const includeDetails = can(actor, "readDetails", user);
 
-  ctx.body = {
-    data: presentUser(user, {
-      includeDetails,
-    }),
-    policies: presentPolicies(actor, [user]),
-  };
-});
+    ctx.body = {
+      data: presentUser(user, {
+        includeDetails,
+      }),
+      policies: presentPolicies(actor, [user]),
+    };
+  }
+);
 
 router.post(
   "users.update",
@@ -245,119 +242,133 @@ router.post(
 );
 
 // Admin specific
-router.post("users.promote", auth(), async (ctx: APIContext) => {
-  const userId = ctx.request.body.id;
-  const actor = ctx.state.auth.user;
-  const teamId = actor.teamId;
-  assertPresent(userId, "id is required");
-  const user = await User.findByPk(userId);
-  authorize(actor, "promote", user);
+router.post(
+  "users.promote",
+  auth(),
+  validate(T.UsersPromoteSchema),
+  async (ctx: APIContext<T.UsersPromoteReq>) => {
+    const userId = ctx.input.body.id;
+    const actor = ctx.state.auth.user;
+    const teamId = actor.teamId;
+    const user = await User.findByPk(userId);
+    authorize(actor, "promote", user);
 
-  await user.promote();
-  await Event.create({
-    name: "users.promote",
-    actorId: actor.id,
-    userId,
-    teamId,
-    data: {
-      name: user.name,
-    },
-    ip: ctx.request.ip,
-  });
-  const includeDetails = can(actor, "readDetails", user);
+    await user.promote();
+    await Event.create({
+      name: "users.promote",
+      actorId: actor.id,
+      userId,
+      teamId,
+      data: {
+        name: user.name,
+      },
+      ip: ctx.request.ip,
+    });
+    const includeDetails = can(actor, "readDetails", user);
 
-  ctx.body = {
-    data: presentUser(user, {
-      includeDetails,
-    }),
-    policies: presentPolicies(actor, [user]),
-  };
-});
+    ctx.body = {
+      data: presentUser(user, {
+        includeDetails,
+      }),
+      policies: presentPolicies(actor, [user]),
+    };
+  }
+);
 
-router.post("users.demote", auth(), async (ctx: APIContext) => {
-  const userId = ctx.request.body.id;
-  let { to } = ctx.request.body;
-  const actor = ctx.state.auth.user;
-  assertPresent(userId, "id is required");
+router.post(
+  "users.demote",
+  auth(),
+  validate(T.UsersDemoteSchema),
+  async (ctx: APIContext<T.UsersDemoteReq>) => {
+    const userId = ctx.input.body.id;
+    const to = ctx.input.body.to;
+    const actor = ctx.state.auth.user;
 
-  to = (to === "viewer" ? "viewer" : "member") as UserRole;
+    const user = await User.findByPk(userId, {
+      rejectOnEmpty: true,
+    });
+    authorize(actor, "demote", user);
 
-  const user = await User.findByPk(userId, {
-    rejectOnEmpty: true,
-  });
-  authorize(actor, "demote", user);
+    await userDemoter({
+      to,
+      user,
+      actorId: actor.id,
+      ip: ctx.request.ip,
+    });
+    const includeDetails = can(actor, "readDetails", user);
 
-  await userDemoter({
-    to,
-    user,
-    actorId: actor.id,
-    ip: ctx.request.ip,
-  });
-  const includeDetails = can(actor, "readDetails", user);
+    ctx.body = {
+      data: presentUser(user, {
+        includeDetails,
+      }),
+      policies: presentPolicies(actor, [user]),
+    };
+  }
+);
 
-  ctx.body = {
-    data: presentUser(user, {
-      includeDetails,
-    }),
-    policies: presentPolicies(actor, [user]),
-  };
-});
+router.post(
+  "users.suspend",
+  auth(),
+  validate(T.UsersSuspendSchema),
+  async (ctx: APIContext<T.UsersSuspendReq>) => {
+    const userId = ctx.input.body.id;
+    const actor = ctx.state.auth.user;
+    const user = await User.findByPk(userId, {
+      rejectOnEmpty: true,
+    });
+    authorize(actor, "suspend", user);
 
-router.post("users.suspend", auth(), async (ctx: APIContext) => {
-  const userId = ctx.request.body.id;
-  const actor = ctx.state.auth.user;
-  assertPresent(userId, "id is required");
-  const user = await User.findByPk(userId, {
-    rejectOnEmpty: true,
-  });
-  authorize(actor, "suspend", user);
+    await userSuspender({
+      user,
+      actorId: actor.id,
+      ip: ctx.request.ip,
+    });
+    const includeDetails = can(actor, "readDetails", user);
 
-  await userSuspender({
-    user,
-    actorId: actor.id,
-    ip: ctx.request.ip,
-  });
-  const includeDetails = can(actor, "readDetails", user);
+    ctx.body = {
+      data: presentUser(user, {
+        includeDetails,
+      }),
+      policies: presentPolicies(actor, [user]),
+    };
+  }
+);
 
-  ctx.body = {
-    data: presentUser(user, {
-      includeDetails,
-    }),
-    policies: presentPolicies(actor, [user]),
-  };
-});
+router.post(
+  "users.activate",
+  auth(),
+  validate(T.UsersActivateSchema),
+  async (ctx: APIContext<T.UsersActivateReq>) => {
+    const userId = ctx.input.body.id;
+    const actor = ctx.state.auth.user;
+    const user = await User.findByPk(userId, {
+      rejectOnEmpty: true,
+    });
+    authorize(actor, "activate", user);
 
-router.post("users.activate", auth(), async (ctx: APIContext) => {
-  const userId = ctx.request.body.id;
-  const actor = ctx.state.auth.user;
-  assertPresent(userId, "id is required");
-  const user = await User.findByPk(userId, {
-    rejectOnEmpty: true,
-  });
-  authorize(actor, "activate", user);
+    await userUnsuspender({
+      user,
+      actorId: actor.id,
+      ip: ctx.request.ip,
+    });
+    const includeDetails = can(actor, "readDetails", user);
 
-  await userUnsuspender({
-    user,
-    actorId: actor.id,
-    ip: ctx.request.ip,
-  });
-  const includeDetails = can(actor, "readDetails", user);
-
-  ctx.body = {
-    data: presentUser(user, {
-      includeDetails,
-    }),
-    policies: presentPolicies(actor, [user]),
-  };
-});
+    ctx.body = {
+      data: presentUser(user, {
+        includeDetails,
+      }),
+      policies: presentPolicies(actor, [user]),
+    };
+  }
+);
 
 router.post(
   "users.invite",
   rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
-  async (ctx: APIContext) => {
-    const { invites } = ctx.request.body;
-    assertArray(invites, "invites must be an array");
+  validate(T.UsersInviteSchema),
+  async (ctx: APIContext<T.UsersInviteReq>) => {
+    const { invites } = ctx.input.body;
     const { user } = ctx.state.auth;
     const team = await Team.findByPk(user.teamId);
     authorize(user, "inviteUser", team);
@@ -380,9 +391,10 @@ router.post(
 router.post(
   "users.resendInvite",
   auth(),
+  validate(T.UsersResendInviteSchema),
   transaction(),
-  async (ctx: APIContext) => {
-    const { id } = ctx.request.body;
+  async (ctx: APIContext<T.UsersResendInviteReq>) => {
+    const { id } = ctx.input.body;
     const { auth, transaction } = ctx.state;
     const actor = auth.user;
 
@@ -452,7 +464,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.UsersDeleteSchemaReq>) => {
     const { transaction } = ctx.state;
-    const { id, code } = ctx.request.body;
+    const { id, code } = ctx.input.body;
     const actor = ctx.state.auth.user;
     let user: User;
 

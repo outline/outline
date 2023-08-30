@@ -5,7 +5,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { Role } from "@shared/types";
+import { UserRole } from "@shared/types";
 import { UserValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
@@ -28,7 +28,7 @@ type Props = {
 type InviteRequest = {
   email: string;
   name: string;
-  role: Role;
+  role: UserRole;
 };
 
 function Invite({ onSubmit }: Props) {
@@ -38,17 +38,17 @@ function Invite({ onSubmit }: Props) {
     {
       email: "",
       name: "",
-      role: "member",
+      role: UserRole.Member,
     },
     {
       email: "",
       name: "",
-      role: "member",
+      role: UserRole.Member,
     },
     {
       email: "",
       name: "",
-      role: "member",
+      role: UserRole.Member,
     },
   ]);
   const { users } = useStores();
@@ -65,7 +65,7 @@ function Invite({ onSubmit }: Props) {
       setIsSaving(true);
 
       try {
-        const data = await users.invite(invites);
+        const data = await users.invite(invites.filter((i) => i.email));
         onSubmit();
 
         if (data.sent.length > 0) {
@@ -113,7 +113,7 @@ function Invite({ onSubmit }: Props) {
       newInvites.push({
         email: "",
         name: "",
-        role: "member",
+        role: UserRole.Member,
       });
       return newInvites;
     });
@@ -138,13 +138,16 @@ function Invite({ onSubmit }: Props) {
     });
   }, [showToast, t]);
 
-  const handleRoleChange = React.useCallback((role: Role, index: number) => {
-    setInvites((prevInvites) => {
-      const newInvites = [...prevInvites];
-      newInvites[index]["role"] = role;
-      return newInvites;
-    });
-  }, []);
+  const handleRoleChange = React.useCallback(
+    (role: UserRole, index: number) => {
+      setInvites((prevInvites) => {
+        const newInvites = [...prevInvites];
+        newInvites[index]["role"] = role;
+        return newInvites;
+      });
+    },
+    []
+  );
 
   return (
     <form onSubmit={handleSubmit}>
@@ -224,7 +227,7 @@ function Invite({ onSubmit }: Props) {
             flex
           />
           <InputSelectRole
-            onChange={(role: Role) => handleRoleChange(role, index)}
+            onChange={(role: UserRole) => handleRoleChange(role, index)}
             value={invite.role}
             labelHidden={index !== 0}
             short

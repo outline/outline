@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { UserRole } from "@shared/types";
 import User from "~/models/User";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Input from "~/components/Input";
@@ -15,7 +16,7 @@ export function UserChangeToViewerDialog({ user, onSubmit }: Props) {
   const { users } = useStores();
 
   const handleSubmit = async () => {
-    await users.demote(user, "viewer");
+    await users.demote(user, UserRole.Viewer);
     onSubmit();
   };
 
@@ -41,7 +42,7 @@ export function UserChangeToMemberDialog({ user, onSubmit }: Props) {
   const { users } = useStores();
 
   const handleSubmit = async () => {
-    await users.demote(user, "member");
+    await users.demote(user, UserRole.Member);
     onSubmit();
   };
 

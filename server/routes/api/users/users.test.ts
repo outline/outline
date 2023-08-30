@@ -307,27 +307,6 @@ describe("#users.invite", () => {
     expect(body.data.users[0].isAdmin).toBeFalsy();
   });
 
-  it("should invite user as a member if role is any arbitary value", async () => {
-    const admin = await buildAdmin();
-    const res = await server.post("/api/users.invite", {
-      body: {
-        token: admin.getJwtToken(),
-        invites: [
-          {
-            email: "test@example.com",
-            name: "Test",
-            role: "arbitary",
-          },
-        ],
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.sent.length).toEqual(1);
-    expect(body.data.users[0].isViewer).toBeFalsy();
-    expect(body.data.users[0].isAdmin).toBeFalsy();
-  });
-
   it("should require authentication", async () => {
     const res = await server.post("/api/users.invite");
     expect(res.status).toEqual(401);
