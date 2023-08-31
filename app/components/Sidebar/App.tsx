@@ -65,15 +65,6 @@ function AppSidebar() {
     [dndArea]
   );
 
-  const handleToggleSidebar = React.useCallback(
-    (ev) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      ui.toggleCollapsedSidebar();
-    },
-    [ui]
-  );
-
   return (
     <Sidebar ref={handleSidebarRef}>
       <HistoryNavigation />
@@ -103,7 +94,7 @@ function AppSidebar() {
                   <ToggleButton
                     position="bottom"
                     image={<SidebarIcon />}
-                    onClick={handleToggleSidebar}
+                    onClick={ui.toggleCollapsedSidebar}
                   />
                 </Tooltip>
               </SidebarButton>

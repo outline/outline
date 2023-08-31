@@ -11,8 +11,6 @@ export type SidebarButtonProps = React.ComponentProps<typeof Button> & {
   position: "top" | "bottom";
   title: React.ReactNode;
   image: React.ReactNode;
-  minHeight?: number;
-  rounded?: boolean;
   showMoreMenu?: boolean;
   onClick: React.MouseEventHandler<HTMLButtonElement>;
   children?: React.ReactNode;
@@ -25,7 +23,6 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
       showMoreMenu,
       image,
       title,
-      minHeight = 0,
       children,
       ...rest
     }: SidebarButtonProps,
@@ -40,7 +37,6 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
       >
         <Button
           {...rest}
-          $minHeight={minHeight}
           $position={position}
           as="button"
           ref={ref}
@@ -73,7 +69,6 @@ const Title = styled(Flex)`
 `;
 
 const Button = styled(Flex)<{
-  $minHeight: number;
   $position: "top" | "bottom";
 }>`
   flex: 1;
@@ -87,7 +82,6 @@ const Button = styled(Flex)<{
   margin: ${(props) => (props.$position === "top" ? 16 : 8)}px 0;
   background: none;
   flex-shrink: 0;
-  min-height: ${(props) => props.$minHeight}px;
 
   -webkit-appearance: none;
   text-decoration: none;
