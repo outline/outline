@@ -10,13 +10,8 @@ export async function checkPendingMigrations() {
   try {
     const pending = await migrations.pending();
     if (!isEmpty(pending)) {
-      if (env.isCloudHosted) {
-        Logger.warn(chalk.red("Migrations are pending"));
-        process.exit(1);
-      } else {
-        Logger.info("database", "Running migrations…");
-        await migrations.up();
-      }
+      Logger.info("database", "Running migrations…");
+      await migrations.up();
     }
     await checkDataMigrations();
   } catch (err) {
