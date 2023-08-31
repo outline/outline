@@ -491,7 +491,11 @@ export const printDocument = createAction({
   analyticsName: "Print document",
   section: DocumentSection,
   icon: <PrintIcon />,
-  visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
+  visible: ({ activeDocumentId, stores }) =>
+    !!(activeDocumentId && window.print) &&
+    stores.policies.abilities(activeDocumentId).download &&
+    (!!stores.auth?.team?.getPreference(TeamPreference.ViewersCanExport) ||
+      !!stores.auth?.team?.getPreference(TeamPreference.TeamCanExport)),
   perform: async () => {
     queueMicrotask(window.print);
   },

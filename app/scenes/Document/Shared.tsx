@@ -182,6 +182,10 @@ function SharedDocumentScene(props: Props) {
     return <Redirect to={response.document.url} />;
   }
 
+  const WrapperPrint = can.download
+    ? ContainerEditor
+    : ContainerEditorWithoutExport;
+
   return (
     <>
       <Helmet>
@@ -200,13 +204,15 @@ function SharedDocumentScene(props: Props) {
               ) : undefined
             }
           >
-            <Document
-              abilities={EMPTY_OBJECT}
-              document={response.document}
-              sharedTree={response.sharedTree}
-              shareId={shareId}
-              readOnly
-            />
+            <WrapperPrint>
+              <Document
+                abilities={EMPTY_OBJECT}
+                document={response.document}
+                sharedTree={response.sharedTree}
+                shareId={shareId}
+                readOnly
+              />
+            </WrapperPrint>
           </Layout>
         </ThemeProvider>
       </TeamContext.Provider>
@@ -218,6 +224,16 @@ const Content = styled(Text)`
   color: ${s("textSecondary")};
   text-align: center;
   margin-top: -8px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 `;
+const ContainerEditorWithoutExport = styled.div`
+  @media print {
+    display: none;
+  }
+`;
+const ContainerEditor = styled.div``;
 
 export default observer(SharedDocumentScene);

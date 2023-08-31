@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory, useRouteMatch } from "react-router-dom";
+import styled from "styled-components";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import { TeamPreference } from "@shared/types";
 import Comment from "~/models/Comment";
@@ -66,6 +67,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   } = props;
   const can = usePolicy(document.id);
 
+  const [canPrint, setCanPrint] = React.useState(true);
+  const [canSelect, setCanSelect] = React.useState(true);
+
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
     if (ref.current) {
@@ -86,12 +90,21 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     if (!team?.getPreference(TeamPreference.TeamCanCopyText)) {
       window.addEventListener("contextmenu", disableContextMenu, false);
       window.addEventListener("keydown", disableCopy, false);
+      setCanSelect(false);
     }
+    if (
+      (user?.isViewer &&
+        !team?.getPreference(TeamPreference.ViewersCanExport)) ||
+      !team?.getPreference(TeamPreference.TeamCanExport)
+    ) {
+      setCanPrint(false);
+    }
+
     return () => {
       window.removeEventListener("contextmenu", disableContextMenu);
       window.removeEventListener("keydown", disableCopy);
     };
-  }, [team]);
+  }, [user, team]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.
@@ -164,6 +177,13 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const handleRefChanged = React.useCallback(setEditor, [setEditor]);
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
+  const WrapperPrint = canPrint
+    ? ContainerEditor
+    : ContainerEditorWithoutExport;
+  const WrapperSelection = canSelect
+    ? ContainerEditor
+    : ContainerEditorWithoutSelection;
+
   return (
     <Flex auto column>
       <EditableTitle
@@ -190,39 +210,56 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           }
         />
       )}
-      <EditorComponent
-        ref={mergeRefs([ref, handleRefChanged])}
-        autoFocus={!!document.title && !props.defaultValue}
-        placeholder={t("Type '/' to insert, or start writing…")}
-        scrollTo={decodeURIComponent(window.location.hash)}
-        readOnly={readOnly}
-        shareId={shareId}
-        userId={user?.id}
-        focusedCommentId={focusedComment?.id}
-        onClickCommentMark={handleClickComment}
-        onCreateCommentMark={
-          team?.getPreference(TeamPreference.Commenting) && can.comment
-            ? handleDraftComment
-            : undefined
-        }
-        onDeleteCommentMark={
-          team?.getPreference(TeamPreference.Commenting) && can.comment
-            ? handleRemoveComment
-            : undefined
-        }
-        extensions={extensions}
-        editorStyle={{
-          padding: document.fullWidth || isMobile ? "0 32px" : "0 64px",
-          margin: document.fullWidth || isMobile ? "0 -32px" : "0 -64px",
-          paddingBottom: `calc(50vh - ${
-            childRef.current?.offsetHeight || 0
-          }px)`,
-        }}
-        {...rest}
-      />
+      <WrapperPrint>
+        <WrapperSelection>
+          <EditorComponent
+            ref={mergeRefs([ref, handleRefChanged])}
+            autoFocus={!!document.title && !props.defaultValue}
+            placeholder={t("Type '/' to insert, or start writing…")}
+            scrollTo={decodeURIComponent(window.location.hash)}
+            readOnly={readOnly}
+            shareId={shareId}
+            userId={user?.id}
+            focusedCommentId={focusedComment?.id}
+            onClickCommentMark={handleClickComment}
+            onCreateCommentMark={
+              team?.getPreference(TeamPreference.Commenting) && can.comment
+                ? handleDraftComment
+                : undefined
+            }
+            onDeleteCommentMark={
+              team?.getPreference(TeamPreference.Commenting) && can.comment
+                ? handleRemoveComment
+                : undefined
+            }
+            extensions={extensions}
+            editorStyle={{
+              padding: document.fullWidth || isMobile ? "0 32px" : "0 64px",
+              margin: document.fullWidth || isMobile ? "0 -32px" : "0 -64px",
+              paddingBottom: `calc(50vh - ${
+                childRef.current?.offsetHeight || 0
+              }px)`,
+            }}
+            {...rest}
+          />
+        </WrapperSelection>
+      </WrapperPrint>
       <div ref={childRef}>{children}</div>
     </Flex>
   );
 }
 
 export default observer(React.forwardRef(DocumentEditor));
+
+const ContainerEditorWithoutSelection = styled.div`
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+`;
+const ContainerEditorWithoutExport = styled.div`
+  @media print {
+    display: none;
+  }
+`;
+const ContainerEditor = styled.div``;
