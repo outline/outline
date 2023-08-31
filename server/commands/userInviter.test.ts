@@ -1,3 +1,4 @@
+import { UserRole } from "@shared/types";
 import { buildUser } from "@server/test/factories";
 import { setupTestDatabase } from "@server/test/support";
 import userInviter from "./userInviter";
@@ -12,7 +13,7 @@ describe("userInviter", () => {
     const response = await userInviter({
       invites: [
         {
-          role: "member",
+          role: UserRole.Member,
           email: "test@example.com",
           name: "Test",
         },
@@ -28,7 +29,7 @@ describe("userInviter", () => {
     const response = await userInviter({
       invites: [
         {
-          role: "member",
+          role: UserRole.Member,
           email: " ",
           name: "Test",
         },
@@ -44,7 +45,7 @@ describe("userInviter", () => {
     const response = await userInviter({
       invites: [
         {
-          role: "member",
+          role: UserRole.Member,
           email: "notanemail",
           name: "Test",
         },
@@ -60,12 +61,12 @@ describe("userInviter", () => {
     const response = await userInviter({
       invites: [
         {
-          role: "member",
+          role: UserRole.Member,
           email: "the@same.com",
           name: "Test",
         },
         {
-          role: "member",
+          role: UserRole.Member,
           email: "the@SAME.COM",
           name: "Test",
         },
@@ -81,7 +82,7 @@ describe("userInviter", () => {
     const response = await userInviter({
       invites: [
         {
-          role: "member",
+          role: UserRole.Member,
           email: user.email!,
           name: user.name,
         },

@@ -1,4 +1,8 @@
-export type Role = "admin" | "viewer" | "member";
+export enum UserRole {
+  Admin = "admin",
+  Member = "member",
+  Viewer = "viewer",
+}
 
 export type DateFilter = "day" | "week" | "month" | "year";
 

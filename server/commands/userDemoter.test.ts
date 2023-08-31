@@ -1,6 +1,5 @@
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, UserRole } from "@shared/types";
 import { CollectionUser } from "@server/models";
-import { UserRole } from "@server/models/User";
 import { buildUser, buildAdmin, buildCollection } from "@server/test/factories";
 import { setupTestDatabase } from "@server/test/support";
 import userDemoter from "./userDemoter";

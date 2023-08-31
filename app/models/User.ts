@@ -7,8 +7,9 @@ import {
   NotificationEventType,
   UserPreference,
   UserPreferences,
+  UserRole,
 } from "@shared/types";
-import type { Role, NotificationSettings } from "@shared/types";
+import type { NotificationSettings } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import ParanoidModel from "./ParanoidModel";
 import Field from "./decorators/Field";
@@ -74,13 +75,13 @@ class User extends ParanoidModel {
   }
 
   @computed
-  get role(): Role {
+  get role(): UserRole {
     if (this.isAdmin) {
-      return "admin";
+      return UserRole.Admin;
     } else if (this.isViewer) {
-      return "viewer";
+      return UserRole.Viewer;
     } else {
-      return "member";
+      return UserRole.Member;
     }
   }
 
