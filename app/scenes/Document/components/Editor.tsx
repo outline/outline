@@ -83,7 +83,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     const disableContextMenu = (event: any) => {
       event.preventDefault();
     };
-    if (team?.getPreference(TeamPreference.TeamCanCopyText)) {
+    if (!team?.getPreference(TeamPreference.TeamCanCopyText)) {
       window.addEventListener("contextmenu", disableContextMenu, false);
       window.addEventListener("keydown", disableCopy, false);
     }

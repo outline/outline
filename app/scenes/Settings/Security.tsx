@@ -284,7 +284,7 @@ function Security() {
         />
       </SettingRow>
       <SettingRow
-        label={"Allow copying of document text"}
+        label={`Allow text "copy" from documents`}
         name={TeamPreference.TeamCanCopyText}
         description={
           "When enabled, allow team members and admins to copy texts inside document. Viewers will always not be able to copy texts inside"
