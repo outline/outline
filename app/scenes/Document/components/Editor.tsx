@@ -211,7 +211,17 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         />
       )}
       <WrapperPrint>
-        <WrapperSelection>
+        <WrapperSelection
+          unselectable={canSelect ? "off" : "on"}
+          ref={(el) => {
+            el &&
+              el.addEventListener("selectstart", (e) => {
+                if (canSelect) {
+                  e.preventDefault();
+                }
+              });
+          }}
+        >
           <EditorComponent
             ref={mergeRefs([ref, handleRefChanged])}
             autoFocus={!!document.title && !props.defaultValue}

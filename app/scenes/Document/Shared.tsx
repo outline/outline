@@ -205,13 +205,23 @@ function SharedDocumentScene(props: Props) {
             }
           >
             <WrapperPrint>
-              <Document
-                abilities={EMPTY_OBJECT}
-                document={response.document}
-                sharedTree={response.sharedTree}
-                shareId={shareId}
-                readOnly
-              />
+              <ContainerEditorWithoutSelection
+                unselectable="on"
+                ref={(el) => {
+                  el &&
+                    el.addEventListener("selectstart", (e) => {
+                      e.preventDefault();
+                    });
+                }}
+              >
+                <Document
+                  abilities={EMPTY_OBJECT}
+                  document={response.document}
+                  sharedTree={response.sharedTree}
+                  shareId={shareId}
+                  readOnly
+                />
+              </ContainerEditorWithoutSelection>
             </WrapperPrint>
           </Layout>
         </ThemeProvider>
@@ -224,6 +234,8 @@ const Content = styled(Text)`
   color: ${s("textSecondary")};
   text-align: center;
   margin-top: -8px;
+`;
+const ContainerEditorWithoutSelection = styled.div`
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
