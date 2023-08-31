@@ -254,9 +254,9 @@ flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
 color: ${props.theme.text};
 font-family: ${props.theme.fontFamily};
-font-weight: ${props.theme.fontWeight};
+font-weight: ${props.theme.fontWeightRegular};
 font-size: 1em;
-line-height: 1.6em;
+line-height: -0.011;
 width: 100%;
 
 .mention {
@@ -285,9 +285,6 @@ width: 100%;
   word-wrap: break-word;
   white-space: pre-wrap;
   white-space: break-spaces;
-  -webkit-font-variant-ligatures: none;
-  font-variant-ligatures: none;
-  font-feature-settings: "liga" 0; /* the above doesn't seem to work in Edge */
   padding: ${props.editorStyle?.padding ?? "initial"};
   margin: ${props.editorStyle?.margin ?? "initial"};
 
@@ -329,12 +326,12 @@ width: 100%;
 
   // all of heading sizes are stepped down one from global styles, except h1
   // which is between h1 and h2
-  h1 { font-size: 1.75em; }
-  h2 { font-size: 1.25em; }
-  h3 { font-size: 1em; }
-  h4 { font-size: 0.875em; }
-  h5 { font-size: 0.75em; }
-  h6 { font-size: 0.75em; }
+  h1 { font-size: 28px; }
+  h2 { font-size: 22px; }
+  h3 { font-size: 18px; }
+  h4 { font-size: 16px; }
+  h5 { font-size: 15px; }
+  h6 { font-size: 15px; }
 
   .ProseMirror-yjs-cursor {
     position: relative;
