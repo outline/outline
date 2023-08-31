@@ -216,7 +216,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           ref={(el) => {
             el &&
               el.addEventListener("selectstart", (e) => {
-                if (canSelect) {
+                if (!canSelect) {
                   e.preventDefault();
                 }
               });
