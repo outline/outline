@@ -271,6 +271,32 @@ function Security() {
         />
       </SettingRow>
       <SettingRow
+        label={"Team document exports"}
+        name={TeamPreference.TeamCanExport}
+        description={
+          "When enabled, team members and admins can see download options for documents"
+        }
+      >
+        <Switch
+          id={TeamPreference.TeamCanExport}
+          checked={team.getPreference(TeamPreference.TeamCanExport)}
+          onChange={handlePreferenceChange}
+        />
+      </SettingRow>
+      <SettingRow
+        label={"Allow copying of document text"}
+        name={TeamPreference.TeamCanCopyText}
+        description={
+          "When enabled, allow team members and admins to copy texts inside document. Viewers will always not be able to copy texts inside"
+        }
+      >
+        <Switch
+          id={TeamPreference.TeamCanCopyText}
+          checked={team.getPreference(TeamPreference.TeamCanCopyText)}
+          onChange={handlePreferenceChange}
+        />
+      </SettingRow>
+      <SettingRow
         label={t("Rich service embeds")}
         name="documentEmbeds"
         description={t(

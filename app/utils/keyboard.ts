@@ -11,3 +11,10 @@ export function isModKey(
 ) {
   return isMac() ? event.metaKey : event.ctrlKey;
 }
+
+export function disableCopy(event: KeyboardEvent) {
+  const key = event.key;
+  if ((key === "c" || key === "x") && isModKey(event)) {
+    event.preventDefault();
+  }
+}

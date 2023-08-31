@@ -10,6 +10,8 @@ export const MAX_AVATAR_DISPLAY = 6;
 export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.SeamlessEdit]: true,
   [TeamPreference.ViewersCanExport]: true,
+  [TeamPreference.TeamCanExport]: true,
+  [TeamPreference.TeamCanCopyText]: true,
   [TeamPreference.PublicBranding]: false,
   [TeamPreference.Commenting]: true,
   [TeamPreference.CustomTheme]: undefined,

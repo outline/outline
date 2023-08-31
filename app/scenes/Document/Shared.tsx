@@ -22,6 +22,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { AuthorizationError, OfflineError } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { disableCopy } from "~/utils/keyboard";
 import { changeLanguage, detectLanguage } from "~/utils/language";
 import Login from "../Login";
 import Document from "./components/Document";
@@ -108,6 +109,18 @@ function SharedDocumentScene(props: Props) {
       void changeLanguage(detectLanguage(), i18n);
     }
   }, [auth, i18n]);
+
+  React.useEffect(() => {
+    const disableContextMenu = (event: any) => {
+      event.preventDefault();
+    };
+    window.addEventListener("contextmenu", disableContextMenu, false);
+    window.addEventListener("keydown", disableCopy, false);
+    return () => {
+      window.removeEventListener("contextmenu", disableContextMenu);
+      window.removeEventListener("keydown", disableCopy);
+    };
+  }, []);
 
   // ensure the wider page color always matches the theme
   React.useEffect(() => {

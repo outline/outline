@@ -14,6 +14,7 @@ import useFocusedComment from "~/hooks/useFocusedComment";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { disableCopy } from "~/utils/keyboard";
 import {
   documentHistoryPath,
   documentPath,
@@ -77,6 +78,20 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       ui.expandComments(document.id);
     }
   }, [focusedComment, ui, document.id]);
+
+  React.useEffect(() => {
+    const disableContextMenu = (event: any) => {
+      event.preventDefault();
+    };
+    if (team?.getPreference(TeamPreference.TeamCanCopyText)) {
+      window.addEventListener("contextmenu", disableContextMenu, false);
+      window.addEventListener("keydown", disableCopy, false);
+    }
+    return () => {
+      window.removeEventListener("contextmenu", disableContextMenu);
+      window.removeEventListener("keydown", disableCopy);
+    };
+  }, [team]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.

@@ -276,7 +276,10 @@ export const downloadDocumentAsHTML = createAction({
   icon: <DownloadIcon />,
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
+    !!activeDocumentId &&
+    stores.policies.abilities(activeDocumentId).download &&
+    (!!stores.auth?.team?.getPreference(TeamPreference.ViewersCanExport) ||
+      !!stores.auth?.team?.getPreference(TeamPreference.TeamCanExport)),
   perform: async ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
@@ -297,7 +300,9 @@ export const downloadDocumentAsPDF = createAction({
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId &&
     stores.policies.abilities(activeDocumentId).download &&
-    env.PDF_EXPORT_ENABLED,
+    env.PDF_EXPORT_ENABLED &&
+    (!!stores.auth?.team?.getPreference(TeamPreference.ViewersCanExport) ||
+      !!stores.auth?.team?.getPreference(TeamPreference.TeamCanExport)),
   perform: ({ activeDocumentId, t, stores }) => {
     if (!activeDocumentId) {
       return;
@@ -323,7 +328,10 @@ export const downloadDocumentAsMarkdown = createAction({
   icon: <DownloadIcon />,
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
+    !!activeDocumentId &&
+    stores.policies.abilities(activeDocumentId).download &&
+    (!!stores.auth?.team?.getPreference(TeamPreference.ViewersCanExport) ||
+      !!stores.auth?.team?.getPreference(TeamPreference.TeamCanExport)),
   perform: async ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
@@ -341,6 +349,9 @@ export const downloadDocument = createAction({
   section: DocumentSection,
   icon: <DownloadIcon />,
   keywords: "export",
+  visible: ({ stores }) =>
+    !!stores.auth?.team?.getPreference(TeamPreference.ViewersCanExport) ||
+    !!stores.auth?.team?.getPreference(TeamPreference.TeamCanExport),
   children: [
     downloadDocumentAsHTML,
     downloadDocumentAsPDF,

@@ -4,6 +4,7 @@
   "license": "Business Source License 1.1",
   "main": "index.js",
   "scripts": {
+    "start:prod:forever": "NODE_ENV=production forever start -a --uid 'outline' build/server/index.js",
     "clean": "rimraf build",
     "copy:i18n": "mkdir -p ./build/shared/i18n && cp -R ./shared/i18n/locales ./build/shared/i18n",
     "build:i18n": "i18next --silent '{shared,app,server,plugins}/**/*.{ts,tsx}' && yarn copy:i18n",
