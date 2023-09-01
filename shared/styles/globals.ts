@@ -83,7 +83,7 @@ export default createGlobalStyle<Props>`
   }
   h1 { font-size: 36px; }
   h2 { font-size: 26px; }
-  h3 { font-size: 22px; }
+  h3 { font-size: 20px; }
   h4 { font-size: 18px; }
   h5 { font-size: 16px; }
 
