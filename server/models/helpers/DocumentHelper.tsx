@@ -6,14 +6,17 @@ import { JSDOM } from "jsdom";
 import escapeRegExp from "lodash/escapeRegExp";
 import startCase from "lodash/startCase";
 import { Node } from "prosemirror-model";
+import { Transaction } from "sequelize";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
+import { AttachmentPreset } from "@shared/types";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,
   getCurrentTimeAsString,
   unicodeCLDRtoBCP47,
 } from "@shared/utils/date";
+import attachmentCreator from "@server/commands/attachmentCreator";
 import { parser, schema } from "@server/editor";
 import { trace } from "@server/logging/tracing";
 import type Document from "@server/models/Document";
@@ -22,6 +25,7 @@ import User from "@server/models/User";
 import FileStorage from "@server/storage/files";
 import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import parseImages from "@server/utils/parseImages";
 import Attachment from "../Attachment";
 import ProsemirrorHelper from "./ProsemirrorHelper";
 
@@ -367,9 +371,58 @@ export default class DocumentHelper {
       : undefined;
 
     return text
-      .replace("{date}", startCase(getCurrentDateAsString(locales)))
-      .replace("{time}", startCase(getCurrentTimeAsString(locales)))
-      .replace("{datetime}", startCase(getCurrentDateTimeAsString(locales)));
+      .replace(/{date}/g, startCase(getCurrentDateAsString(locales)))
+      .replace(/{time}/g, startCase(getCurrentTimeAsString(locales)))
+      .replace(/{datetime}/g, startCase(getCurrentDateTimeAsString(locales)));
+  }
+
+  /**
+   * Replaces remote and base64 encoded images in the given text with attachment
+   * urls and uploads the images to the storage provider.
+   *
+   * @param text The text to replace the images in
+   * @param user The user context
+   * @param ip The IP address of the user
+   * @param transaction The transaction to use for the database operations
+   * @returns The text with the images replaced
+   */
+  static async replaceImagesWithAttachments(
+    text: string,
+    user: User,
+    ip?: string,
+    transaction?: Transaction
+  ) {
+    let output = text;
+    const images = parseImages(text);
+
+    await Promise.all(
+      images.map(async (image) => {
+        // Skip attempting to fetch images that are not valid urls
+        try {
+          new URL(image.src);
+        } catch {
+          return;
+        }
+
+        const attachment = await attachmentCreator({
+          name: image.alt ?? "image",
+          url: image.src,
+          preset: AttachmentPreset.DocumentAttachment,
+          user,
+          ip,
+          transaction,
+        });
+
+        if (attachment) {
+          output = output.replace(
+            new RegExp(escapeRegExp(image.src), "g"),
+            attachment.redirectUrl
+          );
+        }
+      })
+    );
+
+    return output;
   }
 
   /**

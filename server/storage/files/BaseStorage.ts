@@ -1,5 +1,6 @@
 import { Readable } from "stream";
 import { PresignedPost } from "aws-sdk/clients/s3";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import fetch from "@server/utils/fetch";
 
@@ -78,31 +79,87 @@ export default abstract class BaseStorage {
   }): Promise<string | undefined>;
 
   /**
-   * Upload a file to the storage provider directly from a remote URL.
+   * Upload a file to the storage provider directly from a remote or base64 encoded URL.
    *
    * @param url The URL to upload from
    * @param key The path to store the file at
    * @param acl The ACL to use
-   * @returns The URL of the file
+   * @returns A promise that resolves when the file is uploaded
    */
-  public async uploadFromUrl(url: string, key: string, acl: string) {
+  public async uploadFromUrl(
+    url: string,
+    key: string,
+    acl: string
+  ): Promise<
+    | {
+        url: string;
+        contentType: string;
+        contentLength: number;
+      }
+    | undefined
+  > {
     const endpoint = this.getPublicEndpoint(true);
     if (url.startsWith("/api") || url.startsWith(endpoint)) {
       return;
     }
 
+    let buffer, contentLength, contentType;
+    const match = url.match(/data:(.*);base64,(.*)/);
+
+    if (match) {
+      contentType = match[1];
+      buffer = Buffer.from(match[2], "base64");
+      contentLength = buffer.byteLength;
+    } else {
+      try {
+        const res = await fetch(url, {
+          follow: 3,
+          redirect: "follow",
+          size: env.AWS_S3_UPLOAD_MAX_SIZE,
+          timeout: 10000,
+        });
+
+        if (!res.ok) {
+          throw new Error(`Error fetching URL to upload: ${res.status}`);
+        }
+
+        buffer = await res.buffer();
+
+        contentType =
+          res.headers.get("content-type") ?? "application/octet-stream";
+        contentLength = parseInt(res.headers.get("content-length") ?? "0", 10);
+      } catch (err) {
+        Logger.error("Error fetching URL to upload", err, {
+          url,
+          key,
+          acl,
+        });
+        return;
+      }
+    }
+
+    if (contentLength === 0) {
+      return;
+    }
+
     try {
-      const res = await fetch(url);
-      const buffer = await res.buffer();
-      return this.upload({
+      const result = await this.upload({
         body: buffer,
-        contentLength: res.headers["content-length"],
-        contentType: res.headers["content-type"],
+        contentLength,
+        contentType,
         key,
         acl,
       });
+
+      return result
+        ? {
+            url: result,
+            contentType,
+            contentLength,
+          }
+        : undefined;
     } catch (err) {
-      Logger.error("Error uploading to S3 from URL", err, {
+      Logger.error("Error uploading to file storage from URL", err, {
         url,
         key,
         acl,

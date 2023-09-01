@@ -203,7 +203,7 @@ const Image = (
               }
             }}
           />
-          {!loaded && (
+          {!loaded && size.width && size.height && (
             <img
               style={{
                 ...widthStyle,

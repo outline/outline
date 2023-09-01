@@ -16,14 +16,12 @@ export default function present(
     COLLABORATION_URL: (env.COLLABORATION_URL || env.URL)
       .replace(/\/$/, "")
       .replace(/^http/, "ws"),
-    DEPLOYMENT: env.DEPLOYMENT,
     ENVIRONMENT: env.ENVIRONMENT,
     SENTRY_DSN: env.SENTRY_DSN,
     SENTRY_TUNNEL: env.SENTRY_TUNNEL,
     SLACK_CLIENT_ID: env.SLACK_CLIENT_ID,
     SLACK_APP_ID: env.SLACK_APP_ID,
     MAXIMUM_IMPORT_SIZE: env.MAXIMUM_IMPORT_SIZE,
-    SUBDOMAINS_ENABLED: env.SUBDOMAINS_ENABLED,
     PDF_EXPORT_ENABLED: false,
     DEFAULT_LANGUAGE: env.DEFAULT_LANGUAGE,
     EMAIL_ENABLED: !!env.SMTP_HOST || env.ENVIRONMENT === "development",

@@ -9,9 +9,10 @@ import { findBlockNodes } from "../queries/findChildren";
 export const LANGUAGES = {
   none: "Plain text", // additional entry to disable highlighting
   bash: "Bash",
-  css: "CSS",
   clike: "C",
+  cpp: "C++",
   csharp: "C#",
+  css: "CSS",
   elixir: "Elixir",
   erlang: "Erlang",
   go: "Go",

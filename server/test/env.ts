@@ -17,7 +17,6 @@ env.OIDC_TOKEN_URI = "http://localhost/token";
 env.OIDC_USERINFO_URI = "http://localhost/userinfo";
 
 env.RATE_LIMITER_ENABLED = false;
-env.DEPLOYMENT = undefined;
 
 if (process.env.DATABASE_URL_TEST) {
   env.DATABASE_URL = process.env.DATABASE_URL_TEST;

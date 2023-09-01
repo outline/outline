@@ -262,8 +262,8 @@ const Heading = styled.h3<{ rtl?: boolean }>`
   margin-bottom: 0.25em;
   white-space: nowrap;
   color: ${s("text")};
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: ${s("fontFamily")};
+  font-weight: 500;
 `;
 
 const StarPositioner = styled(Flex)`

@@ -199,10 +199,7 @@ export default class S3Storage extends BaseStorage {
 
     // support old path-style S3 uploads and new virtual host uploads by
     // checking for the bucket name in the endpoint url.
-    if (
-      env.AWS_S3_UPLOAD_BUCKET_NAME &&
-      env.AWS_S3_FORCE_PATH_STYLE === false
-    ) {
+    if (env.AWS_S3_UPLOAD_BUCKET_NAME) {
       const url = new URL(env.AWS_S3_UPLOAD_BUCKET_URL);
       if (url.hostname.startsWith(env.AWS_S3_UPLOAD_BUCKET_NAME + ".")) {
         return undefined;

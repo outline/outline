@@ -11,7 +11,6 @@ import {
   IsUrl,
   IsOptional,
   IsByteLength,
-  Equals,
   IsNumber,
   IsIn,
   IsEmail,
@@ -207,13 +206,6 @@ export class Environment {
   public SSL_CERT = this.toOptionalString(process.env.SSL_CERT);
 
   /**
-   * Should always be left unset in a self-hosted environment.
-   */
-  @Equals("hosted")
-  @IsOptional()
-  public DEPLOYMENT = this.toOptionalString(process.env.DEPLOYMENT);
-
-  /**
    * The default interface language. See translate.getoutline.com for a list of
    * available language codes and their percentage translated.
    */
@@ -239,15 +231,6 @@ export class Environment {
    */
   @IsBoolean()
   public FORCE_HTTPS = this.toBoolean(process.env.FORCE_HTTPS ?? "true");
-
-  /**
-   * Whether to support multiple subdomains in a single instance.
-   */
-  @IsBoolean()
-  @Deprecated("The community edition of Outline does not support subdomains")
-  public SUBDOMAINS_ENABLED = this.toBoolean(
-    process.env.SUBDOMAINS_ENABLED ?? "false"
-  );
 
   /**
    * Should the installation send anonymized statistics to the maintainers.
@@ -589,14 +572,12 @@ export class Environment {
    * The name of the AWS S3 region to use.
    */
   @IsOptional()
-  @CannotUseWithout("AWS_ACCESS_KEY_ID")
   public AWS_REGION = this.toOptionalString(process.env.AWS_REGION);
 
   /**
    * Optional AWS S3 endpoint URL for file attachments.
    */
   @IsOptional()
-  @CannotUseWithout("AWS_ACCESS_KEY_ID")
   public AWS_S3_ACCELERATE_URL = this.toOptionalString(
     process.env.AWS_S3_ACCELERATE_URL
   );
@@ -605,14 +586,12 @@ export class Environment {
    * Optional AWS S3 endpoint URL for file attachments.
    */
   @IsOptional()
-  @CannotUseWithout("AWS_ACCESS_KEY_ID")
   public AWS_S3_UPLOAD_BUCKET_URL = process.env.AWS_S3_UPLOAD_BUCKET_URL ?? "";
 
   /**
    * The bucket name to store file attachments in.
    */
   @IsOptional()
-  @CannotUseWithout("AWS_ACCESS_KEY_ID")
   public AWS_S3_UPLOAD_BUCKET_NAME = this.toOptionalString(
     process.env.AWS_S3_UPLOAD_BUCKET_NAME
   );
@@ -622,7 +601,6 @@ export class Environment {
    * S3-compatible storage providers.
    */
   @IsOptional()
-  @CannotUseWithout("AWS_ACCESS_KEY_ID")
   public AWS_S3_FORCE_PATH_STYLE = this.toBoolean(
     process.env.AWS_S3_FORCE_PATH_STYLE ?? "true"
   );
@@ -671,8 +649,12 @@ export class Environment {
    * Returns true if the current installation is the cloud hosted version at
    * getoutline.com
    */
-  public isCloudHosted() {
-    return this.DEPLOYMENT === "hosted";
+  public get isCloudHosted() {
+    return [
+      "https://app.getoutline.com",
+      "https://app.outline.dev",
+      "https://app.outline.dev:3000",
+    ].includes(this.URL);
   }
 
   private toOptionalString(value: string | undefined) {

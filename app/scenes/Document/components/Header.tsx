@@ -104,7 +104,6 @@ function DocumentHeader({
   const { isDeleted, isTemplate } = document;
   const can = usePolicy(document?.id);
   const canToggleEmbeds = team?.documentEmbeds;
-  const canEdit = can.update && !isEditing;
   const toc = (
     <Tooltip
       tooltip={ui.tocVisible ? t("Hide contents") : t("Show contents")}
@@ -185,7 +184,7 @@ function DocumentHeader({
         actions={
           <>
             {appearanceAction}
-            {canEdit ? editAction : <div />}
+            {can.update && !isEditing ? editAction : <div />}
           </>
         }
       />
@@ -250,45 +249,56 @@ function DocumentHeader({
                       disabled={savingIsDisabled}
                       neutral={isDraft}
                     >
-                      {isDraft ? t("Save Draft") : t("Done Editing")}
+                      {isDraft ? t("Save draft") : t("Done editing")}
                     </Button>
                   </Tooltip>
                 </Action>
               </>
             )}
-            {canEdit && !team?.seamlessEditing && !isRevision && editAction}
-            {canEdit && can.createChildDocument && !isRevision && !isMobile && (
-              <Action>
-                <NewChildDocumentMenu
-                  document={document}
-                  label={(props) => (
-                    <Tooltip
-                      tooltip={t("New document")}
-                      shortcut="n"
-                      delay={500}
-                      placement="bottom"
-                    >
-                      <Button icon={<PlusIcon />} {...props} neutral>
-                        {t("New doc")}
-                      </Button>
-                    </Tooltip>
-                  )}
-                />
-              </Action>
-            )}
-            {canEdit && isTemplate && !isDraft && !isRevision && (
-              <Action>
-                <Button
-                  icon={<PlusIcon />}
-                  as={Link}
-                  to={newDocumentPath(document.collectionId, {
-                    templateId: document.id,
-                  })}
-                >
-                  {t("New from template")}
-                </Button>
-              </Action>
-            )}
+            {can.update &&
+              !isEditing &&
+              !team?.seamlessEditing &&
+              !isRevision &&
+              editAction}
+            {can.update &&
+              can.createChildDocument &&
+              !isRevision &&
+              !isMobile && (
+                <Action>
+                  <NewChildDocumentMenu
+                    document={document}
+                    label={(props) => (
+                      <Tooltip
+                        tooltip={t("New document")}
+                        shortcut="n"
+                        delay={500}
+                        placement="bottom"
+                      >
+                        <Button icon={<PlusIcon />} {...props} neutral>
+                          {t("New doc")}
+                        </Button>
+                      </Tooltip>
+                    )}
+                  />
+                </Action>
+              )}
+            {can.update &&
+              !isEditing &&
+              isTemplate &&
+              !isDraft &&
+              !isRevision && (
+                <Action>
+                  <Button
+                    icon={<PlusIcon />}
+                    as={Link}
+                    to={newDocumentPath(document.collectionId, {
+                      templateId: document.id,
+                    })}
+                  >
+                    {t("New from template")}
+                  </Button>
+                </Action>
+              )}
             {revision && revision.createdAt !== document.updatedAt && (
               <Action>
                 <Tooltip
@@ -318,27 +328,23 @@ function DocumentHeader({
                 {document.collectionId ? t("Publish") : `${t("Publish")}…`}
               </Button>
             </Action>
-            {!isEditing && (
-              <>
-                {!isDeleted && <Separator />}
-                <Action>
-                  <DocumentMenu
-                    document={document}
-                    isRevision={isRevision}
-                    label={(props) => (
-                      <Button
-                        icon={<MoreIcon />}
-                        {...props}
-                        borderOnHover
-                        neutral
-                      />
-                    )}
-                    showToggleEmbeds={canToggleEmbeds}
-                    showDisplayOptions
+            {!isDeleted && <Separator />}
+            <Action>
+              <DocumentMenu
+                document={document}
+                isRevision={isRevision}
+                label={(props) => (
+                  <Button
+                    icon={<MoreIcon />}
+                    {...props}
+                    borderOnHover
+                    neutral
                   />
-                </Action>
-              </>
-            )}
+                )}
+                showToggleEmbeds={canToggleEmbeds}
+                showDisplayOptions
+              />
+            </Action>
           </>
         }
       />

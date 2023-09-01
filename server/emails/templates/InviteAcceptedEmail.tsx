@@ -60,7 +60,7 @@ Open ${env.APP_NAME}: ${teamUrl}
     unsubscribeUrl,
   }: Props & BeforeSendProps) {
     return (
-      <EmailTemplate>
+      <EmailTemplate previewText={this.preview({ invitedName } as Props)}>
         <Header />
 
         <Body>

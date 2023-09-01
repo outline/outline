@@ -1,8 +1,39 @@
 import Revision from "@server/models/Revision";
-import { buildDocument } from "@server/test/factories";
+import { buildDocument, buildUser } from "@server/test/factories";
 import DocumentHelper from "./DocumentHelper";
 
 describe("DocumentHelper", () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(Date.parse("2021-01-01T00:00:00.000Z"));
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
+  describe("replaceTemplateVariables", () => {
+    it("should replace {time} with current time", async () => {
+      const user = await buildUser();
+      const result = DocumentHelper.replaceTemplateVariables(
+        "Hello {time}",
+        user
+      );
+
+      expect(result).toBe("Hello 12 00 AM");
+    });
+
+    it("should replace {date} with current date", async () => {
+      const user = await buildUser();
+      const result = DocumentHelper.replaceTemplateVariables(
+        "Hello {date}",
+        user
+      );
+
+      expect(result).toBe("Hello January 1 2021");
+    });
+  });
+
   describe("parseMentions", () => {
     it("should not parse normal links as mentions", async () => {
       const document = await buildDocument({

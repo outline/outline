@@ -1,6 +1,5 @@
 import path from "path";
 import emojiRegex from "emoji-regex";
-import escapeRegExp from "lodash/escapeRegExp";
 import truncate from "lodash/truncate";
 import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
@@ -10,12 +9,10 @@ import parseTitle from "@shared/utils/parseTitle";
 import { DocumentValidation } from "@shared/validations";
 import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
-import dataURItoBuffer from "@server/utils/dataURItoBuffer";
-import parseImages from "@server/utils/parseImages";
 import turndownService from "@server/utils/turndown";
 import { FileImportError, InvalidRequestError } from "../errors";
-import attachmentCreator from "./attachmentCreator";
 
 interface ImportableFile {
   type: string;
@@ -207,26 +204,12 @@ async function documentImporter({
   // to match our hardbreak parser.
   text = text.replace(/<br>/gi, "\\n");
 
-  // find data urls, convert to blobs, upload and write attachments
-  const images = parseImages(text);
-  const dataURIs = images.filter((href) => href.startsWith("data:"));
-
-  for (const uri of dataURIs) {
-    const name = "imported";
-    const { buffer, type } = dataURItoBuffer(uri);
-    const attachment = await attachmentCreator({
-      name,
-      type,
-      buffer,
-      user,
-      ip,
-      transaction,
-    });
-    text = text.replace(
-      new RegExp(escapeRegExp(uri), "g"),
-      attachment.redirectUrl
-    );
-  }
+  text = await DocumentHelper.replaceImagesWithAttachments(
+    text,
+    user,
+    ip,
+    transaction
+  );
 
   // It's better to truncate particularly long titles than fail the import
   title = truncate(title, { length: DocumentValidation.maxTitleLength });
@@ -236,7 +219,7 @@ async function documentImporter({
 
   if (state.length > DocumentValidation.maxStateLength) {
     throw InvalidRequestError(
-      `The document is too large to import, please reduce the length and try again`
+      `The document "${title}" is too large to import, please reduce the length and try again`
     );
   }
 

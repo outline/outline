@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserRole } from "@server/models/User";
+import { UserRole } from "@shared/types";
 import BaseSchema from "@server/routes/api/BaseSchema";
 
 export const TeamsUpdateSchema = BaseSchema.extend({
@@ -21,10 +21,7 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     /** The default landing collection for the team */
     defaultCollectionId: z.string().uuid().nullish(),
     /** The default user role */
-    defaultUserRole: z
-      .string()
-      .refine((val) => Object.values(UserRole).includes(val as UserRole))
-      .optional(),
+    defaultUserRole: z.nativeEnum(UserRole).optional(),
     /** Whether new users must be invited to join the team */
     inviteRequired: z.boolean().optional(),
     /** Domains allowed to sign-in with SSO */
@@ -53,3 +50,11 @@ export const TeamsUpdateSchema = BaseSchema.extend({
 });
 
 export type TeamsUpdateSchemaReq = z.infer<typeof TeamsUpdateSchema>;
+
+export const TeamsDeleteSchema = BaseSchema.extend({
+  body: z.object({
+    code: z.string(),
+  }),
+});
+
+export type TeamsDeleteSchemaReq = z.infer<typeof TeamsDeleteSchema>;

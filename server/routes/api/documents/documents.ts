@@ -669,6 +669,7 @@ router.post(
   "documents.search_titles",
   auth(),
   pagination(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchSchema),
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
     const {
@@ -722,6 +723,7 @@ router.post(
     optional: true,
   }),
   pagination(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchSchema),
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
     const {
@@ -839,6 +841,7 @@ router.post(
 router.post(
   "documents.templatize",
   auth({ member: true }),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsTemplatizeSchema),
   async (ctx: APIContext<T.DocumentsTemplatizeReq>) => {
     const { id } = ctx.input.body;
@@ -1163,6 +1166,7 @@ router.post(
 router.post(
   "documents.import",
   auth(),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsImportSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsImportReq>) => {
@@ -1246,6 +1250,7 @@ router.post(
 router.post(
   "documents.create",
   auth(),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsCreateReq>) => {

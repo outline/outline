@@ -31,6 +31,7 @@ import {
   UserPreferences,
   NotificationEventType,
   NotificationEventDefaults,
+  UserRole,
 } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
@@ -63,11 +64,6 @@ export enum UserFlag {
   Desktop = "desktop",
   DesktopWeb = "desktopWeb",
   MobileWeb = "mobileWeb",
-}
-
-export enum UserRole {
-  Member = "member",
-  Viewer = "viewer",
 }
 
 @Scopes(() => ({
@@ -532,7 +528,7 @@ class User extends ParanoidModel {
     });
 
     if (res.count >= 1) {
-      if (to === "member") {
+      if (to === UserRole.Member) {
         await this.update(
           {
             isAdmin: false,
@@ -540,7 +536,7 @@ class User extends ParanoidModel {
           },
           options
         );
-      } else if (to === "viewer") {
+      } else if (to === UserRole.Viewer) {
         await this.update(
           {
             isAdmin: false,

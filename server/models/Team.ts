@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { URL } from "url";
@@ -69,9 +70,9 @@ class Team extends ParanoidModel {
   @Unique
   @Length({
     min: 2,
-    max: env.isCloudHosted() ? 32 : 255,
+    max: env.isCloudHosted ? 32 : 255,
     msg: `subdomain must be between 2 and ${
-      env.isCloudHosted() ? 32 : 255
+      env.isCloudHosted ? 32 : 255
     } characters`,
   })
   @Is({
@@ -168,12 +169,28 @@ class Team extends ParanoidModel {
       return `${url.protocol}//${this.domain}${url.port ? `:${url.port}` : ""}`;
     }
 
-    if (!this.subdomain || !env.SUBDOMAINS_ENABLED) {
+    if (!this.subdomain || !env.isCloudHosted) {
       return env.URL;
     }
 
     url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
+  }
+
+  /**
+   * Returns a code that can be used to delete the user's team. The code will
+   * be rotated when the user signs out.
+   *
+   * @returns The deletion code.
+   */
+  public getDeleteConfirmationCode(user: User) {
+    return crypto
+      .createHash("md5")
+      .update(`${this.id}${user.jwtSecret}`)
+      .digest("hex")
+      .replace(/[l1IoO0]/gi, "")
+      .slice(0, 8)
+      .toUpperCase();
   }
 
   /**

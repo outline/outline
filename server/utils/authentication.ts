@@ -71,7 +71,7 @@ export async function signIn(
     },
     ip: ctx.request.ip,
   });
-  const domain = getCookieDomain(ctx.request.hostname);
+  const domain = getCookieDomain(ctx.request.hostname, env.isCloudHosted);
   const expires = addMonths(new Date(), 3);
 
   // set a cookie for which service we last signed in with. This is
@@ -85,7 +85,7 @@ export async function signIn(
 
   // set a transfer cookie for the access token itself and redirect
   // to the teams subdomain if subdomains are enabled
-  if (env.SUBDOMAINS_ENABLED && team.subdomain) {
+  if (env.isCloudHosted && team.subdomain) {
     // get any existing sessions (teams signed in) and add this team
     const existing = getSessionsInCookie(ctx);
     const sessions = encodeURIComponent(

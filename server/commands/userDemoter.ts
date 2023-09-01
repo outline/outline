@@ -1,6 +1,6 @@
+import { UserRole } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import { Event, User } from "@server/models";
-import type { UserRole } from "@server/models/User";
 import CleanupDemotedUserTask from "@server/queues/tasks/CleanupDemotedUserTask";
 import { sequelize } from "@server/storage/database";
 

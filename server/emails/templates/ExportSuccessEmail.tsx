@@ -57,8 +57,13 @@ Your requested data export is complete, the exported files are also available in
   }
 
   protected render({ id, teamUrl, unsubscribeUrl }: Props & BeforeSendProps) {
+    const downloadLink = `${teamUrl}/api/fileOperations.redirect?id=${id}`;
+
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview()}
+        goToAction={{ url: downloadLink, name: "Download export" }}
+      >
         <Header />
 
         <Body>
@@ -77,9 +82,7 @@ Your requested data export is complete, the exported files are also available in
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}/api/fileOperations.redirect?id=${id}`}>
-              Download
-            </Button>
+            <Button href={downloadLink}>Download</Button>
           </p>
         </Body>
 

@@ -1,19 +1,18 @@
 import { observer } from "mobx-react";
 import { SubscribeIcon } from "outline-icons";
 import * as React from "react";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import { s } from "@shared/styles";
 import useStores from "~/hooks/useStores";
 import Relative from "../Sidebar/components/Relative";
 
 const NotificationIcon = () => {
   const { notifications } = useStores();
-  const theme = useTheme();
   const count = notifications.approximateUnreadCount;
 
   return (
     <Relative style={{ height: 24 }}>
-      <SubscribeIcon color={theme.textTertiary} />
+      <SubscribeIcon />
       {count > 0 && <Badge />}
     </Relative>
   );

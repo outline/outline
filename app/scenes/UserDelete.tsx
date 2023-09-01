@@ -30,7 +30,7 @@ function UserDelete() {
       ev.preventDefault();
 
       try {
-        await auth.requestDelete();
+        await auth.requestDeleteUser();
         setWaitingCode(true);
       } catch (error) {
         showToast(error.message, {
@@ -71,16 +71,8 @@ function UserDelete() {
                 enter the code below to permanantly destroy your account.
               </Trans>
             </Text>
-            <Text type="secondary">
-              <Trans
-                defaults="<em>Note:</em> Signing back in will cause a new account to be automatically reprovisioned."
-                components={{
-                  em: <strong />,
-                }}
-              />
-            </Text>
             <Input
-              placeholder="CODE"
+              placeholder={t("Confirmation code")}
               autoComplete="off"
               autoFocus
               maxLength={8}
@@ -105,10 +97,14 @@ function UserDelete() {
             {t("Continue")}…
           </Button>
         ) : (
-          <Button type="submit" disabled={formState.isSubmitting} danger>
+          <Button
+            type="submit"
+            disabled={formState.isSubmitting || !formState.isValid}
+            danger
+          >
             {formState.isSubmitting
               ? `${t("Deleting")}…`
-              : t("Delete My Account")}
+              : t("Delete my account")}
           </Button>
         )}
       </form>

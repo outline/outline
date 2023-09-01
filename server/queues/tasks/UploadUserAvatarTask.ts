@@ -20,14 +20,14 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
-    const avatarUrl = await FileStorage.uploadFromUrl(
+    const res = await FileStorage.uploadFromUrl(
       props.avatarUrl,
       `avatars/${user.id}/${uuidv4()}`,
       "public-read"
     );
 
-    if (avatarUrl) {
-      await user.update({ avatarUrl });
+    if (res?.url) {
+      await user.update({ avatarUrl: res?.url });
     }
   }
 
