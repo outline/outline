@@ -6,13 +6,14 @@ import env from "@server/env";
 import { Document, Collection, Revision } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import Diff from "./components/Diff";
 import EmailTemplate from "./components/EmailLayout";
 import EmptySpace from "./components/EmptySpace";
-import Footer from "./components/Footer";
+import Footer, { Link } from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
@@ -175,7 +176,16 @@ Open Document: ${teamUrl}${document.url}
           </p>
         </Body>
 
-        <Footer unsubscribeUrl={unsubscribeUrl} />
+        <Footer unsubscribeUrl={unsubscribeUrl}>
+          <Link
+            href={SubscriptionHelper.unsubscribeUrl(
+              props.userId,
+              props.documentId
+            )}
+          >
+            Unsubscribe from this doc
+          </Link>
+        </Footer>
       </EmailTemplate>
     );
   }

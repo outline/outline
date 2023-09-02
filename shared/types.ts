@@ -218,6 +218,10 @@ export enum UnfurlType {
   Document = "document",
 }
 
+export enum QueryNotices {
+  UnsubscribeDocument = "unsubscribe-document",
+}
+
 export type OEmbedType = "photo" | "video" | "rich";
 
 export type Unfurl<T = OEmbedType> = {
