@@ -33,15 +33,23 @@ export default abstract class BaseStorage {
    *
    * @param key The path to the file
    */
-  public abstract getFileBuffer(key: string): Promise<Blob>;
+  public abstract getFileBuffer(key: string): Promise<Blob | Buffer>;
 
   /**
-   * Returns the public endpoint for the storage provider.
+   * Returns the upload URL for the storage provider.
    *
    * @param isServerUpload Whether the upload is happening on the server or not
-   * @returns The public endpoint as a string
+   * @returns {string} The upload URL
    */
-  public abstract getPublicEndpoint(isServerUpload?: boolean): string;
+  public abstract getUploadUrl(isServerUpload?: boolean): string;
+
+  /**
+   * Returns the download URL for a given file.
+   *
+   * @param key The path to the file
+   * @returns {string} The download URL for the file
+   */
+  public abstract getUrlForKey(key: string): string;
 
   /**
    * Returns a signed URL for a file from the storage provider.
@@ -98,7 +106,7 @@ export default abstract class BaseStorage {
       }
     | undefined
   > {
-    const endpoint = this.getPublicEndpoint(true);
+    const endpoint = this.getUploadUrl(true);
     if (url.startsWith("/api") || url.startsWith(endpoint)) {
       return;
     }

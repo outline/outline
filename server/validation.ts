@@ -170,6 +170,20 @@ export const assertCollectionPermission = (
   assertIn(value, [...Object.values(CollectionPermission), null], message);
 };
 
+export const validateKey = (key: string, message = "Invalid key") => {
+  const parts = key.split("/").slice(0, -1);
+  if (
+    parts.length !== 3 ||
+    !validator.isIn(
+      parts[0],
+      ["uploads", "public"] ||
+        !(validator.isUUID(parts[1]) && validator.isUUID(parts[2]))
+    )
+  ) {
+    throw ValidationError(message);
+  }
+};
+
 export class ValidateDocumentId {
   /**
    * Checks if documentId is valid. A valid documentId is either

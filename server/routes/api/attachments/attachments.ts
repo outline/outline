@@ -99,7 +99,7 @@ router.post(
 
     ctx.body = {
       data: {
-        uploadUrl: FileStorage.getPublicEndpoint(),
+        uploadUrl: FileStorage.getUploadUrl(),
         form: {
           "Cache-Control": "max-age=31557600",
           "Content-Type": contentType,

@@ -1,7 +1,8 @@
 import { subMinutes } from "date-fns";
 import invariant from "invariant";
 import JWT from "jsonwebtoken";
-import { Team, User } from "@server/models";
+import env from "@server/env";
+import { Attachment, Team, User } from "@server/models";
 import { AuthenticationError } from "../errors";
 
 function getJWTPayload(token: string) {
@@ -95,4 +96,31 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
   }
 
   return user;
+}
+
+export async function getAttachmentForJWT(token: string): Promise<Attachment> {
+  const payload = getJWTPayload(token);
+
+  if (payload.type !== "attachment") {
+    throw AuthenticationError("Invalid token");
+  }
+
+  // check the token is within it's expiration time
+  if (payload.expiresAt) {
+    if (new Date(payload.expiresAt) < new Date()) {
+      throw AuthenticationError("Expired token");
+    }
+  }
+
+  const attachmentId = payload.key.split("/")[2];
+  const attachment = await Attachment.findByPk(attachmentId);
+  invariant(attachment, "File not found");
+
+  try {
+    JWT.verify(token, env.FILE_STORAGE_LOCAL_SECRET);
+  } catch (err) {
+    throw AuthenticationError("Invalid token");
+  }
+
+  return attachment;
 }

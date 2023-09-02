@@ -47,7 +47,7 @@ export default class S3Storage extends BaseStorage {
     );
   }
 
-  public getPublicEndpoint(isServerUpload?: boolean) {
+  public getUploadUrl(isServerUpload?: boolean) {
     if (env.AWS_S3_ACCELERATE_URL) {
       return env.AWS_S3_ACCELERATE_URL;
     }
@@ -76,6 +76,10 @@ export default class S3Storage extends BaseStorage {
     return `${host}/${isServerUpload && isDocker ? "s3/" : ""}${
       env.AWS_S3_UPLOAD_BUCKET_NAME
     }`;
+  }
+
+  public getUrlForKey(key: string): string {
+    return `${this.getUploadUrl()}/${key}`;
   }
 
   public upload = async ({
@@ -107,7 +111,7 @@ export default class S3Storage extends BaseStorage {
         Body: body,
       })
       .promise();
-    const endpoint = this.getPublicEndpoint(true);
+    const endpoint = this.getUploadUrl(true);
     return `${endpoint}/${key}`;
   };
 
@@ -135,7 +139,7 @@ export default class S3Storage extends BaseStorage {
     };
 
     const url = isDocker
-      ? `${this.getPublicEndpoint()}/${key}`
+      ? `${this.getUploadUrl()}/${key}`
       : await this.client.getSignedUrlPromise("getObject", params);
 
     if (env.AWS_S3_ACCELERATE_URL) {

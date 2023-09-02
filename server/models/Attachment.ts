@@ -100,7 +100,7 @@ class Attachment extends IdModel {
    * a signed URL must be used.
    */
   get canonicalUrl() {
-    return encodeURI(`${FileStorage.getPublicEndpoint()}/${this.key}`);
+    return encodeURI(FileStorage.getUrlForKey(this.key));
   }
 
   /**

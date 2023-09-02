@@ -613,6 +613,29 @@ export class Environment {
   public AWS_S3_ACL = process.env.AWS_S3_ACL ?? "private";
 
   /**
+   * Which file storage system to use
+   */
+  public FILE_STORAGE = process.env.FILE_STORAGE;
+
+  /**
+   * Set default local file storage root path
+   */
+  public FILE_STORAGE_LOCAL_ROOT =
+    process.env.FILE_STORAGE_LOCAL_ROOT ?? "files";
+
+  /**
+   * This secret is used to generated signed URLs for accessing
+   * locally stored attachments
+   */
+  public FILE_STORAGE_LOCAL_SECRET =
+    process.env.FILE_STORAGE_LOCAL_SECRET ?? "";
+
+  @IsNumber()
+  public FILE_STORAGE_UPLOAD_MAX_SIZE = this.toOptionalNumber(
+    process.env.FILE_STORAGE_UPLOAD_MAX_SIZE
+  );
+
+  /**
    * Because imports can be much larger than regular file attachments and are
    * deleted automatically we allow an optional separate limit on the size of
    * imports.

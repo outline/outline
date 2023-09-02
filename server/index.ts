@@ -26,6 +26,7 @@ import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
 import { sequelize } from "./storage/database";
 import RedisAdapter from "./storage/redis";
 import Metrics from "./logging/Metrics";
+import { mkdirSync, existsSync } from "fs";
 
 // The default is to run all services to make development and OSS installations
 // easier to deal with. Separate services are only needed at scale.
@@ -51,6 +52,12 @@ if (serviceNames.includes("collaboration")) {
 // This function will only be called once in the original process
 async function master() {
   await checkEnv();
+  if (env.FILE_STORAGE === "local") {
+    const rootDir = env.FILE_STORAGE_LOCAL_ROOT;
+    if (!existsSync(rootDir)) {
+      mkdirSync(rootDir);
+    }
+  }
   await checkPendingMigrations();
 
   if (env.TELEMETRY && env.ENVIRONMENT === "production") {
