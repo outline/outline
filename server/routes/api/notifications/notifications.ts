@@ -37,7 +37,7 @@ const handleUnsubscribe = async (
     rejectOnEmpty: true,
   });
   const unsubscribeToken = NotificationSettingsHelper.unsubscribeToken(
-    user,
+    userId,
     eventType
   );
 

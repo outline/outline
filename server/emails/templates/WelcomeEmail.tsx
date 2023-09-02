@@ -17,10 +17,7 @@ type Props = EmailProps & {
  * Email sent to a user when their account has just been created, or they signed
  * in for the first time from an invite.
  */
-export default class WelcomeEmail extends BaseEmail<
-  Props,
-  Record<string, any>
-> {
+export default class WelcomeEmail extends BaseEmail<Props> {
   protected subject() {
     return `Welcome to ${env.APP_NAME}`;
   }

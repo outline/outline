@@ -57,12 +57,13 @@ Open Document: ${teamUrl}${document.url}
 `;
   }
 
-  protected render({ document, actorName, teamUrl }: Props) {
+  protected render(props: Props) {
+    const { document, actorName, teamUrl } = props;
     const documentLink = `${teamUrl}${document.url}?ref=notification-email`;
 
     return (
       <EmailTemplate
-        previewText={this.preview({ actorName } as Props)}
+        previewText={this.preview(props)}
         goToAction={{ url: documentLink, name: "View Document" }}
       >
         <Header />

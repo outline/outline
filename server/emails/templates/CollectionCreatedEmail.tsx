@@ -1,6 +1,6 @@
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
-import { Collection, User } from "@server/models";
+import { Collection } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
@@ -32,9 +32,9 @@ export default class CollectionCreatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({ userId, collectionId }: Props) {
+  protected async beforeSend(props: InputProps) {
     const collection = await Collection.scope("withUser").findByPk(
-      collectionId
+      props.collectionId
     );
     if (!collection) {
       return false;
@@ -42,11 +42,15 @@ export default class CollectionCreatedEmail extends BaseEmail<
 
     return {
       collection,
-      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        await User.findByPk(userId, { rejectOnEmpty: true }),
-        NotificationEventType.CreateCollection
-      ),
+      unsubscribeUrl: this.unsubscribeUrl(props),
     };
+  }
+
+  protected unsubscribeUrl({ userId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      userId,
+      NotificationEventType.CreateCollection
+    );
   }
 
   protected subject({ collection }: Props) {
@@ -67,12 +71,13 @@ Open Collection: ${teamUrl}${collection.url}
 `;
   }
 
-  protected render({ collection, teamUrl, unsubscribeUrl }: Props) {
+  protected render(props: Props) {
+    const { collection, teamUrl, unsubscribeUrl } = props;
     const collectionLink = `${teamUrl}${collection.url}`;
 
     return (
       <EmailTemplate
-        previewText={this.preview({ collection } as Props)}
+        previewText={this.preview(props)}
         goToAction={{ url: collectionLink, name: "View Collection" }}
       >
         <Header />
@@ -80,8 +85,7 @@ Open Collection: ${teamUrl}${collection.url}
         <Body>
           <Heading>{collection.name}</Heading>
           <p>
-            {collection.user.name} created the collection "{collection.name}
-            ".
+            {collection.user.name} created the collection "{collection.name}".
           </p>
           <EmptySpace height={10} />
           <p>

@@ -16,10 +16,7 @@ type Props = EmailProps & {
 /**
  * Email sent to a user when they request to delete their workspace.
  */
-export default class ConfirmTeamDeleteEmail extends BaseEmail<
-  Props,
-  Record<string, any>
-> {
+export default class ConfirmTeamDeleteEmail extends BaseEmail<Props> {
   protected subject() {
     return `Your workspace deletion request`;
   }

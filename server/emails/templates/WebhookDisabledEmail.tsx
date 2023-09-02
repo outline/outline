@@ -17,10 +17,7 @@ type Props = EmailProps & {
  * Email sent to the creator of a webhook when the webhook has become disabled
  * due to repeated failure.
  */
-export default class WebhookDisabledEmail extends BaseEmail<
-  Props,
-  Record<string, any>
-> {
+export default class WebhookDisabledEmail extends BaseEmail<Props> {
   protected subject() {
     return `Warning: Webhook disabled`;
   }
@@ -38,10 +35,12 @@ Webhook settings: ${teamUrl}/settings/webhooks
 `;
   }
 
-  protected render({ webhookName, teamUrl }: Props) {
+  protected render(props: Props) {
+    const { webhookName, teamUrl } = props;
     const webhookSettingsLink = `${teamUrl}/settings/webhooks`;
+
     return (
-      <EmailTemplate previewText={this.preview({ webhookName } as Props)}>
+      <EmailTemplate previewText={this.preview(props)}>
         <Header />
 
         <Body>
