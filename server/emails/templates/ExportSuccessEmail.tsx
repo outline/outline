@@ -1,7 +1,6 @@
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
-import { User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
@@ -12,32 +11,38 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type Props = EmailProps & {
+type InputProps = EmailProps & {
   userId: string;
   id: string;
   teamUrl: string;
   teamId: string;
 };
 
-type BeforeSendProps = {
+type BeforeSend = {
   unsubscribeUrl: string;
 };
+
+type Props = BeforeSend & InputProps;
 
 /**
  * Email sent to a user when their data export has completed and is available
  * for download in the settings section.
  */
 export default class ExportSuccessEmail extends BaseEmail<
-  Props,
-  BeforeSendProps
+  InputProps,
+  BeforeSend
 > {
-  protected async beforeSend({ userId }: Props) {
+  protected async beforeSend(props: InputProps) {
     return {
-      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        await User.findByPk(userId, { rejectOnEmpty: true }),
-        NotificationEventType.ExportCompleted
-      ),
+      unsubscribeUrl: this.unsubscribeUrl(props),
     };
+  }
+
+  protected unsubscribeUrl({ userId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      userId,
+      NotificationEventType.ExportCompleted
+    );
   }
 
   protected subject() {
@@ -56,7 +61,7 @@ Your requested data export is complete, the exported files are also available in
 `;
   }
 
-  protected render({ id, teamUrl, unsubscribeUrl }: Props & BeforeSendProps) {
+  protected render({ id, teamUrl, unsubscribeUrl }: Props) {
     const downloadLink = `${teamUrl}/api/fileOperations.redirect?id=${id}`;
 
     return (

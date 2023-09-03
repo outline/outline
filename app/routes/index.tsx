@@ -4,6 +4,7 @@ import DesktopRedirect from "~/scenes/DesktopRedirect";
 import DelayedMount from "~/components/DelayedMount";
 import FullscreenLoading from "~/components/FullscreenLoading";
 import Route from "~/components/ProfiledRoute";
+import useQueryNotices from "~/hooks/useQueryNotices";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 
@@ -14,6 +15,8 @@ const Login = lazyWithRetry(() => import("~/scenes/Login"));
 const Logout = lazyWithRetry(() => import("~/scenes/Logout"));
 
 export default function Routes() {
+  useQueryNotices();
+
   return (
     <React.Suspense
       fallback={

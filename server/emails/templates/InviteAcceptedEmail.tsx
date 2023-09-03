@@ -1,7 +1,6 @@
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
-import { User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
@@ -12,30 +11,36 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type Props = EmailProps & {
+type InputProps = EmailProps & {
   inviterId: string;
   invitedName: string;
   teamUrl: string;
 };
 
-type BeforeSendProps = {
+type BeforeSend = {
   unsubscribeUrl: string;
 };
+
+type Props = InputProps & BeforeSend;
 
 /**
  * Email sent to a user when someone they invited successfully signs up.
  */
 export default class InviteAcceptedEmail extends BaseEmail<
-  Props,
-  BeforeSendProps
+  InputProps,
+  BeforeSend
 > {
-  protected async beforeSend({ inviterId }: Props) {
+  protected async beforeSend(props: InputProps) {
     return {
-      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        await User.findByPk(inviterId, { rejectOnEmpty: true }),
-        NotificationEventType.InviteAccepted
-      ),
+      unsubscribeUrl: this.unsubscribeUrl(props),
     };
+  }
+
+  protected unsubscribeUrl({ inviterId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      inviterId,
+      NotificationEventType.InviteAccepted
+    );
   }
 
   protected subject({ invitedName }: Props) {
@@ -54,11 +59,7 @@ Open ${env.APP_NAME}: ${teamUrl}
 `;
   }
 
-  protected render({
-    invitedName,
-    teamUrl,
-    unsubscribeUrl,
-  }: Props & BeforeSendProps) {
+  protected render({ invitedName, teamUrl, unsubscribeUrl }: Props) {
     return (
       <EmailTemplate previewText={this.preview({ invitedName } as Props)}>
         <Header />
