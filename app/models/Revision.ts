@@ -14,6 +14,9 @@ class Revision extends BaseModel {
   /** Markdown string of the content when revision was created */
   text: string;
 
+  /** The emoji of the document when the revision was created */
+  emoji: string | null;
+
   /** HTML string representing the revision as a diff from the previous version */
   html: string;
 

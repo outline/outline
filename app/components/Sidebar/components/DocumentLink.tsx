@@ -324,6 +324,7 @@ function InnerDocumentLink(
                     starred: inStarredSection,
                   },
                 }}
+                emoji={document?.emoji || node.emoji}
                 label={
                   <EditableTitle
                     title={title}

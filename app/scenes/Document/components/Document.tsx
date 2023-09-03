@@ -354,7 +354,7 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
-  onChange = (getEditorText: () => string) => {
+  handleChange = (getEditorText: () => string) => {
     const { document } = this.props;
     this.getEditorText = getEditorText;
 
@@ -369,9 +369,15 @@ class DocumentScene extends React.Component<Props> {
     this.headings = headings;
   };
 
-  onChangeTitle = action((value: string) => {
+  handleChangeTitle = action((value: string) => {
     this.title = value;
     this.props.document.title = value;
+    this.updateIsDirty();
+    void this.autosave();
+  });
+
+  handleChangeEmoji = action((value: string) => {
+    this.props.document.emoji = value;
     this.updateIsDirty();
     void this.autosave();
   });
@@ -482,7 +488,6 @@ class DocumentScene extends React.Component<Props> {
                 <Flex auto={!readOnly} reverse>
                   {revision ? (
                     <RevisionViewer
-                      isDraft={document.isDraft}
                       document={document}
                       revision={revision}
                       id={revision.id}
@@ -506,8 +511,9 @@ class DocumentScene extends React.Component<Props> {
                         onFileUploadStop={this.onFileUploadStop}
                         onSearchLink={this.props.onSearchLink}
                         onCreateLink={this.props.onCreateLink}
-                        onChangeTitle={this.onChangeTitle}
-                        onChange={this.onChange}
+                        onChangeTitle={this.handleChangeTitle}
+                        onChangeEmoji={this.handleChangeEmoji}
+                        onChange={this.handleChange}
                         onHeadingsChange={this.onHeadingsChange}
                         onSave={this.onSave}
                         onPublish={this.onPublish}

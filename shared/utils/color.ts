@@ -1,5 +1,5 @@
 import md5 from "crypto-js/md5";
-import { darken } from "polished";
+import { darken, parseToRgb } from "polished";
 import theme from "../styles/theme";
 
 export const palette = [
@@ -26,3 +26,12 @@ export const stringToColor = (input: string) => {
   const inputAsNumber = parseInt(md5(input).toString(), 16);
   return palette[inputAsNumber % palette.length];
 };
+
+/**
+ * Converts a color to string of RGB values separated by commas
+ *
+ * @param color - A color string
+ * @returns A string of RGB values separated by commas
+ */
+export const toRGB = (color: string) =>
+  Object.values(parseToRgb(color)).join(", ");

@@ -1,4 +1,3 @@
-import nameToEmoji from "gemoji/name-to-emoji.json";
 import Token from "markdown-it/lib/token";
 import {
   NodeSpec,
@@ -9,6 +8,7 @@ import {
 import { Command, TextSelection } from "prosemirror-state";
 import { Primitive } from "utility-types";
 import Suggestion from "../extensions/Suggestion";
+import { nameToEmoji } from "../lib/emoji";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { SuggestionsMenuType } from "../plugins/Suggestions";
 import emojiRule from "../rules/emoji";

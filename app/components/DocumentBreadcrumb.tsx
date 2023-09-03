@@ -15,6 +15,7 @@ import {
   templatesPath,
   trashPath,
 } from "~/utils/routeHelpers";
+import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
   children?: React.ReactNode;
@@ -105,7 +106,13 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     path.forEach((node: NavigationNode) => {
       output.push({
         type: "route",
-        title: node.title,
+        title: node.emoji ? (
+          <>
+            <EmojiIcon emoji={node.emoji} /> {node.title}
+          </>
+        ) : (
+          node.title
+        ),
         to: node.url,
       });
     });

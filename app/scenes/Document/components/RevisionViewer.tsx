@@ -7,12 +7,15 @@ import { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
 import { documentPath } from "~/utils/routeHelpers";
 import { Meta as DocumentMeta } from "./DocumentMeta";
+import DocumentTitle from "./DocumentTitle";
 
 type Props = Omit<EditorProps, "extensions"> & {
+  /** The ID of the revision */
   id: string;
+  /** The current document */
   document: Document;
+  /** The revision to display */
   revision: Revision;
-  isDraft: boolean;
   children?: React.ReactNode;
 };
 
@@ -24,7 +27,12 @@ function RevisionViewer(props: Props) {
 
   return (
     <Flex auto column>
-      <h1 dir={revision.dir}>{revision.title}</h1>
+      <DocumentTitle
+        documentId={revision.documentId}
+        title={revision.title}
+        emoji={revision.emoji}
+        readOnly
+      />
       <DocumentMeta
         document={document}
         revision={revision}

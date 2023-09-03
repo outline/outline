@@ -1,11 +1,18 @@
 import useStores from "./useStores";
 
-export default function useUserLocale() {
+/**
+ * Returns the user's locale, or undefined if the user is not logged in.
+ *
+ * @param languageCode Whether to only return the language code
+ * @returns The user's locale, or undefined if the user is not logged in
+ */
+export default function useUserLocale(languageCode?: boolean) {
   const { auth } = useStores();
 
-  if (!auth.user || !auth.user.language) {
+  if (!auth.user?.language) {
     return undefined;
   }
 
-  return auth.user.language;
+  const { language } = auth.user;
+  return languageCode ? language.split("_")[0] : language;
 }

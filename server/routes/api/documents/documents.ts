@@ -861,6 +861,7 @@ router.post(
       lastModifiedById: user.id,
       createdById: user.id,
       template: true,
+      emoji: original.emoji,
       title: original.title,
       text: original.text,
     });

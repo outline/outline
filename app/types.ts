@@ -141,6 +141,20 @@ export type FetchOptions = {
   force?: boolean;
 };
 
+export type NavigationNode = {
+  id: string;
+  title: string;
+  emoji?: string | null;
+  url: string;
+  children: NavigationNode[];
+  isDraft?: boolean;
+};
+
+export type CollectionSort = {
+  field: string;
+  direction: "asc" | "desc";
+};
+
 // Pagination response in an API call
 export type Pagination = {
   limit: number;

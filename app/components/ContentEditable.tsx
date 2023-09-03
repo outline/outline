@@ -9,6 +9,7 @@ type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
   readOnly?: boolean;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
   onChange?: (text: string) => void;
+  onFocus?: React.FocusEventHandler<HTMLSpanElement> | undefined;
   onBlur?: React.FocusEventHandler<HTMLSpanElement> | undefined;
   onInput?: React.FormEventHandler<HTMLSpanElement> | undefined;
   onKeyDown?: React.KeyboardEventHandler<HTMLSpanElement> | undefined;
@@ -35,6 +36,7 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
     disabled,
     onChange,
     onInput,
+    onFocus,
     onBlur,
     onKeyDown,
     value,
@@ -143,11 +145,13 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
   );
 
   return (
-    <div className={className} dir={dir} onClick={onClick}>
+    <div className={className} dir={dir} onClick={onClick} tabIndex={-1}>
+      {children}
       <Content
         ref={contentRef}
         contentEditable={!disabled && !readOnly}
         onInput={wrappedEvent(onInput)}
+        onFocus={wrappedEvent(onFocus)}
         onBlur={wrappedEvent(onBlur)}
         onKeyDown={wrappedEvent(onKeyDown)}
         onPaste={handlePaste}
@@ -158,7 +162,6 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
       >
         {innerValue}
       </Content>
-      {children}
     </div>
   );
 });
