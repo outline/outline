@@ -24,6 +24,7 @@ import usePolicy from "~/hooks/usePolicy";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { hover } from "~/styles";
 import { newDocumentPath } from "~/utils/routeHelpers";
+import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
   document: Document;
@@ -92,6 +93,12 @@ function DocumentListItem(
     >
       <Content>
         <Heading dir={document.dir}>
+          {document.emoji && (
+            <>
+              <EmojiIcon emoji={document.emoji} size={24} />
+              &nbsp;
+            </>
+          )}
           <Title
             text={document.titleWithDefault}
             highlight={highlight}

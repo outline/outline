@@ -9,6 +9,8 @@ type Props = {
   document: Document;
   /** The new title */
   title?: string;
+  /** The document emoji */
+  emoji?: string | null;
   /** The new text content */
   text?: string;
   /** Whether the editing session is complete */
@@ -44,6 +46,7 @@ export default async function documentUpdater({
   user,
   document,
   title,
+  emoji,
   text,
   editorVersion,
   templateId,
@@ -61,6 +64,9 @@ export default async function documentUpdater({
 
   if (title !== undefined) {
     document.title = title.trim();
+  }
+  if (emoji !== undefined) {
+    document.emoji = emoji;
   }
   if (editorVersion) {
     document.editorVersion = editorVersion;

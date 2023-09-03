@@ -4,7 +4,6 @@ import { action, autorun, computed, observable, set } from "mobx";
 import { ExportContentType } from "@shared/types";
 import type { NavigationNode } from "@shared/types";
 import Storage from "@shared/utils/Storage";
-import parseTitle from "@shared/utils/parseTitle";
 import { isRTL } from "@shared/utils/rtl";
 import DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
@@ -69,6 +68,13 @@ export default class Document extends ParanoidModel {
   title: string;
 
   /**
+   * An emoji to use as the document icon.
+   */
+  @Field
+  @observable
+  emoji: string | undefined | null;
+
+  /**
    * Whether this is a template.
    */
   @observable
@@ -126,12 +132,6 @@ export default class Document extends ParanoidModel {
   };
 
   revision: number;
-
-  @computed
-  get emoji() {
-    const { emoji } = parseTitle(this.title);
-    return emoji;
-  }
 
   /**
    * Returns the direction of the document text, either "rtl" or "ltr"

@@ -10,7 +10,7 @@ import {
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { NavigationNode } from "@shared/types";
 import { Theme } from "~/stores/UiStore";
 import Document from "~/models/Document";
@@ -21,6 +21,8 @@ import Button from "~/components/Button";
 import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Header from "~/components/Header";
+import EmojiIcon from "~/components/Icons/EmojiIcon";
+import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import { publishDocument } from "~/actions/definitions/documents";
 import { restoreRevision } from "~/actions/definitions/revisions";
@@ -81,6 +83,7 @@ function DocumentHeader({
 }: Props) {
   const { t } = useTranslation();
   const { ui, auth } = useStores();
+  const theme = useTheme();
   const { resolvedTheme } = ui;
   const { team } = auth;
   const isMobile = useMobile();
@@ -199,11 +202,18 @@ function DocumentHeader({
           isMobile ? (
             <TableOfContentsMenu headings={headings} />
           ) : (
-            <DocumentBreadcrumb document={document}>{toc}</DocumentBreadcrumb>
+            <DocumentBreadcrumb document={document}>
+              {toc} <Star document={document} color={theme.textSecondary} />
+            </DocumentBreadcrumb>
           )
         }
         title={
           <>
+            {document.emoji && (
+              <>
+                <EmojiIcon size={24} emoji={document.emoji} />{" "}
+              </>
+            )}
             {document.title}{" "}
             {document.isArchived && (
               <ArchivedBadge>{t("Archived")}</ArchivedBadge>

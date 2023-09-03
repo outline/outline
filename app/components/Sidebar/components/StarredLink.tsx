@@ -8,7 +8,6 @@ import { useDrag, useDrop } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
-import parseTitle from "@shared/utils/parseTitle";
 import Star from "~/models/Star";
 import Fade from "~/components/Fade";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
@@ -42,14 +41,10 @@ function useLabelAndIcon({ documentId, collectionId }: Star) {
   if (documentId) {
     const document = documents.get(documentId);
     if (document) {
-      const { emoji } = parseTitle(document?.title);
-
       return {
-        label: emoji
-          ? document.title.replace(emoji, "")
-          : document.titleWithDefault,
-        icon: emoji ? (
-          <EmojiIcon emoji={emoji} />
+        label: document.titleWithDefault,
+        icon: document.emoji ? (
+          <EmojiIcon emoji={document.emoji} />
         ) : (
           <StarredIcon color={theme.yellow} />
         ),
@@ -148,6 +143,10 @@ function StarredLink({ star }: Props) {
       return null;
     }
 
+    const { emoji } = document;
+    const label = emoji
+      ? document.title.replace(emoji, "")
+      : document.titleWithDefault;
     const collection = document.collectionId
       ? collections.get(document.collectionId)
       : undefined;

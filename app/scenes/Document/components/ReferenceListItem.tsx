@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
-import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
@@ -59,7 +58,7 @@ function ReferenceListItem({
   shareId,
   ...rest
 }: Props) {
-  const { emoji } = parseTitle(document.title);
+  const { emoji } = document;
 
   return (
     <DocumentLink

@@ -5,6 +5,7 @@ import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
 import EventBoundary from "~/components/EventBoundary";
+import EmojiIcon from "~/components/Icons/EmojiIcon";
 import NudeButton from "~/components/NudeButton";
 import useUnmount from "~/hooks/useUnmount";
 import { undraggableOnDesktop } from "~/styles";
@@ -25,6 +26,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   onClickIntent?: () => void;
   onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
   icon?: React.ReactNode;
+  emoji?: string | null;
   label?: React.ReactNode;
   menu?: React.ReactNode;
   showActions?: boolean;
@@ -48,6 +50,7 @@ function SidebarLink(
     onClick,
     onClickIntent,
     to,
+    emoji,
     label,
     active,
     isActiveDrop,
@@ -136,6 +139,7 @@ function SidebarLink(
             />
           )}
           {icon && <IconWrapper>{icon}</IconWrapper>}
+          {emoji && <EmojiIcon emoji={emoji} />}
           <Label>{label}</Label>
         </Content>
       </Link>
@@ -152,6 +156,7 @@ const Content = styled.span`
 
   ${Disclosure} {
     margin-top: 2px;
+    margin-left: 2px;
   }
 `;
 

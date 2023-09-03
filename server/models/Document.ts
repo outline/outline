@@ -1,4 +1,5 @@
 import compact from "lodash/compact";
+import isNil from "lodash/isNil";
 import uniq from "lodash/uniq";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
@@ -33,7 +34,6 @@ import {
 import isUUID from "validator/lib/isUUID";
 import type { NavigationNode } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
-import parseTitle from "@shared/utils/parseTitle";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
 import slugify from "@server/utils/slugify";
@@ -261,7 +261,7 @@ class Document extends ParanoidModel {
   // hooks
 
   @BeforeSave
-  static async updateTitleInCollectionStructure(
+  static async updateCollectionStructure(
     model: Document,
     { transaction }: SaveOptions<Document>
   ) {
@@ -271,7 +271,7 @@ class Document extends ParanoidModel {
       model.archivedAt ||
       model.template ||
       !model.publishedAt ||
-      !model.changed("title") ||
+      !(model.changed("title") || model.changed("emoji")) ||
       !model.collectionId
     ) {
       return;
@@ -330,10 +330,6 @@ class Document extends ParanoidModel {
 
   @BeforeUpdate
   static processUpdate(model: Document) {
-    const { emoji } = parseTitle(model.title);
-    // emoji in the title is split out for easier display
-    model.emoji = emoji || null;
-
     // ensure documents have a title
     model.title = model.title || "";
 
@@ -795,6 +791,7 @@ class Document extends ParanoidModel {
       id: this.id,
       title: this.title,
       url: this.url,
+      emoji: isNil(this.emoji) ? undefined : this.emoji,
       children,
     };
   };
