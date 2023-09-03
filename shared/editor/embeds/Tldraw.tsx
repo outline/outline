@@ -7,7 +7,7 @@ function Tldraw(props: Props) {
     <Frame
       {...props}
       src={props.attrs.href}
-      title="Tldraw.com (beta) Embed"
+      title="Tldraw Embed"
       referrerPolicy="origin"
       border
     />
