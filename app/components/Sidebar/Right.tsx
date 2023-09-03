@@ -120,7 +120,7 @@ const Position = styled(Flex)`
 const Sidebar = styled(m.div)<{
   $border?: boolean;
 }>`
-  display: flex;
+  display: block;
   flex-shrink: 0;
   background: ${s("background")};
   max-width: 80%;
@@ -129,6 +129,7 @@ const Sidebar = styled(m.div)<{
   z-index: 1;
 
   ${breakpoint("mobile", "tablet")`
+    display: flex;
     position: absolute;
     top: 0;
     right: 0;
