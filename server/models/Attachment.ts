@@ -1,4 +1,5 @@
 import path from "path";
+import { QueryTypes } from "sequelize";
 import {
   BeforeDestroy,
   BelongsTo,
@@ -114,6 +115,30 @@ class Attachment extends IdModel {
   @BeforeDestroy
   static async deleteAttachmentFromS3(model: Attachment) {
     await FileStorage.deleteFile(model.key);
+  }
+
+  // static methods
+
+  /**
+   * Get the total size of all attachments for a given team.
+   *
+   * @param teamId - The ID of the team to get the total size for.
+   * @returns A promise resolving to the total size of all attachments for the given team in bytes.
+   */
+  static async getTotalSizeForTeam(teamId: string): Promise<number> {
+    const result = await this.sequelize!.query<{ total: string }>(
+      `
+      SELECT SUM(size) as total
+      FROM attachments
+      WHERE "teamId" = :teamId
+    `,
+      {
+        replacements: { teamId },
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    return parseInt(result?.[0]?.total ?? "0", 10);
   }
 
   // associations

@@ -1,10 +1,20 @@
 import fs from "fs";
 import truncate from "lodash/truncate";
 import { FileOperationState, NotificationEventType } from "@shared/types";
+import { bytesToHumanReadable } from "@shared/utils/files";
 import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
 import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
+import env from "@server/env";
+import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
-import { Collection, Event, FileOperation, Team, User } from "@server/models";
+import {
+  Attachment,
+  Collection,
+  Event,
+  FileOperation,
+  Team,
+  User,
+} from "@server/models";
 import fileOperationPresenter from "@server/presenters/fileOperation";
 import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
@@ -43,6 +53,26 @@ export default abstract class ExportTask extends BaseTask<Props> {
     let filePath: string | undefined;
 
     try {
+      if (!fileOperation.collectionId) {
+        const totalAttachmentsSize = await Attachment.getTotalSizeForTeam(
+          user.teamId
+        );
+
+        if (
+          fileOperation.includeAttachments &&
+          env.MAXIMUM_EXPORT_SIZE &&
+          totalAttachmentsSize > env.MAXIMUM_EXPORT_SIZE
+        ) {
+          throw ValidationError(
+            `${bytesToHumanReadable(
+              totalAttachmentsSize
+            )} of attachments in workspace is larger than maximum export size of ${bytesToHumanReadable(
+              env.MAXIMUM_EXPORT_SIZE
+            )}.`
+          );
+        }
+      }
+
       Logger.info("task", `ExportTask processing data for ${fileOperationId}`, {
         includeAttachments: fileOperation.includeAttachments,
       });

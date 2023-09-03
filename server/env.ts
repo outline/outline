@@ -5,6 +5,7 @@ require("dotenv").config({
   silent: true,
 });
 
+import os from "os";
 import {
   validate,
   IsNotEmpty,
@@ -621,6 +622,14 @@ export class Environment {
     this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ?? 100000000,
     this.AWS_S3_UPLOAD_MAX_SIZE
   );
+
+  /**
+   * Limit on export size in bytes. Defaults to the total memory available to
+   * the container.
+   */
+  @IsNumber()
+  public MAXIMUM_EXPORT_SIZE =
+    this.toOptionalNumber(process.env.MAXIMUM_EXPORT_SIZE) ?? os.totalmem();
 
   /**
    * Iframely url
