@@ -4,7 +4,6 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
-import { isSafari } from "@shared/utils/browser";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
@@ -96,18 +95,8 @@ function Right({ children, border, className }: Props) {
     },
   };
 
-  let display = "flex";
-  if (isSafari()) {
-    display = "block";
-  }
-
   return (
-    <Sidebar
-      {...animationProps}
-      $border={border}
-      $display={display}
-      className={className}
-    >
+    <Sidebar {...animationProps} $border={border} className={className}>
       <Position style={style} column>
         <ErrorBoundary>{children}</ErrorBoundary>
         {!isMobile && (
@@ -130,9 +119,8 @@ const Position = styled(Flex)`
 
 const Sidebar = styled(m.div)<{
   $border?: boolean;
-  $display?: string;
 }>`
-  display: ${(props) => props.$display || "flex"};
+  display: block;
   flex-shrink: 0;
   background: ${s("background")};
   max-width: 80%;
@@ -141,7 +129,7 @@ const Sidebar = styled(m.div)<{
   z-index: 1;
 
   ${breakpoint("mobile", "tablet")`
-    display: flex
+    display: flex;
     position: absolute;
     top: 0;
     right: 0;

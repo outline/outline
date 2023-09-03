@@ -11,17 +11,6 @@ export function isTouchDevice(): boolean {
 }
 
 /**
- *
- * @returns true if the client browser is Safari
- */
-export function isSafari(): boolean {
-  if (SSR) {
-    return false;
-  }
-  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-}
-
-/**
  * Returns true if the client is running on a Mac.
  */
 export function isMac(): boolean {
