@@ -3,6 +3,7 @@ import { unlink } from "fs/promises";
 import path from "path";
 import JWT from "jsonwebtoken";
 import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import fetch from "@server/utils/fetch";
 import BaseStorage from "./BaseStorage";
 
@@ -69,7 +70,11 @@ export default class LocalStorage extends BaseStorage {
 
   public async deleteFile(key: string) {
     const filePath = path.join(env.FILE_STORAGE_LOCAL_ROOT, key);
-    return unlink(filePath);
+    try {
+      await unlink(filePath);
+    } catch (err) {
+      Logger.warn(`Couldn't delete ${filePath}`, err);
+    }
   }
 
   public getSignedUrl = async (key: string, expiresIn = 60) => {
