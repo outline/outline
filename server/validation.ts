@@ -1,6 +1,7 @@
 import isArrayLike from "lodash/isArrayLike";
 import { Primitive } from "utility-types";
 import validator from "validator";
+import isIn from "validator/lib/isIn";
 import isUUID from "validator/lib/isUUID";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
@@ -170,19 +171,20 @@ export const assertCollectionPermission = (
   assertIn(value, [...Object.values(CollectionPermission), null], message);
 };
 
-export const validateKey = (key: string, message = "Invalid key") => {
-  const parts = key.split("/").slice(0, -1);
-  if (
-    parts.length !== 3 ||
-    !validator.isIn(
-      parts[0],
-      ["uploads", "public"] ||
-        !(validator.isUUID(parts[1]) && validator.isUUID(parts[2]))
-    )
-  ) {
-    throw ValidationError(message);
-  }
-};
+export class ValidateKey {
+  public static isValid = (key: string) => {
+    const parts = key.split("/").slice(0, -1);
+    return (
+      parts.length === 3 &&
+      isIn(parts[0], ["uploads", "public"]) &&
+      isUUID(parts[1]) &&
+      isUUID(parts[2])
+    );
+  };
+
+  public static message =
+    "Must be of the form uploads/<uuid>/<uuid>/<name> or public/<uuid>/<uuid>/<name>";
+}
 
 export class ValidateDocumentId {
   /**
