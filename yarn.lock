@@ -4493,7 +4493,7 @@ bull@^4.10.4:
     semver "^7.3.2"
     uuid "^8.3.0"
 
-bytes@3.1.2, bytes@^3.0.0, bytes@^3.1.0:
+bytes@3.1.2, bytes@^3.1.0, bytes@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/bytes/-/bytes-3.1.2.tgz#8b0beeb98605adf1b128fa4386403c009e0221a5"
   integrity sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==
@@ -4893,7 +4893,7 @@ component-emitter@^1.3.0:
   resolved "https://registry.yarnpkg.com/component-emitter/-/component-emitter-1.3.0.tgz#16e4070fba8ae29b679f2215853ee181ab2eabc0"
   integrity sha512-Rd3se6QB+sO1TwqZjscQrurpEPIfO0/yYnSin6Q/rD3mOutHvUrCAhJub3r90uNb+SESBuE0QYoB90YdfatsRg==
 
-compressible@^2.0.0:
+compressible@^2.0.18:
   version "2.0.18"
   resolved "https://registry.yarnpkg.com/compressible/-/compressible-2.0.18.tgz#af53cca6b070d4c3c0750fbd77286a6d7cc46fba"
   integrity sha512-AF3r7P5dWxL8MxyITRMlORQNaOA2IkAFaTr4k7BUumjPtRpGDTZpl0Pb1XCO6JeDCBdp126Cgs9sMxqSjgYyRg==
@@ -7556,7 +7556,7 @@ http-errors@2.0.0:
     statuses "2.0.1"
     toidentifier "1.0.1"
 
-http-errors@^1.3.1, http-errors@^1.6.3, http-errors@^1.7.3, http-errors@^1.8.0:
+http-errors@^1.3.1, http-errors@^1.6.3, http-errors@^1.7.3, http-errors@^1.8.1:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-1.8.1.tgz#7c3f28577cbc8a207388455dbd62295ed07bd68c"
   integrity sha512-Kpk9Sm7NmI+RHhnj6OIWDI1d6fIoFAtFt9RLaTMRlg/8w49juAStsrBgp0Dp4OdxdVbRIeKhtCUvoi/RuAhO4g==
@@ -8969,16 +8969,15 @@ koa-compose@^4.1.0:
   resolved "https://registry.yarnpkg.com/koa-compose/-/koa-compose-4.1.0.tgz#507306b9371901db41121c812e923d0d67d3e877"
   integrity sha512-8ODW8TrDuMYvXRwra/Kh7/rJo9BtOfPc6qO8eAfC80CnCvSjSl0bkRM24X6/XBBEyj0v1nRUQ1LyOy3dbqOWXw==
 
-koa-compress@^5.1.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/koa-compress/-/koa-compress-5.1.0.tgz#7b9fe24f4c1b28d9cae90864597da472c2fcf701"
-  integrity sha512-G3Ppo9jrUwlchp6qdoRgQNMiGZtM0TAHkxRZQ7EoVvIG8E47J4nAsMJxXHAUQ+0oc7t0MDxSdONWTFcbzX7/Bg==
+koa-compress@^5.1.1:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/koa-compress/-/koa-compress-5.1.1.tgz#4f1599cfcaab23de1cd97d0a0ff9b5d05b0ffa52"
+  integrity sha512-UgMIN7ZoEP2DuoSQmD6CYvFSLt0NReGlc2qSY4bO4Oq0L56OiD9pDG41Kj/zFmVY/A3Wvmn4BqKcfq5H30LGIg==
   dependencies:
-    bytes "^3.0.0"
-    compressible "^2.0.0"
-    http-errors "^1.8.0"
+    bytes "^3.1.2"
+    compressible "^2.0.18"
+    http-errors "^1.8.1"
     koa-is-json "^1.0.0"
-    statuses "^2.0.1"
 
 koa-convert@^2.0.0:
   version "2.0.0"
@@ -12245,7 +12244,7 @@ standard-as-callback@^2.1.0:
   resolved "https://registry.yarnpkg.com/standard-as-callback/-/standard-as-callback-2.1.0.tgz#8953fc05359868a77b5b9739a665c5977bb7df45"
   integrity sha512-qoRRSyROncaz1z0mvYqIE4lCd9p2R90i6GxW3uZv5ucSu8tU7B5HXUP1gG8pVZsYNVaXjk8ClXHPttLyxAL48A==
 
-statuses@2.0.1, statuses@^2.0.1:
+statuses@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/statuses/-/statuses-2.0.1.tgz#55cb000ccf1d48728bd23c685a063998cf1a1b63"
   integrity sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==
