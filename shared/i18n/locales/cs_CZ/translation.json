@@ -906,7 +906,7 @@
   "Connect": "Připojit",
   "The Slack integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "Integrace Slack je aktuálně zakázána. Nastavte přidružené proměnné parametry a restartujte server, aby byla povolena integrace.",
   "How to use {{ command }}": "Jak používat {{ command }}",
-  "To search your knowledgebase use {{ command }}. \nYou’ve already learned how to get help with {{ command2 }}.": "Chcete-li prohledat svou znalostní databázi, použijte {{ command }}. \nUž jste se naučili, jak získat pomoc s {{ command2 }}.",
+  "To search your knowledgebase use {{ command }}. \nType {{ command2 }} help to display this help text.": "To search your knowledgebase use {{ command }}. \nType {{ command2 }} help to display this help text.",
   "Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.": "Omlouváme se, nepodařilo se nám najít integraci pro váš tým. Přejděte do nastavení {{ appName }} a nastavte je.",
   "It looks like you haven’t signed in to {{ appName }} yet, so results may be limited": "Zdá se, že jste se ještě nepřihlásili do {{ appName }} , takže výsledky mohou být omezené",
   "Post to Channel": "Zveřejnit v kanálu",
