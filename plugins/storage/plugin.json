@@ -1,5 +1,5 @@
 {
-  "name": "Iframely",
-  "description": "Integrate Iframely to enable unfurling of arbitrary urls",
+  "name": "Storage",
+  "description": "Facilitates uploading files to and downloading files from local storage",
   "requiredEnvVars": []
 }
