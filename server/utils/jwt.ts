@@ -117,7 +117,7 @@ export async function getAttachmentForJWT(token: string): Promise<Attachment> {
   invariant(attachment, "File not found");
 
   try {
-    JWT.verify(token, env.FILE_STORAGE_LOCAL_SECRET);
+    JWT.verify(token, env.SECRET_KEY);
   } catch (err) {
     throw AuthenticationError("Invalid token");
   }

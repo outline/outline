@@ -623,13 +623,6 @@ export class Environment {
   public FILE_STORAGE_LOCAL_ROOT =
     process.env.FILE_STORAGE_LOCAL_ROOT ?? "files";
 
-  /**
-   * This secret is used to generated signed URLs for accessing
-   * locally stored attachments
-   */
-  public FILE_STORAGE_LOCAL_SECRET =
-    process.env.FILE_STORAGE_LOCAL_SECRET ?? "";
-
   @IsNumber()
   public FILE_STORAGE_UPLOAD_MAX_SIZE = this.toOptionalNumber(
     process.env.FILE_STORAGE_UPLOAD_MAX_SIZE

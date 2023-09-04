@@ -86,7 +86,7 @@ export default class LocalStorage extends BaseStorage {
           : undefined,
         type: "attachment",
       },
-      env.FILE_STORAGE_LOCAL_SECRET
+      env.SECRET_KEY
     );
     return Promise.resolve(`/api/files.get?sig=${sig}`);
   };
