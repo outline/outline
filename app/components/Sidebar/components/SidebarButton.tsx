@@ -1,7 +1,7 @@
 import { MoreIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
+import { extraArea, s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { draggableOnDesktop, undraggableOnDesktop } from "~/styles";
@@ -42,11 +42,11 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
           ref={ref}
           role="button"
         >
-          <Title gap={8} align="center">
+          <Content gap={8} align="center">
             {image}
-            {title && <Text as="span">{title}</Text>}
-          </Title>
-          {showMoreMenu && <MoreIcon />}
+            {title && <Title as="span">{title}</Title>}
+          </Content>
+          {showMoreMenu && <StyledMoreIcon />}
         </Button>
         {children}
       </Container>
@@ -54,18 +54,25 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
   }
 );
 
+const StyledMoreIcon = styled(MoreIcon)`
+  flex-shrink: 0;
+`;
+
 const Container = styled(Flex)<{ $position: "top" | "bottom" }>`
   padding-top: ${(props) =>
     props.$position === "top" && Desktop.hasInsetTitlebar() ? 36 : 0}px;
   ${draggableOnDesktop()}
 `;
 
-const Title = styled(Flex)`
-  flex-shrink: 1;
-  flex-grow: 1;
-  text-overflow: ellipsis;
+const Title = styled(Text)`
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const Content = styled(Flex)`
+  flex-shrink: 1;
+  flex-grow: 1;
 `;
 
 const Button = styled(Flex)<{
@@ -86,10 +93,12 @@ const Button = styled(Flex)<{
   -webkit-appearance: none;
   text-decoration: none;
   text-align: left;
-  overflow: hidden;
   user-select: none;
   cursor: var(--pointer);
+  position: relative;
+
   ${undraggableOnDesktop()}
+  ${extraArea(4)}
 
   &:active,
   &:hover,
