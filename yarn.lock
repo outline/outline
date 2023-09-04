@@ -10323,10 +10323,10 @@ passport-oauth1@1.x.x:
     passport-strategy "1.x.x"
     utils-merge "1.x.x"
 
-passport-oauth2@1.x.x, passport-oauth2@^1.1.2, passport-oauth2@^1.5.0, passport-oauth2@^1.6.1:
-  version "1.6.1"
-  resolved "https://registry.yarnpkg.com/passport-oauth2/-/passport-oauth2-1.6.1.tgz#c5aee8f849ce8bd436c7f81d904a3cd1666f181b"
-  integrity sha512-ZbV43Hq9d/SBSYQ22GOiglFsjsD1YY/qdiptA+8ej+9C1dL1TVB+mBE5kDH/D4AJo50+2i8f4bx0vg4/yDDZCQ==
+passport-oauth2@1.x.x, passport-oauth2@^1.1.2, passport-oauth2@^1.6.1, passport-oauth2@^1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/passport-oauth2/-/passport-oauth2-1.7.0.tgz#5c4766c8531ac45ffe9ec2c09de9809e2c841fc4"
+  integrity sha512-j2gf34szdTF2Onw3+76alNnaAExlUmHvkc7cL+cmaS5NzHzDP/BvFHJruueQ9XAeNOdpI+CH+PWid8RA7KCwAQ==
   dependencies:
     base64url "3.x.x"
     oauth "0.9.x"
@@ -10342,13 +10342,12 @@ passport-oauth@1.0.x:
     passport-oauth1 "1.x.x"
     passport-oauth2 "1.x.x"
 
-passport-slack-oauth2@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/passport-slack-oauth2/-/passport-slack-oauth2-1.1.1.tgz#d831ffc3f1e968fcc3622e6ecf41643c8d8f9cbc"
-  integrity sha512-xC+yMKFXximP5TzSNt4lr9TP78MMos5B+acC7bJNCxBAVNyL9e02AEpVpVtyMIqHv4nNZnv1vyoOb50J8VCcZQ==
+passport-slack-oauth2@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/passport-slack-oauth2/-/passport-slack-oauth2-1.2.0.tgz#d214a698b55a137393636a26827747f6c436dab4"
+  integrity sha512-SeQl8uPoi4ajhzgIvwQM7gW/6yPrKH0hPFjxcP/426SOZ0M9ZNDOfSa32q3NTw7KcwYOTjyWX/2xdJndQE7Rkg==
   dependencies:
-    passport-oauth2 "^1.5.0"
-    pkginfo "^0.4.1"
+    passport-oauth2 "^1.7.0"
 
 passport-strategy@1.x.x:
   version "1.0.0"
@@ -10569,11 +10568,6 @@ pkg-up@^3.1.0:
   integrity sha512-nDywThFk1i4BQK4twPQ6TA4RT8bDY96yeuCVBWL3ePARCiEKDRSrNGbFIgUJpLp+XeIR65v8ra7WuJOFUBtkMA==
   dependencies:
     find-up "^3.0.0"
-
-pkginfo@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/pkginfo/-/pkginfo-0.4.1.tgz#b5418ef0439de5425fc4995042dced14fb2a84ff"
-  integrity sha1-tUGO8EOd5UJfxJlQQtztFPsqhP8=
 
 polished@^4.2.2:
   version "4.2.2"
