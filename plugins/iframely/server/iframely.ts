@@ -1,3 +1,4 @@
+import { Day } from "@shared/utils/time";
 import env from "@server/env";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -8,7 +9,7 @@ class Iframely {
   private static apiUrl = `${env.IFRAMELY_URL}/api`;
   private static apiKey = env.IFRAMELY_API_KEY;
   private static cacheKeyPrefix = "unfurl";
-  private static defaultCacheExpiry = 86400;
+  private static defaultCacheExpiry = Day;
 
   private static cacheKey(url: string) {
     return `${this.cacheKeyPrefix}-${url}`;

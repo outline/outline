@@ -17,7 +17,7 @@ import HoverPreviewDocument from "./HoverPreviewDocument";
 import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
 
-const DELAY_OPEN = 300;
+const DELAY_OPEN = 500;
 const DELAY_CLOSE = 600;
 
 type Props = {
@@ -126,18 +126,18 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   useKeyDown("Escape", closePreview);
   useEventListener("scroll", closePreview, window, { capture: true });
 
-  const stopCloseTimer = () => {
+  const stopCloseTimer = React.useCallback(() => {
     if (timerClose.current) {
       clearTimeout(timerClose.current);
       timerClose.current = undefined;
     }
-  };
+  }, []);
 
-  const startOpenTimer = () => {
+  const startOpenTimer = React.useCallback(() => {
     if (!timerOpen.current) {
       timerOpen.current = setTimeout(() => setVisible(true), DELAY_OPEN);
     }
-  };
+  }, []);
 
   const startCloseTimer = React.useCallback(() => {
     stopOpenTimer();
@@ -172,7 +172,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
 
       stopCloseTimer();
     };
-  }, [element, startCloseTimer, data]);
+  }, [element, startCloseTimer, data, startOpenTimer, stopCloseTimer]);
 
   if (loading) {
     return <LoadingIndicator />;
