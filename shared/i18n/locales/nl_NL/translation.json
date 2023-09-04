@@ -906,7 +906,7 @@
   "Connect": "Verbinden",
   "The Slack integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "De Slack-integratie is momenteel uitgeschakeld. Stel de bijbehorende omgevingsvariabelen in en start de server opnieuw op om de integratie in te schakelen.",
   "How to use {{ command }}": "How to use {{ command }}",
-  "To search your knowledgebase use {{ command }}. \nYou’ve already learned how to get help with {{ command2 }}.": "Gebruik {{ command }} om je kennisbank te doorzoeken. \nJe hebt al geleerd hoe je hulp kunt krijgen met {{ command2 }}.",
+  "To search your knowledgebase use {{ command }}. \nType {{ command2 }} help to display this help text.": "To search your knowledgebase use {{ command }}. \nType {{ command2 }} help to display this help text.",
   "Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.": "Sorry, we konden geen integratie voor je team vinden. Ga naar je {{ appName }}-instellingen om er een in te stellen.",
   "It looks like you haven’t signed in to {{ appName }} yet, so results may be limited": "Het lijkt erop dat je je nog niet hebt aangemeld bij {{ appName }}, dus de resultaten kunnen beperkt zijn",
   "Post to Channel": "Post naar kanaal",
