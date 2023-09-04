@@ -5,6 +5,7 @@ import { UserPreferenceDefaults } from "@shared/constants";
 import {
   NotificationEventDefaults,
   NotificationEventType,
+  TeamPreference,
   UserPreference,
   UserPreferences,
   UserRole,
@@ -86,6 +87,20 @@ class User extends ParanoidModel {
   }
 
   /**
+   * Returns whether this user is using a separate editing mode behind an "Edit"
+   * button rather than seamless always-editing.
+   *
+   * @returns True if editing mode is seamless (no button)
+   */
+  @computed
+  get separateEditMode(): boolean {
+    return !this.getPreference(
+      UserPreference.SeamlessEdit,
+      this.store.rootStore.auth.team.getPreference(TeamPreference.SeamlessEdit)
+    );
+  }
+
+  /**
    * Returns the current preference for the given notification event type taking
    * into account the default system value.
    *
@@ -130,8 +145,10 @@ class User extends ParanoidModel {
    * @param key The UserPreference key to retrieve
    * @returns The value
    */
-  getPreference(key: UserPreference): boolean {
-    return this.preferences?.[key] ?? UserPreferenceDefaults[key] ?? false;
+  getPreference(key: UserPreference, defaultValue = false): boolean {
+    return (
+      this.preferences?.[key] ?? UserPreferenceDefaults[key] ?? defaultValue
+    );
   }
 
   /**

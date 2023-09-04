@@ -40,7 +40,7 @@ import {
   openDocumentComments,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
@@ -73,7 +73,7 @@ function DocumentMenu({
   onOpen,
   onClose,
 }: Props) {
-  const team = useCurrentTeam();
+  const user = useCurrentUser();
   const { policies, collections, documents, subscriptions } = useStores();
   const { showToast } = useToasts();
   const menu = useMenuState({
@@ -263,7 +263,7 @@ function DocumentMenu({
               type: "route",
               title: t("Edit"),
               to: documentEditPath(document),
-              visible: !!can.update && !team.seamlessEditing,
+              visible: !!can.update && user.separateEditMode,
               icon: <EditIcon />,
             },
             {

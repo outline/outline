@@ -391,7 +391,7 @@ class DocumentScene extends React.Component<Props> {
   render() {
     const { document, revision, readOnly, abilities, auth, ui, shareId, t } =
       this.props;
-    const team = auth.team;
+    const { team, user } = auth;
     const isShare = !!shareId;
     const embedsDisabled =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
@@ -463,7 +463,7 @@ class DocumentScene extends React.Component<Props> {
               revision={revision}
               shareId={shareId}
               isDraft={document.isDraft}
-              isEditing={!readOnly && !team?.seamlessEditing}
+              isEditing={!readOnly && !!user?.separateEditMode}
               isSaving={this.isSaving}
               isPublishing={this.isPublishing}
               publishingIsDisabled={
