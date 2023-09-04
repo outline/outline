@@ -271,6 +271,7 @@ describe("#hooks.interactive", () => {
       teamId: user.teamId,
     });
     const payload = JSON.stringify({
+      type: "message_action",
       token: env.SLACK_VERIFICATION_TOKEN,
       user: {
         id: user.authentications[0].providerId,
@@ -300,6 +301,7 @@ describe("#hooks.interactive", () => {
       teamId: user.teamId,
     });
     const payload = JSON.stringify({
+      type: "message_action",
       token: env.SLACK_VERIFICATION_TOKEN,
       user: {
         id: "unknown-slack-user-id",
@@ -324,6 +326,7 @@ describe("#hooks.interactive", () => {
   it("should error if incorrect verification token", async () => {
     const { user } = await seed();
     const payload = JSON.stringify({
+      type: "message_action",
       token: "wrong-verification-token",
       user: {
         id: user.authentications[0].providerId,
