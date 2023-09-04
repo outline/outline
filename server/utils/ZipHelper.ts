@@ -84,7 +84,10 @@ export default class ZipHelper {
    * @param zip JSZip object
    * @returns pathname of the temporary file where the zip was written to disk
    */
-  public static async toTmpFile(zip: JSZip): Promise<string> {
+  public static async toTmpFile(
+    zip: JSZip,
+    options?: JSZip.JSZipGeneratorOptions<"nodebuffer">
+  ): Promise<string> {
     Logger.debug("utils", "Creating tmp file…");
     return new Promise((resolve, reject) => {
       tmp.file(
@@ -107,15 +110,21 @@ export default class ZipHelper {
               {
                 type: "nodebuffer",
                 streamFiles: true,
+                compression: "DEFLATE",
+                compressionOptions: {
+                  level: 5,
+                },
+                ...options,
               },
               (metadata) => {
-                const percent = Math.round(metadata.percent);
-                if (percent !== previousMetadata.percent) {
+                if (metadata.currentFile !== previousMetadata.currentFile) {
+                  const percent = Math.round(metadata.percent);
+                  const memory = process.memoryUsage();
+
                   previousMetadata = {
                     currentFile: metadata.currentFile,
                     percent,
                   };
-                  const memory = process.memoryUsage();
                   Logger.debug(
                     "utils",
                     `Writing zip file progress… ${percent}%`,
