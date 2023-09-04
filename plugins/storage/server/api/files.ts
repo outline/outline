@@ -23,7 +23,10 @@ import { authorize } from "@server/policies";
 import { APIContext } from "@server/types";
 import { getAttachmentForJWT } from "@server/utils/jwt";
 import { getFileFromRequest } from "@server/utils/koa";
+import { createRootDirForLocalStorage } from "../utils";
 import * as T from "./schema";
+
+createRootDirForLocalStorage();
 
 const router = new Router();
 
