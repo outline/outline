@@ -114,6 +114,8 @@ export enum UserPreference {
   UseCursorPointer = "useCursorPointer",
   /** Whether code blocks should show line numbers. */
   CodeBlockLineNumers = "codeBlockLineNumbers",
+  /** Whether documents have a separate edit mode instead of always editing. */
+  SeamlessEdit = "seamlessEdit",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
@@ -130,7 +132,7 @@ export type PublicTeam = {
 };
 
 export enum TeamPreference {
-  /** Whether documents have a separate edit mode instead of seamless editing. */
+  /** Whether documents have a separate edit mode instead of always editing. */
   SeamlessEdit = "seamlessEdit",
   /** Whether to use team logo across the app for branding. */
   PublicBranding = "publicBranding",

@@ -82,26 +82,21 @@ class Team extends BaseModel {
   }
 
   /**
-   * Returns whether this team is using a separate editing mode behind an "Edit"
-   * button rather than seamless always-editing.
-   *
-   * @returns True if editing mode is seamless (no button)
-   */
-  @computed
-  get seamlessEditing(): boolean {
-    return !!this.getPreference(TeamPreference.SeamlessEdit);
-  }
-
-  /**
    * Returns the value of the provided preference.
    *
    * @param preference The team preference to retrieve
    * @returns The preference value if set, else the default value
    */
   getPreference<T extends keyof TeamPreferences>(
-    key: T
+    key: T,
+    defaultValue?: TeamPreferences[T]
   ): TeamPreferences[T] | false {
-    return this.preferences?.[key] ?? TeamPreferenceDefaults[key] ?? false;
+    return (
+      this.preferences?.[key] ??
+      TeamPreferenceDefaults[key] ??
+      defaultValue ??
+      false
+    );
   }
 
   /**

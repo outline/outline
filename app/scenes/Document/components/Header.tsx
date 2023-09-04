@@ -85,7 +85,7 @@ function DocumentHeader({
   const { ui, auth } = useStores();
   const theme = useTheme();
   const { resolvedTheme } = ui;
-  const { team } = auth;
+  const { team, user } = auth;
   const isMobile = useMobile();
   const isRevision = !!revision;
 
@@ -224,11 +224,11 @@ function DocumentHeader({
           <>
             <ObservingBanner />
 
-            {!isPublishing && isSaving && !team?.seamlessEditing && (
+            {!isPublishing && isSaving && user?.separateEditMode && (
               <Status>{t("Saving")}…</Status>
             )}
             {!isDeleted && !isRevision && <Collaborators document={document} />}
-            {(isEditing || team?.seamlessEditing) && !isTemplate && isNew && (
+            {(isEditing || !user?.separateEditMode) && !isTemplate && isNew && (
               <Action>
                 <TemplatesMenu
                   document={document}
@@ -267,7 +267,7 @@ function DocumentHeader({
             )}
             {can.update &&
               !isEditing &&
-              !team?.seamlessEditing &&
+              user?.separateEditMode &&
               !isRevision &&
               editAction}
             {can.update &&
