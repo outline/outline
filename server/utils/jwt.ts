@@ -113,8 +113,9 @@ export async function getAttachmentForJWT(token: string): Promise<Attachment> {
   }
 
   const attachmentId = payload.key.split("/")[2];
-  const attachment = await Attachment.findByPk(attachmentId);
-  invariant(attachment, "File not found");
+  const attachment = await Attachment.findByPk(attachmentId, {
+    rejectOnEmpty: true,
+  });
 
   try {
     JWT.verify(token, env.SECRET_KEY);
