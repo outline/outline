@@ -2,10 +2,9 @@ import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import { TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
-import { buildUser, buildTeam } from "@server/test/factories";
+import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
 import {
   setupTestDatabase,
-  seed,
   setCloudHosted,
   setSelfHosted,
 } from "@server/test/support";
@@ -189,7 +188,8 @@ describe("accountProvisioner", () => {
     });
 
     it("should throw an error when the domain is not allowed", async () => {
-      const { admin, team: existingTeam } = await seed();
+      const existingTeam = await buildTeam();
+      const admin = await buildAdmin({ teamId: existingTeam.id });
       const providers = await existingTeam.$get("authenticationProviders");
       const authenticationProvider = providers[0];
 
@@ -233,7 +233,8 @@ describe("accountProvisioner", () => {
 
     it("should create a new user in an existing team when the domain is allowed", async () => {
       const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
-      const { admin, team } = await seed();
+      const team = await buildTeam();
+      const admin = await buildAdmin({ teamId: team.id });
       const authenticationProviders = await team.$get(
         "authenticationProviders"
       );

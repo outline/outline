@@ -98,13 +98,16 @@ allow(User, "share", Document, (user, document) => {
   if (document.deletedAt) {
     return false;
   }
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
 
-  if (cannot(user, "share", document.collection)) {
-    return false;
+  if (document.collectionId) {
+    invariant(
+      document.collection,
+      "collection is missing, did you forget to include in the query scope?"
+    );
+
+    if (cannot(user, "share", document.collection)) {
+      return false;
+    }
   }
 
   return user.teamId === document.teamId;

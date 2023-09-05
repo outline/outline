@@ -132,6 +132,7 @@ describe("no collection", () => {
     });
     const document = await buildDraftDocument({
       teamId: team.id,
+      collectionId: null,
     });
     const abilities = serialize(user, document);
     expect(abilities.archive).toEqual(false);
@@ -144,7 +145,7 @@ describe("no collection", () => {
     expect(abilities.pinToHome).toEqual(false);
     expect(abilities.read).toEqual(true);
     expect(abilities.restore).toEqual(false);
-    expect(abilities.share).toEqual(false);
+    expect(abilities.share).toEqual(true);
     expect(abilities.star).toEqual(true);
     expect(abilities.subscribe).toEqual(false);
     expect(abilities.unarchive).toEqual(false);

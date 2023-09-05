@@ -6,9 +6,10 @@ import {
   buildShare,
   buildAdmin,
   buildCollection,
+  buildTeam,
 } from "@server/test/factories";
 
-import { seed, getTestServer } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
@@ -29,7 +30,10 @@ describe("#shares.list", () => {
   });
 
   it("should only return shares created by user", async () => {
-    const { user, admin, document } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({ userId: user.id, teamId: team.id });
     await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -53,7 +57,11 @@ describe("#shares.list", () => {
   });
 
   it("should not return revoked shares", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -71,7 +79,11 @@ describe("#shares.list", () => {
   });
 
   it("should not return unpublished shares", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     await buildShare({
       published: false,
       documentId: document.id,
@@ -89,7 +101,11 @@ describe("#shares.list", () => {
   });
 
   it("should not return shares to deleted documents", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -107,7 +123,10 @@ describe("#shares.list", () => {
   });
 
   it("admins should return shares created by all users", async () => {
-    const { user, admin, document } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({ userId: user.id, teamId: team.id });
     const share = await buildShare({
       documentId: document.id,
       teamId: admin.teamId,
@@ -126,7 +145,18 @@ describe("#shares.list", () => {
   });
 
   it("admins should not return shares in collection not a member of", async () => {
-    const { admin, document, collection } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
     await buildShare({
       documentId: document.id,
       teamId: admin.teamId,
@@ -179,7 +209,11 @@ describe("#shares.create", () => {
   });
 
   it("should allow creating a share record for document", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const res = await server.post("/api/shares.create", {
       body: {
         token: user.getJwtToken(),
@@ -193,7 +227,17 @@ describe("#shares.create", () => {
   });
 
   it("should allow creating a share record with read-only permissions but no publishing", async () => {
-    const { user, document, collection } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
     collection.permission = null;
     await collection.save();
     await CollectionUser.update(
@@ -227,7 +271,11 @@ describe("#shares.create", () => {
   });
 
   it("should allow creating a share record if link previously revoked", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -247,7 +295,11 @@ describe("#shares.create", () => {
   });
 
   it("should return existing share link for document and user", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -265,9 +317,11 @@ describe("#shares.create", () => {
   });
 
   it("should allow creating a share record if team sharing disabled but not publishing", async () => {
-    const { user, document, team } = await seed();
-    await team.update({
-      sharing: false,
+    const team = await buildTeam({ sharing: false });
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
     });
     const res = await server.post("/api/shares.create", {
       body: {
@@ -288,9 +342,16 @@ describe("#shares.create", () => {
   });
 
   it("should allow creating a share record if collection sharing disabled but not publishing", async () => {
-    const { user, collection, document } = await seed();
-    await collection.update({
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
       sharing: false,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
     });
     const res = await server.post("/api/shares.create", {
       body: {
@@ -311,7 +372,7 @@ describe("#shares.create", () => {
   });
 
   it("should require authentication", async () => {
-    const { document } = await seed();
+    const document = await buildDocument();
     const res = await server.post("/api/shares.create", {
       body: {
         documentId: document.id,
@@ -323,7 +384,7 @@ describe("#shares.create", () => {
   });
 
   it("should require authorization", async () => {
-    const { document } = await seed();
+    const document = await buildDocument();
     const user = await buildUser();
     const res = await server.post("/api/shares.create", {
       body: {
@@ -390,7 +451,11 @@ describe("#shares.info", () => {
   });
 
   it("should require authentication", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -407,7 +472,9 @@ describe("#shares.info", () => {
   });
 
   it("should require authorization", async () => {
-    const { admin, document } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const document = await buildDocument({ teamId: team.id });
     const user = await buildUser();
     const share = await buildShare({
       documentId: document.id,
@@ -449,7 +516,11 @@ describe("#shares.info", () => {
   });
 
   it("should allow reading share by documentId", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -468,7 +539,16 @@ describe("#shares.info", () => {
     expect(body.data.shares[0].published).toBe(true);
   });
   it("should return share for parent document with includeChildDocuments=true", async () => {
-    const { user, document, collection } = await seed();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
     const childDocument = await buildDocument({
       teamId: document.teamId,
       parentDocumentId: document.id,
@@ -480,6 +560,7 @@ describe("#shares.info", () => {
       userId: user.id,
       includeChildDocuments: true,
     });
+    await collection.reload();
     await collection.addDocumentToStructure(childDocument, 0);
     const res = await server.post("/api/shares.info", {
       body: {
@@ -498,7 +579,17 @@ describe("#shares.info", () => {
     expect(body.policies[0].abilities.update).toBe(true);
   });
   it("should not return share for parent document with includeChildDocuments=false", async () => {
-    const { user, document, collection } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
     const childDocument = await buildDocument({
       teamId: document.teamId,
       parentDocumentId: document.id,
@@ -520,7 +611,16 @@ describe("#shares.info", () => {
     expect(res.status).toEqual(204);
   });
   it("should return shares for parent document and current document", async () => {
-    const { user, document, collection } = await seed();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
     const childDocument = await buildDocument({
       teamId: document.teamId,
       parentDocumentId: document.id,
@@ -538,6 +638,7 @@ describe("#shares.info", () => {
       userId: user.id,
       includeChildDocuments: true,
     });
+    await collection.reload();
     await collection.addDocumentToStructure(childDocument, 0);
     const res = await server.post("/api/shares.info", {
       body: {
@@ -561,7 +662,11 @@ describe("#shares.info", () => {
 
 describe("#shares.update", () => {
   it("should fail for invalid urlId", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -594,7 +699,11 @@ describe("#shares.update", () => {
   });
 
   it("should update urlId", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -612,7 +721,11 @@ describe("#shares.update", () => {
   });
 
   it("should allow clearing urlId", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -638,7 +751,11 @@ describe("#shares.update", () => {
   });
 
   it("should allow user to update a share", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -657,7 +774,11 @@ describe("#shares.update", () => {
   });
 
   it("should allow author to update a share", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -677,7 +798,10 @@ describe("#shares.update", () => {
   });
 
   it("should allow admin to update a share", async () => {
-    const { user, admin, document } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({ userId: user.id, teamId: team.id });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -697,7 +821,11 @@ describe("#shares.update", () => {
   });
 
   it("should require authentication", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -715,7 +843,9 @@ describe("#shares.update", () => {
   });
 
   it("should require authorization", async () => {
-    const { admin, document } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const document = await buildDocument({ teamId: team.id });
     const user = await buildUser();
     const share = await buildShare({
       documentId: document.id,
@@ -747,7 +877,11 @@ describe("#shares.revoke", () => {
   });
 
   it("should allow author to revoke a share", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -763,7 +897,11 @@ describe("#shares.revoke", () => {
   });
 
   it("should 404 if shares document is deleted", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -780,7 +918,10 @@ describe("#shares.revoke", () => {
   });
 
   it("should allow admin to revoke a share", async () => {
-    const { user, admin, document } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({ userId: user.id, teamId: team.id });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -796,7 +937,11 @@ describe("#shares.revoke", () => {
   });
 
   it("should require authentication", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const share = await buildShare({
       documentId: document.id,
       teamId: user.teamId,
@@ -813,7 +958,9 @@ describe("#shares.revoke", () => {
   });
 
   it("should require authorization", async () => {
-    const { admin, document } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const document = await buildDocument({ teamId: team.id });
     const user = await buildUser();
     const share = await buildShare({
       documentId: document.id,

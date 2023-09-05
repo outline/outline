@@ -1,7 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import { TeamDomain } from "@server/models";
-import { buildUser, buildTeam, buildInvite } from "@server/test/factories";
-import { setupTestDatabase, seed } from "@server/test/support";
+import {
+  buildUser,
+  buildTeam,
+  buildInvite,
+  buildAdmin,
+} from "@server/test/factories";
+import { setupTestDatabase } from "@server/test/support";
 import userProvisioner from "./userProvisioner";
 
 setupTestDatabase();
@@ -331,7 +336,8 @@ describe("userProvisioner", () => {
   });
 
   it("should create a user from allowed domain", async () => {
-    const { admin, team } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
     await TeamDomain.create({
       teamId: team.id,
       name: "example-company.com",
@@ -362,7 +368,8 @@ describe("userProvisioner", () => {
   });
 
   it("should create a user from allowed domain with emailMatchOnly", async () => {
-    const { admin, team } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
     await TeamDomain.create({
       teamId: team.id,
       name: "example-company.com",
@@ -382,7 +389,7 @@ describe("userProvisioner", () => {
   });
 
   it("should not create a user with emailMatchOnly when no allowed domains are set", async () => {
-    const { team } = await seed();
+    const team = await buildTeam();
     let error;
 
     try {
@@ -400,7 +407,8 @@ describe("userProvisioner", () => {
   });
 
   it("should reject an user when the domain is not allowed", async () => {
-    const { admin, team } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
     await TeamDomain.create({
       teamId: team.id,
       name: "other.com",

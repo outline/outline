@@ -337,7 +337,7 @@ export async function buildGroupUser(
 export async function buildDraftDocument(
   overrides: Partial<Document> & { userId?: string } = {}
 ) {
-  return buildDocument({ ...overrides, collectionId: null });
+  return buildDocument({ ...overrides, publishedAt: null });
 }
 
 export async function buildDocument(
@@ -361,8 +361,9 @@ export async function buildDocument(
     overrides.userId = user.id;
   }
 
+  let collection;
   if (overrides.collectionId === undefined) {
-    const collection = await buildCollection({
+    collection = await buildCollection({
       teamId: overrides.teamId,
       userId: overrides.userId,
     });
@@ -370,7 +371,7 @@ export async function buildDocument(
   }
 
   count++;
-  return Document.create(
+  const document = await Document.create(
     {
       title: `Document ${count}`,
       text: "This is the text in an example document",
@@ -384,6 +385,16 @@ export async function buildDocument(
       silent: overrides.createdAt || overrides.updatedAt ? true : false,
     }
   );
+
+  if (overrides.collectionId && overrides.publishedAt !== null) {
+    collection = collection
+      ? await Collection.findByPk(overrides.collectionId)
+      : undefined;
+
+    await collection?.addDocumentToStructure(document, 0);
+  }
+
+  return document;
 }
 
 export async function buildFileOperation(

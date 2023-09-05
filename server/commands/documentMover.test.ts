@@ -1,7 +1,12 @@
 import Pin from "@server/models/Pin";
 import { sequelize } from "@server/storage/database";
-import { buildDocument, buildCollection } from "@server/test/factories";
-import { setupTestDatabase, seed } from "@server/test/support";
+import {
+  buildDocument,
+  buildCollection,
+  buildTeam,
+  buildUser,
+} from "@server/test/factories";
+import { setupTestDatabase } from "@server/test/support";
 import documentMover from "./documentMover";
 
 setupTestDatabase();
@@ -10,7 +15,17 @@ describe("documentMover", () => {
   const ip = "127.0.0.1";
 
   it("should move within a collection", async () => {
-    const { document, user, collection } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
     const response = await documentMover({
       user,
       document,
@@ -22,7 +37,17 @@ describe("documentMover", () => {
   });
 
   it("should succeed when not in source collection documentStructure", async () => {
-    const { document, user, collection } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
     const newDocument = await buildDocument({
       parentDocumentId: document.id,
       collectionId: collection.id,
@@ -49,7 +74,17 @@ describe("documentMover", () => {
   });
 
   it("should move with children", async () => {
-    const { document, user, collection } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
     const newDocument = await buildDocument({
       parentDocumentId: document.id,
       collectionId: collection.id,
@@ -77,7 +112,17 @@ describe("documentMover", () => {
   });
 
   it("should move with children to another collection", async () => {
-    const { document, user, collection } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
     const newCollection = await buildCollection({
       teamId: collection.teamId,
     });
@@ -118,7 +163,17 @@ describe("documentMover", () => {
   });
 
   it("should remove associated collection pin if moved to another collection", async () => {
-    const { document, user, collection } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
     const newCollection = await buildCollection({
       teamId: collection.teamId,
     });
@@ -155,7 +210,17 @@ describe("documentMover", () => {
   });
 
   it("should detach document from collection and move it to drafts", async () => {
-    const { document, user, collection } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
 
     const response = await sequelize.transaction(async (transaction) =>
       documentMover({

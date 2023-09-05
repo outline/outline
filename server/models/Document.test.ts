@@ -6,7 +6,7 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
-import { setupTestDatabase, seed } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import slugify from "@server/utils/slugify";
 
 setupTestDatabase();
@@ -171,14 +171,14 @@ describe("#getChildDocumentIds", () => {
 
 describe("#findByPk", () => {
   test("should return document when urlId is correct", async () => {
-    const { document } = await seed();
+    const document = await buildDocument();
     const id = `${slugify(document.title)}-${document.urlId}`;
     const response = await Document.findByPk(id);
     expect(response?.id).toBe(document.id);
   });
 
   test("should return document when urlId is given without the slug prefix", async () => {
-    const { document } = await seed();
+    const document = await buildDocument();
     const id = document.urlId;
     const response = await Document.findByPk(id);
     expect(response?.id).toBe(document.id);
