@@ -13,6 +13,7 @@ import { authorize } from "@server/policies";
 import { APIContext } from "@server/types";
 import { getAttachmentForJWT } from "@server/utils/jwt";
 import { getFileFromRequest } from "@server/utils/koa";
+import { getTeamFromContext } from "@server/utils/passport";
 import { createRootDirForLocalStorage } from "../utils";
 import * as T from "./schema";
 
@@ -45,9 +46,20 @@ router.post(
     }
 
     const { key } = ctx.input.body;
+    const actor = ctx.state.auth.user;
 
     const id = key.split("/")[2];
     const attachment = await Attachment.findByPk(id, { rejectOnEmpty: true });
+
+    if (!attachment) {
+      throw NotFoundError("Supplied file path doesn't exist");
+    }
+
+    if (attachment.isPrivate) {
+      const team = await getTeamFromContext(ctx);
+      authorize(actor, "createAttachment", team);
+    }
+
     await attachment.saveFile(file);
 
     ctx.body = {
