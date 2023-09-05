@@ -834,7 +834,7 @@
   "Show a hand cursor when hovering over interactive elements.": "Tampilkan kursor tangan saat mengarahkan kursor ke elemen interaktif.",
   "Show line numbers": "Tampilkan nomor baris",
   "Show line numbers on code blocks in documents.": "Tampilkan nomor baris pada blok kode di dokumen.",
-  "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.": "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.",
+  "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "Ingat lokasi sebelumnya",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Secara otomatis kembali ke dokumen yang terakhir Anda lihat saat aplikasi dibuka kembali.",
   "You may delete your account at any time, note that this is unrecoverable": "Anda dapat menghapus akun Anda kapan saja, namun ingat bahwa ini tidak dapat dibatalkan",
