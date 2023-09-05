@@ -85,12 +85,12 @@ export default class LocalStorage extends BaseStorage {
     const sig = JWT.sign(
       {
         key,
-        expiresAt: expiresIn
-          ? new Date(Date.now() + expiresIn * 1000)
-          : undefined,
         type: "attachment",
       },
-      env.SECRET_KEY
+      env.SECRET_KEY,
+      {
+        expiresIn,
+      }
     );
     return Promise.resolve(`/api/files.get?sig=${sig}`);
   };

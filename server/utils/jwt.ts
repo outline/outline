@@ -105,13 +105,6 @@ export async function getAttachmentForJWT(token: string): Promise<Attachment> {
     throw AuthenticationError("Invalid token");
   }
 
-  // check the token is within it's expiration time
-  if (payload.expiresAt) {
-    if (new Date(payload.expiresAt) < new Date()) {
-      throw AuthenticationError("Expired token");
-    }
-  }
-
   const attachmentId = payload.key.split("/")[2];
   const attachment = await Attachment.findByPk(attachmentId, {
     rejectOnEmpty: true,
