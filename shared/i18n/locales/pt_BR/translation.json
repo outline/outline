@@ -834,7 +834,7 @@
   "Show a hand cursor when hovering over interactive elements.": "Mostre um cursor de mão ao passar o mouse sobre os elementos interativos.",
   "Show line numbers": "Mostrar número de linhas",
   "Show line numbers on code blocks in documents.": "Mostrar números de linha nos blocos de código em documentos.",
-  "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.": "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.",
+  "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "Lembrar escolha anterior",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Retorne automaticamente ao documento que você estava visualizando pela última vez quando o aplicativo for reaberto.",
   "You may delete your account at any time, note that this is unrecoverable": "Você pode excluir sua conta a qualquer momento, note que isso não é recuperável",
