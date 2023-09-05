@@ -834,7 +834,7 @@
   "Show a hand cursor when hovering over interactive elements.": "Show a hand cursor when hovering over interactive elements.",
   "Show line numbers": "Show line numbers",
   "Show line numbers on code blocks in documents.": "Show line numbers on code blocks in documents.",
-  "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.": "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.",
+  "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "Remember previous location",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Automatically return to the document you were last viewing when the app is re-opened.",
   "You may delete your account at any time, note that this is unrecoverable": "You may delete your account at any time, note that this is unrecoverable",
