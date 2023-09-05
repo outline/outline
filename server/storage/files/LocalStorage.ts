@@ -49,8 +49,8 @@ export default class LocalStorage extends BaseStorage {
     acl?: string;
   }) => {
     const subdir = key.split("/").slice(0, -1).join("/");
-    if (!existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT, subdir))) {
-      await mkdir(path.join(env.FILE_STORAGE_LOCAL_ROOT, subdir), {
+    if (!existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, subdir))) {
+      await mkdir(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, subdir), {
         recursive: true,
       });
     }
@@ -64,7 +64,7 @@ export default class LocalStorage extends BaseStorage {
       src = Readable.from(body);
     }
 
-    const destPath = path.join(env.FILE_STORAGE_LOCAL_ROOT, key);
+    const destPath = path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
     closeSync(openSync(destPath, "w"));
     const dest = createWriteStream(destPath);
     src.pipe(dest);
@@ -73,7 +73,7 @@ export default class LocalStorage extends BaseStorage {
   };
 
   public async deleteFile(key: string) {
-    const filePath = path.join(env.FILE_STORAGE_LOCAL_ROOT, key);
+    const filePath = path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
     try {
       await unlink(filePath);
     } catch (err) {
@@ -96,7 +96,7 @@ export default class LocalStorage extends BaseStorage {
   };
 
   public getFileStream(key: string) {
-    const filePath = path.join(env.FILE_STORAGE_LOCAL_ROOT, key);
+    const filePath = path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
     return createReadStream(filePath);
   }
 

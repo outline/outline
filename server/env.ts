@@ -615,19 +615,23 @@ export class Environment {
   /**
    * Which file storage system to use
    */
-  @IsIn(["local", "s3"])
+  @IsIn(["local", "s3", "minio"])
   public FILE_STORAGE = this.toOptionalString(process.env.FILE_STORAGE) ?? "s3";
 
   /**
-   * Set default local file storage root path
+   * Set default root dir path for local file storage
    */
-  public FILE_STORAGE_LOCAL_ROOT =
-    process.env.FILE_STORAGE_LOCAL_ROOT ?? "files";
+  public FILE_STORAGE_LOCAL_ROOT_DIR =
+    this.toOptionalString(process.env.FILE_STORAGE_LOCAL_ROOT_DIR) ??
+    "/var/lib/outline/data";
 
+  /**
+   * Set max allowed upload size for file attachments.
+   */
   @IsNumber()
-  public FILE_STORAGE_UPLOAD_MAX_SIZE = this.toOptionalNumber(
-    process.env.FILE_STORAGE_UPLOAD_MAX_SIZE
-  );
+  public FILE_STORAGE_UPLOAD_MAX_SIZE =
+    this.toOptionalNumber(process.env.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
+    100000000;
 
   /**
    * Because imports can be much larger than regular file attachments and are
