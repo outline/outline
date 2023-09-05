@@ -122,7 +122,7 @@ function Preferences() {
         name={UserPreference.SeamlessEdit}
         label={t("Separate editing")}
         description={t(
-          `When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.`
+          `When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.`
         )}
       >
         <Switch

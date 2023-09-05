@@ -17,10 +17,14 @@ const activityEvents = [
 /**
  * Hook to detect user idle state.
  *
- * @param {number} timeToIdle
+ * @param timeToIdle The time in ms until idle
+ * @param events The events to listen to
  * @returns boolean if the user is idle
  */
-export default function useIdle(timeToIdle: number = 3 * Minute) {
+export default function useIdle(
+  timeToIdle: number = 3 * Minute,
+  events = activityEvents
+) {
   const [isIdle, setIsIdle] = React.useState(false);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
 
@@ -40,15 +44,15 @@ export default function useIdle(timeToIdle: number = 3 * Minute) {
       onActivity();
     }, 1000);
 
-    activityEvents.forEach((eventName) =>
+    events.forEach((eventName) =>
       window.addEventListener(eventName, handleUserActivityEvent)
     );
     return () => {
-      activityEvents.forEach((eventName) =>
+      events.forEach((eventName) =>
         window.removeEventListener(eventName, handleUserActivityEvent)
       );
     };
-  }, [onActivity]);
+  }, [events, onActivity]);
 
   return isIdle;
 }

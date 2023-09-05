@@ -20,6 +20,7 @@ import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
+import { useEditingFocus } from "~/components/DocumentContext";
 import Header from "~/components/Header";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
 import Star from "~/components/Star";
@@ -88,6 +89,7 @@ function DocumentHeader({
   const { team, user } = auth;
   const isMobile = useMobile();
   const isRevision = !!revision;
+  const isEditingFocus = useEditingFocus();
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -168,7 +170,8 @@ function DocumentHeader({
 
   if (shareId) {
     return (
-      <Header
+      <StyledHeader
+        $hidden={isEditingFocus}
         title={document.title}
         hasSidebar={!!sharedTree}
         left={
@@ -196,7 +199,8 @@ function DocumentHeader({
 
   return (
     <>
-      <Header
+      <StyledHeader
+        $hidden={isEditingFocus}
         hasSidebar
         left={
           isMobile ? (
@@ -361,6 +365,11 @@ function DocumentHeader({
     </>
   );
 }
+
+const StyledHeader = styled(Header)<{ $hidden: boolean }>`
+  transition: opacity 500ms ease-in-out;
+  ${(props) => props.$hidden && "opacity: 0;"}
+`;
 
 const ArchivedBadge = styled(Badge)`
   position: absolute;
