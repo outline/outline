@@ -834,7 +834,7 @@
   "Show a hand cursor when hovering over interactive elements.": "상호작용 요소 위로 마우스를 가져가면 손 모양의 커서를 표시합니다.",
   "Show line numbers": "줄 번호 표시",
   "Show line numbers on code blocks in documents.": "문서의 코드 블록에 줄 번호를 표시합니다.",
-  "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.": "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.",
+  "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "이전 위치 기억",
   "Automatically return to the document you were last viewing when the app is re-opened.": "앱이 다시 열렸을때 마지막으로 보고 있던 문서로 돌아갑니다.",
   "You may delete your account at any time, note that this is unrecoverable": "계정을 언제든지 삭제할 수 있지만 다시 복구할 수 없습니다",
