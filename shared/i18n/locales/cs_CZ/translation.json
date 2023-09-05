@@ -834,7 +834,7 @@
   "Show a hand cursor when hovering over interactive elements.": "Při najetí myší na interaktivní prvky zobrazit kurzor ruky.",
   "Show line numbers": "Zobrazit čísla řádků",
   "Show line numbers on code blocks in documents.": "Zobrazit čísla řádků na blocích kódu v dokumentech.",
-  "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.": "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.",
+  "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "Zapamatovat předchozí umístění",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Automaticky se vracet k dokumentu, který jste si naposledy prohlédli před ukončením aplikace.",
   "You may delete your account at any time, note that this is unrecoverable": "Účet můžete kdykoliv odstranit, tento krok je neobnovitelný",
