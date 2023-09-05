@@ -1,5 +1,4 @@
 import Router from "koa-router";
-import mime from "mime-types";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import env from "@server/env";
 import {
@@ -84,8 +83,7 @@ router.get(
     }
 
     const fileName = attachment.key.split("/")[3];
-    const contentType = mime.lookup(fileName) || "application/octet-stream";
-    ctx.set("Content-Type", contentType);
+    ctx.set("Content-Type", attachment.contentType);
     ctx.attachment(fileName);
     ctx.body = attachment.stream;
   }
