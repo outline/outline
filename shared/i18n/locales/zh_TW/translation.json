@@ -834,7 +834,7 @@
   "Show a hand cursor when hovering over interactive elements.": "將滑鼠停留在互動元素上時顯示手形游標。",
   "Show line numbers": "顯示行數",
   "Show line numbers on code blocks in documents.": "在文件裏的代碼塊中顯示行數。",
-  "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.": "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.",
+  "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "記住上一次的位置",
   "Automatically return to the document you were last viewing when the app is re-opened.": "在打開應用程式時自動開啓上一次檢視的文件。",
   "You may delete your account at any time, note that this is unrecoverable": "您隨時可以刪除您的使用者帳號，但此為不可回復之動作",
