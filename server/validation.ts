@@ -1,4 +1,5 @@
 import isArrayLike from "lodash/isArrayLike";
+import sanitize from "sanitize-filename";
 import { Primitive } from "utility-types";
 import validator from "validator";
 import isIn from "validator/lib/isIn";
@@ -180,6 +181,15 @@ export class ValidateKey {
       isUUID(parts[1]) &&
       isUUID(parts[2])
     );
+  };
+
+  public static sanitize = (key: string) => {
+    const [filename] = key.split("/").slice(-1);
+    return key
+      .split("/")
+      .slice(0, -1)
+      .join("/")
+      .concat(`/${sanitize(filename)}`);
   };
 
   public static message =

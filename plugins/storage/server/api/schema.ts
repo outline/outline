@@ -6,7 +6,8 @@ export const FilesCreateSchema = z.object({
   body: z.object({
     key: z
       .string()
-      .refine(ValidateKey.isValid, { message: ValidateKey.message }),
+      .refine(ValidateKey.isValid, { message: ValidateKey.message })
+      .transform(ValidateKey.sanitize),
   }),
 });
 
@@ -18,7 +19,8 @@ export const FilesGetSchema = z.object({
       key: z
         .string()
         .refine(ValidateKey.isValid, { message: ValidateKey.message })
-        .optional(),
+        .optional()
+        .transform((val) => (val ? ValidateKey.sanitize(val) : undefined)),
       sig: z.string().optional(),
     })
     .refine((obj) => !(isEmpty(obj.key) && isEmpty(obj.sig)), {
