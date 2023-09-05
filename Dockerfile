@@ -13,7 +13,7 @@ LABEL org.opencontainers.image.source="https://github.com/outline/outline"
 
 ARG APP_PATH
 WORKDIR $APP_PATH
-ENV NODE_ENV production
+ENV NODE_ENV development
 
 COPY --from=base $APP_PATH/build ./build
 COPY --from=base $APP_PATH/server ./server
@@ -28,5 +28,5 @@ RUN addgroup -g 1001 -S nodejs && \
 
 USER nodejs
 
-EXPOSE 3000
+EXPOSE 8888
 CMD ["yarn", "start"]
