@@ -834,7 +834,7 @@
   "Show a hand cursor when hovering over interactive elements.": "将鼠标悬停在交互式元素上时显示手形光标。",
   "Show line numbers": "显示行号",
   "Show line numbers on code blocks in documents.": "在文档中的代码块上显示行号。",
-  "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.": "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.",
+  "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "记住上一次的位置",
   "Automatically return to the document you were last viewing when the app is re-opened.": "重新打开应用程序时自动返回到您上次查看的文档。",
   "You may delete your account at any time, note that this is unrecoverable": "您可以随时删除您的帐户，请注意删除后将无法恢复该账号",
