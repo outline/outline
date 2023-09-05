@@ -834,7 +834,7 @@
   "Show a hand cursor when hovering over interactive elements.": "インタラクティブな要素にカーソルを合わせると、ハンドカーソルが表示されます。",
   "Show line numbers": "行番号を表示",
   "Show line numbers on code blocks in documents.": "ドキュメント内のコード ブロックに行番号を表示します。",
-  "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.": "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.",
+  "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "前回の場所を記憶する",
   "Automatically return to the document you were last viewing when the app is re-opened.": "アプリを再度開いたときに、最後に表示していたドキュメントに自動的に戻ります。",
   "You may delete your account at any time, note that this is unrecoverable": "アカウントはいつでも削除することができます。これは取り返しのつかないことです。",
