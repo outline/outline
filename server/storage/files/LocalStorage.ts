@@ -1,10 +1,17 @@
-import { ReadStream, createReadStream } from "fs";
-import { unlink } from "fs/promises";
+import {
+  ReadStream,
+  closeSync,
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  openSync,
+} from "fs";
+import { mkdir, unlink } from "fs/promises";
 import path from "path";
+import { Readable } from "stream";
 import JWT from "jsonwebtoken";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import fetch from "@server/utils/fetch";
 import BaseStorage from "./BaseStorage";
 
 export default class LocalStorage extends BaseStorage {
@@ -33,37 +40,34 @@ export default class LocalStorage extends BaseStorage {
 
   public upload = async ({
     body,
-    contentLength,
-    contentType,
     key,
-    acl,
   }: {
     body: string | ReadStream | Buffer | Uint8Array | Blob;
-    contentLength: number;
-    contentType: string;
+    contentLength?: number;
+    contentType?: string;
     key: string;
-    acl: string;
+    acl?: string;
   }) => {
-    const params = {
-      file: {
-        data: body,
-        path: `${env.FILE_STORAGE_LOCAL_ROOT}/${key}`,
-        acl,
-      },
-    };
-    const res = await fetch("/api/files.create", {
-      body: JSON.stringify(params),
-      method: "POST",
-      headers: {
-        "Content-Length": contentLength.toString(),
-        "Content-Type": contentType,
-      },
-    });
-
-    const data = await res.json();
-    if (res.status < 200 || res.status >= 300) {
-      throw Error(data.message);
+    const subdir = key.split("/").slice(0, -1).join("/");
+    if (!existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT, subdir))) {
+      await mkdir(path.join(env.FILE_STORAGE_LOCAL_ROOT, subdir), {
+        recursive: true,
+      });
     }
+
+    let src: NodeJS.ReadableStream;
+    if (body instanceof ReadStream) {
+      src = body;
+    } else if (body instanceof Blob) {
+      src = body.stream();
+    } else {
+      src = Readable.from(body);
+    }
+
+    const destPath = path.join(env.FILE_STORAGE_LOCAL_ROOT, key);
+    closeSync(openSync(destPath, "w"));
+    const dest = createWriteStream(destPath);
+    src.pipe(dest);
 
     return this.getSignedUrl(key);
   };

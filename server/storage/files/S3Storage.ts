@@ -90,10 +90,10 @@ export default class S3Storage extends BaseStorage {
     acl,
   }: {
     body: S3.Body;
-    contentLength: number;
-    contentType: string;
+    contentLength?: number;
+    contentType?: string;
     key: string;
-    acl: string;
+    acl?: string;
   }) => {
     invariant(
       env.AWS_S3_UPLOAD_BUCKET_NAME,

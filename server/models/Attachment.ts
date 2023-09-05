@@ -1,4 +1,6 @@
+import { createReadStream } from "fs";
 import path from "path";
+import { File } from "formidable";
 import { QueryTypes } from "sequelize";
 import {
   BeforeDestroy,
@@ -108,6 +110,16 @@ class Attachment extends IdModel {
    */
   get signedUrl() {
     return FileStorage.getSignedUrl(this.key);
+  }
+
+  async saveFile(file: File) {
+    return FileStorage.upload({
+      body: createReadStream(file.filepath),
+      contentLength: file.size,
+      contentType: this.contentType,
+      key: this.key,
+      acl: this.acl,
+    });
   }
 
   // hooks

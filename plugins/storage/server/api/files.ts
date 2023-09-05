@@ -1,12 +1,3 @@
-import {
-  closeSync,
-  createReadStream,
-  createWriteStream,
-  existsSync,
-  mkdirSync,
-  openSync,
-} from "fs";
-import path from "path";
 import Router from "koa-router";
 import mime from "mime-types";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -43,8 +34,6 @@ router.post(
       throw InvalidRequestError("Request must include a file parameter");
     }
 
-    const { key } = ctx.input.body;
-
     if (
       env.FILE_STORAGE_UPLOAD_MAX_SIZE &&
       file.size > env.FILE_STORAGE_UPLOAD_MAX_SIZE
@@ -56,18 +45,11 @@ router.post(
       );
     }
 
-    const subdir = key.split("/").slice(0, -1).join("/");
-    if (!existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT, subdir))) {
-      mkdirSync(path.join(env.FILE_STORAGE_LOCAL_ROOT, subdir), {
-        recursive: true,
-      });
-    }
+    const { key } = ctx.input.body;
 
-    const src = createReadStream(file.filepath);
-    const destPath = path.join(env.FILE_STORAGE_LOCAL_ROOT, key);
-    closeSync(openSync(destPath, "w"));
-    const dest = createWriteStream(destPath);
-    src.pipe(dest);
+    const id = key.split("/")[2];
+    const attachment = await Attachment.findByPk(id, { rejectOnEmpty: true });
+    await attachment.saveFile(file);
 
     ctx.body = {
       success: true,

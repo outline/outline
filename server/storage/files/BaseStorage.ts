@@ -80,10 +80,10 @@ export default abstract class BaseStorage {
     acl,
   }: {
     body: Buffer | Uint8Array | Blob | string | Readable;
-    contentLength: number;
-    contentType: string;
+    contentLength?: number;
+    contentType?: string;
     key: string;
-    acl: string;
+    acl?: string;
   }): Promise<string | undefined>;
 
   /**
