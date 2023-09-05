@@ -1,5 +1,5 @@
 {
   "name": "Storage",
   "description": "Facilitates uploading files to and downloading files from local storage",
-  "requiredEnvVars": []
+  "requiredEnvVars": ["FILE_STORAGE_UPLOAD_MAX_SIZE"]
 }
