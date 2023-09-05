@@ -834,7 +834,7 @@
   "Show a hand cursor when hovering over interactive elements.": "Під час наведення вказівника на інтерактивні елементи показувати курсор у вигляді руки.",
   "Show line numbers": "Показувати номери рядків",
   "Show line numbers on code blocks in documents.": "Показувати номери рядків у блоках коду в документах.",
-  "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.": "When enabled documents have a separate editing mode, when disabled documents are always editable when you have permission.",
+  "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "Запам'ятати попереднє місце розташування",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Автоматично повертатись до документа, який ви переглядали, коли програма буде знову відкрита.",
   "You may delete your account at any time, note that this is unrecoverable": "Ви можете видалити свій обліковий запис у будь-який час, зауважте, що це невиправно",
