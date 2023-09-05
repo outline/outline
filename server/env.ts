@@ -615,7 +615,8 @@ export class Environment {
   /**
    * Which file storage system to use
    */
-  public FILE_STORAGE = process.env.FILE_STORAGE;
+  @IsIn(["local", "s3"])
+  public FILE_STORAGE = this.toOptionalString(process.env.FILE_STORAGE) ?? "s3";
 
   /**
    * Set default local file storage root path
