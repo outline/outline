@@ -231,6 +231,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
     [emoji, onChangeEmoji, restoreFocus]
   );
 
+  const dir = ref.current?.getComputedDirection();
   const emojiIcon = <Emoji size={32}>{emoji}</Emoji>;
 
   return (
@@ -251,7 +252,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       ref={ref}
     >
       {can.update && !readOnly ? (
-        <EmojiWrapper align="center" justify="center">
+        <EmojiWrapper align="center" justify="center" dir={dir}>
           <React.Suspense fallback={emojiIcon}>
             <StyledEmojiPicker
               value={emoji}
@@ -264,7 +265,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
           </React.Suspense>
         </EmojiWrapper>
       ) : emoji ? (
-        <EmojiWrapper align="center" justify="center">
+        <EmojiWrapper align="center" justify="center" dir={dir}>
           {emojiIcon}
         </EmojiWrapper>
       ) : null}
@@ -276,10 +277,10 @@ const StyledEmojiPicker = styled(EmojiPicker)`
   ${extraArea(8)}
 `;
 
-const EmojiWrapper = styled(Flex)`
+const EmojiWrapper = styled(Flex)<{ dir?: string }>`
   position: absolute;
   top: 8px;
-  left: -40px;
+  ${(props) => (props.dir === "rtl" ? "right: -40px" : "left: -40px")};
   height: 32px;
   width: 32px;
 `;
