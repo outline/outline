@@ -9,8 +9,8 @@ import {
   MenuStateReturn,
 } from "reakit/Menu";
 import styled, { useTheme } from "styled-components";
+import MenuIconWrapper from "~/components/ContextMenu/MenuIconWrapper";
 import Flex from "~/components/Flex";
-import MenuIconWrapper from "~/components/MenuIconWrapper";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import {
