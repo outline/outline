@@ -82,7 +82,7 @@ jobs:
           command: yarn test:shared
   test-server:
     <<: *defaults
-    parallelism: 4
+    parallelism: 3
     steps:
       - checkout
       - restore_cache:
@@ -94,7 +94,7 @@ jobs:
           name: test
           command: |
             TESTFILES=$(circleci tests glob "server/**/*.test.ts" | circleci tests split)
-            yarn test $TESTFILES --forceExit
+            yarn test $TESTFILES
   bundle-size:
     <<: *defaults
     environment:

@@ -16,7 +16,9 @@ describe("revisionCreator", () => {
       user,
       ip,
     });
-    const event = await findLatestEvent();
+    const event = await findLatestEvent({
+      teamId: user.teamId,
+    });
     expect(revision.documentId).toEqual(document.id);
     expect(revision.userId).toEqual(user.id);
     expect(revision.createdAt).toEqual(document.updatedAt);

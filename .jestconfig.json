@@ -1,5 +1,6 @@
 {
   "workerIdleMemoryLimit": "0.75",
+  "maxWorkers": "50%",
   "projects": [
     {
       "displayName": "server",

@@ -1726,10 +1726,6 @@ describe("#documents.search", () => {
       },
     });
 
-    // setTimeout is needed here because SearchQuery is saved asynchronously
-    // in order to not slow down the response time.
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
     const searchQuery = await SearchQuery.findAll({
       where: {
         teamId: user.teamId,

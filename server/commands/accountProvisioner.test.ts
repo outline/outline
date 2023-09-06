@@ -365,7 +365,7 @@ describe("accountProvisioner", () => {
           },
           authenticationProvider: {
             name: "google",
-            providerId: "example-company.com",
+            providerId: faker.internet.domainName(),
           },
           authentication: {
             providerId: uuidv4(),
@@ -384,6 +384,7 @@ describe("accountProvisioner", () => {
 
     it("should always use existing team if self-hosted", async () => {
       const team = await buildTeam();
+      const domain = faker.internet.domainName();
       const { user, isNewUser } = await accountProvisioner({
         ip,
         user: {
@@ -396,11 +397,11 @@ describe("accountProvisioner", () => {
           name: team.name,
           avatarUrl: team.avatarUrl,
           subdomain: faker.internet.domainWord(),
-          domain: "allowed-domain.com",
+          domain,
         },
         authenticationProvider: {
           name: "google",
-          providerId: "allowed-domain.com",
+          providerId: domain,
         },
         authentication: {
           providerId: uuidv4(),

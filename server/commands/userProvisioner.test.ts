@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import { v4 as uuidv4 } from "uuid";
 import { TeamDomain } from "@server/models";
 import {
@@ -335,17 +336,19 @@ describe("userProvisioner", () => {
   it("should create a user from allowed domain", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
+    const domain = faker.internet.domainName();
     await TeamDomain.create({
       teamId: team.id,
-      name: "example-company.com",
+      name: domain,
       createdById: admin.id,
     });
 
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
+    const email = faker.internet.email({ provider: domain });
     const result = await userProvisioner({
-      name: "Test Name",
-      email: "user@example-company.com",
+      name: faker.person.fullName(),
+      email,
       teamId: team.id,
       ip,
       authentication: {
@@ -360,28 +363,31 @@ describe("userProvisioner", () => {
     expect(authentication?.accessToken).toEqual("123");
     expect(authentication?.scopes.length).toEqual(1);
     expect(authentication?.scopes[0]).toEqual("read");
-    expect(user.email).toEqual("user@example-company.com");
+    expect(user.email).toEqual(email);
     expect(isNewUser).toEqual(true);
   });
 
   it("should create a user from allowed domain with emailMatchOnly", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
+    const domain = faker.internet.domainName();
+    const email = faker.internet.email({ provider: domain });
+
     await TeamDomain.create({
       teamId: team.id,
-      name: "example-company.com",
+      name: domain,
       createdById: admin.id,
     });
 
     const result = await userProvisioner({
       name: "Test Name",
-      email: "user@example-company.com",
+      email,
       teamId: team.id,
       ip,
     });
     const { user, authentication, isNewUser } = result;
     expect(authentication).toBeUndefined();
-    expect(user.email).toEqual("user@example-company.com");
+    expect(user.email).toEqual(email);
     expect(isNewUser).toEqual(true);
   });
 
@@ -392,7 +398,7 @@ describe("userProvisioner", () => {
     try {
       await userProvisioner({
         name: "Test Name",
-        email: "user@example-company.com",
+        email: faker.internet.email(),
         teamId: team.id,
         ip,
       });
@@ -408,7 +414,7 @@ describe("userProvisioner", () => {
     const admin = await buildAdmin({ teamId: team.id });
     await TeamDomain.create({
       teamId: team.id,
-      name: "other.com",
+      name: faker.internet.domainName(),
       createdById: admin.id,
     });
 
@@ -419,7 +425,7 @@ describe("userProvisioner", () => {
     try {
       await userProvisioner({
         name: "Bad Domain User",
-        email: "user@example.com",
+        email: faker.internet.domainName(),
         teamId: team.id,
         ip,
         authentication: {

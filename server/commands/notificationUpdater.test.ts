@@ -46,7 +46,7 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await findLatestEvent({});
+    const event = await findLatestEvent();
 
     expect(notification.viewedAt).not.toBe(null);
     expect(notification.archivedAt).toBe(null);

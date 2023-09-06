@@ -335,14 +335,12 @@ router.post(
       ? await SearchHelper.searchForUser(user, text, options)
       : await SearchHelper.searchForTeam(team, text, options);
 
-    void SearchQuery.create({
+    await SearchQuery.create({
       userId: user ? user.id : null,
       teamId: team.id,
       source: "slack",
       query: text,
       results: totalCount,
-    }).catch((err) => {
-      Logger.error("Failed to create search query", err);
     });
 
     const haventSignedIn = t(
