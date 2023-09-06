@@ -82,7 +82,7 @@ jobs:
           command: yarn test:shared
   test-server:
     <<: *defaults
-    parallelism: 3
+    parallelism: 4
     steps:
       - checkout
       - restore_cache:
@@ -169,9 +169,8 @@ workflows:
             - build
       - bundle-size:
           requires:
-            - test-app
-            - test-shared
-            - test-server
+            - build
+            - types
 
   build-docker:
     jobs:
