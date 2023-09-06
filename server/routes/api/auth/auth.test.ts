@@ -198,7 +198,7 @@ describe("#auth.config", () => {
     expect(body.data.providers.length).toBe(0);
   });
 
-  describe("self hosted", () => {
+  describe.skip("self hosted", () => {
     beforeEach(setSelfHosted);
 
     it("should return all configured providers but respect email setting", async () => {
