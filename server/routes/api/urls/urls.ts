@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { parseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { isInternalUrl } from "@shared/utils/urls";
@@ -54,7 +55,7 @@ router.post(
     }
 
     // Internal resources
-    if (isInternalUrl(url)) {
+    if (isInternalUrl(url) || parseDomain(url).host === actor.team.domain) {
       const previewDocumentId = parseDocumentSlug(url);
       if (previewDocumentId) {
         const document = previewDocumentId
