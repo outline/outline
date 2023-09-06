@@ -1,8 +1,6 @@
 import { buildAdmin, buildTeam } from "@server/test/factories";
-import { setCloudHosted, setupTestDatabase } from "@server/test/support";
+import { setCloudHosted } from "@server/test/support";
 import TeamDomain from "./TeamDomain";
-
-setupTestDatabase();
 
 describe("team domain model", () => {
   beforeEach(setCloudHosted);

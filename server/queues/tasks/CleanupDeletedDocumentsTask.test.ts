@@ -1,10 +1,7 @@
 import { subDays } from "date-fns";
 import { Document } from "@server/models";
 import { buildDocument, buildTeam } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import CleanupDeletedDocumentsTask from "./CleanupDeletedDocumentsTask";
-
-setupTestDatabase();
 
 describe("CleanupDeletedDocumentsTask", () => {
   it("should not destroy documents not deleted", async () => {

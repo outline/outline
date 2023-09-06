@@ -2,12 +2,9 @@ import path from "path";
 import fs from "fs-extra";
 import Attachment from "@server/models/Attachment";
 import { buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import documentImporter from "./documentImporter";
 
 jest.mock("@server/storage/files");
-
-setupTestDatabase();
 
 describe("documentImporter", () => {
   const ip = "127.0.0.1";

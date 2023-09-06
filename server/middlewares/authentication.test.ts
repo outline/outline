@@ -2,10 +2,7 @@ import { DefaultState } from "koa";
 import randomstring from "randomstring";
 import ApiKey from "@server/models/ApiKey";
 import { buildUser, buildTeam } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import auth from "./authentication";
-
-setupTestDatabase();
 
 describe("Authentication middleware", () => {
   describe("with JWT", () => {

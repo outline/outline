@@ -6,10 +6,7 @@ import {
   buildWebhookSubscription,
   buildViewer,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import CleanupDemotedUserTask from "./CleanupDemotedUserTask";
-
-setupTestDatabase();
 
 describe("CleanupDemotedUserTask", () => {
   it("should delete api keys for suspended user", async () => {

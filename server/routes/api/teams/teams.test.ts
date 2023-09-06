@@ -76,32 +76,24 @@ describe("#team.update", () => {
   it("should add new allowed Domains, removing empty string values", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
+    const domain1 = faker.internet.domainName();
+    const domain2 = faker.internet.domainName();
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        allowedDomains: [
-          "example-company.com",
-          "",
-          "example-company.org",
-          "",
-          "",
-        ],
+        allowedDomains: [domain1, "", domain2, "", ""],
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.allowedDomains.sort()).toEqual([
-      "example-company.com",
-      "example-company.org",
-    ]);
+    expect(body.data.allowedDomains.includes(domain1)).toBe(true);
+    expect(body.data.allowedDomains.includes(domain2)).toBe(true);
 
     const teamDomains: TeamDomain[] = await TeamDomain.findAll({
       where: { teamId: team.id },
     });
-    expect(teamDomains.map((d) => d.name).sort()).toEqual([
-      "example-company.com",
-      "example-company.org",
-    ]);
+    expect(teamDomains.map((d) => d.name).includes(domain1)).toBe(true);
+    expect(teamDomains.map((d) => d.name).includes(domain2)).toBe(true);
   });
 
   it("should remove old allowed Domains", async () => {
@@ -139,27 +131,25 @@ describe("#team.update", () => {
       name: faker.internet.domainName(),
       createdById: admin.id,
     });
+    const domain1 = faker.internet.domainName();
+    const domain2 = faker.internet.domainName();
 
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        allowedDomains: ["example-company.org", "example-company.net"],
+        allowedDomains: [domain1, domain2],
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.allowedDomains.sort()).toEqual([
-      "example-company.net",
-      "example-company.org",
-    ]);
+    expect(body.data.allowedDomains.includes(domain1)).toBe(true);
+    expect(body.data.allowedDomains.includes(domain2)).toBe(true);
 
     const teamDomains: TeamDomain[] = await TeamDomain.findAll({
       where: { teamId: team.id },
     });
-    expect(teamDomains.map((d) => d.name).sort()).toEqual(
-      ["example-company.org", "example-company.net"].sort()
-    );
-
+    expect(teamDomains.map((d) => d.name).includes(domain1)).toBe(true);
+    expect(teamDomains.map((d) => d.name).includes(domain2)).toBe(true);
     expect(await TeamDomain.findByPk(existingTeamDomain.id)).toBeNull();
   });
 

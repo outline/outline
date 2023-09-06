@@ -129,7 +129,7 @@ export function buildTeam(overrides: Record<string, any> = {}) {
       authenticationProviders: [
         {
           name: "slack",
-          providerId: uuidv4(),
+          providerId: uuidv4().replace(/-/g, ""),
         },
       ],
       ...overrides,
@@ -188,7 +188,7 @@ export async function buildUser(overrides: Partial<User> = {}) {
       authentications: [
         {
           authenticationProviderId: authenticationProvider!.id,
-          providerId: uuidv4(),
+          providerId: uuidv4().replace(/-/g, ""),
         },
       ],
       ...overrides,

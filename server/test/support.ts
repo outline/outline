@@ -17,33 +17,8 @@ export function getTestServer() {
     server.close();
   };
 
-  setupTestDatabase();
   afterAll(server.disconnect);
-
   return server;
-}
-
-export function setupTestDatabase() {
-  const flush = async () => {
-    const sql = sequelize.getQueryInterface();
-    const tables = Object.keys(sequelize.models).map((model) => {
-      const n = sequelize.models[model].getTableName();
-      return (sql.queryGenerator as any).quoteTable(
-        typeof n === "string" ? n : n.tableName
-      );
-    });
-    const flushQuery = `TRUNCATE ${tables.join(", ")} CASCADE`;
-
-    await sequelize.query(flushQuery);
-  };
-
-  const disconnect = async () => {
-    await sequelize.close();
-  };
-
-  beforeAll(flush);
-
-  afterAll(disconnect);
 }
 
 /**

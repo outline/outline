@@ -6,11 +6,8 @@ import {
   buildWebhookDelivery,
   buildWebhookSubscription,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import { UserEvent } from "@server/types";
 import DeliverWebhookTask from "./DeliverWebhookTask";
-
-setupTestDatabase();
 
 beforeEach(async () => {
   jest.resetAllMocks();

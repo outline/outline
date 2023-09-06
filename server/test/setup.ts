@@ -1,7 +1,5 @@
 import Redis from "@server/storage/redis";
 
-// NOTE: this require must come after the ENV var override
-// so that sequelize uses the test config variables
 require("@server/storage/database");
 
 jest.mock("bull");

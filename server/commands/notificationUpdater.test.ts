@@ -6,10 +6,8 @@ import {
   buildDocument,
   buildCollection,
 } from "@server/test/factories";
-import { findLatestEvent, setupTestDatabase } from "@server/test/support";
+import { findLatestEvent } from "@server/test/support";
 import notificationUpdater from "./notificationUpdater";
-
-setupTestDatabase();
 
 describe("notificationUpdater", () => {
   const ip = "127.0.0.1";
@@ -48,7 +46,7 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await findLatestEvent({});
+    const event = await findLatestEvent();
 
     expect(notification.viewedAt).not.toBe(null);
     expect(notification.archivedAt).toBe(null);

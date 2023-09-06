@@ -1,14 +1,8 @@
 import { faker } from "@faker-js/faker";
 import TeamDomain from "@server/models/TeamDomain";
 import { buildTeam, buildUser } from "@server/test/factories";
-import {
-  setCloudHosted,
-  setSelfHosted,
-  setupTestDatabase,
-} from "@server/test/support";
+import { setCloudHosted, setSelfHosted } from "@server/test/support";
 import teamProvisioner from "./teamProvisioner";
-
-setupTestDatabase();
 
 describe("teamProvisioner", () => {
   const ip = "127.0.0.1";
@@ -104,12 +98,14 @@ describe("teamProvisioner", () => {
     });
 
     it("should error on mismatched team and authentication provider", async () => {
+      const subdomain = faker.internet.domainWord();
+
       const exampleTeam = await buildTeam({
-        subdomain: faker.internet.domainWord(),
+        subdomain,
         authenticationProviders: [
           {
             name: "google",
-            providerId: "teamProvisioner3.com",
+            providerId: `${subdomain}.com`,
           },
         ],
       });
@@ -215,9 +211,11 @@ describe("teamProvisioner", () => {
       const user = await buildUser({
         teamId: existing.id,
       });
+      const allowedDomain = faker.internet.domainName();
+      const otherDomain = faker.internet.domainName();
       await TeamDomain.create({
         teamId: existing.id,
-        name: "allowed-domain.com",
+        name: allowedDomain,
         createdById: user.id,
       });
 
@@ -226,11 +224,11 @@ describe("teamProvisioner", () => {
         await teamProvisioner({
           name: "Updated name",
           subdomain: faker.internet.domainWord(),
-          domain: "other-domain.com",
+          domain: otherDomain,
           teamId: existing.id,
           authenticationProvider: {
             name: "google",
-            providerId: "other-domain.com",
+            providerId: otherDomain,
           },
           ip,
         });

@@ -1,10 +1,7 @@
 import { CollectionPermission } from "@shared/types";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import CollectionUser from "./CollectionUser";
 import UserAuthentication from "./UserAuthentication";
-
-setupTestDatabase();
 
 beforeAll(() => {
   jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));

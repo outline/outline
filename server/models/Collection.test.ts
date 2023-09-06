@@ -7,12 +7,9 @@ import {
   buildTeam,
   buildDocument,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import slugify from "@server/utils/slugify";
 import Collection from "./Collection";
 import Document from "./Document";
-
-setupTestDatabase();
 
 beforeEach(() => {
   jest.resetAllMocks();

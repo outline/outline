@@ -6,10 +6,7 @@ import {
   buildCollection,
   buildAdmin,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
-
-setupTestDatabase();
 
 describe("admin", () => {
   it("should allow updating collection but not reading documents", async () => {

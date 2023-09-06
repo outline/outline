@@ -152,22 +152,15 @@ describe("#hooks.slack", () => {
       },
     });
 
-    return new Promise((resolve) => {
-      // setTimeout is needed here because SearchQuery is saved asynchronously
-      // in order to not slow down the response time.
-      setTimeout(async () => {
-        const searchQuery = await SearchQuery.findAll({
-          where: {
-            teamId: team.id,
-            query: "contains",
-          },
-        });
-        expect(searchQuery.length).toBe(1);
-        expect(searchQuery[0].results).toBe(0);
-        expect(searchQuery[0].source).toBe("slack");
-        resolve(undefined);
-      }, 250);
+    const searchQuery = await SearchQuery.findAll({
+      where: {
+        teamId: team.id,
+        query: "contains",
+      },
     });
+    expect(searchQuery.length).toBe(1);
+    expect(searchQuery[0].results).toBe(0);
+    expect(searchQuery[0].source).toBe("slack");
   });
 
   it("should respond with help content for help keyword", async () => {

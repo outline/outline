@@ -5,14 +5,8 @@ import { TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
 import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
-import {
-  setupTestDatabase,
-  setCloudHosted,
-  setSelfHosted,
-} from "@server/test/support";
+import { setCloudHosted, setSelfHosted } from "@server/test/support";
 import accountProvisioner from "./accountProvisioner";
-
-setupTestDatabase();
 
 describe("accountProvisioner", () => {
   const ip = "127.0.0.1";
@@ -371,7 +365,7 @@ describe("accountProvisioner", () => {
           },
           authenticationProvider: {
             name: "google",
-            providerId: "example-company.com",
+            providerId: faker.internet.domainName(),
           },
           authentication: {
             providerId: uuidv4(),
@@ -390,6 +384,7 @@ describe("accountProvisioner", () => {
 
     it("should always use existing team if self-hosted", async () => {
       const team = await buildTeam();
+      const domain = faker.internet.domainName();
       const { user, isNewUser } = await accountProvisioner({
         ip,
         user: {
@@ -402,11 +397,11 @@ describe("accountProvisioner", () => {
           name: team.name,
           avatarUrl: team.avatarUrl,
           subdomain: faker.internet.domainWord(),
-          domain: "allowed-domain.com",
+          domain,
         },
         authenticationProvider: {
           name: "google",
-          providerId: "allowed-domain.com",
+          providerId: domain,
         },
         authentication: {
           providerId: uuidv4(),

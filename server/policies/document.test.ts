@@ -6,10 +6,7 @@ import {
   buildDraftDocument,
   buildCollection,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
-
-setupTestDatabase();
 
 describe("read_write collection", () => {
   it("should allow read write permissions for member", async () => {

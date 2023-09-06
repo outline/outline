@@ -6,10 +6,7 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import documentMover from "./documentMover";
-
-setupTestDatabase();
 
 describe("documentMover", () => {
   const ip = "127.0.0.1";

@@ -5,10 +5,7 @@ import {
   buildSubscription,
   buildUser,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import subscriptionDestroyer from "./subscriptionDestroyer";
-
-setupTestDatabase();
 
 describe("subscriptionDestroyer", () => {
   const ip = "127.0.0.1";

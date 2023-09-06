@@ -1,8 +1,6 @@
 import { buildDocument, buildUser } from "@server/test/factories";
-import { findLatestEvent, setupTestDatabase } from "@server/test/support";
+import { findLatestEvent } from "@server/test/support";
 import revisionCreator from "./revisionCreator";
-
-setupTestDatabase();
 
 describe("revisionCreator", () => {
   const ip = "127.0.0.1";
@@ -18,7 +16,9 @@ describe("revisionCreator", () => {
       user,
       ip,
     });
-    const event = await findLatestEvent();
+    const event = await findLatestEvent({
+      teamId: user.teamId,
+    });
     expect(revision.documentId).toEqual(document.id);
     expect(revision.userId).toEqual(user.id);
     expect(revision.createdAt).toEqual(document.updatedAt);

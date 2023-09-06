@@ -2,10 +2,7 @@ import fs from "fs";
 import path from "path";
 import { FileOperation } from "@server/models";
 import { buildFileOperation } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import ImportMarkdownZipTask from "./ImportMarkdownZipTask";
-
-setupTestDatabase();
 
 describe("ImportMarkdownZipTask", () => {
   it("should import the documents, attachments", async () => {
