@@ -1,6 +1,6 @@
-import { Comment, Event } from "@server/models";
+import { Comment } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
+import { findLatestEvent, setupTestDatabase } from "@server/test/support";
 import commentDestroyer from "./commentDestroyer";
 
 setupTestDatabase();
@@ -41,10 +41,14 @@ describe("commentDestroyer", () => {
       ip,
     });
 
-    const count = await Comment.count();
+    const count = await Comment.count({
+      where: {
+        id: comment.id,
+      },
+    });
     expect(count).toEqual(0);
 
-    const event = await Event.findOne();
+    const event = await findLatestEvent();
     expect(event!.name).toEqual("comments.delete");
     expect(event!.modelId).toEqual(comment.id);
   });

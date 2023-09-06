@@ -15,6 +15,12 @@ describe("fileOperationDeleter", () => {
       teamId: admin.teamId,
     });
     await fileOperationDeleter(fileOp, admin, ip);
-    expect(await FileOperation.count()).toEqual(0);
+    expect(
+      await FileOperation.count({
+        where: {
+          teamId: admin.teamId,
+        },
+      })
+    ).toEqual(0);
   });
 });

@@ -1,3 +1,4 @@
+import env from "@server/env";
 import { User } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -134,7 +135,7 @@ describe("#urls.unfurl", () => {
     const res = await server.post("/api/urls.unfurl", {
       body: {
         token: user.getJwtToken(),
-        url: `http://localhost:3000/${document.url}`,
+        url: `${env.URL}/${document.url}`,
         documentId: document.id,
       },
     });

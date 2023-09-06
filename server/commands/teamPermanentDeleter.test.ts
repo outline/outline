@@ -16,23 +16,39 @@ describe("teamPermanentDeleter", () => {
     const team = await buildTeam({
       deletedAt: subDays(new Date(), 90),
     });
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     await buildDocument({
       teamId: team.id,
       userId: user.id,
     });
     await teamPermanentDeleter(team);
-    expect(await Team.count()).toEqual(0);
-    expect(await User.count()).toEqual(0);
+    expect(
+      await Team.count({
+        where: {
+          id: team.id,
+        },
+      })
+    ).toEqual(0);
+    expect(
+      await User.count({
+        where: {
+          teamId: team.id,
+        },
+      })
+    ).toEqual(0);
     expect(
       await Document.unscoped().count({
+        where: {
+          teamId: team.id,
+        },
         paranoid: false,
       })
     ).toEqual(0);
     expect(
       await Collection.unscoped().count({
+        where: {
+          teamId: team.id,
+        },
         paranoid: false,
       })
     ).toEqual(0);
@@ -44,18 +60,21 @@ describe("teamPermanentDeleter", () => {
     });
     await buildUser();
     await buildTeam();
-    await buildDocument();
+    const document = await buildDocument();
     await teamPermanentDeleter(team);
-    expect(await Team.count()).toEqual(4); // each build command creates a team
-
-    expect(await User.count()).toEqual(2);
     expect(
       await Document.unscoped().count({
+        where: {
+          id: document.id,
+        },
         paranoid: false,
       })
     ).toEqual(1);
     expect(
       await Collection.unscoped().count({
+        where: {
+          id: document.collectionId,
+        },
         paranoid: false,
       })
     ).toEqual(1);
@@ -65,9 +84,7 @@ describe("teamPermanentDeleter", () => {
     const team = await buildTeam({
       deletedAt: subDays(new Date(), 90),
     });
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({
       teamId: team.id,
       userId: user.id,
@@ -77,16 +94,40 @@ describe("teamPermanentDeleter", () => {
       documentId: document.id,
     });
     await teamPermanentDeleter(team);
-    expect(await Team.count()).toEqual(0);
-    expect(await User.count()).toEqual(0);
-    expect(await Attachment.count()).toEqual(0);
+    expect(
+      await Team.count({
+        where: {
+          id: team.id,
+        },
+      })
+    ).toEqual(0);
+    expect(
+      await User.count({
+        where: {
+          teamId: team.id,
+        },
+      })
+    ).toEqual(0);
+    expect(
+      await Attachment.count({
+        where: {
+          teamId: team.id,
+        },
+      })
+    ).toEqual(0);
     expect(
       await Document.unscoped().count({
+        where: {
+          teamId: team.id,
+        },
         paranoid: false,
       })
     ).toEqual(0);
     expect(
       await Collection.unscoped().count({
+        where: {
+          teamId: team.id,
+        },
         paranoid: false,
       })
     ).toEqual(0);

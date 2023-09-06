@@ -1,6 +1,6 @@
-import { Star, Event } from "@server/models";
+import { Star } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
+import { findLatestEvent, setupTestDatabase } from "@server/test/support";
 import starUpdater from "./starUpdater";
 
 setupTestDatabase();
@@ -30,7 +30,7 @@ describe("starUpdater", () => {
       ip,
     });
 
-    const event = await Event.findOne();
+    const event = await findLatestEvent();
     expect(star.documentId).toEqual(document.id);
     expect(star.userId).toEqual(user.id);
     expect(star.index).toEqual("h");

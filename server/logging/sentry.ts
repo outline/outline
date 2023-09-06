@@ -65,7 +65,7 @@ export function requestErrorHandler(error: any, ctx: AppContext) {
       });
       Sentry.captureException(error);
     });
-  } else {
+  } else if (env.ENVIRONMENT !== "test") {
     // eslint-disable-next-line no-console
     console.error(error);
   }

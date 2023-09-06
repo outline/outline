@@ -1,7 +1,12 @@
+import { faker } from "@faker-js/faker";
 import { TeamDomain } from "@server/models";
-import { buildAdmin, buildCollection, buildTeam } from "@server/test/factories";
 import {
-  seed,
+  buildAdmin,
+  buildCollection,
+  buildTeam,
+  buildUser,
+} from "@server/test/factories";
+import {
   getTestServer,
   setCloudHosted,
   setSelfHosted,
@@ -18,24 +23,24 @@ describe("teams.create", () => {
     const res = await server.post("/api/teams.create", {
       body: {
         token: user.getJwtToken(),
-        name: "new workspace",
+        name: "factory inc",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.team.name).toEqual("new workspace");
-    expect(body.data.team.subdomain).toEqual("new-workspace");
+    expect(body.data.team.name).toEqual("factory inc");
+    expect(body.data.team.subdomain).toEqual("factory-inc");
   });
 
   it("requires a cloud hosted deployment", async () => {
-    setSelfHosted();
+    await setSelfHosted();
 
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/teams.create", {
       body: {
         token: user.getJwtToken(),
-        name: "new workspace",
+        name: faker.company.name(),
       },
     });
     expect(res.status).toEqual(402);
@@ -44,16 +49,17 @@ describe("teams.create", () => {
 
 describe("#team.update", () => {
   it("should update team details", async () => {
-    const { admin } = await seed();
+    const admin = await buildAdmin();
+    const name = faker.company.name();
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        name: "New name",
+        name,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.name).toEqual("New name");
+    expect(body.data.name).toEqual(name);
   });
 
   it("should not invalidate request if subdomain is sent as null", async () => {
@@ -68,7 +74,8 @@ describe("#team.update", () => {
   });
 
   it("should add new allowed Domains, removing empty string values", async () => {
-    const { admin, team } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
@@ -98,10 +105,11 @@ describe("#team.update", () => {
   });
 
   it("should remove old allowed Domains", async () => {
-    const { admin, team } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
     const existingTeamDomain = await TeamDomain.create({
       teamId: team.id,
-      name: "example-company.com",
+      name: faker.internet.domainName(),
       createdById: admin.id,
     });
 
@@ -124,10 +132,11 @@ describe("#team.update", () => {
   });
 
   it("should add new allowed domains and remove old ones", async () => {
-    const { admin, team } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
     const existingTeamDomain = await TeamDomain.create({
       teamId: team.id,
-      name: "example-company.com",
+      name: faker.internet.domainName(),
       createdById: admin.id,
     });
 
@@ -155,7 +164,7 @@ describe("#team.update", () => {
   });
 
   it("should only allow member,viewer or admin as default role", async () => {
-    const { admin } = await seed();
+    const admin = await buildAdmin();
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
@@ -175,7 +184,8 @@ describe("#team.update", () => {
   });
 
   it("should allow identical team details", async () => {
-    const { admin, team } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
@@ -188,18 +198,17 @@ describe("#team.update", () => {
   });
 
   it("should require admin", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/team.update", {
       body: {
         token: user.getJwtToken(),
-        name: "New name",
+        name: faker.company.name(),
       },
     });
     expect(res.status).toEqual(403);
   });
 
   it("should require authentication", async () => {
-    await seed();
     const res = await server.post("/api/team.update");
     expect(res.status).toEqual(401);
   });

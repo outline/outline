@@ -1,7 +1,7 @@
 import { Star, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
+import { findLatestEvent, setupTestDatabase } from "@server/test/support";
 import starCreator from "./starCreator";
 
 setupTestDatabase();
@@ -25,7 +25,7 @@ describe("starCreator", () => {
       })
     );
 
-    const event = await Event.findOne();
+    const event = await findLatestEvent();
     expect(star.documentId).toEqual(document.id);
     expect(star.userId).toEqual(user.id);
     expect(star.index).toEqual("P");
@@ -57,7 +57,11 @@ describe("starCreator", () => {
       })
     );
 
-    const events = await Event.count();
+    const events = await Event.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     expect(star.documentId).toEqual(document.id);
     expect(star.userId).toEqual(user.id);
     expect(star.index).toEqual("P");

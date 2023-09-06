@@ -18,9 +18,21 @@ describe("user model", () => {
   describe("destroy", () => {
     it("should delete user authentications", async () => {
       const user = await buildUser();
-      expect(await UserAuthentication.count()).toBe(1);
+      expect(
+        await UserAuthentication.count({
+          where: {
+            userId: user.id,
+          },
+        })
+      ).toBe(1);
       await user.destroy();
-      expect(await UserAuthentication.count()).toBe(0);
+      expect(
+        await UserAuthentication.count({
+          where: {
+            userId: user.id,
+          },
+        })
+      ).toBe(0);
     });
   });
 
@@ -33,7 +45,9 @@ describe("user model", () => {
 
   describe("availableTeams", () => {
     it("should return teams where another user with the same email exists", async () => {
-      const user = await buildUser();
+      const user = await buildUser({
+        email: "user-available-teams@example.com",
+      });
       const anotherUser = await buildUser({ email: user.email });
 
       const response = await user.availableTeams();

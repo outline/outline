@@ -1,6 +1,5 @@
-import { Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
+import { findLatestEvent, setupTestDatabase } from "@server/test/support";
 import revisionCreator from "./revisionCreator";
 
 setupTestDatabase();
@@ -19,7 +18,7 @@ describe("revisionCreator", () => {
       user,
       ip,
     });
-    const event = await Event.findOne();
+    const event = await findLatestEvent();
     expect(revision.documentId).toEqual(document.id);
     expect(revision.userId).toEqual(user.id);
     expect(revision.createdAt).toEqual(document.updatedAt);

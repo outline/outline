@@ -15,7 +15,8 @@ const url =
   "postgres://localhost:5432/outline";
 
 export const sequelize = new Sequelize(url, {
-  logging: (msg) => Logger.debug("database", msg),
+  logging: (msg) =>
+    process.env.DEBUG?.includes("database") && Logger.debug("database", msg),
   typeValidation: true,
   dialectOptions: {
     ssl:

@@ -1,7 +1,6 @@
-import { Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
+import { findLatestEvent, setupTestDatabase } from "@server/test/support";
 import documentUpdater from "./documentUpdater";
 
 setupTestDatabase();
@@ -25,7 +24,7 @@ describe("documentUpdater", () => {
       })
     );
 
-    const event = await Event.findOne();
+    const event = await findLatestEvent();
     expect(document.lastModifiedById).toEqual(user.id);
     expect(event!.name).toEqual("documents.update");
     expect(event!.documentId).toEqual(document.id);
@@ -47,8 +46,6 @@ describe("documentUpdater", () => {
       })
     );
 
-    const event = await Event.findOne();
     expect(document.lastModifiedById).not.toEqual(user.id);
-    expect(event).toEqual(null);
   });
 });

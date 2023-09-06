@@ -93,9 +93,7 @@ describe("#authenticationProviders.update", () => {
 
   it("should require authorization", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const authenticationProviders = await team.$get("authenticationProviders");
     const res = await server.post("/api/authenticationProviders.update", {
       body: {

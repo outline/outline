@@ -59,6 +59,12 @@ describe("userSuspender", () => {
     });
     expect(user.suspendedAt).toBeTruthy();
     expect(user.suspendedById).toEqual(admin.id);
-    expect(await GroupUser.count()).toEqual(0);
+    expect(
+      await GroupUser.count({
+        where: {
+          userId: user.id,
+        },
+      })
+    ).toEqual(0);
   });
 });

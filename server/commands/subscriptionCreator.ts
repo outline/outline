@@ -48,6 +48,7 @@ export default async function subscriptionCreator({
     await Event.create(
       {
         name: "subscriptions.create",
+        teamId: user.teamId,
         modelId: subscription.id,
         actorId: user.id,
         userId: user.id,
@@ -62,6 +63,7 @@ export default async function subscriptionCreator({
     await Event.create(
       {
         name: "subscriptions.create",
+        teamId: user.teamId,
         modelId: subscription.id,
         actorId: user.id,
         userId: user.id,

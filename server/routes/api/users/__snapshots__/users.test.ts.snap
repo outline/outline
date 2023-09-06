@@ -1,44 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`#users.activate should activate a suspended user 1`] = `
-{
-  "data": {
-    "avatarUrl": null,
-    "color": "#e600e0",
-    "createdAt": "2018-01-02T00:00:00.000Z",
-    "email": "user1@example.com",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "isAdmin": false,
-    "isSuspended": false,
-    "isViewer": false,
-    "language": "en_US",
-    "lastActiveAt": null,
-    "name": "User 1",
-    "notificationSettings": {},
-    "preferences": null,
-    "updatedAt": "2018-01-02T00:00:00.000Z",
-  },
-  "ok": true,
-  "policies": [
-    {
-      "abilities": {
-        "activate": true,
-        "delete": true,
-        "demote": true,
-        "promote": true,
-        "read": true,
-        "readDetails": true,
-        "resendInvite": true,
-        "suspend": true,
-        "update": true,
-      },
-      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    },
-  ],
-  "status": 200,
-}
-`;
-
 exports[`#users.activate should require admin 1`] = `
 {
   "error": "admin_required",
@@ -57,123 +18,6 @@ exports[`#users.delete should require authentication 1`] = `
 }
 `;
 
-exports[`#users.demote should demote an admin 1`] = `
-{
-  "data": {
-    "avatarUrl": null,
-    "color": "#e600e0",
-    "createdAt": "2018-01-02T00:00:00.000Z",
-    "email": "user1@example.com",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "isAdmin": false,
-    "isSuspended": false,
-    "isViewer": false,
-    "language": "en_US",
-    "lastActiveAt": null,
-    "name": "User 1",
-    "notificationSettings": {},
-    "preferences": null,
-    "updatedAt": "2018-01-02T00:00:00.000Z",
-  },
-  "ok": true,
-  "policies": [
-    {
-      "abilities": {
-        "activate": true,
-        "delete": true,
-        "demote": true,
-        "promote": true,
-        "read": true,
-        "readDetails": true,
-        "resendInvite": true,
-        "suspend": true,
-        "update": true,
-      },
-      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    },
-  ],
-  "status": 200,
-}
-`;
-
-exports[`#users.demote should demote an admin to member 1`] = `
-{
-  "data": {
-    "avatarUrl": null,
-    "color": "#e600e0",
-    "createdAt": "2018-01-02T00:00:00.000Z",
-    "email": "user1@example.com",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "isAdmin": false,
-    "isSuspended": false,
-    "isViewer": false,
-    "language": "en_US",
-    "lastActiveAt": null,
-    "name": "User 1",
-    "notificationSettings": {},
-    "preferences": null,
-    "updatedAt": "2018-01-02T00:00:00.000Z",
-  },
-  "ok": true,
-  "policies": [
-    {
-      "abilities": {
-        "activate": true,
-        "delete": true,
-        "demote": true,
-        "promote": true,
-        "read": true,
-        "readDetails": true,
-        "resendInvite": true,
-        "suspend": true,
-        "update": true,
-      },
-      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    },
-  ],
-  "status": 200,
-}
-`;
-
-exports[`#users.demote should demote an admin to viewer 1`] = `
-{
-  "data": {
-    "avatarUrl": null,
-    "color": "#e600e0",
-    "createdAt": "2018-01-02T00:00:00.000Z",
-    "email": "user1@example.com",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "isAdmin": false,
-    "isSuspended": false,
-    "isViewer": true,
-    "language": "en_US",
-    "lastActiveAt": null,
-    "name": "User 1",
-    "notificationSettings": {},
-    "preferences": null,
-    "updatedAt": "2018-01-02T00:00:00.000Z",
-  },
-  "ok": true,
-  "policies": [
-    {
-      "abilities": {
-        "activate": true,
-        "delete": true,
-        "demote": true,
-        "promote": true,
-        "read": true,
-        "readDetails": true,
-        "resendInvite": true,
-        "suspend": true,
-        "update": true,
-      },
-      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    },
-  ],
-  "status": 200,
-}
-`;
-
 exports[`#users.demote should not allow demoting self 1`] = `
 {
   "error": "validation_error",
@@ -189,45 +33,6 @@ exports[`#users.demote should require admin 1`] = `
   "message": "An admin role is required to access this resource",
   "ok": false,
   "status": 403,
-}
-`;
-
-exports[`#users.promote should promote a new admin 1`] = `
-{
-  "data": {
-    "avatarUrl": null,
-    "color": "#e600e0",
-    "createdAt": "2018-01-02T00:00:00.000Z",
-    "email": "user1@example.com",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "isAdmin": true,
-    "isSuspended": false,
-    "isViewer": false,
-    "language": "en_US",
-    "lastActiveAt": null,
-    "name": "User 1",
-    "notificationSettings": {},
-    "preferences": null,
-    "updatedAt": "2018-01-02T00:00:00.000Z",
-  },
-  "ok": true,
-  "policies": [
-    {
-      "abilities": {
-        "activate": true,
-        "delete": true,
-        "demote": true,
-        "promote": false,
-        "read": true,
-        "readDetails": true,
-        "resendInvite": true,
-        "suspend": true,
-        "update": true,
-      },
-      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    },
-  ],
-  "status": 200,
 }
 `;
 
@@ -255,45 +60,6 @@ exports[`#users.suspend should require admin 1`] = `
   "message": "An admin role is required to access this resource",
   "ok": false,
   "status": 403,
-}
-`;
-
-exports[`#users.suspend should suspend an user 1`] = `
-{
-  "data": {
-    "avatarUrl": null,
-    "color": "#e600e0",
-    "createdAt": "2018-01-02T00:00:00.000Z",
-    "email": "user1@example.com",
-    "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    "isAdmin": false,
-    "isSuspended": true,
-    "isViewer": false,
-    "language": "en_US",
-    "lastActiveAt": null,
-    "name": "User 1",
-    "notificationSettings": {},
-    "preferences": null,
-    "updatedAt": "2018-01-02T00:00:00.000Z",
-  },
-  "ok": true,
-  "policies": [
-    {
-      "abilities": {
-        "activate": true,
-        "delete": true,
-        "demote": false,
-        "promote": false,
-        "read": true,
-        "readDetails": true,
-        "resendInvite": true,
-        "suspend": true,
-        "update": true,
-      },
-      "id": "46fde1d4-0050-428f-9f0b-0bf77f4bdf61",
-    },
-  ],
-  "status": 200,
 }
 `;
 
