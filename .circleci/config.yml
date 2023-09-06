@@ -82,6 +82,7 @@ jobs:
           command: yarn test:shared
   test-server:
     <<: *defaults
+    parallelism: 3
     steps:
       - checkout
       - restore_cache:
@@ -91,7 +92,9 @@ jobs:
           command: ./node_modules/.bin/sequelize db:migrate --url $DATABASE_URL_TEST
       - run:
           name: test
-          command: yarn test:server --forceExit
+          command: |
+            TESTFILES=$(circleci tests glob "server/**/*.test.ts" | circleci tests split --split-by=timings)
+            yarn test $TESTFILES --forceExit
   bundle-size:
     <<: *defaults
     environment:
