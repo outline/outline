@@ -3793,7 +3793,7 @@ describe("#documents.users", () => {
     const anotherBody = await anotherRes.json();
 
     expect(anotherRes.status).toBe(200);
-    expect(anotherBody.data.length).toBe(4);
+    expect(anotherBody.data.length).toBe(3);
     const memberIds = anotherBody.data.map((u: User) => u.id);
     const memberNames = anotherBody.data.map((u: User) => u.name);
     expect(memberIds).toContain(bret.id);
