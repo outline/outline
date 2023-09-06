@@ -3689,7 +3689,10 @@ describe("#documents.users", () => {
   });
 
   it("should return document users with names matching the search query", async () => {
-    const user = await buildUser();
+    const user = await buildUser({
+      // Ensure the generated name doesn't match
+      name: "zzz",
+    });
     const collection = await buildCollection({
       teamId: user.teamId,
       userId: user.id,
