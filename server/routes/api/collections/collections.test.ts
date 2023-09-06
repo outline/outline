@@ -1528,11 +1528,8 @@ describe("#collections.delete", () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
-    // to ensure it isn't the last collection
-    await buildCollection({
-      teamId: admin.teamId,
-      createdById: admin.id,
-    });
+    await buildCollection({ teamId: team.id });
+
     const res = await server.post("/api/collections.delete", {
       body: {
         token: admin.getJwtToken(),

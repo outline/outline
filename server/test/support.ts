@@ -1,6 +1,8 @@
 import TestServer from "fetch-test-server";
+import { WhereOptions } from "sequelize";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
+import { Event, Team } from "@server/models";
 import onerror from "@server/onerror";
 import webService from "@server/services/web";
 import { sequelize } from "@server/storage/database";
@@ -39,8 +41,9 @@ export function setupTestDatabase() {
     await sequelize.close();
   };
 
+  beforeAll(flush);
+
   afterAll(disconnect);
-  beforeEach(flush);
 }
 
 /**
@@ -53,6 +56,19 @@ export function setCloudHosted() {
 /**
  * Set the environment to be self hosted
  */
-export function setSelfHosted() {
-  return (env.URL = sharedEnv.URL = "https://wiki.example.com");
+export async function setSelfHosted() {
+  env.URL = sharedEnv.URL = "https://wiki.example.com";
+
+  // Self hosted deployments only have one team, to ensure behavior is correct
+  // we need to delete all teams before running tests
+  return Team.destroy({
+    truncate: true,
+  });
+}
+
+export function findLatestEvent(where: WhereOptions<Event> = {}) {
+  return Event.findOne({
+    where,
+    order: [["createdAt", "DESC"]],
+  });
 }

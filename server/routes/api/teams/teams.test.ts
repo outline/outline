@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import { TeamDomain } from "@server/models";
 import {
   buildAdmin,
@@ -22,24 +23,24 @@ describe("teams.create", () => {
     const res = await server.post("/api/teams.create", {
       body: {
         token: user.getJwtToken(),
-        name: "new workspace",
+        name: "factory inc",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.team.name).toEqual("new workspace");
-    expect(body.data.team.subdomain).toEqual("new-workspace");
+    expect(body.data.team.name).toEqual("factory inc");
+    expect(body.data.team.subdomain).toEqual("factory-inc");
   });
 
   it("requires a cloud hosted deployment", async () => {
-    setSelfHosted();
+    await setSelfHosted();
 
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/teams.create", {
       body: {
         token: user.getJwtToken(),
-        name: "new workspace",
+        name: faker.company.name(),
       },
     });
     expect(res.status).toEqual(402);
@@ -49,15 +50,16 @@ describe("teams.create", () => {
 describe("#team.update", () => {
   it("should update team details", async () => {
     const admin = await buildAdmin();
+    const name = faker.company.name();
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        name: "New name",
+        name,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.name).toEqual("New name");
+    expect(body.data.name).toEqual(name);
   });
 
   it("should not invalidate request if subdomain is sent as null", async () => {
@@ -107,7 +109,7 @@ describe("#team.update", () => {
     const admin = await buildAdmin({ teamId: team.id });
     const existingTeamDomain = await TeamDomain.create({
       teamId: team.id,
-      name: "example-company.com",
+      name: faker.internet.domainName(),
       createdById: admin.id,
     });
 
@@ -134,7 +136,7 @@ describe("#team.update", () => {
     const admin = await buildAdmin({ teamId: team.id });
     const existingTeamDomain = await TeamDomain.create({
       teamId: team.id,
-      name: "example-company.com",
+      name: faker.internet.domainName(),
       createdById: admin.id,
     });
 
@@ -200,7 +202,7 @@ describe("#team.update", () => {
     const res = await server.post("/api/team.update", {
       body: {
         token: user.getJwtToken(),
-        name: "New name",
+        name: faker.company.name(),
       },
     });
     expect(res.status).toEqual(403);

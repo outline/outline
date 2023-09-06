@@ -42,9 +42,7 @@ describe("#fileOperations.info", () => {
     const admin = await buildAdmin({
       teamId: team.id,
     });
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const exportData = await buildFileOperation({
       type: FileOperationType.Export,
       teamId: team.id,
@@ -244,9 +242,7 @@ describe("#fileOperations.redirect", () => {
 
   it("should require authorization", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const admin = await buildAdmin();
     const exportData = await buildFileOperation({
       state: FileOperationState.Complete,
@@ -283,15 +279,25 @@ describe("#fileOperations.delete", () => {
       },
     });
     expect(deleteResponse.status).toBe(200);
-    expect(await Event.count()).toBe(1);
-    expect(await FileOperation.count()).toBe(0);
+    expect(
+      await Event.count({
+        where: {
+          teamId: team.id,
+        },
+      })
+    ).toBe(1);
+    expect(
+      await FileOperation.count({
+        where: {
+          teamId: team.id,
+        },
+      })
+    ).toBe(0);
   });
 
   it("should require authorization", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const admin = await buildAdmin();
     const exportData = await buildFileOperation({
       type: FileOperationType.Export,

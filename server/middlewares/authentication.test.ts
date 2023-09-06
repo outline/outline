@@ -192,9 +192,7 @@ describe("Authentication middleware", () => {
   it("should return an error for deleted team", async () => {
     const state = {} as DefaultState;
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     await team.destroy();
     const authMiddleware = auth();
     let error;

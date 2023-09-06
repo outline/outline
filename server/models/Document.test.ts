@@ -116,9 +116,7 @@ describe("#save", () => {
 describe("#getChildDocumentIds", () => {
   test("should return empty array if no children", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       userId: user.id,
       teamId: team.id,
@@ -135,9 +133,7 @@ describe("#getChildDocumentIds", () => {
 
   test("should return nested child document ids", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       userId: user.id,
       teamId: team.id,

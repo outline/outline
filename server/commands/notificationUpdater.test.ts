@@ -1,5 +1,4 @@
 import { NotificationEventType } from "@shared/types";
-import { Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import {
   buildUser,
@@ -7,7 +6,7 @@ import {
   buildDocument,
   buildCollection,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
+import { findLatestEvent, setupTestDatabase } from "@server/test/support";
 import notificationUpdater from "./notificationUpdater";
 
 setupTestDatabase();
@@ -49,7 +48,7 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await Event.findOne();
+    const event = await findLatestEvent({});
 
     expect(notification.viewedAt).not.toBe(null);
     expect(notification.archivedAt).toBe(null);
@@ -92,7 +91,7 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await Event.findOne();
+    const event = await findLatestEvent();
 
     expect(notification.viewedAt).toBe(null);
     expect(notification.archivedAt).toBe(null);
@@ -134,7 +133,7 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await Event.findOne();
+    const event = await findLatestEvent();
 
     expect(notification.viewedAt).toBe(null);
     expect(notification.archivedAt).not.toBe(null);
@@ -177,7 +176,7 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await Event.findOne();
+    const event = await findLatestEvent();
 
     expect(notification.viewedAt).toBe(null);
     expect(notification.archivedAt).toBeNull();

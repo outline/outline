@@ -9,7 +9,7 @@ import { serialize } from "./index";
 setupTestDatabase();
 
 it("should allow reading only", async () => {
-  setSelfHosted();
+  await setSelfHosted();
 
   const team = await buildTeam();
   const user = await buildUser({
@@ -26,7 +26,7 @@ it("should allow reading only", async () => {
 });
 
 it("should allow admins to manage", async () => {
-  setSelfHosted();
+  await setSelfHosted();
 
   const team = await buildTeam();
   const admin = await buildAdmin({

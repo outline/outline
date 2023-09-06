@@ -14,9 +14,7 @@ setupTestDatabase();
 describe("read_write collection", () => {
   it("should allow read write permissions for member", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       teamId: team.id,
       permission: CollectionPermission.ReadWrite,
@@ -69,9 +67,7 @@ describe("read_write collection", () => {
 describe("read collection", () => {
   it("should allow read permissions for team member", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       teamId: team.id,
       permission: CollectionPermission.Read,
@@ -98,9 +94,7 @@ describe("read collection", () => {
 describe("private collection", () => {
   it("should allow no permissions for team member", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       teamId: team.id,
       permission: null,
@@ -127,9 +121,7 @@ describe("private collection", () => {
 describe("no collection", () => {
   it("should grant same permissions as that on a draft document except the share permission", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const document = await buildDraftDocument({
       teamId: team.id,
       collectionId: null,

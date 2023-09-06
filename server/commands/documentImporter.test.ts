@@ -26,7 +26,11 @@ describe("documentImporter", () => {
       content,
       ip,
     });
-    const attachments = await Attachment.count();
+    const attachments = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     expect(attachments).toEqual(1);
     expect(response.text).toContain("This is a test document for images");
     expect(response.text).toContain("![](/api/attachments.redirect?id=");
@@ -46,7 +50,11 @@ describe("documentImporter", () => {
       content,
       ip,
     });
-    const attachments = await Attachment.count();
+    const attachments = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     expect(attachments).toEqual(1);
     expect(response.text).toContain("This is a test document for images");
     expect(response.text).toContain("![](/api/attachments.redirect?id=");
@@ -89,7 +97,11 @@ describe("documentImporter", () => {
       content,
       ip,
     });
-    const attachments = await Attachment.count();
+    const attachments = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     expect(attachments).toEqual(1);
     expect(response.text).toContain("This is a test document for images");
     expect(response.text).toContain("![](/api/attachments.redirect?id=");

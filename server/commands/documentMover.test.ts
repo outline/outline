@@ -196,7 +196,11 @@ describe("documentMover", () => {
       })
     );
 
-    const pinCount = await Pin.count();
+    const pinCount = await Pin.count({
+      where: {
+        teamId: collection.teamId,
+      },
+    });
     expect(pinCount).toBe(0);
 
     // check collection structure updated

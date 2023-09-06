@@ -807,7 +807,11 @@ router.post(
 
     authorize(user, "delete", collection);
 
-    const total = await Collection.count();
+    const total = await Collection.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     if (total === 1) {
       throw ValidationError("Cannot delete last collection");
     }

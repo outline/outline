@@ -1,6 +1,6 @@
-import { Star, Event } from "@server/models";
+import { Star } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
+import { findLatestEvent, setupTestDatabase } from "@server/test/support";
 import starDestroyer from "./starDestroyer";
 
 setupTestDatabase();
@@ -29,10 +29,14 @@ describe("starDestroyer", () => {
       ip,
     });
 
-    const count = await Star.count();
+    const count = await Star.count({
+      where: {
+        userId: user.id,
+      },
+    });
     expect(count).toEqual(0);
 
-    const event = await Event.findOne();
+    const event = await findLatestEvent();
     expect(event!.name).toEqual("stars.delete");
     expect(event!.modelId).toEqual(star.id);
   });

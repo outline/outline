@@ -158,6 +158,7 @@ describe("#hooks.slack", () => {
       setTimeout(async () => {
         const searchQuery = await SearchQuery.findAll({
           where: {
+            teamId: team.id,
             query: "contains",
           },
         });
@@ -165,7 +166,7 @@ describe("#hooks.slack", () => {
         expect(searchQuery[0].results).toBe(0);
         expect(searchQuery[0].source).toBe("slack");
         resolve(undefined);
-      }, 100);
+      }, 250);
     });
   });
 
@@ -236,12 +237,8 @@ describe("#hooks.slack", () => {
 
   it("should return search results with snippet for user through integration mapping", async () => {
     const user = await buildUser();
-    const serviceTeamId = "slack_team_id";
-    await buildIntegration({
+    const integration = await buildIntegration({
       teamId: user.teamId,
-      settings: {
-        serviceTeamId,
-      },
     });
     const document = await buildDocument({
       text: "This title contains a search term",
@@ -252,7 +249,7 @@ describe("#hooks.slack", () => {
       body: {
         token: env.SLACK_VERIFICATION_TOKEN,
         user_id: "unknown-slack-user-id",
-        team_id: serviceTeamId,
+        team_id: integration.settings.serviceTeamId,
         text: "contains",
       },
     });

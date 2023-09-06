@@ -672,9 +672,7 @@ describe("#users.activate", () => {
 describe("#users.count", () => {
   it("should count active users", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const res = await server.post("/api/users.count", {
       body: {
         token: user.getJwtToken(),
@@ -711,9 +709,7 @@ describe("#users.count", () => {
 
   it("should count suspended users", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     await buildUser({
       teamId: team.id,
       suspendedAt: new Date(),

@@ -1732,6 +1732,7 @@ describe("#documents.search", () => {
 
     const searchQuery = await SearchQuery.findAll({
       where: {
+        teamId: user.teamId,
         query: "my term",
       },
     });
@@ -2797,7 +2798,11 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe("Updated title");
     expect(body.data.text).toBe("Updated text");
-    const events = await Event.findAll();
+    const events = await Event.findAll({
+      where: {
+        teamId: document.teamId,
+      },
+    });
     expect(events.length).toEqual(1);
   });
 
@@ -2988,7 +2993,11 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.publishedAt).toBeTruthy();
     expect(body.policies[0].abilities.update).toEqual(true);
-    const events = await Event.findAll();
+    const events = await Event.findAll({
+      where: {
+        teamId: document.teamId,
+      },
+    });
     expect(events.length).toEqual(1);
   });
 
@@ -3228,7 +3237,11 @@ describe("#documents.update", () => {
       },
     });
     expect(res.status).toEqual(200);
-    const events = await Event.findAll();
+    const events = await Event.findAll({
+      where: {
+        teamId: document.teamId,
+      },
+    });
     expect(events.length).toEqual(0);
   });
 
@@ -3762,6 +3775,11 @@ describe("#documents.users", () => {
     });
     const body = await res.json();
 
+    expect(res.status).toBe(200);
+    expect(body.data.length).toBe(1);
+    expect(body.data[0].id).toContain(alan.id);
+    expect(body.data[0].name).toBe(alan.name);
+
     const anotherRes = await server.post("/api/documents.users", {
       body: {
         token: user.getJwtToken(),
@@ -3770,11 +3788,6 @@ describe("#documents.users", () => {
       },
     });
     const anotherBody = await anotherRes.json();
-
-    expect(res.status).toBe(200);
-    expect(body.data.length).toBe(1);
-    expect(body.data[0].id).toContain(alan.id);
-    expect(body.data[0].name).toBe(alan.name);
 
     expect(anotherRes.status).toBe(200);
     expect(anotherBody.data.length).toBe(4);
