@@ -6,10 +6,7 @@ import {
   buildInvite,
   buildAdmin,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import userProvisioner from "./userProvisioner";
-
-setupTestDatabase();
 
 describe("userProvisioner", () => {
   const ip = "127.0.0.1";

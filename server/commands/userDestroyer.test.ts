@@ -1,8 +1,5 @@
 import { buildUser, buildAdmin } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import userDestroyer from "./userDestroyer";
-
-setupTestDatabase();
 
 describe("userDestroyer", () => {
   const ip = "127.0.0.1";

@@ -1,9 +1,7 @@
 import { Comment } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { findLatestEvent, setupTestDatabase } from "@server/test/support";
+import { findLatestEvent } from "@server/test/support";
 import commentDestroyer from "./commentDestroyer";
-
-setupTestDatabase();
 
 describe("commentDestroyer", () => {
   const ip = "127.0.0.1";

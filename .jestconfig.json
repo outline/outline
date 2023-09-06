@@ -13,8 +13,9 @@
         "<rootDir>/server/test/env.ts"
       ],
       "setupFilesAfterEnv": ["<rootDir>/server/test/setup.ts"],
-      "testEnvironment": "node",
-      "runner": "@getoutline/jest-runner-serial"
+      "globalSetup": "<rootDir>/server/test/globalSetup.ts",
+      "globalTeardown": "<rootDir>/server/test/globalTeardown.ts",
+      "testEnvironment": "node"
     },
     {
       "displayName": "app",

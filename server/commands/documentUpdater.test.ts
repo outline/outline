@@ -1,9 +1,7 @@
 import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { findLatestEvent, setupTestDatabase } from "@server/test/support";
+import { findLatestEvent } from "@server/test/support";
 import documentUpdater from "./documentUpdater";
-
-setupTestDatabase();
 
 describe("documentUpdater", () => {
   const ip = "127.0.0.1";

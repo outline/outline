@@ -6,12 +6,9 @@ import {
   Revision,
 } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import RevisionCreatedNotificationsTask from "./RevisionCreatedNotificationsTask";
 
 const ip = "127.0.0.1";
-
-setupTestDatabase();
 
 beforeEach(async () => {
   jest.resetAllMocks();

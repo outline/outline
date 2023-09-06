@@ -1,8 +1,6 @@
 import { buildDocument, buildUser } from "@server/test/factories";
-import { findLatestEvent, setupTestDatabase } from "@server/test/support";
+import { findLatestEvent } from "@server/test/support";
 import revisionCreator from "./revisionCreator";
-
-setupTestDatabase();
 
 describe("revisionCreator", () => {
   const ip = "127.0.0.1";

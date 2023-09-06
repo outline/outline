@@ -1,14 +1,8 @@
 import { faker } from "@faker-js/faker";
 import TeamDomain from "@server/models/TeamDomain";
 import { buildTeam, buildUser } from "@server/test/factories";
-import {
-  setCloudHosted,
-  setSelfHosted,
-  setupTestDatabase,
-} from "@server/test/support";
+import { setCloudHosted, setSelfHosted } from "@server/test/support";
 import teamProvisioner from "./teamProvisioner";
-
-setupTestDatabase();
 
 describe("teamProvisioner", () => {
   const ip = "127.0.0.1";

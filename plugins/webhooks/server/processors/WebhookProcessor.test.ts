@@ -1,13 +1,10 @@
 import { buildUser, buildWebhookSubscription } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import { UserEvent } from "@server/types";
 import DeliverWebhookTask from "../tasks/DeliverWebhookTask";
 import WebhookProcessor from "./WebhookProcessor";
 
 jest.mock("../tasks/DeliverWebhookTask");
 const ip = "127.0.0.1";
-
-setupTestDatabase();
 
 beforeEach(async () => {
   jest.resetAllMocks();

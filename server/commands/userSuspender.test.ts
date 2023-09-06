@@ -1,9 +1,6 @@
 import GroupUser from "@server/models/GroupUser";
 import { buildGroup, buildAdmin, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import userSuspender from "./userSuspender";
-
-setupTestDatabase();
 
 describe("userSuspender", () => {
   const ip = "127.0.0.1";

@@ -6,10 +6,7 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import slugify from "@server/utils/slugify";
-
-setupTestDatabase();
 
 beforeEach(() => {
   jest.resetAllMocks();

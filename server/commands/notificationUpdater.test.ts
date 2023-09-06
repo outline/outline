@@ -6,10 +6,8 @@ import {
   buildDocument,
   buildCollection,
 } from "@server/test/factories";
-import { findLatestEvent, setupTestDatabase } from "@server/test/support";
+import { findLatestEvent } from "@server/test/support";
 import notificationUpdater from "./notificationUpdater";
-
-setupTestDatabase();
 
 describe("notificationUpdater", () => {
   const ip = "127.0.0.1";

@@ -1647,11 +1647,6 @@
   dependencies:
     tslib "2.4.0"
 
-"@getoutline/jest-runner-serial@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@getoutline/jest-runner-serial/-/jest-runner-serial-2.0.0.tgz#a5b7eba7e5ce198b6fef8f27a79060af6cc2ded0"
-  integrity sha512-sV0a/FbPuT5sf4iotQm7/GY6KtseXvlmNLEOmtXkZ9hZ0NjFzro62G8C4J/e71NJWudhQsKgrxa6Zq8G7F3mnw==
-
 "@getoutline/y-prosemirror@^1.0.18":
   version "1.0.18"
   resolved "https://registry.yarnpkg.com/@getoutline/y-prosemirror/-/y-prosemirror-1.0.18.tgz#17245c0362d30adb85131c86fb9a59358884b234"

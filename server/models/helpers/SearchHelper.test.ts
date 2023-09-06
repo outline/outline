@@ -7,9 +7,6 @@ import {
   buildUser,
   buildShare,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
-
-setupTestDatabase();
 
 beforeEach(() => {
   jest.resetAllMocks();
