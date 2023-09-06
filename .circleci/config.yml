@@ -36,20 +36,20 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: yarn-cache-{{ checksum "yarn.lock" }}
       - run:
           name: install-deps
-          command: yarn install --frozen-lockfile
+          command: yarn install --frozen-lockfile --cache-folder ~/.cache/yarn
       - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: yarn-cache-{{ checksum "yarn.lock" }}
           paths:
-            - ./node_modules
+            - ~/.cache/yarn
   lint:
     <<: *defaults
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: yarn-cache-{{ checksum "yarn.lock" }}
       - run:
           name: lint
           command: yarn lint
@@ -58,7 +58,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: yarn-cache-{{ checksum "yarn.lock" }}
       - run:
           name: typescript
           command: yarn tsc
@@ -67,7 +67,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: yarn-cache-{{ checksum "yarn.lock" }}
       - run:
           name: test
           command: yarn test:app
@@ -76,7 +76,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: yarn-cache-{{ checksum "yarn.lock" }}
       - run:
           name: test
           command: yarn test:shared
@@ -86,7 +86,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: yarn-cache-{{ checksum "yarn.lock" }}
       - run:
           name: migrate
           command: ./node_modules/.bin/sequelize db:migrate --url $DATABASE_URL_TEST
@@ -102,7 +102,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: yarn-cache-{{ checksum "yarn.lock" }}
       - run:
           name: build-vite
           command: yarn vite:build
