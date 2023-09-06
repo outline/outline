@@ -22,14 +22,14 @@ export function getTestServer() {
 }
 
 /**
- * Set the environment to be cloud hosted
+ * Set the environment to be cloud hosted.
  */
 export function setCloudHosted() {
   return (env.URL = sharedEnv.URL = "https://app.outline.dev");
 }
 
 /**
- * Set the environment to be self hosted
+ * Set the environment to be self hosted.
  */
 export async function setSelfHosted() {
   env.URL = sharedEnv.URL = "https://wiki.example.com";
