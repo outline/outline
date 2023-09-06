@@ -435,7 +435,7 @@ export async function buildAttachment(overrides: Partial<Attachment> = {}) {
     overrides.documentId = document.id;
   }
 
-  return Attachment.create({
+  const attachment = await Attachment.create({
     key: `uploads/key/to/${faker.system.fileName}.png`,
     contentType: "image/png",
     size: 100,
@@ -444,6 +444,9 @@ export async function buildAttachment(overrides: Partial<Attachment> = {}) {
     updatedAt: new Date("2018-01-02T00:00:00.000Z"),
     ...overrides,
   });
+
+  attachment.key = `public/${overrides.userId}/${attachment.id}/images.docx`;
+  return attachment.save();
 }
 
 export async function buildWebhookSubscription(

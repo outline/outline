@@ -1,4 +1,10 @@
-import { buildUser } from "@server/test/factories";
+import { existsSync } from "fs";
+import { readFile } from "fs/promises";
+import path from "path";
+import FormData from "form-data";
+import env from "@server/env";
+import "@server/test/env";
+import { buildAttachment, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -17,6 +23,35 @@ describe("#files.create", () => {
     expect(body.message).toEqual(
       "key: Must be of the form uploads/<uuid>/<uuid>/<name> or public/<uuid>/<uuid>/<name>"
     );
+  });
+
+  it("should succeed with status 200 ok and create a file", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const fileName = "images.docx";
+    const content = await readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const form = new FormData();
+    form.append("key", attachment.key);
+    form.append("file", content, fileName);
+    form.append("token", user.getJwtToken());
+
+    const res = await server.post(`/api/files.create`, {
+      headers: form.getHeaders(),
+      body: form,
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+    expect(
+      existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
+    ).toBe(true);
   });
 });
 
