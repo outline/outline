@@ -249,7 +249,7 @@ describe("#hooks.slack", () => {
       body: {
         token: env.SLACK_VERIFICATION_TOKEN,
         user_id: "unknown-slack-user-id",
-        team_id: integration.settings.serviceTeamId,
+        team_id: (integration.settings as any)?.serviceTeamId,
         text: "contains",
       },
     });
