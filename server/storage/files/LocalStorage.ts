@@ -10,6 +10,7 @@ import {
 import { mkdir, unlink } from "fs/promises";
 import path from "path";
 import { Readable } from "stream";
+import invariant from "invariant";
 import JWT from "jsonwebtoken";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -97,6 +98,11 @@ export default class LocalStorage extends BaseStorage {
   };
 
   public getFileStream(key: string) {
+    invariant(
+      env.FILE_STORAGE_LOCAL_ROOT_DIR,
+      "FILE_STORAGE_LOCAL_ROOT_DIR is required"
+    );
+
     const filePath = path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
     return createReadStream(filePath);
   }

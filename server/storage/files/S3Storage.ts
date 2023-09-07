@@ -175,11 +175,6 @@ export default class S3Storage extends BaseStorage {
   }
 
   public async getFileBuffer(key: string) {
-    invariant(
-      env.AWS_S3_UPLOAD_BUCKET_NAME,
-      "AWS_S3_UPLOAD_BUCKET_NAME is required"
-    );
-
     const stream = this.getFileStream(key);
     return new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
