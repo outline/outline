@@ -1,5 +1,6 @@
 import path from "path";
 import JSZip from "jszip";
+import escapeRegExp from "lodash/escapeRegExp";
 import { FileOperationFormat, NavigationNode } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Collection } from "@server/models";
@@ -73,14 +74,17 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
             date: attachment.updatedAt,
             createFolders: true,
           });
+
+          text = text.replace(
+            new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+            encodeURI(attachment.key)
+          );
         } catch (err) {
           Logger.error(
             `Failed to add attachment to archive: ${attachment.key}`,
             err
           );
         }
-
-        text = text.replace(attachment.redirectUrl, encodeURI(attachment.key));
       })
     );
 

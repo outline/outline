@@ -101,13 +101,9 @@ router.post(
     const content = await DocumentHelper.diff(before, revision);
 
     if (accept?.includes("text/html")) {
+      const name = `${slugify(document.titleWithDefault)}-${revision.id}.html`;
       ctx.set("Content-Type", "text/html");
-      ctx.set(
-        "Content-Disposition",
-        `attachment; filename="${slugify(document.titleWithDefault)}-${
-          revision.id
-        }.html"`
-      );
+      ctx.attachment(name);
       ctx.body = content;
       return;
     }

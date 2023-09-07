@@ -22,6 +22,16 @@ export type FileTreeNode = {
 
 @trace()
 export default class ZipHelper {
+  public static defaultStreamOptions: JSZip.JSZipGeneratorOptions<"nodebuffer"> =
+    {
+      type: "nodebuffer",
+      streamFiles: true,
+      compression: "DEFLATE",
+      compressionOptions: {
+        level: 5,
+      },
+    };
+
   /**
    * Converts the flat structure returned by JSZIP into a nested file structure
    * for easier processing.
@@ -84,7 +94,10 @@ export default class ZipHelper {
    * @param zip JSZip object
    * @returns pathname of the temporary file where the zip was written to disk
    */
-  public static async toTmpFile(zip: JSZip): Promise<string> {
+  public static async toTmpFile(
+    zip: JSZip,
+    options?: JSZip.JSZipGeneratorOptions<"nodebuffer">
+  ): Promise<string> {
     Logger.debug("utils", "Creating tmp file…");
     return new Promise((resolve, reject) => {
       tmp.file(
@@ -105,17 +118,18 @@ export default class ZipHelper {
           zip
             .generateNodeStream(
               {
-                type: "nodebuffer",
-                streamFiles: true,
+                ...this.defaultStreamOptions,
+                ...options,
               },
               (metadata) => {
-                const percent = Math.round(metadata.percent);
-                if (percent !== previousMetadata.percent) {
+                if (metadata.currentFile !== previousMetadata.currentFile) {
+                  const percent = Math.round(metadata.percent);
+                  const memory = process.memoryUsage();
+
                   previousMetadata = {
                     currentFile: metadata.currentFile,
                     percent,
                   };
-                  const memory = process.memoryUsage();
                   Logger.debug(
                     "utils",
                     `Writing zip file progress… ${percent}%`,
