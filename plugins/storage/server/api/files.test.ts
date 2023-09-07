@@ -30,6 +30,8 @@ describe("#files.create", () => {
     const attachment = await buildAttachment({
       teamId: user.teamId,
       userId: user.id,
+      contentType:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     });
 
     const fileName = "images.docx";
@@ -64,10 +66,73 @@ describe("#files.get", () => {
       "key: Must be of the form uploads/<uuid>/<uuid>/<name> or public/<uuid>/<uuid>/<name>"
     );
   });
+
   it("should fail with status 400 bad request if none of key or sig is supplied", async () => {
     const res = await server.get("/api/files.get");
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("query: One of key or sig is required");
+  });
+
+  it("should succeed with status 200 ok when file is requested using key", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      contentType:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+
+    const fileName = "images.docx";
+    const content = await readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const form = new FormData();
+    form.append("key", attachment.key);
+    form.append("file", content, fileName);
+    form.append("token", user.getJwtToken());
+
+    await server.post(`/api/files.create`, {
+      headers: form.getHeaders(),
+      body: form,
+    });
+
+    const res = await server.get(attachment.canonicalUrl);
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("Content-Type")).toEqual(attachment.contentType);
+    expect(res.headers.get("Content-Disposition")).toEqual(
+      'attachment; filename="images.docx"'
+    );
+  });
+
+  it("should succeed with status 200 ok when file is requested using signature", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+      contentType:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+
+    const fileName = "images.docx";
+    const content = await readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const form = new FormData();
+    form.append("key", attachment.key);
+    form.append("file", content, fileName);
+    form.append("token", user.getJwtToken());
+
+    await server.post(`/api/files.create`, {
+      headers: form.getHeaders(),
+      body: form,
+    });
+
+    const res = await server.get(await attachment.signedUrl);
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("Content-Type")).toEqual(attachment.contentType);
+    expect(res.headers.get("Content-Disposition")).toEqual(
+      'attachment; filename="images.docx"'
+    );
   });
 });
