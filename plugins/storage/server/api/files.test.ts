@@ -105,13 +105,14 @@ describe("#files.get", () => {
     );
   });
 
-  it("should succeed with status 200 ok when file is requested using signature", async () => {
+  it("should succeed with status 200 ok when private file is requested using signature", async () => {
     const user = await buildUser();
     const attachment = await buildAttachment({
       teamId: user.teamId,
       userId: user.id,
       contentType:
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      acl: "private",
     });
 
     const fileName = "images.docx";
@@ -128,7 +129,9 @@ describe("#files.get", () => {
       body: form,
     });
 
-    const res = await server.get(await attachment.signedUrl);
+    const res = await server.get(await attachment.signedUrl, {
+      headers: { Authorization: `Bearer ${user.getJwtToken()}` },
+    });
     expect(res.status).toEqual(200);
     expect(res.headers.get("Content-Type")).toEqual(attachment.contentType);
     expect(res.headers.get("Content-Disposition")).toEqual(
