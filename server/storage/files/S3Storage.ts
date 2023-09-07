@@ -180,18 +180,21 @@ export default class S3Storage extends BaseStorage {
       "AWS_S3_UPLOAD_BUCKET_NAME is required"
     );
 
-    const response = await this.client
-      .getObject({
-        Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,
-        Key: key,
-      })
-      .promise();
+    const stream = this.getFileStream(key);
+    return new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      if (!stream) {
+        return reject(new Error("No stream available"));
+      }
 
-    if (response.Body) {
-      return response.Body as Blob;
-    }
-
-    throw new Error("Error getting file buffer from S3");
+      stream.on("data", function (d) {
+        chunks.push(d as Buffer);
+      });
+      stream.once("end", () => {
+        resolve(Buffer.concat(chunks));
+      });
+      stream.once("error", reject);
+    });
   }
 
   private client: AWS.S3;

@@ -34,7 +34,7 @@ export default abstract class BaseStorage {
    *
    * @param key The path to the file
    */
-  public abstract getFileBuffer(key: string): Promise<Blob | Buffer>;
+  public abstract getFileBuffer(key: string): Promise<Buffer>;
 
   /**
    * Returns the upload URL for the storage provider.
