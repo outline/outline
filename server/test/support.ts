@@ -59,31 +59,31 @@ class TestServer {
     });
   }
 
-  delete(path: string, options: any) {
+  delete(path: string, options?: any) {
     return this.fetch(path, { ...options, method: "DELETE" });
   }
 
-  get(path: string, options: any) {
+  get(path: string, options?: any) {
     return this.fetch(path, { ...options, method: "GET" });
   }
 
-  head(path: string, options: any) {
+  head(path: string, options?: any) {
     return this.fetch(path, { ...options, method: "HEAD" });
   }
 
-  options(path: string, options: any) {
+  options(path: string, options?: any) {
     return this.fetch(path, { ...options, method: "OPTIONS" });
   }
 
-  patch(path: string, options: any) {
+  patch(path: string, options?: any) {
     return this.fetch(path, { ...options, method: "PATCH" });
   }
 
-  post(path: string, options: any) {
+  post(path: string, options?: any) {
     return this.fetch(path, { ...options, method: "POST" });
   }
 
-  put(path: string, options: any) {
+  put(path: string, options?: any) {
     return this.fetch(path, { ...options, method: "PUT" });
   }
 }
