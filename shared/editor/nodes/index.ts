@@ -1,6 +1,7 @@
 import BlockMenu from "../extensions/BlockMenu";
 import ClipboardTextSerializer from "../extensions/ClipboardTextSerializer";
 import DateTime from "../extensions/DateTime";
+import DragAndDrop from "../extensions/DragAndDrop";
 import FindAndReplace from "../extensions/FindAndReplace";
 import History from "../extensions/History";
 import Keys from "../extensions/Keys";
@@ -111,6 +112,7 @@ export const richExtensions: Nodes = [
   MathBlock,
   PreventTab,
   FindAndReplace,
+  DragAndDrop,
 ];
 
 /**

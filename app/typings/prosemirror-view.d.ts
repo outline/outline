@@ -11,4 +11,12 @@ declare module "prosemirror-view" {
     plainText: boolean,
     $context: ResolvedPos
   );
+
+  export function __serializeForClipboard(
+    view: EditorView,
+    slice: Slice
+  ): {
+    dom: Element;
+    text: string;
+  };
 }

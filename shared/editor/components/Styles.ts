@@ -1,6 +1,7 @@
 /* eslint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css, keyframes } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 
 export type Props = {
   rtl: boolean;
@@ -249,6 +250,45 @@ const findAndReplaceStyle = () => css`
   }
 `;
 
+const dragAndDropStyle = (props: Props) => css`
+  .drag-handle {
+    display: none;
+    pointer-events: none;
+    position: fixed;
+    opacity: 1;
+    transition: opacity ease-in 100ms;
+    border-radius: 4px;
+    background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOCIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iOCIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+CjxyZWN0IHg9IjgiIHk9IjE1IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iMTMiIHk9IjExIiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+Cjwvc3ZnPgo=");
+    background-repeat: no-repeat;
+    background-position: 0 2px;
+    width: 24px;
+    height: 24px;
+    z-index: 50;
+    cursor: grab;
+
+    &:hover {
+      color: ${props.theme.textSecondary};
+      transition: background-color 0.2s;
+    }
+
+    &:active {
+      color: ${props.theme.text};
+      transition: background-color 0.2s;
+    }
+
+    &.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transition: none;
+    }
+
+    ${breakpoint("tablet")`
+      display: block;
+      pointer-events: auto;
+    `}
+  }
+`;
+
 const style = (props: Props) => `
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
@@ -466,9 +506,16 @@ li {
   caret-color: transparent;
 }
 
-.ProseMirror-selectednode {
-  outline: 2px solid
-    ${props.readOnly ? "transparent" : props.theme.selected};
+.ProseMirror:not(.dragging) .ProseMirror-selectednode {
+  outline: 4px solid ${
+    props.readOnly ? "transparent" : transparentize(0.9, props.theme.accent)
+  };
+  border-radius: 4px;
+  background-color: ${
+    props.readOnly ? "transparent" : transparentize(0.9, props.theme.accent)
+  };
+  transition: background-color 100ms;
+  box-shadow: none;
 }
 
 /* Make sure li selections wrap around markers */
@@ -885,8 +932,8 @@ a:hover {
 
 ul,
 ol {
-  margin: ${props.rtl ? "0 -26px 0 0.1em" : "0 0.1em 0 -26px"};
-  padding: ${props.rtl ? "0 48px 0 0" : "0 0 0 48px"};
+  margin: 0;
+  padding: ${props.rtl ? "0 22px 0 0" : "0 0 0 22px"};
 }
 
 ol ol {
@@ -899,8 +946,7 @@ ol ol ol {
 
 ul.checkbox_list {
   padding: 0;
-  margin-left: ${props.rtl ? "0" : "-24px"};
-  margin-right: ${props.rtl ? "-24px" : "0"};
+  margin: 0;
 }
 
 ul li,
@@ -920,46 +966,15 @@ ol li {
 ul.checkbox_list > li {
   display: flex;
   list-style: none;
-  padding-${props.rtl ? "right" : "left"}: 24px;
 }
 
 ul.checkbox_list > li.checked > div > p {
   color: ${props.theme.textTertiary};
 }
 
-ul li::before,
-ol li::before {
-  background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOCIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iOCIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+CjxyZWN0IHg9IjgiIHk9IjE1IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iMTMiIHk9IjExIiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+Cjwvc3ZnPgo=") no-repeat;
-  background-position: 0 2px;
-  content: "";
-  display: ${props.readOnly ? "none" : "inline-block"};
-  cursor: grab;
-  width: 24px;
-  height: 24px;
-  position: absolute;
-  ${props.rtl ? "right" : "left"}: -40px;
-  opacity: 0;
-  transition: opacity 200ms ease-in-out;
-}
-
-ul li[draggable=true]::before,
-ol li[draggable=true]::before {
-  cursor: grabbing;
-}
-
 ul > li.counter-2::before,
 ol li.counter-2::before {
   ${props.rtl ? "right" : "left"}: -50px;
-}
-
-ul > li.hovering::before,
-ol li.hovering::before {
-  opacity: 0.5;
-}
-
-ul li.ProseMirror-selectednode::after,
-ol li.ProseMirror-selectednode::after {
-  display: none;
 }
 
 ul.checkbox_list > li::before {
@@ -1461,6 +1476,7 @@ del[data-operation-index] {
   .placeholder:before,
   .block-menu-trigger,
   .heading-actions,
+  .drag-handle,
   button.show-source-button,
   h1:not(.placeholder):before,
   h2:not(.placeholder):before,
@@ -1502,6 +1518,7 @@ const EditorContainer = styled.div<Props>`
   ${codeMarkCursor}
   ${codeBlockStyle}
   ${findAndReplaceStyle}
+  ${dragAndDropStyle}
 `;
 
 export default EditorContainer;
