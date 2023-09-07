@@ -319,7 +319,6 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.20.0",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "fetch-test-server": "^1.1.0",
     "husky": "^8.0.2",
     "i18next-parser": "^7.9.0",
     "jest-cli": "^29.6.4",
