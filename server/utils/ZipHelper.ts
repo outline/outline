@@ -22,6 +22,16 @@ export type FileTreeNode = {
 
 @trace()
 export default class ZipHelper {
+  public static defaultStreamOptions: JSZip.JSZipGeneratorOptions<"nodebuffer"> =
+    {
+      type: "nodebuffer",
+      streamFiles: true,
+      compression: "DEFLATE",
+      compressionOptions: {
+        level: 5,
+      },
+    };
+
   /**
    * Converts the flat structure returned by JSZIP into a nested file structure
    * for easier processing.
@@ -108,12 +118,7 @@ export default class ZipHelper {
           zip
             .generateNodeStream(
               {
-                type: "nodebuffer",
-                streamFiles: true,
-                compression: "DEFLATE",
-                compressionOptions: {
-                  level: 5,
-                },
+                ...this.defaultStreamOptions,
                 ...options,
               },
               (metadata) => {

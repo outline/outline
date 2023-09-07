@@ -607,7 +607,7 @@ router.post(
 
     ctx.set("Content-Type", "application/zip");
     ctx.attachment(`${fileName}.zip`);
-    ctx.body = fs.createReadStream(await ZipHelper.toTmpFile(zip));
+    ctx.body = zip.generateNodeStream(ZipHelper.defaultStreamOptions);
   }
 );
 
