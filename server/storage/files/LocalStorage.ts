@@ -1,3 +1,4 @@
+import { Blob } from "buffer";
 import {
   ReadStream,
   closeSync,
@@ -59,7 +60,7 @@ export default class LocalStorage extends BaseStorage {
     if (body instanceof ReadStream) {
       src = body;
     } else if (body instanceof Blob) {
-      src = body.stream();
+      src = Readable.from(Buffer.from(await body.arrayBuffer()));
     } else {
       src = Readable.from(body);
     }

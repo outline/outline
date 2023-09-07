@@ -1,3 +1,4 @@
+import { Blob } from "buffer";
 import { Readable } from "stream";
 import { PresignedPost } from "aws-sdk/clients/s3";
 import env from "@server/env";
