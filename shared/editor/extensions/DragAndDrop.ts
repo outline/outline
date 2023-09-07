@@ -66,7 +66,7 @@ function DragHandle(options: DragHandleOptions) {
     }
 
     const nodePos = nodePosAtDOM(node, view);
-    if (!nodePos || nodePos < 0) {
+    if (nodePos === undefined || nodePos < 0) {
       return;
     }
 
@@ -169,8 +169,7 @@ function DragHandle(options: DragHandleOptions) {
 
           rect.top += (lineHeight - 24) / 2;
           rect.top += paddingTop;
-          // Li markers
-          if (node.matches("ul:not([data-type=taskList]) li, ol li")) {
+          if (node.matches("ul:not(.checkbox_list) li, ol li")) {
             rect.left -= options.dragHandleWidth;
           }
           rect.width = options.dragHandleWidth;
@@ -183,13 +182,8 @@ function DragHandle(options: DragHandleOptions) {
           dragHandleElement.style.top = `${rect.top}px`;
           showDragHandle();
         },
-        keydown: () => {
-          hideDragHandle();
-        },
-        mousewheel: () => {
-          hideDragHandle();
-        },
-        // dragging class is used for CSS
+        keydown: hideDragHandle,
+        mousewheel: hideDragHandle,
         dragstart: (view) => {
           view.dom.classList.add("dragging");
         },

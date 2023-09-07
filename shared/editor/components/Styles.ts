@@ -972,15 +972,6 @@ ul.checkbox_list > li.checked > div > p {
   color: ${props.theme.textTertiary};
 }
 
-ul > li.counter-2::before,
-ol li.counter-2::before {
-  ${props.rtl ? "right" : "left"}: -50px;
-}
-
-ul.checkbox_list > li::before {
-  ${props.rtl ? "right" : "left"}: 0;
-}
-
 ul.checkbox_list li .checkbox {
   display: inline-block;
   cursor: var(--pointer);
