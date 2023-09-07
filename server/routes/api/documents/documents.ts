@@ -23,6 +23,7 @@ import {
   ValidationError,
   IncorrectEditionError,
 } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -568,10 +569,7 @@ router.post(
 
     if (attachments.length === 0) {
       ctx.set("Content-Type", contentType);
-      ctx.set(
-        "Content-Disposition",
-        `attachment; filename="${fileName}.${extension}"`
-      );
+      ctx.attachment(`${fileName}.${extension}`);
       ctx.body = content;
       return;
     }
@@ -608,7 +606,7 @@ router.post(
     });
 
     ctx.set("Content-Type", "application/zip");
-    ctx.set("Content-Disposition", `attachment; filename="${fileName}.zip"`);
+    ctx.attachment(`${fileName}.zip`);
     ctx.body = fs.createReadStream(await ZipHelper.toTmpFile(zip));
   }
 );
