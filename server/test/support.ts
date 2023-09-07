@@ -1,4 +1,6 @@
 import http from "http";
+import { AddressInfo } from "net";
+import Koa from "koa";
 // eslint-disable-next-line no-restricted-imports
 import nodeFetch from "node-fetch";
 import { WhereOptions } from "sequelize";
@@ -9,87 +11,95 @@ import onerror from "@server/onerror";
 import webService from "@server/services/web";
 import { sequelize } from "@server/storage/database";
 
-function TestServer(app: any) {
-  // allow custom promise
-  if (!TestServer.Promise) {
-    throw new Error(
-      "native promise missing, set TestServer.Promise to your favorite alternative"
-    );
+class TestServer {
+  private server: http.Server;
+  private listener?: Promise<void> | null;
+
+  constructor(app: Koa) {
+    this.server = http.createServer(app.callback() as any);
   }
 
-  this.Promise = TestServer.Promise;
-  this.server = http.createServer(app);
+  get address(): string {
+    const { port } = this.server.address() as AddressInfo;
+    return `http://localhost:${port}`;
+  }
 
-  ["delete", "get", "head", "options", "patch", "post", "put"].forEach(
-    (method) => {
-      this[method] = (path: any, options: any) =>
-        this.fetch(
-          path,
-          Object.assign({}, options, { method: method.toUpperCase() })
-        );
+  listen() {
+    if (!this.listener) {
+      this.listener = new Promise((resolve, reject) => {
+        this.server
+          .listen(0, () => resolve())
+          .on("error", (err) => reject(err));
+      });
     }
-  );
 
-  Object.defineProperty(this, "address", {
-    get: function address() {
-      const port = this.server.address().port;
-      return `http://localhost:${port}`;
-    },
-  });
-}
+    return this.listener;
+  }
 
-TestServer.prototype.listen = function listen() {
-  if (!this.listener) {
-    this.listener = new this.Promise((resolve: any, reject: any) => {
-      this.server
-        .listen(0, () => resolve())
-        .on("error", (err: any) => {
-          reject(err);
-        });
+  fetch(path: string, opts: any) {
+    return this.listen().then(() => {
+      const url = `${this.address}${path}`;
+      const options = Object.assign({ headers: {} }, opts);
+      const contentType =
+        options.headers["Content-Type"] ?? options.headers["content-type"];
+      // automatic JSON encoding
+      if (!contentType && typeof options.body === "object") {
+        options.headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(options.body);
+      }
+
+      return nodeFetch(url, options);
     });
   }
 
-  return this.listener;
-};
+  close() {
+    this.listener = null;
+    return new Promise<void>((resolve, reject) => {
+      this.server.close((err) => (err ? reject(err) : resolve()));
+    });
+  }
 
-TestServer.prototype.close = function close() {
-  this.listener = null;
+  delete(path: string, options: any) {
+    return this.fetch(path, { ...options, method: "DELETE" });
+  }
 
-  return new this.Promise((resolve: any, reject: any) => {
-    this.server.close((err: any) => (err ? reject(err) : resolve()));
-  });
-};
+  get(path: string, options: any) {
+    return this.fetch(path, { ...options, method: "GET" });
+  }
 
-TestServer.prototype.fetch = function fetch(path: any, opts: any) {
-  return this.listen().then(() => {
-    const url = `${this.address}${path}`;
-    const options = Object.assign({ headers: {} }, opts);
-    const contentType =
-      options.headers["Content-Type"] ?? options.headers["content-type"];
-    // automatic JSON encoding
-    if (!contentType && typeof options.body === "object") {
-      options.headers["Content-Type"] = "application/json";
-      options.body = JSON.stringify(options.body);
-    }
+  head(path: string, options: any) {
+    return this.fetch(path, { ...options, method: "HEAD" });
+  }
 
-    return nodeFetch(url, options);
-  });
-};
+  options(path: string, options: any) {
+    return this.fetch(path, { ...options, method: "OPTIONS" });
+  }
 
-// expose Promise
-TestServer.Promise = global.Promise;
+  patch(path: string, options: any) {
+    return this.fetch(path, { ...options, method: "PATCH" });
+  }
+
+  post(path: string, options: any) {
+    return this.fetch(path, { ...options, method: "POST" });
+  }
+
+  put(path: string, options: any) {
+    return this.fetch(path, { ...options, method: "PUT" });
+  }
+}
 
 export function getTestServer() {
   const app = webService();
   onerror(app);
-  const server = new (TestServer as any)(app.callback());
+  const server = new TestServer(app);
 
-  server.disconnect = async () => {
+  const disconnect = async () => {
     await sequelize.close();
-    server.close();
+    return server.close();
   };
 
-  afterAll(server.disconnect);
+  afterAll(disconnect);
+
   return server;
 }
 
