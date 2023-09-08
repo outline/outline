@@ -71,7 +71,13 @@ export default class LocalStorage extends BaseStorage {
     const dest = createWriteStream(destPath);
     src.pipe(dest);
 
-    return this.getSignedUrl(key);
+    return new Promise<string>((resolve, reject) => {
+      src.once("end", () => resolve(this.getSignedUrl(key)));
+      src.once("err", (err) => {
+        dest.end();
+        reject(err);
+      });
+    });
   };
 
   public async deleteFile(key: string) {
