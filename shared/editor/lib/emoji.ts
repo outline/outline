@@ -1,12 +1,17 @@
 import data, { type EmojiMartData } from "@emoji-mart/data";
 
-const gemojiToEmojiMart = {
-  thumbs_up: "+1",
-  thumbs_down: "-1",
+export const emojiMartToGemoji = {
+  "+1": "thumbs_up",
+  "-1": "thumbs_down",
 };
 
-export const snakeCase = (str: string) =>
-  str.replace(/(\w)(-)(\w)/g, "$1_$2").toLowerCase();
+/**
+ * Convert kebab case to snake case.
+ *
+ * @param str The string to convert
+ * @returns The converted string
+ */
+export const snakeCase = (str: string) => str.replace(/(\w)(-)(\w)/g, "$1_$2");
 
 /**
  * A map of emoji shortcode to emoji character. The shortcode is snake cased
@@ -14,8 +19,8 @@ export const snakeCase = (str: string) =>
  */
 export const nameToEmoji = Object.values((data as EmojiMartData).emojis).reduce(
   (acc, emoji) => {
-    const normalizedId = gemojiToEmojiMart[emoji.id] || emoji.id;
-    acc[snakeCase(normalizedId)] = emoji.skins[0].native;
+    const convertedId = snakeCase(emoji.id);
+    acc[emojiMartToGemoji[convertedId] ?? convertedId] = emoji.skins[0].native;
     return acc;
   },
   {}
