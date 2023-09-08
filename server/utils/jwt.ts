@@ -1,11 +1,10 @@
 import { subMinutes } from "date-fns";
 import invariant from "invariant";
 import JWT from "jsonwebtoken";
-import env from "@server/env";
-import { Attachment, Team, User } from "@server/models";
+import { Team, User } from "@server/models";
 import { AuthenticationError } from "../errors";
 
-function getJWTPayload(token: string) {
+export function getJWTPayload(token: string) {
   let payload;
 
   try {
@@ -96,25 +95,4 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
   }
 
   return user;
-}
-
-export async function getAttachmentForJWT(token: string): Promise<Attachment> {
-  const payload = getJWTPayload(token);
-
-  if (payload.type !== "attachment") {
-    throw AuthenticationError("Invalid token");
-  }
-
-  const attachmentId = payload.key.split("/")[2];
-  const attachment = await Attachment.findByPk(attachmentId, {
-    rejectOnEmpty: true,
-  });
-
-  try {
-    JWT.verify(token, env.SECRET_KEY);
-  } catch (err) {
-    throw AuthenticationError("Invalid token");
-  }
-
-  return attachment;
 }

@@ -11,7 +11,6 @@ import validate from "@server/middlewares/validate";
 import { Attachment, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { APIContext } from "@server/types";
-import { getAttachmentForJWT } from "@server/utils/jwt";
 import { getFileFromRequest } from "@server/utils/koa";
 import { createRootDirForLocalStorage } from "../utils";
 import * as T from "./schema";
@@ -79,7 +78,7 @@ router.get(
       const id = key.split("/")[2];
       attachment = await Attachment.findByPk(id, { rejectOnEmpty: true });
     } else {
-      attachment = await getAttachmentForJWT(sig!);
+      attachment = await Attachment.findBySignature(sig!);
     }
 
     if (!attachment) {
