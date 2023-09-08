@@ -33,6 +33,7 @@ import {
   SearchQuery,
   Pin,
 } from "@server/models";
+import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 
 export async function buildApiKey(overrides: Partial<ApiKey> = {}) {
   if (!overrides.userId) {
@@ -414,7 +415,10 @@ export async function buildFileOperation(
   });
 }
 
-export async function buildAttachment(overrides: Partial<Attachment> = {}) {
+export async function buildAttachment(
+  overrides: Partial<Attachment> = {},
+  fileName?: string
+) {
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
@@ -435,18 +439,19 @@ export async function buildAttachment(overrides: Partial<Attachment> = {}) {
     overrides.documentId = document.id;
   }
 
-  const attachment = await Attachment.create({
-    key: `uploads/key/to/${faker.system.fileName}.png`,
+  const id = uuidv4();
+  const acl = overrides.acl || "public-read";
+  const name = fileName || faker.system.fileName();
+  return Attachment.create({
+    id,
+    key: AttachmentHelper.getKey({ acl, id, name, userId: overrides.userId }),
     contentType: "image/png",
     size: 100,
-    acl: "public-read",
+    acl,
     createdAt: new Date("2018-01-02T00:00:00.000Z"),
     updatedAt: new Date("2018-01-02T00:00:00.000Z"),
     ...overrides,
   });
-
-  attachment.key = `public/${overrides.userId}/${attachment.id}/images.docx`;
-  return attachment.save();
 }
 
 export async function buildWebhookSubscription(

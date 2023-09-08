@@ -27,14 +27,17 @@ describe("#files.create", () => {
 
   it("should succeed with status 200 ok and create a file", async () => {
     const user = await buildUser();
-    const attachment = await buildAttachment({
-      teamId: user.teamId,
-      userId: user.id,
-      contentType:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    });
-
     const fileName = "images.docx";
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
+      fileName
+    );
+
     const content = await readFile(
       path.resolve(__dirname, "..", "test", "fixtures", fileName)
     );
@@ -76,14 +79,18 @@ describe("#files.get", () => {
 
   it("should succeed with status 200 ok when file is requested using key", async () => {
     const user = await buildUser();
-    const attachment = await buildAttachment({
-      teamId: user.teamId,
-      userId: user.id,
-      contentType:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    });
-
     const fileName = "images.docx";
+
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
+      fileName
+    );
+
     const content = await readFile(
       path.resolve(__dirname, "..", "test", "fixtures", fileName)
     );
@@ -107,15 +114,19 @@ describe("#files.get", () => {
 
   it("should succeed with status 200 ok when private file is requested using signature", async () => {
     const user = await buildUser();
-    const attachment = await buildAttachment({
-      teamId: user.teamId,
-      userId: user.id,
-      contentType:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      acl: "private",
-    });
-
     const fileName = "images.docx";
+
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        acl: "private",
+      },
+      fileName
+    );
+
     const content = await readFile(
       path.resolve(__dirname, "..", "test", "fixtures", fileName)
     );

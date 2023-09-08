@@ -8,12 +8,11 @@ import {
 } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
-import { Attachment } from "@server/models";
+import { Attachment, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { APIContext } from "@server/types";
 import { getAttachmentForJWT } from "@server/utils/jwt";
 import { getFileFromRequest } from "@server/utils/koa";
-import { getTeamFromContext } from "@server/utils/passport";
 import { createRootDirForLocalStorage } from "../utils";
 import * as T from "./schema";
 
@@ -56,7 +55,7 @@ router.post(
     }
 
     if (attachment.isPrivate) {
-      const team = await getTeamFromContext(ctx);
+      const team = await Team.findByPk(actor.teamId, { rejectOnEmpty: true });
       authorize(actor, "createAttachment", team);
     }
 
