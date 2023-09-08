@@ -5,6 +5,7 @@ import {
   collectionPath,
   commentPath,
   documentPath,
+  settingsPath,
 } from "~/utils/routeHelpers";
 import BaseModel from "./BaseModel";
 import Comment from "./Comment";
@@ -100,26 +101,40 @@ class Notification extends BaseModel {
    */
   get path() {
     switch (this.event) {
-      case "documents.publish":
-      case "documents.update":
-      case "revisions.create": {
+      case NotificationEventType.PublishDocument:
+      case NotificationEventType.UpdateDocument:
+      case NotificationEventType.CreateRevision: {
         return this.document ? documentPath(this.document) : "";
       }
-      case "collections.create": {
+      case NotificationEventType.CreateCollection: {
         const collection = this.store.rootStore.documents.get(
           this.collectionId
         );
         return collection ? collectionPath(collection.url) : "";
       }
-      case "documents.mentioned":
-      case "comments.mentioned":
-      case "comments.create": {
+      case NotificationEventType.MentionedInDocument: {
+        return this.document?.url;
+      }
+      case NotificationEventType.MentionedInComment:
+      case NotificationEventType.CreateComment: {
         return this.document && this.comment
           ? commentPath(this.document, this.comment)
-          : "";
+          : this.document?.url;
       }
-      default:
+      case NotificationEventType.InviteAccepted: {
+        return settingsPath("members");
+      }
+      case NotificationEventType.Onboarding:
+      case NotificationEventType.Features: {
         return "";
+      }
+      case NotificationEventType.ExportCompleted: {
+        return settingsPath("export");
+      }
+      default: {
+        const check: never = this.event;
+        throw new Error(`Unhandled case: ${check}`);
+      }
     }
   }
 }

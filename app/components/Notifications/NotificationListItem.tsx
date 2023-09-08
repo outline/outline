@@ -40,7 +40,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
   };
 
   return (
-    <Link to={notification.path} onClick={handleClick}>
+    <Link to={notification.path ?? ""} onClick={handleClick}>
       <Container gap={8} $unread={!notification.viewedAt}>
         <StyledAvatar model={notification.actor} size={AvatarSize.Large} />
         <Flex column>
