@@ -1,5 +1,12 @@
 import data, { type EmojiMartData } from "@emoji-mart/data";
-import snakeCase from "lodash/snakeCase";
+
+const gemojiToEmojiMart = {
+  thumbs_up: "+1",
+  thumbs_down: "-1",
+};
+
+export const snakeCase = (str: string) =>
+  str.replace(/(\w)(-)(\w)/g, "$1_$2").toLowerCase();
 
 /**
  * A map of emoji shortcode to emoji character. The shortcode is snake cased
@@ -7,7 +14,8 @@ import snakeCase from "lodash/snakeCase";
  */
 export const nameToEmoji = Object.values((data as EmojiMartData).emojis).reduce(
   (acc, emoji) => {
-    acc[snakeCase(emoji.id)] = emoji.skins[0].native;
+    const normalizedId = gemojiToEmojiMart[emoji.id] || emoji.id;
+    acc[snakeCase(normalizedId)] = emoji.skins[0].native;
     return acc;
   },
   {}
