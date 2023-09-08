@@ -106,22 +106,4 @@ export default class LocalStorage extends BaseStorage {
     const filePath = path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
     return createReadStream(filePath);
   }
-
-  public async getFileBuffer(key: string) {
-    const stream = this.getFileStream(key);
-    return new Promise<Buffer>((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      if (!stream) {
-        return reject(new Error("No stream available"));
-      }
-
-      stream.on("data", function (d) {
-        chunks.push(d as Buffer);
-      });
-      stream.once("end", () => {
-        resolve(Buffer.concat(chunks));
-      });
-      stream.once("error", reject);
-    });
-  }
 }

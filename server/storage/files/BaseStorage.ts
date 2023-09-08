@@ -30,13 +30,6 @@ export default abstract class BaseStorage {
   public abstract getFileStream(key: string): NodeJS.ReadableStream | null;
 
   /**
-   * Returns a buffer of a file from the storage provider.
-   *
-   * @param key The path to the file
-   */
-  public abstract getFileBuffer(key: string): Promise<Buffer>;
-
-  /**
    * Returns the upload URL for the storage provider.
    *
    * @param isServerUpload Whether the upload is happening on the server or not
@@ -86,6 +79,29 @@ export default abstract class BaseStorage {
     key: string;
     acl?: string;
   }): Promise<string | undefined>;
+
+  /**
+   * Returns a buffer of a file from the storage provider.
+   *
+   * @param key The path to the file
+   */
+  public async getFileBuffer(key: string) {
+    const stream = this.getFileStream(key);
+    return new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      if (!stream) {
+        return reject(new Error("No stream available"));
+      }
+
+      stream.on("data", (d) => {
+        chunks.push(d);
+      });
+      stream.once("end", () => {
+        resolve(Buffer.concat(chunks));
+      });
+      stream.once("error", reject);
+    });
+  }
 
   /**
    * Upload a file to the storage provider directly from a remote or base64 encoded URL.
