@@ -18,24 +18,48 @@ class Notification extends BaseModel {
   @observable
   id: string;
 
+  /**
+   * The date the notification was marked as read.
+   */
   @Field
   @observable
   viewedAt: Date | null;
 
+  /**
+   * The date the notification was archived.
+   */
   @Field
   @observable
   archivedAt: Date | null;
 
+  /**
+   * The user that triggered the notification.
+   */
   actor?: User;
 
+  /**
+   * The document ID that the notification is associated with.
+   */
   documentId?: string;
 
-  collectionId?: string;
-
+  /**
+   * The document that the notification is associated with.
+   */
   document?: Document;
 
+  /**
+   * The collection ID that the notification is associated with.
+   */
+  collectionId?: string;
+
+  /**
+   * The comment that the notification is associated with.
+   */
   comment?: Comment;
 
+  /**
+   * The type of notification.
+   */
   event: NotificationEventType;
 
   /**
@@ -72,23 +96,29 @@ class Notification extends BaseModel {
    */
   eventText(t: TFunction): string {
     switch (this.event) {
-      case "documents.publish":
+      case NotificationEventType.PublishDocument:
         return t("published");
-      case "documents.update":
-      case "revisions.create":
+      case NotificationEventType.UpdateDocument:
+      case NotificationEventType.CreateRevision:
         return t("edited");
-      case "collections.create":
+      case NotificationEventType.CreateCollection:
         return t("created the collection");
-      case "documents.mentioned":
-      case "comments.mentioned":
+      case NotificationEventType.MentionedInDocument:
+      case NotificationEventType.MentionedInComment:
         return t("mentioned you in");
-      case "comments.create":
+      case NotificationEventType.CreateComment:
         return t("left a comment on");
       default:
         return this.event;
     }
   }
 
+  /**
+   * Returns the subject of the notification. This is the title of the associated
+   * document.
+   *
+   * @returns The subject
+   */
   get subject() {
     return this.document?.title;
   }
@@ -131,10 +161,9 @@ class Notification extends BaseModel {
       case NotificationEventType.ExportCompleted: {
         return settingsPath("export");
       }
-      default: {
-        const check: never = this.event;
-        throw new Error(`Unhandled case: ${check}`);
-      }
+      default:
+        this.event satisfies never;
+        return;
     }
   }
 }
