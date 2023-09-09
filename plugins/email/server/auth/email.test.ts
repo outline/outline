@@ -3,13 +3,11 @@ import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import { AuthenticationProvider } from "@server/models";
 import { buildUser, buildGuestUser, buildTeam } from "@server/test/factories";
-import { getTestServer, setCloudHosted } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
 describe("email", () => {
-  beforeEach(setCloudHosted);
-
   it("should require email param", async () => {
     const res = await server.post("/auth/email", {
       body: {},
@@ -49,11 +47,11 @@ describe("email", () => {
     // Disable all the auth providers
     await AuthenticationProvider.update(
       {
-        teamId: team.id,
         enabled: false,
       },
       {
         where: {
+          teamId: team.id,
           enabled: true,
         },
       }

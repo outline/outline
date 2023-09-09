@@ -4,7 +4,7 @@ import { buildInvite } from "@server/test/factories";
 import InviteReminderTask from "./InviteReminderTask";
 
 describe("InviteReminderTask", () => {
-  it("should not destroy documents not deleted", async () => {
+  it("should send reminder emails", async () => {
     const spy = jest.spyOn(InviteReminderEmail.prototype, "schedule");
 
     // too old

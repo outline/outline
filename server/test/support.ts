@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import TestServer from "fetch-test-server";
 import { WhereOptions } from "sequelize";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
@@ -6,20 +7,18 @@ import { Event } from "@server/models";
 import onerror from "@server/onerror";
 import webService from "@server/services/web";
 import { sequelize } from "@server/storage/database";
-import TestServer from "./TestServer";
 
 export function getTestServer() {
   const app = webService();
   onerror(app);
-  const server = new TestServer(app);
+  const server = new TestServer(app.callback());
 
-  const disconnect = async () => {
+  server.disconnect = async () => {
     await sequelize.close();
-    return server.close();
+    server.close();
   };
 
-  afterAll(disconnect);
-
+  afterAll(server.disconnect);
   return server;
 }
 
@@ -27,14 +26,14 @@ export function getTestServer() {
  * Set the environment to be cloud hosted.
  */
 export function setCloudHosted() {
-  return (env.URL = sharedEnv.URL = "https://app.outline.dev");
+  env.URL = sharedEnv.URL = "https://app.outline.dev";
 }
 
 /**
  * Set the environment to be self hosted.
  */
 export function setSelfHosted() {
-  return (env.URL = sharedEnv.URL = faker.internet.domainName());
+  env.URL = sharedEnv.URL = `https://${faker.internet.domainName()}`;
 }
 
 export function findLatestEvent(where: WhereOptions<Event> = {}) {

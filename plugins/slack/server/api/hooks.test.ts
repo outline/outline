@@ -1,3 +1,5 @@
+import randomstring from "randomstring";
+import { v4 as uuidv4 } from "uuid";
 import { IntegrationService } from "@shared/types";
 import env from "@server/env";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
@@ -17,7 +19,7 @@ jest.mock("../slack", () => ({
 const server = getTestServer();
 
 describe("#hooks.unfurl", () => {
-  it("should return documents", async () => {
+  it("should return documents with matching SSO user", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
@@ -28,18 +30,19 @@ describe("#hooks.unfurl", () => {
       service: IntegrationService.Slack,
       userId: user.id,
       teamId: user.teamId,
-      token: "",
+      token: uuidv4(),
     });
+
     const res = await server.post("/api/hooks.unfurl", {
       body: {
         token: env.SLACK_VERIFICATION_TOKEN,
-        team_id: "TXXXXXXXX",
-        api_app_id: "AXXXXXXXXX",
+        team_id: `T${randomstring.generate(8)}`,
+        api_app_id: `A${randomstring.generate(8)}`,
         event: {
           type: "link_shared",
-          channel: "Cxxxxxx",
+          channel: `C${randomstring.generate(8)}`,
           user: user.authentications[0].providerId,
-          message_ts: "123456789.9875",
+          message_ts: randomstring.generate(12),
           links: [
             {
               domain: "getoutline.com",

@@ -26,7 +26,8 @@ type LogCategory =
   | "queue"
   | "websockets"
   | "database"
-  | "utils";
+  | "utils"
+  | "plugins";
 type Extra = Record<string, any>;
 
 class Logger {

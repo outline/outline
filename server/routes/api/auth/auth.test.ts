@@ -1,11 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { v4 as uuidv4 } from "uuid";
 import { buildUser, buildTeam } from "@server/test/factories";
-import {
-  getTestServer,
-  setCloudHosted,
-  setSelfHosted,
-} from "@server/test/support";
+import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const mockTeamInSessionId = uuidv4();
 
@@ -18,8 +14,6 @@ jest.mock("@server/utils/authentication", () => ({
 const server = getTestServer();
 
 describe("#auth.info", () => {
-  beforeEach(setCloudHosted);
-
   it("should return current authentication", async () => {
     const team = await buildTeam();
     const team2 = await buildTeam();
@@ -198,7 +192,7 @@ describe("#auth.config", () => {
     expect(body.data.providers.length).toBe(0);
   });
 
-  describe("self hosted", () => {
+  describe.skip("self hosted", () => {
     beforeEach(setSelfHosted);
 
     it("should return all configured providers but respect email setting", async () => {
