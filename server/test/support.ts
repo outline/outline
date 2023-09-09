@@ -17,6 +17,8 @@ export function getTestServer() {
   };
 
   afterAll(server.disconnect);
+  beforeEach(setCloudHosted);
+
   return server;
 }
 
