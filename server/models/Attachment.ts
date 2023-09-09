@@ -185,6 +185,18 @@ class Attachment extends IdModel {
     return attachment;
   }
 
+  /**
+   * Get the attachment given a key
+   *
+   * @param key The key representing attachment file path
+   * @returns A promise resolving to attachment corresponding to the key
+   */
+
+  static async findByKey(key: string): Promise<Attachment> {
+    const id = key.split("/")[2];
+    return this.findByPk(id, { rejectOnEmpty: true });
+  }
+
   // associations
 
   @BelongsTo(() => Team, "teamId")

@@ -1,14 +1,10 @@
 import Router from "koa-router";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import env from "@server/env";
-import {
-  AuthenticationError,
-  InvalidRequestError,
-  NotFoundError,
-} from "@server/errors";
+import { AuthenticationError, InvalidRequestError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
-import { Attachment, Team } from "@server/models";
+import { Attachment } from "@server/models";
 import { authorize } from "@server/policies";
 import { APIContext } from "@server/types";
 import { getFileFromRequest } from "@server/utils/koa";
@@ -46,16 +42,10 @@ router.post(
     const { key } = ctx.input.body;
     const actor = ctx.state.auth.user;
 
-    const id = key.split("/")[2];
-    const attachment = await Attachment.findByPk(id, { rejectOnEmpty: true });
-
-    if (!attachment) {
-      throw NotFoundError("Supplied file path doesn't exist");
-    }
+    const attachment = await Attachment.findByKey(key);
 
     if (attachment.isPrivate) {
-      const team = await Team.findByPk(actor.teamId, { rejectOnEmpty: true });
-      authorize(actor, "createAttachment", team);
+      authorize(actor, "createAttachment", actor.team);
     }
 
     await attachment.saveFile(file);
@@ -75,14 +65,9 @@ router.get(
     const actor = ctx.state.auth.user;
     let attachment: Attachment | null;
     if (key) {
-      const id = key.split("/")[2];
-      attachment = await Attachment.findByPk(id, { rejectOnEmpty: true });
+      attachment = await Attachment.findByKey(key);
     } else {
       attachment = await Attachment.findBySignature(sig!);
-    }
-
-    if (!attachment) {
-      throw NotFoundError("File doesn't exist");
     }
 
     if (attachment.isPrivate) {
@@ -92,9 +77,8 @@ router.get(
       authorize(actor, "read", attachment);
     }
 
-    const fileName = attachment.key.split("/")[3];
     ctx.set("Content-Type", attachment.contentType);
-    ctx.attachment(fileName);
+    ctx.attachment(attachment.name);
     ctx.body = attachment.stream;
   }
 );
