@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import { CollectionPermission } from "@shared/types";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
 import CollectionUser from "./CollectionUser";
@@ -42,10 +43,11 @@ describe("user model", () => {
 
   describe("availableTeams", () => {
     it("should return teams where another user with the same email exists", async () => {
+      const email = faker.internet.email().toLowerCase();
       const user = await buildUser({
-        email: "user-available-teams@example.com",
+        email,
       });
-      const anotherUser = await buildUser({ email: user.email });
+      const anotherUser = await buildUser({ email });
 
       const response = await user.availableTeams();
       expect(response.length).toEqual(2);

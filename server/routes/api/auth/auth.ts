@@ -27,7 +27,9 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
   if (!env.isCloudHosted) {
-    const team = await Team.scope("withAuthenticationProviders").findOne();
+    const team = await Team.scope("withAuthenticationProviders").findOne({
+      order: [["createdAt", "DESC"]],
+    });
 
     if (team) {
       ctx.body = {

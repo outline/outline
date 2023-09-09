@@ -1,6 +1,6 @@
+import { Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { findLatestEvent } from "@server/test/support";
 import documentUpdater from "./documentUpdater";
 
 describe("documentUpdater", () => {
@@ -22,7 +22,9 @@ describe("documentUpdater", () => {
       })
     );
 
-    const event = await findLatestEvent();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
     expect(document.lastModifiedById).toEqual(user.id);
     expect(event!.name).toEqual("documents.update");
     expect(event!.documentId).toEqual(document.id);

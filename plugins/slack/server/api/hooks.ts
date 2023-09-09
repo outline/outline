@@ -70,20 +70,31 @@ router.post(
           model: UserAuthentication,
           as: "authentications",
           required: true,
-          separate: true,
         },
       ],
     });
     if (!user) {
+      Logger.debug("plugins", "No user found for Slack user ID", {
+        providerId: event.user,
+      });
       return;
     }
+
     const auth = await IntegrationAuthentication.findOne({
       where: {
         service: IntegrationService.Slack,
         teamId: user.teamId,
       },
     });
+
     if (!auth) {
+      Logger.debug(
+        "plugins",
+        "No Slack integration authentication found for team",
+        {
+          teamId: user.teamId,
+        }
+      );
       return;
     }
     // get content for unfurled links

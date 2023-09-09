@@ -26,7 +26,7 @@ describe("ImportMarkdownZipTask", () => {
     expect(response.collections.size).toEqual(1);
     expect(response.documents.size).toEqual(8);
     expect(response.attachments.size).toEqual(6);
-  });
+  }, 10000);
 
   it("should throw an error with corrupt zip", async () => {
     const fileOperation = await buildFileOperation();

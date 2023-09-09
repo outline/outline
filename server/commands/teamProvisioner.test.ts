@@ -1,15 +1,13 @@
 import { faker } from "@faker-js/faker";
 import TeamDomain from "@server/models/TeamDomain";
 import { buildTeam, buildUser } from "@server/test/factories";
-import { setCloudHosted, setSelfHosted } from "@server/test/support";
+import { setSelfHosted } from "@server/test/support";
 import teamProvisioner from "./teamProvisioner";
 
 describe("teamProvisioner", () => {
   const ip = "127.0.0.1";
 
   describe("hosted", () => {
-    beforeEach(setCloudHosted);
-
     it("should create team and authentication provider", async () => {
       const subdomain = faker.internet.domainWord();
       const result = await teamProvisioner({

@@ -1,5 +1,5 @@
+import { Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { findLatestEvent } from "@server/test/support";
 import revisionCreator from "./revisionCreator";
 
 describe("revisionCreator", () => {
@@ -16,7 +16,7 @@ describe("revisionCreator", () => {
       user,
       ip,
     });
-    const event = await findLatestEvent({
+    const event = await Event.findLatest({
       teamId: user.teamId,
     });
     expect(revision.documentId).toEqual(document.id);

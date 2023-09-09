@@ -1,6 +1,5 @@
-import { Star } from "@server/models";
+import { Event, Star } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { findLatestEvent } from "@server/test/support";
 import starDestroyer from "./starDestroyer";
 
 describe("starDestroyer", () => {
@@ -34,7 +33,9 @@ describe("starDestroyer", () => {
     });
     expect(count).toEqual(0);
 
-    const event = await findLatestEvent();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
     expect(event!.name).toEqual("stars.delete");
     expect(event!.modelId).toEqual(star.id);
   });

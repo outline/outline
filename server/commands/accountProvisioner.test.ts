@@ -5,18 +5,16 @@ import { TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
 import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
-import { setCloudHosted, setSelfHosted } from "@server/test/support";
+import { setSelfHosted } from "@server/test/support";
 import accountProvisioner from "./accountProvisioner";
 
 describe("accountProvisioner", () => {
   const ip = "127.0.0.1";
 
   describe("hosted", () => {
-    beforeEach(setCloudHosted);
-
     it("should create a new user and team", async () => {
       const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
-      const email = faker.internet.email();
+      const email = faker.internet.email().toLowerCase();
       const { user, team, isNewTeam, isNewUser } = await accountProvisioner({
         ip,
         user: {
@@ -69,7 +67,7 @@ describe("accountProvisioner", () => {
       });
       const authentications = await existing.$get("authentications");
       const authentication = authentications[0];
-      const newEmail = faker.internet.email();
+      const newEmail = faker.internet.email().toLowerCase();
       const { user, isNewUser, isNewTeam } = await accountProvisioner({
         ip,
         user: {
@@ -104,14 +102,15 @@ describe("accountProvisioner", () => {
       spy.mockRestore();
     });
 
-    it.skip("should allow authentication by email matching", async () => {
+    it("should allow authentication by email matching", async () => {
       const subdomain = faker.internet.domainWord();
       const existingTeam = await buildTeam({
         subdomain,
       });
+
       const providers = await existingTeam.$get("authenticationProviders");
       const authenticationProvider = providers[0];
-      const email = faker.internet.email();
+      const email = faker.internet.email().toLowerCase();
       const userWithoutAuth = await buildUser({
         email,
         teamId: existingTeam.id,
@@ -196,7 +195,7 @@ describe("accountProvisioner", () => {
       const admin = await buildAdmin({ teamId: existingTeam.id });
       const providers = await existingTeam.$get("authenticationProviders");
       const authenticationProvider = providers[0];
-      const email = faker.internet.email();
+      const email = faker.internet.email().toLowerCase();
 
       await TeamDomain.create({
         teamId: existingTeam.id,
@@ -299,7 +298,7 @@ describe("accountProvisioner", () => {
         "authenticationProviders"
       );
       const authenticationProvider = authenticationProviders[0];
-      const email = faker.internet.email();
+      const email = faker.internet.email().toLowerCase();
       const { user, isNewUser } = await accountProvisioner({
         ip,
         user: {
