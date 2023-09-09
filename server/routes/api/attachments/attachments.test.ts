@@ -36,8 +36,10 @@ describe("#attachments.create", () => {
       expect(res.status).toEqual(200);
 
       const body = await res.json();
-      const attachment = await Attachment.findByPk(body.data.attachment.id);
-      expect(attachment!.expiresAt).toBeNull();
+      const attachment = await Attachment.findByPk(body.data.attachment.id, {
+        rejectOnEmpty: true,
+      });
+      expect(attachment.expiresAt).toBeNull();
     });
 
     it("should allow attachment creation for documents", async () => {
@@ -71,8 +73,10 @@ describe("#attachments.create", () => {
       expect(res.status).toEqual(200);
 
       const body = await res.json();
-      const attachment = await Attachment.findByPk(body.data.attachment.id);
-      expect(attachment!.expiresAt).toBeTruthy();
+      const attachment = await Attachment.findByPk(body.data.attachment.id, {
+        rejectOnEmpty: true,
+      });
+      expect(attachment.expiresAt).toBeTruthy();
     });
 
     it("should not allow attachment creation for other documents", async () => {

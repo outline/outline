@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
+import randomstring from "randomstring";
 import { v4 as uuidv4 } from "uuid";
 import {
   CollectionPermission,
@@ -23,7 +24,6 @@ import {
   Attachment,
   IntegrationAuthentication,
   Integration,
-  AuthenticationProvider,
   FileOperation,
   WebhookSubscription,
   WebhookDelivery,
@@ -77,7 +77,9 @@ export async function buildStar(overrides: Partial<Star> = {}) {
   let user;
 
   if (overrides.userId) {
-    user = await User.findByPk(overrides.userId);
+    user = await User.findByPk(overrides.userId, {
+      rejectOnEmpty: true,
+    });
   } else {
     user = await buildUser();
     overrides.userId = user.id;
@@ -86,7 +88,7 @@ export async function buildStar(overrides: Partial<Star> = {}) {
   if (!overrides.documentId) {
     const document = await buildDocument({
       createdById: overrides.userId,
-      teamId: user?.teamId,
+      teamId: user.teamId,
     });
     overrides.documentId = document.id;
   }
@@ -101,7 +103,9 @@ export async function buildSubscription(overrides: Partial<Subscription> = {}) {
   let user;
 
   if (overrides.userId) {
-    user = await User.findByPk(overrides.userId);
+    user = await User.findByPk(overrides.userId, {
+      rejectOnEmpty: true,
+    });
   } else {
     user = await buildUser();
     overrides.userId = user.id;
@@ -110,7 +114,7 @@ export async function buildSubscription(overrides: Partial<Subscription> = {}) {
   if (!overrides.documentId) {
     const document = await buildDocument({
       createdById: overrides.userId,
-      teamId: user?.teamId,
+      teamId: user.teamId,
     });
     overrides.documentId = document.id;
   }
@@ -129,7 +133,7 @@ export function buildTeam(overrides: Record<string, any> = {}) {
       authenticationProviders: [
         {
           name: "slack",
-          providerId: uuidv4().replace(/-/g, ""),
+          providerId: randomstring.generate(32),
         },
       ],
       ...overrides,
@@ -170,14 +174,14 @@ export async function buildUser(overrides: Partial<User> = {}) {
     team = await buildTeam();
     overrides.teamId = team.id;
   } else {
-    team = await Team.findByPk(overrides.teamId);
+    team = await Team.findByPk(overrides.teamId, {
+      include: "authenticationProviders",
+      rejectOnEmpty: true,
+      paranoid: false,
+    });
   }
 
-  const authenticationProvider = await AuthenticationProvider.findOne({
-    where: {
-      teamId: overrides.teamId,
-    },
-  });
+  const authenticationProvider = team.authenticationProviders[0];
   const user = await User.create(
     {
       email: faker.internet.email().toLowerCase(),
@@ -189,7 +193,7 @@ export async function buildUser(overrides: Partial<User> = {}) {
         ? [
             {
               authenticationProviderId: authenticationProvider.id,
-              providerId: uuidv4().replace(/-/g, ""),
+              providerId: randomstring.generate(32),
             },
           ]
         : [],
@@ -246,7 +250,7 @@ export async function buildIntegration(overrides: Partial<Integration> = {}) {
     service: IntegrationService.Slack,
     userId: user.id,
     teamId: user.teamId,
-    token: "fake-access-token",
+    token: randomstring.generate(32),
     scopes: ["example", "scopes", "here"],
   });
   return Integration.create({

@@ -1,5 +1,4 @@
 import randomstring from "randomstring";
-import { v4 as uuidv4 } from "uuid";
 import { IntegrationService } from "@shared/types";
 import env from "@server/env";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
@@ -30,7 +29,7 @@ describe("#hooks.unfurl", () => {
       service: IntegrationService.Slack,
       userId: user.id,
       teamId: user.teamId,
-      token: uuidv4(),
+      token: randomstring.generate(32),
     });
 
     const res = await server.post("/api/hooks.unfurl", {

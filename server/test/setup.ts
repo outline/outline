@@ -1,4 +1,5 @@
 import Redis from "@server/storage/redis";
+import { setCloudHosted } from "./support";
 
 require("@server/storage/database");
 
@@ -22,3 +23,5 @@ jest.mock("aws-sdk", () => {
 });
 
 afterAll(() => Redis.defaultClient.disconnect());
+
+beforeEach(setCloudHosted);
