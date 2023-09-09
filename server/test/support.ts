@@ -1,23 +1,25 @@
-import TestServer from "fetch-test-server";
+import { faker } from "@faker-js/faker";
 import { WhereOptions } from "sequelize";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
-import { Event, Team } from "@server/models";
+import { Event } from "@server/models";
 import onerror from "@server/onerror";
 import webService from "@server/services/web";
 import { sequelize } from "@server/storage/database";
+import TestServer from "./TestServer";
 
 export function getTestServer() {
   const app = webService();
   onerror(app);
-  const server = new TestServer(app.callback());
+  const server = new TestServer(app);
 
-  server.disconnect = async () => {
+  const disconnect = async () => {
     await sequelize.close();
-    server.close();
+    return server.close();
   };
 
-  afterAll(server.disconnect);
+  afterAll(disconnect);
+
   return server;
 }
 
@@ -31,14 +33,8 @@ export function setCloudHosted() {
 /**
  * Set the environment to be self hosted.
  */
-export async function setSelfHosted() {
-  env.URL = sharedEnv.URL = "https://wiki.example.com";
-
-  // Self hosted deployments only have one team, to ensure behavior is correct
-  // we need to delete all teams before running tests
-  return Team.destroy({
-    truncate: true,
-  });
+export function setSelfHosted() {
+  return (env.URL = sharedEnv.URL = faker.internet.domainName());
 }
 
 export function findLatestEvent(where: WhereOptions<Event> = {}) {

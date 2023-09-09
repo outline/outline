@@ -33,7 +33,7 @@ describe("teams.create", () => {
   });
 
   it("requires a cloud hosted deployment", async () => {
-    await setSelfHosted();
+    setSelfHosted();
 
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });

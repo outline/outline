@@ -198,11 +198,11 @@ describe("#auth.config", () => {
     expect(body.data.providers.length).toBe(0);
   });
 
-  describe.skip("self hosted", () => {
+  describe("self hosted", () => {
     beforeEach(setSelfHosted);
 
     it("should return all configured providers but respect email setting", async () => {
-      await buildTeam({
+      const team = await buildTeam({
         guestSignin: false,
         authenticationProviders: [
           {
@@ -211,7 +211,7 @@ describe("#auth.config", () => {
           },
         ],
       });
-      const res = await server.post("/api/auth.config");
+      const res = await server.post("/api/auth.config", team);
       const body = await res.json();
       expect(res.status).toEqual(200);
       expect(body.data.providers.length).toBe(3);
@@ -221,7 +221,7 @@ describe("#auth.config", () => {
     });
 
     it("should return email provider for team when guest signin enabled", async () => {
-      await buildTeam({
+      const team = await buildTeam({
         guestSignin: true,
         authenticationProviders: [
           {
@@ -230,7 +230,7 @@ describe("#auth.config", () => {
           },
         ],
       });
-      const res = await server.post("/api/auth.config");
+      const res = await server.post("/api/auth.config", team);
       const body = await res.json();
       expect(res.status).toEqual(200);
       expect(body.data.providers.length).toBe(4);

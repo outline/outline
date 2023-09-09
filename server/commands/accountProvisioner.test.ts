@@ -104,7 +104,7 @@ describe("accountProvisioner", () => {
       spy.mockRestore();
     });
 
-    it.skip("should allow authentication by email matching", async () => {
+    it("should allow authentication by email matching", async () => {
       const subdomain = faker.internet.domainWord();
       const existingTeam = await buildTeam({
         subdomain,

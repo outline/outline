@@ -10,6 +10,7 @@ import {
   IntegrationType,
   NotificationEventType,
 } from "@shared/types";
+import env from "@server/env";
 import {
   Share,
   Team,
@@ -126,6 +127,7 @@ export function buildTeam(overrides: Record<string, any> = {}) {
   return Team.create(
     {
       name: faker.company.name(),
+      domain: env.isCloudHosted ? undefined : env.URL,
       authenticationProviders: [
         {
           name: "slack",

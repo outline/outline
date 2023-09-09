@@ -2,8 +2,8 @@ import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
 import { setCloudHosted, setSelfHosted } from "@server/test/support";
 import { serialize } from "./index";
 
-it.skip("should allow reading only", async () => {
-  await setSelfHosted();
+it("should allow reading only", async () => {
+  setSelfHosted();
 
   const team = await buildTeam();
   const user = await buildUser({
@@ -19,8 +19,8 @@ it.skip("should allow reading only", async () => {
   expect(abilities.createIntegration).toEqual(false);
 });
 
-it.skip("should allow admins to manage", async () => {
-  await setSelfHosted();
+it("should allow admins to manage", async () => {
+  setSelfHosted();
 
   const team = await buildTeam();
   const admin = await buildAdmin({
