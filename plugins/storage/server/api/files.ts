@@ -3,10 +3,12 @@ import { bytesToHumanReadable } from "@shared/utils/files";
 import env from "@server/env";
 import { AuthenticationError, InvalidRequestError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { Attachment } from "@server/models";
 import { authorize } from "@server/policies";
 import { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getFileFromRequest } from "@server/utils/koa";
 import { createRootDirForLocalStorage } from "../utils";
 import * as T from "./schema";
@@ -17,6 +19,7 @@ const router = new Router();
 
 router.post(
   "files.create",
+  rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
   validate(T.FilesCreateSchema),
   async (ctx: APIContext<T.FilesCreateReq>) => {
