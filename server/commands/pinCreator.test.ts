@@ -1,5 +1,5 @@
+import { Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { findLatestEvent } from "@server/test/support";
 import pinCreator from "./pinCreator";
 
 describe("pinCreator", () => {
@@ -18,7 +18,9 @@ describe("pinCreator", () => {
       ip,
     });
 
-    const event = await findLatestEvent();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
     expect(pin.documentId).toEqual(document.id);
     expect(pin.collectionId).toEqual(null);
     expect(pin.createdById).toEqual(user.id);
@@ -41,7 +43,9 @@ describe("pinCreator", () => {
       ip,
     });
 
-    const event = await findLatestEvent();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
     expect(pin.documentId).toEqual(document.id);
     expect(pin.collectionId).toEqual(document.collectionId);
     expect(pin.createdById).toEqual(user.id);

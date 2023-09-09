@@ -1,9 +1,7 @@
 import { faker } from "@faker-js/faker";
 import TestServer from "fetch-test-server";
-import { WhereOptions } from "sequelize";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
-import { Event } from "@server/models";
 import onerror from "@server/onerror";
 import webService from "@server/services/web";
 import { sequelize } from "@server/storage/database";
@@ -34,11 +32,4 @@ export function setCloudHosted() {
  */
 export function setSelfHosted() {
   env.URL = sharedEnv.URL = `https://${faker.internet.domainName()}`;
-}
-
-export function findLatestEvent(where: WhereOptions<Event> = {}) {
-  return Event.findOne({
-    where,
-    order: [["createdAt", "DESC"]],
-  });
 }
