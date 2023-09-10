@@ -6,6 +6,7 @@ type Props = {
   id?: string;
   urlId?: string;
   title: string;
+  emoji?: string;
   text?: string;
   state?: Buffer;
   publish?: boolean;
@@ -28,6 +29,7 @@ type Props = {
 export default async function documentCreator({
   title = "",
   text = "",
+  emoji,
   state,
   id,
   urlId,
@@ -81,6 +83,7 @@ export default async function documentCreator({
       fullWidth,
       publishedAt,
       importId,
+      emoji: templateDocument ? templateDocument.emoji : emoji,
       title: templateDocument
         ? DocumentHelper.replaceTemplateVariables(templateDocument.title, user)
         : title,

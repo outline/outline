@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import queryString from "query-string";
 import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,8 +30,7 @@ function DocumentNew({ template }: Props) {
 
   useEffect(() => {
     async function createDocument() {
-      const params = queryString.parse(location.search);
-      const parentDocumentId = params.parentDocumentId?.toString();
+      const parentDocumentId = query.get("parentDocumentId") ?? undefined;
       const parentDocument = parentDocumentId
         ? documents.get(parentDocumentId)
         : undefined;
@@ -46,7 +44,7 @@ function DocumentNew({ template }: Props) {
           collectionId: collection?.id,
           parentDocumentId,
           fullWidth: parentDocument?.fullWidth,
-          templateId: params.templateId?.toString(),
+          templateId: query.get("templateId") ?? undefined,
           template,
           title: "",
           text: "",

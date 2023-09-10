@@ -10,6 +10,7 @@ import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import Separator from "~/components/ContextMenu/Separator";
+import EmojiIcon from "~/components/Icons/EmojiIcon";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { replaceTitleVariables } from "~/utils/date";
@@ -43,7 +44,9 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
     <MenuItem
       key={template.id}
       onClick={() => onSelectTemplate(template)}
-      icon={<DocumentIcon />}
+      icon={
+        template.emoji ? <EmojiIcon emoji={template.emoji} /> : <DocumentIcon />
+      }
       {...menu}
     >
       <TemplateItem>

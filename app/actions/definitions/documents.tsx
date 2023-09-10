@@ -42,6 +42,7 @@ import {
   homePath,
   newDocumentPath,
   searchPath,
+  documentPath,
 } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
@@ -85,6 +86,55 @@ export const createDocument = createAction({
       starred: inStarredSection,
     }),
 });
+
+/**
+ * Creates an action that creates a new document with the given options.
+ *
+ * @param options Options for the new document
+ * @param options.parentDocumentId The parent document to create a nested document.
+ * @param options.templateId The template to create the document from.
+ * @returns A new action
+ */
+export const createDocumentFactory = (options: {
+  parentDocumentId?: string;
+  templateId?: string;
+}) =>
+  createAction({
+    name: ({ t }) =>
+      options.templateId
+        ? t("New from template")
+        : options.parentDocumentId
+        ? t("New nested document")
+        : t("New document"),
+    analyticsName: "New document",
+    section: DocumentSection,
+    icon: <NewDocumentIcon />,
+    keywords: "create",
+    visible: ({ currentTeamId, stores }) => {
+      if (
+        options.parentDocumentId &&
+        !stores.policies.abilities(options.parentDocumentId).createChildDocument
+      ) {
+        return false;
+      }
+
+      if (
+        options.templateId &&
+        !stores.documents.get(options.templateId)?.template
+      ) {
+        return false;
+      }
+
+      return (
+        !!currentTeamId &&
+        stores.policies.abilities(currentTeamId).createDocument
+      );
+    },
+    perform: ({ activeCollectionId, inStarredSection }) =>
+      history.push(newDocumentPath(activeCollectionId, options), {
+        starred: inStarredSection,
+      }),
+  });
 
 export const starDocument = createAction({
   name: ({ t }) => t("Star"),
@@ -379,7 +429,7 @@ export const duplicateDocument = createAction({
     invariant(document, "Document must exist");
     const duped = await document.duplicate();
     // when duplicating, go straight to the duplicated document content
-    history.push(duped.url);
+    history.push(documentPath(duped));
     stores.toasts.showToast(t("Document duplicated"), {
       type: "success",
     });

@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { EditIcon, NewDocumentIcon, RestoreIcon } from "outline-icons";
+import { EditIcon, RestoreIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -38,6 +38,7 @@ import {
   unpublishDocument,
   printDocument,
   openDocumentComments,
+  createDocumentFactory,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -47,7 +48,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
-import { documentEditPath, newDocumentPath } from "~/utils/routeHelpers";
+import { documentEditPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -266,15 +267,10 @@ function DocumentMenu({
               visible: !!can.update && user.separateEditMode,
               icon: <EditIcon />,
             },
-            {
-              type: "route",
-              title: t("New nested document"),
-              to: newDocumentPath(document.collectionId, {
-                parentDocumentId: document.id,
-              }),
-              visible: !!can.createChildDocument,
-              icon: <NewDocumentIcon />,
-            },
+            actionToMenuItem(
+              createDocumentFactory({ parentDocumentId: document.id }),
+              context
+            ),
             actionToMenuItem(importDocument, context),
             actionToMenuItem(createTemplate, context),
             actionToMenuItem(duplicateDocument, context),
@@ -283,6 +279,10 @@ function DocumentMenu({
             actionToMenuItem(archiveDocument, context),
             actionToMenuItem(moveDocument, context),
             actionToMenuItem(pinDocument, context),
+            actionToMenuItem(
+              createDocumentFactory({ templateId: document.id }),
+              context
+            ),
             {
               type: "separator",
             },
