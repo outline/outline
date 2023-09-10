@@ -1,11 +1,5 @@
 import { observer } from "mobx-react";
-import {
-  EditIcon,
-  SearchIcon,
-  ShapesIcon,
-  HomeIcon,
-  SidebarIcon,
-} from "outline-icons";
+import { EditIcon, SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -21,12 +15,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import OrganizationMenu from "~/menus/OrganizationMenu";
 import { metaDisplay } from "~/utils/keyboard";
-import {
-  homePath,
-  draftsPath,
-  templatesPath,
-  searchPath,
-} from "~/utils/routeHelpers";
+import { homePath, draftsPath, searchPath } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
@@ -52,7 +41,6 @@ function AppSidebar() {
   React.useEffect(() => {
     if (!user.isViewer) {
       void documents.fetchDrafts();
-      void documents.fetchTemplates();
     }
   }, [documents, user.isViewer]);
 
@@ -138,19 +126,6 @@ function AppSidebar() {
             <Section>
               {can.createDocument && (
                 <>
-                  <SidebarLink
-                    to={templatesPath()}
-                    icon={<ShapesIcon />}
-                    exact={false}
-                    label={t("Templates")}
-                    active={
-                      documents.active
-                        ? documents.active.isTemplate &&
-                          !documents.active.isDeleted &&
-                          !documents.active.isArchived
-                        : undefined
-                    }
-                  />
                   <ArchiveLink />
                   <TrashLink />
                 </>

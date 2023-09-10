@@ -11,10 +11,6 @@ export function draftsPath(): string {
   return "/drafts";
 }
 
-export function templatesPath(): string {
-  return "/templates";
-}
-
 export function archivePath(): string {
   return "/archive";
 }
@@ -54,18 +50,18 @@ export function documentPath(doc: Document): string {
 }
 
 export function documentEditPath(doc: Document): string {
-  return `${doc.url}/edit`;
+  return `${documentPath(doc)}/edit`;
 }
 
 export function documentInsightsPath(doc: Document): string {
-  return `${doc.url}/insights`;
+  return `${documentPath(doc)}/insights`;
 }
 
 export function documentHistoryPath(
   doc: Document,
   revisionId?: string
 ): string {
-  let base = `${doc.url}/history`;
+  let base = `${documentPath(doc)}/history`;
   if (revisionId) {
     base += `/${revisionId}`;
   }

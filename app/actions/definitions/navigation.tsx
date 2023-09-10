@@ -6,7 +6,6 @@ import {
   EditIcon,
   OpenIcon,
   SettingsIcon,
-  ShapesIcon,
   KeyboardIcon,
   EmailIcon,
   LogoutIcon,
@@ -33,7 +32,6 @@ import {
   homePath,
   searchPath,
   draftsPath,
-  templatesPath,
   archivePath,
   trashPath,
   settingsPath,
@@ -65,15 +63,6 @@ export const navigateToDrafts = createAction({
   icon: <EditIcon />,
   perform: () => history.push(draftsPath()),
   visible: ({ location }) => location.pathname !== draftsPath(),
-});
-
-export const navigateToTemplates = createAction({
-  name: ({ t }) => t("Templates"),
-  analyticsName: "Navigate to templates",
-  section: NavigationSection,
-  icon: <ShapesIcon />,
-  perform: () => history.push(templatesPath()),
-  visible: ({ location }) => location.pathname !== templatesPath(),
 });
 
 export const navigateToArchive = createAction({
@@ -216,7 +205,6 @@ export const logout = createAction({
 export const rootNavigationActions = [
   navigateToHome,
   navigateToDrafts,
-  navigateToTemplates,
   navigateToArchive,
   navigateToTrash,
   downloadApp,

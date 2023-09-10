@@ -775,7 +775,11 @@ export const openDocumentInsights = createAction({
   icon: <LightBulbIcon />,
   visible: ({ activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
-    return !!activeDocumentId && can.read;
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+
+    return !!activeDocumentId && can.read && !document?.isTemplate;
   },
   perform: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {

@@ -24,6 +24,11 @@ function NewTemplateMenu() {
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
   const can = usePolicy(team);
+  React.useEffect(() => {
+    void collections.fetchPage({
+      limit: 100,
+    });
+  }, [collections]);
 
   const items = React.useMemo(
     () =>

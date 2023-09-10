@@ -12,38 +12,43 @@ import {
   SettingsIcon,
   ExportIcon,
   ImportIcon,
+  ShapesIcon,
+  Icon,
 } from "outline-icons";
-import React from "react";
+import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
-import ApiKeys from "~/scenes/Settings/ApiKeys";
-import Details from "~/scenes/Settings/Details";
-import Export from "~/scenes/Settings/Export";
-import Features from "~/scenes/Settings/Features";
-import GoogleAnalytics from "~/scenes/Settings/GoogleAnalytics";
-import Groups from "~/scenes/Settings/Groups";
-import Import from "~/scenes/Settings/Import";
-import Members from "~/scenes/Settings/Members";
-import Notifications from "~/scenes/Settings/Notifications";
-import Preferences from "~/scenes/Settings/Preferences";
-import Profile from "~/scenes/Settings/Profile";
-import Security from "~/scenes/Settings/Security";
-import SelfHosted from "~/scenes/Settings/SelfHosted";
-import Shares from "~/scenes/Settings/Shares";
-import Zapier from "~/scenes/Settings/Zapier";
 import GoogleIcon from "~/components/Icons/GoogleIcon";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
 import PluginLoader from "~/utils/PluginLoader";
 import isCloudHosted from "~/utils/isCloudHosted";
+import lazy from "~/utils/lazyWithRetry";
 import { settingsPath } from "~/utils/routeHelpers";
 import useCurrentTeam from "./useCurrentTeam";
 import usePolicy from "./usePolicy";
 
+const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
+const Details = lazy(() => import("~/scenes/Settings/Details"));
+const Export = lazy(() => import("~/scenes/Settings/Export"));
+const Features = lazy(() => import("~/scenes/Settings/Features"));
+const GoogleAnalytics = lazy(() => import("~/scenes/Settings/GoogleAnalytics"));
+const Groups = lazy(() => import("~/scenes/Settings/Groups"));
+const Import = lazy(() => import("~/scenes/Settings/Import"));
+const Members = lazy(() => import("~/scenes/Settings/Members"));
+const Notifications = lazy(() => import("~/scenes/Settings/Notifications"));
+const Preferences = lazy(() => import("~/scenes/Settings/Preferences"));
+const Profile = lazy(() => import("~/scenes/Settings/Profile"));
+const Security = lazy(() => import("~/scenes/Settings/Security"));
+const SelfHosted = lazy(() => import("~/scenes/Settings/SelfHosted"));
+const Shares = lazy(() => import("~/scenes/Settings/Shares"));
+const Templates = lazy(() => import("~/scenes/Settings/Templates"));
+const Zapier = lazy(() => import("~/scenes/Settings/Zapier"));
+
 export type ConfigItem = {
   name: string;
   path: string;
-  icon: React.FC<any>;
-  component: React.ComponentType<any>;
+  icon: React.FC<ComponentProps<typeof Icon>>;
+  component: React.ComponentType;
   enabled: boolean;
   group: string;
 };
@@ -55,6 +60,7 @@ const useSettingsConfig = () => {
 
   const config = React.useMemo(() => {
     const items: ConfigItem[] = [
+      // Account
       {
         name: t("Profile"),
         path: settingsPath(),
@@ -87,7 +93,7 @@ const useSettingsConfig = () => {
         group: t("Account"),
         icon: CodeIcon,
       },
-      // Team group
+      // Workspace
       {
         name: t("Details"),
         path: settingsPath("details"),
@@ -129,6 +135,14 @@ const useSettingsConfig = () => {
         icon: GroupIcon,
       },
       {
+        name: t("Templates"),
+        path: settingsPath("templates"),
+        component: Templates,
+        enabled: true,
+        group: t("Workspace"),
+        icon: ShapesIcon,
+      },
+      {
         name: t("Shared Links"),
         path: settingsPath("shares"),
         component: Shares,
@@ -152,6 +166,7 @@ const useSettingsConfig = () => {
         group: t("Workspace"),
         icon: ExportIcon,
       },
+      // Integrations
       {
         name: t("Self Hosted"),
         path: integrationSettingsPath("self-hosted"),
@@ -190,6 +205,7 @@ const useSettingsConfig = () => {
       const item = {
         name: t(plugin.config.name),
         path: integrationSettingsPath(plugin.id),
+        // TODO: Remove hardcoding of plugin id here
         group: plugin.id === "collections" ? t("Workspace") : t("Integrations"),
         component: plugin.settings,
         enabled: enabledInDeployment && hasSettings && can.update,

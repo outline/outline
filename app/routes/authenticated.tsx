@@ -10,18 +10,17 @@ import Route from "~/components/ProfiledRoute";
 import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazy from "~/utils/lazyWithRetry";
 import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 
-const SettingsRoutes = lazyWithRetry(() => import("./settings"));
-const Archive = lazyWithRetry(() => import("~/scenes/Archive"));
-const Collection = lazyWithRetry(() => import("~/scenes/Collection"));
-const Document = lazyWithRetry(() => import("~/scenes/Document"));
-const Drafts = lazyWithRetry(() => import("~/scenes/Drafts"));
-const Home = lazyWithRetry(() => import("~/scenes/Home"));
-const Templates = lazyWithRetry(() => import("~/scenes/Templates"));
-const Search = lazyWithRetry(() => import("~/scenes/Search"));
-const Trash = lazyWithRetry(() => import("~/scenes/Trash"));
+const SettingsRoutes = lazy(() => import("./settings"));
+const Archive = lazy(() => import("~/scenes/Archive"));
+const Collection = lazy(() => import("~/scenes/Collection"));
+const Document = lazy(() => import("~/scenes/Document"));
+const Drafts = lazy(() => import("~/scenes/Drafts"));
+const Home = lazy(() => import("~/scenes/Home"));
+const Search = lazy(() => import("~/scenes/Search"));
+const Trash = lazy(() => import("~/scenes/Trash"));
 
 const RedirectDocument = ({
   match,
@@ -48,12 +47,6 @@ function AuthenticatedRoutes() {
           }
         >
           <Switch>
-            {can.createDocument && (
-              <Route exact path="/templates" component={Templates} />
-            )}
-            {can.createDocument && (
-              <Route exact path="/templates/:sort" component={Templates} />
-            )}
             {can.createDocument && (
               <Route exact path="/drafts" component={Drafts} />
             )}
