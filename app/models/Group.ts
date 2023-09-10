@@ -11,6 +11,7 @@ class Group extends Model {
   @observable
   name: string;
 
+  @observable
   memberCount: number;
 }
 

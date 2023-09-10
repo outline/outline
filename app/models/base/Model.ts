@@ -16,6 +16,7 @@ export default abstract class Model {
 
   createdAt: string;
 
+  @observable
   updatedAt: string;
 
   store: Store<Model>;

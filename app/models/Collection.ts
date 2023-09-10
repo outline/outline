@@ -62,8 +62,10 @@ export default class Collection extends ParanoidModel {
   @observable
   documents?: NavigationNode[];
 
+  @observable
   url: string;
 
+  @observable
   urlId: string;
 
   constructor(fields: Partial<Collection>, store: CollectionsStore) {

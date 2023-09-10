@@ -20,6 +20,7 @@ class Integration<T = unknown> extends Model {
   @observable
   events: string[];
 
+  @observable
   settings: IntegrationSettings<T>;
 }
 

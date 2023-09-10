@@ -1,4 +1,4 @@
-import { action } from "mobx";
+import { action, observable } from "mobx";
 import User from "./User";
 import Model from "./base/Model";
 
@@ -9,8 +9,10 @@ class View extends Model {
 
   firstViewedAt: string;
 
+  @observable
   lastViewedAt: string;
 
+  @observable
   count: number;
 
   user: User;

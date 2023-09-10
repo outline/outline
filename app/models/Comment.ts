@@ -46,6 +46,7 @@ class Comment extends Model {
 
   createdById: string;
 
+  @observable
   resolvedAt: string;
 
   @Relation(() => User)

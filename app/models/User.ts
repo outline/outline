@@ -44,14 +44,19 @@ class User extends ParanoidModel {
   @observable
   notificationSettings: NotificationSettings;
 
+  @observable
   email: string;
 
+  @observable
   isAdmin: boolean;
 
+  @observable
   isViewer: boolean;
 
+  @observable
   lastActiveAt: string;
 
+  @observable
   isSuspended: boolean;
 
   @computed

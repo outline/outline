@@ -24,12 +24,16 @@ class Share extends Model {
   @observable
   urlId: string;
 
+  @observable
   documentTitle: string;
 
+  @observable
   documentUrl: string;
 
+  @observable
   lastAccessedAt: string | null | undefined;
 
+  @observable
   url: string;
 
   createdBy: User;

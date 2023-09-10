@@ -122,15 +122,19 @@ export default class Document extends ParanoidModel {
   @observable
   archivedAt: string;
 
+  @observable
   url: string;
 
+  @observable
   urlId: string;
 
+  @observable
   tasks: {
     completed: number;
     total: number;
   };
 
+  @observable
   revision: number;
 
   /**

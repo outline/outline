@@ -9,6 +9,7 @@ class AuthenticationProvider extends Model {
 
   name: string;
 
+  @observable
   isConnected: boolean;
 
   @Field
