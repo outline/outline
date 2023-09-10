@@ -1,9 +1,9 @@
 import { observable } from "mobx";
 import type StarsStore from "~/stores/StarsStore";
-import BaseModel from "./BaseModel";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 
-class Star extends BaseModel {
+class Star extends Model {
   id: string;
 
   @Field

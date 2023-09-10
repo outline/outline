@@ -7,14 +7,14 @@ import {
   documentPath,
   settingsPath,
 } from "~/utils/routeHelpers";
-import BaseModel from "./BaseModel";
 import Comment from "./Comment";
 import Document from "./Document";
 import User from "./User";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 
-class Notification extends BaseModel {
+class Notification extends Model {
   @Field
   @observable
   id: string;

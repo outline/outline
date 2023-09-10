@@ -1,10 +1,10 @@
 import pick from "lodash/pick";
 import { set, observable, action } from "mobx";
-import type BaseStore from "~/stores/BaseStore";
+import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
-import { getFieldsForModel } from "./decorators/Field";
+import { getFieldsForModel } from "../decorators/Field";
 
-export default abstract class BaseModel {
+export default abstract class Model {
   @observable
   id: string;
 
@@ -18,9 +18,9 @@ export default abstract class BaseModel {
 
   updatedAt: string;
 
-  store: BaseStore<BaseModel>;
+  store: Store<Model>;
 
-  constructor(fields: Record<string, any>, store: BaseStore<BaseModel>) {
+  constructor(fields: Record<string, any>, store: Store<Model>) {
     this.store = store;
     this.updateData(fields);
     this.isNew = !this.id;
@@ -139,5 +139,5 @@ export default abstract class BaseModel {
     );
   }
 
-  protected persistedAttributes: Partial<BaseModel> = {};
+  protected persistedAttributes: Partial<Model> = {};
 }

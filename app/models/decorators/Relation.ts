@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import type BaseModel from "../BaseModel";
+import type Model from "../base/Model";
 
 type RelationOptions = {
   /** Whether this relation is required */
@@ -14,7 +14,7 @@ type RelationOptions = {
  * @param classResolver A function that returns the class of the relation
  * @param options Optional options for the relation definition
  */
-export default function Relation<T extends typeof BaseModel>(
+export default function Relation<T extends typeof Model>(
   classResolver: () => T,
   options?: RelationOptions
 ) {
@@ -37,7 +37,7 @@ export default function Relation<T extends typeof BaseModel>(
 
         return store.get(id);
       },
-      set(newValue: BaseModel | Partial<BaseModel> | undefined) {
+      set(newValue: Model | Partial<Model> | undefined) {
         this[idKey] = newValue ? newValue.id : undefined;
 
         if (newValue) {

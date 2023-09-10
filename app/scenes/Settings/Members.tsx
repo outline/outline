@@ -5,7 +5,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { PAGINATION_SYMBOL } from "~/stores/BaseStore";
+import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
 import { Action } from "~/components/Actions";

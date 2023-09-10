@@ -10,8 +10,8 @@ import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
 import { DocumentValidation } from "@shared/validations";
-import BaseStore from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
+import Store from "~/stores/base/Store";
 import Document from "~/models/Document";
 import env from "~/env";
 import { FetchOptions, PaginationParams, SearchResult } from "~/types";
@@ -38,7 +38,7 @@ type ImportOptions = {
   publish?: boolean;
 };
 
-export default class DocumentsStore extends BaseStore<Document> {
+export default class DocumentsStore extends Store<Document> {
   sharedCache: Map<
     string,
     { sharedTree: NavigationNode; team: PublicTeam } | undefined

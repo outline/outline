@@ -4,8 +4,8 @@ import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
 import { Class } from "utility-types";
 import RootStore from "~/stores/RootStore";
-import BaseModel from "~/models/BaseModel";
 import Policy from "~/models/Policy";
+import Model from "~/models/base/Model";
 import { PaginationParams, PartialWithId } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
@@ -25,7 +25,7 @@ export const DEFAULT_PAGINATION_LIMIT = 25;
 
 export const PAGINATION_SYMBOL = Symbol.for("pagination");
 
-export default abstract class BaseStore<T extends BaseModel> {
+export default abstract class Store<T extends Model> {
   @observable
   data: Map<string, T> = new Map();
 

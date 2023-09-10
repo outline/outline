@@ -12,7 +12,7 @@ import {
 } from "@shared/types";
 import type { NotificationSettings } from "@shared/types";
 import { client } from "~/utils/ApiClient";
-import ParanoidModel from "./ParanoidModel";
+import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 
 class User extends ParanoidModel {

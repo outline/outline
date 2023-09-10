@@ -1,6 +1,6 @@
-import BaseModel from "./BaseModel";
+import Model from "./base/Model";
 
-class Policy extends BaseModel {
+class Policy extends Model {
   id: string;
 
   abilities: Record<string, boolean>;

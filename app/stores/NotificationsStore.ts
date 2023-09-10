@@ -5,10 +5,10 @@ import { action, computed, runInAction } from "mobx";
 import Notification from "~/models/Notification";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
-import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
+import Store, { RPCAction } from "./base/Store";
 
-export default class NotificationsStore extends BaseStore<Notification> {
+export default class NotificationsStore extends Store<Notification> {
   actions = [RPCAction.List, RPCAction.Update];
 
   constructor(rootStore: RootStore) {

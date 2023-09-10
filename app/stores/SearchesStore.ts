@@ -1,10 +1,10 @@
 import uniqBy from "lodash/uniqBy";
 import { computed } from "mobx";
 import SearchQuery from "~/models/SearchQuery";
-import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
+import Store, { RPCAction } from "./base/Store";
 
-export default class SearchesStore extends BaseStore<SearchQuery> {
+export default class SearchesStore extends Store<SearchQuery> {
   actions = [RPCAction.List, RPCAction.Delete];
 
   apiEndpoint = "searches";

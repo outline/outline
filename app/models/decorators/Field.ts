@@ -1,8 +1,8 @@
-import type BaseModel from "../BaseModel";
+import type Model from "../base/Model";
 
 const fields = new Map();
 
-export const getFieldsForModel = (target: BaseModel) =>
+export const getFieldsForModel = (target: Model) =>
   fields.get(target.constructor.name);
 
 /**

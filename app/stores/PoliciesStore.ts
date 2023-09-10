@@ -1,8 +1,8 @@
 import Policy from "~/models/Policy";
-import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import Store from "./base/Store";
 
-export default class PoliciesStore extends BaseStore<Policy> {
+export default class PoliciesStore extends Store<Policy> {
   actions = [];
 
   constructor(rootStore: RootStore) {
