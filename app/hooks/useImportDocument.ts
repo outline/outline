@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import { documentPath } from "~/utils/routeHelpers";
 
 let importingLock = false;
 
@@ -50,7 +51,7 @@ export default function useImportDocument(
           });
 
           if (redirect) {
-            history.push(doc.url);
+            history.push(documentPath(doc));
           }
         }
       } catch (err) {

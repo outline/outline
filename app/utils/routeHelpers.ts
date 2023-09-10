@@ -46,7 +46,7 @@ export function updateCollectionPath(
 }
 
 export function documentPath(doc: Document): string {
-  return doc.url;
+  return doc.path;
 }
 
 export function documentEditPath(doc: Document): string {

@@ -284,7 +284,12 @@ allow(User, "restore", Document, (user, document) => {
 });
 
 allow(User, "archive", Document, (user, document) => {
-  if (!document || !document.isActive || document.isDraft) {
+  if (
+    !document ||
+    !document.isActive ||
+    document.isDraft ||
+    document.template
+  ) {
     return false;
   }
   invariant(

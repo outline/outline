@@ -19,6 +19,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { hover } from "~/styles";
+import { documentPath } from "~/utils/routeHelpers";
 import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
@@ -76,7 +77,7 @@ function DocumentListItem(
       $isStarred={document.isStarred}
       $menuOpen={menuOpen}
       to={{
-        pathname: document.url,
+        pathname: documentPath(document),
         state: {
           title: document.titleWithDefault,
         },

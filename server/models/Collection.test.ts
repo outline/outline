@@ -1,5 +1,6 @@
 import randomstring from "randomstring";
 import { v4 as uuidv4 } from "uuid";
+import slugify from "@shared/utils/slugify";
 import {
   buildUser,
   buildGroup,
@@ -7,7 +8,6 @@ import {
   buildTeam,
   buildDocument,
 } from "@server/test/factories";
-import slugify from "@server/utils/slugify";
 import Collection from "./Collection";
 import Document from "./Document";
 

@@ -1,13 +1,16 @@
 import { addDays, differenceInDays } from "date-fns";
+import { t } from "i18next";
 import floor from "lodash/floor";
 import { action, autorun, computed, observable, set } from "mobx";
 import { ExportContentType } from "@shared/types";
 import type { NavigationNode } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
+import slugify from "@shared/utils/slugify";
 import DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
+import { settingsPath } from "~/utils/routeHelpers";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
@@ -122,6 +125,9 @@ export default class Document extends ParanoidModel {
   @observable
   archivedAt: string;
 
+  /**
+   * @deprecated Use path instead
+   */
   @observable
   url: string;
 
@@ -154,8 +160,20 @@ export default class Document extends ParanoidModel {
   }
 
   @computed
+  get path(): string {
+    const prefix = this.template ? settingsPath("templates") : "/doc";
+
+    if (!this.title) {
+      return `${prefix}/untitled-${this.urlId}`;
+    }
+
+    const slugifiedTitle = slugify(this.title);
+    return `${prefix}/${slugifiedTitle}-${this.urlId}`;
+  }
+
+  @computed
   get noun(): string {
-    return this.template ? "template" : "document";
+    return this.template ? t("template") : t("document");
   }
 
   @computed

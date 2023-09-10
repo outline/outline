@@ -165,9 +165,14 @@ export const publishDocument = createAction({
       await document.save(undefined, {
         publish: true,
       });
-      stores.toasts.showToast(t("Document published"), {
-        type: "success",
-      });
+      stores.toasts.showToast(
+        t("Published {{ documentName }}", {
+          documentName: document.noun,
+        }),
+        {
+          type: "success",
+        }
+      );
     } else if (document) {
       stores.dialogs.openModal({
         title: t("Publish document"),
@@ -195,12 +200,20 @@ export const unpublishDocument = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
+    if (!document) {
+      return;
+    }
 
-    await document?.unpublish();
+    await document.unpublish();
 
-    stores.toasts.showToast(t("Document unpublished"), {
-      type: "success",
-    });
+    stores.toasts.showToast(
+      t("Unpublished {{ documentName }}", {
+        documentName: document.noun,
+      }),
+      {
+        type: "success",
+      }
+    );
   },
 });
 
