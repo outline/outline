@@ -2,17 +2,17 @@ import invariant from "invariant";
 import type BaseModel from "../BaseModel";
 
 type RelationOptions = {
+  /** Whether this relation is required */
   required?: boolean;
 };
 
 /**
- * A decorator that records this key as a reference field on the model.
+ * A decorator that records this key as a relation field on the model.
  * Properties decorated with @Relation will merge and read their data from
  * the associated store.
  *
- * @param target
- * @param propertyKey
- * @param options
+ * @param classResolver A function that returns the class of the relation
+ * @param options Optional options for the relation definition
  */
 export default function Relation<T extends typeof BaseModel>(
   classResolver: () => T,
