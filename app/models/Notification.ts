@@ -12,6 +12,7 @@ import Comment from "./Comment";
 import Document from "./Document";
 import User from "./User";
 import Field from "./decorators/Field";
+import Relation from "./decorators/Relation";
 
 class Notification extends BaseModel {
   @Field
@@ -35,6 +36,7 @@ class Notification extends BaseModel {
   /**
    * The user that triggered the notification.
    */
+  @Relation(() => User)
   actor?: User;
 
   /**
@@ -45,6 +47,7 @@ class Notification extends BaseModel {
   /**
    * The document that the notification is associated with.
    */
+  @Relation(() => Document)
   document?: Document;
 
   /**
@@ -55,6 +58,7 @@ class Notification extends BaseModel {
   /**
    * The comment that the notification is associated with.
    */
+  @Relation(() => Comment)
   comment?: Comment;
 
   /**
@@ -137,9 +141,9 @@ class Notification extends BaseModel {
         return this.document ? documentPath(this.document) : "";
       }
       case NotificationEventType.CreateCollection: {
-        const collection = this.store.rootStore.documents.get(
-          this.collectionId
-        );
+        const collection = this.collectionId
+          ? this.store.rootStore.documents.get(this.collectionId)
+          : undefined;
         return collection ? collectionPath(collection.url) : "";
       }
       case NotificationEventType.MentionedInDocument: {

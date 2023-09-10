@@ -5,6 +5,7 @@ import type { ProsemirrorData } from "@shared/types";
 import User from "~/models/User";
 import BaseModel from "./BaseModel";
 import Field from "./decorators/Field";
+import Relation from "./decorators/Relation";
 
 class Comment extends BaseModel {
   /**
@@ -42,12 +43,14 @@ class Comment extends BaseModel {
 
   createdAt: string;
 
+  @Relation(() => User)
   createdBy: User;
 
   createdById: string;
 
   resolvedAt: string;
 
+  @Relation(() => User)
   resolvedBy: User;
 
   updatedAt: string;
@@ -60,7 +63,7 @@ class Comment extends BaseModel {
     return Array.from(this.typingUsers.entries())
       .filter(([, lastReceivedDate]) => lastReceivedDate > subSeconds(now(), 3))
       .map(([userId]) => this.store.rootStore.users.get(userId))
-      .filter(Boolean);
+      .filter(Boolean) as User[];
   }
 }
 

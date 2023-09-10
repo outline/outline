@@ -96,7 +96,9 @@ class User extends ParanoidModel {
   get separateEditMode(): boolean {
     return !this.getPreference(
       UserPreference.SeamlessEdit,
-      this.store.rootStore.auth.team.getPreference(TeamPreference.SeamlessEdit)
+      this.store.rootStore.auth?.team?.getPreference(
+        TeamPreference.SeamlessEdit
+      )
     );
   }
 

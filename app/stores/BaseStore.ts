@@ -84,7 +84,7 @@ export default abstract class BaseStore<T extends BaseModel> {
       const existingModel = this.data.get(item.id);
 
       if (existingModel) {
-        existingModel.updateFromJson(item);
+        existingModel.updateData(item);
         return existingModel;
       }
 

@@ -138,8 +138,8 @@ export default class AuthStore {
 
   @action
   rehydrate(data: PersistedData) {
-    this.user = data.user ? new User(data.user, this) : undefined;
-    this.team = data.team ? new Team(data.team, this) : undefined;
+    this.user = data.user ? new User(data.user, this as any) : undefined;
+    this.team = data.team ? new Team(data.team, this as any) : undefined;
     this.collaborationToken = data.collaborationToken;
     this.lastSignedIn = getCookie("lastSignedIn");
     this.addPolicies(data.policies);
@@ -188,8 +188,8 @@ export default class AuthStore {
       runInAction("AuthStore#fetch", () => {
         this.addPolicies(res.policies);
         const { user, team } = res.data;
-        this.user = new User(user, this);
-        this.team = new Team(team, this);
+        this.user = new User(user, this as any);
+        this.team = new Team(team, this as any);
         this.availableTeams = res.data.availableTeams;
         this.collaborationToken = res.data.collaborationToken;
 
@@ -283,13 +283,13 @@ export default class AuthStore {
     const previousData = this.user?.toAPI();
 
     try {
-      this.user?.updateFromJson(params);
+      this.user?.updateData(params);
       const res = await client.post(`/users.update`, params);
       invariant(res?.data, "User response not available");
-      this.user?.updateFromJson(res.data);
+      this.user?.updateData(res.data);
       this.addPolicies(res.policies);
     } catch (err) {
-      this.user?.updateFromJson(previousData);
+      this.user?.updateData(previousData);
       throw err;
     } finally {
       this.isSaving = false;
@@ -310,13 +310,13 @@ export default class AuthStore {
     const previousData = this.team?.toAPI();
 
     try {
-      this.team?.updateFromJson(params);
+      this.team?.updateData(params);
       const res = await client.post(`/team.update`, params);
       invariant(res?.data, "Team response not available");
-      this.team?.updateFromJson(res.data);
+      this.team?.updateData(res.data);
       this.addPolicies(res.policies);
     } catch (err) {
-      this.team?.updateFromJson(previousData);
+      this.team?.updateData(previousData);
       throw err;
     } finally {
       this.isSaving = false;

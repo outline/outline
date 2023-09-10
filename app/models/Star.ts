@@ -1,4 +1,5 @@
 import { observable } from "mobx";
+import type StarsStore from "~/stores/StarsStore";
 import BaseModel from "./BaseModel";
 import Field from "./decorators/Field";
 
@@ -13,8 +14,7 @@ class Star extends BaseModel {
 
   collectionId: string;
 
-  createdAt: string;
-  updatedAt: string;
+  store: StarsStore;
 
   next(): Star | undefined {
     const index = this.store.orderedData.indexOf(this);

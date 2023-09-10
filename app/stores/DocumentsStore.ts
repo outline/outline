@@ -574,7 +574,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     invariant(res?.data, "Data should be available");
     const collection = this.getCollectionForDocument(document);
     if (collection) {
-      collection.refresh();
+      await collection.refresh();
     }
     this.addPolicies(res.policies);
     return this.add(res.data);
@@ -686,7 +686,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.addPolicies(res.policies);
       const document = this.add(res.data.document);
       const collection = this.getCollectionForDocument(document);
-      collection?.updateFromJson(res.data.collection);
+      collection?.updateData(res.data.collection);
       return document;
     } finally {
       this.isSaving = false;
@@ -711,7 +711,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     const collection = this.getCollectionForDocument(document);
     if (collection) {
-      collection.refresh();
+      await collection.refresh();
     }
   }
 
@@ -722,12 +722,12 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
     runInAction("Document#archive", () => {
       invariant(res?.data, "Data should be available");
-      document.updateFromJson(res.data);
+      document.updateData(res.data);
       this.addPolicies(res.policies);
     });
     const collection = this.getCollectionForDocument(document);
     if (collection) {
-      collection.refresh();
+      await collection.refresh();
     }
   };
 
@@ -746,12 +746,12 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
     runInAction("Document#restore", () => {
       invariant(res?.data, "Data should be available");
-      document.updateFromJson(res.data);
+      document.updateData(res.data);
       this.addPolicies(res.policies);
     });
     const collection = this.getCollectionForDocument(document);
     if (collection) {
-      collection.refresh();
+      await collection.refresh();
     }
   };
 
@@ -764,9 +764,9 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     runInAction("Document#unpublish", () => {
       invariant(res?.data, "Data should be available");
-      document.updateFromJson(res.data.document);
+      document.updateData(res.data.document);
       const collection = this.getCollectionForDocument(document);
-      collection?.updateFromJson(res.data.collection);
+      collection?.updateData(res.data.collection);
       this.addPolicies(res.policies);
     });
   };
