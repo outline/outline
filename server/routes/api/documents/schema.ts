@@ -1,4 +1,5 @@
 import emojiRegex from "emoji-regex";
+import formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
@@ -272,6 +273,7 @@ export const DocumentsImportSchema = BaseSchema.extend({
     /** Import under this parent doc */
     parentDocumentId: z.string().uuid().nullish(),
   }),
+  file: z.custom<formidable.File>(),
 });
 
 export type DocumentsImportReq = z.infer<typeof DocumentsImportSchema>;

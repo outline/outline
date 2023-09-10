@@ -8,7 +8,6 @@ import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
-import { bytesToHumanReadable } from "@shared/utils/files";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
@@ -26,6 +25,7 @@ import {
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
+import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -53,7 +53,6 @@ import {
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
-import { getFileFromRequest } from "@server/utils/koa";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getTeamFromContext } from "@server/utils/passport";
 import { assertPresent } from "@server/validation";
@@ -1217,26 +1216,11 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsImportSchema),
+  multipart({ maxAllowedFileSize: env.MAXIMUM_IMPORT_SIZE }),
   transaction(),
   async (ctx: APIContext<T.DocumentsImportReq>) => {
-    if (!ctx.is("multipart/form-data")) {
-      throw InvalidRequestError("Request type must be multipart/form-data");
-    }
-
     const { collectionId, parentDocumentId, publish } = ctx.input.body;
-
-    const file = getFileFromRequest(ctx.request);
-    if (!file) {
-      throw InvalidRequestError("Request must include a file parameter");
-    }
-
-    if (env.MAXIMUM_IMPORT_SIZE && file.size > env.MAXIMUM_IMPORT_SIZE) {
-      throw InvalidRequestError(
-        `The selected file was larger than the ${bytesToHumanReadable(
-          env.MAXIMUM_IMPORT_SIZE
-        )} maximum size`
-      );
-    }
+    const file = ctx.input.file;
 
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
