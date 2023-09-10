@@ -38,7 +38,8 @@ import {
   unpublishDocument,
   printDocument,
   openDocumentComments,
-  createDocumentFactory,
+  createDocumentFromTemplate,
+  createNestedDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -267,10 +268,7 @@ function DocumentMenu({
               visible: !!can.update && user.separateEditMode,
               icon: <EditIcon />,
             },
-            actionToMenuItem(
-              createDocumentFactory({ parentDocumentId: document.id }),
-              context
-            ),
+            actionToMenuItem(createNestedDocument, context),
             actionToMenuItem(importDocument, context),
             actionToMenuItem(createTemplate, context),
             actionToMenuItem(duplicateDocument, context),
@@ -279,10 +277,7 @@ function DocumentMenu({
             actionToMenuItem(archiveDocument, context),
             actionToMenuItem(moveDocument, context),
             actionToMenuItem(pinDocument, context),
-            actionToMenuItem(
-              createDocumentFactory({ templateId: document.id }),
-              context
-            ),
+            actionToMenuItem(createDocumentFromTemplate, context),
             {
               type: "separator",
             },

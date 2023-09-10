@@ -87,54 +87,47 @@ export const createDocument = createAction({
     }),
 });
 
-/**
- * Creates an action that creates a new document with the given options.
- *
- * @param options Options for the new document
- * @param options.parentDocumentId The parent document to create a nested document.
- * @param options.templateId The template to create the document from.
- * @returns A new action
- */
-export const createDocumentFactory = (options: {
-  parentDocumentId?: string;
-  templateId?: string;
-}) =>
-  createAction({
-    name: ({ t }) =>
-      options.templateId
-        ? t("New from template")
-        : options.parentDocumentId
-        ? t("New nested document")
-        : t("New document"),
-    analyticsName: "New document",
-    section: DocumentSection,
-    icon: <NewDocumentIcon />,
-    keywords: "create",
-    visible: ({ currentTeamId, stores }) => {
-      if (
-        options.parentDocumentId &&
-        !stores.policies.abilities(options.parentDocumentId).createChildDocument
-      ) {
-        return false;
-      }
-
-      if (
-        options.templateId &&
-        !stores.documents.get(options.templateId)?.template
-      ) {
-        return false;
-      }
-
-      return (
-        !!currentTeamId &&
-        stores.policies.abilities(currentTeamId).createDocument
-      );
-    },
-    perform: ({ activeCollectionId, inStarredSection }) =>
-      history.push(newDocumentPath(activeCollectionId, options), {
+export const createDocumentFromTemplate = createAction({
+  name: ({ t }) => t("New from template"),
+  analyticsName: "New document",
+  section: DocumentSection,
+  icon: <NewDocumentIcon />,
+  keywords: "create",
+  visible: ({ currentTeamId, activeDocumentId, stores }) =>
+    !!currentTeamId &&
+    !!activeDocumentId &&
+    stores.policies.abilities(currentTeamId).createDocument &&
+    !stores.documents.get(activeDocumentId)?.template,
+  perform: ({ activeCollectionId, activeDocumentId, inStarredSection }) =>
+    history.push(
+      newDocumentPath(activeCollectionId, { templateId: activeDocumentId }),
+      {
         starred: inStarredSection,
+      }
+    ),
+});
+
+export const createNestedDocument = createAction({
+  name: ({ t }) => t("New nested document"),
+  analyticsName: "New document",
+  section: DocumentSection,
+  icon: <NewDocumentIcon />,
+  keywords: "create",
+  visible: ({ currentTeamId, activeDocumentId, stores }) =>
+    !!currentTeamId &&
+    !!activeDocumentId &&
+    stores.policies.abilities(currentTeamId).createDocument &&
+    stores.policies.abilities(activeDocumentId).createChildDocument,
+  perform: ({ activeCollectionId, activeDocumentId, inStarredSection }) =>
+    history.push(
+      newDocumentPath(activeCollectionId, {
+        parentDocumentId: activeDocumentId,
       }),
-  });
+      {
+        starred: inStarredSection,
+      }
+    ),
+});
 
 export const starDocument = createAction({
   name: ({ t }) => t("Star"),
