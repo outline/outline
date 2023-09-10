@@ -11,7 +11,7 @@ import {
 import { CollectionPermission } from "@shared/types";
 import Collection from "./Collection";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import Model from "./base/Model";
 import Fix from "./decorators/Fix";
 
 @Scopes(() => ({
@@ -32,7 +32,7 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "collection_users", modelName: "collection_user" })
 @Fix
-class CollectionUser extends BaseModel {
+class CollectionUser extends Model {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
