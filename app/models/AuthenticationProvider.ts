@@ -1,8 +1,8 @@
 import { computed, observable } from "mobx";
-import BaseModel from "./BaseModel";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 
-class AuthenticationProvider extends BaseModel {
+class AuthenticationProvider extends Model {
   id: string;
 
   displayName: string;

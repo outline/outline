@@ -1,5 +1,5 @@
 import * as React from "react";
-import BaseModel from "~/models/BaseModel";
+import Model from "~/models/base/Model";
 import useStores from "./useStores";
 
 /**
@@ -9,7 +9,7 @@ import useStores from "./useStores";
  * @param entity The model or model id
  * @returns The policy for the model
  */
-export default function usePolicy(entity?: string | BaseModel | null) {
+export default function usePolicy(entity?: string | Model | null) {
   const { policies } = useStores();
   const triggered = React.useRef(false);
   const entityId = entity

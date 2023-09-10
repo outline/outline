@@ -1,9 +1,10 @@
 import pick from "lodash/pick";
-import { set, observable } from "mobx";
+import { set, observable, action } from "mobx";
+import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
-import { getFieldsForModel } from "./decorators/Field";
+import { getFieldsForModel } from "../decorators/Field";
 
-export default abstract class BaseModel {
+export default abstract class Model {
   @observable
   id: string;
 
@@ -17,12 +18,12 @@ export default abstract class BaseModel {
 
   updatedAt: string;
 
-  store: any;
+  store: Store<Model>;
 
-  constructor(fields: Record<string, any>, store: any) {
-    this.updateFromJson(fields);
-    this.isNew = !this.id;
+  constructor(fields: Record<string, any>, store: Store<Model>) {
     this.store = store;
+    this.updateData(fields);
+    this.isNew = !this.id;
   }
 
   save = async (
@@ -59,10 +60,14 @@ export default abstract class BaseModel {
     }
   };
 
-  updateFromJson = (data: any) => {
-    set(this, { ...data, isNew: false });
+  updateData = action((data: any) => {
+    for (const key in data) {
+      this[key] = data[key];
+    }
+
+    this.isNew = false;
     this.persistedAttributes = this.toAPI();
-  };
+  });
 
   fetch = (options?: any) => this.store.fetch(this.id, options);
 
@@ -134,5 +139,5 @@ export default abstract class BaseModel {
     );
   }
 
-  protected persistedAttributes: Partial<BaseModel> = {};
+  protected persistedAttributes: Partial<Model> = {};
 }

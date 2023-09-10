@@ -12,8 +12,8 @@ import {
 import Collection from "~/models/Collection";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
-import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import Store from "./base/Store";
 
 enum DocumentPathItemType {
   Collection = "collection",
@@ -32,7 +32,7 @@ export type DocumentPath = DocumentPathItem & {
   path: DocumentPathItem[];
 };
 
-export default class CollectionsStore extends BaseStore<Collection> {
+export default class CollectionsStore extends Store<Collection> {
   constructor(rootStore: RootStore) {
     super(rootStore, Collection);
   }

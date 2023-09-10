@@ -1,8 +1,8 @@
 import { action } from "mobx";
-import BaseModel from "./BaseModel";
 import User from "./User";
+import Model from "./base/Model";
 
-class View extends BaseModel {
+class View extends Model {
   id: string;
 
   documentId: string;

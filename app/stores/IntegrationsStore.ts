@@ -2,11 +2,11 @@ import filter from "lodash/filter";
 import { computed } from "mobx";
 import { IntegrationService } from "@shared/types";
 import naturalSort from "@shared/utils/naturalSort";
-import BaseStore from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
+import Store from "~/stores/base/Store";
 import Integration from "~/models/Integration";
 
-class IntegrationsStore extends BaseStore<Integration> {
+class IntegrationsStore extends Store<Integration> {
   constructor(rootStore: RootStore) {
     super(rootStore, Integration);
   }

@@ -1,8 +1,8 @@
 import Subscription from "~/models/Subscription";
-import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
+import Store, { RPCAction } from "./base/Store";
 
-export default class SubscriptionsStore extends BaseStore<Subscription> {
+export default class SubscriptionsStore extends Store<Subscription> {
   actions = [RPCAction.List, RPCAction.Create, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {

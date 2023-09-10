@@ -8,8 +8,8 @@ import { isRTL } from "@shared/utils/rtl";
 import DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
-import ParanoidModel from "./ParanoidModel";
 import View from "./View";
+import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 
 type SaveOptions = {

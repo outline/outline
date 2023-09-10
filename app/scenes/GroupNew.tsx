@@ -21,7 +21,7 @@ function GroupNew({ onSubmit }: Props) {
   const { showToast } = useToasts();
   const [name, setName] = React.useState<string | undefined>();
   const [isSaving, setIsSaving] = React.useState(false);
-  const [group, setGroup] = React.useState();
+  const [group, setGroup] = React.useState<Group | undefined>();
 
   const handleSubmit = async (ev: React.SyntheticEvent) => {
     ev.preventDefault();
@@ -35,7 +35,8 @@ function GroupNew({ onSubmit }: Props) {
     );
 
     try {
-      setGroup(await group.save());
+      await group.save();
+      setGroup(group);
     } catch (err) {
       showToast(err.message, {
         type: "error",

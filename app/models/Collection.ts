@@ -8,7 +8,7 @@ import {
 import { sortNavigationNodes } from "@shared/utils/collections";
 import type CollectionsStore from "~/stores/CollectionsStore";
 import Document from "~/models/Document";
-import ParanoidModel from "~/models/ParanoidModel";
+import ParanoidModel from "~/models/base/ParanoidModel";
 import { client } from "~/utils/ApiClient";
 import Field from "./decorators/Field";
 

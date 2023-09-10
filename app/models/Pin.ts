@@ -1,8 +1,8 @@
 import { observable } from "mobx";
-import BaseModel from "./BaseModel";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 
-class Pin extends BaseModel {
+class Pin extends Model {
   id: string;
   collectionId: string;
   documentId: string;
