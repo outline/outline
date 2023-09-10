@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { BackIcon, SidebarIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
@@ -11,6 +11,7 @@ import useSettingsConfig from "~/hooks/useSettingsConfig";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { metaDisplay } from "~/utils/keyboard";
+import { settingsPath } from "~/utils/routeHelpers";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
@@ -25,6 +26,7 @@ function SettingsSidebar() {
   const { ui } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
+  const location = useLocation();
   const configs = useSettingsConfig();
   const groupedConfig = groupBy(configs, "group");
 
@@ -62,6 +64,11 @@ function SettingsSidebar() {
                   <SidebarLink
                     key={item.path}
                     to={item.path}
+                    active={
+                      item.path !== settingsPath()
+                        ? location.pathname.startsWith(item.path)
+                        : undefined
+                    }
                     icon={<item.icon />}
                     label={item.name}
                   />

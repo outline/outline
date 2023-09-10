@@ -34,9 +34,9 @@ import {
 import isUUID from "validator/lib/isUUID";
 import type { NavigationNode } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
+import slugify from "@shared/utils/slugify";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
-import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";

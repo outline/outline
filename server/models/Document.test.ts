@@ -1,3 +1,4 @@
+import slugify from "@shared/utils/slugify";
 import Document from "@server/models/Document";
 import {
   buildDocument,
@@ -6,7 +7,6 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
-import slugify from "@server/utils/slugify";
 
 beforeEach(() => {
   jest.resetAllMocks();

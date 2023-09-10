@@ -12,7 +12,7 @@ import { MenuInternalLink } from "~/types";
 import {
   archivePath,
   collectionPath,
-  templatesPath,
+  settingsPath,
   trashPath,
 } from "~/utils/routeHelpers";
 import EmojiIcon from "./Icons/EmojiIcon";
@@ -44,12 +44,12 @@ function useCategory(document: Document): MenuInternalLink | null {
     };
   }
 
-  if (document.isTemplate) {
+  if (document.template) {
     return {
       type: "route",
       icon: <ShapesIcon />,
       title: t("Templates"),
-      to: templatesPath(),
+      to: settingsPath("templates"),
     };
   }
 
