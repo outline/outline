@@ -525,6 +525,7 @@ class User extends ParanoidModel {
         },
       },
       limit: 1,
+      ...options,
     });
 
     if (res.count >= 1) {
@@ -563,11 +564,14 @@ class User extends ParanoidModel {
     }
   };
 
-  promote = () =>
-    this.update({
-      isAdmin: true,
-      isViewer: false,
-    });
+  promote = (options?: SaveOptions<User>) =>
+    this.update(
+      {
+        isAdmin: true,
+        isViewer: false,
+      },
+      options
+    );
 
   // hooks
 
