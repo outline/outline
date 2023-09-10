@@ -80,12 +80,15 @@ export function updateDocumentPath(oldUrl: string, document: Document): string {
   );
 }
 
+export function newTemplatePath(collectionId: string) {
+  return settingsPath("templates") + `/new?collectionId=${collectionId}`;
+}
+
 export function newDocumentPath(
   collectionId?: string | null,
   params: {
     parentDocumentId?: string;
     templateId?: string;
-    template?: boolean;
   } = {}
 ): string {
   return collectionId

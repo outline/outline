@@ -7,18 +7,27 @@ import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import CenteredContent from "~/components/CenteredContent";
 import Flex from "~/components/Flex";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import { documentEditPath } from "~/utils/routeHelpers";
+import { documentEditPath, documentPath } from "~/utils/routeHelpers";
 
-function DocumentNew() {
+type Props = {
+  // If true, the document will be created as a template.
+  template?: boolean;
+};
+
+function DocumentNew({ template }: Props) {
   const history = useHistory();
   const location = useLocation();
+  const query = useQuery();
+  const user = useCurrentUser();
   const match = useRouteMatch<{ id?: string }>();
   const { t } = useTranslation();
   const { documents, collections } = useStores();
   const { showToast } = useToasts();
-  const id = match.params.id || "";
+  const id = match.params.id || query.get("collectionId");
 
   useEffect(() => {
     async function createDocument() {
@@ -38,11 +47,16 @@ function DocumentNew() {
           parentDocumentId,
           fullWidth: parentDocument?.fullWidth,
           templateId: params.templateId?.toString(),
-          template: params.template === "true" ? true : false,
+          template,
           title: "",
           text: "",
         });
-        history.replace(documentEditPath(document), location.state);
+        history.replace(
+          template || !user.separateEditMode
+            ? documentPath(document)
+            : documentEditPath(document),
+          location.state
+        );
       } catch (err) {
         showToast(t("Couldn’t create the document, try again?"), {
           type: "error",

@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { ArchiveIcon, GoToIcon, TrashIcon } from "outline-icons";
+import { ArchiveIcon, GoToIcon, ShapesIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -9,7 +9,12 @@ import Breadcrumb from "~/components/Breadcrumb";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
 import { MenuInternalLink } from "~/types";
-import { archivePath, collectionPath, trashPath } from "~/utils/routeHelpers";
+import {
+  archivePath,
+  collectionPath,
+  settingsPath,
+  trashPath,
+} from "~/utils/routeHelpers";
 import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
@@ -36,6 +41,15 @@ function useCategory(document: Document): MenuInternalLink | null {
       icon: <ArchiveIcon />,
       title: t("Archive"),
       to: archivePath(),
+    };
+  }
+
+  if (document.template) {
+    return {
+      type: "route",
+      icon: <ShapesIcon />,
+      title: t("Templates"),
+      to: settingsPath("templates"),
     };
   }
 

@@ -11,6 +11,7 @@ import {
   LogoutIcon,
   ProfileIcon,
   BrowserIcon,
+  ShapesIcon,
 } from "outline-icons";
 import * as React from "react";
 import { isMac } from "@shared/utils/browser";
@@ -92,7 +93,7 @@ export const navigateToSettings = createAction({
   icon: <SettingsIcon />,
   visible: ({ stores }) =>
     stores.policies.abilities(stores.auth.team?.id || "").update,
-  perform: () => history.push(settingsPath("details")),
+  perform: () => history.push(settingsPath()),
 });
 
 export const navigateToProfileSettings = createAction({
@@ -102,6 +103,15 @@ export const navigateToProfileSettings = createAction({
   iconInContextMenu: false,
   icon: <ProfileIcon />,
   perform: () => history.push(settingsPath()),
+});
+
+export const navigateToTemplateSettings = createAction({
+  name: ({ t }) => t("Templates"),
+  analyticsName: "Navigate to template settings",
+  section: NavigationSection,
+  iconInContextMenu: false,
+  icon: <ShapesIcon />,
+  perform: () => history.push(settingsPath("templates")),
 });
 
 export const navigateToNotificationSettings = createAction({

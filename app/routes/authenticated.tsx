@@ -11,7 +11,15 @@ import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import lazy from "~/utils/lazyWithRetry";
-import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
+import {
+  archivePath,
+  draftsPath,
+  homePath,
+  searchPath,
+  settingsPath,
+  matchDocumentSlug as slug,
+  trashPath,
+} from "~/utils/routeHelpers";
 
 const SettingsRoutes = lazy(() => import("./settings"));
 const Archive = lazy(() => import("~/scenes/Archive"));
@@ -27,7 +35,9 @@ const RedirectDocument = ({
 }: RouteComponentProps<{ documentSlug: string }>) => (
   <Redirect
     to={
-      match.params.documentSlug ? `/doc/${match.params.documentSlug}` : "/home"
+      match.params.documentSlug
+        ? `/doc/${match.params.documentSlug}`
+        : homePath()
     }
   />
 );
@@ -48,18 +58,18 @@ function AuthenticatedRoutes() {
         >
           <Switch>
             {can.createDocument && (
-              <Route exact path="/drafts" component={Drafts} />
+              <Route exact path={draftsPath()} component={Drafts} />
             )}
             {can.createDocument && (
-              <Route exact path="/archive" component={Archive} />
+              <Route exact path={archivePath()} component={Archive} />
             )}
             {can.createDocument && (
-              <Route exact path="/trash" component={Trash} />
+              <Route exact path={trashPath()} component={Trash} />
             )}
-            <Redirect from="/dashboard" to="/home" />
-            <Route path="/home/:tab" component={Home} />
-            <Route path="/home" component={Home} />
-            <Redirect exact from="/starred" to="/home" />
+            <Route path={`${homePath()}/:tab?`} component={Home} />
+            <Redirect from="/dashboard" to={homePath()} />
+            <Redirect exact from="/starred" to={homePath()} />
+            <Redirect exact from="/templates" to={settingsPath("templates")} />
             <Redirect exact from="/collections/*" to="/collection/*" />
             <Route exact path="/collection/:id/new" component={DocumentNew} />
             <Route exact path="/collection/:id/:tab" component={Collection} />
@@ -74,8 +84,7 @@ function AuthenticatedRoutes() {
             <Route exact path={`/doc/${slug}/insights`} component={Document} />
             <Route exact path={`/doc/${slug}/edit`} component={Document} />
             <Route path={`/doc/${slug}`} component={Document} />
-            <Route exact path="/search" component={Search} />
-            <Route exact path="/search/:term" component={Search} />
+            <Route exact path={`${searchPath()}/:term?`} component={Search} />
             <Route path="/404" component={Error404} />
             <SettingsRoutes />
             <Route component={Error404} />

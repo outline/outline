@@ -29,7 +29,7 @@ const EmojiPicker = React.lazy(() => import("~/components/EmojiPicker"));
 type Props = {
   /** ID of the associated document */
   documentId: string;
-  /** Document to display */
+  /** Title to display */
   title: string;
   /** Emoji to display */
   emoji?: string | null;
@@ -247,7 +247,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       value={title}
       $emojiPickerIsOpen={emojiPickerIsOpen}
       $containsEmoji={!!emoji}
-      autoFocus={!document.title}
+      autoFocus={!title}
       maxLength={DocumentValidation.maxTitleLength}
       readOnly={readOnly}
       dir="auto"

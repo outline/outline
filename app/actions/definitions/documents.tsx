@@ -792,7 +792,12 @@ export const openDocumentInsights = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
 
-    return !!activeDocumentId && can.read && !document?.isTemplate;
+    return (
+      !!activeDocumentId &&
+      can.read &&
+      !document?.isTemplate &&
+      !document?.isDeleted
+    );
   },
   perform: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
