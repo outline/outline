@@ -96,8 +96,8 @@ export const createDocumentFromTemplate = createAction({
   visible: ({ currentTeamId, activeDocumentId, stores }) =>
     !!currentTeamId &&
     !!activeDocumentId &&
-    stores.policies.abilities(currentTeamId).createDocument &&
-    !stores.documents.get(activeDocumentId)?.template,
+    !!stores.documents.get(activeDocumentId)?.template &&
+    stores.policies.abilities(currentTeamId).createDocument,
   perform: ({ activeCollectionId, activeDocumentId, inStarredSection }) =>
     history.push(
       newDocumentPath(activeCollectionId, { templateId: activeDocumentId }),

@@ -41,6 +41,9 @@ function AppSidebar() {
   React.useEffect(() => {
     if (!user.isViewer) {
       void documents.fetchDrafts();
+
+      // TODO: Move this out of sidebar
+      void documents.fetchTemplates();
     }
   }, [documents, user.isViewer]);
 
