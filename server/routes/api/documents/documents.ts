@@ -1216,7 +1216,7 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsImportSchema),
-  multipart({ maxAllowedFileSize: env.MAXIMUM_IMPORT_SIZE }),
+  multipart({ maximumFileSize: env.MAXIMUM_IMPORT_SIZE }),
   transaction(),
   async (ctx: APIContext<T.DocumentsImportReq>) => {
     const { collectionId, parentDocumentId, publish } = ctx.input.body;

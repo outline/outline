@@ -5,9 +5,9 @@ import { APIContext } from "@server/types";
 import { getFileFromRequest } from "@server/utils/koa";
 
 export default function multipart({
-  maxAllowedFileSize = 26214400,
+  maximumFileSize,
 }: {
-  maxAllowedFileSize: number;
+  maximumFileSize: number;
 }) {
   return async function multipartMiddleware(ctx: APIContext, next: Next) {
     if (!ctx.is("multipart/form-data")) {
@@ -21,21 +21,17 @@ export default function multipart({
       ctx.throw(InvalidRequestError("Request must include a file parameter"));
     }
 
-    if (file.size > maxAllowedFileSize) {
+    if (file.size > maximumFileSize) {
       ctx.throw(
         InvalidRequestError(
           `The selected file was larger than the ${bytesToHumanReadable(
-            maxAllowedFileSize
+            maximumFileSize
           )} maximum size`
         )
       );
     }
 
-    if (!ctx.input) {
-      ctx.input = { file };
-    } else {
-      ctx.input.file = file;
-    }
+    ctx.input = { ...(ctx.input ?? {}), file };
     return next();
   };
 }
