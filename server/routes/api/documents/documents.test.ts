@@ -3910,3 +3910,46 @@ describe("#documents.users", () => {
     expect(memberIds).toContain(ken.id);
   });
 });
+
+describe("#documents.add_user", () => {
+  it("should require id", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.add_user", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
+  });
+
+  it("should require authentication", async () => {
+    const document = await buildDocument();
+    const res = await server.post("/api/documents.add_user", {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(401);
+  });
+
+  it.only("should succeed with status 200 ok", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const member = await buildUser({ teamId: user.teamId });
+
+    const res = await server.post("/api/documents.add_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        userId: member.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+});

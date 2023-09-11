@@ -6,6 +6,7 @@ import presentCollection from "./collection";
 import presentCollectionGroupMembership from "./collectionGroupMembership";
 import presentComment from "./comment";
 import presentDocument from "./document";
+import presentDocumentMembership from "./documentMembership";
 import presentEvent from "./event";
 import presentFileOperation from "./fileOperation";
 import presentGroup from "./group";
@@ -40,6 +41,7 @@ export {
   presentGroupMembership,
   presentIntegration,
   presentMembership,
+  presentDocumentMembership,
   presentPublicTeam,
   presentPin,
   presentPolicies,

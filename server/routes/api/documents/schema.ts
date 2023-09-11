@@ -3,6 +3,7 @@ import formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
+import { DocumentPermission } from "@shared/types";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import BaseSchema from "@server/routes/api/BaseSchema";
 
@@ -353,3 +354,18 @@ export const DocumentsUsersSchema = BaseSchema.extend({
 });
 
 export type DocumentsUsersReq = z.infer<typeof DocumentsUsersSchema>;
+
+export const DocumentsAddUserSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the document to which the user is supposed to be added */
+    id: z.string().uuid(),
+    /** Id of the user who is to be added*/
+    userId: z.string().uuid(),
+    /** Permission to be granted to the added user  */
+    permission: z
+      .nativeEnum(DocumentPermission)
+      .default(DocumentPermission.ReadWrite),
+  }),
+});
+
+export type DocumentsAddUserReq = z.infer<typeof DocumentsAddUserSchema>;

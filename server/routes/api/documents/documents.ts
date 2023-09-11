@@ -41,6 +41,7 @@ import {
   User,
   View,
 } from "@server/models";
+import DocumentUser from "@server/models/DocumentUser";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize, cannot } from "@server/policies";
@@ -48,6 +49,7 @@ import {
   presentCollection,
   presentDocument,
   presentPolicies,
+  presentDocumentMembership,
   presentPublicTeam,
   presentUser,
 } from "@server/presenters";
@@ -1452,6 +1454,55 @@ router.post(
     ctx.body = {
       data: await presentDocument(document),
       policies: presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "documents.add_user",
+  auth(),
+  validate(T.DocumentsAddUserSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsAddUserReq>) => {
+    const { auth, transaction } = ctx.state;
+    const actor = auth.user;
+    const { id, userId, permission } = ctx.input.body;
+
+    const document = await Document.findByPk(id);
+    authorize(actor, "update", document);
+
+    const user = await User.findByPk(userId);
+    authorize(actor, "read", user);
+
+    let membership = await DocumentUser.findOne({
+      where: {
+        documentId: id,
+        userId,
+      },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    if (!membership) {
+      membership = await DocumentUser.create(
+        {
+          documentId: document.id,
+          userId: user.id,
+          permission: permission || user.defaultDocumentPermission,
+          createdById: actor.id,
+        },
+        { transaction }
+      );
+    } else {
+      membership.permission = permission;
+      await membership.save({ transaction });
+    }
+
+    ctx.body = {
+      data: {
+        users: [presentUser(user)],
+        memberships: [presentDocumentMembership(membership)],
+      },
     };
   }
 );

@@ -93,6 +93,11 @@ export enum CollectionPermission {
   Admin = "admin",
 }
 
+export enum DocumentPermission {
+  Read = "read",
+  ReadWrite = "read_write",
+}
+
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { url: string }
   : T extends IntegrationType.Analytics
