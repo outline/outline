@@ -7,6 +7,7 @@ import {
   Table,
   DataType,
   Scopes,
+  PrimaryKey,
 } from "sequelize-typescript";
 import { DocumentPermission } from "@shared/types";
 import Document from "./Document";
@@ -43,6 +44,7 @@ class DocumentUser extends Model {
   @BelongsTo(() => Document, "documentId")
   document: Document;
 
+  @PrimaryKey
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
   documentId: string;
@@ -50,6 +52,7 @@ class DocumentUser extends Model {
   @BelongsTo(() => User, "userId")
   user: User;
 
+  @PrimaryKey
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   userId: string;

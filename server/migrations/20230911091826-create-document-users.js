@@ -1,6 +1,5 @@
 "use strict";
 
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("document_users", {
@@ -12,6 +11,7 @@ module.exports = {
       documentId: {
         type: Sequelize.UUID,
         allowNull: false,
+        primaryKey: true,
         references: {
           model: "documents",
         },
@@ -19,6 +19,7 @@ module.exports = {
       userId: {
         type: Sequelize.UUID,
         allowNull: false,
+        primaryKey: true,
         references: {
           model: "users",
         },
