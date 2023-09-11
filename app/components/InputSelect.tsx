@@ -12,8 +12,8 @@ import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import Button, { Inner } from "~/components/Button";
 import Text from "~/components/Text";
+import { useMobile } from "~/hooks/useMobile";
 import useMenuHeight from "~/hooks/useMenuHeight";
-import useMobile from "~/hooks/useMobile";
 import { fadeAndScaleIn } from "~/styles/animations";
 import {
   Position,

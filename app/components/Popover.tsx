@@ -4,7 +4,7 @@ import { Popover as ReakitPopover, PopoverProps } from "reakit/Popover";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
-import useMobile from "~/hooks/useMobile";
+import { useMobile } from "~/hooks/useMobile";
 import { fadeAndScaleIn } from "~/styles/animations";
 
 type Props = PopoverProps & {

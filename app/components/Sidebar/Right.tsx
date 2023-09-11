@@ -7,7 +7,7 @@ import { depths, s } from "@shared/styles";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
-import useMobile from "~/hooks/useMobile";
+import { useMobile } from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { sidebarAppearDuration } from "~/styles/animations";
 
