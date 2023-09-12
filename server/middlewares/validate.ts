@@ -6,7 +6,10 @@ import { APIContext, BaseReq } from "@server/types";
 export default function validate<T extends z.ZodType<BaseReq>>(schema: T) {
   return async function validateMiddleware(ctx: APIContext, next: Next) {
     try {
-      ctx.input = schema.parse(ctx.request);
+      ctx.input = {
+        ...(ctx.input ?? {}),
+        ...schema.parse(ctx.request),
+      };
     } catch (err) {
       if (err instanceof ZodError) {
         const { path, message } = err.issues[0];
