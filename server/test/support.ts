@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
 import onerror from "@server/onerror";
