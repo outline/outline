@@ -1468,7 +1468,7 @@ router.post(
     const actor = auth.user;
     const { id, userId, permission } = ctx.input.body;
 
-    const document = await Document.findByPk(id);
+    const document = await Document.findByPk(id, { userId: actor.id });
     authorize(actor, "update", document);
 
     const user = await User.findByPk(userId);
