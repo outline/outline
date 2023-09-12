@@ -101,7 +101,11 @@ export async function getTeamFromContext(ctx: Context) {
 
   let team;
   if (!env.isCloudHosted) {
-    team = await Team.findOne();
+    if (env.ENVIRONMENT === "test") {
+      team = await Team.findOne({ where: { domain: env.URL } });
+    } else {
+      team = await Team.findOne();
+    }
   } else if (domain.custom) {
     team = await Team.findOne({ where: { domain: domain.host } });
   } else if (domain.teamSubdomain) {

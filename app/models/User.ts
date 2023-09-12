@@ -12,7 +12,7 @@ import {
 } from "@shared/types";
 import type { NotificationSettings } from "@shared/types";
 import { client } from "~/utils/ApiClient";
-import ParanoidModel from "./ParanoidModel";
+import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 
 class User extends ParanoidModel {
@@ -44,14 +44,19 @@ class User extends ParanoidModel {
   @observable
   notificationSettings: NotificationSettings;
 
+  @observable
   email: string;
 
+  @observable
   isAdmin: boolean;
 
+  @observable
   isViewer: boolean;
 
+  @observable
   lastActiveAt: string;
 
+  @observable
   isSuspended: boolean;
 
   @computed
@@ -96,7 +101,9 @@ class User extends ParanoidModel {
   get separateEditMode(): boolean {
     return !this.getPreference(
       UserPreference.SeamlessEdit,
-      this.store.rootStore.auth.team.getPreference(TeamPreference.SeamlessEdit)
+      this.store.rootStore.auth?.team?.getPreference(
+        TeamPreference.SeamlessEdit
+      )
     );
   }
 

@@ -1,12 +1,10 @@
 import { client } from "~/utils/ApiClient";
-import BaseModel from "./BaseModel";
+import Model from "./base/Model";
 
-class SearchQuery extends BaseModel {
+class SearchQuery extends Model {
   id: string;
 
   query: string;
-
-  createdAt: string;
 
   delete = async () => {
     this.isSaving = true;

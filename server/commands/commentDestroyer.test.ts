@@ -1,6 +1,5 @@
-import { Comment } from "@server/models";
+import { Comment, Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { findLatestEvent } from "@server/test/support";
 import commentDestroyer from "./commentDestroyer";
 
 describe("commentDestroyer", () => {
@@ -46,7 +45,9 @@ describe("commentDestroyer", () => {
     });
     expect(count).toEqual(0);
 
-    const event = await findLatestEvent();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
     expect(event!.name).toEqual("comments.delete");
     expect(event!.modelId).toEqual(comment.id);
   });

@@ -1,12 +1,13 @@
-import { computed } from "mobx";
+import { computed, observable } from "mobx";
 import { FileOperationFormat, FileOperationType } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
-import BaseModel from "./BaseModel";
 import User from "./User";
+import Model from "./base/Model";
 
-class FileOperation extends BaseModel {
+class FileOperation extends Model {
   id: string;
 
+  @observable
   state: string;
 
   name: string;
@@ -22,8 +23,6 @@ class FileOperation extends BaseModel {
   format: FileOperationFormat;
 
   user: User;
-
-  createdAt: string;
 
   @computed
   get sizeInMB(): string {

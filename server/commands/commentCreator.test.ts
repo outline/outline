@@ -1,5 +1,5 @@
+import { Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { findLatestEvent } from "@server/test/support";
 import commentCreator from "./commentCreator";
 
 describe("commentCreator", () => {
@@ -32,7 +32,9 @@ describe("commentCreator", () => {
       ip,
     });
 
-    const event = await findLatestEvent();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
     expect(comment.documentId).toEqual(document.id);
     expect(comment.createdById).toEqual(user.id);
     expect(event!.name).toEqual("comments.create");

@@ -6,10 +6,10 @@ import sortBy from "lodash/sortBy";
 import { action, computed } from "mobx";
 import Share from "~/models/Share";
 import { client } from "~/utils/ApiClient";
-import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
+import Store, { RPCAction } from "./base/Store";
 
-export default class SharesStore extends BaseStore<Share> {
+export default class SharesStore extends Store<Share> {
   actions = [
     RPCAction.Info,
     RPCAction.List,

@@ -5,13 +5,11 @@ import {
   buildEvent,
   buildUser,
 } from "@server/test/factories";
-import { getTestServer, setCloudHosted } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
 describe("#events.list", () => {
-  beforeEach(setCloudHosted);
-
   it("should only return activity events", async () => {
     const user = await buildUser();
     const admin = await buildAdmin({ teamId: user.teamId });

@@ -3,8 +3,8 @@ import { shallow } from "enzyme";
 import { TFunction } from "i18next";
 import * as React from "react";
 import { getI18n } from "react-i18next";
-import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
+import { DEFAULT_PAGINATION_LIMIT } from "~/stores/base/Store";
 import { runAllPromises } from "~/test/support";
 import { Component as PaginatedList } from "./PaginatedList";
 

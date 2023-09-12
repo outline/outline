@@ -1,9 +1,9 @@
 import { observable } from "mobx";
-import BaseModel from "./BaseModel";
 import User from "./User";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 
-class Share extends BaseModel {
+class Share extends Model {
   @Field
   @observable
   id: string;
@@ -24,12 +24,16 @@ class Share extends BaseModel {
   @observable
   urlId: string;
 
+  @observable
   documentTitle: string;
 
+  @observable
   documentUrl: string;
 
+  @observable
   lastAccessedAt: string | null | undefined;
 
+  @observable
   url: string;
 
   createdBy: User;

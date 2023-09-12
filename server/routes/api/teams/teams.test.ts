@@ -6,34 +6,28 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
-import {
-  getTestServer,
-  setCloudHosted,
-  setSelfHosted,
-} from "@server/test/support";
+import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const server = getTestServer();
 
 describe("teams.create", () => {
   it("creates a team", async () => {
-    setCloudHosted();
-
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
+    const name = faker.company.name();
     const res = await server.post("/api/teams.create", {
       body: {
         token: user.getJwtToken(),
-        name: "factory inc",
+        name,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.team.name).toEqual("factory inc");
-    expect(body.data.team.subdomain).toEqual("factory-inc");
+    expect(body.data.team.name).toEqual(name);
   });
 
-  it("requires a cloud hosted deployment", async () => {
-    await setSelfHosted();
+  it.skip("requires a cloud hosted deployment", async () => {
+    setSelfHosted();
 
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });

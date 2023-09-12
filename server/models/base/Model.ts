@@ -1,8 +1,14 @@
 import { FindOptions } from "sequelize";
-import { Model } from "sequelize-typescript";
+import { Model as SequelizeModel } from "sequelize-typescript";
 
-class BaseModel extends Model {
-  static async findAllInBatches<T extends BaseModel>(
+class Model extends SequelizeModel {
+  /**
+   * Find all models in batches, calling the callback function for each batch.
+   *
+   * @param query The query options.
+   * @param callback The function to call for each batch of results
+   */
+  static async findAllInBatches<T extends Model>(
     query: FindOptions<T>,
     callback: (results: Array<T>, query: FindOptions<T>) => Promise<void>
   ) {
@@ -23,4 +29,4 @@ class BaseModel extends Model {
   }
 }
 
-export default BaseModel;
+export default Model;

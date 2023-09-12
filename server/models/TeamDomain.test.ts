@@ -1,10 +1,7 @@
 import { buildAdmin, buildTeam } from "@server/test/factories";
-import { setCloudHosted } from "@server/test/support";
 import TeamDomain from "./TeamDomain";
 
 describe("team domain model", () => {
-  beforeEach(setCloudHosted);
-
   describe("create", () => {
     it("should allow creation of domains", async () => {
       const team = await buildTeam();

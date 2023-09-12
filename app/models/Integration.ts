@@ -4,10 +4,10 @@ import type {
   IntegrationSettings,
   IntegrationType,
 } from "@shared/types";
-import BaseModel from "~/models/BaseModel";
+import Model from "~/models/base/Model";
 import Field from "./decorators/Field";
 
-class Integration<T = unknown> extends BaseModel {
+class Integration<T = unknown> extends Model {
   id: string;
 
   type: IntegrationType;
@@ -20,6 +20,7 @@ class Integration<T = unknown> extends BaseModel {
   @observable
   events: string[];
 
+  @observable
   settings: IntegrationSettings<T>;
 }
 

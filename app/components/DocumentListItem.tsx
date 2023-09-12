@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -9,7 +8,6 @@ import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import Document from "~/models/Document";
 import Badge from "~/components/Badge";
-import Button from "~/components/Button";
 import DocumentMeta from "~/components/DocumentMeta";
 import EventBoundary from "~/components/EventBoundary";
 import Flex from "~/components/Flex";
@@ -18,12 +16,10 @@ import NudeButton from "~/components/NudeButton";
 import StarButton, { AnimatedStar } from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import usePolicy from "~/hooks/usePolicy";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { hover } from "~/styles";
-import { newDocumentPath } from "~/utils/routeHelpers";
+import { documentPath } from "~/utils/routeHelpers";
 import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
@@ -52,7 +48,6 @@ function DocumentListItem(
 ) {
   const { t } = useTranslation();
   const user = useCurrentUser();
-  const team = useCurrentTeam();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
   const {
@@ -72,8 +67,6 @@ function DocumentListItem(
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar =
     !document.isDraft && !document.isArchived && !document.isTemplate;
-  const can = usePolicy(team);
-  const canCollection = usePolicy(document.collectionId);
 
   return (
     <CompositeItem
@@ -84,7 +77,7 @@ function DocumentListItem(
       $isStarred={document.isStarred}
       $menuOpen={menuOpen}
       to={{
-        pathname: document.url,
+        pathname: documentPath(document),
         state: {
           title: document.titleWithDefault,
         },
@@ -142,25 +135,6 @@ function DocumentListItem(
         />
       </Content>
       <Actions>
-        {document.isTemplate &&
-          !document.isArchived &&
-          !document.isDeleted &&
-          can.createDocument &&
-          canCollection.update && (
-            <>
-              <Button
-                as={Link}
-                to={newDocumentPath(document.collectionId, {
-                  templateId: document.id,
-                })}
-                icon={<PlusIcon />}
-                neutral
-              >
-                {t("New doc")}
-              </Button>
-              &nbsp;
-            </>
-          )}
         <DocumentMenu
           document={document}
           showPin={showPin}

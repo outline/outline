@@ -317,7 +317,7 @@ class WebsocketProvider extends React.Component<Props> {
         });
       }
 
-      auth.team?.updateFromJson(event);
+      auth.team?.updateData(event);
     });
 
     this.socket.on(

@@ -1,4 +1,5 @@
 import { NotificationEventType } from "@shared/types";
+import { Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import {
   buildUser,
@@ -6,7 +7,6 @@ import {
   buildDocument,
   buildCollection,
 } from "@server/test/factories";
-import { findLatestEvent } from "@server/test/support";
 import notificationUpdater from "./notificationUpdater";
 
 describe("notificationUpdater", () => {
@@ -46,7 +46,9 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await findLatestEvent();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
 
     expect(notification.viewedAt).not.toBe(null);
     expect(notification.archivedAt).toBe(null);
@@ -89,7 +91,9 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await findLatestEvent();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
 
     expect(notification.viewedAt).toBe(null);
     expect(notification.archivedAt).toBe(null);
@@ -131,7 +135,9 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await findLatestEvent();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
 
     expect(notification.viewedAt).toBe(null);
     expect(notification.archivedAt).not.toBe(null);
@@ -174,7 +180,9 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await findLatestEvent();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
 
     expect(notification.viewedAt).toBe(null);
     expect(notification.archivedAt).toBeNull();

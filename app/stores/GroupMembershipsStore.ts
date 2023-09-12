@@ -4,10 +4,10 @@ import { action, runInAction } from "mobx";
 import GroupMembership from "~/models/GroupMembership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
-import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
+import Store, { RPCAction } from "./base/Store";
 
-export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
+export default class GroupMembershipsStore extends Store<GroupMembership> {
   actions = [RPCAction.Create, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {

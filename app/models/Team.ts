@@ -2,10 +2,10 @@ import { computed, observable } from "mobx";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import { TeamPreference, TeamPreferences } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
-import BaseModel from "./BaseModel";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 
-class Team extends BaseModel {
+class Team extends Model {
   @Field
   @observable
   id: string;
@@ -58,8 +58,10 @@ class Team extends BaseModel {
   @observable
   preferences: TeamPreferences | null;
 
+  @observable
   domain: string | null | undefined;
 
+  @observable
   url: string;
 
   @Field

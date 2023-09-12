@@ -10,25 +10,34 @@ import Route from "~/components/ProfiledRoute";
 import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
-import lazyWithRetry from "~/utils/lazyWithRetry";
-import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
+import lazy from "~/utils/lazyWithRetry";
+import {
+  archivePath,
+  draftsPath,
+  homePath,
+  searchPath,
+  settingsPath,
+  matchDocumentSlug as slug,
+  trashPath,
+} from "~/utils/routeHelpers";
 
-const SettingsRoutes = lazyWithRetry(() => import("./settings"));
-const Archive = lazyWithRetry(() => import("~/scenes/Archive"));
-const Collection = lazyWithRetry(() => import("~/scenes/Collection"));
-const Document = lazyWithRetry(() => import("~/scenes/Document"));
-const Drafts = lazyWithRetry(() => import("~/scenes/Drafts"));
-const Home = lazyWithRetry(() => import("~/scenes/Home"));
-const Templates = lazyWithRetry(() => import("~/scenes/Templates"));
-const Search = lazyWithRetry(() => import("~/scenes/Search"));
-const Trash = lazyWithRetry(() => import("~/scenes/Trash"));
+const SettingsRoutes = lazy(() => import("./settings"));
+const Archive = lazy(() => import("~/scenes/Archive"));
+const Collection = lazy(() => import("~/scenes/Collection"));
+const Document = lazy(() => import("~/scenes/Document"));
+const Drafts = lazy(() => import("~/scenes/Drafts"));
+const Home = lazy(() => import("~/scenes/Home"));
+const Search = lazy(() => import("~/scenes/Search"));
+const Trash = lazy(() => import("~/scenes/Trash"));
 
 const RedirectDocument = ({
   match,
 }: RouteComponentProps<{ documentSlug: string }>) => (
   <Redirect
     to={
-      match.params.documentSlug ? `/doc/${match.params.documentSlug}` : "/home"
+      match.params.documentSlug
+        ? `/doc/${match.params.documentSlug}`
+        : homePath()
     }
   />
 );
@@ -49,24 +58,18 @@ function AuthenticatedRoutes() {
         >
           <Switch>
             {can.createDocument && (
-              <Route exact path="/templates" component={Templates} />
+              <Route exact path={draftsPath()} component={Drafts} />
             )}
             {can.createDocument && (
-              <Route exact path="/templates/:sort" component={Templates} />
+              <Route exact path={archivePath()} component={Archive} />
             )}
             {can.createDocument && (
-              <Route exact path="/drafts" component={Drafts} />
+              <Route exact path={trashPath()} component={Trash} />
             )}
-            {can.createDocument && (
-              <Route exact path="/archive" component={Archive} />
-            )}
-            {can.createDocument && (
-              <Route exact path="/trash" component={Trash} />
-            )}
-            <Redirect from="/dashboard" to="/home" />
-            <Route path="/home/:tab" component={Home} />
-            <Route path="/home" component={Home} />
-            <Redirect exact from="/starred" to="/home" />
+            <Route path={`${homePath()}/:tab?`} component={Home} />
+            <Redirect from="/dashboard" to={homePath()} />
+            <Redirect exact from="/starred" to={homePath()} />
+            <Redirect exact from="/templates" to={settingsPath("templates")} />
             <Redirect exact from="/collections/*" to="/collection/*" />
             <Route exact path="/collection/:id/new" component={DocumentNew} />
             <Route exact path="/collection/:id/:tab" component={Collection} />
@@ -81,8 +84,7 @@ function AuthenticatedRoutes() {
             <Route exact path={`/doc/${slug}/insights`} component={Document} />
             <Route exact path={`/doc/${slug}/edit`} component={Document} />
             <Route path={`/doc/${slug}`} component={Document} />
-            <Route exact path="/search" component={Search} />
-            <Route exact path="/search/:term" component={Search} />
+            <Route exact path={`${searchPath()}/:term?`} component={Search} />
             <Route path="/404" component={Error404} />
             <SettingsRoutes />
             <Route component={Error404} />

@@ -1,7 +1,6 @@
 import { Star, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { findLatestEvent } from "@server/test/support";
 import starCreator from "./starCreator";
 
 describe("starCreator", () => {
@@ -23,7 +22,9 @@ describe("starCreator", () => {
       })
     );
 
-    const event = await findLatestEvent();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
     expect(star.documentId).toEqual(document.id);
     expect(star.userId).toEqual(user.id);
     expect(star.index).toEqual("P");

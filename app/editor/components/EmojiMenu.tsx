@@ -2,7 +2,7 @@ import data, { type Emoji as TEmoji, EmojiMartData } from "@emoji-mart/data";
 import FuzzySearch from "fuzzy-search";
 import capitalize from "lodash/capitalize";
 import React from "react";
-import { snakeCase } from "@shared/editor/lib/emoji";
+import { emojiMartToGemoji, snakeCase } from "@shared/editor/lib/emoji";
 import EmojiMenuItem from "./EmojiMenuItem";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
@@ -38,7 +38,7 @@ const EmojiMenu = (props: Props) => {
     const result = searcher.search(n).map((item) => {
       // We snake_case the shortcode for backwards compatability with gemoji to
       // avoid multiple formats being written into documents.
-      const shortcode = snakeCase(item.id);
+      const shortcode = snakeCase(emojiMartToGemoji[item.id] || item.id);
       const emoji = item.skins[0].native;
 
       return {
