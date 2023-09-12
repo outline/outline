@@ -78,7 +78,7 @@
     "@vitejs/plugin-react": "^3.1.0",
     "addressparser": "^1.0.1",
     "autotrack": "^2.4.1",
-    "aws-sdk": "^2.1354.0",
+    "aws-sdk": "^2.1455.0",
     "babel-plugin-styled-components": "^2.1.4",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "body-scroll-lock": "^4.0.0-beta.0",
