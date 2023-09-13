@@ -304,7 +304,10 @@ router.post(
       order: [[sort, direction]],
       include: [
         {
-          model: Document,
+          model: Document.scope([
+            "withDrafts",
+            { method: ["withMembership", userId] },
+          ]),
           required: true,
           where: {
             collectionId: collectionIds,

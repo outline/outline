@@ -1,5 +1,6 @@
 import invariant from "invariant";
-import { TeamPreference } from "@shared/types";
+import some from "lodash/some";
+import { DocumentPermission, TeamPreference } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, _cannot as cannot } from "./cancan";
 
@@ -116,6 +117,13 @@ allow(User, "share", Document, (user, document) => {
 allow(User, "update", Document, (user, document) => {
   if (!document || !document.isActive) {
     return false;
+  }
+
+  const membershipAllowsUpdate = includesMembership(document, [
+    DocumentPermission.ReadWrite,
+  ]);
+  if (membershipAllowsUpdate) {
+    return true;
   }
 
   if (document.collectionId) {
@@ -360,3 +368,14 @@ allow(User, "unpublish", Document, (user, document) => {
   }
   return user.teamId === document.teamId;
 });
+
+function includesMembership(
+  document: Document,
+  permissions: DocumentPermission[]
+) {
+  invariant(
+    document.memberships,
+    "memberships should be preloaded, did you forget withMembership scope?"
+  );
+  return some(document.memberships, (m) => permissions.includes(m.permission));
+}
