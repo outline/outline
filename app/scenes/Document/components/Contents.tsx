@@ -56,7 +56,7 @@ export default function Contents({ headings, isFullWidth }: Props) {
   const { t } = useTranslation();
 
   return (
-    <Wrapper isFullWidth={isFullWidth} id="table-of-contents">
+    <Wrapper isFullWidth={isFullWidth}>
       <Sticky>
         <Heading>{t("Contents")}</Heading>
         {headings.length ? (

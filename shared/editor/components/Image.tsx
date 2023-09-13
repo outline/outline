@@ -12,11 +12,15 @@ import useComponentSize from "./useComponentSize";
 type DragDirection = "left" | "right";
 
 type Props = ComponentProps & {
+  /** Callback triggered when the image is clicked */
   onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+  /** Callback triggered when the download button is clicked */
   onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  /** Callback triggered when the image is resized */
   onChangeSize?: (props: { width: number; height?: number }) => void;
-  children?: React.ReactElement;
+  /** The editor view */
   view: EditorView;
+  children?: React.ReactElement;
 };
 
 const Image = (props: Props) => {
