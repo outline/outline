@@ -1,4 +1,5 @@
 import { CollectionPermission } from "@shared/types";
+import { Document } from "@server/models";
 import {
   buildUser,
   buildTeam,
@@ -16,10 +17,12 @@ describe("read_write collection", () => {
       teamId: team.id,
       permission: CollectionPermission.ReadWrite,
     });
-    const document = await buildDocument({
+    const doc = await buildDocument({
       teamId: team.id,
       collectionId: collection.id,
     });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
     const abilities = serialize(user, document);
     expect(abilities.read).toEqual(true);
     expect(abilities.download).toEqual(true);
@@ -119,10 +122,12 @@ describe("no collection", () => {
   it("should grant same permissions as that on a draft document except the share permission", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
-    const document = await buildDraftDocument({
+    const doc = await buildDraftDocument({
       teamId: team.id,
       collectionId: null,
     });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
     const abilities = serialize(user, document);
     expect(abilities.archive).toEqual(false);
     expect(abilities.createChildDocument).toEqual(false);
