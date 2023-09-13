@@ -11,25 +11,18 @@ import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import useSettingsActions from "~/hooks/useSettingsActions";
-import { CommandBarAction } from "~/types";
+import useTemplateActions from "~/hooks/useTemplateActions";
 
 function CommandBar() {
   const { t } = useTranslation();
   const settingsActions = useSettingsActions();
+  const templateActions = useTemplateActions();
   const commandBarActions = React.useMemo(
-    () => [...rootActions, settingsActions],
-    [settingsActions]
+    () => [...rootActions, templateActions, settingsActions],
+    [settingsActions, templateActions]
   );
 
   useCommandBarActions(commandBarActions);
-
-  const { rootAction } = useKBar((state) => ({
-    rootAction: state.currentRootActionId
-      ? (state.actions[
-          state.currentRootActionId
-        ] as unknown as CommandBarAction)
-      : undefined,
-  }));
 
   return (
     <>
@@ -37,13 +30,7 @@ function CommandBar() {
         <Positioner>
           <Animator>
             <SearchActions />
-            <SearchInput
-              placeholder={`${
-                rootAction?.placeholder ||
-                rootAction?.name ||
-                t("Type a command or search")
-              }…`}
-            />
+            <SearchInput defaultPlaceholder={t("Type a command or search")} />
             <CommandBarResults />
           </Animator>
         </Positioner>
