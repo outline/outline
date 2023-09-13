@@ -23,7 +23,7 @@ import EmojiIcon from "~/components/Icons/EmojiIcon";
 import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import Text from "~/components/Text";
-import { useMobile } from "~/hooks/useMobile";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { isModKey } from "~/utils/keyboard";
 import { ancestors, descendants } from "~/utils/tree";

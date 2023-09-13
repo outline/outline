@@ -29,7 +29,7 @@ import { publishDocument } from "~/actions/definitions/documents";
 import { navigateToTemplateSettings } from "~/actions/definitions/navigation";
 import { restoreRevision } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
-import { useMobile } from "~/hooks/useMobile";
+import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";

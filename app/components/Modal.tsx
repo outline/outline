@@ -11,7 +11,7 @@ import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
-import { useMobile } from "~/hooks/useMobile";
+import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useUnmount from "~/hooks/useUnmount";
 import { fadeAndScaleIn } from "~/styles/animations";

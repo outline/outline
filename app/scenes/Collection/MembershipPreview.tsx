@@ -12,7 +12,7 @@ import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import { editCollectionPermissions } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
-import { useMobile } from "~/hooks/useMobile";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 
 type Props = {

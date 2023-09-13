@@ -450,7 +450,7 @@ li {
 
   img {
     max-width: 100vw;
-    max-height: 50vh;
+    max-height: min(450px, 50vh);
     object-fit: cover;
     object-position: center;
   }

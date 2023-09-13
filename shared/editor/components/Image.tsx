@@ -7,38 +7,22 @@ import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
 import ImageZoom from "./ImageZoom";
+import useComponentSize from "./useComponentSize";
 
 type DragDirection = "left" | "right";
 
-const defaultRect = {
-  top: 0,
-  left: 0,
-  bottom: 0,
-  right: 0,
-  x: 0,
-  y: 0,
-  width: 0,
-  height: 0,
+type Props = ComponentProps & {
+  onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onChangeSize?: (props: { width: number; height?: number }) => void;
+  children?: React.ReactElement;
+  view: EditorView;
 };
 
-const Image = (
-  props: ComponentProps & {
-    onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
-    onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-    onChangeSize?: (props: { width: number; height?: number }) => void;
-    children?: React.ReactElement;
-    view: EditorView;
-  }
-) => {
+const Image = (props: Props) => {
   const { isSelected, node, isEditable } = props;
   const { src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
-  const [containerBounds, setContainerBounds] = React.useState(
-    () =>
-      document.body
-        .querySelector("#full-width-container")
-        ?.getBoundingClientRect() ?? defaultRect
-  );
   const [loaded, setLoaded] = React.useState(false);
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
@@ -49,36 +33,15 @@ const Image = (
   const [sizeAtDragStart, setSizeAtDragStart] = React.useState(size);
   const [offset, setOffset] = React.useState(0);
   const [dragging, setDragging] = React.useState<DragDirection>();
-  const [documentBounds, setDocumentBounds] = React.useState(
-    props.view ? props.view.dom.getBoundingClientRect() : defaultRect
+  const documentBounds = useComponentSize(props.view.dom);
+  const containerBounds = useComponentSize(
+    document.body.querySelector("#full-width-container")
   );
   const maxWidth = layoutClass
     ? documentBounds.width / 3
     : documentBounds.width;
   const isFullWidth = layoutClass === "full-width";
   const isResizable = !!props.onChangeSize;
-
-  React.useLayoutEffect(() => {
-    if (!isResizable) {
-      return;
-    }
-
-    const handleResize = () => {
-      const containerRect =
-        document.body
-          .querySelector("#full-width-container")
-          ?.getBoundingClientRect() ?? defaultRect;
-      setContainerBounds(containerRect);
-      setDocumentBounds(
-        props.view ? props.view.dom.getBoundingClientRect() : defaultRect
-      );
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [props.view, isResizable]);
 
   const constrainWidth = (width: number) => {
     const minWidth = documentBounds.width * 0.1;
@@ -176,16 +139,11 @@ const Image = (
     ? { width: containerBounds.width }
     : { width: size.width || "auto" };
 
-  console.log({
-    containerBounds,
-    documentBounds,
-  });
-
   const containerStyle = isFullWidth
     ? ({
         "--offset": `${-(
-          documentBounds.x -
-          containerBounds.x +
+          documentBounds.left -
+          containerBounds.left +
           getPadding(props.view.dom)
         )}px`,
       } as React.CSSProperties)

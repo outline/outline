@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useMobile } from "~/hooks/useMobile";
+import useMobile from "~/hooks/useMobile";
 import useWindowSize from "~/hooks/useWindowSize";
 
 const useMenuHeight = ({

@@ -12,8 +12,8 @@ import WebhookSubscription from "~/models/WebhookSubscription";
 import Button from "~/components/Button";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
-import { useMobile } from "~/hooks/useMobile";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useMobile from "~/hooks/useMobile";
 
 const WEBHOOK_EVENTS = {
   users: [

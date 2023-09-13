@@ -9,7 +9,7 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import Tooltip from "~/components/Tooltip";
-import { useMobile } from "~/hooks/useMobile";
+import useMobile from "~/hooks/useMobile";
 import { draggableOnDesktop } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 
