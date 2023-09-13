@@ -1501,6 +1501,23 @@ router.post(
       await membership.save({ transaction });
     }
 
+    await Event.create(
+      {
+        name: "documents.add_user",
+        userId,
+        documentId: document.id,
+        teamId: document.teamId,
+        actorId: actor.id,
+        data: {
+          name: user.name,
+        },
+        ip: ctx.request.ip,
+      },
+      {
+        transaction,
+      }
+    );
+
     ctx.body = {
       data: {
         users: [presentUser(user)],
