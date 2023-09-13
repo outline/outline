@@ -1,7 +1,7 @@
 # Installation en local
 
 Dépendances à installer :
-- node dans la bonne version, à voir selon ce que vous indiquera l'installation (NVM est une option intéressante pour avoir la bonne version de node selon les projets)
+- node dans la bonne version, à voir selon ce que vous indiquera l'installation (NVM est une option intéressante pour avoir la bonne version de node selon les projets). Aujourd'hui  il faut node 14.15 ou node 16.10 ou node >=18.0.0.
 - yarn
 - docker
 - postgresql
