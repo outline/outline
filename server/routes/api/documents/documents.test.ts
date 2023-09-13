@@ -3955,3 +3955,73 @@ describe("#documents.add_user", () => {
     expect(users.length).toEqual(1);
   });
 });
+
+describe("#documents.remove_user", () => {
+  it("should require id", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.remove_user", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
+  });
+
+  it("should require authentication", async () => {
+    const document = await buildDocument();
+    const res = await server.post("/api/documents.remove_user", {
+      body: {
+        id: document.id,
+      },
+    });
+    expect(res.status).toEqual(401);
+  });
+
+  it("should require authorization", async () => {
+    const document = await buildDocument();
+    const user = await buildUser();
+    const anotherUser = await buildUser({
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.remove_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        userId: anotherUser.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should remove user from document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const member = await buildUser({
+      teamId: user.teamId,
+    });
+    await server.post("/api/documents.add_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        userId: member.id,
+      },
+    });
+    let users = await document.$get("users");
+    expect(users.length).toEqual(1);
+    const res = await server.post("/api/documents.remove_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        userId: member.id,
+      },
+    });
+    users = await document.$get("users");
+    expect(res.status).toEqual(200);
+    expect(users.length).toEqual(0);
+  });
+});

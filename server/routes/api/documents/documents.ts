@@ -1510,4 +1510,42 @@ router.post(
   }
 );
 
+router.post(
+  "documents.remove_user",
+  auth(),
+  validate(T.DocumentsRemoveUserSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsRemoveUserReq>) => {
+    const { auth, transaction } = ctx.state;
+    const actor = auth.user;
+    const { id, userId } = ctx.input.body;
+
+    const document = await Document.findByPk(id, { userId: actor.id });
+    authorize(actor, "update", document);
+
+    const user = await User.findByPk(userId);
+    authorize(actor, "read", user);
+
+    await document.$remove("user", user, { transaction });
+    await Event.create(
+      {
+        name: "documents.remove_user",
+        userId,
+        documentId: document.id,
+        teamId: document.teamId,
+        actorId: actor.id,
+        data: {
+          name: user.name,
+        },
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
 export default router;

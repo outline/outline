@@ -369,3 +369,14 @@ export const DocumentsAddUserSchema = BaseSchema.extend({
 });
 
 export type DocumentsAddUserReq = z.infer<typeof DocumentsAddUserSchema>;
+
+export const DocumentsRemoveUserSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the document from which to remove the user */
+    id: z.string().uuid(),
+    /** Id of the user who is to be removed */
+    userId: z.string().uuid(),
+  }),
+});
+
+export type DocumentsRemoveUserReq = z.infer<typeof DocumentsRemoveUserSchema>;
