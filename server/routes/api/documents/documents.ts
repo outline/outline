@@ -1565,4 +1565,40 @@ router.post(
   }
 );
 
+router.post(
+  "documents.shared_with_me",
+  auth(),
+  pagination(),
+  validate(T.DocumentsSharedWithUserSchema),
+  async (ctx: APIContext<T.DocumentsSharedWithUserReq>) => {
+    const user = ctx.state.auth.user;
+    const { sort, direction } = ctx.input.body;
+    const memberships = await DocumentUser.findAll({
+      attributes: ["documentId"],
+      where: {
+        userId: user.id,
+      },
+    });
+
+    const documents = await Document.defaultScopeWithUser(user.id).findAll({
+      where: {
+        id: memberships.map((m) => m.documentId),
+      },
+      order: [[sort, direction]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
+
+    const data = await Promise.all(
+      documents.map((document) => presentDocument(document))
+    );
+    const policies = presentPolicies(user, documents);
+    ctx.body = {
+      pagination: ctx.state.pagination,
+      data,
+      policies,
+    };
+  }
+);
+
 export default router;

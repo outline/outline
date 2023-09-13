@@ -380,3 +380,11 @@ export const DocumentsRemoveUserSchema = BaseSchema.extend({
 });
 
 export type DocumentsRemoveUserReq = z.infer<typeof DocumentsRemoveUserSchema>;
+
+export const DocumentsSharedWithUserSchema = BaseSchema.extend({
+  body: DocumentsSortParamsSchema,
+});
+
+export type DocumentsSharedWithUserReq = z.infer<
+  typeof DocumentsSharedWithUserSchema
+>;
