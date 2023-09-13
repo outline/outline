@@ -1,4 +1,4 @@
-import BlockMenu from "../extensions/BlockMenu";
+import BlockMenuTrigger from "../extensions/BlockMenuTrigger";
 import ClipboardTextSerializer from "../extensions/ClipboardTextSerializer";
 import DateTime from "../extensions/DateTime";
 import DragAndDrop from "../extensions/DragAndDrop";
@@ -107,12 +107,12 @@ export const richExtensions: Nodes = [
   TableRow,
   Highlight,
   TemplatePlaceholder,
-  BlockMenu,
   Math,
   MathBlock,
   PreventTab,
   FindAndReplace,
   DragAndDrop,
+  BlockMenuTrigger,
 ];
 
 /**

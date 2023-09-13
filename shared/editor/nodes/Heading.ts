@@ -76,6 +76,14 @@ export default class Heading extends Node {
 
         return [
           `h${node.attrs.level + (this.options.offset || 0)}`,
+
+          [
+            "span",
+            {
+              class: "heading-content",
+            },
+            0,
+          ],
           [
             "span",
             {
@@ -85,13 +93,6 @@ export default class Heading extends Node {
               }`,
             },
             ...(anchor ? [anchor, fold] : []),
-          ],
-          [
-            "span",
-            {
-              class: "heading-content",
-            },
-            0,
           ],
         ];
       },

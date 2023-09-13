@@ -1,6 +1,7 @@
 import { NodeSelection, Plugin } from "prosemirror-state";
 import { EditorView, __serializeForClipboard } from "prosemirror-view";
 import Extension from "../lib/Extension";
+import { absoluteRect, nodeDOMAtCoords, nodePosAtDOM } from "../lib/position";
 
 export type DragHandleOptions = {
   /**
@@ -8,43 +9,6 @@ export type DragHandleOptions = {
    */
   dragHandleWidth: number;
 };
-
-function absoluteRect(node: Element) {
-  const data = node.getBoundingClientRect();
-
-  return {
-    top: data.top,
-    left: data.left,
-    width: data.width,
-  };
-}
-
-function nodeDOMAtCoords(coords: { x: number; y: number }) {
-  return document
-    .elementsFromPoint(coords.x, coords.y)
-    .find(
-      (elem: Element) =>
-        elem.parentElement?.matches?.(".ProseMirror") ||
-        elem.matches(
-          [
-            "li",
-            "p:not(:first-child)",
-            "pre",
-            "blockquote",
-            "h1, h2, h3, h4, h5, h6",
-          ].join(", ")
-        )
-    );
-}
-
-function nodePosAtDOM(node: Element, view: EditorView) {
-  const boundingRect = node.getBoundingClientRect();
-
-  return view.posAtCoords({
-    left: boundingRect.left + 1,
-    top: boundingRect.top + 1,
-  })?.inside;
-}
 
 function DragHandle(options: DragHandleOptions) {
   let dragHandleElement: HTMLElement | null = null;
@@ -135,11 +99,11 @@ function DragHandle(options: DragHandleOptions) {
 
       hideDragHandle();
 
-      view?.dom?.parentElement?.appendChild(dragHandleElement);
+      view.dom.parentElement?.appendChild(dragHandleElement);
 
       return {
         destroy: () => {
-          dragHandleElement?.remove?.();
+          dragHandleElement?.remove();
           dragHandleElement = null;
         },
       };
@@ -164,7 +128,6 @@ function DragHandle(options: DragHandleOptions) {
           const style = window.getComputedStyle(node);
           const lineHeight = parseInt(style.lineHeight, 10);
           const paddingTop = parseInt(style.paddingTop, 10);
-
           const rect = absoluteRect(node);
 
           rect.top += (lineHeight - 24) / 2;

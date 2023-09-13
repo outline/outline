@@ -250,8 +250,9 @@ const findAndReplaceStyle = () => css`
   }
 `;
 
-const dragAndDropStyle = (props: Props) => css`
-  .drag-handle {
+const dragHandleStyle = (props: Props) => css`
+  .drag-handle,
+  .block-menu-trigger {
     display: none;
     pointer-events: none;
     position: fixed;
@@ -259,9 +260,10 @@ const dragAndDropStyle = (props: Props) => css`
     transition: opacity ease-in 100ms;
     border-radius: 4px;
     color: ${props.theme.textSecondary};
+    background-color: ${props.theme.background};
     background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJjdXJyZW50Q29sb3IiPgo8cmVjdCB4PSI4IiB5PSI3IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIvPgo8cmVjdCB4PSI4IiB5PSIxMSIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiLz4KPHJlY3QgeD0iOCIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIi8+CjxyZWN0IHg9IjEzIiB5PSI3IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIvPgo8cmVjdCB4PSIxMyIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIi8+CjxyZWN0IHg9IjEzIiB5PSIxNSIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiLz4KPC9zdmc+);
     background-repeat: no-repeat;
-    background-position: 0 1px;
+    background-position: 0 0;
     width: 24px;
     height: 24px;
     z-index: 50;
@@ -288,6 +290,22 @@ const dragAndDropStyle = (props: Props) => css`
       display: block;
       pointer-events: auto;
     `}
+  }
+
+  .block-menu-trigger {
+    background: none;
+    outline: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: var(--pointer);
+    background: ${props.theme.background};
+
+    &:hover,
+    &:focus {
+      color: ${props.theme.text};
+      background: ${props.theme.secondaryBackground};
+    }
   }
 `;
 
@@ -686,7 +704,7 @@ h6:not(.placeholder):before {
 .heading-actions {
   opacity: 0;
   background: ${props.theme.background};
-  margin-${props.rtl ? "right" : "left"}: -26px;
+  margin: 0 4px;
   flex-direction: ${props.rtl ? "row-reverse" : "row"};
   display: inline-flex;
   position: relative;
@@ -1369,40 +1387,6 @@ table {
   }
 }
 
-.block-menu-trigger {
-  opacity: 0;
-  pointer-events: none;
-  display: ${props.readOnly ? "none" : "inline"};
-  width: 24px;
-  height: 24px;
-  color: ${props.theme.textSecondary};
-  background: none;
-  position: absolute;
-  transition: color 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
-    opacity 150ms ease-in-out;
-  outline: none;
-  border: 0;
-  padding: 0;
-  margin-top: 1px;
-  margin-${props.rtl ? "right" : "left"}: -40px;
-  border-radius: 4px;
-
-  &:hover,
-  &:focus {
-    cursor: var(--pointer);
-    color: ${props.theme.text};
-    background: ${props.theme.secondaryBackground};
-  }
-}
-
-.ProseMirror[contenteditable="true"]:focus-within,
-.ProseMirror-focused .block-menu-trigger,
-.block-menu-trigger:active,
-.block-menu-trigger:focus {
-  opacity: 1;
-  pointer-events: initial;
-}
-
 .ProseMirror-gapcursor {
   display: none;
   pointer-events: none;
@@ -1500,7 +1484,7 @@ const EditorContainer = styled.div<Props>`
   ${codeMarkCursor}
   ${codeBlockStyle}
   ${findAndReplaceStyle}
-  ${dragAndDropStyle}
+  ${dragHandleStyle}
 `;
 
 export default EditorContainer;
