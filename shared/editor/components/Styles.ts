@@ -258,19 +258,17 @@ const dragAndDropStyle = (props: Props) => css`
     opacity: 1;
     transition: opacity ease-in 100ms;
     border-radius: 4px;
-    background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOCIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iOCIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+CjxyZWN0IHg9IjgiIHk9IjE1IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iNyIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiM0RTVDNkUiLz4KPHJlY3QgeD0iMTMiIHk9IjExIiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0iIzRFNUM2RSIvPgo8cmVjdCB4PSIxMyIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjNEU1QzZFIi8+Cjwvc3ZnPgo=");
+    color: ${props.theme.textSecondary};
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJjdXJyZW50Q29sb3IiPgo8cmVjdCB4PSI4IiB5PSI3IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIvPgo8cmVjdCB4PSI4IiB5PSIxMSIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiLz4KPHJlY3QgeD0iOCIgeT0iMTUiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIi8+CjxyZWN0IHg9IjEzIiB5PSI3IiB3aWR0aD0iMyIgaGVpZ2h0PSIyIiByeD0iMSIvPgo8cmVjdCB4PSIxMyIgeT0iMTEiIHdpZHRoPSIzIiBoZWlnaHQ9IjIiIHJ4PSIxIi8+CjxyZWN0IHg9IjEzIiB5PSIxNSIgd2lkdGg9IjMiIGhlaWdodD0iMiIgcng9IjEiLz4KPC9zdmc+);
     background-repeat: no-repeat;
-    background-position: 0 2px;
+    background-position: 0 1px;
     width: 24px;
     height: 24px;
     z-index: 50;
     cursor: grab;
 
-    &:hover {
-      color: ${props.theme.textSecondary};
-      transition: background-color 0.2s;
-    }
-
+    &:hover,
+    &:focus,
     &:active {
       color: ${props.theme.text};
       transition: background-color 0.2s;
@@ -280,6 +278,10 @@ const dragAndDropStyle = (props: Props) => css`
       opacity: 0;
       pointer-events: none;
       transition: none;
+    }
+
+    @media print {
+      display: none;
     }
 
     ${breakpoint("tablet")`
@@ -522,17 +524,6 @@ li {
 
 li.ProseMirror-selectednode {
   outline: none;
-}
-
-li.ProseMirror-selectednode:after {
-  content: "";
-  position: absolute;
-  left: ${props.rtl ? "-2px" : "-32px"};
-  right: ${props.rtl ? "-32px" : "-2px"};
-  top: -2px;
-  bottom: -2px;
-  border: 2px solid ${props.theme.selected};
-  pointer-events: none;
 }
 
 img.ProseMirror-separator {
@@ -1393,7 +1384,7 @@ table {
   border: 0;
   padding: 0;
   margin-top: 1px;
-  margin-${props.rtl ? "right" : "left"}: -28px;
+  margin-${props.rtl ? "right" : "left"}: -40px;
   border-radius: 4px;
 
   &:hover,
