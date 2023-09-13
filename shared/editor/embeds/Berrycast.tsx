@@ -8,7 +8,7 @@ const URL_REGEX = /^https:\/\/(www\.)?berrycast.com\/conversations\/(.*)$/;
 export default function Berrycast(props: Props) {
   const normalizedUrl = props.attrs.href.replace(/\/$/, "");
   const ref = React.useRef<HTMLDivElement>(null);
-  const { width } = useComponentSize(ref);
+  const { width } = useComponentSize(ref.current);
 
   return (
     <>
