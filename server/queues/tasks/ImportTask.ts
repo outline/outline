@@ -55,6 +55,7 @@ export type StructuredImportData = {
     id: string;
     urlId?: string;
     title: string;
+    emoji?: string;
     /**
      * The document text. To reference an attachment or image use the special
      * formatting <<attachmentId>>. It will be replaced with a reference to the
