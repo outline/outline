@@ -48,6 +48,7 @@ import ApiKey from "./ApiKey";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
+import DocumentUser from "./DocumentUser";
 import Star from "./Star";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
@@ -396,6 +397,17 @@ class User extends ParanoidModel {
           c.collectionGroupMemberships.length > 0
       )
       .map((c) => c.id);
+  };
+
+  documentIds = async () => {
+    const memberships = await DocumentUser.findAll({
+      attributes: ["documentId"],
+      where: {
+        userId: this.id,
+      },
+    });
+
+    return memberships.map((m) => m.documentId);
   };
 
   updateActiveAt = async (ctx: Context, force = false) => {

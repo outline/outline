@@ -314,6 +314,8 @@ export default class SearchHelper {
       dateFilter = `1 ${options.dateFilter}`;
     }
 
+    const documentIds = await user.documentIds();
+
     // Build the SQL query to get documentIds, ranking, and search term context
     const whereClause = `
     "searchVector" @@ to_tsquery('english', :query) AND
@@ -342,7 +344,40 @@ export default class SearchHelper {
         : '"publishedAt" IS NOT NULL'
     }
   `;
-    const selectSql = `
+    const selectSql =
+      documentIds.length > 0
+        ? `
+  (SELECT
+    id,
+    ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
+    ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions) as "searchContext",
+    "updatedAt"
+  FROM documents
+  WHERE ${whereClause})
+  UNION
+  (SELECT
+  id,
+  ts_rank(
+    documents."searchVector",
+    to_tsquery('english', 'title:*')
+  ) as "searchRanking",
+  ts_headline(
+    'english',
+    "text",
+    to_tsquery('english', 'title:*'),
+    'MaxFragments=1, MinWords=20, MaxWords=30'
+  ) as "searchContext",
+  "updatedAt"
+  FROM
+  documents
+  WHERE id in (:documentIds))
+  ORDER BY
+  "searchRanking" DESC,
+  "updatedAt" DESC
+  LIMIT :limit
+  OFFSET :offset;
+  `
+        : `
   SELECT
     id,
     ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
@@ -350,12 +385,25 @@ export default class SearchHelper {
   FROM documents
   WHERE ${whereClause}
   ORDER BY
-    "searchRanking" DESC,
-    "updatedAt" DESC
+  "searchRanking" DESC,
+  "updatedAt" DESC
   LIMIT :limit
   OFFSET :offset;
   `;
-    const countSql = `
+    const countSql =
+      documentIds.length > 0
+        ? `
+    SELECT COUNT(*) FROM (
+      SELECT id
+      FROM documents
+      WHERE ${whereClause}
+      UNION
+      SELECT id
+      FROM documents
+      WHERE id IN (:documentIds)
+    ) AS result
+  `
+        : `
     SELECT COUNT(id)
     FROM documents
     WHERE ${whereClause}
@@ -366,6 +414,7 @@ export default class SearchHelper {
       collaboratorIds: options.collaboratorIds,
       query: this.webSearchQuery(query),
       collectionIds,
+      documentIds: documentIds.length > 0 ? documentIds : undefined,
       dateFilter,
       headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
     };
