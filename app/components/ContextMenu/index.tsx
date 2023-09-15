@@ -46,6 +46,8 @@ type Props = MenuStateReturn & {
   onClose?: () => void;
   /** Called when the context menu is clicked. */
   onClick?: (ev: React.MouseEvent) => void;
+  /** The maximum width of the context menu. */
+  maxWidth?: number;
   children?: React.ReactNode;
 };
 
@@ -123,6 +125,7 @@ type InnerContextMenuProps = MenuStateReturn & {
   isSubMenu: boolean;
   menuProps: { style?: React.CSSProperties; placement: string };
   children: React.ReactNode;
+  maxWidth?: number;
 };
 
 /**
@@ -173,6 +176,7 @@ const InnerContextMenu = (props: InnerContextMenuProps) => {
       <Position {...menuProps}>
         <Background
           dir="auto"
+          maxWidth={props.maxWidth}
           topAnchor={topAnchor}
           rightAnchor={rightAnchor}
           ref={backgroundRef}
@@ -226,6 +230,7 @@ export const Position = styled.div`
 type BackgroundProps = {
   topAnchor?: boolean;
   rightAnchor?: boolean;
+  maxWidth?: number;
   theme: DefaultTheme;
 };
 
@@ -251,7 +256,7 @@ export const Background = styled(Scrollable)<BackgroundProps>`
       props.topAnchor ? fadeAndSlideDown : fadeAndSlideUp} 200ms ease;
     transform-origin: ${(props: BackgroundProps) =>
       props.rightAnchor ? "75%" : "25%"} 0;
-    max-width: 276px;
+    max-width: ${(props: BackgroundProps) => props.maxWidth ?? 276}px;
     background: ${(props: BackgroundProps) => props.theme.menuBackground};
     box-shadow: ${(props: BackgroundProps) => props.theme.menuShadow};
   `};

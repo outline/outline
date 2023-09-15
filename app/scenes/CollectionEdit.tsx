@@ -100,7 +100,12 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
             autoFocus
             flex
           />
-          <IconPicker onChange={handleChange} color={color} icon={icon} />
+          <IconPicker
+            onChange={handleChange}
+            color={color}
+            initial={name[0]}
+            icon={icon}
+          />
         </Flex>
         <InputSelect
           label={t("Sort in sidebar")}
