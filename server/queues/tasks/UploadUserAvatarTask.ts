@@ -27,7 +27,7 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
     );
 
     if (res?.url) {
-      await user.update({ avatarUrl: res?.url });
+      await user.update({ avatarUrl: res.url });
     }
   }
 

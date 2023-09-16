@@ -9,6 +9,7 @@ export default function IsUrlOrRelativePath(target: any, propertyName: string) {
     validate: {
       validUrlOrPath(value: string) {
         if (
+          value &&
           !isURL(value, {
             require_host: false,
             require_protocol: false,
