@@ -62,14 +62,17 @@ function getNewState({
             theme: pluginState.isDark ? "dark" : "default",
             fontFamily: "inherit",
           });
+
           try {
             module.default.render(
               "mermaid-diagram-" + diagramId,
               block.node.textContent,
-              (svgCode) => {
+              (svgCode, bindFunctions) => {
                 element.classList.remove("parse-error", "empty");
                 element.innerHTML = svgCode;
-              }
+                bindFunctions?.(element);
+              },
+              element
             );
           } catch (error) {
             const isEmpty = block.node.textContent.trim().length === 0;
