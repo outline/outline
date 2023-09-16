@@ -27,7 +27,7 @@ const LetterIconWrapper = styled.div<{ $size: number }>`
   width: ${({ $size }) => $size}px;
   height: ${({ $size }) => $size}px;
 
-  font-weight: 500;
+  font-weight: 700;
   font-size: ${({ $size }) => $size / 2}px;
   color: ${s("background")};
 `;
