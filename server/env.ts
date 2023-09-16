@@ -615,7 +615,7 @@ export class Environment {
   /**
    * Which file storage system to use
    */
-  @IsIn(["local", "s3", "minio"])
+  @IsIn(["local", "s3"])
   public FILE_STORAGE = this.toOptionalString(process.env.FILE_STORAGE) ?? "s3";
 
   /**
