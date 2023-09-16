@@ -7,24 +7,26 @@ import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
 import ImageZoom from "./ImageZoom";
+import useComponentSize from "./useComponentSize";
 
 type DragDirection = "left" | "right";
 
-const Image = (
-  props: ComponentProps & {
-    onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
-    onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-    onChangeSize?: (props: { width: number; height?: number }) => void;
-    children?: React.ReactElement;
-    view: EditorView;
-  }
-) => {
+type Props = ComponentProps & {
+  /** Callback triggered when the image is clicked */
+  onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+  /** Callback triggered when the download button is clicked */
+  onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  /** Callback triggered when the image is resized */
+  onChangeSize?: (props: { width: number; height?: number }) => void;
+  /** The editor view */
+  view: EditorView;
+  children?: React.ReactElement;
+};
+
+const Image = (props: Props) => {
   const { isSelected, node, isEditable } = props;
   const { src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
-  const [contentWidth, setContentWidth] = React.useState(
-    () => document.body.querySelector("#full-width-container")?.clientWidth || 0
-  );
   const [loaded, setLoaded] = React.useState(false);
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
@@ -35,33 +37,18 @@ const Image = (
   const [sizeAtDragStart, setSizeAtDragStart] = React.useState(size);
   const [offset, setOffset] = React.useState(0);
   const [dragging, setDragging] = React.useState<DragDirection>();
-  const [documentWidth, setDocumentWidth] = React.useState(
-    props.view ? getInnerWidth(props.view.dom) : 0
+  const documentBounds = useComponentSize(props.view.dom);
+  const containerBounds = useComponentSize(
+    document.body.querySelector("#full-width-container")
   );
-  const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
+  const maxWidth = layoutClass
+    ? documentBounds.width / 3
+    : documentBounds.width;
   const isFullWidth = layoutClass === "full-width";
   const isResizable = !!props.onChangeSize;
 
-  React.useLayoutEffect(() => {
-    if (!isResizable) {
-      return;
-    }
-
-    const handleResize = () => {
-      const contentWidth =
-        document.body.querySelector("#full-width-container")?.clientWidth || 0;
-      setContentWidth(contentWidth);
-      setDocumentWidth(props.view ? getInnerWidth(props.view.dom) : 0);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [props.view, isResizable]);
-
   const constrainWidth = (width: number) => {
-    const minWidth = documentWidth * 0.1;
+    const minWidth = documentBounds.width * 0.1;
     return Math.round(Math.min(maxWidth, Math.max(width, minWidth)));
   };
 
@@ -75,7 +62,7 @@ const Image = (
       diff = event.pageX - offset;
     }
 
-    const grid = documentWidth / 10;
+    const grid = documentBounds.width / 10;
     const newWidth = sizeAtDragStart.width + diff * 2;
     const widthOnGrid = Math.round(newWidth / grid) * grid;
     const constrainedWidth = constrainWidth(widthOnGrid);
@@ -153,12 +140,16 @@ const Image = (
   }, [dragging, handlePointerMove, handlePointerUp, isResizable]);
 
   const widthStyle = isFullWidth
-    ? { width: contentWidth }
+    ? { width: containerBounds.width }
     : { width: size.width || "auto" };
 
   const containerStyle = isFullWidth
     ? ({
-        "--offset": `${-(contentWidth - documentWidth) / 2}px`,
+        "--offset": `${-(
+          documentBounds.left -
+          containerBounds.left +
+          getPadding(props.view.dom)
+        )}px`,
       } as React.CSSProperties)
     : undefined;
 
@@ -235,14 +226,9 @@ const Image = (
   );
 };
 
-function getInnerWidth(element: Element) {
+function getPadding(element: Element) {
   const computedStyle = window.getComputedStyle(element, null);
-  let width = element.clientWidth;
-  width -=
-    parseFloat(computedStyle.paddingLeft) +
-    parseFloat(computedStyle.paddingRight);
-
-  return width;
+  return parseFloat(computedStyle.paddingLeft);
 }
 
 function getPlaceholder(width: number, height: number) {

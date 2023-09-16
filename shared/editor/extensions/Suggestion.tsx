@@ -14,9 +14,10 @@ export default class Suggestion extends Extension {
 
   inputRules = (_options: { type: NodeType; schema: Schema }) => [
     new InputRule(this.options.openRegex, (state, match) => {
+      const { parent } = state.selection.$from;
       if (
         match &&
-        state.selection.$from.parent.type.name === "paragraph" &&
+        (parent.type.name === "paragraph" || parent.type.name === "heading") &&
         (!isInCode(state) || this.options.enabledInCode) &&
         (!isInTable(state) || this.options.enabledInTable)
       ) {

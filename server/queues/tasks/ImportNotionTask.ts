@@ -86,7 +86,7 @@ export default class ImportNotionTask extends ImportTask {
 
           Logger.debug("task", `Processing ${name} as ${mimeType}`);
 
-          const { title, text } = await documentImporter({
+          const { title, emoji, text } = await documentImporter({
             mimeType: mimeType || "text/markdown",
             fileName: name,
             content: zipObject ? await zipObject.async("string") : "",
@@ -117,6 +117,7 @@ export default class ImportNotionTask extends ImportTask {
             output.documents.push({
               id,
               title,
+              emoji,
               text,
               collectionId,
               parentDocumentId,

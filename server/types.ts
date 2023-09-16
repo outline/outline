@@ -268,7 +268,7 @@ export type GroupEvent = BaseEvent &
   );
 
 export type IntegrationEvent = BaseEvent & {
-  name: "integrations.create" | "integrations.update";
+  name: "integrations.create" | "integrations.update" | "integrations.delete";
   modelId: string;
 };
 

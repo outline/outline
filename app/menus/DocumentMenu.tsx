@@ -265,7 +265,8 @@ function DocumentMenu({
               type: "route",
               title: t("Edit"),
               to: documentEditPath(document),
-              visible: !!can.update && user.separateEditMode,
+              visible:
+                !!can.update && user.separateEditMode && !document.template,
               icon: <EditIcon />,
             },
             actionToMenuItem(createNestedDocument, context),

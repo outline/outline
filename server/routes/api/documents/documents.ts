@@ -1249,7 +1249,7 @@ router.post(
     }
 
     const content = await fs.readFile(file.filepath);
-    const { text, state, title } = await documentImporter({
+    const { text, state, title, emoji } = await documentImporter({
       user,
       fileName: file.originalFilename ?? file.newFilename,
       mimeType: file.mimetype ?? "",
@@ -1261,6 +1261,7 @@ router.post(
     const document = await documentCreator({
       source: "import",
       title,
+      emoji,
       text,
       state,
       publish,

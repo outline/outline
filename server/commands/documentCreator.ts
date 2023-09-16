@@ -80,13 +80,14 @@ export default async function documentCreator({
       createdById: user.id,
       template,
       templateId,
-      fullWidth,
       publishedAt,
       importId,
+      fullWidth: templateDocument ? templateDocument.fullWidth : fullWidth,
       emoji: templateDocument ? templateDocument.emoji : emoji,
-      title: templateDocument
-        ? DocumentHelper.replaceTemplateVariables(templateDocument.title, user)
-        : title,
+      title: DocumentHelper.replaceTemplateVariables(
+        templateDocument ? templateDocument.title : title,
+        user
+      ),
       text: await DocumentHelper.replaceImagesWithAttachments(
         DocumentHelper.replaceTemplateVariables(
           templateDocument ? templateDocument.text : text,

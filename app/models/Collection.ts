@@ -126,6 +126,16 @@ export default class Collection extends ParanoidModel {
     return sortNavigationNodes(this.documents, this.sort);
   }
 
+  /**
+   * The initial letter of the collection name.
+   *
+   * @returns string
+   */
+  @computed
+  get initial() {
+    return this.name ? this.name[0] : "?";
+  }
+
   fetchDocuments = async (options?: { force: boolean }) => {
     if (this.isFetching) {
       return;

@@ -251,7 +251,7 @@ function DocumentHeader({
                   <ShareButton document={document} />
                 </Action>
               )}
-            {isEditing && (
+            {(isEditing || isTemplate) && (
               <Action>
                 <Tooltip
                   tooltip={t("Save")}
@@ -260,26 +260,16 @@ function DocumentHeader({
                   placement="bottom"
                 >
                   <Button
-                    onClick={handleSave}
+                    context={context}
+                    action={isTemplate ? navigateToTemplateSettings : undefined}
+                    onClick={isTemplate ? undefined : handleSave}
                     disabled={savingIsDisabled}
                     neutral={isDraft}
+                    hideIcon
                   >
                     {isDraft ? t("Save draft") : t("Done editing")}
                   </Button>
                 </Tooltip>
-              </Action>
-            )}
-            {isTemplate && (
-              <Action>
-                <Button
-                  context={context}
-                  action={navigateToTemplateSettings}
-                  disabled={savingIsDisabled}
-                  neutral={isDraft}
-                  hideIcon
-                >
-                  {t("Done editing")}
-                </Button>
               </Action>
             )}
             {can.update &&

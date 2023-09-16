@@ -141,6 +141,7 @@ class CollectionNew extends React.Component<Props> {
           <IconPicker
             onOpen={this.handleIconPickerOpen}
             onChange={this.handleChange}
+            initial={this.name[0]}
             color={this.color}
             icon={this.icon}
           />

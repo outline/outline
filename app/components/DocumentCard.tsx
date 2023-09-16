@@ -116,6 +116,7 @@ function DocumentCard(props: Props) {
             ) : (
               <Squircle color={collection?.color}>
                 {collection?.icon &&
+                collection?.icon !== "letter" &&
                 collection?.icon !== "collection" &&
                 !pin?.collectionId ? (
                   <CollectionIcon collection={collection} color="white" />

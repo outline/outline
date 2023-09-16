@@ -65,8 +65,6 @@ export default function FindAndReplace({ readOnly }: Props) {
     }
   }, [show]);
 
-  // Close handlers
-  useKeyDown("Escape", popover.hide);
   useOnClickOutside(popover.unstable_referenceRef, popover.hide);
 
   // Keyboard shortcuts
