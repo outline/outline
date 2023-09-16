@@ -48,7 +48,7 @@ export default async function attachmentCreator({
 
   if ("url" in rest) {
     const { url } = rest;
-    const res = await FileStorage.uploadFromUrl(url, key, acl);
+    const res = await FileStorage.storeFromUrl(url, key, acl);
 
     if (!res) {
       return;
@@ -69,7 +69,7 @@ export default async function attachmentCreator({
     );
   } else {
     const { buffer, type } = rest;
-    await FileStorage.upload({
+    await FileStorage.store({
       body: buffer,
       contentType: type,
       contentLength: buffer.length,

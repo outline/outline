@@ -90,7 +90,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
       });
 
       const stat = await fs.promises.stat(filePath);
-      const url = await FileStorage.upload({
+      const url = await FileStorage.store({
         body: fs.createReadStream(filePath),
         contentLength: stat.size,
         contentType: "application/zip",

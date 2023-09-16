@@ -86,7 +86,7 @@ export default class S3Storage extends BaseStorage {
     return `${this.getPublicEndpoint()}/${key}`;
   }
 
-  public upload = async ({
+  public store = async ({
     body,
     contentLength,
     contentType,
@@ -133,7 +133,10 @@ export default class S3Storage extends BaseStorage {
       .promise();
   }
 
-  public getSignedUrl = async (key: string, expiresIn = 60) => {
+  public getSignedUrl = async (
+    key: string,
+    expiresIn = S3Storage.defaultSignedUrlExpires
+  ) => {
     const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
     const params = {
       Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,

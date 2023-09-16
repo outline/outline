@@ -17,10 +17,6 @@ import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
 
 export default class LocalStorage extends BaseStorage {
-  constructor() {
-    super();
-  }
-
   public async getPresignedPost(
     key: string,
     acl: string,
@@ -28,8 +24,14 @@ export default class LocalStorage extends BaseStorage {
     contentType = "image"
   ) {
     return Promise.resolve({
-      fields: { key, acl, maxUploadSize, contentType },
-    }) as Promise<any>;
+      url: this.getUrlForKey(key),
+      fields: {
+        key,
+        acl,
+        maxUploadSize,
+        contentType,
+      },
+    } as any);
   }
 
   public getUploadUrl() {
@@ -40,7 +42,7 @@ export default class LocalStorage extends BaseStorage {
     return `/api/files.get?key=${key}`;
   }
 
-  public upload = async ({
+  public store = async ({
     body,
     key,
   }: {
@@ -72,7 +74,7 @@ export default class LocalStorage extends BaseStorage {
     src.pipe(dest);
 
     return new Promise<string>((resolve, reject) => {
-      src.once("end", () => resolve(this.getSignedUrl(key)));
+      src.once("end", () => resolve(this.getUrlForKey(key)));
       src.once("err", (err) => {
         dest.end();
         reject(err);
@@ -89,7 +91,10 @@ export default class LocalStorage extends BaseStorage {
     }
   }
 
-  public getSignedUrl = async (key: string, expiresIn = 60) => {
+  public getSignedUrl = async (
+    key: string,
+    expiresIn = LocalStorage.defaultSignedUrlExpires
+  ) => {
     const sig = JWT.sign(
       {
         key,

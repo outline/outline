@@ -6,6 +6,9 @@ import Logger from "@server/logging/Logger";
 import fetch from "@server/utils/fetch";
 
 export default abstract class BaseStorage {
+  /** The default number of seconds until a signed URL expires. */
+  public static defaultSignedUrlExpires = 60;
+
   /**
    * Returns a presigned post for uploading files to the storage provider.
    *
@@ -20,7 +23,7 @@ export default abstract class BaseStorage {
     acl: string,
     maxUploadSize: number,
     contentType: string
-  ): Promise<PresignedPost>;
+  ): Promise<Partial<PresignedPost>>;
 
   /**
    * Returns a stream for reading a file from the storage provider.
@@ -57,7 +60,7 @@ export default abstract class BaseStorage {
   ): Promise<string>;
 
   /**
-   * Upload a file to the storage provider.
+   * Store a file in the storage provider.
    *
    * @param body The file body
    * @param contentLength The content length of the file
@@ -66,7 +69,7 @@ export default abstract class BaseStorage {
    * @param acl The ACL to use
    * @returns The URL of the file
    */
-  public abstract upload({
+  public abstract store({
     body,
     contentLength,
     contentType,
@@ -111,7 +114,7 @@ export default abstract class BaseStorage {
    * @param acl The ACL to use
    * @returns A promise that resolves when the file is uploaded
    */
-  public async uploadFromUrl(
+  public async storeFromUrl(
     url: string,
     key: string,
     acl: string
@@ -168,7 +171,7 @@ export default abstract class BaseStorage {
     }
 
     try {
-      const result = await this.upload({
+      const result = await this.store({
         body: buffer,
         contentLength,
         contentType,

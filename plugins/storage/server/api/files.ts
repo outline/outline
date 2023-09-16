@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import env from "@server/env";
-import { AuthenticationError, ValidationError } from "@server/errors";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -33,7 +33,7 @@ router.post(
       authorize(actor, "createAttachment", actor.team);
     }
 
-    await attachment.saveFile(file);
+    await attachment.overwriteFile(file);
 
     ctx.body = {
       success: true,
@@ -54,9 +54,6 @@ router.get(
       attachment = await Attachment.findByKey(key);
 
       if (attachment.isPrivate) {
-        if (!actor) {
-          throw AuthenticationError();
-        }
         authorize(actor, "read", attachment);
       }
     } else if (sig) {
