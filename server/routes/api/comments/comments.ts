@@ -1,7 +1,10 @@
+import { Next } from "koa";
 import Router from "koa-router";
+import { TeamPreference } from "@shared/types";
 import commentCreator from "@server/commands/commentCreator";
 import commentDestroyer from "@server/commands/commentDestroyer";
 import commentUpdater from "@server/commands/commentUpdater";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -20,6 +23,7 @@ router.post(
   "comments.create",
   rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
+  checkCommentingEnabled(),
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
@@ -54,6 +58,7 @@ router.post(
   "comments.list",
   auth(),
   pagination(),
+  checkCommentingEnabled(),
   validate(T.CollectionsListSchema),
   async (ctx: APIContext<T.CollectionsListReq>) => {
     const { sort, direction, documentId } = ctx.input.body;
@@ -80,6 +85,7 @@ router.post(
 router.post(
   "comments.update",
   auth(),
+  checkCommentingEnabled(),
   validate(T.CommentsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsUpdateReq>) => {
@@ -119,6 +125,7 @@ router.post(
 router.post(
   "comments.delete",
   auth(),
+  checkCommentingEnabled(),
   validate(T.CommentsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsDeleteReq>) => {
@@ -148,6 +155,18 @@ router.post(
     };
   }
 );
+
+function checkCommentingEnabled() {
+  return async function checkCommentingEnabledMiddleware(
+    ctx: APIContext,
+    next: Next
+  ) {
+    if (!ctx.state.auth.user.team.getPreference(TeamPreference.Commenting)) {
+      throw ValidationError("Commenting is currently disabled");
+    }
+    return next();
+  };
+}
 
 // router.post("comments.resolve", auth(), async (ctx) => {
 // router.post("comments.unresolve", auth(), async (ctx) => {
