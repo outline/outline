@@ -8,7 +8,7 @@ import {
 import { Command, TextSelection } from "prosemirror-state";
 import { Primitive } from "utility-types";
 import Suggestion from "../extensions/Suggestion";
-import { nameToEmoji } from "../lib/emoji";
+import { getEmojiFromName } from "../lib/emoji";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { SuggestionsMenuType } from "../plugins/Suggestions";
 import emojiRule from "../rules/emoji";
@@ -71,19 +71,19 @@ export default class Emoji extends Suggestion {
         },
       ],
       toDOM: (node) => {
-        if (nameToEmoji[node.attrs["data-name"]]) {
+        if (getEmojiFromName(node.attrs["data-name"])) {
           return [
             "strong",
             {
               class: `emoji ${node.attrs["data-name"]}`,
               "data-name": node.attrs["data-name"],
             },
-            nameToEmoji[node.attrs["data-name"]],
+            getEmojiFromName(node.attrs["data-name"]),
           ];
         }
         return ["strong", { class: "emoji" }, `:${node.attrs["data-name"]}:`];
       },
-      toPlainText: (node) => nameToEmoji[node.attrs["data-name"]],
+      toPlainText: (node) => getEmojiFromName(node.attrs["data-name"]),
     };
   }
 
