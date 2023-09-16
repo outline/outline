@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import env from "@server/env";
-import { AuthenticationError } from "@server/errors";
+import { AuthenticationError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -49,17 +49,20 @@ router.get(
     const { key, sig } = ctx.input.query;
     const actor = ctx.state.auth.user;
     let attachment: Attachment | null;
+
     if (key) {
       attachment = await Attachment.findByKey(key);
-    } else {
-      attachment = await Attachment.findBySignature(sig!);
-    }
 
-    if (attachment.isPrivate) {
-      if (!actor) {
-        throw AuthenticationError();
+      if (attachment.isPrivate) {
+        if (!actor) {
+          throw AuthenticationError();
+        }
+        authorize(actor, "read", attachment);
       }
-      authorize(actor, "read", attachment);
+    } else if (sig) {
+      attachment = await Attachment.findBySignature(sig);
+    } else {
+      throw ValidationError("Must provide either key or signature");
     }
 
     ctx.set("Content-Type", attachment.contentType);

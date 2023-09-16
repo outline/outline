@@ -140,9 +140,7 @@ describe("#files.get", () => {
       body: form,
     });
 
-    const res = await server.get(await attachment.signedUrl, {
-      headers: { Authorization: `Bearer ${user.getJwtToken()}` },
-    });
+    const res = await server.get(await attachment.signedUrl);
     expect(res.status).toEqual(200);
     expect(res.headers.get("Content-Type")).toEqual(attachment.contentType);
     expect(res.headers.get("Content-Disposition")).toEqual(

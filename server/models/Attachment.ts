@@ -171,18 +171,16 @@ class Attachment extends IdModel {
       throw AuthenticationError("Invalid signature");
     }
 
-    const attachmentId = payload.key.split("/")[2];
-    const attachment = await this.findByPk(attachmentId, {
-      rejectOnEmpty: true,
-    });
-
     try {
       JWT.verify(sign, env.SECRET_KEY);
     } catch (err) {
       throw AuthenticationError("Invalid signature");
     }
 
-    return attachment;
+    const attachmentId = payload.key.split("/")[2];
+    return this.findByPk(attachmentId, {
+      rejectOnEmpty: true,
+    });
   }
 
   /**

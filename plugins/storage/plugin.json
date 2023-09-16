@@ -1,5 +1,8 @@
 {
   "name": "Storage",
-  "description": "Facilitates uploading files to and downloading files from local storage",
-  "requiredEnvVars": ["FILE_STORAGE_UPLOAD_MAX_SIZE"]
+  "description": "Plugin for storing files in local file storage",
+  "requiredEnvVars": [
+    "FILE_STORAGE_UPLOAD_MAX_SIZE",
+    "FILE_STORAGE_LOCAL_ROOT_DIR"
+  ]
 }
