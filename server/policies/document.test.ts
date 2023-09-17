@@ -45,10 +45,12 @@ describe("read_write collection", () => {
       teamId: team.id,
       permission: CollectionPermission.ReadWrite,
     });
-    const document = await buildDocument({
+    const doc = await buildDocument({
       teamId: team.id,
       collectionId: collection.id,
     });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
     const abilities = serialize(user, document);
     expect(abilities.read).toEqual(true);
     expect(abilities.download).toEqual(true);
@@ -72,10 +74,12 @@ describe("read collection", () => {
       teamId: team.id,
       permission: CollectionPermission.Read,
     });
-    const document = await buildDocument({
+    const doc = await buildDocument({
       teamId: team.id,
       collectionId: collection.id,
     });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
     const abilities = serialize(user, document);
     expect(abilities.read).toEqual(true);
     expect(abilities.download).toEqual(true);
