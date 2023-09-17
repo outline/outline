@@ -16,6 +16,14 @@ allow(User, "read", Document, (user, document) => {
     return false;
   }
 
+  const membershipAllowsRead = includesMembership(document, [
+    DocumentPermission.Read,
+    DocumentPermission.ReadWrite,
+  ]);
+  if (membershipAllowsRead) {
+    return true;
+  }
+
   // existence of collection option is not required here to account for share tokens
   if (
     document.collection &&
@@ -375,7 +383,7 @@ function includesMembership(
 ) {
   invariant(
     document.memberships,
-    "memberships should be preloaded, did you forget withMembership scope?"
+    "document memberships should be preloaded, did you forget withMembership scope?"
   );
   return some(document.memberships, (m) => permissions.includes(m.permission));
 }

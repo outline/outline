@@ -148,7 +148,7 @@ function includesMembership(
 ) {
   invariant(
     collection.memberships,
-    "memberships should be preloaded, did you forget withMembership scope?"
+    "collection memberships should be preloaded, did you forget withMembership scope?"
   );
   return some(
     [...collection.memberships, ...collection.collectionGroupMemberships],
