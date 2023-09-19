@@ -80,19 +80,27 @@ export default class Video extends Node {
       view.dispatch(transaction);
     };
 
-  component = (props: ComponentProps) => {
-    const { isSelected, node } = props;
+  handleChangeSize =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ width, height }: { width: number; height?: number }) => {
+      const { view } = this.editor;
+      const { tr } = view.state;
 
-    return (
-      <VideoComponent
-        src={node.attrs.src}
-        title={node.attrs.title}
-        width={node.attrs.width}
-        height={node.attrs.height}
-        isSelected={isSelected}
-      />
-    );
-  };
+      const pos = getPos();
+      const transaction = tr
+        .setNodeMarkup(pos, undefined, {
+          ...node.attrs,
+          width,
+          height,
+        })
+        .setMeta("addToHistory", true);
+      const $pos = transaction.doc.resolve(getPos());
+      view.dispatch(transaction.setSelection(new NodeSelection($pos)));
+    };
+
+  component = (props: ComponentProps) => (
+    <VideoComponent {...props} onChangeSize={this.handleChangeSize(props)} />
+  );
 
   commands({ type }: { type: NodeType }) {
     return (attrs: Record<string, Primitive>) => toggleWrap(type, attrs);
