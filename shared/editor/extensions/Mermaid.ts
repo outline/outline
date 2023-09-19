@@ -1,3 +1,6 @@
+import debounce from "lodash/debounce";
+import last from "lodash/last";
+import sortBy from "lodash/sortBy";
 import { Node } from "prosemirror-model";
 import {
   Plugin,
@@ -13,7 +16,81 @@ import { findBlockNodes } from "../queries/findChildren";
 type MermaidState = {
   decorationSet: DecorationSet;
   isDark: boolean;
+  initialized: boolean;
 };
+
+type RendererFunc = (block: { node: Node; pos: number }) => void;
+
+class MermaidRenderer {
+  readonly diagramId: string;
+  element?: HTMLElement;
+  readonly elementId: string;
+  private currentTextContent = "";
+  private _rendererFunc?: RendererFunc;
+  constructor() {
+    this.diagramId = uuidv4();
+    this.elementId = "mermaid-diagram-wrapper-" + this.diagramId;
+  }
+
+  initializeElement(): HTMLElement {
+    if (this.element) {
+      return this.element;
+    }
+    this.element =
+      document.getElementById(this.elementId) || document.createElement("div");
+    this.element.id = this.elementId;
+    this.element.classList.add("mermaid-diagram-wrapper");
+    return this.element;
+  }
+
+  async renderImmediately(block: { node: Node; pos: number }) {
+    const diagramId = this.diagramId;
+    const element = this.initializeElement();
+    const newTextContent = block.node.textContent;
+    if (newTextContent === this.currentTextContent) {
+      return;
+    }
+    try {
+      const { default: mermaid } = await import("mermaid");
+
+      const { svg: svgCode, bindFunctions } = await mermaid
+        .render("mermaid-diagram-" + diagramId, newTextContent, element)
+        .then(); // removing then() show an eslint error
+
+      this.currentTextContent = newTextContent;
+      element.classList.remove("parse-error", "empty");
+      element.innerHTML = svgCode;
+      bindFunctions?.(element);
+    } catch (error) {
+      const isEmpty = block.node.textContent.trim().length === 0;
+
+      if (isEmpty) {
+        element.innerText = "Empty diagram";
+        element.classList.add("empty");
+      } else {
+        element.innerText = `Error rendering diagram\n ${error}`;
+        element.classList.add("parse-error");
+      }
+    }
+  }
+
+  get render(): RendererFunc {
+    if (this._rendererFunc) {
+      return this._rendererFunc;
+    }
+    this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 1000);
+    return this._rendererFunc;
+  }
+}
+
+function overlap(
+  start1: number,
+  end1: number,
+  start2: number,
+  end2: number
+): number {
+  return Math.max(0, Math.min(end1, end2) - Math.max(start1, start2));
+}
 
 function getNewState({
   doc,
@@ -23,74 +100,64 @@ function getNewState({
   doc: Node;
   name: string;
   pluginState: MermaidState;
-}) {
+}): MermaidState {
   const decorations: Decoration[] = [];
 
   // Find all blocks that represent Mermaid diagrams
-  const blocks: { node: Node; pos: number }[] = findBlockNodes(doc).filter(
+  const blocks = findBlockNodes(doc).filter(
     (item) =>
       item.node.type.name === name && item.node.attrs.language === "mermaidjs"
   );
 
+  let { initialized } = pluginState;
+  if (blocks.length > 0 && !initialized) {
+    void import("mermaid").then(({ default: mermaid }) => {
+      mermaid.initialize({
+        startOnLoad: true,
+        // TODO: Make dynamic based on the width of the editor or remove in
+        // the future if Mermaid is able to handle this automatically.
+        gantt: {
+          useWidth: 700,
+        },
+        theme: pluginState.isDark ? "dark" : "default",
+        fontFamily: "inherit",
+      });
+    });
+
+    initialized = true;
+  }
+
   blocks.forEach((block) => {
     const existingDecorations = pluginState.decorationSet.find(
       block.pos,
-      block.pos + block.node.nodeSize
+      block.pos + block.node.nodeSize,
+      (spec) => !!spec["diagramId"]
     );
 
-    // Attempt to find the existing diagramId from the decoration, or assign
-    // a new one if none exists yet.
-    const diagramId = existingDecorations[0]?.spec["diagramId"] ?? uuidv4();
+    const bestDecoration = last(
+      sortBy(existingDecorations, (decoration) =>
+        overlap(
+          decoration.from,
+          decoration.to,
+          block.pos,
+          block.pos + block.node.nodeSize
+        )
+      )
+    );
+
+    const renderer: MermaidRenderer =
+      bestDecoration?.spec?.["renderer"] ?? new MermaidRenderer();
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
       () => {
-        const elementId = "mermaid-diagram-wrapper-" + diagramId;
-        const element =
-          document.getElementById(elementId) || document.createElement("div");
-        element.id = elementId;
-        element.classList.add("mermaid-diagram-wrapper");
-
-        void import("mermaid").then((module) => {
-          module.default.initialize({
-            startOnLoad: true,
-            // TODO: Make dynamic based on the width of the editor or remove in
-            // the future if Mermaid is able to handle this automatically.
-            gantt: {
-              useWidth: 700,
-            },
-            theme: pluginState.isDark ? "dark" : "default",
-            fontFamily: "inherit",
-          });
-
-          try {
-            module.default.render(
-              "mermaid-diagram-" + diagramId,
-              block.node.textContent,
-              (svgCode, bindFunctions) => {
-                element.classList.remove("parse-error", "empty");
-                element.innerHTML = svgCode;
-                bindFunctions?.(element);
-              },
-              element
-            );
-          } catch (error) {
-            const isEmpty = block.node.textContent.trim().length === 0;
-
-            if (isEmpty) {
-              element.innerText = "Empty diagram";
-              element.classList.add("empty");
-            } else {
-              element.innerText = "Error rendering diagram";
-              element.classList.add("parse-error");
-            }
-          }
-        });
-
+        const element = renderer.initializeElement();
+        void renderer.render(block);
         return element;
       },
       {
-        diagramId,
+        diagramId: renderer.diagramId,
+        renderer,
       }
     );
 
@@ -99,7 +166,8 @@ function getNewState({
       block.pos + block.node.nodeSize,
       {},
       {
-        diagramId,
+        diagramId: renderer.diagramId,
+        renderer,
       }
     );
 
@@ -110,6 +178,7 @@ function getNewState({
   return {
     decorationSet: DecorationSet.create(doc, decorations),
     isDark: pluginState.isDark,
+    initialized,
   };
 }
 
@@ -127,6 +196,7 @@ export default function Mermaid({
         const pluginState: MermaidState = {
           decorationSet: DecorationSet.create(doc, []),
           isDark,
+          initialized: false,
         };
         return pluginState;
       },
