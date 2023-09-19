@@ -283,7 +283,7 @@
     "@types/readable-stream": "^4.0.2",
     "@types/redis-info": "^3.0.0",
     "@types/refractor": "^3.0.2",
-    "@types/semver": "^7.5.0",
+    "@types/semver": "^7.5.2",
     "@types/sequelize": "^4.28.10",
     "@types/slug": "^5.0.3",
     "@types/stoppable": "^1.1.1",
