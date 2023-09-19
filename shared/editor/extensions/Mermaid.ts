@@ -46,17 +46,15 @@ class MermaidRenderer {
     }
     try {
       const { default: mermaid } = await import("mermaid");
-      void mermaid.render(
-        "mermaid-diagram-" + diagramId,
-        newTextContent,
-        (svgCode, bindFunctions) => {
-          this.currentTextContent = newTextContent;
-          element.classList.remove("parse-error", "empty");
-          element.innerHTML = svgCode;
-          bindFunctions?.(element);
-        },
-        element
-      );
+
+      const { svg: svgCode, bindFunctions } = await mermaid
+        .render("mermaid-diagram-" + diagramId, newTextContent, element)
+        .then(); // removing then() show an eslint error
+
+      this.currentTextContent = newTextContent;
+      element.classList.remove("parse-error", "empty");
+      element.innerHTML = svgCode;
+      bindFunctions?.(element);
     } catch (error) {
       const isEmpty = block.node.textContent.trim().length === 0;
 
