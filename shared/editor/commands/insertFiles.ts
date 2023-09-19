@@ -3,6 +3,7 @@ import invariant from "invariant";
 import { NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
+import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
@@ -66,7 +67,8 @@ const insertFiles = function (
 
   const filesToUpload = files.map((file) => ({
     id: `upload-${uuidv4()}`,
-    isImage: file.type.startsWith("image/") && !options.isAttachment,
+    isImage: FileHelper.isImage(file) && !options.isAttachment,
+    isVideo: FileHelper.isVideo(file) && !options.isAttachment,
     file,
   }));
 
@@ -121,7 +123,7 @@ const insertFiles = function (
     // to allow all placeholders to be entered at once with the uploads
     // happening in the background in parallel.
     uploadFile(upload.file)
-      .then((src) => {
+      .then(async (src) => {
         if (upload.isImage) {
           const newImg = new Image();
           newImg.onload = () => {
@@ -170,17 +172,34 @@ const insertFiles = function (
           }
 
           const [from, to] = result;
-          view.dispatch(
-            view.state.tr.replaceWith(
-              from,
-              to || from,
-              schema.nodes.attachment.create({
-                href: src,
-                title: upload.file.name ?? "Untitled",
-                size: upload.file.size,
-              })
-            )
-          );
+
+          if (upload.isVideo) {
+            const dimensions = await FileHelper.getVideoDimensions(upload.file);
+            view.dispatch(
+              view.state.tr.replaceWith(
+                from,
+                to || from,
+                schema.nodes.video.create({
+                  src,
+                  title: upload.file.name ?? "Untitled",
+                  width: dimensions.width,
+                  height: dimensions.height,
+                })
+              )
+            );
+          } else {
+            view.dispatch(
+              view.state.tr.replaceWith(
+                from,
+                to || from,
+                schema.nodes.attachment.create({
+                  href: src,
+                  title: upload.file.name ?? "Untitled",
+                  size: upload.file.size,
+                })
+              )
+            );
+          }
 
           // If the users selection is still at the file then make sure to select
           // the entire node once done. Otherwise, if the selection has moved

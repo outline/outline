@@ -110,6 +110,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
         defaultSrc,
         styleSrc,
         scriptSrc: [...scriptSrc, `'nonce-${ctx.state.cspNonce}'`],
+        mediaSrc: ["*", "data:", "blob:"],
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
         // Do not use connect-src: because self + websockets does not work in

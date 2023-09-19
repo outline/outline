@@ -7,9 +7,8 @@ import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
 import ImageZoom from "./ImageZoom";
-import useComponentSize from "./useComponentSize";
-
-type DragDirection = "left" | "right";
+import useComponentSize from "./hooks/useComponentSize";
+import useDragResize from "./hooks/useDragResize";
 
 type Props = ComponentProps & {
   /** Callback triggered when the image is clicked */
@@ -24,19 +23,12 @@ type Props = ComponentProps & {
 };
 
 const Image = (props: Props) => {
-  const { isSelected, node, isEditable } = props;
+  const { isSelected, node, isEditable, onChangeSize } = props;
   const { src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [loaded, setLoaded] = React.useState(false);
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
-  const [size, setSize] = React.useState({
-    width: node.attrs.width ?? naturalWidth,
-    height: node.attrs.height ?? naturalHeight,
-  });
-  const [sizeAtDragStart, setSizeAtDragStart] = React.useState(size);
-  const [offset, setOffset] = React.useState(0);
-  const [dragging, setDragging] = React.useState<DragDirection>();
   const documentBounds = useComponentSize(props.view.dom);
   const containerBounds = useComponentSize(
     document.body.querySelector("#full-width-container")
@@ -44,74 +36,24 @@ const Image = (props: Props) => {
   const maxWidth = layoutClass
     ? documentBounds.width / 3
     : documentBounds.width;
+  const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
+    {
+      width: node.attrs.width ?? naturalWidth,
+      height: node.attrs.height ?? naturalHeight,
+      minWidth: documentBounds.width * 0.1,
+      maxWidth,
+      naturalWidth,
+      naturalHeight,
+      gridWidth: documentBounds.width / 10,
+      onChangeSize,
+    }
+  );
+
   const isFullWidth = layoutClass === "full-width";
   const isResizable = !!props.onChangeSize;
 
-  const constrainWidth = (width: number) => {
-    const minWidth = documentBounds.width * 0.1;
-    return Math.round(Math.min(maxWidth, Math.max(width, minWidth)));
-  };
-
-  const handlePointerMove = (event: PointerEvent) => {
-    event.preventDefault();
-
-    let diff;
-    if (dragging === "left") {
-      diff = offset - event.pageX;
-    } else {
-      diff = event.pageX - offset;
-    }
-
-    const grid = documentBounds.width / 10;
-    const newWidth = sizeAtDragStart.width + diff * 2;
-    const widthOnGrid = Math.round(newWidth / grid) * grid;
-    const constrainedWidth = constrainWidth(widthOnGrid);
-
-    const aspectRatio = naturalHeight / naturalWidth;
-    setSize({
-      width: constrainedWidth,
-      height: naturalWidth
-        ? Math.round(constrainedWidth * aspectRatio)
-        : undefined,
-    });
-  };
-
-  const handlePointerUp = (event: PointerEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    setOffset(0);
-    setDragging(undefined);
-    props.onChangeSize?.(size);
-
-    document.removeEventListener("mousemove", handlePointerMove);
-  };
-
-  const handlePointerDown =
-    (dragging: "left" | "right") =>
-    (event: React.PointerEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-      setSizeAtDragStart({
-        width: constrainWidth(size.width),
-        height: size.height,
-      });
-      setOffset(event.pageX);
-      setDragging(dragging);
-    };
-
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      event.stopPropagation();
-
-      setSize(sizeAtDragStart);
-      setDragging(undefined);
-    }
-  };
-
   React.useEffect(() => {
-    if (node.attrs.width && node.attrs.width !== size.width) {
+    if (node.attrs.width && node.attrs.width !== width) {
       setSize({
         width: node.attrs.width,
         height: node.attrs.height,
@@ -119,29 +61,9 @@ const Image = (props: Props) => {
     }
   }, [node.attrs.width]);
 
-  React.useEffect(() => {
-    if (!isResizable) {
-      return;
-    }
-
-    if (dragging) {
-      document.body.style.cursor = "ew-resize";
-      document.addEventListener("keydown", handleKeyDown);
-      document.addEventListener("pointermove", handlePointerMove);
-      document.addEventListener("pointerup", handlePointerUp);
-    }
-
-    return () => {
-      document.body.style.cursor = "initial";
-      document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("pointermove", handlePointerMove);
-      document.removeEventListener("pointerup", handlePointerUp);
-    };
-  }, [dragging, handlePointerMove, handlePointerUp, isResizable]);
-
   const widthStyle = isFullWidth
     ? { width: containerBounds.width }
-    : { width: size.width || "auto" };
+    : { width: width || "auto" };
 
   const containerStyle = isFullWidth
     ? ({
@@ -161,14 +83,11 @@ const Image = (props: Props) => {
         onClick={dragging ? undefined : props.onClick}
         style={widthStyle}
       >
-        {!dragging &&
-          size.width > 60 &&
-          size.height > 60 &&
-          props.onDownload && (
-            <Button onClick={props.onDownload}>
-              <DownloadIcon />
-            </Button>
-          )}
+        {!dragging && width > 60 && props.onDownload && (
+          <Button onClick={props.onDownload}>
+            <DownloadIcon />
+          </Button>
+        )}
         <ImageZoom zoomMargin={24}>
           <img
             style={{
@@ -194,14 +113,14 @@ const Image = (props: Props) => {
               }
             }}
           />
-          {!loaded && size.width && size.height && (
+          {!loaded && width && height && (
             <img
               style={{
                 ...widthStyle,
                 display: "block",
               }}
               src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-                getPlaceholder(size.width, size.height)
+                getPlaceholder(width, height)
               )}`}
             />
           )}

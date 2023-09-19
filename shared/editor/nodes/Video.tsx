@@ -1,23 +1,19 @@
 import Token from "markdown-it/lib/token";
-import { DownloadIcon } from "outline-icons";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { NodeSelection } from "prosemirror-state";
 import * as React from "react";
-import { Trans } from "react-i18next";
 import { Primitive } from "utility-types";
-import { bytesToHumanReadable } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import toggleWrap from "../commands/toggleWrap";
-import FileExtension from "../components/FileExtension";
-import Widget from "../components/Widget";
+import VideoComponent from "../components/Video";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links";
 import { ComponentProps } from "../types";
 import Node from "./Node";
 
-export default class Attachment extends Node {
+export default class Video extends Node {
   get name() {
-    return "attachment";
+    return "video";
   }
 
   get rulePlugins() {
@@ -30,13 +26,16 @@ export default class Attachment extends Node {
         id: {
           default: null,
         },
-        href: {
+        src: {
+          default: null,
+        },
+        width: {
+          default: null,
+        },
+        height: {
           default: null,
         },
         title: {},
-        size: {
-          default: 0,
-        },
       },
       group: "block",
       defining: true,
@@ -44,22 +43,26 @@ export default class Attachment extends Node {
       parseDOM: [
         {
           priority: 100,
-          tag: "a.attachment",
+          tag: "video",
           getAttrs: (dom: HTMLAnchorElement) => ({
             id: dom.id,
-            title: dom.innerText,
-            href: dom.getAttribute("href"),
+            title: dom.getAttribute("title"),
+            src: dom.getAttribute("src"),
             size: parseInt(dom.dataset.size || "0", 10),
+            width: dom.getAttribute("width"),
+            height: dom.getAttribute("height"),
           }),
         },
       ],
       toDOM: (node) => [
-        "a",
+        "video",
         {
-          class: `attachment`,
           id: node.attrs.id,
-          href: sanitizeUrl(node.attrs.href),
+          src: sanitizeUrl(node.attrs.src),
           download: node.attrs.title,
+          controls: true,
+          width: node.attrs.width,
+          height: node.attrs.height,
           "data-size": node.attrs.size,
         },
         node.attrs.title,
@@ -78,27 +81,16 @@ export default class Attachment extends Node {
     };
 
   component = (props: ComponentProps) => {
-    const { isSelected, theme, node } = props;
+    const { isSelected, node } = props;
+
     return (
-      <Widget
-        icon={<FileExtension title={node.attrs.title} />}
-        href={node.attrs.href}
+      <VideoComponent
+        src={node.attrs.src}
         title={node.attrs.title}
-        onMouseDown={this.handleSelect(props)}
-        context={
-          node.attrs.href ? (
-            bytesToHumanReadable(node.attrs.size || "0")
-          ) : (
-            <>
-              <Trans>Uploading</Trans>…
-            </>
-          )
-        }
+        width={node.attrs.width}
+        height={node.attrs.height}
         isSelected={isSelected}
-        theme={theme}
-      >
-        {node.attrs.href && <DownloadIcon size={20} />}
-      </Widget>
+      />
     );
   };
 
@@ -109,18 +101,19 @@ export default class Attachment extends Node {
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.ensureNewLine();
     state.write(
-      `[${node.attrs.title} ${node.attrs.size}](${node.attrs.href})\n\n`
+      `[${node.attrs.title} ${node.attrs.width}x${node.attrs.height}](${node.attrs.src})\n\n`
     );
     state.ensureNewLine();
   }
 
   parseMarkdown() {
     return {
-      node: "attachment",
+      node: "video",
       getAttrs: (tok: Token) => ({
-        href: tok.attrGet("href"),
+        src: tok.attrGet("src"),
         title: tok.attrGet("title"),
-        size: tok.attrGet("size"),
+        width: tok.attrGet("width"),
+        height: tok.attrGet("height"),
       }),
     };
   }

@@ -34,7 +34,7 @@ function isAttachment(token: Token) {
   );
 }
 
-export default function linksToAttachments(md: MarkdownIt) {
+export default function linksToNodes(md: MarkdownIt) {
   md.core.ruler.after("breaks", "attachments", (state) => {
     const tokens = state.tokens;
     let insideLink;
@@ -64,20 +64,30 @@ export default function linksToAttachments(md: MarkdownIt) {
           // converted to a file attachment
           if (insideLink && isAttachment(insideLink)) {
             const { content } = current;
-
-            // convert to attachment token
-            const token = new Token("attachment", "a", 0);
-            token.attrSet("href", insideLink.attrGet("href") || "");
-
             const parts = content.split(" ");
             const size = parts.pop();
             const title = parts.join(" ");
-            token.attrSet("size", size || "0");
-            token.attrSet("title", title);
+
+            if (size?.includes("x")) {
+              // convert to video
+              const token = new Token("video", "video", 0);
+              token.attrSet("title", title);
+
+              token.attrSet("src", insideLink.attrGet("href") || "");
+              token.attrSet("width", size.split("x")[0] || "0");
+              token.attrSet("height", size.split("x")[1] || "0");
+              tokens.splice(i - 1, 3, token);
+            } else {
+              // convert to attachment token
+              const token = new Token("attachment", "a", 0);
+              token.attrSet("href", insideLink.attrGet("href") || "");
+              token.attrSet("size", size || "0");
+              token.attrSet("title", title);
+              tokens.splice(i - 1, 3, token);
+            }
 
             // delete the inline link – this makes the assumption that the
             // attachment is the only thing in the para.
-            tokens.splice(i - 1, 3, token);
             insideLink = null;
             break;
           }
