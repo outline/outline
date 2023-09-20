@@ -70,7 +70,7 @@ export default class AttachmentHelper {
       case AttachmentPreset.Avatar:
       case AttachmentPreset.DocumentAttachment:
       default:
-        return env.AWS_S3_UPLOAD_MAX_SIZE;
+        return env.FILE_STORAGE_UPLOAD_MAX_SIZE;
     }
   }
 }

@@ -143,7 +143,7 @@ export default abstract class BaseStorage {
         const res = await fetch(url, {
           follow: 3,
           redirect: "follow",
-          size: env.AWS_S3_UPLOAD_MAX_SIZE,
+          size: env.FILE_STORAGE_UPLOAD_MAX_SIZE,
           timeout: 10000,
         });
 

@@ -545,12 +545,14 @@ export class Environment {
     this.toOptionalNumber(process.env.RATE_LIMITER_DURATION_WINDOW) ?? 60;
 
   /**
-   * Set max allowed upload size for file attachments.
+   * @deprecated Set max allowed upload size for file attachments.
    */
   @IsOptional()
   @IsNumber()
-  public AWS_S3_UPLOAD_MAX_SIZE =
-    this.toOptionalNumber(process.env.AWS_S3_UPLOAD_MAX_SIZE) ?? 100000000;
+  @Deprecated("Use FILE_STORAGE_UPLOAD_MAX_SIZE instead")
+  public AWS_S3_UPLOAD_MAX_SIZE = this.toOptionalNumber(
+    process.env.AWS_S3_UPLOAD_MAX_SIZE
+  );
 
   /**
    * Access key ID for AWS S3.
@@ -631,6 +633,7 @@ export class Environment {
   @IsNumber()
   public FILE_STORAGE_UPLOAD_MAX_SIZE =
     this.toOptionalNumber(process.env.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
+    this.toOptionalNumber(process.env.AWS_S3_UPLOAD_MAX_SIZE) ??
     100000000;
 
   /**
@@ -641,7 +644,7 @@ export class Environment {
   @IsNumber()
   public MAXIMUM_IMPORT_SIZE = Math.max(
     this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ?? 100000000,
-    this.AWS_S3_UPLOAD_MAX_SIZE
+    this.FILE_STORAGE_UPLOAD_MAX_SIZE
   );
 
   /**

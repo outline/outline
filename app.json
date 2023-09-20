@@ -128,11 +128,6 @@
       "description": "Live web link to your bucket. For CNAMEs, https://yourbucket.example.com",
       "required": false
     },
-    "AWS_S3_UPLOAD_MAX_SIZE": {
-      "description": "Maximum file upload size in bytes",
-      "value": "26214400",
-      "required": false
-    },
     "AWS_S3_FORCE_PATH_STYLE": {
       "description": "Use path-style URL's for connecting to S3 instead of subdomain. This is useful for S3-compatible storage.",
       "value": "true",
@@ -146,6 +141,11 @@
     "AWS_S3_ACL": {
       "value": "private",
       "description": "S3 canned ACL for document attachments",
+      "required": false
+    },
+    "FILE_STORAGE_UPLOAD_MAX_SIZE": {
+      "description": "Maximum file upload size in bytes",
+      "value": "26214400",
       "required": false
     },
     "SMTP_HOST": {
