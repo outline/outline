@@ -1,6 +1,5 @@
 import { createReadStream } from "fs";
 import path from "path";
-import { isUUID } from "class-validator";
 import { File } from "formidable";
 import JWT from "jsonwebtoken";
 import { QueryTypes } from "sequelize";
@@ -203,12 +202,10 @@ class Attachment extends IdModel {
    * @returns A promise resolving to attachment corresponding to the key
    */
   static async findByKey(key: string): Promise<Attachment> {
-    const id = key.split("/")[2];
-    if (!isUUID(id)) {
-      throw new Error("Invalid attachment key");
-    }
-
-    return this.findByPk(id, { rejectOnEmpty: true });
+    return this.findOne({
+      where: { key },
+      rejectOnEmpty: true,
+    });
   }
 
   // associations

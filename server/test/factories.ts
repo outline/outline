@@ -449,7 +449,6 @@ export async function buildAttachment(
   const acl = overrides.acl || "public-read";
   const name = fileName || faker.system.fileName();
   return Attachment.create({
-    id,
     key: AttachmentHelper.getKey({ acl, id, name, userId: overrides.userId }),
     contentType: "image/png",
     size: 100,
