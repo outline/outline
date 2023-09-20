@@ -17,7 +17,6 @@ import {
   Is,
   DataType,
   IsUUID,
-  IsUrl,
   AllowNull,
   AfterUpdate,
 } from "sequelize-typescript";
@@ -40,6 +39,7 @@ import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import IsFQDN from "./validators/IsFQDN";
+import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
@@ -97,7 +97,7 @@ class Team extends ParanoidModel {
   defaultCollectionId: string | null;
 
   @AllowNull
-  @IsUrl
+  @IsUrlOrRelativePath
   @Length({ max: 4096, msg: "avatarUrl must be 4096 characters or less" })
   @Column(DataType.STRING)
   get avatarUrl() {

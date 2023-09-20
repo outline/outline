@@ -18,7 +18,6 @@ import {
   HasMany,
   Scopes,
   IsDate,
-  IsUrl,
   AllowNull,
   AfterUpdate,
 } from "sequelize-typescript";
@@ -52,6 +51,7 @@ import Encrypted, {
   getEncryptedColumn,
 } from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
+import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
@@ -182,7 +182,7 @@ class User extends ParanoidModel {
   language: string;
 
   @AllowNull
-  @IsUrl
+  @IsUrlOrRelativePath
   @Length({ max: 4096, msg: "avatarUrl must be less than 4096 characters" })
   @Column(DataType.STRING)
   get avatarUrl() {

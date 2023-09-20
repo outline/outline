@@ -4,7 +4,7 @@ import JWT from "jsonwebtoken";
 import { Team, User } from "@server/models";
 import { AuthenticationError } from "../errors";
 
-function getJWTPayload(token: string) {
+export function getJWTPayload(token: string) {
   let payload;
 
   try {

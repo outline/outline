@@ -75,6 +75,8 @@
     "@sentry/tracing": "^7.51.2",
     "@tippyjs/react": "^4.2.6",
     "@tommoor/remove-markdown": "^0.3.2",
+    "@types/form-data": "^2.5.0",
+    "@types/sanitize-filename": "^1.6.3",
     "@vitejs/plugin-react": "^3.1.0",
     "addressparser": "^1.0.1",
     "autotrack": "^2.4.1",
@@ -103,6 +105,7 @@
     "fetch-retry": "^5.0.5",
     "fetch-with-proxy": "^3.0.1",
     "focus-visible": "^5.2.0",
+    "form-data": "^4.0.0",
     "fractional-index": "^1.0.0",
     "framer-motion": "^4.1.17",
     "fs-extra": "^11.1.1",
@@ -193,6 +196,7 @@
     "reflect-metadata": "^0.1.13",
     "refractor": "^3.6.0",
     "request-filtering-agent": "^1.1.2",
+    "sanitize-filename": "^1.6.3",
     "semver": "^7.5.2",
     "sequelize": "^6.32.1",
     "sequelize-cli": "^6.6.1",
@@ -315,7 +319,6 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.20.0",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "fetch-test-server": "^1.1.0",
     "husky": "^8.0.2",
     "i18next-parser": "^7.9.0",
     "jest-cli": "^29.6.4",
@@ -343,5 +346,5 @@
     "qs": "6.9.7",
     "rollup": "^3.14.0"
   },
-  "version": "0.71.0"
+  "version": "0.72.0-1"
 }

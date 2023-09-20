@@ -1,4 +1,7 @@
+import { createReadStream } from "fs";
 import path from "path";
+import { File } from "formidable";
+import JWT from "jsonwebtoken";
 import { QueryTypes } from "sequelize";
 import {
   BeforeDestroy,
@@ -10,8 +13,13 @@ import {
   Table,
   DataType,
   IsNumeric,
+  BeforeUpdate,
 } from "sequelize-typescript";
+import env from "@server/env";
+import { AuthenticationError } from "@server/errors";
 import FileStorage from "@server/storage/files";
+import { getJWTPayload } from "@server/utils/jwt";
+import { ValidateKey } from "@server/validation";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
@@ -96,11 +104,11 @@ class Attachment extends IdModel {
   }
 
   /**
-   * Get a direct URL to the attachment in storage. Note that this will not work for private attachments,
-   * a signed URL must be used.
+   * Get a direct URL to the attachment in storage. Note that this will not work
+   * for private attachments, a signed URL must be used.
    */
   get canonicalUrl() {
-    return encodeURI(`${FileStorage.getPublicEndpoint()}/${this.key}`);
+    return encodeURI(FileStorage.getUrlForKey(this.key));
   }
 
   /**
@@ -110,7 +118,30 @@ class Attachment extends IdModel {
     return FileStorage.getSignedUrl(this.key);
   }
 
+  /**
+   * Store the given file in storage at the location specified by the attachment key.
+   * If the attachment already exists, it will be overwritten.
+   *
+   * @param file The file to store
+   * @returns A promise resolving to the attachment
+   */
+  async overwriteFile(file: File) {
+    return FileStorage.store({
+      body: createReadStream(file.filepath),
+      contentLength: file.size,
+      contentType: this.contentType,
+      key: this.key,
+      acl: this.acl,
+    });
+  }
+
   // hooks
+
+  @BeforeUpdate
+  static async sanitizeKey(model: Attachment) {
+    model.key = ValidateKey.sanitize(model.key);
+    return model;
+  }
 
   @BeforeDestroy
   static async deleteAttachmentFromS3(model: Attachment) {
@@ -139,6 +170,42 @@ class Attachment extends IdModel {
     );
 
     return parseInt(result?.[0]?.total ?? "0", 10);
+  }
+
+  /**
+   * Find an attachment given a JWT signature.
+   *
+   * @param sign - The signature that uniquely identifies an attachment
+   * @returns A promise resolving to attachment corresponding to the signature
+   * @throws {AuthenticationError} Invalid signature if the signature verification fails
+   */
+  static async findBySignature(sign: string): Promise<Attachment> {
+    const payload = getJWTPayload(sign);
+
+    if (payload.type !== "attachment") {
+      throw AuthenticationError("Invalid signature");
+    }
+
+    try {
+      JWT.verify(sign, env.SECRET_KEY);
+    } catch (err) {
+      throw AuthenticationError("Invalid signature");
+    }
+
+    return this.findByKey(payload.key);
+  }
+
+  /**
+   * Find an attachment given a key
+   *
+   * @param key The key representing attachment file path
+   * @returns A promise resolving to attachment corresponding to the key
+   */
+  static async findByKey(key: string): Promise<Attachment> {
+    return this.findOne({
+      where: { key },
+      rejectOnEmpty: true,
+    });
   }
 
   // associations
