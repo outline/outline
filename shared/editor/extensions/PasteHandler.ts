@@ -155,10 +155,10 @@ export default class PasteHandler extends Extension {
 
             // If the users selection is currently in a code block then paste
             // as plain text, ignore all formatting and HTML content.
-            if (isInCode(view.state)) {
+            if (isInCode(state)) {
               event.preventDefault();
 
-              view.dispatch(view.state.tr.insertText(text));
+              view.dispatch(state.tr.insertText(text));
               return true;
             }
 
@@ -167,26 +167,41 @@ export default class PasteHandler extends Extension {
             // was pasted.
             const vscodeMeta = vscode ? JSON.parse(vscode) : undefined;
             const pasteCodeLanguage = vscodeMeta?.mode;
-            const supportsCodeBlock = !!view.state.schema.nodes.code_block;
+            const supportsCodeBlock = !!state.schema.nodes.code_block;
+            const supportsCodeMark = !!state.schema.marks.code_inline;
 
-            if (
-              supportsCodeBlock &&
-              pasteCodeLanguage &&
-              pasteCodeLanguage !== "markdown"
-            ) {
-              event.preventDefault();
-              view.dispatch(
-                view.state.tr
-                  .replaceSelectionWith(
-                    view.state.schema.nodes.code_block.create({
-                      language: Object.keys(LANGUAGES).includes(vscodeMeta.mode)
-                        ? vscodeMeta.mode
-                        : null,
-                    })
-                  )
-                  .insertText(text)
-              );
-              return true;
+            if (pasteCodeLanguage && pasteCodeLanguage !== "markdown") {
+              if (text.includes("\n") && supportsCodeBlock) {
+                event.preventDefault();
+                view.dispatch(
+                  state.tr
+                    .replaceSelectionWith(
+                      state.schema.nodes.code_block.create({
+                        language: Object.keys(LANGUAGES).includes(
+                          vscodeMeta.mode
+                        )
+                          ? vscodeMeta.mode
+                          : null,
+                      })
+                    )
+                    .insertText(text)
+                );
+                return true;
+              }
+
+              if (supportsCodeMark) {
+                event.preventDefault();
+                view.dispatch(
+                  state.tr
+                    .insertText(text, state.selection.from, state.selection.to)
+                    .addMark(
+                      state.selection.from,
+                      state.selection.to + text.length,
+                      state.schema.marks.code_inline.create()
+                    )
+                );
+                return true;
+              }
             }
 
             // If the HTML on the clipboard is from Prosemirror then the best
