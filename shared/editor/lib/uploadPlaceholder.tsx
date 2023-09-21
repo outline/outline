@@ -3,7 +3,7 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import FileExtension from "../components/FileExtension";
-import { recreateTransform } from "../lib/prosemirror-recreate-transform";
+import { recreateTransform } from "./prosemirror-recreate-transform";
 
 // based on the example at: https://prosemirror.net/examples/upload/
 const uploadPlaceholder = new Plugin({

@@ -91,7 +91,7 @@ export class RecreateTransform {
       // collect operations until we receive a valid document:
       // apply ops-patches until a valid prosemirror document is retrieved,
       // then try to create a transformation step or retry with next operation
-      while (toDoc === null) {
+      while (!toDoc) {
         applyPatch(afterStepJSON, [op]);
 
         try {
@@ -125,7 +125,7 @@ export class RecreateTransform {
         // Text is being replaced, we apply text diffing to find the smallest possible diffs.
         this.addReplaceTextSteps(op, afterStepJSON);
         ops = [];
-      } else if (toDoc && this.addReplaceStep(toDoc, afterStepJSON)) {
+      } else if (this.addReplaceStep(toDoc, afterStepJSON)) {
         // operations have been applied
         ops = [];
       }
@@ -144,7 +144,7 @@ export class RecreateTransform {
     const fromNode = fromDoc.nodeAt(start) as Node;
     const toNode = toDoc.nodeAt(start) as Node;
 
-    if (start !== null) {
+    if (!start) {
       // @note this completly updates all attributes in one step, by completely replacing node
       const nodeType = fromNode.type === toNode.type ? null : toNode.type;
       try {
