@@ -31,31 +31,6 @@ module.exports = {
         `ALTER TABLE ONLY group_permissions RENAME CONSTRAINT "collection_groups_groupId_fkey" TO "group_permissions_groupId_fkey"`,
         { transaction }
       );
-      await queryInterface.removeConstraint(
-        "group_permissions",
-        "group_permissions_collectionId_fkey",
-        { transaction }
-      );
-      await queryInterface.addConstraint("group_permissions", {
-        fields: ["collectionId"],
-        name: "group_permissions_collectionId_fkey",
-        type: "foreign key",
-        onDelete: "set null",
-        references: {
-          table: "collections",
-          field: "id",
-        },
-        transaction,
-      });
-      await queryInterface.changeColumn(
-        "group_permissions",
-        "collectionId",
-        {
-          type: Sequelize.UUID,
-          allowNull: true,
-        },
-        { transaction }
-      );
       await queryInterface.addColumn(
         "group_permissions",
         "documentId",
@@ -81,6 +56,31 @@ module.exports = {
         },
         transaction,
       });
+      await queryInterface.removeConstraint(
+        "group_permissions",
+        "group_permissions_collectionId_fkey",
+        { transaction }
+      );
+      await queryInterface.addConstraint("group_permissions", {
+        fields: ["collectionId"],
+        name: "group_permissions_collectionId_fkey",
+        type: "foreign key",
+        onDelete: "set null",
+        references: {
+          table: "collections",
+          field: "id",
+        },
+        transaction,
+      });
+      await queryInterface.changeColumn(
+        "group_permissions",
+        "collectionId",
+        {
+          type: Sequelize.UUID,
+          allowNull: true,
+        },
+        { transaction }
+      );
     });
   },
 
@@ -113,6 +113,14 @@ module.exports = {
       );
       await queryInterface.removeConstraint(
         "collection_groups",
+        "one_of_collectionId_or_documentId_be_non_null",
+        { transaction }
+      );
+      await queryInterface.removeColumn("collection_groups", "documentId", {
+        transaction,
+      });
+      await queryInterface.removeConstraint(
+        "collection_groups",
         "collection_groups_collectionId_fkey",
         { transaction }
       );
@@ -127,6 +135,11 @@ module.exports = {
         },
         transaction,
       });
+      // Delete records where collectionId is null before setting back non null constraint
+      await queryInterface.sequelize.query(
+        `DELETE FROM collection_groups WHERE "collectionId" IS NULL`,
+        { transaction }
+      );
       await queryInterface.changeColumn(
         "collection_groups",
         "collectionId",
@@ -136,14 +149,6 @@ module.exports = {
         },
         { transaction }
       );
-      await queryInterface.removeConstraint(
-        "collection_groups",
-        "one_of_collectionId_or_documentId_be_non_null",
-        { transaction }
-      );
-      await queryInterface.removeColumn("collection_groups", "documentId", {
-        transaction,
-      });
     });
   },
 };
