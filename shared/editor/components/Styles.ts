@@ -390,7 +390,8 @@ li {
   position: relative;
 }
 
-.image {
+.image,
+.video {
   line-height: 0;
   text-align: center;
   max-width: 100%;
@@ -398,7 +399,8 @@ li {
   position: relative;
   z-index: 1;
 
-  img {
+  img,
+  video {
     pointer-events: ${props.readOnly ? "initial" : "none"};
     display: inline-block;
     max-width: 100%;
@@ -409,13 +411,19 @@ li {
   }
 }
 
-.image.placeholder {
+.image.placeholder,
+.video.placeholder {
   position: relative;
   background: ${props.theme.background};
   margin-bottom: calc(28px + 1.2em);
 
-  img {
+  img,
+  video {
     opacity: 0.5;
+  }
+
+  video {
+    border-radius: 8px;
   }
 }
 

@@ -1,8 +1,5 @@
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import * as React from "react";
-import ReactDOM from "react-dom";
-import FileExtension from "../components/FileExtension";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 
 // based on the example at: https://prosemirror.net/examples/upload/
@@ -28,54 +25,49 @@ const uploadPlaceholder = new Plugin({
       const action = tr.getMeta(this);
 
       if (action?.add) {
-        if (action.add.replaceExisting) {
-          const $pos = tr.doc.resolve(action.add.pos);
+        if (action.add.isImage) {
+          if (action.add.replaceExisting) {
+            const $pos = tr.doc.resolve(action.add.pos);
 
-          if ($pos.nodeAfter?.type.name === "image") {
-            const deco = Decoration.node(
-              $pos.pos,
-              $pos.pos + $pos.nodeAfter.nodeSize,
-              {
-                class: "image-replacement-uploading",
-              },
-              {
-                id: action.add.id,
-              }
-            );
+            if ($pos.nodeAfter?.type.name === "image") {
+              const deco = Decoration.node(
+                $pos.pos,
+                $pos.pos + $pos.nodeAfter.nodeSize,
+                {
+                  class: "image-replacement-uploading",
+                },
+                {
+                  id: action.add.id,
+                }
+              );
+              set = set.add(tr.doc, [deco]);
+            }
+          } else {
+            const element = document.createElement("div");
+            element.className = "image placeholder";
+
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(action.add.file);
+
+            element.appendChild(img);
+
+            const deco = Decoration.widget(action.add.pos, element, {
+              id: action.add.id,
+            });
             set = set.add(tr.doc, [deco]);
           }
-        } else if (action.add.isImage) {
+        }
+
+        if (action.add.isVideo) {
           const element = document.createElement("div");
-          element.className = "image placeholder";
+          element.className = "video placeholder";
 
-          const img = document.createElement("img");
-          img.src = URL.createObjectURL(action.add.file);
+          const video = document.createElement("video");
+          video.src = URL.createObjectURL(action.add.file);
+          video.autoplay = false;
+          video.controls = false;
 
-          element.appendChild(img);
-
-          const deco = Decoration.widget(action.add.pos, element, {
-            id: action.add.id,
-          });
-          set = set.add(tr.doc, [deco]);
-        } else {
-          const element = document.createElement("div");
-          element.className = "attachment placeholder";
-
-          const icon = document.createElement("div");
-          icon.className = "icon";
-
-          const component = <FileExtension title={action.add.file.name} />;
-          ReactDOM.render(component, icon);
-          element.appendChild(icon);
-
-          const text = document.createElement("span");
-          text.innerText = action.add.file.name;
-          element.appendChild(text);
-
-          const status = document.createElement("span");
-          status.innerText = "Uploading…";
-          status.className = "status";
-          element.appendChild(status);
+          element.appendChild(video);
 
           const deco = Decoration.widget(action.add.pos, element, {
             id: action.add.id,

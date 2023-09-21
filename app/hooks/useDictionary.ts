@@ -84,6 +84,7 @@ export default function useDictionary() {
       indent: t("Indent"),
       outdent: t("Outdent"),
       video: t("Video"),
+      untitled: t("Untitled"),
     }),
     [t]
   );

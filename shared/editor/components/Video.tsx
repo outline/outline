@@ -40,16 +40,20 @@ export default function Video(props: Props) {
     }
   }, [node.attrs.width]);
 
+  const style = {
+    width: width || "auto",
+    maxHeight: height || "auto",
+  };
+
   return (
     <VideoWrapper
       className={isSelected ? "ProseMirror-selectednode" : ""}
-      style={{ width: width || "auto" }}
+      style={style}
     >
       <StyledVideo
         src={node.attrs.src}
         title={node.attrs.title}
-        width={width}
-        height={height}
+        style={style}
         controls
       />
       {isEditable && isResizable && (
@@ -90,12 +94,12 @@ const VideoWrapper = styled.div`
   max-width: 100%;
   overflow: hidden;
 
-  transition-property: width, height;
+  transition-property: width, max-height;
   transition-duration: 150ms;
   transition-timing-function: ease-in-out;
 
   video {
-    transition-property: width, height;
+    transition-property: width, max-height;
     transition-duration: 150ms;
     transition-timing-function: ease-in-out;
   }
