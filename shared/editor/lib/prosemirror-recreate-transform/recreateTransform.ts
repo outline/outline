@@ -191,7 +191,11 @@ export class RecreateTransform {
             this.tr.addMark(from, to, nodeMark);
           }
         });
+
+        return;
       });
+
+      return;
     });
   }
 

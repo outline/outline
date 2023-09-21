@@ -14,7 +14,6 @@ export function getFromPath(obj: JSONValue, path: string): JSONValue {
       throw new Error();
     }
     const property = pathParts.shift() as string;
-    // @ts-expect-error property is a string but obj may be an array
     obj = obj[property];
   }
   return obj;
