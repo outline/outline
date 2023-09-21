@@ -31,7 +31,7 @@ import Fix from "./decorators/Fix";
     ],
   },
 }))
-@Table({ tableName: "collection_groups", modelName: "collection_group" })
+@Table({ tableName: "group_permissions", modelName: "group_permission" })
 @Fix
 class CollectionGroup extends Model {
   @Default(CollectionPermission.ReadWrite)
