@@ -1,9 +1,9 @@
-import { recreateTransform } from "@fellow/prosemirror-recreate-transform";
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import FileExtension from "../components/FileExtension";
+import { recreateTransform } from "../lib/prosemirror-recreate-transform";
 
 // based on the example at: https://prosemirror.net/examples/upload/
 const uploadPlaceholder = new Plugin({
@@ -19,7 +19,7 @@ const uploadPlaceholder = new Plugin({
           wordDiffs: false,
           simplifyDiff: true,
         }).mapping;
-        return set.map(mapping, tr.doc);
+        set = set.map(mapping, tr.doc);
       } else {
         set = set.map(tr.mapping, tr.doc);
       }
