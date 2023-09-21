@@ -9,13 +9,10 @@
         "^@server/(.*)$": "<rootDir>/server/$1",
         "^@shared/(.*)$": "<rootDir>/shared/$1"
       },
-      "setupFiles": [
-        "<rootDir>/__mocks__/console.js",
-        "<rootDir>/server/test/env.ts"
-      ],
+      "setupFiles": ["<rootDir>/__mocks__/console.js", "<rootDir>/server/test/env.ts"],
       "setupFilesAfterEnv": ["<rootDir>/server/test/setup.ts"],
-      "globalSetup": "<rootDir>/server/test/globalSetup.ts",
-      "globalTeardown": "<rootDir>/server/test/globalTeardown.ts",
+      "globalSetup": "<rootDir>/server/test/globalSetup.js",
+      "globalTeardown": "<rootDir>/server/test/globalTeardown.js",
       "testEnvironment": "node"
     },
     {
