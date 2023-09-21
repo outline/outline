@@ -1,3 +1,4 @@
+import { recreateTransform } from "@fellow/prosemirror-recreate-transform";
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
@@ -11,8 +12,17 @@ const uploadPlaceholder = new Plugin({
       return DecorationSet.empty;
     },
     apply(tr, set: DecorationSet) {
-      // Adjust decoration positions to changes made by the transaction
-      set = set.map(tr.mapping, tr.doc);
+      const ySyncEdit = !!tr.getMeta("y-sync$");
+      if (ySyncEdit) {
+        const mapping = recreateTransform(tr.before, tr.doc, {
+          complexSteps: true,
+          wordDiffs: false,
+          simplifyDiff: true,
+        }).mapping;
+        return set.map(mapping, tr.doc);
+      } else {
+        set = set.map(tr.mapping, tr.doc);
+      }
 
       // See if the transaction adds or removes any placeholders
       const action = tr.getMeta(this);
