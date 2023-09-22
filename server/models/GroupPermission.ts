@@ -41,7 +41,7 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "group_permissions", modelName: "group_permission" })
 @Fix
-class CollectionGroup extends Model {
+class GroupPermission extends Model {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
@@ -74,4 +74,4 @@ class CollectionGroup extends Model {
   createdBy: User;
 }
 
-export default CollectionGroup;
+export default GroupPermission;

@@ -8,7 +8,7 @@ export { default as Backlink } from "./Backlink";
 
 export { default as Collection } from "./Collection";
 
-export { default as CollectionGroup } from "./CollectionGroup";
+export { default as GroupPermission } from "./GroupPermission";
 
 export { default as CollectionUser } from "./CollectionUser";
 

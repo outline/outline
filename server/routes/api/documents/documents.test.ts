@@ -9,7 +9,7 @@ import {
   SearchQuery,
   Event,
   User,
-  CollectionGroup,
+  GroupPermission,
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import {
@@ -3757,7 +3757,7 @@ describe("#documents.users", () => {
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      CollectionGroup.create({
+      GroupPermission.create({
         collectionId: collection.id,
         groupId: group.id,
         permission: CollectionPermission.ReadWrite,

@@ -1,6 +1,6 @@
 import { CollectionPermission } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
-import { Document, CollectionUser, CollectionGroup } from "@server/models";
+import { Document, CollectionUser, GroupPermission } from "@server/models";
 import {
   buildUser,
   buildAdmin,
@@ -756,7 +756,7 @@ describe("#collections.group_memberships", () => {
       userId: user.id,
       permission: CollectionPermission.ReadWrite,
     });
-    await CollectionGroup.create({
+    await GroupPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group.id,
@@ -798,13 +798,13 @@ describe("#collections.group_memberships", () => {
       userId: user.id,
       permission: CollectionPermission.ReadWrite,
     });
-    await CollectionGroup.create({
+    await GroupPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group.id,
       permission: CollectionPermission.ReadWrite,
     });
-    await CollectionGroup.create({
+    await GroupPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group2.id,
@@ -841,13 +841,13 @@ describe("#collections.group_memberships", () => {
       userId: user.id,
       permission: CollectionPermission.ReadWrite,
     });
-    await CollectionGroup.create({
+    await GroupPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group.id,
       permission: CollectionPermission.ReadWrite,
     });
-    await CollectionGroup.create({
+    await GroupPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group2.id,

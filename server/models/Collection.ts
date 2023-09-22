@@ -30,11 +30,11 @@ import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { CollectionValidation } from "@shared/validations";
-import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
+import GroupPermission from "./GroupPermission";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
@@ -53,7 +53,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         required: false,
       },
       {
-        model: CollectionGroup,
+        model: GroupPermission,
         as: "collectionGroupMemberships",
         where: {
           collectionId: {
@@ -105,7 +105,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         required: false,
       },
       {
-        model: CollectionGroup,
+        model: GroupPermission,
         as: "collectionGroupMemberships",
         where: {
           collectionId: {
@@ -295,13 +295,13 @@ class Collection extends ParanoidModel {
   @HasMany(() => CollectionUser, "collectionId")
   memberships: CollectionUser[];
 
-  @HasMany(() => CollectionGroup, "collectionId")
-  collectionGroupMemberships: CollectionGroup[];
+  @HasMany(() => GroupPermission, "collectionId")
+  collectionGroupMemberships: GroupPermission[];
 
   @BelongsToMany(() => User, () => CollectionUser)
   users: User[];
 
-  @BelongsToMany(() => Group, () => CollectionGroup)
+  @BelongsToMany(() => Group, () => GroupPermission)
   groups: Group[];
 
   @BelongsTo(() => User, "createdById")
