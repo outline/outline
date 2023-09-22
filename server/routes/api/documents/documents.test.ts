@@ -1,4 +1,4 @@
-import { subDays } from "date-fns";
+import { addMinutes, subDays } from "date-fns";
 import { CollectionPermission } from "@shared/types";
 import {
   Document,
@@ -2537,6 +2537,38 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("should succeed with specific createdAt date in the past", async () => {
+    const user = await buildUser();
+    const createdAt = new Date().toISOString();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: null,
+        title: "new document",
+        createdAt,
+        text: "hello",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.createdAt).toEqual(createdAt);
+    expect(body.data.updatedAt).toEqual(createdAt);
+  });
+
+  it("should fail with createdAt date in the future", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: null,
+        title: "new document",
+        createdAt: addMinutes(new Date(), 1).toISOString(),
+        text: "hello",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should fail for invalid parentDocumentId", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -2569,6 +2601,7 @@ describe("#documents.create", () => {
       body: {
         token: user.getJwtToken(),
         collectionId: collection.id,
+        emoji: "🚢",
         title: "new document",
         text: "hello",
         publish: true,
@@ -2579,6 +2612,7 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(200);
     expect(newDocument!.parentDocumentId).toBe(null);
     expect(newDocument!.collectionId).toBe(collection.id);
+    expect(newDocument!.emoji).toBe("🚢");
     expect(body.policies[0].abilities.update).toEqual(true);
   });
 
