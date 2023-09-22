@@ -24,7 +24,16 @@ COPY --from=base $APP_PATH/package.json ./package.json
 
 RUN addgroup -g 1001 -S nodejs && \
   adduser -S nodejs -u 1001 && \
-  chown -R nodejs:nodejs $APP_PATH/build
+  chown -R nodejs:nodejs $APP_PATH/build && \
+  mkdir -p /var/lib/outline && \
+	chown -R nodejs:nodejs /var/lib/outline
+
+ENV DATADIR /var/lib/outline/data
+RUN mkdir -p "$DATADIR" && \
+  chown -R nodejs:nodejs "$DATADIR" && \
+  chmod 1777 "$DATADIR"
+
+VOLUME /var/lib/outline/data
 
 USER nodejs
 
