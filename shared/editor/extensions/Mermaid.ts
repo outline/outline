@@ -205,7 +205,9 @@ export default function Mermaid({
           switch (event.key) {
             case "ArrowDown": {
               const { selection } = view.state;
-              const $pos = view.state.doc.resolve(selection.from + 1);
+              const $pos = view.state.doc.resolve(
+                Math.min(selection.from + 1, view.state.doc.nodeSize)
+              );
               const nextBlock = $pos.nodeAfter;
 
               if (
@@ -229,7 +231,9 @@ export default function Mermaid({
             }
             case "ArrowUp": {
               const { selection } = view.state;
-              const $pos = view.state.doc.resolve(selection.from - 1);
+              const $pos = view.state.doc.resolve(
+                Math.max(0, selection.from - 1)
+              );
               const prevBlock = $pos.nodeBefore;
 
               if (
