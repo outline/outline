@@ -50,6 +50,11 @@ import NotContainsUrl from "./validators/NotContainsUrl";
       {
         model: CollectionUser,
         as: "memberships",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
         required: false,
       },
       {
@@ -101,6 +106,9 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         as: "memberships",
         where: {
           userId,
+          collectionId: {
+            [Op.ne]: null,
+          },
         },
         required: false,
       },
