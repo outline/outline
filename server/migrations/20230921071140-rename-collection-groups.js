@@ -44,18 +44,6 @@ module.exports = {
         },
         { transaction }
       );
-      await queryInterface.addConstraint("group_permissions", {
-        type: "check",
-        fields: ["collectionId", "documentId"],
-        name: "one_of_collectionId_or_documentId_be_non_null",
-        where: {
-          [Op.or]: [
-            { collectionId: { [Op.ne]: null } },
-            { documentId: { [Op.ne]: null } },
-          ],
-        },
-        transaction,
-      });
       await queryInterface.removeConstraint(
         "group_permissions",
         "group_permissions_collectionId_fkey",
@@ -81,6 +69,22 @@ module.exports = {
         },
         { transaction }
       );
+      await queryInterface.removeConstraint(
+        "group_permissions",
+        "group_permissions_createdById_fkey",
+        { transaction }
+      );
+      await queryInterface.addConstraint("group_permissions", {
+        fields: ["createdById"],
+        name: "group_permissions_createdById_fkey",
+        type: "foreign key",
+        onDelete: "set null",
+        references: {
+          table: "users",
+          field: "id",
+        },
+        transaction,
+      });
     });
   },
 
@@ -109,11 +113,6 @@ module.exports = {
       );
       await queryInterface.sequelize.query(
         `ALTER TABLE ONLY collection_groups RENAME CONSTRAINT "group_permissions_groupId_fkey" TO "collection_groups_groupId_fkey"`,
-        { transaction }
-      );
-      await queryInterface.removeConstraint(
-        "collection_groups",
-        "one_of_collectionId_or_documentId_be_non_null",
         { transaction }
       );
       await queryInterface.removeColumn("collection_groups", "documentId", {
@@ -149,6 +148,21 @@ module.exports = {
         },
         { transaction }
       );
+      await queryInterface.removeConstraint(
+        "collection_groups",
+        "collection_groups_createdById_fkey",
+        { transaction }
+      );
+      await queryInterface.addConstraint("collection_groups", {
+        fields: ["createdById"],
+        name: "collection_groups_createdById_fkey",
+        type: "foreign key",
+        references: {
+          table: "users",
+          field: "id",
+        },
+        transaction,
+      });
     });
   },
 };

@@ -39,18 +39,6 @@ module.exports = {
         },
         { transaction }
       );
-      await queryInterface.addConstraint("user_permissions", {
-        type: "check",
-        fields: ["collectionId", "documentId"],
-        name: "one_of_collectionId_or_documentId_be_non_null",
-        where: {
-          [Op.or]: [
-            { collectionId: { [Op.ne]: null } },
-            { documentId: { [Op.ne]: null } },
-          ],
-        },
-        transaction,
-      });
       await queryInterface.removeConstraint(
         "user_permissions",
         "user_permissions_collectionId_fkey",
@@ -76,6 +64,22 @@ module.exports = {
         },
         { transaction }
       );
+      await queryInterface.removeConstraint(
+        "user_permissions",
+        "user_permissions_createdById_fkey",
+        { transaction }
+      );
+      await queryInterface.addConstraint("user_permissions", {
+        fields: ["createdById"],
+        name: "user_permissions_createdById_fkey",
+        type: "foreign key",
+        onDelete: "set null",
+        references: {
+          table: "users",
+          field: "id",
+        },
+        transaction,
+      });
     });
   },
 
@@ -100,11 +104,6 @@ module.exports = {
       );
       await queryInterface.sequelize.query(
         `ALTER TABLE ONLY collection_users RENAME CONSTRAINT "user_permissions_userId_fkey" TO "collection_users_userId_fkey"`,
-        { transaction }
-      );
-      await queryInterface.removeConstraint(
-        "collection_users",
-        "one_of_collectionId_or_documentId_be_non_null",
         { transaction }
       );
       await queryInterface.removeColumn("collection_users", "documentId", {
@@ -140,6 +139,21 @@ module.exports = {
         },
         { transaction }
       );
+      await queryInterface.removeConstraint(
+        "collection_users",
+        "collection_users_createdById_fkey",
+        { transaction }
+      );
+      await queryInterface.addConstraint("collection_users", {
+        fields: ["createdById"],
+        name: "collection_users_createdById_fkey",
+        type: "foreign key",
+        references: {
+          table: "users",
+          field: "id",
+        },
+        transaction,
+      });
     });
   },
 };
