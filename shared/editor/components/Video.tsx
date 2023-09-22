@@ -73,7 +73,7 @@ export default function Video(props: Props) {
 }
 
 const StyledVideo = styled.video`
-  max-width: 840px;
+  max-width: 100%;
   background: ${(props) => props.theme.background};
   color: ${(props) => props.theme.text} !important;
   margin: -2px;

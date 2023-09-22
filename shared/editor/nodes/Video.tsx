@@ -120,8 +120,8 @@ export default class Video extends Node {
       getAttrs: (tok: Token) => ({
         src: tok.attrGet("src"),
         title: tok.attrGet("title"),
-        width: tok.attrGet("width"),
-        height: tok.attrGet("height"),
+        width: parseInt(tok.attrGet("width") ?? "", 10),
+        height: parseInt(tok.attrGet("height") ?? "", 10),
       }),
     };
   }
