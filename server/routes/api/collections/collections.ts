@@ -16,7 +16,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import {
   Collection,
-  CollectionUser,
+  UserPermission,
   GroupPermission,
   Team,
   Event,
@@ -379,7 +379,7 @@ router.post(
     const user = await User.findByPk(userId);
     authorize(actor, "read", user);
 
-    let membership = await CollectionUser.findOne({
+    let membership = await UserPermission.findOne({
       where: {
         collectionId: id,
         userId,
@@ -389,7 +389,7 @@ router.post(
     });
 
     if (!membership) {
-      membership = await CollectionUser.create(
+      membership = await UserPermission.create(
         {
           collectionId: id,
           userId,
@@ -485,7 +485,7 @@ router.post(
     }).findByPk(id);
     authorize(user, "read", collection);
 
-    let where: WhereOptions<CollectionUser> = {
+    let where: WhereOptions<UserPermission> = {
       collectionId: id,
     };
     let userWhere;
@@ -515,8 +515,8 @@ router.post(
     };
 
     const [total, memberships] = await Promise.all([
-      CollectionUser.count(options),
-      CollectionUser.findAll({
+      UserPermission.count(options),
+      UserPermission.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
@@ -627,7 +627,7 @@ router.post(
       permission !== CollectionPermission.ReadWrite &&
       collection.permission === CollectionPermission.ReadWrite
     ) {
-      await CollectionUser.findOrCreate({
+      await UserPermission.findOrCreate({
         where: {
           collectionId: collection.id,
           userId: user.id,

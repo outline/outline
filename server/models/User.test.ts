@@ -1,8 +1,8 @@
 import { faker } from "@faker-js/faker";
 import { CollectionPermission } from "@shared/types";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
-import CollectionUser from "./CollectionUser";
 import UserAuthentication from "./UserAuthentication";
+import UserPermission from "./UserPermission";
 
 beforeAll(() => {
   jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
@@ -104,7 +104,7 @@ describe("user model", () => {
         teamId: team.id,
         permission: null,
       });
-      await CollectionUser.create({
+      await UserPermission.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,

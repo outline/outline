@@ -1,6 +1,6 @@
 import { CollectionPermission } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
-import { Document, CollectionUser, GroupPermission } from "@server/models";
+import { Document, UserPermission, GroupPermission } from "@server/models";
 import {
   buildUser,
   buildAdmin,
@@ -310,7 +310,7 @@ describe("#collections.export", () => {
     const collection = await buildCollection({ teamId: team.id });
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
+    await UserPermission.create({
       createdById: admin.id,
       collectionId: collection.id,
       userId: admin.id,
@@ -750,7 +750,7 @@ describe("#collections.group_memberships", () => {
       permission: null,
       teamId: user.teamId,
     });
-    await CollectionUser.create({
+    await UserPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
@@ -792,7 +792,7 @@ describe("#collections.group_memberships", () => {
       permission: null,
       teamId: user.teamId,
     });
-    await CollectionUser.create({
+    await UserPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
@@ -835,7 +835,7 @@ describe("#collections.group_memberships", () => {
       permission: null,
       teamId: user.teamId,
     });
-    await CollectionUser.create({
+    await UserPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
@@ -926,7 +926,7 @@ describe("#collections.memberships", () => {
     const user2 = await buildUser({
       name: "Won't find",
     });
-    await CollectionUser.create({
+    await UserPermission.create({
       createdById: user2.id,
       collectionId: collection.id,
       userId: user2.id,
@@ -953,13 +953,13 @@ describe("#collections.memberships", () => {
       teamId: team.id,
     });
     const user2 = await buildUser();
-    await CollectionUser.create({
+    await UserPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
       permission: CollectionPermission.ReadWrite,
     });
-    await CollectionUser.create({
+    await UserPermission.create({
       createdById: user2.id,
       collectionId: collection.id,
       userId: user2.id,
@@ -1026,7 +1026,7 @@ describe("#collections.info", () => {
     });
     collection.permission = null;
     await collection.save();
-    await CollectionUser.destroy({
+    await UserPermission.destroy({
       where: {
         collectionId: collection.id,
         userId: user.id,
@@ -1050,7 +1050,7 @@ describe("#collections.info", () => {
     });
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
+    await UserPermission.create({
       collectionId: collection.id,
       userId: user.id,
       createdById: user.id,
@@ -1342,7 +1342,7 @@ describe("#collections.update", () => {
     const collection = await buildCollection({ teamId: team.id });
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
+    await UserPermission.create({
       collectionId: collection.id,
       userId: admin.id,
       createdById: admin.id,
@@ -1371,7 +1371,7 @@ describe("#collections.update", () => {
     const collection = await buildCollection({ teamId: team.id });
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
+    await UserPermission.create({
       collectionId: collection.id,
       userId: admin.id,
       createdById: admin.id,
@@ -1432,7 +1432,7 @@ describe("#collections.update", () => {
     });
     collection.permission = null;
     await collection.save();
-    await CollectionUser.update(
+    await UserPermission.update(
       {
         createdById: user.id,
         permission: CollectionPermission.Read,

@@ -18,7 +18,7 @@ import {
   Revision,
   View,
   Share,
-  CollectionUser,
+  UserPermission,
   GroupPermission,
   GroupUser,
   Comment,
@@ -426,7 +426,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CollectionUserEvent
   ): Promise<void> {
-    const model = await CollectionUser.scope([
+    const model = await UserPermission.scope([
       "withUser",
       "withCollection",
     ]).findOne({

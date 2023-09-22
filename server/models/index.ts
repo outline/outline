@@ -10,7 +10,7 @@ export { default as Collection } from "./Collection";
 
 export { default as GroupPermission } from "./GroupPermission";
 
-export { default as CollectionUser } from "./CollectionUser";
+export { default as UserPermission } from "./UserPermission";
 
 export { default as Comment } from "./Comment";
 

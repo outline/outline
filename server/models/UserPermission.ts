@@ -40,7 +40,7 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "user_permissions", modelName: "user_permission" })
 @Fix
-class CollectionUser extends Model {
+class UserPermission extends Model {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
@@ -77,4 +77,4 @@ class CollectionUser extends Model {
   createdById: string;
 }
 
-export default CollectionUser;
+export default UserPermission;
