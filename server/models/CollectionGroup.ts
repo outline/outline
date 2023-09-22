@@ -11,6 +11,7 @@ import {
 } from "sequelize-typescript";
 import { CollectionPermission } from "@shared/types";
 import Collection from "./Collection";
+import Document from "./Document";
 import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
@@ -54,6 +55,13 @@ class CollectionGroup extends Model {
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
+
+  @BelongsTo(() => Document, "documentId")
+  document?: Document | null;
+
+  @ForeignKey(() => Document)
+  @Column(DataType.UUID)
+  documentId?: string | null;
 
   @BelongsTo(() => Group, "groupId")
   group: Group;
