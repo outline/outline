@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -26,7 +27,13 @@ import Fix from "./decorators/Fix";
   withCollection: {
     include: [
       {
-        association: "collection",
+        model: Collection,
+        as: "collection",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
       },
     ],
   },
@@ -42,11 +49,11 @@ class CollectionGroup extends Model {
   // associations
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection;
+  collection?: Collection | null;
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string;
+  collectionId?: string | null;
 
   @BelongsTo(() => Group, "groupId")
   group: Group;

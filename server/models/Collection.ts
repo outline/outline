@@ -55,6 +55,11 @@ import NotContainsUrl from "./validators/NotContainsUrl";
       {
         model: CollectionGroup,
         as: "collectionGroupMemberships",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -102,6 +107,11 @@ import NotContainsUrl from "./validators/NotContainsUrl";
       {
         model: CollectionGroup,
         as: "collectionGroupMemberships",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"

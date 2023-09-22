@@ -435,7 +435,9 @@ export default class WebsocketsProcessor {
 
       case "groups.add_user": {
         // do an add user for every collection that the group is a part of
-        const collectionGroupMemberships = await CollectionGroup.findAll({
+        const collectionGroupMemberships = await CollectionGroup.scope(
+          "withCollection"
+        ).findAll({
           where: {
             groupId: event.modelId,
           },
@@ -468,7 +470,9 @@ export default class WebsocketsProcessor {
       }
 
       case "groups.remove_user": {
-        const collectionGroupMemberships = await CollectionGroup.findAll({
+        const collectionGroupMemberships = await CollectionGroup.scope(
+          "withCollection"
+        ).findAll({
           where: {
             groupId: event.modelId,
           },
@@ -479,7 +483,12 @@ export default class WebsocketsProcessor {
           // we need to emit add instead of remove
           const collection = await Collection.scope({
             method: ["withMembership", event.userId],
-          }).findByPk(collectionGroup.collectionId);
+          }).findByPk(
+            // !Syntax: Bad but we know that with the `withCollection` scope
+            // above, `collectionGroup.collectionId` has to be non null, unless `collectionGroup`
+            // itself is null. With this informal reasoning, this checks out.
+            collectionGroup.collectionId!
+          );
 
           if (!collection) {
             continue;
@@ -535,7 +544,9 @@ export default class WebsocketsProcessor {
             },
           },
         });
-        const collectionGroupMemberships = await CollectionGroup.findAll({
+        const collectionGroupMemberships = await CollectionGroup.scope(
+          "withCollection"
+        ).findAll({
           paranoid: false,
           where: {
             groupId: event.modelId,
@@ -547,7 +558,10 @@ export default class WebsocketsProcessor {
 
         for (const collectionGroup of collectionGroupMemberships) {
           const membershipUserIds = await Collection.membershipUserIds(
-            collectionGroup.collectionId
+            // !Syntax: Bad but we know that with the `withCollection` scope
+            // above, `collectionGroup.collectionId` has to be non null, unless `collectionGroup`
+            // itself is null. With this informal reasoning, this checks out.
+            collectionGroup.collectionId!
           );
 
           for (const groupUser of groupUsers) {

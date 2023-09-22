@@ -4,7 +4,7 @@ import { CollectionGroup } from "@server/models";
 type Membership = {
   id: string;
   groupId: string;
-  collectionId: string;
+  collectionId?: string | null;
   permission: CollectionPermission;
 };
 
