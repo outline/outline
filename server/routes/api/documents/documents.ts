@@ -1289,14 +1289,16 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsCreateReq>) => {
     const {
-      title = "",
-      text = "",
+      title,
+      text,
+      emoji,
       publish,
       collectionId,
       parentDocumentId,
       fullWidth,
       templateId,
       template,
+      createdAt,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
@@ -1343,6 +1345,8 @@ router.post(
     const document = await documentCreator({
       title,
       text,
+      emoji,
+      createdAt,
       publish,
       collectionId,
       parentDocumentId,
