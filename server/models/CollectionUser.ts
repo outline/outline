@@ -30,7 +30,7 @@ import Fix from "./decorators/Fix";
     ],
   },
 }))
-@Table({ tableName: "collection_users", modelName: "collection_user" })
+@Table({ tableName: "user_permissions", modelName: "user_permission" })
 @Fix
 class CollectionUser extends Model {
   @Default(CollectionPermission.ReadWrite)
