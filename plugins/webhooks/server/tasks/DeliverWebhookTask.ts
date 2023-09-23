@@ -443,9 +443,6 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: `${event.userId}-${event.collectionId}`,
         model: model && presentMembership(model),
-        // !Syntax: Bad but we know that with the `withCollection` scope
-        // above, `model.collection` has to be non null, unless `model`
-        // itself is null. With this informal reasoning, it checks out.
         collection: model && presentCollection(model.collection!),
         user: model && presentUser(model.user),
       },
@@ -473,9 +470,6 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: `${event.modelId}-${event.collectionId}`,
         model: model && presentCollectionGroupMembership(model),
-        // !Syntax: Bad but we know that with the `withCollection` scope
-        // above, `model.collection` has to be non null, unless `model`
-        // itself is null. With this informal reasoning, this checks out.
         collection: model && presentCollection(model.collection!),
         group: model && presentGroup(model.group),
       },

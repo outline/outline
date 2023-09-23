@@ -481,14 +481,11 @@ export default class WebsocketsProcessor {
         for (const collectionGroup of collectionGroupMemberships) {
           // if the user has any memberships remaining on the collection
           // we need to emit add instead of remove
-          const collection = await Collection.scope({
-            method: ["withMembership", event.userId],
-          }).findByPk(
-            // !Syntax: Bad but we know that with the `withCollection` scope
-            // above, `collectionGroup.collectionId` has to be non null, unless `collectionGroup`
-            // itself is null. With this informal reasoning, this checks out.
-            collectionGroup.collectionId!
-          );
+          const collection = collectionGroup.collectionId
+            ? await Collection.scope({
+                method: ["withMembership", event.userId],
+              }).findByPk(collectionGroup.collectionId)
+            : null;
 
           if (!collection) {
             continue;
@@ -557,12 +554,9 @@ export default class WebsocketsProcessor {
         });
 
         for (const collectionGroup of collectionGroupMemberships) {
-          const membershipUserIds = await Collection.membershipUserIds(
-            // !Syntax: Bad but we know that with the `withCollection` scope
-            // above, `collectionGroup.collectionId` has to be non null, unless `collectionGroup`
-            // itself is null. With this informal reasoning, this checks out.
-            collectionGroup.collectionId!
-          );
+          const membershipUserIds = collectionGroup.collectionId
+            ? await Collection.membershipUserIds(collectionGroup.collectionId)
+            : [];
 
           for (const groupUser of groupUsers) {
             if (membershipUserIds.includes(groupUser.userId)) {
