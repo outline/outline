@@ -1,14 +1,21 @@
+import JWT from "jsonwebtoken";
 import Router from "koa-router";
+import mime from "mime-types";
 import env from "@server/env";
-import { ValidationError } from "@server/errors";
+import { AuthenticationError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { Attachment } from "@server/models";
+import AttachmentHelper, {
+  Buckets,
+} from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
+import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { getJWTPayload } from "@server/utils/jwt";
 import { createRootDirForLocalStorage } from "../utils";
 import * as T from "./schema";
 
@@ -27,7 +34,10 @@ router.post(
     const { key } = ctx.input.body;
     const file = ctx.input.file;
 
-    const attachment = await Attachment.findByKey(key);
+    const attachment = await Attachment.findOne({
+      where: { key },
+      rejectOnEmpty: true,
+    });
 
     if (attachment.isPrivate) {
       authorize(actor, "createAttachment", actor.team);
@@ -46,26 +56,63 @@ router.get(
   auth({ optional: true }),
   validate(T.FilesGetSchema),
   async (ctx: APIContext<T.FilesGetReq>) => {
-    const { key, sig } = ctx.input.query;
     const actor = ctx.state.auth.user;
-    let attachment: Attachment | null;
+    const key = getKeyFromContext(ctx);
+    const isAuthenticated = !!ctx.input.query.sig;
 
-    if (key) {
-      attachment = await Attachment.findByKey(key);
+    const attachment = await Attachment.findOne({
+      where: { key },
+    });
 
-      if (attachment.isPrivate) {
+    if (attachment) {
+      if (!isAuthenticated && attachment.isPrivate) {
         authorize(actor, "read", attachment);
       }
-    } else if (sig) {
-      attachment = await Attachment.findBySignature(sig);
-    } else {
-      throw ValidationError("Must provide either key or signature");
+
+      ctx.set("Content-Type", attachment.contentType);
+      ctx.attachment(attachment.name);
+      ctx.body = attachment.stream;
+      return;
     }
 
-    ctx.set("Content-Type", attachment.contentType);
-    ctx.attachment(attachment.name);
-    ctx.body = attachment.stream;
+    const { bucket, fileName } = AttachmentHelper.parseKey(key);
+    const isPublic = bucket === Buckets.avatars || bucket === Buckets.public;
+
+    if (isPublic || isAuthenticated) {
+      ctx.set(
+        "Content-Type",
+        (fileName ? mime.lookup(fileName) : undefined) ||
+          "application/octet-stream"
+      );
+      ctx.attachment(fileName);
+      ctx.body = FileStorage.getFileStream(key);
+    }
   }
 );
+
+function getKeyFromContext(ctx: APIContext<T.FilesGetReq>): string {
+  const { key, sig } = ctx.input.query;
+  if (sig) {
+    const payload = getJWTPayload(sig);
+
+    if (payload.type !== "attachment") {
+      throw AuthenticationError("Invalid signature");
+    }
+
+    try {
+      JWT.verify(sig, env.SECRET_KEY);
+    } catch (err) {
+      throw AuthenticationError("Invalid signature");
+    }
+
+    return payload.key as string;
+  }
+
+  if (key) {
+    return key;
+  }
+
+  throw ValidationError("Must provide either key or sig parameter");
+}
 
 export default router;

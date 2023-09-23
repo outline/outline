@@ -1,7 +1,6 @@
 import { createReadStream } from "fs";
 import path from "path";
 import { File } from "formidable";
-import JWT from "jsonwebtoken";
 import { QueryTypes } from "sequelize";
 import {
   BeforeDestroy,
@@ -15,10 +14,7 @@ import {
   IsNumeric,
   BeforeUpdate,
 } from "sequelize-typescript";
-import env from "@server/env";
-import { AuthenticationError } from "@server/errors";
 import FileStorage from "@server/storage/files";
-import { getJWTPayload } from "@server/utils/jwt";
 import { ValidateKey } from "@server/validation";
 import Document from "./Document";
 import Team from "./Team";
@@ -170,42 +166,6 @@ class Attachment extends IdModel {
     );
 
     return parseInt(result?.[0]?.total ?? "0", 10);
-  }
-
-  /**
-   * Find an attachment given a JWT signature.
-   *
-   * @param sign - The signature that uniquely identifies an attachment
-   * @returns A promise resolving to attachment corresponding to the signature
-   * @throws {AuthenticationError} Invalid signature if the signature verification fails
-   */
-  static async findBySignature(sign: string): Promise<Attachment> {
-    const payload = getJWTPayload(sign);
-
-    if (payload.type !== "attachment") {
-      throw AuthenticationError("Invalid signature");
-    }
-
-    try {
-      JWT.verify(sign, env.SECRET_KEY);
-    } catch (err) {
-      throw AuthenticationError("Invalid signature");
-    }
-
-    return this.findByKey(payload.key);
-  }
-
-  /**
-   * Find an attachment given a key
-   *
-   * @param key The key representing attachment file path
-   * @returns A promise resolving to attachment corresponding to the key
-   */
-  static async findByKey(key: string): Promise<Attachment> {
-    return this.findOne({
-      where: { key },
-      rejectOnEmpty: true,
-    });
   }
 
   // associations

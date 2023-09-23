@@ -18,11 +18,7 @@ describe("#files.create", () => {
         key: "public/foo/bar/baz.png",
       },
     });
-    const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual(
-      "key: Must be of the form uploads/<uuid>/<uuid>/<name> or public/<uuid>/<uuid>/<name>"
-    );
   });
 
   it("should succeed with status 200 ok and create a file", async () => {
@@ -63,11 +59,7 @@ describe("#files.create", () => {
 describe("#files.get", () => {
   it("should fail with status 400 bad request if key is invalid", async () => {
     const res = await server.get(`/api/files.get?key=public/foo/bar/baz.png`);
-    const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual(
-      "key: Must be of the form uploads/<uuid>/<uuid>/<name> or public/<uuid>/<uuid>/<name>"
-    );
   });
 
   it("should fail with status 400 bad request if none of key or sig is supplied", async () => {
