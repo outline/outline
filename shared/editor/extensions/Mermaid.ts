@@ -27,6 +27,7 @@ class MermaidRenderer {
   readonly elementId: string;
   private currentTextContent = "";
   private _rendererFunc?: RendererFunc;
+
   constructor() {
     this.diagramId = uuidv4();
     this.elementId = "mermaid-diagram-wrapper-" + this.diagramId;
@@ -70,7 +71,7 @@ class MermaidRenderer {
         element.innerText = "Empty diagram";
         element.classList.add("empty");
       } else {
-        element.innerText = `Error rendering diagram\n ${error}`;
+        element.innerText = `Error rendering diagram\n\n${error}`;
         element.classList.add("parse-error");
       }
     }
@@ -80,7 +81,7 @@ class MermaidRenderer {
     if (this._rendererFunc) {
       return this._rendererFunc;
     }
-    this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 1000);
+    this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 500);
     return this._rendererFunc;
   }
 }
@@ -148,7 +149,7 @@ function getNewState({
     );
 
     const renderer: MermaidRenderer =
-      bestDecoration?.spec?.["renderer"] ?? new MermaidRenderer();
+      bestDecoration?.spec?.renderer ?? new MermaidRenderer();
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
