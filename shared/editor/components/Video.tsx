@@ -8,11 +8,11 @@ import useDragResize from "./hooks/useDragResize";
 type Props = ComponentProps & {
   /** Callback triggered when the video is resized */
   onChangeSize?: (props: { width: number; height?: number }) => void;
-  isSelected: boolean;
+  children?: React.ReactElement;
 };
 
 export default function Video(props: Props) {
-  const { isSelected, node, isEditable, onChangeSize } = props;
+  const { isSelected, node, isEditable, children, onChangeSize } = props;
   const [naturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight] = React.useState(node.attrs.height);
   const documentBounds = useComponentSize(props.view.dom);
@@ -46,29 +46,32 @@ export default function Video(props: Props) {
   };
 
   return (
-    <VideoWrapper
-      className={isSelected ? "ProseMirror-selectednode" : ""}
-      style={style}
-    >
-      <StyledVideo
-        src={node.attrs.src}
-        title={node.attrs.title}
+    <div contentEditable={false}>
+      <VideoWrapper
+        className={isSelected ? "ProseMirror-selectednode" : ""}
         style={style}
-        controls
-      />
-      {isEditable && isResizable && (
-        <>
-          <ResizeLeft
-            onPointerDown={handlePointerDown("left")}
-            $dragging={!!dragging}
-          />
-          <ResizeRight
-            onPointerDown={handlePointerDown("right")}
-            $dragging={!!dragging}
-          />
-        </>
-      )}
-    </VideoWrapper>
+      >
+        <StyledVideo
+          src={node.attrs.src}
+          title={node.attrs.title}
+          style={style}
+          controls
+        />
+        {isEditable && isResizable && (
+          <>
+            <ResizeLeft
+              onPointerDown={handlePointerDown("left")}
+              $dragging={!!dragging}
+            />
+            <ResizeRight
+              onPointerDown={handlePointerDown("right")}
+              $dragging={!!dragging}
+            />
+          </>
+        )}
+      </VideoWrapper>
+      {children}
+    </div>
   );
 }
 

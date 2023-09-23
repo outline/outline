@@ -10,7 +10,7 @@ import findAttachmentById from "../queries/findAttachmentById";
 
 export type Options = {
   /** Dictionary object containing translation strings */
-  dictionary: Record<string, string | ((...args: any) => string)>;
+  dictionary: any;
   /** Set to true to force images and videos to become file attachments */
   isAttachment?: boolean;
   /** Set to true to replace any existing image at the users selection */

@@ -1,10 +1,11 @@
 import Token from "markdown-it/lib/token";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { NodeSelection } from "prosemirror-state";
+import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
 import toggleWrap from "../commands/toggleWrap";
+import Caption from "../components/Caption";
 import VideoComponent from "../components/Video";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links";
@@ -95,8 +96,67 @@ export default class Video extends Node {
       view.dispatch(transaction.setSelection(new NodeSelection($pos)));
     };
 
+  handleCaptionKeyDown =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    (event: React.KeyboardEvent<HTMLParagraphElement>) => {
+      // Pressing Enter in the caption field should move the cursor/selection
+      // below the video
+      if (event.key === "Enter") {
+        event.preventDefault();
+
+        const { view } = this.editor;
+        const $pos = view.state.doc.resolve(getPos() + node.nodeSize);
+        view.dispatch(
+          view.state.tr.setSelection(TextSelection.near($pos)).scrollIntoView()
+        );
+        view.focus();
+        return;
+      }
+
+      // Pressing Backspace in an an empty caption field focuses the video.
+      if (event.key === "Backspace" && event.currentTarget.innerText === "") {
+        event.preventDefault();
+        event.stopPropagation();
+        const { view } = this.editor;
+        const $pos = view.state.doc.resolve(getPos());
+        const tr = view.state.tr.setSelection(new NodeSelection($pos));
+        view.dispatch(tr);
+        view.focus();
+        return;
+      }
+    };
+
+  handleCaptionBlur =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    (event: React.FocusEvent<HTMLParagraphElement>) => {
+      const caption = event.currentTarget.innerText;
+      if (caption === node.attrs.title) {
+        return;
+      }
+
+      const { view } = this.editor;
+      const { tr } = view.state;
+
+      // update meta on object
+      const pos = getPos();
+      const transaction = tr.setNodeMarkup(pos, undefined, {
+        ...node.attrs,
+        title: caption,
+      });
+      view.dispatch(transaction);
+    };
+
   component = (props: ComponentProps) => (
-    <VideoComponent {...props} onChangeSize={this.handleChangeSize(props)} />
+    <VideoComponent {...props} onChangeSize={this.handleChangeSize(props)}>
+      <Caption
+        onBlur={this.handleCaptionBlur(props)}
+        onKeyDown={this.handleCaptionKeyDown(props)}
+        isSelected={props.isSelected}
+        placeholder={this.options.dictionary.imageCaptionPlaceholder}
+      >
+        {props.node.attrs.title}
+      </Caption>
+    </VideoComponent>
   );
 
   commands({ type }: { type: NodeType }) {

@@ -2,7 +2,6 @@ import { DownloadIcon } from "outline-icons";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
@@ -155,38 +154,6 @@ function getPlaceholder(width: number, height: number) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" />`;
 }
 
-export const Caption = styled.p`
-  border: 0;
-  display: block;
-  font-style: italic;
-  font-weight: normal;
-  color: ${s("textSecondary")};
-  padding: 8px 0 4px;
-  line-height: 16px;
-  text-align: center;
-  min-height: 1em;
-  outline: none;
-  background: none;
-  resize: none;
-  user-select: text;
-  margin: 0 !important;
-  cursor: text;
-
-  ${breakpoint("tablet")`
-    font-size: 13px;
-  `};
-
-  &:empty:not(:focus) {
-    display: none;
-  }
-
-  &:empty:before {
-    color: ${s("placeholder")};
-    content: attr(data-caption);
-    pointer-events: none;
-  }
-`;
-
 const Button = styled.button`
   position: absolute;
   top: 8px;
@@ -239,10 +206,6 @@ const ImageWrapper = styled.div<{ isFullWidth: boolean }>`
     ${ResizeLeft}, ${ResizeRight} {
       opacity: 1;
     }
-  }
-
-  &.ProseMirror-selectednode + ${Caption} {
-    display: block;
   }
 `;
 
