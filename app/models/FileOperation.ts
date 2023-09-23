@@ -16,6 +16,7 @@ class FileOperation extends Model {
 
   collectionId: string | null;
 
+  @observable
   size: number;
 
   type: FileOperationType;
