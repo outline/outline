@@ -70,15 +70,18 @@ export default class LocalStorage extends BaseStorage {
 
     const destPath = path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
     closeSync(openSync(destPath, "w"));
-    const dest = createWriteStream(destPath);
-    src.pipe(dest);
 
     return new Promise<string>((resolve, reject) => {
-      src.once("end", () => resolve(this.getUrlForKey(key)));
-      src.once("err", (err) => {
-        dest.end();
-        reject(err);
-      });
+      const dest = createWriteStream(destPath)
+        .on("error", reject)
+        .on("finish", () => resolve(this.getUrlForKey(key)));
+
+      src
+        .on("error", (err) => {
+          dest.end();
+          reject(err);
+        })
+        .pipe(dest);
     });
   };
 
