@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s } from "@shared/styles";
+import { s } from "../../styles";
 
 type Props = {
   /** Callback triggered when the caption is blurred */
