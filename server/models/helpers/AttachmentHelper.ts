@@ -2,6 +2,12 @@ import { addHours } from "date-fns";
 import { AttachmentPreset } from "@shared/types";
 import env from "@server/env";
 
+export enum Buckets {
+  public = "public",
+  uploads = "uploads",
+  avatars = "avatars",
+}
+
 export default class AttachmentHelper {
   /**
    * Get the upload location for the given upload details
@@ -22,7 +28,7 @@ export default class AttachmentHelper {
     name: string;
     userId: string;
   }) {
-    const bucket = acl === "public-read" ? "public" : "uploads";
+    const bucket = acl === "public-read" ? Buckets.public : Buckets.uploads;
     const keyPrefix = `${bucket}/${userId}/${id}`;
     return `${keyPrefix}/${name}`;
   }

@@ -1,32 +1,42 @@
 import { v4 as uuidv4 } from "uuid";
+import { Buckets } from "./models/helpers/AttachmentHelper";
 import { ValidateKey } from "./validation";
 
 describe("#ValidateKey.isValid", () => {
   it("should return false if number of key components are not equal to 4", () => {
-    expect(ValidateKey.isValid(`uploads/${uuidv4()}/${uuidv4()}`)).toBe(false);
-    expect(ValidateKey.isValid(`uploads/${uuidv4()}/${uuidv4()}/foo/bar`)).toBe(
-      false
-    );
+    expect(
+      ValidateKey.isValid(`${Buckets.uploads}/${uuidv4()}/${uuidv4()}`)
+    ).toBe(false);
+    expect(
+      ValidateKey.isValid(`${Buckets.uploads}/${uuidv4()}/${uuidv4()}/foo/bar`)
+    ).toBe(false);
   });
 
-  it("should return false if the first key component is neither 'public' nor 'uploads' ", () => {
+  it("should return false if the first key component is not a valid bucket", () => {
     expect(ValidateKey.isValid(`foo/${uuidv4()}/${uuidv4()}/bar.png`)).toBe(
       false
     );
   });
 
   it("should return false if second and third key components are not UUID", () => {
-    expect(ValidateKey.isValid(`uploads/foo/${uuidv4()}/bar.png`)).toBe(false);
-    expect(ValidateKey.isValid(`uploads/${uuidv4()}/foo/bar.png`)).toBe(false);
+    expect(
+      ValidateKey.isValid(`${Buckets.uploads}/foo/${uuidv4()}/bar.png`)
+    ).toBe(false);
+    expect(
+      ValidateKey.isValid(`${Buckets.uploads}/${uuidv4()}/foo/bar.png`)
+    ).toBe(false);
   });
 
   it("should return true successfully validating key", () => {
-    expect(ValidateKey.isValid(`public/${uuidv4()}/${uuidv4()}/foo.png`)).toBe(
-      true
-    );
-    expect(ValidateKey.isValid(`uploads/${uuidv4()}/${uuidv4()}/foo.png`)).toBe(
-      true
-    );
+    expect(
+      ValidateKey.isValid(`${Buckets.public}/${uuidv4()}/${uuidv4()}/foo.png`)
+    ).toBe(true);
+    expect(
+      ValidateKey.isValid(`${Buckets.uploads}/${uuidv4()}/${uuidv4()}/foo.png`)
+    ).toBe(true);
+    expect(
+      ValidateKey.isValid(`${Buckets.avatars}/${uuidv4()}/${uuidv4()}`)
+    ).toBe(true);
   });
 });
 

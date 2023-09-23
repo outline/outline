@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { User } from "@server/models";
+import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
@@ -22,7 +23,7 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
 
     const res = await FileStorage.storeFromUrl(
       props.avatarUrl,
-      `avatars/${user.id}/${uuidv4()}`,
+      `${Buckets.avatars}/${user.id}/${uuidv4()}`,
       "public-read"
     );
 
