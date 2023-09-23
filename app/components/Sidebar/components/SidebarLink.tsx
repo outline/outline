@@ -22,7 +22,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   to?: LocationDescriptor;
   innerRef?: (ref: HTMLElement | null | undefined) => void;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
-  /* Callback when we expect the user to click on the link. Used for prefetching data. */
+  /** Callback when we expect the user to click on the link. Used for prefetching data. */
   onClickIntent?: () => void;
   onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
   icon?: React.ReactNode;
@@ -32,7 +32,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   showActions?: boolean;
   disabled?: boolean;
   active?: boolean;
-  /* If set, a disclosure will be rendered to the left of any icon */
+  /** If set, a disclosure will be rendered to the left of any icon */
   expanded?: boolean;
   isActiveDrop?: boolean;
   isDraft?: boolean;

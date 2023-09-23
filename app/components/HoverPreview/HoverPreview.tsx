@@ -21,9 +21,9 @@ const DELAY_OPEN = 500;
 const DELAY_CLOSE = 600;
 
 type Props = {
-  /* The HTML element that is being hovered over */
+  /** The HTML element that is being hovered over */
   element: HTMLAnchorElement;
-  /* A callback on close of the hover preview */
+  /** A callback on close of the hover preview */
   onClose: () => void;
 };
 

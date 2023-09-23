@@ -19,7 +19,6 @@ describe("CleanupExpiredFileOperationsTask", () => {
       state: FileOperationState.Complete,
     });
 
-    /* This is a test helper that creates a new task and runs it. */
     const task = new CleanupExpiredFileOperationsTask();
     await task.perform({ limit: 100 });
 

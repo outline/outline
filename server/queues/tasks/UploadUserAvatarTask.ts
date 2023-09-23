@@ -4,9 +4,9 @@ import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
-  /* The userId to operate on */
+  /** The userId to operate on */
   userId: string;
-  /* The original avatarUrl from the SSO provider */
+  /** The original avatarUrl from the SSO provider */
   avatarUrl: string;
 };
 
