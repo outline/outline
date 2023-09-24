@@ -34,6 +34,34 @@ export default class AttachmentHelper {
   }
 
   /**
+   * Parse a key into its constituent parts
+   *
+   * @param key The key to parse
+   * @returns The constituent parts
+   */
+  static parseKey(key: string): {
+    bucket: string;
+    userId: string;
+    id: string;
+    fileName: string | undefined;
+    isPublicBucket: boolean;
+  } {
+    const parts = key.split("/");
+    const bucket = parts[0];
+    const userId = parts[1];
+    const id = parts[2];
+    const [fileName] = parts.length > 3 ? parts.slice(-1) : [];
+
+    return {
+      bucket,
+      userId,
+      id,
+      fileName,
+      isPublicBucket: bucket === Buckets.avatars || bucket === Buckets.public,
+    };
+  }
+
+  /**
    * Get the ACL to use for a given attachment preset
    *
    * @param preset The preset to use

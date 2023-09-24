@@ -1,9 +1,12 @@
-import { existsSync } from "fs";
+import { existsSync, copyFileSync } from "fs";
 import { readFile } from "fs/promises";
 import path from "path";
 import FormData from "form-data";
+import { ensureDirSync } from "fs-extra";
+import { v4 as uuidV4 } from "uuid";
 import env from "@server/env";
 import "@server/test/env";
+import FileStorage from "@server/storage/files";
 import { buildAttachment, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -18,11 +21,33 @@ describe("#files.create", () => {
         key: "public/foo/bar/baz.png",
       },
     });
-    const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual(
-      "key: Must be of the form uploads/<uuid>/<uuid>/<name> or public/<uuid>/<uuid>/<name>"
+  });
+
+  it("should fail with status 404 if existing file is requested with key", async () => {
+    const user = await buildUser();
+    const fileName = "images.docx";
+    const key = path.join("uploads", user.id, uuidV4(), fileName);
+
+    ensureDirSync(
+      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
     );
+
+    copyFileSync(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+    );
+
+    const res = await server.get(`/api/files.get?key=${key}`);
+    expect(res.status).toEqual(404);
+  });
+
+  it("should fail with status 404 if non-existing file is requested with key", async () => {
+    const user = await buildUser();
+    const fileName = "images.docx";
+    const key = path.join("uploads", user.id, uuidV4(), fileName);
+    const res = await server.get(`/api/files.get?key=${key}`);
+    expect(res.status).toEqual(404);
   });
 
   it("should succeed with status 200 ok and create a file", async () => {
@@ -63,21 +88,17 @@ describe("#files.create", () => {
 describe("#files.get", () => {
   it("should fail with status 400 bad request if key is invalid", async () => {
     const res = await server.get(`/api/files.get?key=public/foo/bar/baz.png`);
-    const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual(
-      "key: Must be of the form uploads/<uuid>/<uuid>/<name> or public/<uuid>/<uuid>/<name>"
-    );
   });
 
-  it("should fail with status 400 bad request if none of key or sig is supplied", async () => {
+  it("should fail with status 400 bad request if neither key or sig is supplied", async () => {
     const res = await server.get("/api/files.get");
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("query: One of key or sig is required");
   });
 
-  it("should succeed with status 200 ok when file is requested using key", async () => {
+  it("should succeed with status 200 ok when attachment is requested using key", async () => {
     const user = await buildUser();
     const fileName = "images.docx";
 
@@ -112,7 +133,7 @@ describe("#files.get", () => {
     );
   });
 
-  it("should succeed with status 200 ok when private file is requested using signature", async () => {
+  it("should succeed with status 200 ok when private attachment is requested using signature", async () => {
     const user = await buildUser();
     const fileName = "images.docx";
 
@@ -146,5 +167,49 @@ describe("#files.get", () => {
     expect(res.headers.get("Content-Disposition")).toEqual(
       'attachment; filename="images.docx"'
     );
+  });
+
+  it("should succeed with status 200 ok when file is requested using signature", async () => {
+    const user = await buildUser();
+    const fileName = "images.docx";
+    const key = path.join("uploads", user.id, uuidV4(), fileName);
+    const signedUrl = await FileStorage.getSignedUrl(key);
+
+    ensureDirSync(
+      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
+    );
+
+    copyFileSync(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+    );
+
+    const res = await server.get(signedUrl);
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("Content-Type")).toEqual(
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    expect(res.headers.get("Content-Disposition")).toEqual(
+      'attachment; filename="images.docx"'
+    );
+  });
+
+  it("should succeed with status 200 ok when avatar is requested using key", async () => {
+    const user = await buildUser();
+    const key = path.join("avatars", user.id, uuidV4());
+
+    ensureDirSync(
+      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
+    );
+
+    copyFileSync(
+      path.resolve(__dirname, "..", "test", "fixtures", "avatar.jpg"),
+      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+    );
+
+    const res = await server.get(`/api/files.get?key=${key}`);
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("Content-Type")).toEqual("application/octet-stream");
+    expect(res.headers.get("Content-Disposition")).toEqual("attachment");
   });
 });
