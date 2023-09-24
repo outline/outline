@@ -24,30 +24,68 @@ describe("#files.create", () => {
     expect(res.status).toEqual(400);
   });
 
-  it("should fail with status 404 if existing file is requested with key", async () => {
+  it("should fail with status 401 if associated attachment does not belong to user", async () => {
     const user = await buildUser();
     const fileName = "images.docx";
-    const key = path.join("uploads", user.id, uuidV4(), fileName);
+    const attachment = await buildAttachment(
+      {
+        teamId: user.teamId,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
+      fileName
+    );
+
+    const content = await readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const form = new FormData();
+    form.append("key", attachment.key);
+    form.append("file", content, fileName);
+    form.append("token", user.getJwtToken());
+
+    const res = await server.post(`/api/files.create`, {
+      headers: form.getHeaders(),
+      body: form,
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should fail with status 401 if file exists on disk", async () => {
+    const user = await buildUser();
+    const fileName = "images.docx";
+    const attachment = await buildAttachment(
+      {
+        userId: user.id,
+        teamId: user.teamId,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
+      fileName
+    );
 
     ensureDirSync(
-      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
+      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
     );
 
     copyFileSync(
       path.resolve(__dirname, "..", "test", "fixtures", fileName),
-      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key)
     );
 
-    const res = await server.get(`/api/files.get?key=${key}`);
-    expect(res.status).toEqual(404);
-  });
+    const content = await readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const form = new FormData();
+    form.append("key", attachment.key);
+    form.append("file", content, fileName);
+    form.append("token", user.getJwtToken());
 
-  it("should fail with status 404 if non-existing file is requested with key", async () => {
-    const user = await buildUser();
-    const fileName = "images.docx";
-    const key = path.join("uploads", user.id, uuidV4(), fileName);
-    const res = await server.get(`/api/files.get?key=${key}`);
-    expect(res.status).toEqual(404);
+    const res = await server.post(`/api/files.create`, {
+      headers: form.getHeaders(),
+      body: form,
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should succeed with status 200 ok and create a file", async () => {
@@ -86,6 +124,32 @@ describe("#files.create", () => {
 });
 
 describe("#files.get", () => {
+  it("should fail with status 404 if existing file is requested with key", async () => {
+    const user = await buildUser();
+    const fileName = "images.docx";
+    const key = path.join("uploads", user.id, uuidV4(), fileName);
+
+    ensureDirSync(
+      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
+    );
+
+    copyFileSync(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+    );
+
+    const res = await server.get(`/api/files.get?key=${key}`);
+    expect(res.status).toEqual(404);
+  });
+
+  it("should fail with status 404 if non-existing file is requested with key", async () => {
+    const user = await buildUser();
+    const fileName = "images.docx";
+    const key = path.join("uploads", user.id, uuidV4(), fileName);
+    const res = await server.get(`/api/files.get?key=${key}`);
+    expect(res.status).toEqual(404);
+  });
+
   it("should fail with status 400 bad request if key is invalid", async () => {
     const res = await server.get(`/api/files.get?key=public/foo/bar/baz.png`);
     expect(res.status).toEqual(400);

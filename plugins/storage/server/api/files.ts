@@ -2,7 +2,11 @@ import JWT from "jsonwebtoken";
 import Router from "koa-router";
 import mime from "mime-types";
 import env from "@server/env";
-import { AuthenticationError, ValidationError } from "@server/errors";
+import {
+  AuthenticationError,
+  AuthorizationError,
+  ValidationError,
+} from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -37,11 +41,11 @@ router.post(
       rejectOnEmpty: true,
     });
 
-    if (attachment.isPrivate) {
-      authorize(actor, "createAttachment", actor.team);
+    if (attachment?.userId !== actor.id) {
+      throw AuthorizationError("Invalid key");
     }
 
-    await attachment.overwriteFile(file);
+    await attachment.writeFile(file);
 
     ctx.body = {
       success: true,
