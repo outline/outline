@@ -12,6 +12,7 @@ import path from "path";
 import { Readable } from "stream";
 import invariant from "invariant";
 import JWT from "jsonwebtoken";
+import safeResolvePath from "resolve-path";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
@@ -68,11 +69,11 @@ export default class LocalStorage extends BaseStorage {
       src = Readable.from(body);
     }
 
-    const destPath = path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
-    closeSync(openSync(destPath, "w"));
+    const filePath = this.getFilePath(key);
+    closeSync(openSync(filePath, "w"));
 
     return new Promise<string>((resolve, reject) => {
-      const dest = createWriteStream(destPath)
+      const dest = createWriteStream(filePath)
         .on("error", reject)
         .on("finish", () => resolve(this.getUrlForKey(key)));
 
@@ -86,7 +87,7 @@ export default class LocalStorage extends BaseStorage {
   };
 
   public async deleteFile(key: string) {
-    const filePath = path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
+    const filePath = this.getFilePath(key);
     try {
       await unlink(filePath);
     } catch (err) {
@@ -112,12 +113,15 @@ export default class LocalStorage extends BaseStorage {
   };
 
   public getFileStream(key: string) {
+    return createReadStream(this.getFilePath(key));
+  }
+
+  private getFilePath(key: string) {
     invariant(
       env.FILE_STORAGE_LOCAL_ROOT_DIR,
       "FILE_STORAGE_LOCAL_ROOT_DIR is required"
     );
 
-    const filePath = path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
-    return createReadStream(filePath);
+    return safeResolvePath(env.FILE_STORAGE_LOCAL_ROOT_DIR, key);
   }
 }

@@ -3436,6 +3436,11 @@
   dependencies:
     "@types/prismjs" "*"
 
+"@types/resolve-path@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@types/resolve-path/-/resolve-path-1.4.0.tgz#7e5abe36da0ba037e9d84348bef9e85db752cae4"
+  integrity sha512-Zh5blp0SEy8yHxnN3yOnInh9NtZHze1c6sl/Neg2or/MbEEoxg69qZScrSqe4BYIRQD722r/ouV822Av1mKwRA==
+
 "@types/resolve@1.17.1":
   version "1.17.1"
   resolved "https://registry.yarnpkg.com/@types/resolve/-/resolve-1.17.1.tgz#3afd6ad8967c77e4376c598a82ddd58f46ec45d6"
@@ -11605,7 +11610,7 @@ resolve-options@^1.1.0:
 resolve-path@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/resolve-path/-/resolve-path-1.4.0.tgz#c4bda9f5efb2fce65247873ab36bb4d834fe16f7"
-  integrity sha1-xL2p9e+y/OZSR4c6s2u02DT+Fvc=
+  integrity sha512-i1xevIst/Qa+nA9olDxLWnLk8YZbi8R/7JPbCMcgyWaFR6bKWaexgJgEB5oc2PKMjYdrHynyz0NY+if+H98t1w==
   dependencies:
     http-errors "~1.6.2"
     path-is-absolute "1.0.1"

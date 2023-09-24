@@ -59,8 +59,10 @@ router.get(
     const isSignedRequest = !!ctx.input.query.sig;
     const { isPublicBucket, fileName } = AttachmentHelper.parseKey(key);
     const skipAuthorize = isPublicBucket || isSignedRequest;
+    const cacheHeader = "max-age=604800, immutable";
 
     if (skipAuthorize) {
+      ctx.set("Cache-Control", cacheHeader);
       ctx.set(
         "Content-Type",
         (fileName ? mime.lookup(fileName) : undefined) ||
@@ -73,11 +75,9 @@ router.get(
         where: { key },
         rejectOnEmpty: true,
       });
+      authorize(actor, "read", attachment);
 
-      if (attachment.isPrivate) {
-        authorize(actor, "read", attachment);
-      }
-
+      ctx.set("Cache-Control", cacheHeader);
       ctx.set("Content-Type", attachment.contentType);
       ctx.attachment(attachment.name);
       ctx.body = attachment.stream;
