@@ -41,7 +41,7 @@ router.post(
       rejectOnEmpty: true,
     });
 
-    if (attachment?.userId !== actor.id) {
+    if (attachment.userId !== actor.id) {
       throw AuthorizationError("Invalid key");
     }
 

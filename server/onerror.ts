@@ -1,6 +1,7 @@
 import fs from "fs";
 import http from "http";
 import path from "path";
+import formidable from "formidable";
 import Koa, { Context } from "koa";
 import escape from "lodash/escape";
 import isNil from "lodash/isNil";
@@ -81,12 +82,22 @@ export default function onerror(app: Koa) {
       err = newError;
     }
 
+    this.status = err.status ?? 500;
+
     if (err instanceof ValidationError) {
-      // @ts-expect-error status is not a property on ValidationError
-      err.status = 400;
+      this.status = 400;
 
       if (err.errors && err.errors[0]) {
         err.message = `${err.errors[0].message} (${err.errors[0].path})`;
+      }
+    }
+
+    if (err instanceof formidable.errors.FormidableError) {
+      // Client aborted errors are a 500 by default, but 499 is more appropriate
+      if (err.internalCode === 1002) {
+        this.status = 499;
+      } else {
+        this.status = err.httpCode ?? 500;
       }
     }
 
@@ -95,19 +106,19 @@ export default function onerror(app: Koa) {
       err instanceof EmptyResultError ||
       /Not found/i.test(err.message)
     ) {
-      err.status = 404;
+      this.status = 404;
     }
 
     if (/Authorization error/i.test(err.message)) {
-      err.status = 403;
+      this.status = 403;
     }
 
     if (typeof err.status !== "number" || !http.STATUS_CODES[err.status]) {
-      err.status = 500;
+      this.status = 500;
     }
 
     // Push only unknown 500 errors to sentry
-    if (err.status === 500) {
+    if (this.status === 500) {
       requestErrorHandler(err, this);
     }
 
@@ -120,8 +131,6 @@ export default function onerror(app: Koa) {
     if (headerSent) {
       return;
     }
-
-    this.status = err.status;
 
     this.set(err.headers);
     const type = this.accepts("json", "html") || "json";

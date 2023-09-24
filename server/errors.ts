@@ -200,3 +200,13 @@ export function AuthenticationProviderDisabledError(
     id: "authentication_provider_disabled",
   });
 }
+
+export function ClientClosedRequestError(
+  message = "Client closed request before response was received",
+  redirectUrl = "/"
+) {
+  return httpErrors(499, message, {
+    redirectUrl,
+    id: "client_closed_request",
+  });
+}
