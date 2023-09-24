@@ -14,6 +14,7 @@ import invariant from "invariant";
 import JWT from "jsonwebtoken";
 import safeResolvePath from "resolve-path";
 import env from "@server/env";
+import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
 
@@ -55,7 +56,7 @@ export default class LocalStorage extends BaseStorage {
   }) => {
     const exists = await pathExists(this.getFilePath(key));
     if (exists) {
-      throw new Error(`File already exists at ${key}`);
+      throw new ValidationError(`File already exists at ${key}`);
     }
 
     await mkdir(this.getFilePath(path.dirname(key)), {

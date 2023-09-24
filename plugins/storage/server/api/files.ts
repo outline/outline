@@ -2,7 +2,11 @@ import JWT from "jsonwebtoken";
 import Router from "koa-router";
 import mime from "mime-types";
 import env from "@server/env";
-import { AuthenticationError, ValidationError } from "@server/errors";
+import {
+  AuthenticationError,
+  AuthorizationError,
+  ValidationError,
+} from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -33,9 +37,13 @@ router.post(
     const file = ctx.input.file;
 
     const attachment = await Attachment.findOne({
-      where: { key, userId: actor.id },
+      where: { key },
       rejectOnEmpty: true,
     });
+
+    if (attachment?.userId !== actor.id) {
+      throw AuthorizationError("Invalid key");
+    }
 
     await attachment.writeFile(file);
 
