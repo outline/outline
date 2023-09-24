@@ -193,4 +193,23 @@ describe("#files.get", () => {
       'attachment; filename="images.docx"'
     );
   });
+
+  it("should succeed with status 200 ok when avatar is requested using key", async () => {
+    const user = await buildUser();
+    const key = path.join("avatars", user.id, uuidV4());
+
+    ensureDirSync(
+      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
+    );
+
+    copyFileSync(
+      path.resolve(__dirname, "..", "test", "fixtures", "avatar.jpg"),
+      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+    );
+
+    const res = await server.get(`/api/files.get?key=${key}`);
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("Content-Type")).toEqual("application/octet-stream");
+    expect(res.headers.get("Content-Disposition")).toEqual("attachment");
+  });
 });
