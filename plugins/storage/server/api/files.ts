@@ -8,9 +8,7 @@ import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { Attachment } from "@server/models";
-import AttachmentHelper, {
-  Buckets,
-} from "@server/models/helpers/AttachmentHelper";
+import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
@@ -58,27 +56,11 @@ router.get(
   async (ctx: APIContext<T.FilesGetReq>) => {
     const actor = ctx.state.auth.user;
     const key = getKeyFromContext(ctx);
-    const isAuthenticated = !!ctx.input.query.sig;
+    const isSignedRequest = !!ctx.input.query.sig;
+    const { isPublicBucket, fileName } = AttachmentHelper.parseKey(key);
+    const skipAuthorize = isPublicBucket || isSignedRequest;
 
-    const attachment = await Attachment.findOne({
-      where: { key },
-    });
-
-    if (attachment) {
-      if (!isAuthenticated && attachment.isPrivate) {
-        authorize(actor, "read", attachment);
-      }
-
-      ctx.set("Content-Type", attachment.contentType);
-      ctx.attachment(attachment.name);
-      ctx.body = attachment.stream;
-      return;
-    }
-
-    const { bucket, fileName } = AttachmentHelper.parseKey(key);
-    const isPublic = bucket === Buckets.avatars || bucket === Buckets.public;
-
-    if (isPublic || isAuthenticated) {
+    if (skipAuthorize) {
       ctx.set(
         "Content-Type",
         (fileName ? mime.lookup(fileName) : undefined) ||
@@ -86,6 +68,19 @@ router.get(
       );
       ctx.attachment(fileName);
       ctx.body = FileStorage.getFileStream(key);
+    } else {
+      const attachment = await Attachment.findOne({
+        where: { key },
+        rejectOnEmpty: true,
+      });
+
+      if (attachment.isPrivate) {
+        authorize(actor, "read", attachment);
+      }
+
+      ctx.set("Content-Type", attachment.contentType);
+      ctx.attachment(attachment.name);
+      ctx.body = attachment.stream;
     }
   }
 );

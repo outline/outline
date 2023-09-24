@@ -44,6 +44,7 @@ export default class AttachmentHelper {
     userId: string;
     id: string;
     fileName: string | undefined;
+    isPublicBucket: boolean;
   } {
     const parts = key.split("/");
     const bucket = parts[0];
@@ -56,6 +57,7 @@ export default class AttachmentHelper {
       userId,
       id,
       fileName,
+      isPublicBucket: bucket === Buckets.avatars || bucket === Buckets.public,
     };
   }
 
