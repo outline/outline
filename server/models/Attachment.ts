@@ -116,12 +116,12 @@ class Attachment extends IdModel {
 
   /**
    * Store the given file in storage at the location specified by the attachment key.
-   * If the attachment already exists, it will be overwritten.
+   * If the attachment already exists, an error will be thrown.
    *
    * @param file The file to store
    * @returns A promise resolving to the attachment
    */
-  async overwriteFile(file: File) {
+  async writeFile(file: File) {
     return FileStorage.store({
       body: createReadStream(file.filepath),
       contentLength: file.size,

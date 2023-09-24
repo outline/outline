@@ -33,15 +33,11 @@ router.post(
     const file = ctx.input.file;
 
     const attachment = await Attachment.findOne({
-      where: { key },
+      where: { key, userId: actor.id },
       rejectOnEmpty: true,
     });
 
-    if (attachment.isPrivate) {
-      authorize(actor, "createAttachment", actor.team);
-    }
-
-    await attachment.overwriteFile(file);
+    await attachment.writeFile(file);
 
     ctx.body = {
       success: true,
