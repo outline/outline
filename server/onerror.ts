@@ -6,9 +6,18 @@ import Koa, { Context } from "koa";
 import escape from "lodash/escape";
 import isNil from "lodash/isNil";
 import snakeCase from "lodash/snakeCase";
-import { ValidationError, EmptyResultError } from "sequelize";
+import {
+  ValidationError as SequelizeValidationError,
+  EmptyResultError,
+} from "sequelize";
 import env from "@server/env";
-import { InternalError } from "@server/errors";
+import {
+  AuthorizationError,
+  ClientClosedRequestError,
+  InternalError,
+  NotFoundError,
+  ValidationError,
+} from "@server/errors";
 import { requestErrorHandler } from "@server/logging/sentry";
 
 const isDev = env.ENVIRONMENT === "development";
@@ -82,22 +91,20 @@ export default function onerror(app: Koa) {
       err = newError;
     }
 
-    this.status = err.status ?? 500;
-
-    if (err instanceof ValidationError) {
-      this.status = 400;
-
+    if (err instanceof SequelizeValidationError) {
       if (err.errors && err.errors[0]) {
-        err.message = `${err.errors[0].message} (${err.errors[0].path})`;
+        err = ValidationError(
+          `${err.errors[0].message} (${err.errors[0].path})`
+        );
+      } else {
+        err = ValidationError();
       }
     }
 
     if (err instanceof formidable.errors.FormidableError) {
       // Client aborted errors are a 500 by default, but 499 is more appropriate
       if (err.internalCode === 1002) {
-        this.status = 499;
-      } else {
-        this.status = err.httpCode ?? 500;
+        err = ClientClosedRequestError();
       }
     }
 
@@ -106,19 +113,22 @@ export default function onerror(app: Koa) {
       err instanceof EmptyResultError ||
       /Not found/i.test(err.message)
     ) {
-      this.status = 404;
+      err = NotFoundError();
     }
 
-    if (/Authorization error/i.test(err.message)) {
-      this.status = 403;
+    if (
+      !(err instanceof AuthorizationError) &&
+      /Authorization error/i.test(err.message)
+    ) {
+      err = AuthorizationError();
     }
 
     if (typeof err.status !== "number" || !http.STATUS_CODES[err.status]) {
-      this.status = 500;
+      err = InternalError();
     }
 
     // Push only unknown 500 errors to sentry
-    if (this.status === 500) {
+    if (err.status === 500) {
       requestErrorHandler(err, this);
     }
 
@@ -159,35 +169,11 @@ export default function onerror(app: Koa) {
 
 function json(err: any, ctx: Context) {
   ctx.status = err.status;
-  let message;
-  let id;
-
-  if (ctx.status === 400) {
-    message = "Validation error";
-    id = "validation_error";
-  }
-  if (ctx.status === 401) {
-    message = "Authentication error";
-    id = "authentication_error";
-  }
-  if (ctx.status === 403) {
-    message = "Authorization error";
-    id = "authorization_error";
-  }
-  if (ctx.status === 404) {
-    message = "Resource not found";
-    id = "not_found";
-  }
-  if (ctx.status === 500) {
-    message = "Internal server error";
-    id = "internal_server_error";
-  }
-
   ctx.body = {
     ok: false,
-    error: snakeCase(err.id || id),
+    error: snakeCase(err.id),
     status: ctx.status,
-    message: err.message || message || err.name,
+    message: err.message || err.name,
     data: err.errorData ?? undefined,
   };
 }
@@ -201,6 +187,7 @@ function json(err: any, ctx: Context) {
 
 function html(err: any, ctx: Context) {
   const page = readErrorFile();
+  ctx.status = err.status;
   ctx.body = page
     .toString()
     .replace(/\/\/inject-message\/\//g, escape(err.message))

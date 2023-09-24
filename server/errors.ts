@@ -26,11 +26,9 @@ export function InvalidAuthenticationError(
   });
 }
 
-export function AuthorizationError(
-  message = "You do not have permission to access this resource"
-) {
+export function AuthorizationError(message = "Authorization error") {
   return httpErrors(403, message, {
-    id: "permission_required",
+    id: "authorization_error",
   });
 }
 
@@ -198,5 +196,13 @@ export function AuthenticationProviderDisabledError(
   return httpErrors(400, message, {
     redirectUrl,
     id: "authentication_provider_disabled",
+  });
+}
+
+export function ClientClosedRequestError(
+  message = "Client closed request before response was received"
+) {
+  return httpErrors(499, message, {
+    id: "client_closed_request",
   });
 }
