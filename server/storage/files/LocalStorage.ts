@@ -56,7 +56,7 @@ export default class LocalStorage extends BaseStorage {
   }) => {
     const exists = await pathExists(this.getFilePath(key));
     if (exists) {
-      throw new ValidationError(`File already exists at ${key}`);
+      throw ValidationError(`File already exists at ${key}`);
     }
 
     await mkdir(this.getFilePath(path.dirname(key)), {
