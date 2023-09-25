@@ -11,7 +11,7 @@ import {
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
 import { isCode } from "../lib/isCode";
-import { findBlockNodes } from "../queries/findChildren";
+import { findBlockNodes, NodeWithPos } from "../queries/findChildren";
 
 type MermaidState = {
   decorationSet: DecorationSet;
@@ -23,7 +23,7 @@ type RendererFunc = (block: { node: Node; pos: number }) => void;
 
 class MermaidRenderer {
   readonly diagramId: string;
-  element?: HTMLElement;
+  readonly element: HTMLElement;
   readonly elementId: string;
   private currentTextContent = "";
   private _rendererFunc?: RendererFunc;
@@ -31,29 +31,22 @@ class MermaidRenderer {
   constructor() {
     this.diagramId = uuidv4();
     this.elementId = "mermaid-diagram-wrapper-" + this.diagramId;
-  }
-
-  initializeElement(): HTMLElement {
-    if (this.element) {
-      return this.element;
-    }
     this.element =
       document.getElementById(this.elementId) || document.createElement("div");
     this.element.id = this.elementId;
     this.element.classList.add("mermaid-diagram-wrapper");
-    return this.element;
   }
 
   async renderImmediately(block: { node: Node; pos: number }) {
     const diagramId = this.diagramId;
-    const element = this.initializeElement();
+    const element = this.element;
     const newTextContent = block.node.textContent;
     if (newTextContent === this.currentTextContent) {
       return;
     }
     try {
       const { default: mermaid } = await import("mermaid");
-      mermaid.render(
+      void mermaid.render(
         "mermaid-diagram-" + diagramId,
         newTextContent,
         (svgCode, bindFunctions) => {
@@ -93,6 +86,29 @@ function overlap(
   end2: number
 ): number {
   return Math.max(0, Math.min(end1, end2) - Math.max(start1, start2));
+}
+/*
+  This code find the decoration that overlap the most with a given node.
+  This will ensure we can find the best decoration that match the last change set
+  See: https://github.com/outline/outline/pull/5852/files#r1334929120
+*/
+function findBestOverlapDecoration(
+  decorations: Decoration[],
+  block: NodeWithPos
+): Decoration | undefined {
+  if (decorations.length === 0) {
+    return undefined;
+  }
+  return last(
+    sortBy(decorations, (decoration) =>
+      overlap(
+        decoration.from,
+        decoration.to,
+        block.pos,
+        block.pos + block.node.nodeSize
+      )
+    )
+  );
 }
 
 function getNewState({
@@ -134,18 +150,12 @@ function getNewState({
     const existingDecorations = pluginState.decorationSet.find(
       block.pos,
       block.pos + block.node.nodeSize,
-      (spec) => !!spec["diagramId"]
+      (spec) => !!spec.diagramId
     );
 
-    const bestDecoration = last(
-      sortBy(existingDecorations, (decoration) =>
-        overlap(
-          decoration.from,
-          decoration.to,
-          block.pos,
-          block.pos + block.node.nodeSize
-        )
-      )
+    const bestDecoration = findBestOverlapDecoration(
+      existingDecorations,
+      block
     );
 
     const renderer: MermaidRenderer =
@@ -154,7 +164,7 @@ function getNewState({
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
       () => {
-        const element = renderer.initializeElement();
+        const element = renderer.element;
         void renderer.render(block);
         return element;
       },
