@@ -11,7 +11,7 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
-import CollectionGroup from "./CollectionGroup";
+import GroupPermission from "./GroupPermission";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
@@ -87,7 +87,7 @@ class Group extends ParanoidModel {
         groupId: model.id,
       },
     });
-    await CollectionGroup.destroy({
+    await GroupPermission.destroy({
       where: {
         groupId: model.id,
       },
@@ -106,8 +106,8 @@ class Group extends ParanoidModel {
   @HasMany(() => GroupUser, { as: "members", foreignKey: "groupId" })
   groupMemberships: GroupUser[];
 
-  @HasMany(() => CollectionGroup, "groupId")
-  collectionGroupMemberships: CollectionGroup[];
+  @HasMany(() => GroupPermission, "groupId")
+  collectionGroupMemberships: GroupPermission[];
 
   @BelongsTo(() => Team, "teamId")
   team: Team;

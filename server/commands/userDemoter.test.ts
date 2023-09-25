@@ -1,5 +1,5 @@
 import { CollectionPermission, UserRole } from "@shared/types";
-import { CollectionUser } from "@server/models";
+import { UserPermission } from "@server/models";
 import { buildUser, buildAdmin, buildCollection } from "@server/test/factories";
 import userDemoter from "./userDemoter";
 
@@ -11,7 +11,7 @@ describe("userDemoter", () => {
     const user = await buildUser({ teamId: admin.teamId });
     const collection = await buildCollection({ teamId: admin.teamId });
 
-    const membership = await CollectionUser.create({
+    const membership = await UserPermission.create({
       createdById: admin.id,
       userId: user.id,
       collectionId: collection.id,

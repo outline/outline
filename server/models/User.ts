@@ -41,10 +41,10 @@ import ApiKey from "./ApiKey";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
-import CollectionUser from "./CollectionUser";
 import Star from "./Star";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
+import UserPermission from "./UserPermission";
 import ParanoidModel from "./base/ParanoidModel";
 import Encrypted, {
   setEncryptedColumn,
@@ -545,7 +545,7 @@ class User extends ParanoidModel {
           },
           options
         );
-        await CollectionUser.update(
+        await UserPermission.update(
           {
             permission: CollectionPermission.Read,
           },

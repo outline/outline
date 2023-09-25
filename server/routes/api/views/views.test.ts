@@ -1,5 +1,5 @@
 import { CollectionPermission } from "@shared/types";
-import { View, CollectionUser } from "@server/models";
+import { View, UserPermission } from "@server/models";
 import {
   buildAdmin,
   buildCollection,
@@ -71,7 +71,7 @@ describe("#views.list", () => {
     });
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
+    await UserPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
@@ -150,7 +150,7 @@ describe("#views.create", () => {
     });
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
+    await UserPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,

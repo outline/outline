@@ -30,14 +30,14 @@ import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { CollectionValidation } from "@shared/validations";
-import CollectionGroup from "./CollectionGroup";
-import CollectionUser from "./CollectionUser";
 import Document from "./Document";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
+import GroupPermission from "./GroupPermission";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
+import UserPermission from "./UserPermission";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
@@ -48,13 +48,23 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withAllMemberships: {
     include: [
       {
-        model: CollectionUser,
+        model: UserPermission,
         as: "memberships",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
         required: false,
       },
       {
-        model: CollectionGroup,
+        model: GroupPermission,
         as: "collectionGroupMemberships",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -92,16 +102,24 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withMembership: (userId: string) => ({
     include: [
       {
-        model: CollectionUser,
+        model: UserPermission,
         as: "memberships",
         where: {
           userId,
+          collectionId: {
+            [Op.ne]: null,
+          },
         },
         required: false,
       },
       {
-        model: CollectionGroup,
+        model: GroupPermission,
         as: "collectionGroupMemberships",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -257,7 +275,7 @@ class Collection extends ParanoidModel {
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    return CollectionUser.findOrCreate({
+    return UserPermission.findOrCreate({
       where: {
         collectionId: model.id,
         userId: model.createdById,
@@ -282,16 +300,16 @@ class Collection extends ParanoidModel {
   @HasMany(() => Document, "collectionId")
   documents: Document[];
 
-  @HasMany(() => CollectionUser, "collectionId")
-  memberships: CollectionUser[];
+  @HasMany(() => UserPermission, "collectionId")
+  memberships: UserPermission[];
 
-  @HasMany(() => CollectionGroup, "collectionId")
-  collectionGroupMemberships: CollectionGroup[];
+  @HasMany(() => GroupPermission, "collectionId")
+  collectionGroupMemberships: GroupPermission[];
 
-  @BelongsToMany(() => User, () => CollectionUser)
+  @BelongsToMany(() => User, () => UserPermission)
   users: User[];
 
-  @BelongsToMany(() => Group, () => CollectionGroup)
+  @BelongsToMany(() => Group, () => GroupPermission)
   groups: Group[];
 
   @BelongsTo(() => User, "createdById")

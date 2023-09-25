@@ -1,5 +1,5 @@
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
-import { CollectionUser } from "@server/models";
+import { UserPermission } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import {
   buildUser,
@@ -123,7 +123,7 @@ describe("#attachments.create", () => {
         collectionId: collection.id,
       });
 
-      await CollectionUser.create({
+      await UserPermission.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,

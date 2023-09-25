@@ -1,5 +1,5 @@
 import { CollectionPermission } from "@shared/types";
-import { CollectionUser, Share } from "@server/models";
+import { UserPermission, Share } from "@server/models";
 import {
   buildUser,
   buildDocument,
@@ -240,7 +240,7 @@ describe("#shares.create", () => {
     });
     collection.permission = null;
     await collection.save();
-    await CollectionUser.update(
+    await UserPermission.update(
       {
         userId: user.id,
         permission: CollectionPermission.Read,

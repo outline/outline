@@ -5,11 +5,11 @@ import {
   View,
   Revision,
   Backlink,
-  CollectionUser,
+  UserPermission,
   SearchQuery,
   Event,
   User,
-  CollectionGroup,
+  GroupPermission,
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import {
@@ -905,7 +905,7 @@ describe("#documents.list", () => {
       collectionId: collection.id,
     });
 
-    await CollectionUser.update(
+    await UserPermission.update(
       {
         userId: user.id,
         permission: CollectionPermission.Read,
@@ -1606,7 +1606,7 @@ describe("#documents.search", () => {
       permission: null,
     });
 
-    await CollectionUser.create({
+    await UserPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
@@ -1973,7 +1973,7 @@ describe("#documents.viewed", () => {
       documentId: document.id,
       userId: user.id,
     });
-    await CollectionUser.destroy({
+    await UserPermission.destroy({
       where: {
         userId: user.id,
         collectionId: collection.id,
@@ -2997,7 +2997,7 @@ describe("#documents.update", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await CollectionUser.update(
+    await UserPermission.update(
       {
         userId: user.id,
         permission: CollectionPermission.ReadWrite,
@@ -3104,7 +3104,7 @@ describe("#documents.update", () => {
       teamId: team.id,
     });
 
-    await CollectionUser.update(
+    await UserPermission.update(
       {
         createdById: user.id,
         permission: CollectionPermission.ReadWrite,
@@ -3142,7 +3142,7 @@ describe("#documents.update", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await CollectionUser.update(
+    await UserPermission.update(
       {
         createdById: user.id,
         permission: CollectionPermission.Read,
@@ -3178,7 +3178,7 @@ describe("#documents.update", () => {
     });
     collection.permission = CollectionPermission.Read;
     await collection.save();
-    await CollectionUser.destroy({
+    await UserPermission.destroy({
       where: {
         userId: user.id,
         collectionId: collection.id,
@@ -3773,25 +3773,25 @@ describe("#documents.users", () => {
 
     // add people and groups to collection
     await Promise.all([
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: alan.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: bret.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: ken.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      CollectionGroup.create({
+      GroupPermission.create({
         collectionId: collection.id,
         groupId: group.id,
         permission: CollectionPermission.ReadWrite,
@@ -3863,19 +3863,19 @@ describe("#documents.users", () => {
 
     // add people to collection
     await Promise.all([
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: alan.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: bret.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: ken.id,
         permission: CollectionPermission.Read,

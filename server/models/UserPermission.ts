@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import {
   Column,
   ForeignKey,
@@ -10,6 +11,7 @@ import {
 } from "sequelize-typescript";
 import { CollectionPermission } from "@shared/types";
 import Collection from "./Collection";
+import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
 import Fix from "./decorators/Fix";
@@ -25,14 +27,20 @@ import Fix from "./decorators/Fix";
   withCollection: {
     include: [
       {
-        association: "collection",
+        model: Collection,
+        as: "collection",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
       },
     ],
   },
 }))
-@Table({ tableName: "collection_users", modelName: "collection_user" })
+@Table({ tableName: "user_permissions", modelName: "user_permission" })
 @Fix
-class CollectionUser extends Model {
+class UserPermission extends Model {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
@@ -41,11 +49,18 @@ class CollectionUser extends Model {
   // associations
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection;
+  collection?: Collection | null;
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string;
+  collectionId?: string | null;
+
+  @BelongsTo(() => Document, "documentId")
+  document?: Document | null;
+
+  @ForeignKey(() => Document)
+  @Column(DataType.UUID)
+  documentId?: string | null;
 
   @BelongsTo(() => User, "userId")
   user: User;
@@ -62,4 +77,4 @@ class CollectionUser extends Model {
   createdById: string;
 }
 
-export default CollectionUser;
+export default UserPermission;

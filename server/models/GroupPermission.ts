@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -10,6 +11,7 @@ import {
 } from "sequelize-typescript";
 import { CollectionPermission } from "@shared/types";
 import Collection from "./Collection";
+import Document from "./Document";
 import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
@@ -26,14 +28,20 @@ import Fix from "./decorators/Fix";
   withCollection: {
     include: [
       {
-        association: "collection",
+        model: Collection,
+        as: "collection",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
       },
     ],
   },
 }))
-@Table({ tableName: "collection_groups", modelName: "collection_group" })
+@Table({ tableName: "group_permissions", modelName: "group_permission" })
 @Fix
-class CollectionGroup extends Model {
+class GroupPermission extends Model {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
@@ -42,11 +50,18 @@ class CollectionGroup extends Model {
   // associations
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection;
+  collection?: Collection | null;
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string;
+  collectionId?: string | null;
+
+  @BelongsTo(() => Document, "documentId")
+  document?: Document | null;
+
+  @ForeignKey(() => Document)
+  @Column(DataType.UUID)
+  documentId?: string | null;
 
   @BelongsTo(() => Group, "groupId")
   group: Group;
@@ -59,4 +74,4 @@ class CollectionGroup extends Model {
   createdBy: User;
 }
 
-export default CollectionGroup;
+export default GroupPermission;
