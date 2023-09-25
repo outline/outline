@@ -202,7 +202,7 @@
     "rfc6902": "^5.0.1",
     "sanitize-filename": "^1.6.3",
     "semver": "^7.5.2",
-    "sequelize": "^6.32.1",
+    "sequelize": "^6.33.0",
     "sequelize-cli": "^6.6.1",
     "sequelize-encrypted": "^1.0.0",
     "sequelize-typescript": "^2.1.5",
