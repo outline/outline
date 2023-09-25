@@ -85,7 +85,7 @@
     "babel-plugin-styled-components": "^2.1.4",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "body-scroll-lock": "^4.0.0-beta.0",
-    "bull": "^4.10.4",
+    "bull": "^4.11.3",
     "cancan": "3.1.0",
     "chalk": "^4.1.0",
     "class-validator": "^0.14.0",
