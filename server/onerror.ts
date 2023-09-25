@@ -66,12 +66,12 @@ export default function onerror(app: Koa) {
       err = AuthorizationError();
     }
 
-    if (typeof err.status !== "number" || !http.STATUS_CODES[err.status]) {
-      err = InternalError();
-    }
-
-    // Push only unknown 500 errors to sentry
-    if (err.status === 500) {
+    // Push only unknown and 500 status errors to sentry
+    if (
+      typeof err.status !== "number" ||
+      !http.STATUS_CODES[err.status] ||
+      err.status === 500
+    ) {
       requestErrorHandler(err, this);
 
       if (!(err instanceof InternalError)) {
