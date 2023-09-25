@@ -1,15 +1,15 @@
-import { DocumentPermission } from "@shared/types";
-import DocumentUser from "@server/models/DocumentUser";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
+import { UserPermission } from "@server/models";
 
 type DocumentMembership = {
   id: string;
   userId: string;
-  documentId: string;
-  permission: DocumentPermission;
+  documentId?: string | null;
+  permission: CollectionPermission | DocumentPermission;
 };
 
 export default function presentDocumentMembership(
-  membership: DocumentUser
+  membership: UserPermission
 ): DocumentMembership {
   return {
     id: `${membership.userId}-${membership.documentId}`,

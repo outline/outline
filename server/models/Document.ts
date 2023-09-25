@@ -48,12 +48,12 @@ import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
-import DocumentUser from "./DocumentUser";
 import FileOperation from "./FileOperation";
 import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
+import UserPermission from "./UserPermission";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -170,8 +170,13 @@ type AdditionalFindOptions = {
   withAllMemberships: {
     include: [
       {
-        model: DocumentUser,
+        model: UserPermission,
         as: "memberships",
+        where: {
+          documentId: {
+            [Op.ne]: null,
+          },
+        },
         required: false,
       },
     ],
@@ -201,10 +206,13 @@ type AdditionalFindOptions = {
     return {
       include: [
         {
-          model: DocumentUser,
+          model: UserPermission,
           as: "memberships",
           where: {
             userId,
+            documentId: {
+              [Op.ne]: null,
+            },
           },
           required: false,
         },
@@ -521,15 +529,15 @@ class Document extends ParanoidModel {
   @BelongsTo(() => Collection, "collectionId")
   collection: Collection | null | undefined;
 
-  @BelongsToMany(() => User, () => DocumentUser)
+  @BelongsToMany(() => User, () => UserPermission)
   users: User[];
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
 
-  @HasMany(() => DocumentUser, "documentId")
-  memberships: DocumentUser[];
+  @HasMany(() => UserPermission, "documentId")
+  memberships: UserPermission[];
 
   @HasMany(() => Revision)
   revisions: Revision[];

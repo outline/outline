@@ -12,8 +12,6 @@ export { default as GroupPermission } from "./GroupPermission";
 
 export { default as UserPermission } from "./UserPermission";
 
-export { default as DocumentUser } from "./DocumentUser";
-
 export { default as Comment } from "./Comment";
 
 export { default as Document } from "./Document";
