@@ -2,6 +2,7 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
+import Logger from "~/utils/Logger";
 import FileExtension from "../components/FileExtension";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 
@@ -13,16 +14,21 @@ const uploadPlaceholder = new Plugin({
     },
     apply(tr, set: DecorationSet) {
       const ySyncEdit = !!tr.getMeta("y-sync$");
+      let mapping = tr.mapping;
+
       if (ySyncEdit) {
-        const mapping = recreateTransform(tr.before, tr.doc, {
-          complexSteps: true,
-          wordDiffs: false,
-          simplifyDiff: true,
-        }).mapping;
-        set = set.map(mapping, tr.doc);
-      } else {
-        set = set.map(tr.mapping, tr.doc);
+        try {
+          mapping = recreateTransform(tr.before, tr.doc, {
+            complexSteps: true,
+            wordDiffs: false,
+            simplifyDiff: true,
+          }).mapping;
+        } catch (err) {
+          Logger.warn("Failed to recreate transform", err);
+        }
       }
+
+      set = set.map(mapping, tr.doc);
 
       // See if the transaction adds or removes any placeholders
       const action = tr.getMeta(this);
