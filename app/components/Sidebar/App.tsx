@@ -109,9 +109,11 @@ function AppSidebar() {
                   label={
                     <Flex align="center" justify="space-between">
                       {t("Drafts")}
-                      <Drafts size="xsmall" type="tertiary">
-                        {documents.totalDrafts}
-                      </Drafts>
+                      {documents.totalDrafts > 0 ? (
+                        <Drafts size="xsmall" type="tertiary">
+                          {documents.totalDrafts}
+                        </Drafts>
+                      ) : null}
                     </Flex>
                   }
                 />
