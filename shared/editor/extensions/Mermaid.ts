@@ -19,38 +19,60 @@ type MermaidState = {
   initialized: boolean;
 };
 
+class Cache {
+  static get(key: string) {
+    return this.data.get(key);
+  }
+
+  static set(key: string, value: string) {
+    this.data.set(key, value);
+
+    if (this.data.size > this.maxSize) {
+      this.data.delete(this.data.keys().next().value);
+    }
+  }
+
+  private static maxSize = 10;
+  private static data: Map<string, string> = new Map();
+}
+
 type RendererFunc = (block: { node: Node; pos: number }) => void;
 
 class MermaidRenderer {
   readonly diagramId: string;
   readonly element: HTMLElement;
   readonly elementId: string;
-  private currentTextContent = "";
-  private _rendererFunc?: RendererFunc;
 
   constructor() {
     this.diagramId = uuidv4();
-    this.elementId = "mermaid-diagram-wrapper-" + this.diagramId;
+    this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
     this.element =
       document.getElementById(this.elementId) || document.createElement("div");
     this.element.id = this.elementId;
     this.element.classList.add("mermaid-diagram-wrapper");
   }
 
-  async renderImmediately(block: { node: Node; pos: number }) {
-    const diagramId = this.diagramId;
+  renderImmediately = async (block: { node: Node; pos: number }) => {
     const element = this.element;
-    const newTextContent = block.node.textContent;
-    if (newTextContent === this.currentTextContent) {
+    const text = block.node.textContent;
+
+    const cache = Cache.get(text);
+    if (cache) {
+      element.classList.remove("parse-error", "empty");
+      element.innerHTML = cache;
       return;
     }
+
     try {
       const { default: mermaid } = await import("mermaid");
-      void mermaid.render(
-        "mermaid-diagram-" + diagramId,
-        newTextContent,
+      mermaid.render(
+        `mermaid-diagram-${this.diagramId}`,
+        text,
         (svgCode, bindFunctions) => {
-          this.currentTextContent = newTextContent;
+          this.currentTextContent = text;
+          if (text) {
+            Cache.set(text, svgCode);
+          }
           element.classList.remove("parse-error", "empty");
           element.innerHTML = svgCode;
           bindFunctions?.(element);
@@ -64,19 +86,22 @@ class MermaidRenderer {
         element.innerText = "Empty diagram";
         element.classList.add("empty");
       } else {
-        element.innerText = `Error rendering diagram\n\n${error}`;
+        element.innerText = error;
         element.classList.add("parse-error");
       }
     }
-  }
+  };
 
   get render(): RendererFunc {
     if (this._rendererFunc) {
       return this._rendererFunc;
     }
     this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 500);
-    return this._rendererFunc;
+    return this.renderImmediately;
   }
+
+  private currentTextContent = "";
+  private _rendererFunc?: RendererFunc;
 }
 
 function overlap(
@@ -164,9 +189,8 @@ function getNewState({
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
       () => {
-        const element = renderer.element;
         void renderer.render(block);
-        return element;
+        return renderer.element;
       },
       {
         diagramId: renderer.diagramId,
@@ -211,7 +235,11 @@ export default function Mermaid({
           isDark,
           initialized: false,
         };
-        return pluginState;
+        return getNewState({
+          doc,
+          name,
+          pluginState,
+        });
       },
       apply: (
         transaction: Transaction,
