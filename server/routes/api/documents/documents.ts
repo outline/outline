@@ -380,13 +380,7 @@ router.post(
       delete where.updatedAt;
     }
 
-    const collectionScope: Readonly<ScopeOptions> = {
-      method: ["withCollectionPermissions", user.id],
-    };
-    const documents = await Document.scope([
-      "defaultScope",
-      collectionScope,
-    ]).findAll({
+    const documents = await Document.defaultScopeWithUser(user.id).findAll({
       where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
