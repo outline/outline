@@ -14,6 +14,7 @@ import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
 import turndownService from "@server/utils/turndown";
 import { FileImportError, InvalidRequestError } from "../errors";
+import env from "@server/env";
 
 interface ImportableFile {
   type: string;
@@ -216,7 +217,7 @@ async function documentImporter({
   const ydoc = ProsemirrorHelper.toYDoc(text);
   const state = ProsemirrorHelper.toState(ydoc);
 
-  if (state.length > DocumentValidation.maxStateLength) {
+  if (state.length > env.MAXIMUM_IMPORT_SIZE) {
     throw InvalidRequestError(
       `The document "${title}" is too large to import, please reduce the length and try again`
     );
