@@ -108,7 +108,7 @@ class Attachment extends IdModel {
   }
 
   /**
-   * Get a signed URL with the default expirt to download the attachment from storage.
+   * Get a signed URL with the default expiry to download the attachment from storage.
    */
   get signedUrl() {
     return FileStorage.getSignedUrl(this.key);

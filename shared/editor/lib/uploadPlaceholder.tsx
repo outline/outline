@@ -2,7 +2,6 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import Logger from "~/utils/Logger";
 import FileExtension from "../components/FileExtension";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 
@@ -24,7 +23,8 @@ const uploadPlaceholder = new Plugin({
             simplifyDiff: true,
           }).mapping;
         } catch (err) {
-          Logger.warn("Failed to recreate transform", err);
+          // eslint-disable-next-line no-console
+          console.warn("Failed to recreate transform: ", err);
         }
       }
 
