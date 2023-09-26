@@ -61,7 +61,6 @@
     "@dnd-kit/sortable": "^7.0.1",
     "@emoji-mart/data": "^1.0.6",
     "@emoji-mart/react": "^1.1.1",
-    "@fellow/prosemirror-recreate-transform": "^1.2.3",
     "@getoutline/y-prosemirror": "^1.0.18",
     "@hocuspocus/extension-throttle": "1.1.2",
     "@hocuspocus/provider": "1.1.2",
