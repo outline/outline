@@ -12,7 +12,7 @@ export const createRootDirForLocalStorage = () => {
       }
     } catch (err) {
       Logger.fatal(
-        "Couldn't create root dir for local storage of attachments",
+        `Failed to create directory for local file storage at ${env.FILE_STORAGE_LOCAL_ROOT_DIR}`,
         err
       );
     }
