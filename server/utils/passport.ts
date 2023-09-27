@@ -9,7 +9,7 @@ import { Client } from "@shared/types";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { Team } from "@server/models";
-import { OAuthStateMismatchError } from "../errors";
+import { InternalError, OAuthStateMismatchError } from "../errors";
 import fetch from "./fetch";
 
 export class StateStore {
@@ -74,7 +74,15 @@ export async function request(endpoint: string, accessToken: string) {
       "Content-Type": "application/json",
     },
   });
-  return response.json();
+  const text = await response.text();
+
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    throw InternalError(
+      `Failed to parse response from ${endpoint}. Expected JSON, got: ${text}`
+    );
+  }
 }
 
 function buildState(host: string, token: string, client?: Client) {
