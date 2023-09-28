@@ -16,6 +16,7 @@ const isProduction = env.ENVIRONMENT === "production";
 
 type LogCategory =
   | "lifecycle"
+  | "authentication"
   | "multiplayer"
   | "http"
   | "commands"
