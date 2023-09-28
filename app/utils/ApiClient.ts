@@ -131,7 +131,7 @@ class ApiClient {
 
     // Handle 401, log out user
     if (response.status === 401) {
-      await stores.auth.logout(false, false);
+      await stores.auth.logout(true, false);
       return;
     }
 
