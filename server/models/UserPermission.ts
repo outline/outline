@@ -25,15 +25,14 @@ import Fix from "./decorators/Fix";
     ],
   },
   withCollection: {
+    where: {
+      collectionId: {
+        [Op.ne]: null,
+      },
+    },
     include: [
       {
-        model: Collection,
-        as: "collection",
-        where: {
-          collectionId: {
-            [Op.ne]: null,
-          },
-        },
+        association: "collection",
       },
     ],
   },
