@@ -153,6 +153,9 @@ export default () =>
         keep_fnames: true,
       },
       rollupOptions: {
+        output: {
+          hoistTransitiveImports: false,
+        },
         input: {
           index: "./app/index.tsx",
         },
