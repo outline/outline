@@ -66,20 +66,17 @@ class MermaidRenderer {
 
     try {
       const { default: mermaid } = await import("mermaid");
-      mermaid.render(
-        `mermaid-diagram-${this.diagramId}`,
-        text,
-        (svgCode, bindFunctions) => {
+      void mermaid
+        .render(`mermaid-diagram-${this.diagramId}`, text)
+        .then(({ svg, bindFunctions }) => {
           this.currentTextContent = text;
           if (text) {
-            Cache.set(text, svgCode);
+            Cache.set(text, svg);
           }
           element.classList.remove("parse-error", "empty");
-          element.innerHTML = svgCode;
+          element.innerHTML = svg;
           bindFunctions?.(element);
-        },
-        element
-      );
+        });
     } catch (error) {
       const isEmpty = block.node.textContent.trim().length === 0;
 
