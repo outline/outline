@@ -427,6 +427,42 @@ li {
   }
 }
 
+.file.placeholder {
+  display: flex;
+  align-items: center;
+  background: ${props.theme.background};
+  box-shadow: 0 0 0 1px ${props.theme.divider};
+  white-space: nowrap;
+  border-radius: 8px;
+  padding: 6px 8px;
+  max-width: 840px;
+  cursor: default;
+
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+
+  .title,
+  .subtitle {
+    margin-left: 8px;
+  }
+
+  .title {
+    font-weight: 600;
+    font-size: 14px;
+    color:  ${props.theme.text};
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: ${props.theme.textTertiary};
+    line-height: 0;
+  }
+
+  span {
+    font-family: ${props.theme.fontFamilyMono};
+  }
+}
+
 .image-replacement-uploading {
   img {
     opacity: 0.5;

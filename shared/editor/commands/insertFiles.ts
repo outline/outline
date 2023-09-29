@@ -1,12 +1,10 @@
 import * as Sentry from "@sentry/react";
-import { NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
 import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
-import findAttachmentById from "../queries/findAttachmentById";
 
 export type Options = {
   /** Dictionary object containing translation strings */
@@ -61,7 +59,6 @@ const insertFiles = function (
 
   // we'll use this to track of how many files have succeeded or failed
   let complete = 0;
-  let attachmentPlaceholdersSet = false;
 
   const filesToUpload = files.map((file) => ({
     id: `upload-${uuidv4()}`,
@@ -76,55 +73,14 @@ const insertFiles = function (
   for (const upload of filesToUpload) {
     const { tr } = view.state;
 
-    if (upload.isImage) {
-      // insert a placeholder at this position, or mark an existing file as being
-      // replaced
-      tr.setMeta(uploadPlaceholderPlugin, {
-        add: {
-          id: upload.id,
-          file: upload.file,
-          pos,
-          isImage: true,
-          replaceExisting: options.replaceExisting,
-        },
-      });
-      view.dispatch(tr);
-    } else if (upload.isVideo) {
-      // insert a placeholder at this position, or mark an existing file as being
-      // replaced
-      tr.setMeta(uploadPlaceholderPlugin, {
-        add: {
-          id: upload.id,
-          file: upload.file,
-          pos,
-          isVideo: true,
-        },
-      });
-      view.dispatch(tr);
-    } else if (!attachmentPlaceholdersSet) {
-      // Skip if the editor does not support attachments.
-      if (!view.state.schema.nodes.attachment) {
-        continue;
-      }
-
-      const attachmentsToUpload = filesToUpload.filter(
-        (i) => i.isImage === false
-      );
-
-      view.dispatch(
-        tr.insert(
-          pos,
-          attachmentsToUpload.map((attachment) =>
-            schema.nodes.attachment.create({
-              id: attachment.id,
-              title: attachment.file.name ?? dictionary.untitled,
-              size: attachment.file.size,
-            })
-          )
-        )
-      );
-      attachmentPlaceholdersSet = true;
-    }
+    tr.setMeta(uploadPlaceholderPlugin, {
+      add: {
+        pos,
+        ...upload,
+        replaceExisting: options.replaceExisting,
+      },
+    });
+    view.dispatch(tr);
 
     // start uploading the file to the server. Using "then" syntax
     // to allow all placeholders to be entered at once with the uploads
@@ -135,9 +91,6 @@ const insertFiles = function (
           const newImg = new Image();
           newImg.onload = () => {
             const result = findPlaceholder(view.state, upload.id);
-
-            // if the content around the placeholder has been deleted
-            // then forget about inserting this file
             if (result === null) {
               return;
             }
@@ -152,17 +105,6 @@ const insertFiles = function (
                 )
                 .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
             );
-
-            // If the users selection is still at the file then make sure to select
-            // the entire node once done. Otherwise, if the selection has moved
-            // elsewhere then we don't want to modify it
-            if (view.state.selection.from === from) {
-              view.dispatch(
-                view.state.tr.setSelection(
-                  new NodeSelection(view.state.doc.resolve(from))
-                )
-              );
-            }
           };
 
           newImg.onerror = () => {
@@ -172,9 +114,6 @@ const insertFiles = function (
           newImg.src = src;
         } else if (upload.isVideo) {
           const result = findPlaceholder(view.state, upload.id);
-
-          // if the content around the placeholder has been deleted
-          // then forget about inserting this file
           if (result === null) {
             return;
           }
@@ -197,71 +136,41 @@ const insertFiles = function (
               )
               .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
           );
-
-          // If the users selection is still at the file then make sure to select
-          // the entire node once done. Otherwise, if the selection has moved
-          // elsewhere then we don't want to modify it
-          if (view.state.selection.from === from) {
-            view.dispatch(
-              view.state.tr.setSelection(
-                new NodeSelection(view.state.doc.resolve(from))
-              )
-            );
-          }
         } else {
-          const result = findAttachmentById(view.state, upload.id);
-
-          // if the attachment has been deleted then forget about updating it
+          const result = findPlaceholder(view.state, upload.id);
           if (result === null) {
             return;
           }
 
           const [from, to] = result;
-          view.dispatch(
-            view.state.tr.replaceWith(
-              from,
-              to || from,
-              schema.nodes.attachment.create({
-                href: src,
-                title: upload.file.name ?? dictionary.untitled,
-                size: upload.file.size,
-              })
-            )
-          );
 
-          // If the users selection is still at the file then make sure to select
-          // the entire node once done. Otherwise, if the selection has moved
-          // elsewhere then we don't want to modify it
-          if (view.state.selection.from === from) {
-            view.dispatch(
-              view.state.tr.setSelection(
-                new NodeSelection(view.state.doc.resolve(from))
+          view.dispatch(
+            view.state.tr
+              .replaceWith(
+                from,
+                to || from,
+                schema.nodes.attachment.create({
+                  href: src,
+                  title: upload.file.name ?? dictionary.untitled,
+                  size: upload.file.size,
+                })
               )
-            );
-          }
+              .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
+          );
         }
       })
       .catch((error) => {
         Sentry.captureException(error);
 
+        // eslint-disable-next-line no-console
+        console.error(error);
+
         // cleanup the placeholder if there is a failure
-        if (upload.isImage || upload.isVideo) {
-          view.dispatch(
-            view.state.tr.setMeta(uploadPlaceholderPlugin, {
-              remove: { id: upload.id },
-            })
-          );
-        } else {
-          const result = findAttachmentById(view.state, upload.id);
-
-          // if the attachment has been deleted then forget about updating it
-          if (result === null) {
-            return;
-          }
-
-          const [from, to] = result;
-          view.dispatch(view.state.tr.deleteRange(from, to || from));
-        }
+        view.dispatch(
+          view.state.tr.setMeta(uploadPlaceholderPlugin, {
+            remove: { id: upload.id },
+          })
+        );
 
         onShowToast(error.message || dictionary.fileUploadError);
       })

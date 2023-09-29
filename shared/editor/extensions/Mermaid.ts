@@ -11,6 +11,7 @@ import {
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
 import { isCode } from "../lib/isCode";
+import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes, NodeWithPos } from "../queries/findChildren";
 
 type MermaidState = {
@@ -251,7 +252,6 @@ export default function Mermaid({
         const previousNodeName = oldState.selection.$head.parent.type.name;
         const codeBlockChanged =
           transaction.docChanged && [nodeName, previousNodeName].includes(name);
-        const ySyncEdit = !!transaction.getMeta("y-sync$");
         const themeMeta = transaction.getMeta("theme");
         const mermaidMeta = transaction.getMeta("mermaid");
         const themeToggled = themeMeta?.isDark !== undefined;
@@ -260,7 +260,12 @@ export default function Mermaid({
           pluginState.isDark = themeMeta.isDark;
         }
 
-        if (mermaidMeta || themeToggled || codeBlockChanged || ySyncEdit) {
+        if (
+          mermaidMeta ||
+          themeToggled ||
+          codeBlockChanged ||
+          isRemoteTransaction(transaction)
+        ) {
           return getNewState({
             doc: transaction.doc,
             name,
