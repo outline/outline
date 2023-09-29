@@ -49,6 +49,7 @@ import TableCell from "./TableCell";
 import TableHeadCell from "./TableHeadCell";
 import TableRow from "./TableRow";
 import Text from "./Text";
+import Video from "./Video";
 
 type Nodes = (typeof Node | typeof Mark | typeof Extension)[];
 
@@ -97,6 +98,7 @@ export const richExtensions: Nodes = [
   Embed,
   ListItem,
   Attachment,
+  Video,
   Notice,
   Heading,
   HorizontalRule,

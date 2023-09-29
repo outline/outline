@@ -244,6 +244,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           return triggerFilePick(
             AttachmentValidation.imageContentTypes.join(", ")
           );
+        case "video":
+          return triggerFilePick("video/*");
         case "attachment":
           return triggerFilePick("*");
         case "embed":
