@@ -1,5 +1,9 @@
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import * as React from "react";
+import ReactDOM from "react-dom";
+import FileExtension from "../components/FileExtension";
+import { isRemoteTransaction } from "./multiplayer";
 import { recreateTransform } from "./prosemirror-recreate-transform";
 
 // based on the example at: https://prosemirror.net/examples/upload/
@@ -9,10 +13,15 @@ const uploadPlaceholder = new Plugin({
       return DecorationSet.empty;
     },
     apply(tr, set: DecorationSet) {
-      const ySyncEdit = !!tr.getMeta("y-sync$");
       let mapping = tr.mapping;
 
-      if (ySyncEdit) {
+      // See if the transaction adds or removes any placeholders – the placeholder display is
+      // different depending on if we're uploading an image, video or plain file
+      const action = tr.getMeta(this);
+
+      // Note: We always rebuild the mapping if the transaction comes from this plugin as otherwise
+      // with the default mapping decorations are wiped out when you upload multiple files at a time.
+      if (isRemoteTransaction(tr) || action) {
         try {
           mapping = recreateTransform(tr.before, tr.doc, {
             complexSteps: true,
@@ -26,9 +35,6 @@ const uploadPlaceholder = new Plugin({
       }
 
       set = set.map(mapping, tr.doc);
-
-      // See if the transaction adds or removes any placeholders
-      const action = tr.getMeta(this);
 
       if (action?.add) {
         if (action.add.isImage) {
@@ -62,9 +68,7 @@ const uploadPlaceholder = new Plugin({
             });
             set = set.add(tr.doc, [deco]);
           }
-        }
-
-        if (action.add.isVideo) {
+        } else if (action.add.isVideo) {
           const element = document.createElement("div");
           element.className = "video placeholder";
 
@@ -74,6 +78,29 @@ const uploadPlaceholder = new Plugin({
           video.controls = false;
 
           element.appendChild(video);
+
+          const deco = Decoration.widget(action.add.pos, element, {
+            id: action.add.id,
+          });
+          set = set.add(tr.doc, [deco]);
+        } else {
+          const element = document.createElement("div");
+          element.className = "file placeholder";
+
+          const icon = document.createElement("div");
+          const title = document.createElement("div");
+          title.className = "title";
+          title.innerText = action.add.file.name;
+
+          const subtitle = document.createElement("div");
+          subtitle.className = "subtitle";
+          subtitle.innerText = "Uploading…";
+
+          ReactDOM.render(<FileExtension title={action.add.file.name} />, icon);
+
+          element.appendChild(icon);
+          element.appendChild(title);
+          element.appendChild(subtitle);
 
           const deco = Decoration.widget(action.add.pos, element, {
             id: action.add.id,
@@ -99,6 +126,13 @@ const uploadPlaceholder = new Plugin({
 
 export default uploadPlaceholder;
 
+/**
+ * Find the position of a placeholder by its ID
+ *
+ * @param state The editor state
+ * @param id The placeholder ID
+ * @returns The placeholder position as a tuple of [from, to] or null if not found
+ */
 export function findPlaceholder(
   state: EditorState,
   id: string

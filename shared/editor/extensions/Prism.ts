@@ -4,6 +4,7 @@ import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
+import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 
 export const LANGUAGES = {
@@ -199,9 +200,12 @@ export default function Prism({
         const previousNodeName = oldState.selection.$head.parent.type.name;
         const codeBlockChanged =
           transaction.docChanged && [nodeName, previousNodeName].includes(name);
-        const ySyncEdit = !!transaction.getMeta("y-sync$");
 
-        if (!highlighted || codeBlockChanged || ySyncEdit) {
+        if (
+          !highlighted ||
+          codeBlockChanged ||
+          isRemoteTransaction(transaction)
+        ) {
           highlighted = true;
           return getDecorations({ doc: transaction.doc, name, lineNumbers });
         }
