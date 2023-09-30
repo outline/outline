@@ -270,7 +270,6 @@ const Wrapper = styled.div<WrapperProps>`
   box-sizing: border-box;
   pointer-events: none;
   white-space: nowrap;
-  overflow: hidden;
 
   ${arrow}
 
