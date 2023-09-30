@@ -226,7 +226,66 @@ describe("#shares.create", () => {
     expect(body.data.documentTitle).toBe(document.title);
   });
 
-  it("should allow creating a share record with read-only permissions but no publishing", async () => {
+  it("should allow creating a published share record for document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        includeChildDocuments: true,
+        published: true,
+        urlId: "test",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.published).toBe(true);
+    expect(body.data.includeChildDocuments).toBe(true);
+    expect(body.data.urlId).toBe("test");
+    expect(body.data.documentTitle).toBe(document.title);
+  });
+
+  it("should fail creating a share record with read-only permissions and publishing", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    collection.permission = null;
+    await collection.save();
+    await UserPermission.update(
+      {
+        userId: user.id,
+        permission: CollectionPermission.Read,
+      },
+      {
+        where: {
+          createdById: user.id,
+          collectionId: collection.id,
+        },
+      }
+    );
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        published: true,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow creating a share record with read-only permissions but not publishing", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
