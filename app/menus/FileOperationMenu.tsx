@@ -7,6 +7,7 @@ import FileOperation from "~/models/FileOperation";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
+import usePolicy from "~/hooks/usePolicy";
 
 type Props = {
   fileOperation: FileOperation;
@@ -15,6 +16,7 @@ type Props = {
 
 function FileOperationMenu({ fileOperation, onDelete }: Props) {
   const { t } = useTranslation();
+  const can = usePolicy(fileOperation.id);
   const menu = useMenuState({
     modal: true,
   });
@@ -41,10 +43,7 @@ function FileOperationMenu({ fileOperation, onDelete }: Props) {
             {
               type: "button",
               title: t("Delete"),
-              visible:
-                (fileOperation.type === FileOperationType.Export &&
-                  fileOperation.state === FileOperationState.Complete) ||
-                fileOperation.type === FileOperationType.Import,
+              visible: can.delete,
               icon: <TrashIcon />,
               dangerous: true,
               onClick: onDelete,
