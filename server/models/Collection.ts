@@ -1,9 +1,16 @@
+/* eslint-disable lines-between-class-members */
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import randomstring from "randomstring";
-import { Identifier, Transaction, Op, FindOptions } from "sequelize";
+import {
+  Identifier,
+  Transaction,
+  Op,
+  FindOptions,
+  NonNullFindOptions,
+} from "sequelize";
 import {
   Sequelize,
   Table,
@@ -376,8 +383,17 @@ class Collection extends ParanoidModel {
    * Overrides the standard findByPk behavior to allow also querying by urlId
    *
    * @param id uuid or urlId
-   * @returns collection instance
+   * @param options FindOptions
+   * @returns A promise resolving to a collection instance or null
    */
+  static async findByPk(
+    id: Identifier,
+    options?: NonNullFindOptions<Collection>
+  ): Promise<Collection>;
+  static async findByPk(
+    id: Identifier,
+    options?: FindOptions<Collection>
+  ): Promise<Collection | null>;
   static async findByPk(
     id: Identifier,
     options: FindOptions<Collection> = {}

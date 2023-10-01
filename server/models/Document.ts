@@ -1,8 +1,9 @@
+/* eslint-disable lines-between-class-members */
 import compact from "lodash/compact";
 import isNil from "lodash/isNil";
 import uniq from "lodash/uniq";
 import randomstring from "randomstring";
-import type { SaveOptions } from "sequelize";
+import type { Identifier, NonNullFindOptions, SaveOptions } from "sequelize";
 import {
   Sequelize,
   Transaction,
@@ -51,6 +52,11 @@ import DocumentHelper from "./helpers/DocumentHelper";
 import Length from "./validators/Length";
 
 export const DOCUMENT_VERSION = 2;
+
+type AdditionalFindOptions = {
+  userId?: string;
+  includeState?: boolean;
+};
 
 @DefaultScope(() => ({
   attributes: {
@@ -429,13 +435,30 @@ class Document extends ParanoidModel {
     return this.scope(["defaultScope", collectionScope, viewScope]);
   }
 
+  /**
+   * Overrides the standard findByPk behavior to allow also querying by urlId
+   *
+   * @param id uuid or urlId
+   * @param options FindOptions
+   * @returns A promise resolving to a collection instance or null
+   */
   static async findByPk(
-    id: string,
-    options: FindOptions<Document> & {
-      userId?: string;
-      includeState?: boolean;
-    } = {}
+    id: Identifier,
+    options?: NonNullFindOptions<Document> & AdditionalFindOptions
+  ): Promise<Document>;
+  static async findByPk(
+    id: Identifier,
+    options?: FindOptions<Document> & AdditionalFindOptions
+  ): Promise<Document | null>;
+  static async findByPk(
+    id: Identifier,
+    options: (NonNullFindOptions<Document> | FindOptions<Document>) &
+      AdditionalFindOptions = {}
   ): Promise<Document | null> {
+    if (typeof id !== "string") {
+      return null;
+    }
+
     const { includeState, userId, ...rest } = options;
 
     // allow default preloading of collection membership if `userId` is passed in find options
