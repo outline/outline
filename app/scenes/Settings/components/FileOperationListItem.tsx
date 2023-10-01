@@ -10,6 +10,7 @@ import {
 } from "@shared/types";
 import FileOperation from "~/models/FileOperation";
 import { Action } from "~/components/Actions";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import ListItem from "~/components/List/Item";
 import Spinner from "~/components/Spinner";
 import Time from "~/components/Time";
@@ -26,7 +27,7 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const theme = useTheme();
-  const { fileOperations } = useStores();
+  const { dialogs, fileOperations } = useStores();
   const { showToast } = useToasts();
 
   const stateMapping = {
@@ -73,7 +74,26 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
         type: "error",
       });
     }
-  }, [fileOperations, fileOperation, showToast, t]);
+  }, [fileOperation, fileOperations, showToast, t]);
+
+  const handleConfirmDelete = React.useCallback(async () => {
+    dialogs.openModal({
+      isCentered: true,
+      title: t("Are you sure you want to delete this import?"),
+      content: (
+        <ConfirmationDialog
+          onSubmit={handleDelete}
+          submitText={t("I’m sure")}
+          savingText={`${t("Deleting")}…`}
+          danger
+        >
+          {t(
+            "Deleting this import will also delete all collections and documents that were created from it. This cannot be undone."
+          )}
+        </ConfirmationDialog>
+      ),
+    });
+  }, [dialogs, t, handleDelete]);
 
   const showMenu =
     (fileOperation.type === FileOperationType.Export &&
@@ -105,7 +125,11 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
           <Action>
             <FileOperationMenu
               fileOperation={fileOperation}
-              onDelete={handleDelete}
+              onDelete={
+                fileOperation.type === FileOperationType.Import
+                  ? handleConfirmDelete
+                  : handleDelete
+              }
             />
           </Action>
         )
