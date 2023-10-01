@@ -14,9 +14,7 @@ export default async function fileOperationDeleter({
   ip,
   transaction,
 }: Props) {
-  await fileOperation.destroy({
-    transaction,
-  });
+  await fileOperation.destroy({ transaction });
   await Event.create(
     {
       name: "fileOperations.delete",

@@ -17,7 +17,7 @@ import FileStorage from "@server/storage/files";
 import Collection from "./Collection";
 import Team from "./Team";
 import User from "./User";
-import IdModel from "./base/IdModel";
+import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 
 @DefaultScope(() => ({
@@ -36,7 +36,7 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "file_operations", modelName: "file_operation" })
 @Fix
-class FileOperation extends IdModel {
+class FileOperation extends ParanoidModel {
   @Column(DataType.ENUM(...Object.values(FileOperationType)))
   type: FileOperationType;
 
@@ -73,7 +73,7 @@ class FileOperation extends IdModel {
         throw err;
       }
     }
-    await this.save();
+    return this.save();
   };
 
   /**
