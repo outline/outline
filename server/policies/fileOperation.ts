@@ -14,7 +14,14 @@ allow(
   }
 );
 
-allow(User, ["read", "delete"], FileOperation, (user, fileOperation) => {
+allow(User, "read", FileOperation, (user, fileOperation) => {
+  if (!fileOperation || user.isViewer || user.teamId !== fileOperation.teamId) {
+    return false;
+  }
+  return user.isAdmin;
+});
+
+allow(User, "delete", FileOperation, (user, fileOperation) => {
   if (!fileOperation || user.isViewer || user.teamId !== fileOperation.teamId) {
     return false;
   }
