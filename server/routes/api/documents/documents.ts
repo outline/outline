@@ -928,8 +928,8 @@ router.post(
     // reload to get all of the data needed to present (user, collection etc)
     const reloaded = await Document.findByPk(document.id, {
       userId: user.id,
+      rejectOnEmpty: true,
     });
-    invariant(reloaded, "document not found");
 
     ctx.body = {
       data: await presentDocument(reloaded),
