@@ -112,6 +112,7 @@ router.post(
   "attachments.delete",
   auth(),
   validate(T.AttachmentDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.AttachmentDeleteReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
@@ -153,9 +154,14 @@ const handleAttachmentsRedirect = async (
     throw AuthorizationError();
   }
 
-  await attachment.update({
-    lastAccessedAt: new Date(),
-  });
+  await attachment.update(
+    {
+      lastAccessedAt: new Date(),
+    },
+    {
+      hooks: false,
+    }
+  );
 
   if (attachment.isPrivate) {
     ctx.set(
