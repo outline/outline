@@ -164,9 +164,20 @@ export default abstract class ImportTask extends BaseTask<Props> {
     state: FileOperationState,
     error?: Error
   ) {
-    await fileOperation.update({
-      state,
-      error: error ? truncate(error.message, { length: 255 }) : undefined,
+    await fileOperation.update(
+      {
+        state,
+        error: error ? truncate(error.message, { length: 255 }) : undefined,
+      },
+      {
+        hooks: false,
+      }
+    );
+    await Event.schedule({
+      name: "fileOperations.update",
+      modelId: fileOperation.id,
+      teamId: fileOperation.teamId,
+      actorId: fileOperation.userId,
     });
   }
 
