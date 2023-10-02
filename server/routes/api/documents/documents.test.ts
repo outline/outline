@@ -2301,7 +2301,7 @@ describe("#documents.restore", () => {
       teamId: team.id,
     });
     await document.destroy();
-    await collection.destroy();
+    await collection.destroy({ hooks: false });
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),

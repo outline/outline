@@ -29,6 +29,7 @@ import {
   Scopes,
   DataType,
   Length as SimpleLength,
+  BeforeDestroy,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort } from "@shared/types";
@@ -37,6 +38,7 @@ import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { CollectionValidation } from "@shared/validations";
+import { ValidationError } from "@server/errors";
 import Document from "./Document";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
@@ -262,6 +264,18 @@ class Collection extends ParanoidModel {
   static async onBeforeSave(model: Collection) {
     if (model.icon === "collection") {
       model.icon = null;
+    }
+  }
+
+  @BeforeDestroy
+  static async checkLastCollection(model: Collection) {
+    const total = await this.count({
+      where: {
+        teamId: model.teamId,
+      },
+    });
+    if (total === 1) {
+      throw ValidationError("Cannot delete last collection");
     }
   }
 

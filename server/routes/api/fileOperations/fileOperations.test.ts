@@ -150,7 +150,7 @@ describe("#fileOperations.list", () => {
       userId: admin.id,
       collectionId: collection.id,
     });
-    await collection.destroy();
+    await collection.destroy({ hooks: false });
     const isCollectionPresent = await Collection.findByPk(collection.id);
     expect(isCollectionPresent).toBe(null);
     const res = await server.post("/api/fileOperations.list", {

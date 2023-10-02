@@ -29,6 +29,11 @@ class FileOperation extends Model {
   get sizeInMB(): string {
     return bytesToHumanReadable(this.size);
   }
+
+  @computed
+  get downloadUrl(): string {
+    return `/api/fileOperations.redirect?id=${this.id}`;
+  }
 }
 
 export default FileOperation;

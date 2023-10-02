@@ -459,16 +459,18 @@ class Document extends ParanoidModel {
       return null;
     }
 
+    const { includeState, userId, ...rest } = options;
+
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
-      ...(options.includeState ? [] : ["withoutState"]),
+      ...(includeState ? [] : ["withoutState"]),
       "withDrafts",
       {
-        method: ["withCollectionPermissions", options.userId, options.paranoid],
+        method: ["withCollectionPermissions", userId, rest.paranoid],
       },
       {
-        method: ["withViews", options.userId],
+        method: ["withViews", userId],
       },
     ]);
 
@@ -477,7 +479,7 @@ class Document extends ParanoidModel {
         where: {
           id,
         },
-        ...options,
+        ...rest,
       });
     }
 
@@ -487,7 +489,7 @@ class Document extends ParanoidModel {
         where: {
           urlId: match[1],
         },
-        ...options,
+        ...rest,
       });
     }
 

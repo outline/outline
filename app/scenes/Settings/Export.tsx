@@ -10,7 +10,6 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import ExportDialog from "../../components/ExportDialog";
 import FileOperationListItem from "./components/FileOperationListItem";
 
@@ -18,7 +17,6 @@ function Export() {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const { fileOperations, dialogs } = useStores();
-  const { showToast } = useToasts();
 
   const handleOpenDialog = React.useCallback(
     async (ev: React.SyntheticEvent) => {
@@ -31,20 +29,6 @@ function Export() {
       });
     },
     [dialogs, t]
-  );
-
-  const handleDelete = React.useCallback(
-    async (fileOperation: FileOperation) => {
-      try {
-        await fileOperations.delete(fileOperation);
-        showToast(t("Export deleted"));
-      } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
-      }
-    },
-    [fileOperations, showToast, t]
   );
 
   return (
@@ -77,11 +61,7 @@ function Export() {
           </h2>
         }
         renderItem={(item: FileOperation) => (
-          <FileOperationListItem
-            key={item.id}
-            fileOperation={item}
-            handleDelete={handleDelete}
-          />
+          <FileOperationListItem key={item.id} fileOperation={item} />
         )}
       />
     </Scene>

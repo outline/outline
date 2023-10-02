@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import { FileOperationFormat, FileOperationType } from "@shared/types";
 import { FileOperation } from "@server/models";
 import { Event as TEvent, FileOperationEvent } from "@server/types";
@@ -10,16 +9,13 @@ import ImportMarkdownZipTask from "../tasks/ImportMarkdownZipTask";
 import ImportNotionTask from "../tasks/ImportNotionTask";
 import BaseProcessor from "./BaseProcessor";
 
-export default class FileOperationsProcessor extends BaseProcessor {
+export default class FileOperationCreatedProcessor extends BaseProcessor {
   static applicableEvents: TEvent["name"][] = ["fileOperations.create"];
 
   async perform(event: FileOperationEvent) {
-    if (event.name !== "fileOperations.create") {
-      return;
-    }
-
-    const fileOperation = await FileOperation.findByPk(event.modelId);
-    invariant(fileOperation, "fileOperation not found");
+    const fileOperation = await FileOperation.findByPk(event.modelId, {
+      rejectOnEmpty: true,
+    });
 
     // map file operation type and format to the appropriate task
     if (fileOperation.type === FileOperationType.Import) {

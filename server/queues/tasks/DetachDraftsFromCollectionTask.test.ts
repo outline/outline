@@ -13,7 +13,7 @@ describe("DetachDraftsFromCollectionTask", () => {
       createdById: collection.createdById,
       teamId: collection.teamId,
     });
-    await collection.destroy();
+    await collection.destroy({ hooks: false });
 
     const task = new DetachDraftsFromCollectionTask();
     await task.perform({

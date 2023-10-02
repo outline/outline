@@ -7,9 +7,9 @@ import {
   FileOperationState,
   FileOperationType,
 } from "@shared/types";
+import collectionDestroyer from "@server/commands/collectionDestroyer";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
-import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -803,44 +803,15 @@ router.post(
     }).findByPk(id, {
       transaction,
     });
-    const team = await Team.findByPk(user.teamId);
 
     authorize(user, "delete", collection);
 
-    const total = await Collection.count({
-      where: {
-        teamId: user.teamId,
-      },
+    await collectionDestroyer({
+      collection,
+      transaction,
+      user,
+      ip: ctx.request.ip,
     });
-    if (total === 1) {
-      throw ValidationError("Cannot delete last collection");
-    }
-
-    await collection.destroy({ transaction });
-
-    if (team && team.defaultCollectionId === collection.id) {
-      await teamUpdater({
-        params: { defaultCollectionId: null },
-        ip: ctx.request.ip,
-        user,
-        team,
-        transaction,
-      });
-    }
-
-    await Event.create(
-      {
-        name: "collections.delete",
-        collectionId: collection.id,
-        teamId: collection.teamId,
-        actorId: user.id,
-        data: {
-          name: collection.name,
-        },
-        ip: ctx.request.ip,
-      },
-      { transaction }
-    );
 
     ctx.body = {
       success: true,
