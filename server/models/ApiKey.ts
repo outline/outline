@@ -40,6 +40,13 @@ class ApiKey extends ParanoidModel {
 
   // hooks
 
+  @BeforeValidate
+  static async generateSecret(model: ApiKey) {
+    if (!model.secret) {
+      model.secret = `${ApiKey.prefix}${randomstring.generate(38)}`;
+    }
+  }
+
   @AfterCreate
   static async afterCreateEvent(model: ApiKey, context: APIContext["context"]) {
     await this.insertEvent("create", model, context);
@@ -53,13 +60,6 @@ class ApiKey extends ParanoidModel {
     await this.insertEvent("delete", model, context);
   }
 
-  @BeforeValidate
-  static async generateSecret(model: ApiKey) {
-    if (!model.secret) {
-      model.secret = `${ApiKey.prefix}${randomstring.generate(38)}`;
-    }
-  }
-
   private static async insertEvent(
     name: string,
     model: ApiKey,
@@ -69,8 +69,8 @@ class ApiKey extends ParanoidModel {
       {
         name: `${this.eventNamespace}.${name}`,
         modelId: model.id,
-        teamId: context.auth.user.teamId,
-        actorId: context.auth.user.id,
+        teamId: context.auth?.user.teamId,
+        actorId: context.auth?.user.id,
         ip: context.ip,
         data: pick(model, this.eventProperties),
       },

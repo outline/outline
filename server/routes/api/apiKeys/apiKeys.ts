@@ -42,17 +42,19 @@ router.post(
   pagination(),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
+    const { pagination } = ctx.state;
+
     const apiKeys = await ApiKey.findAll({
       where: {
         userId: user.id,
       },
       order: [["createdAt", "DESC"]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
+      offset: pagination.offset,
+      limit: pagination.limit,
     });
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination,
       data: apiKeys.map(presentApiKey),
     };
   }
