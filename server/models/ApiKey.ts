@@ -6,7 +6,10 @@ import {
   BeforeValidate,
   BelongsTo,
   ForeignKey,
+  AfterCreate,
 } from "sequelize-typescript";
+import type { APIContext } from "@server/types";
+import Event from "./Event";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -16,6 +19,8 @@ import Length from "./validators/Length";
 @Fix
 class ApiKey extends ParanoidModel {
   static prefix = "ol_api_";
+
+  static eventNamespace = "api_keys";
 
   @Length({
     min: 3,
@@ -30,6 +35,25 @@ class ApiKey extends ParanoidModel {
   secret: string;
 
   // hooks
+
+  @AfterCreate
+  static async afterCreateEvent(model: ApiKey, options: APIContext["context"]) {
+    await Event.create(
+      {
+        name: `${this.eventNamespace}.create`,
+        modelId: model.id,
+        teamId: options.auth.user.teamId,
+        actorId: options.auth.user.id,
+        ip: options.ip,
+        data: {
+          name: model.name,
+        },
+      },
+      {
+        transaction: options.transaction,
+      }
+    );
+  }
 
   @BeforeValidate
   static async generateSecret(model: ApiKey) {

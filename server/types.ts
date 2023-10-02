@@ -53,6 +53,12 @@ export interface APIContext<ReqT = BaseReq, ResT = BaseRes>
   > {
   /** Typed and validated version of request, consisting of validated body, query, etc */
   input: ReqT;
+
+  context: {
+    transaction?: Transaction;
+    auth: Authentication;
+    ip: string;
+  };
 }
 
 type BaseEvent = {

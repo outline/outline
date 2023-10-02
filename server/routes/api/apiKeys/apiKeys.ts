@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { ApiKey, Event } from "@server/models";
 import { authorize } from "@server/policies";
@@ -14,26 +15,20 @@ router.post(
   "apiKeys.create",
   auth({ member: true }),
   validate(T.APIKeysCreateSchema),
+  transaction(),
   async (ctx: APIContext<T.APIKeysCreateReq>) => {
     const { name } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     authorize(user, "createApiKey", user.team);
-    const key = await ApiKey.create({
-      name,
-      userId: user.id,
-    });
 
-    await Event.create({
-      name: "api_keys.create",
-      modelId: key.id,
-      teamId: user.teamId,
-      actorId: user.id,
-      data: {
+    const key = await ApiKey.create(
+      {
         name,
+        userId: user.id,
       },
-      ip: ctx.request.ip,
-    });
+      ctx.context
+    );
 
     ctx.body = {
       data: presentApiKey(key),
