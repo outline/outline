@@ -287,7 +287,7 @@
     "@types/react-router-dom": "^5.3.2",
     "@types/react-table": "^7.7.14",
     "@types/react-virtualized-auto-sizer": "^1.0.1",
-    "@types/react-window": "^1.8.5",
+    "@types/react-window": "^1.8.6",
     "@types/readable-stream": "^4.0.2",
     "@types/redis-info": "^3.0.0",
     "@types/refractor": "^3.0.2",
