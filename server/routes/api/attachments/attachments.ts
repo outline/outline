@@ -29,7 +29,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.AttachmentCreateReq>) => {
     const { name, documentId, contentType, size, preset } = ctx.input.body;
-    const { auth } = ctx.state;
+    const { auth, transaction } = ctx.state;
     const { user } = auth;
 
     // All user types can upload an avatar so no additional authorization is needed.

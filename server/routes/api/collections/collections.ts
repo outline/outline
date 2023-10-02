@@ -159,10 +159,9 @@ router.post(
   validate(T.CollectionsImportSchema),
   transaction(),
   async (ctx: APIContext<T.CollectionsImportReq>) => {
-    const { transaction } = ctx.state;
     const { attachmentId, format } = ctx.input.body;
-
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
     authorize(user, "importCollection", user.team);
 
     const attachment = await Attachment.findByPk(attachmentId, {
@@ -170,7 +169,7 @@ router.post(
     });
     authorize(user, "read", attachment);
 
-    const fileOperation = await FileOperation.create(
+    await FileOperation.create(
       {
         type: FileOperationType.Import,
         state: FileOperationState.Creating,
@@ -180,24 +179,7 @@ router.post(
         userId: user.id,
         teamId: user.teamId,
       },
-      {
-        transaction,
-      }
-    );
-
-    await Event.create(
-      {
-        name: "fileOperations.create",
-        teamId: user.teamId,
-        actorId: user.id,
-        modelId: fileOperation.id,
-        data: {
-          type: FileOperationType.Import,
-        },
-      },
-      {
-        transaction,
-      }
+      ctx.context
     );
 
     ctx.body = {
@@ -543,8 +525,8 @@ router.post(
   validate(T.CollectionsExportSchema),
   transaction(),
   async (ctx: APIContext<T.CollectionsExportReq>) => {
-    const { transaction } = ctx.state;
     const { id, format, includeAttachments } = ctx.input.body;
+    const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
 
     const team = await Team.findByPk(user.teamId, { transaction });
@@ -561,8 +543,7 @@ router.post(
       team,
       format,
       includeAttachments,
-      ip: ctx.request.ip,
-      transaction,
+      context: ctx.context,
     });
 
     ctx.body = {
@@ -581,9 +562,9 @@ router.post(
   validate(T.CollectionsExportAllSchema),
   transaction(),
   async (ctx: APIContext<T.CollectionsExportAllReq>) => {
-    const { transaction } = ctx.state;
     const { format, includeAttachments } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
     const team = await Team.findByPk(user.teamId, { transaction });
     authorize(user, "createExport", team);
 
@@ -592,8 +573,7 @@ router.post(
       team,
       format,
       includeAttachments,
-      ip: ctx.request.ip,
-      transaction,
+      context: ctx.context,
     });
 
     ctx.body = {

@@ -168,12 +168,6 @@ export default abstract class ImportTask extends BaseTask<Props> {
       state,
       error: error ? truncate(error.message, { length: 255 }) : undefined,
     });
-    await Event.schedule({
-      name: "fileOperations.update",
-      modelId: fileOperation.id,
-      teamId: fileOperation.teamId,
-      actorId: fileOperation.userId,
-    });
   }
 
   /**

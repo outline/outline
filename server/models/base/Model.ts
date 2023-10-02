@@ -73,13 +73,37 @@ class Model extends SequelizeModel {
       });
     }
 
+    const models = this.sequelize!.models;
     const namespace = this.eventNamespace || this.tableName;
 
-    return this.sequelize?.models.event.create(
+    return models.event.create(
       {
         name: `${namespace}.${name}`,
         modelId: model.id,
-        teamId: context.auth?.user.teamId,
+        collectionId:
+          "collectionId" in model
+            ? model.collectionId
+            : model instanceof models.collection
+            ? model.id
+            : undefined,
+        documentId:
+          "documentId" in model
+            ? model.documentId
+            : model instanceof models.document
+            ? model.id
+            : undefined,
+        userId:
+          "userId" in model
+            ? model.userId
+            : model instanceof models.user
+            ? model.id
+            : undefined,
+        teamId:
+          "teamId" in model
+            ? model.teamId
+            : model instanceof models.team
+            ? model.id
+            : context.auth?.user.teamId,
         actorId: context.auth?.user.id,
         ip: context.ip,
         data: pick(model, this.eventData),

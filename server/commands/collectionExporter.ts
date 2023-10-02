@@ -1,4 +1,3 @@
-import { Transaction } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import {
   FileOperationFormat,
@@ -6,8 +5,9 @@ import {
   FileOperationState,
 } from "@shared/types";
 import { traceFunction } from "@server/logging/tracing";
-import { Collection, Event, Team, User, FileOperation } from "@server/models";
+import { Collection, Team, User, FileOperation } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
+import { type APIContext } from "@server/types";
 
 type Props = {
   collection?: Collection;
@@ -15,8 +15,7 @@ type Props = {
   user: User;
   format?: FileOperationFormat;
   includeAttachments?: boolean;
-  ip: string;
-  transaction: Transaction;
+  context: APIContext["context"];
 };
 
 function getKeyForFileOp(teamId: string, name: string) {
@@ -29,8 +28,7 @@ async function collectionExporter({
   user,
   format = FileOperationFormat.MarkdownZip,
   includeAttachments = true,
-  ip,
-  transaction,
+  context,
 }: Props) {
   const collectionId = collection?.id;
   const key = getKeyForFileOp(user.teamId, collection?.name || team.name);
@@ -47,27 +45,7 @@ async function collectionExporter({
       userId: user.id,
       teamId: user.teamId,
     },
-    {
-      transaction,
-    }
-  );
-
-  await Event.create(
-    {
-      name: "fileOperations.create",
-      teamId: user.teamId,
-      actorId: user.id,
-      modelId: fileOperation.id,
-      collectionId,
-      ip,
-      data: {
-        type: FileOperationType.Export,
-        format,
-      },
-    },
-    {
-      transaction,
-    }
+    context
   );
 
   fileOperation.user = user;
