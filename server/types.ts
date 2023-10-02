@@ -51,9 +51,10 @@ export interface APIContext<ReqT = BaseReq, ResT = BaseRes>
     DefaultContext & IRouterParamContext<AppState>,
     ResT
   > {
-  /** Typed and validated version of request, consisting of validated body, query, etc */
+  /** Typed and validated version of request, consisting of validated body, query, etc. */
   input: ReqT;
 
+  /** The current request's context, which is passed to database mutations. */
   context: {
     transaction?: Transaction;
     auth: Authentication;

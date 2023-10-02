@@ -1,4 +1,3 @@
-import pick from "lodash/pick";
 import randomstring from "randomstring";
 import {
   Column,
@@ -7,11 +6,7 @@ import {
   BeforeValidate,
   BelongsTo,
   ForeignKey,
-  AfterCreate,
-  AfterDestroy,
 } from "sequelize-typescript";
-import type { APIContext } from "@server/types";
-import Event from "./Event";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -24,7 +19,7 @@ class ApiKey extends ParanoidModel {
 
   static eventNamespace = "api_keys";
 
-  static eventProperties = ["name"];
+  static eventData = ["name"];
 
   @Length({
     min: 3,
@@ -45,39 +40,6 @@ class ApiKey extends ParanoidModel {
     if (!model.secret) {
       model.secret = `${ApiKey.prefix}${randomstring.generate(38)}`;
     }
-  }
-
-  @AfterCreate
-  static async afterCreateEvent(model: ApiKey, context: APIContext["context"]) {
-    await this.insertEvent("create", model, context);
-  }
-
-  @AfterDestroy
-  static async afterDestroyEvent(
-    model: ApiKey,
-    context: APIContext["context"]
-  ) {
-    await this.insertEvent("delete", model, context);
-  }
-
-  private static async insertEvent(
-    name: string,
-    model: ApiKey,
-    context: APIContext["context"]
-  ) {
-    return Event.create(
-      {
-        name: `${this.eventNamespace}.${name}`,
-        modelId: model.id,
-        teamId: context.auth?.user.teamId,
-        actorId: context.auth?.user.id,
-        ip: context.ip,
-        data: pick(model, this.eventProperties),
-      },
-      {
-        transaction: context.transaction,
-      }
-    );
   }
 
   /**
