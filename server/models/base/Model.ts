@@ -44,6 +44,13 @@ class Model extends SequelizeModel {
     await this.insertEvent("delete", model, context);
   }
 
+  /**
+   * Insert an event into the database recording a mutation to this model.
+   *
+   * @param name The name of the event.
+   * @param model The model that was mutated.
+   * @param context The API context.
+   */
   protected static async insertEvent<T extends Model>(
     name: string,
     model: T,
@@ -66,9 +73,11 @@ class Model extends SequelizeModel {
       });
     }
 
+    const namespace = this.eventNamespace || this.tableName;
+
     return this.sequelize?.models.event.create(
       {
-        name: `${this.eventNamespace}.${name}`,
+        name: `${namespace}.${name}`,
         modelId: model.id,
         teamId: context.auth?.user.teamId,
         actorId: context.auth?.user.id,
