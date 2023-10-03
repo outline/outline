@@ -1,15 +1,15 @@
-import { subDays } from "date-fns";
+import { addMinutes, subDays } from "date-fns";
 import { CollectionPermission } from "@shared/types";
 import {
   Document,
   View,
   Revision,
   Backlink,
-  CollectionUser,
+  UserPermission,
   SearchQuery,
   Event,
   User,
-  CollectionGroup,
+  GroupPermission,
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import {
@@ -905,7 +905,7 @@ describe("#documents.list", () => {
       collectionId: collection.id,
     });
 
-    await CollectionUser.update(
+    await UserPermission.update(
       {
         userId: user.id,
         permission: CollectionPermission.Read,
@@ -1606,7 +1606,7 @@ describe("#documents.search", () => {
       permission: null,
     });
 
-    await CollectionUser.create({
+    await UserPermission.create({
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
@@ -1973,7 +1973,7 @@ describe("#documents.viewed", () => {
       documentId: document.id,
       userId: user.id,
     });
-    await CollectionUser.destroy({
+    await UserPermission.destroy({
       where: {
         userId: user.id,
         collectionId: collection.id,
@@ -2301,7 +2301,7 @@ describe("#documents.restore", () => {
       teamId: team.id,
     });
     await document.destroy();
-    await collection.destroy();
+    await collection.destroy({ hooks: false });
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -2537,6 +2537,38 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("should succeed with specific createdAt date in the past", async () => {
+    const user = await buildUser();
+    const createdAt = new Date().toISOString();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: null,
+        title: "new document",
+        createdAt,
+        text: "hello",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.createdAt).toEqual(createdAt);
+    expect(body.data.updatedAt).toEqual(createdAt);
+  });
+
+  it("should fail with createdAt date in the future", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: null,
+        title: "new document",
+        createdAt: addMinutes(new Date(), 1).toISOString(),
+        text: "hello",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should fail for invalid parentDocumentId", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -2569,6 +2601,7 @@ describe("#documents.create", () => {
       body: {
         token: user.getJwtToken(),
         collectionId: collection.id,
+        emoji: "🚢",
         title: "new document",
         text: "hello",
         publish: true,
@@ -2579,6 +2612,7 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(200);
     expect(newDocument!.parentDocumentId).toBe(null);
     expect(newDocument!.collectionId).toBe(collection.id);
+    expect(newDocument!.emoji).toBe("🚢");
     expect(body.policies[0].abilities.update).toEqual(true);
   });
 
@@ -2963,7 +2997,7 @@ describe("#documents.update", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await CollectionUser.update(
+    await UserPermission.update(
       {
         userId: user.id,
         permission: CollectionPermission.ReadWrite,
@@ -3070,7 +3104,7 @@ describe("#documents.update", () => {
       teamId: team.id,
     });
 
-    await CollectionUser.update(
+    await UserPermission.update(
       {
         createdById: user.id,
         permission: CollectionPermission.ReadWrite,
@@ -3108,7 +3142,7 @@ describe("#documents.update", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await CollectionUser.update(
+    await UserPermission.update(
       {
         createdById: user.id,
         permission: CollectionPermission.Read,
@@ -3144,7 +3178,7 @@ describe("#documents.update", () => {
     });
     collection.permission = CollectionPermission.Read;
     await collection.save();
-    await CollectionUser.destroy({
+    await UserPermission.destroy({
       where: {
         userId: user.id,
         collectionId: collection.id,
@@ -3739,25 +3773,25 @@ describe("#documents.users", () => {
 
     // add people and groups to collection
     await Promise.all([
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: alan.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: bret.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: ken.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      CollectionGroup.create({
+      GroupPermission.create({
         collectionId: collection.id,
         groupId: group.id,
         permission: CollectionPermission.ReadWrite,
@@ -3829,19 +3863,19 @@ describe("#documents.users", () => {
 
     // add people to collection
     await Promise.all([
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: alan.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: bret.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      CollectionUser.create({
+      UserPermission.create({
         collectionId: collection.id,
         userId: ken.id,
         permission: CollectionPermission.Read,

@@ -115,6 +115,14 @@ export default class ZipHelper {
             currentFile: null,
           };
 
+          const dest = fs
+            .createWriteStream(path)
+            .on("finish", () => {
+              Logger.debug("utils", "Writing zip complete", { path });
+              return resolve(path);
+            })
+            .on("error", reject);
+
           zip
             .generateNodeStream(
               {
@@ -141,12 +149,11 @@ export default class ZipHelper {
                 }
               }
             )
-            .pipe(fs.createWriteStream(path))
-            .on("finish", () => {
-              Logger.debug("utils", "Writing zip complete", { path });
-              return resolve(path);
+            .on("error", (err) => {
+              dest.end();
+              reject(err);
             })
-            .on("error", reject);
+            .pipe(dest);
         }
       );
     });

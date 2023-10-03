@@ -1,8 +1,9 @@
+import { Op } from "sequelize";
 import {
-  Column,
-  ForeignKey,
   BelongsTo,
+  Column,
   Default,
+  ForeignKey,
   IsIn,
   Table,
   DataType,
@@ -10,19 +11,26 @@ import {
 } from "sequelize-typescript";
 import { CollectionPermission } from "@shared/types";
 import Collection from "./Collection";
+import Document from "./Document";
+import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
 import Fix from "./decorators/Fix";
 
 @Scopes(() => ({
-  withUser: {
+  withGroup: {
     include: [
       {
-        association: "user",
+        association: "group",
       },
     ],
   },
   withCollection: {
+    where: {
+      collectionId: {
+        [Op.ne]: null,
+      },
+    },
     include: [
       {
         association: "collection",
@@ -30,9 +38,9 @@ import Fix from "./decorators/Fix";
     ],
   },
 }))
-@Table({ tableName: "collection_users", modelName: "collection_user" })
+@Table({ tableName: "group_permissions", modelName: "group_permission" })
 @Fix
-class CollectionUser extends Model {
+class GroupPermission extends Model {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
@@ -41,25 +49,28 @@ class CollectionUser extends Model {
   // associations
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection;
+  collection?: Collection | null;
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string;
+  collectionId?: string | null;
 
-  @BelongsTo(() => User, "userId")
-  user: User;
+  @BelongsTo(() => Document, "documentId")
+  document?: Document | null;
 
-  @ForeignKey(() => User)
+  @ForeignKey(() => Document)
   @Column(DataType.UUID)
-  userId: string;
+  documentId?: string | null;
+
+  @BelongsTo(() => Group, "groupId")
+  group: Group;
+
+  @ForeignKey(() => Group)
+  @Column(DataType.UUID)
+  groupId: string;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;
-
-  @ForeignKey(() => User)
-  @Column(DataType.UUID)
-  createdById: string;
 }
 
-export default CollectionUser;
+export default GroupPermission;

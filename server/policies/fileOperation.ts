@@ -1,3 +1,4 @@
+import { FileOperationState, FileOperationType } from "@shared/types";
 import { User, Team, FileOperation } from "@server/models";
 import { allow } from "./cancan";
 
@@ -13,8 +14,21 @@ allow(
   }
 );
 
-allow(User, ["read", "delete"], FileOperation, (user, fileOperation) => {
+allow(User, "read", FileOperation, (user, fileOperation) => {
   if (!fileOperation || user.isViewer || user.teamId !== fileOperation.teamId) {
+    return false;
+  }
+  return user.isAdmin;
+});
+
+allow(User, "delete", FileOperation, (user, fileOperation) => {
+  if (!fileOperation || user.isViewer || user.teamId !== fileOperation.teamId) {
+    return false;
+  }
+  if (
+    fileOperation.type === FileOperationType.Export &&
+    fileOperation.state !== FileOperationState.Complete
+  ) {
     return false;
   }
   return user.isAdmin;

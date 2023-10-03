@@ -8,7 +8,7 @@ import { Notification } from "@server/models";
 import { Event, NotificationEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
-export default class NotificationsProcessor extends BaseProcessor {
+export default class EmailsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = ["notifications.create"];
 
   async perform(event: NotificationEvent) {

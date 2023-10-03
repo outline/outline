@@ -20,6 +20,7 @@ import {
   CalendarIcon,
   MathIcon,
   DoneIcon,
+  EmbedIcon,
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -100,6 +101,12 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       icon: <LinkIcon />,
       shortcut: `${metaDisplay} k`,
       keywords: "link url uri href",
+    },
+    {
+      name: "video",
+      title: dictionary.video,
+      icon: <EmbedIcon />,
+      keywords: "mov avi upload player",
     },
     {
       name: "attachment",

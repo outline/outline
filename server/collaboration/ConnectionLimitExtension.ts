@@ -7,6 +7,7 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import { TooManyConnections } from "./CloseEvents";
+import { withContext } from "./types";
 
 @trace()
 export class ConnectionLimitExtension implements Extension {
@@ -19,9 +20,7 @@ export class ConnectionLimitExtension implements Extension {
    * onDisconnect hook
    * @param data The disconnect payload
    */
-  onDisconnect(data: onDisconnectPayload) {
-    const { documentName, socketId } = data;
-
+  onDisconnect({ documentName, socketId }: withContext<onDisconnectPayload>) {
     const connections = this.connectionsByDocument.get(documentName);
     if (connections) {
       connections.delete(socketId);
@@ -45,9 +44,7 @@ export class ConnectionLimitExtension implements Extension {
    * onConnect hook
    * @param data The connect payload
    */
-  onConnect(data: onConnectPayload) {
-    const { documentName } = data;
-
+  onConnect({ documentName, socketId }: withContext<onConnectPayload>) {
     const connections =
       this.connectionsByDocument.get(documentName) || new Set();
     if (connections?.size >= env.COLLABORATION_MAX_CLIENTS_PER_DOCUMENT) {
@@ -60,7 +57,7 @@ export class ConnectionLimitExtension implements Extension {
       return Promise.reject(TooManyConnections);
     }
 
-    connections.add(data.socketId);
+    connections.add(socketId);
     this.connectionsByDocument.set(documentName, connections);
 
     Logger.debug(

@@ -928,8 +928,8 @@ router.post(
     // reload to get all of the data needed to present (user, collection etc)
     const reloaded = await Document.findByPk(document.id, {
       userId: user.id,
+      rejectOnEmpty: true,
     });
-    invariant(reloaded, "document not found");
 
     ctx.body = {
       data: await presentDocument(reloaded),
@@ -1289,14 +1289,16 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsCreateReq>) => {
     const {
-      title = "",
-      text = "",
+      title,
+      text,
+      emoji,
       publish,
       collectionId,
       parentDocumentId,
       fullWidth,
       templateId,
       template,
+      createdAt,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
@@ -1343,6 +1345,8 @@ router.post(
     const document = await documentCreator({
       title,
       text,
+      emoji,
+      createdAt,
       publish,
       collectionId,
       parentDocumentId,

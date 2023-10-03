@@ -121,7 +121,7 @@ export type Props = React.InputHTMLAttributes<
   margin?: string | number;
   error?: string;
   icon?: React.ReactNode;
-  /* Callback is triggered with the CMD+Enter keyboard combo */
+  /** Callback is triggered with the CMD+Enter keyboard combo */
   onRequestSubmit?: (
     ev: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => unknown;

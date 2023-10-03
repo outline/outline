@@ -1,22 +1,22 @@
 import { faker } from "@faker-js/faker";
-import TestServer from "fetch-test-server";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
 import onerror from "@server/onerror";
 import webService from "@server/services/web";
 import { sequelize } from "@server/storage/database";
+import TestServer from "./TestServer";
 
 export function getTestServer() {
   const app = webService();
   onerror(app);
-  const server = new TestServer(app.callback());
+  const server = new TestServer(app);
 
-  server.disconnect = async () => {
+  const disconnect = async () => {
     await sequelize.close();
-    server.close();
+    return server.close();
   };
 
-  afterAll(server.disconnect);
+  afterAll(disconnect);
 
   return server;
 }

@@ -126,6 +126,7 @@ const Subtitle = styled.p<{ $small?: boolean; $selected?: boolean }>`
 export const Actions = styled(Flex)<{ $selected?: boolean }>`
   align-self: center;
   justify-content: center;
+  flex-shrink: 0;
   color: ${(props) =>
     props.$selected ? props.theme.white : props.theme.textSecondary};
 `;

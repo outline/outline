@@ -545,12 +545,14 @@ export class Environment {
     this.toOptionalNumber(process.env.RATE_LIMITER_DURATION_WINDOW) ?? 60;
 
   /**
-   * Set max allowed upload size for file attachments.
+   * @deprecated Set max allowed upload size for file attachments.
    */
   @IsOptional()
   @IsNumber()
-  public AWS_S3_UPLOAD_MAX_SIZE =
-    this.toOptionalNumber(process.env.AWS_S3_UPLOAD_MAX_SIZE) ?? 100000000;
+  @Deprecated("Use FILE_STORAGE_UPLOAD_MAX_SIZE instead")
+  public AWS_S3_UPLOAD_MAX_SIZE = this.toOptionalNumber(
+    process.env.AWS_S3_UPLOAD_MAX_SIZE
+  );
 
   /**
    * Access key ID for AWS S3.
@@ -613,6 +615,28 @@ export class Environment {
   public AWS_S3_ACL = process.env.AWS_S3_ACL ?? "private";
 
   /**
+   * Which file storage system to use
+   */
+  @IsIn(["local", "s3"])
+  public FILE_STORAGE = this.toOptionalString(process.env.FILE_STORAGE) ?? "s3";
+
+  /**
+   * Set default root dir path for local file storage
+   */
+  public FILE_STORAGE_LOCAL_ROOT_DIR =
+    this.toOptionalString(process.env.FILE_STORAGE_LOCAL_ROOT_DIR) ??
+    "/var/lib/outline/data";
+
+  /**
+   * Set max allowed upload size for file attachments.
+   */
+  @IsNumber()
+  public FILE_STORAGE_UPLOAD_MAX_SIZE =
+    this.toOptionalNumber(process.env.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
+    this.toOptionalNumber(process.env.AWS_S3_UPLOAD_MAX_SIZE) ??
+    100000000;
+
+  /**
    * Because imports can be much larger than regular file attachments and are
    * deleted automatically we allow an optional separate limit on the size of
    * imports.
@@ -620,7 +644,7 @@ export class Environment {
   @IsNumber()
   public MAXIMUM_IMPORT_SIZE = Math.max(
     this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ?? 100000000,
-    this.AWS_S3_UPLOAD_MAX_SIZE
+    this.FILE_STORAGE_UPLOAD_MAX_SIZE
   );
 
   /**

@@ -1,3 +1,4 @@
+import { Blob } from "buffer";
 import { Readable } from "stream";
 import { PresignedPost } from "aws-sdk/clients/s3";
 import env from "@server/env";
@@ -5,6 +6,9 @@ import Logger from "@server/logging/Logger";
 import fetch from "@server/utils/fetch";
 
 export default abstract class BaseStorage {
+  /** The default number of seconds until a signed URL expires. */
+  public static defaultSignedUrlExpires = 60;
+
   /**
    * Returns a presigned post for uploading files to the storage provider.
    *
@@ -19,7 +23,7 @@ export default abstract class BaseStorage {
     acl: string,
     maxUploadSize: number,
     contentType: string
-  ): Promise<PresignedPost>;
+  ): Promise<Partial<PresignedPost>>;
 
   /**
    * Returns a stream for reading a file from the storage provider.
@@ -29,19 +33,20 @@ export default abstract class BaseStorage {
   public abstract getFileStream(key: string): NodeJS.ReadableStream | null;
 
   /**
-   * Returns a buffer of a file from the storage provider.
-   *
-   * @param key The path to the file
-   */
-  public abstract getFileBuffer(key: string): Promise<Blob>;
-
-  /**
-   * Returns the public endpoint for the storage provider.
+   * Returns the upload URL for the storage provider.
    *
    * @param isServerUpload Whether the upload is happening on the server or not
-   * @returns The public endpoint as a string
+   * @returns {string} The upload URL
    */
-  public abstract getPublicEndpoint(isServerUpload?: boolean): string;
+  public abstract getUploadUrl(isServerUpload?: boolean): string;
+
+  /**
+   * Returns the download URL for a given file.
+   *
+   * @param key The path to the file
+   * @returns {string} The download URL for the file
+   */
+  public abstract getUrlForKey(key: string): string;
 
   /**
    * Returns a signed URL for a file from the storage provider.
@@ -55,7 +60,7 @@ export default abstract class BaseStorage {
   ): Promise<string>;
 
   /**
-   * Upload a file to the storage provider.
+   * Store a file in the storage provider.
    *
    * @param body The file body
    * @param contentLength The content length of the file
@@ -64,7 +69,7 @@ export default abstract class BaseStorage {
    * @param acl The ACL to use
    * @returns The URL of the file
    */
-  public abstract upload({
+  public abstract store({
     body,
     contentLength,
     contentType,
@@ -72,11 +77,34 @@ export default abstract class BaseStorage {
     acl,
   }: {
     body: Buffer | Uint8Array | Blob | string | Readable;
-    contentLength: number;
-    contentType: string;
+    contentLength?: number;
+    contentType?: string;
     key: string;
-    acl: string;
+    acl?: string;
   }): Promise<string | undefined>;
+
+  /**
+   * Returns a buffer of a file from the storage provider.
+   *
+   * @param key The path to the file
+   */
+  public async getFileBuffer(key: string) {
+    const stream = this.getFileStream(key);
+    return new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      if (!stream) {
+        return reject(new Error("No stream available"));
+      }
+
+      stream.on("data", (d) => {
+        chunks.push(d);
+      });
+      stream.once("end", () => {
+        resolve(Buffer.concat(chunks));
+      });
+      stream.once("error", reject);
+    });
+  }
 
   /**
    * Upload a file to the storage provider directly from a remote or base64 encoded URL.
@@ -86,7 +114,7 @@ export default abstract class BaseStorage {
    * @param acl The ACL to use
    * @returns A promise that resolves when the file is uploaded
    */
-  public async uploadFromUrl(
+  public async storeFromUrl(
     url: string,
     key: string,
     acl: string
@@ -98,7 +126,7 @@ export default abstract class BaseStorage {
       }
     | undefined
   > {
-    const endpoint = this.getPublicEndpoint(true);
+    const endpoint = this.getUploadUrl(true);
     if (url.startsWith("/api") || url.startsWith(endpoint)) {
       return;
     }
@@ -115,7 +143,7 @@ export default abstract class BaseStorage {
         const res = await fetch(url, {
           follow: 3,
           redirect: "follow",
-          size: env.AWS_S3_UPLOAD_MAX_SIZE,
+          size: env.FILE_STORAGE_UPLOAD_MAX_SIZE,
           timeout: 10000,
         });
 
@@ -143,7 +171,7 @@ export default abstract class BaseStorage {
     }
 
     try {
-      const result = await this.upload({
+      const result = await this.store({
         body: buffer,
         contentLength,
         contentType,

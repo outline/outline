@@ -23,7 +23,7 @@ import { checkEnv, checkPendingMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 import onerror from "./onerror";
 import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
-import { sequelize } from "./storage/database";
+import { checkConnection, sequelize } from "./storage/database";
 import RedisAdapter from "./storage/redis";
 import Metrics from "./logging/Metrics";
 
@@ -50,6 +50,7 @@ if (serviceNames.includes("collaboration")) {
 
 // This function will only be called once in the original process
 async function master() {
+  await checkConnection();
   await checkEnv();
   await checkPendingMigrations();
 

@@ -1,4 +1,6 @@
+import { createReadStream } from "fs";
 import path from "path";
+import { File } from "formidable";
 import { QueryTypes } from "sequelize";
 import {
   BeforeDestroy,
@@ -10,8 +12,10 @@ import {
   Table,
   DataType,
   IsNumeric,
+  BeforeUpdate,
 } from "sequelize-typescript";
 import FileStorage from "@server/storage/files";
+import { ValidateKey } from "@server/validation";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
@@ -96,21 +100,44 @@ class Attachment extends IdModel {
   }
 
   /**
-   * Get a direct URL to the attachment in storage. Note that this will not work for private attachments,
-   * a signed URL must be used.
+   * Get a direct URL to the attachment in storage. Note that this will not work
+   * for private attachments, a signed URL must be used.
    */
   get canonicalUrl() {
-    return encodeURI(`${FileStorage.getPublicEndpoint()}/${this.key}`);
+    return encodeURI(FileStorage.getUrlForKey(this.key));
   }
 
   /**
-   * Get a signed URL with the default expirt to download the attachment from storage.
+   * Get a signed URL with the default expiry to download the attachment from storage.
    */
   get signedUrl() {
     return FileStorage.getSignedUrl(this.key);
   }
 
+  /**
+   * Store the given file in storage at the location specified by the attachment key.
+   * If the attachment already exists, an error will be thrown.
+   *
+   * @param file The file to store
+   * @returns A promise resolving to the attachment
+   */
+  async writeFile(file: File) {
+    return FileStorage.store({
+      body: createReadStream(file.filepath),
+      contentLength: file.size,
+      contentType: this.contentType,
+      key: this.key,
+      acl: this.acl,
+    });
+  }
+
   // hooks
+
+  @BeforeUpdate
+  static async sanitizeKey(model: Attachment) {
+    model.key = ValidateKey.sanitize(model.key);
+    return model;
+  }
 
   @BeforeDestroy
   static async deleteAttachmentFromS3(model: Attachment) {

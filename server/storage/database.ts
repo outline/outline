@@ -5,6 +5,7 @@ import env from "@server/env";
 import Logger from "../logging/Logger";
 import * as models from "../models";
 
+const isDevelopment = env.ENVIRONMENT === "development";
 const isProduction = env.ENVIRONMENT === "production";
 const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
@@ -18,6 +19,7 @@ export const sequelize = new Sequelize(url, {
   logging: (msg) =>
     process.env.DEBUG?.includes("database") && Logger.debug("database", msg),
   typeValidation: true,
+  logQueryParameters: isDevelopment,
   dialectOptions: {
     ssl:
       isProduction && !isSSLDisabled
@@ -35,6 +37,25 @@ export const sequelize = new Sequelize(url, {
     idle: 10000,
   },
 });
+
+/**
+ * This function is used to test the database connection on startup. It will
+ * throw a descriptive error if the connection fails.
+ */
+export const checkConnection = async () => {
+  try {
+    await sequelize.authenticate();
+  } catch (error) {
+    if (error.message.includes("does not support SSL")) {
+      Logger.fatal(
+        "The database does not support SSL connections. Set the `PGSSLMODE` environment variable to `disable` or enable SSL on your database server.",
+        error
+      );
+    } else {
+      Logger.fatal("Failed to connect to database", error);
+    }
+  }
+};
 
 export const migrations = new Umzug({
   migrations: {

@@ -1,4 +1,4 @@
-import { CollectionUser, Revision } from "@server/models";
+import { UserPermission, Revision } from "@server/models";
 import {
   buildCollection,
   buildDocument,
@@ -175,7 +175,7 @@ describe("#revisions.list", () => {
     await Revision.createFromDocument(document);
     collection.permission = null;
     await collection.save();
-    await CollectionUser.destroy({
+    await UserPermission.destroy({
       where: {
         userId: user.id,
         collectionId: collection.id,

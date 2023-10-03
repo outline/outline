@@ -11,6 +11,7 @@ import {
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
 import { isCode } from "../lib/isCode";
+import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes, NodeWithPos } from "../queries/findChildren";
 
 type MermaidState = {
@@ -19,42 +20,66 @@ type MermaidState = {
   initialized: boolean;
 };
 
+class Cache {
+  static get(key: string) {
+    return this.data.get(key);
+  }
+
+  static set(key: string, value: string) {
+    this.data.set(key, value);
+
+    if (this.data.size > this.maxSize) {
+      this.data.delete(this.data.keys().next().value);
+    }
+  }
+
+  private static maxSize = 10;
+  private static data: Map<string, string> = new Map();
+}
+
 type RendererFunc = (block: { node: Node; pos: number }) => void;
 
 class MermaidRenderer {
   readonly diagramId: string;
   readonly element: HTMLElement;
   readonly elementId: string;
-  private currentTextContent = "";
-  private _rendererFunc?: RendererFunc;
 
   constructor() {
     this.diagramId = uuidv4();
-    this.elementId = "mermaid-diagram-wrapper-" + this.diagramId;
+    this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
     this.element =
       document.getElementById(this.elementId) || document.createElement("div");
     this.element.id = this.elementId;
     this.element.classList.add("mermaid-diagram-wrapper");
   }
 
-  async renderImmediately(block: { node: Node; pos: number }) {
-    const diagramId = this.diagramId;
+  renderImmediately = async (block: { node: Node; pos: number }) => {
     const element = this.element;
-    const newTextContent = block.node.textContent;
-    if (newTextContent === this.currentTextContent) {
+    const text = block.node.textContent;
+
+    const cache = Cache.get(text);
+    if (cache) {
+      element.classList.remove("parse-error", "empty");
+      element.innerHTML = cache;
       return;
     }
+
     try {
       const { default: mermaid } = await import("mermaid");
-
-      const { svg: svgCode, bindFunctions } = await mermaid
-        .render("mermaid-diagram-" + diagramId, newTextContent, element)
-        .then(); // removing then() show an eslint error
-
-      this.currentTextContent = newTextContent;
-      element.classList.remove("parse-error", "empty");
-      element.innerHTML = svgCode;
-      bindFunctions?.(element);
+      mermaid.render(
+        `mermaid-diagram-${this.diagramId}`,
+        text,
+        (svgCode, bindFunctions) => {
+          this.currentTextContent = text;
+          if (text) {
+            Cache.set(text, svgCode);
+          }
+          element.classList.remove("parse-error", "empty");
+          element.innerHTML = svgCode;
+          bindFunctions?.(element);
+        },
+        element
+      );
     } catch (error) {
       const isEmpty = block.node.textContent.trim().length === 0;
 
@@ -62,19 +87,22 @@ class MermaidRenderer {
         element.innerText = "Empty diagram";
         element.classList.add("empty");
       } else {
-        element.innerText = `Error rendering diagram\n\n${error}`;
+        element.innerText = error;
         element.classList.add("parse-error");
       }
     }
-  }
+  };
 
   get render(): RendererFunc {
     if (this._rendererFunc) {
       return this._rendererFunc;
     }
     this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 500);
-    return this._rendererFunc;
+    return this.renderImmediately;
   }
+
+  private currentTextContent = "";
+  private _rendererFunc?: RendererFunc;
 }
 
 function overlap(
@@ -162,9 +190,8 @@ function getNewState({
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
       () => {
-        const element = renderer.element;
         void renderer.render(block);
-        return element;
+        return renderer.element;
       },
       {
         diagramId: renderer.diagramId,
@@ -209,7 +236,11 @@ export default function Mermaid({
           isDark,
           initialized: false,
         };
-        return pluginState;
+        return getNewState({
+          doc,
+          name,
+          pluginState,
+        });
       },
       apply: (
         transaction: Transaction,
@@ -221,7 +252,6 @@ export default function Mermaid({
         const previousNodeName = oldState.selection.$head.parent.type.name;
         const codeBlockChanged =
           transaction.docChanged && [nodeName, previousNodeName].includes(name);
-        const ySyncEdit = !!transaction.getMeta("y-sync$");
         const themeMeta = transaction.getMeta("theme");
         const mermaidMeta = transaction.getMeta("mermaid");
         const themeToggled = themeMeta?.isDark !== undefined;
@@ -230,7 +260,12 @@ export default function Mermaid({
           pluginState.isDark = themeMeta.isDark;
         }
 
-        if (mermaidMeta || themeToggled || codeBlockChanged || ySyncEdit) {
+        if (
+          mermaidMeta ||
+          themeToggled ||
+          codeBlockChanged ||
+          isRemoteTransaction(transaction)
+        ) {
           return getNewState({
             doc: transaction.doc,
             name,
@@ -286,7 +321,9 @@ export default function Mermaid({
           switch (event.key) {
             case "ArrowDown": {
               const { selection } = view.state;
-              const $pos = view.state.doc.resolve(selection.from + 1);
+              const $pos = view.state.doc.resolve(
+                Math.min(selection.from + 1, view.state.doc.nodeSize)
+              );
               const nextBlock = $pos.nodeAfter;
 
               if (
@@ -310,7 +347,9 @@ export default function Mermaid({
             }
             case "ArrowUp": {
               const { selection } = view.state;
-              const $pos = view.state.doc.resolve(selection.from - 1);
+              const $pos = view.state.doc.resolve(
+                Math.max(0, selection.from - 1)
+              );
               const prevBlock = $pos.nodeBefore;
 
               if (

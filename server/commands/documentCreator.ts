@@ -75,7 +75,7 @@ export default async function documentCreator({
       teamId: user.teamId,
       userId: user.id,
       createdAt,
-      updatedAt,
+      updatedAt: updatedAt ?? createdAt,
       lastModifiedById: user.id,
       createdById: user.id,
       template,

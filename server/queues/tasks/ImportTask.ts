@@ -301,6 +301,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           if (item.urlId) {
             const existing = await Collection.unscoped().findOne({
               attributes: ["id"],
+              paranoid: false,
               transaction,
               where: {
                 urlId: item.urlId,
@@ -413,6 +414,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           if (item.urlId) {
             const existing = await Document.unscoped().findOne({
               attributes: ["id"],
+              paranoid: false,
               transaction,
               where: {
                 urlId: item.urlId,

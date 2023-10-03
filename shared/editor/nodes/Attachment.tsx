@@ -11,7 +11,7 @@ import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import attachmentsRule from "../rules/attachments";
+import attachmentsRule from "../rules/links";
 import { ComponentProps } from "../types";
 import Node from "./Node";
 

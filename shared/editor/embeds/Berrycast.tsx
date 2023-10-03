@@ -1,6 +1,6 @@
 import * as React from "react";
 import Frame from "../components/Frame";
-import useComponentSize from "../components/useComponentSize";
+import useComponentSize from "../components/hooks/useComponentSize";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = /^https:\/\/(www\.)?berrycast.com\/conversations\/(.*)$/;
