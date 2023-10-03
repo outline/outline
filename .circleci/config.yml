@@ -146,10 +146,10 @@ jobs:
       - run:
           name: Build and push Docker image
           command: |
-            if [ "$CIRCLE_BRANCH" == "main" ]; then
-              docker buildx build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
-            else
+            if [[ "$CIRCLE_TAG" == *"-"* ]]; then
               docker buildx build -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
+            else
+              docker buildx build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
             fi
 
 workflows:
