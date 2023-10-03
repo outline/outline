@@ -66,20 +66,18 @@ class MermaidRenderer {
 
     try {
       const { default: mermaid } = await import("mermaid");
-      mermaid.render(
+      const { svg: svgCode, bindFunctions } = await mermaid.render(
         `mermaid-diagram-${this.diagramId}`,
         text,
-        (svgCode, bindFunctions) => {
-          this.currentTextContent = text;
-          if (text) {
-            Cache.set(text, svgCode);
-          }
-          element.classList.remove("parse-error", "empty");
-          element.innerHTML = svgCode;
-          bindFunctions?.(element);
-        },
         element
       );
+      this.currentTextContent = text;
+      if (text) {
+        Cache.set(text, svgCode);
+      }
+      element.classList.remove("parse-error", "empty");
+      element.innerHTML = svgCode;
+      bindFunctions?.(element);
     } catch (error) {
       const isEmpty = block.node.textContent.trim().length === 0;
 
