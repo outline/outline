@@ -82,7 +82,10 @@ function AppSidebar() {
                   <ToggleButton
                     position="bottom"
                     image={<SidebarIcon />}
-                    onClick={ui.toggleCollapsedSidebar}
+                    onClick={() => {
+                      ui.toggleCollapsedSidebar();
+                      (document.activeElement as HTMLElement)?.blur();
+                    }}
                   />
                 </Tooltip>
               </SidebarButton>

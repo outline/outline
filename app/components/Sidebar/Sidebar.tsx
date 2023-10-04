@@ -48,6 +48,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   const [isHovering, setHovering] = React.useState(false);
   const [isAnimating, setAnimating] = React.useState(false);
   const [isResizing, setResizing] = React.useState(false);
+  const [hasPointerMoved, setPointerMoved] = React.useState(false);
   const isSmallerThanMinimum = width < minWidth;
 
   const handleDrag = React.useCallback(
@@ -100,20 +101,32 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   );
 
   const handlePointerMove = React.useCallback(() => {
-    setHovering(true);
-  }, []);
+    if (ui.sidebarIsClosed) {
+      setHovering(true);
+      setPointerMoved(true);
+    }
+  }, [ui.sidebarIsClosed]);
 
   const handlePointerLeave = React.useCallback(
     (ev) => {
-      setHovering(
-        ev.pageX < width &&
-          ev.pageX > 0 &&
-          ev.pageY < window.innerHeight &&
-          ev.pageY > 0
-      );
+      if (hasPointerMoved) {
+        setHovering(
+          ev.pageX < width &&
+            ev.pageX > 0 &&
+            ev.pageY < window.innerHeight &&
+            ev.pageY > 0
+        );
+      }
     },
-    [width]
+    [width, hasPointerMoved]
   );
+
+  React.useEffect(() => {
+    if (ui.sidebarIsClosed) {
+      setHovering(false);
+      setPointerMoved(false);
+    }
+  }, [ui.sidebarIsClosed]);
 
   React.useEffect(() => {
     if (isAnimating) {
