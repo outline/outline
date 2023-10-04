@@ -1,8 +1,5 @@
 import { buildUser, buildTeam } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
-
-setupTestDatabase();
 
 it("should serialize policy", async () => {
   const user = await buildUser();

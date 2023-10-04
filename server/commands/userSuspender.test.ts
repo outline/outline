@@ -1,9 +1,6 @@
 import GroupUser from "@server/models/GroupUser";
 import { buildGroup, buildAdmin, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import userSuspender from "./userSuspender";
-
-setupTestDatabase();
 
 describe("userSuspender", () => {
   const ip = "127.0.0.1";
@@ -59,6 +56,12 @@ describe("userSuspender", () => {
     });
     expect(user.suspendedAt).toBeTruthy();
     expect(user.suspendedById).toEqual(admin.id);
-    expect(await GroupUser.count()).toEqual(0);
+    expect(
+      await GroupUser.count({
+        where: {
+          userId: user.id,
+        },
+      })
+    ).toEqual(0);
   });
 });

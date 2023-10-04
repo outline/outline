@@ -80,7 +80,7 @@ const Note = styled(Text)`
   margin-bottom: 0;
   line-height: 1.2em;
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 500;
   color: ${s("textTertiary")};
 `;
 

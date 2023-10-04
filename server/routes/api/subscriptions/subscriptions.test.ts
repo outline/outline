@@ -54,7 +54,11 @@ describe("#subscriptions.create", () => {
     expect(res.status).toEqual(200);
     expect(body.ok).toEqual(true);
 
-    const events = await Event.findAll();
+    const events = await Event.findAll({
+      where: {
+        teamId: document.teamId,
+      },
+    });
 
     expect(events.length).toEqual(1);
     expect(events[0].name).toEqual("subscriptions.create");
@@ -625,7 +629,11 @@ describe("#subscriptions.delete", () => {
       },
     });
 
-    const events = await Event.findAll();
+    const events = await Event.findAll({
+      where: {
+        teamId: document.teamId,
+      },
+    });
 
     expect(events.length).toEqual(1);
     expect(events[0].name).toEqual("subscriptions.delete");

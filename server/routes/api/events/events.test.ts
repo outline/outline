@@ -1,11 +1,27 @@
-import { buildEvent, buildUser } from "@server/test/factories";
-import { seed, getTestServer } from "@server/test/support";
+import {
+  buildAdmin,
+  buildCollection,
+  buildDocument,
+  buildEvent,
+  buildUser,
+} from "@server/test/factories";
+import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
 describe("#events.list", () => {
   it("should only return activity events", async () => {
-    const { user, admin, document, collection } = await seed();
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
     // audit event
     await buildEvent({
       name: "users.promote",
@@ -33,7 +49,17 @@ describe("#events.list", () => {
   });
 
   it("should return audit events", async () => {
-    const { user, admin, document, collection } = await seed();
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
     // audit event
     const auditEvent = await buildEvent({
       name: "users.promote",
@@ -63,7 +89,17 @@ describe("#events.list", () => {
   });
 
   it("should allow filtering by actorId", async () => {
-    const { user, admin, document, collection } = await seed();
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
     // audit event
     const auditEvent = await buildEvent({
       name: "users.promote",
@@ -93,7 +129,17 @@ describe("#events.list", () => {
   });
 
   it("should allow filtering by documentId", async () => {
-    const { user, admin, document, collection } = await seed();
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
     const event = await buildEvent({
       name: "documents.publish",
       collectionId: collection.id,
@@ -114,7 +160,16 @@ describe("#events.list", () => {
   });
 
   it("should not return events for documentId without authorization", async () => {
-    const { user, document, collection } = await seed();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
     const actor = await buildUser();
     await buildEvent({
       name: "documents.publish",
@@ -135,7 +190,17 @@ describe("#events.list", () => {
   });
 
   it("should allow filtering by event name", async () => {
-    const { user, admin, document, collection } = await seed();
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
     // audit event
     await buildEvent({
       name: "users.promote",
@@ -164,7 +229,17 @@ describe("#events.list", () => {
   });
 
   it("should return events with deleted actors", async () => {
-    const { user, admin, document, collection } = await seed();
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
     // event viewable in activity stream
     const event = await buildEvent({
       name: "documents.publish",
@@ -186,7 +261,7 @@ describe("#events.list", () => {
   });
 
   it("should require authorization for audit events", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/events.list", {
       body: {
         token: user.getJwtToken(),

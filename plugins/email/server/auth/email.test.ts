@@ -1,7 +1,6 @@
-import sharedEnv from "@shared/env";
+import { faker } from "@faker-js/faker";
 import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
-import env from "@server/env";
 import { AuthenticationProvider } from "@server/models";
 import { buildUser, buildGuestUser, buildTeam } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -21,10 +20,15 @@ describe("email", () => {
 
   it("should respond with redirect location when user is SSO enabled", async () => {
     const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
-    const user = await buildUser();
+    const subdomain = faker.internet.domainWord();
+    const team = await buildTeam({ subdomain });
+    const user = await buildUser({ teamId: team.id });
     const res = await server.post("/auth/email", {
       body: {
         email: user.email,
+      },
+      headers: {
+        host: `${subdomain}.outline.dev`,
       },
     });
     const body = await res.json();
@@ -36,12 +40,9 @@ describe("email", () => {
 
   it("should respond with success and email to be sent when user has SSO but disabled", async () => {
     const spy = jest.spyOn(SigninEmail.prototype, "schedule");
-    const team = await buildTeam({
-      subdomain: "example",
-    });
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const subdomain = faker.internet.domainWord();
+    const team = await buildTeam({ subdomain });
+    const user = await buildUser({ teamId: team.id });
 
     // Disable all the auth providers
     await AuthenticationProvider.update(
@@ -50,6 +51,7 @@ describe("email", () => {
       },
       {
         where: {
+          teamId: team.id,
           enabled: true,
         },
       }
@@ -60,7 +62,7 @@ describe("email", () => {
         email: user.email,
       },
       headers: {
-        host: "example.outline.dev",
+        host: `${subdomain}.outline.dev`,
       },
     });
     const body = await res.json();
@@ -71,21 +73,16 @@ describe("email", () => {
   });
 
   it("should not send email when user is on another subdomain but respond with success", async () => {
-    env.URL = sharedEnv.URL = "https://app.outline.dev";
-    env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
-    env.DEPLOYMENT = "hosted";
-
     const user = await buildUser();
     const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
-    await buildTeam({
-      subdomain: "example",
-    });
+    const subdomain = faker.internet.domainWord();
+    await buildTeam({ subdomain });
     const res = await server.post("/auth/email", {
       body: {
         email: user.email,
       },
       headers: {
-        host: "example.outline.dev",
+        host: `${subdomain}.outline.dev`,
       },
     });
 
@@ -98,9 +95,8 @@ describe("email", () => {
 
   it("should respond with success and email to be sent when user is not SSO enabled", async () => {
     const spy = jest.spyOn(SigninEmail.prototype, "schedule");
-    const team = await buildTeam({
-      subdomain: "example",
-    });
+    const subdomain = faker.internet.domainWord();
+    const team = await buildTeam({ subdomain });
     const user = await buildGuestUser({
       teamId: team.id,
     });
@@ -109,7 +105,7 @@ describe("email", () => {
         email: user.email,
       },
       headers: {
-        host: "example.outline.dev",
+        host: `${subdomain}.outline.dev`,
       },
     });
     const body = await res.json();
@@ -121,15 +117,14 @@ describe("email", () => {
 
   it("should respond with success regardless of whether successful to prevent crawling email logins", async () => {
     const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
-    await buildTeam({
-      subdomain: "example",
-    });
+    const subdomain = faker.internet.domainWord();
+    await buildTeam({ subdomain });
     const res = await server.post("/auth/email", {
       body: {
         email: "user@example.com",
       },
       headers: {
-        host: "example.outline.dev",
+        host: `${subdomain}.outline.dev`,
       },
     });
     const body = await res.json();
@@ -138,14 +133,14 @@ describe("email", () => {
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
+
   describe("with multiple users matching email", () => {
     it("should default to current subdomain with SSO", async () => {
       const spy = jest.spyOn(SigninEmail.prototype, "schedule");
-      env.URL = sharedEnv.URL = "https://app.outline.dev";
-      env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
       const email = "sso-user@example.org";
+      const subdomain = faker.internet.domainWord();
       const team = await buildTeam({
-        subdomain: "example",
+        subdomain,
       });
       await buildGuestUser({
         email,
@@ -159,7 +154,7 @@ describe("email", () => {
           email,
         },
         headers: {
-          host: "example.outline.dev",
+          host: `${subdomain}.outline.dev`,
         },
       });
       const body = await res.json();
@@ -171,11 +166,10 @@ describe("email", () => {
 
     it("should default to current subdomain with guest email", async () => {
       const spy = jest.spyOn(SigninEmail.prototype, "schedule");
-      env.URL = sharedEnv.URL = "https://app.outline.dev";
-      env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
       const email = "guest-user@example.org";
+      const subdomain = faker.internet.domainWord();
       const team = await buildTeam({
-        subdomain: "example",
+        subdomain,
       });
       await buildUser({
         email,
@@ -189,7 +183,7 @@ describe("email", () => {
           email,
         },
         headers: {
-          host: "example.outline.dev",
+          host: `${subdomain}.outline.dev`,
         },
       });
       const body = await res.json();
@@ -202,8 +196,9 @@ describe("email", () => {
     it("should default to custom domain with SSO", async () => {
       const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
       const email = "sso-user-2@example.org";
+      const domain = faker.internet.domainName();
       const team = await buildTeam({
-        domain: "docs.mycompany.com",
+        domain,
       });
       await buildGuestUser({
         email,
@@ -217,7 +212,7 @@ describe("email", () => {
           email,
         },
         headers: {
-          host: "docs.mycompany.com",
+          host: domain,
         },
       });
       const body = await res.json();
@@ -230,8 +225,9 @@ describe("email", () => {
     it("should default to custom domain with guest email", async () => {
       const spy = jest.spyOn(SigninEmail.prototype, "schedule");
       const email = "guest-user-2@example.org";
+      const domain = faker.internet.domainName();
       const team = await buildTeam({
-        domain: "docs.mycompany.com",
+        domain,
       });
       await buildUser({
         email,
@@ -245,7 +241,7 @@ describe("email", () => {
           email,
         },
         headers: {
-          host: "docs.mycompany.com",
+          host: domain,
         },
       });
       const body = await res.json();

@@ -1,11 +1,7 @@
-import { CollectionPermission } from "@shared/types";
-import { CollectionUser } from "@server/models";
-import { UserRole } from "@server/models/User";
+import { CollectionPermission, UserRole } from "@shared/types";
+import { UserPermission } from "@server/models";
 import { buildUser, buildAdmin, buildCollection } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import userDemoter from "./userDemoter";
-
-setupTestDatabase();
 
 describe("userDemoter", () => {
   const ip = "127.0.0.1";
@@ -15,7 +11,7 @@ describe("userDemoter", () => {
     const user = await buildUser({ teamId: admin.teamId });
     const collection = await buildCollection({ teamId: admin.teamId });
 
-    const membership = await CollectionUser.create({
+    const membership = await UserPermission.create({
       createdById: admin.id,
       userId: user.id,
       collectionId: collection.id,

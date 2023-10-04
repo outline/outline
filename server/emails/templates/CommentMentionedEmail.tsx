@@ -3,7 +3,7 @@ import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import env from "@server/env";
-import { Collection, Comment, Document, User } from "@server/models";
+import { Collection, Comment, Document } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
@@ -42,7 +42,8 @@ export default class CommentMentionedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({ documentId, commentId, userId }: InputProps) {
+  protected async beforeSend(props: InputProps) {
+    const { documentId, commentId } = props;
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
       return false;
@@ -86,11 +87,15 @@ export default class CommentMentionedEmail extends BaseEmail<
       document,
       collection,
       body,
-      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        await User.findByPk(userId, { rejectOnEmpty: true }),
-        NotificationEventType.MentionedInComment
-      ),
+      unsubscribeUrl: this.unsubscribeUrl(props),
     };
+  }
+
+  protected unsubscribeUrl({ userId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      userId,
+      NotificationEventType.MentionedInComment
+    );
   }
 
   protected subject({ actorName, document }: Props) {
@@ -121,26 +126,30 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 `;
   }
 
-  protected render({
-    document,
-    collection,
-    actorName,
-    teamUrl,
-    commentId,
-    unsubscribeUrl,
-    body,
-  }: Props) {
-    const link = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
+  protected render(props: Props) {
+    const {
+      document,
+      collection,
+      actorName,
+      teamUrl,
+      commentId,
+      unsubscribeUrl,
+      body,
+    } = props;
+    const threadLink = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
 
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview(props)}
+        goToAction={{ url: threadLink, name: "View Thread" }}
+      >
         <Header />
 
         <Body>
           <Heading>{document.title}</Heading>
           <p>
             {actorName} mentioned you in a comment on{" "}
-            <a href={link}>{document.title}</a>{" "}
+            <a href={threadLink}>{document.title}</a>{" "}
             {collection.name ? `in the ${collection.name} collection` : ""}.
           </p>
           {body && (
@@ -153,7 +162,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
             </>
           )}
           <p>
-            <Button href={link}>Open Thread</Button>
+            <Button href={threadLink}>Open Thread</Button>
           </p>
         </Body>
 

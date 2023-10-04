@@ -1,10 +1,16 @@
 import Token from "markdown-it/lib/token";
 import { InputRule } from "prosemirror-inputrules";
 import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
-import { NodeSelection, Plugin, Command } from "prosemirror-state";
+import {
+  NodeSelection,
+  Plugin,
+  Command,
+  TextSelection,
+} from "prosemirror-state";
 import * as React from "react";
 import { sanitizeUrl } from "../../utils/urls";
-import { default as ImageComponent, Caption } from "../components/Image";
+import Caption from "../components/Caption";
+import ImageComponent from "../components/Image";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
@@ -215,13 +221,58 @@ export default class Image extends SimpleImage {
       void downloadImageNode(node);
     };
 
-  // Ensure only plain text can be pasted into input when pasting from another
-  // rich text source.
-  handlePaste = (event: React.ClipboardEvent<HTMLSpanElement>) => {
-    event.preventDefault();
-    const text = event.clipboardData.getData("text/plain");
-    window.document.execCommand("insertText", false, text);
-  };
+  handleCaptionKeyDown =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    (event: React.KeyboardEvent<HTMLParagraphElement>) => {
+      // Pressing Enter in the caption field should move the cursor/selection
+      // below the image and create a new paragraph.
+      if (event.key === "Enter") {
+        event.preventDefault();
+
+        const { view } = this.editor;
+        const $pos = view.state.doc.resolve(getPos() + node.nodeSize);
+        view.dispatch(
+          view.state.tr
+            .setSelection(TextSelection.near($pos))
+            .split($pos.pos)
+            .scrollIntoView()
+        );
+        view.focus();
+        return;
+      }
+
+      // Pressing Backspace in an an empty caption field focused the image.
+      if (event.key === "Backspace" && event.currentTarget.innerText === "") {
+        event.preventDefault();
+        event.stopPropagation();
+        const { view } = this.editor;
+        const $pos = view.state.doc.resolve(getPos());
+        const tr = view.state.tr.setSelection(new NodeSelection($pos));
+        view.dispatch(tr);
+        view.focus();
+        return;
+      }
+    };
+
+  handleCaptionBlur =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    (event: React.FocusEvent<HTMLParagraphElement>) => {
+      const caption = event.currentTarget.innerText;
+      if (caption === node.attrs.alt) {
+        return;
+      }
+
+      const { view } = this.editor;
+      const { tr } = view.state;
+
+      // update meta on object
+      const pos = getPos();
+      const transaction = tr.setNodeMarkup(pos, undefined, {
+        ...node.attrs,
+        alt: caption,
+      });
+      view.dispatch(transaction);
+    };
 
   component = (props: ComponentProps) => (
     <ImageComponent
@@ -231,16 +282,10 @@ export default class Image extends SimpleImage {
       onChangeSize={this.handleChangeSize(props)}
     >
       <Caption
-        onPaste={this.handlePaste}
-        onKeyDown={this.handleKeyDown(props)}
-        onBlur={this.handleBlur(props)}
-        onMouseDown={this.handleMouseDown}
-        className="caption"
-        tabIndex={-1}
-        role="textbox"
-        contentEditable
-        suppressContentEditableWarning
-        data-caption={this.options.dictionary.imageCaptionPlaceholder}
+        onBlur={this.handleCaptionBlur(props)}
+        onKeyDown={this.handleCaptionKeyDown(props)}
+        isSelected={props.isSelected}
+        placeholder={this.options.dictionary.imageCaptionPlaceholder}
       >
         {props.node.attrs.alt}
       </Caption>

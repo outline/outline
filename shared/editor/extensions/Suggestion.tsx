@@ -1,6 +1,6 @@
 import { InputRule } from "prosemirror-inputrules";
 import { NodeType, Schema } from "prosemirror-model";
-import { Plugin } from "prosemirror-state";
+import { EditorState, Plugin } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
 import Extension from "../lib/Extension";
 import { SuggestionsMenuPlugin } from "../plugins/Suggestions";
@@ -12,11 +12,33 @@ export default class Suggestion extends Extension {
     return [new SuggestionsMenuPlugin(this.editor, this.options)];
   }
 
+  keys() {
+    return {
+      Backspace: (state: EditorState) => {
+        const textBeforeCursor = state.doc.textBetween(
+          0,
+          Math.max(0, state.selection.from - 1)
+        );
+
+        if (this.options.openRegex.test(textBeforeCursor)) {
+          return false;
+        }
+
+        this.editor.events.emit(
+          EventType.SuggestionsMenuClose,
+          this.options.type
+        );
+        return false;
+      },
+    };
+  }
+
   inputRules = (_options: { type: NodeType; schema: Schema }) => [
     new InputRule(this.options.openRegex, (state, match) => {
+      const { parent } = state.selection.$from;
       if (
         match &&
-        state.selection.$from.parent.type.name === "paragraph" &&
+        (parent.type.name === "paragraph" || parent.type.name === "heading") &&
         (!isInCode(state) || this.options.enabledInCode) &&
         (!isInTable(state) || this.options.enabledInTable)
       ) {

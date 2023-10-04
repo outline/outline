@@ -47,6 +47,7 @@ import Spotify from "./Spotify";
 import Tldraw from "./Tldraw";
 import Trello from "./Trello";
 import Typeform from "./Typeform";
+import Valtown from "./Valtown";
 import Vimeo from "./Vimeo";
 import Whimsical from "./Whimsical";
 import YouTube from "./YouTube";
@@ -367,9 +368,9 @@ const embeds: EmbedDescriptor[] = [
     component: Spotify,
   }),
   new EmbedDescriptor({
-    title: "Tldraw (beta)",
+    title: "Tldraw",
     keywords: "draw schematics diagrams",
-    icon: <Img src="/images/tldraw.png" alt="Tldraw (beta)" />,
+    icon: <Img src="/images/tldraw.png" alt="Tldraw" />,
     component: Tldraw,
   }),
   new EmbedDescriptor({
@@ -383,6 +384,12 @@ const embeds: EmbedDescriptor[] = [
     keywords: "form survey",
     icon: <Img src="/images/typeform.png" alt="Typeform" />,
     component: Typeform,
+  }),
+  new EmbedDescriptor({
+    title: "Valtown",
+    keywords: "code",
+    icon: <Img src="/images/valtown.png" alt="Valtown" />,
+    component: Valtown,
   }),
   new EmbedDescriptor({
     title: "Vimeo",

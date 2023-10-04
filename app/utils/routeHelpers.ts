@@ -11,10 +11,6 @@ export function draftsPath(): string {
   return "/drafts";
 }
 
-export function templatesPath(): string {
-  return "/templates";
-}
-
 export function archivePath(): string {
   return "/archive";
 }
@@ -50,22 +46,22 @@ export function updateCollectionPath(
 }
 
 export function documentPath(doc: Document): string {
-  return doc.url;
+  return doc.path;
 }
 
 export function documentEditPath(doc: Document): string {
-  return `${doc.url}/edit`;
+  return `${documentPath(doc)}/edit`;
 }
 
 export function documentInsightsPath(doc: Document): string {
-  return `${doc.url}/insights`;
+  return `${documentPath(doc)}/insights`;
 }
 
 export function documentHistoryPath(
   doc: Document,
   revisionId?: string
 ): string {
-  let base = `${doc.url}/history`;
+  let base = `${documentPath(doc)}/history`;
   if (revisionId) {
     base += `/${revisionId}`;
   }
@@ -84,12 +80,15 @@ export function updateDocumentPath(oldUrl: string, document: Document): string {
   );
 }
 
+export function newTemplatePath(collectionId: string) {
+  return settingsPath("templates") + `/new?collectionId=${collectionId}`;
+}
+
 export function newDocumentPath(
   collectionId?: string | null,
   params: {
     parentDocumentId?: string;
     templateId?: string;
-    template?: boolean;
   } = {}
 ): string {
   return collectionId

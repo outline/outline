@@ -5,12 +5,14 @@ import { UserPreferenceDefaults } from "@shared/constants";
 import {
   NotificationEventDefaults,
   NotificationEventType,
+  TeamPreference,
   UserPreference,
   UserPreferences,
+  UserRole,
 } from "@shared/types";
-import type { Role, NotificationSettings } from "@shared/types";
+import type { NotificationSettings } from "@shared/types";
 import { client } from "~/utils/ApiClient";
-import ParanoidModel from "./ParanoidModel";
+import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 
 class User extends ParanoidModel {
@@ -42,14 +44,19 @@ class User extends ParanoidModel {
   @observable
   notificationSettings: NotificationSettings;
 
+  @observable
   email: string;
 
+  @observable
   isAdmin: boolean;
 
+  @observable
   isViewer: boolean;
 
+  @observable
   lastActiveAt: string;
 
+  @observable
   isSuspended: boolean;
 
   @computed
@@ -74,14 +81,30 @@ class User extends ParanoidModel {
   }
 
   @computed
-  get role(): Role {
+  get role(): UserRole {
     if (this.isAdmin) {
-      return "admin";
+      return UserRole.Admin;
     } else if (this.isViewer) {
-      return "viewer";
+      return UserRole.Viewer;
     } else {
-      return "member";
+      return UserRole.Member;
     }
+  }
+
+  /**
+   * Returns whether this user is using a separate editing mode behind an "Edit"
+   * button rather than seamless always-editing.
+   *
+   * @returns True if editing mode is seamless (no button)
+   */
+  @computed
+  get separateEditMode(): boolean {
+    return !this.getPreference(
+      UserPreference.SeamlessEdit,
+      this.store.rootStore.auth?.team?.getPreference(
+        TeamPreference.SeamlessEdit
+      )
+    );
   }
 
   /**
@@ -129,8 +152,10 @@ class User extends ParanoidModel {
    * @param key The UserPreference key to retrieve
    * @returns The value
    */
-  getPreference(key: UserPreference): boolean {
-    return this.preferences?.[key] ?? UserPreferenceDefaults[key] ?? false;
+  getPreference(key: UserPreference, defaultValue = false): boolean {
+    return (
+      this.preferences?.[key] ?? UserPreferenceDefaults[key] ?? defaultValue
+    );
   }
 
   /**

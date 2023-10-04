@@ -34,7 +34,7 @@ const teamUpdater = async ({
     preferences,
   } = params;
 
-  if (subdomain !== undefined && env.SUBDOMAINS_ENABLED) {
+  if (subdomain !== undefined && env.isCloudHosted) {
     team.subdomain = subdomain === "" ? null : subdomain;
   }
 

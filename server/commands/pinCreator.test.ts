@@ -1,9 +1,6 @@
 import { Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import pinCreator from "./pinCreator";
-
-setupTestDatabase();
 
 describe("pinCreator", () => {
   const ip = "127.0.0.1";
@@ -21,7 +18,9 @@ describe("pinCreator", () => {
       ip,
     });
 
-    const event = await Event.findOne();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
     expect(pin.documentId).toEqual(document.id);
     expect(pin.collectionId).toEqual(null);
     expect(pin.createdById).toEqual(user.id);
@@ -44,7 +43,9 @@ describe("pinCreator", () => {
       ip,
     });
 
-    const event = await Event.findOne();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
     expect(pin.documentId).toEqual(document.id);
     expect(pin.collectionId).toEqual(document.collectionId);
     expect(pin.createdById).toEqual(user.id);

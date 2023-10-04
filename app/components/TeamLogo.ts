@@ -4,7 +4,8 @@ import Avatar from "./Avatar";
 
 const TeamLogo = styled(Avatar)`
   border-radius: 4px;
-  border: 1px solid ${s("divider")};
+  box-shadow: inset 0 0 0 1px ${s("divider")};
+  border: 0;
 `;
 
 export default TeamLogo;

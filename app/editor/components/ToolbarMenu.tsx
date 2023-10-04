@@ -17,12 +17,6 @@ type Props = {
   items: MenuItem[];
 };
 
-const FlexibleWrapper = styled.div`
-  color: ${s("textSecondary")};
-  display: flex;
-  gap: 8px;
-`;
-
 /*
  * Renders a dropdown menu in the floating toolbar.
  */
@@ -119,6 +113,13 @@ function ToolbarMenu(props: Props) {
     </FlexibleWrapper>
   );
 }
+
+const FlexibleWrapper = styled.div`
+  color: ${s("textSecondary")};
+  overflow: hidden;
+  display: flex;
+  gap: 8px;
+`;
 
 const Arrow = styled(ExpandedIcon)`
   margin-right: -4px;

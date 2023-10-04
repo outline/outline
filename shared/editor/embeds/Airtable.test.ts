@@ -5,6 +5,14 @@ describe("Airtable", () => {
 
   test("to be enabled on share link", () => {
     expect("https://airtable.com/shrEoQs3erLnppMie".match(match)).toBeTruthy();
+    expect(
+      "https://airtable.com/shrEoQs3erLnppMie/tbl232i54yebXpr1J".match(match)
+    ).toBeTruthy();
+    expect(
+      "https://airtable.com/app0lrLlMprqMbz11/shrEoQs3erLnppMie/tbl232i54yebXpr1J".match(
+        match
+      )
+    ).toBeTruthy();
   });
 
   test("to be enabled on embed link", () => {

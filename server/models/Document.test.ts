@@ -1,3 +1,4 @@
+import slugify from "@shared/utils/slugify";
 import Document from "@server/models/Document";
 import {
   buildDocument,
@@ -6,10 +7,6 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
-import { setupTestDatabase, seed } from "@server/test/support";
-import slugify from "@server/utils/slugify";
-
-setupTestDatabase();
 
 beforeEach(() => {
   jest.resetAllMocks();
@@ -116,9 +113,7 @@ describe("#save", () => {
 describe("#getChildDocumentIds", () => {
   test("should return empty array if no children", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       userId: user.id,
       teamId: team.id,
@@ -135,9 +130,7 @@ describe("#getChildDocumentIds", () => {
 
   test("should return nested child document ids", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       userId: user.id,
       teamId: team.id,
@@ -171,14 +164,14 @@ describe("#getChildDocumentIds", () => {
 
 describe("#findByPk", () => {
   test("should return document when urlId is correct", async () => {
-    const { document } = await seed();
+    const document = await buildDocument();
     const id = `${slugify(document.title)}-${document.urlId}`;
     const response = await Document.findByPk(id);
     expect(response?.id).toBe(document.id);
   });
 
   test("should return document when urlId is given without the slug prefix", async () => {
-    const { document } = await seed();
+    const document = await buildDocument();
     const id = document.urlId;
     const response = await Document.findByPk(id);
     expect(response?.id).toBe(document.id);

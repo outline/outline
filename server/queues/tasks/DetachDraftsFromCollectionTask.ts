@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import documentMover from "@server/commands/documentMover";
-import { sequelize } from "@server/database/sequelize";
 import { Collection, Document, User } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import BaseTask from "./BaseTask";
 
 type Props = {

@@ -2,7 +2,7 @@ import { m } from "framer-motion";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
-import { depths, s } from "@shared/styles";
+import { depths } from "@shared/styles";
 import { UnfurlType } from "@shared/types";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import useEventListener from "~/hooks/useEventListener";
@@ -17,15 +17,23 @@ import HoverPreviewDocument from "./HoverPreviewDocument";
 import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
 
-const DELAY_OPEN = 300;
+const DELAY_OPEN = 500;
 const DELAY_CLOSE = 600;
 
 type Props = {
-  /* The HTML element that is being hovered over */
+  /** The HTML element that is being hovered over */
   element: HTMLAnchorElement;
-  /* A callback on close of the hover preview */
+  /** A callback on close of the hover preview */
   onClose: () => void;
 };
+
+enum Direction {
+  UP,
+  DOWN,
+}
+
+const POINTER_HEIGHT = 22;
+const POINTER_WIDTH = 22;
 
 function HoverPreviewInternal({ element, onClose }: Props) {
   const url = element.href || element.dataset.url;
@@ -36,31 +44,46 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   const stores = useStores();
   const [cardLeft, setCardLeft] = React.useState(0);
   const [cardTop, setCardTop] = React.useState(0);
-  const [pointerOffset, setPointerOffset] = React.useState(0);
+  const [pointerLeft, setPointerLeft] = React.useState(0);
+  const [pointerTop, setPointerTop] = React.useState(0);
+  const [pointerDir, setPointerDir] = React.useState(Direction.UP);
 
   React.useLayoutEffect(() => {
     if (isVisible && cardRef.current) {
       const elem = element.getBoundingClientRect();
       const card = cardRef.current.getBoundingClientRect();
 
-      const top = elem.bottom + window.scrollY;
-      setCardTop(top);
+      let cTop = elem.bottom + window.scrollY + CARD_MARGIN;
+      let pTop = -POINTER_HEIGHT;
+      let pDir = Direction.UP;
+      if (cTop + card.height > window.innerHeight + window.scrollY) {
+        // shift card upwards if it goes out of screen
+        const bottom = elem.top + window.scrollY;
+        cTop = bottom - card.height;
+        // shift a little further to leave some margin between card and element boundary
+        cTop -= CARD_MARGIN;
+        // pointer should be shifted downwards to align with card's bottom
+        pTop = card.height;
+        pDir = Direction.DOWN;
+      }
+      setCardTop(cTop);
+      setPointerTop(pTop);
+      setPointerDir(pDir);
 
-      let left = elem.left;
-      let pointerOffset = elem.width / 2;
-      if (left + card.width > window.innerWidth) {
+      let cLeft = elem.left;
+      let pLeft = elem.width / 2;
+      if (cLeft + card.width > window.innerWidth) {
         // shift card leftwards by the amount it went out of screen
-        let shiftBy = left + card.width - window.innerWidth;
-        // shift a littler further to leave some margin between card and window boundary
+        let shiftBy = cLeft + card.width - window.innerWidth;
+        // shift a little further to leave some margin between card and window boundary
         shiftBy += CARD_MARGIN;
-        left -= shiftBy;
+        cLeft -= shiftBy;
 
         // shift pointer rightwards by same amount so as to position it back correctly
-        pointerOffset += shiftBy;
+        pLeft += shiftBy;
       }
-      setCardLeft(left);
-
-      setPointerOffset(pointerOffset);
+      setCardLeft(cLeft);
+      setPointerLeft(pLeft);
     }
   }, [isVisible, element]);
 
@@ -103,18 +126,18 @@ function HoverPreviewInternal({ element, onClose }: Props) {
   useKeyDown("Escape", closePreview);
   useEventListener("scroll", closePreview, window, { capture: true });
 
-  const stopCloseTimer = () => {
+  const stopCloseTimer = React.useCallback(() => {
     if (timerClose.current) {
       clearTimeout(timerClose.current);
       timerClose.current = undefined;
     }
-  };
+  }, []);
 
-  const startOpenTimer = () => {
+  const startOpenTimer = React.useCallback(() => {
     if (!timerOpen.current) {
       timerOpen.current = setTimeout(() => setVisible(true), DELAY_OPEN);
     }
-  };
+  }, []);
 
   const startCloseTimer = React.useCallback(() => {
     stopOpenTimer();
@@ -149,7 +172,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
 
       stopCloseTimer();
     };
-  }, [element, startCloseTimer, data]);
+  }, [element, startCloseTimer, data, startOpenTimer, stopCloseTimer]);
 
   if (loading) {
     return <LoadingIndicator />;
@@ -193,7 +216,11 @@ function HoverPreviewInternal({ element, onClose }: Props) {
                 description={data.description}
               />
             )}
-            <Pointer offset={pointerOffset} />
+            <Pointer
+              top={pointerTop}
+              left={pointerLeft}
+              direction={pointerDir}
+            />
           </Animate>
         ) : null}
       </Position>
@@ -217,7 +244,6 @@ const Animate = styled(m.div)`
 `;
 
 const Position = styled.div<{ fixed?: boolean; top?: number; left?: number }>`
-  margin-top: 10px;
   position: ${({ fixed }) => (fixed ? "fixed" : "absolute")};
   z-index: ${depths.hoverPreview};
   display: flex;
@@ -227,11 +253,11 @@ const Position = styled.div<{ fixed?: boolean; top?: number; left?: number }>`
   ${({ left }) => (left !== undefined ? `left: ${left}px` : "")};
 `;
 
-const Pointer = styled.div<{ offset: number }>`
-  top: -22px;
-  left: ${(props) => props.offset}px;
-  width: 22px;
-  height: 22px;
+const Pointer = styled.div<{ top: number; left: number; direction: Direction }>`
+  top: ${(props) => props.top}px;
+  left: ${(props) => props.left}px;
+  width: ${POINTER_WIDTH}px;
+  height: ${POINTER_HEIGHT}px;
   position: absolute;
   transform: translateX(-50%);
   pointer-events: none;
@@ -241,20 +267,26 @@ const Pointer = styled.div<{ offset: number }>`
     content: "";
     display: inline-block;
     position: absolute;
-    bottom: 0;
-    right: 0;
+    ${({ direction }) => (direction === Direction.UP ? "bottom: 0" : "top: 0")};
+    ${({ direction }) => (direction === Direction.UP ? "right: 0" : "left: 0")};
   }
 
   &:before {
     border: 8px solid transparent;
-    border-bottom-color: ${(props) =>
-      props.theme.menuBorder || "rgba(0, 0, 0, 0.1)"};
-    right: -1px;
+    ${({ direction, theme }) =>
+      direction === Direction.UP
+        ? `border-bottom-color: ${theme.menuBorder || "rgba(0, 0, 0, 0.1)"}`
+        : `border-top-color: ${theme.menuBorder || "rgba(0, 0, 0, 0.1)"}`};
+    ${({ direction }) =>
+      direction === Direction.UP ? "right: -1px" : "left: -1px"};
   }
 
   &:after {
     border: 7px solid transparent;
-    border-bottom-color: ${s("menuBackground")};
+    ${({ direction, theme }) =>
+      direction === Direction.UP
+        ? `border-bottom-color: ${theme.menuBackground}`
+        : `border-top-color: ${theme.menuBackground}`};
   }
 `;
 

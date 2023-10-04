@@ -1,6 +1,6 @@
 import * as React from "react";
-import useDebouncedCallback from "./useDebouncedCallback";
 import useEventListener from "./useEventListener";
+import useThrottledCallback from "./useThrottledCallback";
 
 /**
  * A debounced hook that listens to the window resize event and returns the
@@ -14,22 +14,25 @@ export default function useWindowSize() {
     height: window.innerHeight,
   });
 
-  const handleResize = useDebouncedCallback(() => {
-    if (
-      window.innerWidth !== windowSize.width ||
-      window.innerHeight !== windowSize.height
-    ) {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    }
+  const handleResize = useThrottledCallback(() => {
+    setWindowSize((state) => {
+      if (
+        window.innerWidth === state.width &&
+        window.innerHeight === state.height
+      ) {
+        return state;
+      }
+
+      return { width: window.innerWidth, height: window.innerHeight };
+    });
   }, 100);
 
   useEventListener("resize", handleResize);
 
   // Call handler right away so state gets updated with initial window size
-  handleResize();
+  React.useEffect(() => {
+    handleResize();
+  }, [handleResize]);
 
   return windowSize;
 }

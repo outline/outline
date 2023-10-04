@@ -1,12 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
 import { Team } from "@server/models";
-import { uploadToS3FromUrl } from "@server/utils/s3";
+import { Buckets } from "@server/models/helpers/AttachmentHelper";
+import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
-  /* The teamId to operate on */
+  /** The teamId to operate on */
   teamId: string;
-  /* The original avatarUrl from the SSO provider */
+  /** The original avatarUrl from the SSO provider */
   avatarUrl: string;
 };
 
@@ -20,14 +21,14 @@ export default class UploadTeamAvatarTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
-    const avatarUrl = await uploadToS3FromUrl(
+    const res = await FileStorage.storeFromUrl(
       props.avatarUrl,
-      `avatars/${team.id}/${uuidv4()}`,
+      `${Buckets.avatars}/${team.id}/${uuidv4()}`,
       "public-read"
     );
 
-    if (avatarUrl) {
-      await team.update({ avatarUrl });
+    if (res?.url) {
+      await team.update({ avatarUrl: res.url });
     }
   }
 

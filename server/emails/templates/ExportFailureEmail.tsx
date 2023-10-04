@@ -1,6 +1,5 @@
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
-import { User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
@@ -11,27 +10,36 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type Props = EmailProps & {
+type InputProps = EmailProps & {
   userId: string;
   teamUrl: string;
   teamId: string;
 };
 
-type BeforeSendProps = {
+type BeforeSend = {
   unsubscribeUrl: string;
 };
+
+type Props = InputProps & BeforeSend;
 
 /**
  * Email sent to a user when their data export has failed for some reason.
  */
-export default class ExportFailureEmail extends BaseEmail<Props> {
-  protected async beforeSend({ userId }: Props) {
+export default class ExportFailureEmail extends BaseEmail<
+  InputProps,
+  BeforeSend
+> {
+  protected async beforeSend(props: InputProps) {
     return {
-      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        await User.findByPk(userId, { rejectOnEmpty: true }),
-        NotificationEventType.ExportCompleted
-      ),
+      unsubscribeUrl: this.unsubscribeUrl(props),
     };
+  }
+
+  protected unsubscribeUrl({ userId }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(
+      userId,
+      NotificationEventType.ExportCompleted
+    );
   }
 
   protected subject() {
@@ -51,26 +59,24 @@ section to try again – if the problem persists please contact support.
 `;
   }
 
-  protected render({ teamUrl, unsubscribeUrl }: Props & BeforeSendProps) {
+  protected render({ teamUrl, unsubscribeUrl }: Props) {
+    const exportLink = `${teamUrl}/settings/export`;
+
     return (
-      <EmailTemplate>
+      <EmailTemplate previewText={this.preview()}>
         <Header />
         <Body>
           <Heading>Your Data Export</Heading>
           <p>
             Sorry, your requested data export has failed, please visit the{" "}
-            <a
-              href={`${teamUrl}/settings/export`}
-              rel="noreferrer"
-              target="_blank"
-            >
+            <a href={exportLink} rel="noreferrer" target="_blank">
               admin section
             </a>
             . to try again – if the problem persists please contact support.
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}/settings/export`}>Go to export</Button>
+            <Button href={exportLink}>Go to export</Button>
           </p>
         </Body>
         <Footer unsubscribeUrl={unsubscribeUrl} />

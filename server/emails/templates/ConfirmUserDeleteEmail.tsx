@@ -35,7 +35,7 @@ Code: ${deleteConfirmationCode}
 
   protected render({ deleteConfirmationCode }: Props) {
     return (
-      <EmailTemplate>
+      <EmailTemplate previewText={this.preview()}>
         <Header />
 
         <Body>

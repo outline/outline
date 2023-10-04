@@ -12,7 +12,7 @@ import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
 import { NotFoundError, OfflineError } from "~/utils/errors";
 import history from "~/utils/history";
-import { matchDocumentEdit } from "~/utils/routeHelpers";
+import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
 import Loading from "./Loading";
 
 type Params = {
@@ -71,8 +71,9 @@ function DataLoader({ match, children }: Props) {
   const sharedTree = document
     ? documents.getSharedTree(document.id)
     : undefined;
-  const isEditRoute = match.path === matchDocumentEdit;
-  const isEditing = isEditRoute || !!auth.team?.seamlessEditing;
+  const isEditRoute =
+    match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
+  const isEditing = isEditRoute || !auth.user?.separateEditMode;
   const can = usePolicy(document?.id);
   const location = useLocation<LocationState>();
 

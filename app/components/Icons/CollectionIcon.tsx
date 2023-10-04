@@ -39,7 +39,11 @@ function ResolvedCollectionIcon({
   if (collection.icon && collection.icon !== "collection") {
     try {
       const Component = icons[collection.icon].component;
-      return <Component color={color} size={size} />;
+      return (
+        <Component color={color} size={size}>
+          {collection.initial}
+        </Component>
+      );
     } catch (error) {
       Logger.warn("Failed to render custom icon", {
         icon: collection.icon,

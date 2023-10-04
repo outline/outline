@@ -1,9 +1,6 @@
 import { Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import commentCreator from "./commentCreator";
-
-setupTestDatabase();
 
 describe("commentCreator", () => {
   const ip = "127.0.0.1";
@@ -35,7 +32,9 @@ describe("commentCreator", () => {
       ip,
     });
 
-    const event = await Event.findOne();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
     expect(comment.documentId).toEqual(document.id);
     expect(comment.createdById).toEqual(user.id);
     expect(event!.name).toEqual("comments.create");

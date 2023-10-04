@@ -10,8 +10,8 @@ import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
 import { DocumentValidation } from "@shared/validations";
-import BaseStore from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
+import Store from "~/stores/base/Store";
 import Document from "~/models/Document";
 import env from "~/env";
 import { FetchOptions, PaginationParams, SearchResult } from "~/types";
@@ -38,7 +38,7 @@ type ImportOptions = {
   publish?: boolean;
 };
 
-export default class DocumentsStore extends BaseStore<Document> {
+export default class DocumentsStore extends Store<Document> {
   sharedCache: Map<
     string,
     { sharedTree: NavigationNode; team: PublicTeam } | undefined
@@ -574,7 +574,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     invariant(res?.data, "Data should be available");
     const collection = this.getCollectionForDocument(document);
     if (collection) {
-      collection.refresh();
+      await collection.refresh();
     }
     this.addPolicies(res.policies);
     return this.add(res.data);
@@ -661,7 +661,8 @@ export default class DocumentsStore extends BaseStore<Document> {
   async update(
     params: {
       id: string;
-      title: string;
+      title?: string;
+      emoji?: string | null;
       text?: string;
       fullWidth?: boolean;
       templateId?: string;
@@ -685,7 +686,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.addPolicies(res.policies);
       const document = this.add(res.data.document);
       const collection = this.getCollectionForDocument(document);
-      collection?.updateFromJson(res.data.collection);
+      collection?.updateData(res.data.collection);
       return document;
     } finally {
       this.isSaving = false;
@@ -710,7 +711,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     const collection = this.getCollectionForDocument(document);
     if (collection) {
-      collection.refresh();
+      await collection.refresh();
     }
   }
 
@@ -721,12 +722,12 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
     runInAction("Document#archive", () => {
       invariant(res?.data, "Data should be available");
-      document.updateFromJson(res.data);
+      document.updateData(res.data);
       this.addPolicies(res.policies);
     });
     const collection = this.getCollectionForDocument(document);
     if (collection) {
-      collection.refresh();
+      await collection.refresh();
     }
   };
 
@@ -745,12 +746,12 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
     runInAction("Document#restore", () => {
       invariant(res?.data, "Data should be available");
-      document.updateFromJson(res.data);
+      document.updateData(res.data);
       this.addPolicies(res.policies);
     });
     const collection = this.getCollectionForDocument(document);
     if (collection) {
-      collection.refresh();
+      await collection.refresh();
     }
   };
 
@@ -763,9 +764,9 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     runInAction("Document#unpublish", () => {
       invariant(res?.data, "Data should be available");
-      document.updateFromJson(res.data.document);
+      document.updateData(res.data.document);
       const collection = this.getCollectionForDocument(document);
-      collection?.updateFromJson(res.data.collection);
+      collection?.updateData(res.data.collection);
       this.addPolicies(res.policies);
     });
   };

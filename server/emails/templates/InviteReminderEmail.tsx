@@ -49,8 +49,9 @@ If you haven't signed up yet, you can do so here: ${teamUrl}
   }
 
   protected render({ teamName, actorName, actorEmail, teamUrl }: Props) {
+    const inviteLink = `${teamUrl}?ref=invite-reminder-email`;
     return (
-      <EmailTemplate>
+      <EmailTemplate previewText={this.preview()}>
         <Header />
 
         <Body>
@@ -66,9 +67,7 @@ If you haven't signed up yet, you can do so here: ${teamUrl}
           <p>If you haven't signed up yet, you can do so here:</p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}?ref=invite-reminder-email`}>
-              Join now
-            </Button>
+            <Button href={inviteLink}>Join now</Button>
           </p>
         </Body>
 

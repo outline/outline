@@ -49,11 +49,7 @@ import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import DelayedMount from "./DelayedMount";
-
-const style = {
-  width: 30,
-  height: 30,
-};
+import LetterIcon from "./Icons/LetterIcon";
 
 const TwitterPicker = lazyWithRetry(
   () => import("react-color/lib/components/twitter/Twitter")
@@ -136,6 +132,10 @@ export const icons = {
     component: LightningIcon,
     keywords: "lightning fast zap",
   },
+  letter: {
+    component: LetterIcon,
+    keywords: "letter",
+  },
   math: {
     component: MathIcon,
     keywords: "math formula",
@@ -206,11 +206,19 @@ type Props = {
   onOpen?: () => void;
   onClose?: () => void;
   onChange: (color: string, icon: string) => void;
+  initial: string;
   icon: string;
   color: string;
 };
 
-function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
+function IconPicker({
+  onOpen,
+  onClose,
+  icon,
+  initial,
+  color,
+  onChange,
+}: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   const menu = useMenuState({
@@ -230,7 +238,9 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
               as={icons[icon || "collection"].component}
               color={color}
               size={30}
-            />
+            >
+              {initial}
+            </Icon>
           </Button>
         )}
       </MenuButton>
@@ -238,6 +248,7 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
         {...menu}
         onOpen={onOpen}
         onClose={onClose}
+        maxWidth={308}
         aria-label={t("Choose icon")}
       >
         <Icons>
@@ -251,13 +262,14 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
                 <IconButton
                   style={
                     {
-                      ...style,
                       "--delay": `${index * 8}ms`,
                     } as React.CSSProperties
                   }
                   {...props}
                 >
-                  <Icon as={icons[name].component} color={color} size={30} />
+                  <Icon as={icons[name].component} color={color} size={30}>
+                    {initial}
+                  </Icon>
                 </IconButton>
               )}
             </MenuItem>
@@ -318,7 +330,7 @@ const Icons = styled.div`
   padding: 8px;
 
   ${breakpoint("tablet")`
-    width: 276px;
+    width: 304px;
   `};
 `;
 
@@ -329,6 +341,7 @@ const Button = styled(NudeButton)`
 `;
 
 const IconButton = styled(NudeButton)`
+  vertical-align: top;
   border-radius: 4px;
   margin: 0px 6px 6px 0px;
   width: 30px;

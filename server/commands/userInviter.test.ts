@@ -1,8 +1,7 @@
+import { faker } from "@faker-js/faker";
+import { UserRole } from "@shared/types";
 import { buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import userInviter from "./userInviter";
-
-setupTestDatabase();
 
 describe("userInviter", () => {
   const ip = "127.0.0.1";
@@ -12,8 +11,8 @@ describe("userInviter", () => {
     const response = await userInviter({
       invites: [
         {
-          role: "member",
-          email: "test@example.com",
+          role: UserRole.Member,
+          email: faker.internet.email(),
           name: "Test",
         },
       ],
@@ -28,7 +27,7 @@ describe("userInviter", () => {
     const response = await userInviter({
       invites: [
         {
-          role: "member",
+          role: UserRole.Member,
           email: " ",
           name: "Test",
         },
@@ -44,7 +43,7 @@ describe("userInviter", () => {
     const response = await userInviter({
       invites: [
         {
-          role: "member",
+          role: UserRole.Member,
           email: "notanemail",
           name: "Test",
         },
@@ -60,12 +59,12 @@ describe("userInviter", () => {
     const response = await userInviter({
       invites: [
         {
-          role: "member",
+          role: UserRole.Member,
           email: "the@same.com",
           name: "Test",
         },
         {
-          role: "member",
+          role: UserRole.Member,
           email: "the@SAME.COM",
           name: "Test",
         },
@@ -77,12 +76,13 @@ describe("userInviter", () => {
   });
 
   it("should not send invites to existing team members", async () => {
-    const user = await buildUser();
+    const email = faker.internet.email().toLowerCase();
+    const user = await buildUser({ email });
     const response = await userInviter({
       invites: [
         {
-          role: "member",
-          email: user.email!,
+          role: UserRole.Member,
+          email,
           name: user.name,
         },
       ],

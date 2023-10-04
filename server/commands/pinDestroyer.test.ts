@@ -1,9 +1,6 @@
-import { Pin, Event } from "@server/models";
+import { Event, Pin } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import pinDestroyer from "./pinDestroyer";
-
-setupTestDatabase();
 
 describe("pinCreator", () => {
   const ip = "127.0.0.1";
@@ -29,10 +26,16 @@ describe("pinCreator", () => {
       ip,
     });
 
-    const count = await Pin.count();
+    const count = await Pin.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     expect(count).toEqual(0);
 
-    const event = await Event.findOne();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
     expect(event!.name).toEqual("pins.delete");
     expect(event!.modelId).toEqual(pin.id);
   });

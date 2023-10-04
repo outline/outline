@@ -23,7 +23,7 @@ import Length from "./validators/Length";
 @Fix
 class TeamDomain extends IdModel {
   @NotIn({
-    args: env.isCloudHosted() ? [emailProviders] : [],
+    args: env.isCloudHosted ? [emailProviders] : [],
     msg: "You chose a restricted domain, please try another.",
   })
   @NotEmpty

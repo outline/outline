@@ -1,6 +1,6 @@
 import { Next } from "koa";
 import { Transaction } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
+import { sequelize } from "@server/storage/database";
 import { AppContext } from "@server/types";
 
 /**

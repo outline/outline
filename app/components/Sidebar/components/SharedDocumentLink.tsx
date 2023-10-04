@@ -1,3 +1,4 @@
+import includes from "lodash/includes";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -6,14 +7,14 @@ import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
-import Disclosure from "./Disclosure";
+import { descendants } from "~/utils/tree";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
   node: NavigationNode;
   collection?: Collection;
-  activeDocumentId: string | undefined;
-  activeDocument: Document | undefined;
+  activeDocumentId?: string;
+  activeDocument?: Document;
   isDraft?: boolean;
   depth: number;
   index: number;
@@ -41,10 +42,19 @@ function DocumentLink(
   const hasChildDocuments =
     !!node.children.length || activeDocument?.parentDocumentId === node.id;
   const document = documents.get(node.id);
-
   const showChildren = React.useMemo(
-    () => !!hasChildDocuments,
-    [hasChildDocuments]
+    () =>
+      !!(
+        hasChildDocuments &&
+        ((activeDocumentId &&
+          includes(
+            descendants(node).map((n) => n.id),
+            activeDocumentId
+          )) ||
+          isActiveDocument ||
+          depth <= 1)
+      ),
+    [hasChildDocuments, activeDocumentId, isActiveDocument, depth, node]
   );
 
   const [expanded, setExpanded] = React.useState(showChildren);
@@ -54,12 +64,6 @@ function DocumentLink(
       setExpanded(showChildren);
     }
   }, [showChildren]);
-
-  React.useEffect(() => {
-    if (isActiveDocument) {
-      setExpanded(true);
-    }
-  }, [isActiveDocument]);
 
   const handleDisclosureClick = React.useCallback(
     (ev: React.SyntheticEvent) => {
@@ -105,14 +109,10 @@ function DocumentLink(
             title: node.title,
           },
         }}
-        label={
-          <>
-            {hasChildDocuments && depth !== 0 && (
-              <Disclosure expanded={expanded} onClick={handleDisclosureClick} />
-            )}
-            {title}
-          </>
-        }
+        expanded={hasChildDocuments && depth !== 0 ? expanded : undefined}
+        onDisclosureClick={handleDisclosureClick}
+        emoji={node.emoji}
+        label={title}
         depth={depth}
         exact={false}
         scrollIntoViewIfNeeded={!document?.isStarred}

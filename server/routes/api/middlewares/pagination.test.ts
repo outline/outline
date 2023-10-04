@@ -1,10 +1,11 @@
-import { seed, getTestServer } from "@server/test/support";
+import { buildUser } from "@server/test/factories";
+import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
 describe("#pagination", () => {
   it("should allow offset and limit", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/users.list", {
       body: {
         token: user.getJwtToken(),
@@ -16,7 +17,7 @@ describe("#pagination", () => {
   });
 
   it("should not allow negative limit", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/users.list", {
       body: {
         token: user.getJwtToken(),
@@ -27,7 +28,7 @@ describe("#pagination", () => {
   });
 
   it("should not allow non-integer limit", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/users.list", {
       body: {
         token: user.getJwtToken(),
@@ -38,7 +39,7 @@ describe("#pagination", () => {
   });
 
   it("should not allow negative offset", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/users.list", {
       body: {
         token: user.getJwtToken(),
@@ -49,7 +50,7 @@ describe("#pagination", () => {
   });
 
   it("should not allow non-integer offset", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/users.list", {
       body: {
         token: user.getJwtToken(),

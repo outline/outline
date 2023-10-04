@@ -1,8 +1,5 @@
 import { buildAdmin, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import userUnsuspender from "./userUnsuspender";
-
-setupTestDatabase();
 
 describe("userUnsuspender", () => {
   const ip = "127.0.0.1";

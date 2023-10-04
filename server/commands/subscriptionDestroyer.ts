@@ -28,6 +28,7 @@ export default async function subscriptionDestroyer({
   await Event.create(
     {
       name: "subscriptions.delete",
+      teamId: user.teamId,
       modelId: subscription.id,
       actorId: user.id,
       userId: user.id,

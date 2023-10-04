@@ -1,9 +1,10 @@
 import { computed } from "mobx";
 import { isRTL } from "@shared/utils/rtl";
-import BaseModel from "./BaseModel";
 import User from "./User";
+import Model from "./base/Model";
+import Relation from "./decorators/Relation";
 
-class Revision extends BaseModel {
+class Revision extends Model {
   id: string;
 
   documentId: string;
@@ -14,11 +15,13 @@ class Revision extends BaseModel {
   /** Markdown string of the content when revision was created */
   text: string;
 
+  /** The emoji of the document when the revision was created */
+  emoji: string | null;
+
   /** HTML string representing the revision as a diff from the previous version */
   html: string;
 
-  createdAt: string;
-
+  @Relation(() => User)
   createdBy: User;
 
   /**

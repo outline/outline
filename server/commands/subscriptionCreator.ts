@@ -1,6 +1,6 @@
 import { Transaction } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
 import { Subscription, Event, User, Document } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import { DocumentEvent, RevisionEvent } from "@server/types";
 
 type Props = {
@@ -48,6 +48,7 @@ export default async function subscriptionCreator({
     await Event.create(
       {
         name: "subscriptions.create",
+        teamId: user.teamId,
         modelId: subscription.id,
         actorId: user.id,
         userId: user.id,
@@ -62,6 +63,7 @@ export default async function subscriptionCreator({
     await Event.create(
       {
         name: "subscriptions.create",
+        teamId: user.teamId,
         modelId: subscription.id,
         actorId: user.id,
         userId: user.id,

@@ -16,6 +16,7 @@ const isProduction = env.ENVIRONMENT === "production";
 
 type LogCategory =
   | "lifecycle"
+  | "authentication"
   | "multiplayer"
   | "http"
   | "commands"
@@ -26,7 +27,8 @@ type LogCategory =
   | "queue"
   | "websockets"
   | "database"
-  | "utils";
+  | "utils"
+  | "plugins";
 type Extra = Record<string, any>;
 
 class Logger {

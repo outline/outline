@@ -9,7 +9,7 @@ allow(User, "createAttachment", Team, (user, team) => {
 });
 
 allow(User, "read", Attachment, (actor, attachment) => {
-  if (!attachment || attachment.teamId !== actor.teamId) {
+  if (!attachment || !actor || attachment.teamId !== actor.teamId) {
     return false;
   }
   if (actor.isAdmin) {

@@ -1,7 +1,7 @@
 import "./bootstrap";
 import { QueryTypes } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
 import { User } from "@server/models";
+import { sequelize } from "@server/storage/database";
 
 const limit = 100;
 let page = parseInt(process.argv[2], 10);

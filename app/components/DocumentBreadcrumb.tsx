@@ -12,9 +12,10 @@ import { MenuInternalLink } from "~/types";
 import {
   archivePath,
   collectionPath,
-  templatesPath,
+  settingsPath,
   trashPath,
 } from "~/utils/routeHelpers";
+import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
   children?: React.ReactNode;
@@ -43,12 +44,12 @@ function useCategory(document: Document): MenuInternalLink | null {
     };
   }
 
-  if (document.isTemplate) {
+  if (document.template) {
     return {
       type: "route",
       icon: <ShapesIcon />,
       title: t("Templates"),
-      to: templatesPath(),
+      to: settingsPath("templates"),
     };
   }
 
@@ -105,7 +106,13 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     path.forEach((node: NavigationNode) => {
       output.push({
         type: "route",
-        title: node.title,
+        title: node.emoji ? (
+          <>
+            <EmojiIcon emoji={node.emoji} /> {node.title}
+          </>
+        ) : (
+          node.title
+        ),
         to: node.url,
       });
     });

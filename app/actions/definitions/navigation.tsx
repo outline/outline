@@ -6,12 +6,12 @@ import {
   EditIcon,
   OpenIcon,
   SettingsIcon,
-  ShapesIcon,
   KeyboardIcon,
   EmailIcon,
   LogoutIcon,
   ProfileIcon,
   BrowserIcon,
+  ShapesIcon,
 } from "outline-icons";
 import * as React from "react";
 import { isMac } from "@shared/utils/browser";
@@ -33,7 +33,6 @@ import {
   homePath,
   searchPath,
   draftsPath,
-  templatesPath,
   archivePath,
   trashPath,
   settingsPath,
@@ -67,15 +66,6 @@ export const navigateToDrafts = createAction({
   visible: ({ location }) => location.pathname !== draftsPath(),
 });
 
-export const navigateToTemplates = createAction({
-  name: ({ t }) => t("Templates"),
-  analyticsName: "Navigate to templates",
-  section: NavigationSection,
-  icon: <ShapesIcon />,
-  perform: () => history.push(templatesPath()),
-  visible: ({ location }) => location.pathname !== templatesPath(),
-});
-
 export const navigateToArchive = createAction({
   name: ({ t }) => t("Archive"),
   analyticsName: "Navigate to archive",
@@ -103,7 +93,7 @@ export const navigateToSettings = createAction({
   icon: <SettingsIcon />,
   visible: ({ stores }) =>
     stores.policies.abilities(stores.auth.team?.id || "").update,
-  perform: () => history.push(settingsPath("details")),
+  perform: () => history.push(settingsPath()),
 });
 
 export const navigateToProfileSettings = createAction({
@@ -113,6 +103,15 @@ export const navigateToProfileSettings = createAction({
   iconInContextMenu: false,
   icon: <ProfileIcon />,
   perform: () => history.push(settingsPath()),
+});
+
+export const navigateToTemplateSettings = createAction({
+  name: ({ t }) => t("Templates"),
+  analyticsName: "Navigate to template settings",
+  section: NavigationSection,
+  iconInContextMenu: false,
+  icon: <ShapesIcon />,
+  perform: () => history.push(settingsPath("templates")),
 });
 
 export const navigateToNotificationSettings = createAction({
@@ -216,7 +215,6 @@ export const logout = createAction({
 export const rootNavigationActions = [
   navigateToHome,
   navigateToDrafts,
-  navigateToTemplates,
   navigateToArchive,
   navigateToTrash,
   downloadApp,

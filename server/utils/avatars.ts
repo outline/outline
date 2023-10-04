@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import fetch from "fetch-with-proxy";
+import fetch from "./fetch";
 
 export async function generateAvatarUrl({
   id,

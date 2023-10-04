@@ -2,10 +2,7 @@ import fs from "fs";
 import path from "path";
 import { FileOperation } from "@server/models";
 import { buildFileOperation } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import ImportMarkdownZipTask from "./ImportMarkdownZipTask";
-
-setupTestDatabase();
 
 describe("ImportMarkdownZipTask", () => {
   it("should import the documents, attachments", async () => {
@@ -29,7 +26,7 @@ describe("ImportMarkdownZipTask", () => {
     expect(response.collections.size).toEqual(1);
     expect(response.documents.size).toEqual(8);
     expect(response.attachments.size).toEqual(6);
-  });
+  }, 10000);
 
   it("should throw an error with corrupt zip", async () => {
     const fileOperation = await buildFileOperation();

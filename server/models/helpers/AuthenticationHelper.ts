@@ -74,7 +74,7 @@ export default class AuthenticationHelper {
    * @returns A list of authentication providers
    */
   public static providersForTeam(team?: Team) {
-    const isCloudHosted = env.isCloudHosted();
+    const isCloudHosted = env.isCloudHosted;
 
     return AuthenticationHelper.providers
       .sort((config) => (config.id === "email" ? 1 : -1))

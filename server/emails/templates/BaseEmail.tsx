@@ -12,7 +12,10 @@ export interface EmailProps {
   to: string | null;
 }
 
-export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
+export default abstract class BaseEmail<
+  T extends EmailProps,
+  S extends Record<string, any> | void = void
+> {
   private props: T;
   private metadata?: NotificationMetadata;
 
@@ -103,6 +106,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
         ),
         text: this.renderAsText(data),
         headCSS: this.headCSS?.(data),
+        unsubscribeUrl: this.unsubscribeUrl?.(data),
       });
       Metrics.increment("email.sent", {
         templateName,
@@ -162,6 +166,14 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
    * @returns A JSX element
    */
   protected abstract render(props: S & T): JSX.Element;
+
+  /**
+   * Returns the unsubscribe URL for the email.
+   *
+   * @param props Props in email constructor
+   * @returns The unsubscribe URL as a string
+   */
+  protected unsubscribeUrl?(props: T): string;
 
   /**
    * Allows injecting additional CSS into the head of the email.

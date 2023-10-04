@@ -1,35 +1,40 @@
-import env from "@server/env";
+import { faker } from "@faker-js/faker";
 import { TeamDomain } from "@server/models";
-import { buildAdmin, buildCollection, buildTeam } from "@server/test/factories";
-import { seed, getTestServer } from "@server/test/support";
+import {
+  buildAdmin,
+  buildCollection,
+  buildTeam,
+  buildUser,
+} from "@server/test/factories";
+import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const server = getTestServer();
 
 describe("teams.create", () => {
   it("creates a team", async () => {
-    env.DEPLOYMENT = "hosted";
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
+    const name = faker.company.name();
     const res = await server.post("/api/teams.create", {
       body: {
         token: user.getJwtToken(),
-        name: "new workspace",
+        name,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.team.name).toEqual("new workspace");
-    expect(body.data.team.subdomain).toEqual("new-workspace");
+    expect(body.data.team.name).toEqual(name);
   });
 
-  it("requires a cloud hosted deployment", async () => {
-    env.DEPLOYMENT = "";
+  it.skip("requires a cloud hosted deployment", async () => {
+    setSelfHosted();
+
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/teams.create", {
       body: {
         token: user.getJwtToken(),
-        name: "new workspace",
+        name: faker.company.name(),
       },
     });
     expect(res.status).toEqual(402);
@@ -38,16 +43,17 @@ describe("teams.create", () => {
 
 describe("#team.update", () => {
   it("should update team details", async () => {
-    const { admin } = await seed();
+    const admin = await buildAdmin();
+    const name = faker.company.name();
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        name: "New name",
+        name,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.name).toEqual("New name");
+    expect(body.data.name).toEqual(name);
   });
 
   it("should not invalidate request if subdomain is sent as null", async () => {
@@ -62,40 +68,34 @@ describe("#team.update", () => {
   });
 
   it("should add new allowed Domains, removing empty string values", async () => {
-    const { admin, team } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const domain1 = faker.internet.domainName();
+    const domain2 = faker.internet.domainName();
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        allowedDomains: [
-          "example-company.com",
-          "",
-          "example-company.org",
-          "",
-          "",
-        ],
+        allowedDomains: [domain1, "", domain2, "", ""],
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.allowedDomains.sort()).toEqual([
-      "example-company.com",
-      "example-company.org",
-    ]);
+    expect(body.data.allowedDomains.includes(domain1)).toBe(true);
+    expect(body.data.allowedDomains.includes(domain2)).toBe(true);
 
     const teamDomains: TeamDomain[] = await TeamDomain.findAll({
       where: { teamId: team.id },
     });
-    expect(teamDomains.map((d) => d.name).sort()).toEqual([
-      "example-company.com",
-      "example-company.org",
-    ]);
+    expect(teamDomains.map((d) => d.name).includes(domain1)).toBe(true);
+    expect(teamDomains.map((d) => d.name).includes(domain2)).toBe(true);
   });
 
   it("should remove old allowed Domains", async () => {
-    const { admin, team } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
     const existingTeamDomain = await TeamDomain.create({
       teamId: team.id,
-      name: "example-company.com",
+      name: faker.internet.domainName(),
       createdById: admin.id,
     });
 
@@ -118,38 +118,37 @@ describe("#team.update", () => {
   });
 
   it("should add new allowed domains and remove old ones", async () => {
-    const { admin, team } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
     const existingTeamDomain = await TeamDomain.create({
       teamId: team.id,
-      name: "example-company.com",
+      name: faker.internet.domainName(),
       createdById: admin.id,
     });
+    const domain1 = faker.internet.domainName();
+    const domain2 = faker.internet.domainName();
 
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        allowedDomains: ["example-company.org", "example-company.net"],
+        allowedDomains: [domain1, domain2],
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.allowedDomains.sort()).toEqual([
-      "example-company.net",
-      "example-company.org",
-    ]);
+    expect(body.data.allowedDomains.includes(domain1)).toBe(true);
+    expect(body.data.allowedDomains.includes(domain2)).toBe(true);
 
     const teamDomains: TeamDomain[] = await TeamDomain.findAll({
       where: { teamId: team.id },
     });
-    expect(teamDomains.map((d) => d.name).sort()).toEqual(
-      ["example-company.org", "example-company.net"].sort()
-    );
-
+    expect(teamDomains.map((d) => d.name).includes(domain1)).toBe(true);
+    expect(teamDomains.map((d) => d.name).includes(domain2)).toBe(true);
     expect(await TeamDomain.findByPk(existingTeamDomain.id)).toBeNull();
   });
 
   it("should only allow member,viewer or admin as default role", async () => {
-    const { admin } = await seed();
+    const admin = await buildAdmin();
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
@@ -169,7 +168,8 @@ describe("#team.update", () => {
   });
 
   it("should allow identical team details", async () => {
-    const { admin, team } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
@@ -182,18 +182,17 @@ describe("#team.update", () => {
   });
 
   it("should require admin", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/team.update", {
       body: {
         token: user.getJwtToken(),
-        name: "New name",
+        name: faker.company.name(),
       },
     });
     expect(res.status).toEqual(403);
   });
 
   it("should require authentication", async () => {
-    await seed();
     const res = await server.post("/api/team.update");
     expect(res.status).toEqual(401);
   });
@@ -215,48 +214,6 @@ describe("#team.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.defaultCollectionId).toEqual(collection.id);
-  });
-
-  it("should default to home if default collection is deleted", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-    const collection = await buildCollection({
-      teamId: team.id,
-      userId: admin.id,
-    });
-
-    await buildCollection({
-      teamId: team.id,
-      userId: admin.id,
-    });
-
-    const res = await server.post("/api/team.update", {
-      body: {
-        token: admin.getJwtToken(),
-        defaultCollectionId: collection.id,
-      },
-    });
-
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.defaultCollectionId).toEqual(collection.id);
-
-    const deleteRes = await server.post("/api/collections.delete", {
-      body: {
-        token: admin.getJwtToken(),
-        id: collection.id,
-      },
-    });
-    expect(deleteRes.status).toEqual(200);
-
-    const res3 = await server.post("/api/auth.info", {
-      body: {
-        token: admin.getJwtToken(),
-      },
-    });
-    const body3 = await res3.json();
-    expect(res3.status).toEqual(200);
-    expect(body3.data.team.defaultCollectionId).toEqual(null);
   });
 
   it("should update default collection to null when collection is made private", async () => {

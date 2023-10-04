@@ -1,12 +1,12 @@
 import { observable } from "mobx";
-import BaseModel from "./BaseModel";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 
 /**
  * A subscription represents a request for a user to receive notifications for
  * a document.
  */
-class Subscription extends BaseModel {
+class Subscription extends Model {
   @Field
   @observable
   id: string;
@@ -21,9 +21,6 @@ class Subscription extends BaseModel {
   @Field
   @observable
   event: string;
-
-  createdAt: string;
-  updatedAt: string;
 }
 
 export default Subscription;

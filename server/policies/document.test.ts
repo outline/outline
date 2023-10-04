@@ -6,17 +6,12 @@ import {
   buildDraftDocument,
   buildCollection,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
-
-setupTestDatabase();
 
 describe("read_write collection", () => {
   it("should allow read write permissions for member", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       teamId: team.id,
       permission: CollectionPermission.ReadWrite,
@@ -69,9 +64,7 @@ describe("read_write collection", () => {
 describe("read collection", () => {
   it("should allow read permissions for team member", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       teamId: team.id,
       permission: CollectionPermission.Read,
@@ -98,9 +91,7 @@ describe("read collection", () => {
 describe("private collection", () => {
   it("should allow no permissions for team member", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       teamId: team.id,
       permission: null,
@@ -127,11 +118,10 @@ describe("private collection", () => {
 describe("no collection", () => {
   it("should grant same permissions as that on a draft document except the share permission", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const document = await buildDraftDocument({
       teamId: team.id,
+      collectionId: null,
     });
     const abilities = serialize(user, document);
     expect(abilities.archive).toEqual(false);
@@ -144,7 +134,7 @@ describe("no collection", () => {
     expect(abilities.pinToHome).toEqual(false);
     expect(abilities.read).toEqual(true);
     expect(abilities.restore).toEqual(false);
-    expect(abilities.share).toEqual(false);
+    expect(abilities.share).toEqual(true);
     expect(abilities.star).toEqual(true);
     expect(abilities.subscribe).toEqual(false);
     expect(abilities.unarchive).toEqual(false);

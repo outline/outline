@@ -7,13 +7,13 @@ function Tldraw(props: Props) {
     <Frame
       {...props}
       src={props.attrs.href}
-      title="Tldraw.com (beta) Embed"
+      title="Tldraw Embed"
       referrerPolicy="origin"
       border
     />
   );
 }
 
-Tldraw.ENABLED = [new RegExp("^https?://beta\\.tldraw\\.com/r/(.*)")];
+Tldraw.ENABLED = [new RegExp("^https?://(beta|www|old)\\.tldraw\\.com/r/(.*)")];
 
 export default Tldraw;

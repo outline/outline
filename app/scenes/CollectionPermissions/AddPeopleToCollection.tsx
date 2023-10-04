@@ -13,8 +13,8 @@ import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useDebouncedCallback from "~/hooks/useDebouncedCallback";
 import useStores from "~/hooks/useStores";
+import useThrottledCallback from "~/hooks/useThrottledCallback";
 import useToasts from "~/hooks/useToasts";
 import MemberListItem from "./components/MemberListItem";
 
@@ -31,18 +31,18 @@ function AddPeopleToCollection({ collection }: Props) {
     useBoolean();
   const [query, setQuery] = React.useState("");
 
-  const handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(ev.target.value);
-    debouncedFetch(ev.target.value);
-  };
-
-  const debouncedFetch = useDebouncedCallback(
+  const debouncedFetch = useThrottledCallback(
     (query) =>
       users.fetchPage({
         query,
       }),
     250
   );
+
+  const handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(ev.target.value);
+    void debouncedFetch(ev.target.value);
+  };
 
   const handleAddUser = async (user: User) => {
     try {

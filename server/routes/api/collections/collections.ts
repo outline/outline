@@ -7,17 +7,17 @@ import {
   FileOperationState,
   FileOperationType,
 } from "@shared/types";
+import collectionDestroyer from "@server/commands/collectionDestroyer";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
-import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import {
   Collection,
-  CollectionUser,
-  CollectionGroup,
+  UserPermission,
+  GroupPermission,
   Team,
   Event,
   User,
@@ -220,7 +220,7 @@ router.post(
     const group = await Group.findByPk(groupId);
     authorize(user, "read", group);
 
-    let membership = await CollectionGroup.findOne({
+    let membership = await GroupPermission.findOne({
       where: {
         collectionId: id,
         groupId,
@@ -228,7 +228,7 @@ router.post(
     });
 
     if (!membership) {
-      membership = await CollectionGroup.create({
+      membership = await GroupPermission.create({
         collectionId: id,
         groupId,
         permission,
@@ -310,7 +310,7 @@ router.post(
     }).findByPk(id);
     authorize(user, "read", collection);
 
-    let where: WhereOptions<CollectionGroup> = {
+    let where: WhereOptions<GroupPermission> = {
       collectionId: id,
     };
     let groupWhere;
@@ -340,8 +340,8 @@ router.post(
     };
 
     const [total, memberships] = await Promise.all([
-      CollectionGroup.count(options),
-      CollectionGroup.findAll({
+      GroupPermission.count(options),
+      GroupPermission.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
@@ -379,7 +379,7 @@ router.post(
     const user = await User.findByPk(userId);
     authorize(actor, "read", user);
 
-    let membership = await CollectionUser.findOne({
+    let membership = await UserPermission.findOne({
       where: {
         collectionId: id,
         userId,
@@ -389,7 +389,7 @@ router.post(
     });
 
     if (!membership) {
-      membership = await CollectionUser.create(
+      membership = await UserPermission.create(
         {
           collectionId: id,
           userId,
@@ -485,7 +485,7 @@ router.post(
     }).findByPk(id);
     authorize(user, "read", collection);
 
-    let where: WhereOptions<CollectionUser> = {
+    let where: WhereOptions<UserPermission> = {
       collectionId: id,
     };
     let userWhere;
@@ -515,8 +515,8 @@ router.post(
     };
 
     const [total, memberships] = await Promise.all([
-      CollectionUser.count(options),
-      CollectionUser.findAll({
+      UserPermission.count(options),
+      UserPermission.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
@@ -627,7 +627,7 @@ router.post(
       permission !== CollectionPermission.ReadWrite &&
       collection.permission === CollectionPermission.ReadWrite
     ) {
-      await CollectionUser.findOrCreate({
+      await UserPermission.findOrCreate({
         where: {
           collectionId: collection.id,
           userId: user.id,
@@ -803,40 +803,15 @@ router.post(
     }).findByPk(id, {
       transaction,
     });
-    const team = await Team.findByPk(user.teamId);
 
     authorize(user, "delete", collection);
 
-    const total = await Collection.count();
-    if (total === 1) {
-      throw ValidationError("Cannot delete last collection");
-    }
-
-    await collection.destroy({ transaction });
-
-    if (team && team.defaultCollectionId === collection.id) {
-      await teamUpdater({
-        params: { defaultCollectionId: null },
-        ip: ctx.request.ip,
-        user,
-        team,
-        transaction,
-      });
-    }
-
-    await Event.create(
-      {
-        name: "collections.delete",
-        collectionId: collection.id,
-        teamId: collection.teamId,
-        actorId: user.id,
-        data: {
-          name: collection.name,
-        },
-        ip: ctx.request.ip,
-      },
-      { transaction }
-    );
+    await collectionDestroyer({
+      collection,
+      transaction,
+      user,
+      ip: ctx.request.ip,
+    });
 
     ctx.body = {
       success: true,

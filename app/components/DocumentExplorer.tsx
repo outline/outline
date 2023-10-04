@@ -15,7 +15,6 @@ import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { NavigationNode } from "@shared/types";
-import parseTitle from "@shared/utils/parseTitle";
 import DocumentExplorerNode from "~/components/DocumentExplorerNode";
 import DocumentExplorerSearchResult from "~/components/DocumentExplorerSearchResult";
 import Flex from "~/components/Flex";
@@ -205,84 +204,86 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
     }
   };
 
-  const ListItem = ({
-    index,
-    data,
-    style,
-  }: {
-    index: number;
-    data: NavigationNode[];
-    style: React.CSSProperties;
-  }) => {
-    const node = data[index];
-    const isCollection = node.type === "collection";
-    let icon, title, path;
+  const ListItem = observer(
+    ({
+      index,
+      data,
+      style,
+    }: {
+      index: number;
+      data: NavigationNode[];
+      style: React.CSSProperties;
+    }) => {
+      const node = data[index];
+      const isCollection = node.type === "collection";
+      let icon, title: string, emoji: string | undefined, path;
 
-    if (isCollection) {
-      const col = collections.get(node.collectionId as string);
-      icon = col && (
-        <CollectionIcon collection={col} expanded={isExpanded(index)} />
-      );
-      title = node.title;
-    } else {
-      const doc = documents.get(node.id);
-      const { strippedTitle, emoji } = parseTitle(node.title);
-      title = strippedTitle;
-
-      if (emoji) {
-        icon = <EmojiIcon emoji={emoji} />;
-      } else if (doc?.isStarred) {
-        icon = <StarredIcon color={theme.yellow} />;
+      if (isCollection) {
+        const col = collections.get(node.collectionId as string);
+        icon = col && (
+          <CollectionIcon collection={col} expanded={isExpanded(index)} />
+        );
+        title = node.title;
       } else {
-        icon = <DocumentIcon color={theme.textSecondary} />;
+        const doc = documents.get(node.id);
+        emoji = doc?.emoji ?? node.emoji;
+        title = doc?.title ?? node.title;
+
+        if (emoji) {
+          icon = <EmojiIcon emoji={emoji} />;
+        } else if (doc?.isStarred) {
+          icon = <StarredIcon color={theme.yellow} />;
+        } else {
+          icon = <DocumentIcon color={theme.textSecondary} />;
+        }
+
+        path = ancestors(node)
+          .map((a) => a.title)
+          .join(" / ");
       }
 
-      path = ancestors(node)
-        .map((a) => parseTitle(a.title).strippedTitle)
-        .join(" / ");
+      return searchTerm ? (
+        <DocumentExplorerSearchResult
+          selected={isSelected(index)}
+          active={activeNode === index}
+          style={{
+            ...style,
+            top: (style.top as number) + VERTICAL_PADDING,
+            left: (style.left as number) + HORIZONTAL_PADDING,
+            width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
+          }}
+          onPointerMove={() => setActiveNode(index)}
+          onClick={() => toggleSelect(index)}
+          icon={icon}
+          title={title}
+          path={path}
+        />
+      ) : (
+        <DocumentExplorerNode
+          style={{
+            ...style,
+            top: (style.top as number) + VERTICAL_PADDING,
+            left: (style.left as number) + HORIZONTAL_PADDING,
+            width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
+          }}
+          onPointerMove={() => setActiveNode(index)}
+          onClick={() => toggleSelect(index)}
+          onDisclosureClick={(ev) => {
+            ev.stopPropagation();
+            toggleCollapse(index);
+          }}
+          selected={isSelected(index)}
+          active={activeNode === index}
+          expanded={isExpanded(index)}
+          icon={icon}
+          title={title}
+          depth={node.depth as number}
+          hasChildren={hasChildren(index)}
+          ref={itemRefs[index]}
+        />
+      );
     }
-
-    return searchTerm ? (
-      <DocumentExplorerSearchResult
-        selected={isSelected(index)}
-        active={activeNode === index}
-        style={{
-          ...style,
-          top: (style.top as number) + VERTICAL_PADDING,
-          left: (style.left as number) + HORIZONTAL_PADDING,
-          width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
-        }}
-        onPointerMove={() => setActiveNode(index)}
-        onClick={() => toggleSelect(index)}
-        icon={icon}
-        title={title}
-        path={path}
-      />
-    ) : (
-      <DocumentExplorerNode
-        style={{
-          ...style,
-          top: (style.top as number) + VERTICAL_PADDING,
-          left: (style.left as number) + HORIZONTAL_PADDING,
-          width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
-        }}
-        onPointerMove={() => setActiveNode(index)}
-        onClick={() => toggleSelect(index)}
-        onDisclosureClick={(ev) => {
-          ev.stopPropagation();
-          toggleCollapse(index);
-        }}
-        selected={isSelected(index)}
-        active={activeNode === index}
-        expanded={isExpanded(index)}
-        icon={icon}
-        title={title}
-        depth={node.depth as number}
-        hasChildren={hasChildren(index)}
-        ref={itemRefs[index]}
-      />
-    );
-  };
+  );
 
   const focusSearchInput = () => {
     inputSearchRef.current?.focus();

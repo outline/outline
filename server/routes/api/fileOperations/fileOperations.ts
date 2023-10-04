@@ -3,12 +3,13 @@ import { WhereOptions } from "sequelize";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { FileOperation, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
+import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
-import { getSignedUrl } from "@server/utils/s3";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -48,7 +49,7 @@ router.post(
       type,
     };
     const team = await Team.findByPk(user.teamId);
-    authorize(user, "manage", team);
+    authorize(user, "update", team);
 
     const [exports, total] = await Promise.all([
       FileOperation.findAll({
@@ -84,7 +85,7 @@ const handleFileOperationsRedirect = async (
     throw ValidationError(`${fileOperation.type} is not complete yet`);
   }
 
-  const accessUrl = await getSignedUrl(fileOperation.key);
+  const accessUrl = await FileStorage.getSignedUrl(fileOperation.key);
   ctx.redirect(accessUrl);
 };
 
@@ -105,16 +106,23 @@ router.post(
   "fileOperations.delete",
   auth({ admin: true }),
   validate(T.FileOperationsDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.FileOperationsDeleteReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const fileOperation = await FileOperation.unscoped().findByPk(id, {
       rejectOnEmpty: true,
     });
     authorize(user, "delete", fileOperation);
 
-    await fileOperationDeleter(fileOperation, user, ctx.request.ip);
+    await fileOperationDeleter({
+      fileOperation,
+      user,
+      ip: ctx.request.ip,
+      transaction,
+    });
 
     ctx.body = {
       success: true,

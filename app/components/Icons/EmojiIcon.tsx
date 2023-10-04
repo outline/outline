@@ -2,9 +2,9 @@ import * as React from "react";
 import styled from "styled-components";
 
 type Props = {
-  /* The emoji to render */
+  /** The emoji to render */
   emoji: string;
-  /* The size of the emoji, 24px is default to match standard icons */
+  /** The size of the emoji, 24px is default to match standard icons */
   size?: number;
 };
 
@@ -29,5 +29,5 @@ const Span = styled.span<{ $size: number }>`
   width: ${(props) => props.$size}px;
   height: ${(props) => props.$size}px;
   text-indent: -0.15em;
-  font-size: 14px;
+  font-size: ${(props) => props.$size - 10}px;
 `;

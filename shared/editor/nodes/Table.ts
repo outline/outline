@@ -15,7 +15,7 @@ import {
 } from "prosemirror-tables";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import {
-  addRowAfterAndMoveSelection,
+  addRowAndMoveSelection,
   setColumnAttr,
   createTable,
 } from "../commands/table";
@@ -78,7 +78,7 @@ export default class Table extends Node {
       addColumnBefore: () => addColumnBefore,
       addColumnAfter: () => addColumnAfter,
       deleteColumn: () => deleteColumn,
-      addRowAfter: addRowAfterAndMoveSelection,
+      addRowAfter: addRowAndMoveSelection,
       deleteRow: () => deleteRow,
       deleteTable: () => deleteTable,
       toggleHeaderColumn: () => toggleHeaderColumn,
@@ -89,9 +89,9 @@ export default class Table extends Node {
 
   keys() {
     return {
-      Tab: chainCommands(goToNextCell(1), addRowAfterAndMoveSelection()),
+      Tab: chainCommands(goToNextCell(1), addRowAndMoveSelection()),
       "Shift-Tab": goToNextCell(-1),
-      Enter: addRowAfterAndMoveSelection(),
+      Enter: addRowAndMoveSelection(),
     };
   }
 

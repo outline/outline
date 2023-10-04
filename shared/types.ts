@@ -1,4 +1,8 @@
-export type Role = "admin" | "viewer" | "member";
+export enum UserRole {
+  Admin = "admin",
+  Member = "member",
+  Viewer = "viewer",
+}
 
 export type DateFilter = "day" | "week" | "month" | "year";
 
@@ -44,14 +48,12 @@ export type PublicEnv = {
   COLLABORATION_URL: string;
   AWS_S3_UPLOAD_BUCKET_URL: string;
   AWS_S3_ACCELERATE_URL: string;
-  DEPLOYMENT: string | undefined;
   ENVIRONMENT: string;
   SENTRY_DSN: string | undefined;
   SENTRY_TUNNEL: string | undefined;
   SLACK_CLIENT_ID: string | undefined;
   SLACK_APP_ID: string | undefined;
   MAXIMUM_IMPORT_SIZE: number;
-  SUBDOMAINS_ENABLED: boolean;
   EMAIL_ENABLED: boolean;
   PDF_EXPORT_ENABLED: boolean;
   DEFAULT_LANGUAGE: string;
@@ -112,6 +114,8 @@ export enum UserPreference {
   UseCursorPointer = "useCursorPointer",
   /** Whether code blocks should show line numbers. */
   CodeBlockLineNumers = "codeBlockLineNumbers",
+  /** Whether documents have a separate edit mode instead of always editing. */
+  SeamlessEdit = "seamlessEdit",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
@@ -128,7 +132,7 @@ export type PublicTeam = {
 };
 
 export enum TeamPreference {
-  /** Whether documents have a separate edit mode instead of seamless editing. */
+  /** Whether documents have a separate edit mode instead of always editing. */
   SeamlessEdit = "seamlessEdit",
   /** Whether to use team logo across the app for branding. */
   PublicBranding = "publicBranding",
@@ -157,6 +161,7 @@ export type NavigationNode = {
   id: string;
   title: string;
   url: string;
+  emoji?: string;
   children: NavigationNode[];
   isDraft?: boolean;
   collectionId?: string;
@@ -214,6 +219,10 @@ export const NotificationEventDefaults = {
 export enum UnfurlType {
   Mention = "mention",
   Document = "document",
+}
+
+export enum QueryNotices {
+  UnsubscribeDocument = "unsubscribe-document",
 }
 
 export type OEmbedType = "photo" | "video" | "rich";

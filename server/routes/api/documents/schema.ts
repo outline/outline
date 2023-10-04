@@ -1,3 +1,5 @@
+import emojiRegex from "emoji-regex";
+import formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
@@ -186,6 +188,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Doc text to be updated */
     text: z.string().optional(),
 
+    /** Emoji displayed alongside doc title */
+    emoji: z.string().regex(emojiRegex()).nullish(),
+
     /** Boolean to denote if the doc should occupy full width */
     fullWidth: z.boolean().optional(),
 
@@ -268,34 +273,46 @@ export const DocumentsImportSchema = BaseSchema.extend({
     /** Import under this parent doc */
     parentDocumentId: z.string().uuid().nullish(),
   }),
+  file: z.custom<formidable.File>(),
 });
 
 export type DocumentsImportReq = z.infer<typeof DocumentsImportSchema>;
 
 export const DocumentsCreateSchema = BaseSchema.extend({
   body: z.object({
-    /** Doc title */
+    /** Document title */
     title: z.string().default(""),
 
-    /** Doc text */
+    /** Document text */
     text: z.string().default(""),
+
+    /** Emoji displayed alongside doc title */
+    emoji: z.string().regex(emojiRegex()).optional(),
 
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
-    /** Create Doc under this collection */
+    /** Collection to create document within  */
     collectionId: z.string().uuid().nullish(),
 
-    /** Create Doc under this parent */
+    /** Parent document to create within */
     parentDocumentId: z.string().uuid().nullish(),
 
-    /** Create doc with this template */
+    /** A template to create the document from */
     templateId: z.string().uuid().optional(),
 
-    /** Boolean to denote if the doc should occupy full width */
+    /** Optionally set the created date in the past */
+    createdAt: z.coerce
+      .date()
+      .optional()
+      .refine((data) => !data || data < new Date(), {
+        message: "createdAt must be in the past",
+      }),
+
+    /** Boolean to denote if the document should occupy full width */
     fullWidth: z.boolean().optional(),
 
-    /** Whether to create a template doc */
+    /** Whether this should be considered a template */
     template: z.boolean().optional(),
   }),
 })

@@ -94,11 +94,9 @@ const Modal: React.FC<Props> = ({
                           {title}
                         </Text>
                       )}
-                      <Text as="span" size="large">
-                        <NudeButton onClick={onRequestClose}>
-                          <CloseIcon />
-                        </NudeButton>
-                      </Text>
+                      <NudeButton onClick={onRequestClose}>
+                        <CloseIcon />
+                      </NudeButton>
                     </Header>
                   </Centered>
                 </Small>

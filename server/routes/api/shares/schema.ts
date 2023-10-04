@@ -68,6 +68,14 @@ export const SharesCreateSchema = BaseSchema.extend({
       .refine((val) => isUUID(val) || SLUG_URL_REGEX.test(val), {
         message: "must be uuid or url slug",
       }),
+    published: z.boolean().default(false),
+    urlId: z
+      .string()
+      .regex(SHARE_URL_SLUG_REGEX, {
+        message: "must contain only alphanumeric and dashes",
+      })
+      .optional(),
+    includeChildDocuments: z.boolean().default(false),
   }),
 });
 

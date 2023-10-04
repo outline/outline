@@ -4,7 +4,6 @@ import {
   NotificationEventType,
 } from "@shared/types";
 import env from "@server/env";
-import User from "../User";
 
 /**
  * Helper class for working with notification settings
@@ -24,22 +23,28 @@ export default class NotificationSettingsHelper {
    * to unsubscribe from a specific event without being signed in, for one-click
    * links in emails.
    *
-   * @param user The user to unsubscribe
+   * @param userId The user ID to unsubscribe
    * @param eventType The event type to unsubscribe from
    * @returns The unsubscribe URL
    */
-  public static unsubscribeUrl(user: User, eventType: NotificationEventType) {
+  public static unsubscribeUrl(
+    userId: string,
+    eventType: NotificationEventType
+  ) {
     return `${
       env.URL
     }/api/notifications.unsubscribe?token=${this.unsubscribeToken(
-      user,
+      userId,
       eventType
-    )}&userId=${user.id}&eventType=${eventType}`;
+    )}&userId=${userId}&eventType=${eventType}`;
   }
 
-  public static unsubscribeToken(user: User, eventType: NotificationEventType) {
+  public static unsubscribeToken(
+    userId: string,
+    eventType: NotificationEventType
+  ) {
     const hash = crypto.createHash("sha256");
-    hash.update(`${user.id}-${env.SECRET_KEY}-${eventType}`);
+    hash.update(`${userId}-${env.SECRET_KEY}-${eventType}`);
     return hash.digest("hex");
   }
 }

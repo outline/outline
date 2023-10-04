@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
-import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
@@ -49,8 +48,7 @@ const Title = styled.div`
   line-height: 1.25;
   padding-top: 3px;
   color: ${s("text")};
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: ${s("fontFamily")};
 `;
 
 function ReferenceListItem({
@@ -60,7 +58,7 @@ function ReferenceListItem({
   shareId,
   ...rest
 }: Props) {
-  const { emoji } = parseTitle(document.title);
+  const { emoji } = document;
 
   return (
     <DocumentLink

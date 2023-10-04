@@ -1,44 +1,43 @@
+import { observer } from "mobx-react";
 import { KeyboardIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
-import Guide from "~/components/Guide";
+import { useEditingFocus } from "~/components/DocumentContext";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
-import useBoolean from "~/hooks/useBoolean";
+import useStores from "~/hooks/useStores";
 
 function KeyboardShortcutsButton() {
   const { t } = useTranslation();
-  const [
-    keyboardShortcutsOpen,
-    handleOpenKeyboardShortcuts,
-    handleCloseKeyboardShortcuts,
-  ] = useBoolean();
+  const { dialogs } = useStores();
+  const isEditingFocus = useEditingFocus();
+
+  const handleOpenKeyboardShortcuts = () => {
+    dialogs.openGuide({
+      title: t("Keyboard shortcuts"),
+      content: <KeyboardShortcuts />,
+    });
+  };
+
   return (
-    <>
-      <Guide
-        isOpen={keyboardShortcutsOpen}
-        onRequestClose={handleCloseKeyboardShortcuts}
-        title={t("Keyboard shortcuts")}
-      >
-        <KeyboardShortcuts />
-      </Guide>
-      <Tooltip tooltip={t("Keyboard shortcuts")} shortcut="?" delay={500}>
-        <Button onClick={handleOpenKeyboardShortcuts}>
-          <KeyboardIcon />
-        </Button>
-      </Tooltip>
-    </>
+    <Tooltip tooltip={t("Keyboard shortcuts")} shortcut="?" delay={500}>
+      <Button onClick={handleOpenKeyboardShortcuts} $hidden={isEditingFocus}>
+        <KeyboardIcon />
+      </Button>
+    </Tooltip>
   );
 }
 
-const Button = styled(NudeButton)`
+const Button = styled(NudeButton)<{ $hidden: boolean }>`
   display: none;
   position: fixed;
   bottom: 0;
   margin: 24px;
+  transition: opacity 500ms ease-in-out;
+  ${(props) => props.$hidden && "opacity: 0;"}
 
   ${breakpoint("tablet")`
     display: block;
@@ -49,4 +48,4 @@ const Button = styled(NudeButton)`
   }
 `;
 
-export default KeyboardShortcutsButton;
+export default observer(KeyboardShortcutsButton);

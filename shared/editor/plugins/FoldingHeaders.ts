@@ -1,9 +1,9 @@
-import { recreateTransform } from "@fellow/prosemirror-recreate-transform";
 import { EditorState, Plugin, PluginKey, Transaction } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import type { Editor } from "../../../app/editor";
 import Storage from "../../utils/Storage";
 import { headingToPersistenceKey } from "../lib/headingToSlug";
+import { recreateTransform } from "../lib/prosemirror-recreate-transform";
 import { findBlockNodes } from "../queries/findChildren";
 import findCollapsedNodes from "../queries/findCollapsedNodes";
 

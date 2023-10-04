@@ -13,6 +13,7 @@ import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import Logger from "~/utils/Logger";
+import isCloudHosted from "~/utils/isCloudHosted";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home", "/logout"];
@@ -137,8 +138,8 @@ export default class AuthStore {
 
   @action
   rehydrate(data: PersistedData) {
-    this.user = data.user ? new User(data.user, this) : undefined;
-    this.team = data.team ? new Team(data.team, this) : undefined;
+    this.user = data.user ? new User(data.user, this as any) : undefined;
+    this.team = data.team ? new Team(data.team, this as any) : undefined;
     this.collaborationToken = data.collaborationToken;
     this.lastSignedIn = getCookie("lastSignedIn");
     this.addPolicies(data.policies);
@@ -187,8 +188,8 @@ export default class AuthStore {
       runInAction("AuthStore#fetch", () => {
         this.addPolicies(res.policies);
         const { user, team } = res.data;
-        this.user = new User(user, this);
-        this.team = new Team(team, this);
+        this.user = new User(user, this as any);
+        this.team = new Team(team, this as any);
         this.availableTeams = res.data.availableTeams;
         this.collaborationToken = res.data.collaborationToken;
 
@@ -212,7 +213,7 @@ export default class AuthStore {
             return;
           }
         } else if (
-          env.SUBDOMAINS_ENABLED &&
+          isCloudHosted &&
           parseDomain(hostname).teamSubdomain !== (team.subdomain ?? "")
         ) {
           window.location.href = `${team.url}${pathname}`;
@@ -241,16 +242,29 @@ export default class AuthStore {
     }
   };
 
-  @action
-  requestDelete = () => client.post(`/users.requestDelete`);
+  requestDeleteUser = () => client.post(`/users.requestDelete`);
+
+  requestDeleteTeam = () => client.post(`/teams.requestDelete`);
 
   @action
   deleteUser = async (data: { code: string }) => {
     await client.post(`/users.delete`, data);
-    runInAction("AuthStore#updateUser", () => {
+    runInAction("AuthStore#deleteUser", () => {
       this.user = null;
       this.team = null;
       this.collaborationToken = null;
+      this.availableTeams = this.availableTeams?.filter(
+        (team) => team.id !== this.team?.id
+      );
+      this.policies = [];
+    });
+  };
+
+  @action
+  deleteTeam = async (data: { code: string }) => {
+    await client.post(`/teams.delete`, data);
+    runInAction("AuthStore#deleteTeam", () => {
+      this.user = null;
       this.availableTeams = this.availableTeams?.filter(
         (team) => team.id !== this.team?.id
       );
@@ -269,13 +283,13 @@ export default class AuthStore {
     const previousData = this.user?.toAPI();
 
     try {
-      this.user?.updateFromJson(params);
+      this.user?.updateData(params);
       const res = await client.post(`/users.update`, params);
       invariant(res?.data, "User response not available");
-      this.user?.updateFromJson(res.data);
+      this.user?.updateData(res.data);
       this.addPolicies(res.policies);
     } catch (err) {
-      this.user?.updateFromJson(previousData);
+      this.user?.updateData(previousData);
       throw err;
     } finally {
       this.isSaving = false;
@@ -296,13 +310,13 @@ export default class AuthStore {
     const previousData = this.team?.toAPI();
 
     try {
-      this.team?.updateFromJson(params);
+      this.team?.updateData(params);
       const res = await client.post(`/team.update`, params);
       invariant(res?.data, "Team response not available");
-      this.team?.updateFromJson(res.data);
+      this.team?.updateData(res.data);
       this.addPolicies(res.policies);
     } catch (err) {
-      this.team?.updateFromJson(previousData);
+      this.team?.updateData(previousData);
       throw err;
     } finally {
       this.isSaving = false;
@@ -359,7 +373,7 @@ export default class AuthStore {
       const sessions = JSON.parse(getCookie("sessions") || "{}");
       delete sessions[team.id];
       setCookie("sessions", JSON.stringify(sessions), {
-        domain: getCookieDomain(window.location.hostname),
+        domain: getCookieDomain(window.location.hostname, isCloudHosted),
       });
     }
 

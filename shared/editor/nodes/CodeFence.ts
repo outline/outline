@@ -12,6 +12,7 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
 import bash from "refractor/lang/bash";
 import clike from "refractor/lang/clike";
+import cpp from "refractor/lang/cpp";
 import csharp from "refractor/lang/csharp";
 import css from "refractor/lang/css";
 import elixir from "refractor/lang/elixir";
@@ -67,7 +68,7 @@ import {
 } from "../commands/codeFence";
 import toggleBlockType from "../commands/toggleBlockType";
 import Mermaid from "../extensions/Mermaid";
-import Prism, { LANGUAGES } from "../extensions/Prism";
+import Prism from "../extensions/Prism";
 import { isCode } from "../lib/isCode";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findParentNode } from "../queries/findParentNode";
@@ -79,6 +80,7 @@ const DEFAULT_LANGUAGE = "javascript";
 
 [
   bash,
+  cpp,
   css,
   clike,
   csharp,
@@ -134,10 +136,6 @@ export default class CodeFence extends Node {
 
   get showLineNumbers(): boolean {
     return this.options.userPreferences?.codeBlockLineNumbers ?? true;
-  }
-
-  get languageOptions() {
-    return Object.entries(LANGUAGES);
   }
 
   get name() {

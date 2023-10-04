@@ -1,6 +1,6 @@
-import { S3 } from "aws-sdk";
 import truncate from "lodash/truncate";
 import {
+  AttachmentPreset,
   CollectionPermission,
   CollectionSort,
   FileOperationState,
@@ -8,7 +8,6 @@ import {
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
-import { sequelize } from "@server/database/sequelize";
 import { serializer } from "@server/editor";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -20,6 +19,7 @@ import {
   FileOperation,
   Attachment,
 } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -55,6 +55,7 @@ export type StructuredImportData = {
     id: string;
     urlId?: string;
     title: string;
+    emoji?: string;
     /**
      * The document text. To reference an attachment or image use the special
      * formatting <<attachmentId>>. It will be replaced with a reference to the
@@ -207,7 +208,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
    * @returns A promise that resolves to the structured data
    */
   protected abstract parseData(
-    data: S3.Body,
+    data: Buffer | NodeJS.ReadableStream,
     fileOperation: FileOperation
   ): Promise<StructuredImportData>;
 
@@ -244,6 +245,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             Logger.debug("task", `ImportTask persisting attachment ${item.id}`);
             const attachment = await attachmentCreator({
               source: "import",
+              preset: AttachmentPreset.DocumentAttachment,
               id: item.id,
               name: item.name,
               type: item.mimeType,
@@ -252,7 +254,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
               ip,
               transaction,
             });
-            attachments.set(item.id, attachment);
+            if (attachment) {
+              attachments.set(item.id, attachment);
+            }
           })
         );
 
@@ -297,6 +301,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           if (item.urlId) {
             const existing = await Collection.unscoped().findOne({
               attributes: ["id"],
+              paranoid: false,
               transaction,
               where: {
                 urlId: item.urlId,
@@ -409,6 +414,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           if (item.urlId) {
             const existing = await Document.unscoped().findOne({
               attributes: ["id"],
+              paranoid: false,
               transaction,
               where: {
                 urlId: item.urlId,

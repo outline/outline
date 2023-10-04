@@ -1,4 +1,4 @@
-import { Event } from "@server/models";
+import { Event, Group, User } from "@server/models";
 import { buildUser, buildAdmin, buildGroup } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -60,8 +60,7 @@ describe("#groups.update", () => {
     expect(res.status).toEqual(403);
   });
   describe("when user is admin", () => {
-    // @ts-expect-error ts-migrate(7034) FIXME: Variable 'user' implicitly has type 'any' in some ... Remove this comment to see the full error message
-    let user, group;
+    let user: User, group: Group;
     beforeEach(async () => {
       user = await buildAdmin();
       group = await buildGroup({
@@ -71,14 +70,16 @@ describe("#groups.update", () => {
     it("allows admin to edit a group", async () => {
       const res = await server.post("/api/groups.update", {
         body: {
-          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'user' implicitly has an 'any' type.
           token: user.getJwtToken(),
-          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'group' implicitly has an 'any' type.
           id: group.id,
           name: "Test",
         },
       });
-      const events = await Event.findAll();
+      const events = await Event.findAll({
+        where: {
+          teamId: user.teamId,
+        },
+      });
       expect(events.length).toEqual(1);
       const body = await res.json();
       expect(res.status).toEqual(200);
@@ -87,32 +88,29 @@ describe("#groups.update", () => {
     it("does not create an event if the update is a noop", async () => {
       const res = await server.post("/api/groups.update", {
         body: {
-          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'user' implicitly has an 'any' type.
           token: user.getJwtToken(),
-          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'group' implicitly has an 'any' type.
           id: group.id,
-          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'group' implicitly has an 'any' type.
           name: group.name,
         },
       });
-      const events = await Event.findAll();
+      const events = await Event.findAll({
+        where: {
+          teamId: user.teamId,
+        },
+      });
       expect(events.length).toEqual(0);
       const body = await res.json();
       expect(res.status).toEqual(200);
-      // @ts-expect-error ts-migrate(7005) FIXME: Variable 'group' implicitly has an 'any' type.
       expect(body.data.name).toBe(group.name);
     });
     it("fails with validation error when name already taken", async () => {
       await buildGroup({
-        // @ts-expect-error ts-migrate(7005) FIXME: Variable 'user' implicitly has an 'any' type.
         teamId: user.teamId,
         name: "test",
       });
       const res = await server.post("/api/groups.update", {
         body: {
-          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'user' implicitly has an 'any' type.
           token: user.getJwtToken(),
-          // @ts-expect-error ts-migrate(7005) FIXME: Variable 'group' implicitly has an 'any' type.
           id: group.id,
           name: "TEST",
         },
@@ -149,11 +147,11 @@ describe("#groups.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data["groups"].length).toEqual(1);
-    expect(body.data["groups"][0].id).toEqual(group.id);
-    expect(body.data["groupMemberships"].length).toEqual(1);
-    expect(body.data["groupMemberships"][0].groupId).toEqual(group.id);
-    expect(body.data["groupMemberships"][0].user.id).toEqual(user.id);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+    expect(body.data.groupMemberships.length).toEqual(1);
+    expect(body.data.groupMemberships[0].groupId).toEqual(group.id);
+    expect(body.data.groupMemberships[0].user.id).toEqual(user.id);
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
   });
@@ -184,11 +182,11 @@ describe("#groups.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data["groups"].length).toEqual(1);
-    expect(body.data["groups"][0].id).toEqual(group.id);
-    expect(body.data["groupMemberships"].length).toEqual(1);
-    expect(body.data["groupMemberships"][0].groupId).toEqual(group.id);
-    expect(body.data["groupMemberships"][0].user.id).toEqual(me.id);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+    expect(body.data.groupMemberships.length).toEqual(1);
+    expect(body.data.groupMemberships[0].groupId).toEqual(group.id);
+    expect(body.data.groupMemberships[0].user.id).toEqual(me.id);
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
   });
@@ -219,34 +217,46 @@ describe("#groups.list", () => {
         token: user.getJwtToken(),
       },
     });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(2);
+    expect(body.data.groups[0].id).toEqual(anotherGroup.id);
+    expect(body.data.groups[1].id).toEqual(group.id);
+    expect(body.data.groupMemberships.length).toEqual(2);
+    expect(body.data.groupMemberships[0].groupId).toEqual(group.id);
+    expect(body.data.groupMemberships[1].groupId).toEqual(group.id);
+    expect(
+      body.data.groupMemberships.map((u: any) => u.user.id).includes(user.id)
+    ).toBe(true);
+    expect(
+      body.data.groupMemberships
+        .map((u: any) => u.user.id)
+        .includes(anotherUser.id)
+    ).toBe(true);
+    expect(body.policies.length).toEqual(2);
+
     const anotherRes = await server.post("/api/groups.list", {
       body: {
         userId: user.id,
         token: user.getJwtToken(),
       },
     });
-    const body = await res.json();
     const anotherBody = await anotherRes.json();
-    expect(res.status).toEqual(200);
     expect(anotherRes.status).toEqual(200);
-    expect(body.data["groups"].length).toEqual(2);
-    expect(body.data["groups"][0].id).toEqual(anotherGroup.id);
-    expect(body.data["groups"][1].id).toEqual(group.id);
-    expect(body.data["groupMemberships"].length).toEqual(2);
-    expect(anotherBody.data["groups"].length).toEqual(1);
-    expect(anotherBody.data["groups"][0].id).toEqual(group.id);
-    expect(anotherBody.data["groupMemberships"].length).toEqual(2);
-    expect(body.data["groupMemberships"][0].groupId).toEqual(group.id);
-    expect(body.data["groupMemberships"][1].groupId).toEqual(group.id);
-    expect(body.data["groupMemberships"][0].user.id).toEqual(user.id);
-    expect(body.data["groupMemberships"][1].user.id).toEqual(anotherUser.id);
-    expect(anotherBody.data["groupMemberships"][0].groupId).toEqual(group.id);
-    expect(anotherBody.data["groupMemberships"][1].groupId).toEqual(group.id);
-    expect(anotherBody.data["groupMemberships"][0].user.id).toEqual(user.id);
-    expect(anotherBody.data["groupMemberships"][1].user.id).toEqual(
-      anotherUser.id
-    );
-    expect(body.policies.length).toEqual(2);
+    expect(anotherBody.data.groups.length).toEqual(1);
+    expect(anotherBody.data.groups[0].id).toEqual(group.id);
+    expect(anotherBody.data.groupMemberships.length).toEqual(2);
+    expect(anotherBody.data.groupMemberships[0].groupId).toEqual(group.id);
+    expect(anotherBody.data.groupMemberships[1].groupId).toEqual(group.id);
+    expect(
+      body.data.groupMemberships.map((u: any) => u.user.id).includes(user.id)
+    ).toBe(true);
+    expect(
+      body.data.groupMemberships
+        .map((u: any) => u.user.id)
+        .includes(anotherUser.id)
+    ).toBe(true);
   });
 });
 

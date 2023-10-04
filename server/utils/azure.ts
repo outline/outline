@@ -3,7 +3,7 @@ import env from "@server/env";
 import OAuthClient from "./oauth";
 
 type AzurePayload = {
-  /* A GUID that represents the Azure AD tenant that the user is from */
+  /** A GUID that represents the Azure AD tenant that the user is from */
   tid: string;
 };
 
@@ -22,7 +22,7 @@ export default class AzureClient extends OAuthClient {
     refreshToken?: string;
     expiresAt: Date;
   }> {
-    if (env.isCloudHosted()) {
+    if (env.isCloudHosted) {
       return super.rotateToken(accessToken, refreshToken);
     }
 

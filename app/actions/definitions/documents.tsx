@@ -42,6 +42,7 @@ import {
   homePath,
   newDocumentPath,
   searchPath,
+  documentPath,
 } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
@@ -84,6 +85,48 @@ export const createDocument = createAction({
     history.push(newDocumentPath(activeCollectionId), {
       starred: inStarredSection,
     }),
+});
+
+export const createDocumentFromTemplate = createAction({
+  name: ({ t }) => t("New from template"),
+  analyticsName: "New document",
+  section: DocumentSection,
+  icon: <NewDocumentIcon />,
+  keywords: "create",
+  visible: ({ currentTeamId, activeDocumentId, stores }) =>
+    !!currentTeamId &&
+    !!activeDocumentId &&
+    !!stores.documents.get(activeDocumentId)?.template &&
+    stores.policies.abilities(currentTeamId).createDocument,
+  perform: ({ activeCollectionId, activeDocumentId, inStarredSection }) =>
+    history.push(
+      newDocumentPath(activeCollectionId, { templateId: activeDocumentId }),
+      {
+        starred: inStarredSection,
+      }
+    ),
+});
+
+export const createNestedDocument = createAction({
+  name: ({ t }) => t("New nested document"),
+  analyticsName: "New document",
+  section: DocumentSection,
+  icon: <NewDocumentIcon />,
+  keywords: "create",
+  visible: ({ currentTeamId, activeDocumentId, stores }) =>
+    !!currentTeamId &&
+    !!activeDocumentId &&
+    stores.policies.abilities(currentTeamId).createDocument &&
+    stores.policies.abilities(activeDocumentId).createChildDocument,
+  perform: ({ activeCollectionId, activeDocumentId, inStarredSection }) =>
+    history.push(
+      newDocumentPath(activeCollectionId, {
+        parentDocumentId: activeDocumentId,
+      }),
+      {
+        starred: inStarredSection,
+      }
+    ),
 });
 
 export const starDocument = createAction({
@@ -165,9 +208,14 @@ export const publishDocument = createAction({
       await document.save(undefined, {
         publish: true,
       });
-      stores.toasts.showToast(t("Document published"), {
-        type: "success",
-      });
+      stores.toasts.showToast(
+        t("Published {{ documentName }}", {
+          documentName: document.noun,
+        }),
+        {
+          type: "success",
+        }
+      );
     } else if (document) {
       stores.dialogs.openModal({
         title: t("Publish document"),
@@ -195,12 +243,20 @@ export const unpublishDocument = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
+    if (!document) {
+      return;
+    }
 
-    await document?.unpublish();
+    await document.unpublish();
 
-    stores.toasts.showToast(t("Document unpublished"), {
-      type: "success",
-    });
+    stores.toasts.showToast(
+      t("Unpublished {{ documentName }}", {
+        documentName: document.noun,
+      }),
+      {
+        type: "success",
+      }
+    );
   },
 });
 
@@ -366,7 +422,7 @@ export const duplicateDocument = createAction({
     invariant(document, "Document must exist");
     const duped = await document.duplicate();
     // when duplicating, go straight to the duplicated document content
-    history.push(duped.url);
+    history.push(documentPath(duped));
     stores.toasts.showToast(t("Document duplicated"), {
       type: "success",
     });
@@ -775,7 +831,16 @@ export const openDocumentInsights = createAction({
   icon: <LightBulbIcon />,
   visible: ({ activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
-    return !!activeDocumentId && can.read;
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+
+    return (
+      !!activeDocumentId &&
+      can.read &&
+      !document?.isTemplate &&
+      !document?.isDeleted
+    );
   },
   perform: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {

@@ -6,6 +6,7 @@ type Props = {
   id?: string;
   urlId?: string;
   title: string;
+  emoji?: string;
   text?: string;
   state?: Buffer;
   publish?: boolean;
@@ -28,6 +29,7 @@ type Props = {
 export default async function documentCreator({
   title = "",
   text = "",
+  emoji,
   state,
   id,
   urlId,
@@ -73,18 +75,28 @@ export default async function documentCreator({
       teamId: user.teamId,
       userId: user.id,
       createdAt,
-      updatedAt,
+      updatedAt: updatedAt ?? createdAt,
       lastModifiedById: user.id,
       createdById: user.id,
       template,
       templateId,
-      fullWidth,
       publishedAt,
       importId,
-      title: templateDocument
-        ? DocumentHelper.replaceTemplateVariables(templateDocument.title, user)
-        : title,
-      text: templateDocument ? templateDocument.text : text,
+      fullWidth: templateDocument ? templateDocument.fullWidth : fullWidth,
+      emoji: templateDocument ? templateDocument.emoji : emoji,
+      title: DocumentHelper.replaceTemplateVariables(
+        templateDocument ? templateDocument.title : title,
+        user
+      ),
+      text: await DocumentHelper.replaceImagesWithAttachments(
+        DocumentHelper.replaceTemplateVariables(
+          templateDocument ? templateDocument.text : text,
+          user
+        ),
+        user,
+        ip,
+        transaction
+      ),
       state,
     },
     {
@@ -112,7 +124,11 @@ export default async function documentCreator({
   );
 
   if (publish) {
-    await document.publish(user.id, collectionId!, { transaction });
+    if (!collectionId) {
+      throw new Error("Collection ID is required to publish");
+    }
+
+    await document.publish(user.id, collectionId, { transaction });
     await Event.create(
       {
         name: "documents.publish",

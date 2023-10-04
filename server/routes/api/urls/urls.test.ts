@@ -1,13 +1,12 @@
+import env from "@server/env";
 import { User } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import resolvers from "@server/utils/unfurl";
 
-jest.mock("@server/utils/unfurl", () => ({
-  Iframely: {
-    unfurl: jest.fn(),
-  },
-}));
+jest
+  .spyOn(resolvers.Iframely, "unfurl")
+  .mockImplementation(async (_: string) => false);
 
 const server = getTestServer();
 
@@ -134,7 +133,7 @@ describe("#urls.unfurl", () => {
     const res = await server.post("/api/urls.unfurl", {
       body: {
         token: user.getJwtToken(),
-        url: `http://localhost:3000/${document.url}`,
+        url: `${env.URL}/${document.url}`,
         documentId: document.id,
       },
     });
@@ -165,6 +164,7 @@ describe("#urls.unfurl", () => {
       },
     });
 
+    expect(res.status).toEqual(200);
     const body = await res.json();
 
     expect(resolvers.Iframely.unfurl).toHaveBeenCalledWith(

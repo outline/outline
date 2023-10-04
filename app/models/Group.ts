@@ -1,8 +1,8 @@
 import { observable } from "mobx";
-import BaseModel from "./BaseModel";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 
-class Group extends BaseModel {
+class Group extends Model {
   @Field
   @observable
   id: string;
@@ -11,9 +11,8 @@ class Group extends BaseModel {
   @observable
   name: string;
 
+  @observable
   memberCount: number;
-
-  updatedAt: string;
 }
 
 export default Group;

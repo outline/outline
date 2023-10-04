@@ -4,6 +4,7 @@ import { Popover as ReakitPopover, PopoverProps } from "reakit/Popover";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
+import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
 import { fadeAndScaleIn } from "~/styles/animations";
 
@@ -15,6 +16,8 @@ type Props = PopoverProps & {
   tabIndex?: number;
   scrollable?: boolean;
   mobilePosition?: "top" | "bottom";
+  show: () => void;
+  hide: () => void;
 };
 
 const Popover: React.FC<Props> = ({
@@ -27,6 +30,21 @@ const Popover: React.FC<Props> = ({
   ...rest
 }: Props) => {
   const isMobile = useMobile();
+
+  // Custom Escape handler rather than using hideOnEsc from reakit so we can
+  // prevent default behavior of exiting fullscreen.
+  useKeyDown(
+    "Escape",
+    (event) => {
+      if (rest.visible && rest.hideOnEsc !== false) {
+        event.preventDefault();
+        rest.hide();
+      }
+    },
+    {
+      allowInInput: true,
+    }
+  );
 
   if (isMobile) {
     return (
@@ -44,7 +62,7 @@ const Popover: React.FC<Props> = ({
   }
 
   return (
-    <ReakitPopover {...rest}>
+    <ReakitPopover {...rest} hideOnEsc={false}>
       <Contents
         $shrink={shrink}
         $width={width}

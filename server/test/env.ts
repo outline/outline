@@ -17,7 +17,10 @@ env.OIDC_TOKEN_URI = "http://localhost/token";
 env.OIDC_USERINFO_URI = "http://localhost/userinfo";
 
 env.RATE_LIMITER_ENABLED = false;
-env.DEPLOYMENT = undefined;
+
+env.FILE_STORAGE = "local";
+env.FILE_STORAGE_LOCAL_ROOT_DIR = "/tmp";
+env.IFRAMELY_API_KEY = "123";
 
 if (process.env.DATABASE_URL_TEST) {
   env.DATABASE_URL = process.env.DATABASE_URL_TEST;

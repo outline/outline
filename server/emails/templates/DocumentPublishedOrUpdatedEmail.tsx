@@ -3,16 +3,17 @@ import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import env from "@server/env";
-import { Document, Collection, User, Revision } from "@server/models";
+import { Document, Collection, Revision } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import Diff from "./components/Diff";
 import EmailTemplate from "./components/EmailLayout";
 import EmptySpace from "./components/EmptySpace";
-import Footer from "./components/Footer";
+import Footer, { Link } from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
@@ -44,12 +45,8 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({
-    documentId,
-    revisionId,
-    eventType,
-    userId,
-  }: InputProps) {
+  protected async beforeSend(props: InputProps) {
+    const { documentId, revisionId } = props;
     const document = await Document.unscoped().findByPk(documentId, {
       includeState: true,
     });
@@ -91,11 +88,12 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       document,
       collection,
       body,
-      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        await User.findByPk(userId, { rejectOnEmpty: true }),
-        eventType
-      ),
+      unsubscribeUrl: this.unsubscribeUrl(props),
     };
+  }
+
+  protected unsubscribeUrl({ userId, eventType }: InputProps) {
+    return NotificationSettingsHelper.unsubscribeUrl(userId, eventType);
   }
 
   eventName(eventType: NotificationEventType) {
@@ -135,20 +133,24 @@ Open Document: ${teamUrl}${document.url}
 `;
   }
 
-  protected render({
-    document,
-    actorName,
-    collection,
-    eventType,
-    teamUrl,
-    unsubscribeUrl,
-    body,
-  }: Props) {
-    const link = `${teamUrl}${document.url}?ref=notification-email`;
+  protected render(props: Props) {
+    const {
+      document,
+      actorName,
+      collection,
+      eventType,
+      teamUrl,
+      unsubscribeUrl,
+      body,
+    } = props;
+    const documentLink = `${teamUrl}${document.url}?ref=notification-email`;
     const eventName = this.eventName(eventType);
 
     return (
-      <EmailTemplate>
+      <EmailTemplate
+        previewText={this.preview(props)}
+        goToAction={{ url: documentLink, name: "View Document" }}
+      >
         <Header />
 
         <Body>
@@ -157,8 +159,8 @@ Open Document: ${teamUrl}${document.url}
           </Heading>
           <p>
             {actorName} {eventName} the document{" "}
-            <a href={link}>{document.title}</a>, in the {collection.name}{" "}
-            collection.
+            <a href={documentLink}>{document.title}</a>, in the{" "}
+            {collection.name} collection.
           </p>
           {body && (
             <>
@@ -170,11 +172,20 @@ Open Document: ${teamUrl}${document.url}
             </>
           )}
           <p>
-            <Button href={link}>Open Document</Button>
+            <Button href={documentLink}>Open Document</Button>
           </p>
         </Body>
 
-        <Footer unsubscribeUrl={unsubscribeUrl} />
+        <Footer unsubscribeUrl={unsubscribeUrl}>
+          <Link
+            href={SubscriptionHelper.unsubscribeUrl(
+              props.userId,
+              props.documentId
+            )}
+          >
+            Unsubscribe from this doc
+          </Link>
+        </Footer>
       </EmailTemplate>
     );
   }

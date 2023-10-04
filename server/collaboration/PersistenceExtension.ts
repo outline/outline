@@ -5,12 +5,13 @@ import {
   Extension,
 } from "@hocuspocus/server";
 import * as Y from "yjs";
-import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
+import { sequelize } from "@server/storage/database";
 import documentCollaborativeUpdater from "../commands/documentCollaborativeUpdater";
+import { withContext } from "./types";
 
 @trace()
 export default class PersistenceExtension implements Extension {
@@ -20,7 +21,10 @@ export default class PersistenceExtension implements Extension {
    */
   documentCollaboratorIds = new Map<string, Set<string>>();
 
-  async onLoadDocument({ documentName, ...data }: onLoadDocumentPayload) {
+  async onLoadDocument({
+    documentName,
+    ...data
+  }: withContext<onLoadDocumentPayload>) {
     const [, documentId] = documentName.split(".");
     const fieldName = "default";
 
@@ -67,14 +71,16 @@ export default class PersistenceExtension implements Extension {
     });
   }
 
-  async onChange({ context, documentName }: onChangePayload) {
+  async onChange({ context, documentName }: withContext<onChangePayload>) {
     Logger.debug(
       "multiplayer",
       `${context.user?.name} changed ${documentName}`
     );
 
     const state = this.documentCollaboratorIds.get(documentName) ?? new Set();
-    state.add(context.user?.id);
+    if (context.user) {
+      state.add(context.user.id);
+    }
     this.documentCollaboratorIds.set(documentName, state);
   }
 

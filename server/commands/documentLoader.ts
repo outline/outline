@@ -128,9 +128,10 @@ export default async function loadDocument({
       // documentStructure by default through the relationship.
       if (document.collectionId) {
         collection = await Collection.findByPk(document.collectionId);
-      }
-      if (!collection) {
-        throw NotFoundError("Collection could not be found for document");
+
+        if (!collection) {
+          throw NotFoundError("Collection could not be found for document");
+        }
       }
 
       return {

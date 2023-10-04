@@ -83,6 +83,8 @@ export default function useDictionary() {
       insertDateTime: t("Current date and time"),
       indent: t("Indent"),
       outdent: t("Outdent"),
+      video: t("Video"),
+      untitled: t("Untitled"),
     }),
     [t]
   );

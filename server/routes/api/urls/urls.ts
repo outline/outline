@@ -1,7 +1,9 @@
 import Router from "koa-router";
+import { parseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
-import { NotFoundError } from "@server/errors";
+import { isInternalUrl } from "@shared/utils/urls";
+import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
@@ -26,12 +28,16 @@ router.post(
     const { user: actor } = ctx.state.auth;
     const urlObj = new URL(url);
 
+    // Mentions
     if (urlObj.protocol === "mention:") {
+      if (!documentId) {
+        throw ValidationError("Document ID is required to unfurl a mention");
+      }
       const { modelId: userId } = parseMentionUrl(url);
 
       const [user, document] = await Promise.all([
         User.findByPk(userId),
-        Document.findByPk(documentId!, {
+        Document.findByPk(documentId, {
           userId: actor.id,
         }),
       ]);
@@ -48,20 +54,25 @@ router.post(
       return;
     }
 
-    const previewDocumentId = parseDocumentSlug(url);
-    if (previewDocumentId) {
-      const document = previewDocumentId
-        ? await Document.findByPk(previewDocumentId, { userId: actor.id })
-        : undefined;
-      if (!document) {
-        throw NotFoundError("Document does not exist");
-      }
-      authorize(actor, "read", document);
+    // Internal resources
+    if (isInternalUrl(url) || parseDomain(url).host === actor.team.domain) {
+      const previewDocumentId = parseDocumentSlug(url);
+      if (previewDocumentId) {
+        const document = previewDocumentId
+          ? await Document.findByPk(previewDocumentId, { userId: actor.id })
+          : undefined;
+        if (!document) {
+          throw NotFoundError("Document does not exist");
+        }
+        authorize(actor, "read", document);
 
-      ctx.body = presentDocument(document, actor);
-      return;
+        ctx.body = presentDocument(document, actor);
+        return;
+      }
+      return (ctx.response.status = 204);
     }
 
+    // External resources
     if (resolvers.Iframely) {
       const data = await resolvers.Iframely.unfurl(url);
       return data.error

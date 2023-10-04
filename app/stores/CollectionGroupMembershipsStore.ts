@@ -4,10 +4,10 @@ import { CollectionPermission } from "@shared/types";
 import CollectionGroupMembership from "~/models/CollectionGroupMembership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
-import BaseStore, { PAGINATION_SYMBOL, RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
+import Store, { PAGINATION_SYMBOL, RPCAction } from "./base/Store";
 
-export default class CollectionGroupMembershipsStore extends BaseStore<CollectionGroupMembership> {
+export default class CollectionGroupMembershipsStore extends Store<CollectionGroupMembership> {
   actions = [RPCAction.Create, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {

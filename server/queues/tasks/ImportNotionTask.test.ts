@@ -2,10 +2,7 @@ import fs from "fs";
 import path from "path";
 import { FileOperation } from "@server/models";
 import { buildFileOperation } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import ImportNotionTask from "./ImportNotionTask";
-
-setupTestDatabase();
 
 describe("ImportNotionTask", () => {
   it("should import successfully from a Markdown export", async () => {

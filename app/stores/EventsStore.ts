@@ -2,10 +2,10 @@ import filter from "lodash/filter";
 import sortBy from "lodash/sortBy";
 import { computed } from "mobx";
 import Event from "~/models/Event";
-import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
+import Store, { RPCAction } from "./base/Store";
 
-export default class EventsStore extends BaseStore<Event> {
+export default class EventsStore extends Store<Event> {
   actions = [RPCAction.List];
 
   constructor(rootStore: RootStore) {

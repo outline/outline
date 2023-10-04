@@ -26,7 +26,6 @@ import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
 import PlaceholderText from "~/components/PlaceholderText";
 import Scene from "~/components/Scene";
-import Star, { AnimatedStar } from "~/components/Star";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import Tooltip from "~/components/Tooltip";
@@ -157,7 +156,7 @@ function CollectionScene() {
             <Empty collection={collection} />
           ) : (
             <>
-              <HeadingWithIcon $isStarred={collection.isStarred}>
+              <HeadingWithIcon>
                 <HeadingIcon collection={collection} size={40} expanded />
                 {collection.name}
                 {collection.isPrivate && (
@@ -170,7 +169,6 @@ function CollectionScene() {
                     <Badge>{t("Private")}</Badge>
                   </Tooltip>
                 )}
-                <StarButton collection={collection} size={32} />
               </HeadingWithIcon>
               <CollectionDescription collection={collection} />
 
@@ -285,41 +283,14 @@ function CollectionScene() {
   );
 }
 
-const StarButton = styled(Star)`
-  position: relative;
-  top: 0;
-  left: 10px;
-  overflow: hidden;
-  width: 24px;
-
-  svg {
-    position: relative;
-    left: -4px;
-  }
-`;
-
 const Documents = styled.div`
   position: relative;
   background: ${s("background")};
 `;
 
-const HeadingWithIcon = styled(Heading)<{ $isStarred: boolean }>`
+const HeadingWithIcon = styled(Heading)`
   display: flex;
   align-items: center;
-
-  ${AnimatedStar} {
-    opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
-  }
-
-  &:hover {
-    ${AnimatedStar} {
-      opacity: 0.5;
-
-      &:hover {
-        opacity: 1;
-      }
-    }
-  }
 
   ${breakpoint("tablet")`
     margin-left: -40px;

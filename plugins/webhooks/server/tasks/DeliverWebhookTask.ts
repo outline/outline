@@ -1,5 +1,4 @@
-import fetch, { FetchError } from "node-fetch";
-import { useAgent } from "request-filtering-agent";
+import { FetchError } from "node-fetch";
 import { Op } from "sequelize";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
 import env from "@server/env";
@@ -19,8 +18,8 @@ import {
   Revision,
   View,
   Share,
-  CollectionUser,
-  CollectionGroup,
+  UserPermission,
+  GroupPermission,
   GroupUser,
   Comment,
 } from "@server/models";
@@ -63,6 +62,7 @@ import {
   ViewEvent,
   WebhookSubscriptionEvent,
 } from "@server/types";
+import fetch from "@server/utils/fetch";
 import presentWebhook, { WebhookPayload } from "../presenters/webhook";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
 
@@ -174,6 +174,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         return;
       case "integrations.create":
       case "integrations.update":
+      case "integrations.delete":
         await this.handleIntegrationEvent(subscription, event);
         return;
       case "teams.create":
@@ -425,7 +426,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CollectionUserEvent
   ): Promise<void> {
-    const model = await CollectionUser.scope([
+    const model = await UserPermission.scope([
       "withUser",
       "withCollection",
     ]).findOne({
@@ -442,7 +443,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: `${event.userId}-${event.collectionId}`,
         model: model && presentMembership(model),
-        collection: model && presentCollection(model.collection),
+        collection: model && presentCollection(model.collection!),
         user: model && presentUser(model.user),
       },
     });
@@ -452,7 +453,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CollectionGroupEvent
   ): Promise<void> {
-    const model = await CollectionGroup.scope([
+    const model = await GroupPermission.scope([
       "withGroup",
       "withCollection",
     ]).findOne({
@@ -469,7 +470,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: `${event.modelId}-${event.collectionId}`,
         model: model && presentCollectionGroupMembership(model),
-        collection: model && presentCollection(model.collection),
+        collection: model && presentCollection(model.collection!),
         group: model && presentGroup(model.group),
       },
     });
@@ -596,11 +597,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         body: JSON.stringify(requestBody),
         redirect: "error",
         timeout: 5000,
-        agent: useAgent(subscription.url),
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
-      if (err instanceof FetchError && env.DEPLOYMENT === "hosted") {
+      if (err instanceof FetchError && env.isCloudHosted) {
         Logger.warn(`Failed to send webhook: ${err.message}`, {
           event,
           deliveryId: delivery.id,

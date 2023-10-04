@@ -2,13 +2,13 @@ import invariant from "invariant";
 import filter from "lodash/filter";
 import orderBy from "lodash/orderBy";
 import { observable, computed, action, runInAction } from "mobx";
-import { Role } from "@shared/types";
+import { UserRole } from "@shared/types";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
-import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import Store from "./base/Store";
 
-export default class UsersStore extends BaseStore<User> {
+export default class UsersStore extends Store<User> {
   @observable
   counts: {
     active: number;
@@ -82,15 +82,15 @@ export default class UsersStore extends BaseStore<User> {
   @action
   promote = async (user: User) => {
     try {
-      this.updateCounts("admin", user.role);
+      this.updateCounts(UserRole.Admin, user.role);
       await this.actionOnUser("promote", user);
     } catch {
-      this.updateCounts(user.role, "admin");
+      this.updateCounts(user.role, UserRole.Admin);
     }
   };
 
   @action
-  demote = async (user: User, to: Role) => {
+  demote = async (user: User, to: UserRole) => {
     try {
       this.updateCounts(to, user.role);
       await this.actionOnUser("demote", user, to);
@@ -128,7 +128,7 @@ export default class UsersStore extends BaseStore<User> {
     invites: {
       email: string;
       name: string;
-      role: Role;
+      role: UserRole;
     }[]
   ) => {
     const res = await client.post(`/users.invite`, {
@@ -206,29 +206,29 @@ export default class UsersStore extends BaseStore<User> {
   }
 
   @action
-  updateCounts = (to: Role, from: Role) => {
-    if (to === "admin") {
+  updateCounts = (to: UserRole, from: UserRole) => {
+    if (to === UserRole.Admin) {
       this.counts.admins += 1;
 
-      if (from === "viewer") {
+      if (from === UserRole.Viewer) {
         this.counts.viewers -= 1;
       }
     }
 
-    if (to === "viewer") {
+    if (to === UserRole.Viewer) {
       this.counts.viewers += 1;
 
-      if (from === "admin") {
+      if (from === UserRole.Admin) {
         this.counts.admins -= 1;
       }
     }
 
-    if (to === "member") {
-      if (from === "viewer") {
+    if (to === UserRole.Member) {
+      if (from === UserRole.Viewer) {
         this.counts.viewers -= 1;
       }
 
-      if (from === "admin") {
+      if (from === UserRole.Admin) {
         this.counts.admins -= 1;
       }
     }
@@ -296,7 +296,7 @@ export default class UsersStore extends BaseStore<User> {
     return queriedUsers(users, query);
   };
 
-  actionOnUser = async (action: string, user: User, to?: Role) => {
+  actionOnUser = async (action: string, user: User, to?: UserRole) => {
     const res = await client.post(`/users.${action}`, {
       id: user.id,
       to,

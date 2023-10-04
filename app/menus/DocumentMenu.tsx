@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { EditIcon, NewDocumentIcon, RestoreIcon } from "outline-icons";
+import { EditIcon, RestoreIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -38,16 +38,18 @@ import {
   unpublishDocument,
   printDocument,
   openDocumentComments,
+  createDocumentFromTemplate,
+  createNestedDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
-import { documentEditPath, newDocumentPath } from "~/utils/routeHelpers";
+import { documentEditPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -73,7 +75,7 @@ function DocumentMenu({
   onOpen,
   onClose,
 }: Props) {
-  const team = useCurrentTeam();
+  const user = useCurrentUser();
   const { policies, collections, documents, subscriptions } = useStores();
   const { showToast } = useToasts();
   const menu = useMenuState({
@@ -263,18 +265,11 @@ function DocumentMenu({
               type: "route",
               title: t("Edit"),
               to: documentEditPath(document),
-              visible: !!can.update && !team.seamlessEditing,
+              visible:
+                !!can.update && user.separateEditMode && !document.template,
               icon: <EditIcon />,
             },
-            {
-              type: "route",
-              title: t("New nested document"),
-              to: newDocumentPath(document.collectionId, {
-                parentDocumentId: document.id,
-              }),
-              visible: !!can.createChildDocument,
-              icon: <NewDocumentIcon />,
-            },
+            actionToMenuItem(createNestedDocument, context),
             actionToMenuItem(importDocument, context),
             actionToMenuItem(createTemplate, context),
             actionToMenuItem(duplicateDocument, context),
@@ -283,6 +278,7 @@ function DocumentMenu({
             actionToMenuItem(archiveDocument, context),
             actionToMenuItem(moveDocument, context),
             actionToMenuItem(pinDocument, context),
+            actionToMenuItem(createDocumentFromTemplate, context),
             {
               type: "separator",
             },

@@ -20,7 +20,9 @@ declare module "styled-components" {
     scrollbarThumb: string;
     fontFamily: string;
     fontFamilyMono: string;
-    fontWeight: number;
+    fontWeightRegular: number;
+    fontWeightMedium: number;
+    fontWeightBold: number;
     link: string;
     placeholder: string;
     textSecondary: string;

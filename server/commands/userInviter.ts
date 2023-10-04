@@ -1,5 +1,5 @@
 import uniqBy from "lodash/uniqBy";
-import { Role } from "@shared/types";
+import { UserRole } from "@shared/types";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -9,7 +9,7 @@ import { UserFlag } from "@server/models/User";
 export type Invite = {
   name: string;
   email: string;
-  role: Role;
+  role: UserRole;
 };
 
 export default async function userInviter({
@@ -59,8 +59,8 @@ export default async function userInviter({
       name: invite.name,
       email: invite.email,
       service: null,
-      isAdmin: invite.role === "admin",
-      isViewer: invite.role === "viewer",
+      isAdmin: invite.role === UserRole.Admin,
+      isViewer: invite.role === UserRole.Viewer,
       invitedById: user.id,
       flags: {
         [UserFlag.InviteSent]: 1,

@@ -26,8 +26,10 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
-  if (!env.isCloudHosted()) {
-    const team = await Team.scope("withAuthenticationProviders").findOne();
+  if (!env.isCloudHosted) {
+    const team = await Team.scope("withAuthenticationProviders").findOne({
+      order: [["createdAt", "DESC"]],
+    });
 
     if (team) {
       ctx.body = {
@@ -75,7 +77,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
 
   // If subdomain signin page then we return minimal team details to allow
   // for a custom screen showing only relevant signin options for that team.
-  else if (env.SUBDOMAINS_ENABLED && domain.teamSubdomain) {
+  else if (env.isCloudHosted && domain.teamSubdomain) {
     const team = await Team.scope("withAuthenticationProviders").findOne({
       where: {
         subdomain: domain.teamSubdomain,
@@ -179,7 +181,7 @@ router.post(
 
     ctx.cookies.set("accessToken", "", {
       expires: subMinutes(new Date(), 1),
-      domain: getCookieDomain(ctx.hostname),
+      domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
     });
 
     ctx.body = {

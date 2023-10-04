@@ -40,7 +40,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
   };
 
   return (
-    <Link to={notification.path} onClick={handleClick}>
+    <Link to={notification.path ?? ""} onClick={handleClick}>
       <Container gap={8} $unread={!notification.viewedAt}>
         <StyledAvatar model={notification.actor} size={AvatarSize.Large} />
         <Flex column>
@@ -64,6 +64,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
           {notification.comment && (
             <StyledCommentEditor
               defaultValue={toJS(notification.comment.data)}
+              previewsDisabled
             />
           )}
         </Flex>

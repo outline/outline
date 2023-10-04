@@ -6,39 +6,54 @@ import env from "@server/env";
 
 type Props = {
   unsubscribeUrl?: string;
+  children?: React.ReactNode;
 };
 
-export default ({ unsubscribeUrl }: Props) => {
-  const footerStyle = {
-    padding: "20px 0",
-    borderTop: `1px solid ${theme.smokeDark}`,
-    color: theme.slate,
-    fontSize: "14px",
-  };
-  const unsubStyle = {
-    padding: "0",
-    color: theme.slate,
-    fontSize: "14px",
-  };
+export const Link = ({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) => {
   const linkStyle = {
     color: theme.slate,
     fontWeight: 500,
     textDecoration: "none",
     marginRight: "10px",
   };
+
+  return (
+    <a href={href} style={linkStyle}>
+      {children}
+    </a>
+  );
+};
+
+export default ({ unsubscribeUrl, children }: Props) => {
+  const footerStyle = {
+    padding: "20px 0",
+    borderTop: `1px solid ${theme.smokeDark}`,
+    color: theme.slate,
+    fontSize: "14px",
+  };
+  const footerLinkStyle = {
+    padding: "0",
+    color: theme.slate,
+    fontSize: "14px",
+  };
   const externalLinkStyle = {
     color: theme.slate,
     textDecoration: "none",
     margin: "0 10px",
   };
+
   return (
     <Table width="100%">
       <TBody>
         <TR>
           <TD style={footerStyle}>
-            <a href={env.URL} style={linkStyle}>
-              {env.APP_NAME}
-            </a>
+            <Link href={env.URL}>{env.APP_NAME}</Link>
             <a href={twitterUrl()} style={externalLinkStyle}>
               Twitter
             </a>
@@ -46,11 +61,14 @@ export default ({ unsubscribeUrl }: Props) => {
         </TR>
         {unsubscribeUrl && (
           <TR>
-            <TD style={unsubStyle}>
-              <a href={unsubscribeUrl} style={linkStyle}>
-                Unsubscribe from these emails
-              </a>
+            <TD style={footerLinkStyle}>
+              <Link href={unsubscribeUrl}>Unsubscribe from these emails</Link>
             </TD>
+          </TR>
+        )}
+        {children && (
+          <TR>
+            <TD style={footerLinkStyle}>{children}</TD>
           </TR>
         )}
       </TBody>

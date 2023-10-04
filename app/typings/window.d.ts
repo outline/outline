@@ -1,3 +1,5 @@
+import type RootStore from "~/stores/RootStore";
+
 declare global {
   interface ImportMeta {
     /**
@@ -9,6 +11,8 @@ declare global {
   interface Window {
     dataLayer: any[];
     gtag: (...args: any[]) => void;
+
+    stores: RootStore;
 
     DesktopBridge: {
       /**

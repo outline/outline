@@ -4,6 +4,7 @@ import breaks from "./breaks";
 import confluenceCodeBlock from "./confluence-code-block";
 import confluenceTaskList from "./confluence-task-list";
 import emptyLists from "./empty-lists";
+import frames from "./frames";
 import images from "./images";
 
 /**
@@ -25,6 +26,7 @@ const service = new TurndownService({
 })
   .remove(["script", "style", "title", "head"])
   .use(gfm)
+  .use(frames)
   .use(confluenceTaskList)
   .use(confluenceCodeBlock)
   .use(images)

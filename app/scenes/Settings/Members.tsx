@@ -5,7 +5,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import { PAGINATION_SYMBOL } from "~/stores/BaseStore";
+import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
 import { Action } from "~/components/Actions";
@@ -39,8 +39,8 @@ function Members() {
   const [totalPages, setTotalPages] = React.useState(0);
   const [userIds, setUserIds] = React.useState<string[]>([]);
   const can = usePolicy(team);
-  const query = params.get("query") || "";
-  const filter = params.get("filter") || "";
+  const query = params.get("query") || undefined;
+  const filter = params.get("filter") || undefined;
   const sort = params.get("sort") || "name";
   const direction = (params.get("direction") || "asc").toUpperCase() as
     | "ASC"
@@ -176,15 +176,18 @@ function Members() {
       <Flex gap={8}>
         <InputSearch
           short
-          value={query}
+          value={query ?? ""}
           placeholder={`${t("Filter")}…`}
           onChange={handleSearch}
         />
-        <LargeUserStatusFilter activeKey={filter} onSelect={handleFilter} />
+        <LargeUserStatusFilter
+          activeKey={filter ?? ""}
+          onSelect={handleFilter}
+        />
       </Flex>
       <PeopleTable
         data={data}
-        canManage={can.manage}
+        canManage={can.update}
         isLoading={isLoading}
         page={page}
         pageSize={limit}
