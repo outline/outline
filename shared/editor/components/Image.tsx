@@ -29,7 +29,7 @@ const Image = (props: Props) => {
   const [loaded, setLoaded] = React.useState(false);
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
-  const documentBounds = useComponentSize(props.view.dom.parentElement);
+  const documentBounds = useComponentSize(props.view.dom);
   const containerBounds = useComponentSize(
     document.body.querySelector("#full-width-container")
   );

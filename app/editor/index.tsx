@@ -302,6 +302,7 @@ export class Editor extends React.PureComponent<
 
   public componentWillUnmount(): void {
     window.removeEventListener("theme-changed", this.dispatchThemeChanged);
+    this.view.destroy();
     this.mutationObserver?.disconnect();
   }
 
