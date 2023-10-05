@@ -6,6 +6,7 @@ import { Class } from "utility-types";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Model from "~/models/base/Model";
+import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
 import { PaginationParams, PartialWithId } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
@@ -99,6 +100,26 @@ export default abstract class Store<T extends Model> {
 
   @action
   remove(id: string): void {
+    const inverseRelations = getInverseRelationsForModelClass(this.model);
+
+    inverseRelations.forEach((relation) => {
+      // TODO: Need a better way to get the store for a given model name.
+      const store = this.rootStore[`${relation.modelName.toLowerCase()}s`];
+      const items = store.orderedData.filter(
+        (item: Model) => item[relation.idKey] === id
+      );
+
+      if (relation.options.onDelete === "cascade") {
+        items.forEach((item: Model) => store.remove(item.id));
+      }
+
+      if (relation.options.onDelete === "null") {
+        items.forEach((item: Model) => {
+          item[relation.idKey] = null;
+        });
+      }
+    });
+
     this.data.delete(id);
   }
 
