@@ -11,8 +11,8 @@ type RelationOptions = {
 type RelationProperties = {
   /** The name of the property on the model that stores the ID of the relation */
   idKey: string;
-  /** The name of the class of the relation */
-  relationClassName: string;
+  /** A function that returns the class of the relation */
+  relationClassResolver: () => typeof Model;
   /** Options for the relation */
   options: RelationOptions;
 };
@@ -35,7 +35,7 @@ export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
 
   relations.forEach((relation, modelName) => {
     relation.forEach((properties, propertyName) => {
-      if (properties.relationClassName === targetClass.name) {
+      if (properties.relationClassResolver().name === targetClass.name) {
         inverseRelations.set(propertyName, {
           ...properties,
           modelName,
@@ -61,8 +61,6 @@ export default function Relation<T extends typeof Model>(
 ) {
   return function (target: any, propertyKey: string) {
     const idKey = `${String(propertyKey)}Id`;
-    const relationClass = classResolver();
-    const relationClassName = relationClass.name;
 
     // If the relation has options provided then register them in a map for later lookup. We can use
     // this to determine how to update relations when a model is deleted.
@@ -71,7 +69,7 @@ export default function Relation<T extends typeof Model>(
         relations.get(target.constructor.name) || new Map();
       configForClass.set(propertyKey, {
         options,
-        relationClassName,
+        relationClassResolver: classResolver,
         idKey,
       });
       relations.set(target.constructor.name, configForClass);
@@ -85,6 +83,7 @@ export default function Relation<T extends typeof Model>(
           return undefined;
         }
 
+        const relationClassName = classResolver().name;
         const store =
           this.store.rootStore[`${relationClassName.toLowerCase()}s`];
         invariant(store, `Store for ${relationClassName} not found`);
@@ -95,6 +94,7 @@ export default function Relation<T extends typeof Model>(
         this[idKey] = newValue ? newValue.id : undefined;
 
         if (newValue) {
+          const relationClassName = classResolver().name;
           const store =
             this.store.rootStore[`${relationClassName.toLowerCase()}s`];
           invariant(store, `Store for ${relationClassName} not found`);
