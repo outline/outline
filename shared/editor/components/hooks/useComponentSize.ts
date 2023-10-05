@@ -28,11 +28,11 @@ export default function useComponentSize(
 
   useEffect(() => {
     const handleResize = () => {
-      const rect = element?.getBoundingClientRect();
       setSize((state: DOMRect) => {
+        const rect = element?.getBoundingClientRect();
+
         if (
           rect &&
-          state &&
           Math.round(state.width) === Math.round(rect.width) &&
           Math.round(state.height) === Math.round(rect.height) &&
           Math.round(state.x) === Math.round(rect.x) &&
@@ -40,11 +40,10 @@ export default function useComponentSize(
         ) {
           return state;
         }
-
-        console.log(rect, element?.className);
         return rect;
       });
     };
+
     window.addEventListener("click", handleResize);
     window.addEventListener("resize", handleResize);
     element?.addEventListener("resize", handleResize);
