@@ -35,6 +35,12 @@ class Comment extends Model {
   parentCommentId: string;
 
   /**
+   * The comment that this comment is a reply to.
+   */
+  @Relation(() => Comment, { onDelete: "cascade" })
+  parentComment?: Comment;
+
+  /**
    * The document to which this comment belongs.
    */
   @Field
