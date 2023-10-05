@@ -105,6 +105,7 @@ export default class ComponentView {
   }
 
   destroy() {
+    debugger;
     window.removeEventListener("theme-changed", this.renderElement);
     window.removeEventListener("location-changed", this.renderElement);
 
