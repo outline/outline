@@ -249,6 +249,17 @@ const findAndReplaceStyle = () => css`
   }
 `;
 
+const emailStyle = (props: Props) => css`
+  .attachment {
+    display: block;
+    color: ${props.theme.text} !important;
+    box-shadow: 0 0 0 1px ${props.theme.divider};
+    white-space: nowrap;
+    border-radius: 8px;
+    padding: 6px 8px;
+  }
+`;
+
 const style = (props: Props) => `
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
@@ -1546,6 +1557,7 @@ const EditorContainer = styled.div<Props>`
   ${codeMarkCursor}
   ${codeBlockStyle}
   ${findAndReplaceStyle}
+  ${emailStyle}
 `;
 
 export default EditorContainer;

@@ -114,7 +114,7 @@ export default class LocalStorage extends BaseStorage {
         expiresIn,
       }
     );
-    return Promise.resolve(`/api/files.get?sig=${sig}`);
+    return Promise.resolve(`${env.URL}/api/files.get?sig=${sig}`);
   };
 
   public getFileStream(key: string) {
