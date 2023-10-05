@@ -1,4 +1,6 @@
+import crypto from "crypto";
 import path from "path";
+import formatRFC7231 from "date-fns/formatRFC7231";
 import Koa, { BaseContext } from "koa";
 import compress from "koa-compress";
 import Router from "koa-router";
@@ -99,10 +101,12 @@ router.get("/locales/:lng.json", async (ctx) => {
   }
 
   await send(ctx, path.join(lng, "translation.json"), {
-    setHeaders: (res) => {
+    setHeaders: (res, _, stats) => {
+      res.setHeader("Last-Modified", formatRFC7231(stats.mtime));
+      res.setHeader("Cache-Control", `public, max-age=${7 * 24 * 60 * 60}`);
       res.setHeader(
-        "Cache-Control",
-        isProduction ? `max-age=${7 * 24 * 60 * 60}` : "no-cache"
+        "ETag",
+        crypto.createHash("md5").update(stats.mtime.toISOString()).digest("hex")
       );
     },
     root: path.join(__dirname, "../../shared/i18n/locales"),
