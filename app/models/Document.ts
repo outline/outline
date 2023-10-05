@@ -1,5 +1,5 @@
 import { addDays, differenceInDays } from "date-fns";
-import { t } from "i18next";
+import i18n, { t } from "i18next";
 import floor from "lodash/floor";
 import { action, autorun, computed, observable, set } from "mobx";
 import { ExportContentType } from "@shared/types";
@@ -242,11 +242,6 @@ export default class Document extends ParanoidModel {
   }
 
   @computed
-  get titleWithDefault(): string {
-    return this.title || "Untitled";
-  }
-
-  @computed
   get permanentlyDeletedAt(): string | undefined {
     if (!this.deletedAt) {
       return undefined;
@@ -277,6 +272,10 @@ export default class Document extends ParanoidModel {
     }
 
     return floor((this.tasks.completed / this.tasks.total) * 100);
+  }
+
+  get titleWithDefault(): string {
+    return this.title || i18n.t("Untitled");
   }
 
   @action
