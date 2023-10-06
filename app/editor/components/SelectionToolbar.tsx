@@ -4,6 +4,7 @@ import * as React from "react";
 import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import getMarkRange from "@shared/editor/queries/getMarkRange";
+import isInCode from "@shared/editor/queries/isInCode";
 import isMarkActive from "@shared/editor/queries/isMarkActive";
 import isNodeActive from "@shared/editor/queries/isNodeActive";
 import { getColumnIndex, getRowIndex } from "@shared/editor/queries/table";
@@ -217,8 +218,7 @@ export default function SelectionToolbar(props: Props) {
   const isImageSelection =
     selection instanceof NodeSelection && selection.node.type.name === "image";
   const isCodeSelection =
-    isNodeActive(state.schema.nodes.code_block)(state) ||
-    isNodeActive(state.schema.nodes.code_fence)(state);
+    selection.from === selection.to && isInCode(state, { onlyBlock: true });
 
   let items: MenuItem[] = [];
 

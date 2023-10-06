@@ -109,14 +109,16 @@ export default class Comment extends Mark {
         props: {
           handleDOMEvents: {
             mouseup: (_view, event: MouseEvent) => {
-              if (
-                !(event.target instanceof HTMLSpanElement) ||
-                !event.target.classList.contains("comment-marker")
-              ) {
+              if (!(event.target instanceof HTMLElement)) {
                 return false;
               }
 
-              const commentId = event.target.id.replace("comment-", "");
+              const comment = event.target.closest(".comment-marker");
+              if (!comment) {
+                return false;
+              }
+
+              const commentId = comment.id.replace("comment-", "");
               if (commentId) {
                 this.options?.onClickCommentMark?.(commentId);
               }
