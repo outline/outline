@@ -88,6 +88,7 @@ const StyledAvatar = styled(Avatar)`
 const Container = styled(Flex)<{ $unread: boolean }>`
   position: relative;
   padding: 8px 12px;
+  padding-right: 40px;
   margin: 0 8px;
   border-radius: 4px;
 
