@@ -118,4 +118,4 @@ export const richExtensions: Nodes = [
 /**
  * Add commenting and mentions to a set of nodes
  */
-export const withComments = (nodes: Nodes) => [Mention, Comment, ...nodes];
+export const withComments = (nodes: Nodes) => [...nodes, Mention, Comment];

@@ -36,6 +36,7 @@ export default function formattingMenuItems(
   const isTable = isInTable(state);
   const isList = isInList(state);
   const isCode = isInCode(state);
+  const isCodeBlock = isInCode(state, { onlyBlock: true });
   const allowBlocks = !isTable && !isList;
 
   return [
@@ -83,6 +84,7 @@ export default function formattingMenuItems(
       tooltip: dictionary.codeInline,
       icon: <CodeIcon />,
       active: isMarkActive(schema.marks.code_inline),
+      visible: !isCodeBlock,
     },
     {
       name: "separator",
@@ -166,8 +168,8 @@ export default function formattingMenuItems(
       name: "comment",
       tooltip: dictionary.comment,
       icon: <CommentIcon />,
+      label: isCodeBlock ? dictionary.comment : undefined,
       active: isMarkActive(schema.marks.comment),
-      visible: !isCode,
     },
   ];
 }

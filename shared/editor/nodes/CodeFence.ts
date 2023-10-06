@@ -150,7 +150,7 @@ export default class CodeFence extends Node {
         },
       },
       content: "text*",
-      marks: "",
+      marks: "comment",
       group: "block",
       code: true,
       defining: true,
