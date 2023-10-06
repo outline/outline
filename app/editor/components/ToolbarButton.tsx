@@ -23,7 +23,7 @@ export default styled.button.attrs((props) => ({
   background: none;
   transition: opacity 100ms ease-in-out;
   padding: 0;
-  opacity: 0.7;
+  opacity: 0.8;
   outline: none;
   pointer-events: all;
   position: relative;

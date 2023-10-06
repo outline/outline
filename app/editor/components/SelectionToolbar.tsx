@@ -217,12 +217,11 @@ export default function SelectionToolbar(props: Props) {
   const range = getMarkRange(selection.$from, state.schema.marks.link);
   const isImageSelection =
     selection instanceof NodeSelection && selection.node.type.name === "image";
-  const isCodeSelection =
-    selection.from === selection.to && isInCode(state, { onlyBlock: true });
+  const isCodeSelection = isInCode(state, { onlyBlock: true });
 
   let items: MenuItem[] = [];
 
-  if (isCodeSelection) {
+  if (isCodeSelection && selection.empty) {
     items = getCodeMenuItems(state, readOnly, dictionary);
   } else if (isTableSelection) {
     items = getTableMenuItems(dictionary);

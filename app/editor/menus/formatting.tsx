@@ -168,6 +168,7 @@ export default function formattingMenuItems(
       name: "comment",
       tooltip: dictionary.comment,
       icon: <CommentIcon />,
+      label: isCodeBlock ? dictionary.comment : undefined,
       active: isMarkActive(schema.marks.comment),
     },
   ];

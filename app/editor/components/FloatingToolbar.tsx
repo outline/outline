@@ -74,7 +74,7 @@ function usePosition({
   // position at the top right of code blocks
   const codeBlock = findParentNode(isCode)(view.state.selection);
 
-  if (codeBlock) {
+  if (codeBlock && view.state.selection.empty) {
     const element = view.nodeDOM(codeBlock.pos);
     const bounds = (element as HTMLElement).getBoundingClientRect();
     selectionBounds.top = bounds.top;
