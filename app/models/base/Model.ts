@@ -95,12 +95,12 @@ export default abstract class Model {
    */
   toAPI = (): Record<string, any> => {
     const fields = getFieldsForModel(this);
-    return pick(this, fields) || [];
+    return pick(this, fields);
   };
 
   /**
    * Returns a plain object representation of all the properties on the model
-   * overrides the inbuilt toJSON method to avoid attempting to serialize store
+   * overrides the native toJSON method to avoid attempting to serialize store
    *
    * @returns {Record<string, any>}
    */

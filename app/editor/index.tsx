@@ -302,6 +302,7 @@ export class Editor extends React.PureComponent<
 
   public componentWillUnmount(): void {
     window.removeEventListener("theme-changed", this.dispatchThemeChanged);
+    this.view.destroy();
     this.mutationObserver?.disconnect();
   }
 
@@ -349,27 +350,26 @@ export class Editor extends React.PureComponent<
   private createNodeViews() {
     return this.extensions.extensions
       .filter((extension: ReactNode) => extension.component)
-      .reduce((nodeViews, extension: ReactNode) => {
-        const nodeView = (
-          node: ProsemirrorNode,
-          view: EditorView,
-          getPos: () => number,
-          decorations: Decoration[]
-        ) =>
-          new ComponentView(extension.component, {
-            editor: this,
-            extension,
-            node,
-            view,
-            getPos,
-            decorations,
-          });
-
-        return {
+      .reduce(
+        (nodeViews, extension: ReactNode) => ({
           ...nodeViews,
-          [extension.name]: nodeView,
-        };
-      }, {});
+          [extension.name]: (
+            node: ProsemirrorNode,
+            view: EditorView,
+            getPos: () => number,
+            decorations: Decoration[]
+          ) =>
+            new ComponentView(extension.component, {
+              editor: this,
+              extension,
+              node,
+              view,
+              getPos,
+              decorations,
+            }),
+        }),
+        {}
+      );
   }
 
   private createCommands() {
