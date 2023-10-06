@@ -311,6 +311,7 @@ const Container = styled(Flex)<ContainerProps>`
 
     ${(props: ContainerProps) => props.$isHovering && css(hoverStyles)}
 
+    &:hover,
     &:focus-within {
       ${hoverStyles}
 
