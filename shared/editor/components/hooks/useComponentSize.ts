@@ -14,48 +14,44 @@ const defaultRect = {
 export default function useComponentSize(
   element: HTMLElement | null
 ): DOMRect | typeof defaultRect {
-  const [size, setSize] = useState(element?.getBoundingClientRect());
+  const [size, setSize] = useState(() => element?.getBoundingClientRect());
 
   useEffect(() => {
-    const sizeObserver = new ResizeObserver((entries) => {
-      entries.forEach(({ target }) => {
-        const rect = target?.getBoundingClientRect();
-        setSize((state) =>
-          state?.width === rect?.width &&
-          state?.height === rect?.height &&
-          state?.x === rect?.x &&
-          state?.y === rect?.y
-            ? state
-            : rect
-        );
-      });
+    const sizeObserver = new ResizeObserver(() => {
+      element?.dispatchEvent(new CustomEvent("resize"));
     });
-
     if (element) {
       sizeObserver.observe(element);
     }
-
     return () => sizeObserver.disconnect();
   }, [element]);
 
   useEffect(() => {
     const handleResize = () => {
-      const rect = element?.getBoundingClientRect();
-      setSize((state) =>
-        state?.width === rect?.width &&
-        state?.height === rect?.height &&
-        state?.x === rect?.x &&
-        state?.y === rect?.y
-          ? state
-          : rect
-      );
+      setSize((state: DOMRect) => {
+        const rect = element?.getBoundingClientRect();
+
+        if (
+          rect &&
+          Math.round(state.width) === Math.round(rect.width) &&
+          Math.round(state.height) === Math.round(rect.height) &&
+          Math.round(state.x) === Math.round(rect.x) &&
+          Math.round(state.y) === Math.round(rect.y)
+        ) {
+          return state;
+        }
+        return rect;
+      });
     };
+
     window.addEventListener("click", handleResize);
     window.addEventListener("resize", handleResize);
+    element?.addEventListener("resize", handleResize);
 
     return () => {
       window.removeEventListener("click", handleResize);
       window.removeEventListener("resize", handleResize);
+      element?.removeEventListener("resize", handleResize);
     };
   });
 
