@@ -118,7 +118,7 @@ const FlexibleWrapper = styled.div`
   color: ${s("textSecondary")};
   overflow: hidden;
   display: flex;
-  gap: 8px;
+  gap: 6px;
 `;
 
 const Arrow = styled(ExpandedIcon)`

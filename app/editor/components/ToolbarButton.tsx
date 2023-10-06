@@ -1,6 +1,5 @@
-import { transparentize } from "polished";
 import styled, { css } from "styled-components";
-import { s } from "@shared/styles";
+import { extraArea, s } from "@shared/styles";
 
 type Props = {
   active?: boolean;
@@ -19,7 +18,7 @@ export default styled.button.attrs((props) => ({
   height: 24px;
   cursor: var(--pointer);
   border: none;
-  border-radius: 2px;
+  border-radius: 4px;
   background: none;
   transition: opacity 100ms ease-in-out;
   padding: 0;
@@ -45,19 +44,13 @@ export default styled.button.attrs((props) => ({
     cursor: default;
   }
 
-  &:before {
-    position: absolute;
-    content: "";
-    top: -6px;
-    right: -4px;
-    left: -4px;
-    bottom: -6px;
-  }
+  ${extraArea(4)}
 
   ${(props) =>
     props.active &&
     css`
       opacity: 1;
-      background: ${(props) => transparentize(0.9, s("accent")(props))};
+      color: ${s("accentText")};
+      background: ${s("accent")};
     `};
 `;
