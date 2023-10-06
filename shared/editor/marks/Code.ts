@@ -41,7 +41,7 @@ export default class Code extends Mark {
 
   get schema(): MarkSpec {
     return {
-      excludes: "comment mention link placeholder highlight em strong",
+      excludes: "mention link placeholder highlight em strong",
       parseDOM: [{ tag: "code.inline", preserveWhitespace: true }],
       toDOM: () => ["code", { class: "inline", spellCheck: "false" }],
     };
