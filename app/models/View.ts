@@ -1,6 +1,7 @@
 import { action, observable } from "mobx";
 import User from "./User";
 import Model from "./base/Model";
+import Relation from "./decorators/Relation";
 
 class View extends Model {
   id: string;
@@ -15,6 +16,7 @@ class View extends Model {
   @observable
   count: number;
 
+  @Relation(() => User)
   user: User;
 
   @action

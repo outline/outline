@@ -1,13 +1,11 @@
 import { observable } from "mobx";
+import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
+import Relation from "./decorators/Relation";
 
 class Share extends Model {
-  @Field
-  @observable
-  id: string;
-
   @Field
   @observable
   published: boolean;
@@ -16,9 +14,14 @@ class Share extends Model {
   @observable
   includeChildDocuments: boolean;
 
+  /** The document ID that is shared. */
   @Field
   @observable
   documentId: string;
+
+  /** The document that is shared. */
+  @Relation(() => Document, { onDelete: "cascade" })
+  document: Document;
 
   @Field
   @observable
@@ -36,6 +39,8 @@ class Share extends Model {
   @observable
   url: string;
 
+  /** The user that shared the document. */
+  @Relation(() => User, { onDelete: "null" })
   createdBy: User;
 }
 
