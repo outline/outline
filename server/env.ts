@@ -123,7 +123,11 @@ export class Environment {
    * The fully qualified, external facing domain name of the server.
    */
   @IsNotEmpty()
-  @IsUrl({ require_tld: false })
+  @IsUrl({
+    protocols: ["http", "https"],
+    require_protocol: true,
+    require_tld: false,
+  })
   public URL = process.env.URL || "";
 
   /**
@@ -133,14 +137,22 @@ export class Environment {
    * should be set to the same as URL.
    */
   @IsOptional()
-  @IsUrl()
+  @IsUrl({
+    protocols: ["http", "https"],
+    require_protocol: true,
+    require_tld: false,
+  })
   public CDN_URL = this.toOptionalString(process.env.CDN_URL);
 
   /**
    * The fully qualified, external facing domain name of the collaboration
    * service, if different (unlikely)
    */
-  @IsUrl({ require_tld: false, protocols: ["http", "https", "ws", "wss"] })
+  @IsUrl({
+    require_tld: false,
+    require_protocol: true,
+    protocols: ["http", "https", "ws", "wss"],
+  })
   @IsOptional()
   public COLLABORATION_URL = this.toOptionalString(
     process.env.COLLABORATION_URL
@@ -661,6 +673,7 @@ export class Environment {
   @IsOptional()
   @IsUrl({
     require_tld: false,
+    require_protocol: true,
     allow_underscores: true,
     protocols: ["http", "https"],
   })
