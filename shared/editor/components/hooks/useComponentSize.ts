@@ -28,11 +28,12 @@ export default function useComponentSize(
 
   useEffect(() => {
     const handleResize = () => {
-      setSize((state: DOMRect) => {
+      setSize((state) => {
         const rect = element?.getBoundingClientRect();
 
         if (
           rect &&
+          state &&
           Math.round(state.width) === Math.round(rect.width) &&
           Math.round(state.height) === Math.round(rect.height) &&
           Math.round(state.x) === Math.round(rect.x) &&
