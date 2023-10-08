@@ -48,14 +48,15 @@ export default class Code extends Mark {
   }
 
   inputRules({ type }: { type: MarkType }) {
-    return [markInputRule(/(?:^|[^`])(`([^`]+)`)$/, type)];
+    return [markInputRule(/(?:^|\s)((?:`)((?:[^`]+))(?:`))$/, type)];
   }
 
   keys({ type }: { type: MarkType }) {
-    // Note: This key binding only works on non-Mac platforms
-    // https://github.com/ProseMirror/prosemirror/issues/515
     return {
+      // Note: This key binding only works on non-Mac platforms
+      // https://github.com/ProseMirror/prosemirror/issues/515
       "Mod`": toggleMark(type),
+      "Mod-e": toggleMark(type),
     };
   }
 
