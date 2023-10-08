@@ -311,7 +311,12 @@ const Container = styled(Flex)<ContainerProps>`
 
     ${(props: ContainerProps) => props.$isHovering && css(hoverStyles)}
 
-    &:hover,
+    &:hover {
+      ${ToggleButton} {
+        opacity: 1;
+      }
+    }
+
     &:focus-within {
       ${hoverStyles}
 
