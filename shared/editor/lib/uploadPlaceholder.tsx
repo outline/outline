@@ -18,10 +18,11 @@ const uploadPlaceholder = new Plugin({
       // See if the transaction adds or removes any placeholders – the placeholder display is
       // different depending on if we're uploading an image, video or plain file
       const action = tr.getMeta(this);
+      const hasDecorations = set.find().length;
 
       // Note: We always rebuild the mapping if the transaction comes from this plugin as otherwise
       // with the default mapping decorations are wiped out when you upload multiple files at a time.
-      if (isRemoteTransaction(tr) || action) {
+      if (hasDecorations && (isRemoteTransaction(tr) || action)) {
         try {
           mapping = recreateTransform(tr.before, tr.doc, {
             complexSteps: true,
