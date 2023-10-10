@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { sanitizeUrl } from "@shared/utils/urls";
 import { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useComponentSize from "./hooks/useComponentSize";
@@ -52,7 +53,7 @@ export default function Video(props: Props) {
         style={style}
       >
         <StyledVideo
-          src={node.attrs.src}
+          src={sanitizeUrl(node.attrs.src)}
           title={node.attrs.title}
           style={style}
           controls
