@@ -243,7 +243,6 @@ export const Background = styled(Scrollable)<BackgroundProps>`
   padding: 6px;
   min-width: 180px;
   min-height: 44px;
-  max-height: 75vh;
   pointer-events: all;
   font-weight: normal;
 
