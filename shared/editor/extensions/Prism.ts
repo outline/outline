@@ -220,7 +220,9 @@ export default function Prism({
         // it render un-highlighted and then trigger a defered render of Prism
         // by updating the plugins metadata
         setTimeout(() => {
-          view.dispatch(view.state.tr.setMeta("prism", { loaded: true }));
+          if (!view.isDestroyed) {
+            view.dispatch(view.state.tr.setMeta("prism", { loaded: true }));
+          }
         }, 10);
       }
       return {};
