@@ -26,19 +26,14 @@ const isProduction = env.ENVIRONMENT === "production";
 
 // Construct scripts CSP based on services in use by this installation
 const defaultSrc = ["'self'"];
-const scriptSrc = [
-  "'self'",
-  "gist.github.com",
-  "www.googletagmanager.com",
-  "cdn.zapier.com",
-];
+const scriptSrc = ["'self'", "gist.github.com", "www.googletagmanager.com"];
 
-const styleSrc = [
-  "'self'",
-  "'unsafe-inline'",
-  "github.githubassets.com",
-  "cdn.zapier.com",
-];
+const styleSrc = ["'self'", "'unsafe-inline'", "github.githubassets.com"];
+
+if (env.isCloudHosted) {
+  scriptSrc.push("cdn.zapier.com");
+  styleSrc.push("cdn.zapier.com");
+}
 
 // Allow to load assets from Vite
 if (!isProduction) {
