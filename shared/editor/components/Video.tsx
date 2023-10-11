@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { sanitizeUrl } from "@shared/utils/urls";
+import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useComponentSize from "./hooks/useComponentSize";
