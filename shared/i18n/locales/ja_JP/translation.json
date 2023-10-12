@@ -395,7 +395,6 @@
   "Contents": "Contents",
   "Headings you add to the document will appear here": "ドキュメントに追加した見出しがここに表示されます",
   "Table of contents": "目次",
-  "By {{ author }}": "作ったのは{{ author }}",
   "Change role to admin": "管理者に変更",
   "Change role to member": "メンバーに変更",
   "Change role to viewer": "閲覧者に変更",
