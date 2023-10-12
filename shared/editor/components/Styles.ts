@@ -1477,7 +1477,8 @@ table {
   animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
 }
 
-.folded-content {
+.folded-content,
+.folded-content + .mermaid-diagram-wrapper {
   display: none;
 }
 
