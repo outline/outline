@@ -15,6 +15,7 @@ import { hover } from "~/styles";
 import { searchPath } from "~/utils/routeHelpers";
 
 type Props = {
+  /** Callback when the Escape key is pressed while navigating the list */
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
 };
 
