@@ -129,7 +129,7 @@ class Search extends React.Component<Props> {
         }
       }
 
-      const firstItem = this.firstResultItem ?? this.firstRecentSeatchItem;
+      const firstItem = this.firstResultItem ?? this.firstRecentSearchItem;
       firstItem?.focus();
     }
   };
@@ -182,7 +182,7 @@ class Search extends React.Component<Props> {
     return linkItems?.[0];
   }
 
-  get firstRecentSeatchItem() {
+  get firstRecentSearchItem() {
     const linkItems = this.recentSearchesCompositeRef?.querySelectorAll(
       "li > [href]"
     ) as NodeListOf<HTMLAnchorElement>;
