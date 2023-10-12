@@ -395,7 +395,6 @@
   "Contents": "目录",
   "Headings you add to the document will appear here": "您添加到文档的标题将显示在此处",
   "Table of contents": "目录",
-  "By {{ author }}": "创建人 {{ author }}",
   "Change role to admin": "角色更改为管理员",
   "Change role to member": "角色更改为成员",
   "Change role to viewer": "将角色更改为查看者",
