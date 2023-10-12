@@ -117,6 +117,11 @@ const RecentSearch = styled(Link)`
   padding: 1px 4px;
   border-radius: 4px;
 
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:focus,
   &: ${hover} {
     color: ${s("text")};
     background: ${s("secondaryBackground")};
