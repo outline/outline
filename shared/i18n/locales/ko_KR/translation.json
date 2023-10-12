@@ -395,7 +395,6 @@
   "Contents": "콘텐츠",
   "Headings you add to the document will appear here": "문서에 추가한 제목이 여기에 표시됩니다.",
   "Table of contents": "목차",
-  "By {{ author }}": "{{ author }} 작성",
   "Change role to admin": "관리자 권한으로 변경",
   "Change role to member": "멤버 권한으로 변경",
   "Change role to viewer": "뷰어 권한으로 변경",
