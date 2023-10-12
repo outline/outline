@@ -14,7 +14,7 @@ import { SuggestionsMenuType } from "../plugins/Suggestions";
 import emojiRule from "../rules/emoji";
 
 /**
- * Languages using the colon character with a space infront in standard
+ * Languages using the colon character with a space in front in standard
  * punctuation. In this case the trigger is only matched once there is additional
  * text after the colon.
  */
@@ -34,7 +34,7 @@ export default class Emoji extends Suggestion {
     return {
       type: SuggestionsMenuType.Emoji,
       openRegex: new RegExp(
-        `(?:^|\\s):([0-9a-zA-Z_+-]+)${languageIsUsingColon ? "+" : "?"}$`
+        `(?:^|\\s):([0-9a-zA-Z_+-]+)${languageIsUsingColon ? "" : "?"}$`
       ),
       closeRegex:
         /(?:^|\s):(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/,

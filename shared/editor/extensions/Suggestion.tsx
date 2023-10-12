@@ -15,12 +15,15 @@ export default class Suggestion extends Extension {
   keys() {
     return {
       Backspace: (state: EditorState) => {
-        const textBeforeCursor = state.doc.textBetween(
-          0,
-          Math.max(0, state.selection.from - 1)
+        const { $from } = state.selection;
+        const textBefore = $from.parent.textBetween(
+          Math.max(0, $from.parentOffset - 500), // 500 = max match
+          Math.max(0, $from.parentOffset - 1), // 1 = account for deleted character
+          null,
+          "\ufffc"
         );
 
-        if (this.options.openRegex.test(textBeforeCursor)) {
+        if (this.options.openRegex.test(textBefore)) {
           return false;
         }
 
