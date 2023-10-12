@@ -47,7 +47,8 @@ type Props = RouteComponentProps<
 
 @observer
 class Search extends React.Component<Props> {
-  compositeRef: HTMLDivElement | null | undefined;
+  resultListCompositeRef: HTMLDivElement | null | undefined;
+  recentSearchesCompositeRef: HTMLDivElement | null | undefined;
   searchInputRef: HTMLInputElement | null | undefined;
 
   lastQuery = "";
@@ -128,12 +129,8 @@ class Search extends React.Component<Props> {
         }
       }
 
-      if (this.compositeRef) {
-        const linkItems = this.compositeRef.querySelectorAll(
-          "[href]"
-        ) as NodeListOf<HTMLAnchorElement>;
-        linkItems[0]?.focus();
-      }
+      const firstItem = this.firstResultItem ?? this.firstRecentSearchItem;
+      firstItem?.focus();
     }
   };
 
@@ -177,6 +174,20 @@ class Search extends React.Component<Props> {
   handleTitleFilterChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     this.handleFilterChange({ titleFilter: ev.target.checked });
   };
+
+  get firstResultItem() {
+    const linkItems = this.resultListCompositeRef?.querySelectorAll(
+      "[href]"
+    ) as NodeListOf<HTMLAnchorElement>;
+    return linkItems?.[0];
+  }
+
+  get firstRecentSearchItem() {
+    const linkItems = this.recentSearchesCompositeRef?.querySelectorAll(
+      "li > [href]"
+    ) as NodeListOf<HTMLAnchorElement>;
+    return linkItems?.[0];
+  }
 
   get includeArchived() {
     return this.params.get("includeArchived") === "true";
@@ -292,8 +303,12 @@ class Search extends React.Component<Props> {
     });
   };
 
-  setCompositeRef = (ref: HTMLDivElement | null) => {
-    this.compositeRef = ref;
+  setResultListCompositeRef = (ref: HTMLDivElement | null) => {
+    this.resultListCompositeRef = ref;
+  };
+
+  setRecentSearchesCompositeRef = (ref: HTMLDivElement | null) => {
+    this.recentSearchesCompositeRef = ref;
   };
 
   setSearchInputRef = (ref: HTMLInputElement | null) => {
@@ -372,7 +387,10 @@ class Search extends React.Component<Props> {
               />
             </Filters>
           ) : (
-            <RecentSearches />
+            <RecentSearches
+              ref={this.setRecentSearchesCompositeRef}
+              onEscape={this.handleEscape}
+            />
           )}
           {showEmpty && (
             <Fade>
@@ -385,7 +403,7 @@ class Search extends React.Component<Props> {
           )}
           <ResultList column>
             <StyledArrowKeyNavigation
-              ref={this.setCompositeRef}
+              ref={this.setResultListCompositeRef}
               onEscape={this.handleEscape}
               aria-label={t("Search Results")}
             >
