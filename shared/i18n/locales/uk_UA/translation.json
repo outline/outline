@@ -395,7 +395,6 @@
   "Contents": "Зміст",
   "Headings you add to the document will appear here": "Тут з’являться заголовки, які ви додасте до документа",
   "Table of contents": "Зміст",
-  "By {{ author }}": "Автор: {{ author }}",
   "Change role to admin": "Змінити роль на адміністратора",
   "Change role to member": "Змінити роль на учасника",
   "Change role to viewer": "Змінити роль на глядача",
