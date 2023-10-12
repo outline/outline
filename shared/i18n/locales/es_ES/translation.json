@@ -395,7 +395,6 @@
   "Contents": "Contenidos",
   "Headings you add to the document will appear here": "Los encabezados que añadas al documento aparecerán aquí",
   "Table of contents": "Tabla de contenido",
-  "By {{ author }}": "Por {{ author }}",
   "Change role to admin": "Cambiar rol a administrador",
   "Change role to member": "Cambiar rol a miembro",
   "Change role to viewer": "Cambiar rol a lector",
