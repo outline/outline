@@ -469,6 +469,9 @@ export class Editor extends React.PureComponent<
         blur: this.handleEditorBlur,
         focus: this.handleEditorFocus,
       },
+      attributes: {
+        translate: this.props.readOnly ? "yes" : "no",
+      },
       state: this.createState(this.props.value),
       editable: () => !this.props.readOnly,
       nodeViews: this.nodeViews,
