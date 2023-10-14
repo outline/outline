@@ -3,14 +3,23 @@ import { User, Collection, Document } from "@server/models";
 import documentCreator from "./documentCreator";
 
 type Props = {
+  /** The user who is creating the document */
   user: User;
+  /** The document to duplicate */
   document: Document;
+  /** The collection to add the duplicated document to */
   collection?: Collection | null;
+  /** Override of the parent document to add the duplicate to */
   parentDocumentId?: string;
+  /** Override of the duplicated document title */
   title?: string;
+  /** Override of the duplicated document publish state */
   publish?: boolean;
+  /** Whether to duplicate child documents */
   recursive?: boolean;
+  /** The database transaction to use for the creation */
   transaction?: Transaction;
+  /** The IP address of the request */
   ip: string;
 };
 
