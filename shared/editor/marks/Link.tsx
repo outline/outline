@@ -85,8 +85,9 @@ export default class Link extends Mark {
       toDOM: (node) => [
         "a",
         {
-          ...node.attrs,
+          title: node.attrs.title,
           href: sanitizeUrl(node.attrs.href),
+          class: "text-link",
           rel: "noopener noreferrer nofollow",
         },
         0,
@@ -209,8 +210,8 @@ export default class Link extends Mark {
             const target = (event.target as HTMLElement)?.closest("a");
             if (
               target instanceof HTMLAnchorElement &&
+              target.className.includes("text-link") &&
               this.editor.elementRef.current?.contains(target) &&
-              !target.className.includes("ProseMirror-widget") &&
               (!view.editable || (view.editable && !view.hasFocus()))
             ) {
               if (this.options.onHoverLink) {
