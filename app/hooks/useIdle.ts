@@ -1,6 +1,7 @@
 import throttle from "lodash/throttle";
 import * as React from "react";
 import { Minute } from "@shared/utils/time";
+import useIsMounted from "./useIsMounted";
 
 const activityEvents = [
   "click",
@@ -25,6 +26,7 @@ export default function useIdle(
   timeToIdle: number = 3 * Minute,
   events = activityEvents
 ) {
+  const isMounted = useIsMounted();
   const [isIdle, setIsIdle] = React.useState(false);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
 
@@ -40,8 +42,10 @@ export default function useIdle(
 
   React.useEffect(() => {
     const handleUserActivityEvent = throttle(() => {
-      setIsIdle(false);
-      onActivity();
+      if (isMounted()) {
+        setIsIdle(false);
+        onActivity();
+      }
     }, 1000);
 
     events.forEach((eventName) =>
@@ -52,7 +56,7 @@ export default function useIdle(
         window.removeEventListener(eventName, handleUserActivityEvent)
       );
     };
-  }, [events, onActivity]);
+  }, [events, isMounted, onActivity]);
 
   return isIdle;
 }
