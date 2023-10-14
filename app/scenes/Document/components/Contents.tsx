@@ -107,13 +107,13 @@ const Sticky = styled.div`
   background: ${s("background")};
   transition: ${s("backgroundTransition")};
 
-  margin-top: 72px;
+  margin-top: 80px;
   margin-right: 52px;
   min-width: 204px;
   width: 228px;
   min-height: 40px;
   overflow-y: auto;
-  padding: 4px 16px;
+  padding: 0 16px;
   border-radius: 8px;
 
   @supports (backdrop-filter: blur(20px)) {
@@ -127,6 +127,7 @@ const Heading = styled.h3`
   font-weight: 600;
   color: ${s("textTertiary")};
   letter-spacing: 0.03em;
+  margin-top: 10px;
 `;
 
 const Empty = styled(Text)`
