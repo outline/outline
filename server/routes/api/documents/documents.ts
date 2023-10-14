@@ -1012,6 +1012,113 @@ router.post(
 );
 
 router.post(
+  "documents.duplicate",
+  auth(),
+  validate(T.DocumentsDuplicateSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsDuplicateReq>) => {
+    const { transaction } = ctx.state;
+    const { id, title, publish, recursive, collectionId, parentDocumentId } =
+      ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+    });
+    authorize(user, "read", document);
+
+    const collection = collectionId
+      ? await Collection.scope({
+          method: ["withMembership", user.id],
+        }).findByPk(collectionId)
+      : document?.collection;
+
+    if (collection) {
+      authorize(user, "updateDocument", collection);
+    }
+
+    if (parentDocumentId) {
+      const parent = await Document.findByPk(parentDocumentId, {
+        userId: user.id,
+      });
+      authorize(user, "update", parent);
+
+      if (!parent.publishedAt) {
+        throw InvalidRequestError("Cannot duplicate document inside a draft");
+      }
+    }
+
+    const newDocuments: Document[] = [];
+    const sharedProperties = {
+      user,
+      collectionId: collectionId ?? document.collectionId,
+      publish: publish ?? !!document.publishedAt,
+      ip: ctx.request.ip,
+      transaction,
+    };
+
+    const duplicated = await documentCreator({
+      parentDocumentId: parentDocumentId ?? document.parentDocumentId,
+      emoji: document.emoji,
+      template: document.template,
+      title: title ?? document.title,
+      text: document.text,
+      ...sharedProperties,
+    });
+
+    duplicated.collection = collection;
+    newDocuments.push(duplicated);
+
+    async function duplicateChildDocuments(
+      original: Document,
+      duplicated: Document
+    ) {
+      const childDocuments = await original.findChildDocuments(
+        {
+          archivedAt: original.archivedAt
+            ? {
+                [Op.ne]: null,
+              }
+            : {
+                [Op.eq]: null,
+              },
+        },
+        {
+          transaction,
+        }
+      );
+
+      for (const childDocument of childDocuments) {
+        const duplicatedChildDocument = await documentCreator({
+          parentDocumentId: duplicated.id,
+          emoji: childDocument.emoji,
+          title: childDocument.title,
+          text: childDocument.text,
+          ...sharedProperties,
+        });
+
+        duplicatedChildDocument.collection = collection;
+        newDocuments.push(duplicatedChildDocument);
+        await duplicateChildDocuments(childDocument, duplicatedChildDocument);
+      }
+    }
+
+    if (recursive && !document.template) {
+      await duplicateChildDocuments(document, duplicated);
+    }
+
+    ctx.body = {
+      data: {
+        documents: await Promise.all(
+          newDocuments.map((document) => presentDocument(document))
+        ),
+      },
+      policies: presentPolicies(user, newDocuments),
+    };
+  }
+);
+
+router.post(
   "documents.move",
   auth(),
   validate(T.DocumentsMoveSchema),
@@ -1176,7 +1283,7 @@ router.post(
     });
     authorize(user, "unpublish", document);
 
-    const childDocumentIds = await document.getChildDocumentIds();
+    const childDocumentIds = await document.findAllChildDocumentIds();
     if (childDocumentIds.length > 0) {
       throw InvalidRequestError(
         "Cannot unpublish document with child documents"

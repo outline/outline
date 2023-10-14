@@ -167,7 +167,7 @@ export default async function loadDocument({
       }
 
       const childDocumentIds =
-        (await share.document?.getChildDocumentIds({
+        (await share.document?.findAllChildDocumentIds({
           archivedAt: {
             [Op.is]: null,
           },

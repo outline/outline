@@ -32,6 +32,7 @@ import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
+import DuplicateDialog from "~/components/DuplicateDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import env from "~/env";
@@ -420,11 +421,19 @@ export const duplicateDocument = createAction({
 
     const document = stores.documents.get(activeDocumentId);
     invariant(document, "Document must exist");
-    const duped = await document.duplicate();
-    // when duplicating, go straight to the duplicated document content
-    history.push(documentPath(duped));
-    stores.toasts.showToast(t("Document duplicated"), {
-      type: "success",
+
+    stores.dialogs.openModal({
+      title: t("Copy document"),
+      isCentered: true,
+      content: (
+        <DuplicateDialog
+          document={document}
+          onSubmit={(response) => {
+            stores.dialogs.closeAllModals();
+            history.push(documentPath(response[0]));
+          }}
+        />
+      ),
     });
   },
 });
