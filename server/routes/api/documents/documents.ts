@@ -10,6 +10,7 @@ import { TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
+import documentDuplicator from "@server/commands/documentDuplicator";
 import documentImporter from "@server/commands/documentImporter";
 import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
@@ -1048,72 +1049,25 @@ router.post(
       }
     }
 
-    const newDocuments: Document[] = [];
-    const sharedProperties = {
+    const response = await documentDuplicator({
       user,
-      collectionId: collectionId ?? document.collectionId,
-      publish: publish ?? !!document.publishedAt,
-      ip: ctx.request.ip,
+      collection,
+      document,
+      title,
+      publish,
       transaction,
-    };
-
-    const duplicated = await documentCreator({
-      parentDocumentId: parentDocumentId ?? document.parentDocumentId,
-      emoji: document.emoji,
-      template: document.template,
-      title: title ?? document.title,
-      text: document.text,
-      ...sharedProperties,
+      recursive,
+      parentDocumentId,
+      ip: ctx.request.ip,
     });
-
-    duplicated.collection = collection;
-    newDocuments.push(duplicated);
-
-    async function duplicateChildDocuments(
-      original: Document,
-      duplicated: Document
-    ) {
-      const childDocuments = await original.findChildDocuments(
-        {
-          archivedAt: original.archivedAt
-            ? {
-                [Op.ne]: null,
-              }
-            : {
-                [Op.eq]: null,
-              },
-        },
-        {
-          transaction,
-        }
-      );
-
-      for (const childDocument of childDocuments) {
-        const duplicatedChildDocument = await documentCreator({
-          parentDocumentId: duplicated.id,
-          emoji: childDocument.emoji,
-          title: childDocument.title,
-          text: childDocument.text,
-          ...sharedProperties,
-        });
-
-        duplicatedChildDocument.collection = collection;
-        newDocuments.push(duplicatedChildDocument);
-        await duplicateChildDocuments(childDocument, duplicatedChildDocument);
-      }
-    }
-
-    if (recursive && !document.template) {
-      await duplicateChildDocuments(document, duplicated);
-    }
 
     ctx.body = {
       data: {
         documents: await Promise.all(
-          newDocuments.map((document) => presentDocument(document))
+          response.map((document) => presentDocument(document))
         ),
       },
-      policies: presentPolicies(user, newDocuments),
+      policies: presentPolicies(user, response),
     };
   }
 );
