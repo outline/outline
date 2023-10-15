@@ -1,11 +1,12 @@
 import { gfm } from "@joplin/turndown-plugin-gfm";
 import TurndownService from "turndown";
 import breaks from "./breaks";
-import confluenceCodeBlock from "./confluence-code-block";
-import confluenceTaskList from "./confluence-task-list";
-import emptyLists from "./empty-lists";
+import emptyLists from "./emptyLists";
+import emptyParagraphs from "./emptyParagraph";
 import frames from "./frames";
 import images from "./images";
+import sanitizeTables from "./sanitizeTables";
+import underlines from "./underlines";
 
 /**
  * Turndown converts HTML to Markdown and is used in the importer code.
@@ -26,9 +27,10 @@ const service = new TurndownService({
 })
   .remove(["script", "style", "title", "head"])
   .use(gfm)
+  .use(emptyParagraphs)
+  .use(sanitizeTables)
+  .use(underlines)
   .use(frames)
-  .use(confluenceTaskList)
-  .use(confluenceCodeBlock)
   .use(images)
   .use(breaks)
   .use(emptyLists);
