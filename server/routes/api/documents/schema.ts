@@ -174,6 +174,23 @@ export const DocumentsSearchSchema = BaseSchema.extend({
 
 export type DocumentsSearchReq = z.infer<typeof DocumentsSearchSchema>;
 
+export const DocumentsDuplicateSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    /** New document title */
+    title: z.string().optional(),
+    /** Whether child documents should also be duplicated */
+    recursive: z.boolean().optional(),
+    /** Whether the new document should be published */
+    publish: z.boolean().optional(),
+    /** Id of the collection to which the document should be copied */
+    collectionId: z.string().uuid().optional(),
+    /** Id of the parent document to which the document should be copied */
+    parentDocumentId: z.string().uuid().optional(),
+  }),
+});
+
+export type DocumentsDuplicateReq = z.infer<typeof DocumentsDuplicateSchema>;
+
 export const DocumentsTemplatizeSchema = BaseSchema.extend({
   body: BaseIdSchema,
 });

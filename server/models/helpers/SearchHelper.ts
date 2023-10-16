@@ -96,7 +96,7 @@ export default class SearchHelper {
       const sharedDocument = await options.share.$get("document");
       invariant(sharedDocument, "Cannot find document for share");
 
-      const childDocumentIds = await sharedDocument.getChildDocumentIds({
+      const childDocumentIds = await sharedDocument.findAllChildDocumentIds({
         archivedAt: {
           [Op.is]: null,
         },

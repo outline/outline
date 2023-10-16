@@ -6,7 +6,7 @@ type Props = {
   id?: string;
   urlId?: string;
   title: string;
-  emoji?: string;
+  emoji?: string | null;
   text?: string;
   state?: Buffer;
   publish?: boolean;

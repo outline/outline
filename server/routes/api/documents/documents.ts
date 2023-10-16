@@ -10,6 +10,7 @@ import { TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
+import documentDuplicator from "@server/commands/documentDuplicator";
 import documentImporter from "@server/commands/documentImporter";
 import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
@@ -1012,6 +1013,66 @@ router.post(
 );
 
 router.post(
+  "documents.duplicate",
+  auth(),
+  validate(T.DocumentsDuplicateSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsDuplicateReq>) => {
+    const { transaction } = ctx.state;
+    const { id, title, publish, recursive, collectionId, parentDocumentId } =
+      ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+    });
+    authorize(user, "read", document);
+
+    const collection = collectionId
+      ? await Collection.scope({
+          method: ["withMembership", user.id],
+        }).findByPk(collectionId)
+      : document?.collection;
+
+    if (collection) {
+      authorize(user, "updateDocument", collection);
+    }
+
+    if (parentDocumentId) {
+      const parent = await Document.findByPk(parentDocumentId, {
+        userId: user.id,
+      });
+      authorize(user, "update", parent);
+
+      if (!parent.publishedAt) {
+        throw InvalidRequestError("Cannot duplicate document inside a draft");
+      }
+    }
+
+    const response = await documentDuplicator({
+      user,
+      collection,
+      document,
+      title,
+      publish,
+      transaction,
+      recursive,
+      parentDocumentId,
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      data: {
+        documents: await Promise.all(
+          response.map((document) => presentDocument(document))
+        ),
+      },
+      policies: presentPolicies(user, response),
+    };
+  }
+);
+
+router.post(
   "documents.move",
   auth(),
   validate(T.DocumentsMoveSchema),
@@ -1176,7 +1237,7 @@ router.post(
     });
     authorize(user, "unpublish", document);
 
-    const childDocumentIds = await document.getChildDocumentIds();
+    const childDocumentIds = await document.findAllChildDocumentIds();
     if (childDocumentIds.length > 0) {
       throw InvalidRequestError(
         "Cannot unpublish document with child documents"

@@ -110,7 +110,7 @@ describe("#save", () => {
   });
 });
 
-describe("#getChildDocumentIds", () => {
+describe("#findAllChildDocumentIds", () => {
   test("should return empty array if no children", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -124,7 +124,7 @@ describe("#getChildDocumentIds", () => {
       collectionId: collection.id,
       title: "test",
     });
-    const results = await document.getChildDocumentIds();
+    const results = await document.findAllChildDocumentIds();
     expect(results.length).toBe(0);
   });
 
@@ -155,7 +155,7 @@ describe("#getChildDocumentIds", () => {
       parentDocumentId: document2.id,
       title: "test",
     });
-    const results = await document.getChildDocumentIds();
+    const results = await document.findAllChildDocumentIds();
     expect(results.length).toBe(2);
     expect(results[0]).toBe(document2.id);
     expect(results[1]).toBe(document3.id);

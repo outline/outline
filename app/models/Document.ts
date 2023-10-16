@@ -399,7 +399,8 @@ export default class Document extends ParanoidModel {
   move = (collectionId: string, parentDocumentId?: string | undefined) =>
     this.store.move(this.id, collectionId, parentDocumentId);
 
-  duplicate = () => this.store.duplicate(this);
+  duplicate = (options?: { title?: string; recursive?: boolean }) =>
+    this.store.duplicate(this, options);
 
   getSummary = (paragraphs = 4) => {
     const result = this.text.trim().split("\n").slice(0, paragraphs).join("\n");

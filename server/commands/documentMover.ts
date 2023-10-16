@@ -137,7 +137,7 @@ async function documentMover({
     if (collectionChanged) {
       // Efficiently find the ID's of all the documents that are children of
       // the moved document and update in one query
-      const childDocumentIds = await document.getChildDocumentIds();
+      const childDocumentIds = await document.findAllChildDocumentIds();
 
       if (collectionId) {
         // Reload the collection to get relationship data

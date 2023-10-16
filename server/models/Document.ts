@@ -538,18 +538,36 @@ class Document extends ParanoidModel {
   };
 
   /**
+   * Find all of the child documents for this document
+   *
+   * @param options FindOptions
+   * @returns A promise that resolve to a list of documents
+   */
+  findChildDocuments = async (
+    where?: Omit<WhereOptions<Document>, "parentDocumentId">,
+    options?: FindOptions<Document>
+  ): Promise<Document[]> =>
+    await (this.constructor as typeof Document).findAll({
+      where: {
+        parentDocumentId: this.id,
+        ...where,
+      },
+      ...options,
+    });
+
+  /**
    * Calculate all of the document ids that are children of this document by
-   * iterating through parentDocumentId references in the most efficient way.
+   * recursively iterating through parentDocumentId references in the most efficient way.
    *
    * @param where query options to further filter the documents
    * @param options FindOptions
    * @returns A promise that resolves to a list of document ids
    */
-  getChildDocumentIds = async (
+  findAllChildDocumentIds = async (
     where?: Omit<WhereOptions<Document>, "parentDocumentId">,
     options?: FindOptions<Document>
   ): Promise<string[]> => {
-    const getChildDocumentIds = async (
+    const findAllChildDocumentIds = async (
       ...parentDocumentId: string[]
     ): Promise<string[]> => {
       const childDocuments = await (
@@ -568,14 +586,14 @@ class Document extends ParanoidModel {
       if (childDocumentIds.length > 0) {
         return [
           ...childDocumentIds,
-          ...(await getChildDocumentIds(...childDocumentIds)),
+          ...(await findAllChildDocumentIds(...childDocumentIds)),
         ];
       }
 
       return childDocumentIds;
     };
 
-    return getChildDocumentIds(this.id);
+    return findAllChildDocumentIds(this.id);
   };
 
   archiveWithChildren = async (
