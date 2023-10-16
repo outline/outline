@@ -62,7 +62,7 @@
     "@emoji-mart/data": "^1.0.6",
     "@emoji-mart/react": "^1.1.1",
     "@getoutline/y-prosemirror": "^1.0.18",
-    "@hocuspocus/extension-throttle": "1.1.2",
+    "@hocuspocus/extension-throttle": "1.1.3",
     "@hocuspocus/provider": "1.1.2",
     "@hocuspocus/server": "1.1.2",
     "@joplin/turndown-plugin-gfm": "^1.0.49",
