@@ -13,6 +13,28 @@ afterAll(() => {
 });
 
 describe("user model", () => {
+  describe("create", () => {
+    it("should not allow URLs in name", async () => {
+      await expect(
+        buildUser({
+          name: "www.google.com",
+        })
+      ).rejects.toThrowError();
+
+      await expect(
+        buildUser({
+          name: "My name https://malicious.com",
+        })
+      ).rejects.toThrowError();
+
+      await expect(
+        buildUser({
+          name: "wwwww",
+        })
+      ).resolves.toBeDefined();
+    });
+  });
+
   describe("destroy", () => {
     it("should delete user authentications", async () => {
       const user = await buildUser();

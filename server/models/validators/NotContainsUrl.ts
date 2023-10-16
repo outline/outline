@@ -8,7 +8,7 @@ export default function NotContainsUrl(target: any, propertyName: string) {
   return addAttributeOptions(target, propertyName, {
     validate: {
       not: {
-        args: /(www|file:|http:|https:)+[^\s]+[\w]/,
+        args: /(www\.|file:|http:|https:)[^\s]+[\w]/,
         msg: "Must not contain a URL",
       },
     },
