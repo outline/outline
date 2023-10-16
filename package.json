@@ -241,7 +241,7 @@
     "@relative-ci/agent": "^4.1.8",
     "@types/addressparser": "^1.0.1",
     "@types/body-scroll-lock": "^3.1.0",
-    "@types/crypto-js": "^4.1.1",
+    "@types/crypto-js": "^4.1.2",
     "@types/diff": "^5.0.4",
     "@types/emoji-regex": "^9.2.0",
     "@types/enzyme": "^3.10.13",
