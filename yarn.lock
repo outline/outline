@@ -3219,10 +3219,10 @@
   resolved "https://registry.yarnpkg.com/@types/ms/-/ms-0.7.31.tgz#31b7ca6407128a3d2bbc27fe2d21b345397f6197"
   integrity sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==
 
-"@types/natural-sort@^0.0.21":
-  version "0.0.21"
-  resolved "https://registry.yarnpkg.com/@types/natural-sort/-/natural-sort-0.0.21.tgz#5583cfcd250f72e45af8611ef515d4e881f49556"
-  integrity sha512-WYMWhAQLuBym+6qQ2Ojptm6qIACnkkYYs08sj+PVgRCrB6b7k1QpTRk0yMmxhlpPn5MbXcSfd6sHOYlzaokU3w==
+"@types/natural-sort@^0.0.22":
+  version "0.0.22"
+  resolved "https://registry.yarnpkg.com/@types/natural-sort/-/natural-sort-0.0.22.tgz#8d95d7a27dcd662286e1ddb3d759ddf7dca30588"
+  integrity sha512-7IoapJUZyGLwlUsmypKtUtvkVrxCKcpybcqU4JlvIOxeKwhBMelLoecK3o2aPIUjpxvOl6TKpSftNtP3IIAirw==
 
 "@types/node-fetch@^2.6.5":
   version "2.6.5"
