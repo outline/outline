@@ -131,13 +131,12 @@ export default abstract class BaseStorage {
       return;
     }
 
-    let buffer, contentLength, contentType;
+    let buffer, contentType;
     const match = url.match(/data:(.*);base64,(.*)/);
 
     if (match) {
       contentType = match[1];
       buffer = Buffer.from(match[2], "base64");
-      contentLength = buffer.byteLength;
     } else {
       try {
         const res = await fetch(url, {
@@ -155,7 +154,6 @@ export default abstract class BaseStorage {
 
         contentType =
           res.headers.get("content-type") ?? "application/octet-stream";
-        contentLength = parseInt(res.headers.get("content-length") ?? "0", 10);
       } catch (err) {
         Logger.error("Error fetching URL to upload", err, {
           url,
@@ -166,6 +164,7 @@ export default abstract class BaseStorage {
       }
     }
 
+    const contentLength = buffer.byteLength;
     if (contentLength === 0) {
       return;
     }
@@ -173,7 +172,6 @@ export default abstract class BaseStorage {
     try {
       const result = await this.store({
         body: buffer,
-        contentLength,
         contentType,
         key,
         acl,
@@ -182,8 +180,8 @@ export default abstract class BaseStorage {
       return result
         ? {
             url: result,
-            contentType,
             contentLength,
+            contentType,
           }
         : undefined;
     } catch (err) {
