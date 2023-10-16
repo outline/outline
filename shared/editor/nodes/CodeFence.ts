@@ -1,5 +1,6 @@
 import copy from "copy-to-clipboard";
 import Token from "markdown-it/lib/token";
+import { exitCode } from "prosemirror-commands";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import {
   NodeSpec,
@@ -207,10 +208,26 @@ export default class CodeFence extends Node {
   }
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
-    const output = {
+    const output: Record<string, Command> = {
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),
       Tab: insertSpaceTab,
-      Enter: newlineInCode,
+      Enter: (state, dispatch) => {
+        if (!isInCode(state)) {
+          return false;
+        }
+        const { selection } = state;
+        const text = selection.$anchor.nodeBefore?.text;
+        const selectionAtEnd =
+          selection.$anchor.parentOffset ===
+          selection.$anchor.parent.nodeSize - 2;
+
+        if (selectionAtEnd && text?.endsWith("\n")) {
+          exitCode(state, dispatch);
+          return true;
+        }
+
+        return newlineInCode(state, dispatch);
+      },
       "Shift-Enter": newlineInCode,
     };
 
