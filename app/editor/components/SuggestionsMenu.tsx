@@ -186,9 +186,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     dispatch(
       state.tr.insertText(
         "",
-        state.selection.from -
-          (props.search ?? "").length -
-          (trimTrigger ? props.trigger.length : 0),
+        Math.max(
+          0,
+          state.selection.from -
+            (props.search ?? "").length -
+            (trimTrigger ? props.trigger.length : 0)
+        ),
         state.selection.to
       )
     );
