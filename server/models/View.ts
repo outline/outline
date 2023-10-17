@@ -82,7 +82,6 @@ class View extends IdModel {
       include: [
         {
           model: User,
-          paranoid: false,
           required: true,
           ...(includeSuspended
             ? {}
