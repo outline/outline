@@ -10,7 +10,7 @@ allow(User, "createDocument", Team, (user, team) => {
   return true;
 });
 
-allow(User, ["read", "comment"], Document, (user, document) => {
+allow(User, "read", Document, (user, document) => {
   if (!document) {
     return false;
   }
@@ -49,7 +49,7 @@ allow(User, "download", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, "star", Document, (user, document) => {
+allow(User, ["star", "comment"], Document, (user, document) => {
   if (!document || !document.isActive || document.template) {
     return false;
   }
