@@ -11,17 +11,22 @@ type Props = {
   maxLength?: number;
 };
 
-function EditableTitle({
-  title,
-  onSubmit,
-  canUpdate,
-  onEditing,
-  ...rest
-}: Props) {
+export type RefHandle = {
+  setIsEditing: (isEditing: boolean) => void;
+};
+
+function EditableTitle(
+  { title, onSubmit, canUpdate, onEditing, ...rest }: Props,
+  ref: React.RefObject<RefHandle>
+) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
   const { showToast } = useToasts();
+
+  React.useImperativeHandle(ref, () => ({
+    setIsEditing,
+  }));
 
   React.useEffect(() => {
     setValue(title);
@@ -128,4 +133,4 @@ const Input = styled.input`
   }
 `;
 
-export default EditableTitle;
+export default React.forwardRef(EditableTitle);

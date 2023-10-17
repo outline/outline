@@ -23,7 +23,7 @@ import DocumentMenu from "~/menus/DocumentMenu";
 import { newDocumentPath } from "~/utils/routeHelpers";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
-import EditableTitle from "./EditableTitle";
+import EditableTitle, { RefHandle } from "./EditableTitle";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import SidebarLink, { DragObject } from "./SidebarLink";
@@ -63,6 +63,7 @@ function InnerDocumentLink(
   const document = documents.get(node.id);
   const { fetchChildDocuments } = documents;
   const [isEditing, setIsEditing] = React.useState(false);
+  const editableTitleRef = React.useRef<RefHandle>(null);
   const inStarredSection = useStarredContext();
 
   React.useEffect(() => {
@@ -275,10 +276,6 @@ function InnerDocumentLink(
     node,
   ]);
 
-  const handleTitleEditing = React.useCallback((isEditing: boolean) => {
-    setIsEditing(isEditing);
-  }, []);
-
   const title =
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
     t("Untitled");
@@ -329,9 +326,10 @@ function InnerDocumentLink(
                   <EditableTitle
                     title={title}
                     onSubmit={handleTitleChange}
-                    onEditing={handleTitleEditing}
+                    onEditing={setIsEditing}
                     canUpdate={canUpdate}
                     maxLength={DocumentValidation.maxTitleLength}
+                    ref={editableTitleRef}
                   />
                 }
                 isActive={(match, location: Location<{ starred?: boolean }>) =>
@@ -368,6 +366,9 @@ function InnerDocumentLink(
                       )}
                       <DocumentMenu
                         document={document}
+                        onRename={() =>
+                          editableTitleRef.current?.setIsEditing(true)
+                        }
                         onOpen={handleMenuOpen}
                         onClose={handleMenuClose}
                       />

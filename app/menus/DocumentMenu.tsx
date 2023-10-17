@@ -61,6 +61,7 @@ type Props = {
   showToggleEmbeds?: boolean;
   showPin?: boolean;
   label?: (props: MenuButtonHTMLProps) => React.ReactNode;
+  onRename?: () => void;
   onOpen?: () => void;
   onClose?: () => void;
 };
@@ -72,6 +73,7 @@ function DocumentMenu({
   showToggleEmbeds,
   showDisplayOptions,
   label,
+  onRename,
   onOpen,
   onClose,
 }: Props) {
@@ -267,6 +269,13 @@ function DocumentMenu({
               to: documentEditPath(document),
               visible:
                 !!can.update && user.separateEditMode && !document.template,
+              icon: <EditIcon />,
+            },
+            {
+              type: "button",
+              title: `${t("Rename")}…`,
+              visible: !!can.update && !user.separateEditMode && !!onRename,
+              onClick: () => onRename?.(),
               icon: <EditIcon />,
             },
             actionToMenuItem(createNestedDocument, context),
