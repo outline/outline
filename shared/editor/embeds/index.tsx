@@ -300,10 +300,10 @@ const embeds: EmbedDescriptor[] = [
     component: JSFiddle,
   }),
   new EmbedDescriptor({
-    title: "Linkedin",
+    title: "LinkedIn",
     keywords: "post",
     defaultHidden: true,
-    icon: <Img src="/images/linkedin.png" alt="Linkedin" />,
+    icon: <Img src="/images/linkedin.png" alt="LinkedIn" />,
     component: Linkedin,
   }),
   new EmbedDescriptor({
