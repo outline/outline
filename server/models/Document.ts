@@ -761,7 +761,7 @@ class Document extends ParanoidModel {
         }
       }
 
-      if (!this.template && collection) {
+      if (!this.template && this.publishedAt && collection) {
         await collection.addDocumentToStructure(this, undefined, {
           transaction,
         });
