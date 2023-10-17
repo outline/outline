@@ -133,7 +133,7 @@ export default class Collection extends ParanoidModel {
    */
   @computed
   get initial() {
-    return this.name ? this.name[0] : "?";
+    return (this.name ? this.name[0] : "?").toUpperCase();
   }
 
   fetchDocuments = async (options?: { force: boolean }) => {

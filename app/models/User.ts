@@ -61,7 +61,7 @@ class User extends ParanoidModel {
 
   @computed
   get initial(): string {
-    return this.name ? this.name[0] : "?";
+    return (this.name ? this.name[0] : "?").toUpperCase();
   }
 
   @computed

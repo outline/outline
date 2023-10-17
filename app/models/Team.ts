@@ -80,7 +80,7 @@ class Team extends Model {
 
   @computed
   get initial(): string {
-    return this.name ? this.name[0] : "?";
+    return (this.name ? this.name[0] : "?").toUpperCase();
   }
 
   /**
