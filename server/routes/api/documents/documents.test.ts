@@ -2004,12 +2004,43 @@ describe("#documents.move", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    const collection = await buildCollection();
     const res = await server.post("/api/documents.move", {
       body: {
         id: document.id,
-        collectionId: collection.id,
+        collectionId: document.collectionId,
         parentDocumentId: document.id,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "infinite loop detected, cannot nest a document inside itself"
+    );
+  });
+
+  it("should fail if attempting to nest doc within a child of itself", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const childDocument = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: document.collectionId,
+      parentDocumentId: document.id,
+    });
+    const res = await server.post("/api/documents.move", {
+      body: {
+        id: document.id,
+        collectionId: document.collectionId,
+        parentDocumentId: childDocument.id,
         token: user.getJwtToken(),
       },
     });

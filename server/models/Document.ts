@@ -38,6 +38,7 @@ import getTasks from "@shared/utils/getTasks";
 import slugify from "@shared/utils/slugify";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
+import { ValidationError } from "@server/errors";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
@@ -354,12 +355,39 @@ class Document extends ParanoidModel {
       model.collaboratorIds = [];
     }
 
+    // ensure the last modifying user is a collaborator
     model.collaboratorIds = uniq(
       model.collaboratorIds.concat(model.lastModifiedById)
     );
 
     // increment revision
     model.revisionCount += 1;
+  }
+
+  @BeforeUpdate
+  static async checkParentDocument(model: Document, options: SaveOptions) {
+    if (
+      model.previous("parentDocumentId") === model.parentDocumentId ||
+      !model.parentDocumentId
+    ) {
+      return;
+    }
+
+    if (model.parentDocumentId === model.id) {
+      throw ValidationError(
+        "infinite loop detected, cannot nest a document inside itself"
+      );
+    }
+
+    const childDocumentIds = await model.findAllChildDocumentIds(
+      undefined,
+      options
+    );
+    if (childDocumentIds.includes(model.parentDocumentId)) {
+      throw ValidationError(
+        "infinite loop detected, cannot nest a document inside itself"
+      );
+    }
   }
 
   // associations
