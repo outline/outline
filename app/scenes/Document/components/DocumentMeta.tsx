@@ -35,7 +35,7 @@ function TitleDocumentMeta({
   const match = useRouteMatch();
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
-  const onlyYou = totalViewers === 1 && documentViews[0].user.id;
+  const onlyYou = totalViewers === 1 && documentViews[0].userId;
   const viewsLoadedOnMount = React.useRef(totalViewers > 0);
 
   const Wrapper = viewsLoadedOnMount.current ? React.Fragment : Fade;

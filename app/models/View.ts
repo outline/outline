@@ -16,8 +16,10 @@ class View extends Model {
   @observable
   count: number;
 
+  userId: string;
+
   @Relation(() => User)
-  user: User;
+  user?: User;
 
   @action
   touch() {

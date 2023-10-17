@@ -1,3 +1,4 @@
+import { compact } from "lodash";
 import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -31,10 +32,10 @@ function DocumentViews({ document, isOpen }: Props) {
   const documentViews = views.inDocument(document.id);
   const sortedViews = sortBy(
     documentViews,
-    (view) => !presentIds.includes(view.user.id)
+    (view) => !presentIds.includes(view.userId)
   );
   const users = React.useMemo(
-    () => sortedViews.map((v) => v.user),
+    () => compact(sortedViews.map((v) => v.user)),
     [sortedViews]
   );
 
@@ -45,7 +46,7 @@ function DocumentViews({ document, isOpen }: Props) {
           aria-label={t("Viewers")}
           items={users}
           renderItem={(model: User) => {
-            const view = documentViews.find((v) => v.user.id === model.id);
+            const view = documentViews.find((v) => v.userId === model.id);
             const isPresent = presentIds.includes(model.id);
             const isEditing = editingIds.includes(model.id);
             const subtitle = isPresent

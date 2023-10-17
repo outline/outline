@@ -29,7 +29,7 @@ export default class ViewsStore extends Store<View> {
   touch(documentId: string, userId: string) {
     const view = find(
       this.orderedData,
-      (view) => view.documentId === documentId && view.user.id === userId
+      (view) => view.documentId === documentId && view.userId === userId
     );
     if (!view) {
       return;
