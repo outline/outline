@@ -265,7 +265,7 @@ router.post(
         attachments: [
           {
             text: t(
-              "To search your knowledgebase use {{ command }}. \nType {{ command2 }} help to display this help text.",
+              "To search your workspace use {{ command }}. \nType {{ command2 }} help to display this help text.",
               {
                 command: `/outline keyword`,
                 command2: `/outline help`,

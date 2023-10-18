@@ -157,7 +157,7 @@ function Details() {
         <Heading>{t("Details")}</Heading>
         <Text type="secondary">
           <Trans>
-            These settings affect the way that your knowledge base appears to
+            These settings affect the way that your workspace appears to
             everyone on the team.
           </Trans>
         </Text>
@@ -260,7 +260,7 @@ function Details() {
             description={
               subdomain ? (
                 <>
-                  <Trans>Your knowledge base will be accessible at</Trans>{" "}
+                  <Trans>Your workspace will be accessible at</Trans>{" "}
                   <strong>
                     {subdomain}.{getBaseDomain()}
                   </strong>

@@ -287,7 +287,7 @@ function Security() {
         label={t("Collection creation")}
         name="memberCollectionCreate"
         description={t(
-          "Allow members to create new collections within the knowledge base"
+          "Allow members to create new collections within the workspace"
         )}
       >
         <Switch
