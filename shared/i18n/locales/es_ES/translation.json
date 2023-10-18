@@ -257,7 +257,7 @@
   "Are you sure you want to make {{ userName }} a read-only viewer? They will not be able to edit any content": "¿Estás seguro de que quieres convertir a {{ userName }} en un lector? El usuario no podrá editar contenido",
   "Are you sure you want to make {{ userName }} a member?": "¿Estás seguro de que quieres convertir a {{ userName }} en miembro?",
   "I understand, delete": "Lo entiendo, eliminar",
-  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.": "¿Estás seguro de que quieres eliminar permanentemente a {{ userName }}? Esta operación es irreversible, considere suspender al usuario en su lugar.",
+  "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.": "¿Estás seguro de que quieres eliminar permanentemente a {{ userName }}? Esta operación es irreversible, considera suspender al usuario en su lugar.",
   "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.": "¿Estás seguro de que quieres convertir a {{ userName }} en administrador? Los administradores pueden modificar el equipo e información de facturación.",
   "Are you sure you want to suspend {{ userName }}? Suspended users will be prevented from logging in.": "¿Estás seguro de que quieres suspender a {{ userName }}? Los usuarios suspendidos no podrán iniciar sesión.",
   "Save": "Guardar",
