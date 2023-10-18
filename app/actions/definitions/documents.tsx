@@ -521,7 +521,7 @@ export const pinDocumentToHome = createAction({
       await document?.pin();
 
       if (location.pathname !== homePath()) {
-        stores.toasts.showToast(t("Pinned to team home"));
+        stores.toasts.showToast(t("Pinned to home"));
       }
     } catch (err) {
       stores.toasts.showToast(err.message, {
