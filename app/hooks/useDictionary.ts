@@ -72,8 +72,6 @@ export default function useDictionary() {
       mathBlock: t("Math block (LaTeX)"),
       tip: t("Tip"),
       tipNotice: t("Tip notice"),
-      showDiagram: t("Show diagram"),
-      showSource: t("Show source"),
       warning: t("Warning"),
       warningNotice: t("Warning notice"),
       success: t("Success"),
