@@ -33,6 +33,7 @@ import GoogleSlides from "./GoogleSlides";
 import Grist from "./Grist";
 import InVision from "./InVision";
 import JSFiddle from "./JSFiddle";
+import Linkedin from "./Linkedin";
 import Loom from "./Loom";
 import Lucidchart from "./Lucidchart";
 import Marvel from "./Marvel";
@@ -297,6 +298,13 @@ const embeds: EmbedDescriptor[] = [
     defaultHidden: true,
     icon: <Img src="/images/jsfiddle.png" alt="JSFiddle" />,
     component: JSFiddle,
+  }),
+  new EmbedDescriptor({
+    title: "LinkedIn",
+    keywords: "post",
+    defaultHidden: true,
+    icon: <Img src="/images/linkedin.png" alt="LinkedIn" />,
+    component: Linkedin,
   }),
   new EmbedDescriptor({
     title: "Loom",
