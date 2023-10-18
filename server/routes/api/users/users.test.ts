@@ -150,6 +150,23 @@ describe("#users.list", () => {
     expect(body.data[0].id).toEqual(user.id);
   });
 
+  it("should allow filtering by email", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/users.list", {
+      body: {
+        token: admin.getJwtToken(),
+        emails: [user.email],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(user.id);
+  });
+
   it("should require admin for detailed info", async () => {
     const team = await buildTeam();
     await buildAdmin({ teamId: team.id });
