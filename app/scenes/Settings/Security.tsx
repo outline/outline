@@ -144,7 +144,7 @@ function Security() {
       <Text type="secondary">
         <Trans>
           Settings that impact the access, security, and content of your
-          knowledge base.
+          workspace.
         </Trans>
       </Text>
 

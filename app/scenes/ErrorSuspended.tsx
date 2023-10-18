@@ -21,7 +21,7 @@ const ErrorSuspended = () => {
 
       <p>
         <Trans
-          defaults="A team admin (<em>{{ suspendedContactEmail }}</em>) has suspended your account. To re-activate your account, please reach out to them directly."
+          defaults="A workspace admin (<em>{{ suspendedContactEmail }}</em>) has suspended your account. To re-activate your account, please reach out to them directly."
           values={{
             suspendedContactEmail: auth.suspendedContactEmail,
           }}

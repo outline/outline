@@ -63,7 +63,7 @@ function Slack() {
         <Notice>
           <Trans>
             Whoops, you need to accept the permissions in Slack to connect{" "}
-            {{ appName }} to your team. Try again?
+            {{ appName }} to your workspace. Try again?
           </Trans>
         </Notice>
       )}
@@ -71,7 +71,7 @@ function Slack() {
         <Notice>
           <Trans>
             Something went wrong while authenticating your request. Please try
-            logging in again?
+            logging in again.
           </Trans>
         </Notice>
       )}

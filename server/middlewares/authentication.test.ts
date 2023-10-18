@@ -181,7 +181,7 @@ describe("Authentication middleware", () => {
     }
 
     expect(error.message).toEqual(
-      "Your access has been suspended by the team admin"
+      "Your access has been suspended by a workspace admin"
     );
     expect(error.errorData.adminEmail).toEqual(admin.email);
   });

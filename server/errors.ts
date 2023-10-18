@@ -69,12 +69,16 @@ export function UserSuspendedError({
 }: {
   adminEmail: string | undefined;
 }) {
-  return httpErrors(403, "Your access has been suspended by the team admin", {
-    id: "user_suspended",
-    errorData: {
-      adminEmail,
-    },
-  });
+  return httpErrors(
+    403,
+    "Your access has been suspended by a workspace admin",
+    {
+      id: "user_suspended",
+      errorData: {
+        adminEmail,
+      },
+    }
+  );
 }
 
 export function InvalidRequestError(message = "Request invalid") {

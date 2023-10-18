@@ -68,7 +68,7 @@ function AddPeopleToCollection({ collection }: Props) {
   return (
     <Flex column>
       <Text type="secondary">
-        {t("Need to add someone who’s not yet on the team yet?")}{" "}
+        {t("Need to add someone who’s not on the team yet?")}{" "}
         <ButtonLink onClick={setInviteModalOpen}>
           {t("Invite people to {{ teamName }}", {
             teamName: team.name,

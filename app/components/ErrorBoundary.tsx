@@ -121,11 +121,11 @@ class ErrorBoundary extends React.Component<Props> {
             <Button onClick={this.handleReload}>{t("Reload")}</Button>{" "}
             {this.showDetails ? (
               <Button onClick={this.handleReportBug} neutral>
-                <Trans>Report a Bug</Trans>…
+                <Trans>Report a bug</Trans>…
               </Button>
             ) : (
               <Button onClick={this.handleShowDetails} neutral>
-                <Trans>Show Detail</Trans>…
+                <Trans>Show detail</Trans>…
               </Button>
             )}
           </p>

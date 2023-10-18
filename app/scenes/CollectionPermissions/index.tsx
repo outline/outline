@@ -256,7 +256,7 @@ function CollectionPermissions({ collectionId }: Props) {
             </Trans>
           ) : (
             <Trans>
-              Public sharing is currently disabled in the team security
+              Public sharing is currently disabled in the workspace security
               settings.
             </Trans>
           )
