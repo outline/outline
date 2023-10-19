@@ -1,5 +1,12 @@
 import pick from "lodash/pick";
-import { FindOptions } from "sequelize";
+import {
+  CreateOptions,
+  CreationAttributes,
+  FindOptions,
+  InstanceDestroyOptions,
+  InstanceUpdateOptions,
+  ModelStatic,
+} from "sequelize";
 import {
   AfterCreate,
   AfterDestroy,
@@ -19,6 +26,32 @@ class Model extends SequelizeModel {
    * The properties to include in the event data when this model is mutated.
    */
   static eventData: string[] = [];
+
+  /**
+   * This is the same as calling `set` and then calling `save`.
+   */
+  public updateWithCtx(ctx: APIContext, keys: Partial<this>) {
+    return this.update(keys, ctx.context as InstanceUpdateOptions);
+  }
+
+  /**
+   * Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will
+   * either be completely deleted, or have its deletedAt timestamp set to the current time.
+   */
+  public destroyWithCtx(ctx: APIContext) {
+    return this.destroy(ctx.context as InstanceDestroyOptions);
+  }
+
+  /**
+   * Builds a new model instance and calls save on it.
+   */
+  public static createWithCtx<M extends Model>(
+    this: ModelStatic<M>,
+    ctx: APIContext,
+    values?: CreationAttributes<M>
+  ) {
+    return this.create(values, ctx.context as CreateOptions);
+  }
 
   @AfterCreate
   static async afterCreateEvent<T extends Model>(

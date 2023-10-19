@@ -15,7 +15,7 @@ type Props = {
   user: User;
   format?: FileOperationFormat;
   includeAttachments?: boolean;
-  context: APIContext["context"];
+  ctx: APIContext;
 };
 
 function getKeyForFileOp(teamId: string, name: string) {
@@ -28,25 +28,22 @@ async function collectionExporter({
   user,
   format = FileOperationFormat.MarkdownZip,
   includeAttachments = true,
-  context,
+  ctx,
 }: Props) {
   const collectionId = collection?.id;
   const key = getKeyForFileOp(user.teamId, collection?.name || team.name);
-  const fileOperation = await FileOperation.create(
-    {
-      type: FileOperationType.Export,
-      state: FileOperationState.Creating,
-      format,
-      key,
-      url: null,
-      size: 0,
-      collectionId,
-      includeAttachments,
-      userId: user.id,
-      teamId: user.teamId,
-    },
-    context
-  );
+  const fileOperation = await FileOperation.createWithCtx(ctx, {
+    type: FileOperationType.Export,
+    state: FileOperationState.Creating,
+    format,
+    key,
+    url: null,
+    size: 0,
+    collectionId,
+    includeAttachments,
+    userId: user.id,
+    teamId: user.teamId,
+  });
 
   fileOperation.user = user;
 

@@ -169,18 +169,15 @@ router.post(
     });
     authorize(user, "read", attachment);
 
-    await FileOperation.create(
-      {
-        type: FileOperationType.Import,
-        state: FileOperationState.Creating,
-        format,
-        size: attachment.size,
-        key: attachment.key,
-        userId: user.id,
-        teamId: user.teamId,
-      },
-      ctx.context
-    );
+    await FileOperation.createWithCtx(ctx, {
+      type: FileOperationType.Import,
+      state: FileOperationState.Creating,
+      format,
+      size: attachment.size,
+      key: attachment.key,
+      userId: user.id,
+      teamId: user.teamId,
+    });
 
     ctx.body = {
       success: true,
@@ -543,7 +540,7 @@ router.post(
       team,
       format,
       includeAttachments,
-      context: ctx.context,
+      ctx,
     });
 
     ctx.body = {
@@ -573,7 +570,7 @@ router.post(
       team,
       format,
       includeAttachments,
-      context: ctx.context,
+      ctx,
     });
 
     ctx.body = {

@@ -22,13 +22,10 @@ router.post(
 
     authorize(user, "createApiKey", user.team);
 
-    const apiKey = await ApiKey.create(
-      {
-        name,
-        userId: user.id,
-      },
-      ctx.context
-    );
+    const apiKey = await ApiKey.createWithCtx(ctx, {
+      name,
+      userId: user.id,
+    });
 
     ctx.body = {
       data: presentApiKey(apiKey),
@@ -73,11 +70,11 @@ router.post(
     const apiKey = await ApiKey.findByPk(id, {
       rejectOnEmpty: true,
       lock: transaction.LOCK.UPDATE,
-      ...ctx.context,
+      transaction,
     });
     authorize(user, "delete", apiKey);
 
-    await apiKey.destroy(ctx.context);
+    await apiKey.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,
