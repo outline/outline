@@ -1205,15 +1205,15 @@
   dependencies:
     "@bull-board/api" "4.12.2"
 
-"@bundle-stats/plugin-webpack-filter@4.6.3":
-  version "4.6.3"
-  resolved "https://registry.yarnpkg.com/@bundle-stats/plugin-webpack-filter/-/plugin-webpack-filter-4.6.3.tgz#b0a0865c3c26237063de1a6e9ebdf4d68eb2fc5f"
-  integrity sha512-HvQ3Q2Po8DAJdhcUpDOY0p2qJdMTZLMwgX8D6E3gHEopqcN9FRUPkpFqpaJ253+27bnmobiJwig/a1AXuQrXkA==
+"@bundle-stats/plugin-webpack-filter@4.7.7":
+  version "4.7.7"
+  resolved "https://registry.yarnpkg.com/@bundle-stats/plugin-webpack-filter/-/plugin-webpack-filter-4.7.7.tgz#716ab8013d90f26428b23691ffe52b5668e4aeb5"
+  integrity sha512-iiaicfIK9/XKRhRgXNbeJKcAbbtwQLf+UBHMMAyPB7eYU5pk0Ii38DRYOqJN1X7vngUZKzmotiVCjvOGCEnW1A==
 
-"@bundle-stats/plugin-webpack-validate@4.6.3":
-  version "4.6.3"
-  resolved "https://registry.yarnpkg.com/@bundle-stats/plugin-webpack-validate/-/plugin-webpack-validate-4.6.3.tgz#a52334cc9aa8fbf73173b4efdbc28329dc1ad3c6"
-  integrity sha512-P8mp8YADWWcb4aRkgUHmIP7R+faqa+G8eqPR2QdCaq2Bi9W3BbAr6nrFHGFwmGWPpdVKnC7wU5aeykc2hosNLg==
+"@bundle-stats/plugin-webpack-validate@4.7.7":
+  version "4.7.7"
+  resolved "https://registry.yarnpkg.com/@bundle-stats/plugin-webpack-validate/-/plugin-webpack-validate-4.7.7.tgz#85f3bd85d3752d4b8570cb428078f1030ca85810"
+  integrity sha512-1CrpLp7HSmVxhEbLmwOXhVvcZX2wXLP80QLqfIrdYr4XfraoDaB0sOrJtsP2okP9id/YGI1uDTbAUy4oQ5vYAA==
   dependencies:
     lodash "4.17.21"
     superstruct "1.0.3"
@@ -2485,15 +2485,15 @@
   dependencies:
     "@react-types/shared" "^3.14.1"
 
-"@relative-ci/agent@^4.1.8":
-  version "4.1.8"
-  resolved "https://registry.yarnpkg.com/@relative-ci/agent/-/agent-4.1.8.tgz#4c84c2e7b21d6cdd734abd7710a27dd785bd17f9"
-  integrity sha512-X+Dct9Tda3pquoxly6O+sTcpAENmWRmPCuPJmtUBIdcFJIQ1wjU0NhvcrYt07FvDcFQRfGEUy6Cx1msbzw8eZA==
+"@relative-ci/agent@^4.1.10":
+  version "4.1.10"
+  resolved "https://registry.yarnpkg.com/@relative-ci/agent/-/agent-4.1.10.tgz#9b90bab120afba38af910018ae3fef530618c824"
+  integrity sha512-i1qOq438pAKomDq8xFlAE45Ab9uQyHBsFQ1hoiM7/zUcQUHFvWlg62f+9U6RasN0F0eQZlyB5/PTpTmXtLKWuw==
   dependencies:
-    "@bundle-stats/plugin-webpack-filter" "4.6.3"
-    "@bundle-stats/plugin-webpack-validate" "4.6.3"
-    core-js "3.32.1"
-    cosmiconfig "8.2.0"
+    "@bundle-stats/plugin-webpack-filter" "4.7.7"
+    "@bundle-stats/plugin-webpack-validate" "4.7.7"
+    core-js "3.33.0"
+    cosmiconfig "8.3.6"
     debug "4.3.4"
     dotenv "16.3.1"
     env-ci "7.3.0"
@@ -5125,10 +5125,10 @@ core-js-compat@^3.25.1, core-js-compat@^3.9.1:
   dependencies:
     browserslist "^4.21.4"
 
-core-js@3.32.1, core-js@^3.30.2:
-  version "3.32.1"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.32.1.tgz#a7d8736a3ed9dd05940c3c4ff32c591bb735be77"
-  integrity sha512-lqufgNn9NLnESg5mQeYsxQP5w7wrViSj0jr/kv6ECQiByzQkrn1MKvV0L3acttpDqfQrHLwr2KCMgX5b8X+lyQ==
+core-js@3.33.0, core-js@^3.30.2:
+  version "3.33.0"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.33.0.tgz#70366dbf737134761edb017990cf5ce6c6369c40"
+  integrity sha512-HoZr92+ZjFEKar5HS6MC776gYslNOKHt75mEBKWKnPeFDpZ6nH5OeF3S6HFT1mUAUZKrzkez05VboaX8myjSuw==
 
 core-js@^2.4.0:
   version "2.6.11"
@@ -5162,14 +5162,14 @@ cose-base@^2.2.0:
   dependencies:
     layout-base "^2.0.0"
 
-cosmiconfig@8.2.0:
-  version "8.2.0"
-  resolved "https://registry.yarnpkg.com/cosmiconfig/-/cosmiconfig-8.2.0.tgz#f7d17c56a590856cd1e7cee98734dca272b0d8fd"
-  integrity sha512-3rTMnFJA1tCOPwRxtgF4wd7Ab2qvDbL8jX+3smjIbS4HlZBagTlpERbdN7iAbWlrfxE3M8c27kTwTawQ7st+OQ==
+cosmiconfig@8.3.6:
+  version "8.3.6"
+  resolved "https://registry.yarnpkg.com/cosmiconfig/-/cosmiconfig-8.3.6.tgz#060a2b871d66dba6c8538ea1118ba1ac16f5fae3"
+  integrity sha512-kcZ6+W5QzcJ3P1Mt+83OUv/oHFqZHIx8DuxG6eZ5RGMERoLqp4BuGjhHLYGK+Kf5XVkQvqBSmAy/nGWN3qDgEA==
   dependencies:
-    import-fresh "^3.2.1"
+    import-fresh "^3.3.0"
     js-yaml "^4.1.0"
-    parse-json "^5.0.0"
+    parse-json "^5.2.0"
     path-type "^4.0.0"
 
 cron-parser@^4.2.1:
@@ -7803,6 +7803,14 @@ import-fresh@^3.2.1:
     parent-module "^1.0.0"
     resolve-from "^4.0.0"
 
+import-fresh@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/import-fresh/-/import-fresh-3.3.0.tgz#37162c25fcb9ebaa2e6e53d5b4d88ce17d9e0c2b"
+  integrity sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==
+  dependencies:
+    parent-module "^1.0.0"
+    resolve-from "^4.0.0"
+
 import-in-the-middle@^1.4.2:
   version "1.4.2"
   resolved "https://registry.yarnpkg.com/import-in-the-middle/-/import-in-the-middle-1.4.2.tgz#2a266676e3495e72c04bbaa5ec14756ba168391b"
@@ -10345,7 +10353,7 @@ parse-entities@^2.0.0:
     is-decimal "^1.0.0"
     is-hexadecimal "^1.0.0"
 
-parse-json@^5.0.0, parse-json@^5.2.0:
+parse-json@^5.2.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/parse-json/-/parse-json-5.2.0.tgz#c76fc66dee54231c962b22bcc8a72cf2f99753cd"
   integrity sha512-ayCKvm/phCGxOkYRSCM82iDwct8/EonSEgCSxWxD7ve6jHggsFl4fZVQBPRNgQoKiuV/odhFrGzQXZwbifC8Rg==
