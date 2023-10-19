@@ -23,8 +23,8 @@ export type AuthenticationResult = AccountProvisionerResult & {
 
 export type Authentication = {
   user: User;
-  token: string;
-  type: AuthenticationType;
+  token?: string;
+  type?: AuthenticationType;
 };
 
 export type Pagination = {
@@ -58,7 +58,7 @@ export interface APIContext<ReqT = BaseReq, ResT = BaseRes>
   context: {
     transaction?: Transaction;
     auth: Authentication;
-    ip: string;
+    ip?: string;
   };
 }
 

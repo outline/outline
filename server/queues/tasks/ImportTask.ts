@@ -20,6 +20,7 @@ import {
   Attachment,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
+import { APIContext } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -256,8 +257,13 @@ export default abstract class ImportTask extends BaseTask<Props> {
               type: item.mimeType,
               buffer: await item.buffer(),
               user,
-              ip,
-              transaction,
+              ctx: {
+                context: {
+                  ip,
+                  transaction,
+                  auth: { user },
+                },
+              } as APIContext,
             });
             if (attachment) {
               attachments.set(item.id, attachment);

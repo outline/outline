@@ -21,6 +21,7 @@ import { parser, schema } from "@server/editor";
 import { trace } from "@server/logging/tracing";
 import { Document, Revision, User } from "@server/models";
 import FileStorage from "@server/storage/files";
+import { APIContext } from "@server/types";
 import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import parseImages from "@server/utils/parseImages";
@@ -418,8 +419,13 @@ export default class DocumentHelper {
           url: image.src,
           preset: AttachmentPreset.DocumentAttachment,
           user,
-          ip,
-          transaction,
+          ctx: {
+            context: {
+              ip,
+              transaction,
+              auth: { user },
+            },
+          } as APIContext,
         });
 
         if (attachment) {
