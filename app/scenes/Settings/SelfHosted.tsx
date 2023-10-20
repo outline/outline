@@ -17,6 +17,7 @@ import SettingRow from "./components/SettingRow";
 type FormData = {
   drawIoUrl: string;
   gristUrl: string;
+  selfHostedUrl: string;
 };
 
 function SelfHosted() {
@@ -34,6 +35,11 @@ function SelfHosted() {
     service: IntegrationService.Grist,
   }) as Integration<IntegrationType.Embed> | undefined;
 
+  const integrationSelfhost = find(integrations.orderedData, {
+    type: IntegrationType.Embed,
+    service: IntegrationService.Selfhost,
+  }) as Integration<IntegrationType.Embed> | undefined;
+
   const {
     register,
     reset,
@@ -44,6 +50,7 @@ function SelfHosted() {
     defaultValues: {
       drawIoUrl: integrationDiagrams?.settings.url,
       gristUrl: integrationGrist?.settings.url,
+      selfHostedUrl: integrationSelfhost?.settings.url,
     },
   });
 
@@ -57,8 +64,9 @@ function SelfHosted() {
     reset({
       drawIoUrl: integrationDiagrams?.settings.url,
       gristUrl: integrationGrist?.settings.url,
+      selfHostedUrl: integrationSelfhost?.settings.url,
     });
-  }, [integrationDiagrams, integrationGrist, reset]);
+  }, [integrationDiagrams, integrationGrist, integrationSelfhost, reset]);
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
@@ -89,6 +97,19 @@ function SelfHosted() {
           await integrationGrist?.delete();
         }
 
+        if (data.selfHostedUrl) {
+          await integrations.save({
+            id: integrationSelfhost?.id,
+            type: IntegrationType.Embed,
+            service: IntegrationService.Selfhost,
+            settings: {
+              url: data.selfHostedUrl,
+            },
+          });
+        } else {
+            await integrationSelfhost?.delete();
+        }
+
         showToast(t("Settings saved"), {
           type: "success",
         });
@@ -98,7 +119,7 @@ function SelfHosted() {
         });
       }
     },
-    [integrations, integrationDiagrams, integrationGrist, t, showToast]
+    [integrations, integrationDiagrams, integrationGrist, integrationSelfhost, t, showToast]
   );
 
   return (
@@ -134,6 +155,21 @@ function SelfHosted() {
           />
         </SettingRow>
 
+        <SettingRow
+          label={t("Self-host deployment")}
+          name="selfHostedUrl"
+          description={t(
+            "Add your self-hosted web installation URL here. You can use 'reg::' prefix to match all subdomains."
+          )}
+          border={false}
+        >
+          <Input
+            placeholder="reg::https:\/\/.*\.example\.com"
+            pattern="[https?://.*|reg::.?]]"
+            {...register("selfHostedUrl")}
+          />
+        </SettingRow>
+        
         <Button type="submit" disabled={formState.isSubmitting}>
           {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
         </Button>

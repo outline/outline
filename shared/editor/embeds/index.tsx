@@ -44,6 +44,7 @@ import Otter from "./Otter";
 import Pitch from "./Pitch";
 import Prezi from "./Prezi";
 import Scribe from "./Scribe";
+import Selfhost from "./Selfhost";
 import Spotify from "./Spotify";
 import Tldraw from "./Tldraw";
 import Trello from "./Trello";
@@ -368,6 +369,13 @@ const embeds: EmbedDescriptor[] = [
     keywords: "screencast",
     icon: <Img src="/images/scribe.png" alt="Scribe" />,
     component: Scribe,
+  }),
+  new EmbedDescriptor({
+    title: "Selfhosted",
+    keywords: "post",
+    defaultHidden: true,
+    icon: <Img src="/images/selfhost.png" alt="Selfhost" />,
+    component: Selfhost,
   }),
   new EmbedDescriptor({
     title: "Spotify",
