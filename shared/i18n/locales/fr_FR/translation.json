@@ -790,7 +790,7 @@
   "A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – if you have notifications enabled, we will email a link to <em>{{ userEmail }}</em> when it’s complete.": "Un export complet peut prendre un certain temps, pensez à exporter un seul document ou une seule collection. Les données sont exportées sous forme d'archive zip de vos documents en format Markdown. Une fois l'export commencé, ous pouvez fermer cette page – nous enverrons un lien à <em>{{ userEmail }}</em> quand ce sera terminé.",
   "Recent exports": "Exports récents",
   "Manage optional and beta features. Changing these settings will affect the experience for all members of the workspace.": "Gérer les fonctionnalités optionnelles et bêta. La modification de ces paramètres sera effective pour tous les membres de l'espace de travail.",
-  "Separate editing": "Separate editing",
+  "Separate editing": "Édition séparée",
   "When enabled documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences.": "When enabled documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences.",
   "Commenting": "Commentaires",
   "When enabled team members can add comments to documents.": "Lorsque cette option est activée, les membres de l'équipe peuvent ajouter des commentaires aux documents.",
