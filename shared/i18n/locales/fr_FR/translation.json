@@ -791,7 +791,7 @@
   "Recent exports": "Exports récents",
   "Manage optional and beta features. Changing these settings will affect the experience for all members of the workspace.": "Gérer les fonctionnalités optionnelles et bêta. La modification de ces paramètres sera effective pour tous les membres de l'espace de travail.",
   "Separate editing": "Édition séparée",
-  "When enabled documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences.": "When enabled documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences.",
+  "When enabled documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences.": "Lorsque cette option est activée, les documents ont un mode d'édition séparé au lieu d'être toujours modifiables. Ce paramètre peut être changé les préférences de l'utilisateur.",
   "Commenting": "Commentaires",
   "When enabled team members can add comments to documents.": "Lorsque cette option est activée, les membres de l'équipe peuvent ajouter des commentaires aux documents.",
   "Add a Google Analytics 4 measurement ID to send document views and analytics from the workspace to your own Google Analytics account.": "Ajouter un identifiant de mesure Google Analytics 4 pour envoyer le nombre de vues de documents et les statistiques de l'espace de travail à votre propre compte Google Analytics.",
