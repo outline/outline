@@ -8,7 +8,7 @@ function SelfHost(props: Props) {
   return <Frame {...props} src={source} title="SelfHost" />;
 }
 
-SelfHost.ENABLED = [];
+SelfHost.ENABLED = [''];
 SelfHost.URL_PATH_REGEX = /(.+)/;
 
 export default SelfHost;
