@@ -112,11 +112,58 @@ export function sanitizeUrl(url: string | null | undefined) {
   return url;
 }
 
+/**
+ * Parse a string to check if it starts with 'reg::' and returns a tuple containing a boolean
+ * that indicates whether the prefix exists, and the remaining part of the string after the prefix.
+ *
+ * @param str The string to parse
+ * @returns A tuple containing a boolean and a string. The boolean indicates whether the prefix 'reg::' exists,
+ *          and the string is the remaining part after the prefix.
+ */
+function parseRegexPrefix(str: string): [boolean, string] {
+    if (str.startsWith('reg::')) {
+      return [true, str.substring(5)];
+    }
+    return [false, str];
+  }
+  
+
+/**
+ * Checks if a given string is a regular expression by looking for a 'reg::' prefix and
+ * attempting to create a RegExp object with the remaining part of the string.
+ *
+ * @param str The string to check
+ * @returns A boolean indicating whether the given string is a valid regular expression.
+ */
+function isRegex(str: string | null | undefined): boolean {
+    if (!str) {
+      return false;
+    }
+    const [hasPrefix, regexPart] = parseRegexPrefix(str);
+    if (hasPrefix) {
+      try {
+        new RegExp(regexPart);
+        return true;
+      } catch (e) {
+        console.error('Invalid regular expression:', regexPart);
+        return false;
+      }
+    }
+    return false;
+}
+
+
 export function urlRegex(url: string | null | undefined): RegExp | undefined {
-  if (!url || !isUrl(url)) {
+  if (!url) {
+        return undefined;
+  }
+  if (isRegex(url)) {
+    const [, regexPart] = parseRegexPrefix(url);
+    return new RegExp(regexPart);
+  }
+  if (!isUrl(url)) {
     return undefined;
   }
-
   const urlObj = new URL(sanitizeUrl(url) as string);
 
   return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));

@@ -95,6 +95,32 @@ describe("#integrations.update", () => {
     const body = await res.json();
     expect(body.data.id).toEqual(integration.id);
     expect(body.data.settings.url).toEqual("https://grist.example.com");
+
+    it("should succeed with status 200 ok when selfhost integration settings are updated", async () => {
+        const admin = await buildAdmin();
+    
+        const integration = await buildIntegration({
+          userId: admin.id,
+          teamId: admin.teamId,
+          service: IntegrationService.Selfhost,
+          type: IntegrationType.Embed,
+          settings: { url: "https://example.com" },
+        });
+    
+        const res = await server.post("/api/integrations.update", {
+          body: {
+            token: admin.getJwtToken(),
+            id: integration.id,
+            settings: { url: "https://selfhost.example.com" },
+          },
+        });
+    
+        const body = await res.json();
+        expect(body.data.id).toEqual(integration.id);
+        expect(body.data.settings.url).toEqual("https://selfhost.example.com");
+      });
+
+
   });
 });
 
@@ -153,6 +179,28 @@ describe("#integrations.create", () => {
     expect(body.data.service).toEqual(UserCreatableIntegrationService.Grist);
     expect(body.data.settings).not.toBeFalsy();
     expect(body.data.settings.url).toEqual("https://grist.example.com");
+
+    it("should succeed with status 200 ok for an selfhost integration", async () => {
+        const admin = await buildAdmin();
+    
+        const res = await server.post("/api/integrations.create", {
+          body: {
+            token: admin.getJwtToken(),
+            type: IntegrationType.Embed,
+            service: UserCreatableIntegrationService.Selfhost,
+            settings: { url: "https://selfhost.example.com" },
+          },
+        });
+        const body = await res.json();
+        expect(res.status).toEqual(200);
+        expect(body.data.type).toEqual(IntegrationType.Embed);
+        expect(body.data.service).toEqual(
+          UserCreatableIntegrationService.Selfhost
+        );
+        expect(body.data.settings).not.toBeFalsy();
+        expect(body.data.settings.url).toEqual("https://selfhost.example.com");
+      });
+
   });
 });
 
