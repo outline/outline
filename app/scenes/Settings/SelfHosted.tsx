@@ -165,7 +165,7 @@ function SelfHosted() {
         >
           <Input
             placeholder="reg::https:\/\/.*\.example\.com"
-            pattern="[https?://.*|reg::.?]]"
+            pattern="[https?://.*|reg::.?]"
             {...register("selfhostUrl")}
           />
         </SettingRow>
