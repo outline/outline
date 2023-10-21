@@ -38,6 +38,7 @@ router.post(
     } else if (preset === AttachmentPreset.DocumentAttachment && documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
+        transaction,
       });
       authorize(user, "update", document);
     } else {

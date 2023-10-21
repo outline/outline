@@ -32,6 +32,7 @@ router.post(
     const { user } = ctx.state.auth;
     const team = await Team.findByPk(user.teamId, {
       include: [{ model: TeamDomain }],
+      transaction,
     });
     authorize(user, "update", team);
 
@@ -121,6 +122,7 @@ router.post(
       "withAuthenticationProviders"
     ).findByPk(user.teamId, {
       rejectOnEmpty: true,
+      transaction,
     });
 
     authorize(user, "createTeam", existingTeam);

@@ -103,6 +103,7 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      transaction,
     });
     authorize(user, "comment", document);
     authorize(user, "update", comment);
@@ -139,6 +140,7 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      transaction,
     });
     authorize(user, "comment", document);
     authorize(user, "delete", comment);

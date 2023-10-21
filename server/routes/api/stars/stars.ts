@@ -33,6 +33,7 @@ router.post(
     if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
+        transaction,
       });
       authorize(user, "star", document);
     }
@@ -40,7 +41,7 @@ router.post(
     if (collectionId) {
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
-      }).findByPk(collectionId);
+      }).findByPk(collectionId, { transaction });
       authorize(user, "star", collection);
     }
 
