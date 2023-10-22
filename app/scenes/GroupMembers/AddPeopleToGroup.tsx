@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
+import Avatar from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar/Avatar";
 import ButtonLink from "~/components/ButtonLink";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -57,7 +59,10 @@ function AddPeopleToGroup(props: Props) {
       toast.success(
         t(`{{userName}} was added to the group`, {
           userName: user.name,
-        })
+        }),
+        {
+          icon: <Avatar model={user} size={AvatarSize.Toast} />,
+        }
       );
     } catch (err) {
       toast.error(t("Could not add user"));

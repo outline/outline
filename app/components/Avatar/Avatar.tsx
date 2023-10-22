@@ -5,6 +5,7 @@ import Initials from "./Initials";
 
 export enum AvatarSize {
   Small = 16,
+  Toast = 18,
   Medium = 24,
   Large = 32,
   XLarge = 48,
