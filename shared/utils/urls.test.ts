@@ -1,7 +1,7 @@
 import * as urlsUtils from "./urls";
 import { urlRegex } from "./urls";
 
-describe("IsUrl Method", () => {
+describe("isUrl", () => {
   it("should return false for invalid url", () => {
     expect(urlsUtils.isUrl("")).toBe(false);
     expect(urlsUtils.isUrl("#invalidurl")).toBe(false);
@@ -19,7 +19,33 @@ describe("IsUrl Method", () => {
   });
 });
 
-describe("isInternalUrl Method", () => {
+describe("isBase64Url", () => {
+  it("should return false for invalid url", () => {
+    expect(urlsUtils.isBase64Url("")).toBe(false);
+    expect(urlsUtils.isBase64Url("#invalidurl")).toBe(false);
+    expect(urlsUtils.isBase64Url("http://example.com")).toBe(false);
+    expect(urlsUtils.isBase64Url("https://www.example.com")).toBe(false);
+    expect(urlsUtils.isBase64Url("seafile://openfile")).toBe(false);
+    expect(urlsUtils.isBase64Url("figma://launch")).toBe(false);
+    expect(urlsUtils.isBase64Url("outline:https://getoutline.com")).toBe(false);
+    expect(urlsUtils.isBase64Url("://")).toBe(false);
+  });
+
+  it("should return true for valid urls", () => {
+    expect(
+      urlsUtils.isBase64Url(
+        "data:image/png;base64,R0lGODlhPQBEAPeoAJosM//AwO/AwHVYZ/z595kzAP/s7P+goOXMv8+fhw/v739/f+8PD98fH/8mJl+fn/9ZWb8/PzWlwv///6wWGbImAPgTEMImIN9gUFCEm/gDALULDN8PAD6atYdCTX9gUNKlj8wZAKUsAOzZz+UMAOsJAP/Z2ccMDA8PD/95eX5NWvsJCOVNQPtfX/8zM8+QePLl38MGBr8JCP+zs9myn/8GBqwpAP/GxgwJCPny78lzYLgjAJ8vAP9fX/+MjMUcAN8zM/9wcM8ZGcATEL+QePdZWf/29uc/P9cmJu9MTDImIN+/r7+/vz8/P8VNQGNugV8AAF9fX8swMNgTAFlDOICAgPN"
+      )
+    ).toBeTruthy();
+    expect(
+      urlsUtils.isBase64Url(
+        "data:image/gif;base64,npkM+fOqD6DDj1aZpITp0dtGCDhr+fVuCu3zlg49ijaokTZTo27uG7Gjn2P+hI8+PDPERoUB318bWbfAJ5sUNFcuGRTYUqV/3ogfXp1rWlMc6awJjiAAd2fm4ogXjz56aypOoIde4OE5u/F9x199dlXnnGiHZWEYbGpsAEA3QXYnHwEFliKAgswgJ8LPeiUXGwedCAKABACCN+EA1pYIIYaFlcDhytd51sGAJbo3onOpajiihlO92KHGaUXGwWjUBChjSPiWJuOO/LYIm4v1tXfE6J4gCSJEZ7YgRYUNrkji9P55sF/ogxw5ZkSqIDaZBV6aSGYq/lGZplndkckZ98xoICbTcIJGQAZc"
+      )
+    ).toBeTruthy();
+  });
+});
+
+describe("isInternalUrl", () => {
   it("should return false if empty string", () => {
     expect(urlsUtils.isInternalUrl("")).toBe(false);
   });
@@ -29,7 +55,7 @@ describe("isInternalUrl Method", () => {
   });
 });
 
-describe("isExternalUrl Method", () => {
+describe("isExternalUrl", () => {
   it("should return false if empty url", () => {
     expect(urlsUtils.isExternalUrl("")).toBe(false);
   });
@@ -39,7 +65,7 @@ describe("isExternalUrl Method", () => {
   });
 });
 
-describe("sanitizeUrl Method", () => {
+describe("sanitizeUrl", () => {
   it("should return undefined if not url", () => {
     expect(urlsUtils.sanitizeUrl(undefined)).toBeUndefined();
     expect(urlsUtils.sanitizeUrl(null)).toBeUndefined();

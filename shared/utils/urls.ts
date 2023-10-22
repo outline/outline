@@ -87,6 +87,17 @@ export function isExternalUrl(url: string) {
 }
 
 /**
+ * Returns match if the given string is a base64 encoded url.
+ *
+ * @param url The url to check.
+ * @returns A RegExp match if the url is base64, false otherwise.
+ */
+export function isBase64Url(url: string) {
+  const match = url.match(/^(data:[a-z]+\/[^;]+;base64,(.*))/i);
+  return match ? match : false;
+}
+
+/**
  * For use in the editor, this function will ensure that a url is
  * potentially valid, and filter out unsupported and malicious protocols.
  *

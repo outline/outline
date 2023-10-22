@@ -1,6 +1,7 @@
 import { Blob } from "buffer";
 import { Readable } from "stream";
 import { PresignedPost } from "aws-sdk/clients/s3";
+import { isBase64Url } from "@shared/utils/urls";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import fetch from "@server/utils/fetch";
@@ -132,7 +133,7 @@ export default abstract class BaseStorage {
     }
 
     let buffer, contentType;
-    const match = url.match(/data:(.*);base64,(.*)/);
+    const match = isBase64Url(url);
 
     if (match) {
       contentType = match[1];
