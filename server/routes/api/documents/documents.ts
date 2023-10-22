@@ -400,9 +400,7 @@ router.post(
 
 router.post(
   "documents.info",
-  auth({
-    optional: true,
-  }),
+  auth({ optional: true }),
   validate(T.DocumentsInfoSchema),
   async (ctx: APIContext<T.DocumentsInfoReq>) => {
     const { id, shareId, apiVersion } = ctx.input.body;
@@ -507,9 +505,7 @@ router.post(
 router.post(
   "documents.export",
   rateLimiter(RateLimiterStrategy.FivePerMinute),
-  auth({
-    optional: true,
-  }),
+  auth({ optional: true }),
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
     const { id } = ctx.input.body;
@@ -769,9 +765,7 @@ router.post(
 
 router.post(
   "documents.search",
-  auth({
-    optional: true,
-  }),
+  auth({ optional: true }),
   pagination(),
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchSchema),
@@ -1342,10 +1336,10 @@ router.post(
 
     document.collection = collection;
 
-    return (ctx.body = {
+    ctx.body = {
       data: await presentDocument(document),
       policies: presentPolicies(user, [document]),
-    });
+    };
   }
 );
 
@@ -1431,10 +1425,10 @@ router.post(
 
     document.collection = collection;
 
-    return (ctx.body = {
+    ctx.body = {
       data: await presentDocument(document),
       policies: presentPolicies(user, [document]),
-    });
+    };
   }
 );
 
