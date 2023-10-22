@@ -1,5 +1,6 @@
 import { Node } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
+import { toast } from "sonner";
 
 function findPlaceholderLink(doc: Node, href: string) {
   let result: { pos: number; node: Node } | undefined;
@@ -38,11 +39,10 @@ const createAndInsertLink = async function (
   options: {
     dictionary: any;
     onCreateLink: (title: string) => Promise<string>;
-    onShowToast: (message: string) => void;
   }
 ) {
   const { dispatch, state } = view;
-  const { onCreateLink, onShowToast } = options;
+  const { onCreateLink } = options;
 
   try {
     const url = await onCreateLink(title);
@@ -79,7 +79,7 @@ const createAndInsertLink = async function (
       )
     );
 
-    onShowToast(options.dictionary.createLinkError);
+    toast.error(options.dictionary.createLinkError);
   }
 };
 

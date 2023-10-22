@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
+import { toast } from "sonner";
 import { getEventFiles } from "@shared/utils/files";
 import Collection from "~/models/Collection";
 import ContextMenu, { Placement } from "~/components/ContextMenu";
@@ -29,7 +30,6 @@ import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
@@ -56,7 +56,6 @@ function CollectionMenu({
   });
   const team = useCurrentTeam();
   const { documents, dialogs } = useStores();
-  const { showToast } = useToasts();
   const { t } = useTranslation();
   const history = useHistory();
   const file = React.useRef<HTMLInputElement>(null);
@@ -116,13 +115,11 @@ function CollectionMenu({
         });
         history.push(document.url);
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
         throw err;
       }
     },
-    [history, showToast, collection.id, documents]
+    [history, collection.id, documents]
   );
 
   const handleChangeSort = React.useCallback(

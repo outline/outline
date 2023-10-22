@@ -3,6 +3,7 @@ import throttle from "lodash/throttle";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import { toast } from "sonner";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
 import MultiplayerExtension from "@shared/editor/extensions/Multiplayer";
@@ -14,7 +15,6 @@ import useIdle from "~/hooks/useIdle";
 import useIsMounted from "~/hooks/useIsMounted";
 import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import { AwarenessChangeEvent } from "~/types";
 import Logger from "~/utils/Logger";
 import { homePath } from "~/utils/routeHelpers";
@@ -51,7 +51,6 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const [isLocalSynced, setLocalSynced] = React.useState(false);
   const [isRemoteSynced, setRemoteSynced] = React.useState(false);
   const [ydoc] = React.useState(() => new Y.Doc());
-  const { showToast } = useToasts();
   const token = auth.collaborationToken;
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
@@ -180,7 +179,6 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     };
   }, [
     history,
-    showToast,
     t,
     documentId,
     ui,
@@ -251,21 +249,17 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   React.useEffect(() => {
     function onUnhandledError(event: ErrorEvent) {
       if (event.message.includes("URIError: URI malformed")) {
-        showToast(
+        toast.error(
           t(
             "Sorry, the last change could not be persisted – please reload the page"
-          ),
-          {
-            type: "error",
-            timeout: 0,
-          }
+          )
         );
       }
     }
 
     window.addEventListener("error", onUnhandledError);
     return () => window.removeEventListener("error", onUnhandledError);
-  }, [showToast, t]);
+  }, [t]);
 
   if (!remoteProvider) {
     return null;

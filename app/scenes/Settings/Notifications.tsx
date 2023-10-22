@@ -13,6 +13,7 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import { NotificationEventType } from "@shared/types";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -23,12 +24,10 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useToasts from "~/hooks/useToasts";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Notifications() {
-  const { showToast } = useToasts();
   const user = useCurrentUser();
   const { t } = useTranslation();
 
@@ -106,9 +105,7 @@ function Notifications() {
   ];
 
   const showSuccessMessage = debounce(() => {
-    showToast(t("Notifications saved"), {
-      type: "success",
-    });
+    toast.success(t("Notifications saved"));
   }, 500);
 
   const handleChange = React.useCallback(

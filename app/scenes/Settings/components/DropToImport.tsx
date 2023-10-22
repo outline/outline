@@ -3,13 +3,13 @@ import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { AttachmentPreset } from "@shared/types";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import { uploadFile } from "~/utils/files";
 
 type Props = {
@@ -23,15 +23,12 @@ type Props = {
 function DropToImport({ disabled, onSubmit, children, format }: Props) {
   const { t } = useTranslation();
   const { collections } = useStores();
-  const { showToast } = useToasts();
   const [isImporting, setImporting] = React.useState(false);
 
   const handleFiles = React.useCallback(
     async (files) => {
       if (files.length > 1) {
-        showToast(t("Please choose a single file to import"), {
-          type: "error",
-        });
+        toast.error(t("Please choose a single file to import"));
         return;
       }
       const file = files[0];
@@ -45,27 +42,21 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
         });
         await collections.import(attachment.id, format);
         onSubmit();
-        showToast(
-          t("Your import is being processed, you can safely leave this page"),
-          {
-            type: "success",
-            timeout: 6000,
-          }
+        toast.success(
+          t("Your import is being processed, you can safely leave this page")
         );
       } catch (err) {
-        showToast(err.message);
+        toast.error(err.message);
       } finally {
         setImporting(false);
       }
     },
-    [t, onSubmit, collections, format, showToast]
+    [t, onSubmit, collections, format]
   );
 
   const handleRejection = React.useCallback(() => {
-    showToast(t("File not supported – please upload a valid ZIP file"), {
-      type: "error",
-    });
-  }, [t, showToast]);
+    toast.error(t("File not supported – please upload a valid ZIP file"));
+  }, [t]);
 
   if (disabled) {
     return children;

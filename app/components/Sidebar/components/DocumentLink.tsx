@@ -6,6 +6,7 @@ import { useDrag, useDrop } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { NavigationNode } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
@@ -18,7 +19,6 @@ import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { newDocumentPath } from "~/utils/routeHelpers";
 import DropCursor from "./DropCursor";
@@ -53,7 +53,6 @@ function InnerDocumentLink(
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
-  const { showToast } = useToasts();
   const { documents, policies } = useStores();
   const { t } = useTranslation();
   const canUpdate = usePolicy(node.id).update;
@@ -222,14 +221,10 @@ function InnerDocumentLink(
     accept: "document",
     drop: (item: DragObject) => {
       if (!manualSort) {
-        showToast(
+        toast.message(
           t(
             "You can't reorder documents in an alphabetically sorted collection"
-          ),
-          {
-            type: "info",
-            timeout: 5000,
-          }
+          )
         );
         return;
       }

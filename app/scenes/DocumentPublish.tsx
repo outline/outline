@@ -2,6 +2,7 @@ import flatten from "lodash/flatten";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { ellipsis } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
@@ -12,7 +13,6 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import { flattenTree } from "~/utils/tree";
 
 type Props = {
@@ -22,7 +22,6 @@ type Props = {
 
 function DocumentPublish({ document }: Props) {
   const { dialogs } = useStores();
-  const { showToast } = useToasts();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
   const [selectedPath, selectPath] = React.useState<NavigationNode | null>(
@@ -35,9 +34,7 @@ function DocumentPublish({ document }: Props) {
 
   const publish = async () => {
     if (!selectedPath) {
-      showToast(t("Select a location to publish"), {
-        type: "info",
-      });
+      toast.message(t("Select a location to publish"));
       return;
     }
 
@@ -54,15 +51,11 @@ function DocumentPublish({ document }: Props) {
       document.collectionId = collectionId;
       await document.save(undefined, { publish: true });
 
-      showToast(t("Document published"), {
-        type: "success",
-      });
+      toast.success(t("Document published"));
 
       dialogs.closeAllModals();
     } catch (err) {
-      showToast(t("Couldn’t publish the document, try again?"), {
-        type: "error",
-      });
+      toast.error(t("Couldn’t publish the document, try again?"));
     }
   };
 

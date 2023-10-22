@@ -4,6 +4,7 @@ import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { io, Socket } from "socket.io-client";
+import { toast } from "sonner";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Comment from "~/models/Comment";
@@ -77,7 +78,6 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.authenticated = false;
     const {
       auth,
-      toasts,
       documents,
       collections,
       groups,
@@ -111,9 +111,7 @@ class WebsocketProvider extends React.Component<Props> {
       if (this.socket) {
         this.socket.authenticated = false;
       }
-      toasts.showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
       throw err;
     });
 

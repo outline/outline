@@ -121,19 +121,6 @@ export type LocationWithState = Location & {
   state: Record<string, string>;
 };
 
-export type Toast = {
-  id: string;
-  createdAt: string;
-  message: string;
-  type: "warning" | "error" | "info" | "success" | "loading";
-  timeout?: number;
-  reoccurring?: number;
-  action?: {
-    text: string;
-    onClick: React.MouseEventHandler<HTMLSpanElement>;
-  };
-};
-
 export type FetchOptions = {
   prefetch?: boolean;
   revisionId?: string;
@@ -175,15 +162,6 @@ export type SearchResult = {
   ranking: number;
   context: string;
   document: Document;
-};
-
-export type ToastOptions = {
-  type: "warning" | "error" | "info" | "success" | "loading";
-  timeout?: number;
-  action?: {
-    text: string;
-    onClick: React.MouseEventHandler<HTMLSpanElement>;
-  };
 };
 
 export type WebsocketEntityDeletedEvent = {

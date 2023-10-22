@@ -25,6 +25,7 @@ import {
   CommentIcon,
 } from "outline-icons";
 import * as React from "react";
+import { toast } from "sonner";
 import { ExportContentType, TeamPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import DocumentDelete from "~/scenes/DocumentDelete";
@@ -209,13 +210,10 @@ export const publishDocument = createAction({
       await document.save(undefined, {
         publish: true,
       });
-      stores.toasts.showToast(
+      toast.success(
         t("Published {{ documentName }}", {
           documentName: document.noun,
-        }),
-        {
-          type: "success",
-        }
+        })
       );
     } else if (document) {
       stores.dialogs.openModal({
@@ -250,13 +248,10 @@ export const unpublishDocument = createAction({
 
     await document.unpublish();
 
-    stores.toasts.showToast(
+    toast.message(
       t("Unpublished {{ documentName }}", {
         documentName: document.noun,
-      }),
-      {
-        type: "success",
-      }
+      })
     );
   },
 });
@@ -287,9 +282,7 @@ export const subscribeDocument = createAction({
 
     await document?.subscribe();
 
-    stores.toasts.showToast(t("Subscribed to document notifications"), {
-      type: "success",
-    });
+    toast.success(t("Subscribed to document notifications"));
   },
 });
 
@@ -319,9 +312,7 @@ export const unsubscribeDocument = createAction({
 
     await document?.unsubscribe(currentUserId);
 
-    stores.toasts.showToast(t("Unsubscribed from document notifications"), {
-      type: "success",
-    });
+    toast.success(t("Unsubscribed from document notifications"));
   },
 });
 
@@ -360,15 +351,11 @@ export const downloadDocumentAsPDF = createAction({
       return;
     }
 
-    const id = stores.toasts.showToast(`${t("Exporting")}…`, {
-      type: "loading",
-      timeout: 30 * 1000,
-    });
-
+    const id = toast.loading(`${t("Exporting")}…`);
     const document = stores.documents.get(activeDocumentId);
     document
       ?.download(ExportContentType.Pdf)
-      .finally(() => id && stores.toasts.hideToast(id));
+      .finally(() => id && toast.dismiss(id));
   },
 });
 
@@ -479,12 +466,10 @@ export const pinDocumentToCollection = createAction({
       const collection = stores.collections.get(activeCollectionId);
 
       if (!collection || !location.pathname.startsWith(collection?.url)) {
-        stores.toasts.showToast(t("Pinned to collection"));
+        toast.success(t("Pinned to collection"));
       }
     } catch (err) {
-      stores.toasts.showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     }
   },
 });
@@ -521,12 +506,10 @@ export const pinDocumentToHome = createAction({
       await document?.pin();
 
       if (location.pathname !== homePath()) {
-        stores.toasts.showToast(t("Pinned to home"));
+        toast.success(t("Pinned to home"));
       }
     } catch (err) {
-      stores.toasts.showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     }
   },
 });
@@ -569,7 +552,7 @@ export const importDocument = createAction({
     return false;
   },
   perform: ({ activeCollectionId, activeDocumentId, stores }) => {
-    const { documents, toasts } = stores;
+    const { documents } = stores;
     const input = document.createElement("input");
     input.type = "file";
     input.accept = documents.importFileTypes.join(", ");
@@ -589,9 +572,7 @@ export const importDocument = createAction({
         );
         history.push(document.url);
       } catch (err) {
-        toasts.showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
         throw err;
       }
     };
@@ -712,9 +693,7 @@ export const archiveDocument = createAction({
       }
 
       await document.archive();
-      stores.toasts.showToast(t("Document archived"), {
-        type: "success",
-      });
+      toast.success(t("Document archived"));
     }
   },
 });

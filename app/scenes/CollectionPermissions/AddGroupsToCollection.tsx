@@ -2,6 +2,7 @@ import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Group from "~/models/Group";
@@ -29,8 +30,7 @@ function AddGroupsToCollection(props: Props) {
     useBoolean(false);
   const [query, setQuery] = React.useState("");
 
-  const { auth, collectionGroupMemberships, groups, policies, toasts } =
-    useStores();
+  const { auth, collectionGroupMemberships, groups, policies } = useStores();
   const { fetchPage: fetchGroups } = groups;
 
   const { t } = useTranslation();
@@ -55,18 +55,13 @@ function AddGroupsToCollection(props: Props) {
         collectionId: collection.id,
         groupId: group.id,
       });
-      toasts.showToast(
+      toast.success(
         t("{{ groupName }} was added to the collection", {
           groupName: group.name,
-        }),
-        {
-          type: "success",
-        }
+        })
       );
     } catch (err) {
-      toasts.showToast(t("Could not add user"), {
-        type: "error",
-      });
+      toast.error(t("Could not add user"));
     }
   };
 

@@ -133,8 +133,6 @@ export type Props = {
   userPreferences?: UserPreferences | null;
   /** Whether embeds should be rendered without an iframe */
   embedsDisabled?: boolean;
-  /** Callback when a toast message is triggered (eg "link copied") */
-  onShowToast: (message: string) => void;
   className?: string;
   /** Optional style overrides for the container*/
   style?: React.CSSProperties;

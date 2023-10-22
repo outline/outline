@@ -21,7 +21,6 @@ import SearchesStore from "./SearchesStore";
 import SharesStore from "./SharesStore";
 import StarsStore from "./StarsStore";
 import SubscriptionsStore from "./SubscriptionsStore";
-import ToastsStore from "./ToastsStore";
 import UiStore from "./UiStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
@@ -53,7 +52,6 @@ export default class RootStore {
   subscriptions: SubscriptionsStore;
   users: UsersStore;
   views: ViewsStore;
-  toasts: ToastsStore;
   fileOperations: FileOperationsStore;
   webhookSubscriptions: WebhookSubscriptionsStore;
 
@@ -85,7 +83,6 @@ export default class RootStore {
     this.users = new UsersStore(this);
     this.views = new ViewsStore(this);
     this.fileOperations = new FileOperationsStore(this);
-    this.toasts = new ToastsStore();
     this.webhookSubscriptions = new WebhookSubscriptionsStore(this);
   }
 

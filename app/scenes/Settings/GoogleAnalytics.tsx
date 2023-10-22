@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import { IntegrationType, IntegrationService } from "@shared/types";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
@@ -12,7 +13,6 @@ import Input from "~/components/Input";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import SettingRow from "./components/SettingRow";
 
 type FormData = {
@@ -22,7 +22,6 @@ type FormData = {
 function GoogleAnalytics() {
   const { integrations } = useStores();
   const { t } = useTranslation();
-  const { showToast } = useToasts();
 
   const integration = find(integrations.orderedData, {
     type: IntegrationType.Analytics,
@@ -67,16 +66,12 @@ function GoogleAnalytics() {
           await integration?.delete();
         }
 
-        showToast(t("Settings saved"), {
-          type: "success",
-        });
+        toast.success(t("Settings saved"));
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       }
     },
-    [integrations, integration, t, showToast]
+    [integrations, integration, t]
   );
 
   return (

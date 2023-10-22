@@ -1,34 +1,28 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import styled from "styled-components";
-import { depths } from "@shared/styles";
-import Toast from "~/components/Toast";
+import { Toaster } from "sonner";
+import { useTheme } from "styled-components";
 import useStores from "~/hooks/useStores";
-import { Toast as TToast } from "~/types";
 
 function Toasts() {
-  const { toasts } = useStores();
+  const { ui } = useStores();
+  const theme = useTheme();
+
   return (
-    <List>
-      {toasts.orderedData.map((toast: TToast) => (
-        <Toast
-          key={toast.id}
-          toast={toast}
-          onRequestClose={() => toasts.hideToast(toast.id)}
-        />
-      ))}
-    </List>
+    <Toaster
+      theme={ui.resolvedTheme}
+      toastOptions={{
+        duration: 5000,
+        style: {
+          color: theme.toastText,
+          background: theme.toastBackground,
+          border: `1px solid ${theme.divider}`,
+          fontFamily: theme.fontFamily,
+          fontSize: "14px",
+        },
+      }}
+    />
   );
 }
-
-const List = styled.ol`
-  position: fixed;
-  left: 16px;
-  bottom: 16px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  z-index: ${depths.toasts};
-`;
 
 export default observer(Toasts);

@@ -3,6 +3,7 @@ import { LinkIcon, CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { UserRole } from "@shared/types";
@@ -19,7 +20,6 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   onSubmit: () => void;
@@ -52,7 +52,6 @@ function Invite({ onSubmit }: Props) {
     },
   ]);
   const { users } = useStores();
-  const { showToast } = useToasts();
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
@@ -69,23 +68,17 @@ function Invite({ onSubmit }: Props) {
         onSubmit();
 
         if (data.sent.length > 0) {
-          showToast(t("We sent out your invites!"), {
-            type: "success",
-          });
+          toast.success(t("We sent out your invites!"));
         } else {
-          showToast(t("Those email addresses are already invited"), {
-            type: "success",
-          });
+          toast.message(t("Those email addresses are already invited"));
         }
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       } finally {
         setIsSaving(false);
       }
     },
-    [onSubmit, showToast, invites, t, users]
+    [onSubmit, invites, t, users]
   );
 
   const handleChange = React.useCallback((ev, index) => {
@@ -98,13 +91,10 @@ function Invite({ onSubmit }: Props) {
 
   const handleAdd = React.useCallback(() => {
     if (invites.length >= UserValidation.maxInvitesPerRequest) {
-      showToast(
+      toast.message(
         t("Sorry, you can only send {{MAX_INVITES}} invites at a time", {
           MAX_INVITES: UserValidation.maxInvitesPerRequest,
-        }),
-        {
-          type: "warning",
-        }
+        })
       );
     }
 
@@ -117,7 +107,7 @@ function Invite({ onSubmit }: Props) {
       });
       return newInvites;
     });
-  }, [showToast, invites, t]);
+  }, [invites, t]);
 
   const handleRemove = React.useCallback(
     (ev: React.SyntheticEvent, index: number) => {
@@ -133,10 +123,8 @@ function Invite({ onSubmit }: Props) {
 
   const handleCopy = React.useCallback(() => {
     setLinkCopied(true);
-    showToast(t("Share link copied"), {
-      type: "success",
-    });
-  }, [showToast, t]);
+    toast.success(t("Share link copied"));
+  }, [t]);
 
   const handleRoleChange = React.useCallback(
     (role: UserRole, index: number) => {

@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/react";
 import { EditorView } from "prosemirror-view";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {
@@ -19,8 +20,6 @@ export type Options = {
   onFileUploadStart?: () => void;
   /** Callback fired when the user completes a file upload */
   onFileUploadStop?: () => void;
-  /** Callback fired when a toast needs to be displayed */
-  onShowToast: (message: string) => void;
   /** Attributes to overwrite */
   attrs?: {
     /** Width to use when inserting image */
@@ -40,13 +39,8 @@ const insertFiles = function (
   files: File[],
   options: Options
 ): void {
-  const {
-    dictionary,
-    uploadFile,
-    onFileUploadStart,
-    onFileUploadStop,
-    onShowToast,
-  } = options;
+  const { dictionary, uploadFile, onFileUploadStart, onFileUploadStop } =
+    options;
 
   // okay, we have some dropped files and a handler – lets stop this
   // event going any further up the stack
@@ -172,7 +166,7 @@ const insertFiles = function (
           })
         );
 
-        onShowToast(error.message || dictionary.fileUploadError);
+        toast.error(error.message || dictionary.fileUploadError);
       })
       .finally(() => {
         complete++;

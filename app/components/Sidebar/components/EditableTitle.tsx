@@ -1,7 +1,7 @@
 import * as React from "react";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   onSubmit: (title: string) => Promise<void>;
@@ -22,7 +22,6 @@ function EditableTitle(
   const [isEditing, setIsEditing] = React.useState(false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
-  const { showToast } = useToasts();
 
   React.useImperativeHandle(ref, () => ({
     setIsEditing,
@@ -78,14 +77,12 @@ function EditableTitle(
           setOriginalValue(trimmedValue);
         } catch (error) {
           setValue(originalValue);
-          showToast(error.message, {
-            type: "error",
-          });
+          toast.error(error.message);
           throw error;
         }
       }
     },
-    [originalValue, showToast, value, onSubmit]
+    [originalValue, value, onSubmit]
   );
 
   React.useEffect(() => {
