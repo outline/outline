@@ -11,10 +11,15 @@ type RedisAdapterOptions = RedisOptions & {
 const defaultOptions: RedisOptions = {
   maxRetriesPerRequest: 20,
   enableReadyCheck: false,
+  showFriendlyErrorStack: env.ENVIRONMENT === "development",
 
   retryStrategy(times: number) {
     Logger.warn(`Retrying redis connection: attempt ${times}`);
     return Math.min(times * 100, 3000);
+  },
+
+  reconnectOnError(err) {
+    return err.message.includes("READONLY");
   },
 
   // support Heroku Redis, see:
