@@ -93,7 +93,7 @@ export function isExternalUrl(url: string) {
  * @returns A RegExp match if the url is base64, false otherwise.
  */
 export function isBase64Url(url: string) {
-  const match = url.match(/^(data:[a-z]+\/[^;]+;base64,(.*))/i);
+  const match = url.match(/^data:([a-z]+\/[^;]+);base64,(.*)/i);
   return match ? match : false;
 }
 
