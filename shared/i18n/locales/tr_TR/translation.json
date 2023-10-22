@@ -191,6 +191,8 @@
   "{{userName}} published": "{{userName}} yayınladı",
   "{{userName}} unpublished": "{{userName}} yayınlanmamış",
   "{{userName}} moved": "{{userName}} taşıdı",
+  "Your file will be available in {{ location }} soon": "Your file will be available in {{ location }} soon",
+  "Go to exports": "Go to exports",
   "Export started": "Dışa aktarma başladı",
   "A ZIP file containing the images, and documents in the Markdown format.": "Görselleri ve dokümanları Markdown biçiminde içeren bir ZIP dosyası.",
   "A ZIP file containing the images, and documents as HTML files.": "Görselleri ve dokümanları HTML dosyaları olarak içeren bir ZIP dosyası.",
