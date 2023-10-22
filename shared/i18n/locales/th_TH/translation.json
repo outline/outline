@@ -191,6 +191,8 @@
   "{{userName}} published": "{{userName}} published",
   "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "{{userName}} moved",
+  "Your file will be available in {{ location }} soon": "Your file will be available in {{ location }} soon",
+  "Go to exports": "Go to exports",
   "Export started": "Export started",
   "A ZIP file containing the images, and documents in the Markdown format.": "A ZIP file containing the images, and documents in the Markdown format.",
   "A ZIP file containing the images, and documents as HTML files.": "A ZIP file containing the images, and documents as HTML files.",
