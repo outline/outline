@@ -56,6 +56,7 @@ import visualbasic from "refractor/lang/visual-basic";
 import yaml from "refractor/lang/yaml";
 import zig from "refractor/lang/zig";
 
+import { toast } from "sonner";
 import { Primitive } from "utility-types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { UserPreferences } from "../../types";
@@ -130,7 +131,6 @@ export default class CodeFence extends Node {
   constructor(options: {
     dictionary: Dictionary;
     userPreferences?: UserPreferences | null;
-    onShowToast: (message: string) => void;
   }) {
     super(options);
   }
@@ -197,7 +197,7 @@ export default class CodeFence extends Node {
         }
 
         copy(codeBlock.node.textContent);
-        this.options.onShowToast(this.options.dictionary.codeCopied);
+        toast.message(this.options.dictionary.codeCopied);
         return true;
       },
     };

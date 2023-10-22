@@ -8,6 +8,7 @@ import {
 } from "prosemirror-model";
 import { Command, Plugin, Selection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { toast } from "sonner";
 import { Primitive } from "utility-types";
 import Storage from "../../utils/Storage";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
@@ -188,7 +189,7 @@ export default class Heading extends Node {
       .replace("/edit", "");
     copy(normalizedUrl + hash);
 
-    this.options.onShowToast(this.options.dictionary.linkCopied);
+    toast.message(this.options.dictionary.linkCopied);
   };
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {

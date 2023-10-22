@@ -1,12 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import Group from "~/models/Group";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   group: Group;
@@ -14,7 +14,6 @@ type Props = {
 };
 
 function GroupEdit({ group, onSubmit }: Props) {
-  const { showToast } = useToasts();
   const { t } = useTranslation();
   const [name, setName] = React.useState(group.name);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -29,14 +28,12 @@ function GroupEdit({ group, onSubmit }: Props) {
         });
         onSubmit();
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       } finally {
         setIsSaving(false);
       }
     },
-    [group, onSubmit, showToast, name]
+    [group, onSubmit, name]
   );
 
   const handleNameChange = React.useCallback(

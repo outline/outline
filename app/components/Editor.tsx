@@ -24,7 +24,6 @@ import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
 import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import useUserLocale from "~/hooks/useUserLocale";
 import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
@@ -43,7 +42,6 @@ export type Props = Optional<
   | "onClickLink"
   | "embeds"
   | "dictionary"
-  | "onShowToast"
   | "extensions"
 > & {
   shareId?: string | undefined;
@@ -68,7 +66,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const userLocale = useUserLocale();
   const locale = dateLocale(userLocale);
   const { auth, comments, documents } = useStores();
-  const { showToast } = useToasts();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
   const history = useHistory();
@@ -241,7 +238,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         uploadFile: handleUploadFile,
         onFileUploadStart: props.onFileUploadStart,
         onFileUploadStop: props.onFileUploadStop,
-        onShowToast: showToast,
         dictionary,
         isAttachment,
       });
@@ -252,7 +248,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       props.onFileUploadStop,
       dictionary,
       handleUploadFile,
-      showToast,
     ]
   );
 
@@ -336,7 +331,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         <LazyLoadedEditor
           ref={mergeRefs([ref, localRef, handleRefChanged])}
           uploadFile={handleUploadFile}
-          onShowToast={showToast}
           embeds={embeds}
           userPreferences={preferences}
           dictionary={dictionary}

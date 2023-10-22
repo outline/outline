@@ -3,6 +3,7 @@ import { action } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
@@ -15,7 +16,6 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import usePersistedState from "~/hooks/usePersistedState";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import CommentEditor from "./CommentEditor";
 import { Bubble } from "./CommentThreadItem";
 
@@ -65,7 +65,6 @@ function CommentForm({
   const [forceRender, setForceRender] = React.useState(0);
   const [inputFocused, setInputFocused] = React.useState(autoFocus);
   const { t } = useTranslation();
-  const { showToast } = useToasts();
   const { comments } = useStores();
   const user = useCurrentUser();
 
@@ -106,7 +105,7 @@ function CommentForm({
       })
       .catch(() => {
         comment.isNew = true;
-        showToast(t("Error creating comment"), { type: "error" });
+        toast.error(t("Error creating comment"));
       });
 
     // optimistically update the comment model
@@ -139,7 +138,7 @@ function CommentForm({
     comment.save().catch(() => {
       comments.remove(comment.id);
       comment.isNew = true;
-      showToast(t("Error creating comment"), { type: "error" });
+      toast.error(t("Error creating comment"));
     });
 
     // optimistically update the comment model

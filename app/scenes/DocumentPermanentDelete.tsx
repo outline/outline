@@ -2,12 +2,12 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import { toast } from "sonner";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   document: Document;
@@ -18,7 +18,6 @@ function DocumentPermanentDelete({ document, onSubmit }: Props) {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const { t } = useTranslation();
   const { documents } = useStores();
-  const { showToast } = useToasts();
   const history = useHistory();
 
   const handleSubmit = React.useCallback(
@@ -30,20 +29,16 @@ function DocumentPermanentDelete({ document, onSubmit }: Props) {
         await documents.delete(document, {
           permanent: true,
         });
-        showToast(t("Document permanently deleted"), {
-          type: "success",
-        });
+        toast.success(t("Document permanently deleted"));
         onSubmit();
         history.push("/trash");
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       } finally {
         setIsDeleting(false);
       }
     },
-    [document, onSubmit, showToast, t, history, documents]
+    [document, onSubmit, t, history, documents]
   );
 
   return (

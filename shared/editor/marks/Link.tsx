@@ -13,6 +13,7 @@ import { Command, EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
+import { toast } from "sonner";
 import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
 import getMarkRange from "../queries/getMarkRange";
@@ -138,9 +139,7 @@ export default class Link extends Mark {
                 event
               );
             } catch (err) {
-              this.editor.props.onShowToast(
-                this.options.dictionary.openLinkError
-              );
+              toast.error(this.options.dictionary.openLinkError);
             }
             return true;
           }
@@ -177,9 +176,7 @@ export default class Link extends Mark {
                       );
                     }
                   } catch (err) {
-                    this.editor.props.onShowToast(
-                      this.options.dictionary.openLinkError
-                    );
+                    toast.error(this.options.dictionary.openLinkError);
                   }
                 });
                 return cloned;
@@ -246,9 +243,7 @@ export default class Link extends Mark {
                   this.options.onClickLink(sanitizeUrl(href), event);
                 }
               } catch (err) {
-                this.editor.props.onShowToast(
-                  this.options.dictionary.openLinkError
-                );
+                toast.error(this.options.dictionary.openLinkError);
               }
 
               return true;

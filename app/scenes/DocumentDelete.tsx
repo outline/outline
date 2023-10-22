@@ -2,12 +2,12 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import { toast } from "sonner";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import { collectionPath, documentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -21,7 +21,6 @@ function DocumentDelete({ document, onSubmit }: Props) {
   const history = useHistory();
   const [isDeleting, setDeleting] = React.useState(false);
   const [isArchiving, setArchiving] = React.useState(false);
-  const { showToast } = useToasts();
   const canArchive = !document.isDraft && !document.isArchived;
   const collection = document.collectionId
     ? collections.get(document.collectionId)
@@ -57,14 +56,12 @@ function DocumentDelete({ document, onSubmit }: Props) {
 
         onSubmit();
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       } finally {
         setDeleting(false);
       }
     },
-    [showToast, onSubmit, ui, document, documents, history, collection]
+    [onSubmit, ui, document, documents, history, collection]
   );
 
   const handleArchive = React.useCallback(
@@ -76,14 +73,12 @@ function DocumentDelete({ document, onSubmit }: Props) {
         await document.archive();
         onSubmit();
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       } finally {
         setArchiving(false);
       }
     },
-    [showToast, onSubmit, document]
+    [onSubmit, document]
   );
 
   return (

@@ -2,6 +2,7 @@ import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -24,7 +25,7 @@ type Props = {
 function AddPeopleToGroup(props: Props) {
   const { group } = props;
 
-  const { users, auth, groupMemberships, toasts } = useStores();
+  const { users, auth, groupMemberships } = useStores();
   const { t } = useTranslation();
 
   const [query, setQuery] = React.useState("");
@@ -53,18 +54,13 @@ function AddPeopleToGroup(props: Props) {
         userId: user.id,
       });
 
-      toasts.showToast(
+      toast.success(
         t(`{{userName}} was added to the group`, {
           userName: user.name,
-        }),
-        {
-          type: "success",
-        }
+        })
       );
     } catch (err) {
-      toasts.showToast(t("Could not add user"), {
-        type: "error",
-      });
+      toast.error(t("Could not add user"));
     }
   };
 

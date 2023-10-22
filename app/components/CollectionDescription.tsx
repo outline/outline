@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import Collection from "~/models/Collection";
@@ -13,7 +14,6 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import NudeButton from "~/components/NudeButton";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   collection: Collection;
@@ -21,7 +21,6 @@ type Props = {
 
 function CollectionDescription({ collection }: Props) {
   const { collections } = useStores();
-  const { showToast } = useToasts();
   const { t } = useTranslation();
   const [isExpanded, setExpanded] = React.useState(false);
   const [isEditing, setEditing] = React.useState(false);
@@ -59,15 +58,11 @@ function CollectionDescription({ collection }: Props) {
           });
           setDirty(false);
         } catch (err) {
-          showToast(
-            t("Sorry, an error occurred saving the collection", {
-              type: "error",
-            })
-          );
+          toast.error(t("Sorry, an error occurred saving the collection"));
           throw err;
         }
       }, 1000),
-    [collection, showToast, t]
+    [collection, t]
   );
 
   const handleChange = React.useCallback(

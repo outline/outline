@@ -125,7 +125,7 @@ export default class SimpleImage extends Node {
         }
         const { view } = this.editor;
         const { node } = state.selection;
-        const { uploadFile, onFileUploadStart, onFileUploadStop, onShowToast } =
+        const { uploadFile, onFileUploadStart, onFileUploadStop } =
           this.editor.props;
 
         if (!uploadFile) {
@@ -146,7 +146,6 @@ export default class SimpleImage extends Node {
             uploadFile,
             onFileUploadStart,
             onFileUploadStop,
-            onShowToast,
             dictionary: this.options.dictionary,
             replaceExisting: true,
             attrs: {

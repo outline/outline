@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import Collection from "~/models/Collection";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -15,7 +16,6 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
-import useToasts from "~/hooks/useToasts";
 import MemberListItem from "./components/MemberListItem";
 
 type Props = {
@@ -24,7 +24,6 @@ type Props = {
 
 function AddPeopleToCollection({ collection }: Props) {
   const { memberships, users } = useStores();
-  const { showToast } = useToasts();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const [inviteModalOpen, setInviteModalOpen, setInviteModalClosed] =
@@ -50,18 +49,13 @@ function AddPeopleToCollection({ collection }: Props) {
         collectionId: collection.id,
         userId: user.id,
       });
-      showToast(
+      toast.success(
         t("{{ userName }} was added to the collection", {
           userName: user.name,
-        }),
-        {
-          type: "success",
-        }
+        })
       );
     } catch (err) {
-      showToast(t("Could not add user"), {
-        type: "error",
-      });
+      toast.error(t("Could not add user"));
     }
   };
 

@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { BeakerIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { TeamPreference } from "@shared/types";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
@@ -9,14 +10,12 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import SettingRow from "./components/SettingRow";
 
 function Features() {
   const { auth } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { showToast } = useToasts();
 
   const handlePreferenceChange =
     (inverted = false) =>
@@ -27,9 +26,7 @@ function Features() {
       };
 
       await auth.updateTeam({ preferences });
-      showToast(t("Settings saved"), {
-        type: "success",
-      });
+      toast.success(t("Settings saved"));
     };
 
   return (

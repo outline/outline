@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { ArchiveIcon, DoneIcon, WarningIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import {
   FileOperationFormat,
@@ -16,7 +17,6 @@ import Spinner from "~/components/Spinner";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import FileOperationMenu from "~/menus/FileOperationMenu";
 
 type Props = {
@@ -28,7 +28,6 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
   const user = useCurrentUser();
   const theme = useTheme();
   const { dialogs, fileOperations } = useStores();
-  const { showToast } = useToasts();
 
   const stateMapping = {
     [FileOperationState.Creating]: t("Processing"),
@@ -65,16 +64,14 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
       await fileOperations.delete(fileOperation);
 
       if (fileOperation.type === FileOperationType.Import) {
-        showToast(t("Import deleted"));
+        toast.success(t("Import deleted"));
       } else {
-        showToast(t("Export deleted"));
+        toast.success(t("Export deleted"));
       }
     } catch (err) {
-      showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     }
-  }, [fileOperation, fileOperations, showToast, t]);
+  }, [fileOperation, fileOperations, t]);
 
   const handleConfirmDelete = React.useCallback(async () => {
     dialogs.openModal({

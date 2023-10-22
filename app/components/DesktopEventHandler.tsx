@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import { toast } from "sonner";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { useDesktopTitlebar } from "~/hooks/useDesktopTitlebar";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import Desktop from "~/utils/Desktop";
 
 export default function DesktopEventHandler() {
@@ -12,7 +12,6 @@ export default function DesktopEventHandler() {
   const { t } = useTranslation();
   const history = useHistory();
   const { dialogs } = useStores();
-  const { showToast } = useToasts();
 
   React.useEffect(() => {
     Desktop.bridge?.redirect((path: string, replace = false) => {
@@ -24,11 +23,11 @@ export default function DesktopEventHandler() {
     });
 
     Desktop.bridge?.updateDownloaded(() => {
-      showToast("An update is ready to install.", {
-        type: "info",
-        timeout: Infinity,
+      toast.message("An update is ready to install.", {
+        duration: Infinity,
+        dismissible: true,
         action: {
-          text: "Install now",
+          label: t("Install now"),
           onClick: () => {
             void Desktop.bridge?.restartAndInstall();
           },
@@ -50,7 +49,7 @@ export default function DesktopEventHandler() {
         content: <KeyboardShortcuts />,
       });
     });
-  }, [t, history, dialogs, showToast]);
+  }, [t, history, dialogs]);
 
   return null;
 }

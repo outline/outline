@@ -15,7 +15,6 @@ import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
-import useToasts from "~/hooks/useToasts";
 import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
 import getFormattingMenuItems from "../menus/formatting";
@@ -97,7 +96,6 @@ function useIsDragging() {
 export default function SelectionToolbar(props: Props) {
   const { onClose, readOnly, onOpen } = props;
   const { view, commands } = useEditor();
-  const { showToast: onShowToast } = useToasts();
   const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isActive = useIsActive(view.state);
@@ -175,7 +173,6 @@ export default function SelectionToolbar(props: Props) {
 
     return createAndInsertLink(view, title, href, {
       onCreateLink,
-      onShowToast,
       dictionary,
     });
   };
@@ -271,7 +268,6 @@ export default function SelectionToolbar(props: Props) {
           mark={range.mark}
           from={range.from}
           to={range.to}
-          onShowToast={onShowToast}
           onClickLink={props.onClickLink}
           onSearchLink={props.onSearchLink}
           onCreateLink={onCreateLink ? handleOnCreateLink : undefined}

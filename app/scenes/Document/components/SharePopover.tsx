@@ -6,6 +6,7 @@ import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { dateLocale, dateToRelative } from "@shared/utils/date";
@@ -23,7 +24,6 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import useUserLocale from "~/hooks/useUserLocale";
 
 type Props = {
@@ -44,7 +44,6 @@ function SharePopover({
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { shares, collections } = useStores();
-  const { showToast } = useToasts();
   const [expandedOptions, setExpandedOptions] = React.useState(false);
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [slugValidationError, setSlugValidationError] = React.useState("");
@@ -100,12 +99,10 @@ function SharePopover({
           published: event.currentTarget.checked,
         });
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       }
     },
-    [document.id, shares, showToast]
+    [document.id, shares]
   );
 
   const handleChildDocumentsChange = React.useCallback(
@@ -118,22 +115,18 @@ function SharePopover({
           includeChildDocuments: event.currentTarget.checked,
         });
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       }
     },
-    [document.id, shares, showToast]
+    [document.id, shares]
   );
 
   const handleCopied = React.useCallback(() => {
     timeout.current = setTimeout(() => {
       onRequestClose();
-      showToast(t("Share link copied"), {
-        type: "info",
-      });
+      toast.message(t("Share link copied"));
     }, 250);
-  }, [t, onRequestClose, showToast]);
+  }, [t, onRequestClose]);
 
   const handleUrlSlugChange = React.useMemo(
     () =>

@@ -3,9 +3,9 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import { documentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -14,7 +14,6 @@ type Props = {
 
 function DocumentTemplatizeDialog({ documentId }: Props) {
   const history = useHistory();
-  const { showToast } = useToasts();
   const { t } = useTranslation();
   const { documents } = useStores();
   const document = documents.get(documentId);
@@ -24,11 +23,9 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
     const template = await document?.templatize();
     if (template) {
       history.push(documentPath(template));
-      showToast(t("Template created, go ahead and customize it"), {
-        type: "info",
-      });
+      toast.message(t("Template created, go ahead and customize it"));
     }
-  }, [document, showToast, history, t]);
+  }, [document, history, t]);
 
   return (
     <ConfirmationDialog

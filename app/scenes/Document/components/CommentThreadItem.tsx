@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
@@ -17,7 +18,6 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useBoolean from "~/hooks/useBoolean";
-import useToasts from "~/hooks/useToasts";
 import CommentMenu from "~/menus/CommentMenu";
 import { hover } from "~/styles";
 import CommentEditor from "./CommentEditor";
@@ -85,7 +85,6 @@ function CommentThreadItem({
   canReply,
 }: Props) {
   const { editor } = useDocumentContext();
-  const { showToast } = useToasts();
   const { t } = useTranslation();
   const [forceRender, setForceRender] = React.useState(0);
   const [data, setData] = React.useState(toJS(comment.data));
@@ -116,7 +115,7 @@ function CommentThreadItem({
       });
     } catch (error) {
       setEditing();
-      showToast(t("Error updating comment"), { type: "error" });
+      toast.error(t("Error updating comment"));
     }
   };
 
