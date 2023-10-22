@@ -139,45 +139,15 @@ function Notifications() {
       </Text>
 
       {env.EMAIL_ENABLED ? (
-        <>
-          <SettingRow
-            label={t("Email address")}
-            name="email"
-            description={t(
-              "Your email address should be updated in your SSO provider."
-            )}
-          >
-            <Input type="email" value={user.email} readOnly />
-          </SettingRow>
-
-          <h2>{t("Notifications")}</h2>
-
-          {options.map((option) => {
-            const setting = user.subscribedToEventType(option.event);
-
-            return (
-              <SettingRow
-                key={option.event}
-                visible={option.visible}
-                label={
-                  <Flex align="center" gap={4}>
-                    {option.icon} {option.title}
-                  </Flex>
-                }
-                name={option.event}
-                description={option.description}
-              >
-                <Switch
-                  key={option.event}
-                  id={option.event}
-                  name={option.event}
-                  checked={!!setting}
-                  onChange={handleChange}
-                />
-              </SettingRow>
-            );
-          })}
-        </>
+        <SettingRow
+          label={t("Email address")}
+          name="email"
+          description={t(
+            "Your email address should be updated in your SSO provider."
+          )}
+        >
+          <Input type="email" value={user.email} readOnly />
+        </SettingRow>
       ) : (
         <Notice>
           <Trans>
@@ -187,6 +157,34 @@ function Notifications() {
           </Trans>
         </Notice>
       )}
+
+      <h2>{t("Notifications")}</h2>
+
+      {options.map((option) => {
+        const setting = user.subscribedToEventType(option.event);
+
+        return (
+          <SettingRow
+            key={option.event}
+            visible={option.visible}
+            label={
+              <Flex align="center" gap={4}>
+                {option.icon} {option.title}
+              </Flex>
+            }
+            name={option.event}
+            description={option.description}
+          >
+            <Switch
+              key={option.event}
+              id={option.event}
+              name={option.event}
+              checked={!!setting}
+              onChange={handleChange}
+            />
+          </SettingRow>
+        );
+      })}
     </Scene>
   );
 }
