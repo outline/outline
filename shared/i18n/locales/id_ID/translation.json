@@ -191,6 +191,8 @@
   "{{userName}} published": "{{userName}} menerbitkan",
   "{{userName}} unpublished": "{{userName}} tidak menerbitkan",
   "{{userName}} moved": "{{userName}} memindahkan",
+  "Your file will be available in {{ location }} soon": "Your file will be available in {{ location }} soon",
+  "Go to exports": "Go to exports",
   "Export started": "Ekspor dimulai",
   "A ZIP file containing the images, and documents in the Markdown format.": "Berkas ZIP yang berisi gambar, dan dokumen dalam format Markdown.",
   "A ZIP file containing the images, and documents as HTML files.": "Berkas ZIP yang berisi gambar, dan dokumen sebagai berkas HTML.",
