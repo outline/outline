@@ -17,6 +17,7 @@ function Toasts() {
           color: theme.toastText,
           background: theme.toastBackground,
           border: `1px solid ${theme.divider}`,
+          fontFamily: theme.fontFamily,
           fontSize: "14px",
         },
       }}
