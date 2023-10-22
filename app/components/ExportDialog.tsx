@@ -11,6 +11,8 @@ import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import history from "~/utils/history";
+import { settingsPath } from "~/utils/routeHelpers";
 
 type Props = {
   collection?: Collection;
@@ -46,11 +48,25 @@ function ExportDialog({ collection, onSubmit }: Props) {
   const handleSubmit = async () => {
     if (collection) {
       await collection.export(format, includeAttachments);
+      showToast(
+        t(`Your file will be available in {{ location }} soon`, {
+          location: `"${t("Settings")} > ${t("Export")}"`,
+        }),
+        {
+          type: "success",
+          action: {
+            text: t("Go to exports"),
+            onClick: () => {
+              history.push(settingsPath("export"));
+            },
+          },
+        }
+      );
     } else {
       await collections.export(format, includeAttachments);
+      showToast(t("Export started"), { type: "success" });
     }
     onSubmit();
-    showToast(t("Export started"), { type: "success" });
   };
 
   const items = [

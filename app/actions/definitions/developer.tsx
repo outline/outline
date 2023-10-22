@@ -36,6 +36,24 @@ export const createTestUsers = createAction({
   },
 });
 
+export const createToast = createAction({
+  name: "Create toast",
+  section: DeveloperSection,
+  visible: () => env.ENVIRONMENT === "development",
+  perform: async () => {
+    stores.toasts.showToast("Hello world", {
+      type: "info",
+      timeout: 30000,
+      action: {
+        text: "Click me",
+        onClick: () => {
+          stores.toasts.showToast("Clicked!");
+        },
+      },
+    });
+  },
+});
+
 export const toggleDebugLogging = createAction({
   name: ({ t }) => t("Toggle debug logging"),
   icon: <ToolsIcon />,
@@ -56,7 +74,7 @@ export const developer = createAction({
   icon: <ToolsIcon />,
   iconInContextMenu: false,
   section: DeveloperSection,
-  children: [clearIndexedDB, toggleDebugLogging, createTestUsers],
+  children: [clearIndexedDB, toggleDebugLogging, createToast, createTestUsers],
 });
 
 export const rootDeveloperActions = [developer];
