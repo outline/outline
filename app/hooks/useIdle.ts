@@ -36,9 +36,11 @@ export default function useIdle(
     }
 
     timeout.current = setTimeout(() => {
-      setIsIdle(true);
+      if (isMounted()) {
+        setIsIdle(true);
+      }
     }, timeToIdle);
-  }, [timeToIdle]);
+  }, [isMounted, timeToIdle]);
 
   React.useEffect(() => {
     const handleUserActivityEvent = throttle(() => {
