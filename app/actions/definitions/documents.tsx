@@ -246,13 +246,17 @@ export const unpublishDocument = createAction({
       return;
     }
 
-    await document.unpublish();
+    try {
+      await document.unpublish();
 
-    toast.message(
-      t("Unpublished {{ documentName }}", {
-        documentName: document.noun,
-      })
-    );
+      toast.success(
+        t("Unpublished {{ documentName }}", {
+          documentName: document.noun,
+        })
+      );
+    } catch (err) {
+      toast.error(err.message);
+    }
   },
 });
 

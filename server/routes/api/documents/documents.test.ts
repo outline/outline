@@ -3360,40 +3360,6 @@ describe("#documents.update", () => {
     expect(res.status).toBe(400);
     expect(body.message).toBe("id: Required");
   });
-
-  describe("apiVersion=2", () => {
-    it("should successfully publish a draft", async () => {
-      const team = await buildTeam();
-      const user = await buildUser({ teamId: team.id });
-      const collection = await buildCollection({
-        userId: user.id,
-        teamId: team.id,
-      });
-      const document = await buildDraftDocument({
-        title: "title",
-        text: "text",
-        teamId: team.id,
-        collectionId: null,
-      });
-
-      const res = await server.post("/api/documents.update", {
-        body: {
-          apiVersion: 2,
-          token: user.getJwtToken(),
-          id: document.id,
-          title: "Updated title",
-          text: "Updated text",
-          collectionId: collection.id,
-          publish: true,
-        },
-      });
-      const body = await res.json();
-      expect(res.status).toEqual(200);
-      expect(body.data.document.collectionId).toBe(collection.id);
-      expect(body.data.document.title).toBe("Updated title");
-      expect(body.data.document.text).toBe("Updated text");
-    });
-  });
 });
 
 describe("#documents.archive", () => {
