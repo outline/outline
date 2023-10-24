@@ -1,4 +1,5 @@
 import fractionalIndex from "fractional-index";
+import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop } from "react-dnd";
@@ -48,7 +49,7 @@ function Starred() {
     toast.error(t("Could not load starred documents"));
   }
 
-  if (!data) {
+  if (!data || isEmpty(data)) {
     return null;
   }
 
