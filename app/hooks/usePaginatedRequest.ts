@@ -38,6 +38,7 @@ export default function usePaginatedRequest<T = unknown>(
   const [paginatedReq, setPaginatedReq] = React.useState(
     () => () =>
       requestFn({
+        ...params,
         offset: 0,
         limit: fetchLimit,
       })
@@ -52,7 +53,7 @@ export default function usePaginatedRequest<T = unknown>(
 
   React.useEffect(() => {
     void request();
-  }, [paginatedReq, request]);
+  }, [request]);
 
   React.useEffect(() => {
     if (response && !loading) {
@@ -70,6 +71,7 @@ export default function usePaginatedRequest<T = unknown>(
       setPaginatedReq(
         () => () =>
           requestFn({
+            ...params,
             offset,
             limit: fetchLimit,
           })
