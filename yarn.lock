@@ -10169,10 +10169,10 @@ outline-icons@^2.5.0:
   resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-2.5.0.tgz#ddb6125e3bc560d7bdf9787e9d78df379ed9b541"
   integrity sha512-ktZEzlkQKCpzrlyxynJl+HFS8M/6RShKVUDnoL2cHIbEbiU+J4KnQBliNMmLProzuljgovOjDa8VXrT/QjK07w==
 
-oy-vey@^0.12.0:
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/oy-vey/-/oy-vey-0.12.0.tgz#49901cc0ddde04096eddfee149c0b9cf0c6f5075"
-  integrity sha512-NjI+i5jwYeWU5HjpXjUzwNvm3XuaSbGtpU/0uobkk8JH+m+OeAvTpiAcTHldSZ0QiBrulZQeaD1Q/BzzT/4eyQ==
+oy-vey@^0.12.1:
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/oy-vey/-/oy-vey-0.12.1.tgz#a3bdda93bdb3a9f483fc01432b7b8d5abf838405"
+  integrity sha512-fFpS8mRoXqMTPYXUoDTO6S5S8WXvqBE+AOPbDwxFu2n3ZNns6x3+Ml/49lAomyJV6RzdFBVA5LxCUEHNaLlhjA==
   dependencies:
     clean-css "^4.0.12"
     object-assign "^4.1.1"
