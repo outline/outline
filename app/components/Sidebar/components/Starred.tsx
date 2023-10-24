@@ -1,5 +1,4 @@
 import fractionalIndex from "fractional-index";
-import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop } from "react-dnd";
@@ -24,7 +23,7 @@ function Starred() {
   const { stars } = useStores();
   const { t } = useTranslation();
 
-  const { data, loading, next, end, error } = usePaginatedRequest<Star>(
+  const { loading, next, end, error, page } = usePaginatedRequest<Star>(
     stars.fetchPage,
     {
       limit: STARRED_PAGINATION_LIMIT,
@@ -49,7 +48,7 @@ function Starred() {
     toast.error(t("Could not load starred documents"));
   }
 
-  if (!data || isEmpty(data)) {
+  if (!stars.orderedData.length) {
     return null;
   }
 
@@ -65,9 +64,11 @@ function Starred() {
                 position="top"
               />
             )}
-            {data.map((star) => (
-              <StarredLink key={star.id} star={star} />
-            ))}
+            {stars.orderedData
+              .slice(0, page * STARRED_PAGINATION_LIMIT)
+              .map((star) => (
+                <StarredLink key={star.id} star={star} />
+              ))}
             {!end && (
               <SidebarLink
                 onClick={next}

@@ -12,6 +12,8 @@ type RequestResponse<T> = {
   loading: boolean;
   /** Function to trigger next page request. */
   next: () => void;
+  /** Page number */
+  page: number;
   /** Marks the end of pagination */
   end: boolean;
 };
@@ -32,6 +34,7 @@ export default function usePaginatedRequest<T = unknown>(
 ): RequestResponse<T> {
   const [data, setData] = React.useState<T[]>();
   const [offset, setOffset] = React.useState(INITIAL_OFFSET);
+  const [page, setPage] = React.useState(0);
   const [end, setEnd] = React.useState(false);
   const displayLimit = params.limit || DEFAULT_LIMIT;
   const fetchLimit = displayLimit + 1;
@@ -60,6 +63,7 @@ export default function usePaginatedRequest<T = unknown>(
       setData((prev) =>
         uniqBy((prev ?? []).concat(response.slice(0, displayLimit)), "id")
       );
+      setPage((prev) => prev + 1);
       if (response.length <= displayLimit) {
         setEnd(true);
       }
@@ -83,5 +87,5 @@ export default function usePaginatedRequest<T = unknown>(
     setOffset((prev) => prev + displayLimit);
   }, [displayLimit]);
 
-  return { data, next, loading, error, end };
+  return { data, next, loading, error, page, end };
 }
