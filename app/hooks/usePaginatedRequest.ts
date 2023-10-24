@@ -33,7 +33,7 @@ export default function usePaginatedRequest<T = unknown>(
   const [data, setData] = React.useState<T[]>();
   const [offset, setOffset] = React.useState(INITIAL_OFFSET);
   const [end, setEnd] = React.useState(false);
-  const displayLimit = params.limit ?? DEFAULT_LIMIT;
+  const displayLimit = params.limit || DEFAULT_LIMIT;
   const fetchLimit = displayLimit + 1;
   const [paginatedReq, setPaginatedReq] = React.useState(
     () => () =>
