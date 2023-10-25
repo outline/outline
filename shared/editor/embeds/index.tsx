@@ -32,7 +32,6 @@ import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
 import Grist from "./Grist";
 import InVision from "./InVision";
-import Instagram from "./Instagram";
 import JSFiddle from "./JSFiddle";
 import Loom from "./Loom";
 import Lucidchart from "./Lucidchart";
@@ -41,7 +40,6 @@ import Mindmeister from "./Mindmeister";
 import Miro from "./Miro";
 import ModeAnalytics from "./ModeAnalytics";
 import Otter from "./Otter";
-import Pinterest from "./Pinterest";
 import Pitch from "./Pitch";
 import Prezi from "./Prezi";
 import Scribe from "./Scribe";
@@ -287,12 +285,6 @@ const embeds: EmbedDescriptor[] = [
     component: Grist,
   }),
   new EmbedDescriptor({
-    title: "Instagram",
-    keywords: "post",
-    icon: <Img src="/images/instagram.png" alt="Instagram" />,
-    component: Instagram,
-  }),
-  new EmbedDescriptor({
     title: "InVision",
     keywords: "design prototype",
     defaultHidden: true,
@@ -349,13 +341,6 @@ const embeds: EmbedDescriptor[] = [
     defaultHidden: true,
     icon: <Img src="/images/otter.png" alt="Otter.ai" />,
     component: Otter,
-  }),
-  new EmbedDescriptor({
-    title: "Pinterest",
-    keywords: "pin",
-    defaultHidden: true,
-    icon: <Img src="/images/pinterest.png" alt="Pinterest" />,
-    component: Pinterest,
   }),
   new EmbedDescriptor({
     title: "Pitch",
