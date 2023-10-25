@@ -184,11 +184,15 @@ export default class CodeFence extends Node {
 
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
-      code_block: (attrs: Record<string, Primitive>) =>
-        toggleBlockType(type, schema.nodes.paragraph, {
+      code_block: (attrs: Record<string, Primitive>) => {
+        if (attrs?.language) {
+          Storage.set(PERSISTENCE_KEY, attrs.language);
+        }
+        return toggleBlockType(type, schema.nodes.paragraph, {
           language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
           ...attrs,
-        }),
+        });
+      },
       copyToClipboard: (): Command => (state) => {
         const codeBlock = findParentNode(isCode)(state.selection);
 
