@@ -23,7 +23,7 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
     const template = await document?.templatize();
     if (template) {
       history.push(documentPath(template));
-      toast.message(t("Template created, go ahead and customize it"));
+      toast.success(t("Template created, go ahead and customize it"));
     }
   }, [document, history, t]);
 
