@@ -714,15 +714,15 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  update = async (
+  async update(
     params: Partial<Document>,
     options?: Record<string, string | boolean | number | undefined>
-  ): Promise<Document> => {
+  ): Promise<Document> {
     const document = await super.update(params, options);
     const collection = this.getCollectionForDocument(document);
     void collection?.fetchDocuments({ force: true });
     return document;
-  };
+  }
 
   @action
   unpublish = async (document: Document) => {
