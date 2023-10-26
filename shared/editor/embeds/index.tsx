@@ -41,6 +41,7 @@ import Mindmeister from "./Mindmeister";
 import Miro from "./Miro";
 import ModeAnalytics from "./ModeAnalytics";
 import Otter from "./Otter";
+import Pinterest from "./Pinterest";
 import Pitch from "./Pitch";
 import Prezi from "./Prezi";
 import Scribe from "./Scribe";
@@ -349,6 +350,13 @@ const embeds: EmbedDescriptor[] = [
     defaultHidden: true,
     icon: <Img src="/images/otter.png" alt="Otter.ai" />,
     component: Otter,
+  }),
+  new EmbedDescriptor({
+    title: "Pinterest",
+    keywords: "pin",
+    defaultHidden: true,
+    icon: <Img src="/images/pinterest.png" alt="Pinterest" />,
+    component: Pinterest,
   }),
   new EmbedDescriptor({
     title: "Pitch",
