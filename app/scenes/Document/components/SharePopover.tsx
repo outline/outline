@@ -74,13 +74,13 @@ function SharePopover({
   useKeyDown("Escape", onRequestClose);
 
   React.useEffect(() => {
-    if (visible && team.sharing) {
+    if (visible) {
       void document.share();
       buttonRef.current?.focus();
     }
 
     return () => (timeout.current ? clearTimeout(timeout.current) : undefined);
-  }, [document, visible, team.sharing]);
+  }, [document, visible]);
 
   React.useEffect(() => {
     if (!visible) {
@@ -201,11 +201,9 @@ function SharePopover({
 
   const userLocale = useUserLocale();
   const locale = userLocale ? dateLocale(userLocale) : undefined;
-  let shareUrl = team.sharing
-    ? sharedParent?.url
-      ? `${sharedParent.url}${document.url}`
-      : share?.url ?? ""
-    : `${team.url}${document.url}`;
+  let shareUrl = sharedParent?.url
+    ? `${sharedParent.url}${document.url}`
+    : share?.url ?? "";
   if (isEditMode) {
     shareUrl += "?edit=true";
   }
@@ -328,7 +326,7 @@ function SharePopover({
         <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
           <Button
             type="submit"
-            disabled={(!share && team.sharing) || slugValidationError}
+            disabled={!share || slugValidationError}
             ref={buttonRef}
           >
             {t("Copy link")}
