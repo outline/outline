@@ -5,6 +5,7 @@ import capitalize from "lodash/capitalize";
 import sortBy from "lodash/sortBy";
 import React from "react";
 import { emojiMartToGemoji, snakeCase } from "@shared/editor/lib/emoji";
+import { isMac } from "@shared/utils/browser";
 import EmojiMenuItem from "./EmojiMenuItem";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
@@ -18,7 +19,11 @@ type Emoji = {
   attrs: { markup: string; "data-name": string };
 };
 
-void init({ data });
+init({
+  data,
+  noCountryFlags: isMac() ? false : undefined,
+});
+
 let searcher: FuzzySearch<TEmoji>;
 
 type Props = Omit<
