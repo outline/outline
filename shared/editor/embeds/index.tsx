@@ -32,6 +32,7 @@ import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
 import Grist from "./Grist";
 import InVision from "./InVision";
+import Instagram from "./Instagram";
 import JSFiddle from "./JSFiddle";
 import Linkedin from "./Linkedin";
 import Loom from "./Loom";
@@ -284,6 +285,12 @@ const embeds: EmbedDescriptor[] = [
     keywords: "spreadsheet",
     icon: <Img src="/images/grist.png" alt="Grist" />,
     component: Grist,
+  }),
+  new EmbedDescriptor({
+    title: "Instagram",
+    keywords: "post",
+    icon: <Img src="/images/instagram.png" alt="Instagram" />,
+    component: Instagram,
   }),
   new EmbedDescriptor({
     title: "InVision",
