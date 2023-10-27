@@ -11,7 +11,7 @@ export const emojiMartToGemoji = {
  * @param str The string to convert
  * @returns The converted string
  */
-export const snakeCase = (str: string) => str.replace(/(\w)(-)(\w)/g, "$1_$2");
+export const snakeCase = (str: string) => str.replace(/(\w)-(\w)/g, "$1_$2");
 
 /**
  * A map of emoji shortcode to emoji character. The shortcode is snake cased
