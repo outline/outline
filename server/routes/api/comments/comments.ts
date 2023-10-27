@@ -1,5 +1,6 @@
 import { Next } from "koa";
 import Router from "koa-router";
+import { Op } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import commentCreator from "@server/commands/commentCreator";
 import commentDestroyer from "@server/commands/commentDestroyer";
@@ -64,15 +65,36 @@ router.post(
     const { sort, direction, documentId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const document = await Document.findByPk(documentId, { userId: user.id });
-    authorize(user, "read", document);
-
-    const comments = await Comment.findAll({
-      where: { documentId },
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    let comments;
+    if (documentId) {
+      const document = await Document.findByPk(documentId, { userId: user.id });
+      authorize(user, "read", document);
+      comments = await Comment.findAll({
+        where: {
+          documentId: document.id,
+        },
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      });
+    } else {
+      const accessibleCollectionIds = await user.collectionIds();
+      comments = await Comment.findAll({
+        include: [
+          {
+            model: Document,
+            required: true,
+            where: {
+              teamId: user.teamId,
+              collectionId: { [Op.in]: accessibleCollectionIds },
+            },
+          },
+        ],
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      });
+    }
 
     ctx.body = {
       pagination: ctx.state.pagination,
