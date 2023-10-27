@@ -44,6 +44,7 @@ api.use(
   bodyParser({
     multipart: true,
     formidable: {
+      maxFileSize: env.FILE_STORAGE_UPLOAD_MAX_SIZE,
       maxFieldsSize: 10 * 1024 * 1024,
     },
   })
