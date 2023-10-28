@@ -2,9 +2,10 @@ import { gfm } from "@joplin/turndown-plugin-gfm";
 import TurndownService from "turndown";
 import breaks from "./breaks";
 import emptyLists from "./emptyLists";
-import emptyParagraphs from "./emptyParagraph";
+import emptyParagraph from "./emptyParagraph";
 import frames from "./frames";
 import images from "./images";
+import sanitizeLists from "./sanitizeLists";
 import sanitizeTables from "./sanitizeTables";
 import underlines from "./underlines";
 
@@ -18,17 +19,14 @@ const service = new TurndownService({
   bulletListMarker: "-",
   headingStyle: "atx",
   codeBlockStyle: "fenced",
-  blankReplacement: (content, node) => {
-    if (node.nodeName === "P") {
-      return "\n\n\\\n";
-    }
-    return "";
-  },
+  blankReplacement: (content, node) =>
+    node.nodeName === "P" ? "\n\n\\\n" : "",
 })
   .remove(["script", "style", "title", "head"])
   .use(gfm)
-  .use(emptyParagraphs)
+  .use(emptyParagraph)
   .use(sanitizeTables)
+  .use(sanitizeLists)
   .use(underlines)
   .use(frames)
   .use(images)

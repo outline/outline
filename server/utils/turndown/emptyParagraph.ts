@@ -11,6 +11,7 @@ export default function emptyParagraphs(turndownService: TurndownService) {
       return (
         node.nodeName === "P" &&
         node.children.length === 1 &&
+        node.textContent?.trim() === "" &&
         node.children[0].nodeName === "BR"
       );
     },
