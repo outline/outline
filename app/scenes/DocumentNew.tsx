@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { toast } from "sonner";
+import { UserPreference } from "@shared/types";
 import CenteredContent from "~/components/CenteredContent";
 import Flex from "~/components/Flex";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
@@ -42,7 +43,9 @@ function DocumentNew({ template }: Props) {
         const document = await documents.create({
           collectionId: collection?.id,
           parentDocumentId,
-          fullWidth: parentDocument?.fullWidth,
+          fullWidth:
+            parentDocument?.fullWidth ||
+            user.getPreference(UserPreference.FullWidthDocuments),
           templateId: query.get("templateId") ?? undefined,
           template,
           title: "",

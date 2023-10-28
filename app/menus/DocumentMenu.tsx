@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s, ellipsis } from "@shared/styles";
+import { UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
@@ -324,7 +325,13 @@ function DocumentMenu({
                   label={t("Full width")}
                   checked={document.fullWidth}
                   onChange={(ev) => {
-                    document.fullWidth = ev.currentTarget.checked;
+                    const fullWidth = ev.currentTarget.checked;
+                    user.setPreference(
+                      UserPreference.FullWidthDocuments,
+                      fullWidth
+                    );
+                    void user.save();
+                    document.fullWidth = fullWidth;
                     void document.save();
                   }}
                 />

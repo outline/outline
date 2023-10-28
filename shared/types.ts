@@ -116,6 +116,8 @@ export enum UserPreference {
   CodeBlockLineNumers = "codeBlockLineNumbers",
   /** Whether documents have a separate edit mode instead of always editing. */
   SeamlessEdit = "seamlessEdit",
+  /** Whether documents should start in full-width mode. */
+  FullWidthDocuments = "fullWidthDocuments",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
