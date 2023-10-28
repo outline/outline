@@ -11,7 +11,6 @@ import Input from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useStores from "~/hooks/useStores";
 import SettingRow from "./SettingRow";
 
 type Props = {
@@ -19,7 +18,6 @@ type Props = {
 };
 
 function DomainManagement({ onSuccess }: Props) {
-  const { auth } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
 
@@ -35,16 +33,14 @@ function DomainManagement({ onSuccess }: Props) {
 
   const handleSaveDomains = React.useCallback(async () => {
     try {
-      await auth.updateTeam({
-        allowedDomains,
-      });
+      await team.save({ allowedDomains });
       onSuccess();
       setExistingDomainsTouched(false);
       updateLastKnownDomainCount(allowedDomains.length);
     } catch (err) {
       toast.error(err.message);
     }
-  }, [auth, allowedDomains, onSuccess]);
+  }, [team, allowedDomains, onSuccess]);
 
   const handleRemoveDomain = async (index: number) => {
     const newDomains = allowedDomains.filter((_, i) => index !== i);
@@ -132,7 +128,7 @@ function DomainManagement({ onSuccess }: Props) {
             <Button
               type="button"
               onClick={handleSaveDomains}
-              disabled={auth.isSaving}
+              disabled={team.isSaving}
             >
               <Trans>Save changes</Trans>
             </Button>

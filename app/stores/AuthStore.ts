@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
-import { CustomTheme, TeamPreferences } from "@shared/types";
+import { CustomTheme } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import RootStore from "~/stores/RootStore";
@@ -15,6 +15,7 @@ import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import Logger from "~/utils/Logger";
 import isCloudHosted from "~/utils/isCloudHosted";
+import Store from "./base/Store";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home", "/logout"];
@@ -47,14 +48,14 @@ export type Config = {
   providers: Provider[];
 };
 
-export default class AuthStore {
+export default class AuthStore extends Store<Team> {
   /* The ID of the user that is currently signed in. */
   @observable
   currentUserId?: string | null;
 
-  /* The team that the current user is signed into. */
+  /* The ID of the team that is currently signed in. */
   @observable
-  team?: Team | null;
+  currentTeamId?: string | null;
 
   /* A short-lived token to be used to authenticate with the collaboration server. */
   @observable
@@ -70,20 +71,9 @@ export default class AuthStore {
     isSignedIn: boolean;
   }[];
 
-  /* A list of cancan policies for the current user. */
-  @observable
-  policies: Policy[] = [];
-
   /* The authentication provider the user signed in with. */
   @observable
   lastSignedIn?: string | null;
-
-  /* Whether the user is currently saving their profile or team settings. */
-  @observable
-  isSaving = false;
-
-  @observable
-  isFetching = true;
 
   /* Whether the user is currently suspended. */
   @observable
@@ -100,12 +90,14 @@ export default class AuthStore {
   rootStore: RootStore;
 
   constructor(rootStore: RootStore) {
+    super(rootStore, Team);
+
     this.rootStore = rootStore;
     // attempt to load the previous state of this store from localstorage
     const data: PersistedData = Storage.get(AUTH_STORE) || {};
 
     this.rehydrate(data);
-    void this.fetch();
+    void this.fetchAuth();
 
     // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
@@ -139,24 +131,22 @@ export default class AuthStore {
 
   @action
   rehydrate(data: PersistedData) {
+    if (data.policies) {
+      this.addPolicies(data.policies);
+    }
+    if (data.team) {
+      this.add(data.team);
+    }
     if (data.user) {
       this.rootStore.users.add(data.user);
     }
+
     this.currentUserId = data.user?.id;
-    this.team = data.team ? new Team(data.team, this as any) : undefined;
     this.collaborationToken = data.collaborationToken;
     this.lastSignedIn = getCookie("lastSignedIn");
-    this.addPolicies(data.policies);
   }
 
-  addPolicies(policies?: Policy[]) {
-    if (policies) {
-      // cache policies in this store so that they are persisted between sessions
-      this.policies = policies;
-      policies.forEach((policy) => this.rootStore.policies.add(policy));
-    }
-  }
-
+  /** The current user */
   @computed
   get user() {
     return this.currentUserId
@@ -164,6 +154,21 @@ export default class AuthStore {
       : undefined;
   }
 
+  /** The current team */
+  @computed
+  get team() {
+    return this.orderedData.at(0);
+  }
+
+  /** The current team's policies */
+  @computed
+  get policies() {
+    return this.currentTeamId
+      ? [this.rootStore.policies.get(this.currentTeamId)]
+      : [];
+  }
+
+  /** Whether the user is signed in */
   @computed
   get authenticated(): boolean {
     return !!this.user && !!this.team;
@@ -188,7 +193,7 @@ export default class AuthStore {
   };
 
   @action
-  fetch = async () => {
+  fetchAuth = async () => {
     this.isFetching = true;
 
     try {
@@ -196,12 +201,15 @@ export default class AuthStore {
         credentials: "same-origin",
       });
       invariant(res?.data, "Auth not available");
-      runInAction("AuthStore#fetch", () => {
+
+      runInAction("AuthStore#refresh", () => {
         const { data } = res;
         this.addPolicies(res.policies);
+        this.add(data.team);
         this.rootStore.users.add(data.user);
         this.currentUserId = data.user.id;
-        this.team = new Team(data.team, this as any);
+        this.currentTeamId = data.team.id;
+
         this.availableTeams = res.data.availableTeams;
         this.collaborationToken = res.data.collaborationToken;
 
@@ -217,16 +225,16 @@ export default class AuthStore {
         // Occurs when the (sub)domain is changed in admin and the user hits an old url
         const { hostname, pathname } = window.location;
 
-        if (this.team.domain) {
-          if (this.team.domain !== hostname) {
-            window.location.href = `${this.team.url}${pathname}`;
+        if (data.team.domain) {
+          if (data.team.domain !== hostname) {
+            window.location.href = `${data.team.url}${pathname}`;
             return;
           }
         } else if (
           isCloudHosted &&
-          parseDomain(hostname).teamSubdomain !== (this.team.subdomain ?? "")
+          parseDomain(hostname).teamSubdomain !== (data.team.subdomain ?? "")
         ) {
-          window.location.href = `${this.team.url}${pathname}`;
+          window.location.href = `${data.team.url}${pathname}`;
           return;
         }
 
@@ -261,52 +269,25 @@ export default class AuthStore {
     await client.post(`/users.delete`, data);
     runInAction("AuthStore#deleteUser", () => {
       this.currentUserId = null;
-      this.team = null;
+      this.currentTeamId = null;
       this.collaborationToken = null;
       this.availableTeams = this.availableTeams?.filter(
         (team) => team.id !== this.team?.id
       );
-      this.policies = [];
     });
   };
 
   @action
   deleteTeam = async (data: { code: string }) => {
     await client.post(`/teams.delete`, data);
+
     runInAction("AuthStore#deleteTeam", () => {
       this.currentUserId = null;
+      this.currentTeamId = null;
       this.availableTeams = this.availableTeams?.filter(
         (team) => team.id !== this.team?.id
       );
-      this.policies = [];
     });
-  };
-
-  @action
-  updateTeam = async (params: {
-    name?: string;
-    avatarUrl?: string | null | undefined;
-    sharing?: boolean;
-    defaultCollectionId?: string | null;
-    subdomain?: string | null | undefined;
-    allowedDomains?: string[] | null | undefined;
-    preferences?: TeamPreferences;
-  }) => {
-    this.isSaving = true;
-    const previousData = this.team?.toAPI();
-
-    try {
-      this.team?.updateData(params);
-      const res = await client.post(`/team.update`, params);
-      invariant(res?.data, "Team response not available");
-      this.team?.updateData(res.data);
-      this.addPolicies(res.policies);
-    } catch (err) {
-      this.team?.updateData(previousData);
-      throw err;
-    } finally {
-      this.isSaving = false;
-    }
   };
 
   @action
@@ -365,9 +346,8 @@ export default class AuthStore {
 
     // clear all credentials from cache (and local storage via autorun)
     this.currentUserId = null;
-    this.team = null;
+    this.currentTeamId = null;
     this.collaborationToken = null;
-    this.policies = [];
 
     // Tell the host application we logged out, if any – allows window cleanup.
     void Desktop.bridge?.onLogout?.();
