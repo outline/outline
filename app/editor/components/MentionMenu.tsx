@@ -10,6 +10,7 @@ import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import Flex from "~/components/Flex";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import MentionMenuItem from "./MentionMenuItem";
@@ -39,8 +40,9 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const [loaded, setLoaded] = React.useState(false);
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { t } = useTranslation();
-  const { users, auth } = useStores();
+  const { users } = useStores();
   const location = useLocation();
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const documentId = parseDocumentSlug(location.pathname);
   const { data, loading, request } = useRequest(
     React.useCallback(
@@ -69,7 +71,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
           id: v4(),
           type: MentionType.User,
           modelId: user.id,
-          actorId: auth.user?.id,
+          actorId: user?.id,
           label: user.name,
         },
       }));
@@ -77,7 +79,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       setItems(items);
       setLoaded(true);
     }
-  }, [auth.user?.id, loading, data]);
+  }, [user?.id, loading, data]);
 
   // Prevent showing the menu until we have data otherwise it will be positioned
   // incorrectly due to the height being unknown.

@@ -6,6 +6,7 @@ import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import Flex from "~/components/Flex";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
@@ -33,11 +34,11 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
   const theme = useTheme();
-  const { ui, auth } = useStores();
+  const { ui } = useStores();
   const location = useLocation();
   const previousLocation = usePrevious(location);
   const { isMenuOpen } = useMenuContext();
-  const { user } = auth;
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const width = ui.sidebarWidth;
   const collapsed = ui.sidebarIsClosed && !isMenuOpen;
   const maxWidth = theme.sidebarMaxWidth;

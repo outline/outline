@@ -16,6 +16,7 @@ import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 
@@ -27,7 +28,8 @@ type Props = {
 function AddPeopleToGroup(props: Props) {
   const { group } = props;
 
-  const { users, auth, groupMemberships } = useStores();
+  const { users, groupMemberships } = useStores();
+  const team = useCurrentTeam();
   const { t } = useTranslation();
 
   const [query, setQuery] = React.useState("");
@@ -68,11 +70,6 @@ function AddPeopleToGroup(props: Props) {
       toast.error(t("Could not add user"));
     }
   };
-
-  const { user, team } = auth;
-  if (!user || !team) {
-    return null;
-  }
 
   return (
     <Flex column>

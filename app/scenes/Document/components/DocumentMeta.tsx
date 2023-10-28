@@ -10,6 +10,7 @@ import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import DocumentMeta from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import { documentPath, documentInsightsPath } from "~/utils/routeHelpers";
 
@@ -29,10 +30,10 @@ function TitleDocumentMeta({
   revision,
   ...rest
 }: Props) {
-  const { auth, views, comments, ui } = useStores();
+  const { views, comments, ui } = useStores();
   const { t } = useTranslation();
-  const { team } = auth;
   const match = useRouteMatch();
+  const team = useCurrentTeam();
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].userId;
@@ -45,7 +46,7 @@ function TitleDocumentMeta({
 
   return (
     <Meta document={document} revision={revision} to={to} replace {...rest}>
-      {team?.getPreference(TeamPreference.Commenting) && (
+      {team.getPreference(TeamPreference.Commenting) && (
         <>
           &nbsp;•&nbsp;
           <CommentLink

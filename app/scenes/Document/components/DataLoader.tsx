@@ -7,6 +7,8 @@ import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
@@ -16,12 +18,16 @@ import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
 import Loading from "./Loading";
 
 type Params = {
+  /** The document urlId + slugified title  */
   documentSlug: string;
+  /** A specific revision id to load. */
   revisionId?: string;
+  /** The share ID to use to load data. */
   shareId?: string;
 };
 
 type LocationState = {
+  /** The document title, if preloaded */
   title?: string;
   restore?: boolean;
   revisionId?: string;
@@ -41,17 +47,10 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const {
-    ui,
-    views,
-    shares,
-    comments,
-    documents,
-    auth,
-    revisions,
-    subscriptions,
-  } = useStores();
-  const { team } = auth;
+  const { ui, views, shares, comments, documents, revisions, subscriptions } =
+    useStores();
+  const team = useCurrentTeam();
+  const user = useCurrentUser();
   const [error, setError] = React.useState<Error | null>(null);
   const { revisionId, shareId, documentSlug } = match.params;
 
@@ -73,7 +72,7 @@ function DataLoader({ match, children }: Props) {
     : undefined;
   const isEditRoute =
     match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
-  const isEditing = isEditRoute || !auth.user?.separateEditMode;
+  const isEditing = isEditRoute || !user?.separateEditMode;
   const can = usePolicy(document?.id);
   const location = useLocation<LocationState>();
 
@@ -180,7 +179,7 @@ function DataLoader({ match, children }: Props) {
       // Prevents unauthorized request to load share information for the document
       // when viewing a public share link
       if (can.read) {
-        if (team?.getPreference(TeamPreference.Commenting)) {
+        if (team.getPreference(TeamPreference.Commenting)) {
           void comments.fetchDocumentComments(document.id, {
             limit: 100,
           });
@@ -199,7 +198,7 @@ function DataLoader({ match, children }: Props) {
     return error instanceof OfflineError ? <ErrorOffline /> : <Error404 />;
   }
 
-  if (!document || !team || (revisionId && !revision)) {
+  if (!document || (revisionId && !revision)) {
     return (
       <>
         <Loading location={location} />

@@ -21,6 +21,7 @@ import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import HoverPreview from "~/components/HoverPreview";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useDictionary from "~/hooks/useDictionary";
 import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
@@ -65,12 +66,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   } = props;
   const userLocale = useUserLocale();
   const locale = dateLocale(userLocale);
-  const { auth, comments, documents } = useStores();
+  const { comments, documents } = useStores();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
   const history = useHistory();
   const localRef = React.useRef<SharedEditor>();
-  const preferences = auth.user?.preferences;
+  const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
   const previousHeadings = React.useRef<Heading[] | null>(null);
   const [activeLinkElement, setActiveLink] =
     React.useState<HTMLAnchorElement | null>(null);
