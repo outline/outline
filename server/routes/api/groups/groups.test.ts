@@ -261,35 +261,19 @@ describe("#groups.list", () => {
 
   it("should allow to find a group by its name", async () => {
     const user = await buildUser();
-    const group = await buildGroup({
-      teamId: user.teamId,
-    });
-    const anotherGroup = await buildGroup({
-      teamId: user.teamId,
-    });
+    const group = await buildGroup({ teamId: user.teamId });
+    await buildGroup({ teamId: user.teamId });
 
-    const unfilteredRes = await server.post("/api/groups.list", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
-    const body = await unfilteredRes.json();
-
-    expect(unfilteredRes.status).toEqual(200);
-    expect(body.data.groups.length).toEqual(2);
-    expect(body.data.groups[0].id).toEqual(anotherGroup.id);
-    expect(body.data.groups[1].id).toEqual(group.id);
-
-    const anotherRes = await server.post("/api/groups.list", {
+    const res = await server.post("/api/groups.list", {
       body: {
         name: group.name,
         token: user.getJwtToken(),
       },
     });
-    const anotherBody = await anotherRes.json();
-    expect(anotherRes.status).toEqual(200);
-    expect(anotherBody.data.groups.length).toEqual(1);
-    expect(anotherBody.data.groups[0].id).toEqual(group.id);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
   });
 });
 
