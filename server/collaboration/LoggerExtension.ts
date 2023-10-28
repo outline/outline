@@ -1,8 +1,9 @@
 import {
-  onConnectPayload,
   onDisconnectPayload,
   onLoadDocumentPayload,
   Extension,
+  connectedPayload,
+  onConnectPayload,
 } from "@hocuspocus/server";
 import Logger from "@server/logging/Logger";
 import { withContext } from "./types";
@@ -16,6 +17,13 @@ export default class LoggerExtension implements Extension {
 
   async onConnect(data: withContext<onConnectPayload>) {
     Logger.info("multiplayer", `New connection to "${data.documentName}"`);
+  }
+
+  async connected(data: withContext<connectedPayload>) {
+    Logger.info(
+      "multiplayer",
+      `Authenticated connection to "${data.documentName}"`
+    );
   }
 
   async onDisconnect(data: withContext<onDisconnectPayload>) {
