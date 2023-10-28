@@ -198,7 +198,7 @@ export default function FindAndReplace({ readOnly }: Props) {
 
   const style: React.CSSProperties = React.useMemo(
     () => ({
-      position: "absolute",
+      position: "fixed",
       left: "initial",
       top: 60,
       right: 16,
@@ -263,6 +263,7 @@ export default function FindAndReplace({ readOnly }: Props) {
         unstable_finalFocusRef={finalFocusRef}
         style={style}
         aria-label={t("Find and replace")}
+        scrollable={false}
         width={420}
       >
         <Content column>
@@ -365,4 +366,5 @@ const ButtonLarge = styled(ButtonSmall)`
 const Content = styled(Flex)`
   padding: 8px 0;
   margin-bottom: -16px;
+  position: static;
 `;

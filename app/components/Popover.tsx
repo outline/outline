@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Dialog } from "reakit/Dialog";
 import { Popover as ReakitPopover, PopoverProps } from "reakit/Popover";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -95,10 +95,13 @@ const Contents = styled.div<ContentsProps>`
   width: ${(props) => props.$width}px;
 
   ${(props) =>
-    props.$scrollable &&
-    css`
+    props.$scrollable
+      ? `
       overflow-x: hidden;
       overflow-y: auto;
+    `
+      : `
+      overflow: hidden;
     `}
 
   ${breakpoint("mobile", "tablet")`
