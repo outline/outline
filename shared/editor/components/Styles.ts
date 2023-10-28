@@ -1149,7 +1149,7 @@ mark {
   &:after {
     content: attr(data-line-numbers);
     position: absolute;
-    padding-left: 1em;
+    padding-left: 0.5em;
     left: 1px;
     top: calc(1px + 0.75em);
     width: calc(var(--line-number-gutter-width,0) * 1em + .25em);
