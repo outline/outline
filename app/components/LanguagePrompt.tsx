@@ -42,7 +42,7 @@ function Icon({ className }: { className?: string }) {
 }
 
 export default function LanguagePrompt() {
-  const { auth, ui } = useStores();
+  const { ui } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser();
   const language = detectLanguage();
@@ -75,9 +75,7 @@ export default function LanguagePrompt() {
           <Link
             onClick={async () => {
               ui.setLanguagePromptDismissed();
-              await auth.updateUser({
-                language,
-              });
+              await user.save({ language });
             }}
           >
             {t("Change Language")}

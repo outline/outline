@@ -24,7 +24,7 @@ import DomainManagement from "./components/DomainManagement";
 import SettingRow from "./components/SettingRow";
 
 function Security() {
-  const { auth, authenticationProviders, dialogs } = useStores();
+  const { authenticationProviders, dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const theme = useTheme();
@@ -61,13 +61,13 @@ function Security() {
     async (newData) => {
       try {
         setData(newData);
-        await auth.updateTeam(newData);
+        await team.save(newData);
         showSuccessMessage();
       } catch (err) {
         toast.error(err.message);
       }
     },
-    [auth, showSuccessMessage]
+    [team, showSuccessMessage]
   );
 
   const handleChange = React.useCallback(
