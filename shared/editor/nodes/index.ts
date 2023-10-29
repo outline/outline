@@ -3,6 +3,7 @@ import ClipboardTextSerializer from "../extensions/ClipboardTextSerializer";
 import DateTime from "../extensions/DateTime";
 import FindAndReplace from "../extensions/FindAndReplace";
 import History from "../extensions/History";
+import HoverPreviews from "../extensions/HoverPreviews";
 import Keys from "../extensions/Keys";
 import MaxLength from "../extensions/MaxLength";
 import PasteHandler from "../extensions/PasteHandler";
@@ -78,6 +79,7 @@ export const basicExtensions: Nodes = [
   DateTime,
   Keys,
   ClipboardTextSerializer,
+  HoverPreviews,
 ];
 
 /**

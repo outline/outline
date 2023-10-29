@@ -88,7 +88,7 @@ export default class Link extends Mark {
         {
           title: node.attrs.title,
           href: sanitizeUrl(node.attrs.href),
-          class: "text-link",
+          class: "use-hover-preview",
           rel: "noopener noreferrer nofollow",
         },
         0,
@@ -194,14 +194,6 @@ export default class Link extends Mark {
       return DecorationSet.create(state.doc, decorations);
     };
 
-    const isLinkTarget = (target: HTMLElement | null, view: EditorView) =>
-      target instanceof HTMLAnchorElement &&
-      target.className.includes("text-link") &&
-      this.editor.elementRef.current?.contains(target) &&
-      (!view.editable || (view.editable && !view.hasFocus()));
-
-    let hoveringTimeout: ReturnType<typeof setTimeout>;
-
     const plugin: Plugin = new Plugin({
       state: {
         init: (config, state) => getLinkDecorations(state),
@@ -211,25 +203,6 @@ export default class Link extends Mark {
       props: {
         decorations: (state: EditorState) => plugin.getState(state),
         handleDOMEvents: {
-          mouseover: (view: EditorView, event: MouseEvent) => {
-            const target = (event.target as HTMLElement)?.closest("a");
-            if (isLinkTarget(target, view)) {
-              if (this.options.onHoverLink) {
-                hoveringTimeout = setTimeout(() => {
-                  this.options.onHoverLink(target);
-                }, 500);
-              }
-            }
-            return false;
-          },
-          mouseout: (view: EditorView, event: MouseEvent) => {
-            const target = (event.target as HTMLElement)?.closest("a");
-            if (isLinkTarget(target, view)) {
-              clearTimeout(hoveringTimeout);
-              this.options.onHoverLink?.(null);
-            }
-            return false;
-          },
           mousedown: (view: EditorView, event: MouseEvent) => {
             const target = (event.target as HTMLElement)?.closest("a");
             if (!(target instanceof HTMLAnchorElement) || event.button !== 0) {
