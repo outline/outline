@@ -19,6 +19,8 @@ import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
 
 const DELAY_CLOSE = 600;
+const POINTER_HEIGHT = 22;
+const POINTER_WIDTH = 22;
 
 type Props = {
   /** The HTML element that is being hovered over, or null if none. */
@@ -32,10 +34,7 @@ enum Direction {
   DOWN,
 }
 
-const POINTER_HEIGHT = 22;
-const POINTER_WIDTH = 22;
-
-function HoverPreviewInternal({ element, onClose }: Props) {
+function HoverPreviewDesktop({ element, onClose }: Props) {
   const url = element?.href || element?.dataset.url;
   const previousUrl = usePrevious(url, true);
   const [isVisible, setVisible] = React.useState(false);
@@ -64,10 +63,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
     timerClose.current = setTimeout(closePreview, DELAY_CLOSE);
   }, [closePreview]);
 
-  useOnClickOutside(cardRef, closePreview);
-  useKeyDown("Escape", closePreview);
-  useEventListener("scroll", closePreview, window, { capture: true });
-
+  // Open and close the preview when the element changes.
   React.useEffect(() => {
     if (element) {
       setVisible(true);
@@ -76,6 +72,12 @@ function HoverPreviewInternal({ element, onClose }: Props) {
     }
   }, [startCloseTimer, element]);
 
+  // Close the preview on Escape, scroll, or click outside.
+  useOnClickOutside(cardRef, closePreview);
+  useKeyDown("Escape", closePreview);
+  useEventListener("scroll", closePreview, window, { capture: true });
+
+  // Ensure that the preview stays open while the user is hovering over the card.
   React.useEffect(() => {
     const card = cardRef.current;
 
@@ -189,7 +191,7 @@ function HoverPreview({ element, ...rest }: Props) {
     return null;
   }
 
-  return <HoverPreviewInternal {...rest} element={element} />;
+  return <HoverPreviewDesktop {...rest} element={element} />;
 }
 
 function useHoverPosition({
