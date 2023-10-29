@@ -182,6 +182,9 @@ function CollectionScene() {
                   <Tab to={collectionPath(collection.url)} exact>
                     {t("Documents")}
                   </Tab>
+                  <Tab to={collectionPath(collection.url, "templates")} exact>
+                    {t("Templates")}
+                  </Tab>
                   <Tab to={collectionPath(collection.url, "updated")} exact>
                     {t("Recently updated")}
                   </Tab>
@@ -247,6 +250,16 @@ function CollectionScene() {
                       documents={documents.recentlyUpdatedInCollection(
                         collection.id
                       )}
+                      fetch={documents.fetchRecentlyUpdated}
+                      options={{
+                        collectionId: collection.id,
+                      }}
+                    />
+                  </Route>
+                  <Route path={collectionPath(collection.url, "templates")}>
+                    <PaginatedDocumentList
+                      key="templates"
+                      documents={documents.templatesInCollection(collection.id)}
                       fetch={documents.fetchRecentlyUpdated}
                       options={{
                         collectionId: collection.id,
