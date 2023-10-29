@@ -79,7 +79,6 @@ export const basicExtensions: Nodes = [
   DateTime,
   Keys,
   ClipboardTextSerializer,
-  HoverPreviews,
 ];
 
 /**
@@ -115,6 +114,7 @@ export const richExtensions: Nodes = [
   MathBlock,
   PreventTab,
   FindAndReplace,
+  HoverPreviews,
 ];
 
 /**
