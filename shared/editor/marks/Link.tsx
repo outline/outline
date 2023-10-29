@@ -194,6 +194,14 @@ export default class Link extends Mark {
       return DecorationSet.create(state.doc, decorations);
     };
 
+    const isLinkTarget = (target: HTMLElement | null, view: EditorView) =>
+      target instanceof HTMLAnchorElement &&
+      target.className.includes("text-link") &&
+      this.editor.elementRef.current?.contains(target) &&
+      (!view.editable || (view.editable && !view.hasFocus()));
+
+    let hoveringTimeout: ReturnType<typeof setTimeout>;
+
     const plugin: Plugin = new Plugin({
       state: {
         init: (config, state) => getLinkDecorations(state),
@@ -205,15 +213,20 @@ export default class Link extends Mark {
         handleDOMEvents: {
           mouseover: (view: EditorView, event: MouseEvent) => {
             const target = (event.target as HTMLElement)?.closest("a");
-            if (
-              target instanceof HTMLAnchorElement &&
-              target.className.includes("text-link") &&
-              this.editor.elementRef.current?.contains(target) &&
-              (!view.editable || (view.editable && !view.hasFocus()))
-            ) {
+            if (isLinkTarget(target, view)) {
               if (this.options.onHoverLink) {
-                return this.options.onHoverLink(target);
+                hoveringTimeout = setTimeout(() => {
+                  this.options.onHoverLink(target);
+                }, 500);
               }
+            }
+            return false;
+          },
+          mouseout: (view: EditorView, event: MouseEvent) => {
+            const target = (event.target as HTMLElement)?.closest("a");
+            if (isLinkTarget(target, view)) {
+              clearTimeout(hoveringTimeout);
+              this.options.onHoverLink?.(null);
             }
             return false;
           },

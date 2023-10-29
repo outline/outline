@@ -77,10 +77,13 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     React.useState<HTMLAnchorElement | null>(null);
   const previousCommentIds = React.useRef<string[]>();
 
-  const handleLinkActive = React.useCallback((element: HTMLAnchorElement) => {
-    setActiveLink(element);
-    return false;
-  }, []);
+  const handleLinkActive = React.useCallback(
+    (element: HTMLAnchorElement | null) => {
+      setActiveLink(element);
+      return false;
+    },
+    []
+  );
 
   const handleLinkInactive = React.useCallback(() => {
     setActiveLink(null);
@@ -351,7 +354,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             minHeight={props.editorStyle.paddingBottom}
           />
         )}
-        {activeLinkElement && !shareId && (
+        {!shareId && (
           <HoverPreview
             element={activeLinkElement}
             onClose={handleLinkInactive}
