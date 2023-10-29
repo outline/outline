@@ -9,6 +9,7 @@ import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { v4 as uuidv4 } from "uuid";
+import { hideScrollbars } from "@shared/styles";
 import { DateFilter as TDateFilter } from "@shared/types";
 import { SearchParams } from "~/stores/DocumentsStore";
 import RootStore from "~/stores/RootStore";
@@ -467,6 +468,7 @@ const Filters = styled(Flex)`
   overflow-y: hidden;
   overflow-x: auto;
   padding: 8px 0;
+  ${hideScrollbars()}
 
   ${breakpoint("tablet")`
     padding: 0;
