@@ -88,7 +88,7 @@ export default class Link extends Mark {
         {
           title: node.attrs.title,
           href: sanitizeUrl(node.attrs.href),
-          class: "text-link",
+          class: "use-hover-preview",
           rel: "noopener noreferrer nofollow",
         },
         0,
@@ -203,20 +203,6 @@ export default class Link extends Mark {
       props: {
         decorations: (state: EditorState) => plugin.getState(state),
         handleDOMEvents: {
-          mouseover: (view: EditorView, event: MouseEvent) => {
-            const target = (event.target as HTMLElement)?.closest("a");
-            if (
-              target instanceof HTMLAnchorElement &&
-              target.className.includes("text-link") &&
-              this.editor.elementRef.current?.contains(target) &&
-              (!view.editable || (view.editable && !view.hasFocus()))
-            ) {
-              if (this.options.onHoverLink) {
-                return this.options.onHoverLink(target);
-              }
-            }
-            return false;
-          },
           mousedown: (view: EditorView, event: MouseEvent) => {
             const target = (event.target as HTMLElement)?.closest("a");
             if (!(target instanceof HTMLAnchorElement) || event.button !== 0) {
