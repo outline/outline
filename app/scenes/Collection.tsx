@@ -170,12 +170,12 @@ function CollectionScene() {
                   </Tooltip>
                 )}
               </HeadingWithIcon>
-              <CollectionDescription collection={collection} />
 
               <PinnedDocuments
                 pins={pins.inCollection(collection.id)}
                 canUpdate={can.update}
               />
+              <CollectionDescription collection={collection} />
 
               <Documents>
                 <Tabs>
