@@ -31,7 +31,7 @@ import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
 import Mark from "@shared/editor/marks/Mark";
-import { richExtensions, withComments } from "@shared/editor/nodes";
+import { basicExtensions } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
 import { SuggestionsMenuType } from "@shared/editor/plugins/Suggestions";
@@ -54,7 +54,7 @@ import MentionMenu from "./components/MentionMenu";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
 
-const extensions = withComments(richExtensions);
+const extensions = basicExtensions;
 
 export { default as Extension } from "@shared/editor/lib/Extension";
 

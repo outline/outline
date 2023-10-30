@@ -3,6 +3,9 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory, useRouteMatch } from "react-router-dom";
+import BlockMenuExtension from "@shared/editor/extensions/BlockMenu";
+import FindAndReplaceExtension from "@shared/editor/extensions/FindAndReplace";
+import HoverPreviewsExtension from "@shared/editor/extensions/HoverPreviews";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import { TeamPreference } from "@shared/types";
 import Comment from "~/models/Comment";
@@ -25,9 +28,14 @@ import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
 
-const extensions = withComments(richExtensions);
+const extensions = [
+  ...withComments(richExtensions),
+  BlockMenuExtension,
+  FindAndReplaceExtension,
+  HoverPreviewsExtension,
+];
 
-type Props = Omit<EditorProps, "extensions" | "editorStyle"> & {
+type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;
   onChangeEmoji: (emoji: string | null) => void;
   id: string;
