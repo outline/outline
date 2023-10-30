@@ -50,7 +50,7 @@ export type Props = Optional<
   previewsDisabled?: boolean;
   onHeadingsChange?: (headings: Heading[]) => void;
   onSynced?: () => Promise<void>;
-  onPublish?: (event: React.MouseEvent) => any;
+  onPublish?: (event: React.MouseEvent) => void;
   editorStyle?: React.CSSProperties;
 };
 
@@ -138,7 +138,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             : 1
       );
     },
-    [documents]
+    [locale, documents]
   );
 
   const handleUploadFile = React.useCallback(
