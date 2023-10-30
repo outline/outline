@@ -781,8 +781,7 @@ export const openDocumentComments = createAction({
     const can = stores.policies.abilities(activeDocumentId ?? "");
     return (
       !!activeDocumentId &&
-      can.read &&
-      !can.restore &&
+      can.comment &&
       !!stores.auth.team?.getPreference(TeamPreference.Commenting)
     );
   },

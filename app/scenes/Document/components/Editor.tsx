@@ -173,7 +173,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       />
       {!shareId && (
         <DocumentMeta
-          isDraft={isDraft}
           document={document}
           to={
             match.path === matchDocumentHistory
