@@ -50,10 +50,22 @@ export default class Extension {
     return true;
   }
 
+  /**
+   * A widget is a React component to be rendered in the editor's context, independent of any
+   * specific node or mark. It can be used to render things like toolbars, menus, etc. Note that
+   * all widgets are observed automatically, so you can use observable values.
+   *
+   * @returns A React component
+   */
   widget(): JSX.Element | undefined {
     return undefined;
   }
 
+  /**
+   * A map of ProseMirror keymap bindings. It can be used to bind keyboard shortcuts to commands.
+   *
+   * @returns An object mapping key bindings to commands
+   */
   keys(_options: {
     type?: NodeType | MarkType;
     schema: Schema;
@@ -61,6 +73,12 @@ export default class Extension {
     return {};
   }
 
+  /**
+   * A map of ProseMirror input rules. It can be used to automatically replace certain patterns
+   * while typing.
+   *
+   * @returns An array of input rules
+   */
   inputRules(_options: {
     type?: NodeType | MarkType;
     schema: Schema;
@@ -68,6 +86,12 @@ export default class Extension {
     return [];
   }
 
+  /**
+   * A map of ProseMirror commands. It can be used to expose commands to the editor. If a single
+   * command is returned, it will be available under the extension's name.
+   *
+   * @returns An object mapping command names to command factories, or a command factory
+   */
   commands(_options: {
     type?: NodeType | MarkType;
     schema: Schema;
