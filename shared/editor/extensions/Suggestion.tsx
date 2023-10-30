@@ -1,3 +1,4 @@
+import { action, observable } from "mobx";
 import { InputRule } from "prosemirror-inputrules";
 import { NodeType, Schema } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
@@ -5,16 +6,23 @@ import { isInTable } from "prosemirror-tables";
 import Extension from "../lib/Extension";
 import { SuggestionsMenuPlugin } from "../plugins/Suggestions";
 import isInCode from "../queries/isInCode";
-import { EventType } from "../types";
 
 export default class Suggestion extends Extension {
+  state: {
+    open: boolean;
+    query: string;
+  } = observable({
+    open: false,
+    query: "",
+  });
+
   get plugins(): Plugin[] {
-    return [new SuggestionsMenuPlugin(this.editor, this.options)];
+    return [new SuggestionsMenuPlugin(this.editor, this.options, this.state)];
   }
 
   keys() {
     return {
-      Backspace: (state: EditorState) => {
+      Backspace: action((state: EditorState) => {
         const { $from } = state.selection;
         const textBefore = $from.parent.textBetween(
           Math.max(0, $from.parentOffset - 500), // 500 = max match
@@ -27,39 +35,39 @@ export default class Suggestion extends Extension {
           return false;
         }
 
-        this.editor.events.emit(
-          EventType.SuggestionsMenuClose,
-          this.options.type
-        );
+        this.state.open = false;
         return false;
-      },
+      }),
     };
   }
 
   inputRules = (_options: { type: NodeType; schema: Schema }) => [
-    new InputRule(this.options.openRegex, (state, match) => {
-      const { parent } = state.selection.$from;
-      if (
-        match &&
-        (parent.type.name === "paragraph" || parent.type.name === "heading") &&
-        (!isInCode(state) || this.options.enabledInCode) &&
-        (!isInTable(state) || this.options.enabledInTable)
-      ) {
-        this.editor.events.emit(EventType.SuggestionsMenuOpen, {
-          type: this.options.type,
-          query: match[1],
-        });
-      }
-      return null;
-    }),
-    new InputRule(this.options.closeRegex, (state, match) => {
-      if (match) {
-        this.editor.events.emit(
-          EventType.SuggestionsMenuClose,
-          this.options.type
-        );
-      }
-      return null;
-    }),
+    new InputRule(
+      this.options.openRegex,
+      action((state: EditorState, match: RegExpMatchArray) => {
+        const { parent } = state.selection.$from;
+        if (
+          match &&
+          (parent.type.name === "paragraph" ||
+            parent.type.name === "heading") &&
+          (!isInCode(state) || this.options.enabledInCode) &&
+          (!isInTable(state) || this.options.enabledInTable)
+        ) {
+          this.state.open = true;
+          this.state.query = match[1];
+        }
+        return null;
+      })
+    ),
+    new InputRule(
+      this.options.closeRegex,
+      action((_: EditorState, match: RegExpMatchArray) => {
+        if (match) {
+          this.state.open = false;
+          this.state.query = "";
+        }
+        return null;
+      })
+    ),
   ];
 }

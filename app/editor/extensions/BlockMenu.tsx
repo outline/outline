@@ -1,3 +1,4 @@
+import { action } from "mobx";
 import { PlusIcon } from "outline-icons";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -6,9 +7,9 @@ import ReactDOM from "react-dom";
 import Suggestion from "@shared/editor/extensions/Suggestion";
 import { SuggestionsMenuType } from "@shared/editor/plugins/Suggestions";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
-import { EventType } from "@shared/editor/types";
+import BlockMenu from "../components/BlockMenu";
 
-export default class BlockMenu extends Suggestion {
+export default class BlockMenuExtension extends Suggestion {
   get defaultOptions() {
     return {
       type: SuggestionsMenuType.Block,
@@ -54,12 +55,12 @@ export default class BlockMenu extends Suggestion {
                 Decoration.widget(
                   parent.pos,
                   () => {
-                    button.addEventListener("click", () => {
-                      this.editor.events.emit(EventType.SuggestionsMenuOpen, {
-                        type: SuggestionsMenuType.Block,
-                        query: "",
-                      });
-                    });
+                    button.addEventListener(
+                      "click",
+                      action(() => {
+                        this.state.open = true;
+                      })
+                    );
                     return button;
                   },
                   {
@@ -96,4 +97,28 @@ export default class BlockMenu extends Suggestion {
       }),
     ];
   }
+
+  widget = () => {
+    const { props, view } = this.editor;
+    return (
+      <BlockMenu
+        rtl={false} // TODO
+        isActive={this.state.open}
+        search={this.state.query}
+        onClose={action((insertNewLine) => {
+          if (insertNewLine) {
+            const transaction = view.state.tr.split(view.state.selection.to);
+            view.dispatch(transaction);
+            view.focus();
+          }
+
+          this.state.open = false;
+        })}
+        uploadFile={props.uploadFile}
+        onFileUploadStart={props.onFileUploadStart}
+        onFileUploadStop={props.onFileUploadStop}
+        embeds={props.embeds}
+      />
+    );
+  };
 }

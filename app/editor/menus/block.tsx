@@ -14,7 +14,6 @@ import {
   StarredIcon,
   WarningIcon,
   InfoIcon,
-  LinkIcon,
   AttachmentIcon,
   ClockIcon,
   CalendarIcon,
@@ -94,13 +93,6 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       title: dictionary.image,
       icon: <ImageIcon />,
       keywords: "picture photo",
-    },
-    {
-      name: "link",
-      title: dictionary.link,
-      icon: <LinkIcon />,
-      shortcut: `${metaDisplay} k`,
-      keywords: "link url uri href",
     },
     {
       name: "video",

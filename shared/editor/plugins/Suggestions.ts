@@ -1,7 +1,7 @@
+import { action } from "mobx";
 import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import type { Editor } from "../../../app/editor";
-import { EventType } from "../types";
 
 const MAX_MATCH = 500;
 
@@ -19,8 +19,17 @@ type Options = {
   enabledInTable: true;
 };
 
+type ExtensionState = {
+  open: boolean;
+  query: string;
+};
+
 export class SuggestionsMenuPlugin extends Plugin {
-  constructor(editor: Editor, options: Options) {
+  constructor(
+    editor: Editor,
+    options: Options,
+    extensionState: ExtensionState
+  ) {
     super({
       props: {
         handleClick: () => {
@@ -41,20 +50,16 @@ export class SuggestionsMenuPlugin extends Plugin {
                 pos,
                 pos,
                 options.openRegex,
-                (state, match) => {
+                action((_, match) => {
                   if (match) {
-                    editor.events.emit(EventType.SuggestionsMenuOpen, {
-                      type: options.type,
-                      query: match[1],
-                    });
+                    extensionState.open = true;
+                    extensionState.query = match[1];
                   } else {
-                    editor.events.emit(
-                      EventType.SuggestionsMenuClose,
-                      options.type
-                    );
+                    extensionState.open = false;
+                    extensionState.query = "";
                   }
                   return null;
-                }
+                })
               );
             });
           }

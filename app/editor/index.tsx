@@ -43,7 +43,6 @@ import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
 import { Dictionary } from "~/hooks/useDictionary";
 import Logger from "~/utils/Logger";
-import BlockMenu from "./components/BlockMenu";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
 import EmojiMenu from "./components/EmojiMenu";
@@ -854,24 +853,6 @@ export class Editor extends React.PureComponent<
                     }
                   />
                 )}
-                <BlockMenu
-                  rtl={isRTL}
-                  isActive={
-                    this.state.suggestionsMenuOpen === SuggestionsMenuType.Block
-                  }
-                  search={this.state.query}
-                  onClose={(insertNewLine) =>
-                    this.handleCloseSuggestionsMenu(
-                      SuggestionsMenuType.Block,
-                      insertNewLine
-                    )
-                  }
-                  uploadFile={this.props.uploadFile}
-                  onLinkToolbarOpen={this.handleOpenLinkToolbar}
-                  onFileUploadStart={this.props.onFileUploadStart}
-                  onFileUploadStop={this.props.onFileUploadStop}
-                  embeds={this.props.embeds}
-                />
               </>
             )}
             {this.widgets &&
