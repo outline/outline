@@ -7,24 +7,13 @@ import {
 } from "prosemirror-model";
 import { Command, TextSelection } from "prosemirror-state";
 import { Primitive } from "utility-types";
-import Suggestion from "../extensions/Suggestion";
+import Extension from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { SuggestionsMenuType } from "../plugins/Suggestions";
 import mentionRule from "../rules/mention";
 
-export default class Mention extends Suggestion {
+export default class Mention extends Extension {
   get type() {
     return "node";
-  }
-
-  get defaultOptions() {
-    return {
-      type: SuggestionsMenuType.Mention,
-      // ported from https://github.com/tc39/proposal-regexp-unicode-property-escapes#unicode-aware-version-of-w
-      openRegex: /(?:^|\s)@([\p{L}\p{M}\d]+)?$/u,
-      closeRegex: /(?:^|\s)@(([\p{L}\p{M}\d]*\s+)|(\s+[\p{L}\p{M}\d]+))$/u,
-      enabledInTable: true,
-    };
   }
 
   get name() {

@@ -12,8 +12,10 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
 import BlockMenuExtension from "~/editor/extensions/BlockMenu";
+import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
 import FindAndReplaceExtension from "~/editor/extensions/FindAndReplace";
 import HoverPreviewsExtension from "~/editor/extensions/HoverPreviews";
+import MentionMenuExtension from "~/editor/extensions/MentionMenu";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
@@ -31,6 +33,8 @@ import DocumentTitle from "./DocumentTitle";
 const extensions = [
   ...withComments(richExtensions),
   BlockMenuExtension,
+  EmojiMenuExtension,
+  MentionMenuExtension,
   FindAndReplaceExtension,
   HoverPreviewsExtension,
 ];

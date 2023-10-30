@@ -4,22 +4,20 @@ import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import Suggestion from "@shared/editor/extensions/Suggestion";
-import { SuggestionsMenuType } from "@shared/editor/plugins/Suggestions";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
+import Suggestion from "~/editor/extensions/Suggestion";
 import BlockMenu from "../components/BlockMenu";
 
 export default class BlockMenuExtension extends Suggestion {
   get defaultOptions() {
     return {
-      type: SuggestionsMenuType.Block,
       openRegex: /^\/(\w+)?$/,
       closeRegex: /(^(?!\/(\w+)?)(.*)$|^\/(([\w\W]+)\s.*|\s)$|^\/((\W)+)$)/,
     };
   }
 
   get name() {
-    return "blockmenu";
+    return "block-menu";
   }
 
   get plugins() {

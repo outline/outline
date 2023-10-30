@@ -34,7 +34,6 @@ import Mark from "@shared/editor/marks/Mark";
 import { basicExtensions } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
-import { SuggestionsMenuType } from "@shared/editor/plugins/Suggestions";
 import { EventType } from "@shared/editor/types";
 import { UserPreferences } from "@shared/types";
 import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
@@ -45,10 +44,8 @@ import { Dictionary } from "~/hooks/useDictionary";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
-import EmojiMenu from "./components/EmojiMenu";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
-import MentionMenu from "./components/MentionMenu";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
 
@@ -144,8 +141,6 @@ type State = {
   isEditorFocused: boolean;
   /** If the toolbar for a text selection is visible */
   selectionToolbarOpen: boolean;
-  /** If a suggestions menu is visible */
-  suggestionsMenuOpen: SuggestionsMenuType | false;
   /** If the insert link toolbar is visible */
   linkToolbarOpen: boolean;
   /** The query for the suggestion menu */
@@ -178,7 +173,6 @@ export class Editor extends React.PureComponent<
   state: State = {
     isRTL: false,
     isEditorFocused: false,
-    suggestionsMenuOpen: false,
     selectionToolbarOpen: false,
     linkToolbarOpen: false,
     query: "",
@@ -211,14 +205,6 @@ export class Editor extends React.PureComponent<
   public constructor(props: Props & ThemeProps<DefaultTheme>) {
     super(props);
     this.events.on(EventType.LinkToolbarOpen, this.handleOpenLinkToolbar);
-    this.events.on(
-      EventType.SuggestionsMenuOpen,
-      this.handleOpenSuggestionsMenu
-    );
-    this.events.on(
-      EventType.SuggestionsMenuClose,
-      this.handleCloseSuggestionsMenu
-    );
   }
 
   /**
@@ -276,7 +262,6 @@ export class Editor extends React.PureComponent<
     if (
       !this.isBlurred &&
       !this.state.isEditorFocused &&
-      !this.state.suggestionsMenuOpen &&
       !this.state.linkToolbarOpen &&
       !this.state.selectionToolbarOpen
     ) {
@@ -287,7 +272,6 @@ export class Editor extends React.PureComponent<
     if (
       this.isBlurred &&
       (this.state.isEditorFocused ||
-        this.state.suggestionsMenuOpen ||
         this.state.linkToolbarOpen ||
         this.state.selectionToolbarOpen)
     ) {
@@ -704,7 +688,6 @@ export class Editor extends React.PureComponent<
     this.setState((state) => ({
       ...state,
       selectionToolbarOpen: true,
-      suggestionsMenuOpen: false,
       query: "",
     }));
   };
@@ -722,7 +705,6 @@ export class Editor extends React.PureComponent<
   private handleOpenLinkToolbar = () => {
     this.setState((state) => ({
       ...state,
-      suggestionsMenuOpen: false,
       linkToolbarOpen: true,
       query: "",
     }));
@@ -732,37 +714,6 @@ export class Editor extends React.PureComponent<
     this.setState((state) => ({
       ...state,
       linkToolbarOpen: false,
-    }));
-  };
-
-  private handleOpenSuggestionsMenu = (data: {
-    type: SuggestionsMenuType;
-    query: string;
-  }) => {
-    this.setState((state) => ({
-      ...state,
-      suggestionsMenuOpen: data.type,
-      query: data.query,
-    }));
-  };
-
-  private handleCloseSuggestionsMenu = (
-    type: SuggestionsMenuType,
-    insertNewLine?: boolean
-  ) => {
-    if (insertNewLine) {
-      const transaction = this.view.state.tr.split(
-        this.view.state.selection.to
-      );
-      this.view.dispatch(transaction);
-      this.view.focus();
-    }
-    if (type && this.state.suggestionsMenuOpen !== type) {
-      return;
-    }
-    this.setState((state) => ({
-      ...state,
-      suggestionsMenuOpen: false,
     }));
   };
 
@@ -806,50 +757,14 @@ export class Editor extends React.PureComponent<
                 onCreateLink={this.props.onCreateLink}
               />
             )}
-            {!readOnly && this.view && (
-              <>
-                {this.marks.link && (
-                  <LinkToolbar
-                    isActive={this.state.linkToolbarOpen}
-                    onCreateLink={this.props.onCreateLink}
-                    onSearchLink={this.props.onSearchLink}
-                    onClickLink={this.props.onClickLink}
-                    onClose={this.handleCloseLinkToolbar}
-                  />
-                )}
-                {this.nodes.emoji && (
-                  <EmojiMenu
-                    rtl={isRTL}
-                    isActive={
-                      this.state.suggestionsMenuOpen ===
-                      SuggestionsMenuType.Emoji
-                    }
-                    search={this.state.query}
-                    onClose={(insertNewLine) =>
-                      this.handleCloseSuggestionsMenu(
-                        SuggestionsMenuType.Emoji,
-                        insertNewLine
-                      )
-                    }
-                  />
-                )}
-                {this.nodes.mention && (
-                  <MentionMenu
-                    rtl={isRTL}
-                    isActive={
-                      this.state.suggestionsMenuOpen ===
-                      SuggestionsMenuType.Mention
-                    }
-                    search={this.state.query}
-                    onClose={(insertNewLine) =>
-                      this.handleCloseSuggestionsMenu(
-                        SuggestionsMenuType.Mention,
-                        insertNewLine
-                      )
-                    }
-                  />
-                )}
-              </>
+            {!readOnly && this.view && this.marks.link && (
+              <LinkToolbar
+                isActive={this.state.linkToolbarOpen}
+                onCreateLink={this.props.onCreateLink}
+                onSearchLink={this.props.onSearchLink}
+                onClickLink={this.props.onClickLink}
+                onClose={this.handleCloseLinkToolbar}
+              />
             )}
             {this.widgets &&
               Object.values(this.widgets).map((Widget, index) => (

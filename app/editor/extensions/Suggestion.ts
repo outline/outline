@@ -3,9 +3,9 @@ import { InputRule } from "prosemirror-inputrules";
 import { NodeType, Schema } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
-import Extension from "../lib/Extension";
-import { SuggestionsMenuPlugin } from "../plugins/Suggestions";
-import isInCode from "../queries/isInCode";
+import Extension from "@shared/editor/lib/Extension";
+import { SuggestionsMenuPlugin } from "@shared/editor/plugins/Suggestions";
+import isInCode from "@shared/editor/queries/isInCode";
 
 export default class Suggestion extends Extension {
   state: {
@@ -17,7 +17,7 @@ export default class Suggestion extends Extension {
   });
 
   get plugins(): Plugin[] {
-    return [new SuggestionsMenuPlugin(this.editor, this.options, this.state)];
+    return [new SuggestionsMenuPlugin(this.options, this.state)];
   }
 
   keys() {

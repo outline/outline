@@ -1,18 +1,10 @@
 import { action } from "mobx";
 import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import type { Editor } from "../../../app/editor";
 
 const MAX_MATCH = 500;
 
-export enum SuggestionsMenuType {
-  Emoji = "emoji",
-  Block = "block",
-  Mention = "mention",
-}
-
 type Options = {
-  type: SuggestionsMenuType;
   openRegex: RegExp;
   closeRegex: RegExp;
   enabledInCode: true;
@@ -25,17 +17,9 @@ type ExtensionState = {
 };
 
 export class SuggestionsMenuPlugin extends Plugin {
-  constructor(
-    editor: Editor,
-    options: Options,
-    extensionState: ExtensionState
-  ) {
+  constructor(options: Options, extensionState: ExtensionState) {
     super({
       props: {
-        handleClick: () => {
-          editor.events.emit(options.type);
-          return false;
-        },
         handleKeyDown: (view, event) => {
           // Prosemirror input rules are not triggered on backspace, however
           // we need them to be evaluted for the filter trigger to work
