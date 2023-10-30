@@ -585,6 +585,13 @@ export class Editor extends React.PureComponent<
     window?.getSelection()?.removeAllRanges();
   };
 
+  /**
+   * Insert files at the current selection.
+   * =
+   * @param event The source event
+   * @param files The files to insert
+   * @returns True if the files were inserted
+   */
   public insertFiles = (
     event: React.ChangeEvent<HTMLInputElement>,
     files: File[]
