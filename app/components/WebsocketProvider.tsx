@@ -6,7 +6,7 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
-import { FileOperationState } from "@shared/types";
+import { FileOperationState, FileOperationType } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Comment from "~/models/Comment";
@@ -436,6 +436,7 @@ class WebsocketProvider extends React.Component<Props> {
 
         if (
           event.state === FileOperationState.Complete &&
+          event.type === FileOperationType.Import &&
           event.user?.id === auth.user?.id
         ) {
           toast.success(event.name, {
