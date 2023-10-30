@@ -124,8 +124,6 @@ export type Props = {
     href: string,
     event: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
-  /** Callback when user hovers on any link in the document */
-  onHoverLink?: (element: HTMLAnchorElement | null) => boolean;
   /** Callback when user presses any key with document focused */
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   /** Collection of embed types to render in the document */
@@ -204,6 +202,7 @@ export class Editor extends React.PureComponent<
     [name: string]: NodeViewConstructor;
   };
 
+  widgets: { [name: string]: () => React.ReactElement };
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
@@ -310,6 +309,7 @@ export class Editor extends React.PureComponent<
     this.nodes = this.createNodes();
     this.marks = this.createMarks();
     this.schema = this.createSchema();
+    this.widgets = this.createWidgets();
     this.plugins = this.createPlugins();
     this.rulePlugins = this.createRulePlugins();
     this.keymaps = this.createKeymaps();
@@ -376,6 +376,10 @@ export class Editor extends React.PureComponent<
       schema: this.schema,
       view: this.view,
     });
+  }
+
+  private createWidgets() {
+    return this.extensions.widgets;
   }
 
   private createNodes() {
@@ -870,6 +874,10 @@ export class Editor extends React.PureComponent<
                 />
               </>
             )}
+            {this.widgets &&
+              Object.values(this.widgets).map((Widget, index) => (
+                <Widget key={String(index)} />
+              ))}
           </Flex>
         </EditorContext.Provider>
       </PortalContext.Provider>

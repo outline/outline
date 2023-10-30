@@ -50,6 +50,10 @@ export default class Extension {
     return true;
   }
 
+  widget(): JSX.Element | undefined {
+    return undefined;
+  }
+
   keys(_options: {
     type?: NodeType | MarkType;
     schema: Schema;

@@ -1,4 +1,5 @@
 import { PluginSimple } from "markdown-it";
+import { observer } from "mobx-react";
 import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
@@ -39,6 +40,18 @@ export default class ExtensionManager {
 
       this.extensions.push(extension);
     });
+  }
+
+  get widgets() {
+    return this.extensions
+      .filter((extension) => extension.widget())
+      .reduce(
+        (nodes, node: Node) => ({
+          ...nodes,
+          [node.name]: observer(node.widget as any),
+        }),
+        {}
+      );
   }
 
   get nodes() {

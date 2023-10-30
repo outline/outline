@@ -24,7 +24,7 @@ const POINTER_WIDTH = 22;
 
 type Props = {
   /** The HTML element that is being hovered over, or null if none. */
-  element: HTMLAnchorElement | null;
+  element: HTMLElement | null;
   /** A callback on close of the hover preview. */
   onClose: () => void;
 };
@@ -35,7 +35,7 @@ enum Direction {
 }
 
 function HoverPreviewDesktop({ element, onClose }: Props) {
-  const url = element?.href || element?.dataset.url;
+  const url = element?.getAttribute("href") || element?.dataset.url;
   const previousUrl = usePrevious(url, true);
   const [isVisible, setVisible] = React.useState(false);
   const timerClose = React.useRef<ReturnType<typeof setTimeout>>();
@@ -200,7 +200,7 @@ function useHoverPosition({
   isVisible,
 }: {
   cardRef: React.RefObject<HTMLDivElement>;
-  element: HTMLAnchorElement | null;
+  element: HTMLElement | null;
   isVisible: boolean;
 }) {
   const [cardLeft, setCardLeft] = React.useState(0);
