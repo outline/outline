@@ -3,7 +3,7 @@ import { Node } from "prosemirror-model";
 import { Command, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
-import Extension from "../lib/Extension";
+import Extension from "@shared/editor/lib/Extension";
 
 const pluginKey = new PluginKey("find-and-replace");
 

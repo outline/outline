@@ -2,8 +2,8 @@ import { action, observable } from "mobx";
 import { Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
+import Extension from "@shared/editor/lib/Extension";
 import HoverPreview from "~/components/HoverPreview";
-import Extension from "../lib/Extension";
 
 interface HoverPreviewsOptions {
   /** Delay before the target is considered "hovered" and callback is triggered. */

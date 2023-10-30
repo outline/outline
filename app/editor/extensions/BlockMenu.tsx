@@ -3,10 +3,10 @@ import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { SuggestionsMenuType } from "../plugins/Suggestions";
-import { findParentNode } from "../queries/findParentNode";
-import { EventType } from "../types";
-import Suggestion from "./Suggestion";
+import Suggestion from "@shared/editor/extensions/Suggestion";
+import { SuggestionsMenuType } from "@shared/editor/plugins/Suggestions";
+import { findParentNode } from "@shared/editor/queries/findParentNode";
+import { EventType } from "@shared/editor/types";
 
 export default class BlockMenu extends Suggestion {
   get defaultOptions() {
