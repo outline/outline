@@ -46,7 +46,6 @@ import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
 import EmojiMenu from "./components/EmojiMenu";
-import FindAndReplace from "./components/FindAndReplace";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
 import MentionMenu from "./components/MentionMenu";
@@ -795,20 +794,17 @@ export class Editor extends React.PureComponent<
               ref={this.elementRef}
             />
             {this.view && (
-              <>
-                <SelectionToolbar
-                  rtl={isRTL}
-                  readOnly={readOnly}
-                  canComment={this.props.canComment}
-                  isTemplate={this.props.template === true}
-                  onOpen={this.handleOpenSelectionToolbar}
-                  onClose={this.handleCloseSelectionToolbar}
-                  onSearchLink={this.props.onSearchLink}
-                  onClickLink={this.props.onClickLink}
-                  onCreateLink={this.props.onCreateLink}
-                />
-                {this.commands.find && <FindAndReplace readOnly={readOnly} />}
-              </>
+              <SelectionToolbar
+                rtl={isRTL}
+                readOnly={readOnly}
+                canComment={this.props.canComment}
+                isTemplate={this.props.template === true}
+                onOpen={this.handleOpenSelectionToolbar}
+                onClose={this.handleCloseSelectionToolbar}
+                onSearchLink={this.props.onSearchLink}
+                onClickLink={this.props.onClickLink}
+                onCreateLink={this.props.onCreateLink}
+              />
             )}
             {!readOnly && this.view && (
               <>
