@@ -34,7 +34,7 @@ import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
 import Mark from "@shared/editor/marks/Mark";
-import { basicExtensions } from "@shared/editor/nodes";
+import { basicExtensions as extensions } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
 import { EventType } from "@shared/editor/types";
@@ -51,10 +51,6 @@ import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
-
-const extensions = basicExtensions;
-
-export { default as Extension } from "@shared/editor/lib/Extension";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */

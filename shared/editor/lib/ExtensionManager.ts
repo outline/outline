@@ -55,7 +55,7 @@ export default class ExtensionManager {
   }
 
   get nodes() {
-    return this.extensions
+    const nodes = this.extensions
       .filter((extension) => extension.type === "node")
       .reduce(
         (nodes, node: Node) => ({
@@ -64,6 +64,19 @@ export default class ExtensionManager {
         }),
         {}
       );
+
+    for (const i in nodes) {
+      if (nodes[i].marks) {
+        // We must filter marks from the marks list that are not defined
+        // in the schema for the current editor.
+        nodes[i].marks = nodes[i].marks
+          .split(" ")
+          .filter((m: string) => Object.keys(nodes).includes(m))
+          .join(" ");
+      }
+    }
+
+    return nodes;
   }
 
   get marks() {
