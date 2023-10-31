@@ -249,7 +249,7 @@
     "@types/enzyme-adapter-react-16": "^1.0.6",
     "@types/express-useragent": "^1.0.2",
     "@types/formidable": "^2.0.6",
-    "@types/fs-extra": "^11.0.1",
+    "@types/fs-extra": "^11.0.3",
     "@types/fuzzy-search": "^2.1.2",
     "@types/glob": "^8.0.1",
     "@types/google.analytics": "^0.0.42",
