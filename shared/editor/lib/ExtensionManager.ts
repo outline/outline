@@ -44,7 +44,7 @@ export default class ExtensionManager {
 
   get widgets() {
     return this.extensions
-      .filter((extension) => extension.widget())
+      .filter((extension) => extension.widget({ rtl: false }))
       .reduce(
         (nodes, node: Node) => ({
           ...nodes,

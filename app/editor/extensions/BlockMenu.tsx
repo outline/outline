@@ -4,6 +4,7 @@ import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
+import { WidgetProps } from "@shared/editor/lib/Extension";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import Suggestion from "~/editor/extensions/Suggestion";
 import BlockMenu from "../components/BlockMenu";
@@ -96,11 +97,11 @@ export default class BlockMenuExtension extends Suggestion {
     ];
   }
 
-  widget = () => {
+  widget = ({ rtl }: WidgetProps) => {
     const { props, view } = this.editor;
     return (
       <BlockMenu
-        rtl={false} // TODO
+        rtl={rtl}
         isActive={this.state.open}
         search={this.state.query}
         onClose={action((insertNewLine) => {

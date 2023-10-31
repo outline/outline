@@ -7,6 +7,8 @@ import { Editor } from "../../../app/editor";
 
 export type CommandFactory = (attrs?: Record<string, Primitive>) => Command;
 
+export type WidgetProps = { rtl: boolean };
+
 export default class Extension {
   options: any;
   editor: Editor;
@@ -57,7 +59,7 @@ export default class Extension {
    *
    * @returns A React component
    */
-  widget(): JSX.Element | undefined {
+  widget(_props: WidgetProps): React.ReactElement | undefined {
     return undefined;
   }
 

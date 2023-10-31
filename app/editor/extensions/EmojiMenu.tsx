@@ -1,5 +1,6 @@
 import { action } from "mobx";
 import * as React from "react";
+import { WidgetProps } from "@shared/editor/lib/Extension";
 import Suggestion from "~/editor/extensions/Suggestion";
 import EmojiMenu from "../components/EmojiMenu";
 
@@ -31,9 +32,9 @@ export default class EmojiMenuExtension extends Suggestion {
     return "emoji-menu";
   }
 
-  widget = () => (
+  widget = ({ rtl }: WidgetProps) => (
     <EmojiMenu
-      rtl={false} // TODO
+      rtl={rtl}
       isActive={this.state.open}
       search={this.state.query}
       onClose={action(() => {

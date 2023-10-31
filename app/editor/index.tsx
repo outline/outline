@@ -26,7 +26,10 @@ import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import Styles from "@shared/editor/components/Styles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
-import Extension, { CommandFactory } from "@shared/editor/lib/Extension";
+import Extension, {
+  CommandFactory,
+  WidgetProps,
+} from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
@@ -143,8 +146,6 @@ type State = {
   selectionToolbarOpen: boolean;
   /** If the insert link toolbar is visible */
   linkToolbarOpen: boolean;
-  /** The query for the suggestion menu */
-  query: string;
 };
 
 /**
@@ -175,7 +176,6 @@ export class Editor extends React.PureComponent<
     isEditorFocused: false,
     selectionToolbarOpen: false,
     linkToolbarOpen: false,
-    query: "",
   };
 
   isBlurred = true;
@@ -194,7 +194,7 @@ export class Editor extends React.PureComponent<
     [name: string]: NodeViewConstructor;
   };
 
-  widgets: { [name: string]: () => React.ReactElement };
+  widgets: { [name: string]: (props: WidgetProps) => React.ReactElement };
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
@@ -688,7 +688,6 @@ export class Editor extends React.PureComponent<
     this.setState((state) => ({
       ...state,
       selectionToolbarOpen: true,
-      query: "",
     }));
   };
 
@@ -706,7 +705,6 @@ export class Editor extends React.PureComponent<
     this.setState((state) => ({
       ...state,
       linkToolbarOpen: true,
-      query: "",
     }));
   };
 
@@ -768,7 +766,7 @@ export class Editor extends React.PureComponent<
             )}
             {this.widgets &&
               Object.values(this.widgets).map((Widget, index) => (
-                <Widget key={String(index)} />
+                <Widget key={String(index)} rtl={isRTL} />
               ))}
           </Flex>
         </EditorContext.Provider>
