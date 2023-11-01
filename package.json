@@ -151,6 +151,7 @@
     "outline-icons": "^2.5.0",
     "oy-vey": "^0.12.1",
     "passport": "^0.6.0",
+    "passport-github2": "^0.1.12",
     "passport-google-oauth2": "^0.2.0",
     "passport-oauth2": "^1.6.1",
     "passport-slack-oauth2": "^1.2.0",
