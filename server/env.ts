@@ -437,6 +437,25 @@ export class Environment {
   );
 
   /**
+   * GitHub OAuth2 client credentials. To enable authentication with GitHub.
+   */
+  @IsOptional()
+  @CannotUseWithout("GITHUB_CLIENT_SECRET")
+  public GITHUB_CLIENT_ID = this.toOptionalString(process.env.GITHUB_CLIENT_ID);
+
+  @IsOptional()
+  @CannotUseWithout("GITHUB_CLIENT_ID")
+  public GITHUB_CLIENT_SECRET = this.toOptionalString(
+    process.env.GITHUB_CLIENT_SECRET
+  );
+
+  @IsOptional()
+  @CannotUseWithout("GITHUB_CLIENT_ID")
+  public GITHUB_ORGANIZATION = this.toOptionalString(
+    process.env.GITHUB_CLIENT_SECRET
+  );
+
+  /**
    * OICD client credentials. To enable authentication with any
    * compatible provider.
    */
