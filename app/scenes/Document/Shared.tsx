@@ -185,7 +185,7 @@ function SharedDocumentScene(props: Props) {
             title={response.document.title}
             sidebar={
               response.sharedTree?.children.length ? (
-                <Sidebar rootNode={response.sharedTree} shareId={shareId} />
+                <Sidebar rootNode={response.sharedTree} shareId={shareId!} />
               ) : undefined
             }
           >

@@ -111,7 +111,14 @@ function Login({ children }: Props) {
   }
 
   if (env.ROOT_SHARE_ID) {
-    return <Shared match={{ params: {} }} location={location} />;
+    return (
+      <Shared
+        // @ts-expect-error wip
+        match={{ params: { shareId: env.ROOT_SHARE_ID, documentSlug: "" } }}
+        // @ts-expect-error wip
+        location={location}
+      />
+    );
   }
 
   if (error) {

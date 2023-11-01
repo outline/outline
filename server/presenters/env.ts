@@ -32,7 +32,7 @@ export default function present(
     RELEASE:
       process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION || undefined,
     APP_NAME: env.APP_NAME,
-    ROOT_SHARE_ID: options.rootShareId,
+    ROOT_SHARE_ID: options.rootShareId || undefined,
 
     analytics: {
       service: options.analytics?.service,
