@@ -19,6 +19,7 @@ import {
   IsUUID,
   AllowNull,
   AfterUpdate,
+  HasOne,
 } from "sequelize-typescript";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import {
@@ -34,6 +35,7 @@ import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Document from "./Document";
+import Share from "./Share";
 import TeamDomain from "./TeamDomain";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -95,6 +97,10 @@ class Team extends ParanoidModel {
   @IsUUID(4)
   @Column(DataType.UUID)
   defaultCollectionId: string | null;
+
+  @IsUUID(4)
+  @Column(DataType.UUID)
+  rootShareId: string | null;
 
   @AllowNull
   @IsUrlOrRelativePath
@@ -325,6 +331,9 @@ class Team extends ParanoidModel {
 
   @HasMany(() => TeamDomain)
   allowedDomains: TeamDomain[];
+
+  @HasOne(() => Share, "rootShareId")
+  rootShare: Share;
 
   // hooks
 

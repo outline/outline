@@ -130,6 +130,9 @@ router.get("/s/:shareId/*", renderShare);
 // catch all for application
 router.get("*", async (ctx, next) => {
   const team = await getTeamFromContext(ctx);
+
+  console.log(await team?.$get("rootShare"));
+
   const analytics = team
     ? await Integration.findOne({
         where: {
