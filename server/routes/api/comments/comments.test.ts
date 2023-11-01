@@ -42,6 +42,37 @@ describe("#comments.list", () => {
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
   });
+  it("should return all comments for a collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      teamId: team.id,
+      documentId: document.id,
+    });
+    const res = await server.post("/api/comments.list", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(comment.id);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+  });
   it("should return all comments", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });

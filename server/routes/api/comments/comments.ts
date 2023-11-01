@@ -10,7 +10,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, Comment } from "@server/models";
+import { Document, Comment, Collection } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -62,7 +62,7 @@ router.post(
   checkCommentingEnabled(),
   validate(T.CollectionsListSchema),
   async (ctx: APIContext<T.CollectionsListReq>) => {
-    const { sort, direction, documentId } = ctx.input.body;
+    const { sort, direction, documentId, collectionId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     let comments;
@@ -73,6 +73,24 @@ router.post(
         where: {
           documentId: document.id,
         },
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      });
+    } else if (collectionId) {
+      const collection = await Collection.findByPk(collectionId);
+      authorize(user, "read", collection);
+      comments = await Comment.findAll({
+        include: [
+          {
+            model: Document,
+            required: true,
+            where: {
+              teamId: user.teamId,
+              collectionId,
+            },
+          },
+        ],
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
