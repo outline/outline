@@ -83,7 +83,7 @@ export const basicExtensions: Nodes = [
  * editors that need advanced formatting.
  */
 export const richExtensions: Nodes = [
-  ...basicExtensions.filter((n) => n !== SimpleImage),
+  ...basicExtensions.filter((n) => n !== SimpleImage && n !== Keys),
   Image,
   HardBreak,
   CodeBlock,
@@ -109,6 +109,7 @@ export const richExtensions: Nodes = [
   Math,
   MathBlock,
   PreventTab,
+  Keys,
 ];
 
 /**
