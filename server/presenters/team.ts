@@ -8,6 +8,7 @@ export default function presentTeam(team: Team) {
     sharing: team.sharing,
     memberCollectionCreate: team.memberCollectionCreate,
     defaultCollectionId: team.defaultCollectionId,
+    rootShareId: team.rootShareId,
     documentEmbeds: team.documentEmbeds,
     guestSignin: team.emailSigninEnabled,
     subdomain: team.subdomain,

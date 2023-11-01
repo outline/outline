@@ -95,7 +95,7 @@ function SharedDocumentScene(props: Props) {
   const [response, setResponse] = React.useState<Response>();
   const [error, setError] = React.useState<Error | null | undefined>();
   const { documents } = useStores();
-  const { shareId, documentSlug } = props.match.params;
+  const { shareId = env.ROOT_SHARE_ID, documentSlug } = props.match.params;
   const documentId = useDocumentId(documentSlug, response);
   const themeOverride = ["dark", "light"].includes(
     searchParams.get("theme") || ""

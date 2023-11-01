@@ -39,6 +39,7 @@ export default function Routes() {
           from={`/share/:shareId/doc/${slug}`}
           to={`/s/:shareId/doc/${slug}`}
         />
+        <Route exact path={`/s/doc/${slug}`} component={SharedDocument} />
         <Route
           exact
           path={`/s/:shareId/doc/${slug}`}

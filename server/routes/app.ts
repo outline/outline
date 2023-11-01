@@ -54,6 +54,7 @@ export const renderApp = async (
     description?: string;
     canonical?: string;
     shortcutIcon?: string;
+    rootShareId?: string | null;
     analytics?: Integration | null;
   } = {}
 ) => {
@@ -72,7 +73,7 @@ export const renderApp = async (
   const page = await readIndexFile();
   const environment = `
     <script nonce="${ctx.state.cspNonce}">
-      window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
+      window.env = ${JSON.stringify(presentEnv(env, options))};
     </script>
   `;
 
@@ -159,6 +160,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
         ? team.avatarUrl
         : undefined,
     analytics,
+    rootShareId: team?.rootShareId,
     canonical: share
       ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
       : undefined,

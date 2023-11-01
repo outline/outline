@@ -30,6 +30,7 @@ import { draggableOnDesktop } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
+import Shared from "../Document/Shared";
 import AuthenticationProvider from "./components/AuthenticationProvider";
 import BackButton from "./components/BackButton";
 import Notices from "./components/Notices";
@@ -107,6 +108,10 @@ function Login({ children }: Props) {
 
   if (auth.authenticated) {
     return <Redirect to="/home" />;
+  }
+
+  if (env.ROOT_SHARE_ID) {
+    return <Shared match={{ params: {} }} location={location} />;
   }
 
   if (error) {
