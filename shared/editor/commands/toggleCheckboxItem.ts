@@ -1,5 +1,5 @@
 import { Command } from "prosemirror-state";
-import { findParentNode } from "@shared/editor/queries/findParentNode";
+import { findParentNode } from "../queries/findParentNode";
 
 /**
  * A prosemirror command to toggle the checkbox item at the current selection.
