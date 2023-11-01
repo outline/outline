@@ -76,6 +76,7 @@
     "@tippyjs/react": "^4.2.6",
     "@tommoor/remove-markdown": "^0.3.2",
     "@types/form-data": "^2.5.0",
+    "@types/passport-github2": "^1.2.8",
     "@types/sanitize-filename": "^1.6.3",
     "@vitejs/plugin-react": "^3.1.0",
     "addressparser": "^1.0.1",

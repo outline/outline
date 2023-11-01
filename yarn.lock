@@ -3262,10 +3262,19 @@
   resolved "https://registry.yarnpkg.com/@types/pako/-/pako-1.0.4.tgz#b4262aef92680a9331fcdb8420c69cf3dd98d3f3"
   integrity sha512-Z+5bJSm28EXBSUJEgx29ioWeEEHUh6TiMkZHDhLwjc9wVFH+ressbkmX6waUZc5R3Gobn4Qu5llGxaoflZ+yhA==
 
-"@types/passport-oauth2@^1.4.11":
-  version "1.4.11"
-  resolved "https://registry.yarnpkg.com/@types/passport-oauth2/-/passport-oauth2-1.4.11.tgz#fbca527ecb44258774d17bcb251630c321515fa9"
-  integrity sha512-KUNwmGhe/3xPbjkzkPwwcPmyFwfyiSgtV1qOrPBLaU4i4q9GSCdAOyCbkFG0gUxAyEmYwqo9OAF/rjPjJ6ImdA==
+"@types/passport-github2@^1.2.8":
+  version "1.2.8"
+  resolved "https://registry.yarnpkg.com/@types/passport-github2/-/passport-github2-1.2.8.tgz#52ebaf674b034f94d4096dd9b88ef15d8669e370"
+  integrity sha512-OD1WQ5AOIyTHgBWYJxG/yudHhojAfZXLpidzyoohjwFfu5sjJf/A5J23sm8YCQpnDjcWwaPFQ/NB7XC3QZjNJg==
+  dependencies:
+    "@types/express" "*"
+    "@types/passport" "*"
+    "@types/passport-oauth2" "*"
+
+"@types/passport-oauth2@*", "@types/passport-oauth2@^1.4.11":
+  version "1.4.14"
+  resolved "https://registry.yarnpkg.com/@types/passport-oauth2/-/passport-oauth2-1.4.14.tgz#6982575b960eb7f001e28103ac3562349f1cded3"
+  integrity sha512-wZBvnRwqdvm35l1Jn9ebYm2Q7UtxYIdBu1PjoKXMoxJytniVjXxYJmrlDXn5fMZROWbJbnEnp1XSDANqtvMdGQ==
   dependencies:
     "@types/express" "*"
     "@types/oauth" "*"
