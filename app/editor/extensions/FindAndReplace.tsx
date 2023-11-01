@@ -2,12 +2,14 @@ import escapeRegExp from "lodash/escapeRegExp";
 import { Node } from "prosemirror-model";
 import { Command, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import * as React from "react";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
-import Extension from "../lib/Extension";
+import Extension from "@shared/editor/lib/Extension";
+import FindAndReplace from "../components/FindAndReplace";
 
 const pluginKey = new PluginKey("find-and-replace");
 
-export default class FindAndReplace extends Extension {
+export default class FindAndReplaceExtension extends Extension {
   public get name() {
     return "find-and-replace";
   }
@@ -291,6 +293,10 @@ export default class FindAndReplace extends Extension {
       }),
     ];
   }
+
+  public widget = () => (
+    <FindAndReplace readOnly={this.editor.props.readOnly} />
+  );
 
   private results: { from: number; to: number }[] = [];
   private currentResultIndex = 0;

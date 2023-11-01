@@ -28,7 +28,7 @@ let searcher: FuzzySearch<TEmoji>;
 
 type Props = Omit<
   SuggestionsMenuProps<Emoji>,
-  "renderMenuItem" | "items" | "onLinkToolbarOpen" | "embeds" | "trigger"
+  "renderMenuItem" | "items" | "embeds" | "trigger"
 >;
 
 const EmojiMenu = (props: Props) => {

@@ -1,16 +1,22 @@
+import { action, observable } from "mobx";
 import { Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import Extension from "../lib/Extension";
+import * as React from "react";
+import Extension from "@shared/editor/lib/Extension";
+import HoverPreview from "~/components/HoverPreview";
 
 interface HoverPreviewsOptions {
-  /** Callback when a hover target is found or lost. */
-  onHoverLink?: (target: Element | null) => void;
-
   /** Delay before the target is considered "hovered" and callback is triggered. */
   delay: number;
 }
 
 export default class HoverPreviews extends Extension {
+  state: {
+    activeLinkElement: HTMLElement | null;
+  } = observable({
+    activeLinkElement: null,
+  });
+
   get defaultOptions(): HoverPreviewsOptions {
     return {
       delay: 500,
@@ -38,27 +44,37 @@ export default class HoverPreviews extends Extension {
                 ".use-hover-preview"
               );
               if (isHoverTarget(target, view)) {
-                if (this.options.onHoverLink) {
-                  hoveringTimeout = setTimeout(() => {
-                    this.options.onHoverLink?.(target);
-                  }, this.options.delay);
-                }
+                hoveringTimeout = setTimeout(
+                  action(() => {
+                    this.state.activeLinkElement = target as HTMLElement;
+                  }),
+                  this.options.delay
+                );
               }
               return false;
             },
-            mouseout: (view: EditorView, event: MouseEvent) => {
+            mouseout: action((view: EditorView, event: MouseEvent) => {
               const target = (event.target as HTMLElement)?.closest(
                 ".use-hover-preview"
               );
               if (isHoverTarget(target, view)) {
                 clearTimeout(hoveringTimeout);
-                this.options.onHoverLink?.(null);
+                this.state.activeLinkElement = null;
               }
               return false;
-            },
+            }),
           },
         },
       }),
     ];
   }
+
+  widget = () => (
+    <HoverPreview
+      element={this.state.activeLinkElement}
+      onClose={action(() => {
+        this.state.activeLinkElement = null;
+      })}
+    />
+  );
 }

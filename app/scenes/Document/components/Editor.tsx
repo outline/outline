@@ -8,8 +8,14 @@ import { TeamPreference } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import { RefHandle } from "~/components/ContentEditable";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
+import BlockMenuExtension from "~/editor/extensions/BlockMenu";
+import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
+import FindAndReplaceExtension from "~/editor/extensions/FindAndReplace";
+import HoverPreviewsExtension from "~/editor/extensions/HoverPreviews";
+import MentionMenuExtension from "~/editor/extensions/MentionMenu";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
@@ -20,14 +26,20 @@ import {
   documentPath,
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
-import { useDocumentContext } from "../../../components/DocumentContext";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
 
-const extensions = withComments(richExtensions);
+const extensions = [
+  ...withComments(richExtensions),
+  BlockMenuExtension,
+  EmojiMenuExtension,
+  MentionMenuExtension,
+  FindAndReplaceExtension,
+  HoverPreviewsExtension,
+];
 
-type Props = Omit<EditorProps, "extensions" | "editorStyle"> & {
+type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;
   onChangeEmoji: (emoji: string | null) => void;
   id: string;

@@ -19,7 +19,6 @@ import { AttachmentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
-import HoverPreview from "~/components/HoverPreview";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useDictionary from "~/hooks/useDictionary";
@@ -47,7 +46,6 @@ export type Props = Optional<
 > & {
   shareId?: string | undefined;
   embedsDisabled?: boolean;
-  previewsDisabled?: boolean;
   onHeadingsChange?: (headings: Heading[]) => void;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => void;
@@ -62,7 +60,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     onHeadingsChange,
     onCreateCommentMark,
     onDeleteCommentMark,
-    previewsDisabled,
   } = props;
   const userLocale = useUserLocale();
   const locale = dateLocale(userLocale);
@@ -73,21 +70,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const localRef = React.useRef<SharedEditor>();
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
   const previousHeadings = React.useRef<Heading[] | null>(null);
-  const [activeLinkElement, setActiveLink] =
-    React.useState<HTMLAnchorElement | null>(null);
   const previousCommentIds = React.useRef<string[]>();
-
-  const handleLinkActive = React.useCallback(
-    (element: HTMLAnchorElement | null) => {
-      setActiveLink(element);
-      return false;
-    },
-    []
-  );
-
-  const handleLinkInactive = React.useCallback(() => {
-    setActiveLink(null);
-  }, []);
 
   const handleSearchLink = React.useCallback(
     async (term: string) => {
@@ -339,7 +322,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           userPreferences={preferences}
           dictionary={dictionary}
           {...props}
-          onHoverLink={previewsDisabled ? undefined : handleLinkActive}
           onClickLink={handleClickLink}
           onSearchLink={handleSearchLink}
           onChange={handleChange}
@@ -352,12 +334,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             minHeight={props.editorStyle.paddingBottom}
-          />
-        )}
-        {!shareId && (
-          <HoverPreview
-            element={activeLinkElement}
-            onClose={handleLinkInactive}
           />
         )}
       </>

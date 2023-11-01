@@ -1,24 +1,24 @@
+import { action } from "mobx";
 import { PlusIcon } from "outline-icons";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { SuggestionsMenuType } from "../plugins/Suggestions";
-import { findParentNode } from "../queries/findParentNode";
-import { EventType } from "../types";
-import Suggestion from "./Suggestion";
+import { WidgetProps } from "@shared/editor/lib/Extension";
+import { findParentNode } from "@shared/editor/queries/findParentNode";
+import Suggestion from "~/editor/extensions/Suggestion";
+import BlockMenu from "../components/BlockMenu";
 
-export default class BlockMenu extends Suggestion {
+export default class BlockMenuExtension extends Suggestion {
   get defaultOptions() {
     return {
-      type: SuggestionsMenuType.Block,
       openRegex: /^\/(\w+)?$/,
       closeRegex: /(^(?!\/(\w+)?)(.*)$|^\/(([\w\W]+)\s.*|\s)$|^\/((\W)+)$)/,
     };
   }
 
   get name() {
-    return "blockmenu";
+    return "block-menu";
   }
 
   get plugins() {
@@ -54,12 +54,12 @@ export default class BlockMenu extends Suggestion {
                 Decoration.widget(
                   parent.pos,
                   () => {
-                    button.addEventListener("click", () => {
-                      this.editor.events.emit(EventType.SuggestionsMenuOpen, {
-                        type: SuggestionsMenuType.Block,
-                        query: "",
-                      });
-                    });
+                    button.addEventListener(
+                      "click",
+                      action(() => {
+                        this.state.open = true;
+                      })
+                    );
                     return button;
                   },
                   {
@@ -96,4 +96,28 @@ export default class BlockMenu extends Suggestion {
       }),
     ];
   }
+
+  widget = ({ rtl }: WidgetProps) => {
+    const { props, view } = this.editor;
+    return (
+      <BlockMenu
+        rtl={rtl}
+        isActive={this.state.open}
+        search={this.state.query}
+        onClose={action((insertNewLine) => {
+          if (insertNewLine) {
+            const transaction = view.state.tr.split(view.state.selection.to);
+            view.dispatch(transaction);
+            view.focus();
+          }
+
+          this.state.open = false;
+        })}
+        uploadFile={props.uploadFile}
+        onFileUploadStart={props.onFileUploadStart}
+        onFileUploadStop={props.onFileUploadStop}
+        embeds={props.embeds}
+      />
+    );
+  };
 }

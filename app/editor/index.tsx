@@ -26,15 +26,17 @@ import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import Styles from "@shared/editor/components/Styles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
-import Extension, { CommandFactory } from "@shared/editor/lib/Extension";
+import Extension, {
+  CommandFactory,
+  WidgetProps,
+} from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
 import Mark from "@shared/editor/marks/Mark";
-import { richExtensions, withComments } from "@shared/editor/nodes";
+import { basicExtensions as extensions } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
-import { SuggestionsMenuType } from "@shared/editor/plugins/Suggestions";
 import { EventType } from "@shared/editor/types";
 import { UserPreferences } from "@shared/types";
 import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
@@ -43,20 +45,12 @@ import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
 import { Dictionary } from "~/hooks/useDictionary";
 import Logger from "~/utils/Logger";
-import BlockMenu from "./components/BlockMenu";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
-import EmojiMenu from "./components/EmojiMenu";
-import FindAndReplace from "./components/FindAndReplace";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
-import MentionMenu from "./components/MentionMenu";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
-
-const extensions = withComments(richExtensions);
-
-export { default as Extension } from "@shared/editor/lib/Extension";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -124,8 +118,6 @@ export type Props = {
     href: string,
     event: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
-  /** Callback when user hovers on any link in the document */
-  onHoverLink?: (element: HTMLAnchorElement | null) => boolean;
   /** Callback when user presses any key with document focused */
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   /** Collection of embed types to render in the document */
@@ -148,12 +140,8 @@ type State = {
   isEditorFocused: boolean;
   /** If the toolbar for a text selection is visible */
   selectionToolbarOpen: boolean;
-  /** If a suggestions menu is visible */
-  suggestionsMenuOpen: SuggestionsMenuType | false;
   /** If the insert link toolbar is visible */
   linkToolbarOpen: boolean;
-  /** The query for the suggestion menu */
-  query: string;
 };
 
 /**
@@ -182,10 +170,8 @@ export class Editor extends React.PureComponent<
   state: State = {
     isRTL: false,
     isEditorFocused: false,
-    suggestionsMenuOpen: false,
     selectionToolbarOpen: false,
     linkToolbarOpen: false,
-    query: "",
   };
 
   isBlurred = true;
@@ -204,6 +190,7 @@ export class Editor extends React.PureComponent<
     [name: string]: NodeViewConstructor;
   };
 
+  widgets: { [name: string]: (props: WidgetProps) => React.ReactElement };
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
@@ -214,14 +201,6 @@ export class Editor extends React.PureComponent<
   public constructor(props: Props & ThemeProps<DefaultTheme>) {
     super(props);
     this.events.on(EventType.LinkToolbarOpen, this.handleOpenLinkToolbar);
-    this.events.on(
-      EventType.SuggestionsMenuOpen,
-      this.handleOpenSuggestionsMenu
-    );
-    this.events.on(
-      EventType.SuggestionsMenuClose,
-      this.handleCloseSuggestionsMenu
-    );
   }
 
   /**
@@ -279,7 +258,6 @@ export class Editor extends React.PureComponent<
     if (
       !this.isBlurred &&
       !this.state.isEditorFocused &&
-      !this.state.suggestionsMenuOpen &&
       !this.state.linkToolbarOpen &&
       !this.state.selectionToolbarOpen
     ) {
@@ -290,7 +268,6 @@ export class Editor extends React.PureComponent<
     if (
       this.isBlurred &&
       (this.state.isEditorFocused ||
-        this.state.suggestionsMenuOpen ||
         this.state.linkToolbarOpen ||
         this.state.selectionToolbarOpen)
     ) {
@@ -310,6 +287,7 @@ export class Editor extends React.PureComponent<
     this.nodes = this.createNodes();
     this.marks = this.createMarks();
     this.schema = this.createSchema();
+    this.widgets = this.createWidgets();
     this.plugins = this.createPlugins();
     this.rulePlugins = this.createRulePlugins();
     this.keymaps = this.createKeymaps();
@@ -376,6 +354,10 @@ export class Editor extends React.PureComponent<
       schema: this.schema,
       view: this.view,
     });
+  }
+
+  private createWidgets() {
+    return this.extensions.widgets;
   }
 
   private createNodes() {
@@ -702,8 +684,6 @@ export class Editor extends React.PureComponent<
     this.setState((state) => ({
       ...state,
       selectionToolbarOpen: true,
-      suggestionsMenuOpen: false,
-      query: "",
     }));
   };
 
@@ -720,9 +700,7 @@ export class Editor extends React.PureComponent<
   private handleOpenLinkToolbar = () => {
     this.setState((state) => ({
       ...state,
-      suggestionsMenuOpen: false,
       linkToolbarOpen: true,
-      query: "",
     }));
   };
 
@@ -730,37 +708,6 @@ export class Editor extends React.PureComponent<
     this.setState((state) => ({
       ...state,
       linkToolbarOpen: false,
-    }));
-  };
-
-  private handleOpenSuggestionsMenu = (data: {
-    type: SuggestionsMenuType;
-    query: string;
-  }) => {
-    this.setState((state) => ({
-      ...state,
-      suggestionsMenuOpen: data.type,
-      query: data.query,
-    }));
-  };
-
-  private handleCloseSuggestionsMenu = (
-    type: SuggestionsMenuType,
-    insertNewLine?: boolean
-  ) => {
-    if (insertNewLine) {
-      const transaction = this.view.state.tr.split(
-        this.view.state.selection.to
-      );
-      this.view.dispatch(transaction);
-      this.view.focus();
-    }
-    if (type && this.state.suggestionsMenuOpen !== type) {
-      return;
-    }
-    this.setState((state) => ({
-      ...state,
-      suggestionsMenuOpen: false,
     }));
   };
 
@@ -792,84 +739,31 @@ export class Editor extends React.PureComponent<
               ref={this.elementRef}
             />
             {this.view && (
-              <>
-                <SelectionToolbar
-                  rtl={isRTL}
-                  readOnly={readOnly}
-                  canComment={this.props.canComment}
-                  isTemplate={this.props.template === true}
-                  onOpen={this.handleOpenSelectionToolbar}
-                  onClose={this.handleCloseSelectionToolbar}
-                  onSearchLink={this.props.onSearchLink}
-                  onClickLink={this.props.onClickLink}
-                  onCreateLink={this.props.onCreateLink}
-                />
-                {this.commands.find && <FindAndReplace readOnly={readOnly} />}
-              </>
+              <SelectionToolbar
+                rtl={isRTL}
+                readOnly={readOnly}
+                canComment={this.props.canComment}
+                isTemplate={this.props.template === true}
+                onOpen={this.handleOpenSelectionToolbar}
+                onClose={this.handleCloseSelectionToolbar}
+                onSearchLink={this.props.onSearchLink}
+                onClickLink={this.props.onClickLink}
+                onCreateLink={this.props.onCreateLink}
+              />
             )}
-            {!readOnly && this.view && (
-              <>
-                {this.marks.link && (
-                  <LinkToolbar
-                    isActive={this.state.linkToolbarOpen}
-                    onCreateLink={this.props.onCreateLink}
-                    onSearchLink={this.props.onSearchLink}
-                    onClickLink={this.props.onClickLink}
-                    onClose={this.handleCloseLinkToolbar}
-                  />
-                )}
-                {this.nodes.emoji && (
-                  <EmojiMenu
-                    rtl={isRTL}
-                    isActive={
-                      this.state.suggestionsMenuOpen ===
-                      SuggestionsMenuType.Emoji
-                    }
-                    search={this.state.query}
-                    onClose={(insertNewLine) =>
-                      this.handleCloseSuggestionsMenu(
-                        SuggestionsMenuType.Emoji,
-                        insertNewLine
-                      )
-                    }
-                  />
-                )}
-                {this.nodes.mention && (
-                  <MentionMenu
-                    rtl={isRTL}
-                    isActive={
-                      this.state.suggestionsMenuOpen ===
-                      SuggestionsMenuType.Mention
-                    }
-                    search={this.state.query}
-                    onClose={(insertNewLine) =>
-                      this.handleCloseSuggestionsMenu(
-                        SuggestionsMenuType.Mention,
-                        insertNewLine
-                      )
-                    }
-                  />
-                )}
-                <BlockMenu
-                  rtl={isRTL}
-                  isActive={
-                    this.state.suggestionsMenuOpen === SuggestionsMenuType.Block
-                  }
-                  search={this.state.query}
-                  onClose={(insertNewLine) =>
-                    this.handleCloseSuggestionsMenu(
-                      SuggestionsMenuType.Block,
-                      insertNewLine
-                    )
-                  }
-                  uploadFile={this.props.uploadFile}
-                  onLinkToolbarOpen={this.handleOpenLinkToolbar}
-                  onFileUploadStart={this.props.onFileUploadStart}
-                  onFileUploadStop={this.props.onFileUploadStop}
-                  embeds={this.props.embeds}
-                />
-              </>
+            {!readOnly && this.view && this.marks.link && (
+              <LinkToolbar
+                isActive={this.state.linkToolbarOpen}
+                onCreateLink={this.props.onCreateLink}
+                onSearchLink={this.props.onSearchLink}
+                onClickLink={this.props.onClickLink}
+                onClose={this.handleCloseLinkToolbar}
+              />
             )}
+            {this.widgets &&
+              Object.values(this.widgets).map((Widget, index) => (
+                <Widget key={String(index)} rtl={isRTL} />
+              ))}
           </Flex>
         </EditorContext.Provider>
       </PortalContext.Provider>
