@@ -116,7 +116,7 @@ export async function getTeamFromContext(ctx: Context) {
     } else {
       team = await Team.findOne();
     }
-  } else if (ctx.state.rootShare) {
+  } else if (ctx.state?.rootShare) {
     team = await Team.findByPk(ctx.state.rootShare.teamId);
   } else if (domain.custom) {
     team = await Team.findOne({ where: { domain: domain.host } });

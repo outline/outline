@@ -107,7 +107,7 @@ export const renderApp = async (
 };
 
 export const renderShare = async (ctx: Context, next: Next) => {
-  const rootShareId = ctx.state.rootShare?.id;
+  const rootShareId = ctx.state?.rootShare?.id;
   const shareId = rootShareId ?? ctx.params.shareId;
   const documentSlug = ctx.params.documentSlug;
 
