@@ -30,6 +30,12 @@ export default function Routes() {
         <Switch>
           <Route exact path="/" component={SharedDocument} />
           <Route exact path={`/doc/${slug}`} component={SharedDocument} />
+          <Redirect exact from="/s/:shareId" to="/" />
+          <Redirect
+            exact
+            from={`/s/:shareId/doc/${slug}`}
+            to={`/doc/${slug}`}
+          />
         </Switch>
       ) : (
         <Switch>
