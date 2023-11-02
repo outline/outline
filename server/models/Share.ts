@@ -14,6 +14,7 @@ import {
   BeforeUpdate,
 } from "sequelize-typescript";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
+import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import Collection from "./Collection";
 import Document from "./Document";
@@ -131,6 +132,11 @@ class Share extends IdModel {
   }
 
   get canonicalUrl() {
+    if (this.domain) {
+      const url = new URL(env.URL);
+      return `${url.protocol}//${this.domain}${url.port ? `:${url.port}` : ""}`;
+    }
+
     return this.urlId
       ? `${this.team.url}/s/${this.urlId}`
       : `${this.team.url}/s/${this.id}`;
