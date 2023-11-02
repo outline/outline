@@ -6,13 +6,12 @@ import compress from "koa-compress";
 import Router from "koa-router";
 import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
-import { Op } from "sequelize";
 import { languages } from "@shared/i18n";
 import { IntegrationType } from "@shared/types";
-import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
-import { Integration, Share } from "@server/models";
+import shareDomains from "@server/middlewares/shareDomains";
+import { Integration } from "@server/models";
 import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
@@ -125,37 +124,22 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
-router.get("/s/:shareId", renderShare);
-router.get("/s/:shareId/doc/:documentSlug", renderShare);
-router.get("/s/:shareId/*", renderShare);
+router.get("/s/:shareId", shareDomains(), renderShare);
+router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
+router.get("/s/:shareId/*", shareDomains(), renderShare);
 
 // catch all for application
-router.get("*", async (ctx, next) => {
+router.get("*", shareDomains(), async (ctx, next) => {
+  if (ctx.state?.rootShare) {
+    return renderShare(ctx, next);
+  }
+
   const team = await getTeamFromContext(ctx);
 
   // Redirect all requests to custom domain if one is set
   if (team?.domain && team.domain !== ctx.hostname) {
     ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
     return;
-  }
-
-  const isCustomDomain = parseDomain(ctx.host).custom;
-  const isDevelopment = env.ENVIRONMENT === "development";
-  if (!team && (isDevelopment || (isCustomDomain && env.isCloudHosted))) {
-    const share = await Share.unscoped().findOne({
-      where: {
-        domain: ctx.hostname,
-        published: true,
-        revokedAt: {
-          [Op.is]: null,
-        },
-      },
-    });
-
-    if (share) {
-      ctx.state.rootShare = share;
-      return renderShare(ctx, next);
-    }
   }
 
   const analytics = team
