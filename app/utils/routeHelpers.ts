@@ -117,7 +117,7 @@ export function searchPath(
 
 export function sharedDocumentPath(shareId: string, docPath?: string) {
   if (shareId === env.ROOT_SHARE_ID) {
-    return docPath ? `/s${docPath}` : "/";
+    return docPath ? docPath : "/";
   }
 
   return docPath ? `/s/${shareId}${docPath}` : `/s/${shareId}`;

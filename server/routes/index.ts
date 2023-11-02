@@ -8,9 +8,10 @@ import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
 import { IntegrationType } from "@shared/types";
+import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
-import { Integration } from "@server/models";
+import { Integration, Share } from "@server/models";
 import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
@@ -137,6 +138,21 @@ router.get("*", async (ctx, next) => {
     return;
   }
 
+  const isCustomDomain = parseDomain(ctx.host).custom;
+  const isDevelopment = env.ENVIRONMENT === "development";
+  if (!team && (isDevelopment || (isCustomDomain && env.isCloudHosted))) {
+    const share = await Share.findOne({
+      where: {
+        domain: ctx.hostname,
+      },
+    });
+
+    if (share) {
+      ctx.params.rootShareId = share.id;
+      return renderShare(ctx, next);
+    }
+  }
+
   const analytics = team
     ? await Integration.findOne({
         where: {
@@ -147,7 +163,6 @@ router.get("*", async (ctx, next) => {
     : undefined;
 
   return renderApp(ctx, next, {
-    rootShareId: team?.rootShareId,
     analytics,
   });
 });

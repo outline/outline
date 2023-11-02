@@ -54,7 +54,7 @@ export const renderApp = async (
     description?: string;
     canonical?: string;
     shortcutIcon?: string;
-    rootShareId?: string | null;
+    rootShareId?: string;
     analytics?: Integration | null;
   } = {}
 ) => {
@@ -160,7 +160,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
         ? team.avatarUrl
         : undefined,
     analytics,
-    rootShareId: team?.rootShareId,
+    rootShareId: ctx.params.rootShareId,
     canonical: share
       ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
       : undefined,
