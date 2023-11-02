@@ -148,7 +148,7 @@ router.get("*", async (ctx, next) => {
     });
 
     if (share) {
-      ctx.params.rootShareId = share.id;
+      ctx.state.rootShare = share;
       return renderShare(ctx, next);
     }
   }

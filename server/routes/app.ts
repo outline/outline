@@ -107,7 +107,10 @@ export const renderApp = async (
 };
 
 export const renderShare = async (ctx: Context, next: Next) => {
-  const { shareId, documentSlug } = ctx.params;
+  const rootShareId = ctx.state.rootShare?.id;
+  const shareId = rootShareId ?? ctx.params.shareId;
+  const documentSlug = ctx.params.documentSlug;
+
   // Find the share record if publicly published so that the document title
   // can be be returned in the server-rendered HTML. This allows it to appear in
   // unfurls with more reliablity
@@ -160,7 +163,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
         ? team.avatarUrl
         : undefined,
     analytics,
-    rootShareId: ctx.params.rootShareId,
+    rootShareId,
     canonical: share
       ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
       : undefined,
