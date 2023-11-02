@@ -6,11 +6,13 @@ import compress from "koa-compress";
 import Router from "koa-router";
 import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
+import { Op } from "sequelize";
 import { languages } from "@shared/i18n";
 import { IntegrationType } from "@shared/types";
+import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
-import { Integration } from "@server/models";
+import { Integration, Share } from "@server/models";
 import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
@@ -135,6 +137,25 @@ router.get("*", async (ctx, next) => {
   if (team?.domain && team.domain !== ctx.hostname) {
     ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
     return;
+  }
+
+  const isCustomDomain = parseDomain(ctx.host).custom;
+  const isDevelopment = env.ENVIRONMENT === "development";
+  if (!team && (isDevelopment || (isCustomDomain && env.isCloudHosted))) {
+    const share = await Share.unscoped().findOne({
+      where: {
+        domain: ctx.hostname,
+        published: true,
+        revokedAt: {
+          [Op.is]: null,
+        },
+      },
+    });
+
+    if (share) {
+      ctx.state.rootShare = share;
+      return renderShare(ctx, next);
+    }
   }
 
   const analytics = team

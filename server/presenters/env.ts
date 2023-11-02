@@ -6,7 +6,10 @@ import { Integration } from "@server/models";
 // do not add anything here that should be a secret or password
 export default function present(
   env: Environment,
-  analytics?: Integration<IntegrationType.Analytics> | null
+  options: {
+    analytics?: Integration<IntegrationType.Analytics> | null;
+    rootShareId?: string | null;
+  } = {}
 ): PublicEnv {
   return {
     URL: env.URL.replace(/\/$/, ""),
@@ -29,9 +32,11 @@ export default function present(
     RELEASE:
       process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION || undefined,
     APP_NAME: env.APP_NAME,
+    ROOT_SHARE_ID: options.rootShareId || undefined,
+
     analytics: {
-      service: analytics?.service,
-      settings: analytics?.settings,
+      service: options.analytics?.service,
+      settings: options.analytics?.settings,
     },
   };
 }

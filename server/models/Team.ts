@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { URL } from "url";
 import util from "util";
+import { type SaveOptions } from "sequelize";
 import { Op } from "sequelize";
 import {
   Column,
@@ -19,6 +20,7 @@ import {
   IsUUID,
   AllowNull,
   AfterUpdate,
+  BeforeUpdate,
 } from "sequelize-typescript";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import {
@@ -28,12 +30,14 @@ import {
 } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
+import { ValidationError } from "@server/errors";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Document from "./Document";
+import Share from "./Share";
 import TeamDomain from "./TeamDomain";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -327,6 +331,28 @@ class Team extends ParanoidModel {
   allowedDomains: TeamDomain[];
 
   // hooks
+
+  @BeforeUpdate
+  static async checkDomain(model: Team, options: SaveOptions) {
+    if (!model.domain) {
+      return model;
+    }
+
+    model.domain = model.domain.toLowerCase();
+
+    const count = await Share.count({
+      ...options,
+      where: {
+        domain: model.domain,
+      },
+    });
+
+    if (count > 0) {
+      throw ValidationError("Domain is already in use");
+    }
+
+    return model;
+  }
 
   @AfterUpdate
   static deletePreviousAvatar = async (model: Team) => {
