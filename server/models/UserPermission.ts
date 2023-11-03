@@ -8,6 +8,7 @@ import {
   Table,
   DataType,
   Scopes,
+  AllowNull,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
@@ -44,6 +45,10 @@ class UserPermission extends IdModel {
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
   permission: CollectionPermission | DocumentPermission;
+
+  @AllowNull
+  @Column
+  index: string | null;
 
   // associations
 
