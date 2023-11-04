@@ -573,6 +573,7 @@
   "Custom link": "Aangepaste link",
   "The document will be accessible at <2>{{url}}</2>": "Het document zal toegankelijk zijn via <2>{{url}}</2>",
   "More options": "Meer opties",
+  "Custom domain": "Custom domain",
   "Close": "Sluiten",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} gebruikt {{ appName }} om documenten te delen, log alsjeblieft in om door te gaan.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Weet je zeker dat je het sjabloon <em>{{ documentTitle }}</em> wilt verwijderen?",
