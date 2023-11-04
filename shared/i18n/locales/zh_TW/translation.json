@@ -573,6 +573,7 @@
   "Custom link": "自訂連結",
   "The document will be accessible at <2>{{url}}</2>": "文件可在 <2>{{url}}</2> 被存取",
   "More options": "更多選項",
+  "Custom domain": "Custom domain",
   "Close": "關閉",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} 正在使用 {{ appName }} 分享文件，請登入以繼續。",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "您確定要刪除 <em>{{ documentTitle }}</em> 範本嗎？",
