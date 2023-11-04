@@ -573,6 +573,7 @@
   "Custom link": "사용자 지정 링크",
   "The document will be accessible at <2>{{url}}</2>": "문서는 <2>{{url}}</2>에서 액세스할 수 있습니다.",
   "More options": "옵션 더 보기",
+  "Custom domain": "Custom domain",
   "Close": "닫기",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} 는 {{ appName }} 사용하여 문서를 공유하고 있습니다. 계속하려면 로그인하십시오.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "템플릿 <em>{{ documentTitle }}</em> 을 정말 삭제하시겠습니까?",
