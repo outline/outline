@@ -573,6 +573,7 @@
   "Custom link": "Özel bağlantı",
   "The document will be accessible at <2>{{url}}</2>": "Belge <2>{{url}}</2> adresinde erişilebilir olacak",
   "More options": "More options",
+  "Custom domain": "Custom domain",
   "Close": "Close",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} is using {{ appName }} to share documents, please login to continue.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "<em>{{ documentTitle }}</em> şablonunu silmek istediğinizden emin misiniz?",
