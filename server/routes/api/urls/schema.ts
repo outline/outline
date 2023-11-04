@@ -37,7 +37,7 @@ export type UrlsUnfurlReq = z.infer<typeof UrlsUnfurlSchema>;
 
 export const UrlsCheckCnameSchema = BaseSchema.extend({
   body: z.object({
-    url: z.string().url(),
+    hostname: z.string(),
   }),
 });
 

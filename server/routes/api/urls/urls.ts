@@ -87,16 +87,32 @@ router.post(
 
 router.post(
   "urls.validateCustomDomain",
-  rateLimiter(RateLimiterStrategy.FivePerMinute),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   auth(),
   validate(T.UrlsCheckCnameSchema),
-  async (ctx: APIContext<T.UrlsUnfurlReq>) => {
-    const url = new URL(ctx.input.body.url);
-    let addresses;
+  async (ctx: APIContext<T.UrlsCheckCnameReq>) => {
+    const { hostname } = ctx.input.body;
 
+    const [team, share] = await Promise.all([
+      Team.findOne({
+        where: {
+          domain: hostname,
+        },
+      }),
+      Share.findOne({
+        where: {
+          domain: hostname,
+        },
+      }),
+    ]);
+    if (team || share) {
+      throw ValidationError("Domain is already in use");
+    }
+
+    let addresses;
     try {
       addresses = await new Promise<string[]>((resolve, reject) => {
-        dns.resolveCname(url.hostname, (err, addresses) => {
+        dns.resolveCname(hostname, (err, addresses) => {
           if (err) {
             return reject(err);
           }
@@ -119,26 +135,7 @@ router.post(
     const likelyValid = address.endsWith(getBaseDomain());
 
     if (!likelyValid) {
-      ctx.body = {
-        success: false,
-      };
-      return;
-    }
-
-    const [team, share] = await Promise.all([
-      Team.findOne({
-        where: {
-          domain: url.hostname,
-        },
-      }),
-      Share.findOne({
-        where: {
-          domain: url.hostname,
-        },
-      }),
-    ]);
-    if (team || share) {
-      throw ValidationError("Domain is already in use");
+      throw ValidationError("CNAME is not configured correctly");
     }
 
     ctx.body = {

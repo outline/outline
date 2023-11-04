@@ -224,7 +224,7 @@ describe("#urls.validateCustomDomain", () => {
     const res = await server.post("/api/urls.validateCustomDomain", {
       body: {
         token: user.getJwtToken(),
-        url: "https://valid.custom.domain",
+        hostname: "valid.custom.domain",
       },
     });
     expect(res.status).toEqual(200);
@@ -235,7 +235,7 @@ describe("#urls.validateCustomDomain", () => {
     const res = await server.post("/api/urls.validateCustomDomain", {
       body: {
         token: user.getJwtToken(),
-        url: "https://google.com",
+        hostname: "google.com",
       },
     });
     expect(res.status).toEqual(400);
