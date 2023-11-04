@@ -573,6 +573,7 @@
   "Custom link": "自定义链接",
   "The document will be accessible at <2>{{url}}</2>": "该文档可访问于 <2>{{url}}</2>",
   "More options": "更多选项",
+  "Custom domain": "Custom domain",
   "Close": "关闭",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} 正在使用 {{ appName }} 共享文档，请登录以继续。",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "确认删除 <em>{{ documentTitle }}</em> 文档模板？",
