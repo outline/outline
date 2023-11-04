@@ -60,6 +60,7 @@ export type PublicEnv = {
   GOOGLE_ANALYTICS_ID: string | undefined;
   RELEASE: string | undefined;
   APP_NAME: string;
+  ROOT_SHARE_ID?: string;
   analytics: {
     service?: IntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;

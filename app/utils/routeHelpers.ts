@@ -2,9 +2,10 @@ import queryString from "query-string";
 import Collection from "~/models/Collection";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
+import env from "~/env";
 
 export function homePath(): string {
-  return "/home";
+  return env.ROOT_SHARE_ID ? "/" : "/home";
 }
 
 export function draftsPath(): string {
@@ -115,6 +116,10 @@ export function searchPath(
 }
 
 export function sharedDocumentPath(shareId: string, docPath?: string) {
+  if (shareId === env.ROOT_SHARE_ID) {
+    return docPath ? docPath : "/";
+  }
+
   return docPath ? `/s/${shareId}${docPath}` : `/s/${shareId}`;
 }
 

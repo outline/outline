@@ -10,6 +10,7 @@ import { languages } from "@shared/i18n";
 import { IntegrationType } from "@shared/types";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
+import shareDomains from "@server/middlewares/shareDomains";
 import { Integration } from "@server/models";
 import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
@@ -123,12 +124,16 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
-router.get("/s/:shareId", renderShare);
-router.get("/s/:shareId/doc/:documentSlug", renderShare);
-router.get("/s/:shareId/*", renderShare);
+router.get("/s/:shareId", shareDomains(), renderShare);
+router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
+router.get("/s/:shareId/*", shareDomains(), renderShare);
 
 // catch all for application
-router.get("*", async (ctx, next) => {
+router.get("*", shareDomains(), async (ctx, next) => {
+  if (ctx.state?.rootShare) {
+    return renderShare(ctx, next);
+  }
+
   const team = await getTeamFromContext(ctx);
 
   // Redirect all requests to custom domain if one is set
