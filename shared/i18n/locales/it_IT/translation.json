@@ -573,6 +573,7 @@
   "Custom link": "Link personalizzato",
   "The document will be accessible at <2>{{url}}</2>": "Il documento sarà accessibile su <2>{{url}}</2>",
   "More options": "Altre opzioni",
+  "Custom domain": "Custom domain",
   "Close": "Chiudi",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} utilizza {{ appName }} per condividere documenti, effettua il login per continuare.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Sei sicuro di voler eliminare il template <em>{{ documentTitle }}</em>?",
