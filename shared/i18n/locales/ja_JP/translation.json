@@ -573,6 +573,7 @@
   "Custom link": "カスタムリンク",
   "The document will be accessible at <2>{{url}}</2>": "The document will be accessible at <2>{{url}}</2>",
   "More options": "詳細設定",
+  "Custom domain": "Custom domain",
   "Close": "閉じる",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} is using {{ appName }} to share documents, please login to continue.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "テンプレート <em>{{ documentTitle }}</em> を削除してもよろしいですか？",
