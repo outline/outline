@@ -27,6 +27,10 @@ class Share extends Model {
   @observable
   urlId: string;
 
+  @Field
+  @observable
+  domain: string;
+
   @observable
   documentTitle: string;
 
