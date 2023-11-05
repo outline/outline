@@ -2,12 +2,19 @@ import teamUpdater from "@server/commands/teamUpdater";
 import { Team, User } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { Event as TEvent, CollectionEvent } from "@server/types";
+import DetachDraftsFromCollectionTask from "../tasks/DetachDraftsFromCollectionTask";
 import BaseProcessor from "./BaseProcessor";
 
 export default class CollectionDeletedProcessor extends BaseProcessor {
   static applicableEvents: TEvent["name"][] = ["collections.delete"];
 
   async perform(event: CollectionEvent) {
+    await DetachDraftsFromCollectionTask.schedule({
+      collectionId: event.collectionId,
+      actorId: event.actorId,
+      ip: event.ip,
+    });
+
     await sequelize.transaction(async (transaction) => {
       const team = await Team.findByPk(event.teamId, {
         rejectOnEmpty: true,

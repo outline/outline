@@ -20,7 +20,6 @@ import {
   Default,
   BeforeValidate,
   BeforeSave,
-  AfterDestroy,
   AfterCreate,
   HasMany,
   BelongsToMany,
@@ -277,18 +276,6 @@ class Collection extends ParanoidModel {
     if (total === 1) {
       throw ValidationError("Cannot delete last collection");
     }
-  }
-
-  @AfterDestroy
-  static async onAfterDestroy(model: Collection) {
-    await Document.destroy({
-      where: {
-        collectionId: model.id,
-        archivedAt: {
-          [Op.is]: null,
-        },
-      },
-    });
   }
 
   @AfterCreate
