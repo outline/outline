@@ -81,11 +81,17 @@ const insertFiles = function (
     // happening in the background in parallel.
     uploadFile?.(upload.file)
       .then(async (src) => {
+        if (view.isDestroyed) {
+          return;
+        }
         if (upload.isImage) {
           const newImg = new Image();
           newImg.onload = () => {
             const result = findPlaceholder(view.state, upload.id);
             if (result === null) {
+              return;
+            }
+            if (view.isDestroyed) {
               return;
             }
 
@@ -114,6 +120,10 @@ const insertFiles = function (
 
           const [from, to] = result;
           const dimensions = await FileHelper.getVideoDimensions(upload.file);
+
+          if (view.isDestroyed) {
+            return;
+          }
 
           view.dispatch(
             view.state.tr
@@ -158,6 +168,10 @@ const insertFiles = function (
 
         // eslint-disable-next-line no-console
         console.error(error);
+
+        if (view.isDestroyed) {
+          return;
+        }
 
         // cleanup the placeholder if there is a failure
         view.dispatch(
