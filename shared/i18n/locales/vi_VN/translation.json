@@ -573,7 +573,6 @@
   "Custom link": "Liên kết tùy chỉnh",
   "The document will be accessible at <2>{{url}}</2>": "Tài liệu sẽ có thể truy cập được tại <2>{{url}}</2>",
   "More options": "Tùy chọn khác",
-  "Custom domain": "Custom domain",
   "Close": "Đóng",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} đang sử dụng {{ appName }} để chia sẻ tài liệu, vui lòng đăng nhập để tiếp tục.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Bạn có chắc chắn muốn xóa mẫu <em>{{ documentTitle }}</em> không?",
