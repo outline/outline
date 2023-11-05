@@ -573,7 +573,6 @@
   "Custom link": "Спеціальне посилання",
   "The document will be accessible at <2>{{url}}</2>": "Документ буде доступний за адресою <2>{{url}}</2>",
   "More options": "Більше параметрів",
-  "Custom domain": "Custom domain",
   "Close": "Закрити",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} використовує {{ appName }} для обміну документами, увійдіть, щоб продовжити.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Ви впевнені, що хочете видалити шаблон <em>{{ documentTitle }}</em>?",
