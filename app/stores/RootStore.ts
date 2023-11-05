@@ -25,6 +25,7 @@ import SharesStore from "./SharesStore";
 import StarsStore from "./StarsStore";
 import SubscriptionsStore from "./SubscriptionsStore";
 import UiStore from "./UiStore";
+import UserMembershipsStore from "./UserMembershipsStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
 import WebhookSubscriptionsStore from "./WebhookSubscriptionStore";
@@ -58,6 +59,7 @@ export default class RootStore {
   views: ViewsStore;
   fileOperations: FileOperationsStore;
   webhookSubscriptions: WebhookSubscriptionsStore;
+  userMemberships: UserMembershipsStore;
 
   constructor() {
     // Models
@@ -84,6 +86,7 @@ export default class RootStore {
     this.registerStore(ViewsStore);
     this.registerStore(FileOperationsStore);
     this.registerStore(WebhookSubscriptionsStore);
+    this.registerStore(UserMembershipsStore);
 
     // Non-models
     this.registerStore(DocumentPresenceStore, "presence");

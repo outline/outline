@@ -1,6 +1,6 @@
 import fractionalIndex from "fractional-index";
 import naturalSort from "@shared/utils/naturalSort";
-import { Collection, Document, Star } from "@server/models";
+import { Collection, Document, Star, UserPermission } from "@server/models";
 
 export async function collectionIndexing(
   teamId: string
@@ -79,4 +79,49 @@ export async function starIndexing(
     indexedStars[star.id] = star.index;
   });
   return indexedStars;
+}
+
+export async function userPermissionIndexing(
+  userId: string
+): Promise<{ [id: string]: string }> {
+  const permissions = await UserPermission.findAll({
+    where: { userId },
+  });
+
+  const documents = await Document.findAll({
+    attributes: ["id", "updatedAt"],
+    where: {
+      id: permissions
+        .map((permission) => permission.documentId)
+        .filter(Boolean) as string[],
+    },
+    order: [["updatedAt", "DESC"]],
+  });
+
+  const sortable = permissions.sort(function (a, b) {
+    return (
+      documents.findIndex((d) => d.id === a.documentId) -
+      documents.findIndex((d) => d.id === b.documentId)
+    );
+  });
+
+  let previousIndex = null;
+  const promises = [];
+
+  for (const permission of sortable) {
+    if (permission.index === null) {
+      permission.index = fractionalIndex(previousIndex, null);
+      promises.push(permission.save());
+    }
+
+    previousIndex = permission.index;
+  }
+
+  await Promise.all(promises);
+
+  const indexedPermissions = {};
+  sortable.forEach((permission) => {
+    indexedPermissions[permission.getId()] = permission.index;
+  });
+  return indexedPermissions;
 }
