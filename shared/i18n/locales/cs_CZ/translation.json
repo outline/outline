@@ -573,7 +573,6 @@
   "Custom link": "Vlastní odkaz",
   "The document will be accessible at <2>{{url}}</2>": "Dokument bude přístupný na <2>{{url}}</2>",
   "More options": "Více možností",
-  "Custom domain": "Custom domain",
   "Close": "Zavřít",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} používá {{ appName }} ke sdílení dokumentů, pro pokračování se prosím přihlaste.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Opravdu chcete odstranit šablonu <em>{{ documentTitle }}</em>?",
