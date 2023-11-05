@@ -164,6 +164,13 @@ async function start(id: number, disconnect: () => void) {
 
   ShutdownHelper.add("metrics", ShutdownOrder.last, () => Metrics.flush());
 
+  // Handle uncaught promise rejections
+  process.on("unhandledRejection", (error: Error) => {
+    Logger.error("Unhandled promise rejection", error, {
+      stack: error.stack,
+    });
+  });
+
   // Handle shutdown signals
   process.once("SIGTERM", () => ShutdownHelper.execute());
   process.once("SIGINT", () => ShutdownHelper.execute());
