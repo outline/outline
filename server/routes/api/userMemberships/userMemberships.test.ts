@@ -75,8 +75,7 @@ describe("#userMemberships.update", () => {
     const res = await server.post("/api/userMemberships.update", {
       body: {
         token: member.getJwtToken(),
-        userId: member.id,
-        documentId: document.id,
+        id: `${member.id}-${document.id}`,
         index: "V",
       },
     });
