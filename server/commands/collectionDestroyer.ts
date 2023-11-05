@@ -1,5 +1,5 @@
-import { Transaction } from "sequelize";
-import { Collection, Event, User } from "@server/models";
+import { Transaction, Op } from "sequelize";
+import { Collection, Document, Event, User } from "@server/models";
 
 type Props = {
   /** The collection to delete */
@@ -19,6 +19,23 @@ export default async function collectionDestroyer({
   ip,
 }: Props) {
   await collection.destroy({ transaction });
+
+  await Document.update(
+    {
+      lastModifiedById: user.id,
+      deletedAt: new Date(),
+    },
+    {
+      transaction,
+      where: {
+        teamId: collection.teamId,
+        collectionId: collection.id,
+        archivedAt: {
+          [Op.is]: null,
+        },
+      },
+    }
+  );
 
   await Event.create(
     {
