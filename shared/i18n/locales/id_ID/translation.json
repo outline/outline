@@ -573,7 +573,6 @@
   "Custom link": "Tautan kustom",
   "The document will be accessible at <2>{{url}}</2>": "Dokumen akan dapat diakses pada <2>{{url}}</2>",
   "More options": "Lebih banyak pilihan",
-  "Custom domain": "Custom domain",
   "Close": "Menutup",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} menggunakan {{ appName }} untuk berbagi dokumen, silakan login untuk melanjutkan.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Anda yakin ingin menghapus templat <em>{{ documentTitle }}</em>?",
