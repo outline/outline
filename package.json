@@ -209,7 +209,7 @@
     "slugify": "^1.6.6",
     "smooth-scroll-into-view-if-needed": "^1.1.33",
     "socket.io": "^4.7.2",
-    "socket.io-client": "^4.6.1",
+    "socket.io-client": "^4.7.2",
     "socket.io-redis": "^6.1.1",
     "sonner": "^1.0.3",
     "stoppable": "^1.1.0",
