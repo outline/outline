@@ -2702,10 +2702,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/addressparser@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@types/addressparser/-/addressparser-1.0.1.tgz#e34e8ca186c96a5bc3d9bfbf93a7258d7a03b413"
-  integrity sha512-iw+cRQy5XcLGWhyyuYJ2Fnu8dyJ1y0QoaODfnbJCRzv/qYtAWH5yK6H688kGIyqm1VowwKUlA8mTH9qUkPOd7A==
+"@types/addressparser@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@types/addressparser/-/addressparser-1.0.2.tgz#dece1fa3ceff64cacf074f8258bef054de91f103"
+  integrity sha512-EYCtNs8Iw0kOvLVNvZ1PmhYS8wuAi7GKv226uO+59mDNaJEP9Ml13MiV8mU+DH1P+m1B5yYywYx6RbbM5ES4Qw==
   dependencies:
     "@types/node" "*"
 
