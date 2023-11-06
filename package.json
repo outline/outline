@@ -240,7 +240,7 @@
     "@babel/preset-typescript": "^7.21.4",
     "@faker-js/faker": "^8.0.2",
     "@relative-ci/agent": "^4.1.10",
-    "@types/addressparser": "^1.0.1",
+    "@types/addressparser": "^1.0.2",
     "@types/body-scroll-lock": "^3.1.0",
     "@types/crypto-js": "^4.1.2",
     "@types/diff": "^5.0.4",
