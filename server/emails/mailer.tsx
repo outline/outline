@@ -8,8 +8,7 @@ import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import { baseStyles } from "./templates/components/EmailLayout";
 
-const useTestEmailService =
-  env.ENVIRONMENT === "development" && !env.SMTP_USERNAME;
+const useTestEmailService = env.isDevelopment && !env.SMTP_USERNAME;
 
 type SendMailOptions = {
   to: string;
@@ -192,7 +191,7 @@ export class Mailer {
       name: env.SMTP_NAME,
       host: env.SMTP_HOST,
       port: env.SMTP_PORT,
-      secure: env.SMTP_SECURE ?? env.ENVIRONMENT === "production",
+      secure: env.SMTP_SECURE ?? env.isProduction,
       auth: env.SMTP_USERNAME
         ? {
             user: env.SMTP_USERNAME,

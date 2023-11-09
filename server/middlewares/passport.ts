@@ -52,7 +52,7 @@ export default function createMiddleware(providerName: string) {
             );
           }
 
-          if (env.ENVIRONMENT === "development") {
+          if (env.isDevelopment) {
             throw err;
           }
 

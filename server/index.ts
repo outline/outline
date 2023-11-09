@@ -54,7 +54,7 @@ async function master() {
   await checkEnv();
   await checkPendingMigrations();
 
-  if (env.TELEMETRY && env.ENVIRONMENT === "production") {
+  if (env.TELEMETRY && env.isProduction) {
     void checkUpdates();
     setInterval(checkUpdates, 24 * 3600 * 1000);
   }

@@ -50,7 +50,7 @@ export default class ExportJSONTask extends ExportTask {
 
     zip.file(
       `metadata.json`,
-      env.ENVIRONMENT === "development"
+      env.isDevelopment
         ? JSON.stringify(metadata, null, 2)
         : JSON.stringify(metadata)
     );
@@ -142,7 +142,7 @@ export default class ExportJSONTask extends ExportTask {
 
     zip.file(
       `${serializeFilename(collection.name)}.json`,
-      env.ENVIRONMENT === "development"
+      env.isDevelopment
         ? JSON.stringify(output, null, 2)
         : JSON.stringify(output)
     );

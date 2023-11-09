@@ -93,7 +93,7 @@ router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
 router.use("/", urls.routes());
 
-if (env.ENVIRONMENT === "development") {
+if (env.isDevelopment) {
   router.use("/", developer.routes());
 }
 

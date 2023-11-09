@@ -61,14 +61,14 @@ export async function checkEnv() {
     }
   });
 
-  if (env.ENVIRONMENT === "production") {
+  if (env.isProduction) {
     Logger.info(
       "lifecycle",
       chalk.green(`
 Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
 `)
     );
-  } else if (env.ENVIRONMENT === "development") {
+  } else if (env.isDevelopment) {
     Logger.warn(
       `Running Outline in ${chalk.bold(
         "development mode"
