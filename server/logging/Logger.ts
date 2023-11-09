@@ -82,7 +82,7 @@ class Logger {
    * Debug information
    *
    * @param category A log message category that will be prepended
-   * @param extra Arbitrary data to be logged that will appear in prod logs
+   * @param extra Arbitrary data to be logged that will appear in development logs
    */
   public debug(label: LogCategory, message: string, extra?: Extra) {
     this.output.debug(message, { ...this.sanitize(extra), label });
