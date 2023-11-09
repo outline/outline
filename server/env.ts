@@ -732,7 +732,13 @@ export class Environment {
    * @returns A boolean
    */
   private toBoolean(value: string) {
-    return value ? !!JSON.parse(value) : false;
+    try {
+      return value ? !!JSON.parse(value) : false;
+    } catch (err) {
+      throw new Error(
+        `"${value}" could not be parsed as a boolean, must be "true" or "false"`
+      );
+    }
   }
 }
 
