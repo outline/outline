@@ -59,9 +59,7 @@ export default class ZipHelper {
 
       let currentLevel = tree; // initialize currentLevel to root
 
-      pathParts.forEach(function (rawName) {
-        const { name } = path.parse(path.basename(rawName));
-
+      pathParts.forEach(function (name) {
         // check to see if the path already exists.
         const existingPath = find(currentLevel, {
           name,
@@ -71,13 +69,13 @@ export default class ZipHelper {
           // The path to this item was already in the tree, so don't add again.
           // Set the current level to this path's children
           currentLevel = existingPath.children;
-        } else if (rawName.endsWith(".DS_Store") || !rawName) {
+        } else if (name.endsWith(".DS_Store") || !name) {
           return;
         } else {
           const newPart = {
             name,
             path: filePath.replace(/^\//, ""),
-            title: deserializeFilename(name),
+            title: deserializeFilename(path.parse(path.basename(name)).name),
             children: [],
           };
 

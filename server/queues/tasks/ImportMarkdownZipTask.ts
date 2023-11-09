@@ -107,18 +107,27 @@ export default class ImportMarkdownZipTask extends ImportTask {
             ? new Date(metadata.updatedAt)
             : zipObject.date;
 
-          const existingEmptyDocumentIndex = output.documents.findIndex(
+          const existingDocumentIndex = output.documents.findIndex(
             (doc) =>
               doc.title === title &&
               doc.collectionId === collectionId &&
-              doc.parentDocumentId === parentDocumentId &&
-              doc.text === ""
+              doc.parentDocumentId === parentDocumentId
           );
+
+          const existingDocument = output.documents[existingDocumentIndex];
 
           // When there is a file and a folder with the same name this handles
           // the case by combining the two into one document with nested children
-          if (existingEmptyDocumentIndex !== -1) {
-            output.documents[existingEmptyDocumentIndex].text = text;
+          if (existingDocument) {
+            if (existingDocument.text === "") {
+              output.documents[existingDocumentIndex].text = text;
+            }
+
+            await parseNodeChildren(
+              child.children,
+              collectionId,
+              existingDocument.id
+            );
           } else {
             output.documents.push({
               id,
@@ -131,9 +140,9 @@ export default class ImportMarkdownZipTask extends ImportTask {
               parentDocumentId,
               path: child.path,
             });
-          }
 
-          await parseNodeChildren(child.children, collectionId, id);
+            await parseNodeChildren(child.children, collectionId, id);
+          }
         })
       );
     }
