@@ -7,7 +7,7 @@ import Router from "koa-router";
 import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
-import { IntegrationType } from "@shared/types";
+import { IntegrationType, TeamPreference } from "@shared/types";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import shareDomains from "@server/middlewares/shareDomains";
@@ -152,6 +152,10 @@ router.get("*", shareDomains(), async (ctx, next) => {
 
   return renderApp(ctx, next, {
     analytics,
+    shortcutIcon:
+      team?.getPreference(TeamPreference.PublicBranding) && team.avatarUrl
+        ? team.avatarUrl
+        : undefined,
   });
 });
 
