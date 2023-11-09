@@ -687,6 +687,14 @@ export class Environment {
   public IFRAMELY_API_KEY = this.toOptionalString(process.env.IFRAMELY_API_KEY);
 
   /**
+   * Enable unsafe-inline in script-src CSP directive
+   */
+  @IsBoolean()
+  public DEVELOPMENT_UNSAFE_INLINE_CSP = this.toBoolean(
+    process.env.DEVELOPMENT_UNSAFE_INLINE_CSP ?? "false"
+  );
+
+  /**
    * The product name
    */
   public APP_NAME = "Outline";

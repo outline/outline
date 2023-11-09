@@ -104,7 +104,12 @@ export default function init(app: Koa = new Koa(), server?: Server) {
       directives: {
         defaultSrc,
         styleSrc,
-        scriptSrc: [...scriptSrc, `'nonce-${ctx.state.cspNonce}'`],
+        scriptSrc: [
+          ...scriptSrc,
+          env.DEVELOPMENT_UNSAFE_INLINE_CSP
+            ? "'unsafe-inline'"
+            : `'nonce-${ctx.state.cspNonce}'`,
+        ],
         mediaSrc: ["*", "data:", "blob:"],
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
