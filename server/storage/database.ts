@@ -5,8 +5,6 @@ import env from "@server/env";
 import Logger from "../logging/Logger";
 import * as models from "../models";
 
-const isDevelopment = env.ENVIRONMENT === "development";
-const isProduction = env.ENVIRONMENT === "production";
 const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
 const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
@@ -19,10 +17,10 @@ export const sequelize = new Sequelize(url, {
   logging: (msg) =>
     process.env.DEBUG?.includes("database") && Logger.debug("database", msg),
   typeValidation: true,
-  logQueryParameters: isDevelopment,
+  logQueryParameters: env.isDevelopment,
   dialectOptions: {
     ssl:
-      isProduction && !isSSLDisabled
+      env.isProduction && !isSSLDisabled
         ? {
             // Ref.: https://github.com/brianc/node-postgres/issues/2009
             rejectUnauthorized: false,

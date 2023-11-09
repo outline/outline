@@ -711,6 +711,27 @@ export class Environment {
     ].includes(this.URL);
   }
 
+  /**
+   * Returns true if the current installation is running in production.
+   */
+  public get isProduction() {
+    return this.ENVIRONMENT === "production";
+  }
+
+  /**
+   * Returns true if the current installation is running in the development environment.
+   */
+  public get isDevelopment() {
+    return this.ENVIRONMENT === "development";
+  }
+
+  /**
+   * Returns true if the current installation is running in a test environment.
+   */
+  public get isTest() {
+    return this.ENVIRONMENT === "test";
+  }
+
   private toOptionalString(value: string | undefined) {
     return value ? value : undefined;
   }

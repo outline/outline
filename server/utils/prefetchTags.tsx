@@ -3,8 +3,6 @@ import ReactDOMServer from "react-dom/server";
 import env from "@server/env";
 import readManifestFile, { ManifestStructure } from "./readManifestFile";
 
-const isProduction = env.ENVIRONMENT === "production";
-
 const prefetchTags = [];
 
 if (env.AWS_S3_ACCELERATE_URL) {
@@ -30,7 +28,7 @@ if (env.CDN_URL) {
   );
 }
 
-if (isProduction) {
+if (env.isProduction) {
   const manifest = readManifestFile();
 
   const returnFileAndImportsFromManifest = (

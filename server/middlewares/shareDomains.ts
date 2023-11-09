@@ -7,9 +7,8 @@ import { Share } from "@server/models";
 export default function shareDomains() {
   return async function shareDomainsMiddleware(ctx: Context, next: Next) {
     const isCustomDomain = parseDomain(ctx.host).custom;
-    const isDevelopment = env.ENVIRONMENT === "development";
 
-    if (isDevelopment || (isCustomDomain && env.isCloudHosted)) {
+    if (env.isDevelopment || (isCustomDomain && env.isCloudHosted)) {
       const share = await Share.unscoped().findOne({
         where: {
           domain: ctx.hostname,

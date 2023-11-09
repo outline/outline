@@ -12,8 +12,6 @@ import Sentry from "@server/logging/sentry";
 import ShutdownHelper from "@server/utils/ShutdownHelper";
 import * as Tracing from "./tracer";
 
-const isProduction = env.ENVIRONMENT === "production";
-
 type LogCategory =
   | "lifecycle"
   | "authentication"
@@ -53,7 +51,7 @@ class Logger {
     });
     this.output.add(
       new winston.transports.Console({
-        format: isProduction
+        format: env.isProduction
           ? winston.format.json()
           : winston.format.combine(
               winston.format.colorize(),
@@ -109,7 +107,7 @@ class Logger {
       });
     }
 
-    if (isProduction) {
+    if (env.isProduction) {
       this.output.warn(message, this.sanitize(extra));
     } else if (extra) {
       console.warn(message, extra);
@@ -155,7 +153,7 @@ class Logger {
       });
     }
 
-    if (isProduction) {
+    if (env.isProduction) {
       this.output.error(message, {
         error: error.message,
         stack: error.stack,
@@ -190,7 +188,7 @@ class Logger {
    */
   private sanitize<T>(input: T): T {
     // Short circuit if we're not in production to enable easier debugging
-    if (!isProduction) {
+    if (!env.isProduction) {
       return input;
     }
 

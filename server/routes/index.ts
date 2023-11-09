@@ -19,7 +19,6 @@ import apexRedirect from "../middlewares/apexRedirect";
 import { renderApp, renderShare } from "./app";
 import errors from "./errors";
 
-const isProduction = env.ENVIRONMENT === "production";
 const koa = new Koa();
 const router = new Router();
 
@@ -59,7 +58,7 @@ router.use(
   }
 );
 
-if (isProduction) {
+if (env.isProduction) {
   router.get("/static/*", async (ctx) => {
     try {
       const pathname = ctx.path.substring(8);
