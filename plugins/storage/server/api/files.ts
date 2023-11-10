@@ -30,7 +30,12 @@ router.post(
   rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
   validate(T.FilesCreateSchema),
-  multipart({ maximumFileSize: env.FILE_STORAGE_UPLOAD_MAX_SIZE }),
+  multipart({
+    maximumFileSize: Math.max(
+      env.FILE_STORAGE_UPLOAD_MAX_SIZE,
+      env.MAXIMUM_IMPORT_SIZE
+    ),
+  }),
   async (ctx: APIContext<T.FilesCreateReq>) => {
     const actor = ctx.state.auth.user;
     const { key } = ctx.input.body;
