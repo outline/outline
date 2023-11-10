@@ -1,5 +1,5 @@
 import { Blob } from "buffer";
-import { mkdir, unlink } from "fs/promises";
+import { mkdir, unlink, rmdir } from "fs/promises";
 import path from "path";
 import { Readable } from "stream";
 import {
@@ -97,6 +97,17 @@ export default class LocalStorage extends BaseStorage {
       await unlink(filePath);
     } catch (err) {
       Logger.warn(`Couldn't delete ${filePath}`, err);
+      return;
+    }
+
+    const directory = path.dirname(filePath);
+    try {
+      await rmdir(directory);
+    } catch (err) {
+      if (err.code === "ENOTEMPTY") {
+        return;
+      }
+      Logger.warn(`Couldn't delete directory ${directory}`, err);
     }
   }
 
