@@ -75,11 +75,12 @@ export default class ImportJSONTask extends ImportTask {
           updatedAt: node.updatedAt ? new Date(node.updatedAt) : undefined,
           publishedAt: node.publishedAt ? new Date(node.publishedAt) : null,
           collectionId,
-          sourceId: node.id,
+          externalId: node.id,
+          mimeType: "application/json",
           parentDocumentId: node.parentDocumentId
             ? find(
                 output.documents,
-                (d) => d.sourceId === node.parentDocumentId
+                (d) => d.externalId === node.parentDocumentId
               )?.id
             : null,
           id,
@@ -101,7 +102,7 @@ export default class ImportJSONTask extends ImportTask {
           buffer: () => zipObject.async("nodebuffer"),
           mimeType,
           path: node.key,
-          sourceId: node.id,
+          externalId: node.id,
         });
       });
     }
@@ -132,7 +133,7 @@ export default class ImportJSONTask extends ImportTask {
               )
             : item.collection.description,
         id: collectionId,
-        sourceId: item.collection.id,
+        externalId: item.collection.id,
       });
 
       if (Object.values(item.documents).length) {
@@ -149,7 +150,7 @@ export default class ImportJSONTask extends ImportTask {
     for (const document of output.documents) {
       for (const attachment of output.attachments) {
         const encodedPath = encodeURI(
-          `/api/attachments.redirect?id=${attachment.sourceId}`
+          `/api/attachments.redirect?id=${attachment.externalId}`
         );
 
         document.text = document.text.replace(

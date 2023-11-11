@@ -139,6 +139,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
               collectionId,
               parentDocumentId,
               path: child.path,
+              mimeType: "text/markdown",
             });
 
             await parseNodeChildren(child.children, collectionId, id);
