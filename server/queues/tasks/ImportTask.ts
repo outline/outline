@@ -50,7 +50,7 @@ export type StructuredImportData = {
      */
     description?: string | Record<string, any> | null;
     /** Optional id from import source, useful for mapping */
-    sourceId?: string;
+    externalId?: string;
   }[];
   documents: {
     id: string;
@@ -78,7 +78,7 @@ export type StructuredImportData = {
     path: string;
     mimeType: string;
     /** Optional id from import source, useful for mapping */
-    sourceId?: string;
+    externalId?: string;
   }[];
   attachments: {
     id: string;
@@ -87,7 +87,7 @@ export type StructuredImportData = {
     mimeType: string;
     buffer: () => Promise<Buffer>;
     /** Optional id from import source, useful for mapping */
-    sourceId?: string;
+    externalId?: string;
   }[];
 };
 
@@ -433,7 +433,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             sourceMetadata: {
               fileName: path.basename(item.path),
               mimeType: item.mimeType,
-              externalId: item.sourceId,
+              externalId: item.externalId,
             },
             id: item.id,
             title: item.title,

@@ -62,7 +62,7 @@ export default class ImportNotionTask extends ImportTask {
           const id = uuidv4();
           const match = child.title.match(this.NotionUUIDRegex);
           const name = child.title.replace(this.NotionUUIDRegex, "");
-          const sourceId = match ? match[0].trim() : undefined;
+          const externalId = match ? match[0].trim() : undefined;
 
           // If it's not a text file we're going to treat it as an attachment.
           const mimeType = mime.lookup(child.name);
@@ -79,7 +79,7 @@ export default class ImportNotionTask extends ImportTask {
               path: child.path,
               mimeType,
               buffer: () => zipObject.async("nodebuffer"),
-              sourceId,
+              externalId,
             });
             return;
           }
@@ -95,12 +95,12 @@ export default class ImportNotionTask extends ImportTask {
           });
 
           const existingDocumentIndex = output.documents.findIndex(
-            (doc) => doc.sourceId === sourceId
+            (doc) => doc.externalId === externalId
           );
 
           const existingDocument = output.documents[existingDocumentIndex];
 
-          // If there is an existing document with the same sourceId that means
+          // If there is an existing document with the same externalId that means
           // we've already parsed either a folder or a file referencing the same
           // document, as such we should merge.
           if (existingDocument) {
@@ -123,7 +123,7 @@ export default class ImportNotionTask extends ImportTask {
               parentDocumentId,
               path: child.path,
               mimeType: mimeType || "text/markdown",
-              sourceId,
+              externalId,
             });
             await parseNodeChildren(child.children, collectionId, id);
           }
@@ -169,13 +169,13 @@ export default class ImportNotionTask extends ImportTask {
       // instead of a relative or absolute URL within the original zip file.
       for (const link of internalLinksInText) {
         const doc = output.documents.find(
-          (doc) => doc.sourceId === link.sourceId
+          (doc) => doc.externalId === link.externalId
         );
 
         if (!doc) {
           Logger.info(
             "task",
-            `Could not find referenced document with sourceId ${link.sourceId}`
+            `Could not find referenced document with externalId ${link.externalId}`
           );
         } else {
           text = text.replace(link.href, `<<${doc.id}>>`);
@@ -189,11 +189,11 @@ export default class ImportNotionTask extends ImportTask {
     for (const node of tree) {
       const match = node.title.match(this.NotionUUIDRegex);
       const name = node.title.replace(this.NotionUUIDRegex, "");
-      const sourceId = match ? match[0].trim() : undefined;
+      const externalId = match ? match[0].trim() : undefined;
       const mimeType = mime.lookup(node.name);
 
       const existingCollectionIndex = output.collections.findIndex(
-        (collection) => collection.sourceId === sourceId
+        (collection) => collection.externalId === externalId
       );
       const existingCollection = output.collections[existingCollectionIndex];
       const collectionId = existingCollection?.id || uuidv4();
@@ -233,7 +233,7 @@ export default class ImportNotionTask extends ImportTask {
           id: collectionId,
           name,
           description,
-          sourceId,
+          externalId,
         });
       }
     }
@@ -255,19 +255,19 @@ export default class ImportNotionTask extends ImportTask {
 
   /**
    * Extracts internal links from a markdown document, taking into account the
-   * sourceId of the document, which is part of the link title.
+   * externalId of the document, which is part of the link title.
    *
    * @param text The markdown text to parse
    * @returns An array of internal links
    */
   private parseInternalLinks(
     text: string
-  ): { title: string; href: string; sourceId: string }[] {
+  ): { title: string; href: string; externalId: string }[] {
     return compact(
       [...text.matchAll(this.NotionLinkRegex)].map((match) => ({
         title: match[1],
         href: match[2],
-        sourceId: match[3],
+        externalId: match[3],
       }))
     );
   }
@@ -295,7 +295,7 @@ export default class ImportNotionTask extends ImportTask {
 
   /**
    * Regex to find markdown links containing ID's that look like UUID's with the
-   * "-"'s removed, Notion's sourceId format.
+   * "-"'s removed, Notion's externalId format.
    */
   private NotionLinkRegex = /\[([^[]+)]\((.*?([0-9a-fA-F]{32})\..*?)\)/g;
 
