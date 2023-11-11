@@ -123,6 +123,11 @@ export enum UserPreference {
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
 
+export type SourceMetadata = {
+  trial: boolean;
+  originalFilename: string;
+};
+
 export type CustomTheme = {
   accent: string;
   accentText: string;

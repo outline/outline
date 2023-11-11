@@ -12,6 +12,7 @@ import {
   NetworkError,
   NotFoundError,
   OfflineError,
+  PaymentRequiredError,
   RateLimitExceededError,
   RequestError,
   ServiceUnavailableError,
@@ -158,6 +159,10 @@ class ApiClient {
 
     if (response.status === 400) {
       throw new BadRequestError(error.message);
+    }
+
+    if (response.status === 402) {
+      throw new PaymentRequiredError(error.message);
     }
 
     if (response.status === 403) {

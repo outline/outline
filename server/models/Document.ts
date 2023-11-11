@@ -31,9 +31,10 @@ import {
   Length as SimpleLength,
   IsNumeric,
   IsDate,
+  AllowNull,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
-import type { NavigationNode } from "@shared/types";
+import type { NavigationNode, SourceMetadata } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import slugify from "@shared/utils/slugify";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
@@ -78,6 +79,11 @@ type AdditionalFindOptions = {
   where: {
     publishedAt: {
       [Op.ne]: null,
+    },
+    sourceMetadata: {
+      trial: {
+        [Op.is]: null,
+      },
     },
   },
 }))
@@ -399,6 +405,10 @@ class Document extends ParanoidModel {
   @Column(DataType.UUID)
   importId: string | null;
 
+  @AllowNull
+  @Column(DataType.JSONB)
+  sourceMetadata: SourceMetadata | null;
+
   @BelongsTo(() => Document, "parentDocumentId")
   parentDocument: Document | null;
 
@@ -545,8 +555,22 @@ class Document extends ParanoidModel {
     return !this.publishedAt;
   }
 
+  /**
+   * Returns the title of the document or a default if the document is untitled.
+   *
+   * @returns boolean
+   */
   get titleWithDefault(): string {
     return this.title || "Untitled";
+  }
+
+  /**
+   * Whether this document was imported during a trial period.
+   *
+   * @returns boolean
+   */
+  get isTrialImport() {
+    return !!(this.importId && this.sourceMetadata?.trial);
   }
 
   /**
