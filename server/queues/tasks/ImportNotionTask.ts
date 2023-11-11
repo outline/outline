@@ -122,6 +122,7 @@ export default class ImportNotionTask extends ImportTask {
               collectionId,
               parentDocumentId,
               path: child.path,
+              mimeType: mimeType || "text/markdown",
               sourceId,
             });
             await parseNodeChildren(child.children, collectionId, id);

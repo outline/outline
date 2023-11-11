@@ -1,3 +1,4 @@
+import path from "path";
 import truncate from "lodash/truncate";
 import {
   AttachmentPreset,
@@ -75,6 +76,7 @@ export type StructuredImportData = {
     createdById?: string;
     createdByEmail?: string | null;
     path: string;
+    mimeType: string;
     /** Optional id from import source, useful for mapping */
     sourceId?: string;
   }[];
@@ -428,7 +430,11 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
           const document = await documentCreator({
             ...options,
-            source: "import",
+            sourceMetadata: {
+              fileName: path.basename(item.path),
+              mimeType: item.mimeType,
+              externalId: item.sourceId,
+            },
             id: item.id,
             title: item.title,
             text,

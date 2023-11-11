@@ -76,6 +76,7 @@ export default class ImportJSONTask extends ImportTask {
           publishedAt: node.publishedAt ? new Date(node.publishedAt) : null,
           collectionId,
           sourceId: node.id,
+          mimeType: "application/json",
           parentDocumentId: node.parentDocumentId
             ? find(
                 output.documents,

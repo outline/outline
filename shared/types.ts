@@ -124,8 +124,10 @@ export enum UserPreference {
 export type UserPreferences = { [key in UserPreference]?: boolean };
 
 export type SourceMetadata = {
-  trial: boolean;
-  originalFilename: string;
+  trial?: boolean;
+  fileName?: string;
+  mimeType?: string;
+  externalId?: string;
 };
 
 export type CustomTheme = {
