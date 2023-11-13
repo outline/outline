@@ -20,25 +20,23 @@ import ImportTask, { StructuredImportData } from "./ImportTask";
 export default class ImportJSONTask extends ImportTask {
   public async parseData(
     dirPath: string,
-    fileOperation: FileOperation
+    _: FileOperation
   ): Promise<StructuredImportData> {
     const tree = await ImportHelper.toFileTree(dirPath);
     if (!tree) {
       throw new Error("Could not find valid content in zip file");
     }
-    return this.parseFileTree(fileOperation, tree.children);
+    return this.parseFileTree(tree.children);
   }
 
   /**
    * Converts the file structure from zipAsFileTree into documents,
    * collections, and attachments.
    *
-   * @param fileOperation The file operation
    * @param tree An array of FileTreeNode representing root files in the zip
-   * @returns A StrqucturedImportData object
+   * @returns A StructuredImportData object
    */
   private async parseFileTree(
-    _: FileOperation,
     tree: FileTreeNode[]
   ): Promise<StructuredImportData> {
     let rootPath = "";
