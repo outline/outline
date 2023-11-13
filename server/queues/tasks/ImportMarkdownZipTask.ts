@@ -1,40 +1,38 @@
-import JSZip from "jszip";
+import fs from "fs-extra";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
 import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
 import Logger from "@server/logging/Logger";
 import { FileOperation, User } from "@server/models";
-import ZipHelper, { FileTreeNode } from "@server/utils/ZipHelper";
+import ImportHelper, { FileTreeNode } from "@server/utils/ImportHelper";
 import ImportTask, { StructuredImportData } from "./ImportTask";
 
 export default class ImportMarkdownZipTask extends ImportTask {
   public async parseData(
-    stream: NodeJS.ReadableStream,
+    dirPath: string,
     fileOperation: FileOperation
   ): Promise<StructuredImportData> {
-    const zip = await JSZip.loadAsync(stream);
-    const tree = ZipHelper.toFileTree(zip);
+    const tree = await ImportHelper.toFileTree(dirPath);
+    if (!tree) {
+      throw new Error("Could not find valid content in zip file");
+    }
 
-    return this.parseFileTree({ fileOperation, zip, tree });
+    return this.parseFileTree(fileOperation, tree.children);
   }
 
   /**
    * Converts the file structure from zipAsFileTree into documents,
    * collections, and attachments.
    *
+   * @param fileOperation The file operation
    * @param tree An array of FileTreeNode representing root files in the zip
    * @returns A StructuredImportData object
    */
-  private async parseFileTree({
-    zip,
-    tree,
-    fileOperation,
-  }: {
-    zip: JSZip;
-    fileOperation: FileOperation;
-    tree: FileTreeNode[];
-  }): Promise<StructuredImportData> {
+  private async parseFileTree(
+    fileOperation: FileOperation,
+    tree: FileTreeNode[]
+  ): Promise<StructuredImportData> {
     const user = await User.findByPk(fileOperation.userId, {
       rejectOnEmpty: true,
     });
@@ -59,14 +57,6 @@ export default class ImportMarkdownZipTask extends ImportTask {
             return parseNodeChildren(child.children, collectionId);
           }
 
-          const zipObject = zip.files[child.path];
-          if (!zipObject) {
-            Logger.info("task", "Zip file referenced path that doesn't exist", {
-              path: child.path,
-            });
-            return;
-          }
-
           const id = uuidv4();
 
           // this is an attachment
@@ -76,7 +66,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
               name: child.name,
               path: child.path,
               mimeType: mime.lookup(child.path) || "application/octet-stream",
-              buffer: () => zipObject.async("nodebuffer"),
+              buffer: () => fs.readFile(child.path),
             });
             return;
           }
@@ -84,28 +74,13 @@ export default class ImportMarkdownZipTask extends ImportTask {
           const { title, emoji, text } = await documentImporter({
             mimeType: "text/markdown",
             fileName: child.name,
-            content: await zipObject.async("string"),
+            content:
+              child.children.length > 0
+                ? ""
+                : await fs.readFile(child.path, "utf8"),
             user,
             ip: user.lastActiveIp || undefined,
           });
-
-          let metadata;
-          try {
-            metadata = zipObject.comment ? JSON.parse(zipObject.comment) : {};
-          } catch (err) {
-            Logger.debug(
-              "task",
-              `ZIP comment found for ${child.name}, but could not be parsed as metadata: ${zipObject.comment}`
-            );
-          }
-
-          const createdAt = metadata.createdAt
-            ? new Date(metadata.createdAt)
-            : zipObject.date;
-
-          const updatedAt = metadata.updatedAt
-            ? new Date(metadata.updatedAt)
-            : zipObject.date;
 
           const existingDocumentIndex = output.documents.findIndex(
             (doc) =>
@@ -134,8 +109,6 @@ export default class ImportMarkdownZipTask extends ImportTask {
               title,
               emoji,
               text,
-              updatedAt,
-              createdAt,
               collectionId,
               parentDocumentId,
               path: child.path,
@@ -150,7 +123,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
 
     // All nodes in the root level should be collections
     for (const node of tree) {
-      if (node.path.endsWith("/")) {
+      if (node.children.length > 0) {
         const collectionId = uuidv4();
         output.collections.push({
           id: collectionId,

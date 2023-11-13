@@ -1,4 +1,5 @@
-import JSZip from "jszip";
+import path from "path";
+import fs from "fs-extra";
 import escapeRegExp from "lodash/escapeRegExp";
 import find from "lodash/find";
 import mime from "mime-types";
@@ -13,35 +14,34 @@ import {
   DocumentJSONExport,
   JSONExportMetadata,
 } from "@server/types";
-import ZipHelper, { FileTreeNode } from "@server/utils/ZipHelper";
+import ImportHelper, { FileTreeNode } from "@server/utils/ImportHelper";
 import ImportTask, { StructuredImportData } from "./ImportTask";
 
 export default class ImportJSONTask extends ImportTask {
   public async parseData(
-    buffer: Buffer,
+    dirPath: string,
     fileOperation: FileOperation
   ): Promise<StructuredImportData> {
-    const zip = await JSZip.loadAsync(buffer);
-    const tree = ZipHelper.toFileTree(zip);
-
-    return this.parseFileTree({ fileOperation, zip, tree });
+    const tree = await ImportHelper.toFileTree(dirPath);
+    if (!tree) {
+      throw new Error("Could not find valid content in zip file");
+    }
+    return this.parseFileTree(fileOperation, tree.children);
   }
 
   /**
    * Converts the file structure from zipAsFileTree into documents,
    * collections, and attachments.
    *
+   * @param fileOperation The file operation
    * @param tree An array of FileTreeNode representing root files in the zip
-   * @returns A StructuredImportData object
+   * @returns A StrqucturedImportData object
    */
-  private async parseFileTree({
-    zip,
-    tree,
-  }: {
-    zip: JSZip;
-    fileOperation: FileOperation;
-    tree: FileTreeNode[];
-  }): Promise<StructuredImportData> {
+  private async parseFileTree(
+    _: FileOperation,
+    tree: FileTreeNode[]
+  ): Promise<StructuredImportData> {
+    let rootPath = "";
     const output: StructuredImportData = {
       collections: [],
       documents: [],
@@ -51,10 +51,16 @@ export default class ImportJSONTask extends ImportTask {
     // Load metadata
     let metadata: JSONExportMetadata | undefined = undefined;
     for (const node of tree) {
-      if (node.path === "metadata.json") {
-        const zipObject = zip.files["metadata.json"];
-        metadata = JSON.parse(await zipObject.async("string"));
+      if (!rootPath) {
+        rootPath = path.dirname(node.path);
       }
+      if (node.path === "metadata.json") {
+        metadata = JSON.parse(await fs.readFile(node.path, "utf8"));
+      }
+    }
+
+    if (!rootPath) {
+      throw new Error("Could not find root path");
     }
 
     Logger.debug("task", "Importing JSON metadata", { metadata });
@@ -93,13 +99,12 @@ export default class ImportJSONTask extends ImportTask {
     }) {
       Object.values(attachments).forEach((node) => {
         const id = uuidv4();
-        const zipObject = zip.files[node.key];
         const mimeType = mime.lookup(node.key) || "application/octet-stream";
 
         output.attachments.push({
           id,
           name: node.name,
-          buffer: () => zipObject.async("nodebuffer"),
+          buffer: () => fs.readFile(path.join(rootPath, node.key)),
           mimeType,
           path: node.key,
           externalId: node.id,
@@ -109,17 +114,12 @@ export default class ImportJSONTask extends ImportTask {
 
     // All nodes in the root level should be collections as JSON + metadata
     for (const node of tree) {
-      if (
-        node.path.endsWith("/") ||
-        node.path === ".DS_Store" ||
-        node.path === "metadata.json"
-      ) {
+      if (node.children.length > 0 || node.path.endsWith("metadata.json")) {
         continue;
       }
 
-      const zipObject = zip.files[node.path];
       const item: CollectionJSONExport = JSON.parse(
-        await zipObject.async("string")
+        await fs.readFile(node.path, "utf8")
       );
 
       const collectionId = uuidv4();

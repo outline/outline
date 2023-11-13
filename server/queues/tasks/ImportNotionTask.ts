@@ -1,5 +1,5 @@
 import path from "path";
-import JSZip from "jszip";
+import fs from "fs-extra";
 import compact from "lodash/compact";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
@@ -7,35 +7,33 @@ import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
 import Logger from "@server/logging/Logger";
 import { FileOperation, User } from "@server/models";
-import ZipHelper, { FileTreeNode } from "@server/utils/ZipHelper";
+import ImportHelper, { FileTreeNode } from "@server/utils/ImportHelper";
 import ImportTask, { StructuredImportData } from "./ImportTask";
 
 export default class ImportNotionTask extends ImportTask {
   public async parseData(
-    stream: NodeJS.ReadableStream,
+    dirPath: string,
     fileOperation: FileOperation
   ): Promise<StructuredImportData> {
-    const zip = await JSZip.loadAsync(stream);
-    const tree = ZipHelper.toFileTree(zip);
-    return this.parseFileTree({ fileOperation, zip, tree });
+    const tree = await ImportHelper.toFileTree(dirPath);
+    if (!tree) {
+      throw new Error("Could not find valid content in zip file");
+    }
+    return this.parseFileTree(fileOperation, tree.children);
   }
 
   /**
    * Converts the file structure from zipAsFileTree into documents,
    * collections, and attachments.
    *
+   * @param fileOperation The file operation
    * @param tree An array of FileTreeNode representing root files in the zip
    * @returns A StructuredImportData object
    */
-  private async parseFileTree({
-    zip,
-    tree,
-    fileOperation,
-  }: {
-    zip: JSZip;
-    fileOperation: FileOperation;
-    tree: FileTreeNode[];
-  }): Promise<StructuredImportData> {
+  private async parseFileTree(
+    fileOperation: FileOperation,
+    tree: FileTreeNode[]
+  ): Promise<StructuredImportData> {
     const user = await User.findByPk(fileOperation.userId, {
       rejectOnEmpty: true,
     });
@@ -58,7 +56,6 @@ export default class ImportNotionTask extends ImportTask {
             return;
           }
 
-          const zipObject = zip.files[child.path];
           const id = uuidv4();
           const match = child.title.match(this.NotionUUIDRegex);
           const name = child.title.replace(this.NotionUUIDRegex, "");
@@ -78,7 +75,7 @@ export default class ImportNotionTask extends ImportTask {
               name: child.name,
               path: child.path,
               mimeType,
-              buffer: () => zipObject.async("nodebuffer"),
+              buffer: () => fs.readFile(child.path),
               externalId,
             });
             return;
@@ -89,7 +86,10 @@ export default class ImportNotionTask extends ImportTask {
           const { title, emoji, text } = await documentImporter({
             mimeType: mimeType || "text/markdown",
             fileName: name,
-            content: zipObject ? await zipObject.async("string") : "",
+            content:
+              child.children.length > 0
+                ? ""
+                : await fs.readFile(child.path, "utf8"),
             user,
             ip: user.lastActiveIp || undefined,
           });
@@ -205,11 +205,10 @@ export default class ImportNotionTask extends ImportTask {
         mimeType === "text/plain" ||
         mimeType === "text/html"
       ) {
-        const zipObject = zip.files[node.path];
         const { text } = await documentImporter({
           mimeType,
           fileName: name,
-          content: await zipObject.async("string"),
+          content: await fs.readFile(node.path, "utf8"),
           user,
           ip: user.lastActiveIp || undefined,
         });
