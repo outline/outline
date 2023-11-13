@@ -261,7 +261,7 @@
     "@types/koa": "^2.13.6",
     "@types/koa-compress": "^4.0.3",
     "@types/koa-helmet": "^6.0.4",
-    "@types/koa-logger": "^3.1.2",
+    "@types/koa-logger": "^3.1.5",
     "@types/koa-mount": "^4.0.1",
     "@types/koa-router": "^7.4.4",
     "@types/koa-send": "^4.1.3",
