@@ -57,14 +57,14 @@ export default function auth(options: AuthenticationOptions = {}) {
       token = ctx.cookies.get("accessToken");
     }
 
-    if (!token && options.optional !== true) {
-      throw AuthenticationError("Authentication required");
-    }
+    try {
+      if (!token) {
+        throw AuthenticationError("Authentication required");
+      }
 
-    let user: User | null;
-    let type: AuthenticationType;
+      let user: User | null;
+      let type: AuthenticationType;
 
-    if (token) {
       if (ApiKey.match(String(token))) {
         type = AuthenticationType.API;
         let apiKey;
@@ -146,8 +146,12 @@ export default function auth(options: AuthenticationOptions = {}) {
           getRootSpanFromRequestContext(ctx)
         );
       }
-    } else {
-      ctx.state.auth = {};
+    } catch (err) {
+      if (options.optional) {
+        ctx.state.auth = {};
+      } else {
+        throw err;
+      }
     }
 
     return next();
