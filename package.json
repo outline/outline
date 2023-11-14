@@ -246,7 +246,7 @@
     "@types/diff": "^5.0.4",
     "@types/emoji-regex": "^9.2.0",
     "@types/enzyme": "^3.10.13",
-    "@types/enzyme-adapter-react-16": "^1.0.6",
+    "@types/enzyme-adapter-react-16": "^1.0.9",
     "@types/express-useragent": "^1.0.2",
     "@types/formidable": "^2.0.6",
     "@types/fs-extra": "^11.0.3",
