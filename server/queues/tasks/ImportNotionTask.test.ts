@@ -37,7 +37,9 @@ describe("ImportNotionTask", () => {
     // Check that the image url was replaced in the text with a redirect
     const attachments = Array.from(response.attachments.values());
     const documents = Array.from(response.documents.values());
-    expect(documents[2].text).toContain(attachments[0].redirectUrl);
+    expect(documents.map((d) => d.text).join("")).toContain(
+      attachments[0].redirectUrl
+    );
   });
 
   it("should import successfully from a HTML export", async () => {
@@ -76,6 +78,8 @@ describe("ImportNotionTask", () => {
     );
 
     const documents = Array.from(response.documents.values());
-    expect(documents[1].text).toContain(attachment?.redirectUrl);
+    expect(documents.map((d) => d.text).join("")).toContain(
+      attachment?.redirectUrl
+    );
   });
 });

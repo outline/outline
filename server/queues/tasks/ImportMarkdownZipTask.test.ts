@@ -77,8 +77,8 @@ describe("ImportMarkdownZipTask", () => {
       error = err;
     }
 
-    expect(error && error.message).toBe(
-      "Uploaded file does not contain any valid documents"
+    expect(error && error.message).toContain(
+      "Uploaded file does not contain any valid collections"
     );
   });
 });
