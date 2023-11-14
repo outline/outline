@@ -11,6 +11,7 @@ export default async function main(exit = false) {
   const work = async (page: number): Promise<void> => {
     console.log(`Backfill user notification settings… page ${page}`);
     const users = await User.findAll({
+      attributes: ["id", "notificationSettings"],
       limit,
       offset: page * limit,
       order: [["createdAt", "ASC"]],
