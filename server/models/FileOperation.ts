@@ -83,6 +83,13 @@ class FileOperation extends ParanoidModel {
     return FileStorage.getFileStream(this.key);
   }
 
+  /**
+   * The file operation contents as a buffer.
+   */
+  get handle() {
+    return FileStorage.getFileHandle(this.key);
+  }
+
   // hooks
 
   @BeforeDestroy

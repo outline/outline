@@ -1,4 +1,4 @@
-import fs from "fs";
+/* eslint-disable @typescript-eslint/no-empty-function */
 import path from "path";
 import { FileOperation } from "@server/models";
 import { buildFileOperation } from "@server/test/factories";
@@ -7,11 +7,19 @@ import ImportMarkdownZipTask from "./ImportMarkdownZipTask";
 describe("ImportMarkdownZipTask", () => {
   it("should import the documents, attachments", async () => {
     const fileOperation = await buildFileOperation();
-    Object.defineProperty(fileOperation, "stream", {
+    Object.defineProperty(fileOperation, "handle", {
       get() {
-        return fs.createReadStream(
-          path.resolve(__dirname, "..", "..", "test", "fixtures", "outline.zip")
-        );
+        return {
+          path: path.resolve(
+            __dirname,
+            "..",
+            "..",
+            "test",
+            "fixtures",
+            "outline.zip"
+          ),
+          cleanup: async () => {},
+        };
       },
     });
     jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
@@ -30,11 +38,19 @@ describe("ImportMarkdownZipTask", () => {
 
   it("should throw an error with corrupt zip", async () => {
     const fileOperation = await buildFileOperation();
-    Object.defineProperty(fileOperation, "stream", {
+    Object.defineProperty(fileOperation, "handle", {
       get() {
-        return fs.createReadStream(
-          path.resolve(__dirname, "..", "..", "test", "fixtures", "corrupt.zip")
-        );
+        return {
+          path: path.resolve(
+            __dirname,
+            "..",
+            "..",
+            "test",
+            "fixtures",
+            "corrupt.zip"
+          ),
+          cleanup: async () => {},
+        };
       },
     });
     jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
@@ -56,11 +72,19 @@ describe("ImportMarkdownZipTask", () => {
 
   it("should throw an error with empty collection in zip", async () => {
     const fileOperation = await buildFileOperation();
-    Object.defineProperty(fileOperation, "stream", {
+    Object.defineProperty(fileOperation, "handle", {
       get() {
-        return fs.createReadStream(
-          path.resolve(__dirname, "..", "..", "test", "fixtures", "empty.zip")
-        );
+        return {
+          path: path.resolve(
+            __dirname,
+            "..",
+            "..",
+            "test",
+            "fixtures",
+            "empty.zip"
+          ),
+          cleanup: async () => {},
+        };
       },
     });
     jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);

@@ -1,6 +1,9 @@
 import fs from "fs";
+import path from "path";
+import { mkdirp } from "fs-extra";
 import JSZip from "jszip";
 import tmp from "tmp";
+import yauzl from "yauzl";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
@@ -83,6 +86,71 @@ export default class ZipHelper {
               reject(err);
             })
             .pipe(dest);
+        }
+      );
+    });
+  }
+
+  public static extract(filePath: string, outputDir: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      Logger.debug("utils", "Opening zip file", { filePath });
+
+      yauzl.open(
+        filePath,
+        { lazyEntries: true, autoClose: true },
+        function (err, zipfile) {
+          if (err) {
+            return reject(err);
+          }
+          try {
+            zipfile.readEntry();
+            zipfile.on("entry", function (entry) {
+              Logger.debug("utils", "Extracting zip entry", entry);
+              if (/\/$/.test(entry.fileName)) {
+                // directory file names end with '/'
+                mkdirp(
+                  path.join(outputDir, entry.fileName),
+                  function (err: Error) {
+                    if (err) {
+                      throw err;
+                    }
+                    zipfile.readEntry();
+                  }
+                );
+              } else {
+                // file entry
+                zipfile.openReadStream(entry, function (err, readStream) {
+                  if (err) {
+                    throw err;
+                  }
+                  // ensure parent directory exists
+                  mkdirp(
+                    path.join(outputDir, path.dirname(entry.fileName)),
+                    function (err) {
+                      if (err) {
+                        throw err;
+                      }
+                      readStream.pipe(
+                        fs.createWriteStream(
+                          path.join(outputDir, entry.fileName)
+                        )
+                      );
+                      readStream.on("end", function () {
+                        zipfile.readEntry();
+                      });
+                      readStream.on("error", (err) => {
+                        throw err;
+                      });
+                    }
+                  );
+                });
+              }
+            });
+            zipfile.on("close", resolve);
+            zipfile.on("error", reject);
+          } catch (err) {
+            reject(err);
+          }
         }
       );
     });
