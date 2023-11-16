@@ -2,7 +2,6 @@ import path from "path";
 import { rm } from "fs-extra";
 import truncate from "lodash/truncate";
 import tmp from "tmp";
-import unzipper from "unzipper";
 import {
   AttachmentPreset,
   CollectionPermission,
@@ -13,7 +12,6 @@ import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
 import { serializer } from "@server/editor";
-import env from "@server/env";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import {
@@ -25,6 +23,7 @@ import {
   Attachment,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
+import ZipHelper from "@server/utils/ZipHelper";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -198,30 +197,44 @@ export default abstract class ImportTask extends BaseTask<Props> {
   protected async fetchAndExtractData(
     fileOperation: FileOperation
   ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const stream = fileOperation.stream;
-      if (!stream) {
-        return reject(new Error("No stream available"));
-      }
+    let cleanup;
+    let filePath: string;
 
-      tmp.dir((err, path) => {
-        if (err) {
-          return reject(err);
-        }
+    try {
+      const res = await fileOperation.handle;
+      filePath = res.path;
+      cleanup = res.cleanup;
 
-        const dest = unzipper
-          .Extract({ path, verbose: env.isDevelopment })
-          .on("error", reject)
-          .on("close", () => resolve(path));
+      const path = await new Promise<string>((resolve, reject) => {
+        tmp.dir((err, tmpDir) => {
+          if (err) {
+            Logger.error("Could not create temporary directory", err);
+            return reject(err);
+          }
 
-        stream
-          .on("error", (err) => {
-            dest.end();
-            reject(err);
-          })
-          .pipe(dest);
+          Logger.debug(
+            "task",
+            `ImportTask extracting data for ${fileOperation.id}`
+          );
+
+          void ZipHelper.extract(filePath, tmpDir)
+            .then(() => resolve(tmpDir))
+            .catch((err) => {
+              Logger.error("Could not extract zip file", err);
+              reject(err);
+            });
+        });
       });
-    });
+
+      return path;
+    } finally {
+      Logger.debug(
+        "task",
+        `ImportTask cleaning up temporary data for ${fileOperation.id}`
+      );
+
+      await cleanup?.();
+    }
   }
 
   /**

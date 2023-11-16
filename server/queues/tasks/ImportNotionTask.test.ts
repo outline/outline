@@ -1,4 +1,4 @@
-import fs from "fs";
+/* eslint-disable @typescript-eslint/no-empty-function */
 import path from "path";
 import { FileOperation } from "@server/models";
 import { buildFileOperation } from "@server/test/factories";
@@ -7,18 +7,19 @@ import ImportNotionTask from "./ImportNotionTask";
 describe("ImportNotionTask", () => {
   it("should import successfully from a Markdown export", async () => {
     const fileOperation = await buildFileOperation();
-    Object.defineProperty(fileOperation, "stream", {
+    Object.defineProperty(fileOperation, "handle", {
       get() {
-        return fs.createReadStream(
-          path.resolve(
+        return {
+          path: path.resolve(
             __dirname,
             "..",
             "..",
             "test",
             "fixtures",
             "notion-markdown.zip"
-          )
-        );
+          ),
+          cleanup: async () => {},
+        };
       },
     });
     jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
@@ -44,18 +45,19 @@ describe("ImportNotionTask", () => {
 
   it("should import successfully from a HTML export", async () => {
     const fileOperation = await buildFileOperation();
-    Object.defineProperty(fileOperation, "stream", {
+    Object.defineProperty(fileOperation, "handle", {
       get() {
-        return fs.createReadStream(
-          path.resolve(
+        return {
+          path: path.resolve(
             __dirname,
             "..",
             "..",
             "test",
             "fixtures",
             "notion-html.zip"
-          )
-        );
+          ),
+          cleanup: async () => {},
+        };
       },
     });
     jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);

@@ -128,6 +128,15 @@ export default class LocalStorage extends BaseStorage {
     return Promise.resolve(`${env.URL}/api/files.get?sig=${sig}`);
   };
 
+  public async getFileHandle(key: string) {
+    return {
+      path: this.getFilePath(key),
+      cleanup: async () => {
+        // no-op, as we're reading the canonical file directly
+      },
+    };
+  }
+
   public getFileStream(key: string) {
     return createReadStream(this.getFilePath(key));
   }

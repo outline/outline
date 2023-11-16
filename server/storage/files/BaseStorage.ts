@@ -85,6 +85,17 @@ export default abstract class BaseStorage {
   }): Promise<string | undefined>;
 
   /**
+   * Returns a file handle for a file from the storage provider.
+   *
+   * @param key The path to the file
+   * @returns The file path and a cleanup function
+   */
+  public abstract getFileHandle(key: string): Promise<{
+    path: string;
+    cleanup: () => Promise<void>;
+  }>;
+
+  /**
    * Returns a buffer of a file from the storage provider.
    *
    * @param key The path to the file
