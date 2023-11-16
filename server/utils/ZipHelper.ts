@@ -23,6 +23,7 @@ export default class ZipHelper {
   /**
    * Write a zip file to a temporary disk location
    *
+   * @deprecated Use `extract` instead
    * @param zip JSZip object
    * @returns pathname of the temporary file where the zip was written to disk
    */
@@ -91,6 +92,12 @@ export default class ZipHelper {
     });
   }
 
+  /**
+   * Write a zip file to a disk location
+   *
+   * @param filePath The file path where the zip is located
+   * @param outputDir The directory where the zip should be extracted
+   */
   public static extract(filePath: string, outputDir: string): Promise<void> {
     return new Promise((resolve, reject) => {
       Logger.debug("utils", "Opening zip file", { filePath });

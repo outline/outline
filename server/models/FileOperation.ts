@@ -84,7 +84,7 @@ class FileOperation extends ParanoidModel {
   }
 
   /**
-   * The file operation contents as a buffer.
+   * The file operation contents as a handle which contains a path and cleanup function.
    */
   get handle() {
     return FileStorage.getFileHandle(this.key);
