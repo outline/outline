@@ -53,7 +53,11 @@ export default class ImportJSONTask extends ImportTask {
         rootPath = path.dirname(node.path);
       }
       if (node.path === "metadata.json") {
-        metadata = JSON.parse(await fs.readFile(node.path, "utf8"));
+        try {
+          metadata = JSON.parse(await fs.readFile(node.path, "utf8"));
+        } catch (err) {
+          throw new Error(`Could not parse metadata.json. ${err.message}`);
+        }
       }
     }
 
@@ -116,9 +120,12 @@ export default class ImportJSONTask extends ImportTask {
         continue;
       }
 
-      const item: CollectionJSONExport = JSON.parse(
-        await fs.readFile(node.path, "utf8")
-      );
+      let item: CollectionJSONExport;
+      try {
+        item = JSON.parse(await fs.readFile(node.path, "utf8"));
+      } catch (err) {
+        throw new Error(`Could not parse ${node.path}. ${err.message}`);
+      }
 
       const collectionId = uuidv4();
       output.collections.push({
