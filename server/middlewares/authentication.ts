@@ -14,14 +14,11 @@ import {
 } from "../errors";
 
 type AuthenticationOptions = {
-  /** An admin user role is required to access the route */
+  /** An admin user role is required to access the route. */
   admin?: boolean;
-  /** A member or admin user role is required to access the route */
+  /** A member or admin user role is required to access the route. */
   member?: boolean;
-  /**
-   * Authentication is parsed, but optional. Note that if a token is provided
-   * in the request it must be valid or the requst will be rejected.
-   */
+  /** Authentication is parsed, but optional. */
   optional?: boolean;
 };
 
