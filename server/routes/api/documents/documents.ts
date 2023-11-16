@@ -574,26 +574,32 @@ router.post(
 
     await Promise.all(
       attachments.map(async (attachment) => {
-        try {
-          const location = path.join(
-            "attachments",
-            `${attachment.id}.${mime.extension(attachment.contentType)}`
-          );
-          zip.file(location, attachment.buffer, {
+        const location = path.join(
+          "attachments",
+          `${attachment.id}.${mime.extension(attachment.contentType)}`
+        );
+        zip.file(
+          location,
+          new Promise<Buffer>((resolve) => {
+            attachment.buffer.then(resolve).catch((err) => {
+              Logger.warn(`Failed to read attachment from storage`, {
+                attachmentId: attachment.id,
+                teamId: attachment.teamId,
+                error: err.message,
+              });
+              resolve(Buffer.from(""));
+            });
+          }),
+          {
             date: attachment.updatedAt,
             createFolders: true,
-          });
+          }
+        );
 
-          content = content.replace(
-            new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
-            location
-          );
-        } catch (err) {
-          Logger.error(
-            `Failed to add attachment to archive: ${attachment.id}`,
-            err
-          );
-        }
+        content = content.replace(
+          new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+          location
+        );
       })
     );
 

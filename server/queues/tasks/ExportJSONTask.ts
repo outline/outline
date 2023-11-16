@@ -94,22 +94,28 @@ export default class ExportJSONTask extends ExportTask {
 
         await Promise.all(
           attachments.map(async (attachment) => {
-            try {
-              zip.file(attachment.key, attachment.buffer, {
+            zip.file(
+              attachment.key,
+              new Promise<Buffer>((resolve) => {
+                attachment.buffer.then(resolve).catch((err) => {
+                  Logger.warn(`Failed to read attachment from S3`, {
+                    attachmentId: attachment.id,
+                    teamId: attachment.teamId,
+                    error: err.message,
+                  });
+                  resolve(Buffer.from(""));
+                });
+              }),
+              {
                 date: attachment.updatedAt,
                 createFolders: true,
-              });
+              }
+            );
 
-              output.attachments[attachment.id] = {
-                ...omit(presentAttachment(attachment), "url"),
-                key: attachment.key,
-              };
-            } catch (err) {
-              Logger.error(
-                `Failed to add attachment to archive: ${attachment.key}`,
-                err
-              );
-            }
+            output.attachments[attachment.id] = {
+              ...omit(presentAttachment(attachment), "url"),
+              key: attachment.key,
+            };
           })
         );
 
