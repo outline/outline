@@ -68,7 +68,7 @@ export default class LocalStorage extends BaseStorage {
     const filePath = this.getFilePath(key);
 
     // Create the file on disk first
-    await fs.open(filePath, "w").then(close);
+    await fs.createFile(filePath);
 
     return new Promise<string>((resolve, reject) => {
       const dest = fs

@@ -98,7 +98,7 @@ export default class ExportJSONTask extends ExportTask {
               attachment.key,
               new Promise<Buffer>((resolve) => {
                 attachment.buffer.then(resolve).catch((err) => {
-                  Logger.warn(`Failed to read attachment from S3`, {
+                  Logger.warn(`Failed to read attachment from storage`, {
                     attachmentId: attachment.id,
                     teamId: attachment.teamId,
                     error: err.message,
