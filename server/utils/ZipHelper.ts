@@ -1,6 +1,5 @@
-import fs from "fs";
 import path from "path";
-import { mkdirp } from "fs-extra";
+import fs from "fs-extra";
 import JSZip from "jszip";
 import tmp from "tmp";
 import yauzl from "yauzl";
@@ -115,7 +114,7 @@ export default class ZipHelper {
               Logger.debug("utils", "Extracting zip entry", entry);
               if (/\/$/.test(entry.fileName)) {
                 // directory file names end with '/'
-                mkdirp(
+                fs.mkdirp(
                   path.join(outputDir, entry.fileName),
                   function (err: Error) {
                     if (err) {
@@ -131,7 +130,7 @@ export default class ZipHelper {
                     throw err;
                   }
                   // ensure parent directory exists
-                  mkdirp(
+                  fs.mkdirp(
                     path.join(outputDir, path.dirname(entry.fileName)),
                     function (err) {
                       if (err) {

@@ -1,7 +1,7 @@
 import path from "path";
 import util from "util";
 import AWS, { S3 } from "aws-sdk";
-import { createWriteStream, remove } from "fs-extra";
+import fs from "fs-extra";
 import invariant from "invariant";
 import compact from "lodash/compact";
 import tmp from "tmp";
@@ -172,10 +172,10 @@ export default class S3Storage extends BaseStorage {
           return reject(err);
         }
         const tmpFile = path.join(tmpDir, "tmp");
-        const dest = createWriteStream(tmpFile);
+        const dest = fs.createWriteStream(tmpFile);
         dest.on("error", reject);
         dest.on("finish", () =>
-          resolve({ path: tmpFile, cleanup: () => remove(tmpFile) })
+          resolve({ path: tmpFile, cleanup: () => fs.rm(tmpFile) })
         );
 
         const stream = this.getFileStream(key);

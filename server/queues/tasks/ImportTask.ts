@@ -1,5 +1,5 @@
 import path from "path";
-import { rm } from "fs-extra";
+import fs from "fs-extra";
 import truncate from "lodash/truncate";
 import tmp from "tmp";
 import {
@@ -248,7 +248,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
     fileOperation: FileOperation
   ) {
     try {
-      await rm(dirPath, { recursive: true, force: true });
+      await fs.rm(dirPath, { recursive: true, force: true });
     } catch (error) {
       Logger.error(
         `ImportTask failed to cleanup extracted data for ${fileOperation.id}`,
