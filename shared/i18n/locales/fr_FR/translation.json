@@ -750,6 +750,7 @@
   "Are you sure you want to delete this import?": "Voulez-vous vraiment supprimer cette importation ?",
   "I’m sure": "Je suis sûr",
   "Deleting this import will also delete all collections and documents that were created from it. This cannot be undone.": "La suppression de cette importation supprimera également toutes les collections et tous les documents qui ont été créés à partir de celle-ci. Cette opération est irréversible.",
+  "Check server logs for more details.": "Check server logs for more details.",
   "{{userName}} requested": "{{userName}} avez demandé un export",
   "Upload": "Envoyer",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Glissez et déposez le fichier zip provenant d'un export JSON de {{appName}}, ou cliquez pour le téléverser",
