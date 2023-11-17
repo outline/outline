@@ -750,6 +750,7 @@
   "Are you sure you want to delete this import?": "Are you sure you want to delete this import?",
   "I’m sure": "I’m sure",
   "Deleting this import will also delete all collections and documents that were created from it. This cannot be undone.": "Deleting this import will also delete all collections and documents that were created from it. This cannot be undone.",
+  "Check server logs for more details.": "Check server logs for more details.",
   "{{userName}} requested": "{{userName}} درخواست شد",
   "Upload": "بارگذاری",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload",
