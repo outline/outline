@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs-extra";
 import JSZip from "jszip";
 import tmp from "tmp";
-import yauzl from "yauzl";
+import yauzl, { Entry, validateFileName } from "yauzl";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
@@ -103,19 +103,32 @@ export default class ZipHelper {
 
       yauzl.open(
         filePath,
-        { lazyEntries: true, autoClose: true },
+        {
+          lazyEntries: true,
+          autoClose: true,
+          // Filenames are validated inside on("entry") handler instead of within yauzl as some
+          // otherwise valid zip files (including those in our test suite) include / path. We can
+          // safely read but skip writing these.
+          // see: https://github.com/thejoshwolfe/yauzl/issues/135
+          decodeStrings: false,
+        },
         function (err, zipfile) {
           if (err) {
             return reject(err);
           }
           try {
             zipfile.readEntry();
-            zipfile.on("entry", function (entry) {
-              Logger.debug("utils", "Extracting zip entry", entry);
-              if (/\/$/.test(entry.fileName)) {
+            zipfile.on("entry", function (entry: Entry) {
+              const fileName = Buffer.from(entry.fileName).toString("utf8");
+              Logger.debug("utils", "Extracting zip entry", { fileName });
+
+              if (validateFileName(fileName)) {
+                Logger.warn("Invalid zip entry", { fileName });
+                zipfile.readEntry();
+              } else if (/\/$/.test(fileName)) {
                 // directory file names end with '/'
                 fs.mkdirp(
-                  path.join(outputDir, entry.fileName),
+                  path.join(outputDir, fileName),
                   function (err: Error) {
                     if (err) {
                       throw err;
@@ -131,15 +144,13 @@ export default class ZipHelper {
                   }
                   // ensure parent directory exists
                   fs.mkdirp(
-                    path.join(outputDir, path.dirname(entry.fileName)),
+                    path.join(outputDir, path.dirname(fileName)),
                     function (err) {
                       if (err) {
                         throw err;
                       }
                       readStream.pipe(
-                        fs.createWriteStream(
-                          path.join(outputDir, entry.fileName)
-                        )
+                        fs.createWriteStream(path.join(outputDir, fileName))
                       );
                       readStream.on("end", function () {
                         zipfile.readEntry();
