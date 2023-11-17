@@ -165,8 +165,13 @@ class DocumentScene extends React.Component<Props> {
       this.title = title;
       this.props.document.title = title;
     }
+    if (template.emoji) {
+      this.props.document.emoji = template.emoji;
+    }
+    if (template.text) {
+      this.props.document.text = template.text;
+    }
 
-    this.props.document.text = template.text;
     this.updateIsDirty();
 
     return this.onSave({
