@@ -245,7 +245,7 @@ export default function SelectionToolbar(props: Props) {
     if (item.name && !commands[item.name]) {
       return false;
     }
-    if (!item.visible) {
+    if (item.visible === false) {
       return false;
     }
     return true;
