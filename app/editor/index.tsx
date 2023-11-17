@@ -742,6 +742,7 @@ export class Editor extends React.PureComponent<
               <SelectionToolbar
                 rtl={isRTL}
                 readOnly={readOnly}
+                canUpdate={this.props.canUpdate}
                 canComment={this.props.canComment}
                 isTemplate={this.props.template === true}
                 onOpen={this.handleOpenSelectionToolbar}
