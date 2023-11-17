@@ -16,7 +16,7 @@ describe("ImportMarkdownZipTask", () => {
             "..",
             "test",
             "fixtures",
-            "outline.zip"
+            "outline-markdown.zip"
           ),
           cleanup: async () => {},
         };
@@ -34,6 +34,37 @@ describe("ImportMarkdownZipTask", () => {
     expect(response.collections.size).toEqual(1);
     expect(response.documents.size).toEqual(8);
     expect(response.attachments.size).toEqual(6);
+  }, 10000);
+
+  it("should import the documents, public attachments", async () => {
+    const fileOperation = await buildFileOperation();
+    Object.defineProperty(fileOperation, "handle", {
+      get() {
+        return {
+          path: path.resolve(
+            __dirname,
+            "..",
+            "..",
+            "test",
+            "fixtures",
+            "outline-markdown-public.zip"
+          ),
+          cleanup: async () => {},
+        };
+      },
+    });
+    jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
+
+    const props = {
+      fileOperationId: fileOperation.id,
+    };
+
+    const task = new ImportMarkdownZipTask();
+    const response = await task.perform(props);
+
+    expect(response.collections.size).toEqual(1);
+    expect(response.documents.size).toEqual(2);
+    expect(response.attachments.size).toEqual(1);
   }, 10000);
 
   it("should throw an error with corrupt zip", async () => {

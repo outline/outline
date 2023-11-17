@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
 import Logger from "@server/logging/Logger";
 import { FileOperation, User } from "@server/models";
+import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import ImportHelper, { FileTreeNode } from "@server/utils/ImportHelper";
 import ImportTask, { StructuredImportData } from "./ImportTask";
 
@@ -51,8 +52,11 @@ export default class ImportMarkdownZipTask extends ImportTask {
         children.map(async (child) => {
           // special case for folders of attachments
           if (
-            child.name === "uploads" ||
-            (child.children.length > 0 && child.path.includes("/uploads/"))
+            child.name === Buckets.uploads ||
+            child.name === Buckets.public ||
+            (child.children.length > 0 &&
+              (child.path.includes(`/${Buckets.public}/`) ||
+                child.path.includes(`/${Buckets.uploads}/`)))
           ) {
             return parseNodeChildren(child.children, collectionId);
           }
@@ -60,7 +64,11 @@ export default class ImportMarkdownZipTask extends ImportTask {
           const id = uuidv4();
 
           // this is an attachment
-          if (child.path.includes("/uploads/") && child.children.length === 0) {
+          if (
+            child.children.length === 0 &&
+            (child.path.includes(`/${Buckets.uploads}/`) ||
+              child.path.includes(`/${Buckets.public}/`))
+          ) {
             output.attachments.push({
               id,
               name: child.name,
@@ -145,10 +153,12 @@ export default class ImportMarkdownZipTask extends ImportTask {
 
         // Pull the collection and subdirectory out of the path name, upload
         // folders in an export are relative to the document itself
-        const normalizedAttachmentPath = encodedPath.replace(
-          /(.*)uploads\//,
-          "uploads/"
-        );
+        const normalizedAttachmentPath = encodedPath
+          .replace(
+            new RegExp(`(.*)/${Buckets.uploads}/`),
+            `${Buckets.uploads}/`
+          )
+          .replace(new RegExp(`(.*)/${Buckets.public}/`), `${Buckets.public}/`);
 
         const reference = `<<${attachment.id}>>`;
         document.text = document.text
