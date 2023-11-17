@@ -750,6 +750,7 @@
   "Are you sure you want to delete this import?": "Are you sure you want to delete this import?",
   "I’m sure": "확실합니다",
   "Deleting this import will also delete all collections and documents that were created from it. This cannot be undone.": "Deleting this import will also delete all collections and documents that were created from it. This cannot be undone.",
+  "Check server logs for more details.": "Check server logs for more details.",
   "{{userName}} requested": "{{userName}} 요청됨",
   "Upload": "업로드",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "{{appName}}의 JSON 내보내기 옵션에서 zip 파일을 드래그 앤 드롭하거나 클릭하여 업로드",
