@@ -71,7 +71,7 @@ export default class ExtensionManager {
         // in the schema for the current editor.
         nodes[i].marks = nodes[i].marks
           .split(" ")
-          .filter((m: string) => Object.keys(nodes).includes(m))
+          .filter((m: string) => Object.keys(this.marks).includes(m))
           .join(" ");
       }
     }
