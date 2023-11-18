@@ -25,6 +25,12 @@ export type Task = {
   completed: boolean;
 };
 
+export const attachmentRedirectRegex =
+  /\/api\/attachments\.redirect\?id=(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
+
+export const attachmentPublicRegex =
+  /public\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
+
 export default class ProsemirrorHelper {
   /**
    * Get a new empty document.

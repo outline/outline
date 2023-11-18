@@ -501,7 +501,6 @@ class Document extends ParanoidModel {
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
-      // ...(options.includeState ? [] : ["withoutState"]),
       "withDrafts",
       {
         method: ["withCollectionPermissions", userId, rest.paranoid],

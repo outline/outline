@@ -12,7 +12,7 @@ async function presentRevision(revision: Revision, diff?: string) {
     id: revision.id,
     documentId: revision.documentId,
     title: strippedTitle,
-    data: DocumentHelper.toJSON(revision),
+    data: await DocumentHelper.toJSON(revision),
     emoji: revision.emoji ?? emoji,
     html: diff,
     createdAt: revision.createdAt,

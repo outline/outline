@@ -1,5 +1,6 @@
 import {
   updateYFragment,
+  yDocToProsemirror,
   yDocToProsemirrorJSON,
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
@@ -20,11 +21,11 @@ import attachmentCreator from "@server/commands/attachmentCreator";
 import { parser, schema } from "@server/editor";
 import { trace } from "@server/logging/tracing";
 import { Document, Revision, User } from "@server/models";
+import Attachment from "@server/models/Attachment";
 import FileStorage from "@server/storage/files";
 import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import parseImages from "@server/utils/parseImages";
-import Attachment from "../Attachment";
 import ProsemirrorHelper from "./ProsemirrorHelper";
 
 type HTMLOptions = {
@@ -64,15 +65,36 @@ export default class DocumentHelper {
    * collaborative state if available, otherwise it falls back to Markdown.
    *
    * @param document The document or revision to convert
+   * @param options Options for the conversion
    * @returns The document content as a plain JSON object
    */
-  static toJSON(document: Document | Revision) {
+  static async toJSON(
+    document: Document | Revision,
+    options?: {
+      /** The team context */
+      teamId: string;
+      /** Whether to sign attachment urls, and if so for how many seconds is the signature valid */
+      signedUrls: number;
+    }
+  ) {
+    let doc: Node | null;
+
     if ("state" in document && document.state) {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, document.state);
-      return yDocToProsemirrorJSON(ydoc, "default");
+      doc = yDocToProsemirror(schema, ydoc);
     }
-    return parser.parse(document.text)?.toJSON() || {};
+    doc = parser.parse(document.text);
+
+    if (doc && options?.signedUrls) {
+      return ProsemirrorHelper.signAttachmentUrls(
+        doc,
+        options.teamId,
+        options.signedUrls
+      );
+    }
+
+    return doc?.toJSON() ?? {};
   }
 
   /**
@@ -346,6 +368,7 @@ export default class DocumentHelper {
    * Converts attachment urls in documents to signed equivalents that allow
    * direct access without a session cookie
    *
+   * @deprecated Use `ProsemirrorHelper.signAttachmentUrls` where possible
    * @param text The text either html or markdown which contains urls to be converted
    * @param teamId The team context
    * @param expiresIn The time that signed urls should expire (in seconds)
