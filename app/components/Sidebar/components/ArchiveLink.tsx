@@ -3,24 +3,21 @@ import { ArchiveIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import { archivePath } from "~/utils/routeHelpers";
 import SidebarLink, { DragObject } from "./SidebarLink";
 
 function ArchiveLink() {
   const { policies, documents } = useStores();
   const { t } = useTranslation();
-  const { showToast } = useToasts();
 
   const [{ isDocumentDropping }, dropToArchiveDocument] = useDrop({
     accept: "document",
     drop: async (item: DragObject) => {
       const document = documents.get(item.id);
       await document?.archive();
-      showToast(t("Document archived"), {
-        type: "success",
-      });
+      toast.success(t("Document archived"));
     },
     canDrop: (item) => policies.abilities(item.id).archive,
     collect: (monitor) => ({

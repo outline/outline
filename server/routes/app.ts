@@ -14,10 +14,6 @@ import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 import readManifestFile from "@server/utils/readManifestFile";
 
-const isProduction = env.ENVIRONMENT === "production";
-const isDevelopment = env.ENVIRONMENT === "development";
-const isTest = env.ENVIRONMENT === "test";
-
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
 const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
@@ -25,17 +21,17 @@ const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
 let indexHtmlCache: Buffer | undefined;
 
 const readIndexFile = async (): Promise<Buffer> => {
-  if (isProduction || isTest) {
+  if (env.isProduction || env.isTest) {
     if (indexHtmlCache) {
       return indexHtmlCache;
     }
   }
 
-  if (isTest) {
+  if (env.isTest) {
     return await readFile(path.join(__dirname, "../static/index.html"));
   }
 
-  if (isDevelopment) {
+  if (env.isDevelopment) {
     return await readFile(
       path.join(__dirname, "../../../server/static/index.html")
     );
@@ -54,6 +50,7 @@ export const renderApp = async (
     description?: string;
     canonical?: string;
     shortcutIcon?: string;
+    rootShareId?: string;
     analytics?: Integration | null;
   } = {}
 ) => {
@@ -72,11 +69,11 @@ export const renderApp = async (
   const page = await readIndexFile();
   const environment = `
     <script nonce="${ctx.state.cspNonce}">
-      window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
+      window.env = ${JSON.stringify(presentEnv(env, options))};
     </script>
   `;
 
-  const scriptTags = isProduction
+  const scriptTags = env.isProduction
     ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
         env.CDN_URL || ""
       }/static/${readManifestFile()[entry]["file"]}"></script>`
@@ -106,7 +103,10 @@ export const renderApp = async (
 };
 
 export const renderShare = async (ctx: Context, next: Next) => {
-  const { shareId, documentSlug } = ctx.params;
+  const rootShareId = ctx.state?.rootShare?.id;
+  const shareId = rootShareId ?? ctx.params.shareId;
+  const documentSlug = ctx.params.documentSlug;
+
   // Find the share record if publicly published so that the document title
   // can be be returned in the server-rendered HTML. This allows it to appear in
   // unfurls with more reliablity
@@ -159,6 +159,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
         ? team.avatarUrl
         : undefined,
     analytics,
+    rootShareId,
     canonical: share
       ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
       : undefined,

@@ -1,6 +1,6 @@
 import { prosemirrorToYDoc } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
-import { Node, DOMSerializer, Fragment } from "prosemirror-model";
+import { Node, DOMSerializer, Fragment, Mark } from "prosemirror-model";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
@@ -50,7 +50,14 @@ export default class ProsemirrorHelper {
         // @ts-expect-error content
         for (const textNode of node.content.content) {
           for (const embed of embeds) {
-            if (textNode.text && embed.matcher(textNode.text)) {
+            if (
+              textNode.text &&
+              textNode.marks.some(
+                (m: Mark) =>
+                  m.type.name === "link" && m.attrs.href === textNode.text
+              ) &&
+              embed.matcher(textNode.text)
+            ) {
               return schema.nodes.embed.createAndFill({
                 href: textNode.text,
               });

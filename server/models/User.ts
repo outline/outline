@@ -18,7 +18,6 @@ import {
   HasMany,
   Scopes,
   IsDate,
-  IsUrl,
   AllowNull,
   AfterUpdate,
 } from "sequelize-typescript";
@@ -42,16 +41,17 @@ import ApiKey from "./ApiKey";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
-import CollectionUser from "./CollectionUser";
 import Star from "./Star";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
+import UserPermission from "./UserPermission";
 import ParanoidModel from "./base/ParanoidModel";
 import Encrypted, {
   setEncryptedColumn,
   getEncryptedColumn,
 } from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
+import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
@@ -182,7 +182,7 @@ class User extends ParanoidModel {
   language: string;
 
   @AllowNull
-  @IsUrl
+  @IsUrlOrRelativePath
   @Length({ max: 4096, msg: "avatarUrl must be less than 4096 characters" })
   @Column(DataType.STRING)
   get avatarUrl() {
@@ -525,6 +525,7 @@ class User extends ParanoidModel {
         },
       },
       limit: 1,
+      ...options,
     });
 
     if (res.count >= 1) {
@@ -544,7 +545,7 @@ class User extends ParanoidModel {
           },
           options
         );
-        await CollectionUser.update(
+        await UserPermission.update(
           {
             permission: CollectionPermission.Read,
           },
@@ -563,11 +564,14 @@ class User extends ParanoidModel {
     }
   };
 
-  promote = () =>
-    this.update({
-      isAdmin: true,
-      isViewer: false,
-    });
+  promote = (options?: SaveOptions<User>) =>
+    this.update(
+      {
+        isAdmin: true,
+        isViewer: false,
+      },
+      options
+    );
 
   // hooks
 

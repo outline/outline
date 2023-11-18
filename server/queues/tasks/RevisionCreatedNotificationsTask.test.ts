@@ -6,12 +6,9 @@ import {
   Revision,
 } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import RevisionCreatedNotificationsTask from "./RevisionCreatedNotificationsTask";
 
 const ip = "127.0.0.1";
-
-setupTestDatabase();
 
 beforeEach(async () => {
   jest.resetAllMocks();
@@ -137,7 +134,10 @@ describe("revisions.create", () => {
     const collaborator0 = await buildUser();
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
     const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
-    const document = await buildDocument({ userId: collaborator0.id });
+    const document = await buildDocument({
+      teamId: collaborator0.teamId,
+      userId: collaborator0.id,
+    });
     await Revision.createFromDocument(document);
     document.text = "Updated body content";
     document.updatedAt = new Date();
@@ -159,7 +159,11 @@ describe("revisions.create", () => {
       ip,
     });
 
-    const events = await Event.findAll();
+    const events = await Event.findAll({
+      where: {
+        teamId: document.teamId,
+      },
+    });
 
     // Should emit 3 `subscriptions.create` events.
     expect(events.length).toEqual(3);
@@ -254,7 +258,11 @@ describe("revisions.create", () => {
       ip,
     });
 
-    const events = await Event.findAll();
+    const events = await Event.findAll({
+      where: {
+        teamId: document.teamId,
+      },
+    });
 
     // Should emit 2 `subscriptions.create` events.
     expect(events.length).toEqual(2);

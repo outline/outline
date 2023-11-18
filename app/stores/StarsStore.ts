@@ -3,10 +3,10 @@ import { action, runInAction, computed } from "mobx";
 import Star from "~/models/Star";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
-import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import Store from "./base/Store";
 
-export default class StarsStore extends BaseStore<Star> {
+export default class StarsStore extends Store<Star> {
   constructor(rootStore: RootStore) {
     super(rootStore, Star);
   }

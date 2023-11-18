@@ -1,73 +1,63 @@
 import {
   Extension,
-  onAwarenessUpdatePayload,
   onDisconnectPayload,
+  onChangePayload,
 } from "@hocuspocus/server";
-import { Second } from "@shared/utils/time";
+import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import { View } from "@server/models";
+import { withContext } from "./types";
 
 @trace()
 export class ViewsExtension implements Extension {
   /**
-   * Map of socketId -> intervals
+   * Map of last view recorded by socket
    */
-  intervalsBySocket: Map<string, NodeJS.Timer> = new Map();
+  lastViewBySocket: Map<string, Date> = new Map();
 
   /**
-   * onAwarenessUpdate hook
-   * @param data The awareness payload
+   * onChange hook. When a user changes a document, we update their "viewedAt"
+   * timestamp if it's been more than a minute since their last change.
+   *
+   * @param data The change payload
    */
-  async onAwarenessUpdate({
+  async onChange({
     documentName,
-    // @ts-expect-error Hocuspocus types are wrong
-    connection,
     context,
     socketId,
-  }: onAwarenessUpdatePayload) {
-    if (this.intervalsBySocket.get(socketId)) {
+  }: withContext<onChangePayload>) {
+    if (!context.user) {
       return;
     }
 
+    const lastUpdate = this.lastViewBySocket.get(socketId);
     const [, documentId] = documentName.split(".");
 
-    const updateView = async () => {
+    if (!lastUpdate || Date.now() - lastUpdate.getTime() > Minute) {
+      this.lastViewBySocket.set(socketId, new Date());
+
       Logger.debug(
         "multiplayer",
-        `Updating last viewed at for "${documentName}"`
+        `User ${context.user.id} viewed "${documentName}"`
       );
-      try {
-        await View.touch(documentId, context.user.id, !connection.readOnly);
-      } catch (err) {
-        Logger.error(
-          `Failed to update last viewed at for "${documentName}"`,
-          err,
-          {
-            documentId,
-            userId: context.user.id,
-          }
-        );
-      }
-    };
-
-    // Set up an interval to update the last viewed at timestamp continuously
-    // while the user is connected. This should only be done once per socket.
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const interval = setInterval(updateView, 30 * Second);
-
-    this.intervalsBySocket.set(socketId, interval);
+      await Promise.all([
+        View.touch(documentId, context.user.id, true),
+        context.user.update({ lastViewedAt: new Date() }),
+      ]);
+    }
   }
 
   /**
-   * onDisconnect hook
+   * onDisconnect hook. When a user disconnects, we remove their socket from
+   * the lastViewBySocket map to cleanup memory.
+   *
    * @param data The disconnect payload
    */
   async onDisconnect({ socketId }: onDisconnectPayload) {
-    const interval = this.intervalsBySocket.get(socketId);
+    const interval = this.lastViewBySocket.get(socketId);
     if (interval) {
-      clearInterval(interval);
-      this.intervalsBySocket.delete(socketId);
+      this.lastViewBySocket.delete(socketId);
     }
   }
 
@@ -76,9 +66,6 @@ export class ViewsExtension implements Extension {
    * @param data The destroy payload
    */
   async onDestroy() {
-    this.intervalsBySocket.forEach((interval, socketId) => {
-      clearInterval(interval);
-      this.intervalsBySocket.delete(socketId);
-    });
+    this.lastViewBySocket = new Map();
   }
 }

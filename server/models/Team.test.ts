@@ -1,7 +1,4 @@
 import { buildTeam, buildCollection } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
-
-setupTestDatabase();
 
 describe("collectionIds", () => {
   it("should return non-private collection ids", async () => {

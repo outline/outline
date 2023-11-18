@@ -2,13 +2,13 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 
 type FormData = {
   code: string;
@@ -17,7 +17,6 @@ type FormData = {
 function UserDelete() {
   const [isWaitingCode, setWaitingCode] = React.useState(false);
   const { auth } = useStores();
-  const { showToast } = useToasts();
   const { t } = useTranslation();
   const {
     register,
@@ -32,13 +31,11 @@ function UserDelete() {
       try {
         await auth.requestDeleteUser();
         setWaitingCode(true);
-      } catch (error) {
-        showToast(error.message, {
-          type: "error",
-        });
+      } catch (err) {
+        toast.error(err.message);
       }
     },
-    [auth, showToast]
+    [auth]
   );
 
   const handleSubmit = React.useCallback(
@@ -46,13 +43,11 @@ function UserDelete() {
       try {
         await auth.deleteUser(data);
         await auth.logout();
-      } catch (error) {
-        showToast(error.message, {
-          type: "error",
-        });
+      } catch (err) {
+        toast.error(err.message);
       }
     },
-    [auth, showToast]
+    [auth]
   );
 
   const inputProps = register("code", {
@@ -68,7 +63,7 @@ function UserDelete() {
             <Text type="secondary">
               <Trans>
                 A confirmation code has been sent to your email address, please
-                enter the code below to permanantly destroy your account.
+                enter the code below to permanently destroy your account.
               </Trans>
             </Text>
             <Input

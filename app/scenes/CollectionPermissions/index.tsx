@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { CollectionPermission } from "@shared/types";
 import Group from "~/models/Group";
@@ -19,7 +20,6 @@ import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import AddGroupsToCollection from "./AddGroupsToCollection";
 import AddPeopleToCollection from "./AddPeopleToCollection";
 import CollectionGroupMemberListItem from "./components/CollectionGroupMemberListItem";
@@ -40,7 +40,6 @@ function CollectionPermissions({ collectionId }: Props) {
     groups,
     auth,
   } = useStores();
-  const { showToast } = useToasts();
   const collection = collections.get(collectionId);
   invariant(collection, "Collection not found");
 
@@ -60,21 +59,16 @@ function CollectionPermissions({ collectionId }: Props) {
           collectionId: collection.id,
           userId: user.id,
         });
-        showToast(
+        toast.success(
           t(`{{ userName }} was removed from the collection`, {
             userName: user.name,
-          }),
-          {
-            type: "success",
-          }
+          })
         );
       } catch (err) {
-        showToast(t("Could not remove user"), {
-          type: "error",
-        });
+        toast.error(t("Could not remove user"));
       }
     },
-    [memberships, showToast, collection, t]
+    [memberships, collection, t]
   );
 
   const handleUpdateUser = React.useCallback(
@@ -85,21 +79,16 @@ function CollectionPermissions({ collectionId }: Props) {
           userId: user.id,
           permission,
         });
-        showToast(
+        toast.success(
           t(`{{ userName }} permissions were updated`, {
             userName: user.name,
-          }),
-          {
-            type: "success",
-          }
+          })
         );
       } catch (err) {
-        showToast(t("Could not update user"), {
-          type: "error",
-        });
+        toast.error(t("Could not update user"));
       }
     },
-    [memberships, showToast, collection, t]
+    [memberships, collection, t]
   );
 
   const handleRemoveGroup = React.useCallback(
@@ -109,21 +98,16 @@ function CollectionPermissions({ collectionId }: Props) {
           collectionId: collection.id,
           groupId: group.id,
         });
-        showToast(
+        toast.success(
           t(`The {{ groupName }} group was removed from the collection`, {
             groupName: group.name,
-          }),
-          {
-            type: "success",
-          }
+          })
         );
       } catch (err) {
-        showToast(t("Could not remove group"), {
-          type: "error",
-        });
+        toast.error(t("Could not remove group"));
       }
     },
-    [collectionGroupMemberships, showToast, collection, t]
+    [collectionGroupMemberships, collection, t]
   );
 
   const handleUpdateGroup = React.useCallback(
@@ -134,21 +118,16 @@ function CollectionPermissions({ collectionId }: Props) {
           groupId: group.id,
           permission,
         });
-        showToast(
+        toast.success(
           t(`{{ groupName }} permissions were updated`, {
             groupName: group.name,
-          }),
-          {
-            type: "success",
-          }
+          })
         );
       } catch (err) {
-        showToast(t("Could not update user"), {
-          type: "error",
-        });
+        toast.error(t("Could not update user"));
       }
     },
-    [collectionGroupMemberships, showToast, collection, t]
+    [collectionGroupMemberships, collection, t]
   );
 
   const handleChangePermission = React.useCallback(
@@ -157,16 +136,12 @@ function CollectionPermissions({ collectionId }: Props) {
         await collection.save({
           permission,
         });
-        showToast(t("Default access permissions were updated"), {
-          type: "success",
-        });
+        toast.success(t("Default access permissions were updated"));
       } catch (err) {
-        showToast(t("Could not update permissions"), {
-          type: "error",
-        });
+        toast.error(t("Could not update permissions"));
       }
     },
-    [collection, showToast, t]
+    [collection, t]
   );
 
   const fetchOptions = React.useMemo(
@@ -182,16 +157,12 @@ function CollectionPermissions({ collectionId }: Props) {
         await collection.save({
           sharing: ev.target.checked,
         });
-        showToast(t("Public document sharing permissions were updated"), {
-          type: "success",
-        });
+        toast.success(t("Public document sharing permissions were updated"));
       } catch (err) {
-        showToast(t("Could not update public document sharing"), {
-          type: "error",
-        });
+        toast.error(t("Could not update public document sharing"));
       }
     },
-    [collection, showToast, t]
+    [collection, t]
   );
 
   const collectionName = collection.name;
@@ -256,7 +227,7 @@ function CollectionPermissions({ collectionId }: Props) {
             </Trans>
           ) : (
             <Trans>
-              Public sharing is currently disabled in the team security
+              Public sharing is currently disabled in the workspace security
               settings.
             </Trans>
           )

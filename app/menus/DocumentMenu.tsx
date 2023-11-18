@@ -1,13 +1,15 @@
 import { observer } from "mobx-react";
-import { EditIcon, NewDocumentIcon, RestoreIcon } from "outline-icons";
+import { EditIcon, RestoreIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
+import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s, ellipsis } from "@shared/styles";
+import { UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
@@ -38,16 +40,17 @@ import {
   unpublishDocument,
   printDocument,
   openDocumentComments,
+  createDocumentFromTemplate,
+  createNestedDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
-import { documentEditPath, newDocumentPath } from "~/utils/routeHelpers";
+import { documentEditPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -59,6 +62,7 @@ type Props = {
   showToggleEmbeds?: boolean;
   showPin?: boolean;
   label?: (props: MenuButtonHTMLProps) => React.ReactNode;
+  onRename?: () => void;
   onOpen?: () => void;
   onClose?: () => void;
 };
@@ -70,12 +74,12 @@ function DocumentMenu({
   showToggleEmbeds,
   showDisplayOptions,
   label,
+  onRename,
   onOpen,
   onClose,
 }: Props) {
-  const team = useCurrentTeam();
+  const user = useCurrentUser();
   const { policies, collections, documents, subscriptions } = useStores();
-  const { showToast } = useToasts();
   const menu = useMenuState({
     modal,
     unstable_preventOverflow: true,
@@ -116,11 +120,9 @@ function DocumentMenu({
       }
     ) => {
       await document.restore(options);
-      showToast(t("Document restored"), {
-        type: "success",
-      });
+      toast.success(t("Document restored"));
     },
-    [showToast, t, document]
+    [t, document]
   );
 
   const collection = document.collectionId
@@ -183,13 +185,11 @@ function DocumentMenu({
         );
         history.push(importedDocument.url);
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
         throw err;
       }
     },
-    [history, showToast, collection, documents, document.id]
+    [history, collection, documents, document.id]
   );
 
   return (
@@ -263,18 +263,18 @@ function DocumentMenu({
               type: "route",
               title: t("Edit"),
               to: documentEditPath(document),
-              visible: !!can.update && !team.seamlessEditing,
+              visible:
+                !!can.update && user.separateEditMode && !document.template,
               icon: <EditIcon />,
             },
             {
-              type: "route",
-              title: t("New nested document"),
-              to: newDocumentPath(document.collectionId, {
-                parentDocumentId: document.id,
-              }),
-              visible: !!can.createChildDocument,
-              icon: <NewDocumentIcon />,
+              type: "button",
+              title: `${t("Rename")}…`,
+              visible: !!can.update && !user.separateEditMode && !!onRename,
+              onClick: () => onRename?.(),
+              icon: <EditIcon />,
             },
+            actionToMenuItem(createNestedDocument, context),
             actionToMenuItem(importDocument, context),
             actionToMenuItem(createTemplate, context),
             actionToMenuItem(duplicateDocument, context),
@@ -283,6 +283,7 @@ function DocumentMenu({
             actionToMenuItem(archiveDocument, context),
             actionToMenuItem(moveDocument, context),
             actionToMenuItem(pinDocument, context),
+            actionToMenuItem(createDocumentFromTemplate, context),
             {
               type: "separator",
             },
@@ -324,7 +325,13 @@ function DocumentMenu({
                   label={t("Full width")}
                   checked={document.fullWidth}
                   onChange={(ev) => {
-                    document.fullWidth = ev.currentTarget.checked;
+                    const fullWidth = ev.currentTarget.checked;
+                    user.setPreference(
+                      UserPreference.FullWidthDocuments,
+                      fullWidth
+                    );
+                    void user.save();
+                    document.fullWidth = fullWidth;
                     void document.save();
                   }}
                 />

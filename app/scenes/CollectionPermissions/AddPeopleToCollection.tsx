@@ -1,9 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import Collection from "~/models/Collection";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
+import Avatar from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar/Avatar";
 import ButtonLink from "~/components/ButtonLink";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -13,9 +16,8 @@ import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useDebouncedCallback from "~/hooks/useDebouncedCallback";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
+import useThrottledCallback from "~/hooks/useThrottledCallback";
 import MemberListItem from "./components/MemberListItem";
 
 type Props = {
@@ -24,19 +26,13 @@ type Props = {
 
 function AddPeopleToCollection({ collection }: Props) {
   const { memberships, users } = useStores();
-  const { showToast } = useToasts();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const [inviteModalOpen, setInviteModalOpen, setInviteModalClosed] =
     useBoolean();
   const [query, setQuery] = React.useState("");
 
-  const handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(ev.target.value);
-    debouncedFetch(ev.target.value);
-  };
-
-  const debouncedFetch = useDebouncedCallback(
+  const debouncedFetch = useThrottledCallback(
     (query) =>
       users.fetchPage({
         query,
@@ -44,31 +40,34 @@ function AddPeopleToCollection({ collection }: Props) {
     250
   );
 
+  const handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(ev.target.value);
+    void debouncedFetch(ev.target.value);
+  };
+
   const handleAddUser = async (user: User) => {
     try {
       await memberships.create({
         collectionId: collection.id,
         userId: user.id,
       });
-      showToast(
+      toast.success(
         t("{{ userName }} was added to the collection", {
           userName: user.name,
         }),
         {
-          type: "success",
+          icon: <Avatar model={user} size={AvatarSize.Toast} />,
         }
       );
     } catch (err) {
-      showToast(t("Could not add user"), {
-        type: "error",
-      });
+      toast.error(t("Could not add user"));
     }
   };
 
   return (
     <Flex column>
       <Text type="secondary">
-        {t("Need to add someone who’s not yet on the team yet?")}{" "}
+        {t("Need to add someone who’s not on the team yet?")}{" "}
         <ButtonLink onClick={setInviteModalOpen}>
           {t("Invite people to {{ teamName }}", {
             teamName: team.name,

@@ -7,9 +7,6 @@ import {
   buildUser,
   buildShare,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
-
-setupTestDatabase();
 
 beforeEach(() => {
   jest.resetAllMocks();
@@ -165,9 +162,7 @@ describe("#searchForTeam", () => {
 describe("#searchForUser", () => {
   test("should return search results from collections", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       userId: user.id,
       teamId: team.id,
@@ -185,9 +180,7 @@ describe("#searchForUser", () => {
 
   test("should handle no collections", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const { results } = await SearchHelper.searchForUser(user, "test");
     expect(results.length).toBe(0);
   });
@@ -265,9 +258,7 @@ describe("#searchForUser", () => {
 
   test("should return the total count of search results", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       userId: user.id,
       teamId: team.id,
@@ -290,9 +281,7 @@ describe("#searchForUser", () => {
 
   test("should return the document when searched with their previous titles", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       teamId: team.id,
       userId: user.id,
@@ -314,9 +303,7 @@ describe("#searchForUser", () => {
 
   test("should not return the document when searched with neither the titles nor the previous titles", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       teamId: team.id,
       userId: user.id,
@@ -340,9 +327,7 @@ describe("#searchForUser", () => {
 describe("#searchTitlesForUser", () => {
   test("should return search results from collections", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       userId: user.id,
       teamId: team.id,
@@ -360,9 +345,7 @@ describe("#searchTitlesForUser", () => {
 
   test("should filter to specific collection", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
       userId: user.id,
       teamId: team.id,
@@ -397,9 +380,7 @@ describe("#searchTitlesForUser", () => {
 
   test("should handle no collections", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const documents = await SearchHelper.searchTitlesForUser(user, "test");
     expect(documents.length).toBe(0);
   });

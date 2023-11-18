@@ -1,11 +1,8 @@
 import { Revision } from "@server/models";
 import { buildDocument } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import RevisionsProcessor from "./RevisionsProcessor";
 
 const ip = "127.0.0.1";
-
-setupTestDatabase();
 
 describe("documents.update.debounced", () => {
   test("should create a revision", async () => {

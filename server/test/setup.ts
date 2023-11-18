@@ -1,7 +1,7 @@
+import sharedEnv from "@shared/env";
+import env from "@server/env";
 import Redis from "@server/storage/redis";
 
-// NOTE: this require must come after the ENV var override
-// so that sequelize uses the test config variables
 require("@server/storage/database");
 
 jest.mock("bull");
@@ -24,3 +24,7 @@ jest.mock("aws-sdk", () => {
 });
 
 afterAll(() => Redis.defaultClient.disconnect());
+
+beforeEach(() => {
+  env.URL = sharedEnv.URL = "https://app.outline.dev";
+});

@@ -257,7 +257,7 @@ const Small = styled.div`
   margin: auto auto;
   width: 30vw;
   min-width: 350px;
-  max-width: 500px;
+  max-width: 450px;
   z-index: ${depths.modal};
   display: flex;
   justify-content: center;

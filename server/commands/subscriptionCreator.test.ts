@@ -1,11 +1,8 @@
 import { Subscription, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import subscriptionCreator from "./subscriptionCreator";
 import subscriptionDestroyer from "./subscriptionDestroyer";
-
-setupTestDatabase();
 
 describe("subscriptionCreator", () => {
   const ip = "127.0.0.1";
@@ -29,7 +26,11 @@ describe("subscriptionCreator", () => {
       })
     );
 
-    const event = await Event.findOne();
+    const event = await Event.findOne({
+      where: {
+        teamId: user.teamId,
+      },
+    });
 
     expect(subscription.documentId).toEqual(document.id);
     expect(subscription.userId).toEqual(user.id);
@@ -123,7 +124,11 @@ describe("subscriptionCreator", () => {
       })
     );
 
-    const events = await Event.count();
+    const events = await Event.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
 
     // 3 events. 1 create, 1 destroy and 1 re-create.
     expect(events).toEqual(3);
@@ -167,7 +172,11 @@ describe("subscriptionCreator", () => {
     );
 
     // Should emit 1 event instead of 2.
-    const events = await Event.count();
+    const events = await Event.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     expect(events).toEqual(1);
 
     expect(subscription0.documentId).toEqual(document.id);
@@ -223,7 +232,11 @@ describe("subscriptionCreator", () => {
 
     // Should emit 3 events.
     // 2 create, 1 destroy.
-    const events = await Event.findAll();
+    const events = await Event.findAll({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     expect(events.length).toEqual(3);
 
     expect(events[0].name).toEqual("subscriptions.create");
@@ -260,7 +273,11 @@ describe("subscriptionCreator", () => {
       })
     );
 
-    const events = await Event.count();
+    const events = await Event.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     expect(events).toEqual(1);
 
     expect(subscription0.documentId).toEqual(document.id);

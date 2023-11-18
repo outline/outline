@@ -1,13 +1,13 @@
 import invariant from "invariant";
 import filter from "lodash/filter";
 import { action, runInAction } from "mobx";
-import BaseStore, { RPCAction } from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
+import Store, { RPCAction } from "~/stores/base/Store";
 import Revision from "~/models/Revision";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 
-export default class RevisionsStore extends BaseStore<Revision> {
+export default class RevisionsStore extends Store<Revision> {
   actions = [RPCAction.List, RPCAction.Info];
 
   constructor(rootStore: RootStore) {

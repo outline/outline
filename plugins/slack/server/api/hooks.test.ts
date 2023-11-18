@@ -1,8 +1,14 @@
+import randomstring from "randomstring";
 import { IntegrationService } from "@shared/types";
 import env from "@server/env";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
-import { buildDocument, buildIntegration } from "@server/test/factories";
-import { seed, getTestServer } from "@server/test/support";
+import {
+  buildDocument,
+  buildIntegration,
+  buildTeam,
+  buildUser,
+} from "@server/test/factories";
+import { getTestServer } from "@server/test/support";
 import * as Slack from "../slack";
 
 jest.mock("../slack", () => ({
@@ -12,24 +18,30 @@ jest.mock("../slack", () => ({
 const server = getTestServer();
 
 describe("#hooks.unfurl", () => {
-  it("should return documents", async () => {
-    const { user, document } = await seed();
+  it("should return documents with matching SSO user", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
     await IntegrationAuthentication.create({
       service: IntegrationService.Slack,
       userId: user.id,
       teamId: user.teamId,
-      token: "",
+      token: randomstring.generate(32),
     });
+
     const res = await server.post("/api/hooks.unfurl", {
       body: {
         token: env.SLACK_VERIFICATION_TOKEN,
-        team_id: "TXXXXXXXX",
-        api_app_id: "AXXXXXXXXX",
+        team_id: `T${randomstring.generate(8)}`,
+        api_app_id: `A${randomstring.generate(8)}`,
         event: {
           type: "link_shared",
-          channel: "Cxxxxxx",
+          channel: `C${randomstring.generate(8)}`,
           user: user.authentications[0].providerId,
-          message_ts: "123456789.9875",
+          message_ts: randomstring.generate(12),
           links: [
             {
               domain: "getoutline.com",
@@ -46,7 +58,8 @@ describe("#hooks.unfurl", () => {
 
 describe("#hooks.slack", () => {
   it("should return no matches", async () => {
-    const { user, team } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
     const res = await server.post("/api/hooks.slack", {
       body: {
         token: env.SLACK_VERIFICATION_TOKEN,
@@ -61,7 +74,8 @@ describe("#hooks.slack", () => {
   });
 
   it("should return search results with summary if query is in title", async () => {
-    const { user, team } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({
       title: "This title contains a search term",
       userId: user.id,
@@ -83,7 +97,8 @@ describe("#hooks.slack", () => {
   });
 
   it("should return search results if query is regex-like", async () => {
-    const { user, team } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
     await buildDocument({
       title: "This title contains a search term",
       userId: user.id,
@@ -103,7 +118,8 @@ describe("#hooks.slack", () => {
   });
 
   it("should return search results with snippet if query is in text", async () => {
-    const { user, team } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({
       text: "This title contains a search term",
       userId: user.id,
@@ -127,7 +143,8 @@ describe("#hooks.slack", () => {
   });
 
   it("should save search term, hits and source", async () => {
-    const { user, team } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
     await server.post("/api/hooks.slack", {
       body: {
         token: env.SLACK_VERIFICATION_TOKEN,
@@ -137,25 +154,20 @@ describe("#hooks.slack", () => {
       },
     });
 
-    return new Promise((resolve) => {
-      // setTimeout is needed here because SearchQuery is saved asynchronously
-      // in order to not slow down the response time.
-      setTimeout(async () => {
-        const searchQuery = await SearchQuery.findAll({
-          where: {
-            query: "contains",
-          },
-        });
-        expect(searchQuery.length).toBe(1);
-        expect(searchQuery[0].results).toBe(0);
-        expect(searchQuery[0].source).toBe("slack");
-        resolve(undefined);
-      }, 100);
+    const searchQuery = await SearchQuery.findAll({
+      where: {
+        teamId: team.id,
+        query: "contains",
+      },
     });
+    expect(searchQuery.length).toBe(1);
+    expect(searchQuery[0].results).toBe(0);
+    expect(searchQuery[0].source).toBe("slack");
   });
 
   it("should respond with help content for help keyword", async () => {
-    const { user, team } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
     const res = await server.post("/api/hooks.slack", {
       body: {
         token: env.SLACK_VERIFICATION_TOKEN,
@@ -170,7 +182,8 @@ describe("#hooks.slack", () => {
   });
 
   it("should respond with help content for no keyword", async () => {
-    const { user, team } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
     const res = await server.post("/api/hooks.slack", {
       body: {
         token: env.SLACK_VERIFICATION_TOKEN,
@@ -185,7 +198,8 @@ describe("#hooks.slack", () => {
   });
 
   it("should return search results with snippet for unknown user", async () => {
-    const { user, team } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
     // unpublished document will not be returned
     await buildDocument({
       text: "This title contains a search term",
@@ -217,13 +231,9 @@ describe("#hooks.slack", () => {
   });
 
   it("should return search results with snippet for user through integration mapping", async () => {
-    const { user } = await seed();
-    const serviceTeamId = "slack_team_id";
-    await buildIntegration({
+    const user = await buildUser();
+    const integration = await buildIntegration({
       teamId: user.teamId,
-      settings: {
-        serviceTeamId,
-      },
     });
     const document = await buildDocument({
       text: "This title contains a search term",
@@ -234,7 +244,7 @@ describe("#hooks.slack", () => {
       body: {
         token: env.SLACK_VERIFICATION_TOKEN,
         user_id: "unknown-slack-user-id",
-        team_id: serviceTeamId,
+        team_id: (integration.settings as any)?.serviceTeamId,
         text: "contains",
       },
     });
@@ -249,7 +259,8 @@ describe("#hooks.slack", () => {
   });
 
   it("should error if incorrect verification token", async () => {
-    const { user, team } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
     const res = await server.post("/api/hooks.slack", {
       body: {
         token: "wrong-verification-token",
@@ -264,13 +275,15 @@ describe("#hooks.slack", () => {
 
 describe("#hooks.interactive", () => {
   it("should respond with replacement message", async () => {
-    const { user, team } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({
       title: "This title contains a search term",
       userId: user.id,
       teamId: user.teamId,
     });
     const payload = JSON.stringify({
+      type: "message_action",
       token: env.SLACK_VERIFICATION_TOKEN,
       user: {
         id: user.authentications[0].providerId,
@@ -293,13 +306,15 @@ describe("#hooks.interactive", () => {
   });
 
   it("should respond with replacement message if unknown user", async () => {
-    const { user, team } = await seed();
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({
       title: "This title contains a search term",
       userId: user.id,
       teamId: user.teamId,
     });
     const payload = JSON.stringify({
+      type: "message_action",
       token: env.SLACK_VERIFICATION_TOKEN,
       user: {
         id: "unknown-slack-user-id",
@@ -322,8 +337,9 @@ describe("#hooks.interactive", () => {
   });
 
   it("should error if incorrect verification token", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const payload = JSON.stringify({
+      type: "message_action",
       token: "wrong-verification-token",
       user: {
         id: user.authentications[0].providerId,

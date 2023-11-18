@@ -22,24 +22,23 @@ export default class Placeholder extends Extension {
             const { doc } = state;
             const decorations: Decoration[] = [];
             const completelyEmpty =
-              doc.textContent === "" &&
               doc.childCount <= 1 &&
-              doc.content.size <= 2;
+              doc.content.size <= 2 &&
+              doc.textContent === "";
 
-            doc.descendants((node, pos) => {
-              if (!completelyEmpty) {
-                return;
-              }
-              if (pos !== 0 || node.type.name !== "paragraph") {
-                return;
-              }
+            if (completelyEmpty) {
+              doc.descendants((node, pos) => {
+                if (pos !== 0 || node.type.name !== "paragraph") {
+                  return;
+                }
 
-              const decoration = Decoration.node(pos, pos + node.nodeSize, {
-                class: this.options.emptyNodeClass,
-                "data-empty-text": this.options.placeholder,
+                const decoration = Decoration.node(pos, pos + node.nodeSize, {
+                  class: this.options.emptyNodeClass,
+                  "data-empty-text": this.options.placeholder,
+                });
+                decorations.push(decoration);
               });
-              decorations.push(decoration);
-            });
+            }
 
             return DecorationSet.create(doc, decorations);
           },

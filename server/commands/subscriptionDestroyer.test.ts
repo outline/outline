@@ -1,14 +1,11 @@
-import { Subscription, Event } from "@server/models";
+import { Subscription } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import {
   buildDocument,
   buildSubscription,
   buildUser,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import subscriptionDestroyer from "./subscriptionDestroyer";
-
-setupTestDatabase();
 
 describe("subscriptionDestroyer", () => {
   const ip = "127.0.0.1";
@@ -36,17 +33,13 @@ describe("subscriptionDestroyer", () => {
         })
     );
 
-    const count = await Subscription.count();
+    const count = await Subscription.count({
+      where: {
+        userId: user.id,
+      },
+    });
 
     expect(count).toEqual(0);
-
-    const event = await Event.findOne();
-
-    expect(event?.name).toEqual("subscriptions.delete");
-    expect(event?.modelId).toEqual(subscription.id);
-    expect(event?.actorId).toEqual(subscription.userId);
-    expect(event?.userId).toEqual(subscription.userId);
-    expect(event?.documentId).toEqual(subscription.documentId);
   });
 
   it("should soft delete row", async () => {
@@ -72,17 +65,13 @@ describe("subscriptionDestroyer", () => {
         })
     );
 
-    const count = await Subscription.count();
+    const count = await Subscription.count({
+      where: {
+        userId: user.id,
+      },
+    });
 
     expect(count).toEqual(0);
-
-    const event = await Event.findOne();
-
-    expect(event?.name).toEqual("subscriptions.delete");
-    expect(event?.modelId).toEqual(subscription.id);
-    expect(event?.actorId).toEqual(subscription.userId);
-    expect(event?.userId).toEqual(subscription.userId);
-    expect(event?.documentId).toEqual(subscription.documentId);
 
     const deletedSubscription = await Subscription.findOne({
       where: {

@@ -1,12 +1,20 @@
-import { CollectionUser, Revision } from "@server/models";
-import { buildDocument, buildUser } from "@server/test/factories";
-import { seed, getTestServer } from "@server/test/support";
+import { UserPermission, Revision } from "@server/models";
+import {
+  buildCollection,
+  buildDocument,
+  buildUser,
+} from "@server/test/factories";
+import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
 describe("#revisions.info", () => {
   it("should return a document revision", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const revision = await Revision.createFromDocument(document);
     const res = await server.post("/api/revisions.info", {
       body: {
@@ -36,7 +44,11 @@ describe("#revisions.info", () => {
 
 describe("#revisions.diff", () => {
   it("should return the document HTML if no previous revision", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const revision = await Revision.createFromDocument(document);
     const res = await server.post("/api/revisions.diff", {
       body: {
@@ -57,8 +69,13 @@ describe("#revisions.diff", () => {
   });
 
   it("should allow returning HTML directly with accept header", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const revision = await Revision.createFromDocument(document);
+
     const res = await server.post("/api/revisions.diff", {
       body: {
         token: user.getJwtToken(),
@@ -81,7 +98,11 @@ describe("#revisions.diff", () => {
   });
 
   it("should compare to previous revision by default", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     await Revision.createFromDocument(document);
 
     await document.update({ text: "New text" });
@@ -121,7 +142,11 @@ describe("#revisions.diff", () => {
 
 describe("#revisions.list", () => {
   it("should return a document's revisions", async () => {
-    const { user, document } = await seed();
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     await Revision.createFromDocument(document);
     const res = await server.post("/api/revisions.list", {
       body: {
@@ -137,11 +162,20 @@ describe("#revisions.list", () => {
   });
 
   it("should not return revisions for document in collection not a member of", async () => {
-    const { user, document, collection } = await seed();
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
     await Revision.createFromDocument(document);
     collection.permission = null;
     await collection.save();
-    await CollectionUser.destroy({
+    await UserPermission.destroy({
       where: {
         userId: user.id,
         collectionId: collection.id,

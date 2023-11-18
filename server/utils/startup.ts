@@ -33,11 +33,10 @@ export async function checkDataMigrations() {
     return;
   }
 
-  const isProduction = env.ENVIRONMENT === "production";
   const teams = await Team.count();
   const providers = await AuthenticationProvider.count();
 
-  if (isProduction && teams && !providers) {
+  if (env.isProduction && teams && !providers) {
     Logger.warn(`
 This version of Outline cannot start until a data migration is complete.
 Backup your database, run the database migrations and the following script:
@@ -62,14 +61,14 @@ export async function checkEnv() {
     }
   });
 
-  if (env.ENVIRONMENT === "production") {
+  if (env.isProduction) {
     Logger.info(
       "lifecycle",
       chalk.green(`
 Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
 `)
     );
-  } else if (env.ENVIRONMENT === "development") {
+  } else if (env.isDevelopment) {
     Logger.warn(
       `Running Outline in ${chalk.bold(
         "development mode"

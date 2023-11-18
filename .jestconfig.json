@@ -1,5 +1,6 @@
 {
   "workerIdleMemoryLimit": "0.75",
+  "maxWorkers": "50%",
   "projects": [
     {
       "displayName": "server",
@@ -8,13 +9,11 @@
         "^@server/(.*)$": "<rootDir>/server/$1",
         "^@shared/(.*)$": "<rootDir>/shared/$1"
       },
-      "setupFiles": [
-        "<rootDir>/__mocks__/console.js",
-        "<rootDir>/server/test/env.ts"
-      ],
+      "setupFiles": ["<rootDir>/__mocks__/console.js", "<rootDir>/server/test/env.ts"],
       "setupFilesAfterEnv": ["<rootDir>/server/test/setup.ts"],
-      "testEnvironment": "node",
-      "runner": "@getoutline/jest-runner-serial"
+      "globalSetup": "<rootDir>/server/test/globalSetup.js",
+      "globalTeardown": "<rootDir>/server/test/globalTeardown.js",
+      "testEnvironment": "node"
     },
     {
       "displayName": "app",

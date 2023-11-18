@@ -5,27 +5,15 @@ import {
   NodeType,
   Schema,
 } from "prosemirror-model";
-import { Command, Plugin, TextSelection } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import { Command, TextSelection } from "prosemirror-state";
 import { Primitive } from "utility-types";
-import Suggestion from "../extensions/Suggestion";
+import Extension from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { SuggestionsMenuType } from "../plugins/Suggestions";
 import mentionRule from "../rules/mention";
 
-export default class Mention extends Suggestion {
+export default class Mention extends Extension {
   get type() {
     return "node";
-  }
-
-  get defaultOptions() {
-    return {
-      type: SuggestionsMenuType.Mention,
-      // ported from https://github.com/tc39/proposal-regexp-unicode-property-escapes#unicode-aware-version-of-w
-      openRegex: /(?:^|\s)@([\p{L}\p{M}\d]+)?$/u,
-      closeRegex: /(?:^|\s)@(([\p{L}\p{M}\d]*\s+)|(\s+[\p{L}\p{M}\d]+))$/u,
-      enabledInTable: true,
-    };
   }
 
   get name() {
@@ -64,7 +52,7 @@ export default class Mention extends Suggestion {
       toDOM: (node) => [
         "span",
         {
-          class: `${node.type.name}`,
+          class: `${node.type.name} use-hover-preview`,
           id: node.attrs.id,
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
@@ -79,31 +67,6 @@ export default class Mention extends Suggestion {
 
   get rulePlugins() {
     return [mentionRule];
-  }
-
-  get plugins(): Plugin[] {
-    return [
-      new Plugin({
-        props: {
-          handleDOMEvents: {
-            mouseover: (view: EditorView, event: MouseEvent) => {
-              const target = (event.target as HTMLElement)?.closest("span");
-              if (
-                target instanceof HTMLSpanElement &&
-                this.editor.elementRef.current?.contains(target) &&
-                target.className.includes("mention") &&
-                (!view.editable || (view.editable && !view.hasFocus()))
-              ) {
-                if (this.options.onHoverLink) {
-                  return this.options.onHoverLink(target);
-                }
-              }
-              return false;
-            },
-          },
-        },
-      }),
-    ];
   }
 
   commands({ type }: { type: NodeType; schema: Schema }) {

@@ -2,7 +2,7 @@ import { subHours, subMinutes } from "date-fns";
 import Router from "koa-router";
 import uniqBy from "lodash/uniqBy";
 import { TeamPreference } from "@shared/types";
-import { getCookieDomain, parseDomain } from "@shared/utils/domains";
+import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -27,7 +27,9 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
   if (!env.isCloudHosted) {
-    const team = await Team.scope("withAuthenticationProviders").findOne();
+    const team = await Team.scope("withAuthenticationProviders").findOne({
+      order: [["createdAt", "DESC"]],
+    });
 
     if (team) {
       ctx.body = {
@@ -178,8 +180,8 @@ router.post(
     );
 
     ctx.cookies.set("accessToken", "", {
+      sameSite: "lax",
       expires: subMinutes(new Date(), 1),
-      domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
     });
 
     ctx.body = {

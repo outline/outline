@@ -3,6 +3,8 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import FileExtension from "../components/FileExtension";
+import { isRemoteTransaction } from "./multiplayer";
+import { recreateTransform } from "./prosemirror-recreate-transform";
 
 // based on the example at: https://prosemirror.net/examples/upload/
 const uploadPlaceholder = new Plugin({
@@ -11,37 +13,72 @@ const uploadPlaceholder = new Plugin({
       return DecorationSet.empty;
     },
     apply(tr, set: DecorationSet) {
-      // Adjust decoration positions to changes made by the transaction
-      set = set.map(tr.mapping, tr.doc);
+      let mapping = tr.mapping;
 
-      // See if the transaction adds or removes any placeholders
+      // See if the transaction adds or removes any placeholders – the placeholder display is
+      // different depending on if we're uploading an image, video or plain file
       const action = tr.getMeta(this);
+      const hasDecorations = set.find().length;
+
+      // Note: We always rebuild the mapping if the transaction comes from this plugin as otherwise
+      // with the default mapping decorations are wiped out when you upload multiple files at a time.
+      if (hasDecorations && (isRemoteTransaction(tr) || action)) {
+        try {
+          mapping = recreateTransform(tr.before, tr.doc, {
+            complexSteps: true,
+            wordDiffs: false,
+            simplifyDiff: true,
+          }).mapping;
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn("Failed to recreate transform: ", err);
+        }
+      }
+
+      set = set.map(mapping, tr.doc);
 
       if (action?.add) {
-        if (action.add.replaceExisting) {
-          const $pos = tr.doc.resolve(action.add.pos);
+        if (action.add.isImage) {
+          if (action.add.replaceExisting) {
+            const $pos = tr.doc.resolve(action.add.pos);
 
-          if ($pos.nodeAfter?.type.name === "image") {
-            const deco = Decoration.node(
-              $pos.pos,
-              $pos.pos + $pos.nodeAfter.nodeSize,
-              {
-                class: "image-replacement-uploading",
-              },
-              {
-                id: action.add.id,
-              }
-            );
+            if ($pos.nodeAfter?.type.name === "image") {
+              const deco = Decoration.node(
+                $pos.pos,
+                $pos.pos + $pos.nodeAfter.nodeSize,
+                {
+                  class: "image-replacement-uploading",
+                },
+                {
+                  id: action.add.id,
+                }
+              );
+              set = set.add(tr.doc, [deco]);
+            }
+          } else {
+            const element = document.createElement("div");
+            element.className = "image placeholder";
+
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(action.add.file);
+
+            element.appendChild(img);
+
+            const deco = Decoration.widget(action.add.pos, element, {
+              id: action.add.id,
+            });
             set = set.add(tr.doc, [deco]);
           }
-        } else if (action.add.isImage) {
+        } else if (action.add.isVideo) {
           const element = document.createElement("div");
-          element.className = "image placeholder";
+          element.className = "video placeholder";
 
-          const img = document.createElement("img");
-          img.src = URL.createObjectURL(action.add.file);
+          const video = document.createElement("video");
+          video.src = URL.createObjectURL(action.add.file);
+          video.autoplay = false;
+          video.controls = false;
 
-          element.appendChild(img);
+          element.appendChild(video);
 
           const deco = Decoration.widget(action.add.pos, element, {
             id: action.add.id,
@@ -49,23 +86,22 @@ const uploadPlaceholder = new Plugin({
           set = set.add(tr.doc, [deco]);
         } else {
           const element = document.createElement("div");
-          element.className = "attachment placeholder";
+          element.className = "file placeholder";
 
           const icon = document.createElement("div");
-          icon.className = "icon";
+          const title = document.createElement("div");
+          title.className = "title";
+          title.innerText = action.add.file.name;
 
-          const component = <FileExtension title={action.add.file.name} />;
-          ReactDOM.render(component, icon);
+          const subtitle = document.createElement("div");
+          subtitle.className = "subtitle";
+          subtitle.innerText = "Uploading…";
+
+          ReactDOM.render(<FileExtension title={action.add.file.name} />, icon);
+
           element.appendChild(icon);
-
-          const text = document.createElement("span");
-          text.innerText = action.add.file.name;
-          element.appendChild(text);
-
-          const status = document.createElement("span");
-          status.innerText = "Uploading…";
-          status.className = "status";
-          element.appendChild(status);
+          element.appendChild(title);
+          element.appendChild(subtitle);
 
           const deco = Decoration.widget(action.add.pos, element, {
             id: action.add.id,
@@ -91,6 +127,13 @@ const uploadPlaceholder = new Plugin({
 
 export default uploadPlaceholder;
 
+/**
+ * Find the position of a placeholder by its ID
+ *
+ * @param state The editor state
+ * @param id The placeholder ID
+ * @returns The placeholder position as a tuple of [from, to] or null if not found
+ */
 export function findPlaceholder(
   state: EditorState,
   id: string

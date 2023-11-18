@@ -5,10 +5,10 @@ import { observable, computed, action, runInAction } from "mobx";
 import { UserRole } from "@shared/types";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
-import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import Store from "./base/Store";
 
-export default class UsersStore extends BaseStore<User> {
+export default class UsersStore extends Store<User> {
   @observable
   counts: {
     active: number;

@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import User from "~/models/User";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -8,7 +9,6 @@ import Input from "~/components/Input";
 import Notice from "~/components/Notice";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   user: User;
@@ -17,7 +17,6 @@ type Props = {
 function TeamNew({ user }: Props) {
   const { auth } = useStores();
   const { t } = useTranslation();
-  const { showToast } = useToasts();
   const [name, setName] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
 
@@ -32,9 +31,7 @@ function TeamNew({ user }: Props) {
         });
       }
     } catch (err) {
-      showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     } finally {
       setIsSaving(false);
     }

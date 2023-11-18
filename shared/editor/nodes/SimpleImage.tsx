@@ -76,55 +76,6 @@ export default class SimpleImage extends Node {
     };
   }
 
-  handleKeyDown =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
-    (event: React.KeyboardEvent<HTMLSpanElement>) => {
-      // Pressing Enter in the caption field should move the cursor/selection
-      // below the image
-      if (event.key === "Enter") {
-        event.preventDefault();
-
-        const { view } = this.editor;
-        const $pos = view.state.doc.resolve(getPos() + node.nodeSize);
-        view.dispatch(
-          view.state.tr.setSelection(new TextSelection($pos)).split($pos.pos)
-        );
-        view.focus();
-        return;
-      }
-
-      // Pressing Backspace in an an empty caption field should remove the entire
-      // image, leaving an empty paragraph
-      if (event.key === "Backspace" && event.currentTarget.innerText === "") {
-        const { view } = this.editor;
-        const $pos = view.state.doc.resolve(getPos());
-        const tr = view.state.tr.setSelection(new NodeSelection($pos));
-        view.dispatch(tr.deleteSelection());
-        view.focus();
-        return;
-      }
-    };
-
-  handleBlur =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
-    (event: React.FocusEvent<HTMLSpanElement>) => {
-      const caption = event.currentTarget.innerText;
-      if (caption === node.attrs.alt) {
-        return;
-      }
-
-      const { view } = this.editor;
-      const { tr } = view.state;
-
-      // update meta on object
-      const pos = getPos();
-      const transaction = tr.setNodeMarkup(pos, undefined, {
-        ...node.attrs,
-        alt: caption,
-      });
-      view.dispatch(transaction);
-    };
-
   handleSelect =
     ({ getPos }: { getPos: () => number }) =>
     (event: React.MouseEvent) => {
@@ -135,16 +86,6 @@ export default class SimpleImage extends Node {
       const transaction = view.state.tr.setSelection(new NodeSelection($pos));
       view.dispatch(transaction);
     };
-
-  handleMouseDown = (ev: React.MouseEvent<HTMLParagraphElement>) => {
-    // always prevent clicks in caption from bubbling to the editor
-    ev.stopPropagation();
-
-    if (document.activeElement !== ev.currentTarget) {
-      ev.preventDefault();
-      ev.currentTarget.focus();
-    }
-  };
 
   component = (props: ComponentProps) => (
     <ImageComponent {...props} onClick={this.handleSelect(props)} />
@@ -184,7 +125,7 @@ export default class SimpleImage extends Node {
         }
         const { view } = this.editor;
         const { node } = state.selection;
-        const { uploadFile, onFileUploadStart, onFileUploadStop, onShowToast } =
+        const { uploadFile, onFileUploadStart, onFileUploadStop } =
           this.editor.props;
 
         if (!uploadFile) {
@@ -205,7 +146,6 @@ export default class SimpleImage extends Node {
             uploadFile,
             onFileUploadStart,
             onFileUploadStop,
-            onShowToast,
             dictionary: this.options.dictionary,
             replaceExisting: true,
             attrs: {

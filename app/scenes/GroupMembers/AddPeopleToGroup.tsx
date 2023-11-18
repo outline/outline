@@ -2,9 +2,12 @@ import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
+import Avatar from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar/Avatar";
 import ButtonLink from "~/components/ButtonLink";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -13,6 +16,7 @@ import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 
@@ -24,7 +28,8 @@ type Props = {
 function AddPeopleToGroup(props: Props) {
   const { group } = props;
 
-  const { users, auth, groupMemberships, toasts } = useStores();
+  const { users, groupMemberships } = useStores();
+  const team = useCurrentTeam();
   const { t } = useTranslation();
 
   const [query, setQuery] = React.useState("");
@@ -53,25 +58,18 @@ function AddPeopleToGroup(props: Props) {
         userId: user.id,
       });
 
-      toasts.showToast(
+      toast.success(
         t(`{{userName}} was added to the group`, {
           userName: user.name,
         }),
         {
-          type: "success",
+          icon: <Avatar model={user} size={AvatarSize.Toast} />,
         }
       );
     } catch (err) {
-      toasts.showToast(t("Could not add user"), {
-        type: "error",
-      });
+      toast.error(t("Could not add user"));
     }
   };
-
-  const { user, team } = auth;
-  if (!user || !team) {
-    return null;
-  }
 
   return (
     <Flex column>

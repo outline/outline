@@ -13,7 +13,8 @@ describe("auth/redirect", () => {
       }
     );
     expect(res.status).toEqual(302);
-    expect(res.headers.get("location").endsWith("/home")).toBeTruthy();
+    expect(res.headers.get("location")).not.toBeNull();
+    expect(res.headers.get("location")!.endsWith("/home")).toBeTruthy();
   });
 
   it("should redirect to first collection", async () => {
@@ -28,6 +29,7 @@ describe("auth/redirect", () => {
       }
     );
     expect(res.status).toEqual(302);
-    expect(res.headers.get("location").endsWith(collection.url)).toBeTruthy();
+    expect(res.headers.get("location")).not.toBeNull();
+    expect(res.headers.get("location")!.endsWith(collection.url)).toBeTruthy();
   });
 });

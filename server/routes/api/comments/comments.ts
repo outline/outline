@@ -1,12 +1,16 @@
+import { Next } from "koa";
 import Router from "koa-router";
+import { FindOptions, Op } from "sequelize";
+import { TeamPreference } from "@shared/types";
 import commentCreator from "@server/commands/commentCreator";
 import commentDestroyer from "@server/commands/commentDestroyer";
 import commentUpdater from "@server/commands/commentUpdater";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, Comment } from "@server/models";
+import { Document, Comment, Collection } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -20,6 +24,7 @@ router.post(
   "comments.create",
   rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
+  checkCommentingEnabled(),
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
@@ -54,20 +59,60 @@ router.post(
   "comments.list",
   auth(),
   pagination(),
+  checkCommentingEnabled(),
   validate(T.CollectionsListSchema),
   async (ctx: APIContext<T.CollectionsListReq>) => {
-    const { sort, direction, documentId } = ctx.input.body;
+    const { sort, direction, documentId, collectionId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const document = await Document.findByPk(documentId, { userId: user.id });
-    authorize(user, "read", document);
-
-    const comments = await Comment.findAll({
-      where: { documentId },
+    const params: FindOptions<Comment> = {
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
-    });
+    };
+
+    let comments;
+    if (documentId) {
+      const document = await Document.findByPk(documentId, { userId: user.id });
+      authorize(user, "read", document);
+      comments = await Comment.findAll({
+        where: {
+          documentId: document.id,
+        },
+        ...params,
+      });
+    } else if (collectionId) {
+      const collection = await Collection.findByPk(collectionId);
+      authorize(user, "read", collection);
+      comments = await Comment.findAll({
+        include: [
+          {
+            model: Document,
+            required: true,
+            where: {
+              teamId: user.teamId,
+              collectionId,
+            },
+          },
+        ],
+        ...params,
+      });
+    } else {
+      const accessibleCollectionIds = await user.collectionIds();
+      comments = await Comment.findAll({
+        include: [
+          {
+            model: Document,
+            required: true,
+            where: {
+              teamId: user.teamId,
+              collectionId: { [Op.in]: accessibleCollectionIds },
+            },
+          },
+        ],
+        ...params,
+      });
+    }
 
     ctx.body = {
       pagination: ctx.state.pagination,
@@ -80,6 +125,7 @@ router.post(
 router.post(
   "comments.update",
   auth(),
+  checkCommentingEnabled(),
   validate(T.CommentsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsUpdateReq>) => {
@@ -97,6 +143,7 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      transaction,
     });
     authorize(user, "comment", document);
     authorize(user, "update", comment);
@@ -119,6 +166,7 @@ router.post(
 router.post(
   "comments.delete",
   auth(),
+  checkCommentingEnabled(),
   validate(T.CommentsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsDeleteReq>) => {
@@ -132,6 +180,7 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      transaction,
     });
     authorize(user, "comment", document);
     authorize(user, "delete", comment);
@@ -148,6 +197,18 @@ router.post(
     };
   }
 );
+
+function checkCommentingEnabled() {
+  return async function checkCommentingEnabledMiddleware(
+    ctx: APIContext,
+    next: Next
+  ) {
+    if (!ctx.state.auth.user.team.getPreference(TeamPreference.Commenting)) {
+      throw ValidationError("Commenting is currently disabled");
+    }
+    return next();
+  };
+}
 
 // router.post("comments.resolve", auth(), async (ctx) => {
 // router.post("comments.unresolve", auth(), async (ctx) => {

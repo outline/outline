@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { useState } from "react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { CollectionValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -11,7 +12,6 @@ import Input from "~/components/Input";
 import InputSelect from "~/components/InputSelect";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   collectionId: string;
@@ -30,7 +30,6 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
     direction: "asc" | "desc";
   }>(collection.sort);
   const [isSaving, setIsSaving] = useState(false);
-  const { showToast } = useToasts();
   const { t } = useTranslation();
 
   const handleSubmit = React.useCallback(
@@ -46,18 +45,14 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
           sort,
         });
         onSubmit();
-        showToast(t("The collection was updated"), {
-          type: "success",
-        });
+        toast.success(t("The collection was updated"));
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       } finally {
         setIsSaving(false);
       }
     },
-    [collection, color, icon, name, onSubmit, showToast, sort, t]
+    [collection, color, icon, name, onSubmit, sort, t]
   );
 
   const handleSortChange = (value: string) => {
@@ -100,7 +95,12 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
             autoFocus
             flex
           />
-          <IconPicker onChange={handleChange} color={color} icon={icon} />
+          <IconPicker
+            onChange={handleChange}
+            color={color}
+            initial={name[0]}
+            icon={icon}
+          />
         </Flex>
         <InputSelect
           label={t("Sort in sidebar")}

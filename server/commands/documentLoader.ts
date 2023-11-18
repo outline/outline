@@ -7,6 +7,7 @@ import {
   InvalidRequestError,
   AuthorizationError,
   AuthenticationError,
+  PaymentRequiredError,
 } from "@server/errors";
 import { Collection, Document, Share, User, Team } from "@server/models";
 import { authorize, can } from "@server/policies";
@@ -119,6 +120,10 @@ export default async function loadDocument({
       throw NotFoundError("Document could not be found for shareId");
     }
 
+    if (document.isTrialImport) {
+      throw PaymentRequiredError();
+    }
+
     // If the user has access to read the document, we can just update
     // the last access date and return the document without additional checks.
     const canReadDocument = user && can(user, "read", document);
@@ -128,9 +133,10 @@ export default async function loadDocument({
       // documentStructure by default through the relationship.
       if (document.collectionId) {
         collection = await Collection.findByPk(document.collectionId);
-      }
-      if (!collection) {
-        throw NotFoundError("Collection could not be found for document");
+
+        if (!collection) {
+          throw NotFoundError("Collection could not be found for document");
+        }
       }
 
       return {
@@ -166,7 +172,7 @@ export default async function loadDocument({
       }
 
       const childDocumentIds =
-        (await share.document?.getChildDocumentIds({
+        (await share.document?.findAllChildDocumentIds({
           archivedAt: {
             [Op.is]: null,
           },
@@ -199,6 +205,10 @@ export default async function loadDocument({
       user && authorize(user, "restore", document);
     } else {
       user && authorize(user, "read", document);
+    }
+
+    if (document.isTrialImport) {
+      throw PaymentRequiredError();
     }
 
     collection = document.collection;

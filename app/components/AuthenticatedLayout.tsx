@@ -12,6 +12,7 @@ import Sidebar from "~/components/Sidebar";
 import SidebarRight from "~/components/Sidebar/Right";
 import SettingsSidebar from "~/components/Sidebar/Settings";
 import type { Editor as TEditor } from "~/editor";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
@@ -45,7 +46,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const { ui, auth } = useStores();
   const location = useLocation();
   const can = usePolicy(ui.activeCollectionId);
-  const { user, team } = auth;
+  const team = useCurrentTeam();
   const documentContext = useLocalStore<DocumentContextValue>(() => ({
     editor: null,
     setEditor: (editor: TEditor) => {
@@ -76,16 +77,14 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     return <ErrorSuspended />;
   }
 
-  const showSidebar = auth.authenticated && user && team;
-
-  const sidebar = showSidebar ? (
+  const sidebar = (
     <Fade>
       <Switch>
         <Route path={settingsPath()} component={SettingsSidebar} />
         <Route component={Sidebar} />
       </Switch>
     </Fade>
-  ) : undefined;
+  );
 
   const showHistory = !!matchPath(location.pathname, {
     path: matchDocumentHistory,
@@ -98,7 +97,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     !showHistory &&
     ui.activeDocumentId &&
     ui.commentsExpanded.includes(ui.activeDocumentId) &&
-    team?.getPreference(TeamPreference.Commenting);
+    team.getPreference(TeamPreference.Commenting);
 
   const sidebarRight = (
     <AnimatePresence
@@ -121,7 +120,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
 
   return (
     <DocumentContext.Provider value={documentContext}>
-      <Layout title={team?.name} sidebar={sidebar} sidebarRight={sidebarRight}>
+      <Layout title={team.name} sidebar={sidebar} sidebarRight={sidebarRight}>
         <RegisterKeyDown trigger="n" handler={goToNewDocument} />
         <RegisterKeyDown trigger="t" handler={goToSearch} />
         <RegisterKeyDown trigger="/" handler={goToSearch} />

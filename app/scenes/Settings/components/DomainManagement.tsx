@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
@@ -10,8 +11,6 @@ import Input from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import SettingRow from "./SettingRow";
 
 type Props = {
@@ -19,10 +18,8 @@ type Props = {
 };
 
 function DomainManagement({ onSuccess }: Props) {
-  const { auth } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { showToast } = useToasts();
 
   const [allowedDomains, setAllowedDomains] = React.useState([
     ...(team.allowedDomains ?? []),
@@ -36,18 +33,14 @@ function DomainManagement({ onSuccess }: Props) {
 
   const handleSaveDomains = React.useCallback(async () => {
     try {
-      await auth.updateTeam({
-        allowedDomains,
-      });
+      await team.save({ allowedDomains });
       onSuccess();
       setExistingDomainsTouched(false);
       updateLastKnownDomainCount(allowedDomains.length);
     } catch (err) {
-      showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     }
-  }, [auth, allowedDomains, onSuccess, showToast]);
+  }, [team, allowedDomains, onSuccess]);
 
   const handleRemoveDomain = async (index: number) => {
     const newDomains = allowedDomains.filter((_, i) => index !== i);
@@ -135,7 +128,7 @@ function DomainManagement({ onSuccess }: Props) {
             <Button
               type="button"
               onClick={handleSaveDomains}
-              disabled={auth.isSaving}
+              disabled={team.isSaving}
             >
               <Trans>Save changes</Trans>
             </Button>

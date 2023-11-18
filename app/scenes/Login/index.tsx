@@ -1,6 +1,6 @@
 import find from "lodash/find";
 import { observer } from "mobx-react";
-import { BackIcon, EmailIcon } from "outline-icons";
+import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useLocation, Link, Redirect } from "react-router-dom";
@@ -11,6 +11,7 @@ import { UserPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import { Config } from "~/stores/AuthStore";
 import ButtonLarge from "~/components/ButtonLarge";
+import ChangeLanguage from "~/components/ChangeLanguage";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -21,34 +22,17 @@ import PageTitle from "~/components/PageTitle";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
 import env from "~/env";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useLastVisitedPath from "~/hooks/useLastVisitedPath";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { draggableOnDesktop } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
-import { changeLanguage, detectLanguage } from "~/utils/language";
-import AuthenticationProvider from "./AuthenticationProvider";
-import Notices from "./Notices";
-
-function Header({ config }: { config?: Config | undefined }) {
-  const { t } = useTranslation();
-  const isSubdomain = !!config?.hostname;
-
-  if (!isCloudHosted || parseDomain(window.location.origin).custom) {
-    return null;
-  }
-
-  if (Desktop.isElectron() && !isSubdomain) {
-    return null;
-  }
-
-  return (
-    <Back href={isSubdomain ? env.URL : "https://www.getoutline.com"}>
-      <BackIcon /> {Desktop.isElectron() ? t("Back") : t("Back to home")}
-    </Back>
-  );
-}
+import { detectLanguage } from "~/utils/language";
+import AuthenticationProvider from "./components/AuthenticationProvider";
+import BackButton from "./components/BackButton";
+import Notices from "./components/Notices";
 
 type Props = {
   children?: (config?: Config) => React.ReactNode;
@@ -59,13 +43,14 @@ function Login({ children }: Props) {
   const query = useQuery();
   const notice = query.get("notice");
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const { auth } = useStores();
   const { config } = auth;
   const [error, setError] = React.useState(null);
   const [emailLinkSentTo, setEmailLinkSentTo] = React.useState("");
   const isCreate = location.pathname === "/create";
-  const rememberLastPath = !!auth.user?.getPreference(
+  const rememberLastPath = !!user?.getPreference(
     UserPreference.RememberLastPath
   );
   const [lastVisitedPath] = useLastVisitedPath();
@@ -97,13 +82,6 @@ function Login({ children }: Props) {
     auth.fetchConfig().catch(setError);
   }, [auth]);
 
-  // TODO: Persist detected language to new user
-  // Try to detect the user's language and show the login page on its idiom
-  // if translation is available
-  React.useEffect(() => {
-    void changeLanguage(detectLanguage(), i18n);
-  }, [i18n]);
-
   React.useEffect(() => {
     const entries = Object.fromEntries(query.entries());
     const existing = getCookie("signupQueryParams");
@@ -134,7 +112,8 @@ function Login({ children }: Props) {
   if (error) {
     return (
       <Background>
-        <Header />
+        <BackButton />
+        <ChangeLanguage locale={detectLanguage()} />
         <Centered align="center" justify="center" column auto>
           <PageTitle title={t("Login")} />
           <Heading centered>{t("Error")}</Heading>
@@ -165,7 +144,8 @@ function Login({ children }: Props) {
   if (isCloudHosted && isCustomDomain && !config.name) {
     return (
       <Background>
-        <Header config={config} />
+        <BackButton config={config} />
+        <ChangeLanguage locale={detectLanguage()} />
         <Centered align="center" justify="center" column auto>
           <PageTitle title={t("Custom domain setup")} />
           <Heading centered>{t("Almost there")}…</Heading>
@@ -182,7 +162,8 @@ function Login({ children }: Props) {
   if (Desktop.isElectron() && notice === "domain-required") {
     return (
       <Background>
-        <Header config={config} />
+        <BackButton config={config} />
+        <ChangeLanguage locale={detectLanguage()} />
 
         <Centered
           as="form"
@@ -225,7 +206,7 @@ function Login({ children }: Props) {
   if (emailLinkSentTo) {
     return (
       <Background>
-        <Header config={config} />
+        <BackButton config={config} />
         <Centered align="center" justify="center" column auto>
           <PageTitle title={t("Check your email")} />
           <CheckEmailIcon size={38} />
@@ -248,7 +229,9 @@ function Login({ children }: Props) {
 
   return (
     <Background>
-      <Header config={config} />
+      <BackButton config={config} />
+      <ChangeLanguage locale={detectLanguage()} />
+
       <Centered align="center" justify="center" gap={12} column auto>
         <PageTitle
           title={config.name ? `${config.name} – ${t("Login")}` : t("Login")}
@@ -367,25 +350,6 @@ const Note = styled(Text)`
   em {
     font-style: normal;
     font-weight: 500;
-  }
-`;
-
-const Back = styled.a`
-  display: flex;
-  align-items: center;
-  color: inherit;
-  padding: ${Desktop.isElectron() ? "48px 32px" : "32px"};
-  font-weight: 500;
-  position: absolute;
-
-  svg {
-    transition: transform 100ms ease-in-out;
-  }
-
-  &:hover {
-    svg {
-      transform: translateX(-4px);
-    }
   }
 `;
 

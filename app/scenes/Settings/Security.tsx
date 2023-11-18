@@ -4,6 +4,7 @@ import { CheckboxIcon, EmailIcon, PadlockIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import { TeamPreference } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -18,16 +19,14 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import isCloudHosted from "~/utils/isCloudHosted";
 import DomainManagement from "./components/DomainManagement";
 import SettingRow from "./components/SettingRow";
 
 function Security() {
-  const { auth, authenticationProviders, dialogs } = useStores();
+  const { authenticationProviders, dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { showToast } = useToasts();
   const theme = useTheme();
   const [data, setData] = useState({
     sharing: team.sharing,
@@ -53,26 +52,22 @@ function Security() {
   const showSuccessMessage = React.useMemo(
     () =>
       debounce(() => {
-        showToast(t("Settings saved"), {
-          type: "success",
-        });
+        toast.success(t("Settings saved"));
       }, 250),
-    [showToast, t]
+    [t]
   );
 
   const saveData = React.useCallback(
     async (newData) => {
       try {
         setData(newData);
-        await auth.updateTeam(newData);
+        await team.save(newData);
         showSuccessMessage();
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       }
     },
-    [auth, showSuccessMessage, showToast]
+    [team, showSuccessMessage]
   );
 
   const handleChange = React.useCallback(
@@ -144,7 +139,7 @@ function Security() {
       <Text type="secondary">
         <Trans>
           Settings that impact the access, security, and content of your
-          knowledge base.
+          workspace.
         </Trans>
       </Text>
 
@@ -287,7 +282,7 @@ function Security() {
         label={t("Collection creation")}
         name="memberCollectionCreate"
         description={t(
-          "Allow members to create new collections within the knowledge base"
+          "Allow members to create new collections within the workspace"
         )}
       >
         <Switch

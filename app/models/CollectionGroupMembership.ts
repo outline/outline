@@ -1,8 +1,8 @@
 import { observable } from "mobx";
 import { CollectionPermission } from "@shared/types";
-import BaseModel from "./BaseModel";
+import Model from "./base/Model";
 
-class CollectionGroupMembership extends BaseModel {
+class CollectionGroupMembership extends Model {
   id: string;
 
   groupId: string;

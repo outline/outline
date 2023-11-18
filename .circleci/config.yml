@@ -82,6 +82,7 @@ jobs:
           command: yarn test:shared
   test-server:
     <<: *defaults
+    parallelism: 3
     steps:
       - checkout
       - restore_cache:
@@ -91,7 +92,9 @@ jobs:
           command: ./node_modules/.bin/sequelize db:migrate --url $DATABASE_URL_TEST
       - run:
           name: test
-          command: yarn test:server --forceExit
+          command: |
+            TESTFILES=$(circleci tests glob "server/**/*.test.ts" | circleci tests split)
+            yarn test --maxWorkers=2 $TESTFILES
   bundle-size:
     <<: *defaults
     environment:
@@ -142,7 +145,12 @@ jobs:
           command: docker push $BASE_IMAGE_NAME:latest
       - run:
           name: Build and push Docker image
-          command: docker buildx build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
+          command: |
+            if [[ "$CIRCLE_TAG" == *"-"* ]]; then
+              docker buildx build -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
+            else
+              docker buildx build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
+            fi
 
 workflows:
   version: 2
@@ -166,9 +174,8 @@ workflows:
             - build
       - bundle-size:
           requires:
-            - test-app
-            - test-shared
-            - test-server
+            - build
+            - types
 
   build-docker:
     jobs:

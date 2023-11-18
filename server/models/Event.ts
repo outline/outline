@@ -1,4 +1,4 @@
-import type { SaveOptions } from "sequelize";
+import type { SaveOptions, WhereOptions } from "sequelize";
 import {
   ForeignKey,
   AfterSave,
@@ -109,6 +109,19 @@ class Event extends IdModel {
         ...event,
       })
     );
+  }
+
+  /**
+   * Find the latest event matching the where clause
+   *
+   * @param where The options to match against
+   * @returns A promise resolving to the latest event or null
+   */
+  static findLatest(where: WhereOptions) {
+    return this.findOne({
+      where,
+      order: [["createdAt", "DESC"]],
+    });
   }
 
   static ACTIVITY_EVENTS: TEvent["name"][] = [

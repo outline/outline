@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import revisionCreator from "@server/commands/revisionCreator";
 import { Revision, Document, User } from "@server/models";
 import { DocumentEvent, RevisionEvent, Event } from "@server/types";
@@ -22,8 +21,8 @@ export default class RevisionsProcessor extends BaseProcessor {
 
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
+          rejectOnEmpty: true,
         });
-        invariant(document, "Document should exist");
         const previous = await Revision.findLatest(document.id);
 
         // we don't create revisions if identical to previous revision, this can

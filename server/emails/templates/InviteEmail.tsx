@@ -22,7 +22,7 @@ type Props = EmailProps & {
  */
 export default class InviteEmail extends BaseEmail<Props, Record<string, any>> {
   protected subject({ actorName, teamName }: Props) {
-    return `${actorName} invited you to join ${teamName}’s knowledge base`;
+    return `${actorName} invited you to join ${teamName}’s workspace`;
   }
 
   protected preview() {

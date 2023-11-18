@@ -19,9 +19,7 @@ import {
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { parser, schema } from "@server/editor";
 import { trace } from "@server/logging/tracing";
-import type Document from "@server/models/Document";
-import type Revision from "@server/models/Revision";
-import User from "@server/models/User";
+import { Document, Revision, User } from "@server/models";
 import FileStorage from "@server/storage/files";
 import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
@@ -128,10 +126,19 @@ export default class DocumentHelper {
       centered: options?.centered,
     });
 
-    if (options?.signedUrls && "teamId" in document) {
+    if (options?.signedUrls) {
+      const teamId =
+        document instanceof Document
+          ? document.teamId
+          : (await document.$get("document"))?.teamId;
+
+      if (!teamId) {
+        return output;
+      }
+
       output = await DocumentHelper.attachmentsToSignedUrls(
         output,
-        document.teamId,
+        teamId,
         typeof options.signedUrls === "number" ? options.signedUrls : undefined
       );
     }
@@ -161,10 +168,10 @@ export default class DocumentHelper {
   static async diff(
     before: Document | Revision | null,
     after: Revision,
-    options?: HTMLOptions
+    { signedUrls, ...options }: HTMLOptions = {}
   ) {
     if (!before) {
-      return await DocumentHelper.toHTML(after, options);
+      return await DocumentHelper.toHTML(after, { ...options, signedUrls });
     }
 
     const beforeHTML = await DocumentHelper.toHTML(before, options);
@@ -174,10 +181,26 @@ export default class DocumentHelper {
 
     // Extract the content from the article tag and diff the HTML, we don't
     // care about the surrounding layout and stylesheets.
-    const diffedContentAsHTML = diff(
+    let diffedContentAsHTML = diff(
       beforeDOM.window.document.getElementsByTagName("article")[0].innerHTML,
       afterDOM.window.document.getElementsByTagName("article")[0].innerHTML
     );
+
+    // Sign only the URLS in the diffed content
+    if (signedUrls) {
+      const teamId =
+        before instanceof Document
+          ? before.teamId
+          : (await before.$get("document"))?.teamId;
+
+      if (teamId) {
+        diffedContentAsHTML = await DocumentHelper.attachmentsToSignedUrls(
+          diffedContentAsHTML,
+          teamId,
+          typeof signedUrls === "number" ? signedUrls : undefined
+        );
+      }
+    }
 
     // Inject the diffed content into the original document with styling and
     // serialize back to a string.
@@ -334,6 +357,7 @@ export default class DocumentHelper {
     expiresIn = 3000
   ) {
     const attachmentIds = parseAttachmentIds(text);
+
     await Promise.all(
       attachmentIds.map(async (id) => {
         const attachment = await Attachment.findOne({
@@ -348,6 +372,7 @@ export default class DocumentHelper {
             attachment.key,
             expiresIn
           );
+
           text = text.replace(
             new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
             signedUrl

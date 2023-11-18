@@ -1,14 +1,13 @@
 import { subDays } from "date-fns";
 import { Document } from "@server/models";
-import { buildDocument } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
+import { buildDocument, buildTeam } from "@server/test/factories";
 import CleanupDeletedDocumentsTask from "./CleanupDeletedDocumentsTask";
-
-setupTestDatabase();
 
 describe("CleanupDeletedDocumentsTask", () => {
   it("should not destroy documents not deleted", async () => {
+    const team = await buildTeam();
     await buildDocument({
+      teamId: team.id,
       publishedAt: new Date(),
     });
 
@@ -17,13 +16,18 @@ describe("CleanupDeletedDocumentsTask", () => {
 
     expect(
       await Document.unscoped().count({
+        where: {
+          teamId: team.id,
+        },
         paranoid: false,
       })
     ).toEqual(1);
   });
 
   it("should not destroy documents deleted less than 30 days ago", async () => {
+    const team = await buildTeam();
     await buildDocument({
+      teamId: team.id,
       publishedAt: new Date(),
       deletedAt: subDays(new Date(), 25),
     });
@@ -33,13 +37,18 @@ describe("CleanupDeletedDocumentsTask", () => {
 
     expect(
       await Document.unscoped().count({
+        where: {
+          teamId: team.id,
+        },
         paranoid: false,
       })
     ).toEqual(1);
   });
 
   it("should destroy documents deleted more than 30 days ago", async () => {
+    const team = await buildTeam();
     await buildDocument({
+      teamId: team.id,
       publishedAt: new Date(),
       deletedAt: subDays(new Date(), 60),
     });
@@ -49,13 +58,18 @@ describe("CleanupDeletedDocumentsTask", () => {
 
     expect(
       await Document.unscoped().count({
+        where: {
+          teamId: team.id,
+        },
         paranoid: false,
       })
     ).toEqual(0);
   });
 
   it("should destroy draft documents deleted more than 30 days ago", async () => {
+    const team = await buildTeam();
     await buildDocument({
+      teamId: team.id,
       publishedAt: undefined,
       deletedAt: subDays(new Date(), 60),
     });
@@ -65,6 +79,9 @@ describe("CleanupDeletedDocumentsTask", () => {
 
     expect(
       await Document.unscoped().count({
+        where: {
+          teamId: team.id,
+        },
         paranoid: false,
       })
     ).toEqual(0);

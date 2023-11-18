@@ -2,6 +2,7 @@ import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Group from "~/models/Group";
@@ -16,6 +17,7 @@ import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -28,12 +30,11 @@ function AddGroupsToCollection(props: Props) {
   const [newGroupModalOpen, handleNewGroupModalOpen, handleNewGroupModalClose] =
     useBoolean(false);
   const [query, setQuery] = React.useState("");
-
-  const { auth, collectionGroupMemberships, groups, policies, toasts } =
-    useStores();
-  const { fetchPage: fetchGroups } = groups;
-
+  const team = useCurrentTeam();
+  const { collectionGroupMemberships, groups, policies } = useStores();
   const { t } = useTranslation();
+  const { fetchPage: fetchGroups } = groups;
+  const can = policies.abilities(team.id);
 
   const debouncedFetch = React.useMemo(
     () => debounce((query) => fetchGroups({ query }), 250),
@@ -55,27 +56,15 @@ function AddGroupsToCollection(props: Props) {
         collectionId: collection.id,
         groupId: group.id,
       });
-      toasts.showToast(
+      toast.success(
         t("{{ groupName }} was added to the collection", {
           groupName: group.name,
-        }),
-        {
-          type: "success",
-        }
+        })
       );
     } catch (err) {
-      toasts.showToast(t("Could not add user"), {
-        type: "error",
-      });
+      toast.error(t("Could not add user"));
     }
   };
-
-  const { user, team } = auth;
-  if (!user || !team) {
-    return null;
-  }
-
-  const can = policies.abilities(team.id);
 
   return (
     <Flex column>

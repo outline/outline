@@ -18,8 +18,8 @@ import {
   Revision,
   View,
   Share,
-  CollectionUser,
-  CollectionGroup,
+  UserPermission,
+  GroupPermission,
   GroupUser,
   Comment,
 } from "@server/models";
@@ -174,6 +174,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         return;
       case "integrations.create":
       case "integrations.update":
+      case "integrations.delete":
         await this.handleIntegrationEvent(subscription, event);
         return;
       case "teams.create":
@@ -425,7 +426,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CollectionUserEvent
   ): Promise<void> {
-    const model = await CollectionUser.scope([
+    const model = await UserPermission.scope([
       "withUser",
       "withCollection",
     ]).findOne({
@@ -442,7 +443,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: `${event.userId}-${event.collectionId}`,
         model: model && presentMembership(model),
-        collection: model && presentCollection(model.collection),
+        collection: model && presentCollection(model.collection!),
         user: model && presentUser(model.user),
       },
     });
@@ -452,7 +453,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CollectionGroupEvent
   ): Promise<void> {
-    const model = await CollectionGroup.scope([
+    const model = await GroupPermission.scope([
       "withGroup",
       "withCollection",
     ]).findOne({
@@ -469,7 +470,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: `${event.modelId}-${event.collectionId}`,
         model: model && presentCollectionGroupMembership(model),
-        collection: model && presentCollection(model.collection),
+        collection: model && presentCollection(model.collection!),
         group: model && presentGroup(model.group),
       },
     });

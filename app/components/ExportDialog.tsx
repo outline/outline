@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { FileOperationFormat, NotificationEventType } from "@shared/types";
 import Collection from "~/models/Collection";
@@ -10,7 +11,8 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
+import history from "~/utils/history";
+import { settingsPath } from "~/utils/routeHelpers";
 
 type Props = {
   collection?: Collection;
@@ -24,7 +26,6 @@ function ExportDialog({ collection, onSubmit }: Props) {
   const [includeAttachments, setIncludeAttachments] =
     React.useState<boolean>(true);
   const user = useCurrentUser();
-  const { showToast } = useToasts();
   const { collections } = useStores();
   const { t } = useTranslation();
   const appName = env.APP_NAME;
@@ -46,11 +47,22 @@ function ExportDialog({ collection, onSubmit }: Props) {
   const handleSubmit = async () => {
     if (collection) {
       await collection.export(format, includeAttachments);
+      toast.success(t("Export started"), {
+        description: t(`Your file will be available in {{ location }} soon`, {
+          location: `"${t("Settings")} > ${t("Export")}"`,
+        }),
+        action: {
+          label: t("View"),
+          onClick: () => {
+            history.push(settingsPath("export"));
+          },
+        },
+      });
     } else {
       await collections.export(format, includeAttachments);
+      toast.success(t("Export started"));
     }
     onSubmit();
-    showToast(t("Export started"), { type: "success" });
   };
 
   const items = [

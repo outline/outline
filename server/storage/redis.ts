@@ -11,10 +11,15 @@ type RedisAdapterOptions = RedisOptions & {
 const defaultOptions: RedisOptions = {
   maxRetriesPerRequest: 20,
   enableReadyCheck: false,
+  showFriendlyErrorStack: env.isDevelopment,
 
   retryStrategy(times: number) {
     Logger.warn(`Retrying redis connection: attempt ${times}`);
     return Math.min(times * 100, 3000);
+  },
+
+  reconnectOnError(err) {
+    return err.message.includes("READONLY");
   },
 
   // support Heroku Redis, see:
@@ -35,8 +40,7 @@ export default class RedisAdapter extends Redis {
      * For debugging. The connection name is based on the services running in
      * this process. Note that this does not need to be unique.
      */
-    const connectionNamePrefix =
-      env.ENVIRONMENT === "development" ? process.pid : "outline";
+    const connectionNamePrefix = env.isDevelopment ? process.pid : "outline";
     const connectionName =
       `${connectionNamePrefix}:${env.SERVICES.replace(/,/g, "-")}` +
       (connectionNameSuffix ? `:${connectionNameSuffix}` : "");

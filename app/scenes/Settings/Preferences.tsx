@@ -2,45 +2,41 @@ import { observer } from "mobx-react";
 import { SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { languageOptions } from "@shared/i18n";
-import { UserPreference } from "@shared/types";
+import { TeamPreference, UserPreference } from "@shared/types";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import UserDelete from "../UserDelete";
 import SettingRow from "./components/SettingRow";
 
 function Preferences() {
   const { t } = useTranslation();
-  const { showToast } = useToasts();
-  const { dialogs, auth } = useStores();
+  const { dialogs } = useStores();
   const user = useCurrentUser();
+  const team = useCurrentTeam();
 
-  const handlePreferenceChange = async (
-    ev: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const preferences = {
-      ...user.preferences,
-      [ev.target.name]: ev.target.checked,
+  const handlePreferenceChange =
+    (inverted = false) =>
+    async (ev: React.ChangeEvent<HTMLInputElement>) => {
+      user.setPreference(
+        ev.target.name as UserPreference,
+        inverted ? !ev.target.checked : ev.target.checked
+      );
+      await user.save();
+      toast.success(t("Preferences saved"));
     };
 
-    await auth.updateUser({ preferences });
-    showToast(t("Preferences saved"), {
-      type: "success",
-    });
-  };
-
   const handleLanguageChange = async (language: string) => {
-    await auth.updateUser({ language });
-    showToast(t("Preferences saved"), {
-      type: "success",
-    });
+    await user.save({ language });
+    toast.success(t("Preferences saved"));
   };
 
   const showDeleteAccount = () => {
@@ -98,7 +94,7 @@ function Preferences() {
           id={UserPreference.UseCursorPointer}
           name={UserPreference.UseCursorPointer}
           checked={user.getPreference(UserPreference.UseCursorPointer)}
-          onChange={handlePreferenceChange}
+          onChange={handlePreferenceChange(false)}
         />
       </SettingRow>
       <SettingRow
@@ -111,11 +107,30 @@ function Preferences() {
           id={UserPreference.CodeBlockLineNumers}
           name={UserPreference.CodeBlockLineNumers}
           checked={user.getPreference(UserPreference.CodeBlockLineNumers)}
-          onChange={handlePreferenceChange}
+          onChange={handlePreferenceChange(false)}
         />
       </SettingRow>
 
       <Heading as="h2">{t("Behavior")}</Heading>
+      <SettingRow
+        name={UserPreference.SeamlessEdit}
+        label={t("Separate editing")}
+        description={t(
+          `When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.`
+        )}
+      >
+        <Switch
+          id={UserPreference.SeamlessEdit}
+          name={UserPreference.SeamlessEdit}
+          checked={
+            !user.getPreference(
+              UserPreference.SeamlessEdit,
+              team.getPreference(TeamPreference.SeamlessEdit)
+            )
+          }
+          onChange={handlePreferenceChange(true)}
+        />
+      </SettingRow>
       <SettingRow
         border={false}
         name={UserPreference.RememberLastPath}
@@ -128,7 +143,7 @@ function Preferences() {
           id={UserPreference.RememberLastPath}
           name={UserPreference.RememberLastPath}
           checked={!!user.getPreference(UserPreference.RememberLastPath)}
-          onChange={handlePreferenceChange}
+          onChange={handlePreferenceChange(false)}
         />
       </SettingRow>
 

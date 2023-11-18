@@ -2,35 +2,29 @@ import { observer } from "mobx-react";
 import { BeakerIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { TeamPreference } from "@shared/types";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import SettingRow from "./components/SettingRow";
 
 function Features() {
-  const { auth } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { showToast } = useToasts();
 
-  const handlePreferenceChange = async (
-    ev: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const preferences = {
-      ...team.preferences,
-      [ev.target.name]: ev.target.checked,
+  const handlePreferenceChange =
+    (inverted = false) =>
+    async (ev: React.ChangeEvent<HTMLInputElement>) => {
+      team.setPreference(
+        ev.target.name as TeamPreference,
+        inverted ? !ev.target.checked : ev.target.checked
+      );
+      await team.save();
+      toast.success(t("Settings saved"));
     };
-
-    await auth.updateTeam({ preferences });
-    showToast(t("Settings saved"), {
-      type: "success",
-    });
-  };
 
   return (
     <Scene title={t("Features")} icon={<BeakerIcon />}>
@@ -43,16 +37,16 @@ function Features() {
       </Text>
       <SettingRow
         name={TeamPreference.SeamlessEdit}
-        label={t("Seamless editing")}
+        label={t("Separate editing")}
         description={t(
-          `When enabled documents are always editable for team members that have permission. When disabled there is a separate editing view.`
+          `When enabled documents have a separate editing mode by default instead of being always editable. This setting can be overridden by user preferences.`
         )}
       >
         <Switch
           id={TeamPreference.SeamlessEdit}
           name={TeamPreference.SeamlessEdit}
-          checked={team.getPreference(TeamPreference.SeamlessEdit)}
-          onChange={handlePreferenceChange}
+          checked={!team.getPreference(TeamPreference.SeamlessEdit)}
+          onChange={handlePreferenceChange(true)}
         />
       </SettingRow>
       <SettingRow
@@ -66,7 +60,7 @@ function Features() {
           id={TeamPreference.Commenting}
           name={TeamPreference.Commenting}
           checked={team.getPreference(TeamPreference.Commenting)}
-          onChange={handlePreferenceChange}
+          onChange={handlePreferenceChange(false)}
         />
       </SettingRow>
     </Scene>

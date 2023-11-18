@@ -3,6 +3,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import Empty from "~/components/Empty";
 import Scene from "~/components/Scene";
+import { homePath } from "~/utils/routeHelpers";
 
 const Error404 = () => {
   const { t } = useTranslation();
@@ -12,7 +13,7 @@ const Error404 = () => {
       <Empty>
         <Trans>
           We were unable to find the page you’re looking for. Go to the{" "}
-          <Link to="/home">homepage</Link>?
+          <Link to={homePath()}>homepage</Link>?
         </Trans>
       </Empty>
     </Scene>

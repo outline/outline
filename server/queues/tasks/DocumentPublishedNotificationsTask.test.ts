@@ -5,12 +5,9 @@ import {
   buildCollection,
   buildUser,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import DocumentPublishedNotificationsTask from "./DocumentPublishedNotificationsTask";
 
 const ip = "127.0.0.1";
-
-setupTestDatabase();
 
 beforeEach(async () => {
   jest.resetAllMocks();

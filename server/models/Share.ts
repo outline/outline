@@ -1,3 +1,4 @@
+import { type SaveOptions } from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -9,14 +10,20 @@ import {
   Default,
   AllowNull,
   Is,
+  Unique,
+  BeforeUpdate,
 } from "sequelize-typescript";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
+import env from "@server/env";
+import { ValidationError } from "@server/errors";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
+import IsFQDN from "./validators/IsFQDN";
+import Length from "./validators/Length";
 
 @DefaultScope(() => ({
   include: [
@@ -88,6 +95,36 @@ class Share extends IdModel {
   @Column
   urlId: string | null | undefined;
 
+  @Unique
+  @Length({ max: 255, msg: "domain must be 255 characters or less" })
+  @IsFQDN
+  @Column
+  domain: string | null;
+
+  // hooks
+
+  @BeforeUpdate
+  static async checkDomain(model: Share, options: SaveOptions) {
+    if (!model.domain) {
+      return model;
+    }
+
+    model.domain = model.domain.toLowerCase();
+
+    const count = await Team.count({
+      ...options,
+      where: {
+        domain: model.domain,
+      },
+    });
+
+    if (count > 0) {
+      throw ValidationError("Domain is already in use");
+    }
+
+    return model;
+  }
+
   // getters
 
   get isRevoked() {
@@ -95,6 +132,11 @@ class Share extends IdModel {
   }
 
   get canonicalUrl() {
+    if (this.domain) {
+      const url = new URL(env.URL);
+      return `${url.protocol}//${this.domain}${url.port ? `:${url.port}` : ""}`;
+    }
+
     return this.urlId
       ? `${this.team.url}/s/${this.urlId}`
       : `${this.team.url}/s/${this.id}`;

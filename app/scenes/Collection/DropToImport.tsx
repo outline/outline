@@ -2,11 +2,11 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
 import useImportDocument from "~/hooks/useImportDocument";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   disabled: boolean;
@@ -22,17 +22,13 @@ const DropToImport: React.FC<Props> = ({
   collectionId,
 }: Props) => {
   const { handleFiles, isImporting } = useImportDocument(collectionId);
-  const { showToast } = useToasts();
   const { t } = useTranslation();
 
   const handleRejection = React.useCallback(() => {
-    showToast(
-      t("Document not supported – try Markdown, Plain text, HTML, or Word"),
-      {
-        type: "error",
-      }
+    toast.error(
+      t("Document not supported – try Markdown, Plain text, HTML, or Word")
     );
-  }, [t, showToast]);
+  }, [t]);
 
   return (
     <Dropzone

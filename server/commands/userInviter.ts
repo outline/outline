@@ -89,7 +89,7 @@ export default async function userInviter({
       teamUrl: team.url,
     }).schedule();
 
-    if (env.ENVIRONMENT === "development") {
+    if (env.isDevelopment) {
       Logger.info(
         "email",
         `Sign in immediately: ${

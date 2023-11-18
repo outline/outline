@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import { Transaction } from "sequelize";
+import { ValidationError } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
 import { User, Document, Collection, Pin, Event } from "@server/models";
 import pinDestroyer from "./pinDestroyer";
@@ -50,7 +51,10 @@ async function documentMover({
   }
 
   if (document.template) {
-    invariant(collectionId, "collectionId should exist");
+    if (!document.collectionId) {
+      throw ValidationError("Templates must be in a collection");
+    }
+
     document.collectionId = collectionId;
     document.parentDocumentId = null;
     document.lastModifiedById = user.id;
@@ -133,7 +137,7 @@ async function documentMover({
     if (collectionChanged) {
       // Efficiently find the ID's of all the documents that are children of
       // the moved document and update in one query
-      const childDocumentIds = await document.getChildDocumentIds();
+      const childDocumentIds = await document.findAllChildDocumentIds();
 
       if (collectionId) {
         // Reload the collection to get relationship data
@@ -142,7 +146,8 @@ async function documentMover({
         }).findByPk(collectionId, {
           transaction,
         });
-        invariant(newCollection, "collection should exist");
+        invariant(newCollection, "Collection not found");
+
         result.collections.push(newCollection);
 
         await Document.update(

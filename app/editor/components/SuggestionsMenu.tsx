@@ -3,6 +3,7 @@ import capitalize from "lodash/capitalize";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
+import { toast } from "sonner";
 import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
@@ -15,7 +16,6 @@ import { AttachmentValidation } from "@shared/validations";
 import { Portal } from "~/components/Portal";
 import Scrollable from "~/components/Scrollable";
 import useDictionary from "~/hooks/useDictionary";
-import useToasts from "~/hooks/useToasts";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
 import Input from "./Input";
@@ -60,7 +60,6 @@ export type Props<T extends MenuItem = MenuItem> = {
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
-  onLinkToolbarOpen?: () => void;
   onClose: (insertNewLine?: boolean) => void;
   embeds?: EmbedDescriptor[];
   renderMenuItem: (
@@ -77,8 +76,8 @@ export type Props<T extends MenuItem = MenuItem> = {
 
 function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const { view, commands } = useEditor();
-  const { showToast: onShowToast } = useToasts();
   const dictionary = useDictionary();
+  const hasActivated = React.useRef(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [position, setPosition] = React.useState<Position>(defaultPosition);
@@ -86,6 +85,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     MenuItem | EmbedDescriptor
   >();
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    if (props.isActive) {
+      hasActivated.current = true;
+    }
+  }, [props.isActive]);
 
   const calculatePosition = React.useCallback(
     (props: Props) => {
@@ -179,9 +184,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     dispatch(
       state.tr.insertText(
         "",
-        state.selection.from -
-          (props.search ?? "").length -
-          (trimTrigger ? props.trigger.length : 0),
+        Math.max(
+          0,
+          state.selection.from -
+            (props.search ?? "").length -
+            (trimTrigger ? props.trigger.length : 0)
+        ),
         state.selection.to
       )
     );
@@ -237,21 +245,17 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           return triggerFilePick(
             AttachmentValidation.imageContentTypes.join(", ")
           );
+        case "video":
+          return triggerFilePick("video/*");
         case "attachment":
           return triggerFilePick("*");
         case "embed":
           return triggerLinkInput(item);
-        case "link": {
-          handleClearSearch();
-          props.onClose();
-          props.onLinkToolbarOpen?.();
-          return;
-        }
         default:
           insertNode(item);
       }
     },
-    [insertNode, handleClearSearch, props]
+    [insertNode]
   );
 
   const close = React.useCallback(() => {
@@ -280,7 +284,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       const matches = "matcher" in insertItem && insertItem.matcher(href);
 
       if (!matches) {
-        onShowToast(dictionary.embedInvalidLink);
+        toast.error(dictionary.embedInvalidLink);
         return;
       }
 
@@ -353,7 +357,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         uploadFile,
         onFileUploadStart,
         onFileUploadStop,
-        onShowToast,
         dictionary,
         isAttachment: inputRef.current?.accept === "*",
       });
@@ -534,73 +537,77 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   return (
     <Portal>
       <Wrapper active={isActive} ref={menuRef} hiddenScrollbars {...position}>
-        {insertItem ? (
-          <LinkInputWrapper>
-            <LinkInput
-              type="text"
-              placeholder={
-                insertItem.title
-                  ? dictionary.pasteLinkWithTitle(insertItem.title)
-                  : dictionary.pasteLink
-              }
-              onKeyDown={handleLinkInputKeydown}
-              onPaste={handleLinkInputPaste}
-              autoFocus
-            />
-          </LinkInputWrapper>
-        ) : (
-          <List>
-            {items.map((item, index) => {
-              if (item.name === "separator") {
-                return (
-                  <ListItem key={index}>
-                    <hr />
+        {(isActive || hasActivated.current) && (
+          <>
+            {insertItem ? (
+              <LinkInputWrapper>
+                <LinkInput
+                  type="text"
+                  placeholder={
+                    insertItem.title
+                      ? dictionary.pasteLinkWithTitle(insertItem.title)
+                      : dictionary.pasteLink
+                  }
+                  onKeyDown={handleLinkInputKeydown}
+                  onPaste={handleLinkInputPaste}
+                  autoFocus
+                />
+              </LinkInputWrapper>
+            ) : (
+              <List>
+                {items.map((item, index) => {
+                  if (item.name === "separator") {
+                    return (
+                      <ListItem key={index}>
+                        <hr />
+                      </ListItem>
+                    );
+                  }
+
+                  if (!item.title) {
+                    return null;
+                  }
+
+                  const handlePointer = () => {
+                    if (selectedIndex !== index) {
+                      setSelectedIndex(index);
+                    }
+                  };
+
+                  return (
+                    <ListItem
+                      key={index}
+                      onPointerMove={handlePointer}
+                      onPointerDown={handlePointer}
+                    >
+                      {props.renderMenuItem(item as any, index, {
+                        selected: index === selectedIndex,
+                        onClick: () => handleClickItem(item),
+                      })}
+                    </ListItem>
+                  );
+                })}
+                {items.length === 0 && (
+                  <ListItem>
+                    <Empty>{dictionary.noResults}</Empty>
                   </ListItem>
-                );
-              }
-
-              if (!item.title) {
-                return null;
-              }
-
-              const handlePointer = () => {
-                if (selectedIndex !== index) {
-                  setSelectedIndex(index);
-                }
-              };
-
-              return (
-                <ListItem
-                  key={index}
-                  onPointerMove={handlePointer}
-                  onPointerDown={handlePointer}
-                >
-                  {props.renderMenuItem(item as any, index, {
-                    selected: index === selectedIndex,
-                    onClick: () => handleClickItem(item),
-                  })}
-                </ListItem>
-              );
-            })}
-            {items.length === 0 && (
-              <ListItem>
-                <Empty>{dictionary.noResults}</Empty>
-              </ListItem>
+                )}
+              </List>
             )}
-          </List>
-        )}
-        {uploadFile && (
-          <VisuallyHidden>
-            <label>
-              <Trans>Import document</Trans>
-              <input
-                type="file"
-                ref={inputRef}
-                onChange={handleFilesPicked}
-                multiple
-              />
-            </label>
-          </VisuallyHidden>
+            {uploadFile && (
+              <VisuallyHidden>
+                <label>
+                  <Trans>Import document</Trans>
+                  <input
+                    type="file"
+                    ref={inputRef}
+                    onChange={handleFilesPicked}
+                    multiple
+                  />
+                </label>
+              </VisuallyHidden>
+            )}
+          </>
         )}
       </Wrapper>
     </Portal>

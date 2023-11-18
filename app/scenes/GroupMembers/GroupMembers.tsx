@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import Button from "~/components/Button";
@@ -13,7 +14,6 @@ import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import AddPeopleToGroup from "./AddPeopleToGroup";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 
@@ -24,7 +24,6 @@ type Props = {
 function GroupMembers({ group }: Props) {
   const [addModalOpen, setAddModalOpen] = React.useState(false);
   const { users, groupMemberships } = useStores();
-  const { showToast } = useToasts();
   const { t } = useTranslation();
   const can = usePolicy(group);
 
@@ -38,18 +37,13 @@ function GroupMembers({ group }: Props) {
         groupId: group.id,
         userId: user.id,
       });
-      showToast(
+      toast.success(
         t(`{{userName}} was removed from the group`, {
           userName: user.name,
-        }),
-        {
-          type: "success",
-        }
+        })
       );
     } catch (err) {
-      showToast(t("Could not remove user"), {
-        type: "error",
-      });
+      toast.error(t("Could not remove user"));
     }
   };
 

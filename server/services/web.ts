@@ -22,26 +22,19 @@ import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
 
-const isProduction = env.ENVIRONMENT === "production";
-
 // Construct scripts CSP based on services in use by this installation
 const defaultSrc = ["'self'"];
-const scriptSrc = [
-  "'self'",
-  "gist.github.com",
-  "www.googletagmanager.com",
-  "cdn.zapier.com",
-];
+const scriptSrc = ["'self'", "gist.github.com", "www.googletagmanager.com"];
 
-const styleSrc = [
-  "'self'",
-  "'unsafe-inline'",
-  "github.githubassets.com",
-  "cdn.zapier.com",
-];
+const styleSrc = ["'self'", "'unsafe-inline'", "github.githubassets.com"];
+
+if (env.isCloudHosted) {
+  scriptSrc.push("cdn.zapier.com");
+  styleSrc.push("cdn.zapier.com");
+}
 
 // Allow to load assets from Vite
-if (!isProduction) {
+if (!env.isProduction) {
   scriptSrc.push(env.URL.replace(`:${env.PORT}`, ":3001"));
   scriptSrc.push("localhost:3001");
 }
@@ -59,7 +52,7 @@ if (env.CDN_URL) {
 export default function init(app: Koa = new Koa(), server?: Server) {
   void initI18n();
 
-  if (isProduction) {
+  if (env.isProduction) {
     // Force redirect to HTTPS protocol unless explicitly disabled
     if (env.FORCE_HTTPS) {
       app.use(
@@ -109,7 +102,13 @@ export default function init(app: Koa = new Koa(), server?: Server) {
       directives: {
         defaultSrc,
         styleSrc,
-        scriptSrc: [...scriptSrc, `'nonce-${ctx.state.cspNonce}'`],
+        scriptSrc: [
+          ...scriptSrc,
+          env.DEVELOPMENT_UNSAFE_INLINE_CSP
+            ? "'unsafe-inline'"
+            : `'nonce-${ctx.state.cspNonce}'`,
+        ],
+        mediaSrc: ["*", "data:", "blob:"],
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
         // Do not use connect-src: because self + websockets does not work in

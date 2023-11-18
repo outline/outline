@@ -7,25 +7,25 @@ type Sort = {
 };
 
 export const sortNavigationNodes = (
-  documents: NavigationNode[],
+  nodes: NavigationNode[],
   sort: Sort,
   sortChildren = true
 ): NavigationNode[] => {
   // "index" field is manually sorted and is represented by the documentStructure
   // already saved in the database, no further sort is needed
   if (sort.field === "index") {
-    return documents;
+    return nodes;
   }
 
-  const orderedDocs = naturalSort(documents, sort.field, {
+  const orderedDocs = naturalSort(nodes, sort.field, {
     direction: sort.direction,
   });
 
-  return orderedDocs.map((document) => ({
-    ...document,
+  return orderedDocs.map((node) => ({
+    ...node,
     children: sortChildren
-      ? sortNavigationNodes(document.children, sort, sortChildren)
-      : document.children,
+      ? sortNavigationNodes(node.children, sort, sortChildren)
+      : node.children,
   }));
 };
 

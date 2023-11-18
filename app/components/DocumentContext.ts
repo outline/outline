@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Editor } from "~/editor";
+import useIdle from "~/hooks/useIdle";
 
 export type DocumentContextValue = {
   /** The current editor instance for this document. */
@@ -15,5 +16,22 @@ const DocumentContext = React.createContext<DocumentContextValue>({
 });
 
 export const useDocumentContext = () => React.useContext(DocumentContext);
+
+const activityEvents = [
+  "click",
+  "mousemove",
+  "DOMMouseScroll",
+  "mousewheel",
+  "mousedown",
+  "touchstart",
+  "touchmove",
+  "focus",
+];
+
+export const useEditingFocus = () => {
+  const { editor } = useDocumentContext();
+  const isIdle = useIdle(3000, activityEvents);
+  return isIdle && !!editor?.view.hasFocus();
+};
 
 export default DocumentContext;

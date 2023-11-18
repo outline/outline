@@ -10,7 +10,7 @@ allow(User, "createDocument", Team, (user, team) => {
   return true;
 });
 
-allow(User, ["read", "comment"], Document, (user, document) => {
+allow(User, "read", Document, (user, document) => {
   if (!document) {
     return false;
   }
@@ -49,7 +49,7 @@ allow(User, "download", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, "star", Document, (user, document) => {
+allow(User, ["star", "comment"], Document, (user, document) => {
   if (!document || !document.isActive || document.template) {
     return false;
   }
@@ -98,13 +98,16 @@ allow(User, "share", Document, (user, document) => {
   if (document.deletedAt) {
     return false;
   }
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
 
-  if (cannot(user, "share", document.collection)) {
-    return false;
+  if (document.collectionId) {
+    invariant(
+      document.collection,
+      "collection is missing, did you forget to include in the query scope?"
+    );
+
+    if (cannot(user, "share", document.collection)) {
+      return false;
+    }
   }
 
   return user.teamId === document.teamId;
@@ -176,11 +179,27 @@ allow(User, "move", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ["pin", "unpin"], Document, (user, document) => {
-  if (!document || document.isDraft) {
+allow(User, "pin", Document, (user, document) => {
+  if (
+    !document ||
+    document.isDraft ||
+    !document.isActive ||
+    document.template
+  ) {
     return false;
   }
-  if (document.template) {
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
+  if (cannot(user, "update", document.collection)) {
+    return false;
+  }
+  return user.teamId === document.teamId;
+});
+
+allow(User, "unpin", Document, (user, document) => {
+  if (!document || document.isDraft || document.template) {
     return false;
   }
   invariant(
@@ -194,10 +213,12 @@ allow(User, ["pin", "unpin"], Document, (user, document) => {
 });
 
 allow(User, ["subscribe", "unsubscribe"], Document, (user, document) => {
-  if (!document || !document.isActive || document.isDraft) {
-    return false;
-  }
-  if (document.template) {
+  if (
+    !document ||
+    !document.isActive ||
+    document.isDraft ||
+    document.template
+  ) {
     return false;
   }
   invariant(
@@ -281,7 +302,12 @@ allow(User, "restore", Document, (user, document) => {
 });
 
 allow(User, "archive", Document, (user, document) => {
-  if (!document || !document.isActive || document.isDraft) {
+  if (
+    !document ||
+    !document.isActive ||
+    document.isDraft ||
+    document.template
+  ) {
     return false;
   }
   invariant(

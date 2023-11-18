@@ -2,11 +2,11 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import { toast } from "sonner";
 import Group from "~/models/Group";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
-import useToasts from "~/hooks/useToasts";
 import { settingsPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -16,7 +16,6 @@ type Props = {
 
 function GroupDelete({ group, onSubmit }: Props) {
   const { t } = useTranslation();
-  const { showToast } = useToasts();
   const history = useHistory();
   const [isDeleting, setIsDeleting] = React.useState(false);
 
@@ -29,9 +28,7 @@ function GroupDelete({ group, onSubmit }: Props) {
       history.push(settingsPath("groups"));
       onSubmit();
     } catch (err) {
-      showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     } finally {
       setIsDeleting(false);
     }

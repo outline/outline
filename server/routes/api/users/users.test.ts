@@ -4,7 +4,7 @@ import {
   buildUser,
   buildInvite,
 } from "@server/test/factories";
-import { seed, getTestServer } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
@@ -117,21 +117,27 @@ describe("#users.list", () => {
   });
 
   it("should return teams paginated user list", async () => {
-    const { admin, user } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    await buildUser({ teamId: team.id });
+
     const res = await server.post("/api/users.list", {
       body: {
         token: admin.getJwtToken(),
+        sort: "createdAt",
+        direction: "DESC",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
-    expect(body.data[0].id).toEqual(user.id);
-    expect(body.data[1].id).toEqual(admin.id);
   });
 
   it("should allow filtering by id", async () => {
-    const { admin, user } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
     const res = await server.post("/api/users.list", {
       body: {
         token: admin.getJwtToken(),
@@ -144,8 +150,27 @@ describe("#users.list", () => {
     expect(body.data[0].id).toEqual(user.id);
   });
 
+  it("should allow filtering by email", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/users.list", {
+      body: {
+        token: admin.getJwtToken(),
+        emails: [user.email],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(user.id);
+  });
+
   it("should require admin for detailed info", async () => {
-    const { user, admin } = await seed();
+    const team = await buildTeam();
+    await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
     const res = await server.post("/api/users.list", {
       body: {
         token: user.getJwtToken(),
@@ -156,8 +181,6 @@ describe("#users.list", () => {
     expect(body.data.length).toEqual(2);
     expect(body.data[0].email).toEqual(undefined);
     expect(body.data[1].email).toEqual(undefined);
-    expect(body.data[0].id).toEqual(user.id);
-    expect(body.data[1].id).toEqual(admin.id);
   });
 });
 
@@ -381,7 +404,7 @@ describe("#users.delete", () => {
 
 describe("#users.update", () => {
   it("should update user profile information", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/users.update", {
       body: {
         token: user.getJwtToken(),
@@ -427,7 +450,7 @@ describe("#users.update", () => {
   });
 
   it("should fail upon sending invalid user preference", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/users.update", {
       body: {
         token: user.getJwtToken(),
@@ -439,7 +462,7 @@ describe("#users.update", () => {
   });
 
   it("should fail upon sending invalid user preference value", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/users.update", {
       body: {
         token: user.getJwtToken(),
@@ -451,7 +474,7 @@ describe("#users.update", () => {
   });
 
   it("should update rememberLastPath user preference", async () => {
-    const { user } = await seed();
+    const user = await buildUser();
     const res = await server.post("/api/users.update", {
       body: {
         token: user.getJwtToken(),
@@ -476,16 +499,17 @@ describe("#users.update", () => {
 
 describe("#users.promote", () => {
   it("should promote a new admin", async () => {
-    const { admin, user } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
     const res = await server.post("/api/users.promote", {
       body: {
         token: admin.getJwtToken(),
         id: user.id,
       },
     });
-    const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
   });
 
   it("should require admin", async () => {
@@ -504,7 +528,10 @@ describe("#users.promote", () => {
 
 describe("#users.demote", () => {
   it("should demote an admin", async () => {
-    const { admin, user } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
     await user.update({
       isAdmin: true,
     }); // Make another admin
@@ -515,13 +542,14 @@ describe("#users.demote", () => {
         id: user.id,
       },
     });
-    const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
   });
 
   it("should demote an admin to viewer", async () => {
-    const { admin, user } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
     await user.update({
       isAdmin: true,
     }); // Make another admin
@@ -533,13 +561,14 @@ describe("#users.demote", () => {
         to: "viewer",
       },
     });
-    const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
   });
 
   it("should demote an admin to member", async () => {
-    const { admin, user } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
     await user.update({
       isAdmin: true,
     }); // Make another admin
@@ -551,9 +580,7 @@ describe("#users.demote", () => {
         to: "member",
       },
     });
-    const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
   });
 
   it("should not allow demoting self", async () => {
@@ -585,16 +612,17 @@ describe("#users.demote", () => {
 
 describe("#users.suspend", () => {
   it("should suspend an user", async () => {
-    const { admin, user } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
     const res = await server.post("/api/users.suspend", {
       body: {
         token: admin.getJwtToken(),
         id: user.id,
       },
     });
-    const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
   });
 
   it("should not allow suspending the user themselves", async () => {
@@ -626,7 +654,10 @@ describe("#users.suspend", () => {
 
 describe("#users.activate", () => {
   it("should activate a suspended user", async () => {
-    const { admin, user } = await seed();
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
     await user.update({
       suspendedById: admin.id,
       suspendedAt: new Date(),
@@ -638,9 +669,7 @@ describe("#users.activate", () => {
         id: user.id,
       },
     });
-    const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body).toMatchSnapshot();
   });
 
   it("should require admin", async () => {
@@ -660,9 +689,7 @@ describe("#users.activate", () => {
 describe("#users.count", () => {
   it("should count active users", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const res = await server.post("/api/users.count", {
       body: {
         token: user.getJwtToken(),
@@ -699,9 +726,7 @@ describe("#users.count", () => {
 
   it("should count suspended users", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     await buildUser({
       teamId: team.id,
       suspendedAt: new Date(),

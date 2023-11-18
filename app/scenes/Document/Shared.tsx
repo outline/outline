@@ -18,6 +18,7 @@ import { TeamContext } from "~/components/TeamContext";
 import Text from "~/components/Text";
 import env from "~/env";
 import useBuildTheme from "~/hooks/useBuildTheme";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { AuthorizationError, OfflineError } from "~/utils/errors";
@@ -83,8 +84,9 @@ function useDocumentId(documentSlug: string, response?: Response) {
 }
 
 function SharedDocumentScene(props: Props) {
-  const { ui, auth } = useStores();
+  const { ui } = useStores();
   const location = useLocation();
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const searchParams = React.useMemo(
     () => new URLSearchParams(location.search),
     [location.search]
@@ -93,7 +95,7 @@ function SharedDocumentScene(props: Props) {
   const [response, setResponse] = React.useState<Response>();
   const [error, setError] = React.useState<Error | null | undefined>();
   const { documents } = useStores();
-  const { shareId, documentSlug } = props.match.params;
+  const { shareId = env.ROOT_SHARE_ID, documentSlug } = props.match.params;
   const documentId = useDocumentId(documentSlug, response);
   const themeOverride = ["dark", "light"].includes(
     searchParams.get("theme") || ""
@@ -104,10 +106,10 @@ function SharedDocumentScene(props: Props) {
   const theme = useBuildTheme(response?.team?.customTheme, themeOverride);
 
   React.useEffect(() => {
-    if (!auth.user) {
+    if (!user) {
       void changeLanguage(detectLanguage(), i18n);
     }
-  }, [auth, i18n]);
+  }, [user, i18n]);
 
   // ensure the wider page color always matches the theme
   React.useEffect(() => {
@@ -183,7 +185,7 @@ function SharedDocumentScene(props: Props) {
             title={response.document.title}
             sidebar={
               response.sharedTree?.children.length ? (
-                <Sidebar rootNode={response.sharedTree} shareId={shareId} />
+                <Sidebar rootNode={response.sharedTree} shareId={shareId!} />
               ) : undefined
             }
           >

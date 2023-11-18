@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { ArchiveIcon, DoneIcon, WarningIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import {
   FileOperationFormat,
@@ -10,21 +11,25 @@ import {
 } from "@shared/types";
 import FileOperation from "~/models/FileOperation";
 import { Action } from "~/components/Actions";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import ListItem from "~/components/List/Item";
 import Spinner from "~/components/Spinner";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
 import FileOperationMenu from "~/menus/FileOperationMenu";
+import isCloudHosted from "~/utils/isCloudHosted";
 
 type Props = {
   fileOperation: FileOperation;
-  handleDelete?: (fileOperation: FileOperation) => Promise<void>;
 };
 
-const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
+const FileOperationListItem = ({ fileOperation }: Props) => {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const theme = useTheme();
+  const { dialogs, fileOperations } = useStores();
+
   const stateMapping = {
     [FileOperationState.Creating]: t("Processing"),
     [FileOperationState.Uploading]: t("Processing"),
@@ -55,6 +60,48 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
       ? fileOperation.name
       : t("All collections");
 
+  const handleDelete = React.useCallback(async () => {
+    try {
+      await fileOperations.delete(fileOperation);
+
+      if (fileOperation.type === FileOperationType.Import) {
+        toast.success(t("Import deleted"));
+      } else {
+        toast.success(t("Export deleted"));
+      }
+    } catch (err) {
+      toast.error(err.message);
+    }
+  }, [fileOperation, fileOperations, t]);
+
+  const handleConfirmDelete = React.useCallback(async () => {
+    dialogs.openModal({
+      isCentered: true,
+      title: t("Are you sure you want to delete this import?"),
+      content: (
+        <ConfirmationDialog
+          onSubmit={handleDelete}
+          submitText={t("I’m sure")}
+          savingText={`${t("Deleting")}…`}
+          danger
+        >
+          {t(
+            "Deleting this import will also delete all collections and documents that were created from it. This cannot be undone."
+          )}
+        </ConfirmationDialog>
+      ),
+    });
+  }, [dialogs, t, handleDelete]);
+
+  const showMenu =
+    (fileOperation.type === FileOperationType.Export &&
+      fileOperation.state === FileOperationState.Complete) ||
+    fileOperation.type === FileOperationType.Import;
+
+  const selfHostedHelp = isCloudHosted
+    ? ""
+    : `. ${t("Check server logs for more details.")}`;
+
   return (
     <ListItem
       title={title}
@@ -62,7 +109,12 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
       subtitle={
         <>
           {stateMapping[fileOperation.state]}&nbsp;•&nbsp;
-          {fileOperation.error && <>{fileOperation.error}&nbsp;•&nbsp;</>}
+          {fileOperation.error && (
+            <>
+              {fileOperation.error}
+              {selfHostedHelp}&nbsp;•&nbsp;
+            </>
+          )}
           {t(`{{userName}} requested`, {
             userName:
               user.id === fileOperation.user.id
@@ -76,17 +128,18 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
         </>
       }
       actions={
-        fileOperation.state === FileOperationState.Complete && handleDelete ? (
+        showMenu && (
           <Action>
             <FileOperationMenu
-              id={fileOperation.id}
-              onDelete={async (ev) => {
-                ev.preventDefault();
-                await handleDelete(fileOperation);
-              }}
+              fileOperation={fileOperation}
+              onDelete={
+                fileOperation.type === FileOperationType.Import
+                  ? handleConfirmDelete
+                  : handleDelete
+              }
             />
           </Action>
-        ) : undefined
+        )
       }
     />
   );

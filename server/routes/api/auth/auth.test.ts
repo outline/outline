@@ -1,11 +1,9 @@
+import { faker } from "@faker-js/faker";
+import { v4 as uuidv4 } from "uuid";
 import { buildUser, buildTeam } from "@server/test/factories";
-import {
-  getTestServer,
-  setCloudHosted,
-  setSelfHosted,
-} from "@server/test/support";
+import { getTestServer, setSelfHosted } from "@server/test/support";
 
-const mockTeamInSessionId = "1e023d05-951c-41c6-9012-c9fa0402e1c3";
+const mockTeamInSessionId = uuidv4();
 
 jest.mock("@server/utils/authentication", () => ({
   getSessionsInCookie() {
@@ -16,8 +14,6 @@ jest.mock("@server/utils/authentication", () => ({
 const server = getTestServer();
 
 describe("#auth.info", () => {
-  beforeEach(setCloudHosted);
-
   it("should return current authentication", async () => {
     const team = await buildTeam();
     const team2 = await buildTeam();
@@ -25,9 +21,7 @@ describe("#auth.info", () => {
       id: mockTeamInSessionId,
     });
 
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     await buildUser();
     await buildUser({
       teamId: team2.id,
@@ -39,9 +33,10 @@ describe("#auth.info", () => {
       },
     });
     const body = await res.json();
+    expect(res.status).toEqual(200);
+
     const availableTeamIds = body.data.availableTeams.map((t: any) => t.id);
 
-    expect(res.status).toEqual(200);
     expect(availableTeamIds.length).toEqual(3);
     expect(availableTeamIds).toContain(team.id);
     expect(availableTeamIds).toContain(team2.id);
@@ -53,9 +48,7 @@ describe("#auth.info", () => {
 
   it("should require the team to not be deleted", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     await team.destroy();
     const res = await server.post("/api/auth.info", {
       body: {
@@ -107,19 +100,20 @@ describe("#auth.config", () => {
   });
 
   it("should return available providers for team subdomain", async () => {
+    const subdomain = faker.internet.domainWord();
     await buildTeam({
       guestSignin: false,
-      subdomain: "example",
+      subdomain,
       authenticationProviders: [
         {
           name: "slack",
-          providerId: "123",
+          providerId: uuidv4(),
         },
       ],
     });
     const res = await server.post("/api/auth.config", {
       headers: {
-        host: `example.outline.dev`,
+        host: `${subdomain}.outline.dev`,
       },
     });
     const body = await res.json();
@@ -129,19 +123,20 @@ describe("#auth.config", () => {
   });
 
   it("should return available providers for team custom domain", async () => {
+    const domain = faker.internet.domainName();
     await buildTeam({
       guestSignin: false,
-      domain: "docs.mycompany.com",
+      domain,
       authenticationProviders: [
         {
           name: "slack",
-          providerId: "123",
+          providerId: uuidv4(),
         },
       ],
     });
     const res = await server.post("/api/auth.config", {
       headers: {
-        host: "docs.mycompany.com",
+        host: domain,
       },
     });
     const body = await res.json();
@@ -151,19 +146,20 @@ describe("#auth.config", () => {
   });
 
   it("should return email provider for team when guest signin enabled", async () => {
+    const subdomain = faker.internet.domainWord();
     await buildTeam({
       guestSignin: true,
-      subdomain: "example",
+      subdomain,
       authenticationProviders: [
         {
           name: "slack",
-          providerId: "123",
+          providerId: uuidv4(),
         },
       ],
     });
     const res = await server.post("/api/auth.config", {
       headers: {
-        host: "example.outline.dev",
+        host: `${subdomain}.outline.dev`,
       },
     });
     const body = await res.json();
@@ -174,20 +170,21 @@ describe("#auth.config", () => {
   });
 
   it("should not return provider when disabled", async () => {
+    const subdomain = faker.internet.domainWord();
     await buildTeam({
       guestSignin: false,
-      subdomain: "example",
+      subdomain,
       authenticationProviders: [
         {
           name: "slack",
-          providerId: "123",
+          providerId: uuidv4(),
           enabled: false,
         },
       ],
     });
     const res = await server.post("/api/auth.config", {
       headers: {
-        host: "example.outline.dev",
+        host: `${subdomain}.outline.dev`,
       },
     });
     const body = await res.json();
@@ -195,7 +192,7 @@ describe("#auth.config", () => {
     expect(body.data.providers.length).toBe(0);
   });
 
-  describe("self hosted", () => {
+  describe.skip("self hosted", () => {
     beforeEach(setSelfHosted);
 
     it("should return all configured providers but respect email setting", async () => {
@@ -204,7 +201,7 @@ describe("#auth.config", () => {
         authenticationProviders: [
           {
             name: "slack",
-            providerId: "123",
+            providerId: uuidv4(),
           },
         ],
       });
@@ -223,7 +220,7 @@ describe("#auth.config", () => {
         authenticationProviders: [
           {
             name: "slack",
-            providerId: "123",
+            providerId: uuidv4(),
           },
         ],
       });

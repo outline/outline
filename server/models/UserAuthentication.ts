@@ -93,7 +93,10 @@ class UserAuthentication extends IdModel {
   ): Promise<boolean> {
     // Check a maximum of once every 5 minutes
     if (this.lastValidatedAt > subMinutes(Date.now(), 5) && !force) {
-      Logger.debug("utils", "Skipping access token validation");
+      Logger.debug(
+        "authentication",
+        "Recently validated, skipping access token validation"
+      );
       return true;
     }
 
@@ -142,17 +145,30 @@ class UserAuthentication extends IdModel {
     authenticationProvider: AuthenticationProvider,
     options: SaveOptions
   ): Promise<boolean> {
-    if (
-      this.expiresAt > addMinutes(Date.now(), 5) ||
-      !this.refreshToken ||
-      // Some providers send no expiry depending on setup, in this case we can't
-      // refresh and assume the session is valid until logged out.
-      !this.expiresAt
-    ) {
+    if (this.expiresAt > addMinutes(Date.now(), 5)) {
+      Logger.debug(
+        "authentication",
+        "Existing token is still valid, skipping refresh"
+      );
       return false;
     }
 
-    Logger.info("utils", "Refreshing expiring access token", {
+    if (!this.refreshToken) {
+      Logger.debug(
+        "authentication",
+        "No refresh token found, skipping refresh"
+      );
+      return false;
+    }
+
+    // Some providers send no expiry depending on setup, in this case we can't
+    // refresh and assume the session is valid until logged out.
+    if (!this.expiresAt) {
+      Logger.debug("authentication", "No expiry found, skipping refresh");
+      return false;
+    }
+
+    Logger.info("authentication", "Refreshing expiring access token", {
       id: this.id,
       userId: this.userId,
     });
@@ -174,10 +190,14 @@ class UserAuthentication extends IdModel {
       await this.save(options);
     }
 
-    Logger.info("utils", "Successfully refreshed expired access token", {
-      id: this.id,
-      userId: this.userId,
-    });
+    Logger.info(
+      "authentication",
+      "Successfully refreshed expired access token",
+      {
+        id: this.id,
+        userId: this.userId,
+      }
+    );
 
     return true;
   }

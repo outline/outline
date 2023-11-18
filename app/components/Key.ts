@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 type Props = {
-  /* Set to true if displaying a single symbol character to disable monospace */
+  /** Set to true if displaying a single symbol character to disable monospace */
   symbol?: boolean;
 };
 

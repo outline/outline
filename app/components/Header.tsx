@@ -21,9 +21,10 @@ type Props = {
   title: React.ReactNode;
   actions?: React.ReactNode;
   hasSidebar?: boolean;
+  className?: string;
 };
 
-function Header({ left, title, actions, hasSidebar }: Props) {
+function Header({ left, title, actions, hasSidebar, className }: Props) {
   const { ui } = useStores();
   const isMobile = useMobile();
   const hasMobileSidebar = hasSidebar && isMobile;
@@ -54,6 +55,7 @@ function Header({ left, title, actions, hasSidebar }: Props) {
     <Wrapper
       align="center"
       shrink={false}
+      className={className}
       $passThrough={passThrough}
       $insetTitleAdjust={ui.sidebarIsClosed && Desktop.hasInsetTitlebar()}
     >

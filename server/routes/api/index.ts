@@ -44,6 +44,10 @@ api.use(
   bodyParser({
     multipart: true,
     formidable: {
+      maxFileSize: Math.max(
+        env.FILE_STORAGE_UPLOAD_MAX_SIZE,
+        env.MAXIMUM_IMPORT_SIZE
+      ),
       maxFieldsSize: 10 * 1024 * 1024,
     },
   })
@@ -60,8 +64,11 @@ glob
   .forEach((filePath: string) => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pkg: Router = require(path.join(process.cwd(), filePath)).default;
-    router.use("/", pkg.routes());
-    Logger.debug("lifecycle", `Registered API routes for ${filePath}`);
+
+    if (pkg && "routes" in pkg) {
+      router.use("/", pkg.routes());
+      Logger.debug("lifecycle", `Registered API routes for ${filePath}`);
+    }
   });
 
 // routes
@@ -89,7 +96,7 @@ router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
 router.use("/", urls.routes());
 
-if (env.ENVIRONMENT === "development") {
+if (env.isDevelopment) {
   router.use("/", developer.routes());
 }
 

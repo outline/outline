@@ -3,7 +3,10 @@ import find from "lodash/find";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, WithTranslation } from "react-i18next";
 import { io, Socket } from "socket.io-client";
+import { toast } from "sonner";
+import { FileOperationState, FileOperationType } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Comment from "~/models/Comment";
@@ -33,7 +36,7 @@ type SocketWithAuthentication = Socket & {
 export const WebsocketContext =
   React.createContext<SocketWithAuthentication | null>(null);
 
-type Props = RootStore;
+type Props = WithTranslation & RootStore;
 
 @observer
 class WebsocketProvider extends React.Component<Props> {
@@ -77,7 +80,6 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.authenticated = false;
     const {
       auth,
-      toasts,
       documents,
       collections,
       groups,
@@ -111,9 +113,7 @@ class WebsocketProvider extends React.Component<Props> {
       if (this.socket) {
         this.socket.authenticated = false;
       }
-      toasts.showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
       throw err;
     });
 
@@ -254,9 +254,7 @@ class WebsocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("comments.delete", (event: WebsocketEntityDeletedEvent) => {
-      comments.inThread(event.modelId).forEach((comment) => {
-        comments.remove(comment.id);
-      });
+      comments.remove(event.modelId);
     });
 
     this.socket.on("groups.create", (event: PartialWithId<Group>) => {
@@ -317,7 +315,7 @@ class WebsocketProvider extends React.Component<Props> {
         });
       }
 
-      auth.team?.updateFromJson(event);
+      auth.team?.updateData(event);
     });
 
     this.socket.on(
@@ -435,6 +433,16 @@ class WebsocketProvider extends React.Component<Props> {
       "fileOperations.update",
       (event: PartialWithId<FileOperation>) => {
         fileOperations.add(event);
+
+        if (
+          event.state === FileOperationState.Complete &&
+          event.type === FileOperationType.Import &&
+          event.user?.id === auth.user?.id
+        ) {
+          toast.success(event.name, {
+            description: this.props.t("Your import completed"),
+          });
+        }
       }
     );
 
@@ -454,13 +462,13 @@ class WebsocketProvider extends React.Component<Props> {
 
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.
-    this.socket.on("join", (event: any) => {
+    this.socket.on("join", (event) => {
       this.socket?.emit("join", event);
     });
 
     // received a message from the API server that we should request
     // to leave a specific room. Forward that to the ws server.
-    this.socket.on("leave", (event: any) => {
+    this.socket.on("leave", (event) => {
       this.socket?.emit("leave", event);
     });
   };
@@ -474,4 +482,4 @@ class WebsocketProvider extends React.Component<Props> {
   }
 }
 
-export default withStores(WebsocketProvider);
+export default withTranslation()(withStores(WebsocketProvider));

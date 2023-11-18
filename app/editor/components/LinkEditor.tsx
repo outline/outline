@@ -9,6 +9,7 @@ import { Mark } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { s, hideScrollbars } from "@shared/styles";
 import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
@@ -16,7 +17,6 @@ import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
-import { ToastOptions } from "~/types";
 import Logger from "~/utils/Logger";
 import Input from "./Input";
 import LinkSearchResult from "./LinkSearchResult";
@@ -47,7 +47,6 @@ type Props = {
     href: string,
     event: React.MouseEvent<HTMLButtonElement>
   ) => void;
-  onShowToast: (message: string, options?: ToastOptions) => void;
   view: EditorView;
 };
 
@@ -240,7 +239,7 @@ class LinkEditor extends React.Component<Props, State> {
     try {
       this.props.onClickLink(this.href, event);
     } catch (err) {
-      this.props.onShowToast(this.props.dictionary.openLinkError);
+      toast.error(this.props.dictionary.openLinkError);
     }
   };
 

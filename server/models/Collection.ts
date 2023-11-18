@@ -1,9 +1,16 @@
+/* eslint-disable lines-between-class-members */
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import randomstring from "randomstring";
-import { Identifier, Transaction, Op, FindOptions } from "sequelize";
+import {
+  Identifier,
+  Transaction,
+  Op,
+  FindOptions,
+  NonNullFindOptions,
+} from "sequelize";
 import {
   Sequelize,
   Table,
@@ -13,7 +20,6 @@ import {
   Default,
   BeforeValidate,
   BeforeSave,
-  AfterDestroy,
   AfterCreate,
   HasMany,
   BelongsToMany,
@@ -22,22 +28,24 @@ import {
   Scopes,
   DataType,
   Length as SimpleLength,
+  BeforeDestroy,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort } from "@shared/types";
 import { CollectionPermission, NavigationNode } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
+import slugify from "@shared/utils/slugify";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { CollectionValidation } from "@shared/validations";
-import slugify from "@server/utils/slugify";
-import CollectionGroup from "./CollectionGroup";
-import CollectionUser from "./CollectionUser";
+import { ValidationError } from "@server/errors";
 import Document from "./Document";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
+import GroupPermission from "./GroupPermission";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
+import UserPermission from "./UserPermission";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
@@ -48,13 +56,23 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withAllMemberships: {
     include: [
       {
-        model: CollectionUser,
+        model: UserPermission,
         as: "memberships",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
         required: false,
       },
       {
-        model: CollectionGroup,
+        model: GroupPermission,
         as: "collectionGroupMemberships",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -92,16 +110,24 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withMembership: (userId: string) => ({
     include: [
       {
-        model: CollectionUser,
+        model: UserPermission,
         as: "memberships",
         where: {
           userId,
+          collectionId: {
+            [Op.ne]: null,
+          },
         },
         required: false,
       },
       {
-        model: CollectionGroup,
+        model: GroupPermission,
         as: "collectionGroupMemberships",
+        where: {
+          collectionId: {
+            [Op.ne]: null,
+          },
+        },
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -240,16 +266,16 @@ class Collection extends ParanoidModel {
     }
   }
 
-  @AfterDestroy
-  static async onAfterDestroy(model: Collection) {
-    await Document.destroy({
+  @BeforeDestroy
+  static async checkLastCollection(model: Collection) {
+    const total = await this.count({
       where: {
-        collectionId: model.id,
-        archivedAt: {
-          [Op.is]: null,
-        },
+        teamId: model.teamId,
       },
     });
+    if (total === 1) {
+      throw ValidationError("Cannot delete last collection");
+    }
   }
 
   @AfterCreate
@@ -257,7 +283,7 @@ class Collection extends ParanoidModel {
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    return CollectionUser.findOrCreate({
+    return UserPermission.findOrCreate({
       where: {
         collectionId: model.id,
         userId: model.createdById,
@@ -282,16 +308,16 @@ class Collection extends ParanoidModel {
   @HasMany(() => Document, "collectionId")
   documents: Document[];
 
-  @HasMany(() => CollectionUser, "collectionId")
-  memberships: CollectionUser[];
+  @HasMany(() => UserPermission, "collectionId")
+  memberships: UserPermission[];
 
-  @HasMany(() => CollectionGroup, "collectionId")
-  collectionGroupMemberships: CollectionGroup[];
+  @HasMany(() => GroupPermission, "collectionId")
+  collectionGroupMemberships: GroupPermission[];
 
-  @BelongsToMany(() => User, () => CollectionUser)
+  @BelongsToMany(() => User, () => UserPermission)
   users: User[];
 
-  @BelongsToMany(() => Group, () => CollectionGroup)
+  @BelongsToMany(() => Group, () => GroupPermission)
   groups: Group[];
 
   @BelongsTo(() => User, "createdById")
@@ -344,8 +370,17 @@ class Collection extends ParanoidModel {
    * Overrides the standard findByPk behavior to allow also querying by urlId
    *
    * @param id uuid or urlId
-   * @returns collection instance
+   * @param options FindOptions
+   * @returns A promise resolving to a collection instance or null
    */
+  static async findByPk(
+    id: Identifier,
+    options?: NonNullFindOptions<Collection>
+  ): Promise<Collection>;
+  static async findByPk(
+    id: Identifier,
+    options?: FindOptions<Collection>
+  ): Promise<Collection | null>;
   static async findByPk(
     id: Identifier,
     options: FindOptions<Collection> = {}

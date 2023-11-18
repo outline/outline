@@ -1,7 +1,10 @@
+import path from "path";
 import util from "util";
 import AWS, { S3 } from "aws-sdk";
+import fs from "fs-extra";
 import invariant from "invariant";
 import compact from "lodash/compact";
+import tmp from "tmp";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
@@ -47,7 +50,7 @@ export default class S3Storage extends BaseStorage {
     );
   }
 
-  public getPublicEndpoint(isServerUpload?: boolean) {
+  private getPublicEndpoint(isServerUpload?: boolean) {
     if (env.AWS_S3_ACCELERATE_URL) {
       return env.AWS_S3_ACCELERATE_URL;
     }
@@ -78,7 +81,15 @@ export default class S3Storage extends BaseStorage {
     }`;
   }
 
-  public upload = async ({
+  public getUploadUrl(isServerUpload?: boolean) {
+    return this.getPublicEndpoint(isServerUpload);
+  }
+
+  public getUrlForKey(key: string): string {
+    return `${this.getPublicEndpoint()}/${key}`;
+  }
+
+  public store = async ({
     body,
     contentLength,
     contentType,
@@ -86,10 +97,10 @@ export default class S3Storage extends BaseStorage {
     acl,
   }: {
     body: S3.Body;
-    contentLength: number;
-    contentType: string;
+    contentLength?: number;
+    contentType?: string;
     key: string;
-    acl: string;
+    acl?: string;
   }) => {
     invariant(
       env.AWS_S3_UPLOAD_BUCKET_NAME,
@@ -125,7 +136,10 @@ export default class S3Storage extends BaseStorage {
       .promise();
   }
 
-  public getSignedUrl = async (key: string, expiresIn = 60) => {
+  public getSignedUrl = async (
+    key: string,
+    expiresIn = S3Storage.defaultSignedUrlExpires
+  ) => {
     const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
     const params = {
       Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,
@@ -148,6 +162,37 @@ export default class S3Storage extends BaseStorage {
     return url;
   };
 
+  public getFileHandle(key: string): Promise<{
+    path: string;
+    cleanup: () => Promise<void>;
+  }> {
+    return new Promise((resolve, reject) => {
+      tmp.dir((err, tmpDir) => {
+        if (err) {
+          return reject(err);
+        }
+        const tmpFile = path.join(tmpDir, "tmp");
+        const dest = fs.createWriteStream(tmpFile);
+        dest.on("error", reject);
+        dest.on("finish", () =>
+          resolve({ path: tmpFile, cleanup: () => fs.rm(tmpFile) })
+        );
+
+        const stream = this.getFileStream(key);
+        if (!stream) {
+          return reject(new Error("No stream available"));
+        }
+
+        stream
+          .on("error", (err) => {
+            dest.end();
+            reject(err);
+          })
+          .pipe(dest);
+      });
+    });
+  }
+
   public getFileStream(key: string) {
     invariant(
       env.AWS_S3_UPLOAD_BUCKET_NAME,
@@ -168,26 +213,6 @@ export default class S3Storage extends BaseStorage {
     }
 
     return null;
-  }
-
-  public async getFileBuffer(key: string) {
-    invariant(
-      env.AWS_S3_UPLOAD_BUCKET_NAME,
-      "AWS_S3_UPLOAD_BUCKET_NAME is required"
-    );
-
-    const response = await this.client
-      .getObject({
-        Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,
-        Key: key,
-      })
-      .promise();
-
-    if (response.Body) {
-      return response.Body as Blob;
-    }
-
-    throw new Error("Error getting file buffer from S3");
   }
 
   private client: AWS.S3;

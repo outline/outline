@@ -1,5 +1,5 @@
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
-import { CollectionUser } from "@server/models";
+import { UserPermission } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import {
   buildUser,
@@ -36,8 +36,10 @@ describe("#attachments.create", () => {
       expect(res.status).toEqual(200);
 
       const body = await res.json();
-      const attachment = await Attachment.findByPk(body.data.attachment.id);
-      expect(attachment!.expiresAt).toBeNull();
+      const attachment = await Attachment.findByPk(body.data.attachment.id, {
+        rejectOnEmpty: true,
+      });
+      expect(attachment.expiresAt).toBeNull();
     });
 
     it("should allow attachment creation for documents", async () => {
@@ -71,8 +73,10 @@ describe("#attachments.create", () => {
       expect(res.status).toEqual(200);
 
       const body = await res.json();
-      const attachment = await Attachment.findByPk(body.data.attachment.id);
-      expect(attachment!.expiresAt).toBeTruthy();
+      const attachment = await Attachment.findByPk(body.data.attachment.id, {
+        rejectOnEmpty: true,
+      });
+      expect(attachment.expiresAt).toBeTruthy();
     });
 
     it("should not allow attachment creation for other documents", async () => {
@@ -119,7 +123,7 @@ describe("#attachments.create", () => {
         collectionId: collection.id,
       });
 
-      await CollectionUser.create({
+      await UserPermission.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,
@@ -191,7 +195,13 @@ describe("#attachments.delete", () => {
       },
     });
     expect(res.status).toEqual(200);
-    expect(await Attachment.count()).toEqual(0);
+    expect(
+      await Attachment.count({
+        where: {
+          teamId: user.teamId,
+        },
+      })
+    ).toEqual(0);
   });
 
   it("should allow deleting an attachment without a document created by user", async () => {
@@ -209,7 +219,13 @@ describe("#attachments.delete", () => {
       },
     });
     expect(res.status).toEqual(200);
-    expect(await Attachment.count()).toEqual(0);
+    expect(
+      await Attachment.count({
+        where: {
+          teamId: user.teamId,
+        },
+      })
+    ).toEqual(0);
   });
 
   it("should allow deleting an attachment without a document if admin", async () => {
@@ -226,7 +242,13 @@ describe("#attachments.delete", () => {
       },
     });
     expect(res.status).toEqual(200);
-    expect(await Attachment.count()).toEqual(0);
+    expect(
+      await Attachment.count({
+        where: {
+          teamId: user.teamId,
+        },
+      })
+    ).toEqual(0);
   });
 
   it("should not allow deleting an attachment in another team", async () => {

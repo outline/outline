@@ -102,7 +102,7 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
     });
 
     if (notification) {
-      if (env.ENVIRONMENT === "development") {
+      if (env.isDevelopment) {
         Logger.info(
           "processor",
           `would have suppressed notification to ${user.id}, but not in development`

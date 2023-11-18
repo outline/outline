@@ -14,6 +14,7 @@ export default function presentShare(share: Share, isAdmin = false) {
     includeChildDocuments: share.includeChildDocuments,
     lastAccessedAt: share.lastAccessedAt || undefined,
     views: share.views || 0,
+    domain: share.domain,
     createdAt: share.createdAt,
     updatedAt: share.updatedAt,
   };

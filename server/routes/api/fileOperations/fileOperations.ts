@@ -3,6 +3,7 @@ import { WhereOptions } from "sequelize";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { FileOperation, Team } from "@server/models";
 import { authorize } from "@server/policies";
@@ -105,16 +106,24 @@ router.post(
   "fileOperations.delete",
   auth({ admin: true }),
   validate(T.FileOperationsDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.FileOperationsDeleteReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const fileOperation = await FileOperation.unscoped().findByPk(id, {
       rejectOnEmpty: true,
+      transaction,
     });
     authorize(user, "delete", fileOperation);
 
-    await fileOperationDeleter(fileOperation, user, ctx.request.ip);
+    await fileOperationDeleter({
+      fileOperation,
+      user,
+      ip: ctx.request.ip,
+      transaction,
+    });
 
     ctx.body = {
       success: true,

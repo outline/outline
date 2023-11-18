@@ -162,6 +162,69 @@ router.post(
 );
 
 router.post(
+  "shares.create",
+  auth(),
+  validate(T.SharesCreateSchema),
+  async (ctx: APIContext<T.SharesCreateReq>) => {
+    const { documentId, published, urlId, includeChildDocuments } =
+      ctx.input.body;
+    const { user } = ctx.state.auth;
+    const document = await Document.findByPk(documentId, {
+      userId: user.id,
+    });
+
+    // user could be creating the share link to share with team members
+    authorize(user, "read", document);
+
+    if (published) {
+      authorize(user, "share", user.team);
+      authorize(user, "share", document);
+    }
+
+    const [share, isCreated] = await Share.findOrCreate({
+      where: {
+        documentId,
+        teamId: user.teamId,
+        revokedAt: null,
+      },
+      defaults: {
+        userId: user.id,
+        published,
+        includeChildDocuments,
+        urlId,
+      },
+    });
+
+    if (isCreated) {
+      await Event.create({
+        name: "shares.create",
+        documentId,
+        collectionId: document.collectionId,
+        modelId: share.id,
+        teamId: user.teamId,
+        actorId: user.id,
+        data: {
+          name: document.title,
+          published,
+          includeChildDocuments,
+          urlId,
+        },
+        ip: ctx.request.ip,
+      });
+    }
+
+    share.team = user.team;
+    share.user = user;
+    share.document = document;
+
+    ctx.body = {
+      data: presentShare(share),
+      policies: presentPolicies(user, [share]),
+    };
+  }
+);
+
+router.post(
   "shares.update",
   auth(),
   validate(T.SharesUpdateSchema),
@@ -169,8 +232,7 @@ router.post(
     const { id, includeChildDocuments, published, urlId } = ctx.input.body;
 
     const { user } = ctx.state.auth;
-    const team = await Team.findByPk(user.teamId);
-    authorize(user, "share", team);
+    authorize(user, "share", user.team);
 
     // fetch the share with document and collection.
     const share = await Share.scope({
@@ -213,61 +275,6 @@ router.post(
 
     ctx.body = {
       data: presentShare(share, user.isAdmin),
-      policies: presentPolicies(user, [share]),
-    };
-  }
-);
-
-router.post(
-  "shares.create",
-  auth(),
-  validate(T.SharesCreateSchema),
-  async (ctx: APIContext<T.SharesCreateReq>) => {
-    const { documentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const document = await Document.findByPk(documentId, {
-      userId: user.id,
-    });
-
-    // user could be creating the share link to share with team members
-    authorize(user, "read", document);
-
-    const team = await Team.findByPk(user.teamId);
-
-    const [share, isCreated] = await Share.findOrCreate({
-      where: {
-        documentId,
-        teamId: user.teamId,
-        revokedAt: null,
-      },
-      defaults: {
-        userId: user.id,
-      },
-    });
-
-    if (isCreated) {
-      await Event.create({
-        name: "shares.create",
-        documentId,
-        collectionId: document.collectionId,
-        modelId: share.id,
-        teamId: user.teamId,
-        actorId: user.id,
-        data: {
-          name: document.title,
-        },
-        ip: ctx.request.ip,
-      });
-    }
-
-    if (team) {
-      share.team = team;
-    }
-    share.user = user;
-    share.document = document;
-
-    ctx.body = {
-      data: presentShare(share),
       policies: presentPolicies(user, [share]),
     };
   }

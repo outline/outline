@@ -25,6 +25,7 @@ import {
   CommentIcon,
 } from "outline-icons";
 import * as React from "react";
+import { toast } from "sonner";
 import { ExportContentType, TeamPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import DocumentDelete from "~/scenes/DocumentDelete";
@@ -32,6 +33,7 @@ import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
+import DuplicateDialog from "~/components/DuplicateDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import env from "~/env";
@@ -42,6 +44,7 @@ import {
   homePath,
   newDocumentPath,
   searchPath,
+  documentPath,
 } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
@@ -84,6 +87,48 @@ export const createDocument = createAction({
     history.push(newDocumentPath(activeCollectionId), {
       starred: inStarredSection,
     }),
+});
+
+export const createDocumentFromTemplate = createAction({
+  name: ({ t }) => t("New from template"),
+  analyticsName: "New document",
+  section: DocumentSection,
+  icon: <NewDocumentIcon />,
+  keywords: "create",
+  visible: ({ currentTeamId, activeDocumentId, stores }) =>
+    !!currentTeamId &&
+    !!activeDocumentId &&
+    !!stores.documents.get(activeDocumentId)?.template &&
+    stores.policies.abilities(currentTeamId).createDocument,
+  perform: ({ activeCollectionId, activeDocumentId, inStarredSection }) =>
+    history.push(
+      newDocumentPath(activeCollectionId, { templateId: activeDocumentId }),
+      {
+        starred: inStarredSection,
+      }
+    ),
+});
+
+export const createNestedDocument = createAction({
+  name: ({ t }) => t("New nested document"),
+  analyticsName: "New document",
+  section: DocumentSection,
+  icon: <NewDocumentIcon />,
+  keywords: "create",
+  visible: ({ currentTeamId, activeDocumentId, stores }) =>
+    !!currentTeamId &&
+    !!activeDocumentId &&
+    stores.policies.abilities(currentTeamId).createDocument &&
+    stores.policies.abilities(activeDocumentId).createChildDocument,
+  perform: ({ activeCollectionId, activeDocumentId, inStarredSection }) =>
+    history.push(
+      newDocumentPath(activeCollectionId, {
+        parentDocumentId: activeDocumentId,
+      }),
+      {
+        starred: inStarredSection,
+      }
+    ),
 });
 
 export const starDocument = createAction({
@@ -165,9 +210,11 @@ export const publishDocument = createAction({
       await document.save(undefined, {
         publish: true,
       });
-      stores.toasts.showToast(t("Document published"), {
-        type: "success",
-      });
+      toast.success(
+        t("Published {{ documentName }}", {
+          documentName: document.noun,
+        })
+      );
     } else if (document) {
       stores.dialogs.openModal({
         title: t("Publish document"),
@@ -195,12 +242,21 @@ export const unpublishDocument = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
+    if (!document) {
+      return;
+    }
 
-    await document?.unpublish();
+    try {
+      await document.unpublish();
 
-    stores.toasts.showToast(t("Document unpublished"), {
-      type: "success",
-    });
+      toast.success(
+        t("Unpublished {{ documentName }}", {
+          documentName: document.noun,
+        })
+      );
+    } catch (err) {
+      toast.error(err.message);
+    }
   },
 });
 
@@ -230,9 +286,7 @@ export const subscribeDocument = createAction({
 
     await document?.subscribe();
 
-    stores.toasts.showToast(t("Subscribed to document notifications"), {
-      type: "success",
-    });
+    toast.success(t("Subscribed to document notifications"));
   },
 });
 
@@ -262,9 +316,7 @@ export const unsubscribeDocument = createAction({
 
     await document?.unsubscribe(currentUserId);
 
-    stores.toasts.showToast(t("Unsubscribed from document notifications"), {
-      type: "success",
-    });
+    toast.success(t("Unsubscribed from document notifications"));
   },
 });
 
@@ -303,15 +355,11 @@ export const downloadDocumentAsPDF = createAction({
       return;
     }
 
-    const id = stores.toasts.showToast(`${t("Exporting")}…`, {
-      type: "loading",
-      timeout: 30 * 1000,
-    });
-
+    const id = toast.loading(`${t("Exporting")}…`);
     const document = stores.documents.get(activeDocumentId);
     document
       ?.download(ExportContentType.Pdf)
-      .finally(() => id && stores.toasts.hideToast(id));
+      .finally(() => id && toast.dismiss(id));
   },
 });
 
@@ -364,11 +412,19 @@ export const duplicateDocument = createAction({
 
     const document = stores.documents.get(activeDocumentId);
     invariant(document, "Document must exist");
-    const duped = await document.duplicate();
-    // when duplicating, go straight to the duplicated document content
-    history.push(duped.url);
-    stores.toasts.showToast(t("Document duplicated"), {
-      type: "success",
+
+    stores.dialogs.openModal({
+      title: t("Copy document"),
+      isCentered: true,
+      content: (
+        <DuplicateDialog
+          document={document}
+          onSubmit={(response) => {
+            stores.dialogs.closeAllModals();
+            history.push(documentPath(response[0]));
+          }}
+        />
+      ),
     });
   },
 });
@@ -414,12 +470,10 @@ export const pinDocumentToCollection = createAction({
       const collection = stores.collections.get(activeCollectionId);
 
       if (!collection || !location.pathname.startsWith(collection?.url)) {
-        stores.toasts.showToast(t("Pinned to collection"));
+        toast.success(t("Pinned to collection"));
       }
     } catch (err) {
-      stores.toasts.showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     }
   },
 });
@@ -456,12 +510,10 @@ export const pinDocumentToHome = createAction({
       await document?.pin();
 
       if (location.pathname !== homePath()) {
-        stores.toasts.showToast(t("Pinned to team home"));
+        toast.success(t("Pinned to home"));
       }
     } catch (err) {
-      stores.toasts.showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     }
   },
 });
@@ -504,7 +556,7 @@ export const importDocument = createAction({
     return false;
   },
   perform: ({ activeCollectionId, activeDocumentId, stores }) => {
-    const { documents, toasts } = stores;
+    const { documents } = stores;
     const input = document.createElement("input");
     input.type = "file";
     input.accept = documents.importFileTypes.join(", ");
@@ -524,9 +576,7 @@ export const importDocument = createAction({
         );
         history.push(document.url);
       } catch (err) {
-        toasts.showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
         throw err;
       }
     };
@@ -647,9 +697,7 @@ export const archiveDocument = createAction({
       }
 
       await document.archive();
-      stores.toasts.showToast(t("Document archived"), {
-        type: "success",
-      });
+      toast.success(t("Document archived"));
     }
   },
 });
@@ -733,8 +781,7 @@ export const openDocumentComments = createAction({
     const can = stores.policies.abilities(activeDocumentId ?? "");
     return (
       !!activeDocumentId &&
-      can.read &&
-      !can.restore &&
+      can.comment &&
       !!stores.auth.team?.getPreference(TeamPreference.Commenting)
     );
   },
@@ -775,7 +822,16 @@ export const openDocumentInsights = createAction({
   icon: <LightBulbIcon />,
   visible: ({ activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
-    return !!activeDocumentId && can.read;
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+
+    return (
+      !!activeDocumentId &&
+      can.read &&
+      !document?.isTemplate &&
+      !document?.isDeleted
+    );
   },
   perform: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {

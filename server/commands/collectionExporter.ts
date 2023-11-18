@@ -7,6 +7,7 @@ import {
 } from "@shared/types";
 import { traceFunction } from "@server/logging/tracing";
 import { Collection, Event, Team, User, FileOperation } from "@server/models";
+import { Buckets } from "@server/models/helpers/AttachmentHelper";
 
 type Props = {
   collection?: Collection;
@@ -19,8 +20,7 @@ type Props = {
 };
 
 function getKeyForFileOp(teamId: string, name: string) {
-  const bucket = "uploads";
-  return `${bucket}/${teamId}/${uuidv4()}/${name}-export.zip`;
+  return `${Buckets.uploads}/${teamId}/${uuidv4()}/${name}-export.zip`;
 }
 
 async function collectionExporter({

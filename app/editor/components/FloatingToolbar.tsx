@@ -8,9 +8,6 @@ import { depths, s } from "@shared/styles";
 import { Portal } from "~/components/Portal";
 import useComponentSize from "~/hooks/useComponentSize";
 import useEventListener from "~/hooks/useEventListener";
-import useMediaQuery from "~/hooks/useMediaQuery";
-import useMobile from "~/hooks/useMobile";
-import useViewportHeight from "~/hooks/useViewportHeight";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
 
@@ -40,26 +37,9 @@ function usePosition({
   const { view } = useEditor();
   const { selection } = view.state;
   const { width: menuWidth, height: menuHeight } = useComponentSize(menuRef);
-  const viewportHeight = useViewportHeight();
-  const isMobile = useMobile();
-  const isTouchDevice = useMediaQuery("(hover: none) and (pointer: coarse)");
 
   if (!active || !menuWidth || !menuHeight || !menuRef.current) {
     return defaultPosition;
-  }
-
-  // If we're on a mobile device then stick the floating toolbar to the bottom
-  // of the screen above the virtual keyboard.
-  if (isTouchDevice && isMobile && viewportHeight) {
-    return {
-      left: 0,
-      right: 0,
-      top: viewportHeight - menuHeight,
-      offset: 0,
-      maxWidth: 1000,
-      blockSelection: false,
-      visible: true,
-    };
   }
 
   // based on the start and end of the selection calculate the position at
@@ -94,7 +74,7 @@ function usePosition({
   // position at the top right of code blocks
   const codeBlock = findParentNode(isCode)(view.state.selection);
 
-  if (codeBlock) {
+  if (codeBlock && view.state.selection.empty) {
     const element = view.nodeDOM(codeBlock.pos);
     const bounds = (element as HTMLElement).getBoundingClientRect();
     selectionBounds.top = bounds.top;
@@ -194,7 +174,7 @@ function usePosition({
       left: Math.round(left - offsetParent.left),
       top: Math.round(top - offsetParent.top),
       offset: Math.round(offset),
-      maxWidth: offsetParent.width,
+      maxWidth: Math.min(window.innerWidth - margin * 2, offsetParent.width),
       blockSelection: codeBlock || isColSelection || isRowSelection,
       visible: true,
     };
@@ -306,18 +286,6 @@ const Wrapper = styled.div<WrapperProps>`
 
   @media print {
     display: none;
-  }
-
-  @media (hover: none) and (pointer: coarse) {
-    &:before {
-      display: none;
-    }
-
-    transition: opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transform: scale(1);
-    border-radius: 0;
-    width: 100vw;
-    position: fixed;
   }
 `;
 

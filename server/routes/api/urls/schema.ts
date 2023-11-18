@@ -34,3 +34,11 @@ export const UrlsUnfurlSchema = BaseSchema.extend({
 });
 
 export type UrlsUnfurlReq = z.infer<typeof UrlsUnfurlSchema>;
+
+export const UrlsCheckCnameSchema = BaseSchema.extend({
+  body: z.object({
+    hostname: z.string(),
+  }),
+});
+
+export type UrlsCheckCnameReq = z.infer<typeof UrlsCheckCnameSchema>;

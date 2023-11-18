@@ -1,8 +1,8 @@
 import { observable } from "mobx";
-import BaseModel from "./BaseModel";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 
-class WebhookSubscription extends BaseModel {
+class WebhookSubscription extends Model {
   @Field
   @observable
   id: string;

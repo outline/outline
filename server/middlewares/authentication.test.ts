@@ -2,10 +2,7 @@ import { DefaultState } from "koa";
 import randomstring from "randomstring";
 import ApiKey from "@server/models/ApiKey";
 import { buildUser, buildTeam } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import auth from "./authentication";
-
-setupTestDatabase();
 
 describe("Authentication middleware", () => {
   describe("with JWT", () => {
@@ -184,7 +181,7 @@ describe("Authentication middleware", () => {
     }
 
     expect(error.message).toEqual(
-      "Your access has been suspended by the team admin"
+      "Your access has been suspended by a workspace admin"
     );
     expect(error.errorData.adminEmail).toEqual(admin.email);
   });
@@ -192,9 +189,7 @@ describe("Authentication middleware", () => {
   it("should return an error for deleted team", async () => {
     const state = {} as DefaultState;
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     await team.destroy();
     const authMiddleware = auth();
     let error;

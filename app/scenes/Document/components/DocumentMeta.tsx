@@ -10,6 +10,8 @@ import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import DocumentMeta from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { documentPath, documentInsightsPath } from "~/utils/routeHelpers";
 
@@ -17,26 +19,20 @@ type Props = {
   /* The document to display meta data for */
   document: Document;
   revision?: Revision;
-  isDraft: boolean;
   to?: LocationDescriptor;
   rtl?: boolean;
 };
 
-function TitleDocumentMeta({
-  to,
-  isDraft,
-  document,
-  revision,
-  ...rest
-}: Props) {
-  const { auth, views, comments, ui } = useStores();
+function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
+  const { views, comments, ui } = useStores();
   const { t } = useTranslation();
-  const { team } = auth;
   const match = useRouteMatch();
+  const team = useCurrentTeam();
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
-  const onlyYou = totalViewers === 1 && documentViews[0].user.id;
+  const onlyYou = totalViewers === 1 && documentViews[0].userId;
   const viewsLoadedOnMount = React.useRef(totalViewers > 0);
+  const can = usePolicy(document.id);
 
   const Wrapper = viewsLoadedOnMount.current ? React.Fragment : Fade;
 
@@ -45,7 +41,7 @@ function TitleDocumentMeta({
 
   return (
     <Meta document={document} revision={revision} to={to} replace {...rest}>
-      {team?.getPreference(TeamPreference.Commenting) && (
+      {team.getPreference(TeamPreference.Commenting) && can.comment && (
         <>
           &nbsp;•&nbsp;
           <CommentLink
@@ -59,7 +55,7 @@ function TitleDocumentMeta({
           </CommentLink>
         </>
       )}
-      {totalViewers && !isDraft ? (
+      {totalViewers && !document.isDraft && !document.isTemplate ? (
         <Wrapper>
           &nbsp;•&nbsp;
           <Link

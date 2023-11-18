@@ -1,36 +1,41 @@
+import { Transaction } from "sequelize";
 import { UserRole } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import { Event, User } from "@server/models";
 import CleanupDemotedUserTask from "@server/queues/tasks/CleanupDemotedUserTask";
-import { sequelize } from "@server/storage/database";
 
 type Props = {
   user: User;
   actorId: string;
   to: UserRole;
+  transaction?: Transaction;
   ip: string;
 };
 
-export default async function userDemoter({ user, actorId, to, ip }: Props) {
+export default async function userDemoter({
+  user,
+  actorId,
+  to,
+  transaction,
+  ip,
+}: Props) {
   if (user.id === actorId) {
     throw ValidationError("Unable to demote the current user");
   }
 
-  return sequelize.transaction(async (transaction) => {
-    await user.demote(to, { transaction });
-    await Event.create(
-      {
-        name: "users.demote",
-        actorId,
-        userId: user.id,
-        teamId: user.teamId,
-        data: {
-          name: user.name,
-        },
-        ip,
+  await user.demote(to, { transaction });
+  await Event.create(
+    {
+      name: "users.demote",
+      actorId,
+      userId: user.id,
+      teamId: user.teamId,
+      data: {
+        name: user.name,
       },
-      { transaction }
-    );
-    await CleanupDemotedUserTask.schedule({ userId: user.id });
-  });
+      ip,
+    },
+    { transaction }
+  );
+  await CleanupDemotedUserTask.schedule({ userId: user.id });
 }

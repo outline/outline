@@ -8,7 +8,7 @@ type Props = {
   className?: string;
 };
 
-function MicrosoftLogo({ size = 24, fill = "#FFF", className }: Props) {
+function MicrosoftLogo({ size = 24, fill = "currentColor", className }: Props) {
   return (
     <svg
       fill={fill}

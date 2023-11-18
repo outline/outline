@@ -1,7 +1,7 @@
 import * as React from "react";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   onSubmit: (title: string) => Promise<void>;
@@ -11,17 +11,21 @@ type Props = {
   maxLength?: number;
 };
 
-function EditableTitle({
-  title,
-  onSubmit,
-  canUpdate,
-  onEditing,
-  ...rest
-}: Props) {
+export type RefHandle = {
+  setIsEditing: (isEditing: boolean) => void;
+};
+
+function EditableTitle(
+  { title, onSubmit, canUpdate, onEditing, ...rest }: Props,
+  ref: React.RefObject<RefHandle>
+) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
-  const { showToast } = useToasts();
+
+  React.useImperativeHandle(ref, () => ({
+    setIsEditing,
+  }));
 
   React.useEffect(() => {
     setValue(title);
@@ -73,14 +77,12 @@ function EditableTitle({
           setOriginalValue(trimmedValue);
         } catch (error) {
           setValue(originalValue);
-          showToast(error.message, {
-            type: "error",
-          });
+          toast.error(error.message);
           throw error;
         }
       }
     },
-    [originalValue, showToast, value, onSubmit]
+    [originalValue, value, onSubmit]
   );
 
   React.useEffect(() => {
@@ -128,4 +130,4 @@ const Input = styled.input`
   }
 `;
 
-export default EditableTitle;
+export default React.forwardRef(EditableTitle);

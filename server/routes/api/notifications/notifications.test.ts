@@ -201,9 +201,7 @@ describe("#notifications.list", () => {
 describe("#notifications.update", () => {
   it("should mark notification as viewed", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const actor = await buildUser({
       teamId: team.id,
     });
@@ -243,9 +241,7 @@ describe("#notifications.update", () => {
 
   it("should archive the notification", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-    });
+    const user = await buildUser({ teamId: team.id });
     const actor = await buildUser({
       teamId: team.id,
     });

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import WebhookSubscriptionForm from "./WebhookSubscriptionForm";
 
 type Props = {
@@ -16,7 +16,6 @@ interface FormData {
 
 function WebhookSubscriptionNew({ onSubmit }: Props) {
   const { webhookSubscriptions } = useStores();
-  const { showToast } = useToasts();
   const { t } = useTranslation();
 
   const handleSubmit = React.useCallback(
@@ -30,19 +29,13 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
         };
 
         await webhookSubscriptions.create(toSend);
-        showToast(
-          t("Webhook created", {
-            type: "success",
-          })
-        );
+        toast.success(t("Webhook created"));
         onSubmit();
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       }
     },
-    [t, showToast, onSubmit, webhookSubscriptions]
+    [t, onSubmit, webhookSubscriptions]
   );
 
   return <WebhookSubscriptionForm handleSubmit={handleSubmit} />;

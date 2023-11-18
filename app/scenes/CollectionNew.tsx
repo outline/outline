@@ -3,6 +3,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { randomElement } from "@shared/random";
 import { CollectionPermission } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
@@ -66,9 +67,7 @@ class CollectionNew extends React.Component<Props> {
       this.props.onSubmit();
       history.push(collection.url);
     } catch (err) {
-      this.props.toasts.showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     } finally {
       this.isSaving = false;
     }
@@ -141,6 +140,7 @@ class CollectionNew extends React.Component<Props> {
           <IconPicker
             onOpen={this.handleIconPickerOpen}
             onChange={this.handleChange}
+            initial={this.name[0]}
             color={this.color}
             icon={this.icon}
           />

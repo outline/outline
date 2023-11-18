@@ -14,9 +14,3 @@ services:
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: outline
     user: "postgres:postgres"
-  s3:
-    image: lphoward/fake-s3
-    ports:
-      - "127.0.0.1:4569:4569"
-    volumes:
-      - ./fakes3:/fakes3_root

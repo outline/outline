@@ -22,7 +22,7 @@ import Tooltip from "../Tooltip";
 import NotificationListItem from "./NotificationListItem";
 
 type Props = {
-  /* Callback when the notification panel wants to close. */
+  /** Callback when the notification panel wants to close. */
   onRequestClose: () => void;
 };
 

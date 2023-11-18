@@ -1,5 +1,6 @@
 import stream from "stream";
 import { Context, Next } from "koa";
+import { Readable } from "readable-stream";
 
 export default function apiWrapper() {
   return async function apiWrapperMiddleware(ctx: Context, next: Next) {
@@ -8,6 +9,7 @@ export default function apiWrapper() {
 
     if (
       typeof ctx.body === "object" &&
+      !(ctx.body instanceof Readable) &&
       !(ctx.body instanceof stream.Readable) &&
       !(ctx.body instanceof Buffer)
     ) {

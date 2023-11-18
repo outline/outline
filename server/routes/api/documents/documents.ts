@@ -1,12 +1,16 @@
+import path from "path";
 import fs from "fs-extra";
 import invariant from "invariant";
+import JSZip from "jszip";
 import Router from "koa-router";
+import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
-import { bytesToHumanReadable } from "@shared/utils/files";
+import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
+import documentDuplicator from "@server/commands/documentDuplicator";
 import documentImporter from "@server/commands/documentImporter";
 import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
@@ -22,10 +26,12 @@ import {
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
+import multipart from "@server/middlewares/multipart";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import {
+  Attachment,
   Backlink,
   Collection,
   Document,
@@ -47,9 +53,9 @@ import {
 } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import { getFileFromRequest } from "@server/utils/koa";
+import ZipHelper from "@server/utils/ZipHelper";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getTeamFromContext } from "@server/utils/passport";
-import slugify from "@server/utils/slugify";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -394,9 +400,7 @@ router.post(
 
 router.post(
   "documents.info",
-  auth({
-    optional: true,
-  }),
+  auth({ optional: true }),
   validate(T.DocumentsInfoSchema),
   async (ctx: APIContext<T.DocumentsInfoReq>) => {
     const { id, shareId, apiVersion } = ctx.input.body;
@@ -501,9 +505,7 @@ router.post(
 router.post(
   "documents.export",
   rateLimiter(RateLimiterStrategy.FivePerMinute),
-  auth({
-    optional: true,
-  }),
+  auth({ optional: true }),
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
     const { id } = ctx.input.body;
@@ -517,8 +519,8 @@ router.post(
       includeState: !accept?.includes("text/markdown"),
     });
 
-    let contentType;
-    let content;
+    let contentType: string;
+    let content: string;
 
     if (accept?.includes("text/html")) {
       contentType = "text/html";
@@ -538,26 +540,76 @@ router.post(
       content = DocumentHelper.toMarkdown(document);
     }
 
-    if (contentType !== "application/json") {
-      // Override the extension for Markdown as it's incorrect in the mime-types
-      // library until a new release > 2.1.35
-      const extension =
-        contentType === "text/markdown" ? "md" : mime.extension(contentType);
+    if (contentType === "application/json") {
+      ctx.body = {
+        data: content,
+      };
+      return;
+    }
 
+    // Override the extension for Markdown as it's incorrect in the mime-types
+    // library until a new release > 2.1.35
+    const extension =
+      contentType === "text/markdown" ? "md" : mime.extension(contentType);
+
+    const fileName = slugify(document.titleWithDefault);
+    const attachmentIds = parseAttachmentIds(document.text);
+    const attachments = attachmentIds.length
+      ? await Attachment.findAll({
+          where: {
+            teamId: document.teamId,
+            id: attachmentIds,
+          },
+        })
+      : [];
+
+    if (attachments.length === 0) {
       ctx.set("Content-Type", contentType);
-      ctx.set(
-        "Content-Disposition",
-        `attachment; filename="${slugify(
-          document.titleWithDefault
-        )}.${extension}"`
-      );
+      ctx.attachment(`${fileName}.${extension}`);
       ctx.body = content;
       return;
     }
 
-    ctx.body = {
-      data: content,
-    };
+    const zip = new JSZip();
+
+    await Promise.all(
+      attachments.map(async (attachment) => {
+        const location = path.join(
+          "attachments",
+          `${attachment.id}.${mime.extension(attachment.contentType)}`
+        );
+        zip.file(
+          location,
+          new Promise<Buffer>((resolve) => {
+            attachment.buffer.then(resolve).catch((err) => {
+              Logger.warn(`Failed to read attachment from storage`, {
+                attachmentId: attachment.id,
+                teamId: attachment.teamId,
+                error: err.message,
+              });
+              resolve(Buffer.from(""));
+            });
+          }),
+          {
+            date: attachment.updatedAt,
+            createFolders: true,
+          }
+        );
+
+        content = content.replace(
+          new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+          location
+        );
+      })
+    );
+
+    zip.file(`${fileName}.${extension}`, content, {
+      date: document.updatedAt,
+    });
+
+    ctx.set("Content-Type", "application/zip");
+    ctx.attachment(`${fileName}.zip`);
+    ctx.body = zip.generateNodeStream(ZipHelper.defaultStreamOptions);
   }
 );
 
@@ -719,9 +771,7 @@ router.post(
 
 router.post(
   "documents.search",
-  auth({
-    optional: true,
-  }),
+  auth({ optional: true }),
   pagination(),
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchSchema),
@@ -818,15 +868,13 @@ router.post(
     // When requesting subsequent pages of search results we don't want to record
     // duplicate search query records
     if (offset === 0) {
-      void SearchQuery.create({
+      await SearchQuery.create({
         userId: user?.id,
         teamId,
         shareId,
         source: ctx.state.auth.type || "app", // we'll consider anything that isn't "api" to be "app"
         query,
         results: totalCount,
-      }).catch((err) => {
-        Logger.error("Failed to create search query", err);
       });
     }
 
@@ -843,43 +891,59 @@ router.post(
   auth({ member: true }),
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsTemplatizeSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsTemplatizeReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const original = await Document.findByPk(id, {
       userId: user.id,
+      transaction,
     });
+
     authorize(user, "update", original);
 
-    const document = await Document.create({
-      editorVersion: original.editorVersion,
-      collectionId: original.collectionId,
-      teamId: original.teamId,
-      userId: user.id,
-      publishedAt: new Date(),
-      lastModifiedById: user.id,
-      createdById: user.id,
-      template: true,
-      title: original.title,
-      text: original.text,
-    });
-    await Event.create({
-      name: "documents.create",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: {
-        title: document.title,
+    const document = await Document.create(
+      {
+        editorVersion: original.editorVersion,
+        collectionId: original.collectionId,
+        teamId: original.teamId,
+        userId: user.id,
+        publishedAt: new Date(),
+        lastModifiedById: user.id,
+        createdById: user.id,
         template: true,
+        emoji: original.emoji,
+        title: original.title,
+        text: original.text,
       },
-      ip: ctx.request.ip,
-    });
+      {
+        transaction,
+      }
+    );
+    await Event.create(
+      {
+        name: "documents.create",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        teamId: document.teamId,
+        actorId: user.id,
+        data: {
+          title: document.title,
+          template: true,
+        },
+        ip: ctx.request.ip,
+      },
+      {
+        transaction,
+      }
+    );
 
     // reload to get all of the data needed to present (user, collection etc)
     const reloaded = await Document.findByPk(document.id, {
       userId: user.id,
+      transaction,
     });
     invariant(reloaded, "document not found");
 
@@ -906,6 +970,7 @@ router.post(
     const document = await Document.findByPk(id, {
       userId: user.id,
       includeState: true,
+      transaction,
     });
     collection = document?.collection;
     authorize(user, "update", document);
@@ -922,7 +987,7 @@ router.post(
         );
         collection = await Collection.scope({
           method: ["withMembership", user.id],
-        }).findByPk(collectionId!);
+        }).findByPk(collectionId!, { transaction });
       }
       authorize(user, "createDocument", collection);
     }
@@ -964,6 +1029,68 @@ router.post(
 );
 
 router.post(
+  "documents.duplicate",
+  auth(),
+  validate(T.DocumentsDuplicateSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsDuplicateReq>) => {
+    const { transaction } = ctx.state;
+    const { id, title, publish, recursive, collectionId, parentDocumentId } =
+      ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, {
+      userId: user.id,
+      transaction,
+    });
+    authorize(user, "read", document);
+
+    const collection = collectionId
+      ? await Collection.scope({
+          method: ["withMembership", user.id],
+        }).findByPk(collectionId, { transaction })
+      : document?.collection;
+
+    if (collection) {
+      authorize(user, "updateDocument", collection);
+    }
+
+    if (parentDocumentId) {
+      const parent = await Document.findByPk(parentDocumentId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "update", parent);
+
+      if (!parent.publishedAt) {
+        throw InvalidRequestError("Cannot duplicate document inside a draft");
+      }
+    }
+
+    const response = await documentDuplicator({
+      user,
+      collection,
+      document,
+      title,
+      publish,
+      transaction,
+      recursive,
+      parentDocumentId,
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      data: {
+        documents: await Promise.all(
+          response.map((document) => presentDocument(document))
+        ),
+      },
+      policies: presentPolicies(user, response),
+    };
+  }
+);
+
+router.post(
   "documents.move",
   auth(),
   validate(T.DocumentsMoveSchema),
@@ -974,17 +1101,19 @@ router.post(
     const { user } = ctx.state.auth;
     const document = await Document.findByPk(id, {
       userId: user.id,
+      transaction,
     });
     authorize(user, "move", document);
 
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
-    }).findByPk(collectionId);
+    }).findByPk(collectionId, { transaction });
     authorize(user, "updateDocument", collection);
 
     if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
         userId: user.id,
+        transaction,
       });
       authorize(user, "update", parent);
 
@@ -1128,7 +1257,7 @@ router.post(
     });
     authorize(user, "unpublish", document);
 
-    const childDocumentIds = await document.getChildDocumentIds();
+    const childDocumentIds = await document.findAllChildDocumentIds();
     if (childDocumentIds.length > 0) {
       throw InvalidRequestError(
         "Cannot unpublish document with child documents"
@@ -1168,26 +1297,11 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsImportSchema),
+  multipart({ maximumFileSize: env.MAXIMUM_IMPORT_SIZE }),
   transaction(),
   async (ctx: APIContext<T.DocumentsImportReq>) => {
-    if (!ctx.is("multipart/form-data")) {
-      throw InvalidRequestError("Request type must be multipart/form-data");
-    }
-
     const { collectionId, parentDocumentId, publish } = ctx.input.body;
-
-    const file = getFileFromRequest(ctx.request);
-    if (!file) {
-      throw InvalidRequestError("Request must include a file parameter");
-    }
-
-    if (env.MAXIMUM_IMPORT_SIZE && file.size > env.MAXIMUM_IMPORT_SIZE) {
-      throw InvalidRequestError(
-        `The selected file was larger than the ${bytesToHumanReadable(
-          env.MAXIMUM_IMPORT_SIZE
-        )} maximum size`
-      );
-    }
+    const file = ctx.input.file;
 
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
@@ -1199,6 +1313,7 @@ router.post(
         id: collectionId,
         teamId: user.teamId,
       },
+      transaction,
     });
     authorize(user, "createDocument", collection);
     let parentDocument;
@@ -1209,6 +1324,7 @@ router.post(
           id: parentDocumentId,
           collectionId: collection.id,
         },
+        transaction,
       });
       authorize(user, "read", parentDocument, {
         collection,
@@ -1216,18 +1332,25 @@ router.post(
     }
 
     const content = await fs.readFile(file.filepath);
-    const { text, state, title } = await documentImporter({
+    const fileName = file.originalFilename ?? file.newFilename;
+    const mimeType = file.mimetype ?? "";
+
+    const { text, state, title, emoji } = await documentImporter({
       user,
-      fileName: file.originalFilename ?? file.newFilename,
-      mimeType: file.mimetype ?? "",
+      fileName,
+      mimeType,
       content,
       ip: ctx.request.ip,
       transaction,
     });
 
     const document = await documentCreator({
-      source: "import",
+      sourceMetadata: {
+        fileName,
+        mimeType,
+      },
       title,
+      emoji,
       text,
       state,
       publish,
@@ -1240,10 +1363,10 @@ router.post(
 
     document.collection = collection;
 
-    return (ctx.body = {
+    ctx.body = {
       data: await presentDocument(document),
       policies: presentPolicies(user, [document]),
-    });
+    };
   }
 );
 
@@ -1255,14 +1378,16 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsCreateReq>) => {
     const {
-      title = "",
-      text = "",
+      title,
+      text,
+      emoji,
       publish,
       collectionId,
       parentDocumentId,
       fullWidth,
       templateId,
       template,
+      createdAt,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
@@ -1279,6 +1404,7 @@ router.post(
           id: collectionId,
           teamId: user.teamId,
         },
+        transaction,
       });
       authorize(user, "createDocument", collection);
     }
@@ -1302,6 +1428,7 @@ router.post(
     if (templateId) {
       templateDocument = await Document.findByPk(templateId, {
         userId: user.id,
+        transaction,
       });
       authorize(user, "read", templateDocument);
     }
@@ -1309,6 +1436,8 @@ router.post(
     const document = await documentCreator({
       title,
       text,
+      emoji,
+      createdAt,
       publish,
       collectionId,
       parentDocumentId,
@@ -1323,10 +1452,10 @@ router.post(
 
     document.collection = collection;
 
-    return (ctx.body = {
+    ctx.body = {
       data: await presentDocument(document),
       policies: presentPolicies(user, [document]),
-    });
+    };
   }
 );
 

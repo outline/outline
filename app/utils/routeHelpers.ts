@@ -2,17 +2,14 @@ import queryString from "query-string";
 import Collection from "~/models/Collection";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
+import env from "~/env";
 
 export function homePath(): string {
-  return "/home";
+  return env.ROOT_SHARE_ID ? "/" : "/home";
 }
 
 export function draftsPath(): string {
   return "/drafts";
-}
-
-export function templatesPath(): string {
-  return "/templates";
 }
 
 export function archivePath(): string {
@@ -50,22 +47,22 @@ export function updateCollectionPath(
 }
 
 export function documentPath(doc: Document): string {
-  return doc.url;
+  return doc.path;
 }
 
 export function documentEditPath(doc: Document): string {
-  return `${doc.url}/edit`;
+  return `${documentPath(doc)}/edit`;
 }
 
 export function documentInsightsPath(doc: Document): string {
-  return `${doc.url}/insights`;
+  return `${documentPath(doc)}/insights`;
 }
 
 export function documentHistoryPath(
   doc: Document,
   revisionId?: string
 ): string {
-  let base = `${doc.url}/history`;
+  let base = `${documentPath(doc)}/history`;
   if (revisionId) {
     base += `/${revisionId}`;
   }
@@ -84,12 +81,15 @@ export function updateDocumentPath(oldUrl: string, document: Document): string {
   );
 }
 
+export function newTemplatePath(collectionId: string) {
+  return settingsPath("templates") + `/new?collectionId=${collectionId}`;
+}
+
 export function newDocumentPath(
   collectionId?: string | null,
   params: {
     parentDocumentId?: string;
     templateId?: string;
-    template?: boolean;
   } = {}
 ): string {
   return collectionId
@@ -116,6 +116,10 @@ export function searchPath(
 }
 
 export function sharedDocumentPath(shareId: string, docPath?: string) {
+  if (shareId === env.ROOT_SHARE_ID) {
+    return docPath ? docPath : "/";
+  }
+
   return docPath ? `/s/${shareId}${docPath}` : `/s/${shareId}`;
 }
 

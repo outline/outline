@@ -1,8 +1,23 @@
 import invariant from "invariant";
+import Team from "~/models/Team";
 import useStores from "./useStores";
 
-export default function useCurrentTeam() {
+/**
+ * Returns the current team, or undefined if there is no current team and `rejectOnEmpty` is set to
+ * false.
+ *
+ * @param options.rejectOnEmpty - If true, throws an error if there is no current team. Defaults to true.
+ */
+function useCurrentTeam(options: { rejectOnEmpty: false }): Team | undefined;
+function useCurrentTeam(options?: { rejectOnEmpty: true }): Team;
+function useCurrentTeam({
+  rejectOnEmpty = true,
+}: { rejectOnEmpty?: boolean } = {}) {
   const { auth } = useStores();
-  invariant(auth.team, "team required");
-  return auth.team;
+  if (rejectOnEmpty) {
+    invariant(auth.team, "team required");
+  }
+  return auth.team || undefined;
 }
+
+export default useCurrentTeam;

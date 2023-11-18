@@ -144,7 +144,7 @@ allow(User, ["update", "delete"], Collection, (user, collection) => {
 
 function includesMembership(
   collection: Collection,
-  memberships: CollectionPermission[]
+  permissions: CollectionPermission[]
 ) {
   invariant(
     collection.memberships,
@@ -152,6 +152,6 @@ function includesMembership(
   );
   return some(
     [...collection.memberships, ...collection.collectionGroupMemberships],
-    (m) => memberships.includes(m.permission)
+    (m) => permissions.includes(m.permission)
   );
 }

@@ -1,19 +1,25 @@
-import { action } from "mobx";
-import BaseModel from "./BaseModel";
+import { action, observable } from "mobx";
 import User from "./User";
+import Model from "./base/Model";
+import Relation from "./decorators/Relation";
 
-class View extends BaseModel {
+class View extends Model {
   id: string;
 
   documentId: string;
 
   firstViewedAt: string;
 
+  @observable
   lastViewedAt: string;
 
+  @observable
   count: number;
 
-  user: User;
+  userId: string;
+
+  @Relation(() => User)
+  user?: User;
 
   @action
   touch() {

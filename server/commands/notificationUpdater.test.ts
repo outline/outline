@@ -7,10 +7,7 @@ import {
   buildDocument,
   buildCollection,
 } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import notificationUpdater from "./notificationUpdater";
-
-setupTestDatabase();
 
 describe("notificationUpdater", () => {
   const ip = "127.0.0.1";
@@ -49,7 +46,9 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await Event.findOne();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
 
     expect(notification.viewedAt).not.toBe(null);
     expect(notification.archivedAt).toBe(null);
@@ -92,7 +91,9 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await Event.findOne();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
 
     expect(notification.viewedAt).toBe(null);
     expect(notification.archivedAt).toBe(null);
@@ -134,7 +135,9 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await Event.findOne();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
 
     expect(notification.viewedAt).toBe(null);
     expect(notification.archivedAt).not.toBe(null);
@@ -177,7 +180,9 @@ describe("notificationUpdater", () => {
         transaction,
       })
     );
-    const event = await Event.findOne();
+    const event = await Event.findLatest({
+      teamId: user.teamId,
+    });
 
     expect(notification.viewedAt).toBe(null);
     expect(notification.archivedAt).toBeNull();

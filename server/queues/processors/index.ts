@@ -1,10 +1,12 @@
 import path from "path";
 import { glob } from "glob";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { requireDirectory } from "@server/utils/fs";
 import BaseProcessor from "./BaseProcessor";
 
 const processors = {};
+const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
 
 requireDirectory<{ default: BaseProcessor }>(__dirname).forEach(
   ([module, id]) => {
@@ -16,7 +18,7 @@ requireDirectory<{ default: BaseProcessor }>(__dirname).forEach(
 );
 
 glob
-  .sync("build/plugins/*/server/processors/!(*.test).js")
+  .sync(path.join(rootDir, "plugins/*/server/processors/!(*.test).[jt]s"))
   .forEach((filePath: string) => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const processor = require(path.join(process.cwd(), filePath)).default;

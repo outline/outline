@@ -2,6 +2,7 @@ import copy from "copy-to-clipboard";
 import { LinkIcon, RestoreIcon } from "outline-icons";
 import * as React from "react";
 import { matchPath } from "react-router-dom";
+import { toast } from "sonner";
 import stores from "~/stores";
 import { createAction } from "~/actions";
 import { RevisionSection } from "~/actions/sections";
@@ -68,9 +69,7 @@ export const copyLinkToRevision = createAction({
     copy(url, {
       format: "text/plain",
       onCopy: () => {
-        stores.toasts.showToast(t("Link copied"), {
-          type: "info",
-        });
+        toast.message(t("Link copied"));
       },
     });
   },

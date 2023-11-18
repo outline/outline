@@ -21,7 +21,6 @@ import SearchesStore from "./SearchesStore";
 import SharesStore from "./SharesStore";
 import StarsStore from "./StarsStore";
 import SubscriptionsStore from "./SubscriptionsStore";
-import ToastsStore from "./ToastsStore";
 import UiStore from "./UiStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
@@ -53,16 +52,12 @@ export default class RootStore {
   subscriptions: SubscriptionsStore;
   users: UsersStore;
   views: ViewsStore;
-  toasts: ToastsStore;
   fileOperations: FileOperationsStore;
   webhookSubscriptions: WebhookSubscriptionsStore;
 
   constructor() {
-    // PoliciesStore must be initialized before AuthStore
-    this.policies = new PoliciesStore(this);
     this.apiKeys = new ApiKeysStore(this);
     this.authenticationProviders = new AuthenticationProvidersStore(this);
-    this.auth = new AuthStore(this);
     this.collections = new CollectionsStore(this);
     this.collectionGroupMemberships = new CollectionGroupMembershipsStore(this);
     this.comments = new CommentsStore(this);
@@ -75,6 +70,7 @@ export default class RootStore {
     this.memberships = new MembershipsStore(this);
     this.notifications = new NotificationsStore(this);
     this.pins = new PinsStore(this);
+    this.policies = new PoliciesStore(this);
     this.presence = new DocumentPresenceStore();
     this.revisions = new RevisionsStore(this);
     this.searches = new SearchesStore(this);
@@ -85,8 +81,10 @@ export default class RootStore {
     this.users = new UsersStore(this);
     this.views = new ViewsStore(this);
     this.fileOperations = new FileOperationsStore(this);
-    this.toasts = new ToastsStore();
     this.webhookSubscriptions = new WebhookSubscriptionsStore(this);
+
+    // AuthStore must be initialized last as it makes use of the other stores.
+    this.auth = new AuthStore(this);
   }
 
   logout() {

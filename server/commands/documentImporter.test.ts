@@ -2,12 +2,9 @@ import path from "path";
 import fs from "fs-extra";
 import Attachment from "@server/models/Attachment";
 import { buildUser } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import documentImporter from "./documentImporter";
 
 jest.mock("@server/storage/files");
-
-setupTestDatabase();
 
 describe("documentImporter", () => {
   const ip = "127.0.0.1";
@@ -26,7 +23,11 @@ describe("documentImporter", () => {
       content,
       ip,
     });
-    const attachments = await Attachment.count();
+    const attachments = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     expect(attachments).toEqual(1);
     expect(response.text).toContain("This is a test document for images");
     expect(response.text).toContain("![](/api/attachments.redirect?id=");
@@ -46,7 +47,11 @@ describe("documentImporter", () => {
       content,
       ip,
     });
-    const attachments = await Attachment.count();
+    const attachments = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     expect(attachments).toEqual(1);
     expect(response.text).toContain("This is a test document for images");
     expect(response.text).toContain("![](/api/attachments.redirect?id=");
@@ -89,7 +94,11 @@ describe("documentImporter", () => {
       content,
       ip,
     });
-    const attachments = await Attachment.count();
+    const attachments = await Attachment.count({
+      where: {
+        teamId: user.teamId,
+      },
+    });
     expect(attachments).toEqual(1);
     expect(response.text).toContain("This is a test document for images");
     expect(response.text).toContain("![](/api/attachments.redirect?id=");

@@ -19,12 +19,11 @@ import { AttachmentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
-import HoverPreview from "~/components/HoverPreview";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useDictionary from "~/hooks/useDictionary";
 import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import useUserLocale from "~/hooks/useUserLocale";
 import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
@@ -43,15 +42,13 @@ export type Props = Optional<
   | "onClickLink"
   | "embeds"
   | "dictionary"
-  | "onShowToast"
   | "extensions"
 > & {
   shareId?: string | undefined;
   embedsDisabled?: boolean;
-  previewsDisabled?: boolean;
   onHeadingsChange?: (headings: Heading[]) => void;
   onSynced?: () => Promise<void>;
-  onPublish?: (event: React.MouseEvent) => any;
+  onPublish?: (event: React.MouseEvent) => void;
   editorStyle?: React.CSSProperties;
 };
 
@@ -63,30 +60,17 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     onHeadingsChange,
     onCreateCommentMark,
     onDeleteCommentMark,
-    previewsDisabled,
   } = props;
   const userLocale = useUserLocale();
   const locale = dateLocale(userLocale);
-  const { auth, comments, documents } = useStores();
-  const { showToast } = useToasts();
+  const { comments, documents } = useStores();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
   const history = useHistory();
   const localRef = React.useRef<SharedEditor>();
-  const preferences = auth.user?.preferences;
+  const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
   const previousHeadings = React.useRef<Heading[] | null>(null);
-  const [activeLinkElement, setActiveLink] =
-    React.useState<HTMLAnchorElement | null>(null);
   const previousCommentIds = React.useRef<string[]>();
-
-  const handleLinkActive = React.useCallback((element: HTMLAnchorElement) => {
-    setActiveLink(element);
-    return false;
-  }, []);
-
-  const handleLinkInactive = React.useCallback(() => {
-    setActiveLink(null);
-  }, []);
 
   const handleSearchLink = React.useCallback(
     async (term: string) => {
@@ -137,7 +121,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             : 1
       );
     },
-    [documents]
+    [locale, documents]
   );
 
   const handleUploadFile = React.useCallback(
@@ -241,7 +225,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         uploadFile: handleUploadFile,
         onFileUploadStart: props.onFileUploadStart,
         onFileUploadStop: props.onFileUploadStop,
-        onShowToast: showToast,
         dictionary,
         isAttachment,
       });
@@ -252,7 +235,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       props.onFileUploadStop,
       dictionary,
       handleUploadFile,
-      showToast,
     ]
   );
 
@@ -336,12 +318,10 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         <LazyLoadedEditor
           ref={mergeRefs([ref, localRef, handleRefChanged])}
           uploadFile={handleUploadFile}
-          onShowToast={showToast}
           embeds={embeds}
           userPreferences={preferences}
           dictionary={dictionary}
           {...props}
-          onHoverLink={previewsDisabled ? undefined : handleLinkActive}
           onClickLink={handleClickLink}
           onSearchLink={handleSearchLink}
           onChange={handleChange}
@@ -354,12 +334,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             minHeight={props.editorStyle.paddingBottom}
-          />
-        )}
-        {activeLinkElement && !shareId && (
-          <HoverPreview
-            element={activeLinkElement}
-            onClose={handleLinkInactive}
           />
         )}
       </>

@@ -3,10 +3,10 @@ import find from "lodash/find";
 import orderBy from "lodash/orderBy";
 import reduce from "lodash/reduce";
 import View from "~/models/View";
-import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
+import Store, { RPCAction } from "./base/Store";
 
-export default class ViewsStore extends BaseStore<View> {
+export default class ViewsStore extends Store<View> {
   actions = [RPCAction.List, RPCAction.Create];
 
   constructor(rootStore: RootStore) {
@@ -29,7 +29,7 @@ export default class ViewsStore extends BaseStore<View> {
   touch(documentId: string, userId: string) {
     const view = find(
       this.orderedData,
-      (view) => view.documentId === documentId && view.user.id === userId
+      (view) => view.documentId === documentId && view.userId === userId
     );
     if (!view) {
       return;

@@ -111,11 +111,12 @@ function DocumentCard(props: Props) {
 
             {document.emoji ? (
               <Squircle color={theme.slateLight}>
-                <EmojiIcon emoji={document.emoji} size={26} />
+                <EmojiIcon emoji={document.emoji} size={24} />
               </Squircle>
             ) : (
               <Squircle color={collection?.color}>
                 {collection?.icon &&
+                collection?.icon !== "letter" &&
                 collection?.icon !== "collection" &&
                 !pin?.collectionId ? (
                   <CollectionIcon collection={collection} color="white" />

@@ -1,6 +1,6 @@
 import escapeRegExp from "lodash/escapeRegExp";
 import env from "../env";
-import { parseDomain } from "./domains";
+import { getBaseDomain, parseDomain } from "./domains";
 
 /**
  * Prepends the CDN url to the given path (If a CDN is configured).
@@ -14,10 +14,6 @@ export function cdnPath(path: string): string {
 
 /**
  * Returns true if the given string is a link to inside the application.
- *
- * Important Note: If this is called server-side, it will always return false.
- * The reason this is in a shared util is because it's used in an editor plugin
- * which is also in the shared code
  *
  * @param url The url to check.
  * @returns True if the url is internal, false otherwise.
@@ -36,10 +32,10 @@ export function isInternalUrl(href: string) {
   const outline =
     typeof window !== "undefined"
       ? parseDomain(window.location.href)
-      : undefined;
-
+      : parseDomain(env.URL);
   const domain = parseDomain(href);
-  return outline?.host === domain.host;
+
+  return outline.host === domain.host || domain.host.endsWith(getBaseDomain());
 }
 
 /**
@@ -88,6 +84,17 @@ export const creatingUrlPrefix = "creating#";
  */
 export function isExternalUrl(url: string) {
   return !!url && !isInternalUrl(url) && !url.startsWith(creatingUrlPrefix);
+}
+
+/**
+ * Returns match if the given string is a base64 encoded url.
+ *
+ * @param url The url to check.
+ * @returns A RegExp match if the url is base64, false otherwise.
+ */
+export function isBase64Url(url: string) {
+  const match = url.match(/^data:([a-z]+\/[^;]+);base64,(.*)/i);
+  return match ? match : false;
 }
 
 /**

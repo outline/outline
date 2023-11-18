@@ -6,10 +6,10 @@ import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
-import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import Store from "./base/Store";
 
-export default class CommentsStore extends BaseStore<Comment> {
+export default class CommentsStore extends Store<Comment> {
   apiEndpoint = "comments";
 
   constructor(rootStore: RootStore) {

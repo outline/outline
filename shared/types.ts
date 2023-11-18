@@ -60,6 +60,7 @@ export type PublicEnv = {
   GOOGLE_ANALYTICS_ID: string | undefined;
   RELEASE: string | undefined;
   APP_NAME: string;
+  ROOT_SHARE_ID?: string;
   analytics: {
     service?: IntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;
@@ -114,9 +115,24 @@ export enum UserPreference {
   UseCursorPointer = "useCursorPointer",
   /** Whether code blocks should show line numbers. */
   CodeBlockLineNumers = "codeBlockLineNumbers",
+  /** Whether documents have a separate edit mode instead of always editing. */
+  SeamlessEdit = "seamlessEdit",
+  /** Whether documents should start in full-width mode. */
+  FullWidthDocuments = "fullWidthDocuments",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
+
+export type SourceMetadata = {
+  /** The original source file name. */
+  fileName?: string;
+  /** The original source mime type. */
+  mimeType?: string;
+  /** An ID in the external source. */
+  externalId?: string;
+  /** Whether the item was created through a trial license. */
+  trial?: boolean;
+};
 
 export type CustomTheme = {
   accent: string;
@@ -130,7 +146,7 @@ export type PublicTeam = {
 };
 
 export enum TeamPreference {
-  /** Whether documents have a separate edit mode instead of seamless editing. */
+  /** Whether documents have a separate edit mode instead of always editing. */
   SeamlessEdit = "seamlessEdit",
   /** Whether to use team logo across the app for branding. */
   PublicBranding = "publicBranding",
@@ -159,6 +175,7 @@ export type NavigationNode = {
   id: string;
   title: string;
   url: string;
+  emoji?: string;
   children: NavigationNode[];
   isDraft?: boolean;
   collectionId?: string;
@@ -216,6 +233,10 @@ export const NotificationEventDefaults = {
 export enum UnfurlType {
   Mention = "mention",
   Document = "document",
+}
+
+export enum QueryNotices {
+  UnsubscribeDocument = "unsubscribe-document",
 }
 
 export type OEmbedType = "photo" | "video" | "rich";

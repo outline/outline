@@ -2,10 +2,10 @@ import { computed, observable } from "mobx";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import { TeamPreference, TeamPreferences } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
-import BaseModel from "./BaseModel";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 
-class Team extends BaseModel {
+class Team extends Model {
   @Field
   @observable
   id: string;
@@ -58,8 +58,10 @@ class Team extends BaseModel {
   @observable
   preferences: TeamPreferences | null;
 
+  @observable
   domain: string | null | undefined;
 
+  @observable
   url: string;
 
   @Field
@@ -78,18 +80,7 @@ class Team extends BaseModel {
 
   @computed
   get initial(): string {
-    return this.name ? this.name[0] : "?";
-  }
-
-  /**
-   * Returns whether this team is using a separate editing mode behind an "Edit"
-   * button rather than seamless always-editing.
-   *
-   * @returns True if editing mode is seamless (no button)
-   */
-  @computed
-  get seamlessEditing(): boolean {
-    return !!this.getPreference(TeamPreference.SeamlessEdit);
+    return (this.name ? this.name[0] : "?").toUpperCase();
   }
 
   /**
@@ -99,9 +90,15 @@ class Team extends BaseModel {
    * @returns The preference value if set, else the default value
    */
   getPreference<T extends keyof TeamPreferences>(
-    key: T
+    key: T,
+    defaultValue?: TeamPreferences[T]
   ): TeamPreferences[T] | false {
-    return this.preferences?.[key] ?? TeamPreferenceDefaults[key] ?? false;
+    return (
+      this.preferences?.[key] ??
+      TeamPreferenceDefaults[key] ??
+      defaultValue ??
+      false
+    );
   }
 
   /**

@@ -1,4 +1,5 @@
 import { PluginSimple } from "markdown-it";
+import { observer } from "mobx-react";
 import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
@@ -41,8 +42,20 @@ export default class ExtensionManager {
     });
   }
 
-  get nodes() {
+  get widgets() {
     return this.extensions
+      .filter((extension) => extension.widget({ rtl: false }))
+      .reduce(
+        (nodes, node: Node) => ({
+          ...nodes,
+          [node.name]: observer(node.widget as any),
+        }),
+        {}
+      );
+  }
+
+  get nodes() {
+    const nodes = this.extensions
       .filter((extension) => extension.type === "node")
       .reduce(
         (nodes, node: Node) => ({
@@ -51,6 +64,19 @@ export default class ExtensionManager {
         }),
         {}
       );
+
+    for (const i in nodes) {
+      if (nodes[i].marks) {
+        // We must filter marks from the marks list that are not defined
+        // in the schema for the current editor.
+        nodes[i].marks = nodes[i].marks
+          .split(" ")
+          .filter((m: string) => Object.keys(this.marks).includes(m))
+          .join(" ");
+      }
+    }
+
+    return nodes;
   }
 
   get marks() {

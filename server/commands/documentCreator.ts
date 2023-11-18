@@ -1,26 +1,32 @@
 import { Transaction } from "sequelize";
+import { Optional } from "utility-types";
 import { Document, Event, User } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 
-type Props = {
-  id?: string;
-  urlId?: string;
-  title: string;
-  text?: string;
+type Props = Optional<
+  Pick<
+    Document,
+    | "id"
+    | "urlId"
+    | "title"
+    | "text"
+    | "emoji"
+    | "collectionId"
+    | "parentDocumentId"
+    | "importId"
+    | "template"
+    | "fullWidth"
+    | "sourceMetadata"
+    | "editorVersion"
+    | "publishedAt"
+    | "createdAt"
+    | "updatedAt"
+  >
+> & {
   state?: Buffer;
   publish?: boolean;
-  collectionId?: string | null;
-  parentDocumentId?: string | null;
-  importId?: string;
-  publishedAt?: Date;
-  template?: boolean;
   templateDocument?: Document | null;
-  fullWidth?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
   user: User;
-  editorVersion?: string;
-  source?: "import";
   ip?: string;
   transaction?: Transaction;
 };
@@ -28,6 +34,7 @@ type Props = {
 export default async function documentCreator({
   title = "",
   text = "",
+  emoji,
   state,
   id,
   urlId,
@@ -44,7 +51,7 @@ export default async function documentCreator({
   user,
   editorVersion,
   publishedAt,
-  source,
+  sourceMetadata,
   ip,
   transaction,
 }: Props): Promise<Document> {
@@ -73,17 +80,20 @@ export default async function documentCreator({
       teamId: user.teamId,
       userId: user.id,
       createdAt,
-      updatedAt,
+      updatedAt: updatedAt ?? createdAt,
       lastModifiedById: user.id,
       createdById: user.id,
       template,
       templateId,
-      fullWidth,
       publishedAt,
       importId,
-      title: templateDocument
-        ? DocumentHelper.replaceTemplateVariables(templateDocument.title, user)
-        : title,
+      sourceMetadata,
+      fullWidth: templateDocument ? templateDocument.fullWidth : fullWidth,
+      emoji: templateDocument ? templateDocument.emoji : emoji,
+      title: DocumentHelper.replaceTemplateVariables(
+        templateDocument ? templateDocument.title : title,
+        user
+      ),
       text: await DocumentHelper.replaceImagesWithAttachments(
         DocumentHelper.replaceTemplateVariables(
           templateDocument ? templateDocument.text : text,
@@ -108,7 +118,7 @@ export default async function documentCreator({
       teamId: document.teamId,
       actorId: user.id,
       data: {
-        source,
+        source: importId ? "import" : undefined,
         title: document.title,
         templateId,
       },
@@ -133,7 +143,7 @@ export default async function documentCreator({
         teamId: document.teamId,
         actorId: user.id,
         data: {
-          source,
+          source: importId ? "import" : undefined,
           title: document.title,
         },
         ip,

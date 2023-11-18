@@ -85,8 +85,7 @@ export default function init(
 
   io.of("/").adapter.on("error", (err: Error) => {
     if (err.name === "MaxRetriesPerRequestError") {
-      Logger.error("Redis maximum retries exceeded in socketio adapter", err);
-      throw err;
+      Logger.fatal("Redis maximum retries exceeded in socketio adapter", err);
     } else {
       Logger.error("Redis error in socketio adapter", err);
     }

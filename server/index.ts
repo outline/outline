@@ -23,7 +23,7 @@ import { checkEnv, checkPendingMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 import onerror from "./onerror";
 import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
-import { sequelize } from "./storage/database";
+import { checkConnection, sequelize } from "./storage/database";
 import RedisAdapter from "./storage/redis";
 import Metrics from "./logging/Metrics";
 
@@ -50,10 +50,11 @@ if (serviceNames.includes("collaboration")) {
 
 // This function will only be called once in the original process
 async function master() {
+  await checkConnection();
   await checkEnv();
   await checkPendingMigrations();
 
-  if (env.TELEMETRY && env.ENVIRONMENT === "production") {
+  if (env.TELEMETRY && env.isProduction) {
     void checkUpdates();
     setInterval(checkUpdates, 24 * 3600 * 1000);
   }
@@ -162,6 +163,13 @@ async function start(id: number, disconnect: () => void) {
   );
 
   ShutdownHelper.add("metrics", ShutdownOrder.last, () => Metrics.flush());
+
+  // Handle uncaught promise rejections
+  process.on("unhandledRejection", (error: Error) => {
+    Logger.error("Unhandled promise rejection", error, {
+      stack: error.stack,
+    });
+  });
 
   // Handle shutdown signals
   process.once("SIGTERM", () => ShutdownHelper.execute());

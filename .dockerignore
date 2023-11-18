@@ -13,5 +13,4 @@ app.json
 crowdin.yml
 build
 docker-compose.yml
-fakes3
 node_modules

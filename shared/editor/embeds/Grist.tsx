@@ -17,6 +17,7 @@ function Grist(props: Props) {
         />
       }
       title="Grist Spreadsheet"
+      canonicalUrl={props.attrs.href}
       border
     />
   );

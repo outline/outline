@@ -2,13 +2,13 @@ import { observer } from "mobx-react";
 import { useState } from "react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { CollectionPermission, NavigationNode } from "@shared/types";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   item:
@@ -33,7 +33,6 @@ type Props = {
 
 function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
   const [isSaving, setIsSaving] = useState(false);
-  const { showToast } = useToasts();
   const { documents, collections } = useStores();
   const { t } = useTranslation();
   const prevCollection = collections.get(item.collectionId);
@@ -50,19 +49,15 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
 
       try {
         await documents.move(item.id, collection.id);
-        showToast(t("Document moved"), {
-          type: "info",
-        });
+        toast.message(t("Document moved"));
         onSubmit();
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       } finally {
         setIsSaving(false);
       }
     },
-    [documents, item.id, collection.id, showToast, t, onSubmit]
+    [documents, item.id, collection.id, t, onSubmit]
   );
 
   return (

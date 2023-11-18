@@ -2,39 +2,30 @@ import { observer } from "mobx-react";
 import { ProfileIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 
 const Profile = () => {
-  const { auth } = useStores();
   const user = useCurrentUser();
   const form = React.useRef<HTMLFormElement>(null);
   const [name, setName] = React.useState<string>(user.name || "");
-  const { showToast } = useToasts();
   const { t } = useTranslation();
 
   const handleSubmit = async (ev: React.SyntheticEvent) => {
     ev.preventDefault();
 
     try {
-      await auth.updateUser({
-        name,
-      });
-      showToast(t("Profile saved"), {
-        type: "success",
-      });
+      await user.save({ name });
+      toast.success(t("Profile saved"));
     } catch (err) {
-      showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     }
   };
 
@@ -43,22 +34,16 @@ const Profile = () => {
   };
 
   const handleAvatarUpload = async (avatarUrl: string) => {
-    await auth.updateUser({
-      avatarUrl,
-    });
-    showToast(t("Profile picture updated"), {
-      type: "success",
-    });
+    await user.save({ avatarUrl });
+    toast.success(t("Profile picture updated"));
   };
 
   const handleAvatarError = (error: string | null | undefined) => {
-    showToast(error || t("Unable to upload new profile picture"), {
-      type: "error",
-    });
+    toast.error(error || t("Unable to upload new profile picture"));
   };
 
   const isValid = form.current?.checkValidity();
-  const { isSaving } = auth;
+  const { isSaving } = user;
 
   return (
     <Scene title={t("Profile")} icon={<ProfileIcon />}>

@@ -5,6 +5,7 @@ import { TeamIcon } from "outline-icons";
 import { useRef, useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import { ThemeProvider, useTheme } from "styled-components";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import { CustomTheme, TeamPreference } from "@shared/types";
@@ -21,15 +22,13 @@ import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import isCloudHosted from "~/utils/isCloudHosted";
 import TeamDelete from "../TeamDelete";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 
 function Details() {
-  const { auth, dialogs, ui } = useStores();
-  const { showToast } = useToasts();
+  const { dialogs, ui } = useStores();
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const theme = useTheme();
@@ -66,7 +65,7 @@ function Details() {
       }
 
       try {
-        await auth.updateTeam({
+        await team.save({
           name,
           subdomain,
           defaultCollectionId,
@@ -76,26 +75,12 @@ function Details() {
             customTheme,
           },
         });
-        showToast(t("Settings saved"), {
-          type: "success",
-        });
+        toast.success(t("Settings saved"));
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       }
     },
-    [
-      auth,
-      name,
-      subdomain,
-      defaultCollectionId,
-      team.preferences,
-      publicBranding,
-      customTheme,
-      showToast,
-      t,
-    ]
+    [team, name, subdomain, defaultCollectionId, publicBranding, customTheme, t]
   );
 
   const handleNameChange = React.useCallback(
@@ -113,19 +98,15 @@ function Details() {
   );
 
   const handleAvatarUpload = async (avatarUrl: string) => {
-    await auth.updateTeam({
-      avatarUrl,
-    });
-    showToast(t("Logo updated"), {
-      type: "success",
-    });
+    await team.save({ avatarUrl });
+    toast.success(t("Logo updated"));
   };
 
   const handleAvatarError = React.useCallback(
     (error: string | null | undefined) => {
-      showToast(error || t("Unable to upload new logo"));
+      toast.error(error || t("Unable to upload new logo"));
     },
-    [showToast, t]
+    [t]
   );
 
   const showDeleteWorkspace = () => {
@@ -157,7 +138,7 @@ function Details() {
         <Heading>{t("Details")}</Heading>
         <Text type="secondary">
           <Trans>
-            These settings affect the way that your knowledge base appears to
+            These settings affect the way that your workspace appears to
             everyone on the team.
           </Trans>
         </Text>
@@ -260,7 +241,7 @@ function Details() {
             description={
               subdomain ? (
                 <>
-                  <Trans>Your knowledge base will be accessible at</Trans>{" "}
+                  <Trans>Your workspace will be accessible at</Trans>{" "}
                   <strong>
                     {subdomain}.{getBaseDomain()}
                   </strong>
@@ -296,8 +277,8 @@ function Details() {
             />
           </SettingRow>
 
-          <Button type="submit" disabled={auth.isSaving || !isValid}>
-            {auth.isSaving ? `${t("Saving")}…` : t("Save")}
+          <Button type="submit" disabled={team.isSaving || !isValid}>
+            {team.isSaving ? `${t("Saving")}…` : t("Save")}
           </Button>
 
           {can.delete && (

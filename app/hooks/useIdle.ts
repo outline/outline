@@ -1,6 +1,7 @@
 import throttle from "lodash/throttle";
 import * as React from "react";
 import { Minute } from "@shared/utils/time";
+import useIsMounted from "./useIsMounted";
 
 const activityEvents = [
   "click",
@@ -17,10 +18,15 @@ const activityEvents = [
 /**
  * Hook to detect user idle state.
  *
- * @param {number} timeToIdle
+ * @param timeToIdle The time in ms until idle
+ * @param events The events to listen to
  * @returns boolean if the user is idle
  */
-export default function useIdle(timeToIdle: number = 3 * Minute) {
+export default function useIdle(
+  timeToIdle: number = 3 * Minute,
+  events = activityEvents
+) {
+  const isMounted = useIsMounted();
   const [isIdle, setIsIdle] = React.useState(false);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
 
@@ -30,25 +36,29 @@ export default function useIdle(timeToIdle: number = 3 * Minute) {
     }
 
     timeout.current = setTimeout(() => {
-      setIsIdle(true);
+      if (isMounted()) {
+        setIsIdle(true);
+      }
     }, timeToIdle);
-  }, [timeToIdle]);
+  }, [isMounted, timeToIdle]);
 
   React.useEffect(() => {
     const handleUserActivityEvent = throttle(() => {
-      setIsIdle(false);
-      onActivity();
+      if (isMounted()) {
+        setIsIdle(false);
+        onActivity();
+      }
     }, 1000);
 
-    activityEvents.forEach((eventName) =>
+    events.forEach((eventName) =>
       window.addEventListener(eventName, handleUserActivityEvent)
     );
     return () => {
-      activityEvents.forEach((eventName) =>
+      events.forEach((eventName) =>
         window.removeEventListener(eventName, handleUserActivityEvent)
       );
     };
-  }, [onActivity]);
+  }, [events, isMounted, onActivity]);
 
   return isIdle;
 }

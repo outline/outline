@@ -1,5 +1,6 @@
 import randomstring from "randomstring";
 import { v4 as uuidv4 } from "uuid";
+import slugify from "@shared/utils/slugify";
 import {
   buildUser,
   buildGroup,
@@ -7,12 +8,8 @@ import {
   buildTeam,
   buildDocument,
 } from "@server/test/factories";
-import { setupTestDatabase, seed } from "@server/test/support";
-import slugify from "@server/utils/slugify";
 import Collection from "./Collection";
 import Document from "./Document";
-
-setupTestDatabase();
 
 beforeEach(() => {
   jest.resetAllMocks();
@@ -103,7 +100,7 @@ describe("getDocumentTree", () => {
 
 describe("#addDocumentToStructure", () => {
   test("should add as last element without index", async () => {
-    const { collection } = await seed();
+    const collection = await buildCollection();
     const id = uuidv4();
     const newDocument = await buildDocument({
       id,
@@ -112,12 +109,12 @@ describe("#addDocumentToStructure", () => {
       teamId: collection.teamId,
     });
     await collection.addDocumentToStructure(newDocument);
-    expect(collection.documentStructure!.length).toBe(2);
-    expect(collection.documentStructure![1].id).toBe(id);
+    expect(collection.documentStructure!.length).toBe(1);
+    expect(collection.documentStructure![0].id).toBe(id);
   });
 
   test("should add with an index", async () => {
-    const { collection } = await seed();
+    const collection = await buildCollection();
     const id = uuidv4();
     const newDocument = await buildDocument({
       id,
@@ -126,12 +123,15 @@ describe("#addDocumentToStructure", () => {
       teamId: collection.teamId,
     });
     await collection.addDocumentToStructure(newDocument, 1);
-    expect(collection.documentStructure!.length).toBe(2);
-    expect(collection.documentStructure![1].id).toBe(id);
+    expect(collection.documentStructure!.length).toBe(1);
+    expect(collection.documentStructure![0].id).toBe(id);
   });
 
   test("should add as a child if with parent", async () => {
-    const { collection, document } = await seed();
+    const collection = await buildCollection();
+    const document = await buildDocument({ collectionId: collection.id });
+    await collection.reload();
+
     const id = uuidv4();
     const newDocument = await buildDocument({
       id,
@@ -147,7 +147,10 @@ describe("#addDocumentToStructure", () => {
   });
 
   test("should add as a child if with parent with index", async () => {
-    const { collection, document } = await seed();
+    const collection = await buildCollection();
+    const document = await buildDocument({ collectionId: collection.id });
+    await collection.reload();
+
     const newDocument = await buildDocument({
       id: uuidv4(),
       title: "node",
@@ -170,7 +173,7 @@ describe("#addDocumentToStructure", () => {
   });
   describe("options: documentJson", () => {
     test("should append supplied json over document's own", async () => {
-      const { collection } = await seed();
+      const collection = await buildCollection();
       const id = uuidv4();
       const newDocument = await buildDocument({
         id: uuidv4(),
@@ -193,15 +196,18 @@ describe("#addDocumentToStructure", () => {
           ],
         },
       });
-      expect(collection.documentStructure![1].children.length).toBe(1);
-      expect(collection.documentStructure![1].children[0].id).toBe(id);
+      expect(collection.documentStructure![0].children.length).toBe(1);
+      expect(collection.documentStructure![0].children[0].id).toBe(id);
     });
   });
 });
 
 describe("#updateDocument", () => {
   test("should update root document's data", async () => {
-    const { collection, document } = await seed();
+    const collection = await buildCollection();
+    const document = await buildDocument({ collectionId: collection.id });
+    await collection.reload();
+
     document.title = "Updated title";
     await document.save();
     await collection.updateDocument(document);
@@ -209,7 +215,10 @@ describe("#updateDocument", () => {
   });
 
   test("should update child document's data", async () => {
-    const { collection, document } = await seed();
+    const collection = await buildCollection();
+    const document = await buildDocument({ collectionId: collection.id });
+    await collection.reload();
+
     const newDocument = await Document.create({
       parentDocumentId: document.id,
       collectionId: collection.id,
@@ -233,14 +242,20 @@ describe("#updateDocument", () => {
 
 describe("#removeDocument", () => {
   test("should save if removing", async () => {
-    const { collection, document } = await seed();
+    const collection = await buildCollection();
+    const document = await buildDocument({ collectionId: collection.id });
+    await collection.reload();
+
     jest.spyOn(collection, "save");
     await collection.deleteDocument(document);
     expect(collection.save).toBeCalled();
   });
 
   test("should remove documents from root", async () => {
-    const { collection, document } = await seed();
+    const collection = await buildCollection();
+    const document = await buildDocument({ collectionId: collection.id });
+    await collection.reload();
+
     await collection.deleteDocument(document);
     expect(collection.documentStructure!.length).toBe(0);
     // Verify that the document was removed
@@ -253,7 +268,10 @@ describe("#removeDocument", () => {
   });
 
   test("should remove a document with child documents", async () => {
-    const { collection, document } = await seed();
+    const collection = await buildCollection();
+    const document = await buildDocument({ collectionId: collection.id });
+    await collection.reload();
+
     // Add a child for testing
     const newDocument = await Document.create({
       parentDocumentId: document.id,
@@ -279,7 +297,10 @@ describe("#removeDocument", () => {
   });
 
   test("should remove a child document", async () => {
-    const { collection, document } = await seed();
+    const collection = await buildCollection();
+    const document = await buildDocument({ collectionId: collection.id });
+    await collection.reload();
+
     // Add a child for testing
     const newDocument = await Document.create({
       parentDocumentId: document.id,

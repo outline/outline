@@ -6,8 +6,6 @@ declare module "formidable/lib/file";
 
 declare module "oy-vey";
 
-declare module "fetch-test-server";
-
 declare module "dotenv";
 
 declare module "email-providers" {

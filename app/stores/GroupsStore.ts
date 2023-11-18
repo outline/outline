@@ -5,12 +5,12 @@ import naturalSort from "@shared/utils/naturalSort";
 import Group from "~/models/Group";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
-import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+import Store from "./base/Store";
 
 type FetchPageParams = PaginationParams & { query?: string };
 
-export default class GroupsStore extends BaseStore<Group> {
+export default class GroupsStore extends Store<Group> {
   constructor(rootStore: RootStore) {
     super(rootStore, Group);
   }

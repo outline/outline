@@ -27,7 +27,7 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
-const emailEnabled = !!(env.SMTP_HOST || env.ENVIRONMENT === "development");
+const emailEnabled = !!(env.SMTP_HOST || env.isDevelopment);
 
 router.post(
   "users.list",
@@ -35,7 +35,7 @@ router.post(
   pagination(),
   validate(T.UsersListSchema),
   async (ctx: APIContext<T.UsersListReq>) => {
-    const { sort, direction, query, filter, ids } = ctx.input.body;
+    const { sort, direction, query, filter, ids, emails } = ctx.input.body;
 
     const actor = ctx.state.auth.user;
     let where: WhereOptions<User> = {
@@ -129,6 +129,13 @@ router.post(
       };
     }
 
+    if (emails) {
+      where = {
+        ...where,
+        email: emails,
+      };
+    }
+
     const [users, total] = await Promise.all([
       User.findAll({
         where,
@@ -187,8 +194,8 @@ router.post(
 router.post(
   "users.update",
   auth(),
-  transaction(),
   validate(T.UsersUpdateSchema),
+  transaction(),
   async (ctx: APIContext<T.UsersUpdateReq>) => {
     const { auth, transaction } = ctx.state;
     const actor = auth.user;
@@ -196,7 +203,11 @@ router.post(
 
     let user: User | null = actor;
     if (id) {
-      user = await User.findByPk(id);
+      user = await User.findByPk(id, {
+        rejectOnEmpty: true,
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
     }
     authorize(actor, "update", user);
     const includeDetails = can(actor, "readDetails", user);
@@ -240,24 +251,37 @@ router.post(
   "users.promote",
   auth(),
   validate(T.UsersPromoteSchema),
+  transaction(),
   async (ctx: APIContext<T.UsersPromoteReq>) => {
+    const { transaction } = ctx.state;
     const userId = ctx.input.body.id;
     const actor = ctx.state.auth.user;
     const teamId = actor.teamId;
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(userId, {
+      rejectOnEmpty: true,
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
     authorize(actor, "promote", user);
 
-    await user.promote();
-    await Event.create({
-      name: "users.promote",
-      actorId: actor.id,
-      userId,
-      teamId,
-      data: {
-        name: user.name,
-      },
-      ip: ctx.request.ip,
+    await user.promote({
+      transaction,
     });
+    await Event.create(
+      {
+        name: "users.promote",
+        actorId: actor.id,
+        userId,
+        teamId,
+        data: {
+          name: user.name,
+        },
+        ip: ctx.request.ip,
+      },
+      {
+        transaction,
+      }
+    );
     const includeDetails = can(actor, "readDetails", user);
 
     ctx.body = {
@@ -273,20 +297,29 @@ router.post(
   "users.demote",
   auth(),
   validate(T.UsersDemoteSchema),
+  transaction(),
   async (ctx: APIContext<T.UsersDemoteReq>) => {
-    const userId = ctx.input.body.id;
-    const to = ctx.input.body.to;
+    const { transaction } = ctx.state;
+    const { to, id: userId } = ctx.input.body;
     const actor = ctx.state.auth.user;
 
     const user = await User.findByPk(userId, {
       rejectOnEmpty: true,
+      transaction,
+      lock: transaction.LOCK.UPDATE,
     });
     authorize(actor, "demote", user);
+
+    await Team.findByPk(user.teamId, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
 
     await userDemoter({
       to,
       user,
       actorId: actor.id,
+      transaction,
       ip: ctx.request.ip,
     });
     const includeDetails = can(actor, "readDetails", user);
@@ -304,11 +337,15 @@ router.post(
   "users.suspend",
   auth(),
   validate(T.UsersSuspendSchema),
+  transaction(),
   async (ctx: APIContext<T.UsersSuspendReq>) => {
+    const { transaction } = ctx.state;
     const userId = ctx.input.body.id;
     const actor = ctx.state.auth.user;
     const user = await User.findByPk(userId, {
       rejectOnEmpty: true,
+      transaction,
+      lock: transaction.LOCK.UPDATE,
     });
     authorize(actor, "suspend", user);
 
@@ -316,6 +353,7 @@ router.post(
       user,
       actorId: actor.id,
       ip: ctx.request.ip,
+      transaction,
     });
     const includeDetails = can(actor, "readDetails", user);
 
@@ -332,17 +370,22 @@ router.post(
   "users.activate",
   auth(),
   validate(T.UsersActivateSchema),
+  transaction(),
   async (ctx: APIContext<T.UsersActivateReq>) => {
+    const { transaction } = ctx.state;
     const userId = ctx.input.body.id;
     const actor = ctx.state.auth.user;
     const user = await User.findByPk(userId, {
       rejectOnEmpty: true,
+      transaction,
+      lock: transaction.LOCK.UPDATE,
     });
     authorize(actor, "activate", user);
 
     await userUnsuspender({
       user,
       actorId: actor.id,
+      transaction,
       ip: ctx.request.ip,
     });
     const includeDetails = can(actor, "readDetails", user);
@@ -414,7 +457,7 @@ router.post(
     user.incrementFlag(UserFlag.InviteSent);
     await user.save({ transaction });
 
-    if (env.ENVIRONMENT === "development") {
+    if (env.isDevelopment) {
       logger.info(
         "email",
         `Sign in immediately: ${
@@ -465,6 +508,8 @@ router.post(
     if (id) {
       user = await User.findByPk(id, {
         rejectOnEmpty: true,
+        transaction,
+        lock: transaction.LOCK.UPDATE,
       });
     } else {
       user = actor;

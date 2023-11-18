@@ -12,10 +12,9 @@ import Sentry from "@server/logging/sentry";
 import ShutdownHelper from "@server/utils/ShutdownHelper";
 import * as Tracing from "./tracer";
 
-const isProduction = env.ENVIRONMENT === "production";
-
 type LogCategory =
   | "lifecycle"
+  | "authentication"
   | "multiplayer"
   | "http"
   | "commands"
@@ -26,7 +25,8 @@ type LogCategory =
   | "queue"
   | "websockets"
   | "database"
-  | "utils";
+  | "utils"
+  | "plugins";
 type Extra = Record<string, any>;
 
 class Logger {
@@ -51,7 +51,7 @@ class Logger {
     });
     this.output.add(
       new winston.transports.Console({
-        format: isProduction
+        format: env.isProduction
           ? winston.format.json()
           : winston.format.combine(
               winston.format.colorize(),
@@ -80,7 +80,7 @@ class Logger {
    * Debug information
    *
    * @param category A log message category that will be prepended
-   * @param extra Arbitrary data to be logged that will appear in prod logs
+   * @param extra Arbitrary data to be logged that will appear in development logs
    */
   public debug(label: LogCategory, message: string, extra?: Extra) {
     this.output.debug(message, { ...this.sanitize(extra), label });
@@ -107,7 +107,7 @@ class Logger {
       });
     }
 
-    if (isProduction) {
+    if (env.isProduction) {
       this.output.warn(message, this.sanitize(extra));
     } else if (extra) {
       console.warn(message, extra);
@@ -153,7 +153,7 @@ class Logger {
       });
     }
 
-    if (isProduction) {
+    if (env.isProduction) {
       this.output.error(message, {
         error: error.message,
         stack: error.stack,
@@ -188,7 +188,7 @@ class Logger {
    */
   private sanitize<T>(input: T): T {
     // Short circuit if we're not in production to enable easier debugging
-    if (!isProduction) {
+    if (!env.isProduction) {
       return input;
     }
 

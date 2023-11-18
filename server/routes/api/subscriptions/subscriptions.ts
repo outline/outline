@@ -1,13 +1,19 @@
 import Router from "koa-router";
+import { Transaction } from "sequelize";
+import { QueryNotices } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import subscriptionDestroyer from "@server/commands/subscriptionDestroyer";
+import env from "@server/env";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Subscription, Document } from "@server/models";
+import { Subscription, Document, User } from "@server/models";
+import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -100,6 +106,51 @@ router.post(
     ctx.body = {
       data: presentSubscription(subscription),
     };
+  }
+);
+
+router.get(
+  "subscriptions.delete",
+  validate(T.SubscriptionsDeleteTokenSchema),
+  rateLimiter(RateLimiterStrategy.FivePerMinute),
+  transaction(),
+  async (ctx: APIContext<T.SubscriptionsDeleteTokenReq>) => {
+    const { transaction } = ctx.state;
+    const { userId, documentId, token } = ctx.input.query;
+
+    const unsubscribeToken = SubscriptionHelper.unsubscribeToken(
+      userId,
+      documentId
+    );
+
+    if (unsubscribeToken !== token) {
+      ctx.redirect(`${env.URL}?notice=invalid-auth`);
+      return;
+    }
+
+    const [subscription, user] = await Promise.all([
+      Subscription.findOne({
+        where: {
+          userId,
+          documentId,
+        },
+        lock: Transaction.LOCK.UPDATE,
+        rejectOnEmpty: true,
+        transaction,
+      }),
+      User.scope("withTeam").findByPk(userId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
+
+    authorize(user, "delete", subscription);
+
+    await subscription.destroy({ transaction });
+
+    ctx.redirect(
+      `${user.team.url}/home?notice=${QueryNotices.UnsubscribeDocument}`
+    );
   }
 );
 

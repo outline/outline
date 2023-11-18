@@ -1,27 +1,25 @@
-import fs from "fs";
+/* eslint-disable @typescript-eslint/no-empty-function */
 import path from "path";
 import { FileOperation } from "@server/models";
 import { buildFileOperation } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import ImportNotionTask from "./ImportNotionTask";
-
-setupTestDatabase();
 
 describe("ImportNotionTask", () => {
   it("should import successfully from a Markdown export", async () => {
     const fileOperation = await buildFileOperation();
-    Object.defineProperty(fileOperation, "stream", {
+    Object.defineProperty(fileOperation, "handle", {
       get() {
-        return fs.createReadStream(
-          path.resolve(
+        return {
+          path: path.resolve(
             __dirname,
             "..",
             "..",
             "test",
             "fixtures",
             "notion-markdown.zip"
-          )
-        );
+          ),
+          cleanup: async () => {},
+        };
       },
     });
     jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
@@ -40,23 +38,26 @@ describe("ImportNotionTask", () => {
     // Check that the image url was replaced in the text with a redirect
     const attachments = Array.from(response.attachments.values());
     const documents = Array.from(response.documents.values());
-    expect(documents[2].text).toContain(attachments[0].redirectUrl);
+    expect(documents.map((d) => d.text).join("")).toContain(
+      attachments[0].redirectUrl
+    );
   });
 
   it("should import successfully from a HTML export", async () => {
     const fileOperation = await buildFileOperation();
-    Object.defineProperty(fileOperation, "stream", {
+    Object.defineProperty(fileOperation, "handle", {
       get() {
-        return fs.createReadStream(
-          path.resolve(
+        return {
+          path: path.resolve(
             __dirname,
             "..",
             "..",
             "test",
             "fixtures",
             "notion-html.zip"
-          )
-        );
+          ),
+          cleanup: async () => {},
+        };
       },
     });
     jest.spyOn(FileOperation, "findByPk").mockResolvedValue(fileOperation);
@@ -79,6 +80,8 @@ describe("ImportNotionTask", () => {
     );
 
     const documents = Array.from(response.documents.values());
-    expect(documents[1].text).toContain(attachment?.redirectUrl);
+    expect(documents.map((d) => d.text).join("")).toContain(
+      attachment?.redirectUrl
+    );
   });
 });

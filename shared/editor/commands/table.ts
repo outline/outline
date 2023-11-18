@@ -62,32 +62,39 @@ export function createTable(
   return types.table.createChecked(null, rows);
 }
 
-export function addRowAfterAndMoveSelection({
+export function addRowAndMoveSelection({
   index,
 }: {
   index?: number;
 } = {}): Command {
-  return (state, dispatch) => {
+  return (state, dispatch, view) => {
     if (!isInTable(state)) {
       return false;
     }
 
-    if (dispatch) {
-      const rect = selectedRect(state);
-      const indexAfter = index !== undefined ? index + 1 : rect.bottom;
-      const tr = addRow(state.tr, rect, indexAfter);
-      const cells = getCellsInColumn(0)(state);
+    const rect = selectedRect(state);
+    const cells = getCellsInColumn(0)(state);
 
-      // Special case when adding row to the end of the table as the calculated
-      // rect does not include the row that we just added.
-      if (indexAfter !== rect.map.height) {
-        const pos = cells[Math.min(cells.length - 1, indexAfter)];
-        const $pos = tr.doc.resolve(pos);
-        dispatch(tr.setSelection(TextSelection.near($pos)));
-      } else {
-        const $pos = tr.doc.resolve(rect.tableStart + rect.table.nodeSize);
-        dispatch(tr.setSelection(TextSelection.near($pos)));
-      }
+    // If the cursor is at the beginning of the first column then insert row
+    // above instead of below.
+    if (rect.left === 0 && view?.endOfTextblock("backward", state)) {
+      const indexBefore = index !== undefined ? index - 1 : rect.top;
+      dispatch?.(addRow(state.tr, rect, indexBefore));
+      return true;
+    }
+
+    const indexAfter = index !== undefined ? index + 1 : rect.bottom;
+    const tr = addRow(state.tr, rect, indexAfter);
+
+    // Special case when adding row to the end of the table as the calculated
+    // rect does not include the row that we just added.
+    if (indexAfter !== rect.map.height) {
+      const pos = cells[Math.min(cells.length - 1, indexAfter)];
+      const $pos = tr.doc.resolve(pos);
+      dispatch?.(tr.setSelection(TextSelection.near($pos)));
+    } else {
+      const $pos = tr.doc.resolve(rect.tableStart + rect.table.nodeSize);
+      dispatch?.(tr.setSelection(TextSelection.near($pos)));
     }
 
     return true;

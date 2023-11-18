@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import Group from "~/models/Group";
 import GroupMembers from "~/scenes/GroupMembers";
 import Button from "~/components/Button";
@@ -9,7 +10,6 @@ import Input from "~/components/Input";
 import Modal from "~/components/Modal";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   onSubmit: () => void;
@@ -18,10 +18,9 @@ type Props = {
 function GroupNew({ onSubmit }: Props) {
   const { groups } = useStores();
   const { t } = useTranslation();
-  const { showToast } = useToasts();
   const [name, setName] = React.useState<string | undefined>();
   const [isSaving, setIsSaving] = React.useState(false);
-  const [group, setGroup] = React.useState();
+  const [group, setGroup] = React.useState<Group | undefined>();
 
   const handleSubmit = async (ev: React.SyntheticEvent) => {
     ev.preventDefault();
@@ -35,11 +34,10 @@ function GroupNew({ onSubmit }: Props) {
     );
 
     try {
-      setGroup(await group.save());
+      await group.save();
+      setGroup(group);
     } catch (err) {
-      showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     } finally {
       setIsSaving(false);
     }

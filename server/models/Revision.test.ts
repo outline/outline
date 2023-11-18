@@ -1,8 +1,5 @@
 import { buildDocument } from "@server/test/factories";
-import { setupTestDatabase } from "@server/test/support";
 import Revision from "./Revision";
-
-setupTestDatabase();
 
 describe("#findLatest", () => {
   test("should return latest revision", async () => {
