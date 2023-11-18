@@ -32,7 +32,7 @@ async function presentDocument(
             : undefined
         )
       : undefined,
-    text: asJSON ? document.text : undefined,
+    text: asJSON ? undefined : document.text,
     emoji: document.emoji,
     tasks: document.tasks,
     createdAt: document.createdAt,

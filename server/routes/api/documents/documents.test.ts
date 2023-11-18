@@ -2449,15 +2449,7 @@ describe("#documents.restore", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.data).toEqual({
-      content: [
-        {
-          content: [{ text: previousText, type: "text" }],
-          type: "paragraph",
-        },
-      ],
-      type: "doc",
-    });
+    expect(body.data.text).toEqual(previousText);
   });
 
   it("should not allow restoring a revision in another document", async () => {
@@ -2669,17 +2661,7 @@ describe("#documents.create", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe("draft document");
-    expect(body.data.data).toEqual({
-      content: [
-        {
-          content: [
-            { text: "draft document without collection", type: "text" },
-          ],
-          type: "paragraph",
-        },
-      ],
-      type: "doc",
-    });
+    expect(body.data.text).toBe("draft document without collection");
     expect(body.data.collectionId).toBeNull();
   });
 
@@ -2876,15 +2858,7 @@ describe("#documents.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe("Updated title");
-    expect(body.data.data).toEqual({
-      content: [
-        {
-          content: [{ text: "Updated text", type: "text" }],
-          type: "paragraph",
-        },
-      ],
-      type: "doc",
-    });
+    expect(body.data.text).toBe("Updated text");
     const events = await Event.findAll({
       where: {
         teamId: document.teamId,
@@ -2945,15 +2919,7 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.collectionId).toBe(collection.id);
     expect(body.data.title).toBe("Updated title");
-    expect(body.data.data).toEqual({
-      content: [
-        {
-          content: [{ text: "Updated text", type: "text" }],
-          type: "paragraph",
-        },
-      ],
-      type: "doc",
-    });
+    expect(body.data.text).toBe("Updated text");
   });
 
   it("should not allow publishing by another collection's user", async () => {
@@ -3045,15 +3011,7 @@ describe("#documents.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe("Updated title");
-    expect(body.data.data).toEqual({
-      content: [
-        {
-          content: [{ text: "Updated text", type: "text" }],
-          type: "paragraph",
-        },
-      ],
-      type: "doc",
-    });
+    expect(body.data.text).toBe("Updated text");
     expect(body.data.publishedAt).toBeTruthy();
     await collection.reload();
     expect(collection.documentStructure).toBe(null);
@@ -3198,15 +3156,7 @@ describe("#documents.update", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.data).toEqual({
-      content: [
-        {
-          content: [{ text: "Changed text", type: "text" }],
-          type: "paragraph",
-        },
-      ],
-      type: "doc",
-    });
+    expect(body.data.text).toBe("Changed text");
     expect(body.data.updatedBy.id).toBe(user.id);
   });
 
@@ -3291,20 +3241,7 @@ describe("#documents.update", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.data).toEqual({
-      content: [
-        {
-          content: [
-            {
-              text: "This is the text in an example documentAdditional text",
-              type: "text",
-            },
-          ],
-          type: "paragraph",
-        },
-      ],
-      type: "doc",
-    });
+    expect(body.data.text).toBe(document.text + "Additional text");
     expect(body.data.updatedBy.id).toBe(user.id);
   });
 
@@ -3343,10 +3280,7 @@ describe("#documents.update", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.data).toEqual({
-      content: [{ type: "paragraph" }],
-      type: "doc",
-    });
+    expect(body.data.text).toBe("");
   });
 
   it("should not produce event if nothing changes", async () => {
