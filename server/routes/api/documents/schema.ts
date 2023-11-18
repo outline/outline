@@ -117,7 +117,7 @@ export const DocumentsInfoSchema = BaseSchema.extend({
       .refine((val) => isUUID(val) || SHARE_URL_SLUG_REGEX.test(val))
       .optional(),
 
-    /** Version of the API to be used */
+    /** @deprecated Version of the API to be used, remove in release v0.75.0 */
     apiVersion: z.number().optional(),
   }),
 }).refine((req) => !(isEmpty(req.body.id) && isEmpty(req.body.shareId)), {

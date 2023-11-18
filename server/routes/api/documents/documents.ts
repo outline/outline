@@ -168,7 +168,7 @@ router.post(
     }
 
     const data = await Promise.all(
-      documents.map((document) => presentDocument(document))
+      documents.map((document) => presentDocument(ctx, document))
     );
     const policies = presentPolicies(user, documents);
     ctx.body = {
@@ -211,7 +211,7 @@ router.post(
       limit: ctx.state.pagination.limit,
     });
     const data = await Promise.all(
-      documents.map((document) => presentDocument(document))
+      documents.map((document) => presentDocument(ctx, document))
     );
     const policies = presentPolicies(user, documents);
 
@@ -271,7 +271,7 @@ router.post(
       limit: ctx.state.pagination.limit,
     });
     const data = await Promise.all(
-      documents.map((document) => presentDocument(document))
+      documents.map((document) => presentDocument(ctx, document))
     );
     const policies = presentPolicies(user, documents);
 
@@ -324,7 +324,7 @@ router.post(
       return document;
     });
     const data = await Promise.all(
-      documents.map((document) => presentDocument(document))
+      documents.map((document) => presentDocument(ctx, document))
     );
     const policies = presentPolicies(user, documents);
 
@@ -386,7 +386,7 @@ router.post(
       limit: ctx.state.pagination.limit,
     });
     const data = await Promise.all(
-      documents.map((document) => presentDocument(document))
+      documents.map((document) => presentDocument(ctx, document))
     );
     const policies = presentPolicies(user, documents);
 
@@ -403,8 +403,9 @@ router.post(
   auth({ optional: true }),
   validate(T.DocumentsInfoSchema),
   async (ctx: APIContext<T.DocumentsInfoReq>) => {
-    const { id, shareId, apiVersion } = ctx.input.body;
+    const { id, shareId } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const apiVersion = getAPIVersion(ctx);
     const teamFromCtx = await getTeamFromContext(ctx);
     const { document, share, collection } = await documentLoader({
       id,
@@ -413,7 +414,7 @@ router.post(
       teamId: teamFromCtx?.id,
     });
     const isPublic = cannot(user, "read", document);
-    const serializedDocument = await presentDocument(document, {
+    const serializedDocument = await presentDocument(ctx, document, {
       isPublic,
     });
 
@@ -422,7 +423,7 @@ router.post(
     // Passing apiVersion=2 has a single effect, to change the response payload to
     // include top level keys for document, sharedTree, and team.
     const data =
-      apiVersion === 2
+      apiVersion >= 2
         ? {
             document: serializedDocument,
             team: team?.getPreference(TeamPreference.PublicBranding)
@@ -711,7 +712,7 @@ router.post(
     }
 
     ctx.body = {
-      data: await presentDocument(document),
+      data: await presentDocument(ctx, document),
       policies: presentPolicies(user, [document]),
     };
   }
@@ -758,7 +759,7 @@ router.post(
     });
     const policies = presentPolicies(user, documents);
     const data = await Promise.all(
-      documents.map((document) => presentDocument(document))
+      documents.map((document) => presentDocument(ctx, document))
     );
 
     ctx.body = {
@@ -860,7 +861,7 @@ router.post(
 
     const data = await Promise.all(
       results.map(async (result) => {
-        const document = await presentDocument(result.document);
+        const document = await presentDocument(ctx, result.document);
         return { ...result, document };
       })
     );
@@ -948,7 +949,7 @@ router.post(
     invariant(reloaded, "document not found");
 
     ctx.body = {
-      data: await presentDocument(reloaded),
+      data: await presentDocument(ctx, reloaded),
       policies: presentPolicies(user, [reloaded]),
     };
   }
@@ -961,9 +962,11 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, apiVersion, insightsEnabled, publish, collectionId, ...input } =
+    const { id, insightsEnabled, publish, collectionId, ...input } =
       ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
+    const apiVersion = getAPIVersion(ctx);
+
     const { user } = ctx.state.auth;
     let collection: Collection | null | undefined;
 
@@ -1015,14 +1018,14 @@ router.post(
 
     ctx.body = {
       data:
-        apiVersion === 2
+        apiVersion >= 2
           ? {
-              document: await presentDocument(document),
+              document: await presentDocument(ctx, document),
               collection: collection
                 ? presentCollection(collection)
                 : undefined,
             }
-          : await presentDocument(document),
+          : await presentDocument(ctx, document),
       policies: presentPolicies(user, [document, collection]),
     };
   }
@@ -1082,7 +1085,7 @@ router.post(
     ctx.body = {
       data: {
         documents: await Promise.all(
-          response.map((document) => presentDocument(document))
+          response.map((document) => presentDocument(ctx, document))
         ),
       },
       policies: presentPolicies(user, response),
@@ -1135,7 +1138,7 @@ router.post(
     ctx.body = {
       data: {
         documents: await Promise.all(
-          documents.map((document) => presentDocument(document))
+          documents.map((document) => presentDocument(ctx, document))
         ),
         collections: await Promise.all(
           collections.map((collection) => presentCollection(collection))
@@ -1173,7 +1176,7 @@ router.post(
     });
 
     ctx.body = {
-      data: await presentDocument(document),
+      data: await presentDocument(ctx, document),
       policies: presentPolicies(user, [document]),
     };
   }
@@ -1249,8 +1252,9 @@ router.post(
   auth(),
   validate(T.DocumentsUnpublishSchema),
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
-    const { id, apiVersion } = ctx.input.body;
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const apiVersion = getAPIVersion(ctx);
 
     const document = await Document.findByPk(id, {
       userId: user.id,
@@ -1279,14 +1283,14 @@ router.post(
 
     ctx.body = {
       data:
-        apiVersion === 2
+        apiVersion >= 2
           ? {
-              document: await presentDocument(document),
+              document: await presentDocument(ctx, document),
               collection: document.collection
                 ? presentCollection(document.collection)
                 : undefined,
             }
-          : await presentDocument(document),
+          : await presentDocument(ctx, document),
       policies: presentPolicies(user, [document]),
     };
   }
@@ -1364,7 +1368,7 @@ router.post(
     document.collection = collection;
 
     ctx.body = {
-      data: await presentDocument(document),
+      data: await presentDocument(ctx, document),
       policies: presentPolicies(user, [document]),
     };
   }
@@ -1453,10 +1457,22 @@ router.post(
     document.collection = collection;
 
     ctx.body = {
-      data: await presentDocument(document),
+      data: await presentDocument(ctx, document),
       policies: presentPolicies(user, [document]),
     };
   }
 );
+
+// Remove this helper once apiVersion is removed in release 0.75.0
+function getAPIVersion(ctx: APIContext) {
+  return Number(
+    ctx.headers["x-api-version"] ??
+      (typeof ctx.input.body === "object" &&
+        ctx.input.body &&
+        "apiVersion" in ctx.input.body &&
+        ctx.input.body.apiVersion) ??
+      0
+  );
+}
 
 export default router;

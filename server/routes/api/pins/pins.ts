@@ -96,7 +96,7 @@ router.post(
       data: {
         pins: pins.map(presentPin),
         documents: await Promise.all(
-          documents.map((document: Document) => presentDocument(document))
+          documents.map((document: Document) => presentDocument(ctx, document))
         ),
       },
       policies,

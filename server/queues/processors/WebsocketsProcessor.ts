@@ -83,7 +83,7 @@ export default class WebsocketsProcessor {
           ? `collection-${document.collectionId}`
           : `user-${event.actorId}`;
 
-        const data = await presentDocument(document);
+        const data = await presentDocument(undefined, document);
         return socketio.to(channel).emit(event.name, data);
       }
 
@@ -399,7 +399,7 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const data = await presentNotification(notification);
+        const data = await presentNotification(undefined, notification);
         return socketio.to(`user-${event.userId}`).emit(event.name, data);
       }
 

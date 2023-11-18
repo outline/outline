@@ -1,6 +1,7 @@
 import { traceFunction } from "@server/logging/tracing";
 import { Document } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { APIContext } from "@server/types";
 import presentUser from "./user";
 
 type Options = {
@@ -8,6 +9,7 @@ type Options = {
 };
 
 async function presentDocument(
+  ctx: APIContext | undefined,
   document: Document,
   options: Options | null | undefined = {}
 ) {
@@ -16,15 +18,21 @@ async function presentDocument(
     ...options,
   };
 
+  const asJSON = !ctx || Number(ctx?.headers["x-api-version"] ?? 0) >= 3;
   const data: Record<string, any> = {
     id: document.id,
     url: document.url,
     urlId: document.urlId,
     title: document.title,
-    data: await DocumentHelper.toJSON(
-      document,
-      options.isPublic ? { signedUrls: 60, teamId: document.teamId } : undefined
-    ),
+    data: asJSON
+      ? await DocumentHelper.toJSON(
+          document,
+          options.isPublic
+            ? { signedUrls: 60, teamId: document.teamId }
+            : undefined
+        )
+      : undefined,
+    text: asJSON ? document.text : undefined,
     emoji: document.emoji,
     tasks: document.tasks,
     createdAt: document.createdAt,

@@ -501,7 +501,6 @@ export default class DocumentsStore extends Store<Document> {
       const res = await client.post("/documents.info", {
         id,
         shareId: options.shareId,
-        apiVersion: 2,
       });
 
       invariant(res?.data, "Document not available");
