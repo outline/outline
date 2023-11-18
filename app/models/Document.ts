@@ -431,13 +431,18 @@ export default class Document extends ParanoidModel {
   }
 
   @computed
+  get childDocuments() {
+    return this.store.orderedData.filter(
+      (doc) => doc.parentDocumentId === this.id
+    );
+  }
+
+  @computed
   get asNavigationNode(): NavigationNode {
     return {
       id: this.id,
       title: this.title,
-      children: this.store.orderedData
-        .filter((doc) => doc.parentDocumentId === this.id)
-        .map((doc) => doc.asNavigationNode),
+      children: this.childDocuments.map((doc) => doc.asNavigationNode),
       url: this.url,
       isDraft: this.isDraft,
     };

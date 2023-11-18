@@ -965,7 +965,6 @@ router.post(
     const { id, insightsEnabled, publish, collectionId, ...input } =
       ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
-    const apiVersion = getAPIVersion(ctx);
 
     const { user } = ctx.state.auth;
     let collection: Collection | null | undefined;
@@ -1017,15 +1016,7 @@ router.post(
     document.collection = collection;
 
     ctx.body = {
-      data:
-        apiVersion >= 2
-          ? {
-              document: await presentDocument(ctx, document),
-              collection: collection
-                ? presentCollection(collection)
-                : undefined,
-            }
-          : await presentDocument(ctx, document),
+      data: await presentDocument(ctx, document),
       policies: presentPolicies(user, [document, collection]),
     };
   }
@@ -1254,7 +1245,6 @@ router.post(
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const apiVersion = getAPIVersion(ctx);
 
     const document = await Document.findByPk(id, {
       userId: user.id,
@@ -1282,15 +1272,7 @@ router.post(
     });
 
     ctx.body = {
-      data:
-        apiVersion >= 2
-          ? {
-              document: await presentDocument(ctx, document),
-              collection: document.collection
-                ? presentCollection(document.collection)
-                : undefined,
-            }
-          : await presentDocument(ctx, document),
+      data: await presentDocument(ctx, document),
       policies: presentPolicies(user, [document]),
     };
   }
