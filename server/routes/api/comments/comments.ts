@@ -1,6 +1,6 @@
 import { Next } from "koa";
 import Router from "koa-router";
-import { Op } from "sequelize";
+import { FindOptions, Op } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import commentCreator from "@server/commands/commentCreator";
 import commentDestroyer from "@server/commands/commentDestroyer";
@@ -65,6 +65,12 @@ router.post(
     const { sort, direction, documentId, collectionId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
+    const params: FindOptions<Comment> = {
+      order: [[sort, direction]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    };
+
     let comments;
     if (documentId) {
       const document = await Document.findByPk(documentId, { userId: user.id });
@@ -73,9 +79,7 @@ router.post(
         where: {
           documentId: document.id,
         },
-        order: [[sort, direction]],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
+        ...params,
       });
     } else if (collectionId) {
       const collection = await Collection.findByPk(collectionId);
@@ -91,9 +95,7 @@ router.post(
             },
           },
         ],
-        order: [[sort, direction]],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
+        ...params,
       });
     } else {
       const accessibleCollectionIds = await user.collectionIds();
@@ -108,9 +110,7 @@ router.post(
             },
           },
         ],
-        order: [[sort, direction]],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
+        ...params,
       });
     }
 
