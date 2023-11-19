@@ -684,12 +684,11 @@ router.post(
       // restore a document to a specific revision
       authorize(user, "update", document);
       const revision = await Revision.findByPk(revisionId);
-
       authorize(document, "restore", revision);
 
-      document.text = revision.text;
-      document.title = revision.title;
+      document.restoreFromRevision(revision);
       await document.save();
+
       await Event.create({
         name: "documents.restore",
         documentId: document.id,

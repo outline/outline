@@ -402,6 +402,11 @@ class Document extends ParanoidModel {
       model.collaboratorIds = [];
     }
 
+    // backfill content if it's missing
+    if (!model.content) {
+      model.content = DocumentHelper.toJSON(model);
+    }
+
     // ensure the last modifying user is a collaborator
     model.collaboratorIds = uniq(
       model.collaboratorIds.concat(model.lastModifiedById)
@@ -628,13 +633,18 @@ class Document extends ParanoidModel {
     return !!(this.importId && this.sourceMetadata?.trial);
   }
 
-  restoreFromRevision = async (revision: Revision) => {
-    if (revision.content) {
-      this.content = revision.content;
-    } else {
-      this.text = revision.text;
+  /**
+   * Revert the state of the document to match the passed revision.
+   *
+   * @param revision The revision to revert to.
+   */
+  restoreFromRevision = (revision: Revision) => {
+    if (revision.documentId !== this.id) {
+      throw new Error("Revision does not belong to this document");
     }
 
+    this.content = revision.content;
+    this.text = revision.text;
     this.title = revision.title;
     this.emoji = revision.emoji;
   };

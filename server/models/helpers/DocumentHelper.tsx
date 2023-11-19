@@ -35,8 +35,25 @@ type HTMLOptions = {
 @trace()
 export default class DocumentHelper {
   /**
-   * Returns the document as a Prosemirror Node. This method uses the
-   * collaborative state if available, otherwise it falls back to Markdown.
+   * Returns the document as JSON content. This method uses the collaborative state if available,
+   * otherwise it falls back to Markdown.
+   *
+   * @param document The document or revision to convert
+   * @returns The document content as JSON
+   */
+  static toJSON(document: Document | Revision) {
+    if ("state" in document && document.state) {
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, document.state);
+      return yDocToProsemirrorJSON(ydoc, "default");
+    }
+    const node = parser.parse(document.text) || Node.fromJSON(schema, {});
+    return node.toJSON();
+  }
+
+  /**
+   * Returns the document as a Prosemirror Node. This method uses the collaborative state if
+   * available, otherwise it falls back to Markdown.
    *
    * @param document The document or revision to convert
    * @returns The document content as a Prosemirror Node
