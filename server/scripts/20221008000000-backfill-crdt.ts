@@ -27,7 +27,6 @@ export default async function main(exit = false) {
       offset: page * limit,
       where: {
         ...(teamId ? { teamId } : {}),
-        state: null,
       },
       order: [["createdAt", "ASC"]],
       paranoid: false,
