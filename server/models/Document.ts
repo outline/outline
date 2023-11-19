@@ -35,7 +35,11 @@ import {
   AllowNull,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
-import type { NavigationNode, SourceMetadata } from "@shared/types";
+import type {
+  NavigationNode,
+  ProsemirrorData,
+  SourceMetadata,
+} from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import slugify from "@shared/utils/slugify";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
@@ -206,15 +210,18 @@ class Document extends ParanoidModel {
   @Column(DataType.SMALLINT)
   version: number;
 
+  @Default(false)
   @Column
   template: boolean;
 
+  @Default(false)
   @Column
   fullWidth: boolean;
 
   @Column
   insightsEnabled: boolean;
 
+  /** The version of the editor last used to edit this document. */
   @SimpleLength({
     max: 255,
     msg: `editorVersion must be 255 characters or less`,
@@ -222,6 +229,7 @@ class Document extends ParanoidModel {
   @Column
   editorVersion: string;
 
+  /** An emoji to use as the document icon. */
   @Length({
     max: 1,
     msg: `Emoji must be a single character`,
@@ -229,9 +237,25 @@ class Document extends ParanoidModel {
   @Column
   emoji: string | null;
 
+  /**
+   * The content of the document as Markdown.
+   *
+   * @deprecated Use `content` instead, or `DocumentHelper.toMarkdown` if exporting lossy markdown.
+   * This column will be removed in a future migration.
+   */
   @Column(DataType.TEXT)
   text: string;
 
+  /**
+   * The content of the document as JSON, this is a snapshot at the last time the state was saved.
+   */
+  @Column(DataType.JSONB)
+  content: ProsemirrorData;
+
+  /**
+   * The content of the document as YJS collaborative state, this column can be quite large and
+   * should only be selected from the DB when the `content` snapshot cannot be used.
+   */
   @SimpleLength({
     max: DocumentValidation.maxStateLength,
     msg: `Document collaborative state is too large, you must create a new document`,
@@ -239,34 +263,49 @@ class Document extends ParanoidModel {
   @Column(DataType.BLOB)
   state: Uint8Array;
 
+  /** Whether this document is part of onboarding. */
   @Default(false)
   @Column
   isWelcome: boolean;
 
+  /** How many versions there are in the history of this document. */
   @IsNumeric
   @Default(0)
   @Column(DataType.INTEGER)
   revisionCount: number;
 
+  /** Whether the document is archvied, and if so when. */
   @IsDate
   @Column
   archivedAt: Date | null;
 
+  /** Whether the document is published, and if so when. */
   @IsDate
   @Column
   publishedAt: Date | null;
 
+  /** An array of user IDs that have edited this document. */
   @Column(DataType.ARRAY(DataType.UUID))
   collaboratorIds: string[] = [];
 
   // getters
 
+  /**
+   * The frontend path to this document.
+   *
+   * @deprecated Use `path` instead.
+   */
   get url() {
     if (!this.title) {
       return `/doc/untitled-${this.urlId}`;
     }
     const slugifiedTitle = slugify(this.title);
     return `/doc/${slugifiedTitle}-${this.urlId}`;
+  }
+
+  /** The frontend path to this document. */
+  get path() {
+    return this.url;
   }
 
   get tasks() {
@@ -588,6 +627,17 @@ class Document extends ParanoidModel {
   get isTrialImport() {
     return !!(this.importId && this.sourceMetadata?.trial);
   }
+
+  restoreFromRevision = async (revision: Revision) => {
+    if (revision.content) {
+      this.content = revision.content;
+    } else {
+      this.text = revision.text;
+    }
+
+    this.title = revision.title;
+    this.emoji = revision.emoji;
+  };
 
   /**
    * Get a list of users that have collaborated on this document

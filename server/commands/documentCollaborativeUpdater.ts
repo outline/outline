@@ -41,7 +41,8 @@ export default async function documentCollaborativeUpdater({
       });
 
     const state = Y.encodeStateAsUpdate(ydoc);
-    const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+    const content = yDocToProsemirrorJSON(ydoc, "default");
+    const node = Node.fromJSON(schema, content);
     const text = serializer.serialize(node, undefined);
     const isUnchanged = document.text === text;
     const lastModifiedById = userId ?? document.lastModifiedById;
@@ -63,6 +64,7 @@ export default async function documentCollaborativeUpdater({
     await document.update(
       {
         text,
+        content,
         state: Buffer.from(state),
         lastModifiedById,
         collaboratorIds,

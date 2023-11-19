@@ -9,6 +9,7 @@ import {
   IsNumeric,
   Length as SimpleLength,
 } from "sequelize-typescript";
+import type { ProsemirrorData } from "@shared/types";
 import { DocumentValidation } from "@shared/validations";
 import Document from "./Document";
 import User from "./User";
@@ -46,8 +47,20 @@ class Revision extends IdModel {
   @Column
   title: string;
 
+  /**
+   * The content of the revision as Markdown.
+   *
+   * @deprecated Use `content` instead, or `DocumentHelper.toMarkdown` if exporting lossy markdown.
+   * This column will be removed in a future migration.
+   */
   @Column(DataType.TEXT)
   text: string;
+
+  /**
+   * The content of the revision as JSON.
+   */
+  @Column(DataType.JSONB)
+  content: ProsemirrorData;
 
   @Length({
     max: 1,
@@ -100,6 +113,7 @@ class Revision extends IdModel {
       title: document.title,
       text: document.text,
       emoji: document.emoji,
+      content: document.content,
       userId: document.lastModifiedById,
       editorVersion: document.editorVersion,
       version: document.version,
