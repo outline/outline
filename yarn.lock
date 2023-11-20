@@ -11704,10 +11704,10 @@ rollup-plugin-terser@^7.0.0:
     serialize-javascript "^4.0.0"
     terser "^5.0.0"
 
-rollup-plugin-webpack-stats@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/rollup-plugin-webpack-stats/-/rollup-plugin-webpack-stats-0.2.0.tgz#840bffdbb9e5492d3ac0d7020f08dd864e966ad8"
-  integrity sha512-WDQ9ra6qWjeH/7D3q7lY/r5i9/HPt8OlZvvoQzS7Jdarh2v5+Fgw1BdAU2pBW0LB26J+vNYwdEdyJnkBhbQ2PQ==
+rollup-plugin-webpack-stats@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-webpack-stats/-/rollup-plugin-webpack-stats-0.2.1.tgz#2443d5d8b3f896781e2aa434206eb0c893d2b6f2"
+  integrity sha512-vKCIbX2DQMyxC7KFsrqgAwzk49I7Nt8b+4sHJ0Z3JT9FyPyb2OlcqxNykQshTGtMrx9H5dKNjZGuA4FaMs3Txw==
 
 rollup@^0.41.4, rollup@^2.43.1, rollup@^3.14.0, rollup@^3.27.1, rollup@^3.7.2:
   version "3.14.0"
