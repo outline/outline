@@ -14,7 +14,7 @@ import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
 import User from "./User";
-import Model from "./base/Model";
+import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 
 @Scopes(() => ({
@@ -40,7 +40,7 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "group_permissions", modelName: "group_permission" })
 @Fix
-class GroupPermission extends Model {
+class GroupPermission extends ParanoidModel {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
