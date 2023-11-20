@@ -34,14 +34,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.sequelize.transaction(async (transaction) => {
-      await queryInterface.removeColumn("group_permissions", "id", {
-        transaction,
-      });
-      await queryInterface.sequelize.query(
-        `DROP EXTENSION IF EXISTS "uuid-ossp";`,
-        { transaction }
-      );
-    });
+    await queryInterface.removeColumn("group_permissions", "id");
   },
 };
