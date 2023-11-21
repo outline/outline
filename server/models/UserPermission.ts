@@ -9,7 +9,6 @@ import {
   DataType,
   Scopes,
   AllowNull,
-  PrimaryKey,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
@@ -56,7 +55,6 @@ class UserPermission extends IdModel {
   @BelongsTo(() => Collection, "collectionId")
   collection?: Collection | null;
 
-  @PrimaryKey
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
@@ -64,7 +62,6 @@ class UserPermission extends IdModel {
   @BelongsTo(() => Document, "documentId")
   document?: Document | null;
 
-  @PrimaryKey
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
   documentId?: string | null;
@@ -72,7 +69,6 @@ class UserPermission extends IdModel {
   @BelongsTo(() => User, "userId")
   user: User;
 
-  @PrimaryKey
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   userId: string;
@@ -83,11 +79,6 @@ class UserPermission extends IdModel {
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   createdById: string;
-
-  // methods
-  getId() {
-    return `${this.userId}-${this.documentId}`;
-  }
 }
 
 export default UserPermission;

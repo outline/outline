@@ -4,6 +4,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { CollectionPermission } from "@shared/types";
 import Membership from "~/models/Membership";
 import User from "~/models/User";
+import UserMembership from "~/models/UserMembership";
 import Avatar from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
@@ -15,11 +16,12 @@ import InputMemberPermissionSelect from "./InputMemberPermissionSelect";
 
 type Props = {
   user: User;
-  membership?: Membership | undefined;
+  membership?: Membership | UserMembership | undefined;
   canEdit: boolean;
   onAdd?: () => void;
   onRemove?: () => void;
   onUpdate?: (permission: CollectionPermission) => void;
+  isAdminPermissionSupported?: boolean;
 };
 
 const MemberListItem = ({
@@ -29,6 +31,7 @@ const MemberListItem = ({
   onUpdate,
   onAdd,
   canEdit,
+  isAdminPermissionSupported = true,
 }: Props) => {
   const { t } = useTranslation();
 
@@ -53,6 +56,7 @@ const MemberListItem = ({
         <Flex align="center" gap={8}>
           {onUpdate && (
             <InputMemberPermissionSelect
+              isAdminPermissionSupported={isAdminPermissionSupported}
               value={membership ? membership.permission : undefined}
               onChange={onUpdate}
               disabled={!canEdit}

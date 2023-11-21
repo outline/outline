@@ -48,12 +48,15 @@ router.post(
     if (nullIndex !== -1) {
       const indexedPermissions = await userPermissionIndexing(user.id);
       permissions.forEach((permission) => {
-        permission.index = indexedPermissions[permission.getId()];
+        permission.index = indexedPermissions[permission.id];
       });
     }
 
     const documentIds = permissions.map((p) => p.documentId);
-    const documents = await Document.defaultScopeWithUser(user.id).findAll({
+    const documents = await Document.scope([
+      "withDrafts",
+      { method: ["withMembership", user.id] },
+    ]).findAll({
       where: {
         id: documentIds,
       },
@@ -80,14 +83,11 @@ router.post(
   validate(T.UserMembershipsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.UserMembershipsUpdateReq>) => {
-    const { userId, documentId, index } = ctx.input.body;
+    const { id, index } = ctx.input.body;
     const { transaction } = ctx.state;
 
     const { user } = ctx.state.auth;
-    const membership = await UserPermission.findOne({
-      where: { userId, documentId },
-      transaction,
-    });
+    const membership = await UserPermission.findByPk(id, { transaction });
     authorize(user, "update", membership);
 
     membership.index = index;

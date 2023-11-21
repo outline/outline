@@ -13,7 +13,7 @@ export default function presentDocumentMembership(
   membership: UserPermission
 ): DocumentMembership {
   return {
-    id: membership.getId(),
+    id: membership.id,
     userId: membership.userId,
     documentId: membership.documentId,
     permission: membership.permission,

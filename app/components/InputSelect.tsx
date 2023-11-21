@@ -44,6 +44,7 @@ export type Props = {
   options: Option[];
   note?: React.ReactNode;
   onChange?: (value: string | null) => void;
+  isAdminPermissionSupported?: boolean;
 };
 
 interface InnerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -267,7 +268,7 @@ const Wrapper = styled.label<{ short?: boolean }>`
   max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
 
-const Positioner = styled(Position)`
+export const Positioner = styled(Position)`
   &.focus-visible {
     ${StyledSelectOption} {
       &[aria-selected="true"] {

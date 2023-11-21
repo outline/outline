@@ -1,6 +1,8 @@
 import { observable } from "mobx";
+import { DocumentPermission } from "@shared/types";
 import type UserMembershipsStore from "~/stores/UserMembershipsStore";
 import Document from "./Document";
+import User from "./User";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
@@ -13,12 +15,22 @@ class UserMembership extends Model {
   @observable
   index: string;
 
+  @observable
+  permission: DocumentPermission;
+
   /** The document ID comprising of membership. */
   documentId?: string;
 
   /** The document comprising of membership. */
   @Relation(() => Document, { onDelete: "cascade" })
   document?: Document;
+
+  /** The user ID of user who is a member */
+  userId: string;
+
+  /** The user who is a member */
+  @Relation(() => User, { onDelete: "cascade" })
+  user: User;
 
   store: UserMembershipsStore;
 

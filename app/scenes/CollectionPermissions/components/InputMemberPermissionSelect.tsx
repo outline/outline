@@ -13,20 +13,33 @@ export default function InputMemberPermissionSelect(
   return (
     <Select
       label={t("Permissions")}
-      options={[
-        {
-          label: t("View only"),
-          value: CollectionPermission.Read,
-        },
-        {
-          label: t("View and edit"),
-          value: CollectionPermission.ReadWrite,
-        },
-        {
-          label: t("Admin"),
-          value: CollectionPermission.Admin,
-        },
-      ]}
+      options={
+        props.isAdminPermissionSupported
+          ? [
+              {
+                label: t("View only"),
+                value: CollectionPermission.Read,
+              },
+              {
+                label: t("View and edit"),
+                value: CollectionPermission.ReadWrite,
+              },
+              {
+                label: t("Admin"),
+                value: CollectionPermission.Admin,
+              },
+            ]
+          : [
+              {
+                label: t("View only"),
+                value: CollectionPermission.Read,
+              },
+              {
+                label: t("View and edit"),
+                value: CollectionPermission.ReadWrite,
+              },
+            ]
+      }
       ariaLabel={t("Permissions")}
       labelHidden
       nude

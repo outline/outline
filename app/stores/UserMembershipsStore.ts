@@ -4,9 +4,16 @@ import UserMembership from "~/models/UserMembership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
-import Store from "./base/Store";
+import Store, { PAGINATION_SYMBOL, RPCAction } from "./base/Store";
 
 export default class UserMembershipsStore extends Store<UserMembership> {
+  actions = [
+    RPCAction.List,
+    RPCAction.Create,
+    RPCAction.Delete,
+    RPCAction.Update,
+  ];
+
   constructor(rootStore: RootStore) {
     super(rootStore, UserMembership);
   }
@@ -33,6 +40,55 @@ export default class UserMembershipsStore extends Store<UserMembership> {
       this.isFetching = false;
     }
   };
+
+  @action
+  fetchDocumentMemberships = async (
+    params: (PaginationParams & { id: string }) | undefined
+  ): Promise<UserMembership[]> => {
+    this.isFetching = true;
+
+    try {
+      const res = await client.post(`/documents.memberships`, params);
+      invariant(res?.data, "Data not available");
+
+      let response: UserMembership[] = [];
+      runInAction(`MembershipsStore#fetchDocmentMemberships`, () => {
+        res.data.users.forEach(this.rootStore.users.add);
+        response = res.data.memberships.map(this.add);
+        this.isLoaded = true;
+      });
+      response[PAGINATION_SYMBOL] = res.pagination;
+      return response;
+    } finally {
+      this.isFetching = false;
+    }
+  };
+
+  @action
+  async create({ documentId, userId, permission }: Partial<UserMembership>) {
+    const res = await client.post("/documents.add_user", {
+      id: documentId,
+      userId,
+      permission,
+    });
+    invariant(res?.data, "Membership data should be available");
+    res.data.users.forEach(this.rootStore.users.add);
+
+    const memberships = res.data.memberships.map(this.add);
+    return memberships[0];
+  }
+
+  @action
+  async delete({ documentId, userId }: UserMembership) {
+    await client.post("/documents.remove_user", {
+      id: documentId,
+      userId,
+    });
+    const membership = this.orderedData.find(
+      (v) => v.documentId === documentId && v.userId === userId
+    );
+    this.remove(membership?.id as string);
+  }
 
   @computed
   get orderedData(): UserMembership[] {

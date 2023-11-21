@@ -227,6 +227,31 @@ export default class Document extends ParanoidModel {
   }
 
   @computed
+  get uninvitedUsers(): User[] {
+    const teamMembers = this.store.rootStore.users.orderedData;
+    const documentUsers = this.store.rootStore.userMemberships.orderedData
+      .filter((m) => m.documentId === this.id)
+      .map((m) => m.user);
+
+    const uninvitedUsers = teamMembers.filter(
+      (teamMember) =>
+        !documentUsers.map((u) => u?.id).includes(teamMember.id) &&
+        teamMember.id !== this.store.rootStore.auth.user?.id
+    );
+
+    return uninvitedUsers;
+  }
+
+  @computed
+  get users(): User[] {
+    const documentUsers = this.store.rootStore.userMemberships.orderedData
+      .filter((m) => m.documentId === this.id)
+      .map((m) => m.user);
+
+    return documentUsers;
+  }
+
+  @computed
   get isArchived(): boolean {
     return !!this.archivedAt;
   }

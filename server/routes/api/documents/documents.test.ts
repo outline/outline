@@ -1,5 +1,5 @@
 import { addMinutes, subDays } from "date-fns";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import {
   Document,
   View,
@@ -4100,5 +4100,91 @@ describe("#documents.remove_user", () => {
     users = await document.$get("users");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(0);
+  });
+});
+
+describe("#documents.memberships", () => {
+  it("should return members in document", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const members = await Promise.all([
+      buildUser({ teamId: user.teamId }),
+      buildUser({ teamId: user.teamId }),
+    ]);
+    await Promise.all([
+      server.post("/api/documents.add_user", {
+        body: {
+          token: user.getJwtToken(),
+          id: document.id,
+          userId: members[0].id,
+        },
+      }),
+      server.post("/api/documents.add_user", {
+        body: {
+          token: user.getJwtToken(),
+          id: document.id,
+          userId: members[1].id,
+        },
+      }),
+    ]);
+    const res = await server.post("/api/documents.memberships", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.users.length).toEqual(2);
+    expect(body.data.users.map((u: User) => u.id).includes(members[0].id)).toBe(
+      true
+    );
+    expect(body.data.users.map((u: User) => u.id).includes(members[1].id)).toBe(
+      true
+    );
+  });
+
+  it("should allow filtering members in document by permission", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const members = await Promise.all([
+      buildUser({ teamId: user.teamId }),
+      buildUser({ teamId: user.teamId }),
+    ]);
+    await Promise.all([
+      server.post("/api/documents.add_user", {
+        body: {
+          token: user.getJwtToken(),
+          id: document.id,
+          userId: members[0].id,
+          permission: DocumentPermission.ReadWrite,
+        },
+      }),
+      server.post("/api/documents.add_user", {
+        body: {
+          token: user.getJwtToken(),
+          id: document.id,
+          userId: members[1].id,
+          permission: DocumentPermission.Read,
+        },
+      }),
+    ]);
+    const res = await server.post("/api/documents.memberships", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        permission: DocumentPermission.Read,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.users.length).toEqual(1);
+    expect(body.data.users[0].id).toEqual(members[1].id);
   });
 });

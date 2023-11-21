@@ -206,8 +206,7 @@ type AdditionalFindOptions = {
     return {
       include: [
         {
-          model: UserPermission,
-          as: "memberships",
+          association: "memberships",
           where: {
             userId,
             documentId: {
@@ -536,7 +535,7 @@ class Document extends ParanoidModel {
   @Column(DataType.UUID)
   collectionId?: string | null;
 
-  @HasMany(() => UserPermission, "documentId")
+  @HasMany(() => UserPermission)
   memberships: UserPermission[];
 
   @HasMany(() => Revision)

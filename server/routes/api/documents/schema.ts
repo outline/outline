@@ -388,3 +388,15 @@ export const DocumentsSharedWithUserSchema = BaseSchema.extend({
 export type DocumentsSharedWithUserReq = z.infer<
   typeof DocumentsSharedWithUserSchema
 >;
+
+export const DocumentsMembershipsSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    query: z.string().optional(),
+    permission: z.nativeEnum(DocumentPermission).optional(),
+  }),
+});
+
+export type DocumentsMembershipsReq = z.infer<
+  typeof DocumentsMembershipsSchema
+>;

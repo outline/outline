@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import UserMembership from "~/models/UserMembership";
 import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useStores from "~/hooks/useStores";
 import DropCursor from "./DropCursor";
@@ -22,6 +23,7 @@ const STARRED_PAGINATION_LIMIT = 10;
 function SharedWithMe() {
   const { userMemberships } = useStores();
   const { t } = useTranslation();
+  const user = useCurrentUser();
 
   const { loading, next, end, error, page } =
     usePaginatedRequest<UserMembership>(userMemberships.fetchPage, {
@@ -33,7 +35,7 @@ function SharedWithMe() {
     accept: "userMembership",
     drop: async (item: { userMembership: UserMembership }) => {
       void item.userMembership.save({
-        index: fractionalIndex(null, userMemberships.orderedData[0].index),
+        index: fractionalIndex(null, user.memberships[0].index),
       });
     },
     collect: (monitor) => ({
@@ -46,7 +48,7 @@ function SharedWithMe() {
     toast.error(t("Could not load shared documents"));
   }
 
-  if (!userMemberships.orderedData.length) {
+  if (!user.memberships.length) {
     return null;
   }
 
@@ -62,7 +64,7 @@ function SharedWithMe() {
                 position="top"
               />
             )}
-            {userMemberships.orderedData
+            {user.memberships
               .slice(0, page * STARRED_PAGINATION_LIMIT)
               .map((membership) => (
                 <SharedWithMeLink

@@ -56,7 +56,7 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
   `};
 `;
 
-const Wrapper = styled.div<{
+export const Wrapper = styled.div<{
   flex?: boolean;
   short?: boolean;
   minHeight?: number;

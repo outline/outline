@@ -25,6 +25,7 @@ import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
+import InviteTeamMembers from "./InviteTeamMembers";
 
 type Props = {
   /** The document to share. */
@@ -299,6 +300,10 @@ function SharePopover({
                 .
               </SwitchText>
             </SwitchLabel>
+          </SwitchWrapper>
+          <Separator />
+          <SwitchWrapper>
+            <InviteTeamMembers document={document} />
           </SwitchWrapper>
           <Separator />
           <SwitchWrapper>

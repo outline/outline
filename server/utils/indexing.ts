@@ -121,7 +121,7 @@ export async function userPermissionIndexing(
 
   const indexedPermissions = {};
   sortable.forEach((permission) => {
-    indexedPermissions[permission.getId()] = permission.index;
+    indexedPermissions[permission.id] = permission.index;
   });
   return indexedPermissions;
 }

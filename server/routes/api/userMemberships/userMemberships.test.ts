@@ -63,19 +63,24 @@ describe("#userMemberships.update", () => {
     const member = await buildUser({
       teamId: user.teamId,
     });
-    await server.post("/api/documents.add_user", {
+    const resp = await server.post("/api/documents.add_user", {
       body: {
         token: user.getJwtToken(),
         id: document.id,
         userId: member.id,
       },
     });
+    const respBody = await resp.json();
+    expect(respBody.data).not.toBeFalsy();
+    expect(respBody.data.memberships).not.toBeFalsy();
+    expect(respBody.data.memberships).toHaveLength(1);
+
     const users = await document.$get("users");
     expect(users.length).toEqual(1);
     const res = await server.post("/api/userMemberships.update", {
       body: {
         token: member.getJwtToken(),
-        id: `${member.id}-${document.id}`,
+        id: respBody.data.memberships[0].id,
         index: "V",
       },
     });
