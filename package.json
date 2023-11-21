@@ -299,7 +299,7 @@
     "@types/slug": "^5.0.3",
     "@types/stoppable": "^1.1.1",
     "@types/styled-components": "^5.1.26",
-    "@types/throng": "^5.0.4",
+    "@types/throng": "^5.0.7",
     "@types/tmp": "^0.2.3",
     "@types/turndown": "^5.0.1",
     "@types/utf8": "^3.0.1",
