@@ -297,7 +297,7 @@
     "@types/semver": "^7.5.2",
     "@types/sequelize": "^4.28.16",
     "@types/slug": "^5.0.3",
-    "@types/stoppable": "^1.1.1",
+    "@types/stoppable": "^1.1.3",
     "@types/styled-components": "^5.1.26",
     "@types/throng": "^5.0.7",
     "@types/tmp": "^0.2.3",
