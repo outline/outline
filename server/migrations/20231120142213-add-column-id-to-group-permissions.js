@@ -13,14 +13,6 @@ module.exports = {
         {
           type: Sequelize.UUID,
           defaultValue: Sequelize.literal("uuid_generate_v4()"),
-        },
-        { transaction }
-      );
-      await queryInterface.changeColumn(
-        "group_permissions",
-        "id",
-        {
-          type: Sequelize.UUID,
           allowNull: false,
         },
         { transaction }
