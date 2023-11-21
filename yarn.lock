@@ -3482,10 +3482,10 @@
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.0.tgz#7036640b4e21cc2f259ae826ce843d277dad8cff"
   integrity sha512-RJJrrySY7A8havqpGObOB4W92QXKJo63/jFLLgpvOtsGUqbQZ9Sbgl35KMm1DjC6j7AvmmU2bIno+3IyEaemaw==
 
-"@types/stoppable@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@types/stoppable/-/stoppable-1.1.1.tgz#a6f1f280e29f8f3c743277534425e0a75041d2f9"
-  integrity sha512-b8N+fCADRIYYrGZOcmOR8ZNBOqhktWTB/bMUl5LvGtT201QKJZOOH5UsFyI3qtteM6ZAJbJqZoBcLqqxKIwjhw==
+"@types/stoppable@^1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@types/stoppable/-/stoppable-1.1.3.tgz#2cc4bd15594a9ad61f4d396d88594d7678f0b561"
+  integrity sha512-7wGKIBJGE4ZxFjk9NkjAxZMLlIXroETqP1FJCdoSvKmEznwmBxQFmTB1dsCkAvVcNemuSZM5qkkd9HE/NL2JTw==
   dependencies:
     "@types/node" "*"
 
