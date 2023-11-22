@@ -12,6 +12,7 @@
     "lib": ["dom", "es2020", "dom.iterable", "esnext.asynciterable"],
     "module": "esnext",
     "moduleResolution": "node",
+    "noErrorTruncation": true,
     "noImplicitAny": true,
     "noImplicitOverride": false,
     "noImplicitReturns": true,
@@ -30,9 +31,5 @@
       "~/*": ["./app/*"]
     }
   },
-  "exclude": [
-    "node_modules",
-    "build",
-    "server/migrations"
-  ]
+  "exclude": ["node_modules", "build", "server/migrations"]
 }
