@@ -686,6 +686,7 @@
   "Authentication failed – you do not have permission to access this workspace.": "Помилка аутентифікації – у вас немає дозволу на доступ до цього робочого простору.",
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "Вибачте, але схоже на те, що посилання для входу більше не є дійсним, спробуйте повторити запит.",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "Ваш обліковий запис було призупинено. Щоб повторно активувати ваш обліковий запис, будь ласка, зв'яжіться з адміністратором робочого простору.",
+  "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
   "Authentication failed – this login method was disabled by a team admin.": "Помилка аутентифікації - цей метод входу був відключений адміністратором команди.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "Робоче середовище, до якого ви намагаєтеся приєднатися, потребує запрошення перед тим, як створити обліковий запис. <1></1>, будь ласка, запитайте запрошення від адміністратора робочого середовища та спробуйте ще раз.",
   "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "На жаль, ваш домен не допускається. Будь ласка, спробуйте ще раз із дозволеним робочим доменом.",
