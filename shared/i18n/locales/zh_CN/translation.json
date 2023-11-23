@@ -686,6 +686,7 @@
   "Authentication failed – you do not have permission to access this workspace.": "身份验证失败 - 您没有访问此工作区的权限。",
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "抱歉，看起来该登录链接已经失效，请尝试其他链接。",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "您的账户已被暂停。若要重新激活您的账户，请联系工作区管理员。",
+  "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
   "Authentication failed – this login method was disabled by a team admin.": "身份验证失败 - 此登录方式已被团队管理员禁用。",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "您正在尝试加入的工作区需要邀请才能创建账户。<1></1>请向您的工作区管理员申请邀请并重试。",
   "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "抱歉，您的域名不被允许。请使用允许的团队域名重试。",
