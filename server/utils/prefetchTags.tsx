@@ -36,7 +36,7 @@ if (env.isProduction) {
     file: string
   ): string[] => [
     manifest[file]["file"],
-    ...manifest[file]["imports"].map(
+    ...(manifest[file]["imports"] ?? []).map(
       (entry: string) => manifest[entry]["file"]
     ),
   ];
