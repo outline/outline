@@ -686,6 +686,7 @@
   "Authentication failed – you do not have permission to access this workspace.": "Verificatie mislukt - u heeft geen toegang tot deze werkruimte.",
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "Sorry, het lijkt erop dat de link voor aanmelding niet meer geldig is, probeer een andere aan te vragen.",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "Uw account is opgeschort. Neem contact op met een werkruimte beheerder om uw account opnieuw te activeren.",
+  "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
   "Authentication failed – this login method was disabled by a team admin.": "Verificatie mislukt - deze inlogmethode is uitgeschakeld door een teambeheerder.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "De werkruimte die u probeert toe te treden vereist een uitnodiging voordat u een account kunt aanmaken. <1></1>Vraag een uitnodiging aan van uw werkruimte beheerder en probeer het opnieuw.",
   "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "Sorry, uw domein is niet toegestaan. Probeer het opnieuw met een toegestaan werkruimte domein.",
