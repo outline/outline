@@ -686,6 +686,7 @@
   "Authentication failed – you do not have permission to access this workspace.": "Autentisering misslyckades – du har inte behörighet att komma åt denna arbetsyta.",
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "Tyvärr, det verkar som att inloggningslänken inte längre är giltig, vänligen försök att begära en annan.",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "Ditt konto har stängts av. För att återaktivera ditt konto, vänligen kontakta en workspace admin.",
+  "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
   "Authentication failed – this login method was disabled by a team admin.": "Autentisering misslyckades – denna inloggningsmetod har inaktiverats av en teamadministratör.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "Den arbetsyta du försöker ansluta till kräver en inbjudan innan du kan skapa ett konto. <1></1>Vänligen begär en inbjudan från din arbetsyta-administratör och försök igen.",
   "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "Tyvärr, din domän är inte tillåten. Försök igen med en tillåten arbetsytdomän.",
