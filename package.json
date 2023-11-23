@@ -28,9 +28,9 @@
     "test:app": "TZ=UTC jest --config=.jestconfig.json --selectProjects app",
     "test:shared": "TZ=UTC jest --config=.jestconfig.json --selectProjects shared-node shared-jsdom",
     "test:server": "TZ=UTC jest --config=.jestconfig.json --selectProjects server",
-    "vite:dev": "vite",
-    "vite:build": "vite build",
-    "vite:preview": "vite preview"
+    "vite:dev": "VITE_CJS_IGNORE_WARNING=true vite",
+    "vite:build": "VITE_CJS_IGNORE_WARNING=true vite build",
+    "vite:preview": "VITE_CJS_IGNORE_WARNING=true vite preview"
   },
   "funding": {
     "type": "GitHub Sponsors ❤",
@@ -338,7 +338,7 @@
     "prettier": "^2.8.8",
     "react-refresh": "^0.14.0",
     "rimraf": "^2.5.4",
-    "rollup-plugin-webpack-stats": "^0.2.1",
+    "rollup-plugin-webpack-stats": "^0.2.2",
     "terser": "^5.19.2",
     "typescript": "^5.0.0",
     "vite-plugin-static-copy": "^0.17.0",
