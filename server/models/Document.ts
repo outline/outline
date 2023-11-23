@@ -11,6 +11,7 @@ import {
   FindOptions,
   ScopeOptions,
   WhereOptions,
+  EmptyResultError,
 } from "sequelize";
 import {
   ForeignKey,
@@ -58,6 +59,7 @@ export const DOCUMENT_VERSION = 2;
 type AdditionalFindOptions = {
   userId?: string;
   includeState?: boolean;
+  rejectOnEmpty?: boolean | Error;
 };
 
 @DefaultScope(() => ({
@@ -513,22 +515,36 @@ class Document extends ParanoidModel {
     ]);
 
     if (isUUID(id)) {
-      return scope.findOne({
+      const document = await scope.findOne({
         where: {
           id,
         },
         ...rest,
+        rejectOnEmpty: false,
       });
+
+      if (!document && rest.rejectOnEmpty) {
+        throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
+      }
+
+      return document;
     }
 
     const match = id.match(SLUG_URL_REGEX);
     if (match) {
-      return scope.findOne({
+      const document = await scope.findOne({
         where: {
           urlId: match[1],
         },
         ...rest,
+        rejectOnEmpty: false,
       });
+
+      if (!document && rest.rejectOnEmpty) {
+        throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
+      }
+
+      return document;
     }
 
     return null;
