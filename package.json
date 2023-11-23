@@ -37,7 +37,7 @@
     "url": "https://github.com/sponsors/outline"
   },
   "engines": {
-    "node": ">= 14 <=20"
+    "node": ">= 18 <=20"
   },
   "repository": {
     "type": "git",
@@ -226,8 +226,8 @@
     "utility-types": "^3.10.0",
     "uuid": "^8.3.2",
     "validator": "13.9.0",
-    "vite": "^4.4.11",
-    "vite-plugin-pwa": "^0.14.4",
+    "vite": "^5.0.2",
+    "vite-plugin-pwa": "^0.17.0",
     "winston": "^3.10.0",
     "ws": "^7.5.9",
     "y-indexeddb": "^9.0.11",
@@ -352,7 +352,7 @@
     "js-yaml": "^3.14.1",
     "jpeg-js": "0.4.4",
     "qs": "6.9.7",
-    "rollup": "^3.14.0"
+    "rollup": "^4.5.1"
   },
   "version": "0.73.1"
 }
