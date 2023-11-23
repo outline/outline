@@ -32,6 +32,8 @@ type HTMLOptions = {
   includeTitle?: boolean;
   /** Whether to include style tags in the generated HTML (defaults to true) */
   includeStyles?: boolean;
+  /** Whether to include the Mermaid script in the generated HTML (defaults to false) */
+  includeMermaid?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
   /**
@@ -107,6 +109,7 @@ export default class DocumentHelper {
     let output = ProsemirrorHelper.toHTML(node, {
       title: options?.includeTitle !== false ? document.title : undefined,
       includeStyles: options?.includeStyles,
+      includeMermaid: options?.includeMermaid,
       centered: options?.centered,
     });
 

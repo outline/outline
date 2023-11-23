@@ -6,6 +6,7 @@ export type Props = {
   rtl: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
+  staticHTML?: boolean;
   editorStyle?: React.CSSProperties;
   grow?: boolean;
   theme: DefaultTheme;
@@ -258,6 +259,16 @@ const emailStyle = (props: Props) => css`
     border-radius: 8px;
     padding: 6px 8px;
   }
+`;
+
+const printStyle = (props: Props) => css`
+  ${props.staticHTML &&
+  `
+  body {
+    height: auto;
+    min-height: 0;
+  }
+  `}
 `;
 
 const style = (props: Props) => `
@@ -1128,7 +1139,7 @@ mark {
 
   /* Hide code without display none so toolbar can still be positioned against it */
   &:not(.code-active) {
-    height: 0;
+    height: ${props.staticHTML ? "auto" : "0"};
     margin: -0.5em 0;
     overflow: hidden;
   }
@@ -1136,7 +1147,7 @@ mark {
 
 /* Hide code without display none so toolbar can still be positioned against it */
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
-  height: 0;
+  height: ${props.staticHTML ? "auto" : "0"};
   margin: -0.5em 0;
   overflow: hidden;
 }
@@ -1559,6 +1570,7 @@ const EditorContainer = styled.div<Props>`
   ${codeBlockStyle}
   ${findAndReplaceStyle}
   ${emailStyle}
+  ${printStyle}
 `;
 
 export default EditorContainer;
