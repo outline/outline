@@ -1462,10 +1462,23 @@ router.post(
     const actor = auth.user;
     const { id, userId, permission } = ctx.input.body;
 
-    const document = await Document.findByPk(id, { userId: actor.id });
+    const document = await Document.findByPk(id, {
+      userId: actor.id,
+      rejectOnEmpty: true,
+      transaction,
+    });
+    if (!(document.collection && document.collection.isPrivate)) {
+      ctx.throw(400, "Document should belong to a private collection");
+    }
     authorize(actor, "update", document);
 
-    const user = await User.findByPk(userId);
+    if (userId === actor.id) {
+      ctx.throw(400, "User cannot invite themself");
+    }
+    const user = await User.findByPk(userId, {
+      rejectOnEmpty: true,
+      transaction,
+    });
     authorize(actor, "read", user);
 
     let membership = await UserPermission.findOne({
@@ -1480,8 +1493,8 @@ router.post(
     if (!membership) {
       membership = await UserPermission.create(
         {
-          documentId: document.id,
-          userId: user.id,
+          documentId: id,
+          userId,
           permission: permission || user.defaultDocumentPermission,
           createdById: actor.id,
         },
