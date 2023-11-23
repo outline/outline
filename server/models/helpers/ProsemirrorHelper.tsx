@@ -235,10 +235,11 @@ export default class ProsemirrorHelper {
         }
       }
 
+      const element = dom.window.document.createElement("script");
+      element.setAttribute("type", "module");
+
       // Inject Mermaid script
       if (mermaidElements.length) {
-        const element = dom.window.document.createElement("script");
-        element.setAttribute("type", "module");
         element.innerHTML = `
           import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.esm.min.mjs';
           mermaid.initialize({
@@ -247,8 +248,13 @@ export default class ProsemirrorHelper {
           });
           window.status = "ready";
         `;
-        dom.window.document.body.appendChild(element);
+      } else {
+        element.innerHTML = `
+          window.status = "ready";
+        `;
       }
+
+      dom.window.document.body.appendChild(element);
     }
 
     return dom.serialize();
