@@ -686,6 +686,7 @@
   "Authentication failed – you do not have permission to access this workspace.": "Authentifizierung fehlgeschlagen – Du hast keine Berechtigung, auf diesen Arbeitsbereich zuzugreifen.",
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "Entschuldige, es sieht so aus, als ob der Login-Link nicht mehr gültig ist, bitte versuche einen neuen anzufordern.",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "Dein Konto wurde gesperrt. Um dein Konto wieder zu aktivieren, kontaktiere bitte deinen Arbeitsbereich-Administrator.",
+  "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
   "Authentication failed – this login method was disabled by a team admin.": "Authentifizierung fehlgeschlagen – diese Login-Methode wurde von deinem Team-Administrator deaktiviert.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "Der Arbeitsbereich, dem du beitreten möchtest, benötigt eine Einladung, bevor du ein Konto erstellen kannst. <1></1>Bitte fordere eine Einladung von deinem Arbeitsbereich-Administrator an und versuche es erneut.",
   "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "Entschuldige, deine Domain ist nicht erlaubt. Bitte versuche es erneut mit einer zulässigen Arbeitsbereichs-Domain.",
