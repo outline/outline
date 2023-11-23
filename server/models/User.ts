@@ -227,7 +227,7 @@ class User extends ParanoidModel {
   // getters
 
   get isSuspended(): boolean {
-    return !!this.suspendedAt || this.team?.isSuspended;
+    return !!this.suspendedAt || !!this.team?.isSuspended;
   }
 
   get isInvited() {
