@@ -686,6 +686,7 @@
   "Authentication failed – you do not have permission to access this workspace.": "Ověření se nezdařilo – nemáte oprávnění k přístupu k tomuto pracovnímu prostoru.",
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "Je nám líto, zdá se, že tento odkaz pro přihlášení již není platný, zkuste prosím požádat o jiný.",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "Váš účet byl pozastaven. Chcete-li znovu aktivovat svůj účet, kontaktujte správce pracovního prostoru.",
+  "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
   "Authentication failed – this login method was disabled by a team admin.": "Ověření se nezdařilo – tento způsob přihlášení byl zakázán správcem týmu.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "Pracovní prostor, ke kterému se pokoušíte připojit, vyžaduje před vytvořením účtu pozvánku.<1></1> Požádejte správce pracovního prostoru o pozvánku a zkuste to znovu.",
   "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "Litujeme, vaše doména není povolena. Zkuste to znovu s povolenou doménou pracovního prostoru.",
