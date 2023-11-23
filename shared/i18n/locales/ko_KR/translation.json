@@ -686,6 +686,7 @@
   "Authentication failed – you do not have permission to access this workspace.": "인증 실패 – 이 워크스페이스에 액세스할 수 있는 권한이 없습니다.",
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "죄송합니다. 해당 로그인 링크가 더 이상 유효하지 않은 것 같습니다. 다른 링크를 요청해 보세요.",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "귀하의 계정이 정지되었습니다. 계정을 다시 활성화하려면 워크스페이스 관리자에게 문의하세요.",
+  "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
   "Authentication failed – this login method was disabled by a team admin.": "인증 실패 – 이 로그인 방법은 팀 관리자에 의해 비활성화되었습니다.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "가입하려는 워크스페이스는 계정을 생성하기 전에 초대가 필요합니다.<1></1> 워크스페이스 관리자에게 초대를 요청하고 다시 시도하세요.",
   "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "죄송합니다. 귀하의 도메인은 허용되지 않습니다. 허용된 워크스페이스 도메인으로 다시 시도하세요.",
