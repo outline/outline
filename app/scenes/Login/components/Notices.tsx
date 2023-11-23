@@ -84,10 +84,16 @@ export default function Notices() {
           requesting another.
         </Trans>
       )}
-      {(notice === "suspended" || notice === "user-suspended") && (
+      {notice === "user-suspended" && (
         <Trans>
           Your account has been suspended. To re-activate your account, please
           contact a workspace admin.
+        </Trans>
+      )}
+      {notice === "team-suspended" && (
+        <Trans>
+          This workspace has been suspended. Please contact support to restore
+          access.
         </Trans>
       )}
       {notice === "authentication-provider-disabled" && (
