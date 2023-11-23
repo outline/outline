@@ -686,6 +686,7 @@
   "Authentication failed – you do not have permission to access this workspace.": "Uwierzytelnianie nie powiodło się — nie masz uprawnień dostępu do tego obszaru roboczego.",
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "Przepraszamy, wygląda na to, że ten link logowania jest już nieważny. Spróbuj poprosić o inny.",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "Twoje konto zostało zablokowane. Aby ponownie aktywować konto, skontaktuj się z administratorem obszaru roboczego.",
+  "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
   "Authentication failed – this login method was disabled by a team admin.": "Uwierzytelnianie nie powiodło się – ta metoda logowania została wyłączona przez administratora zespołu.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "Obszar roboczy, do którego próbujesz dołączyć, wymaga zaproszenia przed utworzeniem konta.<1></1> Poproś administratora obszaru roboczego o zaproszenie i spróbuj ponownie.",
   "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "Przepraszamy, Twoja domena jest niedozwolona. Spróbuj ponownie z dozwoloną domeną obszaru roboczego.",
