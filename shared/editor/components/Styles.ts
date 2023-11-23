@@ -261,16 +261,6 @@ const emailStyle = (props: Props) => css`
   }
 `;
 
-const printStyle = (props: Props) => css`
-  ${props.staticHTML &&
-  `
-  body {
-    height: auto;
-    min-height: 0;
-  }
-  `}
-`;
-
 const style = (props: Props) => `
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
@@ -1570,7 +1560,6 @@ const EditorContainer = styled.div<Props>`
   ${codeBlockStyle}
   ${findAndReplaceStyle}
   ${emailStyle}
-  ${printStyle}
 `;
 
 export default EditorContainer;

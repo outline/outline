@@ -183,7 +183,7 @@ export default class ProsemirrorHelper {
                 <article>{children}</article>
               ) : (
                 <>
-                  <GlobalStyles />
+                  <GlobalStyles staticHTML />
                   <Centered>{children}</Centered>
                 </>
               )}
