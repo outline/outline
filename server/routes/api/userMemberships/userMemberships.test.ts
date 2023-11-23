@@ -1,4 +1,8 @@
-import { buildDocument, buildUser } from "@server/test/factories";
+import {
+  buildCollection,
+  buildDocument,
+  buildUser,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -13,9 +17,15 @@ describe("#userMemberships.list", () => {
 
   it("should return the list of docs shared with user", async () => {
     const user = await buildUser();
-    const document = await buildDocument({
+    const collection = await buildCollection({
       teamId: user.teamId,
-      userId: user.id,
+      createdById: user.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      createdById: user.id,
+      teamId: user.teamId,
     });
     const member = await buildUser({
       teamId: user.teamId,
@@ -56,9 +66,15 @@ describe("#userMemberships.list", () => {
 describe("#userMemberships.update", () => {
   it("should update the index", async () => {
     const user = await buildUser();
-    const document = await buildDocument({
+    const collection = await buildCollection({
       teamId: user.teamId,
-      userId: user.id,
+      createdById: user.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      createdById: user.id,
+      teamId: user.teamId,
     });
     const member = await buildUser({
       teamId: user.teamId,
