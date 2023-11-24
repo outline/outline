@@ -16,6 +16,8 @@ import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 
 class User extends ParanoidModel {
+  static modelName = "User";
+
   @Field
   @observable
   id: string;

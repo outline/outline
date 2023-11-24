@@ -1,27 +1,24 @@
-import "../stores";
 import { shallow } from "enzyme";
 import { TFunction } from "i18next";
 import * as React from "react";
 import { getI18n } from "react-i18next";
-import RootStore from "~/stores/RootStore";
 import { DEFAULT_PAGINATION_LIMIT } from "~/stores/base/Store";
 import { runAllPromises } from "~/test/support";
+import stores from "../stores";
 import { Component as PaginatedList } from "./PaginatedList";
 
 describe("PaginatedList", () => {
   const render = () => null;
 
   const i18n = getI18n();
-  const { logout, ...store } = new RootStore();
 
   const props = {
+    ...stores,
     i18n,
     tReady: true,
     t: ((key: string) => key) as TFunction,
-    logout: () => {
-      //
-    },
-    ...store,
+    getStoreForModelName: stores.getStoreForModelName,
+    clear: () => undefined,
   };
 
   it("with no items renders nothing", () => {

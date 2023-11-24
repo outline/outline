@@ -6,6 +6,8 @@ import Model from "./base/Model";
 import Field from "./decorators/Field";
 
 class Team extends Model {
+  static modelName = "Team";
+
   @Field
   @observable
   id: string;

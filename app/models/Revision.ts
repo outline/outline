@@ -6,6 +6,8 @@ import Model from "./base/Model";
 import Relation from "./decorators/Relation";
 
 class Revision extends Model {
+  static modelName = "Revision";
+
   /** The document ID that the revision is related to */
   documentId: string;
 

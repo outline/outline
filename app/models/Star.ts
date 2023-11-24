@@ -7,6 +7,8 @@ import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 
 class Star extends Model {
+  static modelName = "Star";
+
   /** The sort order of the star */
   @Field
   @observable

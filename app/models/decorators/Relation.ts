@@ -35,7 +35,9 @@ export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
 
   relations.forEach((relation, modelName) => {
     relation.forEach((properties, propertyName) => {
-      if (properties.relationClassResolver().name === targetClass.name) {
+      if (
+        properties.relationClassResolver().modelName === targetClass.modelName
+      ) {
         inverseRelations.set(propertyName, {
           ...properties,
           modelName,
@@ -66,13 +68,13 @@ export default function Relation<T extends typeof Model>(
     // this to determine how to update relations when a model is deleted.
     if (options) {
       const configForClass =
-        relations.get(target.constructor.name) || new Map();
+        relations.get(target.constructor.modelName) || new Map();
       configForClass.set(propertyKey, {
         options,
         relationClassResolver: classResolver,
         idKey,
       });
-      relations.set(target.constructor.name, configForClass);
+      relations.set(target.constructor.modelName, configForClass);
     }
 
     Object.defineProperty(target, propertyKey, {
@@ -83,9 +85,9 @@ export default function Relation<T extends typeof Model>(
           return undefined;
         }
 
-        const relationClassName = classResolver().name;
+        const relationClassName = classResolver().modelName;
         const store =
-          this.store.rootStore[`${relationClassName.toLowerCase()}s`];
+          this.store.rootStore.getStoreForModelName(relationClassName);
         invariant(store, `Store for ${relationClassName} not found`);
 
         return store.get(id);
@@ -94,9 +96,9 @@ export default function Relation<T extends typeof Model>(
         this[idKey] = newValue ? newValue.id : undefined;
 
         if (newValue) {
-          const relationClassName = classResolver().name;
+          const relationClassName = classResolver().modelName;
           const store =
-            this.store.rootStore[`${relationClassName.toLowerCase()}s`];
+            this.store.rootStore.getStoreForModelName(relationClassName);
           invariant(store, `Store for ${relationClassName} not found`);
 
           store.add(newValue);
