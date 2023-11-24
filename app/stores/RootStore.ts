@@ -1,4 +1,5 @@
 import invariant from "invariant";
+import lowerFirst from "lodash/lowerFirst";
 import pluralize from "pluralize";
 import ApiKeysStore from "./ApiKeysStore";
 import AuthStore from "./AuthStore";
@@ -132,6 +133,6 @@ export default class RootStore {
   }
 
   private getStoreNameForModelName(modelName: string) {
-    return pluralize(modelName.toLowerCase());
+    return pluralize(lowerFirst(modelName));
   }
 }
