@@ -22,8 +22,6 @@ export enum RPCAction {
 
 type FetchPageParams = PaginationParams & Record<string, any>;
 
-export const DEFAULT_PAGINATION_LIMIT = 25;
-
 export const PAGINATION_SYMBOL = Symbol.for("pagination");
 
 export default abstract class Store<T extends Model> {
