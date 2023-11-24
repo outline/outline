@@ -7,8 +7,6 @@ import Store, { RPCAction } from "./base/Store";
 export default class SearchesStore extends Store<SearchQuery> {
   actions = [RPCAction.List, RPCAction.Delete];
 
-  apiEndpoint = "searches";
-
   constructor(rootStore: RootStore) {
     super(rootStore, SearchQuery);
   }

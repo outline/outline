@@ -5,6 +5,8 @@ import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "../decorators/Field";
 
 export default abstract class Model {
+  static modelName: string;
+
   @observable
   id: string;
 

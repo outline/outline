@@ -1,12 +1,18 @@
 import { action, observable } from "mobx";
+import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
 import Relation from "./decorators/Relation";
 
 class View extends Model {
+  static modelName = "View";
+
   id: string;
 
   documentId: string;
+
+  @Relation(() => Document)
+  document?: Document;
 
   firstViewedAt: string;
 

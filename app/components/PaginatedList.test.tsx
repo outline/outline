@@ -3,8 +3,7 @@ import { shallow } from "enzyme";
 import { TFunction } from "i18next";
 import * as React from "react";
 import { getI18n } from "react-i18next";
-import RootStore from "~/stores/RootStore";
-import { DEFAULT_PAGINATION_LIMIT } from "~/stores/base/Store";
+import { Pagination } from "@shared/constants";
 import { runAllPromises } from "~/test/support";
 import { Component as PaginatedList } from "./PaginatedList";
 
@@ -12,17 +11,12 @@ describe("PaginatedList", () => {
   const render = () => null;
 
   const i18n = getI18n();
-  const { logout, ...store } = new RootStore();
 
   const props = {
     i18n,
     tReady: true,
     t: ((key: string) => key) as TFunction,
-    logout: () => {
-      //
-    },
-    ...store,
-  };
+  } as any;
 
   it("with no items renders nothing", () => {
     const list = shallow(
@@ -59,13 +53,13 @@ describe("PaginatedList", () => {
     );
     expect(fetch).toHaveBeenCalledWith({
       ...options,
-      limit: DEFAULT_PAGINATION_LIMIT,
+      limit: Pagination.defaultLimit,
       offset: 0,
     });
   });
 
   it("calls fetch when options prop changes", async () => {
-    const fetchedItems = Array(DEFAULT_PAGINATION_LIMIT).fill(undefined);
+    const fetchedItems = Array(Pagination.defaultLimit).fill(undefined);
     const fetch = jest.fn().mockReturnValue(Promise.resolve(fetchedItems));
     const list = shallow(
       <PaginatedList
@@ -81,7 +75,7 @@ describe("PaginatedList", () => {
     await runAllPromises();
     expect(fetch).toHaveBeenCalledWith({
       id: "one",
-      limit: DEFAULT_PAGINATION_LIMIT,
+      limit: Pagination.defaultLimit,
       offset: 0,
     });
     fetch.mockReset();
@@ -95,7 +89,7 @@ describe("PaginatedList", () => {
     await runAllPromises();
     expect(fetch).toHaveBeenCalledWith({
       id: "two",
-      limit: DEFAULT_PAGINATION_LIMIT,
+      limit: Pagination.defaultLimit,
       offset: 0,
     });
   });
