@@ -34,7 +34,7 @@ router.post(
       });
       authorize(user, "read", document);
       after = revision;
-      before = await revision.previous();
+      before = await revision.before();
     } else if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
@@ -94,7 +94,7 @@ router.post(
         );
       }
     } else {
-      before = await revision.previous();
+      before = await revision.before();
     }
 
     const accept = ctx.request.headers["accept"];

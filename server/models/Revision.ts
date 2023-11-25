@@ -127,7 +127,12 @@ class Revision extends IdModel {
 
   // instance methods
 
-  previous(): Promise<Revision | null> {
+  /**
+   * Find the revision for the document before this one.
+   *
+   * @returns A Promise that resolves to a Revision, or null if this is the first revision.
+   */
+  before(): Promise<Revision | null> {
     return (this.constructor as typeof Revision).findOne({
       where: {
         documentId: this.documentId,

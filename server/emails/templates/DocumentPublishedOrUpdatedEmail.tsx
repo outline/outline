@@ -65,7 +65,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       const revision = await Revision.findByPk(revisionId);
 
       if (revision) {
-        const before = await revision.previous();
+        const before = await revision.before();
         const content = await DocumentHelper.toEmailDiff(before, revision, {
           includeTitle: false,
           centered: false,

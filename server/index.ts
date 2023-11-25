@@ -50,7 +50,7 @@ if (serviceNames.includes("collaboration")) {
 
 // This function will only be called once in the original process
 async function master() {
-  await checkConnection();
+  await checkConnection(sequelize);
   await checkEnv();
   await checkPendingMigrations();
 
