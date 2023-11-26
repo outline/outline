@@ -9,16 +9,15 @@ import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
 import MemberListItem from "~/scenes/CollectionPermissions/components/MemberListItem";
 import Flex from "~/components/Flex";
-import LoadingIndicator from "~/components/LoadingIndicator";
 import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
 import Combobox from "./Combobox";
 
 type Props = {
+  /** Document to which team members are supposed to be invited */
   document: Document;
 };
 
@@ -27,29 +26,6 @@ function InviteTeamMembers({ document }: Props) {
   const [query, setQuery] = React.useState("");
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
   const user = useCurrentUser();
-
-  const {
-    data: teamMembers,
-    loading: loadingTeamMembers,
-    request: loadTeamMembers,
-  } = useRequest(
-    React.useCallback(() => users.fetchPage({ limit: 10 }), [users])
-  );
-
-  const {
-    data: documentMembers,
-    loading: loadingDocumentMembers,
-    request: loadDocumentMembers,
-  } = useRequest(
-    React.useCallback(
-      () =>
-        userMemberships.fetchDocumentMemberships({
-          id: document.id,
-          limit: 10,
-        }),
-      [userMemberships, document.id]
-    )
-  );
 
   const inviteUser = React.useCallback(
     (user: User) =>
@@ -61,17 +37,23 @@ function InviteTeamMembers({ document }: Props) {
     [userMemberships, document.id]
   );
 
-  React.useEffect(() => {
-    void loadTeamMembers();
-    void loadDocumentMembers();
-  }, [loadTeamMembers, loadDocumentMembers]);
-
   const fetchUsersByQuery = useThrottledCallback(
     (query) =>
       users.fetchPage({
         query,
       }),
     250
+  );
+
+  const uninvitedUsers = React.useMemo(
+    () =>
+      document.nonMembers
+        .filter((u) => u.id !== user.id)
+        .map((user) => ({
+          ...user,
+          value: user.name,
+        })),
+    [document.nonMembers, user.id]
   );
 
   React.useEffect(() => {
@@ -133,21 +115,10 @@ function InviteTeamMembers({ document }: Props) {
     [userMemberships, document]
   );
 
-  if (!teamMembers || !documentMembers) {
-    return null;
-  }
-
-  if (loadingTeamMembers || loadingDocumentMembers) {
-    return <LoadingIndicator />;
-  }
-
   return (
     <RelativeFlex column>
       <Combobox
-        suggestions={document.uninvitedUsers.map((user) => ({
-          ...user,
-          value: user.name,
-        }))}
+        suggestions={uninvitedUsers}
         value={query}
         onChangeInput={handleQuery}
         onSelectOption={handleSelect}
@@ -157,11 +128,11 @@ function InviteTeamMembers({ document }: Props) {
         flex
         autoFocus
       />
-      {document.users.length > 0 ? (
+      {document.members.length > 0 ? (
         <Text weight="bold">{t("In this project")}</Text>
       ) : null}
       <PaginatedList
-        items={document.users}
+        items={document.members}
         options={{ id: document.id }}
         renderItem={(item: User) => (
           <MemberListItem

@@ -226,29 +226,30 @@ export default class Document extends ParanoidModel {
     );
   }
 
+  /**
+   * Returns users who are members of the document
+   *
+   * @returns users who are members of the document
+   */
   @computed
-  get uninvitedUsers(): User[] {
-    const teamMembers = this.store.rootStore.users.orderedData;
-    const documentUsers = this.store.rootStore.userMemberships.orderedData
+  get members(): User[] {
+    return this.store.rootStore.userMemberships.orderedData
       .filter((m) => m.documentId === this.id)
       .map((m) => m.user);
-
-    const uninvitedUsers = teamMembers.filter(
-      (teamMember) =>
-        !documentUsers.map((u) => u?.id).includes(teamMember.id) &&
-        teamMember.id !== this.store.rootStore.auth.user?.id
-    );
-
-    return uninvitedUsers;
   }
 
+  /**
+   * Returns users who are team members but are not document members
+   *
+   * @returns users who are not members of the document
+   */
   @computed
-  get users(): User[] {
-    const documentUsers = this.store.rootStore.userMemberships.orderedData
-      .filter((m) => m.documentId === this.id)
-      .map((m) => m.user);
+  get nonMembers(): User[] {
+    const teamMembers = this.store.rootStore.users.activeOrInvited;
 
-    return documentUsers;
+    return teamMembers.filter(
+      (teamMember) => !this.members.map((m) => m.id).includes(teamMember.id)
+    );
   }
 
   @computed
