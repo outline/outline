@@ -122,10 +122,9 @@ function InviteTeamMembers({ document }: Props) {
         value={query}
         onChangeInput={handleQuery}
         onSelectOption={handleSelect}
-        placeholder={`${t("Search by name")}…`}
         label={t("Invite team members")}
-        listLabel="Team members"
-        flex
+        listLabel={t("Team members")}
+        placeholder={`${t("Search by name")}…`}
         autoFocus
       />
       {document.members.length > 0 ? (

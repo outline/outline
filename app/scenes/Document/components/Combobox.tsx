@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { VisuallyHidden } from "reakit";
 import {
   unstable_useComboboxState as useComboboxState,
   unstable_Combobox as ComboboxInput,
@@ -16,26 +15,36 @@ import { LabelText, Outline, Wrapper } from "~/components/Input";
 import { Positioner } from "~/components/InputSelect";
 import { undraggableOnDesktop } from "~/styles";
 
-type Props = {
+type Suggestion = {
+  id: string;
+  value: string;
+  [key: string]: any;
+};
+
+type Option = Omit<Suggestion, "value">;
+
+type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "list"> & {
+  /** All possible suggestions, populated as search result options */
+  suggestions: Suggestion[];
+  /** Value held by the search input bar */
+  value: string;
+  /** Label for search input */
+  label: string;
+  /** Label for the search results list */
+  listLabel: string;
+  /** Handler which triggers upon search input change */
   onChangeInput: (value: string) => void;
-  onSelectOption: (option: Record<string, any>) => void;
-} & Record<any, any>;
+  /** Handler which triggers when one of the search result options is selected */
+  onSelectOption: (option: Option) => void;
+};
 
 function Combobox({
   suggestions = [],
   value,
   label,
   listLabel,
-  // new props
-  className,
-  short,
-  flex,
-  labelHidden,
-  onRequestSubmit,
   onChangeInput,
   onSelectOption,
-  margin,
-  children,
   ...rest
 }: Props) {
   const [focused, setFocused] = React.useState(false);
@@ -55,26 +64,19 @@ function Combobox({
 
   const state = useComboboxState({
     gutter: 8,
-    values: suggestions.map((s: any) => s.value),
+    values: suggestions.map((s) => s.value),
   });
 
   React.useEffect(() => {
-    setItems(suggestions.filter((s: any) => state.matches.includes(s.value)));
+    setItems(suggestions.filter((s) => state.matches.includes(s.value)));
   }, [state.matches, suggestions]);
-
-  const wrappedLabel = <LabelText>{label}</LabelText>;
 
   return (
     <>
-      <Wrapper className={className} short={short} flex={flex}>
+      <Wrapper>
         <label>
-          {label &&
-            (labelHidden ? (
-              <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
-            ) : (
-              wrappedLabel
-            ))}
-          <Outline focused={focused} margin={margin}>
+          {label && <LabelText>{label}</LabelText>}
+          <Outline focused={focused}>
             <StyledComboboxInput
               {...state}
               onBlur={handleBlur}
@@ -83,7 +85,6 @@ function Combobox({
               type="search"
               {...rest}
             />
-            {children}
           </Outline>
         </label>
       </Wrapper>
@@ -110,14 +111,14 @@ function Combobox({
                 style={{ maxWidth: "100%" }}
               >
                 {state.visible
-                  ? items.map((match: any) => (
+                  ? items.map((item) => (
                       <StyledComboboxOption
                         {...state}
-                        value={match.value}
-                        key={match.value}
-                        onClick={() => onSelectOption(match)}
+                        value={item.value}
+                        key={item.id}
+                        onClick={() => onSelectOption(item)}
                       >
-                        {match.value}
+                        {item.value}
                       </StyledComboboxOption>
                     ))
                   : null}
