@@ -670,7 +670,7 @@ describe("#collections.remove_group", () => {
 });
 
 describe("#collections.remove_user", () => {
-  it("should remove user from collection", async () => {
+  it.only("should remove user from collection", async () => {
     const admin = await buildAdmin();
     const collection = await buildCollection({
       teamId: admin.teamId,
@@ -697,6 +697,28 @@ describe("#collections.remove_user", () => {
     const users = await collection.$get("users");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(1);
+  });
+
+  it("should fail with status 400 bad request if user is not a member", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+      permission: null,
+    });
+    const nonMember = await buildUser({
+      teamId: admin.teamId,
+    });
+    const res = await server.post("/api/collections.remove_user", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+        userId: nonMember.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("User is not a collection member");
   });
 
   it("should require user in team", async () => {

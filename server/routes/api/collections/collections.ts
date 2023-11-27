@@ -243,6 +243,7 @@ router.post(
 
     await Event.create({
       name: "collections.add_group",
+      membershipId: membership.id,
       collectionId: collection.id,
       teamId: collection.teamId,
       actorId: user.id,
@@ -279,9 +280,21 @@ router.post(
     const group = await Group.findByPk(groupId);
     authorize(user, "read", group);
 
+    const membership = await GroupPermission.findOne({
+      where: {
+        collectionId: id,
+        groupId,
+      },
+    });
+
+    if (!membership) {
+      ctx.throw(400, "This Group is not a part of the collection");
+    }
+
     await collection.$remove("group", group);
     await Event.create({
       name: "collections.remove_group",
+      membershipId: membership.id,
       collectionId: collection.id,
       teamId: collection.teamId,
       actorId: user.id,
@@ -410,6 +423,7 @@ router.post(
     await Event.create(
       {
         name: "collections.add_user",
+        membershipId: membership.id,
         userId,
         collectionId: collection.id,
         teamId: collection.teamId,
@@ -451,10 +465,22 @@ router.post(
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
 
+    const membership = await UserPermission.findOne({
+      where: {
+        userId: user.id,
+        collectionId: collection.id,
+      },
+      transaction,
+    });
+    if (!membership) {
+      ctx.throw(400, "User is not a collection member");
+    }
     await collection.$remove("user", user, { transaction });
+
     await Event.create(
       {
         name: "collections.remove_user",
+        membershipId: membership.id,
         userId,
         collectionId: collection.id,
         teamId: collection.teamId,

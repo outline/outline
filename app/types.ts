@@ -177,6 +177,7 @@ export type WebsocketEntitiesEvent = {
 };
 
 export type WebsocketCollectionUserEvent = {
+  membershipId: string;
   collectionId: string;
   userId: string;
 };

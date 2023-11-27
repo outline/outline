@@ -216,12 +216,14 @@ export default class WebsocketsProcessor {
         // so they need to be notified separately
         socketio.to(`user-${event.userId}`).emit(event.name, {
           event: event.name,
+          membershipId: event.membershipId,
           userId: event.userId,
           collectionId: event.collectionId,
         });
         // let everyone with access to the collection know a user was added
         socketio.to(`collection-${event.collectionId}`).emit(event.name, {
           event: event.name,
+          membershipId: event.membershipId,
           userId: event.userId,
           collectionId: event.collectionId,
         });
@@ -243,6 +245,7 @@ export default class WebsocketsProcessor {
           // treat this like an add, so that the client re-syncs policies
           socketio.to(`user-${event.userId}`).emit("collections.add_user", {
             event: "collections.add_user",
+            membershipId: event.membershipId,
             userId: event.userId,
             collectionId: event.collectionId,
           });
@@ -252,6 +255,7 @@ export default class WebsocketsProcessor {
             .to(`collection-${event.collectionId}`)
             .emit("collections.remove_user", {
               event: event.name,
+              membershipId: event.membershipId,
               userId: event.userId,
               collectionId: event.collectionId,
             });
@@ -278,6 +282,7 @@ export default class WebsocketsProcessor {
             .to(`user-${groupMembership.userId}`)
             .emit("collections.add_user", {
               event: event.name,
+              membershipId: event.membershipId,
               userId: groupMembership.userId,
               collectionId: event.collectionId,
             });
@@ -309,6 +314,7 @@ export default class WebsocketsProcessor {
               .to(`user-${groupMembership.userId}`)
               .emit("collections.add_user", {
                 event: event.name,
+                membershipId: event.membershipId,
                 userId: groupMembership.userId,
                 collectionId: event.collectionId,
               });
@@ -318,6 +324,7 @@ export default class WebsocketsProcessor {
               .to(`user-${groupMembership.userId}`)
               .emit("collections.remove_user", {
                 event: event.name,
+                membershipId: event.membershipId,
                 userId: groupMembership.userId,
                 collectionId: event.collectionId,
               });

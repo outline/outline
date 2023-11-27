@@ -441,7 +441,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       event,
       subscription,
       payload: {
-        id: `${event.userId}-${event.collectionId}`,
+        id: event.membershipId,
         model: model && presentMembership(model),
         collection: model && presentCollection(model.collection!),
         user: model && presentUser(model.user),
@@ -468,7 +468,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       event,
       subscription,
       payload: {
-        id: `${event.modelId}-${event.collectionId}`,
+        id: event.membershipId,
         model: model && presentCollectionGroupMembership(model),
         collection: model && presentCollection(model.collection!),
         group: model && presentGroup(model.group),
