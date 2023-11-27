@@ -101,7 +101,7 @@
     "dotenv": "^4.0.0",
     "email-providers": "^1.14.0",
     "emoji-mart": "^5.5.2",
-    "emoji-regex": "^10.2.1",
+    "emoji-regex": "^10.3.0",
     "es6-error": "^4.1.1",
     "fetch-retry": "^5.0.6",
     "fetch-with-proxy": "^3.0.1",
