@@ -3,7 +3,6 @@ import type { SaveOptions } from "sequelize";
 import {
   Table,
   ForeignKey,
-  Model,
   Column,
   PrimaryKey,
   IsUUID,
@@ -18,6 +17,7 @@ import {
 } from "sequelize-typescript";
 import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
+import Model from "@server/models/base/Model";
 import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";

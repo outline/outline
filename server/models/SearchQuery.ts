@@ -1,7 +1,6 @@
 import {
   Table,
   ForeignKey,
-  Model,
   Column,
   PrimaryKey,
   IsUUID,
@@ -10,6 +9,7 @@ import {
   DataType,
   Default,
 } from "sequelize-typescript";
+import Model from "@server/models/base/Model";
 import Team from "./Team";
 import User from "./User";
 import Fix from "./decorators/Fix";

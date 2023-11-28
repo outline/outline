@@ -8,11 +8,11 @@ import {
   ForeignKey,
   HasMany,
   Table,
-  Model,
   IsUUID,
   PrimaryKey,
 } from "sequelize-typescript";
 import env from "@server/env";
+import Model from "@server/models/base/Model";
 import AzureClient from "@server/utils/azure";
 import GoogleClient from "@server/utils/google";
 import OIDCClient from "@server/utils/oidc";
