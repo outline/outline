@@ -243,13 +243,13 @@ router.post(
 
     await Event.create({
       name: "collections.add_group",
-      membershipId: membership.id,
       collectionId: collection.id,
       teamId: collection.teamId,
       actorId: user.id,
       modelId: groupId,
       data: {
         name: group.name,
+        membershipId: membership.id,
       },
       ip: ctx.request.ip,
     });
@@ -294,13 +294,13 @@ router.post(
     await collection.$remove("group", group);
     await Event.create({
       name: "collections.remove_group",
-      membershipId: membership.id,
       collectionId: collection.id,
       teamId: collection.teamId,
       actorId: user.id,
       modelId: groupId,
       data: {
         name: group.name,
+        membershipId: membership.id,
       },
       ip: ctx.request.ip,
     });
@@ -423,13 +423,13 @@ router.post(
     await Event.create(
       {
         name: "collections.add_user",
-        membershipId: membership.id,
         userId,
         collectionId: collection.id,
         teamId: collection.teamId,
         actorId: actor.id,
         data: {
           name: user.name,
+          membershipId: membership.id,
         },
         ip: ctx.request.ip,
       },
@@ -480,13 +480,13 @@ router.post(
     await Event.create(
       {
         name: "collections.remove_user",
-        membershipId: membership.id,
         userId,
         collectionId: collection.id,
         teamId: collection.teamId,
         actorId: actor.id,
         data: {
           name: user.name,
+          membershipId: membership.id,
         },
         ip: ctx.request.ip,
       },

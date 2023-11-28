@@ -197,19 +197,16 @@ export type FileOperationEvent = BaseEvent & {
 
 export type CollectionUserEvent = BaseEvent & {
   name: "collections.add_user" | "collections.remove_user";
-  membershipId: string;
   userId: string;
   collectionId: string;
+  data: { name: string; membershipId: string };
 };
 
 export type CollectionGroupEvent = BaseEvent & {
   name: "collections.add_group" | "collections.remove_group";
   collectionId: string;
-  membershipId: string;
   modelId: string;
-  data: {
-    name: string;
-  };
+  data: { name: string; membershipId: string };
 };
 
 export type CollectionEvent = BaseEvent &

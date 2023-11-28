@@ -71,13 +71,7 @@ export default class MembershipsStore extends Store<Membership> {
       id: collectionId,
       userId,
     });
-    const membership = Array.from(this.data.values()).find(
-      (m) => m.userId === userId && m.collectionId === collectionId
-    );
-    if (membership) {
-      this.remove(membership.id);
-      this.rootStore.users.remove(userId);
-    }
+    this.revoke({ userId, collectionId });
   }
 
   @action
@@ -87,5 +81,21 @@ export default class MembershipsStore extends Store<Membership> {
         this.remove(key);
       }
     });
+  };
+
+  @action
+  revoke = ({
+    userId,
+    collectionId,
+  }: {
+    collectionId: string;
+    userId: string;
+  }) => {
+    const membership = Array.from(this.data.values()).find(
+      (m) => m.userId === userId && m.collectionId === collectionId
+    );
+    if (membership) {
+      this.remove(membership.id);
+    }
   };
 }
