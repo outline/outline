@@ -1,4 +1,4 @@
-import { createQueue } from "@server/utils/queue";
+import { createQueue } from "@server/queues/queue";
 
 export const globalEventQueue = createQueue("globalEvents", {
   attempts: 5,
