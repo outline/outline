@@ -17,7 +17,7 @@ export default createGlobalStyle<Props>`
   html,
   body {
     width: 100%;
-    height: ${(props) => (props.staticHTML ? "0" : "100%")};
+    ${(props) => (props.staticHTML ? "" : "height: 100%;")}
     margin: 0;
     padding: 0;
     print-color-adjust: exact;
