@@ -115,8 +115,8 @@ export default () =>
           short_name: "Outline",
           theme_color: "#fff",
           background_color: "#fff",
-          start_url: process.env.URL ?? "/",
-          scope: process.env.URL ?? "/",
+          start_url: "/",
+          scope: ".",
           display: "standalone",
           // For Chrome, you must provide at least a 192x192 pixel icon, and a 512x512 pixel icon.
           // If only those two icon sizes are provided, Chrome will automatically scale the icons
