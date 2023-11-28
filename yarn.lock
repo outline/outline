@@ -3731,6 +3731,11 @@
     magic-string "^0.27.0"
     react-refresh "^0.14.0"
 
+"@xmldom/xmldom@^0.8.6":
+  version "0.8.10"
+  resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.10.tgz#a1337ca426aa61cef9fe15b5b28e340a72f6fa99"
+  integrity sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==
+
 "@yarnpkg/lockfile@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@yarnpkg/lockfile/-/lockfile-1.1.0.tgz#e77a97fbd345b76d83245edcd17d393b1b41fb31"
@@ -4389,7 +4394,7 @@ balanced-match@^1.0.0:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
   integrity sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
 
-base64-js@^1.0.2:
+base64-js@^1.0.2, base64-js@^1.5.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
   integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
@@ -9551,18 +9556,19 @@ makeerror@1.0.12:
   dependencies:
     tmpl "1.0.5"
 
-mammoth@^1.5.1:
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/mammoth/-/mammoth-1.5.1.tgz#ef979dfc9ea411e5f2841a989f5ba70e115f0536"
-  integrity sha512-7ZioZBf/1HjYrm1qZJOO+DD+rYxLvwrHS+HVOwW89hwIp+r6ZqJ/Eq2rXSS+8ezZ3/DuW6FUUp2Dfz6e7B2pBQ==
+mammoth@^1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/mammoth/-/mammoth-1.6.0.tgz#3a80e016b3d1374c9404eb841048c70295276532"
+  integrity sha512-jOwbj6BwJzxCf6jr2l1zmSemniIkLnchvELXnDJCANlJawhzyIKObIq48B8kWEPLgUUh57k7FtEO3DHFQMnjMg==
   dependencies:
+    "@xmldom/xmldom" "^0.8.6"
     argparse "~1.0.3"
+    base64-js "^1.5.1"
     bluebird "~3.4.0"
     dingbat-to-unicode "^1.0.1"
     jszip "^3.7.1"
     lop "^0.4.1"
     path-is-absolute "^1.0.0"
-    sax "~1.1.1"
     underscore "^1.13.1"
     xmlbuilder "^10.0.0"
 
@@ -11869,11 +11875,6 @@ sax@>=0.6.0:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
-
-sax@~1.1.1:
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/sax/-/sax-1.1.6.tgz#5d616be8a5e607d54e114afae55b7eaf2fcc3240"
-  integrity sha1-XWFr6KXmB9VOEUr65Vt+ry/MMkA=
 
 saxes@^6.0.0:
   version "6.0.0"
