@@ -670,7 +670,7 @@ describe("#collections.remove_group", () => {
 });
 
 describe("#collections.remove_user", () => {
-  it.only("should remove user from collection", async () => {
+  it("should remove user from collection", async () => {
     const admin = await buildAdmin();
     const collection = await buildCollection({
       teamId: admin.teamId,
