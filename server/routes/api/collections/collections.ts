@@ -268,23 +268,23 @@ router.post(
   "collections.remove_group",
   auth(),
   validate(T.CollectionsRemoveGroupSchema),
+  transaction(),
   async (ctx: APIContext<T.CollectionsRemoveGroupReq>) => {
     const { id, groupId } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
-    }).findByPk(id);
+    }).findByPk(id, { transaction });
     authorize(user, "update", collection);
 
-    const group = await Group.findByPk(groupId);
+    const group = await Group.findByPk(groupId, { transaction });
     authorize(user, "read", group);
 
-    const membership = await GroupPermission.findOne({
-      where: {
-        collectionId: id,
-        groupId,
-      },
+    const [membership] = await collection.$get("collectionGroupMemberships", {
+      where: { groupId },
+      transaction,
     });
 
     if (!membership) {
@@ -292,18 +292,21 @@ router.post(
     }
 
     await collection.$remove("group", group);
-    await Event.create({
-      name: "collections.remove_group",
-      collectionId: collection.id,
-      teamId: collection.teamId,
-      actorId: user.id,
-      modelId: groupId,
-      data: {
-        name: group.name,
-        membershipId: membership.id,
+    await Event.create(
+      {
+        name: "collections.remove_group",
+        collectionId: collection.id,
+        teamId: collection.teamId,
+        actorId: user.id,
+        modelId: groupId,
+        data: {
+          name: group.name,
+          membershipId: membership.id,
+        },
+        ip: ctx.request.ip,
       },
-      ip: ctx.request.ip,
-    });
+      { transaction }
+    );
 
     ctx.body = {
       success: true,
@@ -450,8 +453,8 @@ router.post(
 router.post(
   "collections.remove_user",
   auth(),
-  transaction(),
   validate(T.CollectionsRemoveUserSchema),
+  transaction(),
   async (ctx: APIContext<T.CollectionsRemoveUserReq>) => {
     const { auth, transaction } = ctx.state;
     const actor = auth.user;
@@ -465,16 +468,14 @@ router.post(
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
 
-    const membership = await UserPermission.findOne({
-      where: {
-        userId: user.id,
-        collectionId: collection.id,
-      },
+    const [membership] = await collection.$get("memberships", {
+      where: { userId },
       transaction,
     });
     if (!membership) {
       ctx.throw(400, "User is not a collection member");
     }
+
     await collection.$remove("user", user, { transaction });
 
     await Event.create(
