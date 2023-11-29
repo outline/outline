@@ -156,5 +156,5 @@ export default function init() {
 
   HealthMonitor.start(globalEventQueue);
   HealthMonitor.start(processorEventQueue);
-  HealthMonitor.start(websocketQueue);
+  HealthMonitor.start(taskQueue);
 }
