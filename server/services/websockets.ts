@@ -117,7 +117,9 @@ export default function init(
       socket.emit("authenticated", true);
       void authenticated(io, socket);
     } catch (err) {
-      Logger.error(`Authentication error socket ${socket.id}`, err);
+      Logger.debug("websockets", `Authentication error socket ${socket.id}`, {
+        error: err.message,
+      });
       socket.emit("unauthorized", { message: err.message }, function () {
         socket.disconnect();
       });
