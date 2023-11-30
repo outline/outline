@@ -900,7 +900,7 @@
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "워크스페이스 <1>{{workspaceName}}</1>를 지우면 모든 컬렉션, 문서, 유저, 관련된 데이터를 제거하고 즉시 {{appName}} 에서 로그아웃 됩니다.",
   "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.": "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.",
   "Workspace name": "워크스페이스명",
-  "Your are creating a new workspace using your current account — <em>{{email}}</em>": "현재 계정을 사용하여 새 워크 스페이스를 만들고 있습니다 — <em>{{email}}</em>",
+  "You are creating a new workspace using your current account — <em>{{email}}</em>": "You are creating a new workspace using your current account — <em>{{email}}</em>",
   "To create a workspace under another email please sign up from the homepage": "To create a workspace under another email please sign up from the homepage",
   "Trash is empty at the moment.": "현재 휴지통이 비어 있습니다.",
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy your account.": "A confirmation code has been sent to your email address, please enter the code below to permanently destroy your account.",
