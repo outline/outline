@@ -238,20 +238,6 @@ export default class Document extends ParanoidModel {
       .map((m) => m.user);
   }
 
-  /**
-   * Returns users who are team members but are not document members
-   *
-   * @returns users who are not members of the document
-   */
-  @computed
-  get nonMembers(): User[] {
-    const teamMembers = this.store.rootStore.users.activeOrInvited;
-
-    return teamMembers.filter(
-      (teamMember) => !this.members.map((m) => m.id).includes(teamMember.id)
-    );
-  }
-
   @computed
   get isArchived(): boolean {
     return !!this.archivedAt;
