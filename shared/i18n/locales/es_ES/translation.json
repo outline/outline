@@ -900,7 +900,7 @@
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "Eliminar el espacio de trabajo <1>{{workspaceName}}</1> eliminará todas las colecciones, documentos, usuarios y datos asociados. Se cerrará inmediatamente la sesión de {{appName}}.",
   "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.": "Ten en cuenta que los espacios de trabajo son completamente separados. Pueden tener un dominio, configuración, usuarios y facturación diferentes.",
   "Workspace name": "Nombre del espacio de trabajo",
-  "Your are creating a new workspace using your current account — <em>{{email}}</em>": "Estás creando un nuevo espacio de trabajo usando tu cuenta actual — <em>{{email}}</em>",
+  "You are creating a new workspace using your current account — <em>{{email}}</em>": "You are creating a new workspace using your current account — <em>{{email}}</em>",
   "To create a workspace under another email please sign up from the homepage": "Para crear un espacio de trabajo bajo otro correo electrónico, por favor regístrate desde la página de inicio",
   "Trash is empty at the moment.": "La papelera está vacía en este momento.",
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy your account.": "Un código de confirmación ha sido enviado a tu dirección de correo electrónico, por favor ingresa el código a continuación para eliminar permanentemente tu cuenta.",
