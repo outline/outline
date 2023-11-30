@@ -900,7 +900,7 @@
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.",
   "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.": "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.",
   "Workspace name": "工作區名字",
-  "Your are creating a new workspace using your current account — <em>{{email}}</em>": "您正在使用當前帳戶建立新的工作區 — <em>{{email}}</em>",
+  "You are creating a new workspace using your current account — <em>{{email}}</em>": "You are creating a new workspace using your current account — <em>{{email}}</em>",
   "To create a workspace under another email please sign up from the homepage": "To create a workspace under another email please sign up from the homepage",
   "Trash is empty at the moment.": "垃圾桶目前是空的。",
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy your account.": "A confirmation code has been sent to your email address, please enter the code below to permanently destroy your account.",
