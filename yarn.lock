@@ -5647,7 +5647,7 @@ debug@4, debug@4.3.4, debug@^4.0.1, debug@^4.1.0, debug@^4.1.1, debug@^4.3.2, de
   dependencies:
     ms "2.1.2"
 
-debug@^2.2.0, debug@^2.6.1, debug@^2.6.8:
+debug@^2.2.0, debug@^2.6.8:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
   integrity sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==
@@ -9007,7 +9007,7 @@ koa-body@^6.0.1:
     formidable "^2.0.1"
     zod "^3.19.1"
 
-koa-compose@^3.0.0, koa-compose@^3.2.1:
+koa-compose@^3.0.0:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/koa-compose/-/koa-compose-3.2.1.tgz#a85ccb40b7d986d8e5a345b3a1ace8eabcf54de7"
   integrity sha1-qFzLQLfZhtjlo0Wzoazo6rz1Tec=
@@ -9058,14 +9058,6 @@ koa-logger@^3.2.1:
     chalk "^2.4.2"
     humanize-number "0.0.2"
     passthrough-counter "^1.0.0"
-
-koa-mount@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/koa-mount/-/koa-mount-3.0.0.tgz#08cab3b83d31442ed8b7e75c54b1abeb922ec197"
-  integrity sha1-CMqzuD0xRC7Yt+dcVLGr65IuwZc=
-  dependencies:
-    debug "^2.6.1"
-    koa-compose "^3.2.1"
 
 koa-mount@^4.0.0:
   version "4.0.0"
