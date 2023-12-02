@@ -41,7 +41,7 @@ ${teamUrl}/home
   }
 
   protected render({ teamUrl }: Props) {
-    const welcomLink = `${teamUrl}/home?ref=welcome-email`;
+    const welcomeLink = `${teamUrl}/home?ref=welcome-email`;
 
     return (
       <EmailTemplate previewText={this.preview()}>
@@ -64,7 +64,7 @@ ${teamUrl}/home
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={welcomLink}>Open {env.APP_NAME}</Button>
+            <Button href={welcomeLink}>Open {env.APP_NAME}</Button>
           </p>
         </Body>
 
