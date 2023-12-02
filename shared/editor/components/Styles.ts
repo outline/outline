@@ -1,6 +1,7 @@
 /* eslint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css, keyframes } from "styled-components";
+import { videoStyle } from "./Video";
 
 export type Props = {
   rtl: boolean;
@@ -416,6 +417,11 @@ li {
     pointer-events: ${props.readOnly ? "initial" : "none"};
     display: inline-block;
     max-width: 100%;
+  }
+
+  video {
+    pointer-events: initial;
+    ${videoStyle}
   }
 
   .ProseMirror-selectednode img {
