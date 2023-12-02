@@ -80,7 +80,7 @@
     "@vitejs/plugin-react": "^3.1.0",
     "addressparser": "^1.0.1",
     "autotrack": "^2.4.1",
-    "aws-sdk": "^2.1464.0",
+    "aws-sdk": "^2.1510.0",
     "babel-plugin-styled-components": "^2.1.4",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "body-scroll-lock": "^4.0.0-beta.0",
@@ -130,7 +130,7 @@
     "koa-compress": "^5.1.1",
     "koa-helmet": "^6.1.0",
     "koa-logger": "^3.2.1",
-    "koa-mount": "^3.0.0",
+    "koa-mount": "^4.0.0",
     "koa-router": "7.4.0",
     "koa-send": "5.0.1",
     "koa-sslify": "5.0.1",
@@ -349,12 +349,14 @@
   "resolutions": {
     "body-scroll-lock": "^4.0.0-beta.0",
     "d3": "^7.0.0",
+    "debug": "4.3.4",
     "node-fetch": "^2.6.12",
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.14.1",
     "jpeg-js": "0.4.4",
     "qs": "6.9.7",
-    "rollup": "^4.5.1"
+    "rollup": "^4.5.1",
+    "vm2": "3.9.19"
   },
   "version": "0.73.1"
 }
