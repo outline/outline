@@ -68,6 +68,10 @@ function Combobox({
   });
 
   React.useEffect(() => {
+    state.setValues(suggestions.map((s) => s.value));
+  }, [suggestions]);
+
+  React.useEffect(() => {
     setItems(suggestions.filter((s) => state.matches.includes(s.value)));
   }, [state.matches, suggestions]);
 
