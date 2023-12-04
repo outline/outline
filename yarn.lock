@@ -3014,10 +3014,10 @@
   resolved "https://registry.yarnpkg.com/@types/http-errors/-/http-errors-1.8.1.tgz#e81ad28a60bee0328c6d2384e029aec626f1ae67"
   integrity sha512-e+2rjEwK6KDaNOm5Aa9wNGgyS9oSZU/4pfSMMPYNOfjvFI0WVXm29+ITRFr6aKDvvKo7uU1jV68MW4ScsfDi7Q==
 
-"@types/inline-css@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@types/inline-css/-/inline-css-3.0.1.tgz#b98708cfc8c13c247ce11f3c82a509ce468d181b"
-  integrity sha512-1bs+MjVvZIuF71D8P+FZf79LcqccqVBNF6txnabXT1vGnRMqZO0agtdyC585fcjuSs7Nj9qal8CF9rfWVQxnTQ==
+"@types/inline-css@^3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@types/inline-css/-/inline-css-3.0.3.tgz#798a1616e8878fa158ad3dbbd5854da1ab9dc80d"
+  integrity sha512-opchbYK/f06s4KhxexrD8BHyzUcd/2nhMVBcnTafOaRGIQLL7AebnEkAbvvQmGeXTcQMKxGV9VafPvvJX1lQRg==
   dependencies:
     "@types/cheerio" "*"
 
