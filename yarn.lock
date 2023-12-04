@@ -3291,7 +3291,16 @@
   resolved "https://registry.yarnpkg.com/@types/pako/-/pako-1.0.4.tgz#b4262aef92680a9331fcdb8420c69cf3dd98d3f3"
   integrity sha512-Z+5bJSm28EXBSUJEgx29ioWeEEHUh6TiMkZHDhLwjc9wVFH+ressbkmX6waUZc5R3Gobn4Qu5llGxaoflZ+yhA==
 
-"@types/passport-oauth2@^1.4.15":
+"@types/passport-github2@^1.2.8":
+  version "1.2.9"
+  resolved "https://registry.yarnpkg.com/@types/passport-github2/-/passport-github2-1.2.9.tgz#7e43b8529276cc8c429ac430f9de06d8406a17da"
+  integrity sha512-/nMfiPK2E6GKttwBzwj0Wjaot8eHrM57hnWxu52o6becr5/kXlH/4yE2v2rh234WGvSgEEzIII02Nc5oC5xEHA==
+  dependencies:
+    "@types/express" "*"
+    "@types/passport" "*"
+    "@types/passport-oauth2" "*"
+
+"@types/passport-oauth2@*", "@types/passport-oauth2@^1.4.15":
   version "1.4.15"
   resolved "https://registry.yarnpkg.com/@types/passport-oauth2/-/passport-oauth2-1.4.15.tgz#34f2684f53aad36e664cd01ca9879224229f47e7"
   integrity sha512-9cUTP/HStNSZmhxXGuRrBJfEWzIEJRub2eyJu3CvkA+8HAMc9W3aKdFhVq+Qz1hi42qn+GvSAnz3zwacDSYWpw==
@@ -10318,6 +10327,13 @@ parseurl@^1.3.2:
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/parseurl/-/parseurl-1.3.3.tgz#9da19e7bee8d12dff0513ed5b76957793bc2e8d4"
   integrity sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==
+
+passport-github2@^0.1.12:
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/passport-github2/-/passport-github2-0.1.12.tgz#a72ebff4fa52a35bc2c71122dcf470d1116f772c"
+  integrity sha512-3nPUCc7ttF/3HSP/k9sAXjz3SkGv5Nki84I05kSQPo01Jqq1NzJACgMblCK0fGcv9pKCG/KXU3AJRDGLqHLoIw==
+  dependencies:
+    passport-oauth2 "1.x.x"
 
 passport-google-oauth2@^0.2.0:
   version "0.2.0"
