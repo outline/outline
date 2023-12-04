@@ -21,6 +21,7 @@ function ShareButton({ document }: Props) {
   const team = useCurrentTeam();
   const share = shares.getByDocumentId(document.id);
   const sharedParent = shares.getByDocumentParents(document.id);
+  const domain = share?.domain || sharedParent?.domain;
   const isPubliclyShared =
     team.sharing &&
     (share?.published || (sharedParent?.published && !document.isDraft));
@@ -54,7 +55,7 @@ function ShareButton({ document }: Props) {
               neutral
               {...props}
             >
-              {t("Share")}
+              {t("Share")} {domain && <>&middot; {domain}</>}
             </Button>
           </Tooltip>
         )}

@@ -1,11 +1,13 @@
 /* eslint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css, keyframes } from "styled-components";
+import { videoStyle } from "./Video";
 
 export type Props = {
   rtl: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
+  staticHTML?: boolean;
   editorStyle?: React.CSSProperties;
   grow?: boolean;
   theme: DefaultTheme;
@@ -415,6 +417,11 @@ li {
     pointer-events: ${props.readOnly ? "initial" : "none"};
     display: inline-block;
     max-width: 100%;
+  }
+
+  video {
+    pointer-events: initial;
+    ${videoStyle}
   }
 
   .ProseMirror-selectednode img {
@@ -1128,7 +1135,7 @@ mark {
 
   /* Hide code without display none so toolbar can still be positioned against it */
   &:not(.code-active) {
-    height: 0;
+    height: ${props.staticHTML ? "auto" : "0"};
     margin: -0.5em 0;
     overflow: hidden;
   }
@@ -1136,7 +1143,7 @@ mark {
 
 /* Hide code without display none so toolbar can still be positioned against it */
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
-  height: 0;
+  height: ${props.staticHTML ? "auto" : "0"};
   margin: -0.5em 0;
   overflow: hidden;
 }

@@ -8,6 +8,8 @@ import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 
 class Comment extends Model {
+  static modelName = "Comment";
+
   /**
    * Map to keep track of which users are currently typing a reply in this
    * comments thread.

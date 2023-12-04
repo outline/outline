@@ -20,6 +20,7 @@ import Diagrams from "./Diagrams";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
+import GitLabSnippet from "./GitLabSnippet";
 import Gliffy from "./Gliffy";
 import GoogleCalendar from "./GoogleCalendar";
 import GoogleDocs from "./GoogleDocs";
@@ -68,7 +69,7 @@ const Img = styled(Image)`
   border-radius: 2px;
   background: #fff;
   box-shadow: 0 0 0 1px #fff;
-  margin: 4px;
+  margin: 3px;
   width: 18px;
   height: 18px;
 `;
@@ -210,6 +211,12 @@ const embeds: EmbedDescriptor[] = [
     keywords: "code",
     icon: <Img src="/images/github-gist.png" alt="GitHub" />,
     component: Gist,
+  }),
+  new EmbedDescriptor({
+    title: "GitLab Snippet",
+    keywords: "code",
+    icon: <Img src="/images/gitlab.png" alt="GitLab" />,
+    component: GitLabSnippet,
   }),
   new EmbedDescriptor({
     title: "Gliffy",

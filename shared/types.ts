@@ -123,6 +123,17 @@ export enum UserPreference {
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
 
+export type SourceMetadata = {
+  /** The original source file name. */
+  fileName?: string;
+  /** The original source mime type. */
+  mimeType?: string;
+  /** An ID in the external source. */
+  externalId?: string;
+  /** Whether the item was created through a trial license. */
+  trial?: boolean;
+};
+
 export type CustomTheme = {
   accent: string;
   accentText: string;

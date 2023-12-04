@@ -13,9 +13,7 @@ export default async function main(exit = false, limit = 1000) {
     let revisions: Revision[] = [];
     await sequelize.transaction(async (transaction) => {
       revisions = await Revision.unscoped().findAll({
-        attributes: {
-          exclude: ["text"],
-        },
+        attributes: ["id", "title", "emoji"],
         limit,
         offset: page * limit,
         order: [["createdAt", "ASC"]],

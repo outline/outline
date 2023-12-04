@@ -1,7 +1,10 @@
+import path from "path";
 import util from "util";
 import AWS, { S3 } from "aws-sdk";
+import fs from "fs-extra";
 import invariant from "invariant";
 import compact from "lodash/compact";
+import tmp from "tmp";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
@@ -158,6 +161,37 @@ export default class S3Storage extends BaseStorage {
 
     return url;
   };
+
+  public getFileHandle(key: string): Promise<{
+    path: string;
+    cleanup: () => Promise<void>;
+  }> {
+    return new Promise((resolve, reject) => {
+      tmp.dir((err, tmpDir) => {
+        if (err) {
+          return reject(err);
+        }
+        const tmpFile = path.join(tmpDir, "tmp");
+        const dest = fs.createWriteStream(tmpFile);
+        dest.on("error", reject);
+        dest.on("finish", () =>
+          resolve({ path: tmpFile, cleanup: () => fs.rm(tmpFile) })
+        );
+
+        const stream = this.getFileStream(key);
+        if (!stream) {
+          return reject(new Error("No stream available"));
+        }
+
+        stream
+          .on("error", (err) => {
+            dest.end();
+            reject(err);
+          })
+          .pipe(dest);
+      });
+    });
+  }
 
   public getFileStream(key: string) {
     invariant(

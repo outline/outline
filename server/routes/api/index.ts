@@ -44,7 +44,10 @@ api.use(
   bodyParser({
     multipart: true,
     formidable: {
-      maxFileSize: env.FILE_STORAGE_UPLOAD_MAX_SIZE,
+      maxFileSize: Math.max(
+        env.FILE_STORAGE_UPLOAD_MAX_SIZE,
+        env.MAXIMUM_IMPORT_SIZE
+      ),
       maxFieldsSize: 10 * 1024 * 1024,
     },
   })
@@ -93,7 +96,7 @@ router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
 router.use("/", urls.routes());
 
-if (env.ENVIRONMENT === "development") {
+if (env.isDevelopment) {
   router.use("/", developer.routes());
 }
 

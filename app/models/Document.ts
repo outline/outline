@@ -22,6 +22,8 @@ type SaveOptions = {
 };
 
 export default class Document extends ParanoidModel {
+  static modelName = "Document";
+
   constructor(fields: Record<string, any>, store: DocumentsStore) {
     super(fields, store);
 

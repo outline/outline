@@ -7,7 +7,7 @@ import Router from "koa-router";
 import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
-import { IntegrationType } from "@shared/types";
+import { IntegrationType, TeamPreference } from "@shared/types";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import shareDomains from "@server/middlewares/shareDomains";
@@ -19,7 +19,6 @@ import apexRedirect from "../middlewares/apexRedirect";
 import { renderApp, renderShare } from "./app";
 import errors from "./errors";
 
-const isProduction = env.ENVIRONMENT === "production";
 const koa = new Koa();
 const router = new Router();
 
@@ -59,7 +58,7 @@ router.use(
   }
 );
 
-if (isProduction) {
+if (env.isProduction) {
   router.get("/static/*", async (ctx) => {
     try {
       const pathname = ctx.path.substring(8);
@@ -153,6 +152,10 @@ router.get("*", shareDomains(), async (ctx, next) => {
 
   return renderApp(ctx, next, {
     analytics,
+    shortcutIcon:
+      team?.getPreference(TeamPreference.PublicBranding) && team.avatarUrl
+        ? team.avatarUrl
+        : undefined,
   });
 });
 

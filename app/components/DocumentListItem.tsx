@@ -260,8 +260,8 @@ const Title = styled(Highlight)`
 
 const ResultContext = styled(Highlight)`
   display: block;
-  color: ${s("textTertiary")};
-  font-size: 14px;
+  color: ${s("textSecondary")};
+  font-size: 15px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;
 `;

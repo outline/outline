@@ -5,6 +5,7 @@ import { NavigationNode, TeamPreference } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
+import Error402 from "~/scenes/Error402";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -12,7 +13,11 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
-import { NotFoundError, OfflineError } from "~/utils/errors";
+import {
+  NotFoundError,
+  OfflineError,
+  PaymentRequiredError,
+} from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
 import Loading from "./Loading";
@@ -195,7 +200,13 @@ function DataLoader({ match, children }: Props) {
   }, [can.read, can.update, document, isEditRoute, comments, team, shares, ui]);
 
   if (error) {
-    return error instanceof OfflineError ? <ErrorOffline /> : <Error404 />;
+    return error instanceof OfflineError ? (
+      <ErrorOffline />
+    ) : error instanceof PaymentRequiredError ? (
+      <Error402 />
+    ) : (
+      <Error404 />
+    );
   }
 
   if (!document || (revisionId && !revision)) {

@@ -17,7 +17,7 @@ export function bytesToHumanReadable(bytes: number | undefined) {
     return bytes + " Bytes";
   }
 
-  const f = out[1].substring(0, 2);
+  const f = (out[1] ?? "").substring(0, 2);
 
   return `${Number(out[0])}${f === "00" ? "" : `.${f}`} ${
     "  kMGTPEZY"[out.length]

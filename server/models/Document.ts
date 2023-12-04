@@ -11,6 +11,7 @@ import {
   FindOptions,
   ScopeOptions,
   WhereOptions,
+  EmptyResultError,
 } from "sequelize";
 import {
   ForeignKey,
@@ -31,9 +32,10 @@ import {
   Length as SimpleLength,
   IsNumeric,
   IsDate,
+  AllowNull,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
-import type { NavigationNode } from "@shared/types";
+import type { NavigationNode, SourceMetadata } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import slugify from "@shared/utils/slugify";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
@@ -57,6 +59,7 @@ export const DOCUMENT_VERSION = 2;
 type AdditionalFindOptions = {
   userId?: string;
   includeState?: boolean;
+  rejectOnEmpty?: boolean | Error;
 };
 
 @DefaultScope(() => ({
@@ -78,6 +81,11 @@ type AdditionalFindOptions = {
   where: {
     publishedAt: {
       [Op.ne]: null,
+    },
+    sourceMetadata: {
+      trial: {
+        [Op.is]: null,
+      },
     },
   },
 }))
@@ -399,6 +407,10 @@ class Document extends ParanoidModel {
   @Column(DataType.UUID)
   importId: string | null;
 
+  @AllowNull
+  @Column(DataType.JSONB)
+  sourceMetadata: SourceMetadata | null;
+
   @BelongsTo(() => Document, "parentDocumentId")
   parentDocument: Document | null;
 
@@ -503,22 +515,36 @@ class Document extends ParanoidModel {
     ]);
 
     if (isUUID(id)) {
-      return scope.findOne({
+      const document = await scope.findOne({
         where: {
           id,
         },
         ...rest,
+        rejectOnEmpty: false,
       });
+
+      if (!document && rest.rejectOnEmpty) {
+        throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
+      }
+
+      return document;
     }
 
     const match = id.match(SLUG_URL_REGEX);
     if (match) {
-      return scope.findOne({
+      const document = await scope.findOne({
         where: {
           urlId: match[1],
         },
         ...rest,
+        rejectOnEmpty: false,
       });
+
+      if (!document && rest.rejectOnEmpty) {
+        throw new EmptyResultError(`Document doesn't exist with id: ${id}`);
+      }
+
+      return document;
     }
 
     return null;
@@ -545,8 +571,22 @@ class Document extends ParanoidModel {
     return !this.publishedAt;
   }
 
+  /**
+   * Returns the title of the document or a default if the document is untitled.
+   *
+   * @returns boolean
+   */
   get titleWithDefault(): string {
     return this.title || "Untitled";
+  }
+
+  /**
+   * Whether this document was imported during a trial period.
+   *
+   * @returns boolean
+   */
+  get isTrialImport() {
+    return !!(this.importId && this.sourceMetadata?.trial);
   }
 
   /**

@@ -32,8 +32,11 @@ export async function signIn(
   service: string,
   { user, team, client, isNewTeam }: AuthenticationResult
 ) {
+  if (team.isSuspended) {
+    return ctx.redirect("/?notice=team-suspended");
+  }
   if (user.isSuspended) {
-    return ctx.redirect("/?notice=suspended");
+    return ctx.redirect("/?notice=user-suspended");
   }
 
   if (isNewTeam) {

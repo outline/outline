@@ -60,7 +60,7 @@ export default class SharesStore extends Store<Share> {
     this.isFetching = true;
 
     try {
-      const res = await client.post(`/${this.modelName}s.info`, {
+      const res = await client.post(`/${this.apiEndpoint}.info`, {
         documentId,
       });
 

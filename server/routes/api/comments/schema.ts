@@ -57,7 +57,8 @@ export type CommentsDeleteReq = z.infer<typeof CommentsDeleteSchema>;
 export const CollectionsListSchema = BaseSchema.extend({
   body: CollectionsSortParamsSchema.extend({
     /** Id of a document to list comments for */
-    documentId: z.string(),
+    documentId: z.string().optional(),
+    collectionId: z.string().uuid().optional(),
   }),
 });
 

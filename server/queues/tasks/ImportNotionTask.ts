@@ -1,5 +1,5 @@
 import path from "path";
-import JSZip from "jszip";
+import fs from "fs-extra";
 import compact from "lodash/compact";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
@@ -7,35 +7,33 @@ import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
 import Logger from "@server/logging/Logger";
 import { FileOperation, User } from "@server/models";
-import ZipHelper, { FileTreeNode } from "@server/utils/ZipHelper";
+import ImportHelper, { FileTreeNode } from "@server/utils/ImportHelper";
 import ImportTask, { StructuredImportData } from "./ImportTask";
 
 export default class ImportNotionTask extends ImportTask {
   public async parseData(
-    stream: NodeJS.ReadableStream,
+    dirPath: string,
     fileOperation: FileOperation
   ): Promise<StructuredImportData> {
-    const zip = await JSZip.loadAsync(stream);
-    const tree = ZipHelper.toFileTree(zip);
-    return this.parseFileTree({ fileOperation, zip, tree });
+    const tree = await ImportHelper.toFileTree(dirPath);
+    if (!tree) {
+      throw new Error("Could not find valid content in zip file");
+    }
+    return this.parseFileTree(fileOperation, tree.children);
   }
 
   /**
    * Converts the file structure from zipAsFileTree into documents,
    * collections, and attachments.
    *
+   * @param fileOperation The file operation
    * @param tree An array of FileTreeNode representing root files in the zip
    * @returns A StructuredImportData object
    */
-  private async parseFileTree({
-    zip,
-    tree,
-    fileOperation,
-  }: {
-    zip: JSZip;
-    fileOperation: FileOperation;
-    tree: FileTreeNode[];
-  }): Promise<StructuredImportData> {
+  private async parseFileTree(
+    fileOperation: FileOperation,
+    tree: FileTreeNode[]
+  ): Promise<StructuredImportData> {
     const user = await User.findByPk(fileOperation.userId, {
       rejectOnEmpty: true,
     });
@@ -58,11 +56,10 @@ export default class ImportNotionTask extends ImportTask {
             return;
           }
 
-          const zipObject = zip.files[child.path];
           const id = uuidv4();
           const match = child.title.match(this.NotionUUIDRegex);
           const name = child.title.replace(this.NotionUUIDRegex, "");
-          const sourceId = match ? match[0].trim() : undefined;
+          const externalId = match ? match[0].trim() : undefined;
 
           // If it's not a text file we're going to treat it as an attachment.
           const mimeType = mime.lookup(child.name);
@@ -78,8 +75,8 @@ export default class ImportNotionTask extends ImportTask {
               name: child.name,
               path: child.path,
               mimeType,
-              buffer: () => zipObject.async("nodebuffer"),
-              sourceId,
+              buffer: () => fs.readFile(child.path),
+              externalId,
             });
             return;
           }
@@ -89,18 +86,21 @@ export default class ImportNotionTask extends ImportTask {
           const { title, emoji, text } = await documentImporter({
             mimeType: mimeType || "text/markdown",
             fileName: name,
-            content: zipObject ? await zipObject.async("string") : "",
+            content:
+              child.children.length > 0
+                ? ""
+                : await fs.readFile(child.path, "utf8"),
             user,
             ip: user.lastActiveIp || undefined,
           });
 
           const existingDocumentIndex = output.documents.findIndex(
-            (doc) => doc.sourceId === sourceId
+            (doc) => doc.externalId === externalId
           );
 
           const existingDocument = output.documents[existingDocumentIndex];
 
-          // If there is an existing document with the same sourceId that means
+          // If there is an existing document with the same externalId that means
           // we've already parsed either a folder or a file referencing the same
           // document, as such we should merge.
           if (existingDocument) {
@@ -122,7 +122,8 @@ export default class ImportNotionTask extends ImportTask {
               collectionId,
               parentDocumentId,
               path: child.path,
-              sourceId,
+              mimeType: mimeType || "text/markdown",
+              externalId,
             });
             await parseNodeChildren(child.children, collectionId, id);
           }
@@ -168,13 +169,13 @@ export default class ImportNotionTask extends ImportTask {
       // instead of a relative or absolute URL within the original zip file.
       for (const link of internalLinksInText) {
         const doc = output.documents.find(
-          (doc) => doc.sourceId === link.sourceId
+          (doc) => doc.externalId === link.externalId
         );
 
         if (!doc) {
           Logger.info(
             "task",
-            `Could not find referenced document with sourceId ${link.sourceId}`
+            `Could not find referenced document with externalId ${link.externalId}`
           );
         } else {
           text = text.replace(link.href, `<<${doc.id}>>`);
@@ -188,11 +189,11 @@ export default class ImportNotionTask extends ImportTask {
     for (const node of tree) {
       const match = node.title.match(this.NotionUUIDRegex);
       const name = node.title.replace(this.NotionUUIDRegex, "");
-      const sourceId = match ? match[0].trim() : undefined;
+      const externalId = match ? match[0].trim() : undefined;
       const mimeType = mime.lookup(node.name);
 
       const existingCollectionIndex = output.collections.findIndex(
-        (collection) => collection.sourceId === sourceId
+        (collection) => collection.externalId === externalId
       );
       const existingCollection = output.collections[existingCollectionIndex];
       const collectionId = existingCollection?.id || uuidv4();
@@ -204,11 +205,10 @@ export default class ImportNotionTask extends ImportTask {
         mimeType === "text/plain" ||
         mimeType === "text/html"
       ) {
-        const zipObject = zip.files[node.path];
         const { text } = await documentImporter({
           mimeType,
           fileName: name,
-          content: await zipObject.async("string"),
+          content: await fs.readFile(node.path, "utf8"),
           user,
           ip: user.lastActiveIp || undefined,
         });
@@ -232,7 +232,7 @@ export default class ImportNotionTask extends ImportTask {
           id: collectionId,
           name,
           description,
-          sourceId,
+          externalId,
         });
       }
     }
@@ -254,19 +254,19 @@ export default class ImportNotionTask extends ImportTask {
 
   /**
    * Extracts internal links from a markdown document, taking into account the
-   * sourceId of the document, which is part of the link title.
+   * externalId of the document, which is part of the link title.
    *
    * @param text The markdown text to parse
    * @returns An array of internal links
    */
   private parseInternalLinks(
     text: string
-  ): { title: string; href: string; sourceId: string }[] {
+  ): { title: string; href: string; externalId: string }[] {
     return compact(
       [...text.matchAll(this.NotionLinkRegex)].map((match) => ({
         title: match[1],
         href: match[2],
-        sourceId: match[3],
+        externalId: match[3],
       }))
     );
   }
@@ -294,7 +294,7 @@ export default class ImportNotionTask extends ImportTask {
 
   /**
    * Regex to find markdown links containing ID's that look like UUID's with the
-   * "-"'s removed, Notion's sourceId format.
+   * "-"'s removed, Notion's externalId format.
    */
   private NotionLinkRegex = /\[([^[]+)]\((.*?([0-9a-fA-F]{32})\..*?)\)/g;
 

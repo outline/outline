@@ -29,7 +29,7 @@ async function teamPermanentDeleter(team: Team) {
 
   Logger.info(
     "commands",
-    `Permanently deleting team ${team.name} (${team.id})`
+    `Permanently destroying team ${team.name} (${team.id})`
   );
   const teamId = team.id;
   let transaction!: Transaction;

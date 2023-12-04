@@ -6,6 +6,8 @@ import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 
 class Share extends Model {
+  static modelName = "Share";
+
   @Field
   @observable
   published: boolean;
@@ -26,6 +28,10 @@ class Share extends Model {
   @Field
   @observable
   urlId: string;
+
+  @Field
+  @observable
+  domain: string;
 
   @observable
   documentTitle: string;

@@ -9,11 +9,11 @@ import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { v4 as uuidv4 } from "uuid";
+import { Pagination } from "@shared/constants";
 import { hideScrollbars } from "@shared/styles";
 import { DateFilter as TDateFilter } from "@shared/types";
 import { SearchParams } from "~/stores/DocumentsStore";
 import RootStore from "~/stores/RootStore";
-import { DEFAULT_PAGINATION_LIMIT } from "~/stores/base/Store";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
 import Empty from "~/components/Empty";
@@ -248,7 +248,7 @@ class Search extends React.Component<Props> {
     if (this.query.trim()) {
       const params = {
         offset: this.offset,
-        limit: DEFAULT_PAGINATION_LIMIT,
+        limit: Pagination.defaultLimit,
         dateFilter: this.dateFilter,
         includeArchived: this.includeArchived,
         includeDrafts: true,
@@ -280,10 +280,10 @@ class Search extends React.Component<Props> {
           createdAt: new Date().toISOString(),
         });
 
-        if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
+        if (results.length === 0 || results.length < Pagination.defaultLimit) {
           this.allowLoadMore = false;
         } else {
-          this.offset += DEFAULT_PAGINATION_LIMIT;
+          this.offset += Pagination.defaultLimit;
         }
       } catch (error) {
         Logger.error("Search query failed", error);

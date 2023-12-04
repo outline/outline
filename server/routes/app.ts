@@ -14,10 +14,6 @@ import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 import readManifestFile from "@server/utils/readManifestFile";
 
-const isProduction = env.ENVIRONMENT === "production";
-const isDevelopment = env.ENVIRONMENT === "development";
-const isTest = env.ENVIRONMENT === "test";
-
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
 const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
@@ -25,17 +21,17 @@ const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
 let indexHtmlCache: Buffer | undefined;
 
 const readIndexFile = async (): Promise<Buffer> => {
-  if (isProduction || isTest) {
+  if (env.isProduction || env.isTest) {
     if (indexHtmlCache) {
       return indexHtmlCache;
     }
   }
 
-  if (isTest) {
+  if (env.isTest) {
     return await readFile(path.join(__dirname, "../static/index.html"));
   }
 
-  if (isDevelopment) {
+  if (env.isDevelopment) {
     return await readFile(
       path.join(__dirname, "../../../server/static/index.html")
     );
@@ -77,7 +73,7 @@ export const renderApp = async (
     </script>
   `;
 
-  const scriptTags = isProduction
+  const scriptTags = env.isProduction
     ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
         env.CDN_URL || ""
       }/static/${readManifestFile()[entry]["file"]}"></script>`

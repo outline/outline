@@ -1,6 +1,7 @@
 import Logger from "@server/logging/Logger";
 import { setResource } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
+import HealthMonitor from "@server/queues/HealthMonitor";
 import { initI18n } from "@server/utils/i18n";
 import {
   globalEventQueue,
@@ -152,4 +153,8 @@ export default function init() {
     .catch((err) => {
       Logger.fatal("Error starting taskQueue", err);
     });
+
+  HealthMonitor.start(globalEventQueue);
+  HealthMonitor.start(processorEventQueue);
+  HealthMonitor.start(taskQueue);
 }

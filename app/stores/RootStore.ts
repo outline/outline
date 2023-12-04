@@ -1,3 +1,6 @@
+import invariant from "invariant";
+import lowerFirst from "lodash/lowerFirst";
+import pluralize from "pluralize";
 import ApiKeysStore from "./ApiKeysStore";
 import AuthStore from "./AuthStore";
 import AuthenticationProvidersStore from "./AuthenticationProvidersStore";
@@ -25,6 +28,7 @@ import UiStore from "./UiStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
 import WebhookSubscriptionsStore from "./WebhookSubscriptionStore";
+import Store from "./base/Store";
 
 export default class RootStore {
   apiKeys: ApiKeysStore;
@@ -56,42 +60,79 @@ export default class RootStore {
   webhookSubscriptions: WebhookSubscriptionsStore;
 
   constructor() {
-    this.apiKeys = new ApiKeysStore(this);
-    this.authenticationProviders = new AuthenticationProvidersStore(this);
-    this.collections = new CollectionsStore(this);
-    this.collectionGroupMemberships = new CollectionGroupMembershipsStore(this);
-    this.comments = new CommentsStore(this);
-    this.dialogs = new DialogsStore();
-    this.documents = new DocumentsStore(this);
-    this.events = new EventsStore(this);
-    this.groups = new GroupsStore(this);
-    this.groupMemberships = new GroupMembershipsStore(this);
-    this.integrations = new IntegrationsStore(this);
-    this.memberships = new MembershipsStore(this);
-    this.notifications = new NotificationsStore(this);
-    this.pins = new PinsStore(this);
-    this.policies = new PoliciesStore(this);
-    this.presence = new DocumentPresenceStore();
-    this.revisions = new RevisionsStore(this);
-    this.searches = new SearchesStore(this);
-    this.shares = new SharesStore(this);
-    this.stars = new StarsStore(this);
-    this.subscriptions = new SubscriptionsStore(this);
-    this.ui = new UiStore();
-    this.users = new UsersStore(this);
-    this.views = new ViewsStore(this);
-    this.fileOperations = new FileOperationsStore(this);
-    this.webhookSubscriptions = new WebhookSubscriptionsStore(this);
+    // Models
+    this.registerStore(ApiKeysStore);
+    this.registerStore(AuthenticationProvidersStore);
+    this.registerStore(CollectionsStore);
+    this.registerStore(CollectionGroupMembershipsStore);
+    this.registerStore(CommentsStore);
+    this.registerStore(DocumentsStore);
+    this.registerStore(EventsStore);
+    this.registerStore(GroupsStore);
+    this.registerStore(GroupMembershipsStore);
+    this.registerStore(IntegrationsStore);
+    this.registerStore(MembershipsStore);
+    this.registerStore(NotificationsStore);
+    this.registerStore(PinsStore);
+    this.registerStore(PoliciesStore);
+    this.registerStore(RevisionsStore);
+    this.registerStore(SearchesStore);
+    this.registerStore(SharesStore);
+    this.registerStore(StarsStore);
+    this.registerStore(SubscriptionsStore);
+    this.registerStore(UsersStore);
+    this.registerStore(ViewsStore);
+    this.registerStore(FileOperationsStore);
+    this.registerStore(WebhookSubscriptionsStore);
+
+    // Non-models
+    this.registerStore(DocumentPresenceStore, "presence");
+    this.registerStore(DialogsStore, "dialogs");
+    this.registerStore(UiStore, "ui");
 
     // AuthStore must be initialized last as it makes use of the other stores.
-    this.auth = new AuthStore(this);
+    this.registerStore(AuthStore, "auth");
   }
 
-  logout() {
+  /**
+   * Get a store by model name.
+   *
+   * @param modelName
+   */
+  public getStoreForModelName<K extends keyof RootStore>(
+    modelName: string
+  ): RootStore[K] {
+    const storeName = this.getStoreNameForModelName(modelName);
+    const store = this[storeName];
+    invariant(store, `No store found for model name "${modelName}"`);
+
+    return store;
+  }
+
+  /**
+   * Clear all data from the stores except for auth and ui.
+   */
+  public clear() {
     Object.getOwnPropertyNames(this)
       .filter((key) => ["auth", "ui"].includes(key) === false)
       .forEach((key) => {
         this[key]?.clear?.();
       });
+  }
+
+  /**
+   * Register a store with the root store.
+   *
+   * @param StoreClass
+   */
+  private registerStore<T = typeof Store>(StoreClass: T, name?: string) {
+    // @ts-expect-error TS thinks we are instantiating an abstract class.
+    const store = new StoreClass(this);
+    const storeName = name ?? this.getStoreNameForModelName(store.modelName);
+    this[storeName] = store;
+  }
+
+  private getStoreNameForModelName(modelName: string) {
+    return pluralize(lowerFirst(modelName));
   }
 }

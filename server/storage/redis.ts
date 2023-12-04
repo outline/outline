@@ -11,7 +11,7 @@ type RedisAdapterOptions = RedisOptions & {
 const defaultOptions: RedisOptions = {
   maxRetriesPerRequest: 20,
   enableReadyCheck: false,
-  showFriendlyErrorStack: env.ENVIRONMENT === "development",
+  showFriendlyErrorStack: env.isDevelopment,
 
   retryStrategy(times: number) {
     Logger.warn(`Retrying redis connection: attempt ${times}`);
@@ -40,10 +40,9 @@ export default class RedisAdapter extends Redis {
      * For debugging. The connection name is based on the services running in
      * this process. Note that this does not need to be unique.
      */
-    const connectionNamePrefix =
-      env.ENVIRONMENT === "development" ? process.pid : "outline";
+    const connectionNamePrefix = env.isDevelopment ? process.pid : "outline";
     const connectionName =
-      `${connectionNamePrefix}:${env.SERVICES.replace(/,/g, "-")}` +
+      `${connectionNamePrefix}:${env.SERVICES.join("-")}` +
       (connectionNameSuffix ? `:${connectionNameSuffix}` : "");
 
     if (!url || !url.startsWith("ioredis://")) {

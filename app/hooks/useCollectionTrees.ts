@@ -1,5 +1,6 @@
 import * as React from "react";
 import { NavigationNode, NavigationNodeType } from "@shared/types";
+import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import useStores from "~/hooks/useStores";
 
@@ -66,7 +67,9 @@ export default function useCollectionTrees(): NavigationNode[] {
       title: collection.name,
       url: collection.url,
       type: NavigationNodeType.Collection,
-      children: collection.documents || [],
+      children: collection.documents
+        ? sortNavigationNodes(collection.documents, collection.sort, true)
+        : [],
       parent: null,
     };
 

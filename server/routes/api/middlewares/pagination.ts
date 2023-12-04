@@ -1,14 +1,15 @@
 import querystring from "querystring";
 import { Next } from "koa";
+import { Pagination } from "@shared/constants";
 import { InvalidRequestError } from "@server/errors";
 import { AppContext } from "@server/types";
 
 export default function pagination() {
   return async function paginationMiddleware(ctx: AppContext, next: Next) {
     const opts = {
-      defaultLimit: 15,
-      defaultOffset: 0,
-      maxLimit: 100,
+      defaultLimit: Pagination.defaultLimit,
+      defaultOffset: Pagination.defaultOffset,
+      maxLimit: Pagination.maxLimit,
     };
     const query = ctx.request.query;
     const body = ctx.request.body;

@@ -19,7 +19,7 @@ import { safeEqual } from "@server/utils/crypto";
 import * as T from "./schema";
 
 const router = new Router();
-const emailEnabled = !!(env.SMTP_HOST || env.ENVIRONMENT === "development");
+const emailEnabled = !!(env.SMTP_HOST || env.isDevelopment);
 
 const handleTeamUpdate = async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
   const { transaction } = ctx.state;

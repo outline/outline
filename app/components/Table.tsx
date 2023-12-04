@@ -309,6 +309,7 @@ const Head = styled.th`
   color: ${s("textSecondary")};
   font-weight: 500;
   z-index: 1;
+  cursor: var(--pointer) !important;
 
   :first-child {
     padding-left: 0;

@@ -7,6 +7,7 @@ import {
   InvalidRequestError,
   AuthorizationError,
   AuthenticationError,
+  PaymentRequiredError,
 } from "@server/errors";
 import { Collection, Document, Share, User, Team } from "@server/models";
 import { authorize, can } from "@server/policies";
@@ -119,6 +120,10 @@ export default async function loadDocument({
       throw NotFoundError("Document could not be found for shareId");
     }
 
+    if (document.isTrialImport) {
+      throw PaymentRequiredError();
+    }
+
     // If the user has access to read the document, we can just update
     // the last access date and return the document without additional checks.
     const canReadDocument = user && can(user, "read", document);
@@ -200,6 +205,10 @@ export default async function loadDocument({
       user && authorize(user, "restore", document);
     } else {
       user && authorize(user, "read", document);
+    }
+
+    if (document.isTrialImport) {
+      throw PaymentRequiredError();
     }
 
     collection = document.collection;

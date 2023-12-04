@@ -23,11 +23,13 @@ import {
   UnpublishIcon,
   PublishIcon,
   CommentIcon,
+  GlobeIcon,
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
 import { ExportContentType, TeamPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
+import SharePopover from "~/scenes/Document/components/SharePopover";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
@@ -317,6 +319,40 @@ export const unsubscribeDocument = createAction({
     await document?.unsubscribe(currentUserId);
 
     toast.success(t("Unsubscribed from document notifications"));
+  },
+});
+
+export const shareDocument = createAction({
+  name: ({ t }) => t("Share"),
+  analyticsName: "Share document",
+  section: DocumentSection,
+  icon: <GlobeIcon />,
+  perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
+    if (!activeDocumentId || !currentUserId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    const share = stores.shares.getByDocumentId(activeDocumentId);
+    const sharedParent = stores.shares.getByDocumentParents(activeDocumentId);
+    if (!document) {
+      return;
+    }
+
+    stores.dialogs.openModal({
+      title: t("Share this document"),
+      isCentered: true,
+      content: (
+        <SharePopover
+          document={document}
+          share={share}
+          sharedParent={sharedParent}
+          onRequestClose={stores.dialogs.closeAllModals}
+          hideTitle
+          visible
+        />
+      ),
+    });
   },
 });
 

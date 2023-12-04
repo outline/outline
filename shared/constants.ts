@@ -7,6 +7,12 @@ import {
 
 export const MAX_AVATAR_DISPLAY = 6;
 
+export const Pagination = {
+  defaultLimit: 25,
+  defaultOffset: 0,
+  maxLimit: 100,
+};
+
 export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.SeamlessEdit]: true,
   [TeamPreference.ViewersCanExport]: true,

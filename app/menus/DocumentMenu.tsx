@@ -42,6 +42,7 @@ import {
   openDocumentComments,
   createDocumentFromTemplate,
   createNestedDocument,
+  shareDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -256,6 +257,7 @@ function DocumentMenu({
             actionToMenuItem(unstarDocument, context),
             actionToMenuItem(subscribeDocument, context),
             actionToMenuItem(unsubscribeDocument, context),
+            ...(isMobile ? [actionToMenuItem(shareDocument, context)] : []),
             {
               type: "separator",
             },

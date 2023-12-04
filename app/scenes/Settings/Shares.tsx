@@ -6,6 +6,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import Share from "~/models/Share";
+import Fade from "~/components/Fade";
 import Heading from "~/components/Heading";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
@@ -67,7 +68,7 @@ function Shares() {
   }, [shares.orderedData, shareIds]);
 
   return (
-    <Scene title={t("Shared Links")} icon={<LinkIcon />}>
+    <Scene title={t("Shared Links")} icon={<LinkIcon />} wide>
       <Heading>{t("Shared Links")}</Heading>
 
       {can.update && !canShareDocuments && (
@@ -93,15 +94,19 @@ function Shares() {
         </Trans>
       </Text>
 
-      <SharesTable
-        data={data}
-        canManage={can.update}
-        isLoading={isLoading}
-        page={page}
-        pageSize={limit}
-        totalPages={totalPages}
-        defaultSortDirection="ASC"
-      />
+      {data.length ? (
+        <Fade>
+          <SharesTable
+            data={data}
+            canManage={can.update}
+            isLoading={isLoading}
+            page={page}
+            pageSize={limit}
+            totalPages={totalPages}
+            defaultSortDirection="ASC"
+          />
+        </Fade>
+      ) : null}
     </Scene>
   );
 }

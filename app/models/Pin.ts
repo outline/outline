@@ -6,6 +6,8 @@ import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 
 class Pin extends Model {
+  static modelName = "Pin";
+
   /** The collection ID that the document is pinned to. If empty the document is pinned to home. */
   collectionId: string;
 

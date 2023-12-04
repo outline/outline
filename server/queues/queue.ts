@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import Queue from "bull";
 import snakeCase from "lodash/snakeCase";
 import { Second } from "@shared/utils/time";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
 import Redis from "@server/storage/redis";
-import ShutdownHelper, { ShutdownOrder } from "./ShutdownHelper";
+import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 
 export function createQueue(
   name: string,
@@ -53,7 +54,6 @@ export function createQueue(
   });
 
   if (env.ENVIRONMENT !== "test") {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setInterval(async () => {
       Metrics.gauge(`${prefix}.count`, await queue.count());
       Metrics.gauge(`${prefix}.delayed_count`, await queue.getDelayedCount());

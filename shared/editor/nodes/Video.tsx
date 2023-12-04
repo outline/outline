@@ -55,15 +55,21 @@ export default class Video extends Node {
         },
       ],
       toDOM: (node) => [
-        "video",
+        "div",
         {
-          id: node.attrs.id,
-          src: sanitizeUrl(node.attrs.src),
-          controls: true,
-          width: node.attrs.width,
-          height: node.attrs.height,
+          class: "video",
         },
-        node.attrs.title,
+        [
+          "video",
+          {
+            id: node.attrs.id,
+            src: sanitizeUrl(node.attrs.src),
+            controls: true,
+            width: node.attrs.width,
+            height: node.attrs.height,
+          },
+          node.attrs.title,
+        ],
       ],
       toPlainText: (node) => node.attrs.title,
     };
