@@ -120,7 +120,7 @@
     "invariant": "^2.2.4",
     "ioredis": "^5.3.2",
     "is-printable-key-event": "^1.0.0",
-    "jsdom": "^22.0.0",
+    "jsdom": "^22.1.0",
     "jsonwebtoken": "^9.0.0",
     "jszip": "^3.10.1",
     "katex": "^0.16.8",
