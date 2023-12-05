@@ -13,6 +13,7 @@ import { Background, Placement } from "~/components/ContextMenu";
 import { MenuAnchorCSS } from "~/components/ContextMenu/MenuItem";
 import { LabelText, Outline, Wrapper } from "~/components/Input";
 import { Positioner } from "~/components/InputSelect";
+import { Portal } from "~/components/Portal";
 import { undraggableOnDesktop } from "~/styles";
 
 type Suggestion = {
@@ -49,6 +50,7 @@ function Combobox({
 }: Props) {
   const [focused, setFocused] = React.useState(false);
   const [items, setItems] = React.useState(suggestions);
+  const [listWidth, setListWidth] = React.useState(0);
 
   const handleBlur = () => {
     setFocused(false);
@@ -66,6 +68,13 @@ function Combobox({
     gutter: 8,
     values: suggestions.map((s) => s.value),
   });
+
+  React.useEffect(() => {
+    if (state.visible && state.unstable_disclosureRef.current) {
+      const elem = state.unstable_disclosureRef.current;
+      setListWidth(elem.clientWidth);
+    }
+  }, [state.visible, state.unstable_disclosureRef]);
 
   React.useEffect(() => {
     state.setValues(suggestions.map((s) => s.value));
@@ -87,12 +96,20 @@ function Combobox({
               onFocus={handleFocus}
               onChange={handleChange}
               type="search"
+              ref={
+                state.unstable_disclosureRef as React.RefObject<HTMLInputElement>
+              }
               {...rest}
             />
           </Outline>
         </label>
       </Wrapper>
-      <ComboboxPopover {...state} aria-label={listLabel}>
+      <ComboboxPopover
+        {...state}
+        aria-label={listLabel}
+        modal
+        style={{ width: `${listWidth}px` }}
+      >
         {(
           props: React.HTMLAttributes<HTMLDivElement> & {
             placement: Placement;
@@ -106,28 +123,30 @@ function Combobox({
           }
 
           return (
-            <StyledPositioner {...props}>
-              <Background
-                dir="auto"
-                topAnchor={topAnchor}
-                rightAnchor={rightAnchor}
-                hiddenScrollbars
-                style={{ maxWidth: "100%" }}
-              >
-                {state.visible
-                  ? items.map((item) => (
-                      <StyledComboboxOption
-                        {...state}
-                        value={item.value}
-                        key={item.id}
-                        onClick={() => onSelectOption(item)}
-                      >
-                        {item.value}
-                      </StyledComboboxOption>
-                    ))
-                  : null}
-              </Background>
-            </StyledPositioner>
+            <Portal>
+              <Positioner {...props}>
+                <Background
+                  dir="auto"
+                  topAnchor={topAnchor}
+                  rightAnchor={rightAnchor}
+                  hiddenScrollbars
+                  style={{ maxWidth: "100%" }}
+                >
+                  {state.visible
+                    ? items.map((item) => (
+                        <StyledComboboxOption
+                          {...state}
+                          value={item.value}
+                          key={item.id}
+                          onClick={() => onSelectOption(item)}
+                        >
+                          {item.value}
+                        </StyledComboboxOption>
+                      ))
+                    : null}
+                </Background>
+              </Positioner>
+            </Portal>
           );
         }}
       </ComboboxPopover>
@@ -175,10 +194,6 @@ const StyledComboboxOption = styled(ComboboxOption)`
   svg:not(:last-child) {
     margin-right: 0px;
   }
-`;
-
-const StyledPositioner = styled(Positioner)`
-  width: 100%;
 `;
 
 export default observer(Combobox);
