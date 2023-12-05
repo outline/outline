@@ -8,7 +8,6 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { Pagination } from "@shared/constants";
 import { s } from "@shared/styles";
 import { dateLocale, dateToRelative } from "@shared/utils/date";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
@@ -18,14 +17,12 @@ import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
 import Input, { StyledText } from "~/components/Input";
-import LoadingIndicator from "~/components/LoadingIndicator";
 import Notice from "~/components/Notice";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
-import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
 import InviteTeamMembers from "./InviteTeamMembers";
@@ -55,7 +52,7 @@ function SharePopover({
 }: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { shares, collections, users, userMemberships } = useStores();
+  const { shares, collections } = useStores();
   const [expandedOptions, setExpandedOptions] = React.useState(false);
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [slugValidationError, setSlugValidationError] = React.useState("");
@@ -77,37 +74,6 @@ function SharePopover({
     team.sharing &&
     ((share && share.published) ||
       (sharedParent && sharedParent.published && !document.isDraft));
-
-  const {
-    data: teamMembers,
-    loading: loadingTeamMembers,
-    request: fetchTeamMembers,
-  } = useRequest(
-    React.useCallback(
-      () => users.fetchPage({ limit: Pagination.defaultLimit }),
-      [users]
-    )
-  );
-
-  const {
-    data: documentMembers,
-    loading: loadingDocumentMembers,
-    request: fetchDocumentMembers,
-  } = useRequest(
-    React.useCallback(
-      () =>
-        userMemberships.fetchDocumentMemberships({
-          id: document.id,
-          limit: Pagination.defaultLimit,
-        }),
-      [userMemberships, document.id]
-    )
-  );
-
-  React.useEffect(() => {
-    void fetchTeamMembers();
-    void fetchDocumentMembers();
-  }, [fetchTeamMembers, fetchDocumentMembers]);
 
   React.useEffect(() => {
     if (!visible && expandedOptions) {
@@ -254,10 +220,6 @@ function SharePopover({
   const url = shareUrl.replace(/https?:\/\//, "");
   const documentTitle = sharedParent?.documentTitle;
 
-  if (loadingTeamMembers || loadingDocumentMembers) {
-    return <LoadingIndicator />;
-  }
-
   return (
     <>
       {!hideTitle && (
@@ -289,7 +251,7 @@ function SharePopover({
         <PublishToInternet canPublish />
       )}
 
-      {canPublish && teamMembers && documentMembers ? (
+      {canPublish ? (
         <>
           <Separator />
           <SwitchWrapper>

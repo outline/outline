@@ -3,15 +3,18 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { Pagination } from "@shared/constants";
 import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
 import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
 import MemberListItem from "~/scenes/CollectionPermissions/components/MemberListItem";
 import Flex from "~/components/Flex";
+import LoadingIndicator from "~/components/LoadingIndicator";
 import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
 import Combobox from "./Combobox";
@@ -26,6 +29,37 @@ function InviteTeamMembers({ document }: Props) {
   const [query, setQuery] = React.useState("");
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
   const user = useCurrentUser();
+
+  const {
+    data: teamMembers,
+    loading: loadingTeamMembers,
+    request: fetchTeamMembers,
+  } = useRequest(
+    React.useCallback(
+      () => users.fetchPage({ limit: Pagination.defaultLimit }),
+      [users]
+    )
+  );
+
+  const {
+    data: documentMembers,
+    loading: loadingDocumentMembers,
+    request: fetchDocumentMembers,
+  } = useRequest(
+    React.useCallback(
+      () =>
+        userMemberships.fetchDocumentMemberships({
+          id: document.id,
+          limit: Pagination.defaultLimit,
+        }),
+      [userMemberships, document.id]
+    )
+  );
+
+  React.useEffect(() => {
+    void fetchTeamMembers();
+    void fetchDocumentMembers();
+  }, [fetchTeamMembers, fetchDocumentMembers]);
 
   const inviteUser = React.useCallback(
     (user: User) =>
@@ -47,8 +81,20 @@ function InviteTeamMembers({ document }: Props) {
 
   const nonMembers = React.useMemo(
     () =>
-      users.notInDocument(document.id, query).filter((u) => u.id !== user.id),
-    [users, document.id, document.members, user.id, query]
+      teamMembers && documentMembers
+        ? users
+            .notInDocument(document.id, query)
+            .filter((u) => u.id !== user.id)
+        : [],
+    [
+      users,
+      document.id,
+      teamMembers,
+      documentMembers,
+      document.members,
+      user.id,
+      query,
+    ]
   );
 
   React.useEffect(() => {
@@ -109,6 +155,14 @@ function InviteTeamMembers({ document }: Props) {
     },
     [userMemberships, document]
   );
+
+  if (loadingTeamMembers || loadingDocumentMembers) {
+    return <LoadingIndicator />;
+  }
+
+  if (!teamMembers && !documentMembers) {
+    return null;
+  }
 
   return (
     <RelativeFlex column>
