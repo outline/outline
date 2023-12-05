@@ -180,7 +180,7 @@ function InviteTeamMembers({ document }: Props) {
         autoFocus
       />
       {document.members.length > 0 ? (
-        <Text weight="bold">{t("In this project")}</Text>
+        <Text weight="bold">{t("In this document")}</Text>
       ) : null}
       <PaginatedList
         items={document.members}
