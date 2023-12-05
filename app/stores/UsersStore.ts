@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import filter from "lodash/filter";
 import orderBy from "lodash/orderBy";
+import pullAllWith from "lodash/pullAllWith";
 import { observable, computed, action, runInAction } from "mobx";
 import { UserRole } from "@shared/types";
 import User from "~/models/User";
@@ -232,6 +233,18 @@ export default class UsersStore extends Store<User> {
         this.counts.admins -= 1;
       }
     }
+  };
+
+  notInDocument = (documentId: string, query = "") => {
+    const document = this.rootStore.documents.get(documentId);
+    const teamMembers = this.activeOrInvited;
+    const documentMembers = document?.members ?? [];
+    const users = pullAllWith(
+      teamMembers,
+      documentMembers,
+      (teamMember, documentMember) => teamMember.id === documentMember.id
+    );
+    return queriedUsers(users, query);
   };
 
   notInCollection = (collectionId: string, query = "") => {

@@ -47,14 +47,8 @@ function InviteTeamMembers({ document }: Props) {
 
   const nonMembers = React.useMemo(
     () =>
-      users.activeOrInvited
-        .filter(
-          (teamMember) =>
-            !document.members.map((m) => m.id).includes(teamMember.id) &&
-            teamMember.id !== user.id
-        )
-        .map((user) => ({ ...user, value: user.name })),
-    [users.activeOrInvited, document.members, user.id]
+      users.notInDocument(document.id, query).filter((u) => u.id !== user.id),
+    [users, document.id, document.members, user.id, query]
   );
 
   React.useEffect(() => {
@@ -119,7 +113,10 @@ function InviteTeamMembers({ document }: Props) {
   return (
     <RelativeFlex column>
       <Combobox
-        suggestions={nonMembers}
+        suggestions={nonMembers.map((user) => ({
+          id: user.id,
+          value: user.name,
+        }))}
         value={query}
         onChangeInput={handleQuery}
         onSelectOption={handleSelect}
