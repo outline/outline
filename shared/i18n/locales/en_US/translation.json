@@ -555,7 +555,6 @@
   "{{ userName }} was removed from the document": "{{ userName }} was removed from the document",
   "Invite team members": "Invite team members",
   "Team members": "Team members",
-  "In this document": "In this document",
   "Sorry, the last change could not be persisted – please reload the page": "Sorry, the last change could not be persisted – please reload the page",
   "This template will be permanently deleted in <2></2> unless restored.": "This template will be permanently deleted in <2></2> unless restored.",
   "This document will be permanently deleted in <2></2> unless restored.": "This document will be permanently deleted in <2></2> unless restored.",

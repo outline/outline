@@ -12,7 +12,6 @@ import MemberListItem from "~/scenes/CollectionPermissions/components/MemberList
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PaginatedList from "~/components/PaginatedList";
-import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -179,9 +178,6 @@ function InviteTeamMembers({ document }: Props) {
         placeholder={`${t("Search by name")}…`}
         autoFocus
       />
-      {document.members.length > 0 ? (
-        <Text weight="bold">{t("In this document")}</Text>
-      ) : null}
       <PaginatedList
         items={document.members}
         options={{ id: document.id }}
