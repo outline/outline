@@ -7,7 +7,7 @@ import { Editor } from "../../../app/editor";
 
 export type CommandFactory = (attrs?: Record<string, Primitive>) => Command;
 
-export type WidgetProps = { rtl: boolean };
+export type WidgetProps = { rtl: boolean; readOnly: boolean | undefined };
 
 export default class Extension {
   options: any;
