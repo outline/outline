@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { SearchQuery } from "@server/models";
 import { presentSearchQuery } from "@server/presenters";
@@ -28,12 +29,40 @@ router.post("searches.list", auth(), pagination(), async (ctx: APIContext) => {
 });
 
 router.post(
+  "searches.update",
+  auth(),
+  validate(T.SearchesUpdateSchema),
+  transaction(),
+  async (ctx: APIContext<T.SearchesUpdateReq>) => {
+    const { id, score } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const search = await SearchQuery.findOne({
+      where: {
+        id,
+        userId: user.id,
+      },
+      lock: transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+      transaction,
+    });
+
+    search.score = score;
+    await search.save({ transaction });
+
+    ctx.body = {
+      data: presentSearchQuery(search),
+    };
+  }
+);
+
+router.post(
   "searches.delete",
   auth(),
   validate(T.SearchesDeleteSchema),
   async (ctx: APIContext<T.SearchesDeleteReq>) => {
     const { id, query } = ctx.input.body;
-
     const { user } = ctx.state.auth;
 
     await SearchQuery.destroy({
