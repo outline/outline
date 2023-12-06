@@ -46,7 +46,7 @@ class SearchQuery extends Model {
    * User score for the results for this query, -1 for negative, 1 for positive, null for neutral.
    */
   @Column
-  score: -1 | 1 | null;
+  score: number;
 
   /**
    * The query string, automatically truncated to 255 characters.
