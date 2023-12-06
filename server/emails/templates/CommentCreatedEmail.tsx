@@ -1,10 +1,9 @@
-import inlineCss from "inline-css";
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import { Day } from "@shared/utils/time";
-import env from "@server/env";
 import { Collection, Comment, Document } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
@@ -83,12 +82,7 @@ export default class CommentCreatedEmail extends BaseEmail<
 
     if (content) {
       // inline all css so that it works in as many email providers as possible.
-      body = await inlineCss(content, {
-        url: env.URL,
-        applyStyleTags: true,
-        applyLinkTags: false,
-        removeStyleTags: true,
-      });
+      body = HTMLHelper.inlineCSS(content);
     }
 
     const isReply = !!comment.parentCommentId;

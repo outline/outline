@@ -94,6 +94,7 @@
     "copy-to-clipboard": "^3.3.3",
     "core-js": "^3.33.3",
     "crypto-js": "^4.2.0",
+    "css-inline": "^0.11.0",
     "datadog-metrics": "^0.11.1",
     "date-fns": "^2.30.0",
     "dd-trace": "^3.33.0",
@@ -116,7 +117,6 @@
     "i18next": "^22.5.1",
     "i18next-fs-backend": "^2.1.5",
     "i18next-http-backend": "^2.2.2",
-    "inline-css": "^4.0.2",
     "invariant": "^2.2.4",
     "ioredis": "^5.3.2",
     "is-printable-key-event": "^1.0.0",
@@ -255,7 +255,6 @@
     "@types/fuzzy-search": "^2.1.2",
     "@types/glob": "^8.0.1",
     "@types/google.analytics": "^0.0.42",
-    "@types/inline-css": "^3.0.3",
     "@types/invariant": "^2.2.35",
     "@types/jest": "^29.4.0",
     "@types/jsonwebtoken": "^8.5.9",
@@ -355,8 +354,7 @@
     "js-yaml": "^3.14.1",
     "jpeg-js": "0.4.4",
     "qs": "6.9.7",
-    "rollup": "^4.5.1",
-    "vm2": "3.9.19"
+    "rollup": "^4.5.1"
   },
   "version": "0.73.1"
 }
