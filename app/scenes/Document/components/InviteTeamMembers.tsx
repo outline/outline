@@ -1,4 +1,5 @@
 import { t } from "i18next";
+import isNil from "lodash/isNil";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { toast } from "sonner";
@@ -97,7 +98,7 @@ function InviteTeamMembers({ document }: Props) {
   );
 
   React.useEffect(() => {
-    if (query) {
+    if (!isNil(query)) {
       void fetchUsersByQuery(query);
     }
   }, [query, fetchUsersByQuery]);

@@ -61,7 +61,7 @@ function Combobox({
   };
 
   const handleChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
-    onChangeInput(ev.target.value);
+    state.setInputValue(ev.target.value);
   };
 
   const state = useComboboxState({
@@ -83,6 +83,10 @@ function Combobox({
   React.useEffect(() => {
     setItems(suggestions.filter((s) => state.matches.includes(s.value)));
   }, [state.matches, suggestions]);
+
+  React.useEffect(() => {
+    onChangeInput(state.inputValue);
+  }, [state.inputValue, onChangeInput]);
 
   return (
     <>
@@ -136,9 +140,12 @@ function Combobox({
                     ? items.map((item) => (
                         <StyledComboboxOption
                           {...state}
-                          value={item.value}
                           key={item.id}
-                          onClick={() => onSelectOption(item)}
+                          onClick={() => {
+                            onSelectOption(item);
+                            state.setInputValue("");
+                            state.hide();
+                          }}
                         >
                           {item.value}
                         </StyledComboboxOption>
