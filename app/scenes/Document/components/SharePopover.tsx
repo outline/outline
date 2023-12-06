@@ -251,16 +251,7 @@ function SharePopover({
         <PublishToInternet canPublish />
       )}
 
-      {canPublish ? (
-        <>
-          <Separator />
-          <SwitchWrapper>
-            <InviteTeamMembers document={document} />
-          </SwitchWrapper>
-        </>
-      ) : null}
-
-      {canPublish && share?.published && !document.isDraft && (
+      {canPublish && share && !document.isDraft && (
         <SwitchWrapper>
           <Switch
             id="includeChildDocuments"
@@ -279,6 +270,15 @@ function SharePopover({
           </SwitchLabel>
         </SwitchWrapper>
       )}
+
+      {canPublish ? (
+        <>
+          <Separator />
+          <SwitchWrapper>
+            <InviteTeamMembers document={document} />
+          </SwitchWrapper>
+        </>
+      ) : null}
 
       {expandedOptions && (
         <>
