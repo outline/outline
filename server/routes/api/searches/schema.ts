@@ -12,3 +12,12 @@ export const SearchesDeleteSchema = BaseSchema.extend({
 });
 
 export type SearchesDeleteReq = z.infer<typeof SearchesDeleteSchema>;
+
+export const SearchesUpdateSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    score: z.number().min(-1).max(1),
+  }),
+});
+
+export type SearchesUpdateReq = z.infer<typeof SearchesUpdateSchema>;
