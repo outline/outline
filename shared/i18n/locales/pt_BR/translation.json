@@ -10,6 +10,7 @@
   "Unstar": "Remover estrela",
   "Delete": "Excluir",
   "Delete collection": "Excluir a coleção",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Excluir cache do IndexedDB",
   "IndexedDB cache deleted": "Cache do IndexedDB excluído",
   "Toggle debug logging": "Alternar log de depuração",
