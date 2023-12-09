@@ -10,6 +10,7 @@
   "Unstar": "Yıldızı kaldır",
   "Delete": "Sil",
   "Delete collection": "Koleksiyonu sil",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "IndexedDB önbelleğini sil",
   "IndexedDB cache deleted": "IndexedDB önbelleği silindi",
   "Toggle debug logging": "Toggle debug logging",
