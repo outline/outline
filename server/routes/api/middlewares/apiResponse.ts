@@ -1,17 +1,9 @@
 import stream from "stream";
 import { Context, Next } from "koa";
 import { Readable } from "readable-stream";
-import { addTags } from "@server/logging/tracer";
 
-export default function apiWrapper() {
-  return async function apiWrapperMiddleware(ctx: Context, next: Next) {
-    const id = ctx.request.body?.id ?? ctx.request.query?.id;
-    if (id) {
-      addTags({
-        "resource.id": `${id}`,
-      });
-    }
-
+export default function apiResponse() {
+  return async function apiResponseMiddleware(ctx: Context, next: Next) {
     await next();
     const ok = ctx.status < 400;
 
