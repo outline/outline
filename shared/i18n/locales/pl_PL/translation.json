@@ -10,6 +10,7 @@
   "Unstar": "Usuń gwiazdkę",
   "Delete": "Usuń",
   "Delete collection": "Usuń kolekcję",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Usuń cache IndexedDB",
   "IndexedDB cache deleted": "Usunięto cache IndexedDB",
   "Toggle debug logging": "Przełącz logowanie debug",
