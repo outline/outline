@@ -10,6 +10,7 @@
   "Unstar": "برداشتن ستاره",
   "Delete": "حذف",
   "Delete collection": "حذف مجموعه",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "کش IndexedDB حذف گردد",
   "IndexedDB cache deleted": "کش IndexedDB حذف شد",
   "Toggle debug logging": "Toggle debug logging",
