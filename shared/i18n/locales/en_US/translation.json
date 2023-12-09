@@ -10,6 +10,7 @@
   "Unstar": "Unstar",
   "Delete": "Delete",
   "Delete collection": "Delete collection",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Delete IndexedDB cache",
   "IndexedDB cache deleted": "IndexedDB cache deleted",
   "Toggle debug logging": "Toggle debug logging",
