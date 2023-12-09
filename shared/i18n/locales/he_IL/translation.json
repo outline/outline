@@ -10,6 +10,7 @@
   "Unstar": "הסר סימון בכוכב",
   "Delete": "מחיקה",
   "Delete collection": "Delete collection",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "מחק מטמון IndexedDB",
   "IndexedDB cache deleted": "מטמון IndexedDB נמחק",
   "Toggle debug logging": "Toggle debug logging",
