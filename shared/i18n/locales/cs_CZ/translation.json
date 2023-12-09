@@ -10,6 +10,7 @@
   "Unstar": "Odstranit z oblíbených",
   "Delete": "Odstranit",
   "Delete collection": "Odstranit sbírku",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Odstranit IndexedDB cache",
   "IndexedDB cache deleted": "IndexedDB cache odstraněn",
   "Toggle debug logging": "Toggle debug logging",
