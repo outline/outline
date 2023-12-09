@@ -10,6 +10,7 @@
   "Unstar": "Berhenti membintangi",
   "Delete": "Hapus",
   "Delete collection": "Hapus koleksi",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Hapus cache IndexedDB",
   "IndexedDB cache deleted": "Cache IndexedDB dihapus",
   "Toggle debug logging": "Toggle debug logging",
