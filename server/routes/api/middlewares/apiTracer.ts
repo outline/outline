@@ -1,5 +1,5 @@
 import { Context, Next } from "koa";
-import { addTags } from "@server/logging/tracer";
+import { addTags, getRootSpanFromRequestContext } from "@server/logging/tracer";
 
 export default function apiTracer() {
   return async function apiTracerMiddleware(ctx: Context, next: Next) {
@@ -9,9 +9,12 @@ export default function apiTracer() {
       if (key === "id" || key.endsWith("Id")) {
         const value = params[key];
         if (typeof value === "string") {
-          addTags({
-            [`resource.${key}`]: value,
-          });
+          addTags(
+            {
+              [`resource.${key}`]: value,
+            },
+            getRootSpanFromRequestContext(ctx)
+          );
         }
       }
     }
