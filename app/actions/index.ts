@@ -116,6 +116,8 @@ export function actionToKBar(
       icon: resolvedIcon,
       perform: action.perform ? () => action.perform?.(context) : undefined,
     },
+  ].concat(
     // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-  ].concat(children.map((child) => ({ ...child, parent: action.id })));
+    children.map((child) => ({ ...child, parent: child.parent ?? action.id }))
+  );
 }
