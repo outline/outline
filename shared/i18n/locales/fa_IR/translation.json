@@ -20,6 +20,8 @@
   "Open document": "باز کردن سند",
   "New document": "سند جدید",
   "New from template": "جدید از قالب",
+  "Copy as Markdown": "Copy as Markdown",
+  "Markdown copied to clipboard": "Markdown copied to clipboard",
   "New nested document": "ایجاد زیرسند جدید",
   "Publish": "انتشار",
   "Published {{ documentName }}": "Published {{ documentName }}",
