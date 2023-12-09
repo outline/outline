@@ -10,6 +10,7 @@
   "Unstar": "Eliminar de favoritos",
   "Delete": "Eliminar",
   "Delete collection": "Eliminar colección",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Eliminar caché de IndexedDB",
   "IndexedDB cache deleted": "Caché de IndexedDB eliminado",
   "Toggle debug logging": "Activar/Desactivar registro de depuración",
