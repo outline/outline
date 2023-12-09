@@ -10,6 +10,7 @@
   "Unstar": "Ta bort stjärnmärkning",
   "Delete": "Radera",
   "Delete collection": "Ta bort samling",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Ta bort IndexedDB cache",
   "IndexedDB cache deleted": "IndexedDB cache borttagen",
   "Toggle debug logging": "Aktivera eller inaktivera felsökningsloggning",
