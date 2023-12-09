@@ -10,6 +10,7 @@
   "Unstar": "Rimuovi dai Preferiti",
   "Delete": "Cancella",
   "Delete collection": "Elimina raccolta",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Svuota la cache d'IndexedDB",
   "IndexedDB cache deleted": "La cache d'IndexedDB è stata svuotata",
   "Toggle debug logging": "Toggle debug logging",
