@@ -18,6 +18,7 @@ import {
 } from "@shared/utils/date";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import { parser, schema } from "@server/editor";
+import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
 import { Document, Revision, User } from "@server/models";
 import FileStorage from "@server/storage/files";
@@ -113,6 +114,11 @@ export default class DocumentHelper {
       centered: options?.centered,
     });
 
+    addTags({
+      documentId: document.id,
+      options,
+    });
+
     if (options?.signedUrls) {
       const teamId =
         document instanceof Document
@@ -157,6 +163,12 @@ export default class DocumentHelper {
     after: Revision,
     { signedUrls, ...options }: HTMLOptions = {}
   ) {
+    addTags({
+      beforeId: before?.id,
+      documentId: after.documentId,
+      options,
+    });
+
     if (!before) {
       return await DocumentHelper.toHTML(after, { ...options, signedUrls });
     }
