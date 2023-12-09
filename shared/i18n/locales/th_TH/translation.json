@@ -10,6 +10,7 @@
   "Unstar": "เลิกติดดาว",
   "Delete": "ลบ",
   "Delete collection": "Delete collection",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "ลบแคช IndexedDB",
   "IndexedDB cache deleted": "แคช IndexedDB ถูกลบแล้ว",
   "Toggle debug logging": "Toggle debug logging",
