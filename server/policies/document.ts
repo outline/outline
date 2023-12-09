@@ -62,7 +62,7 @@ allow(User, "download", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ["star", "comment"], Document, (user, document) => {
+allow(User, "comment", Document, (user, document) => {
   if (!document || !document.isActive || document.template) {
     return false;
   }
@@ -72,6 +72,17 @@ allow(User, ["star", "comment"], Document, (user, document) => {
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
+
+    if (document.collection.isPrivate) {
+      const membershipAllowsComment = includesMembership(document, [
+        DocumentPermission.Read,
+        DocumentPermission.ReadWrite,
+      ]);
+      if (membershipAllowsComment) {
+        return true;
+      }
+    }
+
     if (cannot(user, "readDocument", document.collection)) {
       return false;
     }
@@ -80,11 +91,8 @@ allow(User, ["star", "comment"], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, "unstar", Document, (user, document) => {
-  if (!document) {
-    return false;
-  }
-  if (document.template) {
+allow(User, ["star", "unstar"], Document, (user, document) => {
+  if (!document || !document.isActive || document.template) {
     return false;
   }
 
@@ -93,6 +101,17 @@ allow(User, "unstar", Document, (user, document) => {
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
+
+    if (document.collection.isPrivate) {
+      const membershipAllowsStar = includesMembership(document, [
+        DocumentPermission.Read,
+        DocumentPermission.ReadWrite,
+      ]);
+      if (membershipAllowsStar) {
+        return true;
+      }
+    }
+
     if (cannot(user, "readDocument", document.collection)) {
       return false;
     }
@@ -131,18 +150,20 @@ allow(User, "update", Document, (user, document) => {
     return false;
   }
 
-  const membershipAllowsUpdate = includesMembership(document, [
-    DocumentPermission.ReadWrite,
-  ]);
-  if (membershipAllowsUpdate) {
-    return true;
-  }
-
   if (document.collectionId) {
     invariant(
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
+
+    if (document.collection.isPrivate) {
+      const membershipAllowsUpdate = includesMembership(document, [
+        DocumentPermission.ReadWrite,
+      ]);
+      if (membershipAllowsUpdate) {
+        return true;
+      }
+    }
 
     if (cannot(user, "updateDocument", document.collection)) {
       return false;
@@ -241,10 +262,22 @@ allow(User, ["subscribe", "unsubscribe"], Document, (user, document) => {
   ) {
     return false;
   }
+
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
+
+  if (document.collection.isPrivate) {
+    const membershipAllowsSubscribe = includesMembership(document, [
+      DocumentPermission.Read,
+      DocumentPermission.ReadWrite,
+    ]);
+    if (membershipAllowsSubscribe) {
+      return true;
+    }
+  }
+
   if (cannot(user, "readDocument", document.collection)) {
     return false;
   }

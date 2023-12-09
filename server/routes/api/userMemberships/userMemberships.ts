@@ -56,6 +56,7 @@ router.post(
     const documents = await Document.scope([
       "withDrafts",
       { method: ["withMembership", user.id] },
+      { method: ["withCollectionPermissions", user.id] },
     ]).findAll({
       where: {
         id: documentIds,
