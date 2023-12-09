@@ -14,6 +14,8 @@ type RequestResponse<T> = {
   next: () => void;
   /** Page number */
   page: number;
+  /** Offset */
+  offset: number;
   /** Marks the end of pagination */
   end: boolean;
 };
@@ -64,9 +66,7 @@ export default function usePaginatedRequest<T = unknown>(
         uniqBy((prev ?? []).concat(response.slice(0, displayLimit)), "id")
       );
       setPage((prev) => prev + 1);
-      if (response.length <= displayLimit) {
-        setEnd(true);
-      }
+      setEnd(response.length <= displayLimit);
     }
   }, [response, displayLimit, loading]);
 
@@ -87,5 +87,12 @@ export default function usePaginatedRequest<T = unknown>(
     setOffset((prev) => prev + displayLimit);
   }, [displayLimit]);
 
-  return { data, next, loading, error, page, end };
+  React.useEffect(() => {
+    setEnd(false);
+    setData(undefined);
+    setPage(0);
+    setOffset(0);
+  }, [requestFn]);
+
+  return { data, next, loading, error, page, offset, end };
 }
