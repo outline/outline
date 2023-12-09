@@ -10,6 +10,7 @@
   "Unstar": "取消收藏",
   "Delete": "删除",
   "Delete collection": "删除文档集",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "删除索引数据库缓存",
   "IndexedDB cache deleted": "索引数据库缓存已删除",
   "Toggle debug logging": "切换调试日志",
