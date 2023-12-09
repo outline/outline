@@ -10,6 +10,7 @@
   "Unstar": "Verwijder favoriet",
   "Delete": "Verwijder",
   "Delete collection": "Verwijder collectie",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Verwijder IndexedDB cache",
   "IndexedDB cache deleted": "IndexedDB cache verwijderd",
   "Toggle debug logging": "Debug-logging aan- of uitzetten",
