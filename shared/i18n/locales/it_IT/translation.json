@@ -20,6 +20,8 @@
   "Open document": "Apri documento",
   "New document": "Nuovo documento",
   "New from template": "Nuovo da template",
+  "Copy as Markdown": "Copy as Markdown",
+  "Markdown copied to clipboard": "Markdown copied to clipboard",
   "New nested document": "Nuovo documento annidato",
   "Publish": "Pubblica",
   "Published {{ documentName }}": "Published {{ documentName }}",
