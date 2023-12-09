@@ -10,6 +10,7 @@
   "Unstar": "Bỏ gắn sao",
   "Delete": "Xóa",
   "Delete collection": "Xoá bộ sưu tập",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Xóa bộ nhớ đệm IndexedDB",
   "IndexedDB cache deleted": "Đã xóa bộ nhớ đệm IndexedDB",
   "Toggle debug logging": "Toggle debug logging",
