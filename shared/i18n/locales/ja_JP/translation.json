@@ -10,6 +10,7 @@
   "Unstar": "スター解除",
   "Delete": "削除",
   "Delete collection": "コレクションを削除",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "データベースのインデックスを削除する",
   "IndexedDB cache deleted": "データベースのインデックスを削除しました",
   "Toggle debug logging": "Toggle debug logging",
