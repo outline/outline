@@ -20,6 +20,8 @@
   "Open document": "Otevřít dokument",
   "New document": "Nový dokument",
   "New from template": "Nový ze šablony",
+  "Copy as Markdown": "Copy as Markdown",
+  "Markdown copied to clipboard": "Markdown copied to clipboard",
   "New nested document": "Nový vnořený dokument",
   "Publish": "Zveřejnit",
   "Published {{ documentName }}": "Published {{ documentName }}",
