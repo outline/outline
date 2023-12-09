@@ -10,6 +10,7 @@
   "Unstar": "Прибрати з обраного",
   "Delete": "Видалити",
   "Delete collection": "Видалити колекцію",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Видалити кеш IndexedDB",
   "IndexedDB cache deleted": "Кеш IndexedDB видалено",
   "Toggle debug logging": "Ввімкнути/вимкнути ведення журналу відлагодження",
