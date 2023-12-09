@@ -536,13 +536,8 @@ router.post(
       contentType = "text/markdown";
       content = DocumentHelper.toMarkdown(document);
     } else {
-      contentType = "application/json";
-      content = DocumentHelper.toMarkdown(document);
-    }
-
-    if (contentType === "application/json") {
       ctx.body = {
-        data: content,
+        data: DocumentHelper.toMarkdown(document),
       };
       return;
     }

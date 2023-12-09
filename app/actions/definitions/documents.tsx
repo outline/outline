@@ -1,3 +1,4 @@
+import copy from "copy-to-clipboard";
 import invariant from "invariant";
 import {
   DownloadIcon,
@@ -24,10 +25,12 @@ import {
   PublishIcon,
   CommentIcon,
   GlobeIcon,
+  CopyIcon,
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
 import { ExportContentType, TeamPreference } from "@shared/types";
+import MarkdownHelper from "@shared/utils/MarkdownHelper";
 import { getEventFiles } from "@shared/utils/files";
 import SharePopover from "~/scenes/Document/components/SharePopover";
 import DocumentDelete from "~/scenes/DocumentDelete";
@@ -109,6 +112,23 @@ export const createDocumentFromTemplate = createAction({
         starred: inStarredSection,
       }
     ),
+});
+
+export const copyDocumentAsMarkdown = createAction({
+  name: ({ t }) => t("Copy as Markdown"),
+  section: DocumentSection,
+  icon: <CopyIcon />,
+  keywords: "clipboard",
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ stores, activeDocumentId, t }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      copy(MarkdownHelper.toMarkdown(document));
+      toast.success(t("Markdown copied to clipboard"));
+    }
+  },
 });
 
 export const createNestedDocument = createAction({
@@ -889,6 +909,7 @@ export const rootDocumentActions = [
   deleteDocument,
   importDocument,
   downloadDocument,
+  copyDocumentAsMarkdown,
   starDocument,
   unstarDocument,
   publishDocument,

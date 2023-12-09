@@ -20,6 +20,8 @@
   "Open document": "Open document",
   "New document": "New document",
   "New from template": "New from template",
+  "Copy as Markdown": "Copy as Markdown",
+  "Markdown copied to clipboard": "Markdown copied to clipboard",
   "New nested document": "New nested document",
   "Publish": "Publish",
   "Published {{ documentName }}": "Published {{ documentName }}",

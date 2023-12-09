@@ -10,6 +10,7 @@ import { Transaction } from "sequelize";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
 import { AttachmentPreset } from "@shared/types";
+import MarkdownHelper from "@shared/utils/MarkdownHelper";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,
@@ -88,13 +89,7 @@ export default class DocumentHelper {
    * @returns The document title and content as a Markdown string
    */
   static toMarkdown(document: Document | Revision) {
-    const text = document.text.replace(/\n\\\n/g, "\n\n");
-
-    if (document.version) {
-      return `# ${document.title}\n\n${text}`;
-    }
-
-    return text;
+    return MarkdownHelper.toMarkdown(document);
   }
 
   /**
