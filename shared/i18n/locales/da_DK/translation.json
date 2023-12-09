@@ -10,6 +10,7 @@
   "Unstar": "Fjern favorit",
   "Delete": "Slet",
   "Delete collection": "Delete collection",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "Slet IndexedDB cache",
   "IndexedDB cache deleted": "IndexedDB cache slettet",
   "Toggle debug logging": "Toggle debug logging",
