@@ -10,6 +10,7 @@
   "Unstar": "중요 문서 해제",
   "Delete": "삭제",
   "Delete collection": "컬렉션 삭제",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "IndexedDB 캐시 삭제",
   "IndexedDB cache deleted": "IndexedDB 캐시 삭제됨",
   "Toggle debug logging": "디버그 로그 표시",
