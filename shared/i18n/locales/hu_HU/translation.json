@@ -10,6 +10,7 @@
   "Unstar": "Csillagozás törlése",
   "Delete": "Törlés",
   "Delete collection": "Gyűjtemény törlése",
+  "Copy ID": "Copy ID",
   "Delete IndexedDB cache": "IndexedDB gyorstár törlése",
   "IndexedDB cache deleted": "IndexedDB gyostár törölve",
   "Toggle debug logging": "Hibakeresési naplózás váltása",
