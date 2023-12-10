@@ -320,17 +320,19 @@ function DocumentHeader({
                 </Tooltip>
               </Action>
             )}
-            <Action>
-              <Button
-                action={publishDocument}
-                context={context}
-                disabled={publishingIsDisabled}
-                hideOnActionDisabled
-                hideIcon
-              >
-                {document.collectionId ? t("Publish") : `${t("Publish")}…`}
-              </Button>
-            </Action>
+            {can.publish && (
+              <Action>
+                <Button
+                  action={publishDocument}
+                  context={context}
+                  disabled={publishingIsDisabled}
+                  hideOnActionDisabled
+                  hideIcon
+                >
+                  {document.collectionId ? t("Publish") : `${t("Publish")}…`}
+                </Button>
+              </Action>
+            )}
             {!isDeleted && <Separator />}
             <Action>
               <DocumentMenu

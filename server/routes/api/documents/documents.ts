@@ -976,6 +976,7 @@ router.post(
     }
 
     if (publish) {
+      authorize(user, "publish", document);
       if (!document.collectionId) {
         assertPresent(
           collectionId,
