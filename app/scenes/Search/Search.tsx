@@ -248,21 +248,17 @@ function Search(props: Props) {
               >
                 {(compositeProps) =>
                   data?.length
-                    ? data.map((result) => {
-                        const document = documents.get(result.document.id);
-
-                        return document ? (
-                          <DocumentListItem
-                            key={document.id}
-                            document={document}
-                            highlight={query}
-                            context={result.context}
-                            showCollection
-                            showTemplate
-                            {...compositeProps}
-                          />
-                        ) : null;
-                      })
+                    ? data.map((result) => (
+                        <DocumentListItem
+                          key={result.document.id}
+                          document={result.document}
+                          highlight={query}
+                          context={result.context}
+                          showCollection
+                          showTemplate
+                          {...compositeProps}
+                        />
+                      ))
                     : null
                 }
               </StyledArrowKeyNavigation>

@@ -384,6 +384,7 @@ export default class DocumentsStore extends Store<Document> {
           return null;
         }
         return {
+          id: document.id,
           document,
         };
       })

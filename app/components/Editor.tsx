@@ -15,7 +15,6 @@ import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
 import { AttachmentValidation } from "@shared/validations";
-import Document from "~/models/Document";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
@@ -104,7 +103,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       const results = await documents.searchTitles(term);
 
       return sortBy(
-        results.map((document: Document) => ({
+        results.map(({ document }) => ({
           title: document.title,
           subtitle: <DocumentBreadcrumb document={document} onlyText />,
           url: document.url,

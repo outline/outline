@@ -25,7 +25,7 @@ import Tooltip from "./Tooltip";
 
 export type SearchResult = {
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   url: string;
 };
 
