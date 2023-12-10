@@ -191,6 +191,24 @@ allow(User, "publish", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
+allow(User, "duplicate", Document, (user, document) => {
+  if (!document || !document.isActive) {
+    return false;
+  }
+
+  if (document.collectionId) {
+    invariant(
+      document.collection,
+      "collection is missing, did you forget to include in the query scope?"
+    );
+    if (cannot(user, "updateDocument", document.collection)) {
+      return false;
+    }
+  }
+
+  return user.teamId === document.teamId;
+});
+
 allow(User, "updateInsights", Document, (user, document) => {
   if (!document || !document.isActive) {
     return false;

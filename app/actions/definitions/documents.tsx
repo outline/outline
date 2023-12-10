@@ -485,7 +485,7 @@ export const duplicateDocument = createAction({
   icon: <DuplicateIcon />,
   keywords: "copy",
   visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).update,
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).duplicate,
   perform: async ({ activeDocumentId, t, stores }) => {
     if (!activeDocumentId) {
       return;
