@@ -90,7 +90,7 @@ function Search(props: Props) {
     return () => Promise.resolve([] as SearchResult[]);
   }, [query, titleFilter, filters, searches, documents]);
 
-  const { data, offset, next, end, loading } = usePaginatedRequest(requestFn, {
+  const { data, next, end, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,
   });
 
@@ -176,13 +176,6 @@ function Search(props: Props) {
 
   const handleEscape = () => searchInputRef.current?.focus();
   const showEmpty = !loading && query && data?.length === 0;
-
-  console.log({
-    query,
-    offset,
-    data: data?.length,
-    end,
-  });
 
   return (
     <Scene textTitle={query ? `${query} – ${t("Search")}` : t("Search")}>
