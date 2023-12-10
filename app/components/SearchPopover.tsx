@@ -31,9 +31,11 @@ function SearchPopover({ shareId }: Props) {
   });
 
   const [query, setQuery] = React.useState("");
-  const searchResults = documents.searchResults(query);
   const { show, hide } = popover;
 
+  const [searchResults, setSearchResults] = React.useState<
+    PaginatedItem[] | undefined
+  >();
   const [cachedQuery, setCachedQuery] = React.useState(query);
   const [cachedSearchResults, setCachedSearchResults] = React.useState<
     PaginatedItem[] | undefined
@@ -50,7 +52,16 @@ function SearchPopover({ shareId }: Props) {
   const performSearch = React.useCallback(
     async ({ query, ...options }) => {
       if (query?.length > 0) {
-        return await documents.search(query, { shareId, ...options });
+        const response: PaginatedItem[] = await documents.search(query, {
+          shareId,
+          ...options,
+        });
+
+        if (response.length) {
+          setSearchResults(response);
+        }
+
+        return response;
       }
       return undefined;
     },
