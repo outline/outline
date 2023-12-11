@@ -2699,10 +2699,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/addressparser@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@types/addressparser/-/addressparser-1.0.2.tgz#dece1fa3ceff64cacf074f8258bef054de91f103"
-  integrity sha512-EYCtNs8Iw0kOvLVNvZ1PmhYS8wuAi7GKv226uO+59mDNaJEP9Ml13MiV8mU+DH1P+m1B5yYywYx6RbbM5ES4Qw==
+"@types/addressparser@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@types/addressparser/-/addressparser-1.0.3.tgz#7e64c25e9776157b45cfca8c73942f71bdd9ee91"
+  integrity sha512-h5MPV28/nHAXi3+wxjt7ZWKGtL2O6Z784eVKQwLo85VSo2YcPViTLR+CGJbx2bzd6DuOthiJX2sn54vqWfBseA==
   dependencies:
     "@types/node" "*"
 
