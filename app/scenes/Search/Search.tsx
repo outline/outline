@@ -27,6 +27,7 @@ import useStores from "~/hooks/useStores";
 import { hover } from "~/styles";
 import { SearchResult } from "~/types";
 import { searchPath } from "~/utils/routeHelpers";
+import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
 import RecentSearches from "./components/RecentSearches";
@@ -52,7 +53,7 @@ function Search(props: Props) {
   const recentSearchesCompositeRef = React.useRef<HTMLDivElement | null>(null);
 
   // filters
-  const query = routeMatch.params.term ?? "";
+  const query = decodeURIComponentSafe(routeMatch.params.term ?? "");
   const includeArchived = params.get("includeArchived") === "true";
   const collectionId = params.get("collectionId") ?? undefined;
   const userId = params.get("userId") ?? undefined;
