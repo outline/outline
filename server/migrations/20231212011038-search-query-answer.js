@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.addColumn("search_queries", "answer", {
-      type: Sequelize.STRING,
+      type: Sequelize.TEXT,
       allowNull: true,
     });
   },
