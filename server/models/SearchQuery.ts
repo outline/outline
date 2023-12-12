@@ -49,6 +49,12 @@ class SearchQuery extends Model {
   score: number;
 
   /**
+   * The generated answer to the query, if any.
+   */
+  @Column
+  answer: string;
+
+  /**
    * The query string, automatically truncated to 255 characters.
    */
   @Column(DataType.STRING)
