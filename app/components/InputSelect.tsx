@@ -46,6 +46,10 @@ export type Props = {
   onChange?: (value: string | null) => void;
 };
 
+interface InnerProps extends React.HTMLAttributes<HTMLDivElement> {
+  placement: Placement;
+}
+
 const getOptionFromValue = (options: Option[], value: string | null) =>
   options.find((option) => option.value === value);
 
@@ -147,11 +151,7 @@ const InputSelect = (props: Props) => {
           )}
         </Select>
         <SelectPopover {...select} {...popOver} aria-label={ariaLabel}>
-          {(
-            props: React.HTMLAttributes<HTMLDivElement> & {
-              placement: Placement;
-            }
-          ) => {
+          {(props: InnerProps) => {
             const topAnchor = props.style?.top === "0";
             const rightAnchor = props.placement === "bottom-end";
 

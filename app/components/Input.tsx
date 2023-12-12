@@ -111,9 +111,8 @@ export const LabelText = styled.div`
   display: inline-block;
 `;
 
-export type Props = React.InputHTMLAttributes<
-  HTMLInputElement | HTMLTextAreaElement
-> & {
+export interface Props
+  extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
   type?: "text" | "email" | "checkbox" | "search" | "textarea";
   labelHidden?: boolean;
   label?: string;
@@ -130,7 +129,7 @@ export type Props = React.InputHTMLAttributes<
   ) => unknown;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
   onBlur?: (ev: React.SyntheticEvent) => unknown;
-};
+}
 
 function Input(
   props: Props,
