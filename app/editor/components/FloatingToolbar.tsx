@@ -181,50 +181,51 @@ function usePosition({
   }
 }
 
-const FloatingToolbar = React.forwardRef(
-  (props: Props, ref: React.RefObject<HTMLDivElement>) => {
-    const menuRef = ref || React.createRef<HTMLDivElement>();
-    const [isSelectingText, setSelectingText] = React.useState(false);
+const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
+  props: Props,
+  ref: React.RefObject<HTMLDivElement>
+) {
+  const menuRef = ref || React.createRef<HTMLDivElement>();
+  const [isSelectingText, setSelectingText] = React.useState(false);
 
-    let position = usePosition({
-      menuRef,
-      active: props.active,
-    });
+  let position = usePosition({
+    menuRef,
+    active: props.active,
+  });
 
-    if (isSelectingText) {
-      position = defaultPosition;
-    }
-
-    useEventListener("mouseup", () => {
-      setSelectingText(false);
-    });
-
-    useEventListener("mousedown", () => {
-      if (!props.active) {
-        setSelectingText(true);
-      }
-    });
-
-    return (
-      <Portal>
-        <Wrapper
-          active={props.active && position.visible}
-          arrow={!position.blockSelection}
-          ref={menuRef}
-          $offset={position.offset}
-          style={{
-            width: props.width,
-            maxWidth: `${position.maxWidth}px`,
-            top: `${position.top}px`,
-            left: `${position.left}px`,
-          }}
-        >
-          {props.children}
-        </Wrapper>
-      </Portal>
-    );
+  if (isSelectingText) {
+    position = defaultPosition;
   }
-);
+
+  useEventListener("mouseup", () => {
+    setSelectingText(false);
+  });
+
+  useEventListener("mousedown", () => {
+    if (!props.active) {
+      setSelectingText(true);
+    }
+  });
+
+  return (
+    <Portal>
+      <Wrapper
+        active={props.active && position.visible}
+        arrow={!position.blockSelection}
+        ref={menuRef}
+        $offset={position.offset}
+        style={{
+          width: props.width,
+          maxWidth: `${position.maxWidth}px`,
+          top: `${position.top}px`,
+          left: `${position.left}px`,
+        }}
+      >
+        {props.children}
+      </Wrapper>
+    </Portal>
+  );
+});
 
 type WrapperProps = {
   active?: boolean;

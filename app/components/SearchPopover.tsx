@@ -17,7 +17,9 @@ import useStores from "~/hooks/useStores";
 import { SearchResult } from "~/types";
 import SearchListItem from "./SearchListItem";
 
-type Props = React.HTMLAttributes<HTMLInputElement> & { shareId: string };
+interface Props extends React.HTMLAttributes<HTMLInputElement> {
+  shareId: string;
+}
 
 function SearchPopover({ shareId }: Props) {
   const { t } = useTranslation();

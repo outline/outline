@@ -5,7 +5,7 @@ import { LabelText } from "~/components/Input";
 import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
 
-type Props = React.HTMLAttributes<HTMLInputElement> & {
+interface Props extends React.HTMLAttributes<HTMLInputElement> {
   width?: number;
   height?: number;
   label?: string;
@@ -14,8 +14,7 @@ type Props = React.HTMLAttributes<HTMLInputElement> & {
   checked?: boolean;
   disabled?: boolean;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => unknown;
-  id?: string;
-};
+}
 
 function Switch({
   width = 32,

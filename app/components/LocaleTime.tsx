@@ -20,7 +20,7 @@ function eachMinute(fn: () => void) {
   };
 }
 
-type Props = {
+export type Props = {
   children?: React.ReactNode;
   dateTime: string;
   tooltipDelay?: number;
