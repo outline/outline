@@ -326,7 +326,7 @@
     "eslint-plugin-lodash": "^7.4.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-react": "^7.20.0",
+    "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "husky": "^8.0.2",
     "i18next-parser": "^7.9.0",
