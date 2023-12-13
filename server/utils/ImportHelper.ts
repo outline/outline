@@ -31,7 +31,7 @@ export default class ImportHelper {
     };
     let stats;
 
-    if ([".DS_Store", "__MACOSX"].includes(name)) {
+    if ([".git", ".DS_Store", "__MACOSX"].includes(name)) {
       return null;
     }
 
