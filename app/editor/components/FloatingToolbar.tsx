@@ -219,11 +219,12 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
 
   if (isMobile) {
     if (props.active) {
+      const rect = document.body.getBoundingClientRect();
       return (
         <ReactPortal>
           <MobileWrapper
             style={{
-              bottom: `calc(100% - ${height}px)`,
+              bottom: `calc(100% - ${height - rect.y}px)`,
             }}
           >
             {props.children}
