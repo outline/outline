@@ -12,7 +12,7 @@ import * as React from "react";
 export default function useEventListener<T extends EventListener>(
   eventName: string,
   handler: T,
-  element: Window | Node = window,
+  element: Window | VisualViewport | Node | null = window,
   options: AddEventListenerOptions = {}
 ) {
   const savedHandler = React.useRef<T>();
