@@ -44,6 +44,14 @@ allow(User, "download", Document, (user, document) => {
     return false;
   }
 
+  const membershipAllowsRead = includesMembership(document, [
+    DocumentPermission.Read,
+    DocumentPermission.ReadWrite,
+  ]);
+  if (membershipAllowsRead) {
+    return true;
+  }
+
   // existence of collection option is not required here to account for share tokens
   if (
     document.collection &&
