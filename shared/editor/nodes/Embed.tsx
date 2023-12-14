@@ -5,12 +5,26 @@ import * as React from "react";
 import { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
 import DisabledEmbed from "../components/DisabledEmbed";
+import Frame from "../components/Frame";
+import defaultEmbeds, { EmbedDescriptor } from "../embeds";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
 import { ComponentProps } from "../types";
 import Node from "./Node";
 
-const cache = {};
+function getMatchingEmbed(
+  embeds: EmbedDescriptor[],
+  href: string
+): { embed: EmbedDescriptor; matches: RegExpMatchArray } | undefined {
+  for (const e of embeds) {
+    const matches = e.matcher(href);
+    if (matches) {
+      return { embed: e, matches };
+    }
+  }
+
+  return undefined;
+}
 
 export default class Embed extends Node {
   get name() {
@@ -29,33 +43,35 @@ export default class Embed extends Node {
         {
           tag: "iframe",
           getAttrs: (dom: HTMLIFrameElement) => {
-            const { embeds } = this.editor.props;
+            const embeds = this.editor?.props.embeds ?? defaultEmbeds;
             const href = dom.getAttribute("src") || "";
+            const response = getMatchingEmbed(embeds, href);
 
-            if (embeds) {
-              for (const embed of embeds) {
-                const matches = embed.matcher(href);
-                if (matches) {
-                  return {
-                    href,
-                  };
-                }
-              }
+            if (response) {
+              return {
+                href,
+              };
             }
 
             return false;
           },
         },
       ],
-      toDOM: (node) => [
-        "iframe",
-        {
-          class: "embed",
-          src: sanitizeUrl(node.attrs.href),
-          contentEditable: "false",
-        },
-        0,
-      ],
+      toDOM: (node) => {
+        const embeds = this.editor?.props.embeds ?? defaultEmbeds;
+        const response = getMatchingEmbed(embeds, node.attrs.href);
+        const src = response?.embed.transformMatch?.(response.matches);
+
+        return [
+          "iframe",
+          {
+            class: "embed",
+            src: sanitizeUrl(src ?? node.attrs.href),
+            contentEditable: "false",
+          },
+          0,
+        ];
+      },
       toPlainText: (node) => node.attrs.href,
     };
   }
@@ -64,52 +80,14 @@ export default class Embed extends Node {
     return [embedsRule(this.options.embeds)];
   }
 
-  component({ isEditable, isSelected, theme, node }: ComponentProps) {
+  component(props: ComponentProps) {
     const { embeds, embedsDisabled } = this.editor.props;
 
-    // matches are cached in module state to avoid re running loops and regex
-    // here. Unfortunately this function is not compatible with React.memo or
-    // we would use that instead.
-    const hit = cache[node.attrs.href];
-    let Component = hit ? hit.Component : undefined;
-    let matches = hit ? hit.matches : undefined;
-    let embed = hit ? hit.embed : undefined;
-
-    if (!Component) {
-      for (const e of embeds) {
-        const m = e.matcher(node.attrs.href);
-        if (m) {
-          Component = e.component;
-          matches = m;
-          embed = e;
-          cache[node.attrs.href] = { Component, embed, matches };
-        }
-      }
-    }
-
-    if (!Component) {
-      return null;
-    }
-
-    if (embedsDisabled) {
-      return (
-        <DisabledEmbed
-          attrs={{ href: node.attrs.href, matches }}
-          embed={embed}
-          isEditable={isEditable}
-          isSelected={isSelected}
-          theme={theme}
-        />
-      );
-    }
-
     return (
-      <Component
-        attrs={{ ...node.attrs, matches }}
-        isEditable={isEditable}
-        isSelected={isSelected}
-        embed={embed}
-        theme={theme}
+      <EmbedComponent
+        {...props}
+        embeds={embeds}
+        embedsDisabled={embedsDisabled}
       />
     );
   }
@@ -148,3 +126,66 @@ export default class Embed extends Node {
     };
   }
 }
+
+const EmbedComponent = ({
+  isEditable,
+  isSelected,
+  theme,
+  node,
+  embeds,
+  embedsDisabled,
+}: ComponentProps & {
+  embeds: EmbedDescriptor[];
+  embedsDisabled?: boolean;
+}) => {
+  const cache = React.useMemo(
+    () => getMatchingEmbed(embeds, node.attrs.href),
+    [embeds, node.attrs.href]
+  );
+
+  if (!cache) {
+    return null;
+  }
+
+  const { embed, matches } = cache;
+
+  if (embedsDisabled) {
+    return (
+      <DisabledEmbed
+        attrs={{ href: node.attrs.href }}
+        embed={embed}
+        isEditable={isEditable}
+        isSelected={isSelected}
+        theme={theme}
+      />
+    );
+  }
+
+  if (embed.transformMatch) {
+    const src = embed.transformMatch(matches);
+    return (
+      <Frame
+        src={src}
+        isSelected={isSelected}
+        canonicalUrl={node.attrs.href}
+        title={embed.title}
+        border
+      />
+    );
+  }
+
+  if ("Component" in embed) {
+    return (
+      // @ts-expect-error deprecated v soon
+      <embed.Component
+        attrs={{ ...node.attrs, matches }}
+        isEditable={isEditable}
+        isSelected={isSelected}
+        embed={embed}
+        theme={theme}
+      />
+    );
+  }
+
+  return null;
+};

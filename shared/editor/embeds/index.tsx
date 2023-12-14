@@ -6,10 +6,7 @@ import { IntegrationType } from "../../types";
 import type { IntegrationSettings } from "../../types";
 import { urlRegex } from "../../utils/urls";
 import Image from "../components/Img";
-import Abstract from "./Abstract";
-import Airtable from "./Airtable";
 import Berrycast from "./Berrycast";
-import Bilibili from "./Bilibili";
 import Canva from "./Canva";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
@@ -82,10 +79,12 @@ export class EmbedDescriptor {
   keywords?: string;
   tooltip?: string;
   defaultHidden?: boolean;
+  regexMatch?: RegExp[];
+  transformMatch?: (matches: RegExpMatchArray) => string;
   attrs?: Record<string, Primitive>;
   visible?: boolean;
   active?: (state: EditorState) => boolean;
-  component: typeof React.Component | React.FC<any>;
+  component?: typeof React.Component | React.FC<any>;
   settings?: IntegrationSettings<IntegrationType.Embed>;
 
   constructor(options: Omit<EmbedDescriptor, "matcher">) {
@@ -96,6 +95,8 @@ export class EmbedDescriptor {
     this.keywords = options.keywords;
     this.tooltip = options.tooltip;
     this.defaultHidden = options.defaultHidden;
+    this.regexMatch = options.regexMatch;
+    this.transformMatch = options.transformMatch;
     this.attrs = options.attrs;
     this.visible = options.visible;
     this.active = options.active;
@@ -103,11 +104,11 @@ export class EmbedDescriptor {
     this.settings = options.settings;
   }
 
-  matcher(url: string): boolean | [] | RegExpMatchArray {
+  matcher(url: string): false | RegExpMatchArray {
     const regex = urlRegex(this.settings?.url);
 
     // @ts-expect-error not aware of static
-    const regexes = this.component.ENABLED;
+    const regexes = this.regexMatch ?? this.component?.ENABLED ?? [];
 
     regex &&
       regexes.unshift(
@@ -135,18 +136,29 @@ const embeds: EmbedDescriptor[] = [
     keywords: "design",
     defaultHidden: true,
     icon: <Img src="/images/abstract.png" alt="Abstract" />,
-    component: Abstract,
+    regexMatch: [
+      new RegExp("^https?://share\\.(?:go)?abstract\\.com/(.*)$"),
+      new RegExp("^https?://app\\.(?:go)?abstract\\.com/(?:share|embed)/(.*)$"),
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://app.goabstract.com/embed/${matches[1]}`,
   }),
   new EmbedDescriptor({
     title: "Airtable",
     keywords: "spreadsheet",
     icon: <Img src="/images/airtable.png" alt="Airtable" />,
-    component: Airtable,
+    regexMatch: [
+      new RegExp("^https://airtable.com/(?:embed/)?(app.*/)?(shr.*)$"),
+      new RegExp("^https://airtable.com/(app.*/)?(pag.*)/form$"),
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://airtable.com/embed/${matches[1] ?? ""}${matches[2]}`,
   }),
   new EmbedDescriptor({
     title: "Berrycast",
     keywords: "video",
     defaultHidden: true,
+    regexMatch: [/^https:\/\/(www\.)?berrycast.com\/conversations\/(.*)$/i],
     icon: <Img src="/images/berrycast.png" alt="Berrycast" />,
     component: Berrycast,
   }),
@@ -154,8 +166,12 @@ const embeds: EmbedDescriptor[] = [
     title: "Bilibili",
     keywords: "video",
     defaultHidden: true,
+    regexMatch: [
+      /(?:https?:\/\/)?(www\.bilibili\.com)\/video\/([\w\d]+)?(\?\S+)?/i,
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://player.bilibili.com/player.html?bvid=${matches[2]}&page=1&high_quality=1`,
     icon: <Img src="/images/bilibili.png" alt="Bilibili" />,
-    component: Bilibili,
   }),
   new EmbedDescriptor({
     title: "Canva",

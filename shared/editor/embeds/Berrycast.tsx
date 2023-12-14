@@ -3,8 +3,6 @@ import Frame from "../components/Frame";
 import useComponentSize from "../components/hooks/useComponentSize";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = /^https:\/\/(www\.)?berrycast.com\/conversations\/(.*)$/;
-
 export default function Berrycast(props: Props) {
   const normalizedUrl = props.attrs.href.replace(/\/$/, "");
   const ref = React.useRef<HTMLDivElement>(null);
@@ -23,5 +21,3 @@ export default function Berrycast(props: Props) {
     </>
   );
 }
-
-Berrycast.ENABLED = [URL_REGEX];
