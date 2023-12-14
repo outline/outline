@@ -121,7 +121,13 @@ allow(User, ["star", "unstar"], Document, (user, document) => {
 });
 
 allow(User, "share", Document, (user, document) => {
-  if (!document || !document.isActive) {
+  if (!document) {
+    return false;
+  }
+  if (document.archivedAt) {
+    return false;
+  }
+  if (document.deletedAt) {
     return false;
   }
 
@@ -130,15 +136,6 @@ allow(User, "share", Document, (user, document) => {
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
-
-    if (document.collection.isPrivate) {
-      const membershipAllowsShare = includesMembership(document, [
-        DocumentPermission.ReadWrite,
-      ]);
-      if (membershipAllowsShare) {
-        return true;
-      }
-    }
 
     if (cannot(user, "share", document.collection)) {
       return false;
