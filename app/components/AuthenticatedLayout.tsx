@@ -26,6 +26,7 @@ import {
   matchDocumentInsights,
 } from "~/utils/routeHelpers";
 import Fade from "./Fade";
+import { PortalContext } from "./Portal";
 
 const DocumentComments = lazyWithRetry(
   () => import("~/scenes/Document/components/Comments")
@@ -45,6 +46,7 @@ type Props = {
 const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const { ui, auth } = useStores();
   const location = useLocation();
+  const layoutRef = React.useRef<HTMLDivElement>(null);
   const can = usePolicy(ui.activeCollectionId);
   const team = useCurrentTeam();
   const documentContext = useLocalStore<DocumentContextValue>(() => ({
@@ -120,15 +122,22 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
 
   return (
     <DocumentContext.Provider value={documentContext}>
-      <Layout title={team.name} sidebar={sidebar} sidebarRight={sidebarRight}>
-        <RegisterKeyDown trigger="n" handler={goToNewDocument} />
-        <RegisterKeyDown trigger="t" handler={goToSearch} />
-        <RegisterKeyDown trigger="/" handler={goToSearch} />
-        {children}
-        <React.Suspense fallback={null}>
-          <CommandBar />
-        </React.Suspense>
-      </Layout>
+      <PortalContext.Provider value={layoutRef.current}>
+        <Layout
+          title={team.name}
+          sidebar={sidebar}
+          sidebarRight={sidebarRight}
+          ref={layoutRef}
+        >
+          <RegisterKeyDown trigger="n" handler={goToNewDocument} />
+          <RegisterKeyDown trigger="t" handler={goToSearch} />
+          <RegisterKeyDown trigger="/" handler={goToSearch} />
+          {children}
+          <React.Suspense fallback={null}>
+            <CommandBar />
+          </React.Suspense>
+        </Layout>
+      </PortalContext.Provider>
     </DocumentContext.Provider>
   );
 };

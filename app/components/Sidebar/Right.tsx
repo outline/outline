@@ -134,7 +134,7 @@ const Sidebar = styled(m.div)<{
     top: 0;
     right: 0;
     bottom: 0;
-    z-index: ${depths.sidebar};
+    z-index: ${depths.mobileSidebar};
   `}
 
   ${breakpoint("tablet")`

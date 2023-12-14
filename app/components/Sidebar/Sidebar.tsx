@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Portal } from "react-portal";
 import { useLocation } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -192,11 +191,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
         onPointerLeave={handlePointerLeave}
         column
       >
-        {ui.mobileSidebarVisible && (
-          <Portal>
-            <Backdrop onClick={ui.toggleMobileSidebar} />
-          </Portal>
-        )}
         {children}
 
         {user && (
@@ -235,6 +229,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
           onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
         />
       </Container>
+      {ui.mobileSidebarVisible && <Backdrop onClick={ui.toggleMobileSidebar} />}
     </>
   );
 });
@@ -247,7 +242,7 @@ const Backdrop = styled.a`
   bottom: 0;
   right: 0;
   cursor: default;
-  z-index: ${depths.sidebar - 1};
+  z-index: ${depths.mobileSidebar - 1};
   background: ${s("backdrop")};
 `;
 
@@ -288,7 +283,7 @@ const Container = styled(Flex)<ContainerProps>`
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
   );
-  z-index: ${depths.sidebar};
+  z-index: ${depths.mobileSidebar};
   max-width: 80%;
   min-width: 280px;
   ${fadeOnDesktopBackgrounded()}
@@ -303,6 +298,7 @@ const Container = styled(Flex)<ContainerProps>`
   }
 
   ${breakpoint("tablet")`
+    z-index: ${depths.sidebar};
     margin: 0;
     min-width: 0;
     transform: translateX(${(props: ContainerProps) =>
