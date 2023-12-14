@@ -14,7 +14,7 @@ function Airtable(props: Props) {
   return (
     <Frame
       {...props}
-      src={`https://airtable.com/embed/${appId}${shareId}`}
+      src={`https://airtable.com/embed/${appId ?? ""}${shareId}`}
       title={`Airtable (${shareId})`}
       border
     />
