@@ -3,16 +3,18 @@ import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
-  "^https://airtable.com/(?:app.*/)?(?:embed/)?(shr.*)$"
+  "^https://airtable.com/(?:embed/)?(app.*/)?(shr.*)$"
 );
 
 function Airtable(props: Props) {
   const { matches } = props.attrs;
-  const shareId = matches[1];
+  const appId = matches[1];
+  const shareId = matches[2];
+
   return (
     <Frame
       {...props}
-      src={`https://airtable.com/embed/${shareId}`}
+      src={`https://airtable.com/embed/${appId}${shareId}`}
       title={`Airtable (${shareId})`}
       border
     />
