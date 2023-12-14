@@ -213,11 +213,11 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   const isMobile = useMobile();
   const { height } = useWindowSize();
 
-  if (!props.children) {
-    return null;
-  }
-
   if (isMobile) {
+    if (!props.children) {
+      return null;
+    }
+
     if (props.active) {
       const rect = document.body.getBoundingClientRect();
       return (
