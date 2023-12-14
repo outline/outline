@@ -362,9 +362,7 @@ export const DocumentsAddUserSchema = BaseSchema.extend({
     /** Id of the user who is to be added*/
     userId: z.string().uuid(),
     /** Permission to be granted to the added user  */
-    permission: z
-      .nativeEnum(DocumentPermission)
-      .default(DocumentPermission.ReadWrite),
+    permission: z.nativeEnum(DocumentPermission).optional(),
   }),
 });
 

@@ -5,7 +5,6 @@ import * as React from "react";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { Pagination } from "@shared/constants";
-import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
 import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
@@ -66,7 +65,6 @@ function InviteTeamMembers({ document }: Props) {
       userMemberships.create({
         documentId: document.id,
         userId: user.id,
-        permission: DocumentPermission.ReadWrite,
       }),
     [userMemberships, document.id]
   );

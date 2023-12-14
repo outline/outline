@@ -1501,7 +1501,7 @@ router.post(
         },
         { transaction }
       );
-    } else {
+    } else if (permission) {
       membership.permission = permission;
       await membership.save({ transaction });
     }
