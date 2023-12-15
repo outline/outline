@@ -38,7 +38,7 @@ export default function useEmbeds(loadIfMissing = false) {
       embeds.map((e) => {
         const em: Integration<IntegrationType.Embed> | undefined = find(
           integrations.orderedData,
-          (i) => i.service === e.component.name.toLowerCase()
+          (i) => i.service === e.title?.toLowerCase()
         );
         return new EmbedDescriptor({
           ...e,

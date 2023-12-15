@@ -2,8 +2,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { EmbedProps as Props } from ".";
 
-const GITLAB_NAMESPACE_REGEX = "(([a-zA-Z\\d-]+)/)";
-
 const Iframe = styled.iframe`
   margin-top: 8px;
 `;
@@ -28,11 +26,5 @@ function GitLabSnippet(props: Props) {
     />
   );
 }
-
-GitLabSnippet.ENABLED = [
-  new RegExp(
-    `^https://gitlab\\.com/${GITLAB_NAMESPACE_REGEX}*-/snippets/\\d+$`
-  ),
-];
 
 export default GitLabSnippet;

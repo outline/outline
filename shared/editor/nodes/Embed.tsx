@@ -169,6 +169,7 @@ const EmbedComponent = ({
         isSelected={isSelected}
         canonicalUrl={node.attrs.href}
         title={embed.title}
+        referrerPolicy="origin"
         border
       />
     );

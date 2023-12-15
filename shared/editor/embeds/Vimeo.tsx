@@ -21,8 +21,4 @@ function Vimeo(props: Props) {
   );
 }
 
-Vimeo.ENABLED = [
-  /(http|https)?:\/\/(www\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^/]*)\/videos\/|)(\d+)(?:\/|\?)?([\d\w]+)?/,
-];
-
 export default Vimeo;

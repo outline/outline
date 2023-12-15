@@ -18,8 +18,4 @@ function Linkedin(props: Props) {
   );
 }
 
-Linkedin.ENABLED = [
-  /^https:\/\/www\.linkedin\.com\/(?:posts\/.*-(ugcPost|activity)-(\d+)-.*|(embed)\/(?:feed\/update\/urn:li:(?:ugcPost|share):(?:\d+)))/,
-];
-
 export default Linkedin;

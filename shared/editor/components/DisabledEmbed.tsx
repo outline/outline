@@ -11,7 +11,7 @@ export default function DisabledEmbed(
 ) {
   return (
     <Widget
-      title={props.embed.title}
+      title={props.embed.name}
       href={props.attrs.href}
       icon={props.embed.icon}
       context={props.attrs.href.replace(/^https?:\/\//, "")}

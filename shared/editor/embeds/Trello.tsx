@@ -28,6 +28,4 @@ function Trello(props: Props) {
   );
 }
 
-Trello.ENABLED = [/^https:\/\/trello\.com\/(c|b)\/([^/]*)(.*)?$/];
-
 export default Trello;
