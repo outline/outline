@@ -1,4 +1,3 @@
-import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
@@ -38,19 +37,40 @@ const Img = styled(Image)`
 `;
 
 export class EmbedDescriptor {
+  /** An icon that will be used to represent the embed in menus */
   icon?: React.ReactNode;
+  /** The name of the embed. If this embed has a matching integration it should match IntegrationService */
   name?: string;
-  title?: string;
+  /** The title of the embed */
+  title: string;
+  /** A keyboard shortcut that will trigger the embed */
   shortcut?: string;
+  /** Keywords that will match this embed in menus */
   keywords?: string;
+  /** A tooltip that will be shown in menus */
   tooltip?: string;
+  /** Whether the embed should be hidden in menus by default */
   defaultHidden?: boolean;
+  /** A regex that will be used to match the embed when pasting a URL */
   regexMatch?: RegExp[];
+  /**
+   * A function that will be used to transform the URL. The resulting string is passed as the src
+   * to the iframe. You can perform any transformations you want here, including changing the domain
+   *
+   * If a custom display is needed this function should be left undefined and `component` should be
+   * used instead.
+   */
   transformMatch?: (matches: RegExpMatchArray) => string;
+  /** The node attributes */
   attrs?: Record<string, Primitive>;
+  /** Whether the embed should be visible in menus, always true */
   visible?: boolean;
-  active?: (state: EditorState) => boolean;
-  component?: React.ElementType;
+  /**
+   * A React component that will be used to render the embed, if displaying a simple iframe then
+   * `transformMatch` should be used instead.
+   */
+  component?: React.FunctionComponent<EmbedProps>;
+  /** The integration settings, if any */
   settings?: IntegrationSettings<IntegrationType.Embed>;
 
   constructor(options: Omit<EmbedDescriptor, "matcher">) {
@@ -65,7 +85,6 @@ export class EmbedDescriptor {
     this.transformMatch = options.transformMatch;
     this.attrs = options.attrs;
     this.visible = options.visible;
-    this.active = options.active;
     this.component = options.component;
   }
 
