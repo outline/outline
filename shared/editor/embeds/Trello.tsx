@@ -2,8 +2,7 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-function Trello(props: Props) {
-  const { matches } = props.attrs;
+function Trello({ matches, ...props }: Props) {
   const objectId = matches[2];
 
   if (matches[1] === "c") {
@@ -27,7 +26,5 @@ function Trello(props: Props) {
     />
   );
 }
-
-Trello.ENABLED = [/^https:\/\/trello\.com\/(c|b)\/([^/]*)(.*)?$/];
 
 export default Trello;

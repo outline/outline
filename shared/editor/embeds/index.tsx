@@ -1,67 +1,29 @@
-import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
-import { IntegrationType } from "../../types";
+import { IntegrationService, IntegrationType } from "../../types";
 import type { IntegrationSettings } from "../../types";
 import { urlRegex } from "../../utils/urls";
 import Image from "../components/Img";
-import Abstract from "./Abstract";
-import Airtable from "./Airtable";
 import Berrycast from "./Berrycast";
-import Bilibili from "./Bilibili";
-import Canva from "./Canva";
-import Cawemo from "./Cawemo";
-import ClickUp from "./ClickUp";
-import Codepen from "./Codepen";
-import DBDiagram from "./DBDiagram";
-import Descript from "./Descript";
 import Diagrams from "./Diagrams";
-import Figma from "./Figma";
-import Framer from "./Framer";
 import Gist from "./Gist";
 import GitLabSnippet from "./GitLabSnippet";
-import Gliffy from "./Gliffy";
-import GoogleCalendar from "./GoogleCalendar";
-import GoogleDocs from "./GoogleDocs";
-import GoogleDrawings from "./GoogleDrawings";
-import GoogleDrive from "./GoogleDrive";
-import GoogleForms from "./GoogleForms";
-import GoogleLookerStudio from "./GoogleLookerStudio";
-import GoogleMaps from "./GoogleMaps";
-import GoogleSheets from "./GoogleSheets";
-import GoogleSlides from "./GoogleSlides";
-import Grist from "./Grist";
 import InVision from "./InVision";
-import Instagram from "./Instagram";
 import JSFiddle from "./JSFiddle";
 import Linkedin from "./Linkedin";
-import Loom from "./Loom";
-import Lucidchart from "./Lucidchart";
-import Marvel from "./Marvel";
-import Mindmeister from "./Mindmeister";
-import Miro from "./Miro";
-import ModeAnalytics from "./ModeAnalytics";
-import Otter from "./Otter";
-import Pitch from "./Pitch";
-import Prezi from "./Prezi";
-import Scribe from "./Scribe";
 import Spotify from "./Spotify";
-import Tldraw from "./Tldraw";
 import Trello from "./Trello";
-import Typeform from "./Typeform";
-import Valtown from "./Valtown";
 import Vimeo from "./Vimeo";
-import Whimsical from "./Whimsical";
 import YouTube from "./YouTube";
 
 export type EmbedProps = {
   isSelected: boolean;
   isEditable: boolean;
   embed: EmbedDescriptor;
+  matches: RegExpMatchArray;
   attrs: {
     href: string;
-    matches: RegExpMatchArray;
   };
 };
 
@@ -75,17 +37,40 @@ const Img = styled(Image)`
 `;
 
 export class EmbedDescriptor {
+  /** An icon that will be used to represent the embed in menus */
   icon?: React.ReactNode;
+  /** The name of the embed. If this embed has a matching integration it should match IntegrationService */
   name?: string;
-  title?: string;
+  /** The title of the embed */
+  title: string;
+  /** A keyboard shortcut that will trigger the embed */
   shortcut?: string;
+  /** Keywords that will match this embed in menus */
   keywords?: string;
+  /** A tooltip that will be shown in menus */
   tooltip?: string;
+  /** Whether the embed should be hidden in menus by default */
   defaultHidden?: boolean;
+  /** A regex that will be used to match the embed when pasting a URL */
+  regexMatch?: RegExp[];
+  /**
+   * A function that will be used to transform the URL. The resulting string is passed as the src
+   * to the iframe. You can perform any transformations you want here, including changing the domain
+   *
+   * If a custom display is needed this function should be left undefined and `component` should be
+   * used instead.
+   */
+  transformMatch?: (matches: RegExpMatchArray) => string;
+  /** The node attributes */
   attrs?: Record<string, Primitive>;
+  /** Whether the embed should be visible in menus, always true */
   visible?: boolean;
-  active?: (state: EditorState) => boolean;
-  component: typeof React.Component | React.FC<any>;
+  /**
+   * A React component that will be used to render the embed, if displaying a simple iframe then
+   * `transformMatch` should be used instead.
+   */
+  component?: React.FunctionComponent<EmbedProps>;
+  /** The integration settings, if any */
   settings?: IntegrationSettings<IntegrationType.Embed>;
 
   constructor(options: Omit<EmbedDescriptor, "matcher">) {
@@ -96,30 +81,23 @@ export class EmbedDescriptor {
     this.keywords = options.keywords;
     this.tooltip = options.tooltip;
     this.defaultHidden = options.defaultHidden;
+    this.regexMatch = options.regexMatch;
+    this.transformMatch = options.transformMatch;
     this.attrs = options.attrs;
     this.visible = options.visible;
-    this.active = options.active;
     this.component = options.component;
-    this.settings = options.settings;
   }
 
-  matcher(url: string): boolean | [] | RegExpMatchArray {
-    const regex = urlRegex(this.settings?.url);
+  matcher(url: string): false | RegExpMatchArray {
+    const regexes = this.regexMatch ?? [];
+    const settingsDomainRegex = urlRegex(this.settings?.url);
 
-    // @ts-expect-error not aware of static
-    const regexes = this.component.ENABLED;
-
-    regex &&
-      regexes.unshift(
-        new RegExp(
-          // @ts-expect-error not aware of static
-          `^${regex.source}${this.component.URL_PATH_REGEX.source}$`
-        )
-      );
+    if (settingsDomainRegex) {
+      regexes.unshift(settingsDomainRegex);
+    }
 
     for (const regex of regexes) {
       const result = url.match(regex);
-
       if (result) {
         return result;
       }
@@ -135,18 +113,29 @@ const embeds: EmbedDescriptor[] = [
     keywords: "design",
     defaultHidden: true,
     icon: <Img src="/images/abstract.png" alt="Abstract" />,
-    component: Abstract,
+    regexMatch: [
+      new RegExp("^https?://share\\.(?:go)?abstract\\.com/(.*)$"),
+      new RegExp("^https?://app\\.(?:go)?abstract\\.com/(?:share|embed)/(.*)$"),
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://app.goabstract.com/embed/${matches[1]}`,
   }),
   new EmbedDescriptor({
     title: "Airtable",
     keywords: "spreadsheet",
     icon: <Img src="/images/airtable.png" alt="Airtable" />,
-    component: Airtable,
+    regexMatch: [
+      new RegExp("^https://airtable.com/(?:embed/)?(app.*/)?(shr.*)$"),
+      new RegExp("^https://airtable.com/(app.*/)?(pag.*)/form$"),
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://airtable.com/embed/${matches[1] ?? ""}${matches[2]}`,
   }),
   new EmbedDescriptor({
     title: "Berrycast",
     keywords: "video",
     defaultHidden: true,
+    regexMatch: [/^https:\/\/(www\.)?berrycast.com\/conversations\/(.*)$/i],
     icon: <Img src="/images/berrycast.png" alt="Berrycast" />,
     component: Berrycast,
   }),
@@ -154,155 +143,241 @@ const embeds: EmbedDescriptor[] = [
     title: "Bilibili",
     keywords: "video",
     defaultHidden: true,
+    regexMatch: [
+      /(?:https?:\/\/)?(www\.bilibili\.com)\/video\/([\w\d]+)?(\?\S+)?/i,
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://player.bilibili.com/player.html?bvid=${matches[2]}&page=1&high_quality=1`,
     icon: <Img src="/images/bilibili.png" alt="Bilibili" />,
-    component: Bilibili,
   }),
   new EmbedDescriptor({
     title: "Canva",
     keywords: "design",
+    regexMatch: [
+      /^https:\/\/(?:www\.)?canva\.com\/design\/([a-zA-Z0-9]*)\/(.*)$/,
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://www.canva.com/design/${matches[1]}/view?embed`,
     icon: <Img src="/images/canva.png" alt="Canva" />,
-    component: Canva,
   }),
   new EmbedDescriptor({
     title: "Cawemo",
     keywords: "bpmn process",
     defaultHidden: true,
+    regexMatch: [new RegExp("^https?://cawemo.com/(?:share|embed)/(.*)$")],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://cawemo.com/embed/${matches[1]}`,
     icon: <Img src="/images/cawemo.png" alt="Cawemo" />,
-    component: Cawemo,
   }),
   new EmbedDescriptor({
     title: "ClickUp",
     keywords: "project",
+    regexMatch: [
+      new RegExp("^https?://share\\.clickup\\.com/[a-z]/[a-z]/(.*)/(.*)$"),
+      new RegExp(
+        "^https?://sharing\\.clickup\\.com/[0-9]+/[a-z]/[a-z]/(.*)/(.*)$"
+      ),
+    ],
+    transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/clickup.png" alt="ClickUp" />,
-    component: ClickUp,
   }),
   new EmbedDescriptor({
     title: "Codepen",
     keywords: "code editor",
+    regexMatch: [new RegExp("^https://codepen.io/(.*?)/(pen|embed)/(.*)$")],
+    transformMatch: (matches) =>
+      `https://codepen.io/${matches[1]}/embed/${matches[3]}`,
     icon: <Img src="/images/codepen.png" alt="Codepen" />,
-    component: Codepen,
   }),
   new EmbedDescriptor({
     title: "DBDiagram",
     keywords: "diagrams database",
+    regexMatch: [new RegExp("^https://dbdiagram.io/(embed|d)/(\\w+)$")],
+    transformMatch: (matches) => `https://dbdiagram.io/embed/${matches[2]}`,
     icon: <Img src="/images/dbdiagram.png" alt="DBDiagram" />,
-    component: DBDiagram,
+  }),
+  new EmbedDescriptor({
+    title: "Diagrams.net",
+    name: IntegrationService.Diagrams,
+    keywords: "diagrams drawio",
+    regexMatch: [/^https:\/\/viewer\.diagrams\.net\/(?!proxy).*(title=\\w+)?/],
+    icon: <Img src="/images/diagrams.png" alt="Diagrams.net" />,
+    component: Diagrams,
   }),
   new EmbedDescriptor({
     title: "Descript",
     keywords: "audio",
+    regexMatch: [new RegExp("^https?://share\\.descript\\.com/view/(\\w+)$")],
+    transformMatch: (matches) =>
+      `https://share.descript.com/embed/${matches[1]}`,
     icon: <Img src="/images/descript.png" alt="Descript" />,
-    component: Descript,
   }),
   new EmbedDescriptor({
     title: "Figma",
     keywords: "design svg vector",
+    regexMatch: [
+      new RegExp(
+        "^https://([w.-]+\\.)?figma\\.com/(file|proto)/([0-9a-zA-Z]{22,128})(?:/.*)?$"
+      ),
+    ],
+    transformMatch: (matches) =>
+      `https://www.figma.com/embed?embed_host=outline&url=${encodeURIComponent(
+        matches[0]
+      )}`,
     icon: <Img src="/images/figma.png" alt="Figma" />,
-    component: Figma,
   }),
   new EmbedDescriptor({
     title: "Framer",
     keywords: "design prototyping",
+    regexMatch: [new RegExp("^https://framer.cloud/(.*)$")],
+    transformMatch: (matches) => matches[0],
     icon: <Img src="/images/framer.png" alt="Framer" />,
-    component: Framer,
   }),
   new EmbedDescriptor({
     title: "GitHub Gist",
     keywords: "code",
+    regexMatch: [
+      new RegExp(
+        "^https://gist\\.github\\.com/([a-zA-Z\\d](?:[a-zA-Z\\d]|-(?=[a-zA-Z\\d])){0,38})/(.*)$"
+      ),
+    ],
     icon: <Img src="/images/github-gist.png" alt="GitHub" />,
     component: Gist,
   }),
   new EmbedDescriptor({
     title: "GitLab Snippet",
     keywords: "code",
+    regexMatch: [
+      new RegExp(`^https://gitlab\\.com/(([a-zA-Z\\d-]+)/)*-/snippets/\\d+$`),
+    ],
     icon: <Img src="/images/gitlab.png" alt="GitLab" />,
     component: GitLabSnippet,
   }),
   new EmbedDescriptor({
     title: "Gliffy",
     keywords: "diagram",
+    regexMatch: [new RegExp("https?://go\\.gliffy\\.com/go/share/(.*)$")],
+    transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/gliffy.png" alt="Gliffy" />,
-    component: Gliffy,
-  }),
-  new EmbedDescriptor({
-    title: "Diagrams.net",
-    keywords: "diagrams drawio",
-    icon: <Img src="/images/diagrams.png" alt="Diagrams.net" />,
-    component: Diagrams,
   }),
   new EmbedDescriptor({
     title: "Google Maps",
     keywords: "maps",
+    regexMatch: [new RegExp("^https?://www\\.google\\.com/maps/embed\\?(.*)$")],
+    transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/google-maps.png" alt="Google Maps" />,
-    component: GoogleMaps,
     visible: true,
   }),
   new EmbedDescriptor({
     title: "Google Drawings",
     keywords: "drawings",
+    transformMatch: (matches: RegExpMatchArray) =>
+      matches[0].replace("/edit", "/preview"),
+    regexMatch: [
+      new RegExp(
+        "^https://docs\\.google\\.com/drawings/d/(.*)/(edit|preview)(.*)$"
+      ),
+    ],
     icon: <Img src="/images/google-drawings.png" alt="Google Drawings" />,
-    component: GoogleDrawings,
   }),
   new EmbedDescriptor({
     title: "Google Drive",
     keywords: "drive",
+    regexMatch: [new RegExp("^https?://drive\\.google\\.com/file/d/(.*)$")],
+    transformMatch: (matches) =>
+      matches[0].replace("/view", "/preview").replace("/edit", "/preview"),
     icon: <Img src="/images/google-drive.png" alt="Google Drive" />,
-    component: GoogleDrive,
   }),
   new EmbedDescriptor({
     title: "Google Docs",
     keywords: "documents word",
+    regexMatch: [new RegExp("^https?://docs\\.google\\.com/document/(.*)$")],
+    transformMatch: (matches) =>
+      matches[0].replace("/view", "/preview").replace("/edit", "/preview"),
     icon: <Img src="/images/google-docs.png" alt="Google Docs" />,
-    component: GoogleDocs,
   }),
   new EmbedDescriptor({
     title: "Google Sheets",
     keywords: "excel spreadsheet",
+    regexMatch: [
+      new RegExp("^https?://docs\\.google\\.com/spreadsheets/d/(.*)$"),
+    ],
+    transformMatch: (matches) =>
+      matches[0].replace("/view", "/preview").replace("/edit", "/preview"),
     icon: <Img src="/images/google-sheets.png" alt="Google Sheets" />,
-    component: GoogleSheets,
   }),
   new EmbedDescriptor({
     title: "Google Slides",
     keywords: "presentation slideshow",
+    regexMatch: [
+      new RegExp("^https?://docs\\.google\\.com/presentation/d/(.*)$"),
+    ],
+    transformMatch: (matches) =>
+      matches[0].replace("/edit", "/preview").replace("/pub", "/embed"),
     icon: <Img src="/images/google-slides.png" alt="Google Slides" />,
-    component: GoogleSlides,
   }),
   new EmbedDescriptor({
     title: "Google Calendar",
     keywords: "calendar",
+    regexMatch: [
+      new RegExp(
+        "^https?://calendar\\.google\\.com/calendar/embed\\?src=(.*)$"
+      ),
+    ],
+    transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/google-calendar.png" alt="Google Calendar" />,
-    component: GoogleCalendar,
-  }),
-  new EmbedDescriptor({
-    title: "Google Looker Studio",
-    keywords: "bi business intelligence",
-    icon: (
-      <Img src="/images/google-lookerstudio.png" alt="Google Looker Studio" />
-    ),
-    component: GoogleLookerStudio,
   }),
   new EmbedDescriptor({
     title: "Google Forms",
     keywords: "form survey",
+    regexMatch: [new RegExp("^https?://docs\\.google\\.com/forms/d/(.+)$")],
+    transformMatch: (matches: RegExpMatchArray) =>
+      matches[0].replace(
+        /\/(edit|viewform)(\?.+)?$/,
+        "/viewform?embedded=true"
+      ),
     icon: <Img src="/images/google-forms.png" alt="Google Forms" />,
-    component: GoogleForms,
+  }),
+  new EmbedDescriptor({
+    title: "Google Looker Studio",
+    keywords: "bi business intelligence",
+    regexMatch: [
+      new RegExp(
+        "^https?://(lookerstudio|datastudio)\\.google\\.com/(embed|u/0)/reporting/(.*)/page/(.*)(/edit)?$"
+      ),
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      matches[0].replace("u/0", "embed").replace("/edit", ""),
+    icon: (
+      <Img src="/images/google-lookerstudio.png" alt="Google Looker Studio" />
+    ),
   }),
   new EmbedDescriptor({
     title: "Grist",
+    name: IntegrationService.Grist,
     keywords: "spreadsheet",
+    regexMatch: [new RegExp("^https?://([a-z.-]+\\.)?getgrist\\.com/(.+)$")],
+    transformMatch: (matches: RegExpMatchArray) =>
+      matches[0].replace(/(\?embed=true)?$/, "?embed=true"),
     icon: <Img src="/images/grist.png" alt="Grist" />,
-    component: Grist,
   }),
   new EmbedDescriptor({
     title: "Instagram",
     keywords: "post",
+    regexMatch: [
+      /^https?:\/\/www\.instagram\.com\/(p|reel)\/([\w-]+)(\/?utm_source=\w+)?/,
+    ],
+    transformMatch: (matches: RegExpMatchArray) => `${matches[0]}/embed`,
     icon: <Img src="/images/instagram.png" alt="Instagram" />,
-    component: Instagram,
   }),
   new EmbedDescriptor({
     title: "InVision",
     keywords: "design prototype",
     defaultHidden: true,
+    regexMatch: [
+      /^https:\/\/(invis\.io\/.*)|(projects\.invisionapp\.com\/share\/.*)$/,
+      /^https:\/\/(opal\.invisionapp\.com\/static-signed\/live-embed\/.*)$/,
+    ],
     icon: <Img src="/images/invision.png" alt="InVision" />,
     component: InVision,
   }),
@@ -310,6 +385,7 @@ const embeds: EmbedDescriptor[] = [
     title: "JSFiddle",
     keywords: "code",
     defaultHidden: true,
+    regexMatch: [new RegExp("^https?://jsfiddle\\.net/(.*)/(.*)$")],
     icon: <Img src="/images/jsfiddle.png" alt="JSFiddle" />,
     component: JSFiddle,
   }),
@@ -317,117 +393,176 @@ const embeds: EmbedDescriptor[] = [
     title: "LinkedIn",
     keywords: "post",
     defaultHidden: true,
+    regexMatch: [
+      /^https:\/\/www\.linkedin\.com\/(?:posts\/.*-(ugcPost|activity)-(\d+)-.*|(embed)\/(?:feed\/update\/urn:li:(?:ugcPost|share):(?:\d+)))/,
+    ],
     icon: <Img src="/images/linkedin.png" alt="LinkedIn" />,
     component: Linkedin,
   }),
   new EmbedDescriptor({
     title: "Loom",
     keywords: "video screencast",
+    regexMatch: [/^https:\/\/(www\.)?(use)?loom\.com\/(embed|share)\/(.*)$/],
+    transformMatch: (matches: RegExpMatchArray) =>
+      matches[0].replace("share", "embed"),
     icon: <Img src="/images/loom.png" alt="Loom" />,
-    component: Loom,
   }),
   new EmbedDescriptor({
     title: "Lucidchart",
     keywords: "chart",
+    regexMatch: [
+      /^https?:\/\/(www\.|app\.)?(lucidchart\.com|lucid\.app)\/documents\/(embeddedchart|view|edit)\/(?<chartId>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:.*)?$/,
+      /^https?:\/\/(www\.|app\.)?(lucid\.app|lucidchart\.com)\/lucidchart\/(?<chartId>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\/(embeddedchart|view|edit)(?:.*)?$/,
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://lucidchart.com/documents/embeddedchart/${matches.groups?.chartId}`,
     icon: <Img src="/images/lucidchart.png" alt="Lucidchart" />,
-    component: Lucidchart,
   }),
   new EmbedDescriptor({
     title: "Marvel",
     keywords: "design prototype",
+    regexMatch: [new RegExp("^https://marvelapp\\.com/([A-Za-z0-9-]{6})/?$")],
+    transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/marvel.png" alt="Marvel" />,
-    component: Marvel,
   }),
   new EmbedDescriptor({
     title: "Mindmeister",
     keywords: "mindmap",
+    regexMatch: [
+      new RegExp(
+        "^https://([w.-]+\\.)?(mindmeister\\.com|mm\\.tt)(/maps/public_map_shell)?/(\\d+)(\\?t=.*)?(/.*)?$"
+      ),
+    ],
+    transformMatch: (matches: RegExpMatchArray) => {
+      const chartId = matches[4] + (matches[5] || "") + (matches[6] || "");
+      return `https://www.mindmeister.com/maps/public_map_shell/${chartId}`;
+    },
     icon: <Img src="/images/mindmeister.png" alt="Mindmeister" />,
-    component: Mindmeister,
   }),
   new EmbedDescriptor({
     title: "Miro",
     keywords: "whiteboard",
+    regexMatch: [/^https:\/\/(realtimeboard|miro)\.com\/app\/board\/(.*)$/],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://${matches[1]}.com/app/embed/${matches[2]}`,
     icon: <Img src="/images/miro.png" alt="Miro" />,
-    component: Miro,
   }),
   new EmbedDescriptor({
     title: "Mode",
     keywords: "analytics",
     defaultHidden: true,
+    regexMatch: [
+      new RegExp("^https://([w.-]+\\.)?modeanalytics\\.com/(.*)/reports/(.*)$"),
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `${matches[0].replace(/\/embed$/, "")}/embed`,
     icon: <Img src="/images/mode-analytics.png" alt="Mode" />,
-    component: ModeAnalytics,
   }),
   new EmbedDescriptor({
     title: "Otter.ai",
     keywords: "audio transcription meeting notes",
     defaultHidden: true,
+    regexMatch: [new RegExp("^https?://otter\\.ai/[su]/(.*)$")],
+    transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/otter.png" alt="Otter.ai" />,
-    component: Otter,
   }),
   new EmbedDescriptor({
     title: "Pitch",
     keywords: "presentation",
     defaultHidden: true,
+    regexMatch: [
+      new RegExp(
+        "^https?://app\\.pitch\\.com/app/(?:presentation/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|public/player)/(.*)$"
+      ),
+      new RegExp("^https?://pitch\\.com/embed/(.*)$"),
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://pitch.com/embed/${matches[1]}`,
     icon: <Img src="/images/pitch.png" alt="Pitch" />,
-    component: Pitch,
   }),
   new EmbedDescriptor({
     title: "Prezi",
     keywords: "presentation",
+    regexMatch: [new RegExp("^https://prezi\\.com/view/(.*)$")],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `${matches[0].replace(/\/embed$/, "")}/embed`,
     icon: <Img src="/images/prezi.png" alt="Prezi" />,
-    component: Prezi,
   }),
   new EmbedDescriptor({
     title: "Scribe",
     keywords: "screencast",
+    regexMatch: [/^https?:\/\/scribehow\.com\/shared\/(.*)$/],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://scribehow.com/embed/${matches[1]}`,
     icon: <Img src="/images/scribe.png" alt="Scribe" />,
-    component: Scribe,
   }),
   new EmbedDescriptor({
     title: "Spotify",
     keywords: "music",
+    regexMatch: [new RegExp("^https?://open\\.spotify\\.com/(.*)$")],
     icon: <Img src="/images/spotify.png" alt="Spotify" />,
     component: Spotify,
   }),
   new EmbedDescriptor({
     title: "Tldraw",
     keywords: "draw schematics diagrams",
+    regexMatch: [
+      new RegExp("^https?://(beta|www|old)\\.tldraw\\.com/[rsv]/(.*)"),
+    ],
+    transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/tldraw.png" alt="Tldraw" />,
-    component: Tldraw,
   }),
   new EmbedDescriptor({
     title: "Trello",
     keywords: "kanban",
+    regexMatch: [/^https:\/\/trello\.com\/(c|b)\/([^/]*)(.*)?$/],
     icon: <Img src="/images/trello.png" alt="Trello" />,
     component: Trello,
   }),
   new EmbedDescriptor({
     title: "Typeform",
     keywords: "form survey",
+    regexMatch: [
+      new RegExp(
+        "^https://([A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)\\.typeform\\.com/to/(.*)$"
+      ),
+    ],
+    transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/typeform.png" alt="Typeform" />,
-    component: Typeform,
   }),
   new EmbedDescriptor({
     title: "Valtown",
     keywords: "code",
+    regexMatch: [/^https?:\/\/(?:www.)?val\.town\/(?:v|embed)\/(.*)$/],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://www.val.town/embed/${matches[1]}`,
     icon: <Img src="/images/valtown.png" alt="Valtown" />,
-    component: Valtown,
   }),
   new EmbedDescriptor({
     title: "Vimeo",
     keywords: "video",
+    regexMatch: [
+      /(http|https)?:\/\/(www\.)?vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^/]*)\/videos\/|)(\d+)(?:\/|\?)?([\d\w]+)?/,
+    ],
     icon: <Img src="/images/vimeo.png" alt="Vimeo" />,
     component: Vimeo,
   }),
   new EmbedDescriptor({
     title: "Whimsical",
     keywords: "whiteboard",
+    regexMatch: [
+      /^https?:\/\/whimsical\.com\/[0-9a-zA-Z-_~]*-([a-zA-Z0-9]+)\/?$/,
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://whimsical.com/embed/${matches[1]}`,
     icon: <Img src="/images/whimsical.png" alt="Whimsical" />,
-    component: Whimsical,
   }),
   new EmbedDescriptor({
     title: "YouTube",
     keywords: "google video",
+    regexMatch: [
+      /(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([a-zA-Z0-9_-]{11})([\&\?](.*))?$/i,
+    ],
     icon: <Img src="/images/youtube.png" alt="YouTube" />,
     component: YouTube,
   }),

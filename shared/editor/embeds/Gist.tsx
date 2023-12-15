@@ -29,10 +29,4 @@ function Gist(props: Props) {
   );
 }
 
-Gist.ENABLED = [
-  new RegExp(
-    "^https://gist\\.github\\.com/([a-zA-Z\\d](?:[a-zA-Z\\d]|-(?=[a-zA-Z\\d])){0,38})/(.*)$"
-  ),
-];
-
 export default Gist;

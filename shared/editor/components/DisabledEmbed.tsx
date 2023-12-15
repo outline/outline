@@ -4,10 +4,12 @@ import { DefaultTheme, ThemeProps } from "styled-components";
 import { EmbedProps as Props } from "../embeds";
 import Widget from "./Widget";
 
-export default function DisabledEmbed(props: Props & ThemeProps<DefaultTheme>) {
+export default function DisabledEmbed(
+  props: Omit<Props, "matches"> & ThemeProps<DefaultTheme>
+) {
   return (
     <Widget
-      title={props.embed.title}
+      title={props.embed.name}
       href={props.attrs.href}
       icon={props.embed.icon}
       context={props.attrs.href.replace(/^https?:\/\//, "")}
