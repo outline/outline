@@ -173,7 +173,7 @@ const EmbedComponent = ({
   if (embedsDisabled) {
     return (
       <DisabledEmbed
-        attrs={{ href: node.attrs.href }}
+        attrs={node.attrs.href}
         embed={embed}
         isEditable={isEditable}
         isSelected={isSelected}
@@ -200,7 +200,8 @@ const EmbedComponent = ({
     return (
       // @ts-expect-error Component type
       <embed.component
-        attrs={{ ...node.attrs, matches }}
+        attrs={node.attrs}
+        matches={matches}
         isEditable={isEditable}
         isSelected={isSelected}
         embed={embed}

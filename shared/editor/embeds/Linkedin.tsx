@@ -2,8 +2,7 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-function Linkedin(props: Props) {
-  const { matches } = props.attrs;
+function Linkedin({ matches, ...props }: Props) {
   const objectId = matches[2];
   const postType = matches[1];
   if (matches[3] === "embed") {

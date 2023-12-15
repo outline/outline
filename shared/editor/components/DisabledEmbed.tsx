@@ -5,9 +5,7 @@ import { EmbedProps as Props } from "../embeds";
 import Widget from "./Widget";
 
 export default function DisabledEmbed(
-  props: Omit<Props, "attrs"> & {
-    attrs: { href: string };
-  } & ThemeProps<DefaultTheme>
+  props: Omit<Props, "matches"> & ThemeProps<DefaultTheme>
 ) {
   return (
     <Widget

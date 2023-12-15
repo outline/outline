@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-function Spotify(props: Props) {
+function Spotify({ matches, ...props }: Props) {
   let pathname = "";
   try {
     const parsed = new URL(props.attrs.href);

@@ -3,7 +3,7 @@ import { useTheme } from "styled-components";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-function JSFiddle(props: Props) {
+function JSFiddle({ matches, ...props }: Props) {
   const normalizedUrl = props.attrs.href.replace(/(\/embedded)?\/$/, "");
   const theme = useTheme();
 

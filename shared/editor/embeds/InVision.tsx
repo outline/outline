@@ -3,7 +3,7 @@ import Frame from "../components/Frame";
 import ImageZoom from "../components/ImageZoom";
 import { EmbedProps as Props } from ".";
 
-function InVision(props: Props) {
+function InVision({ matches, ...props }: Props) {
   if (/opal\.invisionapp\.com/.test(props.attrs.href)) {
     return (
       <div className={props.isSelected ? "ProseMirror-selectednode" : ""}>

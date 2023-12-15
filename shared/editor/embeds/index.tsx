@@ -22,9 +22,9 @@ export type EmbedProps = {
   isSelected: boolean;
   isEditable: boolean;
   embed: EmbedDescriptor;
+  matches: RegExpMatchArray;
   attrs: {
     href: string;
-    matches: RegExpMatchArray;
   };
 };
 
