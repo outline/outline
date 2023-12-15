@@ -4,27 +4,13 @@ import { Command } from "prosemirror-state";
 import * as React from "react";
 import { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
-import DisabledEmbed from "../components/DisabledEmbed";
-import Frame from "../components/Frame";
-import defaultEmbeds, { EmbedDescriptor } from "../embeds";
+import EmbedComponent from "../components/Embed";
+import defaultEmbeds from "../embeds";
+import { getMatchingEmbed } from "../lib/embeds";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
 import { ComponentProps } from "../types";
 import Node from "./Node";
-
-function getMatchingEmbed(
-  embeds: EmbedDescriptor[],
-  href: string
-): { embed: EmbedDescriptor; matches: RegExpMatchArray } | undefined {
-  for (const e of embeds) {
-    const matches = e.matcher(href);
-    if (matches) {
-      return { embed: e, matches };
-    }
-  }
-
-  return undefined;
-}
 
 export default class Embed extends Node {
   get name() {
@@ -147,68 +133,3 @@ export default class Embed extends Node {
     };
   }
 }
-
-const EmbedComponent = ({
-  isEditable,
-  isSelected,
-  theme,
-  node,
-  embeds,
-  embedsDisabled,
-}: ComponentProps & {
-  embeds: EmbedDescriptor[];
-  embedsDisabled?: boolean;
-}) => {
-  const cache = React.useMemo(
-    () => getMatchingEmbed(embeds, node.attrs.href),
-    [embeds, node.attrs.href]
-  );
-
-  if (!cache) {
-    return null;
-  }
-
-  const { embed, matches } = cache;
-
-  if (embedsDisabled) {
-    return (
-      <DisabledEmbed
-        attrs={node.attrs.href}
-        embed={embed}
-        isEditable={isEditable}
-        isSelected={isSelected}
-        theme={theme}
-      />
-    );
-  }
-
-  if (embed.transformMatch) {
-    const src = embed.transformMatch(matches);
-    return (
-      <Frame
-        src={src}
-        isSelected={isSelected}
-        canonicalUrl={node.attrs.href}
-        title={embed.title}
-        referrerPolicy="origin"
-        border
-      />
-    );
-  }
-
-  if ("component" in embed) {
-    return (
-      // @ts-expect-error Component type
-      <embed.component
-        attrs={node.attrs}
-        matches={matches}
-        isEditable={isEditable}
-        isSelected={isSelected}
-        embed={embed}
-        theme={theme}
-      />
-    );
-  }
-
-  return null;
-};
