@@ -2,7 +2,7 @@ import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
-import { IntegrationType } from "../../types";
+import { IntegrationService, IntegrationType } from "../../types";
 import type { IntegrationSettings } from "../../types";
 import { urlRegex } from "../../utils/urls";
 import Image from "../components/Img";
@@ -67,24 +67,18 @@ export class EmbedDescriptor {
     this.visible = options.visible;
     this.active = options.active;
     this.component = options.component;
-    this.settings = options.settings;
   }
 
   matcher(url: string): false | RegExpMatchArray {
-    const regex = urlRegex(this.settings?.url);
     const regexes = this.regexMatch ?? [];
+    const settingsDomainRegex = urlRegex(this.settings?.url);
 
-    regex &&
-      regexes.unshift(
-        new RegExp(
-          // @ts-expect-error not aware of static
-          `^${regex.source}${this.component.URL_PATH_REGEX.source}$`
-        )
-      );
+    if (settingsDomainRegex) {
+      regexes.unshift(settingsDomainRegex);
+    }
 
     for (const regex of regexes) {
       const result = url.match(regex);
-
       if (result) {
         return result;
       }
@@ -185,6 +179,7 @@ const embeds: EmbedDescriptor[] = [
   }),
   new EmbedDescriptor({
     title: "Diagrams.net",
+    name: IntegrationService.Diagrams,
     keywords: "diagrams drawio",
     regexMatch: [/^https:\/\/viewer\.diagrams\.net\/(?!proxy).*(title=\\w+)?/],
     icon: <Img src="/images/diagrams.png" alt="Diagrams.net" />,
@@ -340,6 +335,7 @@ const embeds: EmbedDescriptor[] = [
   }),
   new EmbedDescriptor({
     title: "Grist",
+    name: IntegrationService.Grist,
     keywords: "spreadsheet",
     regexMatch: [new RegExp("^https?://([a-z.-]+\\.)?getgrist\\.com/(.+)$")],
     transformMatch: (matches: RegExpMatchArray) =>
