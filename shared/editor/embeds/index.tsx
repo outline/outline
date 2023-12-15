@@ -50,7 +50,7 @@ export class EmbedDescriptor {
   attrs?: Record<string, Primitive>;
   visible?: boolean;
   active?: (state: EditorState) => boolean;
-  component?: typeof React.Component | React.FC<any>;
+  component?: React.ElementType;
   settings?: IntegrationSettings<IntegrationType.Embed>;
 
   constructor(options: Omit<EmbedDescriptor, "matcher">) {
@@ -186,10 +186,7 @@ const embeds: EmbedDescriptor[] = [
   new EmbedDescriptor({
     title: "Diagrams.net",
     keywords: "diagrams drawio",
-    regexMatch: [
-      /\/(?!proxy).*(title=\\w+)?/,
-      /^https:\/\/viewer\.diagrams\.net\/(?!proxy).*(title=\\w+)?/,
-    ],
+    regexMatch: [/^https:\/\/viewer\.diagrams\.net\/(?!proxy).*(title=\\w+)?/],
     icon: <Img src="/images/diagrams.png" alt="Diagrams.net" />,
     component: Diagrams,
   }),

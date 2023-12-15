@@ -44,7 +44,7 @@ export default class Embed extends Node {
           tag: "iframe",
           getAttrs: (dom: HTMLIFrameElement) => {
             const embeds = this.editor?.props.embeds ?? defaultEmbeds;
-            const href = dom.getAttribute("src") || "";
+            const href = dom.getAttribute("data-canonical-url") || "";
             const response = getMatchingEmbed(embeds, href);
 
             if (response) {
@@ -56,21 +56,42 @@ export default class Embed extends Node {
             return false;
           },
         },
+        {
+          tag: "a.embed",
+          getAttrs: (dom: HTMLAnchorElement) => ({
+            href: dom.getAttribute("href"),
+          }),
+        },
       ],
       toDOM: (node) => {
         const embeds = this.editor?.props.embeds ?? defaultEmbeds;
         const response = getMatchingEmbed(embeds, node.attrs.href);
         const src = response?.embed.transformMatch?.(response.matches);
 
-        return [
-          "iframe",
-          {
-            class: "embed",
-            src: sanitizeUrl(src ?? node.attrs.href),
-            contentEditable: "false",
-          },
-          0,
-        ];
+        if (src) {
+          return [
+            "iframe",
+            {
+              class: "embed",
+              frameborder: "0",
+              src: sanitizeUrl(src),
+              contentEditable: "false",
+              allowfullscreen: "true",
+              "data-canonical-url": sanitizeUrl(node.attrs.href),
+            },
+          ];
+        } else {
+          return [
+            "a",
+            {
+              class: "embed",
+              href: sanitizeUrl(node.attrs.href),
+              contentEditable: "false",
+              "data-canonical-url": sanitizeUrl(node.attrs.href),
+            },
+            response?.embed.title ?? node.attrs.href,
+          ];
+        }
       },
       toPlainText: (node) => node.attrs.href,
     };
@@ -175,10 +196,10 @@ const EmbedComponent = ({
     );
   }
 
-  if ("Component" in embed) {
+  if ("component" in embed) {
     return (
-      // @ts-expect-error deprecated v soon
-      <embed.Component
+      // @ts-expect-error Component type
+      <embed.component
         attrs={{ ...node.attrs, matches }}
         isEditable={isEditable}
         isSelected={isSelected}
