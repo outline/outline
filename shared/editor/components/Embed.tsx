@@ -30,7 +30,7 @@ const EmbedComponent = ({
   if (embedsDisabled) {
     return (
       <DisabledEmbed
-        attrs={node.attrs.href}
+        href={node.attrs.href}
         embed={embed}
         isEditable={isEditable}
         isSelected={isSelected}
