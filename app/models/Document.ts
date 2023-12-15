@@ -153,6 +153,8 @@ export default class Document extends ParanoidModel {
   @observable
   revision: number;
 
+  isCollectionDeleted: boolean | undefined;
+
   /**
    * Returns the direction of the document text, either "rtl" or "ltr"
    */

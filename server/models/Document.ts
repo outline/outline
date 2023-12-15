@@ -837,6 +837,18 @@ class Document extends ParanoidModel {
     return this.save({ transaction });
   };
 
+  isCollectionDeleted = async () => {
+    if (this.collectionId) {
+      const collection = await Collection.findByPk(this.collectionId, {
+        paranoid: false,
+      });
+
+      return !!collection?.deletedAt;
+    }
+
+    return;
+  };
+
   unpublish = async (userId: string) => {
     // If the document is already a draft then calling unpublish should act like
     // a regular save
