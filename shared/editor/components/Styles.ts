@@ -716,6 +716,7 @@ h6:not(.placeholder):before {
 
 .heading-actions {
   opacity: 0;
+  user-select: none;
   background: ${props.theme.background};
   margin-${props.rtl ? "right" : "left"}: -26px;
   flex-direction: ${props.rtl ? "row-reverse" : "row"};
@@ -1494,6 +1495,7 @@ table {
 .folded-content,
 .folded-content + .mermaid-diagram-wrapper {
   display: none;
+  user-select: none;
 }
 
 @keyframes ProseMirror-cursor-blink {
