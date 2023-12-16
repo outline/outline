@@ -632,6 +632,8 @@
   "We sent out your invites!": "We sent out your invites!",
   "Those email addresses are already invited": "Those email addresses are already invited",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Sorry, you can only send {{MAX_INVITES}} invites at a time",
+  "Invited members will receive access to": "Invited members will receive access to",
+  "{{collectionCount}} collections": "{{collectionCount}} collections",
   "Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address.": "Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address.",
   "Invite members to join your workspace. They will need to sign in with {{signinMethods}}.": "Invite members to join your workspace. They will need to sign in with {{signinMethods}}.",
   "As an admin you can also <2>enable email sign-in</2>.": "As an admin you can also <2>enable email sign-in</2>.",

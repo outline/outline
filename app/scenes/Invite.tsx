@@ -41,7 +41,7 @@ function Invite({ onSubmit }: Props) {
       role: UserRole.Member,
     },
   ]);
-  const { users } = useStores();
+  const { users, collections } = useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
@@ -136,6 +136,27 @@ function Invite({ onSubmit }: Props) {
     [handleAdd]
   );
 
+  const collectionCount = collections.nonPrivate.length;
+  const collectionAccessNote = (
+    <span>
+      <Trans>Invited members will receive access to</Trans>{" "}
+      <Tooltip
+        tooltip={
+          <>
+            {collections.nonPrivate.map((collection) => (
+              <li key={collection.id}>{collection.name}</li>
+            ))}
+          </>
+        }
+      >
+        <Def>
+          <Trans>{{ collectionCount }} collections</Trans>
+        </Def>
+      </Tooltip>
+      .
+    </span>
+  );
+
   return (
     <form onSubmit={handleSubmit}>
       {team.guestSignin ? (
@@ -145,7 +166,8 @@ function Invite({ onSubmit }: Props) {
             values={{
               signinMethods: team.signinMethods,
             }}
-          />
+          />{" "}
+          {collectionAccessNote}
         </Text>
       ) : (
         <Text type="secondary">
@@ -160,7 +182,8 @@ function Invite({ onSubmit }: Props) {
               As an admin you can also{" "}
               <Link to="/settings/security">enable email sign-in</Link>.
             </Trans>
-          )}
+          )}{" "}
+          {collectionAccessNote}
         </Text>
       )}
       {team.subdomain && (
@@ -268,6 +291,10 @@ const Remove = styled("div")`
   color: ${s("textTertiary")};
   margin-top: 4px;
   margin-right: -32px;
+`;
+
+const Def = styled("span")`
+  text-decoration: underline dotted;
 `;
 
 export default observer(Invite);

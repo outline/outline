@@ -68,6 +68,11 @@ export default class CollectionsStore extends Store<Collection> {
   }
 
   @computed
+  get nonPrivate(): Collection[] {
+    return this.all.filter((collection) => collection.isPrivate);
+  }
+
+  @computed
   get all(): Collection[] {
     return sortBy(
       Array.from(this.data.values()),
