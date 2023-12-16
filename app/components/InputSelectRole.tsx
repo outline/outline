@@ -18,7 +18,7 @@ const InputSelectRole = (
       label={t("Role")}
       options={[
         {
-          label: t("Member"),
+          label: t("Editor"),
           value: "member",
         },
         {
