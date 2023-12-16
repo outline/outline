@@ -68,6 +68,10 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     ? collections.get(document.collectionId)
     : undefined;
 
+  React.useEffect(() => {
+    void document.loadRelations();
+  }, [document]);
+
   let collectionNode: MenuInternalLink | undefined;
 
   if (collection) {

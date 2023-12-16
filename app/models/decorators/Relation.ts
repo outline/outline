@@ -49,6 +49,9 @@ export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
   return inverseRelations;
 };
 
+export const getRelationsForModelClass = (targetClass: typeof Model) =>
+  relations.get(targetClass.modelName);
+
 /**
  * A decorator that records this key as a relation field on the model.
  * Properties decorated with @Relation will merge and read their data from

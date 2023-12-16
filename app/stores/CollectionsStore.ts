@@ -11,7 +11,6 @@ import {
 } from "@shared/types";
 import Collection from "~/models/Collection";
 import { client } from "~/utils/ApiClient";
-import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import RootStore from "./RootStore";
 import Store from "./base/Store";
 
@@ -164,32 +163,10 @@ export default class CollectionsStore extends Store<Collection> {
   }
 
   @action
-  async fetch(
-    id: string,
-    options: Record<string, any> = {}
-  ): Promise<Collection> {
-    const item = this.get(id) || this.getByUrl(id);
-    if (item && !options.force) {
-      return item;
-    }
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/collections.info`, {
-        id,
-      });
-      invariant(res?.data, "Collection not available");
-      this.addPolicies(res.policies);
-      return this.add(res.data);
-    } catch (err) {
-      if (err instanceof AuthorizationError || err instanceof NotFoundError) {
-        this.remove(id);
-      }
-
-      throw err;
-    } finally {
-      this.isFetching = false;
-    }
+  async fetch(id: string, options?: { force: boolean }): Promise<Collection> {
+    const model = await super.fetch(id, options);
+    await model.fetchDocuments(options);
+    return model;
   }
 
   @computed

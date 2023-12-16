@@ -3,6 +3,7 @@ import { set, observable, action } from "mobx";
 import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "../decorators/Field";
+import { getRelationsForModelClass } from "../decorators/Relation";
 
 export default abstract class Model {
   static modelName: string;
@@ -27,6 +28,24 @@ export default abstract class Model {
     this.store = store;
     this.updateData(fields);
     this.isNew = !this.id;
+  }
+
+  async loadRelations() {
+    const relations = getRelationsForModelClass(
+      this.constructor as typeof Model
+    );
+    if (!relations) {
+      return;
+    }
+
+    for (const properties of relations.values()) {
+      const store = this.store.rootStore.getStoreForModelName(
+        properties.relationClassResolver().modelName
+      );
+      if ("fetch" in store) {
+        await store.fetch(this[properties.idKey]);
+      }
+    }
   }
 
   save = async (
