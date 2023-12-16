@@ -86,11 +86,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     };
   }
 
-  const path = React.useMemo(
-    () => collection?.pathToDocument(document.id).slice(0, -1) || [],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [collection, document, document.collectionId, document.parentDocumentId]
-  );
+  const path = document.pathTo;
 
   const items = React.useMemo(() => {
     const output = [];
@@ -103,7 +99,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
       output.push(collectionNode);
     }
 
-    path.forEach((node: NavigationNode) => {
+    path.slice(0, -1).forEach((node: NavigationNode) => {
       output.push({
         type: "route",
         title: node.emoji ? (

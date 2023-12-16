@@ -11,9 +11,11 @@ import DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
 import { settingsPath } from "~/utils/routeHelpers";
+import Collection from "./Collection";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
+import Relation from "./decorators/Relation";
 
 type SaveOptions = {
   publish?: boolean;
@@ -58,6 +60,12 @@ export default class Document extends ParanoidModel {
   @Field
   @observable
   collectionId?: string | null;
+
+  /**
+   * The comment that this comment is a reply to.
+   */
+  @Relation(() => Collection, { onDelete: "cascade" })
+  collection?: Collection;
 
   /**
    * The text content of the document as Markdown.
@@ -274,6 +282,11 @@ export default class Document extends ParanoidModel {
     }
 
     return floor((this.tasks.completed / this.tasks.total) * 100);
+  }
+
+  @computed
+  get pathTo() {
+    return this.collection?.pathToDocument(this.id) ?? [];
   }
 
   get titleWithDefault(): string {
