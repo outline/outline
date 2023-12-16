@@ -17,6 +17,7 @@ export default abstract class Model {
   @observable
   isNew: boolean;
 
+  @observable
   createdAt: string;
 
   @observable
@@ -30,6 +31,11 @@ export default abstract class Model {
     this.isNew = !this.id;
   }
 
+  /**
+   * Ensures all the defined relations for the model are in memory
+   *
+   * @returns A promise that resolves when loading is complete.
+   */
   async loadRelations() {
     const relations = getRelationsForModelClass(
       this.constructor as typeof Model
@@ -48,6 +54,13 @@ export default abstract class Model {
     }
   }
 
+  /**
+   * Persists the model to the server API
+   *
+   * @param params Specific fields to save, if not provided the model will be serialized
+   * @param options Options to pass to the store
+   * @returns A promise that resolves with the updated model
+   */
   save = async (
     params?: Record<string, any>,
     options?: Record<string, string | boolean | number | undefined>
@@ -112,7 +125,7 @@ export default abstract class Model {
    * Returns a plain object representation of fields on the model for
    * persistence to the server API
    *
-   * @returns {Record<string, any>}
+   * @returns A plain object representation of the model
    */
   toAPI = (): Record<string, any> => {
     const fields = getFieldsForModel(this);
@@ -123,7 +136,7 @@ export default abstract class Model {
    * Returns a plain object representation of all the properties on the model
    * overrides the native toJSON method to avoid attempting to serialize store
    *
-   * @returns {Record<string, any>}
+   * @returns A plain object representation of the model
    */
   toJSON() {
     const output: Partial<typeof this> = {};
