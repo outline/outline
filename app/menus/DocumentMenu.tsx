@@ -43,6 +43,7 @@ import {
   createDocumentFromTemplate,
   createNestedDocument,
   shareDocument,
+  copyDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -293,6 +294,7 @@ function DocumentMenu({
             actionToMenuItem(openDocumentHistory, context),
             actionToMenuItem(openDocumentInsights, context),
             actionToMenuItem(downloadDocument, context),
+            actionToMenuItem(copyDocument, context),
             actionToMenuItem(printDocument, context),
             {
               type: "separator",

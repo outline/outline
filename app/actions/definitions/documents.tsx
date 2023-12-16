@@ -50,6 +50,7 @@ import {
   newDocumentPath,
   searchPath,
   documentPath,
+  urlify,
 } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
@@ -112,23 +113,6 @@ export const createDocumentFromTemplate = createAction({
         starred: inStarredSection,
       }
     ),
-});
-
-export const copyDocumentAsMarkdown = createAction({
-  name: ({ t }) => t("Copy as Markdown"),
-  section: DocumentSection,
-  icon: <CopyIcon />,
-  keywords: "clipboard",
-  visible: ({ activeDocumentId }) => !!activeDocumentId,
-  perform: ({ stores, activeDocumentId, t }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    if (document) {
-      copy(MarkdownHelper.toMarkdown(document));
-      toast.success(t("Markdown copied to clipboard"));
-    }
-  },
 });
 
 export const createNestedDocument = createAction({
@@ -450,6 +434,47 @@ export const downloadDocument = createAction({
     downloadDocumentAsPDF,
     downloadDocumentAsMarkdown,
   ],
+});
+
+export const copyDocumentAsMarkdown = createAction({
+  name: ({ t }) => t("Copy as Markdown"),
+  section: DocumentSection,
+  keywords: "clipboard",
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ stores, activeDocumentId, t }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      copy(MarkdownHelper.toMarkdown(document));
+      toast.success(t("Markdown copied to clipboard"));
+    }
+  },
+});
+
+export const copyDocumentLink = createAction({
+  name: ({ t }) => t("Copy link"),
+  section: DocumentSection,
+  keywords: "clipboard",
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ stores, activeDocumentId, t }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      copy(urlify(documentPath(document)));
+      toast.success(t("Link copied to clipboard"));
+    }
+  },
+});
+
+export const copyDocument = createAction({
+  name: ({ t }) => t("Copy"),
+  analyticsName: "Copy document",
+  section: DocumentSection,
+  icon: <CopyIcon />,
+  keywords: "clipboard",
+  children: [copyDocumentLink, copyDocumentAsMarkdown],
 });
 
 export const duplicateDocument = createAction({
@@ -909,6 +934,7 @@ export const rootDocumentActions = [
   deleteDocument,
   importDocument,
   downloadDocument,
+  copyDocumentLink,
   copyDocumentAsMarkdown,
   starDocument,
   unstarDocument,
