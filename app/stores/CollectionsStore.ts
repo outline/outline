@@ -37,8 +37,7 @@ export default class CollectionsStore extends Store<Collection> {
   }
 
   /**
-   * Returns the currently active collection, or undefined if not in the context
-   * of a collection.
+   * Returns the currently active collection, or undefined if not in the context of a collection.
    *
    * @returns The active Collection or undefined
    */
@@ -67,11 +66,25 @@ export default class CollectionsStore extends Store<Collection> {
     });
   }
 
+  /**
+   * Returns all collections that are require explicit permission to access.
+   */
   @computed
-  get nonPrivate(): Collection[] {
+  get private(): Collection[] {
     return this.all.filter((collection) => collection.isPrivate);
   }
 
+  /**
+   * Returns all collections that are accessible by default.
+   */
+  @computed
+  get nonPrivate(): Collection[] {
+    return this.all.filter((collection) => !collection.isPrivate);
+  }
+
+  /**
+   * Returns all collections that are accessible to the current user.
+   */
   @computed
   get all(): Collection[] {
     return sortBy(
