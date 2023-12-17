@@ -1,6 +1,6 @@
 import { traceFunction } from "@server/logging/tracing";
 import { Document } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import TextHelper from "@server/models/helpers/TextHelper";
 import presentUser from "./user";
 
 type Options = {
@@ -16,10 +16,7 @@ async function presentDocument(
     ...options,
   };
   const text = options.isPublic
-    ? await DocumentHelper.attachmentsToSignedUrls(
-        document.text,
-        document.teamId
-      )
+    ? await TextHelper.attachmentsToSignedUrls(document.text, document.teamId)
     : document.text;
 
   const data: Record<string, any> = {
