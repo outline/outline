@@ -181,6 +181,11 @@ export type WebsocketCollectionUserEvent = {
   userId: string;
 };
 
+export type WebsocketDocumentUserEvent = {
+  documentId: string;
+  userId: string;
+};
+
 export type WebsocketCollectionUpdateIndexEvent = {
   collectionId: string;
   index: string;

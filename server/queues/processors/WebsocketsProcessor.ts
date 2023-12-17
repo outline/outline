@@ -139,6 +139,41 @@ export default class WebsocketsProcessor {
         return;
       }
 
+      case "documents.add_user": {
+        // the user being added isn't yet in the websocket channel for the document
+        // so they need to be notified separately
+        socketio.to(`user-${event.userId}`).emit(event.name, {
+          event: event.name,
+          userId: event.userId,
+          documentId: event.documentId,
+        });
+        // let everyone with access to the document know a user was added
+        socketio.to(`document-${event.documentId}`).emit(event.name, {
+          event: event.name,
+          userId: event.userId,
+          documentId: event.documentId,
+        });
+        // tell any user clients to connect to the websocket channel for the document
+        return socketio.to(`user-${event.userId}`).emit("join", {
+          event: event.name,
+          documentId: event.documentId,
+        });
+      }
+
+      case "documents.remove_user": {
+        // let everyone with access to the document know a user was removed
+        socketio.to(`document-${event.documentId}`).emit(event.name, {
+          event: event.name,
+          userId: event.userId,
+          documentId: event.documentId,
+        });
+        // tell any user clients to disconnect from the websocket channel for the document
+        return socketio.to(`user-${event.userId}`).emit("leave", {
+          event: event.name,
+          documentId: event.documentId,
+        });
+      }
+
       case "collections.create": {
         const collection = await Collection.findByPk(event.collectionId, {
           paranoid: false,

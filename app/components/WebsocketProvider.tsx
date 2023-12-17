@@ -6,6 +6,7 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
+import { Pagination } from "@shared/constants";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
@@ -24,6 +25,7 @@ import {
   PartialWithId,
   WebsocketCollectionUpdateIndexEvent,
   WebsocketCollectionUserEvent,
+  WebsocketDocumentUserEvent,
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
 } from "~/types";
@@ -87,6 +89,7 @@ class WebsocketProvider extends React.Component<Props> {
       pins,
       stars,
       memberships,
+      userMemberships,
       policies,
       comments,
       subscriptions,
@@ -243,6 +246,37 @@ class WebsocketProvider extends React.Component<Props> {
       "documents.permanent_delete",
       (event: WebsocketEntityDeletedEvent) => {
         documents.remove(event.modelId);
+      }
+    );
+
+    // received when a user is given access to a document
+    this.socket.on(
+      "documents.add_user",
+      async (event: WebsocketDocumentUserEvent) => {
+        // if the user is us then we go ahead and load the memberships from API.
+        if (auth.user && event.userId === auth.user.id) {
+          await userMemberships.fetchPage({
+            limit: Pagination.defaultLimit,
+          });
+        }
+      }
+    );
+
+    this.socket.on(
+      "documents.remove_user",
+      async (event: WebsocketDocumentUserEvent) => {
+        if (auth.user && event.userId === auth.user.id) {
+          await userMemberships.fetchPage({
+            limit: Pagination.defaultLimit,
+          });
+
+          documents.remove(event.documentId);
+        }
+
+        userMemberships.revoke({
+          userId: event.userId,
+          documentId: event.documentId,
+        });
       }
     );
 

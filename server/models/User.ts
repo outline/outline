@@ -409,7 +409,7 @@ class User extends ParanoidModel {
       },
     });
 
-    return memberships.map((m) => m.documentId);
+    return memberships.map((m) => m.documentId!);
   };
 
   updateActiveAt = async (ctx: Context, force = false) => {
