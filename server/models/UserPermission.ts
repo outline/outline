@@ -37,6 +37,18 @@ import Fix from "./decorators/Fix";
       },
     ],
   },
+  withDocument: {
+    where: {
+      documentId: {
+        [Op.ne]: null,
+      },
+    },
+    include: [
+      {
+        association: "document",
+      },
+    ],
+  },
 }))
 @Table({ tableName: "user_permissions", modelName: "user_permission" })
 @Fix

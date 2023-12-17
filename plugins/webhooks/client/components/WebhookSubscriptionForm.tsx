@@ -39,6 +39,8 @@ const WEBHOOK_EVENTS = {
     "documents.move",
     "documents.update",
     "documents.title_change",
+    "documents.add_user",
+    "documents.remove_user",
   ],
   collections: [
     "collections.create",

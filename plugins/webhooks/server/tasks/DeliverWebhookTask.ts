@@ -40,6 +40,7 @@ import {
   presentGroupMembership,
   presentCollectionGroupMembership,
   presentComment,
+  presentDocumentMembership,
 } from "@server/presenters";
 import BaseTask from "@server/queues/tasks/BaseTask";
 import {
@@ -48,6 +49,7 @@ import {
   CollectionUserEvent,
   CommentEvent,
   DocumentEvent,
+  DocumentUserEvent,
   Event,
   FileOperationEvent,
   GroupEvent,
@@ -130,6 +132,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "documents.update":
       case "documents.title_change":
         await this.handleDocumentEvent(subscription, event);
+        return;
+      case "documents.add_user":
+      case "documents.remove_user":
+        await this.handleDocumentUserEvent(subscription, event);
         return;
       case "documents.update.delayed":
       case "documents.update.debounced":
@@ -508,6 +514,33 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: event.documentId,
         model: model && (await presentDocument(model)),
+      },
+    });
+  }
+
+  private async handleDocumentUserEvent(
+    subscription: WebhookSubscription,
+    event: DocumentUserEvent
+  ): Promise<void> {
+    const model = await UserPermission.scope([
+      "withUser",
+      "withDocument",
+    ]).findOne({
+      where: {
+        documentId: event.documentId,
+        userId: event.userId,
+      },
+      paranoid: false,
+    });
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: `${event.userId}-${event.documentId}`,
+        model: model && presentDocumentMembership(model),
+        Document: model && (await presentDocument(model.document!)),
+        user: model && presentUser(model.user),
       },
     });
   }
