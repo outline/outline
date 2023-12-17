@@ -86,7 +86,7 @@ export default function createMiddleware(providerName: string) {
         }
 
         if (result.user.isSuspended) {
-          return ctx.redirect("/?notice=suspended");
+          return ctx.redirect("/?notice=user-suspended");
         }
 
         await signIn(ctx, providerName, result);
