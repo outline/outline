@@ -28,17 +28,17 @@ import Metrics from "./logging/Metrics";
 
 // The number of processes to run, defaults to the number of CPU's available
 // for the web service, and 1 for collaboration during the beta period.
-let processCount = env.WEB_CONCURRENCY;
+let webProcessCount = env.WEB_CONCURRENCY;
 
 if (env.SERVICES.includes("collaboration")) {
-  if (processCount !== 1) {
+  if (webProcessCount !== 1) {
     Logger.info(
       "lifecycle",
       "Note: Restricting process count to 1 due to use of collaborative service"
     );
   }
 
-  processCount = 1;
+  webProcessCount = 1;
 }
 
 // This function will only be called once in the original process
@@ -169,8 +169,13 @@ async function start(id: number, disconnect: () => void) {
   process.once("SIGINT", () => ShutdownHelper.execute());
 }
 
+const isWebProcess =
+  env.SERVICES.includes("web") ||
+  env.SERVICES.includes("api") ||
+  env.SERVICES.includes("collaboration");
+
 void throng({
   master,
   worker: start,
-  count: processCount,
+  count: isWebProcess ? webProcessCount : undefined,
 });
