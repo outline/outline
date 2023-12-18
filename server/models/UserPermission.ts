@@ -13,7 +13,7 @@ import { CollectionPermission } from "@shared/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
-import Model from "./base/Model";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 @Scopes(() => ({
@@ -39,7 +39,7 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "user_permissions", modelName: "user_permission" })
 @Fix
-class UserPermission extends Model {
+class UserPermission extends IdModel {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)

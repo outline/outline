@@ -3,6 +3,8 @@ import Model from "./base/Model";
 import Relation from "./decorators/Relation";
 
 class Event extends Model {
+  static modelName = "Event";
+
   id: string;
 
   name: string;

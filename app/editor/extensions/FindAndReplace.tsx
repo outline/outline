@@ -4,7 +4,7 @@ import { Command, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
-import Extension from "@shared/editor/lib/Extension";
+import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
 import FindAndReplace from "../components/FindAndReplace";
 
 const pluginKey = new PluginKey("find-and-replace");
@@ -294,8 +294,8 @@ export default class FindAndReplaceExtension extends Extension {
     ];
   }
 
-  public widget = () => (
-    <FindAndReplace readOnly={this.editor.props.readOnly} />
+  public widget = ({ readOnly }: WidgetProps) => (
+    <FindAndReplace readOnly={readOnly} />
   );
 
   private results: { from: number; to: number }[] = [];

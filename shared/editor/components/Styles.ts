@@ -1,11 +1,13 @@
 /* eslint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css, keyframes } from "styled-components";
+import { videoStyle } from "./Video";
 
 export type Props = {
   rtl: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
+  staticHTML?: boolean;
   editorStyle?: React.CSSProperties;
   grow?: boolean;
   theme: DefaultTheme;
@@ -401,6 +403,13 @@ li {
   position: relative;
 }
 
+iframe.embed {
+  width: 100%;
+  height: 400px;
+  border: 1px solid ${props.theme.embedBorder};
+  border-radius: 6px;
+}
+
 .image,
 .video {
   line-height: 0;
@@ -415,6 +424,11 @@ li {
     pointer-events: ${props.readOnly ? "initial" : "none"};
     display: inline-block;
     max-width: 100%;
+  }
+
+  video {
+    pointer-events: initial;
+    ${videoStyle}
   }
 
   .ProseMirror-selectednode img {
@@ -702,6 +716,7 @@ h6:not(.placeholder):before {
 
 .heading-actions {
   opacity: 0;
+  user-select: none;
   background: ${props.theme.background};
   margin-${props.rtl ? "right" : "left"}: -26px;
   flex-direction: ${props.rtl ? "row-reverse" : "row"};
@@ -1128,7 +1143,7 @@ mark {
 
   /* Hide code without display none so toolbar can still be positioned against it */
   &:not(.code-active) {
-    height: 0;
+    height: ${props.staticHTML ? "auto" : "0"};
     margin: -0.5em 0;
     overflow: hidden;
   }
@@ -1136,7 +1151,7 @@ mark {
 
 /* Hide code without display none so toolbar can still be positioned against it */
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
-  height: 0;
+  height: ${props.staticHTML ? "auto" : "0"};
   margin: -0.5em 0;
   overflow: hidden;
 }
@@ -1480,6 +1495,7 @@ table {
 .folded-content,
 .folded-content + .mermaid-diagram-wrapper {
   display: none;
+  user-select: none;
 }
 
 @keyframes ProseMirror-cursor-blink {

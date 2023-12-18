@@ -1841,8 +1841,9 @@ describe("#documents.deleted", () => {
     expect(body.data.length).toEqual(1);
   });
 
-  it("should return deleted documents, including drafts without collection", async () => {
+  it("should return deleted documents, including users drafts without collection", async () => {
     const user = await buildUser();
+    const user2 = await buildUser();
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
@@ -1850,10 +1851,17 @@ describe("#documents.deleted", () => {
     const draftDocument = await buildDraftDocument({
       userId: user.id,
       teamId: user.teamId,
+      collectionId: null,
+    });
+    const otherUserDraft = await buildDraftDocument({
+      userId: user2.id,
+      teamId: user.teamId,
+      collectionId: null,
     });
     await Promise.all([
       document.delete(user.id),
       draftDocument.delete(user.id),
+      otherUserDraft.delete(user2.id),
     ]);
     const res = await server.post("/api/documents.deleted", {
       body: {

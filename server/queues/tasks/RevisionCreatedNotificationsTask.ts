@@ -25,7 +25,7 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
     await createSubscriptionsForDocument(document, event);
 
     // Send notifications to mentioned users first
-    const before = await revision.previous();
+    const before = await revision.before();
     const oldMentions = before ? DocumentHelper.parseMentions(before) : [];
     const newMentions = DocumentHelper.parseMentions(document);
     const mentions = differenceBy(newMentions, oldMentions, "id");

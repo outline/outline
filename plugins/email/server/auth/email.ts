@@ -102,7 +102,7 @@ router.get("email.callback", async (ctx) => {
   }
 
   if (user.isSuspended) {
-    return ctx.redirect("/?notice=suspended");
+    return ctx.redirect("/?notice=user-suspended");
   }
 
   if (user.isInvited) {

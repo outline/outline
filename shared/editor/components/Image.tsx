@@ -44,7 +44,7 @@ const Image = (props: Props) => {
       maxWidth,
       naturalWidth,
       naturalHeight,
-      gridWidth: documentBounds.width / 10,
+      gridWidth: documentBounds.width / 20,
       onChangeSize,
     }
   );

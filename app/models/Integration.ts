@@ -8,6 +8,8 @@ import Model from "~/models/base/Model";
 import Field from "./decorators/Field";
 
 class Integration<T = unknown> extends Model {
+  static modelName = "Integration";
+
   id: string;
 
   type: IntegrationType;

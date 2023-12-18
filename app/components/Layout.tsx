@@ -22,12 +22,10 @@ type Props = {
   sidebarRight?: React.ReactNode;
 };
 
-const Layout: React.FC<Props> = ({
-  title,
-  children,
-  sidebar,
-  sidebarRight,
-}: Props) => {
+const Layout = React.forwardRef(function Layout_(
+  { title, children, sidebar, sidebarRight }: Props,
+  ref: React.RefObject<HTMLDivElement>
+) {
   const { ui } = useStores();
   const sidebarCollapsed = !sidebar || ui.sidebarIsClosed;
 
@@ -40,7 +38,7 @@ const Layout: React.FC<Props> = ({
   });
 
   return (
-    <Container column auto>
+    <Container column auto ref={ref}>
       <Helmet>
         <title>{title ? title : env.APP_NAME}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -75,7 +73,7 @@ const Layout: React.FC<Props> = ({
       </Container>
     </Container>
   );
-};
+});
 
 const Container = styled(Flex)`
   background: ${s("background")};

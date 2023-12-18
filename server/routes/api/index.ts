@@ -22,7 +22,8 @@ import events from "./events";
 import fileOperationsRoute from "./fileOperations";
 import groups from "./groups";
 import integrations from "./integrations";
-import apiWrapper from "./middlewares/apiWrapper";
+import apiResponse from "./middlewares/apiResponse";
+import apiTracer from "./middlewares/apiTracer";
 import editor from "./middlewares/editor";
 import notifications from "./notifications";
 import pins from "./pins";
@@ -54,7 +55,8 @@ api.use(
 );
 api.use(coalesceBody());
 api.use<BaseContext, UserAgentContext>(userAgent);
-api.use(apiWrapper());
+api.use(apiTracer());
+api.use(apiResponse());
 api.use(editor());
 
 // register package API routes before others to allow for overrides

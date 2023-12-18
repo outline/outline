@@ -67,7 +67,7 @@ function TeamNew({ user }: Props) {
 
         <Text type="secondary">
           <Trans
-            defaults="Your are creating a new workspace using your current account — <em>{{email}}</em>"
+            defaults="You are creating a new workspace using your current account — <em>{{email}}</em>"
             values={{
               email: user.email,
             }}

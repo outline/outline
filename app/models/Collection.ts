@@ -13,6 +13,8 @@ import { client } from "~/utils/ApiClient";
 import Field from "./decorators/Field";
 
 export default class Collection extends ParanoidModel {
+  static modelName = "Collection";
+
   store: CollectionsStore;
 
   @observable

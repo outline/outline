@@ -186,7 +186,7 @@ class Logger {
    * @param input The data to sanitize
    * @returns The sanitized data
    */
-  private sanitize<T>(input: T): T {
+  private sanitize = <T>(input: T, level = 0): T => {
     // Short circuit if we're not in production to enable easier debugging
     if (!env.isProduction) {
       return input;
@@ -199,6 +199,10 @@ class Logger {
       "password",
       "content",
     ];
+
+    if (level > 3) {
+      return "[…]" as any as T;
+    }
 
     if (isString(input)) {
       if (sensitiveFields.some((field) => input.includes(field))) {
@@ -215,20 +219,22 @@ class Logger {
 
       for (const key of Object.keys(output)) {
         if (isObject(output[key])) {
-          output[key] = this.sanitize(output[key]);
+          output[key] = this.sanitize(output[key], level + 1);
         } else if (isArray(output[key])) {
-          output[key] = output[key].map(this.sanitize);
+          output[key] = output[key].map((value: unknown) =>
+            this.sanitize(value, level + 1)
+          );
         } else if (sensitiveFields.includes(key)) {
           output[key] = "[Filtered]";
         } else {
-          output[key] = this.sanitize(output[key]);
+          output[key] = this.sanitize(output[key], level + 1);
         }
       }
       return output;
     }
 
     return input;
-  }
+  };
 }
 
 export default new Logger();

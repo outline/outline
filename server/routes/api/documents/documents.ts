@@ -243,28 +243,27 @@ router.post(
     const documents = await Document.scope([
       collectionScope,
       viewScope,
+      "withDrafts",
     ]).findAll({
       where: {
         teamId: user.teamId,
-        collectionId: {
-          [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
-        },
         deletedAt: {
           [Op.ne]: null,
         },
+        [Op.or]: [
+          {
+            collectionId: {
+              [Op.in]: collectionIds,
+            },
+          },
+          {
+            createdById: user.id,
+            collectionId: {
+              [Op.is]: null,
+            },
+          },
+        ],
       },
-      include: [
-        {
-          model: User,
-          as: "createdBy",
-          paranoid: false,
-        },
-        {
-          model: User,
-          as: "updatedBy",
-          paranoid: false,
-        },
-      ],
       paranoid: false,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
@@ -528,6 +527,7 @@ router.post(
       content = await DocumentHelper.toHTML(document, {
         signedUrls: true,
         centered: true,
+        includeMermaid: true,
       });
     } else if (accept?.includes("application/pdf")) {
       throw IncorrectEditionError(
@@ -537,13 +537,8 @@ router.post(
       contentType = "text/markdown";
       content = DocumentHelper.toMarkdown(document);
     } else {
-      contentType = "application/json";
-      content = DocumentHelper.toMarkdown(document);
-    }
-
-    if (contentType === "application/json") {
       ctx.body = {
-        data: content,
+        data: DocumentHelper.toMarkdown(document),
       };
       return;
     }
@@ -690,12 +685,11 @@ router.post(
       // restore a document to a specific revision
       authorize(user, "update", document);
       const revision = await Revision.findByPk(revisionId);
-
       authorize(document, "restore", revision);
 
-      document.text = revision.text;
-      document.title = revision.title;
+      document.restoreFromRevision(revision);
       await document.save();
+
       await Event.create({
         name: "documents.restore",
         documentId: document.id,

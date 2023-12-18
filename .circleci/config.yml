@@ -3,7 +3,7 @@ version: 2.1
 defaults: &defaults
   working_directory: ~/outline
   docker:
-    - image: cimg/node:18.12
+    - image: cimg/node:20.10
     - image: cimg/redis:5.0
     - image: cimg/postgres:14.2
       environment:

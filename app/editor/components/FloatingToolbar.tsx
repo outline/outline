@@ -1,6 +1,7 @@
 import { NodeSelection } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import * as React from "react";
+import { Portal as ReactPortal } from "react-portal";
 import styled, { css } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
@@ -8,6 +9,8 @@ import { depths, s } from "@shared/styles";
 import { Portal } from "~/components/Portal";
 import useComponentSize from "~/hooks/useComponentSize";
 import useEventListener from "~/hooks/useEventListener";
+import useMobile from "~/hooks/useMobile";
+import useWindowSize from "~/hooks/useWindowSize";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
 
@@ -181,50 +184,77 @@ function usePosition({
   }
 }
 
-const FloatingToolbar = React.forwardRef(
-  (props: Props, ref: React.RefObject<HTMLDivElement>) => {
-    const menuRef = ref || React.createRef<HTMLDivElement>();
-    const [isSelectingText, setSelectingText] = React.useState(false);
+const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
+  props: Props,
+  ref: React.RefObject<HTMLDivElement>
+) {
+  const menuRef = ref || React.createRef<HTMLDivElement>();
+  const [isSelectingText, setSelectingText] = React.useState(false);
 
-    let position = usePosition({
-      menuRef,
-      active: props.active,
-    });
+  let position = usePosition({
+    menuRef,
+    active: props.active,
+  });
 
-    if (isSelectingText) {
-      position = defaultPosition;
+  if (isSelectingText) {
+    position = defaultPosition;
+  }
+
+  useEventListener("mouseup", () => {
+    setSelectingText(false);
+  });
+
+  useEventListener("mousedown", () => {
+    if (!props.active) {
+      setSelectingText(true);
+    }
+  });
+
+  const isMobile = useMobile();
+  const { height } = useWindowSize();
+
+  if (isMobile) {
+    if (!props.children) {
+      return null;
     }
 
-    useEventListener("mouseup", () => {
-      setSelectingText(false);
-    });
+    if (props.active) {
+      const rect = document.body.getBoundingClientRect();
+      return (
+        <ReactPortal>
+          <MobileWrapper
+            style={{
+              bottom: `calc(100% - ${height - rect.y}px)`,
+            }}
+          >
+            {props.children}
+          </MobileWrapper>
+        </ReactPortal>
+      );
+    }
 
-    useEventListener("mousedown", () => {
-      if (!props.active) {
-        setSelectingText(true);
-      }
-    });
-
-    return (
-      <Portal>
-        <Wrapper
-          active={props.active && position.visible}
-          arrow={!position.blockSelection}
-          ref={menuRef}
-          $offset={position.offset}
-          style={{
-            width: props.width,
-            maxWidth: `${position.maxWidth}px`,
-            top: `${position.top}px`,
-            left: `${position.left}px`,
-          }}
-        >
-          {props.children}
-        </Wrapper>
-      </Portal>
-    );
+    return null;
   }
-);
+
+  return (
+    <Portal>
+      <Wrapper
+        active={props.active && position.visible}
+        arrow={!position.blockSelection}
+        ref={menuRef}
+        $offset={position.offset}
+        style={{
+          width: props.width,
+          maxWidth: `${position.maxWidth}px`,
+          top: `${position.top}px`,
+          left: `${position.left}px`,
+        }}
+      >
+        {props.children}
+      </Wrapper>
+    </Portal>
+  );
+});
 
 type WrapperProps = {
   active?: boolean;
@@ -251,6 +281,28 @@ const arrow = (props: WrapperProps) =>
         }
       `
     : "";
+
+const MobileWrapper = styled.div`
+  position: absolute;
+  left: 0;
+  right: 0;
+
+  width: 100vw;
+  padding: 10px 6px;
+  background-color: ${s("menuBackground")};
+  border-top: 1px solid ${s("divider")};
+  box-sizing: border-box;
+  z-index: ${depths.editorToolbar};
+
+  &:after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background-color: ${s("menuBackground")};
+  }
+`;
 
 const Wrapper = styled.div<WrapperProps>`
   will-change: opacity, transform;

@@ -11,10 +11,10 @@ import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { sidebarAppearDuration } from "~/styles/animations";
 
-type Props = React.HTMLAttributes<HTMLDivElement> & {
+interface Props extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   border?: boolean;
-};
+}
 
 function Right({ children, border, className }: Props) {
   const theme = useTheme();
@@ -134,7 +134,7 @@ const Sidebar = styled(m.div)<{
     top: 0;
     right: 0;
     bottom: 0;
-    z-index: ${depths.sidebar};
+    z-index: ${depths.mobileSidebar};
   `}
 
   ${breakpoint("tablet")`

@@ -2,7 +2,13 @@ import crypto from "crypto";
 import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import { Context } from "koa";
-import { Transaction, QueryTypes, SaveOptions, Op } from "sequelize";
+import {
+  Transaction,
+  QueryTypes,
+  SaveOptions,
+  Op,
+  FindOptions,
+} from "sequelize";
 import {
   Table,
   Column,
@@ -227,7 +233,7 @@ class User extends ParanoidModel {
   // getters
 
   get isSuspended(): boolean {
-    return !!this.suspendedAt;
+    return !!this.suspendedAt || !!this.team?.isSuspended;
   }
 
   get isInvited() {
@@ -361,7 +367,7 @@ class User extends ParanoidModel {
     UserPreferenceDefaults[preference] ??
     false;
 
-  collectionIds = async (options = {}) => {
+  collectionIds = async (options: FindOptions<Collection> = {}) => {
     const collectionStubs = await Collection.scope({
       method: ["withMembership", this.id],
     }).findAll({

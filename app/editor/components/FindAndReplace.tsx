@@ -348,6 +348,7 @@ const SearchModifiers = styled(Flex)`
 `;
 
 const StyledInput = styled(Input)`
+  width: 196px;
   flex: 1;
 `;
 

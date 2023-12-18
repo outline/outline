@@ -13,6 +13,7 @@ import {
   Table,
   Unique,
   IsIn,
+  IsDate,
   HasMany,
   Scopes,
   Is,
@@ -151,7 +152,18 @@ class Team extends ParanoidModel {
   @Column(DataType.JSONB)
   preferences: TeamPreferences | null;
 
+  @IsDate
+  @Column
+  suspendedAt: Date | null;
+
   // getters
+
+  /**
+   * Returns whether the team has been suspended and is no longer accessible.
+   */
+  get isSuspended(): boolean {
+    return !!this.suspendedAt;
+  }
 
   /**
    * Returns whether the team has email login enabled. For self-hosted installs

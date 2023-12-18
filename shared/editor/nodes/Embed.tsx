@@ -4,13 +4,13 @@ import { Command } from "prosemirror-state";
 import * as React from "react";
 import { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
-import DisabledEmbed from "../components/DisabledEmbed";
+import EmbedComponent from "../components/Embed";
+import defaultEmbeds from "../embeds";
+import { getMatchingEmbed } from "../lib/embeds";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
 import { ComponentProps } from "../types";
 import Node from "./Node";
-
-const cache = {};
 
 export default class Embed extends Node {
   get name() {
@@ -29,33 +29,56 @@ export default class Embed extends Node {
         {
           tag: "iframe",
           getAttrs: (dom: HTMLIFrameElement) => {
-            const { embeds } = this.editor.props;
-            const href = dom.getAttribute("src") || "";
+            const embeds = this.editor?.props.embeds ?? defaultEmbeds;
+            const href = dom.getAttribute("data-canonical-url") || "";
+            const response = getMatchingEmbed(embeds, href);
 
-            if (embeds) {
-              for (const embed of embeds) {
-                const matches = embed.matcher(href);
-                if (matches) {
-                  return {
-                    href,
-                  };
-                }
-              }
+            if (response) {
+              return {
+                href,
+              };
             }
 
             return false;
           },
         },
-      ],
-      toDOM: (node) => [
-        "iframe",
         {
-          class: "embed",
-          src: sanitizeUrl(node.attrs.href),
-          contentEditable: "false",
+          tag: "a.embed",
+          getAttrs: (dom: HTMLAnchorElement) => ({
+            href: dom.getAttribute("href"),
+          }),
         },
-        0,
       ],
+      toDOM: (node) => {
+        const embeds = this.editor?.props.embeds ?? defaultEmbeds;
+        const response = getMatchingEmbed(embeds, node.attrs.href);
+        const src = response?.embed.transformMatch?.(response.matches);
+
+        if (src) {
+          return [
+            "iframe",
+            {
+              class: "embed",
+              frameborder: "0",
+              src: sanitizeUrl(src),
+              contentEditable: "false",
+              allowfullscreen: "true",
+              "data-canonical-url": sanitizeUrl(node.attrs.href),
+            },
+          ];
+        } else {
+          return [
+            "a",
+            {
+              class: "embed",
+              href: sanitizeUrl(node.attrs.href),
+              contentEditable: "false",
+              "data-canonical-url": sanitizeUrl(node.attrs.href),
+            },
+            response?.embed.title ?? node.attrs.href,
+          ];
+        }
+      },
       toPlainText: (node) => node.attrs.href,
     };
   }
@@ -64,52 +87,14 @@ export default class Embed extends Node {
     return [embedsRule(this.options.embeds)];
   }
 
-  component({ isEditable, isSelected, theme, node }: ComponentProps) {
+  component(props: ComponentProps) {
     const { embeds, embedsDisabled } = this.editor.props;
 
-    // matches are cached in module state to avoid re running loops and regex
-    // here. Unfortunately this function is not compatible with React.memo or
-    // we would use that instead.
-    const hit = cache[node.attrs.href];
-    let Component = hit ? hit.Component : undefined;
-    let matches = hit ? hit.matches : undefined;
-    let embed = hit ? hit.embed : undefined;
-
-    if (!Component) {
-      for (const e of embeds) {
-        const m = e.matcher(node.attrs.href);
-        if (m) {
-          Component = e.component;
-          matches = m;
-          embed = e;
-          cache[node.attrs.href] = { Component, embed, matches };
-        }
-      }
-    }
-
-    if (!Component) {
-      return null;
-    }
-
-    if (embedsDisabled) {
-      return (
-        <DisabledEmbed
-          attrs={{ href: node.attrs.href, matches }}
-          embed={embed}
-          isEditable={isEditable}
-          isSelected={isSelected}
-          theme={theme}
-        />
-      );
-    }
-
     return (
-      <Component
-        attrs={{ ...node.attrs, matches }}
-        isEditable={isEditable}
-        isSelected={isSelected}
-        embed={embed}
-        theme={theme}
+      <EmbedComponent
+        {...props}
+        embeds={embeds}
+        embedsDisabled={embedsDisabled}
       />
     );
   }

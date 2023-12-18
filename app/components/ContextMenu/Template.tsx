@@ -201,7 +201,7 @@ function Template({ items, actions, context, ...menu }: Props) {
         }
 
         if (item.type === "heading") {
-          return <Header>{item.title}</Header>;
+          return <Header key={index}>{item.title}</Header>;
         }
 
         const _exhaustiveCheck: never = item;

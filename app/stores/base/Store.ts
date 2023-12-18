@@ -2,7 +2,7 @@ import invariant from "invariant";
 import lowerFirst from "lodash/lowerFirst";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
-import { Class } from "utility-types";
+import pluralize from "pluralize";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Model from "~/models/base/Model";
@@ -22,8 +22,6 @@ export enum RPCAction {
 
 type FetchPageParams = PaginationParams & Record<string, any>;
 
-export const DEFAULT_PAGINATION_LIMIT = 25;
-
 export const PAGINATION_SYMBOL = Symbol.for("pagination");
 
 export default abstract class Store<T extends Model> {
@@ -39,7 +37,7 @@ export default abstract class Store<T extends Model> {
   @observable
   isLoaded = false;
 
-  model: Class<T>;
+  model: typeof Model;
 
   modelName: string;
 
@@ -56,13 +54,13 @@ export default abstract class Store<T extends Model> {
     RPCAction.Count,
   ];
 
-  constructor(rootStore: RootStore, model: Class<T>) {
+  constructor(rootStore: RootStore, model: typeof Model) {
     this.rootStore = rootStore;
     this.model = model;
-    this.modelName = lowerFirst(model.name).replace(/\d$/, "");
+    this.modelName = model.modelName;
 
     if (!this.apiEndpoint) {
-      this.apiEndpoint = `${this.modelName}s`;
+      this.apiEndpoint = pluralize(lowerFirst(model.modelName));
     }
   }
 
@@ -89,6 +87,7 @@ export default abstract class Store<T extends Model> {
         return existingModel;
       }
 
+      // @ts-expect-error TS thinks that we're instantiating an abstract class here
       const newModel = new ModelClass(item, this);
       this.data.set(newModel.id, newModel);
       return newModel;
@@ -103,20 +102,21 @@ export default abstract class Store<T extends Model> {
     const inverseRelations = getInverseRelationsForModelClass(this.model);
 
     inverseRelations.forEach((relation) => {
-      // TODO: Need a better way to get the store for a given model name.
-      const store = this.rootStore[`${relation.modelName.toLowerCase()}s`];
-      const items = store.orderedData.filter(
-        (item: Model) => item[relation.idKey] === id
-      );
+      const store = this.rootStore.getStoreForModelName(relation.modelName);
+      if ("orderedData" in store) {
+        const items = (store.orderedData as Model[]).filter(
+          (item) => item[relation.idKey] === id
+        );
 
-      if (relation.options.onDelete === "cascade") {
-        items.forEach((item: Model) => store.remove(item.id));
-      }
+        if (relation.options.onDelete === "cascade") {
+          items.forEach((item) => store.remove(item.id));
+        }
 
-      if (relation.options.onDelete === "null") {
-        items.forEach((item: Model) => {
-          item[relation.idKey] = null;
-        });
+        if (relation.options.onDelete === "null") {
+          items.forEach((item) => {
+            item[relation.idKey] = null;
+          });
+        }
       }
     });
 

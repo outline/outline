@@ -35,7 +35,7 @@ function NewTemplateMenu() {
       collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
         const can = policies.abilities(collection.id);
 
-        if (can.update) {
+        if (can.createDocument) {
           filtered.push({
             type: "route",
             to: newTemplatePath(collection.id),

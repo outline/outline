@@ -5,5 +5,7 @@ export default function presentSearchQuery(searchQuery: SearchQuery) {
     id: searchQuery.id,
     query: searchQuery.query,
     createdAt: searchQuery.createdAt,
+    answer: searchQuery.answer,
+    score: searchQuery.score,
   };
 }

@@ -44,9 +44,6 @@ export default class DocumentsStore extends Store<Document> {
   > = new Map();
 
   @observable
-  searchCache: Map<string, SearchResult[] | undefined> = new Map();
-
-  @observable
   backlinks: Map<string, string[]> = new Map();
 
   @observable
@@ -171,10 +168,6 @@ export default class DocumentsStore extends Store<Document> {
 
   alphabeticalInCollection(collectionId: string): Document[] {
     return naturalSort(this.inCollection(collectionId), "title");
-  }
-
-  searchResults(query: string): SearchResult[] | undefined {
-    return this.searchCache.get(query);
   }
 
   @computed
@@ -367,7 +360,10 @@ export default class DocumentsStore extends Store<Document> {
     this.fetchNamedPage("list", options);
 
   @action
-  searchTitles = async (query: string, options?: SearchParams) => {
+  searchTitles = async (
+    query: string,
+    options?: SearchParams
+  ): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.post("/documents.search_titles", {
       ...compactedOptions,
@@ -388,15 +384,12 @@ export default class DocumentsStore extends Store<Document> {
           return null;
         }
         return {
+          id: document.id,
           document,
         };
       })
     );
-    const existing = this.searchCache.get(query) || [];
-    // splice modifies any existing results, taking into account pagination
-    existing.splice(0, existing.length, ...results);
-    this.searchCache.set(query, existing);
-    return res.data;
+    return results;
   };
 
   @action
@@ -431,11 +424,7 @@ export default class DocumentsStore extends Store<Document> {
         };
       })
     );
-    const existing = this.searchCache.get(query) || [];
-    // splice modifies any existing results, taking into account pagination
-    existing.splice(options.offset || 0, options.limit || 0, ...results);
-    this.searchCache.set(query, existing);
-    return res.data;
+    return results;
   };
 
   @action

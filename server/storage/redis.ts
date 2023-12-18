@@ -42,7 +42,7 @@ export default class RedisAdapter extends Redis {
      */
     const connectionNamePrefix = env.isDevelopment ? process.pid : "outline";
     const connectionName =
-      `${connectionNamePrefix}:${env.SERVICES.replace(/,/g, "-")}` +
+      `${connectionNamePrefix}:${env.SERVICES.join("-")}` +
       (connectionNameSuffix ? `:${connectionNameSuffix}` : "");
 
     if (!url || !url.startsWith("ioredis://")) {

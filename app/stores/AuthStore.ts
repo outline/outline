@@ -351,6 +351,6 @@ export default class AuthStore extends Store<Team> {
 
     // Tell the host application we logged out, if any – allows window cleanup.
     void Desktop.bridge?.onLogout?.();
-    this.rootStore.logout();
+    this.rootStore.clear();
   };
 }

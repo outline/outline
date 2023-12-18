@@ -763,7 +763,7 @@ export class Editor extends React.PureComponent<
             )}
             {this.widgets &&
               Object.values(this.widgets).map((Widget, index) => (
-                <Widget key={String(index)} rtl={isRTL} />
+                <Widget key={String(index)} rtl={isRTL} readOnly={readOnly} />
               ))}
           </Flex>
         </EditorContext.Provider>

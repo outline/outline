@@ -227,7 +227,7 @@ function Security() {
             value={data.defaultUserRole}
             options={[
               {
-                label: t("Member"),
+                label: t("Editor"),
                 value: "member",
               },
               {

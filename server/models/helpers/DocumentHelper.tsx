@@ -4,35 +4,24 @@ import {
   yDocToProsemirrorJSON,
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
-import escapeRegExp from "lodash/escapeRegExp";
-import startCase from "lodash/startCase";
 import { Node } from "prosemirror-model";
-import { Transaction } from "sequelize";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
-import { AttachmentPreset } from "@shared/types";
-import {
-  getCurrentDateAsString,
-  getCurrentDateTimeAsString,
-  getCurrentTimeAsString,
-  unicodeCLDRtoBCP47,
-} from "@shared/utils/date";
-import attachmentCreator from "@server/commands/attachmentCreator";
-import { parser, schema } from "@server/editor";
+import { parser, serializer, schema } from "@server/editor";
+import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
-import { Document, Revision, User } from "@server/models";
-import Attachment from "@server/models/Attachment";
-import FileStorage from "@server/storage/files";
+import { Document, Revision } from "@server/models";
 import diff from "@server/utils/diff";
-import parseAttachmentIds from "@server/utils/parseAttachmentIds";
-import parseImages from "@server/utils/parseImages";
 import ProsemirrorHelper from "./ProsemirrorHelper";
+import TextHelper from "./TextHelper";
 
 type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
   includeTitle?: boolean;
   /** Whether to include style tags in the generated HTML (defaults to true) */
   includeStyles?: boolean;
+  /** Whether to include the Mermaid script in the generated HTML (defaults to false) */
+  includeMermaid?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
   /**
@@ -45,8 +34,8 @@ type HTMLOptions = {
 @trace()
 export default class DocumentHelper {
   /**
-   * Returns the document as a Prosemirror Node. This method uses the
-   * collaborative state if available, otherwise it falls back to Markdown.
+   * Returns the document as a Prosemirror Node. This method uses the collaborative state if
+   * available, otherwise it falls back to Markdown.
    *
    * @param document The document or revision to convert
    * @returns The document content as a Prosemirror Node
@@ -56,6 +45,9 @@ export default class DocumentHelper {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, document.state);
       return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+    }
+    if ("content" in document && document.content) {
+      return Node.fromJSON(schema, document.content);
     }
     return parser.parse(document.text) || Node.fromJSON(schema, {});
   }
@@ -123,13 +115,20 @@ export default class DocumentHelper {
    * @returns The document title and content as a Markdown string
    */
   static toMarkdown(document: Document | Revision) {
-    const text = document.text.replace(/\n\\\n/g, "\n\n");
+    const text = serializer
+      .serialize(DocumentHelper.toProsemirror(document))
+      .replace(/\n\\\n/g, "\n\n")
+      .replace(/“/g, '"')
+      .replace(/”/g, '"')
+      .replace(/‘/g, "'")
+      .replace(/’/g, "'")
+      .trim();
 
-    if (document.version) {
-      return `# ${document.title}\n\n${text}`;
-    }
+    const title = `${document.emoji ? document.emoji + " " : ""}${
+      document.title
+    }`;
 
-    return text;
+    return `# ${title}\n\n${text}`;
   }
 
   /**
@@ -145,7 +144,13 @@ export default class DocumentHelper {
     let output = ProsemirrorHelper.toHTML(node, {
       title: options?.includeTitle !== false ? document.title : undefined,
       includeStyles: options?.includeStyles,
+      includeMermaid: options?.includeMermaid,
       centered: options?.centered,
+    });
+
+    addTags({
+      documentId: document.id,
+      options,
     });
 
     if (options?.signedUrls) {
@@ -158,7 +163,7 @@ export default class DocumentHelper {
         return output;
       }
 
-      output = await DocumentHelper.attachmentsToSignedUrls(
+      output = await TextHelper.attachmentsToSignedUrls(
         output,
         teamId,
         typeof options.signedUrls === "number" ? options.signedUrls : undefined
@@ -192,6 +197,12 @@ export default class DocumentHelper {
     after: Revision,
     { signedUrls, ...options }: HTMLOptions = {}
   ) {
+    addTags({
+      beforeId: before?.id,
+      documentId: after.documentId,
+      options,
+    });
+
     if (!before) {
       return await DocumentHelper.toHTML(after, { ...options, signedUrls });
     }
@@ -216,7 +227,7 @@ export default class DocumentHelper {
           : (await before.$get("document"))?.teamId;
 
       if (teamId) {
-        diffedContentAsHTML = await DocumentHelper.attachmentsToSignedUrls(
+        diffedContentAsHTML = await TextHelper.attachmentsToSignedUrls(
           diffedContentAsHTML,
           teamId,
           typeof signedUrls === "number" ? signedUrls : undefined
@@ -365,115 +376,6 @@ export default class DocumentHelper {
   }
 
   /**
-   * Converts attachment urls in documents to signed equivalents that allow
-   * direct access without a session cookie
-   *
-   * @deprecated Use `ProsemirrorHelper.signAttachmentUrls` where possible
-   * @param text The text either html or markdown which contains urls to be converted
-   * @param teamId The team context
-   * @param expiresIn The time that signed urls should expire (in seconds)
-   * @returns The replaced text
-   */
-  static async attachmentsToSignedUrls(
-    text: string,
-    teamId: string,
-    expiresIn = 3000
-  ) {
-    const attachmentIds = parseAttachmentIds(text);
-
-    await Promise.all(
-      attachmentIds.map(async (id) => {
-        const attachment = await Attachment.findOne({
-          where: {
-            id,
-            teamId,
-          },
-        });
-
-        if (attachment) {
-          const signedUrl = await FileStorage.getSignedUrl(
-            attachment.key,
-            expiresIn
-          );
-
-          text = text.replace(
-            new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
-            signedUrl
-          );
-        }
-      })
-    );
-    return text;
-  }
-
-  /**
-   * Replaces template variables in the given text with the current date and time.
-   *
-   * @param text The text to replace the variables in
-   * @param user The user to get the language/locale from
-   * @returns The text with the variables replaced
-   */
-  static replaceTemplateVariables(text: string, user: User) {
-    const locales = user.language
-      ? unicodeCLDRtoBCP47(user.language)
-      : undefined;
-
-    return text
-      .replace(/{date}/g, startCase(getCurrentDateAsString(locales)))
-      .replace(/{time}/g, startCase(getCurrentTimeAsString(locales)))
-      .replace(/{datetime}/g, startCase(getCurrentDateTimeAsString(locales)));
-  }
-
-  /**
-   * Replaces remote and base64 encoded images in the given text with attachment
-   * urls and uploads the images to the storage provider.
-   *
-   * @param text The text to replace the images in
-   * @param user The user context
-   * @param ip The IP address of the user
-   * @param transaction The transaction to use for the database operations
-   * @returns The text with the images replaced
-   */
-  static async replaceImagesWithAttachments(
-    text: string,
-    user: User,
-    ip?: string,
-    transaction?: Transaction
-  ) {
-    let output = text;
-    const images = parseImages(text);
-
-    await Promise.all(
-      images.map(async (image) => {
-        // Skip attempting to fetch images that are not valid urls
-        try {
-          new URL(image.src);
-        } catch {
-          return;
-        }
-
-        const attachment = await attachmentCreator({
-          name: image.alt ?? "image",
-          url: image.src,
-          preset: AttachmentPreset.DocumentAttachment,
-          user,
-          ip,
-          transaction,
-        });
-
-        if (attachment) {
-          output = output.replace(
-            new RegExp(escapeRegExp(image.src), "g"),
-            attachment.redirectUrl
-          );
-        }
-      })
-    );
-
-    return output;
-  }
-
-  /**
    * Applies the given Markdown to the document, this essentially creates a
    * single change in the collaborative state that makes all the edits to get
    * to the provided Markdown.
@@ -490,12 +392,12 @@ export default class DocumentHelper {
     append = false
   ) {
     document.text = append ? document.text + text : text;
+    const doc = parser.parse(document.text);
 
     if (document.state) {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, document.state);
       const type = ydoc.get("default", Y.XmlFragment) as Y.XmlFragment;
-      const doc = parser.parse(document.text);
 
       if (!type.doc) {
         throw new Error("type.doc not found");
@@ -505,8 +407,13 @@ export default class DocumentHelper {
       updateYFragment(type.doc, type, doc, new Map());
 
       const state = Y.encodeStateAsUpdate(ydoc);
+      const node = yDocToProsemirror(schema, ydoc);
+
+      document.content = node.toJSON();
       document.state = Buffer.from(state);
       document.changed("state", true);
+    } else if (doc) {
+      document.content = doc.toJSON();
     }
 
     return document;

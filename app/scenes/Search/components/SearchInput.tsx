@@ -33,7 +33,7 @@ function SearchInput(
 
   return (
     <Wrapper align="center">
-      <StyledIcon size={46} color={theme.textTertiary} onClick={focusInput} />
+      <StyledIcon size={46} color={theme.placeholder} onClick={focusInput} />
       <StyledInput
         {...rest}
         defaultValue={defaultValue}
@@ -54,7 +54,7 @@ const Wrapper = styled(Flex)`
 const StyledInput = styled.input`
   width: 100%;
   padding: 10px 10px 10px 60px;
-  font-size: 36px;
+  font-size: 30px;
   font-weight: 400;
   outline: none;
   border: 0;
@@ -84,6 +84,7 @@ const StyledInput = styled.input`
 const StyledIcon = styled(SearchIcon)`
   position: absolute;
   left: 8px;
+  opacity: 0.7;
 `;
 
 export default React.forwardRef(SearchInput);

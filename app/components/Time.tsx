@@ -1,10 +1,11 @@
 import * as React from "react";
 import { dateToRelative } from "@shared/utils/date";
+import type { Props as LocaleTimeProps } from "~/components/LocaleTime";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const LocaleTime = lazyWithRetry(() => import("~/components/LocaleTime"));
 
-type Props = React.ComponentProps<typeof LocaleTime> & {
+type Props = LocaleTimeProps & {
   onClick?: () => void;
 };
 

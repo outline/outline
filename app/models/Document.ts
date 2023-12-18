@@ -2,6 +2,9 @@ import { addDays, differenceInDays } from "date-fns";
 import i18n, { t } from "i18next";
 import floor from "lodash/floor";
 import { action, autorun, computed, observable, set } from "mobx";
+import { Node, Schema } from "prosemirror-model";
+import ExtensionManager from "@shared/editor/lib/ExtensionManager";
+import { richExtensions, withComments } from "@shared/editor/nodes";
 import { ExportContentType } from "@shared/types";
 import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import Storage from "@shared/utils/Storage";
@@ -11,9 +14,11 @@ import DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
 import { settingsPath } from "~/utils/routeHelpers";
+import Collection from "./Collection";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
+import Relation from "./decorators/Relation";
 
 type SaveOptions = {
   publish?: boolean;
@@ -22,6 +27,8 @@ type SaveOptions = {
 };
 
 export default class Document extends ParanoidModel {
+  static modelName = "Document";
+
   constructor(fields: Record<string, any>, store: DocumentsStore) {
     super(fields, store);
 
@@ -59,6 +66,12 @@ export default class Document extends ParanoidModel {
   @Field
   @observable
   collectionId?: string | null;
+
+  /**
+   * The comment that this comment is a reply to.
+   */
+  @Relation(() => Collection, { onDelete: "cascade" })
+  collection?: Collection;
 
   /**
    * The title of the document.
@@ -271,6 +284,11 @@ export default class Document extends ParanoidModel {
     return floor((this.tasks.completed / this.tasks.total) * 100);
   }
 
+  @computed
+  get pathTo() {
+    return this.collection?.pathToDocument(this.id) ?? [];
+  }
+
   get titleWithDefault(): string {
     return this.title || i18n.t("Untitled");
   }
@@ -447,6 +465,17 @@ export default class Document extends ParanoidModel {
       isDraft: this.isDraft,
     };
   }
+
+  toMarkdown = () => {
+    const extensionManager = new ExtensionManager(withComments(richExtensions));
+    const serializer = extensionManager.serializer();
+    const schema = new Schema({
+      nodes: extensionManager.nodes,
+      marks: extensionManager.marks,
+    });
+    const markdown = serializer.serialize(Node.fromJSON(schema, this.data));
+    return markdown;
+  };
 
   download = (contentType: ExportContentType) =>
     client.post(

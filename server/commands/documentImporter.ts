@@ -10,8 +10,8 @@ import parseTitle from "@shared/utils/parseTitle";
 import { DocumentValidation } from "@shared/validations";
 import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
+import TextHelper from "@server/models/helpers/TextHelper";
 import turndownService from "@server/utils/turndown";
 import { FileImportError, InvalidRequestError } from "../errors";
 
@@ -203,7 +203,7 @@ async function documentImporter({
   // to match our hardbreak parser.
   text = text.trim().replace(/<br>/gi, "\\n");
 
-  text = await DocumentHelper.replaceImagesWithAttachments(
+  text = await TextHelper.replaceImagesWithAttachments(
     text,
     user,
     ip,

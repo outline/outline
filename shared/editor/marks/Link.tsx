@@ -9,7 +9,7 @@ import {
   Node,
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
-import { Command, EditorState, Plugin } from "prosemirror-state";
+import { Command, EditorState, Plugin, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
@@ -194,15 +194,50 @@ export default class Link extends Mark {
       return DecorationSet.create(state.doc, decorations);
     };
 
+    const handleClick = (view: EditorView, pos: number) => {
+      const { doc, tr } = view.state;
+      const range = getMarkRange(
+        doc.resolve(pos),
+        this.editor.schema.marks.link
+      );
+
+      if (!range || range.from === pos || range.to === pos) {
+        return false;
+      }
+
+      try {
+        const $start = doc.resolve(range.from);
+        const $end = doc.resolve(range.to);
+        tr.setSelection(new TextSelection($start, $end));
+
+        view.dispatch(tr);
+        return true;
+      } catch (err) {
+        // Failed to set selection
+      }
+      return false;
+    };
+
     const plugin: Plugin = new Plugin({
       state: {
-        init: (config, state) => getLinkDecorations(state),
+        init: (_config, state) => getLinkDecorations(state),
         apply: (tr, decorationSet, _oldState, newState) =>
           tr.docChanged ? getLinkDecorations(newState) : decorationSet,
       },
       props: {
         decorations: (state: EditorState) => plugin.getState(state),
         handleDOMEvents: {
+          contextmenu: (view: EditorView, event: MouseEvent) => {
+            const result = view.posAtCoords({
+              left: event.clientX,
+              top: event.clientY,
+            });
+            if (result) {
+              return handleClick(view, result.pos);
+            }
+
+            return false;
+          },
           mousedown: (view: EditorView, event: MouseEvent) => {
             const target = (event.target as HTMLElement)?.closest("a");
             if (!(target instanceof HTMLAnchorElement) || event.button !== 0) {
@@ -232,6 +267,16 @@ export default class Link extends Mark {
                 toast.error(this.options.dictionary.openLinkError);
               }
 
+              return true;
+            }
+
+            const result = view.posAtCoords({
+              left: event.clientX,
+              top: event.clientY,
+            });
+
+            if (result && handleClick(view, result.pos)) {
+              event.preventDefault();
               return true;
             }
 

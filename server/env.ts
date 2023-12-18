@@ -18,6 +18,7 @@ import {
   IsBoolean,
   MaxLength,
 } from "class-validator";
+import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
 import { CannotUseWithout } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
@@ -40,7 +41,7 @@ export class Environment {
   }
 
   /**
-   * The current envionment name.
+   * The current environment name.
    */
   @IsIn(["development", "production", "staging", "test"])
   public ENVIRONMENT = process.env.NODE_ENV ?? "production";
@@ -226,16 +227,20 @@ export class Environment {
   public DEFAULT_LANGUAGE = process.env.DEFAULT_LANGUAGE ?? "en_US";
 
   /**
-   * A comma separated list of which services should be enabled on this
-   * instance – defaults to all.
+   * A comma list of which services should be enabled on this instance – defaults to all.
    *
    * If a services flag is passed it takes priority over the environment variable
    * for example: --services=web,worker
    */
-  public SERVICES =
-    getArg("services") ??
-    process.env.SERVICES ??
-    "collaboration,websockets,worker,web";
+  public SERVICES = uniq(
+    (
+      getArg("services") ??
+      process.env.SERVICES ??
+      "collaboration,websockets,worker,web"
+    )
+      .split(",")
+      .map((service) => service.toLowerCase().trim())
+  );
 
   /**
    * Auto-redirect to https in production. The default is true but you may set
@@ -437,7 +442,7 @@ export class Environment {
   );
 
   /**
-   * OICD client credentials. To enable authentication with any
+   * OIDC client credentials. To enable authentication with any
    * compatible provider.
    */
   @IsOptional()

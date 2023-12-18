@@ -6,7 +6,6 @@ import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import { useHistory } from "react-router-dom";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { AttachmentPreset } from "@shared/types";
@@ -16,21 +15,18 @@ import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
 import { AttachmentValidation } from "@shared/validations";
-import Document from "~/models/Document";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useDictionary from "~/hooks/useDictionary";
+import useEditorClickHandlers from "~/hooks/useEditorClickHandlers";
 import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
 import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
-import { isModKey } from "~/utils/keyboard";
 import lazyWithRetry from "~/utils/lazyWithRetry";
-import { sharedDocumentPath } from "~/utils/routeHelpers";
-import { isHash } from "~/utils/urls";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
 
 const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
@@ -66,7 +62,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { comments, documents } = useStores();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
-  const history = useHistory();
   const localRef = React.useRef<SharedEditor>();
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
   const previousHeadings = React.useRef<Heading[] | null>(null);
@@ -108,7 +103,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       const results = await documents.searchTitles(term);
 
       return sortBy(
-        results.map((document: Document) => ({
+        results.map(({ document }) => ({
           title: document.title,
           subtitle: <DocumentBreadcrumb document={document} onlyText />,
           url: document.url,
@@ -135,47 +130,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     [id]
   );
 
-  const handleClickLink = React.useCallback(
-    (href: string, event: MouseEvent) => {
-      // on page hash
-      if (isHash(href)) {
-        window.location.href = href;
-        return;
-      }
-
-      if (isInternalUrl(href) && !isModKey(event) && !event.shiftKey) {
-        // relative
-        let navigateTo = href;
-
-        // probably absolute
-        if (href[0] !== "/") {
-          try {
-            const url = new URL(href);
-            navigateTo = url.pathname + url.hash;
-          } catch (err) {
-            navigateTo = href;
-          }
-        }
-
-        // Link to our own API should be opened in a new tab, not in the app
-        if (navigateTo.startsWith("/api/")) {
-          window.open(href, "_blank");
-          return;
-        }
-
-        // If we're navigating to an internal document link then prepend the
-        // share route to the URL so that the document is loaded in context
-        if (shareId && navigateTo.includes("/doc/")) {
-          navigateTo = sharedDocumentPath(shareId, navigateTo);
-        }
-
-        history.push(navigateTo);
-      } else if (href) {
-        window.open(href, "_blank");
-      }
-    },
-    [history, shareId]
-  );
+  const { handleClickLink } = useEditorClickHandlers({ shareId });
 
   const focusAtEnd = React.useCallback(() => {
     localRef?.current?.focusAtEnd();

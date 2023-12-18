@@ -2,6 +2,8 @@ import { client } from "~/utils/ApiClient";
 import Model from "./base/Model";
 
 class SearchQuery extends Model {
+  static modelName = "Search";
+
   id: string;
 
   query: string;

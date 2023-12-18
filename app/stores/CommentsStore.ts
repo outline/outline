@@ -10,8 +10,6 @@ import RootStore from "./RootStore";
 import Store from "./base/Store";
 
 export default class CommentsStore extends Store<Comment> {
-  apiEndpoint = "comments";
-
   constructor(rootStore: RootStore) {
     super(rootStore, Comment);
   }
