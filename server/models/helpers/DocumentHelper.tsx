@@ -75,8 +75,11 @@ export default class DocumentHelper {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, document.state);
       doc = yDocToProsemirror(schema, ydoc);
+    } else if ("content" in document && document.content) {
+      doc = Node.fromJSON(schema, document.content);
+    } else {
+      doc = parser.parse(document.text);
     }
-    doc = parser.parse(document.text);
 
     if (doc && options?.signedUrls) {
       return ProsemirrorHelper.signAttachmentUrls(

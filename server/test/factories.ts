@@ -373,7 +373,20 @@ export async function buildDocument(
   const document = await Document.create(
     {
       title: faker.lorem.words(4),
-      text: "This is the text in an example document",
+      content: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "This is the text in an example document",
+              },
+            ],
+          },
+        ],
+      },
       publishedAt: isNull(overrides.collectionId) ? null : new Date(),
       lastModifiedById: overrides.userId,
       createdById: overrides.userId,
