@@ -15,10 +15,11 @@ import { useStarLabelAndIcon } from "./useStarLabelAndIcon";
 export function useDragStar(
   star: Star
 ): [{ isDragging: boolean }, ConnectDragSource] {
+  const id = star.id;
   const { label: title, icon } = useStarLabelAndIcon(star);
   const [{ isDragging }, draggableRef, preview] = useDrag({
     type: "star",
-    item: () => ({ icon, title, star }),
+    item: () => ({ id, title, icon }),
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
@@ -67,8 +68,9 @@ export function useDropToReorderStar(getIndex?: () => string) {
 
   return useDrop({
     accept: "star",
-    drop: async (item: { star: Star }) => {
-      void item.star.save({
+    drop: async (item: DragObject) => {
+      const star = stars.get(item.id);
+      void star?.save({
         index:
           getIndex?.() ?? fractionalIndex(null, stars.orderedData[0].index),
       });
