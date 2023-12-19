@@ -632,7 +632,7 @@
   "We sent out your invites!": "Rozeslali jsme vaše pozvánky!",
   "Those email addresses are already invited": "Tyto e-mailové adresy jsou již pozvány",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Litujeme, můžete odeslat pouze {{MAX_INVITES}} pozvánek najednou",
-  "Invited members will receive access to": "Invited members will receive access to",
+  "Invited members will receive access to": "Pozvaní členové obdrží přístup k",
   "{{collectionCount}} collections": "{{collectionCount}} collections",
   "Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address.": "Pozvěte členy nebo hosty, aby se připojili k vašemu pracovnímu prostoru. Mohou se přihlásit pomocí {{signinMethods}} nebo použít svou e-mailovou adresu.",
   "Invite members to join your workspace. They will need to sign in with {{signinMethods}}.": "Pozvěte členy, aby se připojili k vašemu pracovnímu prostoru. Budou se muset přihlásit pomocí {{signinMethods}}.",
