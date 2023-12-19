@@ -164,6 +164,7 @@ function Members() {
           )}
         </>
       }
+      wide
     >
       <Heading>{t("Members")}</Heading>
       <Text type="secondary">

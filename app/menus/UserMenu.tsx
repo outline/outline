@@ -195,7 +195,7 @@ function UserMenu({ user }: Props) {
             },
             {
               type: "button",
-              title: t("Activate account"),
+              title: t("Activate user"),
               onClick: handleActivate,
               visible: !user.isInvited && user.isSuspended,
             },
