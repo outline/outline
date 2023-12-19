@@ -343,7 +343,7 @@ export default class Document extends ParanoidModel {
   };
 
   @action
-  star = () => this.store.star(this);
+  star = (index?: string) => this.store.star(this, index);
 
   @action
   unstar = () => this.store.unstar(this);

@@ -13,14 +13,14 @@ import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { DragObject } from "./SidebarLink";
 import StarredContext from "./StarredContext";
 import StarredLink from "./StarredLink";
 
 const STARRED_PAGINATION_LIMIT = 10;
 
 function Starred() {
-  const { stars } = useStores();
+  const { documents, stars } = useStores();
   const { t } = useTranslation();
 
   const { loading, next, end, error, page } = usePaginatedRequest<Star>(
@@ -30,7 +30,7 @@ function Starred() {
     }
   );
 
-  // Drop to reorder document
+  // Drop to reorder star
   const [{ isOverReorder, isDraggingAnyStar }, dropToReorder] = useDrop({
     accept: "star",
     drop: async (item: { star: Star }) => {
@@ -44,9 +44,25 @@ function Starred() {
     }),
   });
 
-  if (error) {
-    toast.error(t("Could not load starred documents"));
-  }
+  // Drop to star document
+  const [{ documentIsOverReorder, isDraggingAnyDocument }, dropToStar] =
+    useDrop({
+      accept: "document",
+      drop: async (item: DragObject) => {
+        const document = documents.get(item.id);
+        await document?.star(fractionalIndex(null, stars.orderedData[0].index));
+      },
+      collect: (monitor) => ({
+        documentIsOverReorder: !!monitor.isOver(),
+        isDraggingAnyDocument: monitor.getItemType() === "document",
+      }),
+    });
+
+  React.useEffect(() => {
+    if (error) {
+      toast.error(t("Could not load starred documents"));
+    }
+  }, [t, error]);
 
   if (!stars.orderedData.length) {
     return null;
@@ -61,6 +77,13 @@ function Starred() {
               <DropCursor
                 isActiveDrop={isOverReorder}
                 innerRef={dropToReorder}
+                position="top"
+              />
+            )}
+            {isDraggingAnyDocument && (
+              <DropCursor
+                isActiveDrop={documentIsOverReorder}
+                innerRef={dropToStar}
                 position="top"
               />
             )}

@@ -21,7 +21,7 @@ import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import Relative from "./Relative";
-import SidebarLink from "./SidebarLink";
+import SidebarLink, { DragObject } from "./SidebarLink";
 
 type Props = {
   star: Star;
@@ -135,7 +135,38 @@ function StarredLink({ star }: Props) {
     }),
   });
 
+  // Drop to star document
+  const [{ documentIsOverReorder, isDraggingAnyDocument }, dropToStar] =
+    useDrop({
+      accept: "document",
+      drop: async (item: DragObject) => {
+        const next = star?.next();
+        const document = documents.get(item.id);
+        await document?.star(
+          fractionalIndex(star?.index || null, next?.index || null)
+        );
+      },
+      collect: (monitor) => ({
+        documentIsOverReorder: !!monitor.isOver(),
+        isDraggingAnyDocument: monitor.getItemType() === "document",
+      }),
+    });
+
   const displayChildDocuments = expanded && !isDragging;
+
+  const cursor = (
+    <>
+      {isDraggingAny && (
+        <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+      )}
+      {isDraggingAnyDocument && (
+        <DropCursor
+          isActiveDrop={documentIsOverReorder}
+          innerRef={dropToStar}
+        />
+      )}
+    </>
+  );
 
   if (documentId) {
     const document = documents.get(documentId);
@@ -200,9 +231,7 @@ function StarredLink({ star }: Props) {
               />
             ))}
           </Folder>
-          {isDraggingAny && (
-            <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
-          )}
+          {cursor}
         </Relative>
       </>
     );
@@ -225,9 +254,7 @@ function StarredLink({ star }: Props) {
             collection={collection}
             expanded={displayChildDocuments}
           />
-          {isDraggingAny && (
-            <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
-          )}
+          {cursor}
         </Relative>
       </>
     );

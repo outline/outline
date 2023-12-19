@@ -728,9 +728,10 @@ export default class DocumentsStore extends Store<Document> {
     });
   };
 
-  star = (document: Document) =>
+  star = (document: Document, index?: string) =>
     this.rootStore.stars.create({
       documentId: document.id,
+      index,
     });
 
   unstar = (document: Document) => {
