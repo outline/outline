@@ -1,7 +1,5 @@
-import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import Star from "~/models/Star";
@@ -13,50 +11,22 @@ import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
-import SidebarLink, { DragObject } from "./SidebarLink";
+import SidebarLink from "./SidebarLink";
 import StarredContext from "./StarredContext";
 import StarredLink from "./StarredLink";
+import { useDropToCreateStar, useDropToReorderStar } from "./useDragAndDrop";
 
 const STARRED_PAGINATION_LIMIT = 10;
 
 function Starred() {
-  const { documents, stars } = useStores();
+  const { stars } = useStores();
   const { t } = useTranslation();
 
   const { loading, next, end, error, page } = usePaginatedRequest<Star>(
-    stars.fetchPage,
-    {
-      limit: STARRED_PAGINATION_LIMIT,
-    }
+    stars.fetchPage
   );
-
-  // Drop to reorder star
-  const [{ isOverReorder, isDraggingAnyStar }, dropToReorder] = useDrop({
-    accept: "star",
-    drop: async (item: { star: Star }) => {
-      void item.star.save({
-        index: fractionalIndex(null, stars.orderedData[0].index),
-      });
-    },
-    collect: (monitor) => ({
-      isOverReorder: !!monitor.isOver(),
-      isDraggingAnyStar: monitor.getItemType() === "star",
-    }),
-  });
-
-  // Drop to star document
-  const [{ documentIsOverReorder, isDraggingAnyDocument }, dropToStar] =
-    useDrop({
-      accept: "document",
-      drop: async (item: DragObject) => {
-        const document = documents.get(item.id);
-        await document?.star(fractionalIndex(null, stars.orderedData[0].index));
-      },
-      collect: (monitor) => ({
-        documentIsOverReorder: !!monitor.isOver(),
-        isDraggingAnyDocument: monitor.getItemType() === "document",
-      }),
-    });
+  const [reorderStarMonitor, dropToReorder] = useDropToReorderStar();
+  const [createStarMonitor, dropToStarRef] = useDropToCreateStar();
 
   React.useEffect(() => {
     if (error) {
@@ -73,17 +43,17 @@ function Starred() {
       <Flex column>
         <Header id="starred" title={t("Starred")}>
           <Relative>
-            {isDraggingAnyStar && (
+            {reorderStarMonitor.isDragging && (
               <DropCursor
-                isActiveDrop={isOverReorder}
+                isActiveDrop={reorderStarMonitor.isOverCursor}
                 innerRef={dropToReorder}
                 position="top"
               />
             )}
-            {isDraggingAnyDocument && (
+            {createStarMonitor.isDragging && (
               <DropCursor
-                isActiveDrop={documentIsOverReorder}
-                innerRef={dropToStar}
+                isActiveDrop={createStarMonitor.isOverCursor}
+                innerRef={dropToStarRef}
                 position="top"
               />
             )}

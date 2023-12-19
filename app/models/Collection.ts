@@ -275,7 +275,7 @@ export default class Collection extends ParanoidModel {
   }
 
   @action
-  star = async () => this.store.star(this);
+  star = async (index?: string) => this.store.star(this, index);
 
   @action
   unstar = async () => this.store.unstar(this);

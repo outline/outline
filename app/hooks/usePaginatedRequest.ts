@@ -32,7 +32,7 @@ const DEFAULT_LIMIT = 10;
  */
 export default function usePaginatedRequest<T = unknown>(
   requestFn: (params?: PaginationParams | undefined) => Promise<T[]>,
-  params: PaginationParams
+  params: PaginationParams = {}
 ): RequestResponse<T> {
   const [data, setData] = React.useState<T[]>();
   const [offset, setOffset] = React.useState(INITIAL_OFFSET);

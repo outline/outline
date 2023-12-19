@@ -196,9 +196,10 @@ export default class CollectionsStore extends Store<Collection> {
     );
   }
 
-  star = async (collection: Collection) => {
+  star = async (collection: Collection, index?: string) => {
     await this.rootStore.stars.create({
       collectionId: collection.id,
+      index,
     });
   };
 
