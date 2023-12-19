@@ -12,6 +12,7 @@ import EditorContainer from "@shared/editor/components/Styles";
 import embeds from "@shared/editor/embeds";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
+import { ProsemirrorData } from "@shared/types";
 import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { isRTL } from "@shared/utils/rtl";
 import { schema, parser } from "@server/editor";
@@ -47,8 +48,15 @@ export default class ProsemirrorHelper {
    * @param markdown The text to parse
    * @returns The content as a Y.Doc.
    */
-  static toYDoc(markdown: string, fieldName = "default"): Y.Doc {
-    let node = parser.parse(markdown);
+  static toYDoc(input: string | ProsemirrorData, fieldName = "default"): Y.Doc {
+    if (typeof input === "object") {
+      return prosemirrorToYDoc(
+        ProsemirrorHelper.toProsemirror(input),
+        fieldName
+      );
+    }
+
+    let node = parser.parse(input);
 
     // in the editor embeds are created at runtime by converting links into
     // embeds where they match.Because we're converting to a CRDT structure on
@@ -110,7 +118,7 @@ export default class ProsemirrorHelper {
    * @param data The object to parse
    * @returns The content as a Prosemirror Node
    */
-  static toProsemirror(data: Record<string, any>) {
+  static toProsemirror(data: ProsemirrorData) {
     return Node.fromJSON(schema, data);
   }
 
@@ -171,15 +179,15 @@ export default class ProsemirrorHelper {
       })
     );
 
-    const json = doc.toJSON();
+    const json = doc.toJSON() as ProsemirrorData;
 
-    function replaceAttachmentUrls(node: Record<string, any>) {
+    function replaceAttachmentUrls(node: ProsemirrorData) {
       if (node.attrs?.src) {
         node.attrs.src = mapping[node.attrs.src] || node.attrs.src;
       } else if (node.attrs?.href) {
         node.attrs.href = mapping[node.attrs.href] || node.attrs.href;
       } else if (node.marks) {
-        node.marks.forEach((mark: Record<string, any>) => {
+        node.marks.forEach((mark: ProsemirrorData) => {
           if (mark.attrs?.href) {
             mark.attrs.href = mapping[mark.attrs.href] || mark.attrs.href;
           }

@@ -10,6 +10,7 @@ type Props = Optional<
     | "urlId"
     | "title"
     | "text"
+    | "content"
     | "emoji"
     | "collectionId"
     | "parentDocumentId"

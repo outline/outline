@@ -54,7 +54,6 @@ import {
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
-import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getTeamFromContext } from "@server/utils/passport";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
@@ -549,7 +548,9 @@ router.post(
       contentType === "text/markdown" ? "md" : mime.extension(contentType);
 
     const fileName = slugify(document.titleWithDefault);
-    const attachmentIds = parseAttachmentIds(document.text);
+    const attachmentIds = ProsemirrorHelper.parseAttachmentIds(
+      DocumentHelper.toProsemirror(document)
+    );
     const attachments = attachmentIds.length
       ? await Attachment.findAll({
           where: {

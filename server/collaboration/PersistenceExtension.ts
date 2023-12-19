@@ -51,11 +51,20 @@ export default class PersistenceExtension implements Extension {
         return ydoc;
       }
 
-      Logger.info(
-        "database",
-        `Document ${documentId} is not in state, creating from markdown`
-      );
-      const ydoc = ProsemirrorHelper.toYDoc(document.text, fieldName);
+      let ydoc;
+      if (document.content) {
+        Logger.info(
+          "database",
+          `Document ${documentId} is not in state, creating from content`
+        );
+        ydoc = ProsemirrorHelper.toYDoc(document.content, fieldName);
+      } else {
+        Logger.info(
+          "database",
+          `Document ${documentId} is not in state, creating from text`
+        );
+        ydoc = ProsemirrorHelper.toYDoc(document.text, fieldName);
+      }
       const state = ProsemirrorHelper.toState(ydoc);
       await document.update(
         {
