@@ -196,6 +196,7 @@ function getNewState({
       {
         diagramId: renderer.diagramId,
         renderer,
+        side: -10,
       }
     );
 
