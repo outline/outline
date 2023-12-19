@@ -239,6 +239,10 @@ class WebsocketProvider extends React.Component<Props> {
           const collection = collections.get(event.collectionId);
           collection?.removeDocument(event.id);
         }
+
+        userMemberships.orderedData
+          .filter((m) => m.documentId === event.id)
+          .forEach((m) => userMemberships.remove(m.id));
       })
     );
 

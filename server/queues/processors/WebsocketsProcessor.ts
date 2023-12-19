@@ -79,12 +79,15 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
-        const channel = document.publishedAt
-          ? `collection-${document.collectionId}`
-          : `user-${event.actorId}`;
+        const channels = document.publishedAt
+          ? [
+              `collection-${document.collectionId}`,
+              `document-${event.documentId}`,
+            ]
+          : [`user-${event.actorId}`, `document-${event.documentId}`];
 
         const data = await presentDocument(document);
-        return socketio.to(channel).emit(event.name, data);
+        return socketio.to(channels).emit(event.name, data);
       }
 
       case "documents.create": {
