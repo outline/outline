@@ -109,7 +109,6 @@ function Security() {
               onSubmit={async () => {
                 await saveData(newData);
               }}
-              submitText={t("I’m sure")}
               savingText={`${t("Saving")}…`}
               danger
             >

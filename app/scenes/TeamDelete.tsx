@@ -64,36 +64,37 @@ function TeamDelete({ onSubmit }: Props) {
   const workspaceName = team.name;
 
   return (
-    <Flex column>
-      <form onSubmit={formHandleSubmit(handleSubmit)}>
-        {isWaitingCode ? (
-          <>
-            <Text type="secondary">
-              <Trans>
-                A confirmation code has been sent to your email address, please
-                enter the code below to permanently destroy this workspace.
-              </Trans>
-            </Text>
-            <Input
-              placeholder={t("Confirmation code")}
-              autoComplete="off"
-              autoFocus
-              maxLength={8}
-              required
-              {...inputProps}
-            />
-          </>
-        ) : (
-          <>
-            <Text type="secondary">
-              <Trans>
-                Deleting the <strong>{{ workspaceName }}</strong> workspace will
-                destroy all collections, documents, users, and associated data.
-                You will be immediately logged out of {{ appName }}.
-              </Trans>
-            </Text>
-          </>
-        )}
+    <form onSubmit={formHandleSubmit(handleSubmit)}>
+      {isWaitingCode ? (
+        <>
+          <Text type="secondary">
+            <Trans>
+              A confirmation code has been sent to your email address, please
+              enter the code below to permanently destroy this workspace.
+            </Trans>
+          </Text>
+          <Input
+            placeholder={t("Confirmation code")}
+            autoComplete="off"
+            autoFocus
+            maxLength={8}
+            required
+            {...inputProps}
+          />
+        </>
+      ) : (
+        <>
+          <Text type="secondary">
+            <Trans>
+              Deleting the <strong>{{ workspaceName }}</strong> workspace will
+              destroy all collections, documents, users, and associated data.
+              You will be immediately logged out of {{ appName }}.
+            </Trans>
+          </Text>
+        </>
+      )}
+
+      <Flex justify="flex-end">
         {env.EMAIL_ENABLED && !isWaitingCode ? (
           <Button type="submit" onClick={handleRequestDelete} neutral>
             {t("Continue")}…
@@ -109,8 +110,8 @@ function TeamDelete({ onSubmit }: Props) {
               : t("Delete workspace")}
           </Button>
         )}
-      </form>
-    </Flex>
+      </Flex>
+    </form>
   );
 }
 

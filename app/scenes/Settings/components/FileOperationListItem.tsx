@@ -81,7 +81,6 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
       content: (
         <ConfirmationDialog
           onSubmit={handleDelete}
-          submitText={t("I’m sure")}
           savingText={`${t("Deleting")}…`}
           danger
         >

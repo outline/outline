@@ -784,7 +784,7 @@ export const archiveDocument = createAction({
 });
 
 export const deleteDocument = createAction({
-  name: ({ t }) => t("Delete"),
+  name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete document",
   section: DocumentSection,
   icon: <TrashIcon />,
