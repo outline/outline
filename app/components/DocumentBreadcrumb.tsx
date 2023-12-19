@@ -127,7 +127,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     return (
       <>
         {collection?.name}
-        {path.map((node: NavigationNode) => (
+        {path.slice(0, -1).map((node: NavigationNode) => (
           <React.Fragment key={node.id}>
             <SmallSlash />
             {node.title}
