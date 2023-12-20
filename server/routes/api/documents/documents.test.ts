@@ -21,6 +21,7 @@ import {
   buildViewer,
   buildTeam,
   buildGroup,
+  buildAdmin,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -3497,7 +3498,7 @@ describe("#documents.delete", () => {
   });
 
   it("should allow permanently deleting a document", async () => {
-    const user = await buildUser();
+    const user = await buildAdmin();
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
