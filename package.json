@@ -94,7 +94,7 @@
     "copy-to-clipboard": "^3.3.3",
     "core-js": "^3.33.3",
     "crypto-js": "^4.2.0",
-    "css-inline": "^0.11.0",
+    "css-inline": "^0.11.2",
     "datadog-metrics": "^0.11.1",
     "date-fns": "^2.30.0",
     "dd-trace": "^3.33.0",
