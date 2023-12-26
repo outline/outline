@@ -1,11 +1,9 @@
 import invariant from "invariant";
 import concat from "lodash/concat";
 import find from "lodash/find";
-import flatten from "lodash/flatten";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
 import { computed, action } from "mobx";
-import { Pagination } from "@shared/constants";
 import {
   CollectionPermission,
   FileOperationFormat,
@@ -188,19 +186,6 @@ export default class CollectionsStore extends Store<Collection> {
     await model.fetchDocuments(options);
     return model;
   }
-
-  @action
-  fetchAll = async (): Promise<Collection[]> => {
-    const limit = Pagination.defaultLimit;
-    const pages = Math.ceil(this.all.length / limit);
-    const fetchPages = [];
-    for (let page = 0; page < pages; page++) {
-      fetchPages.push(this.fetchPage({ offset: page * limit, limit }));
-    }
-
-    const results = await Promise.all(fetchPages);
-    return flatten(results);
-  };
 
   @computed
   get publicCollections() {

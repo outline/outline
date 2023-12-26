@@ -1,8 +1,10 @@
 import invariant from "invariant";
+import flatten from "lodash/flatten";
 import lowerFirst from "lodash/lowerFirst";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
 import pluralize from "pluralize";
+import { Pagination } from "@shared/constants";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Model from "~/models/base/Model";
@@ -266,6 +268,20 @@ export default abstract class Store<T extends Model> {
     } finally {
       this.isFetching = false;
     }
+  };
+
+  @action
+  fetchAll = async (): Promise<T[]> => {
+    const limit = Pagination.defaultLimit;
+    const response = await this.fetchPage({ limit });
+    const pages = Math.ceil(response[PAGINATION_SYMBOL].total / limit);
+    const fetchPages = [];
+    for (let page = 1; page < pages; page++) {
+      fetchPages.push(this.fetchPage({ offset: page * limit, limit }));
+    }
+
+    const results = await Promise.all(fetchPages);
+    return flatten(results);
   };
 
   @computed

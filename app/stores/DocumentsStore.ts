@@ -2,11 +2,9 @@ import invariant from "invariant";
 import compact from "lodash/compact";
 import filter from "lodash/filter";
 import find from "lodash/find";
-import flatten from "lodash/flatten";
 import omitBy from "lodash/omitBy";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
-import { Pagination } from "@shared/constants";
 import { DateFilter, NavigationNode, PublicTeam } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -360,19 +358,6 @@ export default class DocumentsStore extends Store<Document> {
   @action
   fetchOwned = (options?: PaginationParams): Promise<Document[]> =>
     this.fetchNamedPage("list", options);
-
-  @action
-  fetchAll = async (): Promise<Document[]> => {
-    const limit = Pagination.defaultLimit;
-    const pages = Math.ceil(this.all.length / limit);
-    const fetchPages = [];
-    for (let page = 0; page < pages; page++) {
-      fetchPages.push(this.fetchPage({ offset: page * limit, limit }));
-    }
-
-    const results = await Promise.all(fetchPages);
-    return flatten(results);
-  };
 
   @action
   searchTitles = async (

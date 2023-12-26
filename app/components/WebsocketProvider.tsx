@@ -463,7 +463,8 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on("users.demote", async (event: PartialWithId<User>) => {
       if (auth.user && event.id === auth.user.id) {
-        await Promise.all([documents.fetchAll(), collections.fetchAll()]);
+        documents.all.forEach((document) => policies.remove(document.id));
+        await collections.fetchAll();
       }
     });
 
