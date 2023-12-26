@@ -6,6 +6,7 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
+import { Pagination } from "@shared/constants";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
@@ -18,6 +19,7 @@ import Pin from "~/models/Pin";
 import Star from "~/models/Star";
 import Subscription from "~/models/Subscription";
 import Team from "~/models/Team";
+import User from "~/models/User";
 import withStores from "~/components/withStores";
 import {
   PartialWithId,
@@ -459,6 +461,15 @@ class WebsocketProvider extends React.Component<Props> {
         subscriptions.remove(event.modelId);
       }
     );
+
+    this.socket.on("users.demote", async (event: PartialWithId<User>) => {
+      if (auth.user && event.id === auth.user.id) {
+        await Promise.all([
+          documents.fetchPage({ limit: Pagination.defaultLimit }),
+          collections.fetchPage({ limit: Pagination.defaultLimit }),
+        ]);
+      }
+    });
 
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.
