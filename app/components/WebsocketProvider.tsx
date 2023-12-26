@@ -6,7 +6,6 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
-import { Pagination } from "@shared/constants";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
@@ -464,10 +463,7 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on("users.demote", async (event: PartialWithId<User>) => {
       if (auth.user && event.id === auth.user.id) {
-        await Promise.all([
-          documents.fetchPage({ limit: Pagination.defaultLimit }),
-          collections.fetchPage({ limit: Pagination.defaultLimit }),
-        ]);
+        await Promise.all([documents.fetchAll(), collections.fetchAll()]);
       }
     });
 
