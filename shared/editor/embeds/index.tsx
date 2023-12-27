@@ -262,6 +262,7 @@ const embeds: EmbedDescriptor[] = [
   }),
   new EmbedDescriptor({
     title: "GitLab Snippet",
+    name: IntegrationService.GitLabSnippet,
     keywords: "code",
     regexMatch: [
       new RegExp(`^https://gitlab\\.com/(([a-zA-Z\\d-]+)/)*-/snippets/\\d+$`),

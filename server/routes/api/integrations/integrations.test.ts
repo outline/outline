@@ -98,6 +98,30 @@ describe("#integrations.update", () => {
     expect(body.data.id).toEqual(integration.id);
     expect(body.data.settings.url).toEqual("https://grist.example.com");
   });
+
+  it("should succeed with status 200 ok when gitlab integration settings are updated", async () => {
+    const admin = await buildAdmin();
+
+    const integration = await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+      service: IntegrationService.GitLabSnippet,
+      type: IntegrationType.Embed,
+      settings: { url: "https://gitlab.com" },
+    });
+
+    const res = await server.post("/api/integrations.update", {
+      body: {
+        token: admin.getJwtToken(),
+        id: integration.id,
+        settings: { url: "https://gitlab.com" },
+      },
+    });
+
+    const body = await res.json();
+    expect(body.data.id).toEqual(integration.id);
+    expect(body.data.settings.url).toEqual("https://gitlab.com");
+  });
 });
 
 describe("#integrations.create", () => {
@@ -155,6 +179,27 @@ describe("#integrations.create", () => {
     expect(body.data.service).toEqual(UserCreatableIntegrationService.Grist);
     expect(body.data.settings).not.toBeFalsy();
     expect(body.data.settings.url).toEqual("https://grist.example.com");
+  });
+
+  it("should succeed with status 200 ok for an gitlab integration", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", {
+      body: {
+        token: admin.getJwtToken(),
+        type: IntegrationType.Embed,
+        service: UserCreatableIntegrationService.GitLabSnippet,
+        settings: { url: "https://gitlab.com" },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.type).toEqual(IntegrationType.Embed);
+    expect(body.data.service).toEqual(
+      UserCreatableIntegrationService.GitLabSnippet
+    );
+    expect(body.data.settings).not.toBeFalsy();
+    expect(body.data.settings.url).toEqual("https://gitlab.com");
   });
 });
 

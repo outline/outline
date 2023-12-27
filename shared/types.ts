@@ -86,6 +86,7 @@ export enum IntegrationService {
   Diagrams = "diagrams",
   Grist = "grist",
   Slack = "slack",
+  GitLabSnippet = "gitlabsnippet",
   GoogleAnalytics = "google-analytics",
 }
 
