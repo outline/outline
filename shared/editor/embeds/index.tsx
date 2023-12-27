@@ -357,8 +357,13 @@ const embeds: EmbedDescriptor[] = [
     name: IntegrationService.Grist,
     keywords: "spreadsheet",
     regexMatch: [new RegExp("^https?://([a-z.-]+\\.)?getgrist\\.com/(.+)$")],
-    transformMatch: (matches: RegExpMatchArray) =>
-      matches[0].replace(/(\?embed=true)?$/, "?embed=true"),
+    transformMatch: (matches: RegExpMatchArray) => {
+      if (matches[0].includes("style=singlePage")) {
+        return matches[0];
+      }
+
+      return matches[0].replace(/(\?embed=true)?$/, "?embed=true");
+    },
     icon: <Img src="/images/grist.png" alt="Grist" />,
   }),
   new EmbedDescriptor({
