@@ -1319,19 +1319,19 @@ describe("#documents.search", () => {
       teamId: user.teamId,
     });
     const secondResult = await buildDocument({
-      title: "random text",
-      text: "search term",
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    const thirdResult = await buildDocument({
       title: "search term",
       text: "random text",
       userId: user.id,
       teamId: user.teamId,
     });
-    thirdResult.title = "change";
-    await thirdResult.save();
+    secondResult.title = "change";
+    await secondResult.save();
+    const thirdResult = await buildDocument({
+      title: "random text",
+      text: "search term",
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const res = await server.post("/api/documents.search", {
       body: {
         token: user.getJwtToken(),
@@ -1355,19 +1355,19 @@ describe("#documents.search", () => {
       teamId: user.teamId,
     });
     const secondResult = await buildDocument({
-      title: "random text",
-      text: "search term",
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    const thirdResult = await buildDocument({
       title: "search term",
       text: "random text",
       userId: user.id,
       teamId: user.teamId,
     });
-    thirdResult.title = "change";
-    await thirdResult.save();
+    secondResult.title = "change";
+    await secondResult.save();
+    const thirdResult = await buildDocument({
+      title: "random text",
+      text: "search term",
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const res = await server.post("/api/documents.search", {
       body: {
         token: user.getJwtToken(),
