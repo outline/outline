@@ -35,7 +35,7 @@ class UserMembership extends Model {
   store: UserMembershipsStore;
 
   /**
-   * Returns the next membership in the list, or undefined if this is the last star.
+   * Returns the next membership in the list, or undefined if this is the last.
    */
   next(): UserMembership | undefined {
     const index = this.store.orderedData.indexOf(this);
@@ -43,7 +43,7 @@ class UserMembership extends Model {
   }
 
   /**
-   * Returns the previous star in the list, or undefined if this is the first star.
+   * Returns the previous membership in the list, or undefined if this is the first.
    */
   previous(): UserMembership | undefined {
     const index = this.store.orderedData.indexOf(this);

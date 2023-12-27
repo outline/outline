@@ -229,9 +229,9 @@ export default class Document extends ParanoidModel {
   }
 
   /**
-   * Returns users who are members of the document
+   * Returns users that have been individually given access to the document.
    *
-   * @returns users who are members of the document
+   * @returns users that have been individually given access to the document
    */
   @computed
   get members(): User[] {
