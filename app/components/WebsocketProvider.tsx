@@ -400,14 +400,20 @@ class WebsocketProvider extends React.Component<Props> {
               err instanceof NotFoundError
             ) {
               collections.remove(event.collectionId);
-              memberships.remove(`${event.userId}-${event.collectionId}`);
+              memberships.revoke({
+                userId: event.userId,
+                collectionId: event.collectionId,
+              });
               return;
             }
           }
 
           documents.removeCollectionDocuments(event.collectionId);
         } else {
-          memberships.remove(`${event.userId}-${event.collectionId}`);
+          memberships.revoke({
+            userId: event.userId,
+            collectionId: event.collectionId,
+          });
         }
       }
     );

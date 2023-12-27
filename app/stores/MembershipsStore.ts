@@ -71,16 +71,31 @@ export default class MembershipsStore extends Store<Membership> {
       id: collectionId,
       userId,
     });
-    this.remove(`${userId}-${collectionId}`);
-    this.rootStore.users.remove(userId);
+    this.revoke({ userId, collectionId });
   }
 
   @action
   removeCollectionMemberships = (collectionId: string) => {
     this.data.forEach((membership, key) => {
-      if (key.includes(collectionId)) {
+      if (membership.collectionId === collectionId) {
         this.remove(key);
       }
     });
+  };
+
+  @action
+  revoke = ({
+    userId,
+    collectionId,
+  }: {
+    collectionId: string;
+    userId: string;
+  }) => {
+    const membership = Array.from(this.data.values()).find(
+      (m) => m.userId === userId && m.collectionId === collectionId
+    );
+    if (membership) {
+      this.remove(membership.id);
+    }
   };
 }

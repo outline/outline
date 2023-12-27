@@ -699,6 +699,28 @@ describe("#collections.remove_user", () => {
     expect(users.length).toEqual(1);
   });
 
+  it("should fail with status 400 bad request if user is not a member", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: admin.teamId,
+      userId: admin.id,
+      permission: null,
+    });
+    const nonMember = await buildUser({
+      teamId: admin.teamId,
+    });
+    const res = await server.post("/api/collections.remove_user", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+        userId: nonMember.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("User is not a collection member");
+  });
+
   it("should require user in team", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -768,11 +790,13 @@ describe("#collections.group_memberships", () => {
         id: collection.id,
       },
     });
+    const [membership] = await collection.$get("collectionGroupMemberships");
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
     expect(body.data.collectionGroupMemberships.length).toEqual(1);
+    expect(body.data.collectionGroupMemberships[0].id).toEqual(membership.id);
     expect(body.data.collectionGroupMemberships[0].permission).toEqual(
       CollectionPermission.ReadWrite
     );
@@ -906,11 +930,13 @@ describe("#collections.memberships", () => {
         id: collection.id,
       },
     });
+    const [membership] = await collection.$get("memberships");
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.users.length).toEqual(1);
     expect(body.data.users[0].id).toEqual(user.id);
     expect(body.data.memberships.length).toEqual(1);
+    expect(body.data.memberships[0].id).toEqual(membership.id);
     expect(body.data.memberships[0].permission).toEqual(
       CollectionPermission.Admin
     );
