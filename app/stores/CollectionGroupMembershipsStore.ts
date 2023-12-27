@@ -87,4 +87,16 @@ export default class CollectionGroupMembershipsStore extends Store<CollectionGro
       }
     });
   };
+
+  /**
+   * Find a collection group membership by collectionId and groupId
+   *
+   * @param collectionId The collection ID
+   * @param groupId The group ID
+   * @returns The collection group membership or undefined if not found.
+   */
+  find = (collectionId: string, groupId: string) =>
+    Array.from(this.data.values()).find(
+      (m) => m.groupId === groupId && m.collectionId === collectionId
+    );
 }

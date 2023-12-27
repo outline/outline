@@ -27,7 +27,7 @@ export default function InputMemberPermissionSelect(
           value: CollectionPermission.Admin,
         },
       ]}
-      ariaLabel={t("Permissions")}
+      ariaLabel={t("Permission")}
       labelHidden
       nude
       {...props}
