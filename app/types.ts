@@ -1,5 +1,6 @@
 import { Location, LocationDescriptor } from "history";
 import { TFunction } from "i18next";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
@@ -202,4 +203,9 @@ export type WebsocketEvent =
 
 export type AwarenessChangeEvent = {
   states: { user?: { id: string }; cursor: any; scrollY: number | undefined }[];
+};
+
+export type Permission = {
+  label: string;
+  value: CollectionPermission | DocumentPermission;
 };

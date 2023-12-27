@@ -4,9 +4,10 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
 import InputSelect, { Props as SelectProps } from "~/components/InputSelect";
+import { Permission } from "~/types";
 
 export default function InputMemberPermissionSelect(
-  props: Partial<SelectProps>
+  props: Partial<SelectProps> & { permissions?: Permission[] }
 ) {
   const { t } = useTranslation();
 
@@ -14,31 +15,20 @@ export default function InputMemberPermissionSelect(
     <Select
       label={t("Permissions")}
       options={
-        props.isAdminPermissionSupported
-          ? [
-              {
-                label: t("View only"),
-                value: CollectionPermission.Read,
-              },
-              {
-                label: t("View and edit"),
-                value: CollectionPermission.ReadWrite,
-              },
-              {
-                label: t("Admin"),
-                value: CollectionPermission.Admin,
-              },
-            ]
-          : [
-              {
-                label: t("View only"),
-                value: CollectionPermission.Read,
-              },
-              {
-                label: t("View and edit"),
-                value: CollectionPermission.ReadWrite,
-              },
-            ]
+        props.permissions ?? [
+          {
+            label: t("View only"),
+            value: CollectionPermission.Read,
+          },
+          {
+            label: t("View and edit"),
+            value: CollectionPermission.ReadWrite,
+          },
+          {
+            label: t("Admin"),
+            value: CollectionPermission.Admin,
+          },
+        ]
       }
       ariaLabel={t("Permissions")}
       labelHidden

@@ -44,7 +44,6 @@ export type Props = {
   options: Option[];
   note?: React.ReactNode;
   onChange?: (value: string | null) => void;
-  isAdminPermissionSupported?: boolean;
 };
 
 interface InnerProps extends React.HTMLAttributes<HTMLDivElement> {

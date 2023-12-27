@@ -12,6 +12,7 @@ import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
 import Time from "~/components/Time";
 import MemberMenu from "~/menus/MemberMenu";
+import { Permission } from "~/types";
 import InputMemberPermissionSelect from "./InputMemberPermissionSelect";
 
 type Props = {
@@ -21,7 +22,7 @@ type Props = {
   onAdd?: () => void;
   onRemove?: () => void;
   onUpdate?: (permission: CollectionPermission) => void;
-  isAdminPermissionSupported?: boolean;
+  permissions?: Permission[];
 };
 
 const MemberListItem = ({
@@ -31,7 +32,7 @@ const MemberListItem = ({
   onUpdate,
   onAdd,
   canEdit,
-  isAdminPermissionSupported = true,
+  permissions,
 }: Props) => {
   const { t } = useTranslation();
 
@@ -56,7 +57,7 @@ const MemberListItem = ({
         <Flex align="center" gap={8}>
           {onUpdate && (
             <InputMemberPermissionSelect
-              isAdminPermissionSupported={isAdminPermissionSupported}
+              permissions={permissions}
               value={membership ? membership.permission : undefined}
               onChange={onUpdate}
               disabled={!canEdit}
