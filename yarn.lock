@@ -2859,10 +2859,10 @@
   dependencies:
     "@types/enzyme" "*"
 
-"@types/enzyme@*", "@types/enzyme@^3.10.13":
-  version "3.10.13"
-  resolved "https://registry.yarnpkg.com/@types/enzyme/-/enzyme-3.10.13.tgz#332c0ed59b01f7b1c398c532a1c21a5feefabeb1"
-  integrity sha512-FCtoUhmFsud0Yx9fmZk179GkdZ4U9B0GFte64/Md+W/agx0L5SxsIIbhLBOxIb9y2UfBA4WQnaG1Od/UsUQs9Q==
+"@types/enzyme@*", "@types/enzyme@^3.10.18":
+  version "3.10.18"
+  resolved "https://registry.yarnpkg.com/@types/enzyme/-/enzyme-3.10.18.tgz#86010e7cb56cf1450dd391b8cc3a788f6a6fadef"
+  integrity sha512-RaO/TyyHZvXkpzinbMTZmd/S5biU4zxkvDsn22ujC29t9FMSzq8tnn8f2MxQ2P8GVhFRG5jTAL05DXKyTtpEQQ==
   dependencies:
     "@types/cheerio" "*"
     "@types/react" "^16"
@@ -2912,10 +2912,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/fs-extra@^11.0.3":
-  version "11.0.3"
-  resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-11.0.3.tgz#72c3a247c8dd5703c93d900c584e006476146866"
-  integrity sha512-sF59BlXtUdzEAL1u0MSvuzWd7PdZvZEtnaVkzX5mjpdWTJ8brG0jUqve3jPCzSzvAKKMHTG8F8o/WMQLtleZdQ==
+"@types/fs-extra@^11.0.4":
+  version "11.0.4"
+  resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-11.0.4.tgz#e16a863bb8843fba8c5004362b5a73e17becca45"
+  integrity sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ==
   dependencies:
     "@types/jsonfile" "*"
     "@types/node" "*"
@@ -5168,10 +5168,10 @@ css-color-keywords@^1.0.0:
   resolved "https://registry.yarnpkg.com/css-color-keywords/-/css-color-keywords-1.0.0.tgz#fea2616dc676b2962686b3af8dbdbe180b244e05"
   integrity sha1-/qJhbcZ2spYmhrOvjb2+GAskTgU=
 
-css-inline@^0.11.0:
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/css-inline/-/css-inline-0.11.0.tgz#08917264e81a33335827696c9c1a2fc0db2ed1ff"
-  integrity sha512-hZ8sTouIicEUhVqKEeeire6kePeCDoIBvWTSPbHc7dK4Za1odVmQ6gMgFcH701gkKGP6Uic3zcQACEqSP3sJig==
+css-inline@^0.11.2:
+  version "0.11.2"
+  resolved "https://registry.yarnpkg.com/css-inline/-/css-inline-0.11.2.tgz#02cb4e0d4ca04d731a21e438c02b3ff11b0a1034"
+  integrity sha512-c/oie5Yqa2lVRwUO7A8nd3c3r0x7yE6MQH2PPB/R1LaUb6ohZD7vNXj23fod5y4QNsNhsQi98/AWfUwo1K6R7g==
 
 css-select@^5.1.0:
   version "5.1.0"
@@ -6968,10 +6968,19 @@ fromentries@^1.3.2:
   resolved "https://registry.yarnpkg.com/fromentries/-/fromentries-1.3.2.tgz#e4bca6808816bf8f93b52750f1127f5a6fd86e3a"
   integrity sha512-cHEpEQHUg0f8XdtZCc2ZAhrHzKzT0MrFUTcvx+hfxYu7rGMDc5SKoXFh+n4YigxsHXRzc6OrCshdR1bWH6HHyg==
 
-fs-extra@11.1.1, fs-extra@^11.1.0, fs-extra@^11.1.1:
+fs-extra@11.1.1:
   version "11.1.1"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.1.1.tgz#da69f7c39f3b002378b0954bb6ae7efdc0876e2d"
   integrity sha512-MGIE4HOvQCeUCzmlHs0vXpih4ysz4wg9qiSAu6cd42lVwPbTM1TjV7RusoyQqMmk/95gdQZX72u+YW+c3eEpFQ==
+  dependencies:
+    graceful-fs "^4.2.0"
+    jsonfile "^6.0.1"
+    universalify "^2.0.0"
+
+fs-extra@^11.1.0, fs-extra@^11.2.0:
+  version "11.2.0"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.2.0.tgz#e70e17dfad64232287d01929399e0ea7c86b0e5b"
+  integrity sha512-PmDi3uwK5nFuXh7XDTlVnS17xJS7vW36is2+w3xcv8SVxiB4NyATf4ctkVY5bkSjX0Y4nbvZCq1/EjtEyr9ktw==
   dependencies:
     graceful-fs "^4.2.0"
     jsonfile "^6.0.1"
@@ -10689,10 +10698,10 @@ prosemirror-history@^1.3.2:
     prosemirror-view "^1.31.0"
     rope-sequence "^1.3.0"
 
-prosemirror-inputrules@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/prosemirror-inputrules/-/prosemirror-inputrules-1.2.1.tgz#8faf3d78c16150aedac71d326a3e3947417ce557"
-  integrity sha512-3LrWJX1+ULRh5SZvbIQlwZafOXqp1XuV21MGBu/i5xsztd+9VD15x6OtN6mdqSFI7/8Y77gYUbQ6vwwJ4mr6QQ==
+prosemirror-inputrules@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/prosemirror-inputrules/-/prosemirror-inputrules-1.3.0.tgz#d43ce469ffe09a1b4cbac3f0ad367b0e4b504875"
+  integrity sha512-z1GRP2vhh5CihYMQYsJSa1cOwXb3SYxALXOIfAkX8nZserARtl9LiL+CEl+T+OFIsXc3mJIHKhbsmRzC0HDAXA==
   dependencies:
     prosemirror-state "^1.0.0"
     prosemirror-transform "^1.0.0"
@@ -12511,10 +12520,10 @@ timers-ext@^0.1.7:
     es5-ext "~0.10.46"
     next-tick "1"
 
-tiny-cookie@^2.4.1:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/tiny-cookie/-/tiny-cookie-2.4.1.tgz#3adb7c360b607b0c5e2ab29503b4d93b02d04737"
-  integrity sha512-h8ueaMyvUd/9ZfRqCfa1t+0tXqfVFhdK8WpLHz8VXMqsiaj3Sqg64AOCH/xevLQGZk0ZV+/75ouITdkvp3taVA==
+tiny-cookie@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/tiny-cookie/-/tiny-cookie-2.5.1.tgz#11c72e58f4de854f6a24fd53aa207c6c35014581"
+  integrity sha512-w8FlBk1LMEBA7NY1lreQu4iTma/jxRQaKc2ucXFIv9/pDDPcnFrgO4swahGFAwJebHjwrHTyeoI7moH7G9YzSg==
 
 tiny-glob@^0.2.9:
   version "0.2.9"
