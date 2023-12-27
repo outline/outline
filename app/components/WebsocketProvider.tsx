@@ -18,6 +18,7 @@ import Pin from "~/models/Pin";
 import Star from "~/models/Star";
 import Subscription from "~/models/Subscription";
 import Team from "~/models/Team";
+import User from "~/models/User";
 import withStores from "~/components/withStores";
 import {
   PartialWithId,
@@ -459,6 +460,13 @@ class WebsocketProvider extends React.Component<Props> {
         subscriptions.remove(event.modelId);
       }
     );
+
+    this.socket.on("users.demote", async (event: PartialWithId<User>) => {
+      if (auth.user && event.id === auth.user.id) {
+        documents.all.forEach((document) => policies.remove(document.id));
+        await collections.fetchAll();
+      }
+    });
 
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.

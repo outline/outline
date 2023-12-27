@@ -759,17 +759,20 @@ router.post(
             teamId: user.teamId,
             id: collectionIds,
           };
-    const collections = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findAll({
-      where,
-      order: [
-        Sequelize.literal('"collection"."index" collate "C"'),
-        ["updatedAt", "DESC"],
-      ],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    const [collections, total] = await Promise.all([
+      Collection.scope({
+        method: ["withMembership", user.id],
+      }).findAll({
+        where,
+        order: [
+          Sequelize.literal('"collection"."index" collate "C"'),
+          ["updatedAt", "DESC"],
+        ],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Collection.count({ where }),
+    ]);
 
     const nullIndex = collections.findIndex(
       (collection) => collection.index === null
@@ -783,7 +786,7 @@ router.post(
     }
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: collections.map(presentCollection),
       policies: presentPolicies(user, collections),
     };

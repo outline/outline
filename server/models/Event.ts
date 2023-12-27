@@ -139,6 +139,7 @@ class Event extends IdModel {
     "documents.restore",
     "revisions.create",
     "users.create",
+    "users.demote",
   ];
 
   static AUDIT_EVENTS: TEvent["name"][] = [
