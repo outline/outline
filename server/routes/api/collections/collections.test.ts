@@ -796,9 +796,6 @@ describe("#collections.group_memberships", () => {
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
     expect(body.data.collectionGroupMemberships.length).toEqual(1);
-    expect(body.data.collectionGroupMemberships[0].id).not.toEqual(
-      `${membership.groupId}-${membership.collectionId}`
-    );
     expect(body.data.collectionGroupMemberships[0].id).toEqual(membership.id);
     expect(body.data.collectionGroupMemberships[0].permission).toEqual(
       CollectionPermission.ReadWrite
@@ -939,9 +936,6 @@ describe("#collections.memberships", () => {
     expect(body.data.users.length).toEqual(1);
     expect(body.data.users[0].id).toEqual(user.id);
     expect(body.data.memberships.length).toEqual(1);
-    expect(body.data.memberships[0].id).not.toEqual(
-      `${membership.userId}-${membership.collectionId}`
-    );
     expect(body.data.memberships[0].id).toEqual(membership.id);
     expect(body.data.memberships[0].permission).toEqual(
       CollectionPermission.Admin
