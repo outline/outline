@@ -43,6 +43,12 @@ if (env.isCloudHosted) {
   styleSrc.push("cdn.zapier.com");
 }
 
+if (env.CSP_ALLOW_SITE) {
+  const CSP_ALLOW_LIST = env.CSP_ALLOW_SITE.split(",");
+  scriptSrc.push(...CSP_ALLOW_LIST);
+  styleSrc.push(...CSP_ALLOW_LIST);
+}
+
 // Allow to load assets from Vite
 if (!env.isProduction) {
   scriptSrc.push(env.URL.replace(`:${env.PORT}`, ":3001"));
