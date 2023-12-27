@@ -21,3 +21,13 @@ export const SearchesUpdateSchema = BaseSchema.extend({
 });
 
 export type SearchesUpdateReq = z.infer<typeof SearchesUpdateSchema>;
+
+export const SearchesListSchema = BaseSchema.extend({
+  body: z
+    .object({
+      source: z.string().optional(),
+    })
+    .optional(),
+});
+
+export type SearchesListReq = z.infer<typeof SearchesListSchema>;
