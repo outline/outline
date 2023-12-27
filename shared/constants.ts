@@ -11,6 +11,7 @@ export const Pagination = {
   defaultLimit: 25,
   defaultOffset: 0,
   maxLimit: 100,
+  sidebarLimit: 10,
 };
 
 export const TeamPreferenceDefaults: TeamPreferences = {

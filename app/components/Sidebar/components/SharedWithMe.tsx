@@ -4,6 +4,7 @@ import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Pagination } from "@shared/constants";
 import UserMembership from "~/models/UserMembership";
 import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
@@ -18,8 +19,6 @@ import SharedWithMeLink from "./SharedWithMeLink";
 import SidebarLink from "./SidebarLink";
 import StarredContext from "./StarredContext";
 
-const STARRED_PAGINATION_LIMIT = 10;
-
 function SharedWithMe() {
   const { userMemberships } = useStores();
   const { t } = useTranslation();
@@ -27,7 +26,7 @@ function SharedWithMe() {
 
   const { loading, next, end, error, page } =
     usePaginatedRequest<UserMembership>(userMemberships.fetchPage, {
-      limit: STARRED_PAGINATION_LIMIT,
+      limit: Pagination.sidebarLimit,
     });
 
   // Drop to reorder document
@@ -65,7 +64,7 @@ function SharedWithMe() {
               />
             )}
             {user.memberships
-              .slice(0, page * STARRED_PAGINATION_LIMIT)
+              .slice(0, page * Pagination.sidebarLimit)
               .map((membership) => (
                 <SharedWithMeLink
                   key={membership.id}
