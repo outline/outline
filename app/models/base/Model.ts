@@ -32,26 +32,39 @@ export default abstract class Model {
   }
 
   /**
-   * Ensures all the defined relations for the model are in memory
+   * Ensures all the defined relations and policies for the model are in memory.
    *
    * @returns A promise that resolves when loading is complete.
    */
-  async loadRelations() {
+  async loadRelations(): Promise<any> {
     const relations = getRelationsForModelClass(
       this.constructor as typeof Model
     );
     if (!relations) {
       return;
     }
+    if (this.loadingRelations) {
+      return this.loadingRelations;
+    }
+
+    const promises = [];
 
     for (const properties of relations.values()) {
       const store = this.store.rootStore.getStoreForModelName(
         properties.relationClassResolver().modelName
       );
       if ("fetch" in store) {
-        await store.fetch(this[properties.idKey]);
+        promises.push(store.fetch(this[properties.idKey]));
       }
     }
+
+    const policy = this.store.rootStore.policies.get(this.id);
+    if (!policy) {
+      promises.push(this.store.fetch(this.id, { force: true }));
+    }
+
+    this.loadingRelations = Promise.all(promises);
+    return await this.loadingRelations;
   }
 
   /**
@@ -175,4 +188,9 @@ export default abstract class Model {
   }
 
   protected persistedAttributes: Partial<Model> = {};
+
+  /**
+   * A promise that resolves when all relations have been loaded
+   */
+  private loadingRelations: Promise<any[]> | undefined;
 }

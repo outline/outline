@@ -78,7 +78,7 @@ function DataLoader({ match, children }: Props) {
   const isEditRoute =
     match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
   const isEditing = isEditRoute || !user?.separateEditMode;
-  const can = usePolicy(document?.id);
+  const can = usePolicy(document);
   const location = useLocation<LocationState>();
 
   React.useEffect(() => {

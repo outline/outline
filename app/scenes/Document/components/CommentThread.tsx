@@ -71,7 +71,7 @@ function CommentThread({
     document,
     comment: thread,
   });
-  const can = usePolicy(document.id);
+  const can = usePolicy(document);
 
   const commentsInThread = comments
     .inThread(thread.id)

@@ -30,7 +30,7 @@ function UserMenu({ user }: Props) {
   const menu = useMenuState({
     modal: true,
   });
-  const can = usePolicy(user.id);
+  const can = usePolicy(user);
   const context = useActionContext({
     isContextMenu: true,
   });

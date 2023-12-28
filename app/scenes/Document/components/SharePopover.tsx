@@ -58,7 +58,7 @@ function SharePopover({
   const [urlSlug, setUrlSlug] = React.useState("");
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
-  const can = usePolicy(share ? share.id : "");
+  const can = usePolicy(share);
   const documentAbilities = usePolicy(document);
   const collection = document.collectionId
     ? collections.get(document.collectionId)

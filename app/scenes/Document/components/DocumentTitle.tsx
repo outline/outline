@@ -73,7 +73,6 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   const ref = React.useRef<RefHandle>(null);
   const [emojiPickerIsOpen, handleOpen, handleClose] = useBoolean();
   const { editor } = useDocumentContext();
-
   const can = usePolicy(documentId);
 
   const handleClick = React.useCallback(() => {

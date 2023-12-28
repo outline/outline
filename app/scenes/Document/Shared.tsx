@@ -102,7 +102,7 @@ function SharedDocumentScene(props: Props) {
   )
     ? (searchParams.get("theme") as Theme)
     : undefined;
-  const can = usePolicy(response?.document.id ?? "");
+  const can = usePolicy(response?.document);
   const theme = useBuildTheme(response?.team?.customTheme, themeOverride);
 
   React.useEffect(() => {
