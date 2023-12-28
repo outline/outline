@@ -78,7 +78,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     multiplayer,
     ...rest
   } = props;
-  const can = usePolicy(document.id);
+  const can = usePolicy(document);
 
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {

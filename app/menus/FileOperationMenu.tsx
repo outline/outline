@@ -16,7 +16,7 @@ type Props = {
 
 function FileOperationMenu({ fileOperation, onDelete }: Props) {
   const { t } = useTranslation();
-  const can = usePolicy(fileOperation.id);
+  const can = usePolicy(fileOperation);
   const menu = useMenuState({
     modal: true,
   });

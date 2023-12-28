@@ -111,7 +111,7 @@ function DocumentHeader({
   });
 
   const { isDeleted, isTemplate } = document;
-  const can = usePolicy(document?.id);
+  const can = usePolicy(document);
   const canToggleEmbeds = team?.documentEmbeds;
   const toc = (
     <Tooltip

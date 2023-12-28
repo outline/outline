@@ -23,7 +23,7 @@ function Comments() {
   const match = useRouteMatch<{ documentSlug: string }>();
   const document = documents.getByUrl(match.params.documentSlug);
   const focusedComment = useFocusedComment();
-  const can = usePolicy(document?.id);
+  const can = usePolicy(document);
 
   useKeyDown("Escape", () => document && ui.collapseComments(document?.id));
 
