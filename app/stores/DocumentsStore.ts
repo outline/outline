@@ -707,10 +707,25 @@ export default class DocumentsStore extends Store<Document> {
     params: Partial<Document>,
     options?: Record<string, string | boolean | number | undefined>
   ): Promise<Document> {
-    const document = await super.update(params, options);
-    const collection = this.getCollectionForDocument(document);
-    void collection?.fetchDocuments({ force: true });
-    return document;
+    this.isSaving = true;
+
+    try {
+      const res = await client.post(`/${this.apiEndpoint}.update`, {
+        ...params,
+        ...options,
+      });
+      invariant(res?.data, "Data should be available");
+
+      const collection = this.getCollectionForDocument(res.data);
+      await collection?.fetchDocuments({ force: true });
+
+      const document = this.add(res.data);
+      this.addPolicies(res.policies);
+
+      return document;
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   @action
