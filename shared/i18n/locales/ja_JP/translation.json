@@ -302,6 +302,7 @@
   "Create link": "リンクを作成",
   "Sorry, an error occurred creating the link": "エラーのため、リンクの作成に失敗しました。",
   "Create a new doc": "新しいドキュメントを作成",
+  "Create a new child doc": "Create a new child doc",
   "Delete column": "列の削除",
   "Delete row": "行の削除",
   "Delete table": "テーブルを削除",
