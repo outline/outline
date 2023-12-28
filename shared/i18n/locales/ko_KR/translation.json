@@ -302,6 +302,7 @@
   "Create link": "링크 생성",
   "Sorry, an error occurred creating the link": "죄송합니다, 링크 생성 중 에러가 발생했습니다",
   "Create a new doc": "새 문서 만들기",
+  "Create a new child doc": "Create a new child doc",
   "Delete column": "열 삭제",
   "Delete row": "행 삭제",
   "Delete table": "테이블 삭제",
