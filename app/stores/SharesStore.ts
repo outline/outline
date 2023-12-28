@@ -4,7 +4,10 @@ import find from "lodash/find";
 import isUndefined from "lodash/isUndefined";
 import sortBy from "lodash/sortBy";
 import { action, computed } from "mobx";
+import type { Required } from "utility-types";
+import type { JSONObject } from "@shared/types";
 import Share from "~/models/Share";
+import type { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
@@ -40,7 +43,7 @@ export default class SharesStore extends Store<Share> {
   };
 
   @action
-  async create(params: Record<string, any>) {
+  async create(params: Required<Properties<Share>, "documentId">) {
     const item = this.getByDocumentId(params.documentId);
     if (item) {
       return item;
@@ -49,10 +52,7 @@ export default class SharesStore extends Store<Share> {
   }
 
   @action
-  async fetch(
-    documentId: string,
-    options: Record<string, any> = {}
-  ): Promise<any> {
+  async fetch(documentId: string, options: JSONObject = {}): Promise<any> {
     const item = this.getByDocumentId(documentId);
     if (item && !options.force) {
       return item;

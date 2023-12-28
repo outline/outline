@@ -3,12 +3,13 @@ import i18n, { t } from "i18next";
 import floor from "lodash/floor";
 import { action, autorun, computed, observable, set } from "mobx";
 import { ExportContentType } from "@shared/types";
-import type { NavigationNode } from "@shared/types";
+import type { JSONObject, NavigationNode } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
 import DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
+import type { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { settingsPath } from "~/utils/routeHelpers";
 import Collection from "./Collection";
@@ -17,7 +18,7 @@ import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 
-type SaveOptions = {
+type SaveOptions = JSONObject & {
   publish?: boolean;
   done?: boolean;
   autosave?: boolean;
@@ -388,9 +389,9 @@ export default class Document extends ParanoidModel {
 
   @action
   save = async (
-    fields?: Partial<Document> | undefined,
-    options?: SaveOptions | undefined
-  ) => {
+    fields?: Properties<typeof this>,
+    options?: SaveOptions
+  ): Promise<Document> => {
     const params = fields ?? this.toAPI();
     this.isSaving = true;
 
