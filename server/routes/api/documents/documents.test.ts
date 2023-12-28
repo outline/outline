@@ -1808,6 +1808,7 @@ describe("#documents.search", () => {
       body: {
         token: member.getJwtToken(),
         query: "title",
+        includeDrafts: true,
       },
     });
     const body = await res.json();

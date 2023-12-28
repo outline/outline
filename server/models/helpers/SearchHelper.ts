@@ -346,7 +346,9 @@ export default class SearchHelper {
     "deletedAt" IS NULL AND
     ${
       options.includeDrafts
-        ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
+        ? `("publishedAt" IS NOT NULL OR "createdById" = :userId ${
+            documentIds.length > 0 ? `OR id in (:documentIds)` : ""
+          })`
         : '"publishedAt" IS NOT NULL'
     }
   `;
