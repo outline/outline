@@ -38,14 +38,15 @@ const createAndInsertLink = async function (
   href: string,
   options: {
     dictionary: any;
-    onCreateLink: (title: string) => Promise<string>;
+    nested?: boolean;
+    onCreateLink: (title: string, nested?: boolean) => Promise<string>;
   }
 ) {
   const { dispatch, state } = view;
   const { onCreateLink } = options;
 
   try {
-    const url = await onCreateLink(title);
+    const url = await onCreateLink(title, options.nested);
     const result = findPlaceholderLink(view.state.doc, href);
 
     if (!result) {

@@ -43,7 +43,7 @@ type Children = (options: {
   revision: Revision | undefined;
   abilities: Record<string, boolean>;
   readOnly: boolean;
-  onCreateLink: (title: string) => Promise<string>;
+  onCreateLink: (title: string, nested?: boolean) => Promise<string>;
   sharedTree: NavigationNode | undefined;
 }) => React.ReactNode;
 
@@ -152,14 +152,14 @@ function DataLoader({ match, children }: Props) {
   }, [document?.id, document?.isDeleted, revisionId, views]);
 
   const onCreateLink = React.useCallback(
-    async (title: string) => {
+    async (title: string, nested?: boolean) => {
       if (!document) {
         throw new Error("Document not loaded yet");
       }
 
       const newDocument = await documents.create({
         collectionId: document.collectionId,
-        parentDocumentId: document.parentDocumentId,
+        parentDocumentId: nested ? document.id : document.parentDocumentId,
         title,
         text: "",
       });

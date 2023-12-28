@@ -148,7 +148,10 @@ export default function SelectionToolbar(props: Props) {
     };
   }, [isActive, previousIsActive, readOnly, view]);
 
-  const handleOnCreateLink = async (title: string): Promise<void> => {
+  const handleOnCreateLink = async (
+    title: string,
+    nested?: boolean
+  ): Promise<void> => {
     const { onCreateLink } = props;
 
     if (!onCreateLink) {
@@ -173,6 +176,7 @@ export default function SelectionToolbar(props: Props) {
     );
 
     return createAndInsertLink(view, title, href, {
+      nested,
       onCreateLink,
       dictionary,
     });
