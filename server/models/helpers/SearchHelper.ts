@@ -324,9 +324,15 @@ export default class SearchHelper {
       collectionIds.length
         ? `(
           "collectionId" IN(:collectionIds) OR
-          ("collectionId" IS NULL AND "createdById" = :userId)
+          ("collectionId" IS NULL AND "createdById" = :userId) ${
+            documentIds.length > 0 ? `OR id in (:documentIds)` : ""
+          }
         ) AND`
-        : '"collectionId" IS NULL AND "createdById" = :userId AND'
+        : `(
+          ("collectionId" IS NULL AND "createdById" = :userId) ${
+            documentIds.length > 0 ? `OR id in (:documentIds)` : ""
+          }
+        ) AND`
     }
     ${
       options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
@@ -344,40 +350,7 @@ export default class SearchHelper {
         : '"publishedAt" IS NOT NULL'
     }
   `;
-    const selectSql =
-      documentIds.length > 0
-        ? `
-  (SELECT
-    id,
-    ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-    ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions) as "searchContext",
-    "updatedAt"
-  FROM documents
-  WHERE ${whereClause})
-  UNION
-  (SELECT
-  id,
-  ts_rank(
-    documents."searchVector",
-    to_tsquery('english', 'title:*')
-  ) as "searchRanking",
-  ts_headline(
-    'english',
-    "text",
-    to_tsquery('english', 'title:*'),
-    'MaxFragments=1, MinWords=20, MaxWords=30'
-  ) as "searchContext",
-  "updatedAt"
-  FROM
-  documents
-  WHERE id in (:documentIds))
-  ORDER BY
-  "searchRanking" DESC,
-  "updatedAt" DESC
-  LIMIT :limit
-  OFFSET :offset;
-  `
-        : `
+    const selectSql = `
   SELECT
     id,
     ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
@@ -390,20 +363,7 @@ export default class SearchHelper {
   LIMIT :limit
   OFFSET :offset;
   `;
-    const countSql =
-      documentIds.length > 0
-        ? `
-    SELECT COUNT(*) FROM (
-      SELECT id
-      FROM documents
-      WHERE ${whereClause}
-      UNION
-      SELECT id
-      FROM documents
-      WHERE id IN (:documentIds)
-    ) AS result
-  `
-        : `
+    const countSql = `
     SELECT COUNT(id)
     FROM documents
     WHERE ${whereClause}
@@ -440,6 +400,9 @@ export default class SearchHelper {
       },
       {
         method: ["withCollectionPermissions", user.id],
+      },
+      {
+        method: ["withMembership", user.id],
       },
     ]).findAll({
       where: {
