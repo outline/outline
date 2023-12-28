@@ -7,9 +7,16 @@ import Document from "~/models/Document";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
-import Store from "./base/Store";
+import Store, { RPCAction } from "./base/Store";
 
 export default class CommentsStore extends Store<Comment> {
+  actions = [
+    RPCAction.List,
+    RPCAction.Create,
+    RPCAction.Update,
+    RPCAction.Delete,
+  ];
+
   constructor(rootStore: RootStore) {
     super(rootStore, Comment);
   }

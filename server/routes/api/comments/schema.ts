@@ -1,5 +1,5 @@
 import { z } from "zod";
-import BaseSchema from "@server/routes/api/BaseSchema";
+import { BaseSchema, ProsemirrorSchema } from "@server/routes/api/schema";
 
 const CollectionsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */
@@ -27,7 +27,7 @@ export const CommentsCreateSchema = BaseSchema.extend({
     parentCommentId: z.string().uuid().optional(),
 
     /** Create comment with this data */
-    data: z.any(),
+    data: ProsemirrorSchema,
   }),
 });
 
@@ -39,7 +39,7 @@ export const CommentsUpdateSchema = BaseSchema.extend({
     id: z.string().uuid(),
 
     /** Update comment with this data */
-    data: z.any(),
+    data: ProsemirrorSchema,
   }),
 });
 

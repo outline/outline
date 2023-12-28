@@ -1,7 +1,7 @@
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 export const PinsCreateSchema = BaseSchema.extend({
   body: z.object({
