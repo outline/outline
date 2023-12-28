@@ -157,9 +157,11 @@ export default abstract class Store<T extends Model> {
         ...options,
       });
 
-      invariant(res?.data, "Data should be available");
-      this.addPolicies(res.policies);
-      return this.add(res.data);
+      return runInAction(`create#${this.modelName}`, () => {
+        invariant(res?.data, "Data should be available");
+        this.addPolicies(res.policies);
+        return this.add(res.data);
+      });
     } finally {
       this.isSaving = false;
     }
@@ -182,9 +184,11 @@ export default abstract class Store<T extends Model> {
         ...options,
       });
 
-      invariant(res?.data, "Data should be available");
-      this.addPolicies(res.policies);
-      return this.add(res.data);
+      return runInAction(`update#${this.modelName}`, () => {
+        invariant(res?.data, "Data should be available");
+        this.addPolicies(res.policies);
+        return this.add(res.data);
+      });
     } finally {
       this.isSaving = false;
     }
@@ -229,9 +233,12 @@ export default abstract class Store<T extends Model> {
       const res = await client.post(`/${this.apiEndpoint}.info`, {
         id,
       });
-      invariant(res?.data, "Data should be available");
-      this.addPolicies(res.policies);
-      return this.add(res.data);
+
+      return runInAction(`info#${this.modelName}`, () => {
+        invariant(res?.data, "Data should be available");
+        this.addPolicies(res.policies);
+        return this.add(res.data);
+      });
     } catch (err) {
       if (err instanceof AuthorizationError || err instanceof NotFoundError) {
         this.remove(id);

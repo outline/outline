@@ -4,7 +4,7 @@ import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
-import BaseSchema from "@server/routes/api/BaseSchema";
+import { BaseSchema } from "@server/routes/api/schema";
 
 const DocumentsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */

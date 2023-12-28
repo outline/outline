@@ -5,7 +5,7 @@ import { CollectionPermission, FileOperationFormat } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import { Collection } from "@server/models";
 import { ValidateColor, ValidateIcon, ValidateIndex } from "@server/validation";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 export const CollectionsCreateSchema = BaseSchema.extend({
   body: z.object({

@@ -3,7 +3,7 @@ import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { SHARE_URL_SLUG_REGEX, SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { Share } from "@server/models";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 export const SharesInfoSchema = BaseSchema.extend({
   body: z

@@ -2,7 +2,7 @@ import isNil from "lodash/isNil";
 import { z } from "zod";
 import { isUrl } from "@shared/utils/urls";
 import { ValidateURL } from "@server/validation";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 export const UrlsUnfurlSchema = BaseSchema.extend({
   body: z

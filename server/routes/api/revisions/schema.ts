@@ -1,7 +1,7 @@
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
 import { Revision } from "@server/models";
-import BaseSchema from "@server/routes/api/BaseSchema";
+import { BaseSchema } from "@server/routes/api/schema";
 
 export const RevisionsInfoSchema = BaseSchema.extend({
   body: z
