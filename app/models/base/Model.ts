@@ -1,5 +1,6 @@
 import pick from "lodash/pick";
 import { set, observable, action } from "mobx";
+import { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "../decorators/Field";
@@ -77,7 +78,7 @@ export default abstract class Model {
   save = async (
     params?: Record<string, any>,
     options?: Record<string, string | boolean | number | undefined>
-  ) => {
+  ): Promise<Model> => {
     this.isSaving = true;
 
     try {
@@ -108,7 +109,7 @@ export default abstract class Model {
     }
   };
 
-  updateData = action((data: any) => {
+  updateData = action((data: Partial<Model>) => {
     for (const key in data) {
       this[key] = data[key];
     }
@@ -117,7 +118,7 @@ export default abstract class Model {
     this.persistedAttributes = this.toAPI();
   });
 
-  fetch = (options?: any) => this.store.fetch(this.id, options);
+  fetch = (options?: JSONObject) => this.store.fetch(this.id, options);
 
   refresh = () =>
     this.fetch({

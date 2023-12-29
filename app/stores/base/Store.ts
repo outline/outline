@@ -5,11 +5,12 @@ import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
 import pluralize from "pluralize";
 import { Pagination } from "@shared/constants";
+import { type JSONObject } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Model from "~/models/base/Model";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
-import { PaginationParams, PartialWithId } from "~/types";
+import type { PaginationParams, PartialWithId, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 
@@ -125,12 +126,9 @@ export default abstract class Store<T extends Model> {
     this.data.delete(id);
   }
 
-  save(
-    params: Partial<T>,
-    options: Record<string, string | boolean | number | undefined> = {}
-  ): Promise<T> {
+  save(params: Properties<T>, options: JSONObject = {}): Promise<T> {
     const { isNew, ...rest } = options;
-    if (isNew || !params.id) {
+    if (isNew || !("id" in params)) {
       return this.create(params, rest);
     }
     return this.update(params, rest);
@@ -141,10 +139,7 @@ export default abstract class Store<T extends Model> {
   }
 
   @action
-  async create(
-    params: Partial<T>,
-    options?: Record<string, string | boolean | number | undefined>
-  ): Promise<T> {
+  async create(params: Properties<T>, options?: JSONObject): Promise<T> {
     if (!this.actions.includes(RPCAction.Create)) {
       throw new Error(`Cannot create ${this.modelName}`);
     }
@@ -168,10 +163,7 @@ export default abstract class Store<T extends Model> {
   }
 
   @action
-  async update(
-    params: Partial<T>,
-    options?: Record<string, string | boolean | number | undefined>
-  ): Promise<T> {
+  async update(params: Properties<T>, options?: JSONObject): Promise<T> {
     if (!this.actions.includes(RPCAction.Update)) {
       throw new Error(`Cannot update ${this.modelName}`);
     }
@@ -195,7 +187,7 @@ export default abstract class Store<T extends Model> {
   }
 
   @action
-  async delete(item: T, options: Record<string, any> = {}) {
+  async delete(item: T, options: JSONObject = {}) {
     if (!this.actions.includes(RPCAction.Delete)) {
       throw new Error(`Cannot delete ${this.modelName}`);
     }
@@ -218,7 +210,7 @@ export default abstract class Store<T extends Model> {
   }
 
   @action
-  async fetch(id: string, options: Record<string, any> = {}): Promise<T> {
+  async fetch(id: string, options: JSONObject = {}): Promise<T> {
     if (!this.actions.includes(RPCAction.Info)) {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }

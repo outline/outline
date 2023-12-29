@@ -1,8 +1,8 @@
 import type Model from "../base/Model";
 
-const fields = new Map<string, string[]>();
+const fields = new Map<string, (string | number | symbol)[]>();
 
-export const getFieldsForModel = (target: Model) =>
+export const getFieldsForModel = <T extends Model>(target: T) =>
   fields.get(target.constructor.name) ?? [];
 
 /**
@@ -14,10 +14,7 @@ export const getFieldsForModel = (target: Model) =>
  */
 const Field = <T>(target: any, propertyKey: keyof T) => {
   const className = target.constructor.name;
-  fields.set(className, [
-    ...(fields.get(className) || []),
-    propertyKey as string,
-  ]);
+  fields.set(className, [...(fields.get(className) || []), propertyKey]);
 };
 
 export default Field;

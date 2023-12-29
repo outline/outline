@@ -250,5 +250,15 @@ export type Unfurl<T = OEmbedType> = {
   meta?: Record<string, string>;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ProsemirrorData = Record<string, any>;
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | undefined
+  | null
+  | { [x: string]: JSONValue }
+  | Array<JSONValue>;
+
+export type JSONObject = { [x: string]: JSONValue };
+
+export type ProsemirrorData = JSONObject;

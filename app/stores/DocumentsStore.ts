@@ -5,7 +5,12 @@ import find from "lodash/find";
 import omitBy from "lodash/omitBy";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
-import { DateFilter, NavigationNode, PublicTeam } from "@shared/types";
+import type {
+  DateFilter,
+  JSONObject,
+  NavigationNode,
+  PublicTeam,
+} from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
@@ -13,7 +18,12 @@ import RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Document from "~/models/Document";
 import env from "~/env";
-import { FetchOptions, PaginationParams, SearchResult } from "~/types";
+import type {
+  FetchOptions,
+  PaginationParams,
+  Properties,
+  SearchResult,
+} from "~/types";
 import { client } from "~/utils/ApiClient";
 import { extname } from "~/utils/files";
 
@@ -704,8 +714,8 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   async update(
-    params: Partial<Document>,
-    options?: Record<string, string | boolean | number | undefined>
+    params: Properties<Document>,
+    options?: JSONObject
   ): Promise<Document> {
     this.isSaving = true;
 
