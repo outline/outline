@@ -54,7 +54,6 @@ export default abstract class Store<T extends Model> {
     RPCAction.Create,
     RPCAction.Update,
     RPCAction.Delete,
-    RPCAction.Count,
   ];
 
   constructor(rootStore: RootStore, model: typeof Model) {

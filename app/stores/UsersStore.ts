@@ -6,9 +6,18 @@ import { type JSONObject, UserRole } from "@shared/types";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
-import Store from "./base/Store";
+import Store, { RPCAction } from "./base/Store";
 
 export default class UsersStore extends Store<User> {
+  actions = [
+    RPCAction.Info,
+    RPCAction.List,
+    RPCAction.Create,
+    RPCAction.Update,
+    RPCAction.Delete,
+    RPCAction.Count,
+  ];
+
   @observable
   counts: {
     active: number;

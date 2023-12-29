@@ -3,16 +3,9 @@ import orderBy from "lodash/orderBy";
 import { action, computed } from "mobx";
 import Comment from "~/models/Comment";
 import RootStore from "./RootStore";
-import Store, { RPCAction } from "./base/Store";
+import Store from "./base/Store";
 
 export default class CommentsStore extends Store<Comment> {
-  actions = [
-    RPCAction.List,
-    RPCAction.Create,
-    RPCAction.Update,
-    RPCAction.Delete,
-  ];
-
   constructor(rootStore: RootStore) {
     super(rootStore, Comment);
   }
