@@ -5,7 +5,12 @@ import find from "lodash/find";
 import omitBy from "lodash/omitBy";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
-import { DateFilter, NavigationNode, PublicTeam } from "@shared/types";
+import type {
+  DateFilter,
+  JSONObject,
+  NavigationNode,
+  PublicTeam,
+} from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
@@ -13,7 +18,12 @@ import RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Document from "~/models/Document";
 import env from "~/env";
-import { FetchOptions, PaginationParams, SearchResult } from "~/types";
+import type {
+  FetchOptions,
+  PaginationParams,
+  Properties,
+  SearchResult,
+} from "~/types";
 import { client } from "~/utils/ApiClient";
 import { extname } from "~/utils/files";
 
@@ -704,13 +714,30 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   async update(
-    params: Partial<Document>,
-    options?: Record<string, string | boolean | number | undefined>
+    params: Properties<Document>,
+    options?: JSONObject
   ): Promise<Document> {
-    const document = await super.update(params, options);
-    const collection = this.getCollectionForDocument(document);
-    void collection?.fetchDocuments({ force: true });
-    return document;
+    this.isSaving = true;
+
+    try {
+      const res = await client.post(`/${this.apiEndpoint}.update`, {
+        ...params,
+        ...options,
+      });
+
+      invariant(res?.data, "Data should be available");
+
+      const collection = this.getCollectionForDocument(res.data);
+      await collection?.fetchDocuments({ force: true });
+
+      return runInAction("Document#update", () => {
+        const document = this.add(res.data);
+        this.addPolicies(res.policies);
+        return document;
+      });
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   @action

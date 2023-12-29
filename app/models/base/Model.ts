@@ -1,5 +1,6 @@
 import pick from "lodash/pick";
 import { set, observable, action } from "mobx";
+import { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "../decorators/Field";
@@ -32,26 +33,39 @@ export default abstract class Model {
   }
 
   /**
-   * Ensures all the defined relations for the model are in memory
+   * Ensures all the defined relations and policies for the model are in memory.
    *
    * @returns A promise that resolves when loading is complete.
    */
-  async loadRelations() {
+  async loadRelations(): Promise<any> {
     const relations = getRelationsForModelClass(
       this.constructor as typeof Model
     );
     if (!relations) {
       return;
     }
+    if (this.loadingRelations) {
+      return this.loadingRelations;
+    }
+
+    const promises = [];
 
     for (const properties of relations.values()) {
       const store = this.store.rootStore.getStoreForModelName(
         properties.relationClassResolver().modelName
       );
       if ("fetch" in store) {
-        await store.fetch(this[properties.idKey]);
+        promises.push(store.fetch(this[properties.idKey]));
       }
     }
+
+    const policy = this.store.rootStore.policies.get(this.id);
+    if (!policy) {
+      promises.push(this.store.fetch(this.id, { force: true }));
+    }
+
+    this.loadingRelations = Promise.all(promises);
+    return await this.loadingRelations;
   }
 
   /**
@@ -64,7 +78,7 @@ export default abstract class Model {
   save = async (
     params?: Record<string, any>,
     options?: Record<string, string | boolean | number | undefined>
-  ) => {
+  ): Promise<Model> => {
     this.isSaving = true;
 
     try {
@@ -95,7 +109,7 @@ export default abstract class Model {
     }
   };
 
-  updateData = action((data: any) => {
+  updateData = action((data: Partial<Model>) => {
     for (const key in data) {
       this[key] = data[key];
     }
@@ -104,7 +118,7 @@ export default abstract class Model {
     this.persistedAttributes = this.toAPI();
   });
 
-  fetch = (options?: any) => this.store.fetch(this.id, options);
+  fetch = (options?: JSONObject) => this.store.fetch(this.id, options);
 
   refresh = () =>
     this.fetch({
@@ -175,4 +189,9 @@ export default abstract class Model {
   }
 
   protected persistedAttributes: Partial<Model> = {};
+
+  /**
+   * A promise that resolves when all relations have been loaded
+   */
+  private loadingRelations: Promise<any[]> | undefined;
 }

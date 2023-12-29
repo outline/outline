@@ -1,6 +1,6 @@
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 export const SearchesDeleteSchema = BaseSchema.extend({
   body: z.object({
@@ -21,3 +21,13 @@ export const SearchesUpdateSchema = BaseSchema.extend({
 });
 
 export type SearchesUpdateReq = z.infer<typeof SearchesUpdateSchema>;
+
+export const SearchesListSchema = BaseSchema.extend({
+  body: z
+    .object({
+      source: z.string().optional(),
+    })
+    .optional(),
+});
+
+export type SearchesListReq = z.infer<typeof SearchesListSchema>;

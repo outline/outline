@@ -78,7 +78,7 @@ type Props = WithTranslation &
     revision?: Revision;
     readOnly: boolean;
     shareId?: string;
-    onCreateLink?: (title: string) => Promise<string>;
+    onCreateLink?: (title: string, nested?: boolean) => Promise<string>;
     onSearchLink?: (term: string) => any;
   };
 

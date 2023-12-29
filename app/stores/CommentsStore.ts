@@ -7,9 +7,16 @@ import Document from "~/models/Document";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
-import Store from "./base/Store";
+import Store, { RPCAction } from "./base/Store";
 
 export default class CommentsStore extends Store<Comment> {
+  actions = [
+    RPCAction.List,
+    RPCAction.Create,
+    RPCAction.Update,
+    RPCAction.Delete,
+  ];
+
   constructor(rootStore: RootStore) {
     super(rootStore, Comment);
   }
@@ -80,7 +87,7 @@ export default class CommentsStore extends Store<Comment> {
         documentId,
         ...options,
       });
-      invariant(res && res.data, "Comment list not available");
+      invariant(res?.data, "Comment list not available");
 
       runInAction("CommentsStore#fetchDocumentComments", () => {
         res.data.forEach(this.add);

@@ -10,23 +10,32 @@ import * as T from "./schema";
 
 const router = new Router();
 
-router.post("searches.list", auth(), pagination(), async (ctx: APIContext) => {
-  const { user } = ctx.state.auth;
+router.post(
+  "searches.list",
+  auth(),
+  validate(T.SearchesListSchema),
+  pagination(),
+  async (ctx: APIContext<T.SearchesListReq>) => {
+    const { user } = ctx.state.auth;
+    const source = ctx.input.body?.source;
 
-  const searches = await SearchQuery.findAll({
-    where: {
-      userId: user.id,
-    },
-    order: [["createdAt", "DESC"]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
+    const searches = await SearchQuery.findAll({
+      where: {
+        ...(source ? { source } : {}),
+        teamId: user.teamId,
+        userId: user.id,
+      },
+      order: [["createdAt", "DESC"]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
-  ctx.body = {
-    pagination: ctx.state.pagination,
-    data: searches.map(presentSearchQuery),
-  };
-});
+    ctx.body = {
+      pagination: ctx.state.pagination,
+      data: searches.map(presentSearchQuery),
+    };
+  }
+);
 
 router.post(
   "searches.update",

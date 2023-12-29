@@ -24,6 +24,7 @@ export default function useDictionary() {
       createLink: t("Create link"),
       createLinkError: t("Sorry, an error occurred creating the link"),
       createNewDoc: t("Create a new doc"),
+      createNewChildDoc: t("Create a new child doc"),
       deleteColumn: t("Delete column"),
       deleteRow: t("Delete row"),
       deleteTable: t("Delete table"),

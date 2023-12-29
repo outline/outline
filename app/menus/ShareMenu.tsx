@@ -24,7 +24,7 @@ function ShareMenu({ share }: Props) {
   const { shares } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
-  const can = usePolicy(share.id);
+  const can = usePolicy(share);
 
   const handleGoToDocument = React.useCallback(
     (ev: React.SyntheticEvent) => {

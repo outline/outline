@@ -13,6 +13,8 @@ export default class SearchesStore extends Store<SearchQuery> {
 
   @computed
   get recent(): SearchQuery[] {
-    return uniqBy(this.orderedData, "query").slice(0, 8);
+    return uniqBy(this.orderedData, "query")
+      .filter((search) => search.source === "app")
+      .slice(0, 8);
   }
 }

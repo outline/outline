@@ -1,6 +1,6 @@
 import { z } from "zod";
+import { BaseSchema } from "@server/routes/api/schema";
 import { ValidateIndex } from "@server/validation";
-import BaseSchema from "../BaseSchema";
 
 export const UserMembershipsListSchema = BaseSchema;
 

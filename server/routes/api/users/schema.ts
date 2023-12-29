@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { NotificationEventType, UserPreference, UserRole } from "@shared/types";
 import User from "@server/models/User";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 const BaseIdSchema = z.object({
   id: z.string().uuid(),

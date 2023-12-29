@@ -8,7 +8,7 @@ import {
   Client,
   CollectionPermission,
 } from "@shared/types";
-import BaseSchema from "@server/routes/api/BaseSchema";
+import { BaseSchema } from "@server/routes/api/schema";
 import { AccountProvisionerResult } from "./commands/accountProvisioner";
 import { FileOperation, Team, User } from "./models";
 
