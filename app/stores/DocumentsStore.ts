@@ -724,15 +724,17 @@ export default class DocumentsStore extends Store<Document> {
         ...params,
         ...options,
       });
+
       invariant(res?.data, "Data should be available");
 
       const collection = this.getCollectionForDocument(res.data);
       await collection?.fetchDocuments({ force: true });
 
-      const document = this.add(res.data);
-      this.addPolicies(res.policies);
-
-      return document;
+      return runInAction("Document#update", () => {
+        const document = this.add(res.data);
+        this.addPolicies(res.policies);
+        return document;
+      });
     } finally {
       this.isSaving = false;
     }
