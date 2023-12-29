@@ -20,6 +20,8 @@ import { undraggableOnDesktop } from "~/styles";
 type Suggestion = {
   id: string;
   value: string;
+  /** A label to show instead of the value if a more rich component is needed */
+  label?: React.ReactNode;
   [key: string]: any;
 };
 
@@ -31,7 +33,7 @@ type Props = Omit<React.InputHTMLAttributes<HTMLInputElement>, "list"> & {
   /** Value held by the search input bar */
   value: string;
   /** Label for search input */
-  label: string;
+  label?: string;
   /** Label for the search results list */
   listLabel: string;
   /** Handler which triggers upon search input change */
@@ -66,7 +68,7 @@ function Combobox({
   };
 
   const state = useComboboxState({
-    gutter: 8,
+    gutter: 2,
     values: suggestions.map((s) => s.value),
   });
 
@@ -148,7 +150,7 @@ function Combobox({
                             state.hide();
                           }}
                         >
-                          {item.value}
+                          {item.label ?? item.value}
                         </StyledComboboxOption>
                       ))
                     : null}
@@ -198,6 +200,7 @@ const StyledComboboxInput = styled(ComboboxInput)`
 
 const StyledComboboxOption = styled(ComboboxOption)`
   ${MenuAnchorCSS}
+
   /* overriding the styles from MenuAnchorCSS because we use &nbsp; here */
   svg:not(:last-child) {
     margin-right: 0px;

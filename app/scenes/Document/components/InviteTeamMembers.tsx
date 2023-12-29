@@ -10,6 +10,8 @@ import Document from "~/models/Document";
 import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
 import MemberListItem from "~/scenes/CollectionPermissions/components/MemberListItem";
+import Avatar from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar/Avatar";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PaginatedList from "~/components/PaginatedList";
@@ -169,13 +171,18 @@ function InviteTeamMembers({ document }: Props) {
         suggestions={nonMembers.map((user) => ({
           id: user.id,
           value: user.name,
+          label: (
+            <Flex align="center" gap={8}>
+              <Avatar model={user} size={AvatarSize.Small} showBorder={false} />
+              <span>{user.name}</span>
+            </Flex>
+          ),
         }))}
         value={query}
         onChangeInput={handleQuery}
         onSelectOption={handleSelect}
-        label={t("Invite team members")}
         listLabel={t("Team members")}
-        placeholder={`${t("Search by name")}…`}
+        placeholder={`${t("Add workspace members")}…`}
         autoFocus
       />
       <PaginatedList
