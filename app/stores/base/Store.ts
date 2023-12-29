@@ -123,6 +123,11 @@ export default abstract class Store<T extends Model> {
       }
     });
 
+    // Remove associated policies automatically, not defined through Relation decorator.
+    if (this.modelName !== "Policy") {
+      this.rootStore.policies.remove(id);
+    }
+
     this.data.delete(id);
   }
 
