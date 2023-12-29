@@ -20,8 +20,6 @@ import {
 } from "@server/errors";
 import { requestErrorHandler } from "@server/logging/sentry";
 
-const isDev = env.ENVIRONMENT === "development";
-const isProd = env.ENVIRONMENT === "production";
 let errorHtmlCache: Buffer | undefined;
 
 export default function onerror(app: Koa) {
@@ -159,11 +157,11 @@ function wrapInNativeError(err: any): Error {
 }
 
 function readErrorFile(): Buffer {
-  if (isDev) {
+  if (env.isDevelopment) {
     return fs.readFileSync(path.join(__dirname, "error.dev.html"));
   }
 
-  if (isProd) {
+  if (env.isProduction) {
     return (
       errorHtmlCache ??
       (errorHtmlCache = fs.readFileSync(

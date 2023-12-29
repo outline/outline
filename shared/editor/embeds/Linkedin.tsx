@@ -2,8 +2,7 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-function Linkedin(props: Props) {
-  const { matches } = props.attrs;
+function Linkedin({ matches, ...props }: Props) {
   const objectId = matches[2];
   const postType = matches[1];
   if (matches[3] === "embed") {
@@ -17,9 +16,5 @@ function Linkedin(props: Props) {
     />
   );
 }
-
-Linkedin.ENABLED = [
-  /^https:\/\/www\.linkedin\.com\/(?:posts\/.*-(ugcPost|activity)-(\d+)-.*|(embed)\/(?:feed\/update\/urn:li:(?:ugcPost|share):(?:\d+)))/,
-];
 
 export default Linkedin;

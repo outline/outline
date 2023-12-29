@@ -81,7 +81,6 @@ declare module "styled-components" {
     accent: string;
     yellow: string;
     warmGrey: string;
-    searchHighlight: string;
     danger: string;
     warning: string;
     success: string;

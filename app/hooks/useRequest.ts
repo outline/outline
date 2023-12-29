@@ -16,7 +16,7 @@ type RequestResponse<T> = {
  * A hook to make an API request and track its state within a component.
  *
  * @param requestFn The function to call to make the request, it should return a promise.
- * @returns
+ * @returns An object containing the request state and a function to start the request.
  */
 export default function useRequest<T = unknown>(
   requestFn: () => Promise<T>

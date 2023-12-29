@@ -42,9 +42,11 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
         });
         await collections.import(attachment.id, format);
         onSubmit();
-        toast.success(
-          t("Your import is being processed, you can safely leave this page")
-        );
+        toast.message(file.name, {
+          description: t(
+            "Your import is being processed, you can safely leave this page"
+          ),
+        });
       } catch (err) {
         toast.error(err.message);
       } finally {

@@ -1,4 +1,7 @@
+import path from "path";
+import fs from "fs-extra";
 import truncate from "lodash/truncate";
+import tmp from "tmp";
 import {
   AttachmentPreset,
   CollectionPermission,
@@ -8,6 +11,7 @@ import {
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
+import { createContext } from "@server/context";
 import { serializer } from "@server/editor";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -20,7 +24,7 @@ import {
   Attachment,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { APIContext } from "@server/types";
+import ZipHelper from "@server/utils/ZipHelper";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -50,7 +54,7 @@ export type StructuredImportData = {
      */
     description?: string | Record<string, any> | null;
     /** Optional id from import source, useful for mapping */
-    sourceId?: string;
+    externalId?: string;
   }[];
   documents: {
     id: string;
@@ -76,8 +80,9 @@ export type StructuredImportData = {
     createdById?: string;
     createdByEmail?: string | null;
     path: string;
+    mimeType: string;
     /** Optional id from import source, useful for mapping */
-    sourceId?: string;
+    externalId?: string;
   }[];
   attachments: {
     id: string;
@@ -86,7 +91,7 @@ export type StructuredImportData = {
     mimeType: string;
     buffer: () => Promise<Buffer>;
     /** Optional id from import source, useful for mapping */
-    sourceId?: string;
+    externalId?: string;
   }[];
 };
 
@@ -97,19 +102,22 @@ export default abstract class ImportTask extends BaseTask<Props> {
    * @param props The props
    */
   public async perform({ fileOperationId }: Props) {
+    let dirPath;
     const fileOperation = await FileOperation.findByPk(fileOperationId, {
       rejectOnEmpty: true,
     });
 
     try {
       Logger.info("task", `ImportTask fetching data for ${fileOperationId}`);
-      const data = await this.fetchData(fileOperation);
-      if (!data) {
+      dirPath = await this.fetchAndExtractData(fileOperation);
+      if (!dirPath) {
         throw InternalError("Failed to fetch data for import from storage.");
       }
 
-      Logger.info("task", `ImportTask parsing data for ${fileOperationId}`);
-      const parsed = await this.parseData(data, fileOperation);
+      Logger.info("task", `ImportTask parsing data for ${fileOperationId}`, {
+        dirPath,
+      });
+      const parsed = await this.parseData(dirPath, fileOperation);
 
       if (parsed.collections.length === 0) {
         throw ValidationError(
@@ -151,6 +159,10 @@ export default abstract class ImportTask extends BaseTask<Props> {
         error
       );
       throw error;
+    } finally {
+      if (dirPath) {
+        await this.cleanupExtractedData(dirPath, fileOperation);
+      }
     }
   }
 
@@ -183,38 +195,84 @@ export default abstract class ImportTask extends BaseTask<Props> {
   }
 
   /**
-   * Fetch the remote data associated with the file operation as a Buffer.
+   * Fetch the remote data associated with the file operation into a temporary disk location.
    *
    * @param fileOperation The FileOperation to fetch data for
-   * @returns A promise that resolves to the data as a buffer.
+   * @returns A promise that resolves to the temporary file path.
    */
-  protected async fetchData(fileOperation: FileOperation): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      const bufs: Buffer[] = [];
-      const stream = fileOperation.stream;
-      if (!stream) {
-        return reject(new Error("No stream available"));
-      }
+  protected async fetchAndExtractData(
+    fileOperation: FileOperation
+  ): Promise<string> {
+    let cleanup;
+    let filePath: string;
 
-      stream.on("data", function (d) {
-        bufs.push(d);
+    try {
+      const res = await fileOperation.handle;
+      filePath = res.path;
+      cleanup = res.cleanup;
+
+      const path = await new Promise<string>((resolve, reject) => {
+        tmp.dir((err, tmpDir) => {
+          if (err) {
+            Logger.error("Could not create temporary directory", err);
+            return reject(err);
+          }
+
+          Logger.debug(
+            "task",
+            `ImportTask extracting data for ${fileOperation.id}`
+          );
+
+          void ZipHelper.extract(filePath, tmpDir)
+            .then(() => resolve(tmpDir))
+            .catch((err) => {
+              Logger.error("Could not extract zip file", err);
+              reject(err);
+            });
+        });
       });
-      stream.on("error", reject);
-      stream.on("end", () => {
-        resolve(Buffer.concat(bufs));
-      });
-    });
+
+      return path;
+    } finally {
+      Logger.debug(
+        "task",
+        `ImportTask cleaning up temporary data for ${fileOperation.id}`
+      );
+
+      await cleanup?.();
+    }
   }
 
   /**
-   * Parse the data loaded from fetchData into a consistent structured format
+   * Cleanup the temporary directory where the data was fetched and extracted.
+   *
+   * @param dirPath The temporary directory path where the data was fetched
+   * @param fileOperation The associated FileOperation
+   */
+  protected async cleanupExtractedData(
+    dirPath: string,
+    fileOperation: FileOperation
+  ) {
+    try {
+      await fs.rm(dirPath, { recursive: true, force: true });
+    } catch (error) {
+      Logger.error(
+        `ImportTask failed to cleanup extracted data for ${fileOperation.id}`,
+        error
+      );
+    }
+  }
+
+  /**
+   * Parse the data loaded from fetchAndExtractData into a consistent structured format
    * that represents collections, documents, and the relationships between them.
    *
-   * @param data The data loaded from fetchData
+   * @param dirPath The temporary directory path where the data was fetched
+   * @param fileOperation The FileOperation to parse data for
    * @returns A promise that resolves to the structured data
    */
   protected abstract parseData(
-    data: Buffer | NodeJS.ReadableStream,
+    dirPath: string,
     fileOperation: FileOperation
   ): Promise<StructuredImportData>;
 
@@ -257,13 +315,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
               type: item.mimeType,
               buffer: await item.buffer(),
               user,
-              ctx: {
-                context: {
-                  ip,
-                  transaction,
-                  auth: { user },
-                },
-              } as APIContext,
+              ctx: createContext(user, transaction),
             });
             if (attachment) {
               attachments.set(item.id, attachment);
@@ -439,7 +491,11 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
           const document = await documentCreator({
             ...options,
-            source: "import",
+            sourceMetadata: {
+              fileName: path.basename(item.path),
+              mimeType: item.mimeType,
+              externalId: item.externalId,
+            },
             id: item.id,
             title: item.title,
             text,
@@ -450,8 +506,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             parentDocumentId: item.parentDocumentId,
             importId: fileOperation.id,
             user,
-            ip,
-            transaction,
+            ctx: createContext(user, transaction),
           });
           documents.set(item.id, document);
 

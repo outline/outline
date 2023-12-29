@@ -9,12 +9,10 @@ import Input from "~/components/Input";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useStores from "~/hooks/useStores";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 
 const Profile = () => {
-  const { auth } = useStores();
   const user = useCurrentUser();
   const form = React.useRef<HTMLFormElement>(null);
   const [name, setName] = React.useState<string>(user.name || "");
@@ -24,9 +22,7 @@ const Profile = () => {
     ev.preventDefault();
 
     try {
-      await auth.updateUser({
-        name,
-      });
+      await user.save({ name });
       toast.success(t("Profile saved"));
     } catch (err) {
       toast.error(err.message);
@@ -38,9 +34,7 @@ const Profile = () => {
   };
 
   const handleAvatarUpload = async (avatarUrl: string) => {
-    await auth.updateUser({
-      avatarUrl,
-    });
+    await user.save({ avatarUrl });
     toast.success(t("Profile picture updated"));
   };
 
@@ -49,7 +43,7 @@ const Profile = () => {
   };
 
   const isValid = form.current?.checkValidity();
-  const { isSaving } = auth;
+  const { isSaving } = user;
 
   return (
     <Scene title={t("Profile")} icon={<ProfileIcon />}>

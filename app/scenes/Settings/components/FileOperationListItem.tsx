@@ -18,6 +18,7 @@ import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import FileOperationMenu from "~/menus/FileOperationMenu";
+import isCloudHosted from "~/utils/isCloudHosted";
 
 type Props = {
   fileOperation: FileOperation;
@@ -80,7 +81,6 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
       content: (
         <ConfirmationDialog
           onSubmit={handleDelete}
-          submitText={t("I’m sure")}
           savingText={`${t("Deleting")}…`}
           danger
         >
@@ -97,6 +97,10 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
       fileOperation.state === FileOperationState.Complete) ||
     fileOperation.type === FileOperationType.Import;
 
+  const selfHostedHelp = isCloudHosted
+    ? ""
+    : `. ${t("Check server logs for more details.")}`;
+
   return (
     <ListItem
       title={title}
@@ -104,7 +108,12 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
       subtitle={
         <>
           {stateMapping[fileOperation.state]}&nbsp;•&nbsp;
-          {fileOperation.error && <>{fileOperation.error}&nbsp;•&nbsp;</>}
+          {fileOperation.error && (
+            <>
+              {fileOperation.error}
+              {selfHostedHelp}&nbsp;•&nbsp;
+            </>
+          )}
           {t(`{{userName}} requested`, {
             userName:
               user.id === fileOperation.user.id

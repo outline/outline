@@ -1,5 +1,5 @@
 import * as React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
@@ -27,7 +27,7 @@ export default function Video(props: Props) {
       maxWidth: documentBounds.width,
       naturalWidth,
       naturalHeight,
-      gridWidth: documentBounds.width / 10,
+      gridWidth: documentBounds.width / 20,
       onChangeSize,
     }
   );
@@ -41,9 +41,10 @@ export default function Video(props: Props) {
     }
   }, [node.attrs.width]);
 
-  const style = {
+  const style: React.CSSProperties = {
     width: width || "auto",
     maxHeight: height || "auto",
+    pointerEvents: dragging ? "none" : "all",
   };
 
   return (
@@ -56,7 +57,7 @@ export default function Video(props: Props) {
           src={sanitizeUrl(node.attrs.src)}
           title={node.attrs.title}
           style={style}
-          controls
+          controls={!dragging}
         />
         {isEditable && isResizable && (
           <>
@@ -76,14 +77,19 @@ export default function Video(props: Props) {
   );
 }
 
-const StyledVideo = styled.video`
+export const videoStyle = css`
   max-width: 100%;
+  height: auto;
   background: ${(props) => props.theme.background};
   color: ${(props) => props.theme.text} !important;
   margin: -2px;
   padding: 2px;
   border-radius: 8px;
   box-shadow: 0 0 0 1px ${(props) => props.theme.divider};
+`;
+
+const StyledVideo = styled.video`
+  ${videoStyle}
 `;
 
 const VideoWrapper = styled.div`

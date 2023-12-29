@@ -616,6 +616,12 @@ export default class WebsocketsProcessor {
           .emit(event.name, presentTeam(team));
       }
 
+      case "users.demote": {
+        return socketio
+          .to(`user-${event.userId}`)
+          .emit(event.name, { id: event.userId });
+      }
+
       default:
         return;
     }

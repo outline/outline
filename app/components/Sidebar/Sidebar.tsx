@@ -1,11 +1,11 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Portal } from "react-portal";
 import { useLocation } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import Flex from "~/components/Flex";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
@@ -33,11 +33,11 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
   const theme = useTheme();
-  const { ui, auth } = useStores();
+  const { ui } = useStores();
   const location = useLocation();
   const previousLocation = usePrevious(location);
   const { isMenuOpen } = useMenuContext();
-  const { user } = auth;
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const width = ui.sidebarWidth;
   const collapsed = ui.sidebarIsClosed && !isMenuOpen;
   const maxWidth = theme.sidebarMaxWidth;
@@ -191,11 +191,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
         onPointerLeave={handlePointerLeave}
         column
       >
-        {ui.mobileSidebarVisible && (
-          <Portal>
-            <Backdrop onClick={ui.toggleMobileSidebar} />
-          </Portal>
-        )}
         {children}
 
         {user && (
@@ -234,6 +229,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
           onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
         />
       </Container>
+      {ui.mobileSidebarVisible && <Backdrop onClick={ui.toggleMobileSidebar} />}
     </>
   );
 });
@@ -246,7 +242,7 @@ const Backdrop = styled.a`
   bottom: 0;
   right: 0;
   cursor: default;
-  z-index: ${depths.sidebar - 1};
+  z-index: ${depths.mobileSidebar - 1};
   background: ${s("backdrop")};
 `;
 
@@ -287,7 +283,7 @@ const Container = styled(Flex)<ContainerProps>`
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
   );
-  z-index: ${depths.sidebar};
+  z-index: ${depths.mobileSidebar};
   max-width: 80%;
   min-width: 280px;
   ${fadeOnDesktopBackgrounded()}
@@ -302,6 +298,7 @@ const Container = styled(Flex)<ContainerProps>`
   }
 
   ${breakpoint("tablet")`
+    z-index: ${depths.sidebar};
     margin: 0;
     min-width: 0;
     transform: translateX(${(props: ContainerProps) =>

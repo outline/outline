@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { LinkIcon, CloseIcon } from "outline-icons";
+import { CloseIcon, CopyIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -14,6 +14,7 @@ import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import InputSelectRole from "~/components/InputSelectRole";
 import NudeButton from "~/components/NudeButton";
+import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -33,25 +34,14 @@ type InviteRequest = {
 
 function Invite({ onSubmit }: Props) {
   const [isSaving, setIsSaving] = React.useState(false);
-  const [linkCopied, setLinkCopied] = React.useState<boolean>(false);
   const [invites, setInvites] = React.useState<InviteRequest[]>([
     {
       email: "",
       name: "",
       role: UserRole.Member,
     },
-    {
-      email: "",
-      name: "",
-      role: UserRole.Member,
-    },
-    {
-      email: "",
-      name: "",
-      role: UserRole.Member,
-    },
   ]);
-  const { users } = useStores();
+  const { users, collections } = useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
@@ -103,7 +93,7 @@ function Invite({ onSubmit }: Props) {
       newInvites.push({
         email: "",
         name: "",
-        role: UserRole.Member,
+        role: invites[invites.length - 1].role,
       });
       return newInvites;
     });
@@ -122,7 +112,6 @@ function Invite({ onSubmit }: Props) {
   );
 
   const handleCopy = React.useCallback(() => {
-    setLinkCopied(true);
     toast.success(t("Share link copied"));
   }, [t]);
 
@@ -137,6 +126,37 @@ function Invite({ onSubmit }: Props) {
     []
   );
 
+  const handleKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        handleAdd();
+      }
+    },
+    [handleAdd]
+  );
+
+  const collectionCount = collections.nonPrivate.length;
+  const collectionAccessNote = (
+    <span>
+      <Trans>Invited members will receive access to</Trans>{" "}
+      <Tooltip
+        tooltip={
+          <>
+            {collections.nonPrivate.map((collection) => (
+              <li key={collection.id}>{collection.name}</li>
+            ))}
+          </>
+        }
+      >
+        <Def>
+          <Trans>{{ collectionCount }} collections</Trans>
+        </Def>
+      </Tooltip>
+      .
+    </span>
+  );
+
   return (
     <form onSubmit={handleSubmit}>
       {team.guestSignin ? (
@@ -146,7 +166,8 @@ function Invite({ onSubmit }: Props) {
             values={{
               signinMethods: team.signinMethods,
             }}
-          />
+          />{" "}
+          {collectionAccessNote}
         </Text>
       ) : (
         <Text type="secondary">
@@ -161,12 +182,13 @@ function Invite({ onSubmit }: Props) {
               As an admin you can also{" "}
               <Link to="/settings/security">enable email sign-in</Link>.
             </Trans>
-          )}
+          )}{" "}
+          {collectionAccessNote}
         </Text>
       )}
       {team.subdomain && (
         <CopyBlock>
-          <Flex align="flex-end">
+          <Flex align="flex-end" gap={8}>
             <Input
               type="text"
               value={team.url}
@@ -174,73 +196,69 @@ function Invite({ onSubmit }: Props) {
               readOnly
               flex
             />
-            &nbsp;&nbsp;
             <CopyToClipboard text={team.url} onCopy={handleCopy}>
               <Button
                 type="button"
-                icon={<LinkIcon />}
+                icon={<CopyIcon />}
                 style={{
                   marginBottom: "16px",
                 }}
                 neutral
-              >
-                {linkCopied ? t("Link copied") : t("Copy link")}
-              </Button>
+              />
             </CopyToClipboard>
           </Flex>
         </CopyBlock>
       )}
-      {invites.map((invite, index) => (
-        <Flex key={index} gap={8}>
-          <Input
-            type="email"
-            name="email"
-            label={t("Email")}
-            labelHidden={index !== 0}
-            onChange={(ev) => handleChange(ev, index)}
-            placeholder={`example@${predictedDomain}`}
-            value={invite.email}
-            required={index === 0}
-            autoFocus={index === 0}
-            flex
-          />
-          <Input
-            type="text"
-            name="name"
-            label={t("Full name")}
-            labelHidden={index !== 0}
-            onChange={(ev) => handleChange(ev, index)}
-            value={invite.name}
-            required={!!invite.email}
-            flex
-          />
-          <InputSelectRole
-            onChange={(role: UserRole) => handleRoleChange(role, index)}
-            value={invite.role}
-            labelHidden={index !== 0}
-            short
-          />
-          {index !== 0 && (
-            <Remove>
-              <Tooltip tooltip={t("Remove invite")} placement="top">
-                <NudeButton onClick={(ev) => handleRemove(ev, index)}>
-                  <CloseIcon />
-                </NudeButton>
-              </Tooltip>
-            </Remove>
-          )}
-          {index === 0 && invites.length > 1 && (
-            <Remove>
-              <Spacer />
-            </Remove>
-          )}
-        </Flex>
-      ))}
+      <ResizingHeightContainer>
+        {invites.map((invite, index) => (
+          <Flex key={index} gap={8}>
+            <Input
+              type="email"
+              name="email"
+              label={t("Email")}
+              labelHidden={index !== 0}
+              onKeyDown={handleKeyDown}
+              onChange={(ev) => handleChange(ev, index)}
+              placeholder={`example@${predictedDomain}`}
+              value={invite.email}
+              required={index === 0}
+              autoFocus
+              flex
+            />
+            <Input
+              type="text"
+              name="name"
+              label={t("Name")}
+              labelHidden={index !== 0}
+              onKeyDown={handleKeyDown}
+              onChange={(ev) => handleChange(ev, index)}
+              value={invite.name}
+              required={!!invite.email}
+              flex
+            />
+            <InputSelectRole
+              onChange={(role: UserRole) => handleRoleChange(role, index)}
+              value={invite.role}
+              labelHidden={index !== 0}
+              short
+            />
+            {index !== 0 && (
+              <Remove>
+                <Tooltip tooltip={t("Remove invite")} placement="top">
+                  <NudeButton onClick={(ev) => handleRemove(ev, index)}>
+                    <CloseIcon />
+                  </NudeButton>
+                </Tooltip>
+              </Remove>
+            )}
+          </Flex>
+        ))}
+      </ResizingHeightContainer>
 
       <Flex justify="space-between">
         {invites.length <= UserValidation.maxInvitesPerRequest ? (
           <Button type="button" onClick={handleAdd} neutral>
-            <Trans>Add another</Trans>…
+            {t("Add another")}…
           </Button>
         ) : (
           <span />
@@ -270,12 +288,13 @@ const CopyBlock = styled("div")`
 `;
 
 const Remove = styled("div")`
+  color: ${s("textTertiary")};
   margin-top: 4px;
+  margin-right: -32px;
 `;
 
-const Spacer = styled.div`
-  width: 24px;
-  height: 24px;
+const Def = styled("span")`
+  text-decoration: underline dotted;
 `;
 
 export default observer(Invite);

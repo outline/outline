@@ -3,6 +3,7 @@ import styledNormalize from "styled-normalize";
 import { breakpoints, depths, s } from ".";
 
 type Props = {
+  staticHTML?: boolean;
   useCursorPointer?: boolean;
 };
 
@@ -16,7 +17,7 @@ export default createGlobalStyle<Props>`
   html,
   body {
     width: 100%;
-    height: 100%;
+    ${(props) => (props.staticHTML ? "" : "height: 100%;")}
     margin: 0;
     padding: 0;
     print-color-adjust: exact;
@@ -46,7 +47,7 @@ export default createGlobalStyle<Props>`
   @media (min-width: ${breakpoints.tablet}px) {
     html,
     body {
-      min-height: 100vh;
+      min-height: ${(props) => (props.staticHTML ? "0" : "100vh")};
     }
   }
 

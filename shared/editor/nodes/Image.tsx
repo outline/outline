@@ -105,7 +105,9 @@ export default class Image extends SimpleImage {
         {
           tag: "div[class~=image]",
           getAttrs: (dom: HTMLDivElement) => {
-            const img = dom.getElementsByTagName("img")[0];
+            const img = dom.getElementsByTagName("img")[0] as
+              | HTMLImageElement
+              | undefined;
             const className = dom.className;
             const layoutClassMatched =
               className && className.match(/image-(.*)$/);
@@ -113,8 +115,8 @@ export default class Image extends SimpleImage {
               ? layoutClassMatched[1]
               : null;
 
-            const width = img.getAttribute("width");
-            const height = img.getAttribute("height");
+            const width = img?.getAttribute("width");
+            const height = img?.getAttribute("height");
             return {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),

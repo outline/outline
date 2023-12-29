@@ -64,7 +64,6 @@ function NotificationListItem({ notification, onNavigate }: Props) {
           {notification.comment && (
             <StyledCommentEditor
               defaultValue={toJS(notification.comment.data)}
-              previewsDisabled
             />
           )}
         </Flex>

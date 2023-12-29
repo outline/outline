@@ -246,7 +246,7 @@ allow(User, "pinToHome", Document, (user, document) => {
 });
 
 allow(User, "delete", Document, (user, document) => {
-  if (!document || document.deletedAt) {
+  if (!document || document.deletedAt || user.isViewer) {
     return false;
   }
 
@@ -271,7 +271,7 @@ allow(User, "delete", Document, (user, document) => {
 });
 
 allow(User, "permanentDelete", Document, (user, document) => {
-  if (!document || !document.deletedAt) {
+  if (!document || !document.deletedAt || user.isViewer) {
     return false;
   }
 
@@ -283,7 +283,12 @@ allow(User, "permanentDelete", Document, (user, document) => {
     return false;
   }
 
-  return user.teamId === document.teamId;
+  // unpublished drafts can always be deleted by their owner
+  if (document.isDraft && user.id === document.createdById) {
+    return true;
+  }
+
+  return user.teamId === document.teamId && user.isAdmin;
 });
 
 allow(User, "restore", Document, (user, document) => {
@@ -321,7 +326,7 @@ allow(User, "archive", Document, (user, document) => {
 });
 
 allow(User, "unarchive", Document, (user, document) => {
-  if (!document) {
+  if (!document || !document.archivedAt || document.deletedAt) {
     return false;
   }
   invariant(
@@ -331,12 +336,7 @@ allow(User, "unarchive", Document, (user, document) => {
   if (cannot(user, "updateDocument", document.collection)) {
     return false;
   }
-  if (!document.archivedAt) {
-    return false;
-  }
-  if (document.deletedAt) {
-    return false;
-  }
+
   return user.teamId === document.teamId;
 });
 
@@ -348,7 +348,7 @@ allow(
 );
 
 allow(User, "unpublish", Document, (user, document) => {
-  if (!document || !document.isActive || document.isDraft) {
+  if (!document || !document.isActive || document.isDraft || user.isViewer) {
     return false;
   }
   invariant(

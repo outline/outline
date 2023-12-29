@@ -19,24 +19,23 @@ import SettingRow from "./components/SettingRow";
 
 function Preferences() {
   const { t } = useTranslation();
-  const { dialogs, auth } = useStores();
+  const { dialogs } = useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
 
   const handlePreferenceChange =
     (inverted = false) =>
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const preferences = {
-        ...user.preferences,
-        [ev.target.name]: inverted ? !ev.target.checked : ev.target.checked,
-      };
-
-      await auth.updateUser({ preferences });
+      user.setPreference(
+        ev.target.name as UserPreference,
+        inverted ? !ev.target.checked : ev.target.checked
+      );
+      await user.save();
       toast.success(t("Preferences saved"));
     };
 
   const handleLanguageChange = async (language: string) => {
-    await auth.updateUser({ language });
+    await user.save({ language });
     toast.success(t("Preferences saved"));
   };
 

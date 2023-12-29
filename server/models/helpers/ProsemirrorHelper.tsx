@@ -19,6 +19,8 @@ export type HTMLOptions = {
   title?: string;
   /** Whether to include style tags in the generated HTML (defaults to true) */
   includeStyles?: boolean;
+  /** Whether to include mermaidjs scripts in the generated HTML (defaults to false) */
+  includeMermaid?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
 };
@@ -144,7 +146,8 @@ export default class ProsemirrorHelper {
    */
   static toHTML(node: Node, options?: HTMLOptions) {
     const sheet = new ServerStyleSheet();
-    let html, styleTags;
+    let html = "";
+    let styleTags = "";
 
     const Centered = options?.centered
       ? styled.article`
@@ -160,7 +163,7 @@ export default class ProsemirrorHelper {
       <>
         {options?.title && <h1 dir={rtl ? "rtl" : "ltr"}>{options.title}</h1>}
         {options?.includeStyles !== false ? (
-          <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl}>
+          <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl} staticHTML>
             {content}
           </EditorContainer>
         ) : (
@@ -180,7 +183,7 @@ export default class ProsemirrorHelper {
                 <article>{children}</article>
               ) : (
                 <>
-                  <GlobalStyles />
+                  <GlobalStyles staticHTML />
                   <Centered>{children}</Centered>
                 </>
               )}
@@ -213,6 +216,46 @@ export default class ProsemirrorHelper {
       // @ts-expect-error incorrect library type, third argument is target node
       target
     );
+
+    // Inject mermaidjs scripts if the document contains mermaid diagrams
+    if (options?.includeMermaid) {
+      const mermaidElements = dom.window.document.querySelectorAll(
+        `[data-language="mermaidjs"] pre code`
+      );
+
+      // Unwrap <pre> tags to enable Mermaid script to correctly render inner content
+      for (const el of mermaidElements) {
+        const parent = el.parentNode as HTMLElement;
+        if (parent) {
+          while (el.firstChild) {
+            parent.insertBefore(el.firstChild, el);
+          }
+          parent.removeChild(el);
+          parent.setAttribute("class", "mermaid");
+        }
+      }
+
+      const element = dom.window.document.createElement("script");
+      element.setAttribute("type", "module");
+
+      // Inject Mermaid script
+      if (mermaidElements.length) {
+        element.innerHTML = `
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.esm.min.mjs';
+          mermaid.initialize({
+            startOnLoad: true,
+            fontFamily: "inherit",
+          });
+          window.status = "ready";
+        `;
+      } else {
+        element.innerHTML = `
+          window.status = "ready";
+        `;
+      }
+
+      dom.window.document.body.appendChild(element);
+    }
 
     return dom.serialize();
   }

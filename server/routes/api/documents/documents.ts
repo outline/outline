@@ -152,12 +152,15 @@ router.post(
       sort = "updatedAt";
     }
 
-    const documents = await Document.defaultScopeWithUser(user.id).findAll({
-      where,
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    const [documents, total] = await Promise.all([
+      Document.defaultScopeWithUser(user.id).findAll({
+        where,
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Document.count({ where }),
+    ]);
 
     // index sort is special because it uses the order of the documents in the
     // collection.documentStructure rather than a database column
@@ -172,7 +175,7 @@ router.post(
     );
     const policies = presentPolicies(user, documents);
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data,
       policies,
     };
@@ -243,28 +246,27 @@ router.post(
     const documents = await Document.scope([
       collectionScope,
       viewScope,
+      "withDrafts",
     ]).findAll({
       where: {
         teamId: user.teamId,
-        collectionId: {
-          [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
-        },
         deletedAt: {
           [Op.ne]: null,
         },
+        [Op.or]: [
+          {
+            collectionId: {
+              [Op.in]: collectionIds,
+            },
+          },
+          {
+            createdById: user.id,
+            collectionId: {
+              [Op.is]: null,
+            },
+          },
+        ],
       },
-      include: [
-        {
-          model: User,
-          as: "createdBy",
-          paranoid: false,
-        },
-        {
-          model: User,
-          as: "updatedBy",
-          paranoid: false,
-        },
-      ],
       paranoid: false,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
@@ -527,6 +529,7 @@ router.post(
       content = await DocumentHelper.toHTML(document, {
         signedUrls: true,
         centered: true,
+        includeMermaid: true,
       });
     } else if (accept?.includes("application/pdf")) {
       throw IncorrectEditionError(
@@ -536,13 +539,8 @@ router.post(
       contentType = "text/markdown";
       content = DocumentHelper.toMarkdown(document);
     } else {
-      contentType = "application/json";
-      content = DocumentHelper.toMarkdown(document);
-    }
-
-    if (contentType === "application/json") {
       ctx.body = {
-        data: content,
+        data: DocumentHelper.toMarkdown(document),
       };
       return;
     }
@@ -574,26 +572,32 @@ router.post(
 
     await Promise.all(
       attachments.map(async (attachment) => {
-        try {
-          const location = path.join(
-            "attachments",
-            `${attachment.id}.${mime.extension(attachment.contentType)}`
-          );
-          zip.file(location, attachment.buffer, {
+        const location = path.join(
+          "attachments",
+          `${attachment.id}.${mime.extension(attachment.contentType)}`
+        );
+        zip.file(
+          location,
+          new Promise<Buffer>((resolve) => {
+            attachment.buffer.then(resolve).catch((err) => {
+              Logger.warn(`Failed to read attachment from storage`, {
+                attachmentId: attachment.id,
+                teamId: attachment.teamId,
+                error: err.message,
+              });
+              resolve(Buffer.from(""));
+            });
+          }),
+          {
             date: attachment.updatedAt,
             createFolders: true,
-          });
+          }
+        );
 
-          content = content.replace(
-            new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
-            location
-          );
-        } catch (err) {
-          Logger.error(
-            `Failed to add attachment to archive: ${attachment.id}`,
-            err
-          );
-        }
+        content = content.replace(
+          new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+          location
+        );
       })
     );
 
@@ -683,12 +687,11 @@ router.post(
       // restore a document to a specific revision
       authorize(user, "update", document);
       const revision = await Revision.findByPk(revisionId);
-
       authorize(document, "restore", revision);
 
-      document.text = revision.text;
-      document.title = revision.title;
+      document.restoreFromRevision(revision);
       await document.save();
+
       await Event.create({
         name: "documents.restore",
         documentId: document.id,
@@ -1067,10 +1070,9 @@ router.post(
       document,
       title,
       publish,
-      transaction,
       recursive,
       parentDocumentId,
-      ip: ctx.request.ip,
+      ctx,
     });
 
     ctx.body = {
@@ -1326,17 +1328,22 @@ router.post(
     }
 
     const content = await fs.readFile(file.filepath);
+    const fileName = file.originalFilename ?? file.newFilename;
+    const mimeType = file.mimetype ?? "";
+
     const { text, state, title, emoji } = await documentImporter({
       user,
-      fileName: file.originalFilename ?? file.newFilename,
-      mimeType: file.mimetype ?? "",
+      fileName,
+      mimeType,
       content,
-      ip: ctx.request.ip,
-      transaction,
+      ctx,
     });
 
     const document = await documentCreator({
-      source: "import",
+      sourceMetadata: {
+        fileName,
+        mimeType,
+      },
       title,
       emoji,
       text,
@@ -1345,8 +1352,7 @@ router.post(
       collectionId,
       parentDocumentId,
       user,
-      ip: ctx.request.ip,
-      transaction,
+      ctx,
     });
 
     document.collection = collection;
@@ -1434,8 +1440,7 @@ router.post(
       fullWidth,
       user,
       editorVersion,
-      ip: ctx.request.ip,
-      transaction,
+      ctx,
     });
 
     document.collection = collection;

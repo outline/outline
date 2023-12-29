@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { Op } from "sequelize";
+import { Op, WhereOptions } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -25,13 +25,24 @@ router.post(
   pagination(),
   validate(T.GroupsListSchema),
   async (ctx: APIContext<T.GroupsListReq>) => {
-    const { direction, sort, userId } = ctx.input.body;
+    const { direction, sort, userId, name } = ctx.input.body;
     const { user } = ctx.state.auth;
 
+    let where: WhereOptions<Group> = {
+      teamId: user.teamId,
+    };
+
+    if (name) {
+      where = {
+        ...where,
+        name: {
+          [Op.eq]: name,
+        },
+      };
+    }
+
     const groups = await Group.filterByMember(userId).findAll({
-      where: {
-        teamId: user.teamId,
-      },
+      where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,

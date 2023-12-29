@@ -228,6 +228,7 @@ router.post(
       modelId: groupId,
       data: {
         name: group.name,
+        membershipId: membership.id,
       },
       ip: ctx.request.ip,
     });
@@ -246,30 +247,45 @@ router.post(
   "collections.remove_group",
   auth(),
   validate(T.CollectionsRemoveGroupSchema),
+  transaction(),
   async (ctx: APIContext<T.CollectionsRemoveGroupReq>) => {
     const { id, groupId } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
-    }).findByPk(id);
+    }).findByPk(id, { transaction });
     authorize(user, "update", collection);
 
-    const group = await Group.findByPk(groupId);
+    const group = await Group.findByPk(groupId, { transaction });
     authorize(user, "read", group);
 
-    await collection.$remove("group", group);
-    await Event.create({
-      name: "collections.remove_group",
-      collectionId: collection.id,
-      teamId: collection.teamId,
-      actorId: user.id,
-      modelId: groupId,
-      data: {
-        name: group.name,
-      },
-      ip: ctx.request.ip,
+    const [membership] = await collection.$get("collectionGroupMemberships", {
+      where: { groupId },
+      transaction,
     });
+
+    if (!membership) {
+      ctx.throw(400, "This Group is not a part of the collection");
+    }
+
+    await collection.$remove("group", group);
+    await Event.create(
+      {
+        name: "collections.remove_group",
+        collectionId: collection.id,
+        teamId: collection.teamId,
+        actorId: user.id,
+        modelId: groupId,
+        data: {
+          name: group.name,
+          membershipId: membership.id,
+        },
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
 
     ctx.body = {
       success: true,
@@ -395,6 +411,7 @@ router.post(
         actorId: actor.id,
         data: {
           name: user.name,
+          membershipId: membership.id,
         },
         ip: ctx.request.ip,
       },
@@ -415,8 +432,8 @@ router.post(
 router.post(
   "collections.remove_user",
   auth(),
-  transaction(),
   validate(T.CollectionsRemoveUserSchema),
+  transaction(),
   async (ctx: APIContext<T.CollectionsRemoveUserReq>) => {
     const { auth, transaction } = ctx.state;
     const actor = auth.user;
@@ -430,7 +447,16 @@ router.post(
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
 
+    const [membership] = await collection.$get("memberships", {
+      where: { userId },
+      transaction,
+    });
+    if (!membership) {
+      ctx.throw(400, "User is not a collection member");
+    }
+
     await collection.$remove("user", user, { transaction });
+
     await Event.create(
       {
         name: "collections.remove_user",
@@ -440,6 +466,7 @@ router.post(
         actorId: actor.id,
         data: {
           name: user.name,
+          membershipId: membership.id,
         },
         ip: ctx.request.ip,
       },
@@ -736,17 +763,20 @@ router.post(
             teamId: user.teamId,
             id: collectionIds,
           };
-    const collections = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findAll({
-      where,
-      order: [
-        Sequelize.literal('"collection"."index" collate "C"'),
-        ["updatedAt", "DESC"],
-      ],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    const [collections, total] = await Promise.all([
+      Collection.scope({
+        method: ["withMembership", user.id],
+      }).findAll({
+        where,
+        order: [
+          Sequelize.literal('"collection"."index" collate "C"'),
+          ["updatedAt", "DESC"],
+        ],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Collection.count({ where }),
+    ]);
 
     const nullIndex = collections.findIndex(
       (collection) => collection.index === null
@@ -760,7 +790,7 @@ router.post(
     }
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: collections.map(presentCollection),
       policies: presentPolicies(user, collections),
     };

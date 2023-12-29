@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -29,6 +30,7 @@ const ConfirmationDialog: React.FC<Props> = ({
   disabled = false,
 }: Props) => {
   const [isSaving, setIsSaving] = React.useState(false);
+  const { t } = useTranslation();
   const { dialogs } = useStores();
 
   const handleSubmit = React.useCallback(
@@ -48,19 +50,20 @@ const ConfirmationDialog: React.FC<Props> = ({
   );
 
   return (
-    <Flex column>
-      <form onSubmit={handleSubmit}>
-        <Text type="secondary">{children}</Text>
+    <form onSubmit={handleSubmit}>
+      <Text type="secondary">{children}</Text>
+
+      <Flex justify="flex-end">
         <Button
           type="submit"
           disabled={isSaving || disabled}
           danger={danger}
           autoFocus
         >
-          {isSaving && savingText ? savingText : submitText}
+          {isSaving && savingText ? savingText : submitText ?? t("Confirm")}
         </Button>
-      </form>
-    </Flex>
+      </Flex>
+    </form>
   );
 };
 

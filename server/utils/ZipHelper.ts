@@ -1,24 +1,11 @@
-import fs from "fs";
 import path from "path";
+import fs from "fs-extra";
 import JSZip from "jszip";
-import find from "lodash/find";
 import tmp from "tmp";
+import yauzl, { Entry, validateFileName } from "yauzl";
 import { bytesToHumanReadable } from "@shared/utils/files";
-import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
-import { deserializeFilename } from "./fs";
-
-export type FileTreeNode = {
-  /** The title, extracted from the file name */
-  title: string;
-  /** The file name including extension */
-  name: string;
-  /** Full path to the file within the zip file */
-  path: string;
-  /** Any nested children */
-  children: FileTreeNode[];
-};
 
 @trace()
 export default class ZipHelper {
@@ -33,64 +20,9 @@ export default class ZipHelper {
     };
 
   /**
-   * Converts the flat structure returned by JSZIP into a nested file structure
-   * for easier processing.
-   *
-   * @param zip The JSZip instance
-   * @param maxFiles The maximum number of files to unzip (Prevent zip bombs)
-   */
-  public static toFileTree(
-    zip: JSZip,
-    /** The maximum number of files to unzip */
-    maxFiles = 10000
-  ) {
-    const paths = ZipHelper.getPathsInZip(zip, maxFiles);
-    const tree: FileTreeNode[] = [];
-
-    paths.forEach(function (filePath) {
-      if (filePath.startsWith("/__MACOSX")) {
-        return;
-      }
-
-      const pathParts = filePath.split("/");
-
-      // Remove first blank element from the parts array.
-      pathParts.shift();
-
-      let currentLevel = tree; // initialize currentLevel to root
-
-      pathParts.forEach(function (name) {
-        // check to see if the path already exists.
-        const existingPath = find(currentLevel, {
-          name,
-        });
-
-        if (existingPath) {
-          // The path to this item was already in the tree, so don't add again.
-          // Set the current level to this path's children
-          currentLevel = existingPath.children;
-        } else if (name.endsWith(".DS_Store") || !name) {
-          return;
-        } else {
-          const newPart = {
-            name,
-            path: filePath.replace(/^\//, ""),
-            title: deserializeFilename(path.parse(path.basename(name)).name),
-            children: [],
-          };
-
-          currentLevel.push(newPart);
-          currentLevel = newPart.children;
-        }
-      });
-    });
-
-    return tree;
-  }
-
-  /**
    * Write a zip file to a temporary disk location
    *
+   * @deprecated Use `extract` instead
    * @param zip JSZip object
    * @returns pathname of the temporary file where the zip was written to disk
    */
@@ -160,32 +92,84 @@ export default class ZipHelper {
   }
 
   /**
-   * Gets a list of file paths contained within the ZIP file, accounting for
-   * differences between OS.
+   * Write a zip file to a disk location
    *
-   * @param zip The JSZip instance
-   * @param maxFiles The maximum number of files to unzip (Prevent zip bombs)
+   * @param filePath The file path where the zip is located
+   * @param outputDir The directory where the zip should be extracted
    */
-  private static getPathsInZip(zip: JSZip, maxFiles = 10000) {
-    let fileCount = 0;
-    const paths: string[] = [];
+  public static extract(filePath: string, outputDir: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      Logger.debug("utils", "Opening zip file", { filePath });
 
-    Object.keys(zip.files).forEach((p) => {
-      if (++fileCount > maxFiles) {
-        throw ValidationError("Too many files in zip");
-      }
+      yauzl.open(
+        filePath,
+        {
+          lazyEntries: true,
+          autoClose: true,
+          // Filenames are validated inside on("entry") handler instead of within yauzl as some
+          // otherwise valid zip files (including those in our test suite) include / path. We can
+          // safely read but skip writing these.
+          // see: https://github.com/thejoshwolfe/yauzl/issues/135
+          decodeStrings: false,
+        },
+        function (err, zipfile) {
+          if (err) {
+            return reject(err);
+          }
+          try {
+            zipfile.readEntry();
+            zipfile.on("entry", function (entry: Entry) {
+              const fileName = Buffer.from(entry.fileName).toString("utf8");
+              Logger.debug("utils", "Extracting zip entry", { fileName });
 
-      const filePath = `/${p}`;
-
-      // "zip.files" for ZIPs created on Windows does not return paths for
-      // directories, so we must add them manually if missing.
-      const dir = filePath.slice(0, filePath.lastIndexOf("/") + 1);
-      if (dir.length > 1 && !paths.includes(dir)) {
-        paths.push(dir);
-      }
-
-      paths.push(filePath);
+              if (validateFileName(fileName)) {
+                Logger.warn("Invalid zip entry", { fileName });
+                zipfile.readEntry();
+              } else if (/\/$/.test(fileName)) {
+                // directory file names end with '/'
+                fs.mkdirp(
+                  path.join(outputDir, fileName),
+                  function (err: Error) {
+                    if (err) {
+                      throw err;
+                    }
+                    zipfile.readEntry();
+                  }
+                );
+              } else {
+                // file entry
+                zipfile.openReadStream(entry, function (err, readStream) {
+                  if (err) {
+                    throw err;
+                  }
+                  // ensure parent directory exists
+                  fs.mkdirp(
+                    path.join(outputDir, path.dirname(fileName)),
+                    function (err) {
+                      if (err) {
+                        throw err;
+                      }
+                      readStream.pipe(
+                        fs.createWriteStream(path.join(outputDir, fileName))
+                      );
+                      readStream.on("end", function () {
+                        zipfile.readEntry();
+                      });
+                      readStream.on("error", (err) => {
+                        throw err;
+                      });
+                    }
+                  );
+                });
+              }
+            });
+            zipfile.on("close", resolve);
+            zipfile.on("error", reject);
+          } catch (err) {
+            reject(err);
+          }
+        }
+      );
     });
-    return paths;
   }
 }

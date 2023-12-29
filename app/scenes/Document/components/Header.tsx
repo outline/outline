@@ -29,6 +29,8 @@ import { publishDocument } from "~/actions/definitions/documents";
 import { navigateToTemplateSettings } from "~/actions/definitions/navigation";
 import { restoreRevision } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -84,10 +86,11 @@ function DocumentHeader({
   headings,
 }: Props) {
   const { t } = useTranslation();
-  const { ui, auth } = useStores();
+  const { ui } = useStores();
   const theme = useTheme();
+  const team = useCurrentTeam({ rejectOnEmpty: false });
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const { resolvedTheme } = ui;
-  const { team, user } = auth;
   const isMobile = useMobile();
   const isRevision = !!revision;
   const isEditingFocus = useEditingFocus();
@@ -108,7 +111,7 @@ function DocumentHeader({
   });
 
   const { isDeleted, isTemplate } = document;
-  const can = usePolicy(document?.id);
+  const can = usePolicy(document);
   const canToggleEmbeds = team?.documentEmbeds;
   const toc = (
     <Tooltip

@@ -93,7 +93,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     );
 
     provider.on("authenticationFailed", () => {
-      void auth.fetch().catch(() => {
+      void auth.fetchAuth().catch(() => {
         history.replace(homePath());
       });
     });

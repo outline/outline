@@ -1,6 +1,6 @@
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 export const CronSchema = BaseSchema.extend({
   body: z.object({

@@ -1,3 +1,4 @@
+import copy from "copy-to-clipboard";
 import invariant from "invariant";
 import {
   DownloadIcon,
@@ -23,11 +24,15 @@ import {
   UnpublishIcon,
   PublishIcon,
   CommentIcon,
+  GlobeIcon,
+  CopyIcon,
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
 import { ExportContentType, TeamPreference } from "@shared/types";
+import MarkdownHelper from "@shared/utils/MarkdownHelper";
 import { getEventFiles } from "@shared/utils/files";
+import SharePopover from "~/scenes/Document/components/SharePopover";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
@@ -45,6 +50,7 @@ import {
   newDocumentPath,
   searchPath,
   documentPath,
+  urlify,
 } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
@@ -320,6 +326,40 @@ export const unsubscribeDocument = createAction({
   },
 });
 
+export const shareDocument = createAction({
+  name: ({ t }) => t("Share"),
+  analyticsName: "Share document",
+  section: DocumentSection,
+  icon: <GlobeIcon />,
+  perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
+    if (!activeDocumentId || !currentUserId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    const share = stores.shares.getByDocumentId(activeDocumentId);
+    const sharedParent = stores.shares.getByDocumentParents(activeDocumentId);
+    if (!document) {
+      return;
+    }
+
+    stores.dialogs.openModal({
+      title: t("Share this document"),
+      isCentered: true,
+      content: (
+        <SharePopover
+          document={document}
+          share={share}
+          sharedParent={sharedParent}
+          onRequestClose={stores.dialogs.closeAllModals}
+          hideTitle
+          visible
+        />
+      ),
+    });
+  },
+});
+
 export const downloadDocumentAsHTML = createAction({
   name: ({ t }) => t("HTML"),
   analyticsName: "Download document as HTML",
@@ -394,6 +434,47 @@ export const downloadDocument = createAction({
     downloadDocumentAsPDF,
     downloadDocumentAsMarkdown,
   ],
+});
+
+export const copyDocumentAsMarkdown = createAction({
+  name: ({ t }) => t("Copy as Markdown"),
+  section: DocumentSection,
+  keywords: "clipboard",
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ stores, activeDocumentId, t }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      copy(MarkdownHelper.toMarkdown(document));
+      toast.success(t("Markdown copied to clipboard"));
+    }
+  },
+});
+
+export const copyDocumentLink = createAction({
+  name: ({ t }) => t("Copy link"),
+  section: DocumentSection,
+  keywords: "clipboard",
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ stores, activeDocumentId, t }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      copy(urlify(documentPath(document)));
+      toast.success(t("Link copied to clipboard"));
+    }
+  },
+});
+
+export const copyDocument = createAction({
+  name: ({ t }) => t("Copy"),
+  analyticsName: "Copy document",
+  section: DocumentSection,
+  icon: <CopyIcon />,
+  keywords: "clipboard",
+  children: [copyDocumentLink, copyDocumentAsMarkdown],
 });
 
 export const duplicateDocument = createAction({
@@ -703,7 +784,7 @@ export const archiveDocument = createAction({
 });
 
 export const deleteDocument = createAction({
-  name: ({ t }) => t("Delete"),
+  name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete document",
   section: DocumentSection,
   icon: <TrashIcon />,
@@ -781,8 +862,7 @@ export const openDocumentComments = createAction({
     const can = stores.policies.abilities(activeDocumentId ?? "");
     return (
       !!activeDocumentId &&
-      can.read &&
-      !can.restore &&
+      can.comment &&
       !!stores.auth.team?.getPreference(TeamPreference.Commenting)
     );
   },
@@ -854,6 +934,8 @@ export const rootDocumentActions = [
   deleteDocument,
   importDocument,
   downloadDocument,
+  copyDocumentLink,
+  copyDocumentAsMarkdown,
   starDocument,
   unstarDocument,
   publishDocument,

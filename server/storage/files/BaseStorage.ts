@@ -85,6 +85,17 @@ export default abstract class BaseStorage {
   }): Promise<string | undefined>;
 
   /**
+   * Returns a file handle for a file from the storage provider.
+   *
+   * @param key The path to the file
+   * @returns The file path and a cleanup function
+   */
+  public abstract getFileHandle(key: string): Promise<{
+    path: string;
+    cleanup: () => Promise<void>;
+  }>;
+
+  /**
    * Returns a buffer of a file from the storage provider.
    *
    * @param key The path to the file
@@ -156,7 +167,8 @@ export default abstract class BaseStorage {
         contentType =
           res.headers.get("content-type") ?? "application/octet-stream";
       } catch (err) {
-        Logger.error("Error fetching URL to upload", err, {
+        Logger.warn("Error fetching URL to upload", {
+          error: err.message,
           url,
           key,
           acl,

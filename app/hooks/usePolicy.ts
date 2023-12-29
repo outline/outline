@@ -11,7 +11,6 @@ import useStores from "./useStores";
  */
 export default function usePolicy(entity?: string | Model | null) {
   const { policies } = useStores();
-  const triggered = React.useRef(false);
   const entityId = entity
     ? typeof entity === "string"
       ? entity
@@ -19,13 +18,15 @@ export default function usePolicy(entity?: string | Model | null) {
     : "";
 
   React.useEffect(() => {
-    if (entity && typeof entity !== "string") {
-      // The policy for this model is missing and we haven't tried to fetch it
-      // yet, go ahead and do that now. The force flag is needed otherwise the
-      // network request will be skipped due to the model existing in the store
-      if (!policies.get(entity.id) && !triggered.current) {
-        triggered.current = true;
-        void entity.store.fetch(entity.id, { force: true });
+    if (
+      entity &&
+      typeof entity !== "string" &&
+      !entity.isNew &&
+      !entity.isSaving
+    ) {
+      // The policy for this model is missing, reload relationships for this model.
+      if (!policies.get(entity.id)) {
+        void entity.loadRelations();
       }
     }
   }, [policies, entity]);

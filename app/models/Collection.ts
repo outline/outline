@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import trim from "lodash/trim";
 import { action, computed, observable, reaction, runInAction } from "mobx";
 import {
@@ -13,6 +14,8 @@ import { client } from "~/utils/ApiClient";
 import Field from "./decorators/Field";
 
 export default class Collection extends ParanoidModel {
+  static modelName = "Collection";
+
   store: CollectionsStore;
 
   @observable
@@ -146,12 +149,13 @@ export default class Collection extends ParanoidModel {
 
     try {
       this.isFetching = true;
-      const { data } = await client.post("/collections.documents", {
+      const res = await client.post("/collections.documents", {
         id: this.id,
       });
+      invariant(res?.data, "Data should be available");
 
       runInAction("Collection#fetchDocuments", () => {
-        this.documents = data;
+        this.documents = res.data;
       });
     } finally {
       this.isFetching = false;
@@ -273,7 +277,7 @@ export default class Collection extends ParanoidModel {
   }
 
   @action
-  star = async () => this.store.star(this);
+  star = async (index?: string) => this.store.star(this, index);
 
   @action
   unstar = async () => this.store.unstar(this);

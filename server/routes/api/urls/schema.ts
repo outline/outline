@@ -2,7 +2,7 @@ import isNil from "lodash/isNil";
 import { z } from "zod";
 import { isUrl } from "@shared/utils/urls";
 import { ValidateURL } from "@server/validation";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 export const UrlsUnfurlSchema = BaseSchema.extend({
   body: z
@@ -34,3 +34,11 @@ export const UrlsUnfurlSchema = BaseSchema.extend({
 });
 
 export type UrlsUnfurlReq = z.infer<typeof UrlsUnfurlSchema>;
+
+export const UrlsCheckCnameSchema = BaseSchema.extend({
+  body: z.object({
+    hostname: z.string(),
+  }),
+});
+
+export type UrlsCheckCnameReq = z.infer<typeof UrlsCheckCnameSchema>;

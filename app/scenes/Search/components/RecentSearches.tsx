@@ -28,7 +28,9 @@ function RecentSearches(
   const [isPreloaded] = React.useState(searches.recent.length > 0);
 
   React.useEffect(() => {
-    void searches.fetchPage({});
+    void searches.fetchPage({
+      source: "app",
+    });
   }, [searches]);
 
   const content = searches.recent.length ? (

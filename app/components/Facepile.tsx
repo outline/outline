@@ -32,9 +32,12 @@ function Facepile({
           </span>
         </More>
       )}
-      {users.slice(0, limit).map((user) => (
-        <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
-      ))}
+      {users
+        .filter(Boolean)
+        .slice(0, limit)
+        .map((user) => (
+          <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
+        ))}
     </Avatars>
   );
 }

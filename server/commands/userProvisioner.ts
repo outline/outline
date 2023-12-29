@@ -4,6 +4,7 @@ import {
   InvalidAuthenticationError,
   InviteRequiredError,
 } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import { Event, Team, User, UserAuthentication } from "@server/models";
 import { sequelize } from "@server/storage/database";
 
@@ -211,6 +212,10 @@ export default async function userProvisioner({
     // If the team settings are set to require invites, and there's no existing user record,
     // throw an error and fail user creation.
     if (team?.inviteRequired) {
+      Logger.info("authentication", "Sign in without invitation", {
+        teamId: team.id,
+        email,
+      });
       throw InviteRequiredError();
     }
 

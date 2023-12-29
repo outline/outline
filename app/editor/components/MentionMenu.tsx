@@ -32,14 +32,14 @@ interface MentionItem extends MenuItem {
 
 type Props = Omit<
   SuggestionsMenuProps<MentionItem>,
-  "renderMenuItem" | "items" | "onLinkToolbarOpen" | "embeds" | "trigger"
+  "renderMenuItem" | "items" | "embeds" | "trigger"
 >;
 
 function MentionMenu({ search, isActive, ...rest }: Props) {
   const [loaded, setLoaded] = React.useState(false);
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { t } = useTranslation();
-  const { users, auth } = useStores();
+  const { auth, users } = useStores();
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
   const { data, loading, request } = useRequest(
@@ -69,7 +69,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
           id: v4(),
           type: MentionType.User,
           modelId: user.id,
-          actorId: auth.user?.id,
+          actorId: auth.currentUserId ?? undefined,
           label: user.name,
         },
       }));
@@ -77,7 +77,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       setItems(items);
       setLoaded(true);
     }
-  }, [auth.user?.id, loading, data]);
+  }, [auth.currentUserId, loading, data]);
 
   // Prevent showing the menu until we have data otherwise it will be positioned
   // incorrectly due to the height being unknown.

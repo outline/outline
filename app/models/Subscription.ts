@@ -9,6 +9,8 @@ import Relation from "./decorators/Relation";
  * A subscription represents a request for a user to receive notifications for a document.
  */
 class Subscription extends Model {
+  static modelName = "Subscription";
+
   /** The user ID subscribing */
   userId: string;
 

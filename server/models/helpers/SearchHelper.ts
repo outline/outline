@@ -427,7 +427,7 @@ export default class SearchHelper {
    * @param query The user search query
    * @returns The query formatted for Postgres ts_query
    */
-  private static webSearchQuery(query: string): string {
+  public static webSearchQuery(query: string): string {
     // limit length of search queries as we're using regex against untrusted input
     let limitedQuery = this.escapeQuery(query.slice(0, this.maxQueryLength));
 
@@ -439,7 +439,7 @@ export default class SearchHelper {
       !limitedQuery.endsWith('"');
 
     // Replace single quote characters with &.
-    const singleQuotes = limitedQuery.matchAll(/'/g);
+    const singleQuotes = limitedQuery.matchAll(/'+/g);
 
     for (const match of singleQuotes) {
       if (
@@ -454,8 +454,10 @@ export default class SearchHelper {
       }
     }
 
-    return queryParser()(
-      singleUnquotedSearch ? `${limitedQuery}*` : limitedQuery
+    return (
+      queryParser()(singleUnquotedSearch ? `${limitedQuery}*` : limitedQuery)
+        // Remove any trailing join characters
+        .replace(/&$/, "")
     );
   }
 

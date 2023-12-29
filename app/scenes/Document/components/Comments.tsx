@@ -4,12 +4,14 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
+import { ProsemirrorData } from "@shared/types";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
+import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CommentForm from "./CommentForm";
@@ -23,9 +25,14 @@ function Comments() {
   const match = useRouteMatch<{ documentSlug: string }>();
   const document = documents.getByUrl(match.params.documentSlug);
   const focusedComment = useFocusedComment();
-  const can = usePolicy(document?.id);
+  const can = usePolicy(document);
 
   useKeyDown("Escape", () => document && ui.collapseComments(document?.id));
+
+  const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
+    `draft-${document?.id}-new`,
+    undefined
+  );
 
   if (!document) {
     return null;
@@ -69,6 +76,8 @@ function Comments() {
       <AnimatePresence initial={false}>
         {!focusedComment && can.comment && (
           <NewCommentForm
+            draft={draft}
+            onSaveDraft={onSaveDraft}
             documentId={document.id}
             placeholder={`${t("Add a comment")}…`}
             autoFocus={false}

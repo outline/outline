@@ -21,11 +21,7 @@ export function UserChangeToViewerDialog({ user, onSubmit }: Props) {
   };
 
   return (
-    <ConfirmationDialog
-      onSubmit={handleSubmit}
-      submitText={t("Confirm")}
-      savingText={`${t("Saving")}…`}
-    >
+    <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
       {t(
         "Are you sure you want to make {{ userName }} a read-only viewer? They will not be able to edit any content",
         {
@@ -47,11 +43,7 @@ export function UserChangeToMemberDialog({ user, onSubmit }: Props) {
   };
 
   return (
-    <ConfirmationDialog
-      onSubmit={handleSubmit}
-      submitText={t("Confirm")}
-      savingText={`${t("Saving")}…`}
-    >
+    <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
       {t("Are you sure you want to make {{ userName }} a member?", {
         userName: user.name,
       })}
@@ -94,11 +86,7 @@ export function UserChangeToAdminDialog({ user, onSubmit }: Props) {
   };
 
   return (
-    <ConfirmationDialog
-      onSubmit={handleSubmit}
-      submitText={t("Confirm")}
-      savingText={`${t("Saving")}…`}
-    >
+    <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
       {t(
         "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.",
         {
@@ -119,11 +107,7 @@ export function UserSuspendDialog({ user, onSubmit }: Props) {
   };
 
   return (
-    <ConfirmationDialog
-      onSubmit={handleSubmit}
-      submitText={t("Confirm")}
-      savingText={`${t("Saving")}…`}
-    >
+    <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
       {t(
         "Are you sure you want to suspend {{ userName }}? Suspended users will be prevented from logging in.",
         {

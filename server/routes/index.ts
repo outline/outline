@@ -7,9 +7,10 @@ import Router from "koa-router";
 import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
-import { IntegrationType } from "@shared/types";
+import { IntegrationType, TeamPreference } from "@shared/types";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
+import shareDomains from "@server/middlewares/shareDomains";
 import { Integration } from "@server/models";
 import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
@@ -18,7 +19,6 @@ import apexRedirect from "../middlewares/apexRedirect";
 import { renderApp, renderShare } from "./app";
 import errors from "./errors";
 
-const isProduction = env.ENVIRONMENT === "production";
 const koa = new Koa();
 const router = new Router();
 
@@ -58,7 +58,7 @@ router.use(
   }
 );
 
-if (isProduction) {
+if (env.isProduction) {
   router.get("/static/*", async (ctx) => {
     try {
       const pathname = ctx.path.substring(8);
@@ -123,13 +123,24 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
-router.get("/s/:shareId", renderShare);
-router.get("/s/:shareId/doc/:documentSlug", renderShare);
-router.get("/s/:shareId/*", renderShare);
+router.get("/s/:shareId", shareDomains(), renderShare);
+router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
+router.get("/s/:shareId/*", shareDomains(), renderShare);
 
 // catch all for application
-router.get("*", async (ctx, next) => {
+router.get("*", shareDomains(), async (ctx, next) => {
+  if (ctx.state?.rootShare) {
+    return renderShare(ctx, next);
+  }
+
   const team = await getTeamFromContext(ctx);
+
+  // Redirect all requests to custom domain if one is set
+  if (team?.domain && team.domain !== ctx.hostname) {
+    ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
+    return;
+  }
+
   const analytics = team
     ? await Integration.findOne({
         where: {
@@ -139,14 +150,12 @@ router.get("*", async (ctx, next) => {
       })
     : undefined;
 
-  // Redirect all requests to custom domain if one is set
-  if (team?.domain && team.domain !== ctx.hostname) {
-    ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
-    return;
-  }
-
   return renderApp(ctx, next, {
     analytics,
+    shortcutIcon:
+      team?.getPreference(TeamPreference.PublicBranding) && team.avatarUrl
+        ? team.avatarUrl
+        : undefined,
   });
 });
 

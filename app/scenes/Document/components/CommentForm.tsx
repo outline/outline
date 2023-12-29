@@ -1,25 +1,35 @@
 import { m } from "framer-motion";
 import { action } from "mobx";
 import { observer } from "mobx-react";
+import { ImageIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { VisuallyHidden } from "reakit";
 import { toast } from "sonner";
+import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
-import { CommentValidation } from "@shared/validations";
+import { ProsemirrorData } from "@shared/types";
+import { getEventFiles } from "@shared/utils/files";
+import { AttachmentValidation, CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import type { Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
-import usePersistedState from "~/hooks/usePersistedState";
 import useStores from "~/hooks/useStores";
 import CommentEditor from "./CommentEditor";
 import { Bubble } from "./CommentThreadItem";
 
 type Props = {
+  /** Callback when the draft should be saved. */
+  onSaveDraft: (data: ProsemirrorData | undefined) => void;
+  /** A draft comment for this thread. */
+  draft?: ProsemirrorData;
   /** The document that the comment will be associated with */
   documentId: string;
   /** The comment thread that the comment will be associated with */
@@ -45,6 +55,8 @@ type Props = {
 function CommentForm({
   documentId,
   thread,
+  draft,
+  onSaveDraft,
   onTyping,
   onFocus,
   onBlur,
@@ -56,14 +68,12 @@ function CommentForm({
   ...rest
 }: Props) {
   const { editor } = useDocumentContext();
-  const [data, setData] = usePersistedState<Record<string, any> | undefined>(
-    `draft-${documentId}-${!thread ? "new" : thread?.id}`,
-    undefined
-  );
   const formRef = React.useRef<HTMLFormElement>(null);
   const editorRef = React.useRef<SharedEditor>(null);
   const [forceRender, setForceRender] = React.useState(0);
   const [inputFocused, setInputFocused] = React.useState(autoFocus);
+  const file = React.useRef<HTMLInputElement>(null);
+  const theme = useTheme();
   const { t } = useTranslation();
   const { comments } = useStores();
   const user = useCurrentUser();
@@ -84,7 +94,7 @@ function CommentForm({
   const handleCreateComment = action(async (event: React.FormEvent) => {
     event.preventDefault();
 
-    setData(undefined);
+    onSaveDraft(undefined);
     setForceRender((s) => ++s);
     setInputFocused(false);
 
@@ -93,7 +103,7 @@ function CommentForm({
       new Comment(
         {
           documentId,
-          data,
+          data: draft,
         },
         comments
       );
@@ -101,7 +111,7 @@ function CommentForm({
     comment
       .save({
         documentId,
-        data,
+        data: draft,
       })
       .catch(() => {
         comment.isNew = true;
@@ -116,18 +126,18 @@ function CommentForm({
 
   const handleCreateReply = action(async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!data) {
+    if (!draft) {
       return;
     }
 
-    setData(undefined);
+    onSaveDraft(undefined);
     setForceRender((s) => ++s);
 
     const comment = new Comment(
       {
         parentCommentId: thread?.id,
         documentId,
-        data,
+        data: draft,
       },
       comments
     );
@@ -153,10 +163,10 @@ function CommentForm({
   });
 
   const handleChange = (
-    value: (asString: boolean, trim: boolean) => Record<string, any>
+    value: (asString: boolean, trim: boolean) => ProsemirrorData
   ) => {
     const text = value(true, true);
-    setData(text ? value(false, true) : undefined);
+    onSaveDraft(text ? value(false, true) : undefined);
     onTyping?.();
   };
 
@@ -173,7 +183,7 @@ function CommentForm({
   };
 
   const handleCancel = async () => {
-    setData(undefined);
+    onSaveDraft(undefined);
     setForceRender((s) => ++s);
     setInputFocused(false);
     await reset();
@@ -186,6 +196,23 @@ function CommentForm({
 
   const handleBlur = () => {
     onBlur?.();
+  };
+
+  const handleFilePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const files = getEventFiles(event);
+    if (!files.length) {
+      return;
+    }
+    editorRef.current?.insertFiles(event, files);
+  };
+
+  const handleImageUpload = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    event.preventDefault();
+    file.current?.click();
   };
 
   // Focus the editor when it's a new comment just mounted, after a delay as the
@@ -227,6 +254,15 @@ function CommentForm({
       {...presence}
       {...rest}
     >
+      <VisuallyHidden>
+        <input
+          ref={file}
+          type="file"
+          onChange={handleFilePicked}
+          accept={AttachmentValidation.imageContentTypes.join(", ")}
+          tabIndex={-1}
+        />
+      </VisuallyHidden>
       <Flex gap={8} align="flex-start" reverse={dir === "rtl"}>
         <Avatar model={user} size={24} style={{ marginTop: 8 }} />
         <Bubble
@@ -240,7 +276,7 @@ function CommentForm({
           <CommentEditor
             key={`${forceRender}`}
             ref={editorRef}
-            defaultValue={data}
+            defaultValue={draft}
             onChange={handleChange}
             onSave={handleSave}
             onFocus={handleFocus}
@@ -255,14 +291,21 @@ function CommentForm({
                 : `${t("Add a reply")}…`)
             }
           />
-          {(inputFocused || data) && (
-            <Flex justify={dir === "rtl" ? "flex-end" : "flex-start"} gap={8}>
-              <ButtonSmall type="submit" borderOnHover>
-                {thread && !thread.isNew ? t("Reply") : t("Post")}
-              </ButtonSmall>
-              <ButtonSmall onClick={handleCancel} neutral borderOnHover>
-                {t("Cancel")}
-              </ButtonSmall>
+          {(inputFocused || draft) && (
+            <Flex justify="space-between" reverse={dir === "rtl"} gap={8}>
+              <Flex gap={8}>
+                <ButtonSmall type="submit" borderOnHover>
+                  {thread && !thread.isNew ? t("Reply") : t("Post")}
+                </ButtonSmall>
+                <ButtonSmall onClick={handleCancel} neutral borderOnHover>
+                  {t("Cancel")}
+                </ButtonSmall>
+              </Flex>
+              <Tooltip delay={500} tooltip={t("Upload image")} placement="top">
+                <NudeButton onClick={handleImageUpload}>
+                  <ImageIcon color={theme.textTertiary} />
+                </NudeButton>
+              </Tooltip>
             </Flex>
           )}
         </Bubble>

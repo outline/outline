@@ -55,7 +55,7 @@ function CollectionScene() {
   const id = params.id || "";
   const collection: Collection | null | undefined =
     collections.getByUrl(id) || collections.get(id);
-  const can = usePolicy(collection?.id || "");
+  const can = usePolicy(collection);
 
   React.useEffect(() => {
     setLastVisitedPath(currentPath);
@@ -170,12 +170,12 @@ function CollectionScene() {
                   </Tooltip>
                 )}
               </HeadingWithIcon>
-              <CollectionDescription collection={collection} />
 
               <PinnedDocuments
                 pins={pins.inCollection(collection.id)}
                 canUpdate={can.update}
               />
+              <CollectionDescription collection={collection} />
 
               <Documents>
                 <Tabs>

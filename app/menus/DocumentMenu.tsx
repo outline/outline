@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s, ellipsis } from "@shared/styles";
+import { UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
@@ -41,6 +42,8 @@ import {
   openDocumentComments,
   createDocumentFromTemplate,
   createNestedDocument,
+  shareDocument,
+  copyDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -255,6 +258,7 @@ function DocumentMenu({
             actionToMenuItem(unstarDocument, context),
             actionToMenuItem(subscribeDocument, context),
             actionToMenuItem(unsubscribeDocument, context),
+            ...(isMobile ? [actionToMenuItem(shareDocument, context)] : []),
             {
               type: "separator",
             },
@@ -290,6 +294,7 @@ function DocumentMenu({
             actionToMenuItem(openDocumentHistory, context),
             actionToMenuItem(openDocumentInsights, context),
             actionToMenuItem(downloadDocument, context),
+            actionToMenuItem(copyDocument, context),
             actionToMenuItem(printDocument, context),
             {
               type: "separator",
@@ -324,7 +329,13 @@ function DocumentMenu({
                   label={t("Full width")}
                   checked={document.fullWidth}
                   onChange={(ev) => {
-                    document.fullWidth = ev.currentTarget.checked;
+                    const fullWidth = ev.currentTarget.checked;
+                    user.setPreference(
+                      UserPreference.FullWidthDocuments,
+                      fullWidth
+                    );
+                    void user.save();
+                    document.fullWidth = fullWidth;
                     void document.save();
                   }}
                 />

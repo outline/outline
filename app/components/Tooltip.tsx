@@ -3,6 +3,7 @@ import * as React from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { roundArrow } from "tippy.js";
 import { s } from "@shared/styles";
+import useMobile from "~/hooks/useMobile";
 
 export type Props = Omit<TippyProps, "content" | "theme"> & {
   tooltip?: React.ReactChild | React.ReactChild[];
@@ -10,9 +11,11 @@ export type Props = Omit<TippyProps, "content" | "theme"> & {
 };
 
 function Tooltip({ shortcut, tooltip, delay = 50, ...rest }: Props) {
+  const isMobile = useMobile();
+
   let content = <>{tooltip}</>;
 
-  if (!tooltip) {
+  if (!tooltip || isMobile) {
     return rest.children ?? null;
   }
 

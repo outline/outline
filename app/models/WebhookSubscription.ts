@@ -3,6 +3,8 @@ import Model from "./base/Model";
 import Field from "./decorators/Field";
 
 class WebhookSubscription extends Model {
+  static modelName = "WebhookSubscription";
+
   @Field
   @observable
   id: string;

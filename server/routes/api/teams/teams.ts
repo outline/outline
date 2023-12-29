@@ -19,7 +19,31 @@ import { safeEqual } from "@server/utils/crypto";
 import * as T from "./schema";
 
 const router = new Router();
-const emailEnabled = !!(env.SMTP_HOST || env.ENVIRONMENT === "development");
+const emailEnabled = !!(env.SMTP_HOST || env.isDevelopment);
+
+const handleTeamUpdate = async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
+  const { transaction } = ctx.state;
+  const { user } = ctx.state.auth;
+  const team = await Team.findByPk(user.teamId, {
+    include: [{ model: TeamDomain, separate: true }],
+    lock: transaction.LOCK.UPDATE,
+    transaction,
+  });
+  authorize(user, "update", team);
+
+  const updatedTeam = await teamUpdater({
+    params: ctx.input.body,
+    user,
+    team,
+    ip: ctx.request.ip,
+    transaction,
+  });
+
+  ctx.body = {
+    data: presentTeam(updatedTeam),
+    policies: presentPolicies(user, [updatedTeam]),
+  };
+};
 
 router.post(
   "team.update",
@@ -27,28 +51,16 @@ router.post(
   auth(),
   validate(T.TeamsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
-    const { transaction } = ctx.state;
-    const { user } = ctx.state.auth;
-    const team = await Team.findByPk(user.teamId, {
-      include: [{ model: TeamDomain }],
-      transaction,
-    });
-    authorize(user, "update", team);
+  handleTeamUpdate
+);
 
-    const updatedTeam = await teamUpdater({
-      params: ctx.input.body,
-      user,
-      team,
-      ip: ctx.request.ip,
-      transaction,
-    });
-
-    ctx.body = {
-      data: presentTeam(updatedTeam),
-      policies: presentPolicies(user, [updatedTeam]),
-    };
-  }
+router.post(
+  "teams.update",
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  auth(),
+  validate(T.TeamsUpdateSchema),
+  transaction(),
+  handleTeamUpdate
 );
 
 router.post(

@@ -1,9 +1,9 @@
 import {
   onChangePayload,
-  onConnectPayload,
   onDisconnectPayload,
   onLoadDocumentPayload,
   Extension,
+  connectedPayload,
 } from "@hocuspocus/server";
 import Metrics from "@server/logging/Metrics";
 import { withContext } from "./types";
@@ -28,7 +28,7 @@ export default class MetricsExtension implements Extension {
     });
   }
 
-  async onConnect({ documentName, instance }: withContext<onConnectPayload>) {
+  async connected({ documentName, instance }: withContext<connectedPayload>) {
     Metrics.increment("collaboration.connect", {
       documentName,
     });

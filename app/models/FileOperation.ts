@@ -5,6 +5,8 @@ import User from "./User";
 import Model from "./base/Model";
 
 class FileOperation extends Model {
+  static modelName = "FileOperation";
+
   id: string;
 
   @observable

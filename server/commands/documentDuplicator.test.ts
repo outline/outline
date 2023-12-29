@@ -1,10 +1,9 @@
+import { createContext } from "@server/context";
 import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
 import documentDuplicator from "./documentDuplicator";
 
 describe("documentDuplicator", () => {
-  const ip = "127.0.0.1";
-
   it("should duplicate existing document", async () => {
     const user = await buildUser();
     const original = await buildDocument({
@@ -16,9 +15,8 @@ describe("documentDuplicator", () => {
       documentDuplicator({
         document: original,
         collection: original.collection,
-        transaction,
         user,
-        ip,
+        ctx: createContext(user, transaction),
       })
     );
 
@@ -41,9 +39,8 @@ describe("documentDuplicator", () => {
         document: original,
         collection: original.collection,
         title: "New title",
-        transaction,
         user,
-        ip,
+        ctx: createContext(user, transaction),
       })
     );
 
@@ -73,9 +70,8 @@ describe("documentDuplicator", () => {
         document: original,
         collection: original.collection,
         user,
-        transaction,
         recursive: true,
-        ip,
+        ctx: createContext(user, transaction),
       })
     );
 

@@ -27,7 +27,7 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
-const emailEnabled = !!(env.SMTP_HOST || env.ENVIRONMENT === "development");
+const emailEnabled = !!(env.SMTP_HOST || env.isDevelopment);
 
 router.post(
   "users.list",
@@ -457,7 +457,7 @@ router.post(
     user.incrementFlag(UserFlag.InviteSent);
     await user.save({ transaction });
 
-    if (env.ENVIRONMENT === "development") {
+    if (env.isDevelopment) {
       logger.info(
         "email",
         `Sign in immediately: ${

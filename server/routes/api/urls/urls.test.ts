@@ -4,6 +4,19 @@ import { buildDocument, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import resolvers from "@server/utils/unfurl";
 
+jest.mock("dns", () => ({
+  resolveCname: (
+    input: string,
+    callback: (err: Error | null, addresses: string[]) => void
+  ) => {
+    if (input.includes("valid.custom.domain")) {
+      callback(null, ["secure.outline.dev"]);
+    } else {
+      callback(null, []);
+    }
+  },
+}));
+
 jest
   .spyOn(resolvers.Iframely, "unfurl")
   .mockImplementation(async (_: string) => false);
@@ -202,5 +215,29 @@ describe("#urls.unfurl", () => {
       "https://random.url"
     );
     expect(res.status).toEqual(204);
+  });
+});
+
+describe("#urls.validateCustomDomain", () => {
+  it("should succeed with custom domain pointing at server", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/urls.validateCustomDomain", {
+      body: {
+        token: user.getJwtToken(),
+        hostname: "valid.custom.domain",
+      },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it("should fail with another domain", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/urls.validateCustomDomain", {
+      body: {
+        token: user.getJwtToken(),
+        hostname: "google.com",
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 });

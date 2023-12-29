@@ -30,7 +30,7 @@ function UserMenu({ user }: Props) {
   const menu = useMenuState({
     modal: true,
   });
-  const can = usePolicy(user.id);
+  const can = usePolicy(user);
   const context = useActionContext({
     isContextMenu: true,
   });
@@ -195,7 +195,7 @@ function UserMenu({ user }: Props) {
             },
             {
               type: "button",
-              title: t("Activate account"),
+              title: t("Activate user"),
               onClick: handleActivate,
               visible: !user.isInvited && user.isSuspended,
             },

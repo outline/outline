@@ -27,10 +27,17 @@ import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
 
 type Props = {
+  /** The document to share. */
   document: Document;
+  /** The existing share model, if any. */
   share: Share | null | undefined;
+  /** The existing share parent model, if any. */
   sharedParent: Share | null | undefined;
+  /** Whether to hide the title. */
+  hideTitle?: boolean;
+  /** Callback fired when the popover requests to be closed. */
   onRequestClose: () => void;
+  /** Whether the popover is visible. */
   visible: boolean;
 };
 
@@ -38,6 +45,7 @@ function SharePopover({
   document,
   share,
   sharedParent,
+  hideTitle,
   onRequestClose,
   visible,
 }: Props) {
@@ -50,7 +58,7 @@ function SharePopover({
   const [urlSlug, setUrlSlug] = React.useState("");
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
-  const can = usePolicy(share ? share.id : "");
+  const can = usePolicy(share);
   const documentAbilities = usePolicy(document);
   const collection = document.collectionId
     ? collections.get(document.collectionId)
@@ -213,10 +221,16 @@ function SharePopover({
 
   return (
     <>
-      <Heading>
-        {isPubliclyShared ? <GlobeIcon size={28} /> : <PadlockIcon size={28} />}
-        <span>{t("Share this document")}</span>
-      </Heading>
+      {!hideTitle && (
+        <Heading>
+          {isPubliclyShared ? (
+            <GlobeIcon size={28} />
+          ) : (
+            <PadlockIcon size={28} />
+          )}
+          <span>{t("Share this document")}</span>
+        </Heading>
+      )}
 
       {sharedParent && !document.isDraft && (
         <NoticeWrapper>

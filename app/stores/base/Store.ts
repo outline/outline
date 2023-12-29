@@ -1,13 +1,16 @@
 import invariant from "invariant";
+import flatten from "lodash/flatten";
 import lowerFirst from "lodash/lowerFirst";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
-import { Class } from "utility-types";
+import pluralize from "pluralize";
+import { Pagination } from "@shared/constants";
+import { type JSONObject } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Model from "~/models/base/Model";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
-import { PaginationParams, PartialWithId } from "~/types";
+import type { PaginationParams, PartialWithId, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 
@@ -21,8 +24,6 @@ export enum RPCAction {
 }
 
 type FetchPageParams = PaginationParams & Record<string, any>;
-
-export const DEFAULT_PAGINATION_LIMIT = 25;
 
 export const PAGINATION_SYMBOL = Symbol.for("pagination");
 
@@ -39,7 +40,7 @@ export default abstract class Store<T extends Model> {
   @observable
   isLoaded = false;
 
-  model: Class<T>;
+  model: typeof Model;
 
   modelName: string;
 
@@ -56,13 +57,13 @@ export default abstract class Store<T extends Model> {
     RPCAction.Count,
   ];
 
-  constructor(rootStore: RootStore, model: Class<T>) {
+  constructor(rootStore: RootStore, model: typeof Model) {
     this.rootStore = rootStore;
     this.model = model;
-    this.modelName = lowerFirst(model.name).replace(/\d$/, "");
+    this.modelName = model.modelName;
 
     if (!this.apiEndpoint) {
-      this.apiEndpoint = `${this.modelName}s`;
+      this.apiEndpoint = pluralize(lowerFirst(model.modelName));
     }
   }
 
@@ -89,6 +90,7 @@ export default abstract class Store<T extends Model> {
         return existingModel;
       }
 
+      // @ts-expect-error TS thinks that we're instantiating an abstract class here
       const newModel = new ModelClass(item, this);
       this.data.set(newModel.id, newModel);
       return newModel;
@@ -103,32 +105,30 @@ export default abstract class Store<T extends Model> {
     const inverseRelations = getInverseRelationsForModelClass(this.model);
 
     inverseRelations.forEach((relation) => {
-      // TODO: Need a better way to get the store for a given model name.
-      const store = this.rootStore[`${relation.modelName.toLowerCase()}s`];
-      const items = store.orderedData.filter(
-        (item: Model) => item[relation.idKey] === id
-      );
+      const store = this.rootStore.getStoreForModelName(relation.modelName);
+      if ("orderedData" in store) {
+        const items = (store.orderedData as Model[]).filter(
+          (item) => item[relation.idKey] === id
+        );
 
-      if (relation.options.onDelete === "cascade") {
-        items.forEach((item: Model) => store.remove(item.id));
-      }
+        if (relation.options.onDelete === "cascade") {
+          items.forEach((item) => store.remove(item.id));
+        }
 
-      if (relation.options.onDelete === "null") {
-        items.forEach((item: Model) => {
-          item[relation.idKey] = null;
-        });
+        if (relation.options.onDelete === "null") {
+          items.forEach((item) => {
+            item[relation.idKey] = null;
+          });
+        }
       }
     });
 
     this.data.delete(id);
   }
 
-  save(
-    params: Partial<T>,
-    options: Record<string, string | boolean | number | undefined> = {}
-  ): Promise<T> {
+  save(params: Properties<T>, options: JSONObject = {}): Promise<T> {
     const { isNew, ...rest } = options;
-    if (isNew || !params.id) {
+    if (isNew || !("id" in params)) {
       return this.create(params, rest);
     }
     return this.update(params, rest);
@@ -139,10 +139,7 @@ export default abstract class Store<T extends Model> {
   }
 
   @action
-  async create(
-    params: Partial<T>,
-    options?: Record<string, string | boolean | number | undefined>
-  ): Promise<T> {
+  async create(params: Properties<T>, options?: JSONObject): Promise<T> {
     if (!this.actions.includes(RPCAction.Create)) {
       throw new Error(`Cannot create ${this.modelName}`);
     }
@@ -155,19 +152,18 @@ export default abstract class Store<T extends Model> {
         ...options,
       });
 
-      invariant(res?.data, "Data should be available");
-      this.addPolicies(res.policies);
-      return this.add(res.data);
+      return runInAction(`create#${this.modelName}`, () => {
+        invariant(res?.data, "Data should be available");
+        this.addPolicies(res.policies);
+        return this.add(res.data);
+      });
     } finally {
       this.isSaving = false;
     }
   }
 
   @action
-  async update(
-    params: Partial<T>,
-    options?: Record<string, string | boolean | number | undefined>
-  ): Promise<T> {
+  async update(params: Properties<T>, options?: JSONObject): Promise<T> {
     if (!this.actions.includes(RPCAction.Update)) {
       throw new Error(`Cannot update ${this.modelName}`);
     }
@@ -180,16 +176,18 @@ export default abstract class Store<T extends Model> {
         ...options,
       });
 
-      invariant(res?.data, "Data should be available");
-      this.addPolicies(res.policies);
-      return this.add(res.data);
+      return runInAction(`update#${this.modelName}`, () => {
+        invariant(res?.data, "Data should be available");
+        this.addPolicies(res.policies);
+        return this.add(res.data);
+      });
     } finally {
       this.isSaving = false;
     }
   }
 
   @action
-  async delete(item: T, options: Record<string, any> = {}) {
+  async delete(item: T, options: JSONObject = {}) {
     if (!this.actions.includes(RPCAction.Delete)) {
       throw new Error(`Cannot delete ${this.modelName}`);
     }
@@ -212,7 +210,7 @@ export default abstract class Store<T extends Model> {
   }
 
   @action
-  async fetch(id: string, options: Record<string, any> = {}): Promise<T> {
+  async fetch(id: string, options: JSONObject = {}): Promise<T> {
     if (!this.actions.includes(RPCAction.Info)) {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }
@@ -227,9 +225,12 @@ export default abstract class Store<T extends Model> {
       const res = await client.post(`/${this.apiEndpoint}.info`, {
         id,
       });
-      invariant(res?.data, "Data should be available");
-      this.addPolicies(res.policies);
-      return this.add(res.data);
+
+      return runInAction(`info#${this.modelName}`, () => {
+        invariant(res?.data, "Data should be available");
+        this.addPolicies(res.policies);
+        return this.add(res.data);
+      });
     } catch (err) {
       if (err instanceof AuthorizationError || err instanceof NotFoundError) {
         this.remove(id);
@@ -266,6 +267,20 @@ export default abstract class Store<T extends Model> {
     } finally {
       this.isFetching = false;
     }
+  };
+
+  @action
+  fetchAll = async (): Promise<T[]> => {
+    const limit = Pagination.defaultLimit;
+    const response = await this.fetchPage({ limit });
+    const pages = Math.ceil(response[PAGINATION_SYMBOL].total / limit);
+    const fetchPages = [];
+    for (let page = 1; page < pages; page++) {
+      fetchPages.push(this.fetchPage({ offset: page * limit, limit }));
+    }
+
+    const results = await Promise.all(fetchPages);
+    return flatten(results);
   };
 
   @computed

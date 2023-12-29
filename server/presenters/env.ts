@@ -6,7 +6,10 @@ import { Integration } from "@server/models";
 // do not add anything here that should be a secret or password
 export default function present(
   env: Environment,
-  analytics?: Integration<IntegrationType.Analytics> | null
+  options: {
+    analytics?: Integration<IntegrationType.Analytics> | null;
+    rootShareId?: string | null;
+  } = {}
 ): PublicEnv {
   return {
     URL: env.URL.replace(/\/$/, ""),
@@ -24,14 +27,16 @@ export default function present(
     MAXIMUM_IMPORT_SIZE: env.MAXIMUM_IMPORT_SIZE,
     PDF_EXPORT_ENABLED: false,
     DEFAULT_LANGUAGE: env.DEFAULT_LANGUAGE,
-    EMAIL_ENABLED: !!env.SMTP_HOST || env.ENVIRONMENT === "development",
+    EMAIL_ENABLED: !!env.SMTP_HOST || env.isDevelopment,
     GOOGLE_ANALYTICS_ID: env.GOOGLE_ANALYTICS_ID,
     RELEASE:
       process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION || undefined,
     APP_NAME: env.APP_NAME,
+    ROOT_SHARE_ID: options.rootShareId || undefined,
+
     analytics: {
-      service: analytics?.service,
-      settings: analytics?.settings,
+      service: options.analytics?.service,
+      settings: options.analytics?.settings,
     },
   };
 }

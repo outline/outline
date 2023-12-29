@@ -60,7 +60,6 @@ export type Props<T extends MenuItem = MenuItem> = {
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
-  onLinkToolbarOpen?: () => void;
   onClose: (insertNewLine?: boolean) => void;
   embeds?: EmbedDescriptor[];
   renderMenuItem: (
@@ -252,17 +251,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           return triggerFilePick("*");
         case "embed":
           return triggerLinkInput(item);
-        case "link": {
-          handleClearSearch();
-          props.onClose();
-          props.onLinkToolbarOpen?.();
-          return;
-        }
         default:
           insertNode(item);
       }
     },
-    [insertNode, handleClearSearch, props]
+    [insertNode]
   );
 
   const close = React.useCallback(() => {

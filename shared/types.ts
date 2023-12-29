@@ -60,6 +60,7 @@ export type PublicEnv = {
   GOOGLE_ANALYTICS_ID: string | undefined;
   RELEASE: string | undefined;
   APP_NAME: string;
+  ROOT_SHARE_ID?: string;
   analytics: {
     service?: IntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;
@@ -116,9 +117,22 @@ export enum UserPreference {
   CodeBlockLineNumers = "codeBlockLineNumbers",
   /** Whether documents have a separate edit mode instead of always editing. */
   SeamlessEdit = "seamlessEdit",
+  /** Whether documents should start in full-width mode. */
+  FullWidthDocuments = "fullWidthDocuments",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
+
+export type SourceMetadata = {
+  /** The original source file name. */
+  fileName?: string;
+  /** The original source mime type. */
+  mimeType?: string;
+  /** An ID in the external source. */
+  externalId?: string;
+  /** Whether the item was created through a trial license. */
+  trial?: boolean;
+};
 
 export type CustomTheme = {
   accent: string;
@@ -236,5 +250,15 @@ export type Unfurl<T = OEmbedType> = {
   meta?: Record<string, string>;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ProsemirrorData = Record<string, any>;
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | undefined
+  | null
+  | { [x: string]: JSONValue }
+  | Array<JSONValue>;
+
+export type JSONObject = { [x: string]: JSONValue };
+
+export type ProsemirrorData = JSONObject;

@@ -52,7 +52,7 @@ export default function LinkToolbar({
   });
 
   const handleOnCreateLink = React.useCallback(
-    async (title: string) => {
+    async (title: string, nested?: boolean) => {
       onClose();
       view.focus();
 
@@ -81,6 +81,7 @@ export default function LinkToolbar({
       );
 
       return createAndInsertLink(view, title, href, {
+        nested,
         onCreateLink,
         dictionary,
       });

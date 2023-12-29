@@ -21,6 +21,7 @@ import {
   buildViewer,
   buildTeam,
   buildGroup,
+  buildAdmin,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -1318,19 +1319,19 @@ describe("#documents.search", () => {
       teamId: user.teamId,
     });
     const secondResult = await buildDocument({
-      title: "random text",
-      text: "search term",
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    const thirdResult = await buildDocument({
       title: "search term",
       text: "random text",
       userId: user.id,
       teamId: user.teamId,
     });
-    thirdResult.title = "change";
-    await thirdResult.save();
+    secondResult.title = "change";
+    await secondResult.save();
+    const thirdResult = await buildDocument({
+      title: "random text",
+      text: "search term",
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const res = await server.post("/api/documents.search", {
       body: {
         token: user.getJwtToken(),
@@ -1354,19 +1355,19 @@ describe("#documents.search", () => {
       teamId: user.teamId,
     });
     const secondResult = await buildDocument({
-      title: "random text",
-      text: "search term",
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    const thirdResult = await buildDocument({
       title: "search term",
       text: "random text",
       userId: user.id,
       teamId: user.teamId,
     });
-    thirdResult.title = "change";
-    await thirdResult.save();
+    secondResult.title = "change";
+    await secondResult.save();
+    const thirdResult = await buildDocument({
+      title: "random text",
+      text: "search term",
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const res = await server.post("/api/documents.search", {
       body: {
         token: user.getJwtToken(),
@@ -1841,8 +1842,9 @@ describe("#documents.deleted", () => {
     expect(body.data.length).toEqual(1);
   });
 
-  it("should return deleted documents, including drafts without collection", async () => {
+  it("should return deleted documents, including users drafts without collection", async () => {
     const user = await buildUser();
+    const user2 = await buildUser();
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
@@ -1850,10 +1852,17 @@ describe("#documents.deleted", () => {
     const draftDocument = await buildDraftDocument({
       userId: user.id,
       teamId: user.teamId,
+      collectionId: null,
+    });
+    const otherUserDraft = await buildDraftDocument({
+      userId: user2.id,
+      teamId: user.teamId,
+      collectionId: null,
     });
     await Promise.all([
       document.delete(user.id),
       draftDocument.delete(user.id),
+      otherUserDraft.delete(user2.id),
     ]);
     const res = await server.post("/api/documents.deleted", {
       body: {
@@ -3489,7 +3498,7 @@ describe("#documents.delete", () => {
   });
 
   it("should allow permanently deleting a document", async () => {
-    const user = await buildUser();
+    const user = await buildAdmin();
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,

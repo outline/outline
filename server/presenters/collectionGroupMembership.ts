@@ -12,7 +12,7 @@ export default function presentCollectionGroupMembership(
   membership: GroupPermission
 ): Membership {
   return {
-    id: `${membership.groupId}-${membership.collectionId}`,
+    id: membership.id,
     groupId: membership.groupId,
     collectionId: membership.collectionId,
     permission: membership.permission,

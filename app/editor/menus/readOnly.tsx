@@ -7,12 +7,14 @@ import { Dictionary } from "~/hooks/useDictionary";
 
 export default function readOnlyMenuItems(
   state: EditorState,
+  canUpdate: boolean,
   dictionary: Dictionary
 ): MenuItem[] {
   const { schema } = state;
 
   return [
     {
+      visible: canUpdate,
       name: "comment",
       tooltip: dictionary.comment,
       label: dictionary.comment,

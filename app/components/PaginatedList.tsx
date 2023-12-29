@@ -5,8 +5,8 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
 import { CompositeStateReturn } from "reakit/Composite";
+import { Pagination } from "@shared/constants";
 import RootStore from "~/stores/RootStore";
-import { DEFAULT_PAGINATION_LIMIT } from "~/stores/base/Store";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DelayedMount from "~/components/DelayedMount";
 import PlaceholderList from "~/components/List/Placeholder";
@@ -86,7 +86,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
   reset = () => {
     this.offset = 0;
     this.allowLoadMore = true;
-    this.renderCount = DEFAULT_PAGINATION_LIMIT;
+    this.renderCount = Pagination.defaultLimit;
     this.isFetching = false;
     this.isFetchingInitial = false;
     this.isFetchingMore = false;
@@ -99,7 +99,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
     }
     this.isFetching = true;
     const counter = ++this.fetchCounter;
-    const limit = this.props.options?.limit ?? DEFAULT_PAGINATION_LIMIT;
+    const limit = this.props.options?.limit ?? Pagination.defaultLimit;
     this.error = undefined;
 
     try {
@@ -139,12 +139,12 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
     const leftToRender = (this.props.items?.length ?? 0) - this.renderCount;
 
     if (leftToRender > 0) {
-      this.renderCount += DEFAULT_PAGINATION_LIMIT;
+      this.renderCount += Pagination.defaultLimit;
     }
 
     // If there are less than a pages results in the cache go ahead and fetch
     // another page from the server
-    if (leftToRender <= DEFAULT_PAGINATION_LIMIT) {
+    if (leftToRender <= Pagination.defaultLimit) {
       this.isFetchingMore = true;
       await this.fetchResults();
     }

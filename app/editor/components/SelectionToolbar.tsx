@@ -33,6 +33,7 @@ type Props = {
   isTemplate: boolean;
   readOnly?: boolean;
   canComment?: boolean;
+  canUpdate?: boolean;
   onOpen: () => void;
   onClose: () => void;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
@@ -147,7 +148,10 @@ export default function SelectionToolbar(props: Props) {
     };
   }, [isActive, previousIsActive, readOnly, view]);
 
-  const handleOnCreateLink = async (title: string): Promise<void> => {
+  const handleOnCreateLink = async (
+    title: string,
+    nested?: boolean
+  ): Promise<void> => {
     const { onCreateLink } = props;
 
     if (!onCreateLink) {
@@ -172,6 +176,7 @@ export default function SelectionToolbar(props: Props) {
     );
 
     return createAndInsertLink(view, title, href, {
+      nested,
       onCreateLink,
       dictionary,
     });
@@ -197,12 +202,12 @@ export default function SelectionToolbar(props: Props) {
     );
   };
 
-  const { onCreateLink, isTemplate, rtl, canComment, ...rest } = props;
+  const { onCreateLink, isTemplate, rtl, canComment, canUpdate, ...rest } =
+    props;
   const { state } = view;
   const { selection } = state;
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
 
-  // no toolbar in read-only without commenting or when dragging
   if ((readOnly && !canComment) || isDragging) {
     return null;
   }
@@ -231,7 +236,7 @@ export default function SelectionToolbar(props: Props) {
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, dictionary);
   } else if (readOnly) {
-    items = getReadOnlyMenuItems(state, dictionary);
+    items = getReadOnlyMenuItems(state, !!canUpdate, dictionary);
   } else {
     items = getFormattingMenuItems(state, isTemplate, isMobile, dictionary);
   }
@@ -242,6 +247,9 @@ export default function SelectionToolbar(props: Props) {
       return true;
     }
     if (item.name && !commands[item.name]) {
+      return false;
+    }
+    if (item.visible === false) {
       return false;
     }
     return true;

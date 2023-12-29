@@ -18,6 +18,7 @@ import {
   IsBoolean,
   MaxLength,
 } from "class-validator";
+import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
 import { CannotUseWithout } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
@@ -40,7 +41,7 @@ export class Environment {
   }
 
   /**
-   * The current envionment name.
+   * The current environment name.
    */
   @IsIn(["development", "production", "staging", "test"])
   public ENVIRONMENT = process.env.NODE_ENV ?? "production";
@@ -226,16 +227,20 @@ export class Environment {
   public DEFAULT_LANGUAGE = process.env.DEFAULT_LANGUAGE ?? "en_US";
 
   /**
-   * A comma separated list of which services should be enabled on this
-   * instance – defaults to all.
+   * A comma list of which services should be enabled on this instance – defaults to all.
    *
    * If a services flag is passed it takes priority over the environment variable
    * for example: --services=web,worker
    */
-  public SERVICES =
-    getArg("services") ??
-    process.env.SERVICES ??
-    "collaboration,websockets,worker,web";
+  public SERVICES = uniq(
+    (
+      getArg("services") ??
+      process.env.SERVICES ??
+      "collaboration,websockets,worker,web"
+    )
+      .split(",")
+      .map((service) => service.toLowerCase().trim())
+  );
 
   /**
    * Auto-redirect to https in production. The default is true but you may set
@@ -437,7 +442,7 @@ export class Environment {
   );
 
   /**
-   * OICD client credentials. To enable authentication with any
+   * OIDC client credentials. To enable authentication with any
    * compatible provider.
    */
   @IsOptional()
@@ -687,6 +692,14 @@ export class Environment {
   public IFRAMELY_API_KEY = this.toOptionalString(process.env.IFRAMELY_API_KEY);
 
   /**
+   * Enable unsafe-inline in script-src CSP directive
+   */
+  @IsBoolean()
+  public DEVELOPMENT_UNSAFE_INLINE_CSP = this.toBoolean(
+    process.env.DEVELOPMENT_UNSAFE_INLINE_CSP ?? "false"
+  );
+
+  /**
    * The product name
    */
   public APP_NAME = "Outline";
@@ -701,6 +714,27 @@ export class Environment {
       "https://app.outline.dev",
       "https://app.outline.dev:3000",
     ].includes(this.URL);
+  }
+
+  /**
+   * Returns true if the current installation is running in production.
+   */
+  public get isProduction() {
+    return this.ENVIRONMENT === "production";
+  }
+
+  /**
+   * Returns true if the current installation is running in the development environment.
+   */
+  public get isDevelopment() {
+    return this.ENVIRONMENT === "development";
+  }
+
+  /**
+   * Returns true if the current installation is running in a test environment.
+   */
+  public get isTest() {
+    return this.ENVIRONMENT === "test";
   }
 
   private toOptionalString(value: string | undefined) {
@@ -724,7 +758,13 @@ export class Environment {
    * @returns A boolean
    */
   private toBoolean(value: string) {
-    return value ? !!JSON.parse(value) : false;
+    try {
+      return value ? !!JSON.parse(value) : false;
+    } catch (err) {
+      throw new Error(
+        `"${value}" could not be parsed as a boolean, must be "true" or "false"`
+      );
+    }
   }
 }
 

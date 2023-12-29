@@ -48,6 +48,27 @@ export default () =>
       // https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme
       react({
         babel: {
+          env: {
+            production: {
+              plugins: [
+                [
+                  "babel-plugin-styled-components",
+                  {
+                    displayName: false,
+                  },
+                ],
+              ],
+            },
+          },
+          plugins: [
+            [
+              "babel-plugin-styled-components",
+              {
+                displayName: true,
+                fileName: false,
+              },
+            ],
+          ],
           parserOpts: {
             plugins: ["decorators-legacy", "classProperties"],
           },
@@ -95,7 +116,7 @@ export default () =>
           theme_color: "#fff",
           background_color: "#fff",
           start_url: "/",
-          scope: "/",
+          scope: ".",
           display: "standalone",
           // For Chrome, you must provide at least a 192x192 pixel icon, and a 512x512 pixel icon.
           // If only those two icon sizes are provided, Chrome will automatically scale the icons
@@ -103,7 +124,7 @@ export default () =>
           // pixel-perfection, provide icons in increments of 48dp.
           icons: [
             {
-              src: "/static/images/icon-512.png",
+              src: "/static/images/icon-192.png",
               sizes: "192x192",
               type: "image/png",
             },

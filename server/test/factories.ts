@@ -32,6 +32,7 @@ import {
   Notification,
   SearchQuery,
   Pin,
+  Comment,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 
@@ -393,6 +394,34 @@ export async function buildDocument(
   }
 
   return document;
+}
+
+export async function buildComment(overrides: {
+  userId: string;
+  teamId: string;
+  documentId: string;
+}) {
+  const comment = await Comment.create({
+    teamId: overrides.teamId,
+    documentId: overrides.documentId,
+    data: {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "test",
+            },
+          ],
+        },
+      ],
+    },
+    createdById: overrides.userId,
+  });
+
+  return comment;
 }
 
 export async function buildFileOperation(

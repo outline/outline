@@ -28,7 +28,7 @@ import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 
 function Details() {
-  const { auth, dialogs, ui } = useStores();
+  const { dialogs, ui } = useStores();
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const theme = useTheme();
@@ -65,7 +65,7 @@ function Details() {
       }
 
       try {
-        await auth.updateTeam({
+        await team.save({
           name,
           subdomain,
           defaultCollectionId,
@@ -80,16 +80,7 @@ function Details() {
         toast.error(err.message);
       }
     },
-    [
-      auth,
-      name,
-      subdomain,
-      defaultCollectionId,
-      team.preferences,
-      publicBranding,
-      customTheme,
-      t,
-    ]
+    [team, name, subdomain, defaultCollectionId, publicBranding, customTheme, t]
   );
 
   const handleNameChange = React.useCallback(
@@ -107,9 +98,7 @@ function Details() {
   );
 
   const handleAvatarUpload = async (avatarUrl: string) => {
-    await auth.updateTeam({
-      avatarUrl,
-    });
+    await team.save({ avatarUrl });
     toast.success(t("Logo updated"));
   };
 
@@ -288,8 +277,8 @@ function Details() {
             />
           </SettingRow>
 
-          <Button type="submit" disabled={auth.isSaving || !isValid}>
-            {auth.isSaving ? `${t("Saving")}…` : t("Save")}
+          <Button type="submit" disabled={team.isSaving || !isValid}>
+            {team.isSaving ? `${t("Saving")}…` : t("Save")}
           </Button>
 
           {can.delete && (

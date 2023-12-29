@@ -43,7 +43,7 @@ export default class NotificationsStore extends Store<Notification> {
   @action
   markAllAsRead = async () => {
     await client.post("/notifications.update_all", {
-      viewedAt: new Date(),
+      viewedAt: new Date().toISOString(),
     });
 
     runInAction("NotificationsStore#markAllAsRead", () => {

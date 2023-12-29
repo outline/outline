@@ -107,6 +107,7 @@ function Home() {
 const Documents = styled.div`
   position: relative;
   background: ${s("background")};
+  transition: ${s("backgroundTransition")};
 `;
 
 export default observer(Home);

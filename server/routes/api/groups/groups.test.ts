@@ -258,6 +258,23 @@ describe("#groups.list", () => {
         .includes(anotherUser.id)
     ).toBe(true);
   });
+
+  it("should allow to find a group by its name", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId });
+    await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.list", {
+      body: {
+        name: group.name,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
 });
 
 describe("#groups.info", () => {

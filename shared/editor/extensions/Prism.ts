@@ -121,14 +121,14 @@ function getDecorations({
         const lineCountText = new Array(lineCount)
           .fill(0)
           .map((_, i) => padStart(`${i + 1}`, gutterWidth, " "))
-          .join(" \n");
+          .join("\n");
 
         lineDecorations.push(
           Decoration.node(
             block.pos,
             block.pos + block.node.nodeSize,
             {
-              "data-line-numbers": `${lineCountText} `,
+              "data-line-numbers": `${lineCountText}`,
               style: `--line-number-gutter-width: ${gutterWidth};`,
             },
             {

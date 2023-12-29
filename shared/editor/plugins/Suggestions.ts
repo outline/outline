@@ -1,32 +1,25 @@
+import { action } from "mobx";
 import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import type { Editor } from "../../../app/editor";
-import { EventType } from "../types";
 
 const MAX_MATCH = 500;
 
-export enum SuggestionsMenuType {
-  Emoji = "emoji",
-  Block = "block",
-  Mention = "mention",
-}
-
 type Options = {
-  type: SuggestionsMenuType;
   openRegex: RegExp;
   closeRegex: RegExp;
   enabledInCode: true;
   enabledInTable: true;
 };
 
+type ExtensionState = {
+  open: boolean;
+  query: string;
+};
+
 export class SuggestionsMenuPlugin extends Plugin {
-  constructor(editor: Editor, options: Options) {
+  constructor(options: Options, extensionState: ExtensionState) {
     super({
       props: {
-        handleClick: () => {
-          editor.events.emit(options.type);
-          return false;
-        },
         handleKeyDown: (view, event) => {
           // Prosemirror input rules are not triggered on backspace, however
           // we need them to be evaluted for the filter trigger to work
@@ -41,20 +34,16 @@ export class SuggestionsMenuPlugin extends Plugin {
                 pos,
                 pos,
                 options.openRegex,
-                (state, match) => {
+                action((_, match) => {
                   if (match) {
-                    editor.events.emit(EventType.SuggestionsMenuOpen, {
-                      type: options.type,
-                      query: match[1],
-                    });
+                    extensionState.open = true;
+                    extensionState.query = match[1];
                   } else {
-                    editor.events.emit(
-                      EventType.SuggestionsMenuClose,
-                      options.type
-                    );
+                    extensionState.open = false;
+                    extensionState.query = "";
                   }
                   return null;
-                }
+                })
               );
             });
           }

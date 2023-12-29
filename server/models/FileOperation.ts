@@ -87,6 +87,13 @@ class FileOperation extends ParanoidModel {
     return FileStorage.getFileStream(this.key);
   }
 
+  /**
+   * The file operation contents as a handle which contains a path and cleanup function.
+   */
+  get handle() {
+    return FileStorage.getFileHandle(this.key);
+  }
+
   // hooks
 
   @BeforeDestroy
