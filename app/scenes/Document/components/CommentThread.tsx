@@ -7,6 +7,7 @@ import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
+import { ProsemirrorData } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import Avatar from "~/components/Avatar";
@@ -17,6 +18,7 @@ import Typing from "~/components/Typing";
 import { WebsocketContext } from "~/components/WebsocketProvider";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
+import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { hover } from "~/styles";
@@ -138,6 +140,11 @@ function CommentThread({
     }
   }, [focused, thread.id]);
 
+  const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
+    `draft-${document.id}-${thread.id}`,
+    undefined
+  );
+
   return (
     <Thread
       ref={topRef}
@@ -159,7 +166,7 @@ function CommentThread({
             comment={comment}
             key={comment.id}
             firstOfThread={index === 0}
-            lastOfThread={index === commentsInThread.length - 1}
+            lastOfThread={index === commentsInThread.length - 1 && !draft}
             canReply={focused && can.comment}
             firstOfAuthor={firstOfAuthor}
             lastOfAuthor={lastOfAuthor}
@@ -179,9 +186,11 @@ function CommentThread({
         ))}
 
       <ResizingHeightContainer hideOverflow={false}>
-        {(focused || commentsInThread.length === 0) && can.comment && (
+        {(focused || draft || commentsInThread.length === 0) && can.comment && (
           <Fade timing={100}>
             <CommentForm
+              onSaveDraft={onSaveDraft}
+              draft={draft}
               documentId={document.id}
               thread={thread}
               onTyping={setIsTyping}
@@ -192,7 +201,7 @@ function CommentThread({
           </Fade>
         )}
       </ResizingHeightContainer>
-      {!focused && !recessed && can.comment && (
+      {!focused && !recessed && !draft && can.comment && (
         <Reply onClick={() => setAutoFocus(true)}>{t("Reply")}…</Reply>
       )}
     </Thread>
