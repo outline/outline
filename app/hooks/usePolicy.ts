@@ -18,7 +18,12 @@ export default function usePolicy(entity?: string | Model | null) {
     : "";
 
   React.useEffect(() => {
-    if (entity && typeof entity !== "string") {
+    if (
+      entity &&
+      typeof entity !== "string" &&
+      !entity.isNew &&
+      !entity.isSaving
+    ) {
       // The policy for this model is missing, reload relationships for this model.
       if (!policies.get(entity.id)) {
         void entity.loadRelations();
