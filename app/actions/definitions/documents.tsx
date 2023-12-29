@@ -20,7 +20,7 @@ import {
   ArchiveIcon,
   ShuffleIcon,
   HistoryIcon,
-  LightBulbIcon,
+  GraphIcon,
   UnpublishIcon,
   PublishIcon,
   CommentIcon,
@@ -900,7 +900,7 @@ export const openDocumentInsights = createAction({
   name: ({ t }) => t("Insights"),
   analyticsName: "Open document insights",
   section: DocumentSection,
-  icon: <LightBulbIcon />,
+  icon: <GraphIcon />,
   visible: ({ activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
     const document = activeDocumentId
