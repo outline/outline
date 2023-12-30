@@ -10,11 +10,12 @@ import {
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s, ellipsis } from "@shared/styles";
-import { Background, Placement } from "~/components/ContextMenu";
+import { Backdrop, Background, Placement } from "~/components/ContextMenu";
 import { MenuAnchorCSS } from "~/components/ContextMenu/MenuItem";
 import { LabelText, Outline, Wrapper } from "~/components/Input";
 import { Positioner } from "~/components/InputSelect";
 import { Portal } from "~/components/Portal";
+import useMobile from "~/hooks/useMobile";
 import { undraggableOnDesktop } from "~/styles";
 
 type Suggestion = {
@@ -53,7 +54,9 @@ function Combobox({
 }: Props) {
   const [focused, setFocused] = React.useState(false);
   const [items, setItems] = React.useState(suggestions);
-  const [listWidth, setListWidth] = React.useState(0);
+  const [listWidth, setListWidth] = React.useState<number | string>(0);
+
+  const isMobile = useMobile();
 
   const handleBlur = () => {
     setFocused(false);
@@ -73,11 +76,11 @@ function Combobox({
   });
 
   React.useEffect(() => {
-    if (state.visible && state.unstable_disclosureRef.current) {
+    if (!isMobile && state.visible && state.unstable_disclosureRef.current) {
       const elem = state.unstable_disclosureRef.current;
       setListWidth(elem.clientWidth);
     }
-  }, [state.visible, state.unstable_disclosureRef]);
+  }, [state.visible, state.unstable_disclosureRef, isMobile]);
 
   React.useEffect(() => {
     state.setValues(suggestions.map((s) => s.value));
@@ -115,7 +118,9 @@ function Combobox({
         {...state}
         aria-label={listLabel}
         modal
-        style={{ width: `${listWidth}px` }}
+        style={{
+          width: isMobile ? "auto" : `${listWidth}px`,
+        }}
       >
         {(
           props: React.HTMLAttributes<HTMLDivElement> & {
@@ -130,33 +135,40 @@ function Combobox({
           }
 
           return (
-            <Portal>
-              <Positioner {...props}>
-                <Background
-                  dir="auto"
-                  topAnchor={topAnchor}
-                  rightAnchor={rightAnchor}
-                  hiddenScrollbars
-                  style={{ maxWidth: "100%" }}
-                >
-                  {state.visible
-                    ? items.map((item) => (
-                        <StyledComboboxOption
-                          {...state}
-                          key={item.id}
-                          onClick={() => {
-                            onSelectOption(item);
-                            state.setInputValue("");
-                            state.hide();
-                          }}
-                        >
-                          {item.label ?? item.value}
-                        </StyledComboboxOption>
-                      ))
-                    : null}
-                </Background>
-              </Positioner>
-            </Portal>
+            <>
+              {state.visible && isMobile && (
+                <Portal>
+                  <Backdrop onClick={state.hide} />
+                </Portal>
+              )}
+              <Portal>
+                <Positioner {...props}>
+                  <Background
+                    dir="auto"
+                    topAnchor={topAnchor}
+                    rightAnchor={rightAnchor}
+                    hiddenScrollbars
+                    style={{ maxWidth: "100%" }}
+                  >
+                    {state.visible
+                      ? items.map((item) => (
+                          <StyledComboboxOption
+                            {...state}
+                            key={item.id}
+                            onClick={() => {
+                              onSelectOption(item);
+                              state.setInputValue("");
+                              state.hide();
+                            }}
+                          >
+                            {item.label ?? item.value}
+                          </StyledComboboxOption>
+                        ))
+                      : null}
+                  </Background>
+                </Positioner>
+              </Portal>
+            </>
           );
         }}
       </ComboboxPopover>
