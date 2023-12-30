@@ -30,7 +30,7 @@ import presentNotification from "@server/presenters/notification";
 import { Event } from "../../types";
 
 export default class WebsocketsProcessor {
-  async perform(event: Event, socketio: Server) {
+  public async perform(event: Event, socketio: Server) {
     switch (event.name) {
       case "documents.publish":
       case "documents.unpublish":
@@ -43,10 +43,8 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const channel = document.publishedAt
-          ? `collection-${document.collectionId}`
-          : `user-${event.actorId}`;
-        return socketio.to(channel).emit("entities", {
+        const channels = this.getDocumentEventChannels(event, document);
+        return socketio.to(channels).emit("entities", {
           event: event.name,
           documentIds: [
             {
@@ -79,14 +77,8 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
-        const channels = document.publishedAt
-          ? [
-              `collection-${document.collectionId}`,
-              `document-${event.documentId}`,
-            ]
-          : [`user-${event.actorId}`, `document-${event.documentId}`];
-
         const data = await presentDocument(document);
+        const channels = this.getDocumentEventChannels(event, document);
         return socketio.to(channels).emit(event.name, data);
       }
 
@@ -95,7 +87,9 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
-        return socketio.to(`user-${event.actorId}`).emit("entities", {
+
+        const channels = this.getDocumentEventChannels(event, document);
+        return socketio.to(channels).emit("entities", {
           event: event.name,
           documentIds: [
             {
@@ -143,15 +137,14 @@ export default class WebsocketsProcessor {
       }
 
       case "documents.add_user": {
+        const channels = [
+          `user-${event.userId}`,
+          `document-${event.documentId}`,
+        ];
+
         // the user being added isn't yet in the websocket channel for the document
         // so they need to be notified separately
-        socketio.to(`user-${event.userId}`).emit(event.name, {
-          event: event.name,
-          userId: event.userId,
-          documentId: event.documentId,
-        });
-        // let everyone with access to the document know a user was added
-        socketio.to(`document-${event.documentId}`).emit(event.name, {
+        socketio.to(channels).emit(event.name, {
           event: event.name,
           userId: event.userId,
           documentId: event.documentId,
@@ -410,24 +403,41 @@ export default class WebsocketsProcessor {
 
       case "comments.create":
       case "comments.update": {
-        const comment = await Comment.scope([
-          "defaultScope",
-          "withDocument",
-        ]).findByPk(event.modelId);
+        const comment = await Comment.findByPk(event.modelId, {
+          include: [
+            {
+              model: Document.scope(["withoutState", "withDrafts"]),
+              as: "document",
+              required: true,
+            },
+          ],
+        });
         if (!comment) {
           return;
         }
-        return socketio
-          .to(`collection-${comment.document.collectionId}`)
-          .emit(event.name, presentComment(comment));
+
+        const channels = this.getDocumentEventChannels(event, comment.document);
+        return socketio.to(channels).emit(event.name, presentComment(comment));
       }
 
       case "comments.delete": {
-        return socketio
-          .to(`collection-${event.collectionId}`)
-          .emit(event.name, {
-            modelId: event.modelId,
-          });
+        const comment = await Comment.findByPk(event.modelId, {
+          include: [
+            {
+              model: Document.scope(["withoutState", "withDrafts"]),
+              as: "document",
+              required: true,
+            },
+          ],
+        });
+        if (!comment) {
+          return;
+        }
+
+        const channels = this.getDocumentEventChannels(event, comment.document);
+        return socketio.to(channels).emit(event.name, {
+          modelId: event.modelId,
+        });
       }
 
       case "notifications.create":
@@ -663,5 +673,19 @@ export default class WebsocketsProcessor {
       default:
         return;
     }
+  }
+
+  private getDocumentEventChannels(event: Event, document: Document): string[] {
+    const channels = [`document-${document.id}`];
+
+    if (event.actorId) {
+      channels.push(`user-${event.actorId}`);
+    }
+
+    if (document.publishedAt) {
+      channels.push(`collection-${document.collectionId}`);
+    }
+
+    return channels;
   }
 }

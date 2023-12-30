@@ -4,7 +4,6 @@ import {
   ForeignKey,
   Column,
   Table,
-  Scopes,
   Length,
   DefaultScope,
 } from "sequelize-typescript";
@@ -24,17 +23,6 @@ import TextLength from "./validators/TextLength";
       paranoid: false,
     },
   ],
-}))
-@Scopes(() => ({
-  withDocument: {
-    include: [
-      {
-        model: Document,
-        as: "document",
-        required: true,
-      },
-    ],
-  },
 }))
 @Table({ tableName: "comments", modelName: "comment" })
 @Fix
