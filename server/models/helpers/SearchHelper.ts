@@ -188,27 +188,36 @@ export default class SearchHelper {
     // Ensure we're filtering by the users accessible collections. If
     // collectionId is passed as an option it is assumed that the authorization
     // has already been done in the router
+    let collectionIds;
+
     if (options.collectionId) {
-      where[Op.and].push({
-        collectionId: options.collectionId,
-      });
+      collectionIds = [options.collectionId];
     } else {
-      where[Op.and].push({
-        [Op.or]: [
-          {
-            collectionId: {
-              [Op.in]: await user.collectionIds(),
-            },
-          },
-          {
-            collectionId: {
-              [Op.is]: null,
-            },
-            createdById: user.id,
-          },
-        ],
-      });
+      collectionIds = await user.collectionIds();
     }
+
+    const documentIds = await user.documentIds();
+
+    where[Op.and].push({
+      [Op.or]: [
+        {
+          collectionId: {
+            [Op.in]: collectionIds,
+          },
+        },
+        {
+          collectionId: {
+            [Op.is]: null,
+          },
+          createdById: user.id,
+        },
+        {
+          id: {
+            [Op.in]: documentIds,
+          },
+        },
+      ],
+    });
 
     if (options.dateFilter) {
       where[Op.and].push({
@@ -239,6 +248,11 @@ export default class SearchHelper {
           {
             createdById: user.id,
           },
+          {
+            id: {
+              [Op.in]: documentIds,
+            },
+          },
         ],
       });
     } else {
@@ -265,6 +279,9 @@ export default class SearchHelper {
       },
       {
         method: ["withCollectionPermissions", user.id],
+      },
+      {
+        method: ["withMembership", user.id],
       },
     ]).findAll({
       where,

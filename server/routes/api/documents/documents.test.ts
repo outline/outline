@@ -1067,6 +1067,85 @@ describe("#documents.drafts", () => {
 });
 
 describe("#documents.search_titles", () => {
+  it("should include individually shared drafts with a user in search results", async () => {
+    const user = await buildUser();
+    // create a private collection
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+      permission: null,
+    });
+    // create a draft in collection
+    const document = await buildDocument({
+      collectionId: collection.id,
+      teamId: user.teamId,
+      createdById: user.id,
+      title: "Some title",
+    });
+    document.publishedAt = null;
+    await document.save();
+    const member = await buildUser({
+      teamId: user.teamId,
+    });
+    // add member to the document
+    await server.post("/api/documents.add_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        userId: member.id,
+      },
+    });
+    const res = await server.post("/api/documents.search_titles", {
+      body: {
+        token: member.getJwtToken(),
+        query: "title",
+        includeDrafts: true,
+      },
+    });
+    const body = await res.json();
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(document.id);
+    expect(res.status).toEqual(200);
+  });
+
+  it("should include individually shared docs with a user in search results", async () => {
+    const user = await buildUser();
+    // create a private collection
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+      permission: null,
+    });
+    // create document in that private collection
+    const document = await buildDocument({
+      collectionId: collection.id,
+      teamId: user.teamId,
+      createdById: user.id,
+      title: "Some title",
+    });
+    const member = await buildUser({
+      teamId: user.teamId,
+    });
+    // add member to the document
+    await server.post("/api/documents.add_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        userId: member.id,
+      },
+    });
+    const res = await server.post("/api/documents.search_titles", {
+      body: {
+        token: member.getJwtToken(),
+        query: "title",
+      },
+    });
+    const body = await res.json();
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(document.id);
+    expect(res.status).toEqual(200);
+  });
+
   it("should fail without query", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.search_titles", {
