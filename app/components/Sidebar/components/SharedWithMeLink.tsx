@@ -1,14 +1,10 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { useDrag, useDrop } from "react-dnd";
-import { getEmptyImage } from "react-dnd-html5-backend";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import UserMembership from "~/models/UserMembership";
 import Fade from "~/components/Fade";
-import EmojiIcon from "~/components/Icons/EmojiIcon";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
@@ -17,26 +13,15 @@ import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
+import {
+  useDragUserMembership,
+  useDropToReorderUserMembership,
+} from "./useDragAndDrop";
+import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 
 type Props = {
   userMembership: UserMembership;
 };
-
-function useLabelAndIcon({ documentId }: UserMembership) {
-  const { documents } = useStores();
-  const theme = useTheme();
-
-  const document = documents.get(documentId!);
-
-  return {
-    label: document?.titleWithDefault,
-    icon: document?.emoji ? (
-      <EmojiIcon emoji={document.emoji} />
-    ) : (
-      <DocumentIcon color={theme.textSecondary} />
-    ),
-  };
-}
 
 function SharedWithMeLink({ userMembership }: Props) {
   const { ui, collections, documents } = useStores();
@@ -67,44 +52,15 @@ function SharedWithMeLink({ userMembership }: Props) {
     []
   );
 
-  const { label, icon } = useLabelAndIcon(userMembership);
+  const { icon } = useSidebarLabelAndIcon(userMembership);
+  const [{ isDragging }, draggableRef] = useDragUserMembership(userMembership);
 
-  // Draggable
-  const [{ isDragging }, drag, preview] = useDrag({
-    type: "userMembership",
-    item: () => ({
-      userMembership,
-      title: label,
-      icon,
-    }),
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-    canDrag: () => true,
-  });
-
-  React.useEffect(() => {
-    preview(getEmptyImage(), { captureDraggingState: true });
-  }, [preview]);
-
-  // Drop to reorder
-  const [{ isOverReorder, isDraggingAny }, dropToReorder] = useDrop({
-    accept: "userMembership",
-    drop: (item: { userMembership: UserMembership }) => {
-      const next = userMembership?.next();
-
-      void item.userMembership.save({
-        index: fractionalIndex(
-          userMembership?.index || null,
-          next?.index || null
-        ),
-      });
-    },
-    collect: (monitor) => ({
-      isOverReorder: !!monitor.isOver(),
-      isDraggingAny: !!monitor.canDrop(),
-    }),
-  });
+  const getIndex = () => {
+    const next = userMembership?.next();
+    return fractionalIndex(userMembership?.index || null, next?.index || null);
+  };
+  const [reorderMonitor, dropToReorderRef] =
+    useDropToReorderUserMembership(getIndex);
 
   const displayChildDocuments = expanded && !isDragging;
 
@@ -128,7 +84,11 @@ function SharedWithMeLink({ userMembership }: Props) {
 
     return (
       <>
-        <Draggable key={userMembership.id} ref={drag} $isDragging={isDragging}>
+        <Draggable
+          key={userMembership.id}
+          ref={draggableRef}
+          $isDragging={isDragging}
+        >
           <SidebarLink
             depth={0}
             to={{
@@ -168,8 +128,11 @@ function SharedWithMeLink({ userMembership }: Props) {
               />
             ))}
           </Folder>
-          {isDraggingAny && (
-            <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+          {reorderMonitor.isDragging && (
+            <DropCursor
+              isActiveDrop={reorderMonitor.isOverCursor}
+              innerRef={dropToReorderRef}
+            />
           )}
         </Relative>
       </>

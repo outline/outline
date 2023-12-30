@@ -1,7 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Pagination } from "@shared/constants";
@@ -18,6 +17,7 @@ import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
 import SidebarLink from "./SidebarLink";
 import StarredContext from "./StarredContext";
+import { useDropToReorderUserMembership } from "./useDragAndDrop";
 
 function SharedWithMe() {
   const { userMemberships } = useStores();
@@ -30,18 +30,9 @@ function SharedWithMe() {
     });
 
   // Drop to reorder document
-  const [{ isOverReorder, isDraggingAnyStar }, dropToReorder] = useDrop({
-    accept: "userMembership",
-    drop: async (item: { userMembership: UserMembership }) => {
-      void item.userMembership.save({
-        index: fractionalIndex(null, user.memberships[0].index),
-      });
-    },
-    collect: (monitor) => ({
-      isOverReorder: !!monitor.isOver(),
-      isDraggingAnyStar: monitor.getItemType() === "userMembership",
-    }),
-  });
+  const [reorderMonitor, dropToReorderRef] = useDropToReorderUserMembership(
+    () => fractionalIndex(null, user.memberships[0].index)
+  );
 
   React.useEffect(() => {
     if (error) {
@@ -58,10 +49,10 @@ function SharedWithMe() {
       <Flex column>
         <Header title={t("Shared with me")}>
           <Relative>
-            {isDraggingAnyStar && (
+            {reorderMonitor.isDragging && (
               <DropCursor
-                isActiveDrop={isOverReorder}
-                innerRef={dropToReorder}
+                isActiveDrop={reorderMonitor.isOverCursor}
+                innerRef={dropToReorderRef}
                 position="top"
               />
             )}
