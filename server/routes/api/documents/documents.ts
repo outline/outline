@@ -1468,9 +1468,6 @@ router.post(
       rejectOnEmpty: true,
       transaction,
     });
-    if (!(document.collection && document.collection.isPrivate)) {
-      ctx.throw(400, "Document should belong to a private collection");
-    }
     authorize(actor, "update", document);
 
     if (userId === actor.id) {

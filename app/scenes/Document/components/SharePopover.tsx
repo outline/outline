@@ -66,9 +66,8 @@ function SharePopover({
     : undefined;
   const canPublish =
     can.update &&
-    !document.isTemplate &&
     team.sharing &&
-    collection?.sharing &&
+    (!document.collectionId || collection?.sharing) &&
     documentAbilities.share;
   const isPubliclyShared =
     team.sharing &&

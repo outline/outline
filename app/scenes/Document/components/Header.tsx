@@ -244,16 +244,11 @@ function DocumentHeader({
                 />
               </Action>
             )}
-            {!isEditing &&
-              !isDeleted &&
-              !isRevision &&
-              !isTemplate &&
-              !isMobile &&
-              document.collectionId && (
-                <Action>
-                  <ShareButton document={document} />
-                </Action>
-              )}
+            {!isEditing && !isRevision && !isMobile && can.share && (
+              <Action>
+                <ShareButton document={document} />
+              </Action>
+            )}
             {(isEditing || isTemplate) && (
               <Action>
                 <Tooltip

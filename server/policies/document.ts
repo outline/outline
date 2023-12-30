@@ -129,13 +129,12 @@ allow(User, ["star", "unstar"], Document, (user, document) => {
 });
 
 allow(User, "share", Document, (user, document) => {
-  if (!document) {
-    return false;
-  }
-  if (document.archivedAt) {
-    return false;
-  }
-  if (document.deletedAt) {
+  if (
+    !document ||
+    document.archivedAt ||
+    document.deletedAt ||
+    document.template
+  ) {
     return false;
   }
 
@@ -194,6 +193,10 @@ allow(User, "publish", Document, (user, document) => {
     if (cannot(user, "updateDocument", document.collection)) {
       return false;
     }
+  }
+
+  if (user.id !== document.createdById) {
+    return false;
   }
 
   return user.teamId === document.teamId;

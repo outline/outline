@@ -2960,6 +2960,7 @@ describe("#documents.update", () => {
     const user = await buildUser({ teamId: team.id });
     const document = await buildDraftDocument({
       teamId: team.id,
+      userId: user.id,
       collectionId: null,
     });
 
@@ -2991,6 +2992,7 @@ describe("#documents.update", () => {
       title: "title",
       text: "text",
       teamId: team.id,
+      userId: user.id,
       collectionId: null,
     });
     const res = await server.post("/api/documents.update", {
@@ -3083,6 +3085,7 @@ describe("#documents.update", () => {
     });
     const template = await buildDocument({
       teamId: user.teamId,
+      userId: user.id,
       collectionId: collection.id,
       template: true,
       publishedAt: null,
@@ -4011,29 +4014,6 @@ describe("#documents.add_user", () => {
       },
     });
     expect(res.status).toEqual(401);
-  });
-
-  it("should fail with status 400 bad request if document does not belong to a private collection", async () => {
-    const user = await buildUser();
-    const document = await buildDocument({
-      createdById: user.id,
-      teamId: user.teamId,
-    });
-    const member = await buildUser({ teamId: user.teamId });
-
-    const res = await server.post("/api/documents.add_user", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-        userId: member.id,
-      },
-    });
-
-    const body = await res.json();
-    expect(res.status).toEqual(400);
-    expect(body.message).toEqual(
-      "Document should belong to a private collection"
-    );
   });
 
   it("should fail with status 400 bad request if user attempts to invite themself", async () => {
