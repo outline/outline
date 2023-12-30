@@ -4118,7 +4118,7 @@ describe("#documents.add_user", () => {
 
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("User cannot invite themself");
+    expect(body.message).toEqual("You cannot invite yourself");
   });
 
   it("should succeed with status 200 ok", async () => {

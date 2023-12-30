@@ -1463,42 +1463,39 @@ router.post(
     const actor = auth.user;
     const { id, userId, permission } = ctx.input.body;
 
-    const document = await Document.findByPk(id, {
-      userId: actor.id,
-      rejectOnEmpty: true,
-      transaction,
-    });
+    if (userId === actor.id) {
+      throw ValidationError("You cannot invite yourself");
+    }
+
+    const [document, user] = await Promise.all([
+      Document.findByPk(id, {
+        userId: actor.id,
+        rejectOnEmpty: true,
+        transaction,
+      }),
+      User.findByPk(userId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
+
+    authorize(actor, "read", user);
     authorize(actor, "update", document);
 
-    if (userId === actor.id) {
-      ctx.throw(400, "User cannot invite themself");
-    }
-    const user = await User.findByPk(userId, {
-      rejectOnEmpty: true,
-      transaction,
-    });
-    authorize(actor, "read", user);
-
-    let membership = await UserPermission.findOne({
+    const [membership] = await UserPermission.findOrCreate({
       where: {
         documentId: id,
         userId,
+      },
+      defaults: {
+        permission: permission || user.defaultDocumentPermission,
+        createdById: actor.id,
       },
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
 
-    if (!membership) {
-      membership = await UserPermission.create(
-        {
-          documentId: id,
-          userId,
-          permission: permission || user.defaultDocumentPermission,
-          createdById: actor.id,
-        },
-        { transaction }
-      );
-    } else if (permission) {
+    if (permission) {
       membership.permission = permission;
       await membership.save({ transaction });
     }
@@ -1539,10 +1536,18 @@ router.post(
     const actor = auth.user;
     const { id, userId } = ctx.input.body;
 
-    const document = await Document.findByPk(id, { userId: actor.id });
+    const [document, user] = await Promise.all([
+      Document.findByPk(id, {
+        userId: actor.id,
+        rejectOnEmpty: true,
+        transaction,
+      }),
+      User.findByPk(userId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
     authorize(actor, "update", document);
-
-    const user = await User.findByPk(userId);
     authorize(actor, "read", user);
 
     await document.$remove("user", user, { transaction });
