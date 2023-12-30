@@ -28,14 +28,12 @@ export default class UserMembershipsStore extends Store<UserMembership> {
       const res = await client.post(`/userMemberships.list`, params);
       invariant(res?.data, "Data not available");
 
-      let models: UserMembership[] = [];
-      runInAction(`UserMembershipsStore#fetchPage`, () => {
+      return runInAction(`UserMembershipsStore#fetchPage`, () => {
         res.data.documents.forEach(this.rootStore.documents.add);
-        models = res.data.memberships.map(this.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;
+        return res.data.memberships.map(this.add);
       });
-      return models;
     } finally {
       this.isFetching = false;
     }
@@ -51,14 +49,15 @@ export default class UserMembershipsStore extends Store<UserMembership> {
       const res = await client.post(`/documents.memberships`, params);
       invariant(res?.data, "Data not available");
 
-      let response: UserMembership[] = [];
-      runInAction(`MembershipsStore#fetchDocmentMemberships`, () => {
+      return runInAction(`MembershipsStore#fetchDocmentMemberships`, () => {
         res.data.users.forEach(this.rootStore.users.add);
-        response = res.data.memberships.map(this.add);
+
+        const response = res.data.memberships.map(this.add);
         this.isLoaded = true;
+
+        response[PAGINATION_SYMBOL] = res.pagination;
+        return response;
       });
-      response[PAGINATION_SYMBOL] = res.pagination;
-      return response;
     } finally {
       this.isFetching = false;
     }
@@ -71,11 +70,14 @@ export default class UserMembershipsStore extends Store<UserMembership> {
       userId,
       permission,
     });
-    invariant(res?.data, "Membership data should be available");
-    res.data.users.forEach(this.rootStore.users.add);
 
-    const memberships = res.data.memberships.map(this.add);
-    return memberships[0];
+    return runInAction(`UserMembershipsStore#create`, () => {
+      invariant(res?.data, "Membership data should be available");
+      res.data.users.forEach(this.rootStore.users.add);
+
+      const memberships = res.data.memberships.map(this.add);
+      return memberships[0];
+    });
   }
 
   @action

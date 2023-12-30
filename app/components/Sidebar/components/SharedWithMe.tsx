@@ -47,7 +47,7 @@ function SharedWithMe() {
   return (
     <StarredContext.Provider value={true}>
       <Flex column>
-        <Header title={t("Shared with me")}>
+        <Header id="shared" title={t("Shared with me")}>
           <Relative>
             {reorderMonitor.isDragging && (
               <DropCursor
