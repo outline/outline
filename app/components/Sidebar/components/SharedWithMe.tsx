@@ -43,9 +43,11 @@ function SharedWithMe() {
     }),
   });
 
-  if (error) {
-    toast.error(t("Could not load shared documents"));
-  }
+  React.useEffect(() => {
+    if (error) {
+      toast.error(t("Could not load shared documents"));
+    }
+  }, [error, t]);
 
   if (!user.memberships.length) {
     return null;
@@ -54,7 +56,7 @@ function SharedWithMe() {
   return (
     <StarredContext.Provider value={true}>
       <Flex column>
-        <Header id="shared_with_me" title={t("Shared with me")}>
+        <Header title={t("Shared with me")}>
           <Relative>
             {isDraggingAnyStar && (
               <DropCursor
