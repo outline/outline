@@ -113,8 +113,9 @@ class User extends ParanoidModel {
 
   @computed
   get memberships(): UserMembership[] {
-    const memberships = this.store.rootStore.userMemberships.orderedData;
-    return memberships.filter((m) => m.userId === this.id);
+    return this.store.rootStore.userMemberships.orderedData.filter(
+      (m) => m.userId === this.id
+    );
   }
 
   /**

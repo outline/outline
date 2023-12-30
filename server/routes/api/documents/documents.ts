@@ -1,11 +1,12 @@
 import path from "path";
+import fractionalIndex from "fractional-index";
 import fs from "fs-extra";
 import invariant from "invariant";
 import JSZip from "jszip";
 import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
-import { Op, ScopeOptions, WhereOptions } from "sequelize";
+import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
@@ -1482,12 +1483,34 @@ router.post(
     authorize(actor, "read", user);
     authorize(actor, "update", document);
 
+    const where = {
+      documentId: id,
+      userId,
+    };
+
+    const userPermissions = await UserPermission.findAll({
+      where,
+      attributes: ["id", "index", "updatedAt"],
+      limit: 1,
+      order: [
+        // using LC_COLLATE:"C" because we need byte order to drive the sorting
+        // find only the first star so we can create an index before it
+        Sequelize.literal('"user_permission"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+      transaction,
+    });
+
+    // create membership at the beginning of their "Shared with me" section
+    const index = fractionalIndex(
+      null,
+      userPermissions.length ? userPermissions[0].index : null
+    );
+
     const [membership] = await UserPermission.findOrCreate({
-      where: {
-        documentId: id,
-        userId,
-      },
+      where,
       defaults: {
+        index,
         permission: permission || user.defaultDocumentPermission,
         createdById: actor.id,
       },

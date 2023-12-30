@@ -88,7 +88,10 @@ router.post(
     const { transaction } = ctx.state;
 
     const { user } = ctx.state.auth;
-    const membership = await UserPermission.findByPk(id, { transaction });
+    const membership = await UserPermission.findByPk(id, {
+      transaction,
+      rejectOnEmpty: true,
+    });
     authorize(user, "update", membership);
 
     membership.index = index;
