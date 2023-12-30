@@ -154,7 +154,11 @@ export default class Document extends ParanoidModel {
   @observable
   revision: number;
 
-  isCollectionDeleted: boolean | undefined;
+  /**
+   * Whether this document is contained in a collection that has been deleted.
+   */
+  @observable
+  isCollectionDeleted: boolean;
 
   /**
    * Returns the direction of the document text, either "rtl" or "ltr"

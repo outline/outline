@@ -86,7 +86,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
       type: "route",
       title: t("Deleted Collection"),
       icon: undefined,
-      to: collectionPath("deleted-collection"),
+      to: "",
     };
   }
 

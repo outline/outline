@@ -838,15 +838,19 @@ class Document extends ParanoidModel {
   };
 
   isCollectionDeleted = async () => {
-    if (this.collectionId) {
-      const collection = await Collection.findByPk(this.collectionId, {
-        paranoid: false,
-      });
+    if (this.deletedAt || this.archivedAt) {
+      if (this.collectionId) {
+        const collection =
+          this.collection ??
+          (await Collection.findByPk(this.collectionId, {
+            attributes: ["deletedAt"],
+            paranoid: false,
+          }));
 
-      return !!collection?.deletedAt;
+        return !!collection?.deletedAt;
+      }
     }
-
-    return;
+    return false;
   };
 
   unpublish = async (userId: string) => {
