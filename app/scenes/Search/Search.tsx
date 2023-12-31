@@ -30,9 +30,9 @@ import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
+import DocumentTypeFilter from "./components/DocumentTypeFilter";
 import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
-import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 
 type Props = { notFound?: boolean };
@@ -213,7 +213,7 @@ function Search(props: Props) {
         {query ? (
           <>
             <Filters>
-              <StatusFilter
+              <DocumentTypeFilter
                 includeArchived={includeArchived}
                 includeDrafts={includeDrafts}
                 onSelect={({ includeArchived, includeDrafts }) =>

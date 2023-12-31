@@ -11,28 +11,32 @@ type Props = {
   }) => void;
 };
 
-enum StatusFilterOptions {
+enum DocumentType {
   Published = "published",
   Active = "active",
   All = "all",
 }
 
-const StatusFilter = ({ includeArchived, includeDrafts, onSelect }: Props) => {
+const DocumentTypeFilter = ({
+  includeArchived,
+  includeDrafts,
+  onSelect,
+}: Props) => {
   const { t } = useTranslation();
   const options = React.useMemo(
     () => [
       {
-        key: StatusFilterOptions.Published,
+        key: DocumentType.Published,
         label: t("Published documents"),
         note: t("Documents you have access to, excluding drafts"),
       },
       {
-        key: StatusFilterOptions.Active,
+        key: DocumentType.Active,
         label: t("Active documents"),
         note: t("Documents you have access to, including drafts"),
       },
       {
-        key: StatusFilterOptions.All,
+        key: DocumentType.All,
         label: t("All documents"),
         note: t("Documents you have access to, including drafts and archived"),
       },
@@ -42,23 +46,23 @@ const StatusFilter = ({ includeArchived, includeDrafts, onSelect }: Props) => {
 
   const getActiveKey = () => {
     if (includeArchived && includeDrafts) {
-      return StatusFilterOptions.All;
+      return DocumentType.All;
     }
 
     if (includeDrafts) {
-      return StatusFilterOptions.Active;
+      return DocumentType.Active;
     }
 
-    return StatusFilterOptions.Published;
+    return DocumentType.Published;
   };
 
-  const handleSelect = (key: StatusFilterOptions) => {
+  const handleSelect = (key: DocumentType) => {
     switch (key) {
-      case StatusFilterOptions.Published:
+      case DocumentType.Published:
         return onSelect({ includeArchived: false, includeDrafts: false });
-      case StatusFilterOptions.Active:
+      case DocumentType.Active:
         return onSelect({ includeArchived: false, includeDrafts: true });
-      case StatusFilterOptions.All:
+      case DocumentType.All:
         return onSelect({ includeArchived: true, includeDrafts: true });
       default:
         onSelect({ includeArchived: false, includeDrafts: false });
@@ -75,4 +79,4 @@ const StatusFilter = ({ includeArchived, includeDrafts, onSelect }: Props) => {
   );
 };
 
-export default StatusFilter;
+export default DocumentTypeFilter;
