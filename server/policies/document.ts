@@ -149,12 +149,16 @@ allow(User, "share", Document, (user, document) => {
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
-    if (can(user, "share", document.collection)) {
-      return true;
+    if (cannot(user, "share", document.collection)) {
+      return false;
     }
   }
 
-  return user.id === document.createdById;
+  if (document.isDraft) {
+    return user.id === document.createdById;
+  }
+
+  return user.teamId === document.teamId;
 });
 
 allow(User, "update", Document, (user, document) => {
