@@ -3608,6 +3608,7 @@ describe("#documents.delete", () => {
     const user = await buildUser();
     const document = await buildDraftDocument({
       teamId: user.teamId,
+      userId: user.id,
       deletedAt: null,
     });
     const res = await server.post("/api/documents.delete", {

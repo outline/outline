@@ -6,7 +6,7 @@ import {
   TeamPreference,
 } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
-import { allow, _cannot as cannot } from "./cancan";
+import { allow, _cannot as cannot, _can as can } from "./cancan";
 
 allow(User, "createDocument", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) {
@@ -20,11 +20,12 @@ allow(User, "read", Document, (user, document) => {
     return false;
   }
 
-  const membershipAllowsRead = includesMembership(document, [
-    DocumentPermission.Read,
-    DocumentPermission.ReadWrite,
-  ]);
-  if (membershipAllowsRead) {
+  if (
+    includesMembership(document, [
+      DocumentPermission.Read,
+      DocumentPermission.ReadWrite,
+    ])
+  ) {
     return true;
   }
 
@@ -34,6 +35,10 @@ allow(User, "read", Document, (user, document) => {
     cannot(user, "readDocument", document.collection)
   ) {
     return false;
+  }
+
+  if (document.isDraft) {
+    return user.id === document.createdById;
   }
 
   return user.teamId === document.teamId;
@@ -44,11 +49,19 @@ allow(User, "download", Document, (user, document) => {
     return false;
   }
 
-  const membershipAllowsRead = includesMembership(document, [
-    DocumentPermission.Read,
-    DocumentPermission.ReadWrite,
-  ]);
-  if (membershipAllowsRead) {
+  if (
+    user.isViewer &&
+    !user.team.getPreference(TeamPreference.ViewersCanExport)
+  ) {
+    return false;
+  }
+
+  if (
+    includesMembership(document, [
+      DocumentPermission.Read,
+      DocumentPermission.ReadWrite,
+    ])
+  ) {
     return true;
   }
 
@@ -60,11 +73,8 @@ allow(User, "download", Document, (user, document) => {
     return false;
   }
 
-  if (
-    user.isViewer &&
-    !user.team.getPreference(TeamPreference.ViewersCanExport)
-  ) {
-    return false;
+  if (document.isDraft) {
+    return user.id === document.createdById;
   }
 
   return user.teamId === document.teamId;
@@ -75,28 +85,26 @@ allow(User, "comment", Document, (user, document) => {
     return false;
   }
 
+  if (
+    includesMembership(document, [
+      DocumentPermission.Read,
+      DocumentPermission.ReadWrite,
+    ])
+  ) {
+    return true;
+  }
+
   if (document.collectionId) {
     invariant(
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
-
-    if (document.collection.isPrivate) {
-      const membershipAllowsComment = includesMembership(document, [
-        DocumentPermission.Read,
-        DocumentPermission.ReadWrite,
-      ]);
-      if (membershipAllowsComment) {
-        return true;
-      }
-    }
-
-    if (cannot(user, "readDocument", document.collection)) {
-      return false;
+    if (can(user, "readDocument", document.collection)) {
+      return true;
     }
   }
 
-  return user.teamId === document.teamId;
+  return user.id === document.createdById;
 });
 
 allow(User, ["star", "unstar"], Document, (user, document) => {
@@ -104,22 +112,20 @@ allow(User, ["star", "unstar"], Document, (user, document) => {
     return false;
   }
 
+  if (
+    includesMembership(document, [
+      DocumentPermission.Read,
+      DocumentPermission.ReadWrite,
+    ])
+  ) {
+    return true;
+  }
+
   if (document.collectionId) {
     invariant(
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
-
-    if (document.collection.isPrivate) {
-      const membershipAllowsStar = includesMembership(document, [
-        DocumentPermission.Read,
-        DocumentPermission.ReadWrite,
-      ]);
-      if (membershipAllowsStar) {
-        return true;
-      }
-    }
-
     if (cannot(user, "readDocument", document.collection)) {
       return false;
     }
@@ -143,13 +149,12 @@ allow(User, "share", Document, (user, document) => {
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
-
-    if (cannot(user, "share", document.collection)) {
-      return false;
+    if (can(user, "share", document.collection)) {
+      return true;
     }
   }
 
-  return user.teamId === document.teamId;
+  return user.id === document.createdById;
 });
 
 allow(User, "update", Document, (user, document) => {
@@ -157,24 +162,22 @@ allow(User, "update", Document, (user, document) => {
     return false;
   }
 
+  if (includesMembership(document, [DocumentPermission.ReadWrite])) {
+    return true;
+  }
+
   if (document.collectionId) {
     invariant(
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
-
-    if (document.collection.isPrivate) {
-      const membershipAllowsUpdate = includesMembership(document, [
-        DocumentPermission.ReadWrite,
-      ]);
-      if (membershipAllowsUpdate) {
-        return true;
-      }
-    }
-
     if (cannot(user, "updateDocument", document.collection)) {
       return false;
     }
+  }
+
+  if (document.isDraft) {
+    return user.id === document.createdById;
   }
 
   return user.teamId === document.teamId;
@@ -190,16 +193,12 @@ allow(User, "publish", Document, (user, document) => {
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
-    if (cannot(user, "updateDocument", document.collection)) {
-      return false;
+    if (can(user, "updateDocument", document.collection)) {
+      return true;
     }
   }
 
-  if (user.id !== document.createdById) {
-    return false;
-  }
-
-  return user.teamId === document.teamId;
+  return user.id === document.createdById;
 });
 
 allow(User, "duplicate", Document, (user, document) => {
@@ -212,12 +211,12 @@ allow(User, "duplicate", Document, (user, document) => {
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
-    if (cannot(user, "updateDocument", document.collection)) {
-      return false;
+    if (can(user, "updateDocument", document.collection)) {
+      return true;
     }
   }
 
-  return user.teamId === document.teamId;
+  return user.id === document.createdById;
 });
 
 allow(User, "updateInsights", Document, (user, document) => {
@@ -230,48 +229,49 @@ allow(User, "updateInsights", Document, (user, document) => {
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
-    if (cannot(user, "update", document.collection)) {
-      return false;
+    if (can(user, "update", document.collection)) {
+      return true;
     }
   }
-  return user.teamId === document.teamId;
+
+  return user.id === document.createdById;
 });
 
 allow(User, "createChildDocument", Document, (user, document) => {
-  if (!document || !document.isActive || document.isDraft) {
+  if (
+    !document ||
+    !document.isActive ||
+    document.isDraft ||
+    document.template
+  ) {
     return false;
   }
-  if (document.template) {
-    return false;
-  }
+
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-  if (cannot(user, "updateDocument", document.collection)) {
-    return false;
+  if (can(user, "updateDocument", document.collection)) {
+    return true;
   }
-  return user.teamId === document.teamId;
+  return user.id === document.createdById;
 });
 
 allow(User, "move", Document, (user, document) => {
   if (!document || !document.isActive) {
     return false;
   }
-  if (
-    document.collection &&
-    cannot(user, "updateDocument", document.collection)
-  ) {
-    return false;
+  if (document.collection && can(user, "updateDocument", document.collection)) {
+    return true;
   }
-  return user.teamId === document.teamId;
+  return user.id === document.createdById;
 });
 
 allow(User, "pin", Document, (user, document) => {
   if (
     !document ||
-    document.isDraft ||
     !document.isActive ||
+    document.isDraft ||
     document.template
   ) {
     return false;
@@ -280,10 +280,10 @@ allow(User, "pin", Document, (user, document) => {
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-  if (cannot(user, "update", document.collection)) {
-    return false;
+  if (can(user, "update", document.collection)) {
+    return true;
   }
-  return user.teamId === document.teamId;
+  return user.id === document.createdById;
 });
 
 allow(User, "unpin", Document, (user, document) => {
@@ -294,10 +294,10 @@ allow(User, "unpin", Document, (user, document) => {
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-  if (cannot(user, "update", document.collection)) {
-    return false;
+  if (can(user, "update", document.collection)) {
+    return true;
   }
-  return user.teamId === document.teamId;
+  return user.id === document.createdById;
 });
 
 allow(User, ["subscribe", "unsubscribe"], Document, (user, document) => {
@@ -310,26 +310,24 @@ allow(User, ["subscribe", "unsubscribe"], Document, (user, document) => {
     return false;
   }
 
+  if (
+    includesMembership(document, [
+      DocumentPermission.Read,
+      DocumentPermission.ReadWrite,
+    ])
+  ) {
+    return true;
+  }
+
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-
-  if (document.collection.isPrivate) {
-    const membershipAllowsSubscribe = includesMembership(document, [
-      DocumentPermission.Read,
-      DocumentPermission.ReadWrite,
-    ]);
-    if (membershipAllowsSubscribe) {
-      return true;
-    }
+  if (can(user, "readDocument", document.collection)) {
+    return true;
   }
 
-  if (cannot(user, "readDocument", document.collection)) {
-    return false;
-  }
-
-  return user.teamId === document.teamId;
+  return user.id === document.createdById;
 });
 
 allow(User, "pinToHome", Document, (user, document) => {
@@ -359,12 +357,8 @@ allow(User, "delete", Document, (user, document) => {
   }
 
   // unpublished drafts can always be deleted by their owner
-  if (
-    !document.deletedAt &&
-    document.isDraft &&
-    user.id === document.createdById
-  ) {
-    return true;
+  if (document.isDraft) {
+    return user.id === document.createdById;
   }
 
   return user.teamId === document.teamId;
@@ -403,6 +397,11 @@ allow(User, "restore", Document, (user, document) => {
     return false;
   }
 
+  // unpublished drafts can always be restored by their owner
+  if (document.isDraft && user.id === document.createdById) {
+    return true;
+  }
+
   return user.teamId === document.teamId;
 });
 
@@ -429,12 +428,17 @@ allow(User, "unarchive", Document, (user, document) => {
   if (!document || !document.archivedAt || document.deletedAt) {
     return false;
   }
+
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
   if (cannot(user, "updateDocument", document.collection)) {
     return false;
+  }
+
+  if (document.isDraft) {
+    return user.id === document.createdById;
   }
 
   return user.teamId === document.teamId;
