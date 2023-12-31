@@ -55,7 +55,7 @@ function Search(props: Props) {
   // filters
   const query = decodeURIComponentSafe(routeMatch.params.term ?? "");
   const includeArchived = params.get("includeArchived") === "true";
-  const includeDrafts = params.get("includeDrafts") === "true";
+  const includeDrafts = params.get("includeDrafts") !== "false";
   const collectionId = params.get("collectionId") ?? undefined;
   const userId = params.get("userId") ?? undefined;
   const dateFilter = (params.get("dateFilter") as TDateFilter) ?? undefined;
