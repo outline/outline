@@ -2920,10 +2920,10 @@
     "@types/jsonfile" "*"
     "@types/node" "*"
 
-"@types/fuzzy-search@^2.1.2":
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/@types/fuzzy-search/-/fuzzy-search-2.1.2.tgz#d57b2af8fb723baa1792d40d511f431c4c8f75af"
-  integrity sha512-YOqA50Z3xcycm4Br5+MBUpSumfdOAcv34A8A8yFn62zBQPTzJSXQk11qYE5w8BWQ0KrVThXUgEQh7ZLrYI1NaQ==
+"@types/fuzzy-search@^2.1.5":
+  version "2.1.5"
+  resolved "https://registry.yarnpkg.com/@types/fuzzy-search/-/fuzzy-search-2.1.5.tgz#f697a826c5214274ae36eaa96d47889846ed4374"
+  integrity sha512-Yw8OsjhVKbKw83LMDOZ9RXc+N+um48DmZYMrz7QChpHkQuygsc5O40oCL7SfvWgpaaviCx2TbNXYUBwhMtBH5w==
 
 "@types/glob@^8.0.1":
   version "8.0.1"
