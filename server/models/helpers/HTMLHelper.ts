@@ -1,4 +1,4 @@
-import { inline } from "css-inline";
+import { inline } from "@css-inline/css-inline-wasm";
 import env from "@server/env";
 
 export default class HTMLHelper {
@@ -10,11 +10,11 @@ export default class HTMLHelper {
    */
   public static inlineCSS(html: string): string {
     return inline(html, {
-      base_url: env.URL,
-      inline_style_tags: true,
-      keep_link_tags: false,
-      keep_style_tags: false,
-      load_remote_stylesheets: false,
+      baseUrl: env.URL,
+      inlineStyleTags: true,
+      keepLinkTags: false,
+      keepStyleTags: false,
+      loadRemoteStylesheets: false,
     });
   }
 }

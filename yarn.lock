@@ -1184,6 +1184,11 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
+"@css-inline/css-inline-wasm@^0.12.1":
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/@css-inline/css-inline-wasm/-/css-inline-wasm-0.12.1.tgz#3972fda924065de11f686dcf23475b2dc27bdf76"
+  integrity sha512-yw1PvRUIMky0JGLcLvJZ3sPSyhm77alDeN8M+NvUiQhXz8WhPZVF5EuJNHbKY5fozQIjYqk3GGEmwsbNqYlc6g==
+
 "@dabh/diagnostics@^2.0.2":
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@dabh/diagnostics/-/diagnostics-2.0.2.tgz#290d08f7b381b8f94607dc8f471a12c675f9db31"
@@ -5167,11 +5172,6 @@ css-color-keywords@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/css-color-keywords/-/css-color-keywords-1.0.0.tgz#fea2616dc676b2962686b3af8dbdbe180b244e05"
   integrity sha1-/qJhbcZ2spYmhrOvjb2+GAskTgU=
-
-css-inline@^0.11.2:
-  version "0.11.2"
-  resolved "https://registry.yarnpkg.com/css-inline/-/css-inline-0.11.2.tgz#02cb4e0d4ca04d731a21e438c02b3ff11b0a1034"
-  integrity sha512-c/oie5Yqa2lVRwUO7A8nd3c3r0x7yE6MQH2PPB/R1LaUb6ohZD7vNXj23fod5y4QNsNhsQi98/AWfUwo1K6R7g==
 
 css-select@^5.1.0:
   version "5.1.0"
