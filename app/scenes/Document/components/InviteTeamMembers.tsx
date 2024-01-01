@@ -1,4 +1,5 @@
 import { t } from "i18next";
+import { orderBy } from "lodash";
 import isNil from "lodash/isNil";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -29,6 +30,7 @@ function InviteTeamMembers({ document }: Props) {
   const { users, userMemberships } = useStores();
   const [query, setQuery] = React.useState("");
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
+  const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const user = useCurrentUser();
 
   const {
@@ -63,11 +65,13 @@ function InviteTeamMembers({ document }: Props) {
   }, [fetchTeamMembers, fetchDocumentMembers]);
 
   const inviteUser = React.useCallback(
-    (user: User) =>
-      userMemberships.create({
+    (user: User) => {
+      setInvitedInSession((prev) => [...prev, user.id]);
+      return userMemberships.create({
         documentId: document.id,
         userId: user.id,
-      }),
+      });
+    },
     [userMemberships, document.id]
   );
 
@@ -86,7 +90,15 @@ function InviteTeamMembers({ document }: Props) {
             .notInDocument(document.id, query)
             .filter((u) => u.id !== user.id)
         : [],
-    [users, document.id, teamMembers, documentMembers, user.id, query]
+    [
+      users,
+      document.id,
+      document.members,
+      teamMembers,
+      documentMembers,
+      user.id,
+      query,
+    ]
   );
 
   React.useEffect(() => {
@@ -148,6 +160,20 @@ function InviteTeamMembers({ document }: Props) {
     [userMemberships, document]
   );
 
+  // Order newly added users first during the current editing session, on reload members are
+  // ordered by name
+  const members = React.useMemo(
+    () =>
+      orderBy(
+        document.members,
+        (user) =>
+          (invitedInSession.includes(user.id) ? "_" : "") +
+          user.name.toLowerCase(),
+        "asc"
+      ),
+    [document.members, invitedInSession]
+  );
+
   if (loadingTeamMembers || loadingDocumentMembers) {
     return <LoadingIndicator />;
   }
@@ -177,7 +203,7 @@ function InviteTeamMembers({ document }: Props) {
         autoFocus
       />
       <PaginatedList
-        items={document.members}
+        items={members}
         options={{ id: document.id }}
         renderItem={(item: User) => (
           <MemberListItem

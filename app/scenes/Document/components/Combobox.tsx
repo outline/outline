@@ -15,6 +15,7 @@ import { MenuAnchorCSS } from "~/components/ContextMenu/MenuItem";
 import { LabelText, Outline, Wrapper } from "~/components/Input";
 import { Positioner } from "~/components/InputSelect";
 import { Portal } from "~/components/Portal";
+import useBoolean from "~/hooks/useBoolean";
 import useMobile from "~/hooks/useMobile";
 import { undraggableOnDesktop } from "~/styles";
 
@@ -52,19 +53,9 @@ function Combobox({
   onSelectOption,
   ...rest
 }: Props) {
-  const [focused, setFocused] = React.useState(false);
-  const [items, setItems] = React.useState(suggestions);
+  const [focused, handleFocus, handleBlur] = useBoolean();
   const [listWidth, setListWidth] = React.useState<number | string>(0);
-
   const isMobile = useMobile();
-
-  const handleBlur = () => {
-    setFocused(false);
-  };
-
-  const handleFocus = () => {
-    setFocused(true);
-  };
 
   const handleChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     state.setInputValue(ev.target.value);
@@ -74,6 +65,11 @@ function Combobox({
     gutter: 2,
     values: suggestions.map((s) => s.value),
   });
+
+  const items = React.useMemo(
+    () => suggestions.filter((s) => state.matches.includes(s.value)),
+    [state.matches, suggestions]
+  );
 
   React.useEffect(() => {
     if (!isMobile && state.visible && state.unstable_disclosureRef.current) {
@@ -85,10 +81,6 @@ function Combobox({
   React.useEffect(() => {
     state.setValues(suggestions.map((s) => s.value));
   }, [suggestions]);
-
-  React.useEffect(() => {
-    setItems(suggestions.filter((s) => state.matches.includes(s.value)));
-  }, [state.matches, suggestions]);
 
   React.useEffect(() => {
     onChangeInput(state.inputValue);
