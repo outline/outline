@@ -9,11 +9,10 @@ import Avatar from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
+import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import ListItem from "~/components/List/Item";
 import Time from "~/components/Time";
 import MemberMenu from "~/menus/MemberMenu";
-import { Permission } from "~/types";
-import InputMemberPermissionSelect from "./InputMemberPermissionSelect";
 
 type Props = {
   user: User;
@@ -22,7 +21,6 @@ type Props = {
   onAdd?: () => void;
   onRemove?: () => void;
   onUpdate?: (permission: CollectionPermission) => void;
-  permissions?: Permission[];
 };
 
 const MemberListItem = ({
@@ -32,7 +30,6 @@ const MemberListItem = ({
   onUpdate,
   onAdd,
   canEdit,
-  permissions,
 }: Props) => {
   const { t } = useTranslation();
 
@@ -57,8 +54,21 @@ const MemberListItem = ({
         <Flex align="center" gap={8}>
           {onUpdate && (
             <InputMemberPermissionSelect
-              permissions={permissions}
-              value={membership ? membership.permission : undefined}
+              permissions={[
+                {
+                  label: t("View only"),
+                  value: CollectionPermission.Read,
+                },
+                {
+                  label: t("View and edit"),
+                  value: CollectionPermission.ReadWrite,
+                },
+                {
+                  label: t("Admin"),
+                  value: CollectionPermission.Admin,
+                },
+              ]}
+              value={membership?.permission}
               onChange={onUpdate}
               disabled={!canEdit}
             />

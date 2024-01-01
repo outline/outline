@@ -244,8 +244,8 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
 
   ${Inner} {
     line-height: 28px;
-    padding-left: 16px;
-    padding-right: 8px;
+    padding-left: 12px;
+    padding-right: 4px;
   }
 
   svg {

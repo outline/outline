@@ -5,11 +5,9 @@ import * as React from "react";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { Pagination } from "@shared/constants";
-import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
 import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
-import MemberListItem from "~/scenes/CollectionPermissions/components/MemberListItem";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import Flex from "~/components/Flex";
@@ -20,6 +18,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
 import Combobox from "./Combobox";
+import MemberListItem from "./MemberListItem";
 
 type Props = {
   /** Document to which team members are supposed to be invited */
@@ -87,15 +86,7 @@ function InviteTeamMembers({ document }: Props) {
             .notInDocument(document.id, query)
             .filter((u) => u.id !== user.id)
         : [],
-    [
-      users,
-      document.id,
-      teamMembers,
-      documentMembers,
-      document.members,
-      user.id,
-      query,
-    ]
+    [users, document.id, teamMembers, documentMembers, user.id, query]
   );
 
   React.useEffect(() => {
@@ -196,16 +187,6 @@ function InviteTeamMembers({ document }: Props) {
             canEdit={item.id !== user.id || user.isAdmin}
             onRemove={() => handleRemoveUser(item)}
             onUpdate={(permission) => handleUpdateUser(item, permission)}
-            permissions={[
-              {
-                label: t("View only"),
-                value: DocumentPermission.Read,
-              },
-              {
-                label: t("View and edit"),
-                value: DocumentPermission.ReadWrite,
-              },
-            ]}
           />
         )}
       />
