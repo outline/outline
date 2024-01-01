@@ -49,7 +49,7 @@
   "dependencies": {
     "@babel/core": "^7.22.5",
     "@babel/plugin-proposal-decorators": "^7.23.2",
-    "@babel/plugin-transform-destructuring": "^7.22.5",
+    "@babel/plugin-transform-destructuring": "^7.23.3",
     "@babel/plugin-transform-regenerator": "^7.23.3",
     "@babel/preset-env": "^7.20.0",
     "@babel/preset-react": "^7.22.15",
