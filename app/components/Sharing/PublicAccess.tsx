@@ -34,11 +34,20 @@ type Props = {
   sharedParent: Share | null | undefined;
   /** Ref to the Copy Link button */
   copyButtonRef?: React.RefObject<HTMLButtonElement>;
+  /** Callback fired when the link is copied. */
+  onCopied: () => void;
 };
 
-function PublicAccess({ document, share, sharedParent, copyButtonRef }: Props) {
+function PublicAccess({
+  document,
+  share,
+  sharedParent,
+  onCopied,
+  copyButtonRef,
+}: Props) {
   const { shares } = useStores();
   const { t } = useTranslation();
+  const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const [slugValidationError, setSlugValidationError] = React.useState("");
   const [urlSlug, setUrlSlug] = React.useState("");
   const can = usePolicy(share);
@@ -79,8 +88,18 @@ function PublicAccess({ document, share, sharedParent, copyButtonRef }: Props) {
   );
 
   const handleCopied = React.useCallback(() => {
-    toast.message(t("Share link copied"));
-  }, [t]);
+    onCopied();
+
+    timeout.current = setTimeout(() => {
+      toast.message(t("Share link copied"));
+    }, 100);
+
+    return () => {
+      if (timeout.current) {
+        clearTimeout(timeout.current);
+      }
+    };
+  }, [onCopied, t]);
 
   const handleUrlSlugChange = React.useMemo(
     () =>

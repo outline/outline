@@ -90,6 +90,7 @@ function SharePopover({
             share={share}
             sharedParent={sharedParent}
             copyButtonRef={buttonRef}
+            onCopied={onRequestClose}
           />
         </>
       )}
