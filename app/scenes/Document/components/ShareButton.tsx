@@ -23,7 +23,8 @@ function ShareButton({ document }: Props) {
   const sharedParent = shares.getByDocumentParents(document.id);
   const domain = share?.domain || sharedParent?.domain;
   const isPubliclyShared =
-    team.sharing &&
+    team.sharing !== false &&
+    document.collection?.sharing !== false &&
     (share?.published || (sharedParent?.published && !document.isDraft));
 
   const popover = usePopoverState({

@@ -244,7 +244,7 @@ function DocumentHeader({
                 />
               </Action>
             )}
-            {!isEditing && !isRevision && !isMobile && can.share && (
+            {!isEditing && !isRevision && !isMobile && can.update && (
               <Action>
                 <ShareButton document={document} />
               </Action>

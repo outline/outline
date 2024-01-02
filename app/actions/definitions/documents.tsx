@@ -352,7 +352,6 @@ export const shareDocument = createAction({
           share={share}
           sharedParent={sharedParent}
           onRequestClose={stores.dialogs.closeAllModals}
-          hideTitle
           visible
         />
       ),
