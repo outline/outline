@@ -69,7 +69,7 @@ export const UsersUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid().optional(),
     name: z.string().optional(),
-    avatarUrl: z.string().optional(),
+    avatarUrl: z.string().nullish(),
     language: z.string().optional(),
     preferences: z.record(z.nativeEnum(UserPreference), z.boolean()).optional(),
   }),
