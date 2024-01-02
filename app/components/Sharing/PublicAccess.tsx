@@ -224,6 +224,10 @@ function PublicAccess({ document, share, sharedParent, copyButtonRef }: Props) {
 }
 
 const CustomSlugInput = styled(Input)`
+  margin-top: 8px;
+  min-width: 100px;
+  flex: 1;
+
   ${NativeInput} {
     padding: 4px 8px;
   }
