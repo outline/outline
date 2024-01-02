@@ -193,7 +193,6 @@ class WebsocketProvider extends React.Component<Props> {
                 documents.removeCollectionDocuments(collectionId);
                 memberships.removeCollectionMemberships(collectionId);
                 collections.remove(collectionId);
-                policies.remove(collectionId);
                 return;
               }
             }
@@ -343,7 +342,6 @@ class WebsocketProvider extends React.Component<Props> {
         documents.removeCollectionDocuments(collectionId);
         memberships.removeCollectionMemberships(collectionId);
         collections.remove(collectionId);
-        policies.remove(collectionId);
       })
     );
 

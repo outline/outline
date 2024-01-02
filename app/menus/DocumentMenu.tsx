@@ -306,41 +306,45 @@ function DocumentMenu({
         {(showDisplayOptions || showToggleEmbeds) && (
           <>
             <Separator />
-            {showToggleEmbeds && (
-              <Style>
-                <ToggleMenuItem
-                  width={26}
-                  height={14}
-                  label={t("Enable embeds")}
-                  checked={!document.embedsDisabled}
-                  onChange={
-                    document.embedsDisabled
-                      ? document.enableEmbeds
-                      : document.disableEmbeds
-                  }
-                />
-              </Style>
-            )}
-            {showDisplayOptions && !isMobile && can.update && (
-              <Style>
-                <ToggleMenuItem
-                  width={26}
-                  height={14}
-                  label={t("Full width")}
-                  checked={document.fullWidth}
-                  onChange={(ev) => {
-                    const fullWidth = ev.currentTarget.checked;
-                    user.setPreference(
-                      UserPreference.FullWidthDocuments,
-                      fullWidth
-                    );
-                    void user.save();
-                    document.fullWidth = fullWidth;
-                    void document.save();
-                  }}
-                />
-              </Style>
-            )}
+            <DisplayOptions>
+              {showToggleEmbeds && (
+                <Style>
+                  <ToggleMenuItem
+                    width={26}
+                    height={14}
+                    label={t("Enable embeds")}
+                    labelPosition="left"
+                    checked={!document.embedsDisabled}
+                    onChange={
+                      document.embedsDisabled
+                        ? document.enableEmbeds
+                        : document.disableEmbeds
+                    }
+                  />
+                </Style>
+              )}
+              {showDisplayOptions && !isMobile && can.update && (
+                <Style>
+                  <ToggleMenuItem
+                    width={26}
+                    height={14}
+                    label={t("Full width")}
+                    labelPosition="left"
+                    checked={document.fullWidth}
+                    onChange={(ev) => {
+                      const fullWidth = ev.currentTarget.checked;
+                      user.setPreference(
+                        UserPreference.FullWidthDocuments,
+                        fullWidth
+                      );
+                      void user.save();
+                      document.fullWidth = fullWidth;
+                      void document.save();
+                    }}
+                  />
+                </Style>
+              )}
+            </DisplayOptions>
           </>
         )}
       </ContextMenu>
@@ -353,6 +357,10 @@ const ToggleMenuItem = styled(Switch)`
     font-weight: normal;
     color: ${s("textSecondary")};
   }
+`;
+
+const DisplayOptions = styled.div`
+  padding: 8px 0 0;
 `;
 
 const Style = styled.div`
