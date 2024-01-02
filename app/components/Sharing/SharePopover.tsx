@@ -39,15 +39,9 @@ function SharePopover({
 }: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const [expandedOptions, setExpandedOptions] = React.useState(false);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const collection = document.collection;
 
-  React.useEffect(() => {
-    if (!visible && expandedOptions) {
-      setExpandedOptions(false);
-    }
-  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
   useKeyDown("Escape", onRequestClose);
 
   React.useEffect(() => {
@@ -75,7 +69,7 @@ function SharePopover({
             border={false}
             small
           />
-        ) : collection ? (
+        ) : collection && !document.isDraft ? (
           <Item
             image={<CollectionIcon collection={collection} />}
             title={t("Collection members")}

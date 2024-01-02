@@ -131,7 +131,7 @@ function DocumentMembersList({ document, children }: Props) {
           permission,
         });
         toast.success(
-          t(`{{ userName }} permissions were updated`, {
+          t(`Permissions for {{ userName }} updated`, {
             userName: user.name,
           })
         );
@@ -176,7 +176,7 @@ function DocumentMembersList({ document, children }: Props) {
         value={query}
         onChangeInput={handleQuery}
         onSelectOption={handleSelect}
-        listLabel={t("Team members")}
+        listLabel={t("Workspace members")}
         placeholder={`${t("Find by name")}…`}
         autoFocus
       />
