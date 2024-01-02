@@ -14,7 +14,6 @@ import { AvatarSize } from "~/components/Avatar/Avatar";
 import Combobox from "~/components/Combobox";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
-import PaginatedList from "~/components/PaginatedList";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -24,9 +23,11 @@ import MemberListItem from "./MemberListItem";
 type Props = {
   /** Document to which team members are supposed to be invited */
   document: Document;
+  /** Children to be rendered before the list of members */
+  children?: React.ReactNode;
 };
 
-function DocumentMembersList({ document }: Props) {
+function DocumentMembersList({ document, children }: Props) {
   const { users, userMemberships } = useStores();
   const [query, setQuery] = React.useState("");
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
@@ -179,26 +180,24 @@ function DocumentMembersList({ document }: Props) {
         placeholder={`${t("Find by name")}…`}
         autoFocus
       />
-      <PaginatedList
-        items={members}
-        options={{ id: document.id }}
-        renderItem={(item: User) => (
-          <MemberListItem
-            key={item.id}
-            user={item}
-            membership={item.getMembership(document)}
-            canEdit={item.id !== user.id || user.isAdmin}
-            onRemove={() => handleRemoveUser(item)}
-            onUpdate={(permission) => handleUpdateUser(item, permission)}
-          />
-        )}
-      />
+      {children}
+      {members.map((item) => (
+        <MemberListItem
+          key={item.id}
+          user={item}
+          membership={item.getMembership(document)}
+          canEdit={item.id !== user.id || user.isAdmin}
+          onRemove={() => handleRemoveUser(item)}
+          onUpdate={(permission) => handleUpdateUser(item, permission)}
+        />
+      ))}
     </RelativeFlex>
   );
 }
 
 const RelativeFlex = styled(Flex)`
   position: relative;
+  margin-bottom: 12px;
 `;
 
 export default observer(DocumentMembersList);

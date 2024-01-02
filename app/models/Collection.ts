@@ -45,7 +45,7 @@ export default class Collection extends ParanoidModel {
 
   @Field
   @observable
-  permission: CollectionPermission | void;
+  permission?: CollectionPermission;
 
   @Field
   @observable
