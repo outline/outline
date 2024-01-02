@@ -163,6 +163,7 @@ const InputSelect = (props: Props) => {
                   topAnchor={topAnchor}
                   rightAnchor={rightAnchor}
                   hiddenScrollbars
+                  maxWidth={400}
                   style={
                     maxHeight && topAnchor
                       ? {

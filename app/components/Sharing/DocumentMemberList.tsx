@@ -1,6 +1,6 @@
 import { t } from "i18next";
-import { orderBy } from "lodash";
 import isNil from "lodash/isNil";
+import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
+import Combobox from "~/components/Combobox";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PaginatedList from "~/components/PaginatedList";
@@ -18,7 +19,6 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
-import Combobox from "./Combobox";
 import MemberListItem from "./MemberListItem";
 
 type Props = {
@@ -26,38 +26,31 @@ type Props = {
   document: Document;
 };
 
-function InviteTeamMembers({ document }: Props) {
+function DocumentMembersList({ document }: Props) {
   const { users, userMemberships } = useStores();
   const [query, setQuery] = React.useState("");
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const user = useCurrentUser();
 
-  const {
-    data: teamMembers,
-    loading: loadingTeamMembers,
-    request: fetchTeamMembers,
-  } = useRequest(
+  const { loading: loadingTeamMembers, request: fetchTeamMembers } = useRequest(
     React.useCallback(
       () => users.fetchPage({ limit: Pagination.defaultLimit }),
       [users]
     )
   );
 
-  const {
-    data: documentMembers,
-    loading: loadingDocumentMembers,
-    request: fetchDocumentMembers,
-  } = useRequest(
-    React.useCallback(
-      () =>
-        userMemberships.fetchDocumentMemberships({
-          id: document.id,
-          limit: Pagination.defaultLimit,
-        }),
-      [userMemberships, document.id]
-    )
-  );
+  const { loading: loadingDocumentMembers, request: fetchDocumentMembers } =
+    useRequest(
+      React.useCallback(
+        () =>
+          userMemberships.fetchDocumentMemberships({
+            id: document.id,
+            limit: Pagination.defaultLimit,
+          }),
+        [userMemberships, document.id]
+      )
+    );
 
   React.useEffect(() => {
     void fetchTeamMembers();
@@ -85,20 +78,8 @@ function InviteTeamMembers({ document }: Props) {
 
   const nonMembers = React.useMemo(
     () =>
-      teamMembers && documentMembers
-        ? users
-            .notInDocument(document.id, query)
-            .filter((u) => u.id !== user.id)
-        : [],
-    [
-      users,
-      document.id,
-      document.members,
-      teamMembers,
-      documentMembers,
-      user.id,
-      query,
-    ]
+      users.notInDocument(document.id, query).filter((u) => u.id !== user.id),
+    [users, users.orderedData, document.id, document.members, user.id, query]
   );
 
   React.useEffect(() => {
@@ -178,10 +159,6 @@ function InviteTeamMembers({ document }: Props) {
     return <LoadingIndicator />;
   }
 
-  if (!teamMembers && !documentMembers) {
-    return null;
-  }
-
   return (
     <RelativeFlex column>
       <Combobox
@@ -199,7 +176,7 @@ function InviteTeamMembers({ document }: Props) {
         onChangeInput={handleQuery}
         onSelectOption={handleSelect}
         listLabel={t("Team members")}
-        placeholder={`${t("Add workspace members")}…`}
+        placeholder={`${t("Find by name")}…`}
         autoFocus
       />
       <PaginatedList
@@ -224,4 +201,4 @@ const RelativeFlex = styled(Flex)`
   position: relative;
 `;
 
-export default observer(InviteTeamMembers);
+export default observer(DocumentMembersList);

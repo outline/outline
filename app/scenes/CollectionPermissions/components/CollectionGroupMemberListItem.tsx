@@ -37,7 +37,7 @@ const CollectionGroupMemberListItem = ({
                 value: CollectionPermission.Read,
               },
               {
-                label: t("View and edit"),
+                label: t("Can edit"),
                 value: CollectionPermission.ReadWrite,
               },
               {

@@ -32,13 +32,13 @@ import { toast } from "sonner";
 import { ExportContentType, TeamPreference } from "@shared/types";
 import MarkdownHelper from "@shared/utils/MarkdownHelper";
 import { getEventFiles } from "@shared/utils/files";
-import SharePopover from "~/scenes/Document/components/SharePopover";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import DuplicateDialog from "~/components/DuplicateDialog";
+import SharePopover from "~/components/Sharing";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import env from "~/env";
@@ -952,4 +952,5 @@ export const rootDocumentActions = [
   openDocumentComments,
   openDocumentHistory,
   openDocumentInsights,
+  shareDocument,
 ];

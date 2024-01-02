@@ -25,7 +25,9 @@ import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
-import InviteTeamMembers from "./InviteTeamMembers";
+import { EmptySelectValue } from "~/types";
+import InputSelect from "../InputSelect";
+import DocumentMembersList from "./DocumentMemberList";
 
 type Props = {
   /** The document to share. */
@@ -221,7 +223,7 @@ function SharePopover({
 
   return (
     <>
-      {!hideTitle && (
+      {/* {!hideTitle && (
         <Heading>
           {isPubliclyShared ? (
             <GlobeIcon size={28} />
@@ -230,7 +232,7 @@ function SharePopover({
           )}
           <span>{t("Share this document")}</span>
         </Heading>
-      )}
+      )} */}
 
       {sharedParent && !document.isDraft && (
         <NoticeWrapper>
@@ -246,9 +248,53 @@ function SharePopover({
         </NoticeWrapper>
       )}
 
-      {canPublish && !sharedParent?.published && (
+      {/* {canPublish && !sharedParent?.published && (
         <PublishToInternet canPublish />
-      )}
+      )} */}
+
+      <h3>People with access</h3>
+      <DocumentMembersList document={document} />
+
+      <Separator />
+      <h3>Link access</h3>
+
+      <Flex gap={8}>
+        <InputSelect
+          short={false}
+          ariaLabel={t("Link access")}
+          options={[
+            {
+              label: (
+                <Flex gap={4} align="center">
+                  <PadlockIcon />
+                  {t("No public access")}
+                </Flex>
+              ),
+              value: EmptySelectValue,
+            },
+            {
+              label: (
+                <Flex gap={4} align="center">
+                  <GlobeIcon />
+                  {t("Anyone with link can view")}
+                </Flex>
+              ),
+              value: "public",
+            },
+          ]}
+          // value={value || EmptySelectValue}
+          // onChange={handleChange}
+        />
+        <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
+          <Button
+            type="submit"
+            disabled={!share || slugValidationError}
+            ref={buttonRef}
+          >
+            {t("Copy link")}
+          </Button>
+        </CopyToClipboard>
+      </Flex>
 
       {canPublish && share && !document.isDraft && (
         <SwitchWrapper>
@@ -270,24 +316,11 @@ function SharePopover({
         </SwitchWrapper>
       )}
 
-      {canPublish ? (
-        <>
-          <Separator />
-          <SwitchWrapper>
-            <InviteTeamMembers document={document} />
-          </SwitchWrapper>
-        </>
-      ) : null}
-
       {expandedOptions && (
         <>
           {canPublish && sharedParent?.published && (
-            <>
-              <Separator />
-              <PublishToInternet canPublish />
-            </>
+            <PublishToInternet canPublish />
           )}
-          <Separator />
           <SwitchWrapper>
             <Switch
               id="enableEditMode"
@@ -346,15 +379,6 @@ function SharePopover({
             {t("More options")}
           </MoreOptionsButton>
         )}
-        <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
-          <Button
-            type="submit"
-            disabled={!share || slugValidationError}
-            ref={buttonRef}
-          >
-            {t("Copy link")}
-          </Button>
-        </CopyToClipboard>
       </Flex>
     </>
   );

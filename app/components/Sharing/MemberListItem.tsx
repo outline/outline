@@ -47,22 +47,23 @@ const MemberListItem = ({
       image={<Avatar model={user} size={AvatarSize.Medium} />}
       border={false}
       style={{ marginRight: -8 }}
+      small
       actions={
         <Flex align="center" gap={8}>
           {onUpdate && (
             <InputMemberPermissionSelect
               permissions={[
                 {
-                  label: t("No access"),
-                  value: EmptySelectValue,
-                },
-                {
                   label: t("View only"),
                   value: DocumentPermission.Read,
                 },
                 {
-                  label: t("View and edit"),
+                  label: t("Can edit"),
                   value: DocumentPermission.ReadWrite,
+                },
+                {
+                  label: t("No access"),
+                  value: EmptySelectValue,
                 },
               ]}
               value={membership?.permission}

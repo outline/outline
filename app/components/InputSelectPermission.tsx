@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { $Diff } from "utility-types";
 import { CollectionPermission } from "@shared/types";
+import { EmptySelectValue } from "~/types";
 import InputSelect, { Props, Option } from "./InputSelect";
 
 export default function InputSelectPermission(
@@ -17,7 +18,7 @@ export default function InputSelectPermission(
   const { t } = useTranslation();
   const handleChange = React.useCallback(
     (value) => {
-      if (value === "no_access") {
+      if (value === EmptySelectValue) {
         value = null;
       }
 
@@ -31,7 +32,7 @@ export default function InputSelectPermission(
       label={t("Default access")}
       options={[
         {
-          label: t("View and edit"),
+          label: t("Can edit"),
           value: CollectionPermission.ReadWrite,
         },
         {
@@ -40,11 +41,11 @@ export default function InputSelectPermission(
         },
         {
           label: t("No access"),
-          value: "no_access",
+          value: EmptySelectValue,
         },
       ]}
       ariaLabel={t("Default access")}
-      value={value || "no_access"}
+      value={value || EmptySelectValue}
       onChange={handleChange}
       {...rest}
     />
