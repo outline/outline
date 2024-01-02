@@ -30,9 +30,9 @@ import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
+import DocumentTypeFilter from "./components/DocumentTypeFilter";
 import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
-import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 
 type Props = { notFound?: boolean };
@@ -55,6 +55,7 @@ function Search(props: Props) {
   // filters
   const query = decodeURIComponentSafe(routeMatch.params.term ?? "");
   const includeArchived = params.get("includeArchived") === "true";
+  const includeDrafts = params.get("includeDrafts") !== "false";
   const collectionId = params.get("collectionId") ?? undefined;
   const userId = params.get("userId") ?? undefined;
   const dateFilter = (params.get("dateFilter") as TDateFilter) ?? undefined;
@@ -64,12 +65,21 @@ function Search(props: Props) {
     () => ({
       query,
       includeArchived,
+      includeDrafts,
       collectionId,
       userId,
       dateFilter,
       titleFilter,
     }),
-    [query, includeArchived, collectionId, userId, dateFilter, titleFilter]
+    [
+      query,
+      includeArchived,
+      includeDrafts,
+      collectionId,
+      userId,
+      dateFilter,
+      titleFilter,
+    ]
   );
 
   const requestFn = React.useMemo(() => {
@@ -109,6 +119,7 @@ function Search(props: Props) {
     userId?: string | undefined;
     dateFilter?: TDateFilter;
     includeArchived?: boolean | undefined;
+    includeDrafts?: boolean | undefined;
     titleFilter?: boolean | undefined;
   }) => {
     history.replace({
@@ -202,10 +213,11 @@ function Search(props: Props) {
         {query ? (
           <>
             <Filters>
-              <StatusFilter
+              <DocumentTypeFilter
                 includeArchived={includeArchived}
-                onSelect={(includeArchived) =>
-                  handleFilterChange({ includeArchived })
+                includeDrafts={includeDrafts}
+                onSelect={({ includeArchived, includeDrafts }) =>
+                  handleFilterChange({ includeArchived, includeDrafts })
                 }
               />
               <CollectionFilter
