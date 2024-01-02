@@ -1,4 +1,9 @@
-import { Op, SaveOptions } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  InstanceUpdateOptions,
+  Op,
+} from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -28,7 +33,10 @@ import Length from "./validators/Length";
   updatedAt: false,
 })
 @Fix
-class AuthenticationProvider extends Model {
+class AuthenticationProvider extends Model<
+  InferAttributes<AuthenticationProvider>,
+  Partial<InferCreationAttributes<AuthenticationProvider>>
+> {
   @IsUUID(4)
   @PrimaryKey
   @Default(DataType.UUIDV4)
@@ -97,7 +105,11 @@ class AuthenticationProvider extends Model {
     }
   }
 
-  disable = async (options?: SaveOptions<AuthenticationProvider>) => {
+  disable: (
+    options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
+  ) => Promise<AuthenticationProvider> = async (
+    options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
+  ) => {
     const res = await (
       this.constructor as typeof AuthenticationProvider
     ).findAndCountAll({
@@ -124,7 +136,11 @@ class AuthenticationProvider extends Model {
     }
   };
 
-  enable = (options?: SaveOptions<AuthenticationProvider>) =>
+  enable: (
+    options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
+  ) => Promise<AuthenticationProvider> = (
+    options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
+  ) =>
     this.update(
       {
         enabled: true,
