@@ -1,4 +1,5 @@
 import randomstring from "randomstring";
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
   Table,
@@ -14,7 +15,10 @@ import Length from "./validators/Length";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
 @Fix
-class ApiKey extends ParanoidModel {
+class ApiKey extends ParanoidModel<
+  InferAttributes<ApiKey>,
+  Partial<InferCreationAttributes<ApiKey>>
+> {
   static prefix = "ol_api_";
 
   @Length({
