@@ -132,7 +132,7 @@ export default abstract class Store<T extends Model> {
 
   save(params: Properties<T>, options: JSONObject = {}): Promise<T> {
     const { isNew, ...rest } = options;
-    if (isNew || !("id" in params)) {
+    if (isNew || !("id" in params) || !params.id) {
       return this.create(params, rest);
     }
     return this.update(params, rest);
