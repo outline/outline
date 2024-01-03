@@ -1,7 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { CollectionPermission } from "@shared/types";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
-import UserAuthentication from "./UserAuthentication";
 import UserPermission from "./UserPermission";
 
 beforeAll(() => {
@@ -36,23 +35,11 @@ describe("user model", () => {
   });
 
   describe("destroy", () => {
-    it("should delete user authentications", async () => {
+    it("should clear PII", async () => {
       const user = await buildUser();
-      expect(
-        await UserAuthentication.count({
-          where: {
-            userId: user.id,
-          },
-        })
-      ).toBe(1);
       await user.destroy();
-      expect(
-        await UserAuthentication.count({
-          where: {
-            userId: user.id,
-          },
-        })
-      ).toBe(0);
+      expect(user.email).toBe(null);
+      expect(user.name).toBe("Unknown");
     });
   });
 

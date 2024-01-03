@@ -43,11 +43,9 @@ import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
-import ApiKey from "./ApiKey";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
-import Star from "./Star";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import UserPermission from "./UserPermission";
@@ -586,24 +584,6 @@ class User extends ParanoidModel {
     model: User,
     options: { transaction: Transaction }
   ) => {
-    await ApiKey.destroy({
-      where: {
-        userId: model.id,
-      },
-      transaction: options.transaction,
-    });
-    await Star.destroy({
-      where: {
-        userId: model.id,
-      },
-      transaction: options.transaction,
-    });
-    await UserAuthentication.destroy({
-      where: {
-        userId: model.id,
-      },
-      transaction: options.transaction,
-    });
     model.email = null;
     model.name = "Unknown";
     model.avatarUrl = null;
