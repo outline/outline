@@ -35,7 +35,7 @@ describe("user model", () => {
   });
 
   describe("destroy", () => {
-    it("should clear PII user authentications", async () => {
+    it("should clear PII", async () => {
       const user = await buildUser();
       await user.destroy();
       expect(user.email).toBe(null);
