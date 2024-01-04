@@ -553,6 +553,8 @@
   "Viewer insights": "열람자 정보",
   "As an admin you can manage if team members can see who has viewed this document": "누가 이 문서를 열람했는지를 팀 멤버들이 볼 수 있는가를 관리자로서 관리할 수 있습니다.",
   "Sorry, the last change could not be persisted – please reload the page": "죄송합니다. 마지막 변경 사항을 유지할 수 없습니다. 페이지를 새로고침하세요.",
+  "{{ count }} days": "{{ count }} day",
+  "{{ count }} days_plural": "{{ count }} days",
   "This template will be permanently deleted in <2></2> unless restored.": "이 템플릿은 복원하지 않으면 <2></2> 에서 영구적으로 삭제됩니다.",
   "This document will be permanently deleted in <2></2> unless restored.": "이 문서는 복원하지 않으면 <2></2> 에서 영구적으로 삭제됩니다.",
   "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "일부 텍스트를 강조 표시하고 <1></1> 컨트롤을 사용하여 새 문서를 만들 때 채울 수 있는 자리 표시자를 추가합니다.",
