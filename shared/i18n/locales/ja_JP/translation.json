@@ -553,6 +553,8 @@
   "Viewer insights": "閲覧者情報",
   "As an admin you can manage if team members can see who has viewed this document": "管理者は、チームメンバーがこのドキュメントを閲覧したユーザーを確認できるかどうかを管理できます。",
   "Sorry, the last change could not be persisted – please reload the page": "申し訳ありませんが、最後の変更を保持できませんでした。ページをリロードしてください",
+  "{{ count }} days": "{{ count }} day",
+  "{{ count }} days_plural": "{{ count }} days",
   "This template will be permanently deleted in <2></2> unless restored.": "このテンプレートは復元しない限り、<2></2>で永久に削除されます。",
   "This document will be permanently deleted in <2></2> unless restored.": "このドキュメントは復元されない限り、<2></2>で永久に削除されます。",
   "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "テキストをハイライトし、新しいドキュメントを作成する際に埋められるプレースホルダーを追加するには、<1></1> control を使用してください。",
