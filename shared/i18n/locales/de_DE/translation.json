@@ -553,6 +553,8 @@
   "Viewer insights": "Viewer Einblicke",
   "As an admin you can manage if team members can see who has viewed this document": "Als Administrator können Sie verwalten, ob Teammitglieder sehen, wer dieses Dokument angesehen hat",
   "Sorry, the last change could not be persisted – please reload the page": "Die letzte Änderung konnte leider nicht übernommen werden – bitte lade die Seite neu",
+  "{{ count }} days": "{{ count }} day",
+  "{{ count }} days_plural": "{{ count }} days",
   "This template will be permanently deleted in <2></2> unless restored.": "Diese Vorlage wird dauerhaft in <2></2> gelöscht, wenn sie nicht wiederhergestellt wird.",
   "This document will be permanently deleted in <2></2> unless restored.": "Dieses Dokument wird dauerhaft in <2></2> gelöscht, wenn es nicht wiederhergestellt wird.",
   "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Markiere eine Textstelle und nutze das <1></1>-Werkzeug, um Platzhalter hinzuzufügen, die beim Erstellen neuer Dokumente ausgefüllt werden können",
