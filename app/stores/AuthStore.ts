@@ -157,7 +157,7 @@ export default class AuthStore extends Store<Team> {
   /** The current team */
   @computed
   get team() {
-    return this.orderedData[0];
+    return this.currentTeamId ? this.get(this.currentTeamId) : undefined;
   }
 
   /** The current team's policies */
