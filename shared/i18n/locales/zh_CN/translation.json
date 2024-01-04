@@ -553,6 +553,8 @@
   "Viewer insights": "查看者分析",
   "As an admin you can manage if team members can see who has viewed this document": "作为管理员，您可以管理团队成员是否可以看到谁查看过此文档",
   "Sorry, the last change could not be persisted – please reload the page": "抱歉，无法保存上次更改 - 请重新载入页面",
+  "{{ count }} days": "{{ count }} day",
+  "{{ count }} days_plural": "{{ count }} days",
   "This template will be permanently deleted in <2></2> unless restored.": "此模板将在 <2></2> 中永久删除，除非手动恢复。",
   "This document will be permanently deleted in <2></2> unless restored.": "此文档将在 <2></2> 中永久删除，除非手动恢复。",
   "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "选中一些文本，然后通过 <1></1> 来添加占位符，以便在创建新文件时填写。",
