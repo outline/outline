@@ -1,3 +1,4 @@
+import differenceInDays from "date-fns/differenceInDays";
 import { TrashIcon, ArchiveIcon, ShapesIcon, InputIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -11,6 +12,19 @@ type Props = {
   readOnly: boolean;
 };
 
+function Days(props: { dateTime: string }) {
+  const { t } = useTranslation();
+  const days = differenceInDays(new Date(props.dateTime), new Date());
+
+  return (
+    <>
+      {t(`{{ count }} days`, {
+        count: days,
+      })}
+    </>
+  );
+}
+
 export default function Notices({ document, readOnly }: Props) {
   const { t } = useTranslation();
 
@@ -22,12 +36,12 @@ export default function Notices({ document, readOnly }: Props) {
     return document.template ? (
       <Trans>
         This template will be permanently deleted in{" "}
-        <Time dateTime={document.permanentlyDeletedAt} /> unless restored.
+        <Days dateTime={document.permanentlyDeletedAt} /> unless restored.
       </Trans>
     ) : (
       <Trans>
         This document will be permanently deleted in{" "}
-        <Time dateTime={document.permanentlyDeletedAt} /> unless restored.
+        <Days dateTime={document.permanentlyDeletedAt} /> unless restored.
       </Trans>
     );
   }
