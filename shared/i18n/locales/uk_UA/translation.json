@@ -553,6 +553,8 @@
   "Viewer insights": "Статистика глядачів",
   "As an admin you can manage if team members can see who has viewed this document": "Як адміністратор ви можете контролювати, чи можуть члени команди бачити, хто переглядав цей документ",
   "Sorry, the last change could not be persisted – please reload the page": "На жаль, не вдалося зберегти останню зміну – перезавантажте сторінку",
+  "{{ count }} days": "{{ count }} day",
+  "{{ count }} days_plural": "{{ count }} days",
   "This template will be permanently deleted in <2></2> unless restored.": "Цей шаблон буде остаточно видалено через <2></2> якщо не буде відновлено.",
   "This document will be permanently deleted in <2></2> unless restored.": "Цей шаблон буде остаточно видалено через <2></2> якщо не буде відновлено.",
   "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Виділіть деякий текст і використовуйте контроль над <1></1> для додавання полів, які можуть бути заповнені при створенні нових документів",
