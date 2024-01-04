@@ -553,6 +553,8 @@
   "Viewer insights": "Viewer insights",
   "As an admin you can manage if team members can see who has viewed this document": "Als beheerder kun je instellen of teamleden kunnen zien wie dit document heeft bekeken",
   "Sorry, the last change could not be persisted – please reload the page": "Sorry, de laatste wijziging kon niet worden bewaard - laad de pagina opnieuw",
+  "{{ count }} days": "{{ count }} day",
+  "{{ count }} days_plural": "{{ count }} days",
   "This template will be permanently deleted in <2></2> unless restored.": "Dit sjabloon wordt definitief verwijderd over <2></2> tenzij het hersteld wordt.",
   "This document will be permanently deleted in <2></2> unless restored.": "Dit document wordt definitief verwijderd over <2></2> als dit niet wordt hersteld.",
   "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Markeer wat tekst en gebruik het <1></1> hulpmiddel om tijdelijke aanduidingen toe te voegen die kunnen worden ingevuld bij het maken van nieuwe documenten",
