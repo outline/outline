@@ -553,6 +553,8 @@
   "Viewer insights": "Insikter för tittaren",
   "As an admin you can manage if team members can see who has viewed this document": "Som administratör kan du hantera om teammedlemmar kan se vem som har tittat på detta dokument",
   "Sorry, the last change could not be persisted – please reload the page": "Tyvärr, den senaste ändringen kunde inte sparas– ladda om sidan",
+  "{{ count }} days": "{{ count }} day",
+  "{{ count }} days_plural": "{{ count }} days",
   "This template will be permanently deleted in <2></2> unless restored.": "Mallen kommer att raderas permanent i <2></2> om den inte återställs.",
   "This document will be permanently deleted in <2></2> unless restored.": "Detta dokument kommer att raderas permanent i <2></2> om det inte återställs.",
   "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Markera lite text och använd kontrollen <1></1> för att lägga till platshållare som kan fyllas i när du skapar nya dokument",
