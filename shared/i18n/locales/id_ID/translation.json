@@ -553,6 +553,8 @@
   "Viewer insights": "Viewer insights",
   "As an admin you can manage if team members can see who has viewed this document": "As an admin you can manage if team members can see who has viewed this document",
   "Sorry, the last change could not be persisted – please reload the page": "Maaf, perubahan terakhir tidak dapat disimpan – muat ulang halaman",
+  "{{ count }} days": "{{ count }} day",
+  "{{ count }} days_plural": "{{ count }} days",
   "This template will be permanently deleted in <2></2> unless restored.": "Template ini akan dihapus secara permanen di <2></2> kecuali dipulihkan.",
   "This document will be permanently deleted in <2></2> unless restored.": "Dokumen ini akan dihapus secara permanen di <2></2> kecuali dipulihkan.",
   "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Sorot beberapa teks dan gunakan <1></1> kontrol untuk menambahkan placeholder yang dapat diisi saat membuat dokumen baru",
