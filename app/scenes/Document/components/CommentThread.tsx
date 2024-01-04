@@ -108,7 +108,7 @@ function CommentThread({
     if (focused) {
       // If the thread is already visible, scroll it into view immediately,
       // otherwise wait for the sidebar to appear.
-      const isVisible =
+      const isThreadVisible =
         (topRef.current?.getBoundingClientRect().left ?? 0) < window.innerWidth;
 
       setTimeout(
@@ -125,18 +125,22 @@ function CommentThread({
               parent.id !== "comments",
           });
         },
-        isVisible ? 0 : sidebarAppearDuration
+        isThreadVisible ? 0 : sidebarAppearDuration
       );
 
-      setTimeout(() => {
-        const commentMarkElement = window.document?.getElementById(
-          `comment-${thread.id}`
-        );
-        commentMarkElement?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }, 0);
+      const getCommentMarkElement = () =>
+        window.document?.getElementById(`comment-${thread.id}`);
+      const isMarkVisible = !!getCommentMarkElement();
+
+      setTimeout(
+        () => {
+          getCommentMarkElement()?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        },
+        isMarkVisible ? 0 : sidebarAppearDuration
+      );
     }
   }, [focused, thread.id]);
 
