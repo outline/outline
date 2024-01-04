@@ -553,6 +553,8 @@
   "Viewer insights": "Viewer insights",
   "As an admin you can manage if team members can see who has viewed this document": "As an admin you can manage if team members can see who has viewed this document",
   "Sorry, the last change could not be persisted – please reload the page": "Üzgünüz, son değişiklik devam ettirilemedi - lütfen sayfayı yeniden yükleyin",
+  "{{ count }} days": "{{ count }} day",
+  "{{ count }} days_plural": "{{ count }} days",
   "This template will be permanently deleted in <2></2> unless restored.": "Bu şablon, restore edilmedikçe <2></2> içinde kalıcı olarak silinecek.",
   "This document will be permanently deleted in <2></2> unless restored.": "Bu belge, restore edilmedikçe <2></2> içinde kalıcı olarak silinecek.",
   "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Bir metni seçin ve <1></1> kontolünü kullanarak yeni belgeler oluşturulurken kullanılabilecek yer tutucu ekleyin",
