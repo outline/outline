@@ -1,3 +1,4 @@
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -38,7 +39,10 @@ import TextLength from "./validators/TextLength";
 }))
 @Table({ tableName: "comments", modelName: "comment" })
 @Fix
-class Comment extends ParanoidModel {
+class Comment extends ParanoidModel<
+  InferAttributes<Comment>,
+  Partial<InferCreationAttributes<Comment>>
+> {
   @TextLength({
     max: CommentValidation.maxLength,
     msg: `Comment must be less than ${CommentValidation.maxLength} characters`,

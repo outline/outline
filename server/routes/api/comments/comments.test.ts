@@ -26,7 +26,6 @@ describe("#comments.list", () => {
     });
     const comment = await buildComment({
       userId: user.id,
-      teamId: team.id,
       documentId: document.id,
     });
     const res = await server.post("/api/comments.list", {
@@ -58,7 +57,6 @@ describe("#comments.list", () => {
     });
     const comment = await buildComment({
       userId: user.id,
-      teamId: team.id,
       documentId: document.id,
     });
     const res = await server.post("/api/comments.list", {
@@ -99,12 +97,10 @@ describe("#comments.list", () => {
     });
     const comment1 = await buildComment({
       userId: user.id,
-      teamId: team.id,
       documentId: document1.id,
     });
     const comment2 = await buildComment({
       userId: user.id,
-      teamId: team.id,
       documentId: document2.id,
     });
     const res = await server.post("/api/comments.list", {
@@ -143,7 +139,6 @@ describe("#comments.create", () => {
 
     const comment = await buildComment({
       userId: user.id,
-      teamId: team.id,
       documentId: document.id,
     });
 
@@ -222,7 +217,6 @@ describe("#comments.info", () => {
     });
     const comment = await buildComment({
       userId: user.id,
-      teamId: team.id,
       documentId: document.id,
     });
     const res = await server.post("/api/comments.info", {
