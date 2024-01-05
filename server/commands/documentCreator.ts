@@ -78,7 +78,6 @@ export default async function documentCreator({
       editorVersion,
       collectionId,
       teamId: user.teamId,
-      userId: user.id,
       createdAt,
       updatedAt: updatedAt ?? createdAt,
       lastModifiedById: user.id,
