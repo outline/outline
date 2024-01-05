@@ -14,13 +14,12 @@ import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
-import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useBoolean from "~/hooks/useBoolean";
 import CommentMenu from "~/menus/CommentMenu";
-import { hover } from "~/styles";
+import { hover, truncateMultiline } from "~/styles";
 import CommentEditor from "./CommentEditor";
 
 /**
@@ -74,6 +73,10 @@ type Props = {
   previousCommentCreatedAt?: string;
   /** Whether the user can reply in the thread */
   canReply: boolean;
+  /** Callback when the comment has been deleted */
+  onDelete: () => void;
+  /** Text to highlight at the top of the comment */
+  highlightedText?: string;
 };
 
 function CommentThreadItem({
@@ -84,8 +87,9 @@ function CommentThreadItem({
   dir,
   previousCommentCreatedAt,
   canReply,
+  onDelete,
+  highlightedText,
 }: Props) {
-  const { editor } = useDocumentContext();
   const { t } = useTranslation();
   const [forceRender, setForceRender] = React.useState(0);
   const [data, setData] = React.useState(toJS(comment.data));
@@ -118,10 +122,6 @@ function CommentThreadItem({
       setEditing();
       toast.error(t("Error updating comment"));
     }
-  };
-
-  const handleDelete = () => {
-    editor?.removeComment(comment.id);
   };
 
   const handleCancel = () => {
@@ -174,6 +174,9 @@ function CommentThreadItem({
             )}
           </Meta>
         )}
+        {highlightedText && (
+          <HighlightedText>{highlightedText}</HighlightedText>
+        )}
         <Body ref={formRef} onSubmit={handleSubmit}>
           <StyledCommentEditor
             key={`${forceRender}`}
@@ -198,7 +201,7 @@ function CommentThreadItem({
           <Menu
             comment={comment}
             onEdit={setEditing}
-            onDelete={handleDelete}
+            onDelete={onDelete}
             dir={dir}
           />
         )}
@@ -235,6 +238,28 @@ const AvatarSpacer = styled(Flex)`
 
 const Body = styled.form`
   border-radius: 2px;
+`;
+
+const HighlightedText = styled(Text)`
+  position: relative;
+  color: ${s("textSecondary")};
+  font-size: 14px;
+  padding: 0 8px;
+  margin: 4px 0;
+  display: inline-block;
+
+  ${truncateMultiline(3)}
+
+  &:after {
+    content: "";
+    width: 2px;
+    position: absolute;
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+    background: ${s("commentMarkBackground")};
+    border-radius: 2px;
+  }
 `;
 
 const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`

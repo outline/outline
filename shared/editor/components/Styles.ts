@@ -788,13 +788,13 @@ h6 {
 }
 
 .comment-marker {
-  border-bottom: 2px solid ${transparentize(0.5, props.theme.brand.marine)};
+  border-bottom: 2px solid ${props.theme.commentMarkBackground};
   transition: background 100ms ease-in-out;
   border-radius: 2px;
 
   &:hover {
     ${props.readOnly ? "cursor: var(--pointer);" : ""}
-    background: ${transparentize(0.5, props.theme.brand.marine)};
+    background: ${props.theme.commentMarkBackground};
   }
 }
 

@@ -11,6 +11,7 @@ import { ProsemirrorData } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import Avatar from "~/components/Avatar";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
@@ -63,6 +64,7 @@ function CommentThread({
   recessed,
   focused,
 }: Props) {
+  const { editor } = useDocumentContext();
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
@@ -74,6 +76,11 @@ function CommentThread({
     comment: thread,
   });
   const can = usePolicy(document);
+
+  const highlightedCommentMarks = editor
+    ?.getComments()
+    .filter((comment) => comment.id === thread.id);
+  const highlightedText = highlightedCommentMarks?.map((c) => c.text).join("");
 
   const commentsInThread = comments
     .inThread(thread.id)
@@ -167,7 +174,9 @@ function CommentThread({
 
         return (
           <CommentThreadItem
+            highlightedText={index === 0 ? highlightedText : undefined}
             comment={comment}
+            onDelete={() => editor?.removeComment(comment.id)}
             key={comment.id}
             firstOfThread={index === 0}
             lastOfThread={index === commentsInThread.length - 1 && !draft}
