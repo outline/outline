@@ -341,7 +341,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     setInsertItem(item);
   };
 
-  const handleFilesPicked = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilesPicked = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { uploadFile, onFileUploadStart, onFileUploadStop } = props;
     const files = getEventFiles(event);
     const parent = findParentNode((node) => !!node)(view.state.selection);
@@ -353,7 +355,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     }
 
     if (parent) {
-      insertFiles(view, event, parent.pos, files, {
+      await insertFiles(view, event, parent.pos, files, {
         uploadFile,
         onFileUploadStart,
         onFileUploadStop,
