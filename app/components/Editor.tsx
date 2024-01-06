@@ -176,7 +176,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
       );
 
-      insertFiles(view, event, pos, files, {
+      return insertFiles(view, event, pos, files, {
         uploadFile: handleUploadFile,
         onFileUploadStart: props.onFileUploadStart,
         onFileUploadStop: props.onFileUploadStop,

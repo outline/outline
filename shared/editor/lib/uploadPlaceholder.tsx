@@ -61,6 +61,8 @@ const uploadPlaceholder = new Plugin({
 
             const img = document.createElement("img");
             img.src = URL.createObjectURL(action.add.file);
+            img.width = action.add.dimensions?.width;
+            img.height = action.add.dimensions?.height;
 
             element.appendChild(img);
 
@@ -77,6 +79,8 @@ const uploadPlaceholder = new Plugin({
           video.src = URL.createObjectURL(action.add.file);
           video.autoplay = false;
           video.controls = false;
+          video.width = action.add.dimensions?.width;
+          video.height = action.add.dimensions?.height;
 
           element.appendChild(video);
 

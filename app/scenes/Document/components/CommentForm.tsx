@@ -206,7 +206,8 @@ function CommentForm({
     if (!files.length) {
       return;
     }
-    editorRef.current?.insertFiles(event, files);
+
+    return editorRef.current?.insertFiles(event, files);
   };
 
   const handleImageUpload = (event: React.MouseEvent<HTMLButtonElement>) => {
