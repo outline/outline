@@ -29,7 +29,7 @@ export type Options = {
   };
 };
 
-const insertFiles = function (
+const insertFiles = async function (
   view: EditorView,
   event:
     | Event
@@ -38,7 +38,7 @@ const insertFiles = function (
   pos: number,
   files: File[],
   options: Options
-): void {
+) {
   const { dictionary, uploadFile, onFileUploadStart, onFileUploadStop } =
     options;
 
@@ -54,14 +54,31 @@ const insertFiles = function (
   // we'll use this to track of how many files have succeeded or failed
   let complete = 0;
 
-  const filesToUpload = files.map((file) => ({
-    id: `upload-${uuidv4()}`,
-    isImage:
-      FileHelper.isImage(file) && !options.isAttachment && !!schema.nodes.image,
-    isVideo:
-      FileHelper.isVideo(file) && !options.isAttachment && !!schema.nodes.video,
-    file,
-  }));
+  const filesToUpload = await Promise.all(
+    files.map(async (file) => {
+      const isImage =
+        FileHelper.isImage(file) &&
+        !options.isAttachment &&
+        !!schema.nodes.image;
+      const isVideo =
+        FileHelper.isVideo(file) &&
+        !options.isAttachment &&
+        !!schema.nodes.video;
+      const getDimensions = isImage
+        ? FileHelper.getImageDimensions
+        : isVideo
+        ? FileHelper.getVideoDimensions
+        : undefined;
+
+      return {
+        id: `upload-${uuidv4()}`,
+        dimensions: await getDimensions?.(file),
+        isImage,
+        isVideo,
+        file,
+      };
+    })
+  );
 
   // the user might have dropped multiple files at once, we need to loop
   for (const upload of filesToUpload) {
@@ -86,11 +103,12 @@ const insertFiles = function (
         }
         if (upload.isImage) {
           const newImg = new Image();
-          newImg.onload = () => {
+          newImg.onload = async () => {
             const result = findPlaceholder(view.state, upload.id);
             if (result === null) {
               return;
             }
+
             if (view.isDestroyed) {
               return;
             }
@@ -101,7 +119,11 @@ const insertFiles = function (
                 .replaceWith(
                   from,
                   to || from,
-                  schema.nodes.image.create({ src, ...options.attrs })
+                  schema.nodes.image.create({
+                    src,
+                    ...(upload.dimensions ?? {}),
+                    ...options.attrs,
+                  })
                 )
                 .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
             );
@@ -119,7 +141,6 @@ const insertFiles = function (
           }
 
           const [from, to] = result;
-          const dimensions = await FileHelper.getVideoDimensions(upload.file);
 
           if (view.isDestroyed) {
             return;
@@ -133,8 +154,7 @@ const insertFiles = function (
                 schema.nodes.video.create({
                   src,
                   title: upload.file.name ?? dictionary.untitled,
-                  width: dimensions.width,
-                  height: dimensions.height,
+                  ...upload.dimensions,
                   ...options.attrs,
                 })
               )
