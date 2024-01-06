@@ -7,7 +7,7 @@ import {
 } from "@getoutline/y-prosemirror";
 import { keymap } from "prosemirror-keymap";
 import * as Y from "yjs";
-import Extension from "../lib/Extension";
+import Extension from "@shared/editor/lib/Extension";
 
 export default class Multiplayer extends Extension {
   get name() {

@@ -1,6 +1,6 @@
 import { Plugin, PluginKey } from "prosemirror-state";
-import Extension from "../lib/Extension";
-import textBetween from "../lib/textBetween";
+import Extension from "@shared/editor/lib/Extension";
+import textBetween from "@shared/editor/lib/textBetween";
 
 /**
  * A plugin that allows overriding the default behavior of the editor to allow
