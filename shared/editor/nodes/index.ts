@@ -1,12 +1,7 @@
-import ClipboardTextSerializer from "../extensions/ClipboardTextSerializer";
 import DateTime from "../extensions/DateTime";
 import History from "../extensions/History";
-import Keys from "../extensions/Keys";
 import MaxLength from "../extensions/MaxLength";
-import PasteHandler from "../extensions/PasteHandler";
 import Placeholder from "../extensions/Placeholder";
-import PreventTab from "../extensions/PreventTab";
-import SmartText from "../extensions/SmartText";
 import TrailingNode from "../extensions/TrailingNode";
 import Extension from "../lib/Extension";
 import Bold from "../marks/Bold";
@@ -68,14 +63,10 @@ export const basicExtensions: Nodes = [
   Link,
   Strikethrough,
   History,
-  SmartText,
   TrailingNode,
-  PasteHandler,
   Placeholder,
   MaxLength,
   DateTime,
-  Keys,
-  ClipboardTextSerializer,
 ];
 
 /**
@@ -83,7 +74,7 @@ export const basicExtensions: Nodes = [
  * editors that need advanced formatting.
  */
 export const richExtensions: Nodes = [
-  ...basicExtensions.filter((n) => n !== SimpleImage && n !== Keys),
+  ...basicExtensions.filter((n) => n !== SimpleImage),
   Image,
   HardBreak,
   CodeBlock,
@@ -108,8 +99,6 @@ export const richExtensions: Nodes = [
   TemplatePlaceholder,
   Math,
   MathBlock,
-  PreventTab,
-  Keys,
 ];
 
 /**

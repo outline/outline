@@ -1,13 +1,13 @@
 import { toggleMark } from "prosemirror-commands";
 import { Slice } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
-import { isUrl } from "../../utils/urls";
-import Extension from "../lib/Extension";
-import isMarkdown from "../lib/isMarkdown";
-import normalizePastedMarkdown from "../lib/markdown/normalize";
-import isInCode from "../queries/isInCode";
-import isInList from "../queries/isInList";
-import { LANGUAGES } from "./Prism";
+import { LANGUAGES } from "@shared/editor/extensions/Prism";
+import Extension from "@shared/editor/lib/Extension";
+import isMarkdown from "@shared/editor/lib/isMarkdown";
+import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
+import isInCode from "@shared/editor/queries/isInCode";
+import isInList from "@shared/editor/queries/isInList";
+import { isDocumentUrl, isUrl } from "@shared/utils/urls";
 
 /**
  * Checks if the HTML string is likely coming from Dropbox Paper.
@@ -108,10 +108,9 @@ export default class PasteHandler extends Extension {
             const html = event.clipboardData.getData("text/html");
             const vscode = event.clipboardData.getData("vscode-editor-data");
 
-            // first check if the clipboard contents can be parsed as a single
-            // url, this is mainly for allowing pasted urls to become embeds
+            // Check if the clipboard contents can be parsed as a single url
             if (isUrl(text)) {
-              // just paste the link mark directly onto the selected text
+              // If there is selected text then we want to wrap it in a link to the url
               if (!state.selection.empty) {
                 toggleMark(this.editor.schema.marks.link, { href: text })(
                   state,
@@ -122,7 +121,6 @@ export default class PasteHandler extends Extension {
 
               // Is this link embeddable? Create an embed!
               const { embeds } = this.editor.props;
-
               if (
                 embeds &&
                 this.editor.commands.embed &&
@@ -140,8 +138,13 @@ export default class PasteHandler extends Extension {
                 }
               }
 
-              // well, it's not an embed and there is no text selected – so just
-              // go ahead and insert the link directly
+              // Is the link a link to a document? If so, we can grab the title and insert it.
+              if (isDocumentUrl(text)) {
+                // TODO
+              }
+
+              // If it's not an embed and there is no text selected – just go ahead and insert the
+              // link directly
               const transaction = view.state.tr
                 .insertText(text, state.selection.from, state.selection.to)
                 .addMark(

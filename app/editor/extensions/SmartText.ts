@@ -1,5 +1,5 @@
 import { ellipsis, smartQuotes, InputRule } from "prosemirror-inputrules";
-import Extension from "../lib/Extension";
+import Extension from "@shared/editor/lib/Extension";
 
 const rightArrow = new InputRule(/->$/, "→");
 const oneHalf = new InputRule(/1\/2$/, "½");

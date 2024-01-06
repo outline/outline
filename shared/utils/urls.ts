@@ -38,8 +38,26 @@ export function isInternalUrl(href: string) {
   return (
     outline.host === domain.host ||
     (domain.host.endsWith(getBaseDomain()) &&
-      !RESERVED_SUBDOMAINS.includes(domain.teamSubdomain))
+      !RESERVED_SUBDOMAINS.find((reserved) => domain.host.startsWith(reserved)))
   );
+}
+
+/**
+ * Returns true if the given string is a link to a documement.
+ *
+ * @param options Parsing options.
+ * @returns True if a document, false otherwise.
+ */
+export function isDocumentUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return (
+      isInternalUrl(url) &&
+      (parsed.pathname.startsWith("/doc/") || parsed.pathname.startsWith("/d/"))
+    );
+  } catch (err) {
+    return false;
+  }
 }
 
 /**
