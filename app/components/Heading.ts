@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-const Heading = styled.h1<{ as: string; centered?: boolean }>`
+const Heading = styled.h1<{ as?: string; centered?: boolean }>`
   display: flex;
   align-items: center;
   user-select: none;
