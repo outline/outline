@@ -317,12 +317,12 @@ type TitleProps = {
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: 1em;
+  margin-top: 6vh;
   margin-bottom: 0.5em;
   margin-left: ${(props) =>
     props.$containsEmoji || props.$emojiPickerIsOpen ? "40px" : "0px"};
   font-size: ${fontSize};
-  font-weight: 500;
+  font-weight: 600;
   border: 0;
   padding: 0;
   cursor: ${(props) => (props.readOnly ? "default" : "text")};
