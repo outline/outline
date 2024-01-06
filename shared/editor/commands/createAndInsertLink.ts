@@ -1,6 +1,7 @@
 import { Node } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
+import type { Dictionary } from "~/hooks/useDictionary";
 
 function findPlaceholderLink(doc: Node, href: string) {
   let result: { pos: number; node: Node } | undefined;
@@ -37,7 +38,7 @@ const createAndInsertLink = async function (
   title: string,
   href: string,
   options: {
-    dictionary: any;
+    dictionary: Dictionary;
     nested?: boolean;
     onCreateLink: (title: string, nested?: boolean) => Promise<string>;
   }

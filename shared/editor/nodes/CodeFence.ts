@@ -58,7 +58,7 @@ import zig from "refractor/lang/zig";
 
 import { toast } from "sonner";
 import { Primitive } from "utility-types";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { Dictionary } from "~/hooks/useDictionary";
 import { UserPreferences } from "../../types";
 import Storage from "../../utils/Storage";
 import { isMac } from "../../utils/browser";

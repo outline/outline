@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/react";
 import { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
+import type { Dictionary } from "~/hooks/useDictionary";
 import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
@@ -9,7 +10,7 @@ import uploadPlaceholderPlugin, {
 
 export type Options = {
   /** Dictionary object containing translation strings */
-  dictionary: any;
+  dictionary: Dictionary;
   /** Set to true to force images and videos to become file attachments */
   isAttachment?: boolean;
   /** Set to true to replace any existing image at the users selection */
