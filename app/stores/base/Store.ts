@@ -219,7 +219,7 @@ export default abstract class Store<T extends Model> {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }
 
-    const item = this.data.get(id);
+    const item = this.get(id);
     if (item && !options.force) {
       return item;
     }

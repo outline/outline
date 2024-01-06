@@ -180,6 +180,13 @@ export default class DocumentsStore extends Store<Document> {
     return naturalSort(this.inCollection(collectionId), "title");
   }
 
+  get(id: string): Document | undefined {
+    return (
+      this.data.get(id) ??
+      this.orderedData.find((doc) => id.endsWith(doc.urlId))
+    );
+  }
+
   @computed
   get archived(): Document[] {
     return orderBy(this.orderedData, "archivedAt", "desc").filter(

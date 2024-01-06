@@ -7,7 +7,9 @@ import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import isInCode from "@shared/editor/queries/isInCode";
 import isInList from "@shared/editor/queries/isInList";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isDocumentUrl, isUrl } from "@shared/utils/urls";
+import stores from "~/stores";
 
 /**
  * Checks if the HTML string is likely coming from Dropbox Paper.
@@ -108,6 +110,32 @@ export default class PasteHandler extends Extension {
             const html = event.clipboardData.getData("text/html");
             const vscode = event.clipboardData.getData("vscode-editor-data");
 
+            function insertLink(href: string, title?: string) {
+              const normalized = href.replace(/^https?:\/\//, "");
+              // If it's not an embed and there is no text selected – just go ahead and insert the
+              // link directly
+              const transaction = view.state.tr
+                .insertText(
+                  title ?? normalized,
+                  state.selection.from,
+                  state.selection.to
+                )
+                .addMark(
+                  state.selection.from,
+                  state.selection.to + (title ?? normalized).length,
+                  state.schema.marks.link.create({ href })
+                );
+              view.dispatch(transaction);
+            }
+
+            // If the users selection is currently in a code block then paste
+            // as plain text, ignore all formatting and HTML content.
+            if (isInCode(state)) {
+              event.preventDefault();
+              view.dispatch(state.tr.insertText(text));
+              return true;
+            }
+
             // Check if the clipboard contents can be parsed as a single url
             if (isUrl(text)) {
               // If there is selected text then we want to wrap it in a link to the url
@@ -140,28 +168,33 @@ export default class PasteHandler extends Extension {
 
               // Is the link a link to a document? If so, we can grab the title and insert it.
               if (isDocumentUrl(text)) {
-                // TODO
+                const slug = parseDocumentSlug(text);
+
+                if (slug) {
+                  void stores.documents
+                    .fetch(slug)
+                    .then((document) => {
+                      if (view.isDestroyed) {
+                        return;
+                      }
+                      if (document) {
+                        const title = `${
+                          document.emoji ? document.emoji + " " : ""
+                        }${document.titleWithDefault}`;
+                        insertLink(document.path, title);
+                      }
+                    })
+                    .catch(() => {
+                      if (view.isDestroyed) {
+                        return;
+                      }
+                      insertLink(text);
+                    });
+                }
+              } else {
+                insertLink(text);
               }
 
-              // If it's not an embed and there is no text selected – just go ahead and insert the
-              // link directly
-              const transaction = view.state.tr
-                .insertText(text, state.selection.from, state.selection.to)
-                .addMark(
-                  state.selection.from,
-                  state.selection.to + text.length,
-                  state.schema.marks.link.create({ href: text })
-                );
-              view.dispatch(transaction);
-              return true;
-            }
-
-            // If the users selection is currently in a code block then paste
-            // as plain text, ignore all formatting and HTML content.
-            if (isInCode(state)) {
-              event.preventDefault();
-
-              view.dispatch(state.tr.insertText(text));
               return true;
             }
 
