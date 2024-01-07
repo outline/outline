@@ -12,8 +12,6 @@ import { dateLocale, dateToRelative } from "@shared/utils/date";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
-import Button from "~/components/Button";
-import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
 import Input, { NativeInput } from "~/components/Input";
 import Notice from "~/components/Notice";
@@ -34,20 +32,11 @@ type Props = {
   sharedParent: Share | null | undefined;
   /** Ref to the Copy Link button */
   copyButtonRef?: React.RefObject<HTMLButtonElement>;
-  /** Callback fired when the link is copied. */
-  onCopied: () => void;
 };
 
-function PublicAccess({
-  document,
-  share,
-  sharedParent,
-  onCopied,
-  copyButtonRef,
-}: Props) {
+function PublicAccess({ document, share, sharedParent }: Props) {
   const { shares } = useStores();
   const { t } = useTranslation();
-  const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const [slugValidationError, setSlugValidationError] = React.useState("");
   const [urlSlug, setUrlSlug] = React.useState("");
   const can = usePolicy(share);
@@ -87,20 +76,6 @@ function PublicAccess({
     [document.id, shares]
   );
 
-  const handleCopied = React.useCallback(() => {
-    onCopied();
-
-    timeout.current = setTimeout(() => {
-      toast.message(t("Share link copied"));
-    }, 100);
-
-    return () => {
-      if (timeout.current) {
-        clearTimeout(timeout.current);
-      }
-    };
-  }, [onCopied, t]);
-
   const handleUrlSlugChange = React.useMemo(
     () =>
       debounce(async (ev) => {
@@ -135,9 +110,6 @@ function PublicAccess({
 
   const userLocale = useUserLocale();
   const locale = userLocale ? dateLocale(userLocale) : undefined;
-  const shareUrl = sharedParent?.url
-    ? `${sharedParent.url}${document.url}`
-    : share?.url ?? "";
   const documentTitle = sharedParent?.documentTitle;
 
   return (
@@ -226,18 +198,6 @@ function PublicAccess({
           </>
         )
       )}
-
-      <Flex justify="flex-end" style={{ marginBottom: 8 }}>
-        <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
-          <Button
-            type="submit"
-            disabled={!share || slugValidationError}
-            ref={copyButtonRef}
-          >
-            {t("Copy link")}
-          </Button>
-        </CopyToClipboard>
-      </Flex>
     </>
   );
 }

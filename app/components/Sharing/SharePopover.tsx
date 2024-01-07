@@ -2,11 +2,14 @@ import { observer } from "mobx-react";
 import { QuestionMarkIcon, TeamIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
+import Button from "~/components/Button";
+import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -39,6 +42,7 @@ function SharePopover({
 }: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
+  const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const collection = document.collection;
 
@@ -50,6 +54,24 @@ function SharePopover({
       buttonRef.current?.focus();
     }
   }, [document, visible]);
+
+  const handleCopied = React.useCallback(() => {
+    onRequestClose();
+
+    timeout.current = setTimeout(() => {
+      toast.message(t("Share link copied"));
+    }, 100);
+
+    return () => {
+      if (timeout.current) {
+        clearTimeout(timeout.current);
+      }
+    };
+  }, [onRequestClose, t]);
+
+  const shareUrl = sharedParent?.url
+    ? `${sharedParent.url}${document.url}`
+    : share?.url ?? "";
 
   return (
     <>
@@ -90,9 +112,17 @@ function SharePopover({
             share={share}
             sharedParent={sharedParent}
             copyButtonRef={buttonRef}
-            onCopied={onRequestClose}
           />
         </>
+      )}
+      {visible && (
+        <Flex justify="flex-end" style={{ marginBottom: 8 }}>
+          <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
+            <Button type="submit" disabled={!share} ref={buttonRef}>
+              {t("Copy link")}
+            </Button>
+          </CopyToClipboard>
+        </Flex>
       )}
     </>
   );
