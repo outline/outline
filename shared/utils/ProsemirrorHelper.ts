@@ -16,6 +16,8 @@ export type CommentMark = {
   id: string;
   /* The id of the user who created the comment */
   userId: string;
+  /* The text of the comment */
+  text: string;
 };
 
 export type Task = {
@@ -88,8 +90,7 @@ export default class ProsemirrorHelper {
   }
 
   /**
-   * Returns true if the trimmed content of the passed document is an empty
-   * string.
+   * Returns true if the trimmed content of the passed document is an empty string.
    *
    * @returns True if the editor is empty
    */
@@ -98,8 +99,7 @@ export default class ProsemirrorHelper {
   }
 
   /**
-   * Iterates through the document to find all of the comments that exist as
-   * marks.
+   * Iterates through the document to find all of the comments that exist as marks.
    *
    * @param doc Prosemirror document node
    * @returns Array<CommentMark>
@@ -110,7 +110,10 @@ export default class ProsemirrorHelper {
     doc.descendants((node) => {
       node.marks.forEach((mark) => {
         if (mark.type.name === "comment") {
-          comments.push(mark.attrs as CommentMark);
+          comments.push({
+            ...mark.attrs,
+            text: node.textContent,
+          } as CommentMark);
         }
       });
 
@@ -121,8 +124,7 @@ export default class ProsemirrorHelper {
   }
 
   /**
-   * Iterates through the document to find all of the tasks and their completion
-   * state.
+   * Iterates through the document to find all of the tasks and their completion state.
    *
    * @param doc Prosemirror document node
    * @returns Array<Task>

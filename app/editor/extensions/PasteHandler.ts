@@ -1,13 +1,15 @@
 import { toggleMark } from "prosemirror-commands";
 import { Slice } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
-import { isUrl } from "../../utils/urls";
-import Extension from "../lib/Extension";
-import isMarkdown from "../lib/isMarkdown";
-import normalizePastedMarkdown from "../lib/markdown/normalize";
-import isInCode from "../queries/isInCode";
-import isInList from "../queries/isInList";
-import { LANGUAGES } from "./Prism";
+import { LANGUAGES } from "@shared/editor/extensions/Prism";
+import Extension from "@shared/editor/lib/Extension";
+import isMarkdown from "@shared/editor/lib/isMarkdown";
+import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
+import isInCode from "@shared/editor/queries/isInCode";
+import isInList from "@shared/editor/queries/isInList";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
+import { isDocumentUrl, isUrl } from "@shared/utils/urls";
+import stores from "~/stores";
 
 /**
  * Checks if the HTML string is likely coming from Dropbox Paper.
@@ -108,10 +110,35 @@ export default class PasteHandler extends Extension {
             const html = event.clipboardData.getData("text/html");
             const vscode = event.clipboardData.getData("vscode-editor-data");
 
-            // first check if the clipboard contents can be parsed as a single
-            // url, this is mainly for allowing pasted urls to become embeds
+            function insertLink(href: string, title?: string) {
+              const normalized = href.replace(/^https?:\/\//, "");
+              // If it's not an embed and there is no text selected – just go ahead and insert the
+              // link directly
+              const transaction = view.state.tr
+                .insertText(
+                  title ?? normalized,
+                  state.selection.from,
+                  state.selection.to
+                )
+                .addMark(
+                  state.selection.from,
+                  state.selection.to + (title ?? normalized).length,
+                  state.schema.marks.link.create({ href })
+                );
+              view.dispatch(transaction);
+            }
+
+            // If the users selection is currently in a code block then paste
+            // as plain text, ignore all formatting and HTML content.
+            if (isInCode(state)) {
+              event.preventDefault();
+              view.dispatch(state.tr.insertText(text));
+              return true;
+            }
+
+            // Check if the clipboard contents can be parsed as a single url
             if (isUrl(text)) {
-              // just paste the link mark directly onto the selected text
+              // If there is selected text then we want to wrap it in a link to the url
               if (!state.selection.empty) {
                 toggleMark(this.editor.schema.marks.link, { href: text })(
                   state,
@@ -122,7 +149,6 @@ export default class PasteHandler extends Extension {
 
               // Is this link embeddable? Create an embed!
               const { embeds } = this.editor.props;
-
               if (
                 embeds &&
                 this.editor.commands.embed &&
@@ -140,25 +166,35 @@ export default class PasteHandler extends Extension {
                 }
               }
 
-              // well, it's not an embed and there is no text selected – so just
-              // go ahead and insert the link directly
-              const transaction = view.state.tr
-                .insertText(text, state.selection.from, state.selection.to)
-                .addMark(
-                  state.selection.from,
-                  state.selection.to + text.length,
-                  state.schema.marks.link.create({ href: text })
-                );
-              view.dispatch(transaction);
-              return true;
-            }
+              // Is the link a link to a document? If so, we can grab the title and insert it.
+              if (isDocumentUrl(text)) {
+                const slug = parseDocumentSlug(text);
 
-            // If the users selection is currently in a code block then paste
-            // as plain text, ignore all formatting and HTML content.
-            if (isInCode(state)) {
-              event.preventDefault();
+                if (slug) {
+                  void stores.documents
+                    .fetch(slug)
+                    .then((document) => {
+                      if (view.isDestroyed) {
+                        return;
+                      }
+                      if (document) {
+                        const title = `${
+                          document.emoji ? document.emoji + " " : ""
+                        }${document.titleWithDefault}`;
+                        insertLink(document.path, title);
+                      }
+                    })
+                    .catch(() => {
+                      if (view.isDestroyed) {
+                        return;
+                      }
+                      insertLink(text);
+                    });
+                }
+              } else {
+                insertLink(text);
+              }
 
-              view.dispatch(state.tr.insertText(text));
               return true;
             }
 

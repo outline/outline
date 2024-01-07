@@ -17,7 +17,7 @@ const StyledText = styled(Text)`
 `;
 
 export const Preview = styled(Link)`
-  cursor: ${(props: any) =>
+  cursor: ${(props: { as?: string }) =>
     props.as === "div" ? "default" : "var(--pointer)"};
   border-radius: 4px;
   box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.3),

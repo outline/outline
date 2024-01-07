@@ -132,7 +132,7 @@ export default abstract class Store<T extends Model> {
 
   save(params: Properties<T>, options: JSONObject = {}): Promise<T> {
     const { isNew, ...rest } = options;
-    if (isNew || !("id" in params)) {
+    if (isNew || !("id" in params) || !params.id) {
       return this.create(params, rest);
     }
     return this.update(params, rest);
@@ -219,7 +219,7 @@ export default abstract class Store<T extends Model> {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }
 
-    const item = this.data.get(id);
+    const item = this.get(id);
     if (item && !options.force) {
       return item;
     }

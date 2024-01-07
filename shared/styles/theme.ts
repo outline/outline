@@ -69,6 +69,7 @@ const buildBaseTheme = (input: Partial<Colors>) => {
     selected: colors.accent,
     textHighlight: "#FDEA9B",
     textHighlightForeground: colors.almostBlack,
+    commentMarkBackground: transparentize(0.5, "#2BC2FF"),
     code: colors.lightBlack,
     codeComment: "#6a737d",
     codePunctuation: "#5e6687",

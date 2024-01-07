@@ -5,11 +5,12 @@ import { isModKey } from "~/utils/keyboard";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 
-export default function useEditorClickHandlers({
-  shareId,
-}: {
+type Params = {
+  /** The share ID of the document being viewed, if any */
   shareId?: string;
-}) {
+};
+
+export default function useEditorClickHandlers({ shareId }: Params) {
   const history = useHistory();
   const handleClickLink = React.useCallback(
     (href: string, event: MouseEvent) => {
@@ -35,6 +36,12 @@ export default function useEditorClickHandlers({
 
         // Link to our own API should be opened in a new tab, not in the app
         if (navigateTo.startsWith("/api/")) {
+          window.open(href, "_blank");
+          return;
+        }
+
+        // If we're navigating to a share link from a non-share link then open it in a new tab
+        if (shareId && navigateTo.startsWith("/s/")) {
           window.open(href, "_blank");
           return;
         }

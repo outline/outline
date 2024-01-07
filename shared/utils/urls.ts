@@ -1,6 +1,6 @@
 import escapeRegExp from "lodash/escapeRegExp";
 import env from "../env";
-import { getBaseDomain, parseDomain } from "./domains";
+import { RESERVED_SUBDOMAINS, getBaseDomain, parseDomain } from "./domains";
 
 /**
  * Prepends the CDN url to the given path (If a CDN is configured).
@@ -35,7 +35,29 @@ export function isInternalUrl(href: string) {
       : parseDomain(env.URL);
   const domain = parseDomain(href);
 
-  return outline.host === domain.host || domain.host.endsWith(getBaseDomain());
+  return (
+    outline.host === domain.host ||
+    (domain.host.endsWith(getBaseDomain()) &&
+      !RESERVED_SUBDOMAINS.find((reserved) => domain.host.startsWith(reserved)))
+  );
+}
+
+/**
+ * Returns true if the given string is a link to a documement.
+ *
+ * @param options Parsing options.
+ * @returns True if a document, false otherwise.
+ */
+export function isDocumentUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return (
+      isInternalUrl(url) &&
+      (parsed.pathname.startsWith("/doc/") || parsed.pathname.startsWith("/d/"))
+    );
+  } catch (err) {
+    return false;
+  }
 }
 
 /**
