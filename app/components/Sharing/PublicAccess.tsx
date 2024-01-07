@@ -143,10 +143,10 @@ function PublicAccess({ document, share, sharedParent }: Props) {
               label={t("Publish to internet")}
               note={
                 <>
-                  {t("Allow anyone with the link to view this document")}
+                  {t("Allow anyone with the link to view this document")}.
                   {share?.published && share?.lastAccessedAt && (
                     <>
-                      .{" "}
+                      {" "}
                       {t("The shared link was last accessed {{ timeAgo }}.", {
                         timeAgo: dateToRelative(
                           Date.parse(share?.lastAccessedAt),
@@ -164,18 +164,22 @@ function PublicAccess({ document, share, sharedParent }: Props) {
               checked={share?.published ?? false}
               disabled={!canPublish}
             />
-            {share?.published && (
+            {share?.published && canPublish && (
               <>
                 {!document.isDraft && (
                   <Switch
                     id="includeChildDocuments"
-                    note={t(
-                      "Documents nested under this document will be shared"
-                    )}
+                    note={
+                      <>
+                        {t(
+                          "Documents nested under this document will be shared"
+                        )}
+                        .
+                      </>
+                    }
                     label={t("Share child documents")}
                     onChange={handleChildDocumentsChange}
                     checked={share ? share.includeChildDocuments : false}
-                    disabled={!share}
                   />
                 )}
                 <Flex align="center" justify="space-between" gap={8}>
