@@ -69,32 +69,40 @@ export const basicExtensions: Nodes = [
   DateTime,
 ];
 
+export const listExtensions: Nodes = [
+  CheckboxList,
+  CheckboxItem,
+  BulletList,
+  OrderedList,
+  ListItem,
+];
+
+export const tableExtensions: Nodes = [
+  Table,
+  TableCell,
+  TableHeadCell,
+  TableRow,
+];
+
 /**
  * The full set of nodes that are used in the editor. This is used for rich
  * editors that need advanced formatting.
  */
 export const richExtensions: Nodes = [
   ...basicExtensions.filter((n) => n !== SimpleImage),
+  ...listExtensions,
+  ...tableExtensions,
   Image,
   HardBreak,
   CodeBlock,
   CodeFence,
-  CheckboxList,
-  CheckboxItem,
   Blockquote,
-  BulletList,
-  OrderedList,
   Embed,
-  ListItem,
   Attachment,
   Video,
   Notice,
   Heading,
   HorizontalRule,
-  Table,
-  TableCell,
-  TableHeadCell,
-  TableRow,
   Highlight,
   TemplatePlaceholder,
   Math,
