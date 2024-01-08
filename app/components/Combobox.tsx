@@ -185,6 +185,7 @@ const StyledComboboxInput = styled(ComboboxInput)`
   &:disabled,
   &::placeholder {
     color: ${s("placeholder")};
+    opacity: 1;
   }
 
   &:-webkit-autofill,

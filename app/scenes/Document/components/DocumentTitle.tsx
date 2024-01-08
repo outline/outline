@@ -334,6 +334,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   &::placeholder {
     color: ${s("placeholder")};
     -webkit-text-fill-color: ${s("placeholder")};
+    opacity: 1;
   }
 
   &:focus-within,

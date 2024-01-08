@@ -1483,13 +1483,10 @@ router.post(
     authorize(actor, "read", user);
     authorize(actor, "update", document);
 
-    const where = {
-      documentId: id,
-      userId,
-    };
-
     const userPermissions = await UserPermission.findAll({
-      where,
+      where: {
+        userId,
+      },
       attributes: ["id", "index", "updatedAt"],
       limit: 1,
       order: [
@@ -1508,7 +1505,10 @@ router.post(
     );
 
     const [membership] = await UserPermission.findOrCreate({
-      where,
+      where: {
+        documentId: id,
+        userId,
+      },
       defaults: {
         index,
         permission: permission || user.defaultDocumentPermission,

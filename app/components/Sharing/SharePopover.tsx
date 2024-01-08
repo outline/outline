@@ -124,39 +124,43 @@ function SharePopover({
             border={false}
             small
           />
-        ) : collection && collection.permission ? (
-          <Item
-            image={<TeamIcon />}
-            title={t("Everyone at {{ name }}", {
-              name: team.name,
-            })}
-            actions={
-              <CollectionAccess>
-                {collection?.permission === CollectionPermission.ReadWrite
-                  ? t("Can edit")
-                  : t("Can view")}
-              </CollectionAccess>
-            }
-            border={false}
-            small
-          />
-        ) : collection && usersInCollection ? (
-          <Item
-            image={<CollectionIcon collection={collection} />}
-            title={t("Collection members")}
-            actions={<CollectionAccess>{t("Can view")}</CollectionAccess>}
-            border={false}
-            small
-          />
-        ) : (
-          <Item
-            image={<Avatar model={user} />}
-            title={user.name}
-            actions={<CollectionAccess>{t("Can edit")}</CollectionAccess>}
-            border={false}
-            small
-          />
-        )}
+        ) : collection ? (
+          <>
+            {collection.permission ? (
+              <Item
+                image={<TeamIcon />}
+                title={t("Everyone at {{ name }}", {
+                  name: team.name,
+                })}
+                actions={
+                  <CollectionAccess>
+                    {collection?.permission === CollectionPermission.ReadWrite
+                      ? t("Can edit")
+                      : t("Can view")}
+                  </CollectionAccess>
+                }
+                border={false}
+                small
+              />
+            ) : usersInCollection ? (
+              <Item
+                image={<CollectionIcon collection={collection} />}
+                title={t("Collection members")}
+                actions={<CollectionAccess>{t("Can view")}</CollectionAccess>}
+                border={false}
+                small
+              />
+            ) : (
+              <Item
+                image={<Avatar model={user} />}
+                title={user.name}
+                actions={<CollectionAccess>{t("Can edit")}</CollectionAccess>}
+                border={false}
+                small
+              />
+            )}
+          </>
+        ) : null}
       </DocumentMembersList>
 
       {team.sharing && visible && (

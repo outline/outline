@@ -19,6 +19,7 @@ export const NativeTextarea = styled.textarea<{ hasIcon?: boolean }>`
   &:disabled,
   &::placeholder {
     color: ${s("placeholder")};
+    opacity: 1;
   }
 `;
 
@@ -39,6 +40,7 @@ export const NativeInput = styled.input<{ hasIcon?: boolean }>`
   &:disabled,
   &::placeholder {
     color: ${s("placeholder")};
+    opacity: 1;
   }
 
   &:-webkit-autofill,

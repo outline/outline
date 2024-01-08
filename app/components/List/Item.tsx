@@ -78,6 +78,7 @@ const Wrapper = styled.a<{
 }>`
   display: flex;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
+  min-height: 32px;
   margin: ${(props) =>
     props.$border === false ? (props.$small ? "8px 0" : "16px 0") : 0};
   border-bottom: 1px solid

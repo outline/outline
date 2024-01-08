@@ -168,7 +168,7 @@ function PublicAccess({ document, share, sharedParent, onCopied }: Props) {
               }
               onChange={handlePublishedChange}
               checked={share?.published ?? false}
-              disabled={!share}
+              disabled={!can.update}
             />
             {share?.published && canPublish && (
               <>
