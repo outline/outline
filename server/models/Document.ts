@@ -3,7 +3,13 @@ import compact from "lodash/compact";
 import isNil from "lodash/isNil";
 import uniq from "lodash/uniq";
 import randomstring from "randomstring";
-import type { Identifier, NonNullFindOptions, SaveOptions } from "sequelize";
+import type {
+  Identifier,
+  InferAttributes,
+  InferCreationAttributes,
+  NonNullFindOptions,
+  SaveOptions,
+} from "sequelize";
 import {
   Sequelize,
   Transaction,
@@ -186,7 +192,10 @@ type AdditionalFindOptions = {
 }))
 @Table({ tableName: "documents", modelName: "document" })
 @Fix
-class Document extends ParanoidModel {
+class Document extends ParanoidModel<
+  InferAttributes<Document>,
+  Partial<InferCreationAttributes<Document>>
+> {
   @SimpleLength({
     min: 10,
     max: 10,
@@ -208,7 +217,7 @@ class Document extends ParanoidModel {
 
   @IsNumeric
   @Column(DataType.SMALLINT)
-  version: number;
+  version?: number | null;
 
   @Default(false)
   @Column
@@ -261,7 +270,7 @@ class Document extends ParanoidModel {
     msg: `Document collaborative state is too large, you must create a new document`,
   })
   @Column(DataType.BLOB)
-  state: Uint8Array;
+  state?: Uint8Array | null;
 
   /** Whether this document is part of onboarding. */
   @Default(false)
@@ -387,14 +396,13 @@ class Document extends ParanoidModel {
     // ensure documents have a title
     model.title = model.title || "";
 
-    if (model.previous("title") && model.previous("title") !== model.title) {
+    const previousTitle = model.previous("title");
+    if (previousTitle && previousTitle !== model.title) {
       if (!model.previousTitles) {
         model.previousTitles = [];
       }
 
-      model.previousTitles = uniq(
-        model.previousTitles.concat(model.previous("title"))
-      );
+      model.previousTitles = uniq(model.previousTitles.concat(previousTitle));
     }
 
     // add the current user as a collaborator on this doc

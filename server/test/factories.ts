@@ -377,7 +377,7 @@ export async function buildDocument(
       publishedAt: isNull(overrides.collectionId) ? null : new Date(),
       lastModifiedById: overrides.userId,
       createdById: overrides.userId,
-      editorVersion: 2,
+      editorVersion: "12.0.0",
       ...overrides,
     },
     {

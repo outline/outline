@@ -275,7 +275,6 @@ class Team extends ParanoidModel {
             parentDocumentId: null,
             collectionId: collection.id,
             teamId: collection.teamId,
-            userId: collection.createdById,
             lastModifiedById: collection.createdById,
             createdById: collection.createdById,
             title,

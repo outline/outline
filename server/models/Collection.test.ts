@@ -219,11 +219,10 @@ describe("#updateDocument", () => {
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
-    const newDocument = await Document.create({
+    const newDocument = await buildDocument({
       parentDocumentId: document.id,
       collectionId: collection.id,
       teamId: collection.teamId,
-      userId: collection.createdById,
       lastModifiedById: collection.createdById,
       createdById: collection.createdById,
       title: "Child document",
@@ -273,11 +272,10 @@ describe("#removeDocument", () => {
     await collection.reload();
 
     // Add a child for testing
-    const newDocument = await Document.create({
+    const newDocument = await buildDocument({
       parentDocumentId: document.id,
       collectionId: collection.id,
       teamId: collection.teamId,
-      userId: collection.createdById,
       lastModifiedById: collection.createdById,
       createdById: collection.createdById,
       title: "Child document",
@@ -302,11 +300,10 @@ describe("#removeDocument", () => {
     await collection.reload();
 
     // Add a child for testing
-    const newDocument = await Document.create({
+    const newDocument = await buildDocument({
       parentDocumentId: document.id,
       collectionId: collection.id,
       teamId: collection.teamId,
-      userId: collection.createdById,
       lastModifiedById: collection.createdById,
       createdById: collection.createdById,
       publishedAt: new Date(),

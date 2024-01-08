@@ -906,7 +906,6 @@ router.post(
         editorVersion: original.editorVersion,
         collectionId: original.collectionId,
         teamId: original.teamId,
-        userId: user.id,
         publishedAt: new Date(),
         lastModifiedById: user.id,
         createdById: user.id,
