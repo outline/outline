@@ -167,7 +167,7 @@ function SharedDocumentScene(props: Props) {
     return <Loading location={props.location} />;
   }
 
-  if (response && searchParams.get("edit") === "true" && can.update) {
+  if (response && can.update && searchParams.get("showPublished") !== "true") {
     return <Redirect to={response.document.url} />;
   }
 

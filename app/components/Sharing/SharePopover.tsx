@@ -132,13 +132,14 @@ const CollectionAccess = ({ children }: { children: React.ReactNode }) => {
   const { t } = useTranslation();
 
   return (
-    <Tooltip tooltip={t("Access inherited from collection")}>
-      <span>
-        <Text type="secondary" size="small" as={Flex} align="center" gap={2}>
-          {children} <QuestionMarkIcon size={18} />
-        </Text>
-      </span>
-    </Tooltip>
+    <Flex align="center" gap={2}>
+      <Text type="secondary" size="small" as="span">
+        {children}
+      </Text>
+      <Tooltip tooltip={t("Access inherited from collection")}>
+        <QuestionMarkIcon size={18} />
+      </Tooltip>
+    </Flex>
   );
 };
 
