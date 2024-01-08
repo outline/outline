@@ -3340,10 +3340,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-portal@^4.0.6":
-  version "4.0.6"
-  resolved "https://registry.yarnpkg.com/@types/react-portal/-/react-portal-4.0.6.tgz#20d49d8f347281af839be992923b50129fcb326f"
-  integrity sha512-XUO/XRxovs50Hkfoant04x4AzDOE1ivJNKN/6QzNhH/37NpbWGFFGKFI1ZHOBU+wACPyj3V1A/XgEJkzoTQ7KQ==
+"@types/react-portal@^4.0.7":
+  version "4.0.7"
+  resolved "https://registry.yarnpkg.com/@types/react-portal/-/react-portal-4.0.7.tgz#c7436c5039e74ec80d488fbe5c98dbcc6469bf44"
+  integrity sha512-3zQJL6Pqcq7d73+cakVkZDqAYGFBo37XXPfahjhdScr9EdYPlf9evYilL38Fpzs1YGWz7F2SkPtN6+ygTO7ymg==
   dependencies:
     "@types/react" "*"
 
