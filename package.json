@@ -47,7 +47,7 @@
     "> 0.25%, not dead"
   ],
   "dependencies": {
-    "@babel/core": "^7.22.5",
+    "@babel/core": "^7.23.7",
     "@babel/plugin-proposal-decorators": "^7.23.2",
     "@babel/plugin-transform-destructuring": "^7.23.3",
     "@babel/plugin-transform-regenerator": "^7.23.3",
