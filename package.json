@@ -288,7 +288,7 @@
     "@types/react-color": "^3.0.10",
     "@types/react-dom": "^17.0.11",
     "@types/react-helmet": "^6.1.9",
-    "@types/react-portal": "^4.0.6",
+    "@types/react-portal": "^4.0.7",
     "@types/react-router-dom": "^5.3.3",
     "@types/react-table": "^7.7.18",
     "@types/react-virtualized-auto-sizer": "^1.0.2",
