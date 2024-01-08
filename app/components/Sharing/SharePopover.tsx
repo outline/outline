@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
+import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
 import Button from "~/components/Button";
@@ -13,7 +14,12 @@ import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useKeyDown from "~/hooks/useKeyDown";
+import useRequest from "~/hooks/useRequest";
+import useStores from "~/hooks/useStores";
+import { documentPath, urlify } from "~/utils/routeHelpers";
+import Avatar from "../Avatar";
 import CollectionIcon from "../Icons/CollectionIcon";
 import Item from "../List/Item";
 import Tooltip from "../Tooltip";
@@ -33,6 +39,25 @@ type Props = {
   visible: boolean;
 };
 
+function useUsersInCollection(collection?: Collection) {
+  const { users, memberships } = useStores();
+  const { request } = useRequest(() =>
+    memberships.fetchPage({ limit: 1, id: collection!.id })
+  );
+
+  React.useEffect(() => {
+    if (collection && !collection.permission) {
+      void request();
+    }
+  }, [collection]);
+
+  return collection
+    ? collection.permission
+      ? true
+      : users.inCollection(collection.id).length > 1
+    : false;
+}
+
 function SharePopover({
   document,
   share,
@@ -40,6 +65,7 @@ function SharePopover({
   onRequestClose,
   visible,
 }: Props) {
+  const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
@@ -59,7 +85,7 @@ function SharePopover({
     onRequestClose();
 
     timeout.current = setTimeout(() => {
-      toast.message(t("Share link copied"));
+      toast.message(t("Link copied to clipboard"));
     }, 100);
 
     return () => {
@@ -69,18 +95,41 @@ function SharePopover({
     };
   }, [onRequestClose, t]);
 
-  const shareUrl = sharedParent?.url
-    ? `${sharedParent.url}${document.url}`
-    : share?.url ?? "";
+  const usersInCollection = useUsersInCollection(collection);
 
   return (
     <>
-      <Heading>{t("People with access")}</Heading>
+      <Heading>
+        {t("People with access")}
+
+        <CopyToClipboard
+          text={urlify(documentPath(document))}
+          onCopy={handleCopied}
+        >
+          <Button type="button" disabled={!share} ref={buttonRef} neutral>
+            {t("Copy link")}
+          </Button>
+        </CopyToClipboard>
+      </Heading>
       <DocumentMembersList document={document}>
-        {collection?.permission ? (
+        {document.isDraft ? (
+          <Item
+            image={<Avatar model={document.createdBy} />}
+            title={document.createdBy.name}
+            actions={
+              <CollectionAccess tooltip={t("Creator of this draft")}>
+                {t("Can edit")}
+              </CollectionAccess>
+            }
+            border={false}
+            small
+          />
+        ) : collection && collection.permission ? (
           <Item
             image={<TeamIcon />}
-            title={t("All workspace members")}
+            title={t("Everyone at {{ name }}", {
+              name: team.name,
+            })}
             actions={
               <CollectionAccess>
                 {collection?.permission === CollectionPermission.ReadWrite
@@ -91,7 +140,7 @@ function SharePopover({
             border={false}
             small
           />
-        ) : collection && !document.isDraft ? (
+        ) : collection && usersInCollection ? (
           <Item
             image={<CollectionIcon collection={collection} />}
             title={t("Collection members")}
@@ -99,7 +148,15 @@ function SharePopover({
             border={false}
             small
           />
-        ) : null}
+        ) : (
+          <Item
+            image={<Avatar model={user} />}
+            title={user.name}
+            actions={<CollectionAccess>{t("Can edit")}</CollectionAccess>}
+            border={false}
+            small
+          />
+        )}
       </DocumentMembersList>
 
       {team.sharing && visible && (
@@ -111,24 +168,21 @@ function SharePopover({
             document={document}
             share={share}
             sharedParent={sharedParent}
-            copyButtonRef={buttonRef}
+            onCopied={handleCopied}
           />
         </>
-      )}
-      {visible && (
-        <Flex justify="flex-end" style={{ marginBottom: 8 }}>
-          <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
-            <Button type="submit" disabled={!share} ref={buttonRef}>
-              {t("Copy link")}
-            </Button>
-          </CopyToClipboard>
-        </Flex>
       )}
     </>
   );
 }
 
-const CollectionAccess = ({ children }: { children: React.ReactNode }) => {
+const CollectionAccess = ({
+  children,
+  tooltip,
+}: {
+  children: React.ReactNode;
+  tooltip?: string;
+}) => {
   const { t } = useTranslation();
 
   return (
@@ -136,7 +190,7 @@ const CollectionAccess = ({ children }: { children: React.ReactNode }) => {
       <Text type="secondary" size="small" as="span">
         {children}
       </Text>
-      <Tooltip tooltip={t("Access inherited from collection")}>
+      <Tooltip tooltip={tooltip ?? t("Access inherited from collection")}>
         <QuestionMarkIcon size={18} />
       </Tooltip>
     </Flex>

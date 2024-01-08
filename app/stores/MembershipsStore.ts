@@ -16,7 +16,7 @@ export default class MembershipsStore extends Store<Membership> {
 
   @action
   fetchPage = async (
-    params: PaginationParams | undefined
+    params: (PaginationParams & { id?: string }) | undefined
   ): Promise<Membership[]> => {
     this.isFetching = true;
 

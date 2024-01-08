@@ -2,6 +2,7 @@ import invariant from "invariant";
 import debounce from "lodash/debounce";
 import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
+import { GlobeIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -14,13 +15,14 @@ import Document from "~/models/Document";
 import Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import Input, { NativeInput } from "~/components/Input";
-import Notice from "~/components/Notice";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
+import Button from "../Button";
+import CopyToClipboard from "../CopyToClipboard";
 import { Label } from "../Labeled";
 
 type Props = {
@@ -32,9 +34,11 @@ type Props = {
   sharedParent: Share | null | undefined;
   /** Ref to the Copy Link button */
   copyButtonRef?: React.RefObject<HTMLButtonElement>;
+  /** Callback fired when the popover requests to be closed. */
+  onCopied?: () => void;
 };
 
-function PublicAccess({ document, share, sharedParent }: Props) {
+function PublicAccess({ document, share, sharedParent, onCopied }: Props) {
   const { shares } = useStores();
   const { t } = useTranslation();
   const [slugValidationError, setSlugValidationError] = React.useState("");
@@ -112,20 +116,22 @@ function PublicAccess({ document, share, sharedParent }: Props) {
   const locale = userLocale ? dateLocale(userLocale) : undefined;
   const documentTitle = sharedParent?.documentTitle;
 
+  const shareUrl = sharedParent?.url
+    ? `${sharedParent.url}${document.url}`
+    : share?.url ?? "";
+
   return (
     <>
       {sharedParent && !document.isDraft && (
-        <NoticeWrapper>
-          <Notice>
-            <Trans>
-              This document is shared because the parent{" "}
-              <StyledLink to={`/doc/${sharedParent.documentId}`}>
-                {documentTitle}
-              </StyledLink>{" "}
-              is publicly shared.
-            </Trans>
-          </Notice>
-        </NoticeWrapper>
+        <Notice>
+          <Trans>
+            This document is already shared because the parent document,{" "}
+            <StyledLink to={`/doc/${sharedParent.documentId}`}>
+              {documentTitle}
+            </StyledLink>
+            , is publicly shared.
+          </Trans>
+        </Notice>
       )}
 
       {collectionSharingDisabled ? (
@@ -162,7 +168,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
               }
               onChange={handlePublishedChange}
               checked={share?.published ?? false}
-              disabled={!canPublish}
+              disabled={!share}
             />
             {share?.published && canPublish && (
               <>
@@ -191,7 +197,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
                   </Flex>
                   <CustomSlugInput
                     type="text"
-                    placeholder="a-unique-link"
+                    placeholder="a-unique-path"
                     onChange={handleUrlSlugChange}
                     error={slugValidationError}
                     defaultValue={urlSlug}
@@ -202,12 +208,23 @@ function PublicAccess({ document, share, sharedParent }: Props) {
           </>
         )
       )}
+
+      {!collectionSharingDisabled &&
+        (sharedParent?.published || share?.published) && (
+          <Flex justify="flex-end" style={{ marginBottom: 8 }}>
+            <CopyToClipboard text={shareUrl} onCopy={onCopied}>
+              <Button icon={<GlobeIcon />} type="submit" disabled={!share}>
+                {t("Copy public link")}
+              </Button>
+            </CopyToClipboard>
+          </Flex>
+        )}
     </>
   );
 }
 
 const CustomSlugInput = styled(Input)`
-  margin-top: 8px;
+  margin-top: 12px;
   min-width: 100px;
   flex: 1;
 
@@ -225,8 +242,14 @@ const StyledLink = styled(Link)`
   text-decoration: underline;
 `;
 
-const NoticeWrapper = styled.div`
+const Notice = styled.div`
   margin: 20px 0;
+  background: ${s("sidebarBackground")};
+  color: ${s("sidebarText")};
+  font-weight: 500;
+  padding: 10px 12px;
+  border-radius: 4px;
+  user-select: none;
 `;
 
 export default observer(PublicAccess);
