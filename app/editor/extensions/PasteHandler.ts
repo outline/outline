@@ -178,10 +178,12 @@ export default class PasteHandler extends Extension {
                         return;
                       }
                       if (document) {
+                        const { hash } = new URL(text);
+
                         const title = `${
                           document.emoji ? document.emoji + " " : ""
                         }${document.titleWithDefault}`;
-                        insertLink(document.path, title);
+                        insertLink(`${document.path}${hash}`, title);
                       }
                     })
                     .catch(() => {
