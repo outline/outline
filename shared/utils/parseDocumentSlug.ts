@@ -1,3 +1,5 @@
+import sharedEnv from "@shared/env";
+
 /**
  * Parse the likely document identifier from a given url.
  *
@@ -8,13 +10,13 @@ export default function parseDocumentSlug(url: string) {
   let parsed;
 
   if (url[0] === "/") {
-    parsed = url;
-  } else {
-    try {
-      parsed = new URL(url).pathname;
-    } catch (err) {
-      return;
-    }
+    url = `${sharedEnv.URL}${url}`;
+  }
+
+  try {
+    parsed = new URL(url).pathname;
+  } catch (err) {
+    return;
   }
 
   const split = parsed.split("/");
