@@ -200,7 +200,8 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       const { user } = ctx.state.auth;
       assertPresent(code || error, "code is required");
 
-      const collectionId = state;
+      // FIX ME! What about having zod like schema in place here?
+      const collectionId = state as string;
       assertUuid(collectionId, "collectionId must be an uuid");
 
       if (error) {

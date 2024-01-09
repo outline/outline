@@ -1,7 +1,9 @@
 import { z } from "zod";
-import { IntegrationType } from "@shared/types";
+import {
+  IntegrationType,
+  UserCreatableIntegrationService,
+} from "@shared/types";
 import { Integration } from "@server/models";
-import { UserCreatableIntegrationService } from "@server/models/Integration";
 import { BaseSchema } from "../schema";
 
 export const IntegrationsListSchema = BaseSchema.extend({
