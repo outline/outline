@@ -1,4 +1,4 @@
-import sharedEnv from "@shared/env";
+import sharedEnv from "../env";
 
 /**
  * Parse the likely document identifier from a given url.

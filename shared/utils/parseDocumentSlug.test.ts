@@ -1,4 +1,4 @@
-import sharedEnv from "@shared/env";
+import sharedEnv from "../env";
 import parseDocumentSlug from "./parseDocumentSlug";
 
 sharedEnv.URL = "https://app.outline.dev";
