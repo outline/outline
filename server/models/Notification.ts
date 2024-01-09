@@ -1,5 +1,9 @@
 import crypto from "crypto";
-import type { SaveOptions } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  SaveOptions,
+} from "sequelize";
 import {
   Table,
   ForeignKey,
@@ -83,7 +87,10 @@ import Fix from "./decorators/Fix";
   updatedAt: false,
 })
 @Fix
-class Notification extends Model {
+class Notification extends Model<
+  InferAttributes<Notification>,
+  Partial<InferCreationAttributes<Notification>>
+> {
   @IsUUID(4)
   @PrimaryKey
   @Default(DataType.UUIDV4)
@@ -92,7 +99,7 @@ class Notification extends Model {
 
   @AllowNull
   @Column
-  emailedAt: Date;
+  emailedAt?: Date | null;
 
   @AllowNull
   @Column
