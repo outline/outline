@@ -1,3 +1,4 @@
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
   DataType,
@@ -23,7 +24,10 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "subscriptions", modelName: "subscription" })
 @Fix
-class Subscription extends ParanoidModel {
+class Subscription extends ParanoidModel<
+  InferAttributes<Subscription>,
+  Partial<InferCreationAttributes<Subscription>>
+> {
   @BelongsTo(() => User, "userId")
   user: User;
 

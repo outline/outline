@@ -122,7 +122,6 @@ export async function buildSubscription(overrides: Partial<Subscription> = {}) {
   }
 
   return Subscription.create({
-    enabled: true,
     event: "documents.update",
     ...overrides,
   });

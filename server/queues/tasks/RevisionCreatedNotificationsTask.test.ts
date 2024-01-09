@@ -112,7 +112,6 @@ describe("revisions.create", () => {
       userId: subscriber.id,
       documentId: document.id,
       event: "documents.update",
-      enabled: true,
     });
 
     const task = new RevisionCreatedNotificationsTask();
@@ -303,7 +302,6 @@ describe("revisions.create", () => {
       userId: subscriber.id,
       documentId: document.id,
       event: "documents.update",
-      enabled: true,
     });
 
     const task = new RevisionCreatedNotificationsTask();
@@ -343,7 +341,6 @@ describe("revisions.create", () => {
       userId: subscriber.id,
       documentId: document.id,
       event: "documents.update",
-      enabled: true,
     });
 
     await subscription.destroy();
@@ -391,7 +388,6 @@ describe("revisions.create", () => {
       userId: subscriber.id,
       documentId: document.id,
       event: "documents.update",
-      enabled: true,
     });
 
     const task = new RevisionCreatedNotificationsTask();
