@@ -1,4 +1,9 @@
-import { Op, SaveOptions } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  Op,
+  SaveOptions,
+} from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -28,10 +33,13 @@ import Length from "./validators/Length";
 }))
 @Table({ tableName: "revisions", modelName: "revision" })
 @Fix
-class Revision extends IdModel {
+class Revision extends IdModel<
+  InferAttributes<Revision>,
+  Partial<InferCreationAttributes<Revision>>
+> {
   @IsNumeric
   @Column(DataType.SMALLINT)
-  version: number;
+  version?: number | null;
 
   @SimpleLength({
     max: 255,
@@ -133,7 +141,7 @@ class Revision extends IdModel {
    */
   static createFromDocument(
     document: Document,
-    options?: SaveOptions<Revision>
+    options?: SaveOptions<InferAttributes<Revision>>
   ) {
     const revision = this.buildFromDocument(document);
     return revision.save(options);
