@@ -1,4 +1,8 @@
-import { type SaveOptions } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  type SaveOptions,
+} from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -69,7 +73,10 @@ import Length from "./validators/Length";
 }))
 @Table({ tableName: "shares", modelName: "share" })
 @Fix
-class Share extends IdModel {
+class Share extends IdModel<
+  InferAttributes<Share>,
+  Partial<InferCreationAttributes<Share>>
+> {
   @Column
   published: boolean;
 
