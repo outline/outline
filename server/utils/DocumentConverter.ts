@@ -1,6 +1,6 @@
+import escapeRegExp from "lodash/escapeRegExp";
+import { simpleParser } from "mailparser";
 import mammoth from "mammoth";
-import quotedPrintable from "quoted-printable";
-import utf8 from "utf8";
 import { FileImportError } from "@server/errors";
 import turndownService from "@server/utils/turndown";
 
@@ -17,6 +17,7 @@ export class DocumentConverter {
     fileName: string,
     mimeType: string
   ) {
+    // First try to convert the file based on the mime type.
     switch (mimeType) {
       case "application/msword":
         return this.confluenceToMarkdown(content);
@@ -36,6 +37,7 @@ export class DocumentConverter {
         break;
     }
 
+    // If the mime type doesn't work, try to convert based on the file extension.
     const extension = fileName.split(".").pop();
     switch (extension) {
       case "docx":
@@ -82,56 +84,42 @@ export class DocumentConverter {
       value = value.toString("utf8");
     }
 
-    // We're only supporting the ridiculous output from Confluence here, regular
-    // Word documents should call into the docxToMarkdown importer.
-    // See: https://jira.atlassian.com/browse/CONFSERVER-38237
+    // We're only supporting the output from Confluence here, regular Word documents should call
+    // into the docxToMarkdown importer. See: https://jira.atlassian.com/browse/CONFSERVER-38237
     if (!value.includes("Content-Type: multipart/related")) {
       throw FileImportError("Unsupported Word file");
     }
 
-    // get boundary marker
-    const boundaryMarker = value.match(/boundary="(.+)"/);
-
-    if (!boundaryMarker) {
-      throw FileImportError("Unsupported Word file (No boundary marker)");
-    }
-
-    // get content between multipart boundaries
-    let boundaryReached = 0;
-    const lines = value.split("\n").filter((line) => {
-      if (line.includes(boundaryMarker[1])) {
-        boundaryReached++;
-        return false;
-      }
-
-      if (line.startsWith("Content-")) {
-        return false;
-      }
-
-      // 1 == definition
-      // 2 == content
-      // 3 == ending
-      if (boundaryReached === 2) {
-        return true;
-      }
-
-      return false;
-    });
-
-    if (!lines.length) {
+    // Confluence "Word" documents are actually just multi-part email messages, so we can use
+    // mailparser to parse the content.
+    const parsed = await simpleParser(value);
+    if (!parsed.html) {
       throw FileImportError("Unsupported Word file (No content found)");
     }
 
-    // Mime attachment is "quoted printable" encoded, must be decoded first
-    // https://en.wikipedia.org/wiki/Quoted-printable
-    value = utf8.decode(quotedPrintable.decode(lines.join("\n")));
+    // Replace the content-location with a data URI for each attachment.
+    for (const attachment of parsed.attachments) {
+      const contentLocation = String(
+        attachment.headers.get("content-location") ?? ""
+      );
+
+      const id = contentLocation.split("/").pop();
+      if (!id) {
+        continue;
+      }
+
+      parsed.html = parsed.html.replace(
+        new RegExp(escapeRegExp(id), "g"),
+        `data:image/png;base64,${attachment.content.toString("base64")}`
+      );
+    }
 
     // If we don't remove the title here it becomes printed in the document
     // body by turndown
     turndownService.remove(["style", "title"]);
 
     // Now we should have something that looks like HTML
-    const html = turndownService.turndown(value);
+    const html = turndownService.turndown(parsed.html);
     return html.replace(/<br>/g, " \\n ");
   }
 }
