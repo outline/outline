@@ -1,3 +1,4 @@
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Table,
   ForeignKey,
@@ -9,9 +10,8 @@ import {
   DataType,
   Default,
 } from "sequelize-typescript";
+import { Team, User, Share } from "@server/models";
 import Model from "@server/models/base/Model";
-import Team from "./Team";
-import User from "./User";
 import Fix from "./decorators/Fix";
 
 @Table({
@@ -20,7 +20,10 @@ import Fix from "./decorators/Fix";
   updatedAt: false,
 })
 @Fix
-class SearchQuery extends Model {
+class SearchQuery extends Model<
+  InferAttributes<SearchQuery>,
+  Partial<InferCreationAttributes<SearchQuery>>
+> {
   @IsUUID(4)
   @PrimaryKey
   @Default(DataType.UUIDV4)
@@ -69,11 +72,18 @@ class SearchQuery extends Model {
   // associations
 
   @BelongsTo(() => User, "userId")
-  user: User;
+  user?: User | null;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  userId: string;
+  userId?: string | null;
+
+  @BelongsTo(() => Share, "shareId")
+  share?: Share | null;
+
+  @ForeignKey(() => Share)
+  @Column(DataType.UUID)
+  shareId?: string | null;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
