@@ -230,11 +230,11 @@ export default class CollectionsStore extends Store<Collection> {
     return find(this.orderedData, (col: Collection) => url.endsWith(col.urlId));
   }
 
-  delete = async (collection: Collection) => {
+  async delete(collection: Collection) {
     await super.delete(collection);
     await this.rootStore.documents.fetchRecentlyUpdated();
     await this.rootStore.documents.fetchRecentlyViewed();
-  };
+  }
 
   export = (format: FileOperationFormat, includeAttachments: boolean) =>
     client.post("/collections.export_all", {
