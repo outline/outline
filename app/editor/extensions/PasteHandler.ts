@@ -111,18 +111,17 @@ export default class PasteHandler extends Extension {
             const vscode = event.clipboardData.getData("vscode-editor-data");
 
             function insertLink(href: string, title?: string) {
-              const normalized = href.replace(/^https?:\/\//, "");
               // If it's not an embed and there is no text selected – just go ahead and insert the
               // link directly
               const transaction = view.state.tr
                 .insertText(
-                  title ?? normalized,
+                  title ?? href,
                   state.selection.from,
                   state.selection.to
                 )
                 .addMark(
                   state.selection.from,
-                  state.selection.to + (title ?? normalized).length,
+                  state.selection.to + (title ?? href).length,
                   state.schema.marks.link.create({ href })
                 );
               view.dispatch(transaction);
