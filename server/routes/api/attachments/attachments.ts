@@ -8,7 +8,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Attachment, Document, Event } from "@server/models";
+import { Attachment, Document } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import { presentAttachment } from "@server/presenters";
@@ -64,33 +64,17 @@ router.post(
       userId: user.id,
     });
 
-    const attachment = await Attachment.create(
-      {
-        id: modelId,
-        key,
-        acl,
-        size,
-        expiresAt: AttachmentHelper.presetToExpiry(preset),
-        contentType,
-        documentId,
-        teamId: user.teamId,
-        userId: user.id,
-      },
-      { transaction }
-    );
-    await Event.create(
-      {
-        name: "attachments.create",
-        data: {
-          name,
-        },
-        modelId,
-        teamId: user.teamId,
-        actorId: user.id,
-        ip: ctx.request.ip,
-      },
-      { transaction }
-    );
+    const attachment = await Attachment.createWithCtx(ctx, {
+      id: modelId,
+      key,
+      acl,
+      size,
+      expiresAt: AttachmentHelper.presetToExpiry(preset),
+      contentType,
+      documentId,
+      teamId: user.teamId,
+      userId: user.id,
+    });
 
     const presignedPost = await FileStorage.getPresignedPost(
       key,
@@ -125,28 +109,27 @@ router.post(
   "attachments.delete",
   auth(),
   validate(T.AttachmentDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.AttachmentDeleteReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
     const attachment = await Attachment.findByPk(id, {
       rejectOnEmpty: true,
+      lock: transaction.LOCK.UPDATE,
     });
 
     if (attachment.documentId) {
       const document = await Document.findByPk(attachment.documentId, {
         userId: user.id,
+        transaction,
       });
       authorize(user, "update", document);
     }
 
     authorize(user, "delete", attachment);
-    await attachment.destroy();
-    await Event.create({
-      name: "attachments.delete",
-      teamId: user.teamId,
-      actorId: user.id,
-      ip: ctx.request.ip,
-    });
+    await attachment.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,
@@ -168,9 +151,14 @@ const handleAttachmentsRedirect = async (
     throw AuthorizationError();
   }
 
-  await attachment.update({
-    lastAccessedAt: new Date(),
-  });
+  await attachment.update(
+    {
+      lastAccessedAt: new Date(),
+    },
+    {
+      hooks: false,
+    }
+  );
 
   if (attachment.isPrivate) {
     ctx.set(

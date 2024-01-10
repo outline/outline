@@ -37,6 +37,10 @@ import Fix from "./decorators/Fix";
 @Table({ tableName: "file_operations", modelName: "file_operation" })
 @Fix
 class FileOperation extends ParanoidModel {
+  static eventNamespace = "fileOperations";
+
+  static eventData = ["type", "format"];
+
   @Column(DataType.ENUM(...Object.values(FileOperationType)))
   type: FileOperationType;
 

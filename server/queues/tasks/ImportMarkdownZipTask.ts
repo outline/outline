@@ -3,9 +3,11 @@ import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
 import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
+import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
 import { FileOperation, User } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
+import { sequelize } from "@server/storage/database";
 import ImportHelper, { FileTreeNode } from "@server/utils/ImportHelper";
 import ImportTask, { StructuredImportData } from "./ImportTask";
 
@@ -79,16 +81,19 @@ export default class ImportMarkdownZipTask extends ImportTask {
             return;
           }
 
-          const { title, emoji, text } = await documentImporter({
-            mimeType: "text/markdown",
-            fileName: child.name,
-            content:
-              child.children.length > 0
-                ? ""
-                : await fs.readFile(child.path, "utf8"),
-            user,
-            ip: user.lastActiveIp || undefined,
-          });
+          const { title, emoji, text } = await sequelize.transaction(
+            async (transaction) =>
+              documentImporter({
+                mimeType: "text/markdown",
+                fileName: child.name,
+                content:
+                  child.children.length > 0
+                    ? ""
+                    : await fs.readFile(child.path, "utf8"),
+                user,
+                ctx: createContext(user, transaction),
+              })
+          );
 
           const existingDocumentIndex = output.documents.findIndex(
             (doc) =>

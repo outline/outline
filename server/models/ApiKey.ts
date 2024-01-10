@@ -17,6 +17,10 @@ import Length from "./validators/Length";
 class ApiKey extends ParanoidModel {
   static prefix = "ol_api_";
 
+  static eventNamespace = "api_keys";
+
+  static eventData = ["name"];
+
   @Length({
     min: 3,
     max: 255,

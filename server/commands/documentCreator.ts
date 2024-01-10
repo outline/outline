@@ -1,7 +1,7 @@
-import { Transaction } from "sequelize";
 import { Optional } from "utility-types";
 import { Document, Event, User } from "@server/models";
 import TextHelper from "@server/models/helpers/TextHelper";
+import { APIContext } from "@server/types";
 
 type Props = Optional<
   Pick<
@@ -27,8 +27,7 @@ type Props = Optional<
   publish?: boolean;
   templateDocument?: Document | null;
   user: User;
-  ip?: string;
-  transaction?: Transaction;
+  ctx: APIContext;
 };
 
 export default async function documentCreator({
@@ -52,9 +51,9 @@ export default async function documentCreator({
   editorVersion,
   publishedAt,
   sourceMetadata,
-  ip,
-  transaction,
+  ctx,
 }: Props): Promise<Document> {
+  const { transaction, ip } = ctx;
   const templateId = templateDocument ? templateDocument.id : undefined;
 
   if (urlId) {
@@ -100,8 +99,7 @@ export default async function documentCreator({
           user
         ),
         user,
-        ip,
-        transaction
+        ctx
       ),
       state,
     },

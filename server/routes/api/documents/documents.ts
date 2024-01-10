@@ -1070,10 +1070,9 @@ router.post(
       document,
       title,
       publish,
-      transaction,
       recursive,
       parentDocumentId,
-      ip: ctx.request.ip,
+      ctx,
     });
 
     ctx.body = {
@@ -1337,8 +1336,7 @@ router.post(
       fileName,
       mimeType,
       content,
-      ip: ctx.request.ip,
-      transaction,
+      ctx,
     });
 
     const document = await documentCreator({
@@ -1354,8 +1352,7 @@ router.post(
       collectionId,
       parentDocumentId,
       user,
-      ip: ctx.request.ip,
-      transaction,
+      ctx,
     });
 
     document.collection = collection;
@@ -1443,8 +1440,7 @@ router.post(
       fullWidth,
       user,
       editorVersion,
-      ip: ctx.request.ip,
-      transaction,
+      ctx,
     });
 
     document.collection = collection;

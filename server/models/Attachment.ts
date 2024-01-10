@@ -26,6 +26,8 @@ import Length from "./validators/Length";
 @Table({ tableName: "attachments", modelName: "attachment" })
 @Fix
 class Attachment extends IdModel {
+  static eventData = ["name"];
+
   @Length({
     max: 4096,
     msg: "key must be 4096 characters or less",

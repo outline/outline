@@ -11,6 +11,7 @@ import {
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
+import { createContext } from "@server/context";
 import { serializer } from "@server/editor";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -176,10 +177,15 @@ export default abstract class ImportTask extends BaseTask<Props> {
     state: FileOperationState,
     error?: Error
   ) {
-    await fileOperation.update({
-      state,
-      error: error ? truncate(error.message, { length: 255 }) : undefined,
-    });
+    await fileOperation.update(
+      {
+        state,
+        error: error ? truncate(error.message, { length: 255 }) : undefined,
+      },
+      {
+        hooks: false,
+      }
+    );
     await Event.schedule({
       name: "fileOperations.update",
       modelId: fileOperation.id,
@@ -309,8 +315,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
               type: item.mimeType,
               buffer: await item.buffer(),
               user,
-              ip,
-              transaction,
+              ctx: createContext(user, transaction),
             });
             if (attachment) {
               attachments.set(item.id, attachment);
@@ -501,8 +506,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             parentDocumentId: item.parentDocumentId,
             importId: fileOperation.id,
             user,
-            ip,
-            transaction,
+            ctx: createContext(user, transaction),
           });
           documents.set(item.id, document);
 

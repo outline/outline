@@ -4,7 +4,6 @@ import escapeRegExp from "lodash/escapeRegExp";
 import truncate from "lodash/truncate";
 import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
-import { Transaction } from "sequelize";
 import utf8 from "utf8";
 import parseTitle from "@shared/utils/parseTitle";
 import { DocumentValidation } from "@shared/validations";
@@ -12,6 +11,7 @@ import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
 import TextHelper from "@server/models/helpers/TextHelper";
+import { APIContext } from "@server/types";
 import turndownService from "@server/utils/turndown";
 import { FileImportError, InvalidRequestError } from "../errors";
 
@@ -137,8 +137,7 @@ type Props = {
   mimeType: string;
   fileName: string;
   content: Buffer | string;
-  ip?: string;
-  transaction?: Transaction;
+  ctx: APIContext;
 };
 
 async function documentImporter({
@@ -146,8 +145,7 @@ async function documentImporter({
   fileName,
   content,
   user,
-  ip,
-  transaction,
+  ctx,
 }: Props): Promise<{
   emoji?: string;
   text: string;
@@ -203,12 +201,7 @@ async function documentImporter({
   // to match our hardbreak parser.
   text = text.trim().replace(/<br>/gi, "\\n");
 
-  text = await TextHelper.replaceImagesWithAttachments(
-    text,
-    user,
-    ip,
-    transaction
-  );
+  text = await TextHelper.replaceImagesWithAttachments(text, user, ctx);
 
   // It's better to truncate particularly long titles than fail the import
   title = truncate(title, { length: DocumentValidation.maxTitleLength });

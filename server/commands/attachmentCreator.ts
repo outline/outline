@@ -1,9 +1,9 @@
-import { Transaction } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import { AttachmentPreset } from "@shared/types";
-import { Attachment, Event, User } from "@server/models";
+import { Attachment, User } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
+import { APIContext } from "@server/types";
 
 type BaseProps = {
   id?: string;
@@ -11,8 +11,7 @@ type BaseProps = {
   user: User;
   source?: "import";
   preset: AttachmentPreset;
-  ip?: string;
-  transaction?: Transaction;
+  ctx: APIContext;
 };
 
 type UrlProps = BaseProps & {
@@ -32,8 +31,7 @@ export default async function attachmentCreator({
   user,
   source,
   preset,
-  ip,
-  transaction,
+  ctx,
   ...rest
 }: Props): Promise<Attachment | undefined> {
   const acl = AttachmentHelper.presetToAcl(preset);
@@ -53,20 +51,15 @@ export default async function attachmentCreator({
     if (!res) {
       return;
     }
-    attachment = await Attachment.create(
-      {
-        id,
-        key,
-        acl,
-        size: res.contentLength,
-        contentType: res.contentType,
-        teamId: user.teamId,
-        userId: user.id,
-      },
-      {
-        transaction,
-      }
-    );
+    attachment = await Attachment.createWithCtx(ctx, {
+      id,
+      key,
+      acl,
+      size: res.contentLength,
+      contentType: res.contentType,
+      teamId: user.teamId,
+      userId: user.id,
+    });
   } else {
     const { buffer, type } = rest;
     await FileStorage.store({
@@ -77,38 +70,16 @@ export default async function attachmentCreator({
       acl,
     });
 
-    attachment = await Attachment.create(
-      {
-        id,
-        key,
-        acl,
-        size: buffer.length,
-        contentType: type,
-        teamId: user.teamId,
-        userId: user.id,
-      },
-      {
-        transaction,
-      }
-    );
-  }
-
-  await Event.create(
-    {
-      name: "attachments.create",
-      data: {
-        name,
-        source,
-      },
-      modelId: attachment.id,
+    attachment = await Attachment.createWithCtx(ctx, {
+      id,
+      key,
+      acl,
+      size: buffer.length,
+      contentType: type,
       teamId: user.teamId,
-      actorId: user.id,
-      ip,
-    },
-    {
-      transaction,
-    }
-  );
+      userId: user.id,
+    });
+  }
 
   return attachment;
 }
