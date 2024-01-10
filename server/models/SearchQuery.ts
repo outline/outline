@@ -10,8 +10,10 @@ import {
   DataType,
   Default,
 } from "sequelize-typescript";
-import { Team, User, Share } from "@server/models";
 import Model from "@server/models/base/Model";
+import Share from "./Share";
+import Team from "./Team";
+import User from "./User";
 import Fix from "./decorators/Fix";
 
 @Table({
