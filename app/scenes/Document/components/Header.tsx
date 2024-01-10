@@ -20,7 +20,10 @@ import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
-import { useEditingFocus } from "~/components/DocumentContext";
+import {
+  useDocumentContext,
+  useEditingFocus,
+} from "~/components/DocumentContext";
 import Header from "~/components/Header";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
 import Star from "~/components/Star";
@@ -94,6 +97,7 @@ function DocumentHeader({
   const isMobile = useMobile();
   const isRevision = !!revision;
   const isEditingFocus = useEditingFocus();
+  const { editor } = useDocumentContext();
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -344,6 +348,7 @@ function DocumentHeader({
                     neutral
                   />
                 )}
+                onFindAndReplace={editor?.commands.openFindAndReplace}
                 showToggleEmbeds={canToggleEmbeds}
                 showDisplayOptions
               />
