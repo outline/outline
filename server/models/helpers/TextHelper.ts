@@ -98,7 +98,7 @@ export default class TextHelper {
         // Skip attempting to fetch images that are not valid urls
         try {
           new URL(image.src);
-        } catch {
+        } catch (_e) {
           return;
         }
 
