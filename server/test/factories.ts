@@ -2,6 +2,7 @@ import { faker } from "@faker-js/faker";
 import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
 import randomstring from "randomstring";
+import { InferCreationAttributes } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import {
   CollectionPermission,
@@ -138,7 +139,7 @@ export function buildTeam(overrides: Record<string, any> = {}) {
         },
       ],
       ...overrides,
-    },
+    } as Partial<InferCreationAttributes<Team>>,
     {
       include: "authenticationProviders",
     }
