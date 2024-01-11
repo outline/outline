@@ -1,6 +1,10 @@
 import { addMinutes, subMinutes } from "date-fns";
 import invariant from "invariant";
-import { SaveOptions } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  SaveOptions,
+} from "sequelize";
 import {
   BeforeCreate,
   BelongsTo,
@@ -22,7 +26,10 @@ import Fix from "./decorators/Fix";
 
 @Table({ tableName: "user_authentications", modelName: "user_authentication" })
 @Fix
-class UserAuthentication extends IdModel {
+class UserAuthentication extends IdModel<
+  InferAttributes<UserAuthentication>,
+  Partial<InferCreationAttributes<UserAuthentication>>
+> {
   @Column(DataType.ARRAY(DataType.STRING))
   scopes: string[];
 
