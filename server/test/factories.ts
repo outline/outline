@@ -200,7 +200,7 @@ export async function buildUser(overrides: Partial<User> = {}) {
           ]
         : [],
       ...overrides,
-    },
+    } as Partial<InferCreationAttributes<User>>,
     {
       include: "authentications",
     }

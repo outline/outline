@@ -43,7 +43,7 @@ export class ViewsExtension implements Extension {
       );
       await Promise.all([
         View.touch(documentId, context.user.id, true),
-        context.user.update({ lastViewedAt: new Date() }),
+        context.user.update({ lastActiveAt: new Date() }),
       ]);
     }
   }
