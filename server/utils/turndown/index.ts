@@ -5,6 +5,7 @@ import emptyLists from "./emptyLists";
 import emptyParagraph from "./emptyParagraph";
 import frames from "./frames";
 import images from "./images";
+import inlineLink from "./inlineLink";
 import sanitizeLists from "./sanitizeLists";
 import sanitizeTables from "./sanitizeTables";
 import underlines from "./underlines";
@@ -24,6 +25,7 @@ const service = new TurndownService({
 })
   .remove(["script", "style", "title", "head"])
   .use(gfm)
+  .use(inlineLink)
   .use(emptyParagraph)
   .use(sanitizeTables)
   .use(sanitizeLists)
