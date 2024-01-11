@@ -43,6 +43,7 @@ import {
 } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
+import Model from "@server/models/base/Model";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
@@ -527,10 +528,10 @@ class User extends ParanoidModel<
 
   demote: (
     to: UserRole,
-    options?: InstanceUpdateOptions<InferAttributes<User>>
+    options?: InstanceUpdateOptions<InferAttributes<Model>>
   ) => Promise<void> = async (
     to: UserRole,
-    options?: InstanceUpdateOptions<InferAttributes<User>>
+    options?: InstanceUpdateOptions<InferAttributes<Model>>
   ) => {
     const res = await (this.constructor as typeof User).findAndCountAll({
       where: {
