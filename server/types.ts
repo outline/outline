@@ -343,6 +343,8 @@ export type ViewEvent = BaseEvent & {
   };
 };
 
+export type WebhookDeliveryStatus = "pending" | "success" | "failed";
+
 export type WebhookSubscriptionEvent = BaseEvent & {
   name:
     | "webhookSubscriptions.create"
