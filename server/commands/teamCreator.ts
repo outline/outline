@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { InferCreationAttributes, Transaction } from "sequelize";
 import slugify from "slugify";
 import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import { traceFunction } from "@server/logging/tracing";
@@ -50,7 +50,7 @@ async function teamCreator({
       name,
       avatarUrl,
       authenticationProviders,
-    },
+    } as Partial<InferCreationAttributes<Team>>,
     {
       include: ["authenticationProviders"],
       transaction,

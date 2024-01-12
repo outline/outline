@@ -1,3 +1,4 @@
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -8,19 +9,16 @@ import {
   IsIn,
 } from "sequelize-typescript";
 import { IntegrationType, IntegrationService } from "@shared/types";
-import type { IntegrationSettings } from "@shared/types";
+import type {
+  IntegrationSettings,
+  UserCreatableIntegrationService,
+} from "@shared/types";
 import Collection from "./Collection";
 import IntegrationAuthentication from "./IntegrationAuthentication";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
-
-export enum UserCreatableIntegrationService {
-  Diagrams = "diagrams",
-  Grist = "grist",
-  GoogleAnalytics = "google-analytics",
-}
 
 @Scopes(() => ({
   withAuthentication: {
@@ -35,14 +33,17 @@ export enum UserCreatableIntegrationService {
 }))
 @Table({ tableName: "integrations", modelName: "integration" })
 @Fix
-class Integration<T = unknown> extends IdModel {
+class Integration<T = unknown> extends IdModel<
+  InferAttributes<Integration<T>>,
+  Partial<InferCreationAttributes<Integration<T>>>
+> {
   @IsIn([Object.values(IntegrationType)])
   @Column(DataType.STRING)
   type: IntegrationType;
 
   @IsIn([Object.values(IntegrationService)])
   @Column(DataType.STRING)
-  service: IntegrationService;
+  service: IntegrationService | UserCreatableIntegrationService;
 
   @Column(DataType.JSONB)
   settings: IntegrationSettings<T>;
@@ -67,11 +68,11 @@ class Integration<T = unknown> extends IdModel {
   teamId: string;
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection;
+  collection?: Collection | null;
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string;
+  collectionId?: string | null;
 
   @BelongsTo(() => IntegrationAuthentication, "authenticationId")
   authentication: IntegrationAuthentication;

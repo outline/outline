@@ -1,4 +1,9 @@
-import type { SaveOptions, WhereOptions } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  SaveOptions,
+  WhereOptions,
+} from "sequelize";
 import {
   ForeignKey,
   AfterSave,
@@ -22,7 +27,10 @@ import Fix from "./decorators/Fix";
 
 @Table({ tableName: "events", modelName: "event", updatedAt: false })
 @Fix
-class Event extends IdModel {
+class Event extends IdModel<
+  InferAttributes<Event>,
+  Partial<InferCreationAttributes<Event>>
+> {
   @IsUUID(4)
   @Column(DataType.UUID)
   modelId: string | null;

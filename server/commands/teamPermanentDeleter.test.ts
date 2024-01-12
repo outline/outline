@@ -70,7 +70,8 @@ describe("teamPermanentDeleter", () => {
     expect(
       await Collection.unscoped().count({
         where: {
-          id: document.collectionId,
+          // buildDocument() above guarantees this to be non-null
+          id: document.collectionId!,
         },
         paranoid: false,
       })

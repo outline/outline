@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -40,7 +40,10 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "group_permissions", modelName: "group_permission" })
 @Fix
-class GroupPermission extends ParanoidModel {
+class GroupPermission extends ParanoidModel<
+  InferAttributes<GroupPermission>,
+  Partial<InferCreationAttributes<GroupPermission>>
+> {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
@@ -71,6 +74,10 @@ class GroupPermission extends ParanoidModel {
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;
+
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  createdById: string;
 }
 
 export default GroupPermission;

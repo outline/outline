@@ -1,4 +1,9 @@
-import { Op, WhereOptions } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  Op,
+  WhereOptions,
+} from "sequelize";
 import {
   ForeignKey,
   DefaultScope,
@@ -36,7 +41,10 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "file_operations", modelName: "file_operation" })
 @Fix
-class FileOperation extends ParanoidModel {
+class FileOperation extends ParanoidModel<
+  InferAttributes<FileOperation>,
+  Partial<InferCreationAttributes<FileOperation>>
+> {
   @Column(DataType.ENUM(...Object.values(FileOperationType)))
   type: FileOperationType;
 
@@ -50,7 +58,7 @@ class FileOperation extends ParanoidModel {
   key: string;
 
   @Column
-  url: string;
+  url?: string | null;
 
   @Column
   error: string | null;
@@ -118,7 +126,7 @@ class FileOperation extends ParanoidModel {
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string;
+  collectionId?: string | null;
 
   /**
    * Count the number of export file operations for a given team after a point

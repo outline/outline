@@ -1,3 +1,4 @@
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
   DataType,
@@ -13,7 +14,10 @@ import Fix from "./decorators/Fix";
 
 @Table({ tableName: "stars", modelName: "star" })
 @Fix
-class Star extends IdModel {
+class Star extends IdModel<
+  InferAttributes<Star>,
+  Partial<InferCreationAttributes<Star>>
+> {
   @Column
   index: string | null;
 

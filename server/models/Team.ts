@@ -3,7 +3,11 @@ import fs from "fs";
 import path from "path";
 import { URL } from "url";
 import util from "util";
-import { type SaveOptions } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  type SaveOptions,
+} from "sequelize";
 import { Op } from "sequelize";
 import {
   Column,
@@ -65,7 +69,10 @@ const readFile = util.promisify(fs.readFile);
 }))
 @Table({ tableName: "teams", modelName: "team" })
 @Fix
-class Team extends ParanoidModel {
+class Team extends ParanoidModel<
+  InferAttributes<Team>,
+  Partial<InferCreationAttributes<Team>>
+> {
   @NotContainsUrl
   @Length({ min: 2, max: 255, msg: "name must be between 2 to 255 characters" })
   @Column
@@ -275,7 +282,6 @@ class Team extends ParanoidModel {
             parentDocumentId: null,
             collectionId: collection.id,
             teamId: collection.teamId,
-            userId: collection.createdById,
             lastModifiedById: collection.createdById,
             createdById: collection.createdById,
             title,
@@ -366,14 +372,9 @@ class Team extends ParanoidModel {
 
   @AfterUpdate
   static deletePreviousAvatar = async (model: Team) => {
-    if (
-      model.previous("avatarUrl") &&
-      model.previous("avatarUrl") !== model.avatarUrl
-    ) {
-      const attachmentIds = parseAttachmentIds(
-        model.previous("avatarUrl"),
-        true
-      );
+    const previousAvatarUrl = model.previous("avatarUrl");
+    if (previousAvatarUrl && previousAvatarUrl !== model.avatarUrl) {
+      const attachmentIds = parseAttachmentIds(previousAvatarUrl, true);
       if (!attachmentIds.length) {
         return;
       }
