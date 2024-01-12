@@ -1,4 +1,9 @@
-import { Op, SaveOptions } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  InstanceUpdateOptions,
+  Op,
+} from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -8,11 +13,11 @@ import {
   ForeignKey,
   HasMany,
   Table,
-  Model,
   IsUUID,
   PrimaryKey,
 } from "sequelize-typescript";
 import env from "@server/env";
+import Model from "@server/models/base/Model";
 import AzureClient from "@server/utils/azure";
 import GoogleClient from "@server/utils/google";
 import OIDCClient from "@server/utils/oidc";
@@ -28,7 +33,10 @@ import Length from "./validators/Length";
   updatedAt: false,
 })
 @Fix
-class AuthenticationProvider extends Model {
+class AuthenticationProvider extends Model<
+  InferAttributes<AuthenticationProvider>,
+  Partial<InferCreationAttributes<AuthenticationProvider>>
+> {
   @IsUUID(4)
   @PrimaryKey
   @Default(DataType.UUIDV4)
@@ -97,7 +105,9 @@ class AuthenticationProvider extends Model {
     }
   }
 
-  disable = async (options?: SaveOptions<AuthenticationProvider>) => {
+  disable: (
+    options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
+  ) => Promise<AuthenticationProvider> = async (options) => {
     const res = await (
       this.constructor as typeof AuthenticationProvider
     ).findAndCountAll({
@@ -124,7 +134,9 @@ class AuthenticationProvider extends Model {
     }
   };
 
-  enable = (options?: SaveOptions<AuthenticationProvider>) =>
+  enable: (
+    options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
+  ) => Promise<AuthenticationProvider> = (options) =>
     this.update(
       {
         enabled: true,

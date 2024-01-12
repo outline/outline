@@ -62,7 +62,7 @@ export type PublicEnv = {
   APP_NAME: string;
   ROOT_SHARE_ID?: string;
   analytics: {
-    service?: IntegrationService;
+    service?: IntegrationService | UserCreatableIntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;
   };
 };
@@ -84,6 +84,12 @@ export enum IntegrationService {
   Diagrams = "diagrams",
   Grist = "grist",
   Slack = "slack",
+  GoogleAnalytics = "google-analytics",
+}
+
+export enum UserCreatableIntegrationService {
+  Diagrams = "diagrams",
+  Grist = "grist",
   GoogleAnalytics = "google-analytics",
 }
 

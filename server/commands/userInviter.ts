@@ -58,7 +58,6 @@ export default async function userInviter({
       teamId: user.teamId,
       name: invite.name,
       email: invite.email,
-      service: null,
       isAdmin: invite.role === UserRole.Admin,
       isViewer: invite.role === UserRole.Viewer,
       invitedById: user.id,

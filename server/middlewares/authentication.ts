@@ -101,7 +101,7 @@ export default function auth(options: AuthenticationOptions = {}) {
       if (user.isSuspended) {
         const suspendingAdmin = await User.findOne({
           where: {
-            id: user.suspendedById,
+            id: user.suspendedById!,
           },
           paranoid: false,
         });

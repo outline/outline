@@ -1,8 +1,10 @@
-import { IntegrationService, IntegrationType } from "@shared/types";
-import { IntegrationAuthentication, User } from "@server/models";
-import Integration, {
+import {
+  IntegrationService,
   UserCreatableIntegrationService,
-} from "@server/models/Integration";
+  IntegrationType,
+} from "@shared/types";
+import { IntegrationAuthentication, User } from "@server/models";
+import Integration from "@server/models/Integration";
 import {
   buildAdmin,
   buildTeam,

@@ -1,3 +1,4 @@
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DataType,
   Column,
@@ -14,7 +15,10 @@ import Fix from "./decorators/Fix";
 
 @Table({ tableName: "pins", modelName: "pin" })
 @Fix
-class Pin extends IdModel {
+class Pin extends IdModel<
+  InferAttributes<Pin>,
+  Partial<InferCreationAttributes<Pin>>
+> {
   @Column
   index: string | null;
 
@@ -28,11 +32,11 @@ class Pin extends IdModel {
   createdById: string;
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection;
+  collection?: Collection | null;
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string;
+  collectionId?: string | null;
 
   @BelongsTo(() => Document, "documentId")
   document: Document;

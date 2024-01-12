@@ -1,4 +1,5 @@
 import emailProviders from "email-providers";
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
   Table,
@@ -21,7 +22,10 @@ import Length from "./validators/Length";
 
 @Table({ tableName: "team_domains", modelName: "team_domain" })
 @Fix
-class TeamDomain extends IdModel {
+class TeamDomain extends IdModel<
+  InferAttributes<TeamDomain>,
+  Partial<InferCreationAttributes<TeamDomain>>
+> {
   @NotIn({
     args: env.isCloudHosted ? [emailProviders] : [],
     msg: "You chose a restricted domain, please try another.",

@@ -1,4 +1,10 @@
-import { FindOptions, Op, type SaveOptions } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  Op,
+  type SaveOptions,
+  type FindOptions,
+} from "sequelize";
 import {
   Column,
   ForeignKey,
@@ -54,7 +60,10 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "user_permissions", modelName: "user_permission" })
 @Fix
-class UserPermission extends IdModel {
+class UserPermission extends IdModel<
+  InferAttributes<UserPermission>,
+  Partial<InferCreationAttributes<UserPermission>>
+> {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)

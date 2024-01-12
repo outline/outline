@@ -1,3 +1,4 @@
+import { InferCreationAttributes } from "sequelize";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import {
   DomainNotAllowedError,
@@ -236,9 +237,8 @@ export default async function userProvisioner({
         isViewer: isAdmin === true ? false : defaultUserRole === "viewer",
         teamId,
         avatarUrl,
-        service: null,
         authentications: authentication ? [authentication] : [],
-      },
+      } as Partial<InferCreationAttributes<User>>,
       {
         include: "authentications",
         transaction,

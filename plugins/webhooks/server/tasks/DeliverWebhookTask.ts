@@ -61,6 +61,7 @@ import {
   TeamEvent,
   UserEvent,
   ViewEvent,
+  WebhookDeliveryStatus,
   WebhookSubscriptionEvent,
 } from "@server/types";
 import fetch from "@server/utils/fetch";
@@ -607,7 +608,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       status: "pending",
     });
 
-    let response, requestBody, requestHeaders, status;
+    let response, requestBody, requestHeaders;
+    let status: WebhookDeliveryStatus;
     try {
       requestBody = presentWebhook({
         event,

@@ -1,7 +1,11 @@
 import { createReadStream } from "fs";
 import path from "path";
 import { File } from "formidable";
-import { QueryTypes } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  QueryTypes,
+} from "sequelize";
 import {
   BeforeDestroy,
   BelongsTo,
@@ -25,7 +29,10 @@ import Length from "./validators/Length";
 
 @Table({ tableName: "attachments", modelName: "attachment" })
 @Fix
-class Attachment extends IdModel {
+class Attachment extends IdModel<
+  InferAttributes<Attachment>,
+  Partial<InferCreationAttributes<Attachment>>
+> {
   @Length({
     max: 4096,
     msg: "key must be 4096 characters or less",
