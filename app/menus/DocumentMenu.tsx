@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { EditIcon, RestoreIcon } from "outline-icons";
+import { EditIcon, RestoreIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -64,6 +64,7 @@ type Props = {
   showToggleEmbeds?: boolean;
   showPin?: boolean;
   label?: (props: MenuButtonHTMLProps) => React.ReactNode;
+  onFindAndReplace?: () => void;
   onRename?: () => void;
   onOpen?: () => void;
   onClose?: () => void;
@@ -76,6 +77,7 @@ function DocumentMenu({
   showToggleEmbeds,
   showDisplayOptions,
   label,
+  onFindAndReplace,
   onRename,
   onOpen,
   onClose,
@@ -259,6 +261,13 @@ function DocumentMenu({
             actionToMenuItem(subscribeDocument, context),
             actionToMenuItem(unsubscribeDocument, context),
             ...(isMobile ? [actionToMenuItem(shareDocument, context)] : []),
+            {
+              type: "button",
+              title: `${t("Find and replace")}…`,
+              visible: !!onFindAndReplace && isMobile,
+              onClick: () => onFindAndReplace?.(),
+              icon: <SearchIcon />,
+            },
             {
               type: "separator",
             },

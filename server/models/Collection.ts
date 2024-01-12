@@ -647,6 +647,10 @@ class Collection extends ParanoidModel {
       this.documentStructure = [];
     }
 
+    if (this.getDocumentTree(document.id)) {
+      return this;
+    }
+
     // If moving existing document with children, use existing structure
     const documentJson = {
       ...(await document.toNavigationNode(options)),

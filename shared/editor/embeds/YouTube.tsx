@@ -10,7 +10,7 @@ function YouTube({ matches, ...props }: Props) {
     const url = new URL(props.attrs.href);
     const searchParams = new URLSearchParams(url.search);
     start = searchParams.get("t")?.replace(/s$/, "");
-  } catch {
+  } catch (_e) {
     // noop
   }
 

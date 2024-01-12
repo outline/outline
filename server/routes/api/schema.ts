@@ -15,7 +15,7 @@ export const ProsemirrorSchema = z.custom<TProsemirrorData>((val) => {
     const node = Node.fromJSON(schema, val);
     node.check();
     return true;
-  } catch {
+  } catch (_e) {
     return false;
   }
 }, "not valid data");

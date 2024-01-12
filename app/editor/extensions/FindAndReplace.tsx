@@ -1,4 +1,5 @@
 import escapeRegExp from "lodash/escapeRegExp";
+import { observable } from "mobx";
 import { Node } from "prosemirror-model";
 import { Command, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -68,6 +69,11 @@ export default class FindAndReplaceExtension extends Extension {
        * Clear the current search
        */
       clearSearch: () => this.clear(),
+
+      /**
+       * Open the find and replace UI
+       */
+      openFindAndReplace: () => this.openFindAndReplace(),
     };
   }
 
@@ -138,6 +144,13 @@ export default class FindAndReplaceExtension extends Extension {
       this.currentResultIndex = 0;
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
+      return true;
+    };
+  }
+
+  public openFindAndReplace(): Command {
+    return (state, dispatch) => {
+      dispatch?.(state.tr.setMeta(pluginKey, { open: true }));
       return true;
     };
   }
@@ -275,6 +288,9 @@ export default class FindAndReplaceExtension extends Extension {
             const action = tr.getMeta(pluginKey);
 
             if (action) {
+              if (action.open) {
+                this.open = true;
+              }
               return this.createDeco(tr.doc);
             }
 
@@ -295,8 +311,20 @@ export default class FindAndReplaceExtension extends Extension {
   }
 
   public widget = ({ readOnly }: WidgetProps) => (
-    <FindAndReplace readOnly={readOnly} />
+    <FindAndReplace
+      readOnly={readOnly}
+      open={this.open}
+      onOpen={() => {
+        this.open = true;
+      }}
+      onClose={() => {
+        this.open = false;
+      }}
+    />
   );
+
+  @observable
+  private open = false;
 
   private results: { from: number; to: number }[] = [];
   private currentResultIndex = 0;

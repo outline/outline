@@ -25,10 +25,18 @@ import { altDisplay, isModKey, metaDisplay } from "~/utils/keyboard";
 import { useEditor } from "./EditorContext";
 
 type Props = {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
   readOnly?: boolean;
 };
 
-export default function FindAndReplace({ readOnly }: Props) {
+export default function FindAndReplace({
+  readOnly,
+  open,
+  onOpen,
+  onClose,
+}: Props) {
   const editor = useEditor();
   const finalFocusRef = React.useRef<HTMLElement>(
     editor.view.dom.parentElement
@@ -45,6 +53,12 @@ export default function FindAndReplace({ readOnly }: Props) {
   const [replaceTerm, setReplaceTerm] = React.useState("");
   const popover = usePopoverState();
   const { show } = popover;
+
+  React.useEffect(() => {
+    if (open) {
+      show();
+    }
+  }, [open]);
 
   // Hooks for desktop app menu items
   React.useEffect(() => {
@@ -209,6 +223,7 @@ export default function FindAndReplace({ readOnly }: Props) {
 
   React.useEffect(() => {
     if (popover.visible) {
+      onOpen();
       const startSearchText = selectionRef.current || searchTerm;
 
       editor.commands.find({
@@ -225,6 +240,7 @@ export default function FindAndReplace({ readOnly }: Props) {
         setSearchTerm(selectionRef.current);
       }
     } else {
+      onClose();
       setShowReplace(false);
       editor.commands.clearSearch();
     }

@@ -92,7 +92,7 @@ export default class FileHelper {
           height: idhrData.height / pixelRatio,
         };
       }
-    } catch {
+    } catch (_e) {
       return undefined;
     }
 
