@@ -12,6 +12,7 @@ export default function DesktopEventHandler() {
   const { t } = useTranslation();
   const history = useHistory();
   const { dialogs } = useStores();
+  const hasDisabledUpdateMessage = React.useRef(false);
 
   React.useEffect(() => {
     Desktop.bridge?.redirect((path: string, replace = false) => {
@@ -23,6 +24,11 @@ export default function DesktopEventHandler() {
     });
 
     Desktop.bridge?.updateDownloaded(() => {
+      if (hasDisabledUpdateMessage.current) {
+        return;
+      }
+
+      hasDisabledUpdateMessage.current = true;
       toast.message("An update is ready to install.", {
         duration: Infinity,
         dismissible: true,
