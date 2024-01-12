@@ -111,6 +111,10 @@ describe("#addDocumentToStructure", () => {
     await collection.addDocumentToStructure(newDocument);
     expect(collection.documentStructure!.length).toBe(1);
     expect(collection.documentStructure![0].id).toBe(id);
+
+    // should not append multiple times
+    await collection.addDocumentToStructure(newDocument);
+    expect(collection.documentStructure!.length).toBe(1);
   });
 
   test("should add with an index", async () => {
