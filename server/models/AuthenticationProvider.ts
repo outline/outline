@@ -107,9 +107,7 @@ class AuthenticationProvider extends Model<
 
   disable: (
     options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
-  ) => Promise<AuthenticationProvider> = async (
-    options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
-  ) => {
+  ) => Promise<AuthenticationProvider> = async (options) => {
     const res = await (
       this.constructor as typeof AuthenticationProvider
     ).findAndCountAll({
@@ -138,9 +136,7 @@ class AuthenticationProvider extends Model<
 
   enable: (
     options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
-  ) => Promise<AuthenticationProvider> = (
-    options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
-  ) =>
+  ) => Promise<AuthenticationProvider> = (options) =>
     this.update(
       {
         enabled: true,

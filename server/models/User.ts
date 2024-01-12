@@ -529,10 +529,7 @@ class User extends ParanoidModel<
   demote: (
     to: UserRole,
     options?: InstanceUpdateOptions<InferAttributes<Model>>
-  ) => Promise<void> = async (
-    to: UserRole,
-    options?: InstanceUpdateOptions<InferAttributes<Model>>
-  ) => {
+  ) => Promise<void> = async (to, options) => {
     const res = await (this.constructor as typeof User).findAndCountAll({
       where: {
         teamId: this.teamId,
@@ -583,9 +580,7 @@ class User extends ParanoidModel<
 
   promote: (
     options?: InstanceUpdateOptions<InferAttributes<User>>
-  ) => Promise<User> = (
-    options?: InstanceUpdateOptions<InferAttributes<User>>
-  ) =>
+  ) => Promise<User> = (options) =>
     this.update(
       {
         isAdmin: true,
