@@ -172,24 +172,30 @@ function DocumentMembersList({ document, children }: Props) {
 
   return (
     <RelativeFlex column>
-      <Combobox
-        suggestions={nonMembers.map((user) => ({
-          id: user.id,
-          value: user.name,
-          label: (
-            <Flex align="center" gap={8}>
-              <Avatar model={user} size={AvatarSize.Small} showBorder={false} />
-              <span>{user.name}</span>
-            </Flex>
-          ),
-        }))}
-        value={query}
-        onChangeInput={handleQuery}
-        onSelectOption={handleSelect}
-        listLabel={t("Workspace members")}
-        placeholder={`${t("Find by name")}…`}
-        autoFocus
-      />
+      {can.manage && (
+        <Combobox
+          suggestions={nonMembers.map((user) => ({
+            id: user.id,
+            value: user.name,
+            label: (
+              <Flex align="center" gap={8}>
+                <Avatar
+                  model={user}
+                  size={AvatarSize.Small}
+                  showBorder={false}
+                />
+                <span>{user.name}</span>
+              </Flex>
+            ),
+          }))}
+          value={query}
+          onChangeInput={handleQuery}
+          onSelectOption={handleSelect}
+          listLabel={t("Workspace members")}
+          placeholder={`${t("Find by name")}…`}
+          autoFocus
+        />
+      )}
       {children}
       {members.map((item) => (
         <MemberListItem
