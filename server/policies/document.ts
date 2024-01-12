@@ -205,7 +205,7 @@ allow(User, "publish", Document, (user, document) => {
   return user.id === document.createdById;
 });
 
-allow(User, "duplicate", Document, (user, document) => {
+allow(User, ["manage", "duplicate"], Document, (user, document) => {
   if (!document || !document.isActive) {
     return false;
   }

@@ -3,7 +3,7 @@ import { allow } from "./cancan";
 
 allow(
   User,
-  ["update"],
+  ["update", "delete"],
   UserPermission,
-  (user, userPermission) => user.id === userPermission?.userId
+  (user, userPermission) => user.id === userPermission?.userId || user.isAdmin
 );

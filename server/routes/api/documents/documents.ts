@@ -1481,7 +1481,7 @@ router.post(
     ]);
 
     authorize(actor, "read", user);
-    authorize(actor, "update", document);
+    authorize(actor, "manage", document);
 
     const userPermissions = await UserPermission.findAll({
       where: {
@@ -1570,8 +1570,11 @@ router.post(
         transaction,
       }),
     ]);
-    authorize(actor, "update", document);
-    authorize(actor, "read", user);
+
+    if (actor.id !== userId) {
+      authorize(actor, "manage", document);
+      authorize(actor, "read", user);
+    }
 
     await document.$remove("user", user, { transaction });
     await Event.create(

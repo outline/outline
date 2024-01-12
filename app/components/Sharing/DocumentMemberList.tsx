@@ -3,6 +3,7 @@ import isNil from "lodash/isNil";
 import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { Pagination } from "@shared/constants";
@@ -15,9 +16,11 @@ import Combobox from "~/components/Combobox";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
+import { homePath } from "~/utils/routeHelpers";
 import MemberListItem from "./MemberListItem";
 
 type Props = {
@@ -33,6 +36,8 @@ function DocumentMembersList({ document, children }: Props) {
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const user = useCurrentUser();
+  const history = useHistory();
+  const can = usePolicy(document);
 
   const { loading: loadingTeamMembers, request: fetchTeamMembers } = useRequest(
     React.useCallback(
@@ -104,22 +109,27 @@ function DocumentMembersList({ document, children }: Props) {
   };
 
   const handleRemoveUser = React.useCallback(
-    async (user) => {
+    async (item) => {
       try {
         await userMemberships.delete({
           documentId: document.id,
-          userId: user.id,
+          userId: item.id,
         } as UserMembership);
-        toast.success(
-          t(`{{ userName }} was removed from the document`, {
-            userName: user.name,
-          })
-        );
+
+        if (item.id === user.id) {
+          history.push(homePath());
+        } else {
+          toast.success(
+            t(`{{ userName }} was removed from the document`, {
+              userName: item.name,
+            })
+          );
+        }
       } catch (err) {
         toast.error(t("Could not remove user"));
       }
     },
-    [userMemberships, document]
+    [userMemberships, user, document]
   );
 
   const handleUpdateUser = React.useCallback(
@@ -186,9 +196,15 @@ function DocumentMembersList({ document, children }: Props) {
           key={item.id}
           user={item}
           membership={item.getMembership(document)}
-          canEdit={item.id !== user.id || user.isAdmin}
           onRemove={() => handleRemoveUser(item)}
-          onUpdate={(permission) => handleUpdateUser(item, permission)}
+          onUpdate={
+            can.manage
+              ? (permission) => handleUpdateUser(item, permission)
+              : undefined
+          }
+          onLeave={
+            item.id === user.id ? () => handleRemoveUser(item) : undefined
+          }
         />
       ))}
     </RelativeFlex>

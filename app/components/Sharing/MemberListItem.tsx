@@ -7,7 +7,6 @@ import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
-import Flex from "~/components/Flex";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import ListItem from "~/components/List/Item";
 import { EmptySelectValue } from "~/types";
@@ -15,9 +14,9 @@ import { EmptySelectValue } from "~/types";
 type Props = {
   user: User;
   membership?: Membership | UserMembership | undefined;
-  canEdit: boolean;
   onAdd?: () => void;
   onRemove?: () => void;
+  onLeave?: () => void;
   onUpdate?: (permission: DocumentPermission) => void;
 };
 
@@ -25,8 +24,8 @@ const MemberListItem = ({
   user,
   membership,
   onRemove,
+  onLeave,
   onUpdate,
-  canEdit,
 }: Props) => {
   const { t } = useTranslation();
 
@@ -41,6 +40,26 @@ const MemberListItem = ({
     [onRemove, onUpdate]
   );
 
+  const permissions = [
+    {
+      label: t("View only"),
+      value: DocumentPermission.Read,
+    },
+    {
+      label: t("Can edit"),
+      value: DocumentPermission.ReadWrite,
+    },
+    {
+      label: t("No access"),
+      value: EmptySelectValue,
+    },
+  ];
+
+  const currentPermission = permissions.find(
+    (p) => p.value === membership?.permission
+  );
+  const disabled = !onUpdate && !onLeave;
+
   return (
     <ListItem
       title={user.name}
@@ -49,29 +68,22 @@ const MemberListItem = ({
       style={{ marginRight: -8 }}
       small
       actions={
-        <Flex align="center" gap={8}>
-          {onUpdate && (
-            <InputMemberPermissionSelect
-              permissions={[
-                {
-                  label: t("View only"),
-                  value: DocumentPermission.Read,
-                },
-                {
-                  label: t("Can edit"),
-                  value: DocumentPermission.ReadWrite,
-                },
-                {
-                  label: t("No access"),
-                  value: EmptySelectValue,
-                },
-              ]}
-              value={membership?.permission}
-              onChange={handleChange}
-              disabled={!canEdit}
-            />
-          )}
-        </Flex>
+        <InputMemberPermissionSelect
+          permissions={
+            onLeave
+              ? [
+                  currentPermission,
+                  {
+                    label: `${t("Leave")}…`,
+                    value: EmptySelectValue,
+                  },
+                ]
+              : permissions
+          }
+          value={membership?.permission}
+          onChange={handleChange}
+          disabled={disabled}
+        />
       }
     />
   );
