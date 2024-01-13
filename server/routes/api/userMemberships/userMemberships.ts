@@ -31,6 +31,9 @@ router.post(
         documentId: {
           [Op.ne]: null,
         },
+        sourceId: {
+          [Op.eq]: null,
+        },
       },
       order: [
         Sequelize.literal('"user_permission"."index" collate "C"'),

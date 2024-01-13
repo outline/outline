@@ -64,30 +64,47 @@ class UserPermission extends IdModel {
 
   // associations
 
+  /** The collection that this permission grants the user access to. */
   @BelongsTo(() => Collection, "collectionId")
   collection?: Collection | null;
 
+  /** The collection ID that this permission grants the user access to. */
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
 
+  /** The document that this permission grants the user access to. */
   @BelongsTo(() => Document, "documentId")
   document?: Document | null;
 
+  /** The document ID that this permission grants the user access to. */
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
   documentId?: string | null;
 
+  /** If this represents the permission on a child then this points to the permission on the root */
+  @BelongsTo(() => UserPermission, "sourceId")
+  source?: UserPermission | null;
+
+  /** If this represents the permission on a child then this points to the permission on the root */
+  @ForeignKey(() => UserPermission)
+  @Column(DataType.UUID)
+  sourceId?: string | null;
+
+  /** The user that this permission is granted to. */
   @BelongsTo(() => User, "userId")
   user: User;
 
+  /** The user ID that this permission is granted to. */
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   userId: string;
 
+  /** The user that created this permission. */
   @BelongsTo(() => User, "createdById")
   createdBy: User;
 
+  /** The user ID that created this permission. */
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   createdById: string;

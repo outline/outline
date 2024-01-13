@@ -5,6 +5,7 @@ type DocumentMembership = {
   id: string;
   userId: string;
   documentId?: string | null;
+  sourceId?: string | null;
   createdById: string;
   permission: CollectionPermission | DocumentPermission;
   index: string | null;
@@ -19,6 +20,7 @@ export default function presentDocumentMembership(
     documentId: membership.documentId,
     permission: membership.permission,
     createdById: membership.createdById,
+    sourceId: membership.sourceId,
     index: membership.index,
   };
 }
