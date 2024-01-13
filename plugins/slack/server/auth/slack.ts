@@ -9,6 +9,7 @@ import accountProvisioner from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import passportMiddleware from "@server/middlewares/passport";
+import validate from "@server/middlewares/validate";
 import {
   IntegrationAuthentication,
   Collection,
@@ -16,14 +17,14 @@ import {
   Team,
   User,
 } from "@server/models";
-import { AppContext, AuthenticationResult } from "@server/types";
+import { APIContext, AuthenticationResult } from "@server/types";
 import {
   getClientFromContext,
   getTeamFromContext,
   StateStore,
 } from "@server/utils/passport";
-import { assertPresent, assertUuid } from "@server/validation";
 import * as Slack from "../slack";
+import * as T from "./schema";
 
 type SlackProfile = Profile & {
   team: {
@@ -132,10 +133,10 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
     auth({
       optional: true,
     }),
-    async (ctx: AppContext) => {
-      const { code, state, error } = ctx.request.query;
+    validate(T.SlackCommandsSchema),
+    async (ctx: APIContext<T.SlackCommandsReq>) => {
+      const { code, state: teamId, error } = ctx.input.query;
       const { user } = ctx.state.auth;
-      assertPresent(code || error, "code is required");
 
       if (error) {
         ctx.redirect(integrationSettingsPath(`slack?error=${error}`));
@@ -146,9 +147,9 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       // access authentication for subdomains. We must forward to the appropriate
       // subdomain to complete the oauth flow
       if (!user) {
-        if (state) {
+        if (teamId) {
           try {
-            const team = await Team.findByPk(String(state), {
+            const team = await Team.findByPk(teamId, {
               rejectOnEmpty: true,
             });
             return redirectOnClient(
@@ -168,7 +169,8 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       }
 
       const endpoint = `${env.URL}/auth/slack.commands`;
-      const data = await Slack.oauthAccess(String(code), endpoint);
+      // validation middleware ensures that code is non-null at this point
+      const data = await Slack.oauthAccess(code!, endpoint);
       const authentication = await IntegrationAuthentication.create({
         service: IntegrationService.Slack,
         userId: user.id,
@@ -195,14 +197,10 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
     auth({
       optional: true,
     }),
-    async (ctx: AppContext) => {
-      const { code, error, state } = ctx.request.query;
+    validate(T.SlackPostSchema),
+    async (ctx: APIContext<T.SlackPostReq>) => {
+      const { code, error, state: collectionId } = ctx.input.query;
       const { user } = ctx.state.auth;
-      assertPresent(code || error, "code is required");
-
-      // FIX ME! What about having zod like schema in place here?
-      const collectionId = state as string;
-      assertUuid(collectionId, "collectionId must be an uuid");
 
       if (error) {
         ctx.redirect(integrationSettingsPath(`slack?error=${error}`));
@@ -213,21 +211,24 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       // access authentication for subdomains. We must forward to the
       // appropriate subdomain to complete the oauth flow
       if (!user) {
-        try {
-          const collection = await Collection.findOne({
-            where: {
-              id: String(state),
-            },
-            rejectOnEmpty: true,
-          });
-          const team = await Team.findByPk(collection.teamId, {
-            rejectOnEmpty: true,
-          });
-          return redirectOnClient(
-            ctx,
-            `${team.url}/auth/slack.post?${ctx.request.querystring}`
-          );
-        } catch (err) {
+        if (collectionId) {
+          try {
+            const collection = await Collection.findByPk(collectionId, {
+              rejectOnEmpty: true,
+            });
+            const team = await Team.findByPk(collection.teamId, {
+              rejectOnEmpty: true,
+            });
+            return redirectOnClient(
+              ctx,
+              `${team.url}/auth/slack.post?${ctx.request.querystring}`
+            );
+          } catch (err) {
+            return ctx.redirect(
+              integrationSettingsPath(`slack?error=unauthenticated`)
+            );
+          }
+        } else {
           return ctx.redirect(
             integrationSettingsPath(`slack?error=unauthenticated`)
           );
@@ -235,7 +236,8 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       }
 
       const endpoint = `${env.URL}/auth/slack.post`;
-      const data = await Slack.oauthAccess(code as string, endpoint);
+      // validation middleware ensures that code is non-null at this point
+      const data = await Slack.oauthAccess(code!, endpoint);
       const authentication = await IntegrationAuthentication.create({
         service: IntegrationService.Slack,
         userId: user.id,

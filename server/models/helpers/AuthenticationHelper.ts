@@ -32,7 +32,7 @@ export default class AuthenticationHelper {
     const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
 
     glob
-      .sync(path.join(rootDir, "plugins/*/server/auth/!(*.test).[jt]s"))
+      .sync(path.join(rootDir, "plugins/*/server/auth/!(*.test|schema).[jt]s"))
       .forEach((filePath: string) => {
         const { default: authProvider, name } = require(path.join(
           process.cwd(),
