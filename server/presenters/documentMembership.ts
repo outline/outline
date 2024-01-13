@@ -5,6 +5,7 @@ type DocumentMembership = {
   id: string;
   userId: string;
   documentId?: string | null;
+  createdById: string;
   permission: CollectionPermission | DocumentPermission;
   index: string | null;
 };
