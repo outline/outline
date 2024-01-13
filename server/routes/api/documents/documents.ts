@@ -1520,6 +1520,10 @@ router.post(
 
     if (permission) {
       membership.permission = permission;
+
+      // disconnect from the source if the permission is manually updated
+      membership.sourceId = null;
+
       await membership.save({ transaction });
     }
 

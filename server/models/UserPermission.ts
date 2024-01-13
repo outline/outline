@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, type SaveOptions } from "sequelize";
 import {
   Column,
   ForeignKey,
@@ -9,6 +9,7 @@ import {
   DataType,
   Scopes,
   AllowNull,
+  AfterSave,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
@@ -108,6 +109,56 @@ class UserPermission extends IdModel {
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   createdById: string;
+
+  @AfterSave
+  static async updateSourcedPermissions(
+    model: UserPermission,
+    options: SaveOptions<UserPermission>
+  ) {
+    if (model.sourceId || !model.documentId) {
+      return;
+    }
+
+    const { transaction } = options;
+    const document = await Document.unscoped().findOne({
+      attributes: ["id"],
+      where: {
+        id: model.documentId,
+      },
+      transaction,
+    });
+    if (!document) {
+      return;
+    }
+
+    await this.destroy({
+      where: {
+        sourceId: model.id,
+      },
+      transaction,
+    });
+
+    const childDocumentIds = await document.findAllChildDocumentIds(undefined, {
+      transaction,
+    });
+
+    for (const childDocumentId of childDocumentIds) {
+      await this.create(
+        {
+          documentId: childDocumentId,
+          userId: model.userId,
+          permission: model.permission,
+          sourceId: model.id,
+          createdById: model.createdById,
+          createdAt: model.createdAt,
+          updatedAt: model.updatedAt,
+        },
+        {
+          transaction,
+        }
+      );
+    }
+  }
 }
 
 export default UserPermission;
