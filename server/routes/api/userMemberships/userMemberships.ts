@@ -12,7 +12,6 @@ import {
   presentPolicies,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { userPermissionIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -24,7 +23,7 @@ router.post(
   pagination(),
   validate(T.UserMembershipsListSchema),
   async (ctx: APIContext<T.UserMembershipsListReq>) => {
-    const user = ctx.state.auth.user;
+    const { user } = ctx.state.auth;
 
     const permissions = await UserPermission.findAll({
       where: {
@@ -40,17 +39,6 @@ router.post(
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
-
-    const nullIndex = permissions.findIndex(
-      (permission) => permission.index === null
-    );
-
-    if (nullIndex !== -1) {
-      const indexedPermissions = await userPermissionIndexing(user.id);
-      permissions.forEach((permission) => {
-        permission.index = indexedPermissions[permission.id];
-      });
-    }
 
     const documentIds = permissions.map((p) => p.documentId);
     const documents = await Document.scope([

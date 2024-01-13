@@ -26,7 +26,7 @@ describe("admin", () => {
     expect(abilities.readDocument).toEqual(false);
     expect(abilities.createDocument).toEqual(false);
     expect(abilities.share).toEqual(false);
-    expect(abilities.read).toEqual(true);
+    expect(abilities.read).toEqual(false);
     expect(abilities.update).toEqual(true);
   });
 

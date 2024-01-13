@@ -19,11 +19,11 @@ class UserMembership extends Model {
   permission: DocumentPermission;
 
   /** The document ID comprising of membership. */
-  documentId?: string;
+  documentId: string;
 
   /** The document comprising of membership. */
   @Relation(() => Document, { onDelete: "cascade" })
-  document?: Document;
+  document: Document;
 
   /** The user ID of user who is a member */
   userId: string;

@@ -113,9 +113,12 @@ class User extends ParanoidModel {
 
   @computed
   get memberships(): UserMembership[] {
-    return this.store.rootStore.userMemberships.orderedData.filter(
-      (m) => m.userId === this.id
-    );
+    return this.store.rootStore.userMemberships.orderedData
+      .filter((m) => m.userId === this.id)
+      .filter((m) => {
+        const document = this.store.rootStore.documents.get(m.documentId);
+        return !document?.collection;
+      });
   }
 
   /**
@@ -183,7 +186,9 @@ class User extends ParanoidModel {
   }
 
   getMembership(document: Document) {
-    return this.memberships.find((m) => m.documentId === document.id);
+    return this.store.rootStore.userMemberships.orderedData.find(
+      (m) => m.documentId === document.id && m.userId === this.id
+    );
   }
 }
 

@@ -172,7 +172,7 @@ function DocumentMembersList({ document, children }: Props) {
 
   return (
     <RelativeFlex column>
-      {can.manage && (
+      {can.manageUsers && (
         <Combobox
           suggestions={nonMembers.map((user) => ({
             id: user.id,
@@ -204,7 +204,7 @@ function DocumentMembersList({ document, children }: Props) {
           membership={item.getMembership(document)}
           onRemove={() => handleRemoveUser(item)}
           onUpdate={
-            can.manage
+            can.manageUsers
               ? (permission) => handleUpdateUser(item, permission)
               : undefined
           }

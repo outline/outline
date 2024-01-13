@@ -45,10 +45,6 @@ allow(User, "read", Collection, (user, collection) => {
     return false;
   }
 
-  if (user.isAdmin) {
-    return true;
-  }
-
   if (collection.isPrivate) {
     return includesMembership(collection, Object.values(CollectionPermission));
   }
