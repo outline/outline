@@ -112,19 +112,7 @@ function SharePopover({
         </CopyToClipboard>
       </Heading>
       <DocumentMembersList document={document}>
-        {document.isDraft ? (
-          <Item
-            image={<Avatar model={document.createdBy} />}
-            title={document.createdBy.name}
-            actions={
-              <CollectionAccess tooltip={t("Creator of this draft")}>
-                {t("Can edit")}
-              </CollectionAccess>
-            }
-            border={false}
-            small
-          />
-        ) : collection ? (
+        {collection ? (
           <>
             {collection.permission ? (
               <Item
@@ -160,7 +148,19 @@ function SharePopover({
               />
             )}
           </>
-        ) : null}
+        ) : (
+          <Item
+            image={<Avatar model={document.createdBy} />}
+            title={document.createdBy.name}
+            actions={
+              <CollectionAccess tooltip={t("Created the document")}>
+                {t("Can edit")}
+              </CollectionAccess>
+            }
+            border={false}
+            small
+          />
+        )}
       </DocumentMembersList>
 
       {team.sharing && visible && (

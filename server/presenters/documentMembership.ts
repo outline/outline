@@ -17,6 +17,7 @@ export default function presentDocumentMembership(
     userId: membership.userId,
     documentId: membership.documentId,
     permission: membership.permission,
+    createdById: membership.createdById,
     index: membership.index,
   };
 }

@@ -25,12 +25,19 @@ class UserMembership extends Model {
   @Relation(() => Document, { onDelete: "cascade" })
   document: Document;
 
-  /** The user ID of user who is a member */
+  /** The ID of the user who is a member */
   userId: string;
 
   /** The user who is a member */
   @Relation(() => User, { onDelete: "cascade" })
   user: User;
+
+  /** The user that created this membership */
+  @Relation(() => User, { onDelete: "null" })
+  createdBy: User;
+
+  /** The ID of the user that created this membership */
+  createdById: string;
 
   store: UserMembershipsStore;
 
