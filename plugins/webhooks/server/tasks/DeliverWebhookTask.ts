@@ -212,6 +212,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "views.create":
         await this.handleViewEvent(subscription, event);
         return;
+      case "userMemberships.update":
+        // Ignored
+        return;
       default:
         assertUnreachable(event);
     }
