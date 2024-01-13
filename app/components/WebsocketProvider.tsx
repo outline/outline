@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import find from "lodash/find";
+import isUndefined from "lodash/isUndefined";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -20,6 +21,7 @@ import Star from "~/models/Star";
 import Subscription from "~/models/Subscription";
 import Team from "~/models/Team";
 import User from "~/models/User";
+import UserMembership from "~/models/UserMembership";
 import withStores from "~/components/withStores";
 import {
   PartialWithId,
@@ -509,6 +511,16 @@ class WebsocketProvider extends React.Component<Props> {
         await collections.fetchAll();
       }
     });
+
+    this.socket.on(
+      "userMemberships.update",
+      async (event: PartialWithId<UserMembership>) => {
+        const userMembership = userMemberships.get(event.id);
+        if (userMembership && !isUndefined(event.index)) {
+          userMembership.index = event.index;
+        }
+      }
+    );
 
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.

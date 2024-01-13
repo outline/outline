@@ -670,6 +670,12 @@ export default class WebsocketsProcessor {
           .emit(event.name, { id: event.userId });
       }
 
+      case "userMemberships.update": {
+        return socketio
+          .to(`user-${event.userId}`)
+          .emit(event.name, { id: event.modelId, ...event.data });
+      }
+
       default:
         return;
     }

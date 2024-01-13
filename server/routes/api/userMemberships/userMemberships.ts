@@ -94,6 +94,9 @@ router.post(
         actorId: user.id,
         documentId: membership.documentId,
         ip: ctx.request.ip,
+        data: {
+          index: membership.index,
+        },
       },
       { transaction }
     );

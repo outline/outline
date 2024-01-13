@@ -125,6 +125,16 @@ export type UserEvent = BaseEvent &
       }
   );
 
+export type UserMembershipEvent = BaseEvent & {
+  name: "userMemberships.update";
+  modelId: string;
+  userId: string;
+  documentId: string;
+  data: {
+    index: string | null;
+  };
+};
+
 export type DocumentEvent = BaseEvent &
   (
     | DocumentUserEvent
@@ -388,6 +398,7 @@ export type Event =
   | SubscriptionEvent
   | TeamEvent
   | UserEvent
+  | UserMembershipEvent
   | ViewEvent
   | WebhookSubscriptionEvent
   | NotificationEvent;
