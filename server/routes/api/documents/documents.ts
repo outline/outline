@@ -1481,7 +1481,7 @@ router.post(
     ]);
 
     authorize(actor, "read", user);
-    authorize(actor, "manage", document);
+    authorize(actor, "manageUsers", document);
 
     const userPermissions = await UserPermission.findAll({
       where: {
@@ -1572,7 +1572,7 @@ router.post(
     ]);
 
     if (actor.id !== userId) {
-      authorize(actor, "manage", document);
+      authorize(actor, "manageUsers", document);
       authorize(actor, "read", user);
     }
 

@@ -7,7 +7,6 @@ import randomstring from "randomstring";
 import {
   Identifier,
   Transaction,
-  Op,
   FindOptions,
   NonNullFindOptions,
 } from "sequelize";
@@ -58,21 +57,11 @@ import NotContainsUrl from "./validators/NotContainsUrl";
       {
         model: UserPermission,
         as: "memberships",
-        where: {
-          collectionId: {
-            [Op.ne]: null,
-          },
-        },
         required: false,
       },
       {
         model: GroupPermission,
         as: "collectionGroupMemberships",
-        where: {
-          collectionId: {
-            [Op.ne]: null,
-          },
-        },
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -114,20 +103,12 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         as: "memberships",
         where: {
           userId,
-          collectionId: {
-            [Op.ne]: null,
-          },
         },
         required: false,
       },
       {
         model: GroupPermission,
         as: "collectionGroupMemberships",
-        where: {
-          collectionId: {
-            [Op.ne]: null,
-          },
-        },
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"

@@ -96,33 +96,20 @@ type AdditionalFindOptions = {
   },
 }))
 @Scopes(() => ({
-  withCollectionPermissions: (userId: string, paranoid = true) => {
-    if (userId) {
-      return {
-        include: [
-          {
-            attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
-            model: Collection.scope({
+  withCollectionPermissions: (userId: string, paranoid = true) => ({
+    include: [
+      {
+        attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
+        model: userId
+          ? Collection.scope({
               method: ["withMembership", userId],
-            }),
-            as: "collection",
-            paranoid,
-          },
-        ],
-      };
-    }
-
-    return {
-      include: [
-        {
-          attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
-          model: Collection,
-          as: "collection",
-          paranoid,
-        },
-      ],
-    };
-  },
+            })
+          : Collection,
+        as: "collection",
+        paranoid,
+      },
+    ],
+  }),
   withoutState: {
     attributes: {
       exclude: ["state"],
@@ -167,20 +154,6 @@ type AdditionalFindOptions = {
       },
     ],
   },
-  withAllMemberships: {
-    include: [
-      {
-        model: UserPermission,
-        as: "memberships",
-        where: {
-          documentId: {
-            [Op.ne]: null,
-          },
-        },
-        required: false,
-      },
-    ],
-  },
   withViews: (userId: string) => {
     if (!userId) {
       return {};
@@ -209,9 +182,6 @@ type AdditionalFindOptions = {
           association: "memberships",
           where: {
             userId,
-            documentId: {
-              [Op.ne]: null,
-            },
           },
           required: false,
         },

@@ -9,7 +9,7 @@ import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import ListItem from "~/components/List/Item";
-import { EmptySelectValue } from "~/types";
+import { EmptySelectValue, Permission } from "~/types";
 
 type Props = {
   user: User;
@@ -40,7 +40,7 @@ const MemberListItem = ({
     [onRemove, onUpdate]
   );
 
-  const permissions = [
+  const permissions: Permission[] = [
     {
       label: t("View only"),
       value: DocumentPermission.Read,
@@ -58,6 +58,9 @@ const MemberListItem = ({
   const currentPermission = permissions.find(
     (p) => p.value === membership?.permission
   );
+  if (!currentPermission) {
+    return null;
+  }
   const disabled = !onUpdate && !onLeave;
 
   return (
