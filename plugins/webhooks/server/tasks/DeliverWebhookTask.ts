@@ -40,7 +40,6 @@ import {
   presentGroupMembership,
   presentCollectionGroupMembership,
   presentComment,
-  presentDocumentMembership,
 } from "@server/presenters";
 import BaseTask from "@server/queues/tasks/BaseTask";
 import {
@@ -541,7 +540,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: `${event.userId}-${event.documentId}`,
-        model: model && presentDocumentMembership(model),
+        model: model && presentMembership(model),
         Document: model && (await presentDocument(model.document!)),
         user: model && presentUser(model.user),
       },

@@ -8,7 +8,7 @@ import { Document, Event, UserPermission } from "@server/models";
 import { authorize } from "@server/policies";
 import {
   presentDocument,
-  presentDocumentMembership,
+  presentMembership,
   presentPolicies,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -59,7 +59,7 @@ router.post(
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        memberships: permissions.map(presentDocumentMembership),
+        memberships: permissions.map(presentMembership),
         documents: await Promise.all(
           documents.map((document: Document) => presentDocument(document))
         ),
@@ -105,7 +105,7 @@ router.post(
     );
 
     ctx.body = {
-      data: presentDocumentMembership(membership),
+      data: presentMembership(membership),
       policies: presentPolicies(user, [membership]),
     };
   }

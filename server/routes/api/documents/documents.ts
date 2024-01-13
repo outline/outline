@@ -50,7 +50,7 @@ import {
   presentCollection,
   presentDocument,
   presentPolicies,
-  presentDocumentMembership,
+  presentMembership,
   presentPublicTeam,
   presentUser,
 } from "@server/presenters";
@@ -1547,7 +1547,7 @@ router.post(
     ctx.body = {
       data: {
         users: [presentUser(user)],
-        memberships: [presentDocumentMembership(membership)],
+        memberships: [presentMembership(membership)],
       },
     };
   }
@@ -1656,7 +1656,7 @@ router.post(
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
-        memberships: memberships.map(presentDocumentMembership),
+        memberships: memberships.map(presentMembership),
         users: memberships.map((membership) => presentUser(membership.user)),
       },
     };
