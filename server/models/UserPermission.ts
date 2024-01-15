@@ -211,9 +211,16 @@ class UserPermission extends IdModel {
       return;
     }
 
-    const childDocumentIds = await document.findAllChildDocumentIds(undefined, {
-      transaction,
-    });
+    const childDocumentIds = await document.findAllChildDocumentIds(
+      {
+        publishedAt: {
+          [Op.ne]: null,
+        },
+      },
+      {
+        transaction,
+      }
+    );
 
     for (const childDocumentId of childDocumentIds) {
       await this.create(

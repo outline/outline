@@ -802,6 +802,32 @@ class Document extends ParanoidModel {
       }
     }
 
+    const parentDocumentPermissions = this.parentDocumentId
+      ? await UserPermission.findAll({
+          where: {
+            documentId: this.parentDocumentId,
+          },
+          transaction,
+        })
+      : [];
+
+    await Promise.all(
+      parentDocumentPermissions.map((permission) =>
+        UserPermission.create(
+          {
+            documentId: this.id,
+            userId: permission.userId,
+            sourceId: permission.sourceId ?? permission.id,
+            permission: permission.permission,
+            createdById: permission.createdById,
+          },
+          {
+            transaction,
+          }
+        )
+      )
+    );
+
     this.lastModifiedById = userId;
     this.publishedAt = new Date();
     return this.save({ transaction });

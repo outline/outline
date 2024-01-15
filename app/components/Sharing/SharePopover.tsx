@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { QuestionMarkIcon, TeamIcon } from "outline-icons";
+import { GroupIcon, QuestionMarkIcon, TeamIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -140,7 +140,7 @@ function SharePopover({
               />
             ) : (
               <Item
-                image={<Avatar model={user} />}
+                image={<Avatar model={user} showBorder={false} />}
                 title={user.name}
                 actions={<CollectionAccess>{t("Can edit")}</CollectionAccess>}
                 border={false}
@@ -148,12 +148,28 @@ function SharePopover({
               />
             )}
           </>
-        ) : (
+        ) : document.isDraft ? (
           <Item
-            image={<Avatar model={document.createdBy} />}
+            image={<Avatar model={document.createdBy} showBorder={false} />}
             title={document.createdBy.name}
             actions={
               <CollectionAccess tooltip={t("Created the document")}>
+                {t("Can edit")}
+              </CollectionAccess>
+            }
+            border={false}
+            small
+          />
+        ) : (
+          <Item
+            image={<MorePeopleIcon size={32} />}
+            title={t("More people may have access")}
+            actions={
+              <CollectionAccess
+                tooltip={t(
+                  "This document may be shared with more workspace members through a parent document you do not have access to"
+                )}
+              >
                 {t("Can edit")}
               </CollectionAccess>
             }
@@ -200,6 +216,11 @@ const CollectionAccess = ({
     </Flex>
   );
 };
+
+const MorePeopleIcon = styled(GroupIcon)`
+  margin: -4px;
+  color: ${s("textSecondary")};
+`;
 
 const Heading = styled(Text).attrs({ size: "large", weight: "bold" })`
   display: flex;
