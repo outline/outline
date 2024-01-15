@@ -11597,10 +11597,9 @@ reusify@^1.0.4:
   resolved "https://registry.yarnpkg.com/reusify/-/reusify-1.0.4.tgz#90da382b1e126efc02146e90845a88db12925d76"
   integrity "sha1-kNo4Kx4SbvwCFG6QhFqI2xKSXXY= sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw=="
 
-rfc6902@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/rfc6902/-/rfc6902-5.0.1.tgz#e16f18dc322c755d6dd948423ddf52bb451eca3d"
-  integrity "sha1-4W8Y3DIsdV1t2UhCPd9Su0Ueyj0= sha512-tYGfLpKIq9X7lrt4o3IkD9w9bpeAtsejfAqWNR98AoxfTsZqCepKa8eDlRiX8QMiCOD9vMx0/YbKLx0G1nPi5w=="
+rfc6902@^5.1.1:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/rfc6902/-/rfc6902-5.1.1.tgz#201a6980c06e97760515612447cbc8ad59a350e2"
 
 rfdc@^1.3.0:
   version "1.3.0"
