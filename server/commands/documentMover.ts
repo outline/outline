@@ -2,7 +2,14 @@ import invariant from "invariant";
 import { Transaction } from "sequelize";
 import { ValidationError } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
-import { User, Document, Collection, Pin, Event } from "@server/models";
+import {
+  User,
+  Document,
+  Collection,
+  Pin,
+  Event,
+  UserPermission,
+} from "@server/models";
 import pinDestroyer from "./pinDestroyer";
 
 type Props = {
@@ -224,6 +231,24 @@ async function documentMover({
   await document.save({ transaction });
   result.documents.push(document);
 
+  // If there are any sourced permissions for this document, we need to go to the source
+  // permission and recalculate
+  const [documentPermissions, parentDocumentPermissions] = await Promise.all([
+    UserPermission.findRootPermissionsForDocument(document.id, undefined, {
+      transaction,
+    }),
+    parentDocumentId
+      ? UserPermission.findRootPermissionsForDocument(
+          parentDocumentId,
+          undefined,
+          { transaction }
+        )
+      : [],
+  ]);
+
+  await recalculatePermissions(documentPermissions, transaction);
+  await recalculatePermissions(parentDocumentPermissions, transaction);
+
   await Event.create(
     {
       name: "documents.move",
@@ -245,6 +270,15 @@ async function documentMover({
 
   // we need to send all updated models back to the client
   return result;
+}
+
+async function recalculatePermissions(
+  permissions: UserPermission[],
+  transaction?: Transaction
+) {
+  for (const permission of permissions) {
+    await UserPermission.createSourcedPermissions(permission, { transaction });
+  }
 }
 
 export default traceFunction({

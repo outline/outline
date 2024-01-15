@@ -1,4 +1,4 @@
-import { Op, type SaveOptions } from "sequelize";
+import { FindOptions, Op, type SaveOptions } from "sequelize";
 import {
   Column,
   ForeignKey,
@@ -9,7 +9,8 @@ import {
   DataType,
   Scopes,
   AllowNull,
-  AfterSave,
+  AfterCreate,
+  AfterUpdate,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
@@ -110,9 +111,41 @@ class UserPermission extends IdModel {
   @Column(DataType.UUID)
   createdById: string;
 
-  @AfterSave
+  /**
+   * Find the root permission for a document and user.
+   *
+   * @param documentId The document ID to find the permission for.
+   * @param userId The user ID to find the permission for.
+   * @param options Additional options to pass to the query.
+   * @returns A promise that resolves to the  root permission for the document and user, or null.
+   */
+  static async findRootPermissionsForDocument(
+    documentId: string,
+    userId?: string,
+    options?: FindOptions<UserPermission>
+  ): Promise<UserPermission[]> {
+    const permissions = await this.findAll({
+      where: {
+        documentId,
+        ...(userId ? { userId } : {}),
+      },
+    });
+
+    const rootPermissions = await Promise.all(
+      permissions.map((permission) =>
+        permission?.sourceId
+          ? this.findByPk(permission.sourceId, options)
+          : permission
+      )
+    );
+
+    return rootPermissions.filter(Boolean) as UserPermission[];
+  }
+
+  @AfterUpdate
   static async updateSourcedPermissions(
     model: UserPermission,
+
     options: SaveOptions<UserPermission>
   ) {
     if (model.sourceId || !model.documentId) {
@@ -120,6 +153,53 @@ class UserPermission extends IdModel {
     }
 
     const { transaction } = options;
+
+    if (model.changed("permission")) {
+      await this.update(
+        {
+          permission: model.permission,
+        },
+        {
+          where: {
+            sourceId: model.id,
+          },
+          transaction,
+        }
+      );
+    }
+  }
+
+  @AfterCreate
+  static async createSourcedPermissions(
+    model: UserPermission,
+    options: SaveOptions<UserPermission>
+  ) {
+    if (model.sourceId || !model.documentId) {
+      return;
+    }
+
+    return this.recreateSourcedPermissions(model, options);
+  }
+
+  /**
+   * Recreate all sourced permissions for a given permission.
+   */
+  static async recreateSourcedPermissions(
+    model: UserPermission,
+    options: SaveOptions<UserPermission>
+  ) {
+    if (!model.documentId) {
+      return;
+    }
+    const { transaction } = options;
+
+    await this.destroy({
+      where: {
+        sourceId: model.id,
+      },
+      transaction,
+    });
+
     const document = await Document.unscoped().findOne({
       attributes: ["id"],
       where: {
@@ -130,13 +210,6 @@ class UserPermission extends IdModel {
     if (!document) {
       return;
     }
-
-    await this.destroy({
-      where: {
-        sourceId: model.id,
-      },
-      transaction,
-    });
 
     const childDocumentIds = await document.findAllChildDocumentIds(undefined, {
       transaction,

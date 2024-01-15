@@ -26,9 +26,12 @@ class UserMembership extends Model {
   @Relation(() => Document, { onDelete: "cascade" })
   document: Document;
 
-  /** If this represents the permission on a child then this points to the permission on the root */
-  @Relation(() => UserMembership, { onDelete: "cascade" })
+  /** The source ID points to the root permission from which this permission inherits */
   sourceId?: string;
+
+  /** The source points to the root permission from which this permission inherits */
+  @Relation(() => UserMembership, { onDelete: "cascade" })
+  source?: UserMembership;
 
   /** The user ID that this permission is granted to. */
   userId: string;
