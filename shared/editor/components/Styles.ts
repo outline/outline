@@ -1134,18 +1134,23 @@ mark {
 }
 
 .code-block[data-language=mermaidjs] {
+  margin: 0.75em 0;
+
   pre {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    margin-bottom: -12px;
+    margin-bottom: -20px;
     overflow: hidden;
   }
 
-  /* Hide code without display none so toolbar can still be positioned against it */
+  // Hide code without display none so toolbar can still be positioned against it
   &:not(.code-active) {
     height: ${props.staticHTML ? "auto" : "0"};
-    margin: -0.5em 0;
+    margin: -0.75em 0;
     overflow: hidden;
+
+    // Allows the margin to collapse correctly by moving div out of the flow
+    position: absolute;
   }
 }
 
@@ -1185,6 +1190,7 @@ mark {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0.75em 0;
   min-height: 1.6em;
   background: ${props.theme.codeBackground};
   border-radius: 6px;
