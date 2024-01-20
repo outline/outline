@@ -58,7 +58,7 @@ function TeamDelete({ onSubmit }: Props) {
   );
 
   const inputProps = register("code", {
-    required: true,
+    required: env.EMAIL_ENABLED,
   });
   const appName = env.APP_NAME;
   const workspaceName = team.name;

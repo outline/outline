@@ -14,7 +14,12 @@ type FormData = {
   code: string;
 };
 
-function UserDelete() {
+type Props = {
+  /** Callback to close the dialog when user deletion completes. */
+  onSubmit: () => void;
+};
+
+function UserDelete({ onSubmit }: Props) {
   const [isWaitingCode, setWaitingCode] = React.useState(false);
   const { auth } = useStores();
   const { t } = useTranslation();
@@ -31,11 +36,12 @@ function UserDelete() {
       try {
         await auth.requestDeleteUser();
         setWaitingCode(true);
+        onSubmit();
       } catch (err) {
         toast.error(err.message);
       }
     },
-    [auth]
+    [auth, onSubmit]
   );
 
   const handleSubmit = React.useCallback(
@@ -51,7 +57,7 @@ function UserDelete() {
   );
 
   const inputProps = register("code", {
-    required: true,
+    required: env.EMAIL_ENABLED,
   });
   const appName = env.APP_NAME;
 
