@@ -468,6 +468,7 @@
   "{{ userName }} was added to the collection": "コレクションに{{ userName }}を追加しました。",
   "Need to add someone who’s not on the team yet?": "まだチームにいない人を追加しますか？",
   "Invite people to {{ teamName }}": "他の人を{{ teamName }}に招待する。",
+  "Ask an admin to invite them first": "Ask an admin to invite them first",
   "Search by name": "名前から探す",
   "Search people": "メンバーを検索",
   "No people matching your search": "あなたの検索に一致する人はいません",
