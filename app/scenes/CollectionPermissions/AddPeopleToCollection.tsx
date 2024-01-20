@@ -16,6 +16,7 @@ import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
 import MemberListItem from "./components/MemberListItem";
@@ -28,6 +29,8 @@ function AddPeopleToCollection({ collection }: Props) {
   const { memberships, users } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
+  const can = usePolicy(team);
+
   const [inviteModalOpen, setInviteModalOpen, setInviteModalClosed] =
     useBoolean();
   const [query, setQuery] = React.useState("");
@@ -68,11 +71,15 @@ function AddPeopleToCollection({ collection }: Props) {
     <Flex column>
       <Text type="secondary">
         {t("Need to add someone who’s not on the team yet?")}{" "}
-        <ButtonLink onClick={setInviteModalOpen}>
-          {t("Invite people to {{ teamName }}", {
-            teamName: team.name,
-          })}
-        </ButtonLink>
+        {can.inviteUser ? (
+          <ButtonLink onClick={setInviteModalOpen}>
+            {t("Invite people to {{ teamName }}", {
+              teamName: team.name,
+            })}
+          </ButtonLink>
+        ) : (
+          t("Ask an admin to invite them first")
+        )}
         .
       </Text>
       <Input
