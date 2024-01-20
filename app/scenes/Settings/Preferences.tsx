@@ -42,7 +42,7 @@ function Preferences() {
   const showDeleteAccount = () => {
     dialogs.openModal({
       title: t("Delete account"),
-      content: <UserDelete />,
+      content: <UserDelete onSubmit={dialogs.closeAllModals} />,
       isCentered: true,
     });
   };
