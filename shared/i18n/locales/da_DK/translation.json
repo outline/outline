@@ -468,6 +468,7 @@
   "{{ userName }} was added to the collection": "{{ userName }} was added to the collection",
   "Need to add someone who’s not on the team yet?": "Need to add someone who’s not on the team yet?",
   "Invite people to {{ teamName }}": "Invite people to {{ teamName }}",
+  "Ask an admin to invite them first": "Ask an admin to invite them first",
   "Search by name": "Search by name",
   "Search people": "Search people",
   "No people matching your search": "No people matching your search",
