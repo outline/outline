@@ -468,6 +468,7 @@
   "{{ userName }} was added to the collection": "{{ userName }} 已經被新增到文件集",
   "Need to add someone who’s not on the team yet?": "需要新增尚未加入團隊的用戶嗎？",
   "Invite people to {{ teamName }}": "邀請他人加入 {{ teamName }}",
+  "Ask an admin to invite them first": "Ask an admin to invite them first",
   "Search by name": "依名稱搜尋",
   "Search people": "搜尋使用者",
   "No people matching your search": "找不到符合搜尋條件的使用者",
