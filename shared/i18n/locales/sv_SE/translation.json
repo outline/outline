@@ -468,6 +468,7 @@
   "{{ userName }} was added to the collection": "{{ userName }} har lagts till i samlingen",
   "Need to add someone who’s not on the team yet?": "Behöver du lägga till någon som inte är i teamet ännu?",
   "Invite people to {{ teamName }}": "Bjud in personer till {{ teamName }}",
+  "Ask an admin to invite them first": "Ask an admin to invite them first",
   "Search by name": "Sök på namn",
   "Search people": "Sök efter personer",
   "No people matching your search": "Inga personer matchar din sökning",
