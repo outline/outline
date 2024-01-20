@@ -228,7 +228,7 @@
     "utility-types": "^3.10.0",
     "uuid": "^8.3.2",
     "validator": "13.11.0",
-    "vite": "^5.0.5",
+    "vite": "^5.0.12",
     "vite-plugin-pwa": "^0.17.4",
     "winston": "^3.10.0",
     "ws": "^7.5.9",
