@@ -791,14 +791,17 @@ router.post(
 
     let teamId;
     let response;
+    let share;
 
     if (shareId) {
       const teamFromCtx = await getTeamFromContext(ctx);
-      const { share, document } = await documentLoader({
+      const { document, ...loaded } = await documentLoader({
         teamId: teamFromCtx?.id,
         shareId,
         user,
       });
+
+      share = loaded.share;
 
       if (!share?.includeChildDocuments) {
         throw InvalidRequestError("Child documents cannot be searched");
@@ -868,7 +871,7 @@ router.post(
       await SearchQuery.create({
         userId: user?.id,
         teamId,
-        shareId,
+        shareId: share?.id,
         source: ctx.state.auth.type || "app", // we'll consider anything that isn't "api" to be "app"
         query,
         results: totalCount,
