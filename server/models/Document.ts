@@ -859,12 +859,9 @@ class Document extends ParanoidModel<
         const parent = await (this.constructor as typeof Document).findOne({
           where: {
             id: this.parentDocumentId,
-            archivedAt: {
-              [Op.is]: null,
-            },
           },
         });
-        if (!parent) {
+        if (parent?.isDraft || !parent?.isActive) {
           this.parentDocumentId = null;
         }
       }

@@ -1253,7 +1253,11 @@ router.post(
     });
     authorize(user, "unpublish", document);
 
-    const childDocumentIds = await document.findAllChildDocumentIds();
+    const childDocumentIds = await document.findAllChildDocumentIds({
+      archivedAt: {
+        [Op.eq]: null,
+      },
+    });
     if (childDocumentIds.length > 0) {
       throw InvalidRequestError(
         "Cannot unpublish document with child documents"

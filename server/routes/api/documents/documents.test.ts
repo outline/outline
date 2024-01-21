@@ -3595,6 +3595,30 @@ describe("#documents.unpublish", () => {
     expect(reloaded!.createdById).toEqual(user.id);
   });
 
+  it("should unpublish a document with archived children", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const child = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      parentDocumentId: document.id,
+    });
+    await child.archive(user.id);
+    const res = await server.post("/api/documents.unpublish", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+    expect(body.data.publishedAt).toBeNull();
+  });
+
   it("should unpublish another users document", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
