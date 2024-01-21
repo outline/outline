@@ -488,6 +488,12 @@ iframe.embed {
   }
 }
 
+.attachment-replacement-uploading {
+  .widget {
+    opacity: 0.5;
+  }
+}
+
 .image-replacement-uploading {
   img {
     opacity: 0.5;
