@@ -1,12 +1,13 @@
 import Token from "markdown-it/lib/token";
 import { DownloadIcon } from "outline-icons";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { NodeSelection } from "prosemirror-state";
+import { Command, NodeSelection } from "prosemirror-state";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { Primitive } from "utility-types";
-import { bytesToHumanReadable } from "../../utils/files";
+import { bytesToHumanReadable, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
+import insertFiles from "../commands/insertFiles";
 import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
 import Widget from "../components/Widget";
@@ -69,7 +70,7 @@ export default class Attachment extends Node {
   }
 
   handleSelect =
-    ({ getPos }: { getPos: () => number }) =>
+    ({ getPos }: ComponentProps) =>
     () => {
       const { view } = this.editor;
       const $pos = view.state.doc.resolve(getPos());
@@ -78,13 +79,19 @@ export default class Attachment extends Node {
     };
 
   component = (props: ComponentProps) => {
-    const { isSelected, theme, node } = props;
+    const { isSelected, isEditable, theme, node } = props;
     return (
       <Widget
         icon={<FileExtension title={node.attrs.title} />}
         href={node.attrs.href}
         title={node.attrs.title}
         onMouseDown={this.handleSelect(props)}
+        onClick={(event) => {
+          if (isEditable) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }}
         context={
           node.attrs.href ? (
             bytesToHumanReadable(node.attrs.size || "0")
@@ -97,13 +104,69 @@ export default class Attachment extends Node {
         isSelected={isSelected}
         theme={theme}
       >
-        {node.attrs.href && <DownloadIcon size={20} />}
+        {node.attrs.href && !isEditable && <DownloadIcon size={20} />}
       </Widget>
     );
   };
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, Primitive>) => toggleWrap(type, attrs);
+    return {
+      createAttachment: (attrs: Record<string, Primitive>) =>
+        toggleWrap(type, attrs),
+      deleteAttachment: (): Command => (state, dispatch) => {
+        dispatch?.(state.tr.deleteSelection());
+        return true;
+      },
+      replaceAttachment: (): Command => (state) => {
+        if (!(state.selection instanceof NodeSelection)) {
+          return false;
+        }
+        const { view } = this.editor;
+        const { node } = state.selection;
+        const { uploadFile, onFileUploadStart, onFileUploadStop } =
+          this.editor.props;
+
+        if (!uploadFile) {
+          throw new Error("uploadFile prop is required to replace attachments");
+        }
+
+        if (node.type.name !== "attachment") {
+          return false;
+        }
+
+        // create an input element and click to trigger picker
+        const inputElement = document.createElement("input");
+        inputElement.type = "file";
+        inputElement.onchange = (event) => {
+          const files = getEventFiles(event);
+          void insertFiles(view, event, state.selection.from, files, {
+            uploadFile,
+            onFileUploadStart,
+            onFileUploadStop,
+            dictionary: this.options.dictionary,
+            replaceExisting: true,
+          });
+        };
+        inputElement.click();
+        return true;
+      },
+      downloadAttachment: (): Command => (state) => {
+        if (!(state.selection instanceof NodeSelection)) {
+          return false;
+        }
+        const { node } = state.selection;
+
+        // create a temporary link node and click it
+        const link = document.createElement("a");
+        link.href = node.attrs.href;
+        document.body.appendChild(link);
+        link.click();
+
+        // cleanup
+        document.body.removeChild(link);
+        return true;
+      },
+    };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
