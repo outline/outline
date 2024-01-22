@@ -235,7 +235,7 @@
     "y-indexeddb": "^9.0.11",
     "y-protocols": "^1.0.5",
     "yauzl": "^2.10.0",
-    "yjs": "^13.6.1",
+    "yjs": "^13.6.11",
     "zod": "^3.22.4"
   },
   "devDependencies": {
