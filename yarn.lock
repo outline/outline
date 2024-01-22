@@ -2574,6 +2574,14 @@
     "@sentry/types" "7.93.0"
     "@sentry/utils" "7.93.0"
 
+"@sentry-internal/tracing@7.94.1":
+  version "7.94.1"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/tracing/-/tracing-7.94.1.tgz#27909da03c1541a83002cab655814ec208242b9e"
+  dependencies:
+    "@sentry/core" "7.94.1"
+    "@sentry/types" "7.94.1"
+    "@sentry/utils" "7.94.1"
+
 "@sentry/browser@7.85.0":
   version "7.85.0"
   resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-7.85.0.tgz#70cea7b53e22b4262f770d70e879ff1a621825de"
@@ -2600,6 +2608,13 @@
   dependencies:
     "@sentry/types" "7.93.0"
     "@sentry/utils" "7.93.0"
+
+"@sentry/core@7.94.1":
+  version "7.94.1"
+  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-7.94.1.tgz#3696cd78b2196ac27fda5bcfb2338f46241a3ff8"
+  dependencies:
+    "@sentry/types" "7.94.1"
+    "@sentry/utils" "7.94.1"
 
 "@sentry/node@^7.93.0":
   version "7.93.0"
@@ -2631,12 +2646,11 @@
     "@sentry/types" "7.85.0"
     "@sentry/utils" "7.85.0"
 
-"@sentry/tracing@^7.85.0":
-  version "7.85.0"
-  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-7.85.0.tgz#831fd6096c4d9e03ff55ac5919f7c7da30f73189"
-  integrity "sha1-gx/WCWxNngP/VaxZGffH2jD3MYk= sha512-L3bpqiM+zu5f3o6zh6hx3xEzVENyhrkuMlpUOyDo0mUytqp763HqF1xz+R+trzze7R5VWrxJaRPARsCKlXu4Ig=="
+"@sentry/tracing@^7.94.1":
+  version "7.94.1"
+  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-7.94.1.tgz#e300f6a1a2c6df2565503e2eedd59511d1ca9ceb"
   dependencies:
-    "@sentry-internal/tracing" "7.85.0"
+    "@sentry-internal/tracing" "7.94.1"
 
 "@sentry/types@7.85.0":
   version "7.85.0"
@@ -2646,6 +2660,10 @@
 "@sentry/types@7.93.0":
   version "7.93.0"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.93.0.tgz#d76d26259b40cd0688e1d634462fbff31476c1ec"
+
+"@sentry/types@7.94.1":
+  version "7.94.1"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.94.1.tgz#97b653a6e73078fc82a2c9d2129e22c7ae1ee248"
 
 "@sentry/utils@7.85.0":
   version "7.85.0"
@@ -2659,6 +2677,12 @@
   resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-7.93.0.tgz#36225038661fe977baf01e4695ef84794d591e45"
   dependencies:
     "@sentry/types" "7.93.0"
+
+"@sentry/utils@7.94.1":
+  version "7.94.1"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-7.94.1.tgz#1164934cf6e2277fb404744b27de38a04310895d"
+  dependencies:
+    "@sentry/types" "7.94.1"
 
 "@sinclair/typebox@^0.27.8":
   version "0.27.8"
