@@ -29,7 +29,7 @@ export async function post(endpoint: string, body: Record<string, any>) {
 
 export async function oauthAccess(
   code: string,
-  redirect_uri = `${env.URL}/auth/github.callback`
+  redirect_uri = `${env.URL}/api/github.callback`
 ) {
   return post("/login/oauth/access_token", {
     client_id: env.GITHUB_CLIENT_ID,
