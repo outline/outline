@@ -58,7 +58,7 @@
     "@bull-board/koa": "^4.12.2",
     "@dnd-kit/core": "^6.1.0",
     "@dnd-kit/modifiers": "^6.0.1",
-    "@dnd-kit/sortable": "^7.0.1",
+    "@dnd-kit/sortable": "^7.0.2",
     "@emoji-mart/data": "^1.0.6",
     "@emoji-mart/react": "^1.1.1",
     "@getoutline/y-prosemirror": "^1.0.18",
