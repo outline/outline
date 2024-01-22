@@ -370,6 +370,19 @@ export class Environment {
   public SLACK_APP_ID = this.toOptionalString(environment.SLACK_APP_ID);
 
   /**
+   * GitHub OAuth2 client credentials. To enable authentication with GitHub.
+   */
+  @IsOptional()
+  @CannotUseWithout("GITHUB_CLIENT_SECRET")
+  public GITHUB_CLIENT_ID = this.toOptionalString(process.env.GITHUB_CLIENT_ID);
+
+  @IsOptional()
+  @CannotUseWithout("GITHUB_CLIENT_ID")
+  public GITHUB_CLIENT_SECRET = this.toOptionalString(
+    process.env.GITHUB_CLIENT_SECRET
+  );
+
+  /**
    * Disable autoredirect to the OIDC login page if there is only one
    * authentication method and that method is OIDC.
    */

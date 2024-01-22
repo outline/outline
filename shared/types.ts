@@ -58,6 +58,7 @@ export type PublicEnv = {
   SENTRY_DSN: string | undefined;
   SENTRY_TUNNEL: string | undefined;
   SLACK_CLIENT_ID: string | undefined;
+  GITHUB_CLIENT_ID: string | undefined;
   SLACK_APP_ID: string | undefined;
   FILE_STORAGE_IMPORT_MAX_SIZE: number;
   EMAIL_ENABLED: boolean;
@@ -94,6 +95,7 @@ export enum IntegrationService {
   Grist = "grist",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
+  Github = "github",
 }
 
 export enum UserCreatableIntegrationService {
