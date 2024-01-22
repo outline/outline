@@ -67,7 +67,7 @@ function Github() {
               </Button>
             ) : (
               <GithubButton
-                redirectUri={`${env.URL}/auth/github.callback`}
+                redirectUri={`${env.URL}/api/github.callback`}
                 state={team.id}
                 icon={<GithubIcon />}
               />

@@ -50,7 +50,7 @@ router.get(
           });
           return redirectOnClient(
             ctx,
-            `${team.url}/auth/github.callback?${ctx.request.querystring}`
+            `${team.url}/api/github.callback?${ctx.request.querystring}`
           );
         } catch (err) {
           return ctx.redirect(
@@ -64,7 +64,7 @@ router.get(
       }
     }
 
-    const endpoint = `${env.URL}/auth/github.callback`;
+    const endpoint = `${env.URL}/api/github.callback`;
     // validation middleware ensures that code is non-null at this point
     const data = await Github.oauthAccess(code!, endpoint);
     const authentication = await IntegrationAuthentication.create(
