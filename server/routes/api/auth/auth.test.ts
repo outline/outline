@@ -93,11 +93,10 @@ describe("#auth.config", () => {
     const res = await server.post("/api/auth.config");
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.providers.length).toBe(4);
+    expect(body.data.providers.length).toBe(3);
     expect(body.data.providers[0].name).toBe("Slack");
     expect(body.data.providers[1].name).toBe("OpenID Connect");
     expect(body.data.providers[2].name).toBe("Google");
-    expect(body.data.providers[3].name).toBe("Github");
   });
 
   it("should return available providers for team subdomain", async () => {
