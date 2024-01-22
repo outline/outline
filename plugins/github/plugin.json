@@ -1,0 +1,5 @@
+{
+  "name": "Github",
+  "description": "Adds a Github authentication provider, support for link unfurling.",
+  "requiredEnvVars": ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"]
+}
