@@ -27,7 +27,7 @@ export function slackAuth(
 export function githubAuth(
   state: string,
   clientId: string,
-  redirectUri = `${env.URL}/auth/github.callback`
+  redirectUri = `${env.URL}/api/github.callback`
 ): string {
   const baseUrl = "https://github.com/login/oauth/authorize";
   const params = {
