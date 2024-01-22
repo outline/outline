@@ -12,6 +12,7 @@ export default function present(
   } = {}
 ): PublicEnv {
   return {
+    GITHUB_CLIENT_ID: env.GITHUB_CLIENT_ID,
     ROOT_SHARE_ID: options.rootShareId || undefined,
     analytics: {
       service: options.analytics?.service,

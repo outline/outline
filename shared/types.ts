@@ -49,6 +49,7 @@ export enum MentionType {
 }
 
 export type PublicEnv = {
+  GITHUB_CLIENT_ID?: string;
   ROOT_SHARE_ID?: string;
   analytics: {
     service?: IntegrationService | UserCreatableIntegrationService;
@@ -75,6 +76,7 @@ export enum IntegrationService {
   Grist = "grist",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
+  Github = "github",
 }
 
 export enum UserCreatableIntegrationService {

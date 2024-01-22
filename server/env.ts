@@ -389,6 +389,19 @@ export class Environment {
   public DD_SERVICE = environment.DD_SERVICE ?? "outline";
 
   /**
+   * GitHub OAuth2 client credentials. To enable authentication with GitHub.
+   */
+  @IsOptional()
+  @CannotUseWithout("GITHUB_CLIENT_SECRET")
+  public GITHUB_CLIENT_ID = this.toOptionalString(process.env.GITHUB_CLIENT_ID);
+
+  @IsOptional()
+  @CannotUseWithout("GITHUB_CLIENT_ID")
+  public GITHUB_CLIENT_SECRET = this.toOptionalString(
+    process.env.GITHUB_CLIENT_SECRET
+  );
+
+  /**
    * A string representing the version of the software.
    *
    * SOURCE_COMMIT is used by Docker Hub
