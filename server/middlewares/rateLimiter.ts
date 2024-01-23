@@ -73,9 +73,11 @@ export function rateLimiter(config: RateLimiterConfig) {
       return next();
     }
 
-    if (!RateLimiter.hasRateLimiter(ctx.path)) {
+    const fullPath = `${ctx.mountPath ?? ""}${ctx.path}`;
+
+    if (!RateLimiter.hasRateLimiter(fullPath)) {
       RateLimiter.setRateLimiter(
-        ctx.path,
+        fullPath,
         defaults(
           {
             ...config,
