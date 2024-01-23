@@ -34,6 +34,7 @@ import { restoreRevision } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -174,6 +175,14 @@ function DocumentHeader({
         />
       </Tooltip>
     </Action>
+  );
+
+  useKeyDown(
+    (event) => event.ctrlKey && event.altKey && event.key === "˙",
+    ui.tocVisible ? ui.hideTableOfContents : ui.showTableOfContents,
+    {
+      allowInInput: true,
+    }
   );
 
   if (shareId) {

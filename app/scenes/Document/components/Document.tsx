@@ -264,20 +264,6 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  onToggleTableOfContents = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) {
-      return;
-    }
-    ev.preventDefault();
-    const { ui } = this.props;
-
-    if (ui.tocVisible) {
-      ui.hideTableOfContents();
-    } else {
-      ui.showTableOfContents();
-    }
-  };
-
   onSave = async (
     options: {
       done?: boolean;
@@ -430,14 +416,6 @@ class DocumentScene extends React.Component<Props> {
           handler={(event) => {
             if (isModKey(event) && event.shiftKey) {
               this.onPublish(event);
-            }
-          }}
-        />
-        <RegisterKeyDown
-          trigger="h"
-          handler={(event) => {
-            if (event.ctrlKey && event.altKey) {
-              this.onToggleTableOfContents(event);
             }
           }}
         />
