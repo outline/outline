@@ -397,7 +397,7 @@ export const downloadDocumentAsPDF = createAction({
 
     const id = toast.loading(`${t("Exporting")}…`);
     const document = stores.documents.get(activeDocumentId);
-    document
+    return document
       ?.download(ExportContentType.Pdf)
       .finally(() => id && toast.dismiss(id));
   },
