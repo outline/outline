@@ -134,7 +134,6 @@ class Team extends ParanoidModel<
   @Column
   inviteRequired: boolean;
 
-  @Default(true)
   @Column(DataType.JSONB)
   signupQueryParams: { [key: string]: string } | null;
 
