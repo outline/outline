@@ -16,6 +16,7 @@ import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useKeyDown from "~/hooks/useKeyDown";
+import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { documentPath, urlify } from "~/utils/routeHelpers";
@@ -68,6 +69,7 @@ function SharePopover({
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
+  const can = usePolicy(document);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const collection = document.collection;
@@ -177,7 +179,7 @@ function SharePopover({
         )}
       </DocumentMembersList>
 
-      {team.sharing && visible && (
+      {team.sharing && visible && can.share && (
         <>
           <Separator />
           <Heading>{t("Public access")}</Heading>
