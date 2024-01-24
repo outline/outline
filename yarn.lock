@@ -3388,10 +3388,9 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-virtualized-auto-sizer@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@types/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.2.tgz#eab00178fd4b73d40f5d5ff9ad25717965cb5f54"
-  integrity "sha1-6rABeP1Lc9QPXV/5rSVxeWXLX1Q= sha512-UKIhAsnn1GknB0ewLXmwiGPVhU9m58gq56HcS1+G9L+TUtwgLMJoCREH0k303t3ZdDhNWt8TyxWE9iLYzWSnew=="
+"@types/react-virtualized-auto-sizer@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@types/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.4.tgz#42044ef75ac2d2667893a5943e54a9f037f985a3"
   dependencies:
     "@types/react" "*"
 
@@ -11233,10 +11232,9 @@ react-virtual@^2.8.2:
   dependencies:
     "@reach/observe-rect" "^1.1.0"
 
-react-virtualized-auto-sizer@^1.0.20:
-  version "1.0.20"
-  resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.20.tgz#d9a907253a7c221c52fa57dc775a6ef40c182645"
-  integrity "sha1-2akHJTp8IhxS+lfcd1pu9AwYJkU= sha512-OdIyHwj4S4wyhbKHOKM1wLSj/UDXm839Z3Cvfg2a9j+He6yDa6i5p0qQvEiCnyQlGO/HyfSnigQwuxvYalaAXA=="
+react-virtualized-auto-sizer@^1.0.21:
+  version "1.0.21"
+  resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.21.tgz#c840bbc80a691aee030d090785b98142102013c5"
 
 react-waypoint@^10.3.0:
   version "10.3.0"
