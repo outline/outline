@@ -14,9 +14,9 @@ import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
+import SharedContext from "./SharedContext";
 import SharedWithMeLink from "./SharedWithMeLink";
 import SidebarLink from "./SidebarLink";
-import StarredContext from "./StarredContext";
 import { useDropToReorderUserMembership } from "./useDragAndDrop";
 
 function SharedWithMe() {
@@ -45,7 +45,7 @@ function SharedWithMe() {
   }
 
   return (
-    <StarredContext.Provider value={true}>
+    <SharedContext.Provider value={true}>
       <Flex column>
         <Header id="shared" title={t("Shared with me")}>
           <Relative>
@@ -82,7 +82,7 @@ function SharedWithMe() {
           </Relative>
         </Header>
       </Flex>
-    </StarredContext.Provider>
+    </SharedContext.Provider>
   );
 }
 

@@ -124,6 +124,17 @@ router.post(
     }
 
     if (parentDocumentId) {
+      const userPermission = await UserPermission.findOne({
+        where: {
+          userId: user.id,
+          documentId: parentDocumentId,
+        },
+      });
+
+      if (userPermission) {
+        delete where.collectionId;
+      }
+
       where = { ...where, parentDocumentId };
     }
 

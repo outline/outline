@@ -170,13 +170,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
     rooms.push(`collection-${collectionId}`)
   );
 
-  // the rooms associated with documents this user
-  // has access to on connection. New document subscriptions
-  // are managed from the client as needed through the 'join' event
-  const documentIds: string[] = await user.documentIds();
-
-  documentIds.forEach((documentId) => rooms.push(`document-${documentId}`));
-
   // allow the client to request to join rooms
   socket.on("join", async (event) => {
     // user is joining a collection channel, because their permissions have

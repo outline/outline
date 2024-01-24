@@ -1,7 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useEffect, useState } from "react";
 import styled from "styled-components";
 import UserMembership from "~/models/UserMembership";
 import Fade from "~/components/Fade";
@@ -25,9 +24,11 @@ type Props = {
 
 function SharedWithMeLink({ userMembership }: Props) {
   const { ui, collections, documents } = useStores();
+  const { fetchChildDocuments } = documents;
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId } = userMembership;
-  const [expanded, setExpanded] = useState(
+  const isActiveDocument = documentId === ui.activeDocumentId;
+  const [expanded, setExpanded] = React.useState(
     userMembership.documentId === ui.activeDocumentId
   );
 
@@ -37,11 +38,17 @@ function SharedWithMeLink({ userMembership }: Props) {
     }
   }, [userMembership.documentId, ui.activeDocumentId]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (documentId) {
       void documents.fetch(documentId);
     }
   }, [documentId, documents]);
+
+  React.useEffect(() => {
+    if (isActiveDocument) {
+      void fetchChildDocuments(userMembership.documentId);
+    }
+  }, [fetchChildDocuments, isActiveDocument, userMembership.documentId]);
 
   const handleDisclosureClick = React.useCallback(
     (ev: React.MouseEvent<HTMLButtonElement>) => {
@@ -77,9 +84,9 @@ function SharedWithMeLink({ userMembership }: Props) {
     const collection = document.collectionId
       ? collections.get(document.collectionId)
       : undefined;
-    const childDocuments = collection
-      ? collection.getDocumentChildren(documentId)
-      : [];
+
+    const node = document.asNavigationNode;
+    const childDocuments = node.children;
     const hasChildDocuments = childDocuments.length > 0;
 
     return (
