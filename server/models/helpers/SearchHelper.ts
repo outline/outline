@@ -3,7 +3,7 @@ import invariant from "invariant";
 import find from "lodash/find";
 import map from "lodash/map";
 import queryParser from "pg-tsquery";
-import { Op, QueryTypes, WhereOptions } from "sequelize";
+import { Op, QueryTypes, Sequelize, WhereOptions } from "sequelize";
 import { DateFilter } from "@shared/types";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
@@ -48,7 +48,7 @@ type SearchOptions = {
   snippetMaxWords?: number;
 };
 
-type Results = {
+type RankedDocument = Document & {
   searchRanking: number;
   searchContext: string;
   id: string;
@@ -140,7 +140,7 @@ export default class SearchHelper {
       documentIds,
       headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
     };
-    const resultsQuery = sequelize.query<Results>(selectSql, {
+    const resultsQuery = sequelize.query<RankedDocument>(selectSql, {
       type: QueryTypes.SELECT,
       replacements: { ...queryReplacements, limit, offset },
     });
@@ -317,98 +317,132 @@ export default class SearchHelper {
     // Ensure we're filtering by the users accessible collections. If
     // collectionId is passed as an option it is assumed that the authorization
     // has already been done in the router
-    let collectionIds;
+    const collectionIds = options.collectionId
+      ? [options.collectionId]
+      : await user.collectionIds();
 
-    if (options.collectionId) {
-      collectionIds = [options.collectionId];
-    } else {
-      collectionIds = await user.collectionIds();
+    let where: WhereOptions<Document> = {
+      teamId: user.teamId,
+      [Op.and]: Sequelize.fn(
+        `"searchVector" @@ to_tsquery`,
+        "english",
+        Sequelize.literal(":query")
+      ),
+      [Op.or]: [
+        { collectionId: { [Op.eq]: null }, createdById: user.id },
+        { "$memberships.id$": { [Op.ne]: null } },
+      ],
+    };
+
+    if (collectionIds.length) {
+      where[Op.or].push({ collectionId: collectionIds });
     }
-
-    let dateFilter;
 
     if (options.dateFilter) {
-      dateFilter = `1 ${options.dateFilter}`;
+      where = {
+        ...where,
+        updatedAt: {
+          [Op.gt]: sequelize.literal(
+            `now() - interval '1 ${options.dateFilter}'`
+          ),
+        },
+      };
     }
 
-    const documentIds = await user.documentIds();
+    if (options.collaboratorIds) {
+      where = {
+        ...where,
+        collaboratorIds: {
+          [Op.contains]: options.collaboratorIds,
+        },
+      };
+    }
 
-    // Build the SQL query to get documentIds, ranking, and search term context
-    const whereClause = `
-    "searchVector" @@ to_tsquery('english', :query) AND
-    "teamId" = :teamId AND
-    ${
-      collectionIds.length
-        ? `(
-          "collectionId" IN(:collectionIds) OR
-          ("collectionId" IS NULL AND "createdById" = :userId) ${
-            documentIds.length > 0 ? `OR id in (:documentIds)` : ""
-          }
-        ) AND`
-        : `(
-          ("collectionId" IS NULL AND "createdById" = :userId) ${
-            documentIds.length > 0 ? `OR id in (:documentIds)` : ""
-          }
-        ) AND`
+    if (!options.includeArchived) {
+      where = {
+        ...where,
+        archivedAt: {
+          [Op.eq]: null,
+        },
+      };
     }
-    ${
-      options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
+
+    if (options.includeDrafts) {
+      where = {
+        ...where,
+        [Op.or]: [
+          {
+            publishedAt: {
+              [Op.ne]: null,
+            },
+          },
+          {
+            createdById: user.id,
+          },
+          { "$memberships.id$": { [Op.ne]: null } },
+        ],
+      };
+    } else {
+      where = {
+        ...where,
+        publishedAt: {
+          [Op.ne]: null,
+        },
+      };
     }
-    ${
-      options.collaboratorIds
-        ? '"collaboratorIds" @> ARRAY[:collaboratorIds]::uuid[] AND'
-        : ""
-    }
-    ${options.includeArchived ? "" : '"archivedAt" IS NULL AND'}
-    "deletedAt" IS NULL AND
-    ${
-      options.includeDrafts
-        ? `("publishedAt" IS NOT NULL OR "createdById" = :userId ${
-            documentIds.length > 0 ? `OR id in (:documentIds)` : ""
-          })`
-        : '"publishedAt" IS NOT NULL'
-    }
-  `;
-    const selectSql = `
-  SELECT
-    id,
-    ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-    ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions) as "searchContext"
-  FROM documents
-  WHERE ${whereClause}
-  ORDER BY
-  "searchRanking" DESC,
-  "updatedAt" DESC
-  LIMIT :limit
-  OFFSET :offset;
-  `;
-    const countSql = `
-    SELECT COUNT(id)
-    FROM documents
-    WHERE ${whereClause}
-  `;
+
     const queryReplacements = {
-      teamId: user.teamId,
-      userId: user.id,
-      collaboratorIds: options.collaboratorIds,
       query: this.webSearchQuery(query),
-      collectionIds,
-      documentIds: documentIds.length > 0 ? documentIds : undefined,
-      dateFilter,
       headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
     };
-    const resultsQuery = sequelize.query<Results>(selectSql, {
-      type: QueryTypes.SELECT,
-      replacements: { ...queryReplacements, limit, offset },
-    });
-    const countQuery = sequelize.query<{ count: number }>(countSql, {
-      type: QueryTypes.SELECT,
+
+    const include = [
+      {
+        association: "memberships",
+        where: {
+          userId: user.id,
+        },
+        required: false,
+        separate: false,
+      },
+    ];
+
+    const resultsQuery = Document.unscoped().findAll({
+      attributes: [
+        "id",
+        [
+          Sequelize.literal(
+            `ts_rank("searchVector", to_tsquery('english', :query))`
+          ),
+          "searchRanking",
+        ],
+        [
+          Sequelize.literal(
+            `ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions)`
+          ),
+          "searchContext",
+        ],
+      ],
+      subQuery: false,
+      include,
       replacements: queryReplacements,
-    });
-    const [results, [{ count }]] = await Promise.all([
-      resultsQuery,
-      countQuery,
-    ]);
+      where,
+      order: [
+        ["searchRanking", "DESC"],
+        ["updatedAt", "DESC"],
+      ],
+      limit,
+      offset,
+    }) as any as Promise<RankedDocument[]>;
+
+    const countQuery = Document.unscoped().count({
+      // @ts-expect-error Types are incorrect for count
+      subQuery: false,
+      include,
+      replacements: queryReplacements,
+      where,
+    }) as any as Promise<number>;
+    const [results, count] = await Promise.all([resultsQuery, countQuery]);
 
     // Final query to get associated document data
     const documents = await Document.scope([
@@ -434,7 +468,7 @@ export default class SearchHelper {
   }
 
   private static buildResponse(
-    results: Results[],
+    results: RankedDocument[],
     documents: Document[],
     count: number
   ): SearchResponse {
