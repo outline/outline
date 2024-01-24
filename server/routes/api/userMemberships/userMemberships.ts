@@ -43,7 +43,9 @@ router.post(
       limit: ctx.state.pagination.limit,
     });
 
-    const documentIds = permissions.map((p) => p.documentId);
+    const documentIds = permissions
+      .map((p) => p.documentId)
+      .filter(Boolean) as string[];
     const documents = await Document.scope([
       "withDrafts",
       { method: ["withMembership", user.id] },

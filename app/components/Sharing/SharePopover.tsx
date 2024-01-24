@@ -117,9 +117,7 @@ function SharePopover({
             {collection.permission ? (
               <Item
                 image={<TeamIcon />}
-                title={t("Everyone at {{ name }}", {
-                  name: team.name,
-                })}
+                title={t("All members")}
                 actions={
                   <CollectionAccess>
                     {collection?.permission === CollectionPermission.ReadWrite
