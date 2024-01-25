@@ -176,102 +176,36 @@ export default class SearchHelper {
     options: SearchOptions = {}
   ): Promise<Document[]> {
     const { limit = 15, offset = 0 } = options;
+    const where = await this.buildWhere(user, options);
 
-    const where: WhereOptions<Document> = {
-      teamId: user.teamId,
+    where[Op.and].push({
       title: {
         [Op.iLike]: `%${query}%`,
       },
-      [Op.and]: [],
-    };
-
-    // Ensure we're filtering by the users accessible collections. If
-    // collectionId is passed as an option it is assumed that the authorization
-    // has already been done in the router
-    let collectionIds;
-
-    if (options.collectionId) {
-      collectionIds = [options.collectionId];
-    } else {
-      collectionIds = await user.collectionIds();
-    }
-
-    const documentIds = await user.documentIds();
-
-    where[Op.and].push({
-      [Op.or]: [
-        {
-          collectionId: {
-            [Op.in]: collectionIds,
-          },
-        },
-        {
-          collectionId: {
-            [Op.is]: null,
-          },
-          createdById: user.id,
-        },
-        {
-          id: {
-            [Op.in]: documentIds,
-          },
-        },
-      ],
     });
 
-    if (options.dateFilter) {
-      where[Op.and].push({
-        updatedAt: {
-          [Op.gt]: sequelize.literal(
-            `now() - interval '1 ${options.dateFilter}'`
-          ),
+    const include = [
+      {
+        association: "memberships",
+        where: {
+          userId: user.id,
         },
-      });
-    }
+        required: false,
+        separate: false,
+      },
+      {
+        model: User,
+        as: "createdBy",
+        paranoid: false,
+      },
+      {
+        model: User,
+        as: "updatedBy",
+        paranoid: false,
+      },
+    ];
 
-    if (!options.includeArchived) {
-      where[Op.and].push({
-        archivedAt: {
-          [Op.is]: null,
-        },
-      });
-    }
-
-    if (options.includeDrafts) {
-      where[Op.and].push({
-        [Op.or]: [
-          {
-            publishedAt: {
-              [Op.ne]: null,
-            },
-          },
-          {
-            createdById: user.id,
-          },
-          {
-            id: {
-              [Op.in]: documentIds,
-            },
-          },
-        ],
-      });
-    } else {
-      where[Op.and].push({
-        publishedAt: {
-          [Op.ne]: null,
-        },
-      });
-    }
-
-    if (options.collaboratorIds) {
-      where[Op.and].push({
-        collaboratorIds: {
-          [Op.contains]: options.collaboratorIds,
-        },
-      });
-    }
-
-    return await Document.scope([
+    return Document.scope([
       "withoutState",
       "withDrafts",
       {
@@ -285,19 +219,9 @@ export default class SearchHelper {
       },
     ]).findAll({
       where,
+      subQuery: false,
       order: [["updatedAt", "DESC"]],
-      include: [
-        {
-          model: User,
-          as: "createdBy",
-          paranoid: false,
-        },
-        {
-          model: User,
-          as: "updatedBy",
-          paranoid: false,
-        },
-      ],
+      include,
       offset,
       limit,
     });
@@ -314,82 +238,16 @@ export default class SearchHelper {
       limit = 15,
       offset = 0,
     } = options;
-    // Ensure we're filtering by the users accessible collections. If
-    // collectionId is passed as an option it is assumed that the authorization
-    // has already been done in the router
-    const collectionIds = options.collectionId
-      ? [options.collectionId]
-      : await user.collectionIds();
 
-    let where: WhereOptions<Document> = {
-      teamId: user.teamId,
-      [Op.and]: Sequelize.fn(
+    const where = await this.buildWhere(user, options);
+
+    where[Op.and].push(
+      Sequelize.fn(
         `"searchVector" @@ to_tsquery`,
         "english",
         Sequelize.literal(":query")
-      ),
-      [Op.or]: [
-        { collectionId: { [Op.eq]: null }, createdById: user.id },
-        { "$memberships.id$": { [Op.ne]: null } },
-      ],
-    };
-
-    if (collectionIds.length) {
-      where[Op.or].push({ collectionId: collectionIds });
-    }
-
-    if (options.dateFilter) {
-      where = {
-        ...where,
-        updatedAt: {
-          [Op.gt]: sequelize.literal(
-            `now() - interval '1 ${options.dateFilter}'`
-          ),
-        },
-      };
-    }
-
-    if (options.collaboratorIds) {
-      where = {
-        ...where,
-        collaboratorIds: {
-          [Op.contains]: options.collaboratorIds,
-        },
-      };
-    }
-
-    if (!options.includeArchived) {
-      where = {
-        ...where,
-        archivedAt: {
-          [Op.eq]: null,
-        },
-      };
-    }
-
-    if (options.includeDrafts) {
-      where = {
-        ...where,
-        [Op.or]: [
-          {
-            publishedAt: {
-              [Op.ne]: null,
-            },
-          },
-          {
-            createdById: user.id,
-          },
-          { "$memberships.id$": { [Op.ne]: null } },
-        ],
-      };
-    } else {
-      where = {
-        ...where,
-        publishedAt: {
-          [Op.ne]: null,
-        },
-      };
-    }
+      )
+    );
 
     const queryReplacements = {
       query: this.webSearchQuery(query),
@@ -465,6 +323,78 @@ export default class SearchHelper {
     });
 
     return SearchHelper.buildResponse(results, documents, count);
+  }
+
+  private static async buildWhere(user: User, options: SearchOptions) {
+    const where: WhereOptions<Document> = {
+      teamId: user.teamId,
+      [Op.or]: [
+        { collectionId: { [Op.eq]: null }, createdById: user.id },
+        { "$memberships.id$": { [Op.ne]: null } },
+      ],
+      [Op.and]: [],
+    };
+
+    // Ensure we're filtering by the users accessible collections. If
+    // collectionId is passed as an option it is assumed that the authorization
+    // has already been done in the router
+    const collectionIds = options.collectionId
+      ? [options.collectionId]
+      : await user.collectionIds();
+
+    if (collectionIds.length) {
+      where[Op.or].push({ collectionId: collectionIds });
+    }
+
+    if (options.dateFilter) {
+      where[Op.and].push({
+        updatedAt: {
+          [Op.gt]: sequelize.literal(
+            `now() - interval '1 ${options.dateFilter}'`
+          ),
+        },
+      });
+    }
+
+    if (options.collaboratorIds) {
+      where[Op.and].push({
+        collaboratorIds: {
+          [Op.contains]: options.collaboratorIds,
+        },
+      });
+    }
+
+    if (!options.includeArchived) {
+      where[Op.and].push({
+        archivedAt: {
+          [Op.eq]: null,
+        },
+      });
+    }
+
+    if (options.includeDrafts) {
+      where[Op.and].push({
+        [Op.or]: [
+          {
+            publishedAt: {
+              [Op.ne]: null,
+            },
+          },
+          {
+            createdById: user.id,
+          },
+          { "$memberships.id$": { [Op.ne]: null } },
+        ],
+      });
+    } else {
+      where[Op.and].push({
+        publishedAt: {
+          [Op.ne]: null,
+        },
+      });
+    }
+
+    return where;
   }
 
   private static buildResponse(
