@@ -44,6 +44,7 @@ export default abstract class Model {
     if (!relations) {
       return;
     }
+    // this is to ensure that multiple loads don’t happen in parallel
     if (this.loadingRelations) {
       return this.loadingRelations;
     }
@@ -64,8 +65,12 @@ export default abstract class Model {
       promises.push(this.store.fetch(this.id, { force: true }));
     }
 
-    this.loadingRelations = Promise.all(promises);
-    return await this.loadingRelations;
+    try {
+      this.loadingRelations = Promise.all(promises);
+      return await this.loadingRelations;
+    } finally {
+      this.loadingRelations = undefined;
+    }
   }
 
   /**

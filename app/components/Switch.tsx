@@ -64,7 +64,14 @@ function Switch({
           <InlineLabelText>{label}</InlineLabelText>
         </Label>
         {note && (
-          <Text type="secondary" size="small">
+          <Text
+            type="secondary"
+            size="small"
+            style={{
+              paddingRight: labelPosition === "left" ? width : 0,
+              paddingLeft: labelPosition === "right" ? width : 0,
+            }}
+          >
             {note}
           </Text>
         )}

@@ -8,7 +8,7 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
 
-const RealTextarea = styled.textarea<{ hasIcon?: boolean }>`
+export const NativeTextarea = styled.textarea<{ hasIcon?: boolean }>`
   border: 0;
   flex: 1;
   padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
@@ -19,10 +19,11 @@ const RealTextarea = styled.textarea<{ hasIcon?: boolean }>`
   &:disabled,
   &::placeholder {
     color: ${s("placeholder")};
+    opacity: 1;
   }
 `;
 
-const RealInput = styled.input<{ hasIcon?: boolean }>`
+export const NativeInput = styled.input<{ hasIcon?: boolean }>`
   border: 0;
   flex: 1;
   padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
@@ -39,6 +40,7 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
   &:disabled,
   &::placeholder {
     color: ${s("placeholder")};
+    opacity: 1;
   }
 
   &:-webkit-autofill,
@@ -56,7 +58,7 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
   `};
 `;
 
-const Wrapper = styled.div<{
+export const Wrapper = styled.div<{
   flex?: boolean;
   short?: boolean;
   minHeight?: number;
@@ -205,7 +207,7 @@ function Input(
         <Outline focused={focused} margin={margin}>
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {type === "textarea" ? (
-            <RealTextarea
+            <NativeTextarea
               ref={mergeRefs([
                 internalRef,
                 ref as React.RefObject<HTMLTextAreaElement>,
@@ -217,7 +219,7 @@ function Input(
               {...rest}
             />
           ) : (
-            <RealInput
+            <NativeInput
               ref={mergeRefs([
                 internalRef,
                 ref as React.RefObject<HTMLInputElement>,
