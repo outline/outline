@@ -223,6 +223,7 @@ export type CollectionGroupEvent = BaseEvent & {
 export type DocumentUserEvent = BaseEvent & {
   name: "documents.add_user" | "documents.remove_user";
   userId: string;
+  modelId: string;
   documentId: string;
 };
 

@@ -1548,6 +1548,7 @@ router.post(
       {
         name: "documents.add_user",
         userId,
+        modelId: membership.id,
         documentId: document.id,
         teamId: document.teamId,
         actorId: actor.id,
@@ -1597,11 +1598,23 @@ router.post(
       authorize(actor, "read", user);
     }
 
-    await document.$remove("user", user, { transaction });
+    const membership = await UserPermission.findOne({
+      where: {
+        documentId: id,
+        userId,
+      },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+    });
+
+    await membership.destroy({ transaction });
+
     await Event.create(
       {
         name: "documents.remove_user",
         userId,
+        modelId: membership.id,
         documentId: document.id,
         teamId: document.teamId,
         actorId: actor.id,
