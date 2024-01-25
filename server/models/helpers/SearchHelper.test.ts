@@ -174,6 +174,13 @@ describe("SearchHelper", () => {
         collectionId: collection.id,
         title: "test",
       });
+      await buildDocument({
+        userId: user.id,
+        teamId: team.id,
+        collectionId: collection.id,
+        deletedAt: new Date(),
+        title: "test",
+      });
       const { results } = await SearchHelper.searchForUser(user, "test");
       expect(results.length).toBe(1);
       expect(results[0].document?.id).toBe(document.id);

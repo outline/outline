@@ -312,7 +312,13 @@ export default class SearchHelper {
     const where: WhereOptions<Document> = {
       teamId,
       [Op.or]: [],
-      [Op.and]: [],
+      [Op.and]: [
+        {
+          deletedAt: {
+            [Op.eq]: null,
+          },
+        },
+      ],
     };
 
     if (model instanceof User) {
