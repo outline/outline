@@ -3,7 +3,7 @@ import invariant from "invariant";
 import find from "lodash/find";
 import map from "lodash/map";
 import queryParser from "pg-tsquery";
-import { Op, QueryTypes, Sequelize, WhereOptions } from "sequelize";
+import { Op, Sequelize, WhereOptions } from "sequelize";
 import { DateFilter } from "@shared/types";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
@@ -72,25 +72,7 @@ export default class SearchHelper {
       offset = 0,
     } = options;
 
-    // restrict to specific collection if provided
-    // enables search in private collections if specified
-    let collectionIds: string[];
-    if (options.collectionId) {
-      collectionIds = [options.collectionId];
-    } else {
-      collectionIds = await team.collectionIds();
-    }
-
-    // short circuit if no relevant collections
-    if (!collectionIds.length) {
-      return {
-        results: [],
-        totalCount: 0,
-      };
-    }
-
-    // restrict to documents in the tree of a shared document when one is provided
-    let documentIds: string[] | undefined;
+    const where = await this.buildWhere(team, options);
 
     if (options.share?.includeChildDocuments) {
       const sharedDocument = await options.share.$get("document");
@@ -101,57 +83,57 @@ export default class SearchHelper {
           [Op.is]: null,
         },
       });
-      documentIds = [sharedDocument.id, ...childDocumentIds];
+
+      where[Op.and].push({
+        id: [sharedDocument.id, ...childDocumentIds],
+      });
     }
 
-    const documentClause = documentIds ? `"id" IN(:documentIds) AND` : "";
+    where[Op.and].push(
+      Sequelize.fn(
+        `"searchVector" @@ to_tsquery`,
+        "english",
+        Sequelize.literal(":query")
+      )
+    );
 
-    // Build the SQL query to get result documentIds, ranking, and search term context
-    const whereClause = `
-    "searchVector" @@ to_tsquery('english', :query) AND
-    "teamId" = :teamId AND
-    "collectionId" IN(:collectionIds) AND
-    ${documentClause}
-    "deletedAt" IS NULL AND
-    "publishedAt" IS NOT NULL
-  `;
-    const selectSql = `
-    SELECT
-      id,
-      ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions) as "searchContext"
-    FROM documents
-    WHERE ${whereClause}
-    ORDER BY
-      "searchRanking" DESC,
-      "updatedAt" DESC
-    LIMIT :limit
-    OFFSET :offset;
-  `;
-    const countSql = `
-    SELECT COUNT(id)
-    FROM documents
-    WHERE ${whereClause}
-  `;
     const queryReplacements = {
-      teamId: team.id,
       query: this.webSearchQuery(query),
-      collectionIds,
-      documentIds,
       headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
     };
-    const resultsQuery = sequelize.query<RankedDocument>(selectSql, {
-      type: QueryTypes.SELECT,
-      replacements: { ...queryReplacements, limit, offset },
-    });
-    const countQuery = sequelize.query<{ count: number }>(countSql, {
-      type: QueryTypes.SELECT,
+
+    const resultsQuery = Document.unscoped().findAll({
+      attributes: [
+        "id",
+        [
+          Sequelize.literal(
+            `ts_rank("searchVector", to_tsquery('english', :query))`
+          ),
+          "searchRanking",
+        ],
+        [
+          Sequelize.literal(
+            `ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions)`
+          ),
+          "searchContext",
+        ],
+      ],
       replacements: queryReplacements,
-    });
-    const [results, [{ count }]] = await Promise.all([
-      resultsQuery,
-      countQuery,
-    ]);
+      where,
+      order: [
+        ["searchRanking", "DESC"],
+        ["updatedAt", "DESC"],
+      ],
+      limit,
+      offset,
+    }) as any as Promise<RankedDocument[]>;
+
+    const countQuery = Document.unscoped().count({
+      // @ts-expect-error Types are incorrect for count
+      replacements: queryReplacements,
+      where,
+    }) as any as Promise<number>;
+    const [results, count] = await Promise.all([resultsQuery, countQuery]);
 
     // Final query to get associated document data
     const documents = await Document.findAll({
@@ -167,7 +149,7 @@ export default class SearchHelper {
       ],
     });
 
-    return SearchHelper.buildResponse(results, documents, count);
+    return this.buildResponse(results, documents, count);
   }
 
   public static async searchTitlesForUser(
@@ -322,25 +304,31 @@ export default class SearchHelper {
       },
     });
 
-    return SearchHelper.buildResponse(results, documents, count);
+    return this.buildResponse(results, documents, count);
   }
 
-  private static async buildWhere(user: User, options: SearchOptions) {
+  private static async buildWhere(model: User | Team, options: SearchOptions) {
+    const teamId = model instanceof Team ? model.id : model.teamId;
     const where: WhereOptions<Document> = {
-      teamId: user.teamId,
-      [Op.or]: [
-        { collectionId: { [Op.eq]: null }, createdById: user.id },
-        { "$memberships.id$": { [Op.ne]: null } },
-      ],
+      teamId,
+      [Op.or]: [],
       [Op.and]: [],
     };
+
+    if (model instanceof User) {
+      where[Op.or].push({
+        collectionId: { [Op.eq]: null },
+        createdById: model.id,
+      });
+      where[Op.or].push({ "$memberships.id$": { [Op.ne]: null } });
+    }
 
     // Ensure we're filtering by the users accessible collections. If
     // collectionId is passed as an option it is assumed that the authorization
     // has already been done in the router
     const collectionIds = options.collectionId
       ? [options.collectionId]
-      : await user.collectionIds();
+      : await model.collectionIds();
 
     if (collectionIds.length) {
       where[Op.or].push({ collectionId: collectionIds });
@@ -372,7 +360,7 @@ export default class SearchHelper {
       });
     }
 
-    if (options.includeDrafts) {
+    if (options.includeDrafts && model instanceof User) {
       where[Op.and].push({
         [Op.or]: [
           {
@@ -381,7 +369,7 @@ export default class SearchHelper {
             },
           },
           {
-            createdById: user.id,
+            createdById: model.id,
           },
           { "$memberships.id$": { [Op.ne]: null } },
         ],

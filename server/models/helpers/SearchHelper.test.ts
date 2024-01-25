@@ -118,7 +118,7 @@ describe("SearchHelper", () => {
         title: "test number 2",
       });
       const { totalCount } = await SearchHelper.searchForTeam(team, "test");
-      expect(totalCount).toBe("2");
+      expect(totalCount).toBe(2);
     });
 
     test("should return the document when searched with their previous titles", async () => {
@@ -137,7 +137,7 @@ describe("SearchHelper", () => {
         team,
         "test number"
       );
-      expect(totalCount).toBe("1");
+      expect(totalCount).toBe(1);
     });
 
     test("should not return the document when searched with neither the titles nor the previous titles", async () => {
@@ -156,7 +156,7 @@ describe("SearchHelper", () => {
         team,
         "title doesn't exist"
       );
-      expect(totalCount).toBe("0");
+      expect(totalCount).toBe(0);
     });
   });
 
@@ -277,7 +277,7 @@ describe("SearchHelper", () => {
         title: "test number 2",
       });
       const { totalCount } = await SearchHelper.searchForUser(user, "test");
-      expect(totalCount).toBe("2");
+      expect(totalCount).toBe(2);
     });
 
     test("should return the document when searched with their previous titles", async () => {
@@ -299,7 +299,7 @@ describe("SearchHelper", () => {
         user,
         "test number"
       );
-      expect(totalCount).toBe("1");
+      expect(totalCount).toBe(1);
     });
 
     test("should not return the document when searched with neither the titles nor the previous titles", async () => {
@@ -321,7 +321,7 @@ describe("SearchHelper", () => {
         user,
         "title doesn't exist"
       );
-      expect(totalCount).toBe("0");
+      expect(totalCount).toBe(0);
     });
   });
 
