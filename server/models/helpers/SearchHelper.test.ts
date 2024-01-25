@@ -1,3 +1,4 @@
+import { DocumentPermission } from "@shared/types";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import {
   buildDocument,
@@ -7,6 +8,7 @@ import {
   buildUser,
   buildShare,
 } from "@server/test/factories";
+import UserPermission from "../UserPermission";
 
 beforeEach(() => {
   jest.resetAllMocks();
@@ -218,6 +220,27 @@ describe("SearchHelper", () => {
         createdById: user.id,
         title: "test",
       });
+      const { results } = await SearchHelper.searchForUser(user, "test", {
+        includeDrafts: false,
+      });
+      expect(results.length).toBe(0);
+    });
+
+    test("should not include drafts with user permission", async () => {
+      const user = await buildUser();
+      const draft = await buildDraftDocument({
+        teamId: user.teamId,
+        userId: user.id,
+        createdById: user.id,
+        title: "test",
+      });
+      await UserPermission.create({
+        createdById: user.id,
+        documentId: draft.id,
+        userId: user.id,
+        permission: DocumentPermission.Read,
+      });
+
       const { results } = await SearchHelper.searchForUser(user, "test", {
         includeDrafts: false,
       });

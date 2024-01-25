@@ -322,10 +322,6 @@ export default class SearchHelper {
     };
 
     if (model instanceof User) {
-      where[Op.or].push({
-        collectionId: { [Op.eq]: null },
-        createdById: model.id,
-      });
       where[Op.or].push({ "$memberships.id$": { [Op.ne]: null } });
     }
 
