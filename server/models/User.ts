@@ -403,20 +403,6 @@ class User extends ParanoidModel<
       .map((c) => c.id);
   };
 
-  documentIds = async () => {
-    const memberships = await UserPermission.findAll({
-      attributes: ["documentId"],
-      where: {
-        userId: this.id,
-        documentId: {
-          [Op.ne]: null,
-        },
-      },
-    });
-
-    return memberships.map((m) => m.documentId!);
-  };
-
   updateActiveAt = async (ctx: Context, force = false) => {
     const { ip } = ctx.request;
     const fiveMinutesAgo = subMinutes(new Date(), 5);
