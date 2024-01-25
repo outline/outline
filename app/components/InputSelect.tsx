@@ -107,6 +107,10 @@ const InputSelect = (props: Props) => {
   );
 
   React.useEffect(() => {
+    select.setSelectedValue(value);
+  }, [value]);
+
+  React.useEffect(() => {
     if (previousValue.current === select.selectedValue) {
       return;
     }

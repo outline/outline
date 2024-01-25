@@ -1,13 +1,11 @@
 import invariant from "invariant";
 import find from "lodash/find";
-import isUndefined from "lodash/isUndefined";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
-import { Pagination } from "@shared/constants";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
@@ -27,7 +25,6 @@ import {
   PartialWithId,
   WebsocketCollectionUpdateIndexEvent,
   WebsocketCollectionUserEvent,
-  WebsocketDocumentUserEvent,
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
 } from "~/types";
@@ -257,31 +254,24 @@ class WebsocketProvider extends React.Component<Props> {
     // received when a user is given access to a document
     this.socket.on(
       "documents.add_user",
-      async (event: WebsocketDocumentUserEvent) => {
-        // if the user is us then we go ahead and load the memberships from API.
-        if (auth.user && event.userId === auth.user.id) {
-          await userMemberships.fetchPage({
-            limit: Pagination.defaultLimit,
-          });
-        }
+      (event: PartialWithId<UserMembership>) => {
+        userMemberships.add(event);
       }
     );
 
     this.socket.on(
       "documents.remove_user",
-      async (event: WebsocketDocumentUserEvent) => {
-        if (auth.user && event.userId === auth.user.id) {
-          await userMemberships.fetchPage({
-            limit: Pagination.defaultLimit,
-          });
-
+      (event: PartialWithId<UserMembership>) => {
+        if (event.documentId && event.userId === auth.user?.id) {
           documents.remove(event.documentId);
         }
 
-        userMemberships.revoke({
-          userId: event.userId,
-          documentId: event.documentId,
-        });
+        if (event.userId) {
+          userMemberships.revoke({
+            userId: event.userId,
+            documentId: event.documentId,
+          });
+        }
       }
     );
 
@@ -407,7 +397,7 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on(
       "collections.add_user",
       async (event: WebsocketCollectionUserEvent) => {
-        if (auth.user && event.userId === auth.user.id) {
+        if (event.userId === auth.user?.id) {
           await collections.fetch(event.collectionId, {
             force: true,
           });
@@ -426,7 +416,7 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on(
       "collections.remove_user",
       async (event: WebsocketCollectionUserEvent) => {
-        if (auth.user && event.userId === auth.user.id) {
+        if (event.userId === auth.user?.id) {
           // check if we still have access to the collection
           try {
             await collections.fetch(event.collectionId, {
@@ -506,7 +496,7 @@ class WebsocketProvider extends React.Component<Props> {
     );
 
     this.socket.on("users.demote", async (event: PartialWithId<User>) => {
-      if (auth.user && event.id === auth.user.id) {
+      if (event.id === auth.user?.id) {
         documents.all.forEach((document) => policies.remove(document.id));
         await collections.fetchAll();
       }
@@ -515,10 +505,7 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on(
       "userMemberships.update",
       async (event: PartialWithId<UserMembership>) => {
-        const userMembership = userMemberships.get(event.id);
-        if (userMembership && !isUndefined(event.index)) {
-          userMembership.index = event.index;
-        }
+        userMemberships.add(event);
       }
     );
 

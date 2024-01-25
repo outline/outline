@@ -9,7 +9,7 @@ import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
-import { Collection, Document, User } from "@server/models";
+import { Collection, User } from "@server/models";
 import { can } from "@server/policies";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
@@ -184,19 +184,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
         Metrics.increment("websockets.collections.join");
       }
     }
-
-    // user is joining a document channel, because their permissions have
-    // changed, granting them access.
-    if (event.documentId) {
-      const document = await Document.findByPk(event.documentId, {
-        userId: user.id,
-      });
-
-      if (can(user, "read", document)) {
-        await socket.join(`document-${event.documentId}`);
-        Metrics.increment("websockets.documents.join");
-      }
-    }
   });
 
   // allow the client to request to leave rooms
@@ -204,11 +191,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
     if (event.collectionId) {
       await socket.leave(`collection-${event.collectionId}`);
       Metrics.increment("websockets.collections.leave");
-    }
-
-    if (event.documentId) {
-      await socket.leave(`document-${event.documentId}`);
-      Metrics.increment("websockets.documents.leave");
     }
   });
 

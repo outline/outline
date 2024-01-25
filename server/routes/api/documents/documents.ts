@@ -1552,9 +1552,6 @@ router.post(
         documentId: document.id,
         teamId: document.teamId,
         actorId: actor.id,
-        data: {
-          name: user.name,
-        },
         ip: ctx.request.ip,
       },
       {
@@ -1618,9 +1615,6 @@ router.post(
         documentId: document.id,
         teamId: document.teamId,
         actorId: actor.id,
-        data: {
-          name: user.name,
-        },
         ip: ctx.request.ip,
       },
       { transaction }

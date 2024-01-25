@@ -6,6 +6,7 @@ import {
   CollectionPermission,
   DocumentPermission,
 } from "@shared/types";
+import { UserPermission } from "@server/models";
 import RootStore from "~/stores/RootStore";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
@@ -201,6 +202,7 @@ export type WebsocketEvent =
   | PartialWithId<Pin>
   | PartialWithId<Star>
   | PartialWithId<FileOperation>
+  | PartialWithId<UserPermission>
   | WebsocketCollectionUserEvent
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent

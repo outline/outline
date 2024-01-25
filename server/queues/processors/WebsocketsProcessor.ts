@@ -14,6 +14,7 @@ import {
   Team,
   Subscription,
   Notification,
+  UserPermission,
 } from "@server/models";
 import {
   presentComment,
@@ -25,6 +26,7 @@ import {
   presentStar,
   presentSubscription,
   presentTeam,
+  presentMembership,
 } from "@server/presenters";
 import presentNotification from "@server/presenters/notification";
 import { Event } from "../../types";
@@ -43,7 +45,7 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const channels = this.getDocumentEventChannels(event, document);
+        const channels = await this.getDocumentEventChannels(event, document);
         return socketio.to(channels).emit("entities", {
           event: event.name,
           documentIds: [
@@ -78,7 +80,7 @@ export default class WebsocketsProcessor {
           return;
         }
         const data = await presentDocument(document);
-        const channels = this.getDocumentEventChannels(event, document);
+        const channels = await this.getDocumentEventChannels(event, document);
         return socketio.to(channels).emit(event.name, data);
       }
 
@@ -88,7 +90,7 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const channels = this.getDocumentEventChannels(event, document);
+        const channels = await this.getDocumentEventChannels(event, document);
         return socketio.to(channels).emit("entities", {
           event: event.name,
           documentIds: [
@@ -137,37 +139,32 @@ export default class WebsocketsProcessor {
       }
 
       case "documents.add_user": {
-        const channels = [
-          `user-${event.userId}`,
-          `document-${event.documentId}`,
-        ];
+        const [document, membership] = await Promise.all([
+          Document.findByPk(event.documentId),
+          UserPermission.findByPk(event.modelId),
+        ]);
+        if (!document || !membership) {
+          return;
+        }
 
-        // the user being added isn't yet in the websocket channel for the document
-        // so they need to be notified separately
-        socketio.to(channels).emit(event.name, {
-          event: event.name,
-          userId: event.userId,
-          documentId: event.documentId,
-        });
-        // tell any user clients to connect to the websocket channel for the document
-        return socketio.to(`user-${event.userId}`).emit("join", {
-          event: event.name,
-          documentId: event.documentId,
-        });
+        const channels = await this.getDocumentEventChannels(event, document);
+        socketio.to(channels).emit(event.name, presentMembership(membership));
+        return;
       }
 
       case "documents.remove_user": {
-        // let everyone with access to the document know a user was removed
-        socketio.to(`document-${event.documentId}`).emit(event.name, {
-          event: event.name,
+        const document = await Document.findByPk(event.documentId);
+        if (!document) {
+          return;
+        }
+
+        const channels = await this.getDocumentEventChannels(event, document);
+        socketio.to([...channels, `user-${event.userId}`]).emit(event.name, {
+          id: event.modelId,
           userId: event.userId,
           documentId: event.documentId,
         });
-        // tell any user clients to disconnect from the websocket channel for the document
-        return socketio.to(`user-${event.userId}`).emit("leave", {
-          event: event.name,
-          documentId: event.documentId,
-        });
+        return;
       }
 
       case "collections.create": {
@@ -416,7 +413,10 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const channels = this.getDocumentEventChannels(event, comment.document);
+        const channels = await this.getDocumentEventChannels(
+          event,
+          comment.document
+        );
         return socketio.to(channels).emit(event.name, presentComment(comment));
       }
 
@@ -434,7 +434,10 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const channels = this.getDocumentEventChannels(event, comment.document);
+        const channels = await this.getDocumentEventChannels(
+          event,
+          comment.document
+        );
         return socketio.to(channels).emit(event.name, {
           modelId: event.modelId,
         });
@@ -681,8 +684,11 @@ export default class WebsocketsProcessor {
     }
   }
 
-  private getDocumentEventChannels(event: Event, document: Document): string[] {
-    const channels = [`document-${document.id}`];
+  private async getDocumentEventChannels(
+    event: Event,
+    document: Document
+  ): Promise<string[]> {
+    const channels = [];
 
     if (event.actorId) {
       channels.push(`user-${event.actorId}`);
@@ -690,6 +696,16 @@ export default class WebsocketsProcessor {
 
     if (document.publishedAt) {
       channels.push(`collection-${document.collectionId}`);
+    }
+
+    const memberships = await UserPermission.findAll({
+      where: {
+        documentId: document.id,
+      },
+    });
+
+    for (const membership of memberships) {
+      channels.push(`user-${membership.userId}`);
     }
 
     return channels;

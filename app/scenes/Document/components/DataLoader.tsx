@@ -8,7 +8,6 @@ import Revision from "~/models/Revision";
 import Error402 from "~/scenes/Error402";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
-import { WebsocketContext } from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -50,22 +49,6 @@ type Children = (options: {
 
 type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
   children: Children;
-};
-
-const useDocumentWebsocket = (documentId: string | undefined) => {
-  const socket = React.useContext(WebsocketContext);
-
-  React.useEffect(() => {
-    if (socket && documentId) {
-      socket.emit("join", { documentId });
-
-      return () => {
-        socket.emit("leave", { documentId });
-      };
-    }
-
-    return undefined;
-  }, [socket, documentId]);
 };
 
 function DataLoader({ match, children }: Props) {
@@ -216,8 +199,6 @@ function DataLoader({ match, children }: Props) {
       }
     }
   }, [can.read, can.update, document, isEditRoute, comments, team, shares, ui]);
-
-  useDocumentWebsocket(document?.id);
 
   if (error) {
     return error instanceof OfflineError ? (
