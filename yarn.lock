@@ -1277,15 +1277,14 @@
     "@dnd-kit/utilities" "^3.2.1"
     tslib "^2.0.0"
 
-"@dnd-kit/sortable@^7.0.1":
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/@dnd-kit/sortable/-/sortable-7.0.1.tgz#99c6012bbab4d8bb726c0eef7b921a338c404fdb"
-  integrity "sha1-mcYBK7q02LtybA7ve5IaM4xAT9s= sha512-n77qAzJQtMMywu25sJzhz3gsHnDOUlEjTtnRl8A87rWIhnu32zuP+7zmFjwGgvqfXmRufqiHOSlH7JPC/tnJ8Q=="
+"@dnd-kit/sortable@^7.0.2":
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/@dnd-kit/sortable/-/sortable-7.0.2.tgz#791d550872457f3f3c843e00d159b640f982011c"
   dependencies:
     "@dnd-kit/utilities" "^3.2.0"
     tslib "^2.0.0"
 
-"@dnd-kit/utilities@^3.2.0", "@dnd-kit/utilities@^3.2.1", "@dnd-kit/utilities@^3.2.2":
+"@dnd-kit/utilities@^3.2.1", "@dnd-kit/utilities@^3.2.2":
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/@dnd-kit/utilities/-/utilities-3.2.2.tgz#5a32b6af356dc5f74d61b37d6f7129a4040ced7b"
   integrity "sha1-WjK2rzVtxfdNYbN9b3EppAQM7Xs= sha512-+MKAJEOfaBe5SmV6t34p80MMKhjvUz0vRrvVJbPT0WElzaOJ/1xs+D+KDv+tD/NE5ujfrChEcshd4fLn0wpiqg=="
@@ -3388,10 +3387,9 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-virtualized-auto-sizer@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@types/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.2.tgz#eab00178fd4b73d40f5d5ff9ad25717965cb5f54"
-  integrity "sha1-6rABeP1Lc9QPXV/5rSVxeWXLX1Q= sha512-UKIhAsnn1GknB0ewLXmwiGPVhU9m58gq56HcS1+G9L+TUtwgLMJoCREH0k303t3ZdDhNWt8TyxWE9iLYzWSnew=="
+"@types/react-virtualized-auto-sizer@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@types/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.4.tgz#42044ef75ac2d2667893a5943e54a9f037f985a3"
   dependencies:
     "@types/react" "*"
 
@@ -4078,10 +4076,9 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity "sha1-kvlWFlAQadB9EO2y/DfT4cZRI7c= sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw=="
 
-aws-sdk@^2.1510.0:
-  version "2.1510.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1510.0.tgz#c190ccda07ae72bc1edcd7a6e9c28e48c44ebd3e"
-  integrity "sha1-wZDM2geucrwe3Nem6cKOSMROvT4= sha512-XQj3QINBNseA5G9Vaa/iihNz3HCrzeyhxrOUjuH0AVxYqa5Q4cxaQhrWiAiUndtO2F70nfukEYe4cCUoTalUoQ=="
+aws-sdk@^2.1540.0:
+  version "2.1540.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1540.0.tgz#13be9aec1fc3c404224dd94d6a8c5abb9dc13084"
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -11233,10 +11230,9 @@ react-virtual@^2.8.2:
   dependencies:
     "@reach/observe-rect" "^1.1.0"
 
-react-virtualized-auto-sizer@^1.0.20:
-  version "1.0.20"
-  resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.20.tgz#d9a907253a7c221c52fa57dc775a6ef40c182645"
-  integrity "sha1-2akHJTp8IhxS+lfcd1pu9AwYJkU= sha512-OdIyHwj4S4wyhbKHOKM1wLSj/UDXm839Z3Cvfg2a9j+He6yDa6i5p0qQvEiCnyQlGO/HyfSnigQwuxvYalaAXA=="
+react-virtualized-auto-sizer@^1.0.21:
+  version "1.0.21"
+  resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.21.tgz#c840bbc80a691aee030d090785b98142102013c5"
 
 react-waypoint@^10.3.0:
   version "10.3.0"
