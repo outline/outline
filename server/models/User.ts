@@ -53,7 +53,7 @@ import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
-import UserPermission from "./UserPermission";
+import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Encrypted, {
   setEncryptedColumn,
@@ -566,7 +566,7 @@ class User extends ParanoidModel<
           },
           options
         );
-        await UserPermission.update(
+        await UserMembership.update(
           {
             permission: CollectionPermission.Read,
           },

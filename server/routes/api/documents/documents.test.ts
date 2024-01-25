@@ -6,7 +6,7 @@ import {
   View,
   Revision,
   Backlink,
-  UserPermission,
+  UserMembership,
   SearchQuery,
   Event,
   User,
@@ -907,7 +907,7 @@ describe("#documents.list", () => {
       collectionId: collection.id,
     });
 
-    await UserPermission.update(
+    await UserMembership.update(
       {
         userId: user.id,
         permission: CollectionPermission.Read,
@@ -1694,7 +1694,7 @@ describe("#documents.search", () => {
       permission: null,
     });
 
-    await UserPermission.create({
+    await UserMembership.create({
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
@@ -2148,7 +2148,7 @@ describe("#documents.viewed", () => {
       documentId: document.id,
       userId: user.id,
     });
-    await UserPermission.destroy({
+    await UserMembership.destroy({
       where: {
         userId: user.id,
         collectionId: collection.id,
@@ -3206,7 +3206,7 @@ describe("#documents.update", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await UserPermission.update(
+    await UserMembership.update(
       {
         userId: user.id,
         permission: CollectionPermission.ReadWrite,
@@ -3313,7 +3313,7 @@ describe("#documents.update", () => {
       teamId: team.id,
     });
 
-    await UserPermission.update(
+    await UserMembership.update(
       {
         createdById: user.id,
         permission: CollectionPermission.ReadWrite,
@@ -3351,7 +3351,7 @@ describe("#documents.update", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await UserPermission.update(
+    await UserMembership.update(
       {
         createdById: user.id,
         permission: CollectionPermission.Read,
@@ -3387,7 +3387,7 @@ describe("#documents.update", () => {
     });
     collection.permission = CollectionPermission.Read;
     await collection.save();
-    await UserPermission.destroy({
+    await UserMembership.destroy({
       where: {
         userId: user.id,
         collectionId: collection.id,
@@ -3973,19 +3973,19 @@ describe("#documents.users", () => {
 
     // add people and groups to collection
     await Promise.all([
-      UserPermission.create({
+      UserMembership.create({
         collectionId: collection.id,
         userId: alan.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      UserPermission.create({
+      UserMembership.create({
         collectionId: collection.id,
         userId: bret.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      UserPermission.create({
+      UserMembership.create({
         collectionId: collection.id,
         userId: ken.id,
         permission: CollectionPermission.Read,
@@ -4063,19 +4063,19 @@ describe("#documents.users", () => {
 
     // add people to collection
     await Promise.all([
-      UserPermission.create({
+      UserMembership.create({
         collectionId: collection.id,
         userId: alan.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      UserPermission.create({
+      UserMembership.create({
         collectionId: collection.id,
         userId: bret.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      UserPermission.create({
+      UserMembership.create({
         collectionId: collection.id,
         userId: ken.id,
         permission: CollectionPermission.Read,

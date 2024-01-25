@@ -14,7 +14,7 @@ import {
   Team,
   Subscription,
   Notification,
-  UserPermission,
+  UserMembership,
 } from "@server/models";
 import {
   presentComment,
@@ -141,7 +141,7 @@ export default class WebsocketsProcessor {
       case "documents.add_user": {
         const [document, membership] = await Promise.all([
           Document.findByPk(event.documentId),
-          UserPermission.findByPk(event.modelId),
+          UserMembership.findByPk(event.modelId),
         ]);
         if (!document || !membership) {
           return;
@@ -698,7 +698,7 @@ export default class WebsocketsProcessor {
       channels.push(`collection-${document.collectionId}`);
     }
 
-    const memberships = await UserPermission.findAll({
+    const memberships = await UserMembership.findAll({
       where: {
         documentId: document.id,
       },

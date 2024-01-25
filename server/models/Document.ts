@@ -59,7 +59,7 @@ import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
-import UserPermission from "./UserPermission";
+import UserMembership from "./UserMembership";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -506,15 +506,15 @@ class Document extends ParanoidModel<
   @BelongsTo(() => Collection, "collectionId")
   collection: Collection | null | undefined;
 
-  @BelongsToMany(() => User, () => UserPermission)
+  @BelongsToMany(() => User, () => UserMembership)
   users: User[];
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
 
-  @HasMany(() => UserPermission)
-  memberships: UserPermission[];
+  @HasMany(() => UserMembership)
+  memberships: UserMembership[];
 
   @HasMany(() => Revision)
   revisions: Revision[];
@@ -811,7 +811,7 @@ class Document extends ParanoidModel<
     }
 
     const parentDocumentPermissions = this.parentDocumentId
-      ? await UserPermission.findAll({
+      ? await UserMembership.findAll({
           where: {
             documentId: this.parentDocumentId,
           },
@@ -821,7 +821,7 @@ class Document extends ParanoidModel<
 
     await Promise.all(
       parentDocumentPermissions.map((permission) =>
-        UserPermission.create(
+        UserMembership.create(
           {
             documentId: this.id,
             userId: permission.userId,

@@ -114,9 +114,11 @@ class User extends ParanoidModel {
   @computed
   get memberships(): UserMembership[] {
     return this.store.rootStore.userMemberships.orderedData
-      .filter((m) => m.userId === this.id && m.sourceId === null)
+      .filter(
+        (m) => m.userId === this.id && m.sourceId === null && m.documentId
+      )
       .filter((m) => {
-        const document = this.store.rootStore.documents.get(m.documentId);
+        const document = this.store.rootStore.documents.get(m.documentId!);
         return !document?.collection;
       });
   }

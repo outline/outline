@@ -41,7 +41,7 @@ import {
   SearchQuery,
   User,
   View,
-  UserPermission,
+  UserMembership,
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
@@ -124,14 +124,14 @@ router.post(
     }
 
     if (parentDocumentId) {
-      const userPermission = await UserPermission.findOne({
+      const membership = await UserMembership.findOne({
         where: {
           userId: user.id,
           documentId: parentDocumentId,
         },
       });
 
-      if (userPermission) {
+      if (membership) {
         delete where.collectionId;
       }
 
@@ -1500,7 +1500,7 @@ router.post(
     authorize(actor, "read", user);
     authorize(actor, "manageUsers", document);
 
-    const userPermissions = await UserPermission.findAll({
+    const UserMemberships = await UserMembership.findAll({
       where: {
         userId,
       },
@@ -1518,10 +1518,10 @@ router.post(
     // create membership at the beginning of their "Shared with me" section
     const index = fractionalIndex(
       null,
-      userPermissions.length ? userPermissions[0].index : null
+      UserMemberships.length ? UserMemberships[0].index : null
     );
 
-    const [membership] = await UserPermission.findOrCreate({
+    const [membership] = await UserMembership.findOrCreate({
       where: {
         documentId: id,
         userId,
@@ -1595,7 +1595,7 @@ router.post(
       authorize(actor, "read", user);
     }
 
-    const membership = await UserPermission.findOne({
+    const membership = await UserMembership.findOne({
       where: {
         documentId: id,
         userId,
@@ -1638,7 +1638,7 @@ router.post(
     const document = await Document.findByPk(id, { userId: actor.id });
     authorize(actor, "update", document);
 
-    let where: WhereOptions<UserPermission> = {
+    let where: WhereOptions<UserMembership> = {
       documentId: id,
     };
     let userWhere;
@@ -1668,8 +1668,8 @@ router.post(
     };
 
     const [total, memberships] = await Promise.all([
-      UserPermission.count(options),
-      UserPermission.findAll({
+      UserMembership.count(options),
+      UserMembership.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,

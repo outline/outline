@@ -45,7 +45,7 @@ function SharedWithMeLink({ userMembership }: Props) {
   }, [documentId, documents]);
 
   React.useEffect(() => {
-    if (isActiveDocument) {
+    if (isActiveDocument && userMembership.documentId) {
       void fetchChildDocuments(userMembership.documentId);
     }
   }, [fetchChildDocuments, isActiveDocument, userMembership.documentId]);

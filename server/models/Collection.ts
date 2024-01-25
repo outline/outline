@@ -46,7 +46,7 @@ import GroupPermission from "./GroupPermission";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
-import UserPermission from "./UserPermission";
+import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
@@ -57,7 +57,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withAllMemberships: {
     include: [
       {
-        model: UserPermission,
+        model: UserMembership,
         as: "memberships",
         required: false,
       },
@@ -101,7 +101,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withMembership: (userId: string) => ({
     include: [
       {
-        model: UserPermission,
+        model: UserMembership,
         as: "memberships",
         where: {
           userId,
@@ -269,7 +269,7 @@ class Collection extends ParanoidModel<
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    return UserPermission.findOrCreate({
+    return UserMembership.findOrCreate({
       where: {
         collectionId: model.id,
         userId: model.createdById,
@@ -294,13 +294,13 @@ class Collection extends ParanoidModel<
   @HasMany(() => Document, "collectionId")
   documents: Document[];
 
-  @HasMany(() => UserPermission, "collectionId")
-  memberships: UserPermission[];
+  @HasMany(() => UserMembership, "collectionId")
+  memberships: UserMembership[];
 
   @HasMany(() => GroupPermission, "collectionId")
   collectionGroupMemberships: GroupPermission[];
 
-  @BelongsToMany(() => User, () => UserPermission)
+  @BelongsToMany(() => User, () => UserMembership)
   users: User[];
 
   @BelongsToMany(() => Group, () => GroupPermission)

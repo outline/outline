@@ -1,28 +1,28 @@
 import { buildCollection, buildUser } from "@server/test/factories";
-import UserPermission from "./UserPermission";
+import UserMembership from "./UserMembership";
 
-describe("UserPermission", () => {
+describe("UserMembership", () => {
   describe("withCollection scope", () => {
     it("should return the collection", async () => {
       const collection = await buildCollection();
       const user = await buildUser({ teamId: collection.teamId });
 
-      await UserPermission.create({
+      await UserMembership.create({
         createdById: user.id,
         userId: user.id,
         collectionId: collection.id,
       });
 
-      const permission = await UserPermission.scope("withCollection").findOne({
+      const membership = await UserMembership.scope("withCollection").findOne({
         where: {
           userId: user.id,
           collectionId: collection.id,
         },
       });
 
-      expect(permission).toBeDefined();
-      expect(permission?.collection).toBeDefined();
-      expect(permission?.collection?.id).toEqual(collection.id);
+      expect(membership).toBeDefined();
+      expect(membership?.collection).toBeDefined();
+      expect(membership?.collection?.id).toEqual(collection.id);
     });
   });
 });

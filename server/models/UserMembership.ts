@@ -60,9 +60,9 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "user_permissions", modelName: "user_permission" })
 @Fix
-class UserPermission extends IdModel<
-  InferAttributes<UserPermission>,
-  Partial<InferCreationAttributes<UserPermission>>
+class UserMembership extends IdModel<
+  InferAttributes<UserMembership>,
+  Partial<InferCreationAttributes<UserMembership>>
 > {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
@@ -94,11 +94,11 @@ class UserPermission extends IdModel<
   documentId?: string | null;
 
   /** If this represents the permission on a child then this points to the permission on the root */
-  @BelongsTo(() => UserPermission, "sourceId")
-  source?: UserPermission | null;
+  @BelongsTo(() => UserMembership, "sourceId")
+  source?: UserMembership | null;
 
   /** If this represents the permission on a child then this points to the permission on the root */
-  @ForeignKey(() => UserPermission)
+  @ForeignKey(() => UserMembership)
   @Column(DataType.UUID)
   sourceId?: string | null;
 
@@ -121,41 +121,40 @@ class UserPermission extends IdModel<
   createdById: string;
 
   /**
-   * Find the root permission for a document and user.
+   * Find the root membership for a document and (optionally) user.
    *
-   * @param documentId The document ID to find the permission for.
-   * @param userId The user ID to find the permission for.
+   * @param documentId The document ID to find the membership for.
+   * @param userId The user ID to find the membership for.
    * @param options Additional options to pass to the query.
-   * @returns A promise that resolves to the  root permission for the document and user, or null.
+   * @returns A promise that resolves to the root memberships for the document and user, or null.
    */
-  static async findRootPermissionsForDocument(
+  static async findRootMembershipsForDocument(
     documentId: string,
     userId?: string,
-    options?: FindOptions<UserPermission>
-  ): Promise<UserPermission[]> {
-    const permissions = await this.findAll({
+    options?: FindOptions<UserMembership>
+  ): Promise<UserMembership[]> {
+    const memberships = await this.findAll({
       where: {
         documentId,
         ...(userId ? { userId } : {}),
       },
     });
 
-    const rootPermissions = await Promise.all(
-      permissions.map((permission) =>
-        permission?.sourceId
-          ? this.findByPk(permission.sourceId, options)
-          : permission
+    const rootMemberships = await Promise.all(
+      memberships.map((membership) =>
+        membership?.sourceId
+          ? this.findByPk(membership.sourceId, options)
+          : membership
       )
     );
 
-    return rootPermissions.filter(Boolean) as UserPermission[];
+    return rootMemberships.filter(Boolean) as UserMembership[];
   }
 
   @AfterUpdate
-  static async updateSourcedPermissions(
-    model: UserPermission,
-
-    options: SaveOptions<UserPermission>
+  static async updateSourcedMemberships(
+    model: UserMembership,
+    options: SaveOptions<UserMembership>
   ) {
     if (model.sourceId || !model.documentId) {
       return;
@@ -179,23 +178,23 @@ class UserPermission extends IdModel<
   }
 
   @AfterCreate
-  static async createSourcedPermissions(
-    model: UserPermission,
-    options: SaveOptions<UserPermission>
+  static async createSourcedMemberships(
+    model: UserMembership,
+    options: SaveOptions<UserMembership>
   ) {
     if (model.sourceId || !model.documentId) {
       return;
     }
 
-    return this.recreateSourcedPermissions(model, options);
+    return this.recreateSourcedMemberships(model, options);
   }
 
   /**
    * Recreate all sourced permissions for a given permission.
    */
-  static async recreateSourcedPermissions(
-    model: UserPermission,
-    options: SaveOptions<UserPermission>
+  static async recreateSourcedMemberships(
+    model: UserMembership,
+    options: SaveOptions<UserMembership>
   ) {
     if (!model.documentId) {
       return;
@@ -250,4 +249,4 @@ class UserPermission extends IdModel<
   }
 }
 
-export default UserPermission;
+export default UserMembership;

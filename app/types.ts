@@ -6,12 +6,12 @@ import {
   CollectionPermission,
   DocumentPermission,
 } from "@shared/types";
-import { UserPermission } from "@server/models";
 import RootStore from "~/stores/RootStore";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
 import Pin from "./models/Pin";
 import Star from "./models/Star";
+import UserMembership from "./models/UserMembership";
 
 export type PartialWithId<T> = Partial<T> & { id: string };
 
@@ -202,7 +202,7 @@ export type WebsocketEvent =
   | PartialWithId<Pin>
   | PartialWithId<Star>
   | PartialWithId<FileOperation>
-  | PartialWithId<UserPermission>
+  | PartialWithId<UserMembership>
   | WebsocketCollectionUserEvent
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent

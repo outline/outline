@@ -1,5 +1,5 @@
 import { CollectionPermission, DocumentPermission } from "@shared/types";
-import { UserPermission } from "@server/models";
+import { UserMembership } from "@server/models";
 
 type Membership = {
   id: string;
@@ -13,7 +13,7 @@ type Membership = {
 };
 
 export default function presentMembership(
-  membership: UserPermission
+  membership: UserMembership
 ): Membership {
   return {
     id: membership.id,

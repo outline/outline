@@ -4,7 +4,7 @@ import { Op, Sequelize } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, Event, UserPermission } from "@server/models";
+import { Document, Event, UserMembership } from "@server/models";
 import { authorize } from "@server/policies";
 import {
   presentDocument,
@@ -25,7 +25,7 @@ router.post(
   async (ctx: APIContext<T.UserMembershipsListReq>) => {
     const { user } = ctx.state.auth;
 
-    const permissions = await UserPermission.findAll({
+    const memberships = await UserMembership.findAll({
       where: {
         userId: user.id,
         documentId: {
@@ -43,7 +43,7 @@ router.post(
       limit: ctx.state.pagination.limit,
     });
 
-    const documentIds = permissions
+    const documentIds = memberships
       .map((p) => p.documentId)
       .filter(Boolean) as string[];
     const documents = await Document.scope([
@@ -56,12 +56,12 @@ router.post(
       },
     });
 
-    const policies = presentPolicies(user, [...documents, ...permissions]);
+    const policies = presentPolicies(user, [...documents, ...memberships]);
 
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        memberships: permissions.map(presentMembership),
+        memberships: memberships.map(presentMembership),
         documents: await Promise.all(
           documents.map((document: Document) => presentDocument(document))
         ),
@@ -81,7 +81,7 @@ router.post(
     const { transaction } = ctx.state;
 
     const { user } = ctx.state.auth;
-    const membership = await UserPermission.findByPk(id, {
+    const membership = await UserMembership.findByPk(id, {
       transaction,
       rejectOnEmpty: true,
     });

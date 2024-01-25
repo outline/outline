@@ -4,7 +4,7 @@ import {
   Star,
   Subscription,
   UserAuthentication,
-  UserPermission,
+  UserMembership,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { Event as TEvent, UserEvent } from "@server/types";
@@ -27,7 +27,7 @@ export default class UsersDeletedProcessor extends BaseProcessor {
         },
         transaction,
       });
-      await UserPermission.destroy({
+      await UserMembership.destroy({
         where: {
           userId: event.userId,
         },

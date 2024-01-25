@@ -8,7 +8,7 @@ import {
   Collection,
   Pin,
   Event,
-  UserPermission,
+  UserMembership,
 } from "@server/models";
 import pinDestroyer from "./pinDestroyer";
 
@@ -234,11 +234,11 @@ async function documentMover({
   // If there are any sourced permissions for this document, we need to go to the source
   // permission and recalculate
   const [documentPermissions, parentDocumentPermissions] = await Promise.all([
-    UserPermission.findRootPermissionsForDocument(document.id, undefined, {
+    UserMembership.findRootMembershipsForDocument(document.id, undefined, {
       transaction,
     }),
     parentDocumentId
-      ? UserPermission.findRootPermissionsForDocument(
+      ? UserMembership.findRootMembershipsForDocument(
           parentDocumentId,
           undefined,
           { transaction }
@@ -273,11 +273,11 @@ async function documentMover({
 }
 
 async function recalculatePermissions(
-  permissions: UserPermission[],
+  permissions: UserMembership[],
   transaction?: Transaction
 ) {
   for (const permission of permissions) {
-    await UserPermission.createSourcedPermissions(permission, { transaction });
+    await UserMembership.createSourcedMemberships(permission, { transaction });
   }
 }
 

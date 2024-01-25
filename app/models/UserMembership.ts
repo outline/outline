@@ -20,11 +20,11 @@ class UserMembership extends Model {
   permission: DocumentPermission;
 
   /** The document ID that this permission grants the user access to. */
-  documentId: string;
+  documentId?: string;
 
   /** The document that this permission grants the user access to. */
   @Relation(() => Document, { onDelete: "cascade" })
-  document: Document;
+  document?: Document;
 
   /** The source ID points to the root permission from which this permission inherits */
   sourceId?: string;

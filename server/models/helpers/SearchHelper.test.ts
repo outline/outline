@@ -8,7 +8,7 @@ import {
   buildUser,
   buildShare,
 } from "@server/test/factories";
-import UserPermission from "../UserPermission";
+import UserMembership from "../UserMembership";
 
 beforeEach(() => {
   jest.resetAllMocks();
@@ -234,7 +234,7 @@ describe("SearchHelper", () => {
         createdById: user.id,
         title: "test",
       });
-      await UserPermission.create({
+      await UserMembership.create({
         createdById: user.id,
         documentId: draft.id,
         userId: user.id,
