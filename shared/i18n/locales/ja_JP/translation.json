@@ -684,7 +684,7 @@
   "Inline LaTeX": "インライン LaTeX",
   "Sign In": "ログイン",
   "Continue with Email": "Eメールで続行",
-  "Continue with {{ authProviderName }}": "{{ authProviderName }}に続ける。",
+  "Continue with {{ authProviderName }}": "{{ authProviderName }} でログイン",
   "Back to home": "ホームへ戻る",
   "The domain associated with your email address has not been allowed for this workspace.": "メールアドレスに関連付けられたドメインは、このワークスペースで許可されていません。",
   "Unable to sign-in. Please navigate to your workspace's custom URL, then try to sign-in again.<1></1>If you were invited to a workspace, you will find a link to it in the invite email.": "サインインできません。ワークスペースのカスタム URL に移動し、再度サインインしてみてください。<1></1>ワークスペースに招待された場合、招待メールにリンクが表示されます。",
