@@ -1,4 +1,7 @@
 import invariant from "invariant";
+import type { ObjectIterateeCustom } from "lodash";
+import filter from "lodash/filter";
+import find from "lodash/find";
 import flatten from "lodash/flatten";
 import lowerFirst from "lodash/lowerFirst";
 import orderBy from "lodash/orderBy";
@@ -72,9 +75,7 @@ export default abstract class Store<T extends Model> {
   }
 
   addPolicies = (policies: Policy[]) => {
-    if (policies) {
-      policies.forEach((policy) => this.rootStore.policies.add(policy));
-    }
+    policies?.forEach((policy) => this.rootStore.policies.add(policy));
   };
 
   @action
@@ -130,6 +131,15 @@ export default abstract class Store<T extends Model> {
     this.data.delete(id);
   }
 
+  /**
+   * Remove all items in the store that match the predicate.
+   *
+   * @param predicate A function that returns true if the item matches, or an object with the properties to match.
+   */
+  removeAll = (predicate: Parameters<typeof this.filter>[0]) => {
+    this.filter(predicate).forEach((item) => this.remove(item.id));
+  };
+
   save(params: Properties<T>, options: JSONObject = {}): Promise<T> {
     const { isNew, ...rest } = options;
     if (isNew || !("id" in params) || !params.id) {
@@ -138,6 +148,11 @@ export default abstract class Store<T extends Model> {
     return this.update(params, rest);
   }
 
+  /**
+   * Get a single item from the store that matches the ID.
+   *
+   * @param id The ID of the item to get.
+   */
   get(id: string): T | undefined {
     return this.data.get(id);
   }
@@ -291,4 +306,22 @@ export default abstract class Store<T extends Model> {
   get orderedData(): T[] {
     return orderBy(Array.from(this.data.values()), "createdAt", "desc");
   }
+
+  /**
+   * Find an item in the store matching the given predicate.
+   *
+   * @param predicate A function that returns true if the item matches, or an object with the properties to match.
+   */
+  find = (predicate: ObjectIterateeCustom<T, boolean>): T | undefined =>
+    // @ts-expect-error not sure why T is incompatible
+    find(this.orderedData, predicate);
+
+  /**
+   * Filter items in the store matching the given predicate.
+   *
+   * @param predicate A function that returns true if the item matches, or an object with the properties to match.
+   */
+  filter = (predicate: ObjectIterateeCustom<T, boolean>): T[] =>
+    // @ts-expect-error not sure why T is incompatible
+    filter(this.orderedData, predicate);
 }

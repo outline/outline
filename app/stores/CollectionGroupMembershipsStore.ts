@@ -71,32 +71,9 @@ export default class CollectionGroupMembershipsStore extends Store<CollectionGro
       id: collectionId,
       groupId,
     });
-    const membership = Array.from(this.data.values()).find(
-      (m) => m.groupId === groupId && m.collectionId === collectionId
-    );
-    if (membership) {
-      this.remove(membership.id);
-    }
-  }
-
-  @action
-  removeCollectionMemberships = (collectionId: string) => {
-    this.data.forEach((membership, key) => {
-      if (membership.collectionId === collectionId) {
-        this.remove(key);
-      }
+    this.removeAll({
+      collectionId,
+      groupId,
     });
-  };
-
-  /**
-   * Find a collection group membership by collectionId and groupId
-   *
-   * @param collectionId The collection ID
-   * @param groupId The group ID
-   * @returns The collection group membership or undefined if not found.
-   */
-  find = (collectionId: string, groupId: string) =>
-    Array.from(this.data.values()).find(
-      (m) => m.groupId === groupId && m.collectionId === collectionId
-    );
+  }
 }

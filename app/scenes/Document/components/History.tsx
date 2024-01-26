@@ -22,7 +22,7 @@ function History() {
   const document = documents.getByUrl(match.params.documentSlug);
 
   const eventsInDocument = document
-    ? events.inDocument(document.id)
+    ? events.filter({ documentId: document.id })
     : EMPTY_ARRAY;
 
   const onCloseHistory = () => {

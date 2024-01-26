@@ -9,6 +9,15 @@ import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
 
+type UserCounts = {
+  active: number;
+  admins: number;
+  all: number;
+  invited: number;
+  suspended: number;
+  viewers: number;
+};
+
 export default class UsersStore extends Store<User> {
   actions = [
     RPCAction.Info,
@@ -20,14 +29,7 @@ export default class UsersStore extends Store<User> {
   ];
 
   @observable
-  counts: {
-    active: number;
-    admins: number;
-    all: number;
-    invited: number;
-    suspended: number;
-    viewers: number;
-  } = {
+  counts: UserCounts = {
     active: 0,
     admins: 0,
     all: 0,
@@ -160,8 +162,12 @@ export default class UsersStore extends Store<User> {
     });
 
   @action
-  fetchCounts = async (teamId: string): Promise<any> => {
-    const res = await client.post(`/users.count`, {
+  fetchCounts = async (
+    teamId: string
+  ): Promise<{
+    counts: UserCounts;
+  }> => {
+    const res = await client.post(`/≈`, {
       teamId,
     });
     invariant(res?.data, "Data should be available");
