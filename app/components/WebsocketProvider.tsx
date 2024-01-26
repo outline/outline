@@ -188,7 +188,7 @@ class WebsocketProvider extends React.Component<Props> {
                 err instanceof NotFoundError
               ) {
                 documents.removeCollectionDocuments(collectionId);
-                memberships.removeCollectionMemberships(collectionId);
+                memberships.removeAll({ collectionId });
                 collections.remove(collectionId);
                 return;
               }
@@ -302,7 +302,7 @@ class WebsocketProvider extends React.Component<Props> {
           policies.remove(doc.id);
         });
         documents.removeCollectionDocuments(collectionId);
-        memberships.removeCollectionMemberships(collectionId);
+        memberships.removeAll({ collectionId });
         collections.remove(collectionId);
       })
     );
@@ -398,7 +398,7 @@ class WebsocketProvider extends React.Component<Props> {
               err instanceof NotFoundError
             ) {
               collections.remove(event.collectionId);
-              memberships.revoke({
+              memberships.removeAll({
                 userId: event.userId,
                 collectionId: event.collectionId,
               });
@@ -408,7 +408,7 @@ class WebsocketProvider extends React.Component<Props> {
 
           documents.removeCollectionDocuments(event.collectionId);
         } else {
-          memberships.revoke({
+          memberships.removeAll({
             userId: event.userId,
             collectionId: event.collectionId,
           });
