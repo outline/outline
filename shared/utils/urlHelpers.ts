@@ -29,7 +29,7 @@ export function githubAuth(
   clientId: string,
   redirectUri = `${env.URL}/api/github.callback`
 ): string {
-  const baseUrl = "https://github.com/login/oauth/authorize";
+  const baseUrl = `https://github.com/apps/${env.GITHUB_APP_NAME}/installations/new`;
   const params = {
     client_id: clientId,
     redirect_uri: redirectUri,
