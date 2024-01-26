@@ -53,6 +53,7 @@ export type PublicEnv = {
   SENTRY_TUNNEL: string | undefined;
   SLACK_CLIENT_ID: string | undefined;
   GITHUB_CLIENT_ID: string | undefined;
+  GITHUB_APP_NAME?: string;
   SLACK_APP_ID: string | undefined;
   MAXIMUM_IMPORT_SIZE: number;
   EMAIL_ENABLED: boolean;
@@ -119,6 +120,9 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string }
       | { measurementId: string }
+      | {
+          github: { installation: { id: number; accountName?: string | null } };
+        }
       | undefined;
 
 export enum UserPreference {
