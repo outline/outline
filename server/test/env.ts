@@ -9,6 +9,9 @@ env.SLACK_CLIENT_ID = "123";
 env.SLACK_CLIENT_SECRET = "123";
 env.GITHUB_CLIENT_ID = "123";
 env.GITHUB_CLIENT_SECRET = "123";
+env.GITHUB_APP_NAME = "outline-test";
+env.GITHUB_APP_ID = "123";
+env.GITHUB_APP_PRIVATE_KEY = "123";
 
 env.AZURE_CLIENT_ID = undefined;
 env.AZURE_CLIENT_SECRET = undefined;
