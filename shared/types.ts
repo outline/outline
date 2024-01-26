@@ -50,6 +50,7 @@ export enum MentionType {
 
 export type PublicEnv = {
   GITHUB_CLIENT_ID?: string;
+  GITHUB_APP_NAME?: string;
   ROOT_SHARE_ID?: string;
   analytics: {
     service?: IntegrationService | UserCreatableIntegrationService;
@@ -109,6 +110,9 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string }
       | { measurementId: string }
+      | {
+          github: { installation: { id: number; accountName?: string | null } };
+        }
       | undefined;
 
 export enum UserPreference {
