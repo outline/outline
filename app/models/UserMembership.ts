@@ -50,19 +50,25 @@ class UserMembership extends Model {
   store: UserMembershipsStore;
 
   /**
-   * Returns the next membership in the list, or undefined if this is the last.
+   * Returns the next membership for the same user in the list, or undefined if this is the last.
    */
   next(): UserMembership | undefined {
-    const index = this.store.orderedData.indexOf(this);
-    return this.store.orderedData[index + 1];
+    const memberships = this.store.filter({
+      userId: this.userId,
+    });
+    const index = memberships.indexOf(this);
+    return memberships[index + 1];
   }
 
   /**
-   * Returns the previous membership in the list, or undefined if this is the first.
+   * Returns the previous membership for the same user in the list, or undefined if this is the first.
    */
   previous(): UserMembership | undefined {
-    const index = this.store.orderedData.indexOf(this);
-    return this.store.orderedData[index + 1];
+    const memberships = this.store.filter({
+      userId: this.userId,
+    });
+    const index = memberships.indexOf(this);
+    return memberships[index + 1];
   }
 }
 
