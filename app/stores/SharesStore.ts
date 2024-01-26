@@ -2,7 +2,7 @@ import invariant from "invariant";
 import filter from "lodash/filter";
 import find from "lodash/find";
 import isUndefined from "lodash/isUndefined";
-import sortBy from "lodash/sortBy";
+import orderBy from "lodash/orderBy";
 import { action, computed } from "mobx";
 import type { Required } from "utility-types";
 import type { JSONObject } from "@shared/types";
@@ -26,7 +26,7 @@ export default class SharesStore extends Store<Share> {
 
   @computed
   get orderedData(): Share[] {
-    return sortBy(Array.from(this.data.values()), "createdAt").reverse();
+    return orderBy(Array.from(this.data.values()), "createdAt", "asc");
   }
 
   @computed

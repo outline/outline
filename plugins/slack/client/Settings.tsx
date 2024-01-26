@@ -1,9 +1,8 @@
-import find from "lodash/find";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
-import { IntegrationType } from "@shared/types";
+import { IntegrationService, IntegrationType } from "@shared/types";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
@@ -38,14 +37,15 @@ function Slack() {
     });
   }, [collections, integrations]);
 
-  const commandIntegration = find(
-    integrations.slackIntegrations,
-    (i) => i.type === IntegrationType.Command
-  );
+  const commandIntegration = integrations.find({
+    type: IntegrationType.Command,
+    service: IntegrationService.Slack,
+  });
 
   const groupedCollections = collections.orderedData
     .map<[Collection, Integration | undefined]>((collection) => {
-      const integration = find(integrations.slackIntegrations, {
+      const integration = integrations.find({
+        service: IntegrationService.Slack,
         collectionId: collection.id,
       });
 
