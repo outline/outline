@@ -8,6 +8,7 @@ export const GithubCallbackSchema = BaseSchema.extend({
       code: z.string().nullish(),
       state: z.string().uuid().nullish(),
       error: z.string().nullish(),
+      installation_id: z.coerce.number(),
     })
     .refine((req) => !(isEmpty(req.code) && isEmpty(req.error)), {
       message: "one of code or error is required",

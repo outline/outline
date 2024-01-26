@@ -382,6 +382,20 @@ export class Environment {
     process.env.GITHUB_CLIENT_SECRET
   );
 
+  @IsOptional()
+  @CannotUseWithout("GITHUB_CLIENT_ID")
+  public GITHUB_APP_NAME = this.toOptionalString(process.env.GITHUB_APP_NAME);
+
+  @IsOptional()
+  @CannotUseWithout("GITHUB_APP_PRIVATE_KEY")
+  public GITHUB_APP_ID = this.toOptionalString(process.env.GITHUB_APP_ID);
+
+  @IsOptional()
+  @CannotUseWithout("GITHUB_APP_ID")
+  public GITHUB_APP_PRIVATE_KEY = this.toOptionalString(
+    process.env.GITHUB_APP_PRIVATE_KEY
+  );
+
   /**
    * Disable autoredirect to the OIDC login page if there is only one
    * authentication method and that method is OIDC.
