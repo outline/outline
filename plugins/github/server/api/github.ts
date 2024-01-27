@@ -1,16 +1,20 @@
+import {
+  createOAuthUserAuth,
+  type GitHubAppAuthentication,
+} from "@octokit/auth-oauth-user";
 import type { Context } from "koa";
 import Router from "koa-router";
-import { App } from "octokit";
+import find from "lodash/find";
+import { Octokit } from "octokit";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import env from "@server/env";
-import { InvalidRequestError } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration, Team } from "@server/models";
 import { APIContext } from "@server/types";
-import * as Github from "../github";
+import { Github } from "../github";
 import * as T from "./schema";
 
 const router = new Router();
@@ -24,14 +28,7 @@ function redirectOnClient(ctx: Context, url: string) {
 </head>`;
 }
 
-if (env.GITHUB_APP_ID && env.GITHUB_APP_PRIVATE_KEY) {
-  const app = new App({
-    appId: env.GITHUB_APP_ID,
-    privateKey: Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString(
-      "ascii"
-    ),
-  });
-
+if (env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET) {
   router.get(
     "github.callback",
     auth({
@@ -50,7 +47,7 @@ if (env.GITHUB_APP_ID && env.GITHUB_APP_PRIVATE_KEY) {
       const { transaction } = ctx.state;
 
       if (error) {
-        ctx.redirect(integrationSettingsPath(`github?error=${error}`));
+        ctx.redirect(Github.errorUrl(error));
         return;
       }
 
@@ -66,42 +63,55 @@ if (env.GITHUB_APP_ID && env.GITHUB_APP_PRIVATE_KEY) {
             });
             return redirectOnClient(
               ctx,
-              `${team.url}/api/github.callback?${ctx.request.querystring}`
+              Github.callbackUrl({
+                baseUrl: team.url,
+                params: ctx.request.querystring,
+              })
             );
           } catch (err) {
-            return ctx.redirect(
-              integrationSettingsPath(`github?error=unauthenticated`)
-            );
+            return ctx.redirect(Github.errorUrl("unauthenticated"));
           }
         } else {
-          return ctx.redirect(
-            integrationSettingsPath(`github?error=unauthenticated`)
-          );
+          return ctx.redirect(Github.errorUrl("unauthenticated"));
         }
       }
 
-      const octokit = await app.getInstallationOctokit(installationId);
+      const github = new Octokit({
+        authStrategy: createOAuthUserAuth,
+        auth: {
+          clientId: env.GITHUB_CLIENT_ID,
+          clientSecret: env.GITHUB_CLIENT_SECRET,
+          clientType: "github-app",
+          code,
+          state: teamId,
+          redirectUrl: Github.callbackUrl,
+        },
+      });
+
+      const authResponse = (await github.auth()) as GitHubAppAuthentication;
 
       let installation;
       try {
-        const res = await octokit.request(
-          "GET /app/installations/{installation_id}",
-          { installation_id: installationId }
+        const installations = await github.paginate("GET /user/installations");
+        installation = find(
+          installations,
+          (installation) => installation.id === installationId
         );
-        installation = res.data;
+        if (!installation) {
+          Logger.warn("installationId mismatch!");
+          return ctx.redirect(Github.errorUrl("unauthenticated"));
+        }
       } catch (err) {
-        throw InvalidRequestError(err.message);
+        Logger.warn("Couldn't fetch user installations from Github", err);
+        return ctx.redirect(Github.errorUrl("unauthenticated"));
       }
 
-      const endpoint = `${env.URL}/api/github.callback`;
-      // validation middleware ensures that code is non-null at this point
-      const data = await Github.oauthAccess(code!, endpoint);
       const authentication = await IntegrationAuthentication.create(
         {
           service: IntegrationService.Github,
           userId: user.id,
           teamId: user.teamId,
-          token: data.access_token,
+          token: authResponse.token,
         },
         { transaction }
       );
@@ -125,7 +135,7 @@ if (env.GITHUB_APP_ID && env.GITHUB_APP_PRIVATE_KEY) {
         },
         { transaction }
       );
-      ctx.redirect(integrationSettingsPath("github"));
+      ctx.redirect(Github.url);
     }
   );
 }
