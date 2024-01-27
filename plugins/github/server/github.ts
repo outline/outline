@@ -1,40 +1,30 @@
+import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import env from "@server/env";
-import { InvalidRequestError } from "@server/errors";
-import fetch from "@server/utils/fetch";
 
-const GITHUB_URL = "https://github.com";
+export class Github {
+  /**
+   * Github settings url
+   */
+  public static url = integrationSettingsPath("github");
 
-export async function post(endpoint: string, body: Record<string, any>) {
-  let data;
-
-  try {
-    const response = await fetch(`${GITHUB_URL}/${endpoint}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-    data = await response.json();
-  } catch (err) {
-    throw InvalidRequestError(err.message);
+  /**
+   * @param error
+   * @returns URL to be redirected to upon authorization error from GitHub
+   */
+  public static errorUrl(error: string) {
+    return `${this.url}?error=${error}`;
   }
 
-  if (!data.access_token) {
-    throw InvalidRequestError(data.error);
+  /**
+   * @returns Callback URL configured for GitHub, to which users will be redirected upon authorization
+   */
+  public static callbackUrl({
+    baseUrl = `${env.URL}/api/github.callback`,
+    params,
+  }: {
+    baseUrl: string;
+    params?: string;
+  }) {
+    return `${baseUrl}?${params}`;
   }
-  return data;
-}
-
-export async function oauthAccess(
-  code: string,
-  redirect_uri = `${env.URL}/api/github.callback`
-) {
-  return post("/login/oauth/access_token", {
-    client_id: env.GITHUB_CLIENT_ID,
-    client_secret: env.GITHUB_CLIENT_SECRET,
-    redirect_uri,
-    code,
-  });
 }
