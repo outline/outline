@@ -114,7 +114,10 @@ export const LabelText = styled.div`
 `;
 
 export interface Props
-  extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>,
+    "prefix"
+  > {
   type?: "text" | "email" | "checkbox" | "search" | "textarea";
   labelHidden?: boolean;
   label?: string;
@@ -122,6 +125,9 @@ export interface Props
   short?: boolean;
   margin?: string | number;
   error?: string;
+  /** Optional component that appears inside the input before the textarea and any icon */
+  prefix?: React.ReactNode;
+  /** Optional icon that appears inside the input before the textarea */
   icon?: React.ReactNode;
   /** Like autoFocus, but also select any text in the input */
   autoSelect?: boolean;
@@ -185,6 +191,7 @@ function Input(
     className,
     short,
     flex,
+    prefix,
     labelHidden,
     onFocus,
     onBlur,
@@ -205,6 +212,7 @@ function Input(
             wrappedLabel
           ))}
         <Outline focused={focused} margin={margin}>
+          {prefix}
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {type === "textarea" ? (
             <NativeTextarea

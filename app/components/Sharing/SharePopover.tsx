@@ -67,6 +67,7 @@ const presence = {
     marginRight: 8,
     transition: {
       type: "spring",
+      duration: 0.2,
       bounce: 0,
     },
   },
@@ -110,8 +111,9 @@ function SharePopover({
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
-  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const linkButtonRef = React.useRef<HTMLButtonElement>(null);
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
+  const collectionSharingDisabled = document.collection?.sharing === false;
 
   useKeyDown(
     "Escape",
@@ -130,12 +132,27 @@ function SharePopover({
     }
   );
 
+  // Fetch sharefocus the link button when the popover is opened
   React.useEffect(() => {
     if (visible) {
       void document.share();
-      buttonRef.current?.focus();
+      linkButtonRef.current?.focus();
     }
-  }, [document, visible]);
+  }, [document, hidePicker, visible]);
+
+  // Hide the picker when the popover is closed
+  React.useEffect(() => {
+    if (visible) {
+      hidePicker();
+    }
+  }, [hidePicker, visible]);
+
+  // Clear the query when picker is closed
+  React.useEffect(() => {
+    if (!picker) {
+      setQuery("");
+    }
+  }, [picker]);
 
   const handleCopied = React.useCallback(() => {
     onRequestClose();
@@ -188,11 +205,10 @@ function SharePopover({
             <NativeInput
               key="input"
               placeholder={`${t("Invite by name")}…`}
-              onChange={handleQuery}
               value={query}
+              onChange={handleQuery}
               onFocus={showPicker}
               style={{ padding: "6px 0" }}
-              autoFocus
             />
           </AnimatePresence>
           {picker ? (
@@ -206,7 +222,7 @@ function SharePopover({
               text={urlify(documentPath(document))}
               onCopy={handleCopied}
             >
-              <NudeButton type="button" disabled={!share} ref={buttonRef}>
+              <NudeButton type="button" disabled={!share} ref={linkButtonRef}>
                 <LinkIcon size={20} />
               </NudeButton>
             </CopyToClipboard>
@@ -215,12 +231,12 @@ function SharePopover({
       )}
 
       {picker && (
-        <Content>
+        <div>
           <Picker document={document} query={query} onInvite={handleInvite} />
-        </Content>
+        </div>
       )}
 
-      <Content style={{ display: picker ? "none" : "block" }}>
+      <div style={{ display: picker ? "none" : "block" }}>
         <DocumentOtherAccessList document={document}>
           <DocumentMembersList
             document={document}
@@ -228,19 +244,18 @@ function SharePopover({
           />
         </DocumentOtherAccessList>
 
-        {team.sharing && visible && can.share && (
+        {team.sharing && visible && can.share && !collectionSharingDisabled && (
           <>
-            <Heading>{t("Public access")}</Heading>
-
+            {document.members.length ? <Separator /> : null}
             <PublicAccess
               document={document}
               share={share}
               sharedParent={sharedParent}
-              onCopied={handleCopied}
+              onRequestClose={onRequestClose}
             />
           </>
         )}
-      </Content>
+      </div>
     </>
   );
 }
@@ -301,8 +316,6 @@ const Picker = observer(
                 showBorder={false}
               />
             }
-            border={false}
-            small
           />
         ))}
       </>
@@ -311,6 +324,11 @@ const Picker = observer(
     );
   }
 );
+
+const Separator = styled.div`
+  border-top: 1px dashed ${s("divider")};
+  margin: 12px 0;
+`;
 
 const DocumentOtherAccessList = observer(
   ({
@@ -346,8 +364,6 @@ const DocumentOtherAccessList = observer(
                       : t("Can view")}
                   </AccessTooltip>
                 }
-                border={false}
-                small
               />
             ) : usersInCollection ? (
               <StyledListItem
@@ -355,8 +371,6 @@ const DocumentOtherAccessList = observer(
                 title={collection.name}
                 subtitle={t("Everyone in the collection")}
                 actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
-                border={false}
-                small
               />
             ) : (
               <StyledListItem
@@ -364,8 +378,6 @@ const DocumentOtherAccessList = observer(
                 title={user.name}
                 subtitle={t("You have full access")}
                 actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
-                border={false}
-                small
               />
             )}
             {children}
@@ -380,8 +392,6 @@ const DocumentOtherAccessList = observer(
                   {t("Can edit")}
                 </AccessTooltip>
               }
-              border={false}
-              small
             />
             {children}
           </>
@@ -403,8 +413,6 @@ const DocumentOtherAccessList = observer(
                   )}
                 />
               }
-              border={false}
-              small
             />
           </>
         )}
@@ -434,15 +442,6 @@ const AccessTooltip = ({
   );
 };
 
-const Content = styled.div``;
-
-const Heading = styled(Text).attrs({ size: "large", weight: "bold" })`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 12px;
-`;
-
 const Input = styled(Flex)`
   position: sticky;
   z-index: 1;
@@ -454,7 +453,7 @@ const Input = styled(Flex)`
   margin-top: 0;
   margin-left: -24px;
   margin-right: -24px;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 
   &:before {
     content: "";

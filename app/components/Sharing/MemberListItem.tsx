@@ -82,7 +82,6 @@ const MemberListItem = ({
           ? user.email
           : t("Member")
       }
-      border={false}
       actions={
         disabled ? null : (
           <div style={{ marginRight: -8 }}>
@@ -104,12 +103,14 @@ const MemberListItem = ({
           </div>
         )
       }
-      small
     />
   );
 };
 
-export const StyledListItem = styled(ListItem)`
+export const StyledListItem = styled(ListItem).attrs({
+  small: true,
+  border: false,
+})`
   margin: 0 -16px;
   padding: 6px 16px;
   border-radius: 8px;
