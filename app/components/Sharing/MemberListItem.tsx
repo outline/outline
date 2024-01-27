@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 import { DocumentPermission } from "@shared/types";
-import Membership from "~/models/Membership";
 import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
 import Avatar from "~/components/Avatar";
@@ -13,7 +13,7 @@ import { EmptySelectValue, Permission } from "~/types";
 
 type Props = {
   user: User;
-  membership?: Membership | UserMembership | undefined;
+  membership?: UserMembership | undefined;
   onAdd?: () => void;
   onRemove?: () => void;
   onLeave?: () => void;
@@ -64,32 +64,55 @@ const MemberListItem = ({
   const disabled = !onUpdate && !onLeave;
 
   return (
-    <ListItem
+    <StyledListItem
       title={user.name}
-      image={<Avatar model={user} size={AvatarSize.Medium} />}
-      border={false}
-      style={{ marginRight: -8 }}
-      small
-      actions={
-        <InputMemberPermissionSelect
-          permissions={
-            onLeave
-              ? [
-                  currentPermission,
-                  {
-                    label: `${t("Leave")}…`,
-                    value: EmptySelectValue,
-                  },
-                ]
-              : permissions
-          }
-          value={membership?.permission}
-          onChange={handleChange}
-          disabled={disabled}
-        />
+      image={
+        <Avatar model={user} size={AvatarSize.Medium} showBorder={false} />
       }
+      subtitle={
+        membership?.sourceId
+          ? t("Has access through parent")
+          : user.isSuspended
+          ? t("Suspended")
+          : user.isInvited
+          ? t("Invited")
+          : user.isViewer
+          ? t("Viewer")
+          : user.email
+          ? user.email
+          : t("Member")
+      }
+      border={false}
+      actions={
+        disabled ? null : (
+          <div style={{ marginRight: -8 }}>
+            <InputMemberPermissionSelect
+              permissions={
+                onLeave
+                  ? [
+                      currentPermission,
+                      {
+                        label: `${t("Leave")}…`,
+                        value: EmptySelectValue,
+                      },
+                    ]
+                  : permissions
+              }
+              value={membership?.permission}
+              onChange={handleChange}
+            />
+          </div>
+        )
+      }
+      small
     />
   );
 };
+
+export const StyledListItem = styled(ListItem)`
+  margin: 0 -16px;
+  padding: 6px 16px;
+  border-radius: 8px;
+`;
 
 export default observer(MemberListItem);

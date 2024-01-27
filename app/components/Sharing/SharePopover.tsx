@@ -1,30 +1,45 @@
+import { AnimatePresence, m } from "framer-motion";
 import { observer } from "mobx-react";
-import { GroupIcon, QuestionMarkIcon, TeamIcon } from "outline-icons";
+import {
+  BackIcon,
+  LinkIcon,
+  MoreIcon,
+  QuestionMarkIcon,
+  UserIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
-import Button from "~/components/Button";
+import User from "~/models/User";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
+import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import useThrottledCallback from "~/hooks/useThrottledCallback";
 import { documentPath, urlify } from "~/utils/routeHelpers";
 import Avatar from "../Avatar";
+import { AvatarSize } from "../Avatar/Avatar";
+import Button from "../Button";
+import Empty from "../Empty";
 import CollectionIcon from "../Icons/CollectionIcon";
-import Item from "../List/Item";
+import { NativeInput } from "../Input";
+import NudeButton from "../NudeButton";
+import Squircle from "../Squircle";
 import Tooltip from "../Tooltip";
 import DocumentMembersList from "./DocumentMemberList";
+import { StyledListItem } from "./MemberListItem";
 import PublicAccess from "./PublicAccess";
 
 type Props = {
@@ -38,6 +53,28 @@ type Props = {
   onRequestClose: () => void;
   /** Whether the popover is visible. */
   visible: boolean;
+};
+
+const presence = {
+  initial: {
+    opacity: 0,
+    width: 0,
+    marginRight: 0,
+  },
+  animate: {
+    opacity: 1,
+    width: "auto",
+    marginRight: 8,
+    transition: {
+      type: "spring",
+      bounce: 0,
+    },
+  },
+  exit: {
+    opacity: 0,
+    width: 0,
+    marginRight: 0,
+  },
 };
 
 function useUsersInCollection(collection?: Collection) {
@@ -66,15 +103,32 @@ function SharePopover({
   onRequestClose,
   visible,
 }: Props) {
-  const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const can = usePolicy(document);
+  const { userMemberships } = useStores();
+  const [query, setQuery] = React.useState("");
+  const [picker, showPicker, hidePicker] = useBoolean();
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
-  const collection = document.collection;
+  const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
 
-  useKeyDown("Escape", onRequestClose);
+  useKeyDown(
+    "Escape",
+    (ev) => {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+
+      if (picker) {
+        hidePicker();
+      } else {
+        onRequestClose();
+      }
+    },
+    {
+      allowInInput: true,
+    }
+  );
 
   React.useEffect(() => {
     if (visible) {
@@ -97,110 +151,273 @@ function SharePopover({
     };
   }, [onRequestClose, t]);
 
-  const usersInCollection = useUsersInCollection(collection);
+  const handleInvite = React.useCallback(
+    (user: User) => {
+      setInvitedInSession((prev) => [...prev, user.id]);
+      return userMemberships.create({
+        documentId: document.id,
+        userId: user.id,
+      });
+    },
+    [userMemberships, document.id]
+  );
+
+  const handleQuery = React.useCallback(
+    (event) => {
+      showPicker();
+      setQuery(event.target.value);
+    },
+    [showPicker, setQuery]
+  );
 
   return (
     <>
-      <Heading>
-        {t("People with access")}
+      {can.manageUsers && (
+        <Input align="center">
+          <AnimatePresence initial={false}>
+            {picker && (
+              <NudeButton
+                key="back"
+                as={m.button}
+                {...presence}
+                onClick={hidePicker}
+              >
+                <BackIcon />
+              </NudeButton>
+            )}
+            <NativeInput
+              key="input"
+              placeholder={`${t("Invite by name")}…`}
+              onChange={handleQuery}
+              value={query}
+              onFocus={showPicker}
+              style={{ padding: "6px 0" }}
+              autoFocus
+            />
+          </AnimatePresence>
+          {picker ? (
+            invitedInSession.length ? (
+              <Button onClick={hidePicker} neutral>
+                {t("Done")}
+              </Button>
+            ) : null
+          ) : (
+            <CopyToClipboard
+              text={urlify(documentPath(document))}
+              onCopy={handleCopied}
+            >
+              <NudeButton type="button" disabled={!share} ref={buttonRef}>
+                <LinkIcon size={20} />
+              </NudeButton>
+            </CopyToClipboard>
+          )}
+        </Input>
+      )}
 
-        <CopyToClipboard
-          text={urlify(documentPath(document))}
-          onCopy={handleCopied}
-        >
-          <Button type="button" disabled={!share} ref={buttonRef} neutral>
-            {t("Copy link")}
-          </Button>
-        </CopyToClipboard>
-      </Heading>
-      <DocumentMembersList document={document}>
+      {picker && (
+        <Content>
+          <Picker document={document} query={query} onInvite={handleInvite} />
+        </Content>
+      )}
+
+      <Content style={{ display: picker ? "none" : "block" }}>
+        <DocumentOtherAccessList document={document}>
+          <DocumentMembersList
+            document={document}
+            invitedInSession={invitedInSession}
+          />
+        </DocumentOtherAccessList>
+
+        {team.sharing && visible && can.share && (
+          <>
+            <Heading>{t("Public access")}</Heading>
+
+            <PublicAccess
+              document={document}
+              share={share}
+              sharedParent={sharedParent}
+              onCopied={handleCopied}
+            />
+          </>
+        )}
+      </Content>
+    </>
+  );
+}
+
+const Picker = observer(
+  ({
+    document,
+    query,
+    onInvite,
+  }: {
+    document: Document;
+    query: string;
+    onInvite: (user: User) => Promise<void>;
+  }) => {
+    const { users } = useStores();
+    const { t } = useTranslation();
+    const user = useCurrentUser();
+
+    const fetchUsersByQuery = useThrottledCallback(
+      (query) => users.fetchPage({ query }),
+      250
+    );
+
+    const suggestions = React.useMemo(
+      () =>
+        users.notInDocument(document.id, query).filter((u) => u.id !== user.id),
+      [users, users.orderedData, document.id, document.members, user.id, query]
+    );
+
+    React.useEffect(() => {
+      if (query) {
+        void fetchUsersByQuery(query);
+      }
+    }, [query, fetchUsersByQuery]);
+
+    return suggestions.length ? (
+      <>
+        {suggestions.map((suggestion) => (
+          <StyledListItem
+            key={suggestion.id}
+            onClick={() => onInvite(suggestion)}
+            title={suggestion.name}
+            subtitle={
+              suggestion.isSuspended
+                ? t("Suspended")
+                : suggestion.isInvited
+                ? t("Invited")
+                : suggestion.isViewer
+                ? t("Viewer")
+                : suggestion.email
+                ? suggestion.email
+                : t("Member")
+            }
+            image={
+              <Avatar
+                model={suggestion}
+                size={AvatarSize.Medium}
+                showBorder={false}
+              />
+            }
+            border={false}
+            small
+          />
+        ))}
+      </>
+    ) : (
+      <Empty>{t("No matches")}</Empty>
+    );
+  }
+);
+
+const DocumentOtherAccessList = observer(
+  ({
+    document,
+    children,
+  }: {
+    document: Document;
+    children: React.ReactNode;
+  }) => {
+    const { t } = useTranslation();
+    const theme = useTheme();
+    const collection = document.collection;
+    const usersInCollection = useUsersInCollection(collection);
+    const user = useCurrentUser();
+
+    return (
+      <>
         {collection ? (
           <>
             {collection.permission ? (
-              <Item
-                image={<TeamIcon />}
+              <StyledListItem
+                image={
+                  <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                    <UserIcon color={theme.accentText} size={16} />
+                  </Squircle>
+                }
                 title={t("All members")}
+                subtitle={t("Everyone in the workspace")}
                 actions={
-                  <CollectionAccess>
+                  <AccessTooltip>
                     {collection?.permission === CollectionPermission.ReadWrite
                       ? t("Can edit")
                       : t("Can view")}
-                  </CollectionAccess>
+                  </AccessTooltip>
                 }
                 border={false}
                 small
               />
             ) : usersInCollection ? (
-              <Item
+              <StyledListItem
                 image={<CollectionIcon collection={collection} />}
-                title={t("Collection members")}
-                actions={<CollectionAccess>{t("Can view")}</CollectionAccess>}
+                title={collection.name}
+                subtitle={t("Everyone in the collection")}
+                actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
                 border={false}
                 small
               />
             ) : (
-              <Item
+              <StyledListItem
                 image={<Avatar model={user} showBorder={false} />}
                 title={user.name}
-                actions={<CollectionAccess>{t("Can edit")}</CollectionAccess>}
+                subtitle={t("You have full access")}
+                actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
                 border={false}
                 small
               />
             )}
+            {children}
           </>
         ) : document.isDraft ? (
-          <Item
-            image={<Avatar model={document.createdBy} showBorder={false} />}
-            title={document.createdBy.name}
-            actions={
-              <CollectionAccess tooltip={t("Created the document")}>
-                {t("Can edit")}
-              </CollectionAccess>
-            }
-            border={false}
-            small
-          />
+          <>
+            <StyledListItem
+              image={<Avatar model={document.createdBy} showBorder={false} />}
+              title={document.createdBy.name}
+              actions={
+                <AccessTooltip tooltip={t("Created the document")}>
+                  {t("Can edit")}
+                </AccessTooltip>
+              }
+              border={false}
+              small
+            />
+            {children}
+          </>
         ) : (
-          <Item
-            image={<MorePeopleIcon size={32} />}
-            title={t("More people may have access")}
-            actions={
-              <CollectionAccess
-                tooltip={t(
-                  "This document may be shared with more workspace members through a parent document you do not have access to"
-                )}
-              >
-                {t("Can edit")}
-              </CollectionAccess>
-            }
-            border={false}
-            small
-          />
+          <>
+            {children}
+            <StyledListItem
+              image={
+                <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                  <MoreIcon color={theme.accentText} size={16} />
+                </Squircle>
+              }
+              title={t("Other members")}
+              subtitle={t("Other workspace members may have access")}
+              actions={
+                <AccessTooltip
+                  tooltip={t(
+                    "This document may be shared with more workspace members through a parent document or collection you do not have access to"
+                  )}
+                />
+              }
+              border={false}
+              small
+            />
+          </>
         )}
-      </DocumentMembersList>
+      </>
+    );
+  }
+);
 
-      {team.sharing && visible && can.share && (
-        <>
-          <Separator />
-          <Heading>{t("Public access")}</Heading>
-
-          <PublicAccess
-            document={document}
-            share={share}
-            sharedParent={sharedParent}
-            onCopied={handleCopied}
-          />
-        </>
-      )}
-    </>
-  );
-}
-
-const CollectionAccess = ({
+const AccessTooltip = ({
   children,
   tooltip,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   tooltip?: string;
 }) => {
   const { t } = useTranslation();
@@ -217,10 +434,7 @@ const CollectionAccess = ({
   );
 };
 
-const MorePeopleIcon = styled(GroupIcon)`
-  margin: -4px;
-  color: ${s("textSecondary")};
-`;
+const Content = styled.div``;
 
 const Heading = styled(Text).attrs({ size: "large", weight: "bold" })`
   display: flex;
@@ -229,11 +443,28 @@ const Heading = styled(Text).attrs({ size: "large", weight: "bold" })`
   margin-top: 12px;
 `;
 
-const Separator = styled.div`
-  height: 1px;
-  margin: 16px 0;
-  width: 100%;
-  background-color: ${s("divider")};
+const Input = styled(Flex)`
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  background: ${s("menuBackground")};
+  color: ${s("textTertiary")};
+  border-bottom: 1px solid ${s("inputBorder")};
+  padding: 0 24px 8px 24px;
+  margin-top: 0;
+  margin-left: -24px;
+  margin-right: -24px;
+  margin-bottom: 24px;
+
+  &:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -20px;
+    height: 20px;
+    background: ${s("menuBackground")};
+  }
 `;
 
 export default observer(SharePopover);

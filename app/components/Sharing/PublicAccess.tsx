@@ -83,8 +83,9 @@ function PublicAccess({ document, share, sharedParent, onCopied }: Props) {
   const handleUrlSlugChange = React.useMemo(
     () =>
       debounce(async (ev) => {
-        const share = shares.getByDocumentId(document.id);
-        invariant(share, "Share must exist");
+        if (!share) {
+          return;
+        }
 
         const val = ev.target.value;
         setUrlSlug(val);
@@ -109,7 +110,7 @@ function PublicAccess({ document, share, sharedParent, onCopied }: Props) {
           }
         }
       }, 500),
-    [t, document.id, shares]
+    [t, share]
   );
 
   const userLocale = useUserLocale();

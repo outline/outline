@@ -1,25 +1,17 @@
 import { t } from "i18next";
-import isNil from "lodash/isNil";
 import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
-import styled from "styled-components";
 import { Pagination } from "@shared/constants";
 import Document from "~/models/Document";
-import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
-import Avatar from "~/components/Avatar";
-import { AvatarSize } from "~/components/Avatar/Avatar";
-import Combobox from "~/components/Combobox";
-import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import useThrottledCallback from "~/hooks/useThrottledCallback";
 import { homePath } from "~/utils/routeHelpers";
 import MemberListItem from "./MemberListItem";
 
@@ -28,13 +20,12 @@ type Props = {
   document: Document;
   /** Children to be rendered before the list of members */
   children?: React.ReactNode;
+  /** List of users that have been invited to the document during the current editing session */
+  invitedInSession: string[];
 };
 
-function DocumentMembersList({ document, children }: Props) {
+function DocumentMembersList({ document, invitedInSession }: Props) {
   const { users, userMemberships } = useStores();
-  const [query, setQuery] = React.useState("");
-  const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
-  const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const user = useCurrentUser();
   const history = useHistory();
   const can = usePolicy(document);
@@ -62,51 +53,6 @@ function DocumentMembersList({ document, children }: Props) {
     void fetchTeamMembers();
     void fetchDocumentMembers();
   }, [fetchTeamMembers, fetchDocumentMembers]);
-
-  const inviteUser = React.useCallback(
-    (user: User) => {
-      setInvitedInSession((prev) => [...prev, user.id]);
-      return userMemberships.create({
-        documentId: document.id,
-        userId: user.id,
-      });
-    },
-    [userMemberships, document.id]
-  );
-
-  const fetchUsersByQuery = useThrottledCallback(
-    (query) =>
-      users.fetchPage({
-        query,
-      }),
-    250
-  );
-
-  const nonMembers = React.useMemo(
-    () =>
-      users.notInDocument(document.id, query).filter((u) => u.id !== user.id),
-    [users, users.orderedData, document.id, document.members, user.id, query]
-  );
-
-  React.useEffect(() => {
-    if (!isNil(query)) {
-      void fetchUsersByQuery(query);
-    }
-  }, [query, fetchUsersByQuery]);
-
-  React.useEffect(() => {
-    if (selectedUser) {
-      void inviteUser(selectedUser);
-    }
-  }, [selectedUser, inviteUser]);
-
-  const handleQuery = (value: string) => {
-    setQuery(value);
-  };
-
-  const handleSelect = (user: User) => {
-    setSelectedUser(user);
-  };
 
   const handleRemoveUser = React.useCallback(
     async (item) => {
@@ -171,32 +117,7 @@ function DocumentMembersList({ document, children }: Props) {
   }
 
   return (
-    <RelativeFlex column>
-      {can.manageUsers && (
-        <Combobox
-          suggestions={nonMembers.map((user) => ({
-            id: user.id,
-            value: user.name,
-            label: (
-              <Flex align="center" gap={8}>
-                <Avatar
-                  model={user}
-                  size={AvatarSize.Small}
-                  showBorder={false}
-                />
-                <span>{user.name}</span>
-              </Flex>
-            ),
-          }))}
-          value={query}
-          onChangeInput={handleQuery}
-          onSelectOption={handleSelect}
-          listLabel={t("Workspace members")}
-          placeholder={`${t("Find by name")}…`}
-          autoFocus
-        />
-      )}
-      {children}
+    <>
       {members.map((item) => (
         <MemberListItem
           key={item.id}
@@ -213,13 +134,8 @@ function DocumentMembersList({ document, children }: Props) {
           }
         />
       ))}
-    </RelativeFlex>
+    </>
   );
 }
-
-const RelativeFlex = styled(Flex)`
-  position: relative;
-  margin-bottom: 12px;
-`;
 
 export default observer(DocumentMembersList);

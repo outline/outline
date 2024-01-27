@@ -12,6 +12,7 @@ export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   border?: boolean;
   small?: boolean;
 };
@@ -74,6 +75,7 @@ const ListItem = (
 const Wrapper = styled.a<{
   $small?: boolean;
   $border?: boolean;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   to?: LocationDescriptor;
 }>`
   display: flex;
@@ -87,6 +89,11 @@ const Wrapper = styled.a<{
 
   &:last-child {
     border-bottom: 0;
+  }
+
+  &:hover {
+    background: ${(props) =>
+      props.onClick ? props.theme.secondaryBackground : "inherit"};
   }
 
   cursor: ${({ to }) => (to ? "var(--pointer)" : "default")};

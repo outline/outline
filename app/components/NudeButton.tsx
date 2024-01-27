@@ -1,8 +1,9 @@
+import { darken } from "polished";
 import styled from "styled-components";
 import ActionButton, {
   Props as ActionButtonProps,
 } from "~/components/ActionButton";
-import { undraggableOnDesktop } from "~/styles";
+import { hover, undraggableOnDesktop } from "~/styles";
 
 type Props = ActionButtonProps & {
   width?: number | string;
@@ -32,6 +33,11 @@ const NudeButton = styled(ActionButton).attrs((props: Props) => ({
   user-select: none;
   color: inherit;
   ${undraggableOnDesktop()}
+
+  &:${hover}, 
+  &[aria-expanded="true"] {
+    background: ${(props) => darken(0.05, props.theme.buttonNeutralBackground)};
+  }
 `;
 
 export default NudeButton;
