@@ -75,7 +75,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
         toast.error(t("Could not remove user"));
       }
     },
-    [userMemberships, user, document]
+    [history, userMemberships, user, document]
   );
 
   const handleUpdateUser = React.useCallback(

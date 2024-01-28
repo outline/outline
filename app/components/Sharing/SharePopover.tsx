@@ -244,7 +244,7 @@ function SharePopover({
           />
         </DocumentOtherAccessList>
 
-        {team.sharing && visible && can.share && !collectionSharingDisabled && (
+        {team.sharing && can.share && !collectionSharingDisabled && (
           <>
             {document.members.length ? <Separator /> : null}
             <PublicAccess
@@ -324,11 +324,6 @@ const Picker = observer(
     );
   }
 );
-
-const Separator = styled.div`
-  border-top: 1px dashed ${s("divider")};
-  margin: 12px 0;
-`;
 
 const DocumentOtherAccessList = observer(
   ({
@@ -441,6 +436,11 @@ const AccessTooltip = ({
     </Flex>
   );
 };
+
+const Separator = styled.div`
+  border-top: 1px dashed ${s("divider")};
+  margin: 12px 0;
+`;
 
 const Input = styled(Flex)`
   position: sticky;

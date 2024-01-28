@@ -96,7 +96,8 @@ const Wrapper = styled.a<{
       props.onClick ? props.theme.secondaryBackground : "inherit"};
   }
 
-  cursor: ${({ to }) => (to ? "var(--pointer)" : "default")};
+  cursor: ${(props) =>
+    props.to || props.onClick ? "var(--pointer)" : "default"};
 `;
 
 const Image = styled(Flex)`
