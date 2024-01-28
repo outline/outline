@@ -86,24 +86,8 @@ export default class UserMembershipsStore extends Store<UserMembership> {
       id: documentId,
       userId,
     });
-    this.revoke({ userId, documentId });
+    this.removeAll({ userId, documentId });
   }
-
-  @action
-  revoke = ({
-    userId,
-    documentId,
-  }: {
-    documentId?: string;
-    userId: string;
-  }) => {
-    const membership = Array.from(this.data.values()).find(
-      (m) => m.userId === userId && m.documentId === documentId
-    );
-    if (membership) {
-      this.remove(membership.id);
-    }
-  };
 
   @computed
   get orderedData(): UserMembership[] {
