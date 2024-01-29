@@ -11,6 +11,10 @@ const Section = styled(Flex)`
   &:first-child {
     margin-top: 20px;
   }
+
+  &:empty {
+    display: none;
+  }
 `;
 
 export default Section;
