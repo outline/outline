@@ -65,6 +65,7 @@ const MemberListItem = ({
     return null;
   }
   const disabled = !onUpdate && !onLeave;
+  const MaybeLink = membership?.source ? StyledLink : React.Fragment;
 
   return (
     <StyledListItem
@@ -76,9 +77,12 @@ const MemberListItem = ({
         membership?.sourceId ? (
           <Trans>
             Has access through{" "}
-            <StyledLink to={membership.source?.document?.path ?? ""}>
+            <MaybeLink
+              // @ts-expect-error to prop does not exist on React.Fragment
+              to={membership.source?.document?.path ?? ""}
+            >
               parent
-            </StyledLink>
+            </MaybeLink>
           </Trans>
         ) : user.isSuspended ? (
           t("Suspended")
@@ -135,7 +139,7 @@ export const StyledListItem = styled(ListItem).attrs({
 `;
 
 const StyledLink = styled(Link)`
-  color: ${s("textSecondary")};
+  color: ${s("textTertiary")};
   text-decoration: underline;
 `;
 

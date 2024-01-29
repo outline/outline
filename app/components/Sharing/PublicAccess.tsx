@@ -132,12 +132,15 @@ function PublicAccess({ document, share, sharedParent }: Props) {
                 , is shared
               </Trans>
             ) : (
-              t("Anyone with the link can access")
+              <>
+                {t("Allow anyone with the link to access")}
+                {share?.published && !share.includeChildDocuments
+                  ? `. ${t(
+                      "Child documents are not shared, toggling sharing to enable"
+                    )}.`
+                  : ""}
+              </>
             )}
-            .
-            {share && share.published && !share.includeChildDocuments
-              ? ` ${t("Child documents are not shared")}.`
-              : ""}
           </>
         }
         image={
