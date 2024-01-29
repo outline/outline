@@ -24,6 +24,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useKeyDown from "~/hooks/useKeyDown";
+import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -34,7 +35,7 @@ import { AvatarSize } from "../Avatar/Avatar";
 import ButtonSmall from "../ButtonSmall";
 import Empty from "../Empty";
 import CollectionIcon from "../Icons/CollectionIcon";
-import { NativeInput } from "../Input";
+import Input, { NativeInput } from "../Input";
 import NudeButton from "../NudeButton";
 import Squircle from "../Squircle";
 import Tooltip from "../Tooltip";
@@ -108,6 +109,7 @@ function SharePopover({
   const { t } = useTranslation();
   const can = usePolicy(document);
   const { userMemberships } = useStores();
+  const isMobile = useMobile();
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
@@ -190,48 +192,67 @@ function SharePopover({
     [showPicker, setQuery]
   );
 
+  const backButton = (
+    <>
+      {picker && (
+        <NudeButton key="back" as={m.button} {...presence} onClick={hidePicker}>
+          <BackIcon />
+        </NudeButton>
+      )}
+    </>
+  );
+
+  const doneButton = picker ? (
+    invitedInSession.length ? (
+      <ButtonSmall onClick={hidePicker} neutral>
+        {t("Done")}
+      </ButtonSmall>
+    ) : null
+  ) : (
+    <CopyToClipboard
+      text={urlify(documentPath(document))}
+      onCopy={handleCopied}
+    >
+      <NudeButton type="button" disabled={!share} ref={linkButtonRef}>
+        <LinkIcon size={20} />
+      </NudeButton>
+    </CopyToClipboard>
+  );
+
   return (
     <>
-      {can.manageUsers && (
-        <Input align="center">
-          <AnimatePresence initial={false}>
-            {picker && (
-              <NudeButton
-                key="back"
-                as={m.button}
-                {...presence}
-                onClick={hidePicker}
-              >
-                <BackIcon />
-              </NudeButton>
-            )}
-            <NativeInput
+      {can.manageUsers &&
+        (isMobile ? (
+          <Flex align="center" style={{ marginBottom: 12 }} auto>
+            {backButton}
+            <Input
               key="input"
               placeholder={`${t("Invite by name")}…`}
               value={query}
               onChange={handleQuery}
               onClick={showPicker}
-              style={{ padding: "6px 0" }}
-            />
-          </AnimatePresence>
-          {picker ? (
-            invitedInSession.length ? (
-              <ButtonSmall onClick={hidePicker} neutral>
-                {t("Done")}
-              </ButtonSmall>
-            ) : null
-          ) : (
-            <CopyToClipboard
-              text={urlify(documentPath(document))}
-              onCopy={handleCopied}
+              margin={0}
+              flex
             >
-              <NudeButton type="button" disabled={!share} ref={linkButtonRef}>
-                <LinkIcon size={20} />
-              </NudeButton>
-            </CopyToClipboard>
-          )}
-        </Input>
-      )}
+              {doneButton}
+            </Input>
+          </Flex>
+        ) : (
+          <HeaderInput align="center">
+            <AnimatePresence initial={false}>
+              {backButton}
+              <NativeInput
+                key="input"
+                placeholder={`${t("Invite by name")}…`}
+                value={query}
+                onChange={handleQuery}
+                onClick={showPicker}
+                style={{ padding: "6px 0" }}
+              />
+              {doneButton}
+            </AnimatePresence>
+          </HeaderInput>
+        ))}
 
       {picker && (
         <div>
@@ -446,7 +467,7 @@ const Separator = styled.div`
   margin: 12px 0;
 `;
 
-const Input = styled(Flex)`
+const HeaderInput = styled(Flex)`
   position: sticky;
   z-index: 1;
   top: 0;

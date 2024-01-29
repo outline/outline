@@ -267,7 +267,7 @@ class WebsocketProvider extends React.Component<Props> {
         }
 
         if (event.userId) {
-          userMemberships.revoke({
+          userMemberships.removeAll({
             userId: event.userId,
             documentId: event.documentId,
           });
