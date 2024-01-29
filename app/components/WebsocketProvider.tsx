@@ -262,15 +262,29 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on(
       "documents.remove_user",
       (event: PartialWithId<UserMembership>) => {
-        if (event.documentId && event.userId === auth.user?.id) {
-          documents.remove(event.documentId);
-        }
-
         if (event.userId) {
+          const userMembership = userMemberships.get(event.id);
+
+          // TODO: Possibly replace this with a one-to-many relation decorator.
+          if (userMembership) {
+            userMemberships
+              .filter({
+                userId: event.userId,
+                sourceId: userMembership.id,
+              })
+              .forEach((m) => {
+                m.documentId && documents.remove(m.documentId);
+              });
+          }
+
           userMemberships.removeAll({
             userId: event.userId,
             documentId: event.documentId,
           });
+        }
+
+        if (event.documentId && event.userId === auth.user?.id) {
+          documents.remove(event.documentId);
         }
       }
     );
