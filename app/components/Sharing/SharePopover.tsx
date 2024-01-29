@@ -108,6 +108,7 @@ function SharePopover({
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const can = usePolicy(document);
+  const inputRef = React.useRef<HTMLInputElement>(null);
   const { userMemberships } = useStores();
   const isMobile = useMobile();
   const [query, setQuery] = React.useState("");
@@ -192,6 +193,10 @@ function SharePopover({
     [showPicker, setQuery]
   );
 
+  const focusInput = React.useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
+
   const backButton = (
     <>
       {picker && (
@@ -238,11 +243,12 @@ function SharePopover({
             </Input>
           </Flex>
         ) : (
-          <HeaderInput align="center">
+          <HeaderInput align="center" onClick={focusInput}>
             <AnimatePresence initial={false}>
               {backButton}
               <NativeInput
                 key="input"
+                ref={inputRef}
                 placeholder={`${t("Invite by name")}…`}
                 value={query}
                 onChange={handleQuery}
@@ -474,7 +480,7 @@ const HeaderInput = styled(Flex)`
   background: ${s("menuBackground")};
   color: ${s("textTertiary")};
   border-bottom: 1px solid ${s("inputBorder")};
-  padding: 0 24px 8px 24px;
+  padding: 0 24px 12px;
   margin-top: 0;
   margin-left: -24px;
   margin-right: -24px;

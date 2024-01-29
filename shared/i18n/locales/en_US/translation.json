@@ -257,6 +257,7 @@
   "Web": "Web",
   "Anyone with the link can access because the parent document, <2>{documentTitle}</2>, is shared": "Anyone with the link can access because the parent document, <2>{documentTitle}</2>, is shared",
   "Anyone with the link can access": "Anyone with the link can access",
+  "Child documents are not shared": "Child documents are not shared",
   "Publish to internet": "Publish to internet",
   "{{ userName }} was invited to the document": "{{ userName }} was invited to the document",
   "Done": "Done",
