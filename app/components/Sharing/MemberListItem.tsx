@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -107,6 +108,10 @@ const MemberListItem = ({
   );
 };
 
+export const InviteIcon = styled(PlusIcon)`
+  opacity: 0;
+`;
+
 export const StyledListItem = styled(ListItem).attrs({
   small: true,
   border: false,
@@ -114,6 +119,10 @@ export const StyledListItem = styled(ListItem).attrs({
   margin: 0 -16px;
   padding: 6px 16px;
   border-radius: 8px;
+
+  &:hover ${InviteIcon} {
+    opacity: 1;
+  }
 `;
 
 export default observer(MemberListItem);

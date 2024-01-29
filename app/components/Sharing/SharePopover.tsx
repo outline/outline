@@ -31,7 +31,7 @@ import useThrottledCallback from "~/hooks/useThrottledCallback";
 import { documentPath, urlify } from "~/utils/routeHelpers";
 import Avatar from "../Avatar";
 import { AvatarSize } from "../Avatar/Avatar";
-import Button from "../Button";
+import ButtonSmall from "../ButtonSmall";
 import Empty from "../Empty";
 import CollectionIcon from "../Icons/CollectionIcon";
 import { NativeInput } from "../Input";
@@ -39,7 +39,7 @@ import NudeButton from "../NudeButton";
 import Squircle from "../Squircle";
 import Tooltip from "../Tooltip";
 import DocumentMembersList from "./DocumentMemberList";
-import { StyledListItem } from "./MemberListItem";
+import { InviteIcon, StyledListItem } from "./MemberListItem";
 import PublicAccess from "./PublicAccess";
 
 type Props = {
@@ -169,14 +169,17 @@ function SharePopover({
   }, [onRequestClose, t]);
 
   const handleInvite = React.useCallback(
-    (user: User) => {
+    async (user: User) => {
       setInvitedInSession((prev) => [...prev, user.id]);
-      return userMemberships.create({
+      await userMemberships.create({
         documentId: document.id,
         userId: user.id,
       });
+      toast.message(
+        t("{{ userName }} was invited to the document", { userName: user.name })
+      );
     },
-    [userMemberships, document.id]
+    [t, userMemberships, document.id]
   );
 
   const handleQuery = React.useCallback(
@@ -207,15 +210,15 @@ function SharePopover({
               placeholder={`${t("Invite by name")}…`}
               value={query}
               onChange={handleQuery}
-              onFocus={showPicker}
+              onClick={showPicker}
               style={{ padding: "6px 0" }}
             />
           </AnimatePresence>
           {picker ? (
             invitedInSession.length ? (
-              <Button onClick={hidePicker} neutral>
+              <ButtonSmall onClick={hidePicker} neutral>
                 {t("Done")}
-              </Button>
+              </ButtonSmall>
             ) : null
           ) : (
             <CopyToClipboard
@@ -316,6 +319,7 @@ const Picker = observer(
                 showBorder={false}
               />
             }
+            actions={<InviteIcon />}
           />
         ))}
       </>
