@@ -1,7 +1,7 @@
 {
   "presets": [
     "@babel/preset-react",
-    "@babel/preset-flow",
+    "@babel/preset-typescript",
     [
       "@babel/preset-env",
       {
@@ -14,7 +14,6 @@
     ]
   ],
   "plugins": [
-    "lodash",
     "styled-components",
     [
       "@babel/plugin-proposal-decorators",
@@ -25,5 +24,25 @@
     "@babel/plugin-transform-destructuring",
     "@babel/plugin-transform-regenerator",
     "transform-class-properties"
-  ]
+  ],
+  "env": {
+    "production": {
+      "plugins": [
+        [
+          "styled-components",
+          {
+            "displayName": false
+          }
+        ]
+      ],
+      "ignore": [
+        "**/*.test.ts"
+      ]
+    },
+    "development": {
+      "ignore": [
+        "**/*.test.ts"
+      ]
+    }
+  }
 }

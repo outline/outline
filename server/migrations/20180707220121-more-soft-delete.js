@@ -1,16 +1,16 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn('users', 'deletedAt', {
+    await queryInterface.addColumn("users", "deletedAt", {
       type: Sequelize.DATE,
-      allowNull: true
+      allowNull: true,
     });
-    await queryInterface.addColumn('teams', 'deletedAt', {
+    await queryInterface.addColumn("teams", "deletedAt", {
       type: Sequelize.DATE,
-      allowNull: true
+      allowNull: true,
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn('users', 'deletedAt');
-    await queryInterface.removeColumn('teams', 'deletedAt');
-  }
-}
+    await queryInterface.removeColumn("users", "deletedAt");
+    await queryInterface.removeColumn("teams", "deletedAt");
+  },
+};

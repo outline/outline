@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -8,8 +8,7 @@ module.exports = {
       defaultValue: false,
     });
   },
-
   down: async (queryInterface, Sequelize) => {
     await queryInterface.removeColumn("shares", "includeChildDocuments");
-  }
+  },
 };

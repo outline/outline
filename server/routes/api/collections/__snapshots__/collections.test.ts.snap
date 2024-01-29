@@ -1,0 +1,145 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`#collections.add_group should require group in team 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#collections.add_user should not allow add self 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#collections.add_user should require user in team 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#collections.create should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.delete should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.export should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.export_all should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.group_memberships should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.import should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.info should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.list should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.memberships should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.move should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#collections.remove_group should require group in team 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#collections.remove_user should require user in team 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#collections.update should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;

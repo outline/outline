@@ -1,0 +1,14 @@
+{
+  "extends": [
+    "../.eslintrc",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
+  ],
+  "plugins": [
+    "eslint-plugin-react-hooks"
+  ],
+  "env": {
+    "jest": true,
+    "browser": true
+  }
+}

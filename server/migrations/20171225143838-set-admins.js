@@ -1,9 +1,13 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    const [teams, metaData] = await queryInterface.sequelize.query(`SELECT * FROM teams`);
-    const teamIds = teams.map(team => team.id);
-    await Promise.all(teamIds.map(async teamId => {
-      await queryInterface.sequelize.query(`
+    const [teams, metaData] = await queryInterface.sequelize.query(
+      `SELECT * FROM teams`
+    );
+
+    const teamIds = teams.map((team) => team.id);
+    await Promise.all(
+      teamIds.map(async (teamId) => {
+        await queryInterface.sequelize.query(`
         update users
         set "isAdmin" = true
         where id in (
@@ -14,9 +18,9 @@ module.exports = {
           limit 1
         );
       `);
-    }));
+      })
+    );
   },
-
   down: async (queryInterface, Sequelize) => {
     // no-op
   },

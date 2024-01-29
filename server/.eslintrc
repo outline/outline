@@ -1,0 +1,31 @@
+{
+  "extends": [
+    "../.eslintrc"
+  ],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "@typescript-eslint/no-misused-promises": [
+      "error",
+      {
+        "checksVoidReturn": true
+      }
+    ],
+    "no-restricted-imports": ["error", {
+      "paths": ["fetch-with-proxy", "node-fetch"]
+    }]
+  },
+  "overrides": [
+    {
+      "files": ["scripts/*"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ],
+  "env": {
+    "jest": true,
+    "node": true
+  }
+}

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -10,29 +10,24 @@ module.exports = {
         isIn: [["read", "read_write"]],
       },
     });
-
     await queryInterface.sequelize.query(`
       UPDATE collections
       SET "permission" = 'read_write'
       WHERE "private" = false
     `);
-
     await queryInterface.removeColumn("collections", "private");
   },
-
   down: async (queryInterface, Sequelize) => {
     await queryInterface.addColumn("collections", "private", {
       type: Sequelize.BOOLEAN,
       allowNull: false,
-      defaultValue: false
+      defaultValue: false,
     });
-
     await queryInterface.sequelize.query(`
       UPDATE collections
       SET "private" = true
       WHERE "permission" IS NULL
     `);
-
     await queryInterface.removeColumn("collections", "permission");
-  }
+  },
 };

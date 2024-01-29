@@ -1,6 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('notifications', {
+    await queryInterface.createTable("notifications", {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -10,28 +10,28 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'users',
+          model: "users",
         },
       },
       userId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'users',
+          model: "users",
         },
       },
       event: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       email: {
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
       },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
-      }
+      },
     });
-    await queryInterface.createTable('notification_settings', {
+    await queryInterface.createTable("notification_settings", {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -41,34 +41,37 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'users',
+          model: "users",
         },
       },
       teamId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'teams',
+          model: "teams",
         },
       },
       event: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
-      }
+      },
     });
-
-    await queryInterface.addIndex('notification_settings', ['teamId', 'userId']);
-    await queryInterface.addIndex('notification_settings', ['event']);
+    await queryInterface.addIndex("notification_settings", [
+      "teamId",
+      "userId",
+    ]);
+    await queryInterface.addIndex("notification_settings", ["event"]);
   },
-
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('notifications');
-    await queryInterface.dropTable('notification_settings');
-
-    await queryInterface.removeIndex('notification_settings', ['teamId', 'userId']);
-    await queryInterface.removeIndex('notification_settings', ['event']);
+    await queryInterface.dropTable("notifications");
+    await queryInterface.dropTable("notification_settings");
+    await queryInterface.removeIndex("notification_settings", [
+      "teamId",
+      "userId",
+    ]);
+    await queryInterface.removeIndex("notification_settings", ["event"]);
   },
 };

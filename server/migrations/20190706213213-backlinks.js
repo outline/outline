@@ -1,6 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('backlinks', {
+    await queryInterface.createTable("backlinks", {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -10,21 +10,21 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'users',
+          model: "users",
         },
       },
       documentId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'documents',
+          model: "documents",
         },
       },
       reverseDocumentId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'documents',
+          model: "documents",
         },
       },
       createdAt: {
@@ -36,11 +36,10 @@ module.exports = {
         allowNull: false,
       },
     });
-    await queryInterface.addIndex('backlinks', ['documentId']);
+    await queryInterface.addIndex("backlinks", ["documentId"]);
   },
-
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('backlinks');
-    await queryInterface.removeIndex('backlinks', ['documentId']);
+    await queryInterface.dropTable("backlinks");
+    await queryInterface.removeIndex("backlinks", ["documentId"]);
   },
 };

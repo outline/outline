@@ -8,7 +8,6 @@ module.exports = {
       "createdById"
     );
   },
-
   down: async (queryInterface, Sequelize) => {
     return queryInterface.renameColumn(
       "collections",

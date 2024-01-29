@@ -1,0 +1,4 @@
+{
+  "name": "Email",
+  "description": "Adds an email magic link authentication provider."
+}

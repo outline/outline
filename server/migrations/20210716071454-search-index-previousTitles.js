@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -15,7 +15,6 @@ module.exports = {
         `;
     await queryInterface.sequelize.query(searchDocument);
   },
-
   down: async (queryInterface, Sequelize) => {
     const searchDocument = `
     CREATE OR REPLACE FUNCTION documents_search_trigger() RETURNS trigger AS $$
@@ -28,6 +27,5 @@ module.exports = {
     $$ LANGUAGE plpgsql;
         `;
     await queryInterface.sequelize.query(searchDocument);
-
-  }
+  },
 };

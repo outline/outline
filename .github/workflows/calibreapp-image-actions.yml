@@ -1,0 +1,61 @@
+# Image Actions will run in the following scenarios:
+# - on Pull Requests containing images (not including forks)
+# - on pushing of images to `main` (for forks)
+# - on demand (https://github.blog/changelog/2020-07-06-github-actions-manual-triggers-with-workflow_dispatch/)
+# - at 11 PM every Sunday in anything gets missed with any of the above scenarios
+# For Pull Requests, the images are added to the PR.
+# For other scenarios, a new PR will be opened if any images are compressed.
+name: Compress images
+on:
+  pull_request:
+    paths:
+      - "**.jpg"
+      - "**.jpeg"
+      - "**.png"
+      - "**.webp"
+  push:
+    branches:
+      - main
+    paths:
+      - "**.jpg"
+      - "**.jpeg"
+      - "**.png"
+      - "**.webp"
+  workflow_dispatch:
+  schedule:
+    - cron: "00 20 * * 0"
+permissions: {}
+jobs:
+  build:
+    permissions:
+      contents: write
+      pull-requests: write #  to comment on pull request
+
+    name: calibreapp/image-actions
+    runs-on: ubuntu-latest
+    # Only run on main repo on and PRs that match the main repo.
+    if: |
+      github.repository == 'outline/outline' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v2
+      - name: Compress Images
+        id: calibre
+        uses: calibreapp/image-actions@main
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          # For non-Pull Requests, run in compressOnly mode and we'll PR after.
+          compressOnly: ${{ github.event_name != 'pull_request' }}
+      - name: Create Pull Request
+        # If it's not a Pull Request then commit any changes as a new PR.
+        if: |
+          github.event_name != 'pull_request' &&
+          steps.calibre.outputs.markdown != ''
+        uses: peter-evans/create-pull-request@v3
+        with:
+          title: "chore: Auto Compress Images"
+          branch-suffix: timestamp
+          commit-message: "chore: Compressed inefficient images automatically"
+          body: ${{ steps.calibre.outputs.markdown }}

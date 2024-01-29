@@ -7,7 +7,6 @@ module.exports = {
       defaultValue: null,
     });
   },
-
   down: async (queryInterface, Sequelize) => {
     await queryInterface.removeColumn("collections", "index");
   },

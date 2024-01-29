@@ -1,2 +1,2 @@
-web: node ./build/server/index.js --services=web,websockets
-worker: node ./build/server/index.js --services=worker
+web: yarn start --services=web,websockets,collaboration
+worker: yarn start --services=worker

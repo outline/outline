@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`#users.activate should require admin 1`] = `
+{
+  "error": "admin_required",
+  "message": "An admin role is required to access this resource",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#users.delete should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#users.demote should not allow demoting self 1`] = `
+{
+  "error": "validation_error",
+  "message": "Unable to demote the current user",
+  "ok": false,
+  "status": 400,
+}
+`;
+
+exports[`#users.demote should require admin 1`] = `
+{
+  "error": "admin_required",
+  "message": "An admin role is required to access this resource",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#users.promote should require admin 1`] = `
+{
+  "error": "admin_required",
+  "message": "An admin role is required to access this resource",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#users.suspend should not allow suspending the user themselves 1`] = `
+{
+  "error": "validation_error",
+  "message": "Unable to suspend the current user",
+  "ok": false,
+  "status": 400,
+}
+`;
+
+exports[`#users.suspend should require admin 1`] = `
+{
+  "error": "admin_required",
+  "message": "An admin role is required to access this resource",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#users.update should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;

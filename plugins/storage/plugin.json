@@ -1,0 +1,8 @@
+{
+  "name": "Storage",
+  "description": "Plugin for storing files on the local file system",
+  "requiredEnvVars": [
+    "FILE_STORAGE_UPLOAD_MAX_SIZE",
+    "FILE_STORAGE_LOCAL_ROOT_DIR"
+  ]
+}

@@ -1,15 +1,21 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("file_operations",{
+    await queryInterface.createTable("file_operations", {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
         primaryKey: true,
       },
       state: {
-        type: Sequelize.ENUM("creating", "uploading", "complete", "error","expired"),
+        type: Sequelize.ENUM(
+          "creating",
+          "uploading",
+          "complete",
+          "error",
+          "expired"
+        ),
         allowNull: false,
       },
       type: {
@@ -27,24 +33,24 @@ module.exports = {
         allowNull: false,
       },
       userId: {
-        type: Sequelize.UUID,       
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "users"
-        }
+          model: "users",
+        },
       },
       collectionId: {
-        type: Sequelize.UUID,       
+        type: Sequelize.UUID,
         references: {
-          model: "collections"
-        }
+          model: "collections",
+        },
       },
       teamId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "teams"
-        }
+          model: "teams",
+        },
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -54,12 +60,11 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
-    })
-    await queryInterface.addIndex('file_operations', ["type", "state"])
+    });
+    await queryInterface.addIndex("file_operations", ["type", "state"]);
   },
-
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeIndex('file_operations', ["type", "state"]);
-    await queryInterface.dropTable('file_operations');
-  }
+    await queryInterface.removeIndex("file_operations", ["type", "state"]);
+    await queryInterface.dropTable("file_operations");
+  },
 };

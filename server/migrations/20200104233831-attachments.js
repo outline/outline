@@ -1,6 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('attachments', {
+    await queryInterface.createTable("attachments", {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -10,21 +10,21 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'teams',
+          model: "teams",
         },
       },
       userId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'users',
+          model: "users",
         },
       },
       documentId: {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: 'documents',
+          model: "documents",
         },
       },
       key: {
@@ -56,10 +56,9 @@ module.exports = {
         allowNull: false,
       },
     });
-    await queryInterface.addIndex('attachments', ['documentId']);
+    await queryInterface.addIndex("attachments", ["documentId"]);
   },
-
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('attachments');
+    await queryInterface.dropTable("attachments");
   },
 };

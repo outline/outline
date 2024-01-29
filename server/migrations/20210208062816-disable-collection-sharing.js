@@ -1,12 +1,12 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn('collections', 'sharing', {
+    await queryInterface.addColumn("collections", "sharing", {
       type: Sequelize.BOOLEAN,
       allowNull: false,
-      defaultValue: true
+      defaultValue: true,
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn('collections', 'sharing');
-  }
-}
+    await queryInterface.removeColumn("collections", "sharing");
+  },
+};

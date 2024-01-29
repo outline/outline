@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`#documents.create should error with invalid parentDocument 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#documents.delete should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#documents.list should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#documents.restore should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#documents.search should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication error",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#documents.update should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#documents.update should require text while appending 1`] = `
+{
+  "error": "validation_error",
+  "message": "text is required while appending",
+  "ok": false,
+  "status": 400,
+}
+`;
+
+exports[`#documents.viewed should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;

@@ -1,48 +1,39 @@
-# syntax=docker/dockerfile:1.2
 ARG APP_PATH=/opt/outline
-FROM node:14-alpine AS deps-common
-
-ARG APP_PATH
-WORKDIR $APP_PATH
-COPY ./package.json ./yarn.lock ./
-
-# ---
-FROM deps-common AS deps-dev
-RUN yarn install --no-optional --frozen-lockfile && \
-  yarn cache clean
-
-# ---
-FROM deps-common AS deps-prod
-RUN yarn install --production=true --frozen-lockfile && \
-  yarn cache clean
-
-# ---
-FROM node:14-alpine AS builder
+FROM outlinewiki/outline-base as base
 
 ARG APP_PATH
 WORKDIR $APP_PATH
 
-COPY . .
-COPY --from=deps-dev $APP_PATH/node_modules ./node_modules
-RUN yarn build
-
 # ---
-FROM node:14-alpine AS runner
+FROM node:20-alpine AS runner
+
+RUN apk update && apk add --no-cache curl && apk add --no-cache ca-certificates
+
+LABEL org.opencontainers.image.source="https://github.com/outline/outline"
 
 ARG APP_PATH
 WORKDIR $APP_PATH
 ENV NODE_ENV production
 
-COPY --from=builder $APP_PATH/build ./build
-COPY --from=builder $APP_PATH/server ./server
-COPY --from=builder $APP_PATH/public ./public
-COPY --from=builder $APP_PATH/.sequelizerc ./.sequelizerc
-COPY --from=deps-prod $APP_PATH/node_modules ./node_modules
-COPY --from=builder $APP_PATH/package.json ./package.json
+COPY --from=base $APP_PATH/build ./build
+COPY --from=base $APP_PATH/server ./server
+COPY --from=base $APP_PATH/public ./public
+COPY --from=base $APP_PATH/.sequelizerc ./.sequelizerc
+COPY --from=base $APP_PATH/node_modules ./node_modules
+COPY --from=base $APP_PATH/package.json ./package.json
 
 RUN addgroup -g 1001 -S nodejs && \
   adduser -S nodejs -u 1001 && \
-  chown -R nodejs:nodejs $APP_PATH/build
+  chown -R nodejs:nodejs $APP_PATH/build && \
+  mkdir -p /var/lib/outline && \
+	chown -R nodejs:nodejs /var/lib/outline
+
+ENV FILE_STORAGE_LOCAL_ROOT_DIR /var/lib/outline/data
+RUN mkdir -p "$FILE_STORAGE_LOCAL_ROOT_DIR" && \
+  chown -R nodejs:nodejs "$FILE_STORAGE_LOCAL_ROOT_DIR" && \
+  chmod 1777 "$FILE_STORAGE_LOCAL_ROOT_DIR"
+
+VOLUME /var/lib/outline/data
 
 USER nodejs
 

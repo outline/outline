@@ -3,13 +3,7 @@
   "description": "Open source wiki and knowledge base for growing teams",
   "website": "https://www.getoutline.com/",
   "repository": "https://github.com/outline/outline",
-  "keywords": [
-    "wiki",
-    "team",
-    "node",
-    "markdown",
-    "slack"
-  ],
+  "keywords": ["wiki", "team", "node", "markdown", "slack"],
   "success_url": "/",
   "formation": {
     "web": {
@@ -35,7 +29,7 @@
       "required": true
     },
     "SECRET_KEY": {
-      "description": "A secret key",
+      "description": "A 32-character secret key, generate with openssl rand -hex 32",
       "generator": "secret",
       "required": true
     },
@@ -44,7 +38,7 @@
       "required": true
     },
     "URL": {
-      "description": "https://{your app name}.herokuapp.com",
+      "description": "https://{your app name}.herokuapp.com, or the domain you are binding to",
       "required": true
     },
     "GOOGLE_CLIENT_ID": {
@@ -55,15 +49,58 @@
       "description": "",
       "required": false
     },
-    "ALLOWED_DOMAINS": {
-      "description": "Comma separated list of domains to be allowed (optional). If not set, all Google apps domains are allowed by default",
+    "AZURE_CLIENT_ID": {
+      "description": "To configure Microsoft/Azure auth, you'll need to create an OAuth Client. See the guide for details on setting up your Azure App: https://wiki.generaloutline.com/share/dfa77e56-d4d2-4b51-8ff8-84ea6608faa4",
       "required": false
     },
-    "SLACK_KEY": {
+    "AZURE_CLIENT_SECRET": {
+      "description": "",
+      "required": false
+    },
+    "AZURE_RESOURCE_APP_ID": {
+      "description": "",
+      "required": false
+    },
+    "OIDC_CLIENT_ID": {
+      "description": "To configure generic OIDC auth, you'll need some kind of identity provider. See documentation for whichever IdP you use to acquire the following info; Redirect URI is https://<URL>/auth/oidc.callback",
+      "required": false
+    },
+    "OIDC_CLIENT_SECRET": {
+      "description": "",
+      "required": false
+    },
+    "OIDC_AUTH_URI": {
+      "description": "",
+      "required": false
+    },
+    "OIDC_TOKEN_URI": {
+      "description": "",
+      "required": false
+    },
+    "OIDC_USERINFO_URI": {
+      "description": "",
+      "required": false
+    },
+    "OIDC_USERNAME_CLAIM": {
+      "description": "Specify which claims to derive user information from. Supports any valid JSON path with the JWT payload",
+      "value": "preferred_username",
+      "required": false
+    },
+    "OIDC_DISPLAY_NAME": {
+      "description": "Display name for OIDC authentication",
+      "value": "OpenID Connect",
+      "required": false
+    },
+    "OIDC_SCOPES": {
+      "description": "Space separated auth scopes.",
+      "value": "openid profile email",
+      "required": false
+    },
+    "SLACK_CLIENT_ID": {
       "description": "See https://api.slack.com/apps to create a new Slack app. You must configure at least one of Slack or Google to control login.",
       "required": false
     },
-    "SLACK_SECRET": {
+    "SLACK_CLIENT_SECRET": {
       "description": "Your Slack client secret - d2dc414f9953226bad0a356cXXXXYYYY",
       "required": false
     },
@@ -91,11 +128,6 @@
       "description": "Live web link to your bucket. For CNAMEs, https://yourbucket.example.com",
       "required": false
     },
-    "AWS_S3_UPLOAD_MAX_SIZE": {
-      "description": "Maximum file upload size in bytes",
-      "value": "26214400",
-      "required": false
-    },
     "AWS_S3_FORCE_PATH_STYLE": {
       "description": "Use path-style URL's for connecting to S3 instead of subdomain. This is useful for S3-compatible storage.",
       "value": "true",
@@ -109,6 +141,11 @@
     "AWS_S3_ACL": {
       "value": "private",
       "description": "S3 canned ACL for document attachments",
+      "required": false
+    },
+    "FILE_STORAGE_UPLOAD_MAX_SIZE": {
+      "description": "Maximum file upload size in bytes",
+      "value": "26214400",
       "required": false
     },
     "SMTP_HOST": {
@@ -145,15 +182,20 @@
       "required": false
     },
     "GOOGLE_ANALYTICS_ID": {
-      "description": "UA-xxxx (optional)",
+      "description": "G-xxxx (optional)",
       "required": false
     },
     "SENTRY_DSN": {
       "description": "An API key for Sentry if you wish to collect error reporting (optional)",
       "required": false
     },
-    "TEAM_LOGO": {
-      "description": "A logo that will be displayed on the signed out home page",
+    "SENTRY_TUNNEL": {
+      "description": "A sentry tunnel URL for bypassing ad blockers in the UI (optional)",
+      "required": false
+    },
+    "DEFAULT_LANGUAGE": {
+      "value": "en_US",
+      "description": "The default interface language. See translate.getoutline.com for a list of available language codes and their rough percentage translated.",
       "required": false
     }
   }

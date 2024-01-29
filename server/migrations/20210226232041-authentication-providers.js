@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -20,21 +20,20 @@ module.exports = {
       enabled: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
-        defaultValue: true
+        defaultValue: true,
       },
       teamId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "teams"
-        }
+          model: "teams",
+        },
       },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
       },
     });
-
     await queryInterface.createTable("user_authentications", {
       id: {
         type: Sequelize.UUID,
@@ -45,15 +44,15 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "users"
-        }
+          model: "users",
+        },
       },
       authenticationProviderId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "authentication_providers"
-        }
+          model: "authentication_providers",
+        },
       },
       accessToken: {
         type: Sequelize.BLOB,
@@ -81,18 +80,16 @@ module.exports = {
         allowNull: false,
       },
     });
-
-    await queryInterface.removeColumn("users", "slackAccessToken")
+    await queryInterface.removeColumn("users", "slackAccessToken");
     await queryInterface.addIndex("authentication_providers", ["providerId"]);
     await queryInterface.addIndex("user_authentications", ["providerId"]);
   },
-
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable("user_authentications");
     await queryInterface.dropTable("authentication_providers");
     await queryInterface.addColumn("users", "slackAccessToken", {
-      type: 'bytea',
+      type: "bytea",
       allowNull: true,
     });
-  }
+  },
 };

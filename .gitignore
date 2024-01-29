@@ -3,8 +3,12 @@ build
 node_modules/*
 .env
 .log
+.vscode/*
 npm-debug.log
 stats.json
 .DS_Store
-fakes3/*
+data/*
 .idea
+*.pem
+*.key
+*.cert

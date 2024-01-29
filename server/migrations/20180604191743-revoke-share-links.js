@@ -1,19 +1,19 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn('shares', 'revokedAt', {
+    await queryInterface.addColumn("shares", "revokedAt", {
       type: Sequelize.DATE,
-      allowNull: true
+      allowNull: true,
     });
-    await queryInterface.addColumn('shares', 'revokedById', {
+    await queryInterface.addColumn("shares", "revokedById", {
       type: Sequelize.UUID,
       allowNull: true,
       references: {
-        model: 'users',
+        model: "users",
       },
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn('shares', 'revokedAt');
-    await queryInterface.removeColumn('shares', 'revokedById');
-  }
-}
+    await queryInterface.removeColumn("shares", "revokedAt");
+    await queryInterface.removeColumn("shares", "revokedById");
+  },
+};

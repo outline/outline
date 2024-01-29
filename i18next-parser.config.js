@@ -1,4 +1,3 @@
-// @flow
 module.exports = {
   contextSeparator: "_",
   // Key separator used in your translation keys
@@ -9,7 +8,9 @@ module.exports = {
   defaultNamespace: "translation",
   // Default namespace used in your i18next config
 
-  defaultValue: "",
+  defaultValue(locale, namespace, key) {
+    return key;
+  },
   // Default value to give to empty keys
 
   indentation: 2,
@@ -61,10 +62,6 @@ module.exports = {
   skipDefaultValues: false,
   // Whether to ignore default values.
 
-  useKeysAsDefaultValue: true,
-  // Whether to use the keys as the default value; ex. "Hello": "Hello", "World": "World"
-  // This option takes precedence over the `defaultValue` and `skipDefaultValues` options
-
   verbose: false,
   // Display info about the parsing including some stats
 
@@ -72,13 +69,8 @@ module.exports = {
   // Exit with an exit code of 1 on warnings
 
   customValueTemplate: null,
-  // If you wish to customize the value output the value as an object, you can set your own format.
-  // ${defaultValue} is the default value you set in your translation function.
-  // Any other custom property will be automatically extracted.
-  //
-  // Example:
-  // {
-  //   message: "${defaultValue}",
-  //   description: "${maxLength}", // t('my-key', {maxLength: 150})
-  // }
+
+  i18nextOptions: {
+    compatibilityJSON: "v3",
+  },
 };

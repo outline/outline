@@ -1,0 +1,120 @@
+import { computed, observable } from "mobx";
+import { TeamPreferenceDefaults } from "@shared/constants";
+import { TeamPreference, TeamPreferences } from "@shared/types";
+import { stringToColor } from "@shared/utils/color";
+import Model from "./base/Model";
+import Field from "./decorators/Field";
+
+class Team extends Model {
+  static modelName = "Team";
+
+  @Field
+  @observable
+  id: string;
+
+  @Field
+  @observable
+  name: string;
+
+  @Field
+  @observable
+  avatarUrl: string;
+
+  @Field
+  @observable
+  sharing: boolean;
+
+  @Field
+  @observable
+  inviteRequired: boolean;
+
+  @Field
+  @observable
+  commenting: boolean;
+
+  @Field
+  @observable
+  documentEmbeds: boolean;
+
+  @Field
+  @observable
+  defaultCollectionId: string | null;
+
+  @Field
+  @observable
+  memberCollectionCreate: boolean;
+
+  @Field
+  @observable
+  guestSignin: boolean;
+
+  @Field
+  @observable
+  subdomain: string | null | undefined;
+
+  @Field
+  @observable
+  defaultUserRole: string;
+
+  @Field
+  @observable
+  preferences: TeamPreferences | null;
+
+  @observable
+  domain: string | null | undefined;
+
+  @observable
+  url: string;
+
+  @Field
+  @observable
+  allowedDomains: string[] | null | undefined;
+
+  @computed
+  get signinMethods(): string {
+    return "SSO";
+  }
+
+  @computed
+  get color(): string {
+    return stringToColor(this.id);
+  }
+
+  @computed
+  get initial(): string {
+    return (this.name ? this.name[0] : "?").toUpperCase();
+  }
+
+  /**
+   * Returns the value of the provided preference.
+   *
+   * @param preference The team preference to retrieve
+   * @returns The preference value if set, else the default value
+   */
+  getPreference<T extends keyof TeamPreferences>(
+    key: T,
+    defaultValue?: TeamPreferences[T]
+  ): TeamPreferences[T] | false {
+    return (
+      this.preferences?.[key] ??
+      TeamPreferenceDefaults[key] ??
+      defaultValue ??
+      false
+    );
+  }
+
+  /**
+   * Set the value for a specific preference key.
+   *
+   * @param key The TeamPreference key to retrieve
+   * @param value The value to set
+   */
+  setPreference(key: TeamPreference, value: boolean) {
+    this.preferences = {
+      ...this.preferences,
+      [key]: value,
+    };
+  }
+}
+
+export default Team;
