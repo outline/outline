@@ -24,7 +24,6 @@ type Props = {
   src?: string;
   model?: IAvatar;
   alt?: string;
-  shape?: "square";
   showBorder?: boolean;
   onClick?: React.MouseEventHandler<HTMLImageElement>;
   className?: string;
@@ -66,15 +65,11 @@ const Relative = styled.div`
   flex-shrink: 0;
 `;
 
-const CircleImg = styled.img<{
-  size: number;
-  shape?: "square";
-  $showBorder?: boolean;
-}>`
+const CircleImg = styled.img<{ size: number; $showBorder?: boolean }>`
   display: block;
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
-  border-radius: ${(props) => (props.shape === "square" ? 4 : props.size)}px;
+  border-radius: 50%;
   border: ${(props) =>
     props.$showBorder === false
       ? "none"
