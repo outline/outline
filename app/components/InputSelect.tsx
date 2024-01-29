@@ -107,6 +107,10 @@ const InputSelect = (props: Props) => {
   );
 
   React.useEffect(() => {
+    select.setSelectedValue(value);
+  }, [value]);
+
+  React.useEffect(() => {
     if (previousValue.current === select.selectedValue) {
       return;
     }
@@ -163,6 +167,7 @@ const InputSelect = (props: Props) => {
                   topAnchor={topAnchor}
                   rightAnchor={rightAnchor}
                   hiddenScrollbars
+                  maxWidth={400}
                   style={
                     maxHeight && topAnchor
                       ? {
@@ -244,8 +249,8 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
 
   ${Inner} {
     line-height: 28px;
-    padding-left: 16px;
-    padding-right: 8px;
+    padding-left: 12px;
+    padding-right: 4px;
   }
 
   svg {
@@ -267,7 +272,7 @@ const Wrapper = styled.label<{ short?: boolean }>`
   max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
 
-const Positioner = styled(Position)`
+export const Positioner = styled(Position)`
   &.focus-visible {
     ${StyledSelectOption} {
       &[aria-selected="true"] {
