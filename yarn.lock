@@ -2573,6 +2573,15 @@
     "@sentry/types" "7.93.0"
     "@sentry/utils" "7.93.0"
 
+"@sentry-internal/tracing@7.98.0":
+  version "7.98.0"
+  resolved "https://registry.yarnpkg.com/@sentry-internal/tracing/-/tracing-7.98.0.tgz#812ef7fce6b64794784f3279c66bc6b5cfd29d7f"
+  integrity sha512-FnhD2uMLIAJvv4XsYPv3qsTTtxrImyLxiZacudJyaWFhxoeVQ8bKKbWJ/Ar68FAwqTtjXMeY5evnEBbRMcQlaA==
+  dependencies:
+    "@sentry/core" "7.98.0"
+    "@sentry/types" "7.98.0"
+    "@sentry/utils" "7.98.0"
+
 "@sentry/browser@7.85.0":
   version "7.85.0"
   resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-7.85.0.tgz#70cea7b53e22b4262f770d70e879ff1a621825de"
@@ -2599,6 +2608,14 @@
   dependencies:
     "@sentry/types" "7.93.0"
     "@sentry/utils" "7.93.0"
+
+"@sentry/core@7.98.0":
+  version "7.98.0"
+  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-7.98.0.tgz#e4f5353bc3986e510b8dd2507355787440d6e25d"
+  integrity sha512-baRUcpCNGyk7cApQHMfqEZJkXdvAKK+z/dVWiMqWc5T5uhzMnPE8/gjP1JZsMtJSQ8g5nHimBdI5TwOyZtxPaA==
+  dependencies:
+    "@sentry/types" "7.98.0"
+    "@sentry/utils" "7.98.0"
 
 "@sentry/node@^7.93.0":
   version "7.93.0"
@@ -2630,12 +2647,12 @@
     "@sentry/types" "7.85.0"
     "@sentry/utils" "7.85.0"
 
-"@sentry/tracing@^7.85.0":
-  version "7.85.0"
-  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-7.85.0.tgz#831fd6096c4d9e03ff55ac5919f7c7da30f73189"
-  integrity "sha1-gx/WCWxNngP/VaxZGffH2jD3MYk= sha512-L3bpqiM+zu5f3o6zh6hx3xEzVENyhrkuMlpUOyDo0mUytqp763HqF1xz+R+trzze7R5VWrxJaRPARsCKlXu4Ig=="
+"@sentry/tracing@^7.98.0":
+  version "7.98.0"
+  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-7.98.0.tgz#c653bfc91efc0d53d38bbb6a42ba8218bb9a0850"
+  integrity sha512-O5lKcxkeNxoChJI0b/sX3N1TA5TjQuFwH9fMS00xWUFY0ei9HewBZbbx9c9aye2aRIWF2EHMsASZ+GCWGOZTlQ==
   dependencies:
-    "@sentry-internal/tracing" "7.85.0"
+    "@sentry-internal/tracing" "7.98.0"
 
 "@sentry/types@7.85.0":
   version "7.85.0"
@@ -2645,6 +2662,11 @@
 "@sentry/types@7.93.0":
   version "7.93.0"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.93.0.tgz#d76d26259b40cd0688e1d634462fbff31476c1ec"
+
+"@sentry/types@7.98.0":
+  version "7.98.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.98.0.tgz#6a88bf60679aea88ac6cba4d1517958726c2bafb"
+  integrity sha512-pc034ziM0VTETue4bfBcBqTWGy4w0okidtoZJjGVrYAfE95ObZnUGVj/XYIQ3FeCYWIa7NFN2MvdsCS0buwivQ==
 
 "@sentry/utils@7.85.0":
   version "7.85.0"
@@ -2658,6 +2680,13 @@
   resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-7.93.0.tgz#36225038661fe977baf01e4695ef84794d591e45"
   dependencies:
     "@sentry/types" "7.93.0"
+
+"@sentry/utils@7.98.0":
+  version "7.98.0"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-7.98.0.tgz#54355a197f7f71a6d17354a3d043022df402b502"
+  integrity sha512-0/LY+kpHxItVRY0xPDXPXVsKRb95cXsGSQf8sVMtfSjz++0bLL1U4k7PFz1c5s2/Vk0B8hS6duRrgMv6dMIZDw==
+  dependencies:
+    "@sentry/types" "7.98.0"
 
 "@sinclair/typebox@^0.27.8":
   version "0.27.8"
