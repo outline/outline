@@ -393,7 +393,15 @@ const DocumentOtherAccessList = observer(
               />
             ) : usersInCollection ? (
               <StyledListItem
-                image={<CollectionIcon collection={collection} />}
+                image={
+                  <Squircle color={collection.color} size={AvatarSize.Medium}>
+                    <CollectionIcon
+                      collection={collection}
+                      color={theme.white}
+                      size={16}
+                    />
+                  </Squircle>
+                }
                 title={collection.name}
                 subtitle={t("Everyone in the collection")}
                 actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
@@ -430,7 +438,7 @@ const DocumentOtherAccessList = observer(
                   <MoreIcon color={theme.accentText} size={16} />
                 </Squircle>
               }
-              title={t("Other members")}
+              title={t("Other people")}
               subtitle={t("Other workspace members may have access")}
               actions={
                 <AccessTooltip

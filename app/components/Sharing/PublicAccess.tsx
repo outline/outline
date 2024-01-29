@@ -135,7 +135,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
               t("Anyone with the link can access")
             )}
             .
-            {share && !share.includeChildDocuments
+            {share && share.published && !share.includeChildDocuments
               ? ` ${t("Child documents are not shared")}.`
               : ""}
           </>

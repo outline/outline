@@ -1,8 +1,10 @@
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { DocumentPermission } from "@shared/types";
 import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
@@ -71,17 +73,24 @@ const MemberListItem = ({
         <Avatar model={user} size={AvatarSize.Medium} showBorder={false} />
       }
       subtitle={
-        membership?.sourceId
-          ? t("Has access through parent")
-          : user.isSuspended
-          ? t("Suspended")
-          : user.isInvited
-          ? t("Invited")
-          : user.isViewer
-          ? t("Viewer")
-          : user.email
-          ? user.email
-          : t("Member")
+        membership?.sourceId ? (
+          <Trans>
+            Has access through{" "}
+            <StyledLink to={membership.source?.document?.path ?? ""}>
+              parent
+            </StyledLink>
+          </Trans>
+        ) : user.isSuspended ? (
+          t("Suspended")
+        ) : user.isInvited ? (
+          t("Invited")
+        ) : user.isViewer ? (
+          t("Viewer")
+        ) : user.email ? (
+          user.email
+        ) : (
+          t("Member")
+        )
       }
       actions={
         disabled ? null : (
@@ -123,6 +132,11 @@ export const StyledListItem = styled(ListItem).attrs({
   &:hover ${InviteIcon} {
     opacity: 1;
   }
+`;
+
+const StyledLink = styled(Link)`
+  color: ${s("textSecondary")};
+  text-decoration: underline;
 `;
 
 export default observer(MemberListItem);
