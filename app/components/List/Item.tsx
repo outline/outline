@@ -6,14 +6,23 @@ import Flex from "~/components/Flex";
 import NavLink from "~/components/NavLink";
 
 export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
+  /** An icon or image to display to the left of the list item */
   image?: React.ReactNode;
+  /** An internal location to navigate to on click, if provided the list item will have hover styles */
   to?: LocationDescriptor;
-  exact?: boolean;
-  title: React.ReactNode;
-  subtitle?: React.ReactNode;
-  actions?: React.ReactNode;
+  /** An optional click handler, if provided the list item will have hover styles */
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  /** Whether to match the location exactly */
+  exact?: boolean;
+  /** The title of the list item */
+  title: React.ReactNode;
+  /** The subtitle of the list item, displayed below the title */
+  subtitle?: React.ReactNode;
+  /** Actions to display to the right of the list item */
+  actions?: React.ReactNode;
+  /** Whether to display a border below the list item */
   border?: boolean;
+  /** Whether to display the list item in a compact style */
   small?: boolean;
 };
 
