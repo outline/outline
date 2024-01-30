@@ -7,7 +7,6 @@ import Router from "koa-router";
 import find from "lodash/find";
 import { Octokit } from "octokit";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -28,7 +27,7 @@ function redirectOnClient(ctx: Context, url: string) {
 </head>`;
 }
 
-if (env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET) {
+if (Github.clientId && Github.clientSecret) {
   router.get(
     "github.callback",
     auth({
@@ -79,9 +78,9 @@ if (env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET) {
       const github = new Octokit({
         authStrategy: createOAuthUserAuth,
         auth: {
-          clientId: env.GITHUB_CLIENT_ID,
-          clientSecret: env.GITHUB_CLIENT_SECRET,
-          clientType: "github-app",
+          clientId: Github.clientId,
+          clientSecret: Github.clientSecret,
+          clientType: Github.clientType,
           code,
           state: teamId,
           redirectUrl: Github.callbackUrl,
