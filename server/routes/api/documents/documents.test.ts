@@ -28,6 +28,10 @@ import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
+beforeEach(async () => {
+  await buildDocument();
+});
+
 describe("#documents.info", () => {
   it("should fail if both id and shareId are absent", async () => {
     const res = await server.post("/api/documents.info", {

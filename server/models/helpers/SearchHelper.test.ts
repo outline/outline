@@ -10,8 +10,9 @@ import {
 } from "@server/test/factories";
 import UserMembership from "../UserMembership";
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.resetAllMocks();
+  await buildDocument();
 });
 
 describe("SearchHelper", () => {
