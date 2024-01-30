@@ -127,7 +127,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
               <Trans>
                 Anyone with the link can access because the parent document,{" "}
                 <StyledLink to={`/doc/${sharedParent.documentId}`}>
-                  {documentTitle}
+                  {{ documentTitle }}
                 </StyledLink>
                 , is shared
               </Trans>
