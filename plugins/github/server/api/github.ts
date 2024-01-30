@@ -1,19 +1,12 @@
-import {
-  createOAuthUserAuth,
-  type GitHubAppAuthentication,
-} from "@octokit/auth-oauth-user";
 import type { Context } from "koa";
 import Router from "koa-router";
-import find from "lodash/find";
-import { Octokit } from "octokit";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration, Team } from "@server/models";
 import { APIContext } from "@server/types";
-import { Github } from "../github";
+import { GitHub } from "../github";
 import * as T from "./schema";
 
 const router = new Router();
@@ -27,7 +20,7 @@ function redirectOnClient(ctx: Context, url: string) {
 </head>`;
 }
 
-if (Github.clientId && Github.clientSecret) {
+if (GitHub.clientId && GitHub.clientSecret) {
   router.get(
     "github.callback",
     auth({
@@ -46,7 +39,7 @@ if (Github.clientId && Github.clientSecret) {
       const { transaction } = ctx.state;
 
       if (error) {
-        ctx.redirect(Github.errorUrl(error));
+        ctx.redirect(GitHub.errorUrl(error));
         return;
       }
 
@@ -62,46 +55,26 @@ if (Github.clientId && Github.clientSecret) {
             });
             return redirectOnClient(
               ctx,
-              Github.callbackUrl({
+              GitHub.callbackUrl({
                 baseUrl: team.url,
                 params: ctx.request.querystring,
               })
             );
           } catch (err) {
-            return ctx.redirect(Github.errorUrl("unauthenticated"));
+            return ctx.redirect(GitHub.errorUrl("unauthenticated"));
           }
         } else {
-          return ctx.redirect(Github.errorUrl("unauthenticated"));
+          return ctx.redirect(GitHub.errorUrl("unauthenticated"));
         }
       }
 
-      const github = new Octokit({
-        authStrategy: createOAuthUserAuth,
-        auth: {
-          clientId: Github.clientId,
-          clientSecret: Github.clientSecret,
-          clientType: Github.clientType,
-          code,
-          state: teamId,
-        },
-      });
-
-      const authResponse = (await github.auth()) as GitHubAppAuthentication;
+      const github = new GitHub({ code: code!, state: teamId });
 
       let installation;
       try {
-        const installations = await github.paginate("GET /user/installations");
-        installation = find(
-          installations,
-          (installation) => installation.id === installationId
-        );
-        if (!installation) {
-          Logger.warn("installationId mismatch!");
-          return ctx.redirect(Github.errorUrl("unauthenticated"));
-        }
+        installation = await github.getInstallation(installationId);
       } catch (err) {
-        Logger.warn("Couldn't fetch user installations from Github", err);
-        return ctx.redirect(Github.errorUrl("unauthenticated"));
+        return ctx.redirect(GitHub.errorUrl("unauthenticated"));
       }
 
       const authentication = await IntegrationAuthentication.create(
@@ -109,7 +82,6 @@ if (Github.clientId && Github.clientSecret) {
           service: IntegrationService.Github,
           userId: user.id,
           teamId: user.teamId,
-          token: authResponse.token,
         },
         { transaction }
       );
@@ -133,7 +105,7 @@ if (Github.clientId && Github.clientSecret) {
         },
         { transaction }
       );
-      ctx.redirect(Github.url);
+      ctx.redirect(GitHub.url);
     }
   );
 }
