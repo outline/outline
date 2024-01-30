@@ -7,6 +7,7 @@ import {
   QuestionMarkIcon,
   UserIcon,
 } from "outline-icons";
+import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -29,6 +30,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
+import { hover } from "~/styles";
 import { documentPath, urlify } from "~/utils/routeHelpers";
 import Avatar from "../Avatar";
 import { AvatarSize } from "../Avatar/Avatar";
@@ -194,8 +196,11 @@ function SharePopover({
   );
 
   const focusInput = React.useCallback(() => {
-    inputRef.current?.focus();
-  }, []);
+    if (!picker) {
+      inputRef.current?.focus();
+      showPicker();
+    }
+  }, [picker, showPicker]);
 
   const backButton = (
     <>
@@ -225,7 +230,7 @@ function SharePopover({
   );
 
   return (
-    <>
+    <Wrapper>
       {can.manageUsers &&
         (isMobile ? (
           <Flex align="center" style={{ marginBottom: 12 }} auto>
@@ -286,7 +291,7 @@ function SharePopover({
           </>
         )}
       </div>
-    </>
+    </Wrapper>
   );
 }
 
@@ -476,6 +481,14 @@ const AccessTooltip = ({
   );
 };
 
+// TODO: Temp until Button/NudeButton styles are normalized
+const Wrapper = styled.div`
+  ${NudeButton}:${hover},
+  ${NudeButton}[aria-expanded="true"] {
+    background: ${(props) => darken(0.05, props.theme.buttonNeutralBackground)};
+  }
+`;
+
 const Separator = styled.div`
   border-top: 1px dashed ${s("divider")};
   margin: 12px 0;
@@ -493,6 +506,7 @@ const HeaderInput = styled(Flex)`
   margin-left: -24px;
   margin-right: -24px;
   margin-bottom: 12px;
+  cursor: text;
 
   &:before {
     content: "";
