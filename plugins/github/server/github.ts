@@ -7,6 +7,10 @@ export class Github {
    */
   public static url = integrationSettingsPath("github");
 
+  public static clientId = env.GITHUB_CLIENT_ID;
+  public static clientSecret = env.GITHUB_CLIENT_SECRET;
+  public static clientType = "github-app";
+
   /**
    * @param error
    * @returns URL to be redirected to upon authorization error from GitHub
