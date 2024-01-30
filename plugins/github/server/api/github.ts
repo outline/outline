@@ -83,7 +83,6 @@ if (Github.clientId && Github.clientSecret) {
           clientType: Github.clientType,
           code,
           state: teamId,
-          redirectUrl: Github.callbackUrl,
         },
       });
 
