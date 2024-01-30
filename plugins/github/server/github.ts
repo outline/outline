@@ -29,6 +29,6 @@ export class Github {
     baseUrl: string;
     params?: string;
   }) {
-    return `${baseUrl}?${params}`;
+    return `${baseUrl}/api/github.callback?${params}`;
   }
 }
