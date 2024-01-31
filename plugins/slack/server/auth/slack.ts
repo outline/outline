@@ -4,7 +4,6 @@ import Router from "koa-router";
 import { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { UrlHelper } from "@shared/utils/UrlHelper";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import auth from "@server/middlewares/authentication";
 import passportMiddleware from "@server/middlewares/passport";
@@ -25,6 +24,7 @@ import {
 import env from "../env";
 import * as Slack from "../slack";
 import * as T from "./schema";
+import { SlackUtils } from "plugins/slack/shared/Slack";
 
 type SlackProfile = Profile & {
   team: {
@@ -66,7 +66,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
     {
       clientID: env.SLACK_CLIENT_ID,
       clientSecret: env.SLACK_CLIENT_SECRET,
-      callbackURL: UrlHelper.Slack.callback(),
+      callbackURL: SlackUtils.callbackUrl(),
       passReqToCallback: true,
       // @ts-expect-error StateStore
       store: new StateStore(),
@@ -139,7 +139,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       const { user } = ctx.state.auth;
 
       if (error) {
-        ctx.redirect(UrlHelper.Slack.error(error));
+        ctx.redirect(SlackUtils.errorUrl(error));
         return;
       }
 
@@ -154,21 +154,21 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             });
             return redirectOnClient(
               ctx,
-              UrlHelper.Slack.commands({
+              SlackUtils.commandsUrl({
                 baseUrl: team.url,
                 params: ctx.request.querystring,
               })
             );
           } catch (err) {
-            return ctx.redirect(UrlHelper.Slack.error("unauthenticated"));
+            return ctx.redirect(SlackUtils.errorUrl("unauthenticated"));
           }
         } else {
-          return ctx.redirect(UrlHelper.Slack.error("unauthenticated"));
+          return ctx.redirect(SlackUtils.errorUrl("unauthenticated"));
         }
       }
 
       // validation middleware ensures that code is non-null at this point
-      const data = await Slack.oauthAccess(code!, UrlHelper.Slack.commands());
+      const data = await Slack.oauthAccess(code!, SlackUtils.commandsUrl());
       const authentication = await IntegrationAuthentication.create({
         service: IntegrationService.Slack,
         userId: user.id,
@@ -186,7 +186,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           serviceTeamId: data.team_id,
         },
       });
-      ctx.redirect(UrlHelper.Slack.url);
+      ctx.redirect(SlackUtils.url);
     }
   );
 
@@ -201,7 +201,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       const { user } = ctx.state.auth;
 
       if (error) {
-        ctx.redirect(UrlHelper.Slack.error(error));
+        ctx.redirect(SlackUtils.errorUrl(error));
         return;
       }
 
@@ -219,21 +219,21 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             });
             return redirectOnClient(
               ctx,
-              UrlHelper.Slack.post({
+              SlackUtils.postUrl({
                 baseUrl: team.url,
                 params: ctx.request.querystring,
               })
             );
           } catch (err) {
-            return ctx.redirect(UrlHelper.Slack.error("unauthenticated"));
+            return ctx.redirect(SlackUtils.errorUrl("unauthenticated"));
           }
         } else {
-          return ctx.redirect(UrlHelper.Slack.error("unauthenticated"));
+          return ctx.redirect(SlackUtils.errorUrl("unauthenticated"));
         }
       }
 
       // validation middleware ensures that code is non-null at this point
-      const data = await Slack.oauthAccess(code!, UrlHelper.Slack.post());
+      const data = await Slack.oauthAccess(code!, SlackUtils.postUrl());
       const authentication = await IntegrationAuthentication.create({
         service: IntegrationService.Slack,
         userId: user.id,
@@ -256,7 +256,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           channelId: data.incoming_webhook.channel_id,
         },
       });
-      ctx.redirect(UrlHelper.Slack.url);
+      ctx.redirect(SlackUtils.url);
     }
   );
 }

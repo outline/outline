@@ -3,7 +3,6 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { UrlHelper } from "@shared/utils/UrlHelper";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
@@ -18,6 +17,7 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import { SlackUtils } from "../shared/Slack";
 import SlackIcon from "./Icon";
 import SlackButton from "./components/SlackButton";
 import SlackListItem from "./components/SlackListItem";
@@ -105,7 +105,7 @@ function Slack() {
                   // "users:read",
                   // "users:read.email",
                 ]}
-                redirectUri={UrlHelper.Slack.commands()}
+                redirectUri={SlackUtils.commandsUrl()}
                 state={team.id}
                 icon={<SlackIcon />}
               />
