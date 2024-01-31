@@ -213,12 +213,17 @@ function SharePopover({
 
   const doneButton = picker ? (
     invitedInSession.length ? (
-      <ButtonSmall onClick={hidePicker} neutral>
+      <ButtonSmall onClick={hidePicker} key="done" neutral>
         {t("Done")}
       </ButtonSmall>
     ) : null
   ) : (
-    <Tooltip tooltip={t("Copy link")} delay={500} placement="top">
+    <Tooltip
+      tooltip={t("Copy link")}
+      delay={500}
+      placement="top"
+      key="copy-link"
+    >
       <CopyToClipboard
         text={urlify(documentPath(document))}
         onCopy={handleCopied}
