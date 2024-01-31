@@ -21,14 +21,13 @@ export default class StarsStore extends Store<Star> {
       const res = await client.post(`/stars.list`, params);
       invariant(res?.data, "Data not available");
 
-      let models: Star[] = [];
-      runInAction(`StarsStore#fetchPage`, () => {
+      return runInAction(`StarsStore#fetchPage`, () => {
         res.data.documents.forEach(this.rootStore.documents.add);
-        models = res.data.stars.map(this.add);
+        const models = res.data.stars.map(this.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;
+        return models;
       });
-      return models;
     } finally {
       this.isFetching = false;
     }

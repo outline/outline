@@ -1,5 +1,5 @@
 import { CollectionPermission } from "@shared/types";
-import { UserPermission, Collection } from "@server/models";
+import { UserMembership, Collection } from "@server/models";
 import {
   buildUser,
   buildTeam,
@@ -26,7 +26,7 @@ describe("admin", () => {
     expect(abilities.readDocument).toEqual(false);
     expect(abilities.createDocument).toEqual(false);
     expect(abilities.share).toEqual(false);
-    expect(abilities.read).toEqual(true);
+    expect(abilities.read).toEqual(false);
     expect(abilities.update).toEqual(true);
   });
 
@@ -59,7 +59,7 @@ describe("member", () => {
         teamId: team.id,
         permission: CollectionPermission.ReadWrite,
       });
-      await UserPermission.create({
+      await UserMembership.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,
@@ -104,7 +104,7 @@ describe("member", () => {
         teamId: team.id,
         permission: CollectionPermission.ReadWrite,
       });
-      await UserPermission.create({
+      await UserMembership.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,
@@ -147,7 +147,7 @@ describe("member", () => {
         teamId: team.id,
         permission: CollectionPermission.Read,
       });
-      await UserPermission.create({
+      await UserMembership.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,
@@ -192,7 +192,7 @@ describe("member", () => {
         teamId: team.id,
         permission: null,
       });
-      await UserPermission.create({
+      await UserMembership.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,
@@ -242,7 +242,7 @@ describe("viewer", () => {
         teamId: team.id,
         permission: CollectionPermission.ReadWrite,
       });
-      await UserPermission.create({
+      await UserMembership.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,
@@ -271,7 +271,7 @@ describe("viewer", () => {
         teamId: team.id,
         permission: CollectionPermission.Read,
       });
-      await UserPermission.create({
+      await UserMembership.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,
@@ -317,7 +317,7 @@ describe("viewer", () => {
         teamId: team.id,
         permission: null,
       });
-      await UserPermission.create({
+      await UserMembership.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,

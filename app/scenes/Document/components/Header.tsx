@@ -257,16 +257,11 @@ function DocumentHeader({
                 />
               </Action>
             )}
-            {!isEditing &&
-              !isDeleted &&
-              !isRevision &&
-              !isTemplate &&
-              !isMobile &&
-              document.collectionId && (
-                <Action>
-                  <ShareButton document={document} />
-                </Action>
-              )}
+            {!isEditing && !isRevision && !isMobile && can.update && (
+              <Action>
+                <ShareButton document={document} />
+              </Action>
+            )}
             {(isEditing || isTemplate) && (
               <Action>
                 <Tooltip
@@ -333,17 +328,19 @@ function DocumentHeader({
                 </Tooltip>
               </Action>
             )}
-            <Action>
-              <Button
-                action={publishDocument}
-                context={context}
-                disabled={publishingIsDisabled}
-                hideOnActionDisabled
-                hideIcon
-              >
-                {document.collectionId ? t("Publish") : `${t("Publish")}…`}
-              </Button>
-            </Action>
+            {can.publish && (
+              <Action>
+                <Button
+                  action={publishDocument}
+                  context={context}
+                  disabled={publishingIsDisabled}
+                  hideOnActionDisabled
+                  hideIcon
+                >
+                  {document.collectionId ? t("Publish") : `${t("Publish")}…`}
+                </Button>
+              </Action>
+            )}
             {!isDeleted && <Separator />}
             <Action>
               <DocumentMenu

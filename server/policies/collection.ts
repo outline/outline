@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import some from "lodash/some";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import { Collection, User, Team } from "@server/models";
 import { AdminRequiredError } from "../errors";
 import { allow } from "./cancan";
@@ -43,10 +43,6 @@ allow(User, "move", Collection, (user, collection) => {
 allow(User, "read", Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) {
     return false;
-  }
-
-  if (user.isAdmin) {
-    return true;
   }
 
   if (collection.isPrivate) {
@@ -144,11 +140,11 @@ allow(User, ["update", "delete"], Collection, (user, collection) => {
 
 function includesMembership(
   collection: Collection,
-  permissions: CollectionPermission[]
+  permissions: (CollectionPermission | DocumentPermission)[]
 ) {
   invariant(
     collection.memberships,
-    "memberships should be preloaded, did you forget withMembership scope?"
+    "collection memberships should be preloaded, did you forget withMembership scope?"
   );
   return some(
     [...collection.memberships, ...collection.collectionGroupMemberships],

@@ -1,25 +1,27 @@
-import { StarredIcon } from "outline-icons";
+import { DocumentIcon } from "outline-icons";
 import * as React from "react";
-import { useTheme } from "styled-components";
-import Star from "~/models/Star";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
 import useStores from "~/hooks/useStores";
 
-export function useStarLabelAndIcon({ documentId, collectionId }: Star) {
+interface SidebarItem {
+  documentId?: string;
+  collectionId?: string;
+}
+
+export function useSidebarLabelAndIcon(
+  { documentId, collectionId }: SidebarItem,
+  defaultIcon?: React.ReactNode
+) {
   const { collections, documents } = useStores();
-  const theme = useTheme();
+  const icon = defaultIcon ?? <DocumentIcon />;
 
   if (documentId) {
     const document = documents.get(documentId);
     if (document) {
       return {
         label: document.titleWithDefault,
-        icon: document.emoji ? (
-          <EmojiIcon emoji={document.emoji} />
-        ) : (
-          <StarredIcon color={theme.yellow} />
-        ),
+        icon: document.emoji ? <EmojiIcon emoji={document.emoji} /> : icon,
       };
     }
   }
@@ -36,6 +38,6 @@ export function useStarLabelAndIcon({ documentId, collectionId }: Star) {
 
   return {
     label: "",
-    icon: <StarredIcon color={theme.yellow} />,
+    icon,
   };
 }

@@ -155,6 +155,12 @@ export default class Document extends ParanoidModel {
   revision: number;
 
   /**
+   * Whether this document is contained in a collection that has been deleted.
+   */
+  @observable
+  isCollectionDeleted: boolean;
+
+  /**
    * Returns the direction of the document text, either "rtl" or "ltr"
    */
   @computed
@@ -225,6 +231,18 @@ export default class Document extends ParanoidModel {
     return !!this.store.rootStore.subscriptions.orderedData.find(
       (subscription) => subscription.documentId === this.id
     );
+  }
+
+  /**
+   * Returns users that have been individually given access to the document.
+   *
+   * @returns users that have been individually given access to the document
+   */
+  @computed
+  get members(): User[] {
+    return this.store.rootStore.userMemberships.orderedData
+      .filter((m) => m.documentId === this.id)
+      .map((m) => m.user);
   }
 
   @computed

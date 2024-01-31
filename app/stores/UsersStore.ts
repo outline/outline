@@ -1,4 +1,5 @@
 import invariant from "invariant";
+import differenceWith from "lodash/differenceWith";
 import filter from "lodash/filter";
 import orderBy from "lodash/orderBy";
 import { observable, computed, action, runInAction } from "mobx";
@@ -247,6 +248,18 @@ export default class UsersStore extends Store<User> {
         this.counts.admins -= 1;
       }
     }
+  };
+
+  notInDocument = (documentId: string, query = "") => {
+    const document = this.rootStore.documents.get(documentId);
+    const teamMembers = this.activeOrInvited;
+    const documentMembers = document?.members ?? [];
+    const users = differenceWith(
+      teamMembers,
+      documentMembers,
+      (teamMember, documentMember) => teamMember.id === documentMember.id
+    );
+    return queriedUsers(users, query);
   };
 
   notInCollection = (collectionId: string, query = "") => {

@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { Location, LocationDescriptor } from "history";
 import { TFunction } from "i18next";
-import { JSONValue } from "@shared/types";
+import {
+  JSONValue,
+  CollectionPermission,
+  DocumentPermission,
+} from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
 import Pin from "./models/Pin";
 import Star from "./models/Star";
+import UserMembership from "./models/UserMembership";
 
 export type PartialWithId<T> = Partial<T> & { id: string };
 
@@ -183,6 +188,11 @@ export type WebsocketCollectionUserEvent = {
   userId: string;
 };
 
+export type WebsocketDocumentUserEvent = {
+  documentId: string;
+  userId: string;
+};
+
 export type WebsocketCollectionUpdateIndexEvent = {
   collectionId: string;
   index: string;
@@ -192,6 +202,7 @@ export type WebsocketEvent =
   | PartialWithId<Pin>
   | PartialWithId<Star>
   | PartialWithId<FileOperation>
+  | PartialWithId<UserMembership>
   | WebsocketCollectionUserEvent
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent
@@ -199,6 +210,13 @@ export type WebsocketEvent =
 
 export type AwarenessChangeEvent = {
   states: { user?: { id: string }; cursor: any; scrollY: number | undefined }[];
+};
+
+export const EmptySelectValue = "__empty__";
+
+export type Permission = {
+  label: string;
+  value: CollectionPermission | DocumentPermission | typeof EmptySelectValue;
 };
 
 // TODO: Can we make this type driven by the @Field decorator

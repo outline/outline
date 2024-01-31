@@ -1284,7 +1284,7 @@
     "@dnd-kit/utilities" "^3.2.0"
     tslib "^2.0.0"
 
-"@dnd-kit/utilities@^3.2.0", "@dnd-kit/utilities@^3.2.1", "@dnd-kit/utilities@^3.2.2":
+"@dnd-kit/utilities@^3.2.1", "@dnd-kit/utilities@^3.2.2":
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/@dnd-kit/utilities/-/utilities-3.2.2.tgz#5a32b6af356dc5f74d61b37d6f7129a4040ced7b"
   integrity "sha1-WjK2rzVtxfdNYbN9b3EppAQM7Xs= sha512-+MKAJEOfaBe5SmV6t34p80MMKhjvUz0vRrvVJbPT0WElzaOJ/1xs+D+KDv+tD/NE5ujfrChEcshd4fLn0wpiqg=="
@@ -10076,10 +10076,10 @@ os-tmpdir@~1.0.2:
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
   integrity "sha1-u+Z0BseaqFxc/sdm/lc0VV36EnQ= sha512-D2FR03Vir7FIu45XBY20mTb+/ZSWB00sjU9jdQXt83gDrI4Ztz5Fs7/yy74g2N5SVQY4xY1qDr4rNddwYRVX0g=="
 
-outline-icons@^2.7.0:
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-2.7.0.tgz#aaacbb9ceba9f65f9152e977e14f4eaa28b45a5a"
-  integrity "sha1-qqy7nOup9l+RUul34U9Oqii0Wlo= sha512-Q17XgygWwGM1IaRO9Wd99Tk1wBnI01Sx3NktLxUwHZ1SN2RBVRIFUwf2J8ZtFo8pvJdH/BxOlX5L3NBTkcaKSg=="
+outline-icons@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-3.0.0.tgz#75f56a7252f1605eb1fc9e21ddd0336e3dad4584"
+  integrity sha512-k3XCb19FDH6evjw7Ad9kRF/jHg4dGa3fYRD4S3kncjVnrvSlUDwT6GvNF+X1RSJ3Q3iJOziy3GH+DGkxEHsq4g==
 
 oy-vey@^0.12.1:
   version "0.12.1"

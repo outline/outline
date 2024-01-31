@@ -1,15 +1,14 @@
 import { observer } from "mobx-react";
 import { GlobeIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
-import Tooltip from "~/components/Tooltip";
+import SharePopover from "~/components/Sharing";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
-import SharePopover from "./SharePopover";
 
 type Props = {
   document: Document;
@@ -23,7 +22,8 @@ function ShareButton({ document }: Props) {
   const sharedParent = shares.getByDocumentParents(document.id);
   const domain = share?.domain || sharedParent?.domain;
   const isPubliclyShared =
-    team.sharing &&
+    team.sharing !== false &&
+    document.collection?.sharing !== false &&
     (share?.published || (sharedParent?.published && !document.isDraft));
 
   const popover = usePopoverState({
@@ -36,32 +36,17 @@ function ShareButton({ document }: Props) {
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          <Tooltip
-            tooltip={
-              isPubliclyShared ? (
-                <Trans>
-                  Anyone with the link <br />
-                  can view this document
-                </Trans>
-              ) : (
-                ""
-              )
-            }
-            delay={500}
-            placement="bottom"
+          <Button
+            icon={isPubliclyShared ? <GlobeIcon /> : undefined}
+            neutral
+            {...props}
           >
-            <Button
-              icon={isPubliclyShared ? <GlobeIcon /> : undefined}
-              neutral
-              {...props}
-            >
-              {t("Share")} {domain && <>&middot; {domain}</>}
-            </Button>
-          </Tooltip>
+            {t("Share")} {domain && <>&middot; {domain}</>}
+          </Button>
         )}
       </PopoverDisclosure>
 
-      <Popover {...popover} aria-label={t("Share")}>
+      <Popover {...popover} aria-label={t("Share")} width={400}>
         <SharePopover
           document={document}
           share={share}

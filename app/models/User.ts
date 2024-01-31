@@ -12,6 +12,8 @@ import {
 } from "@shared/types";
 import type { NotificationSettings } from "@shared/types";
 import { client } from "~/utils/ApiClient";
+import Document from "./Document";
+import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 
@@ -109,6 +111,18 @@ class User extends ParanoidModel {
     );
   }
 
+  @computed
+  get memberships(): UserMembership[] {
+    return this.store.rootStore.userMemberships.orderedData
+      .filter(
+        (m) => m.userId === this.id && m.sourceId === null && m.documentId
+      )
+      .filter((m) => {
+        const document = this.store.rootStore.documents.get(m.documentId!);
+        return !document?.collection;
+      });
+  }
+
   /**
    * Returns the current preference for the given notification event type taking
    * into account the default system value.
@@ -171,6 +185,12 @@ class User extends ParanoidModel {
       ...this.preferences,
       [key]: value,
     };
+  }
+
+  getMembership(document: Document) {
+    return this.store.rootStore.userMemberships.orderedData.find(
+      (m) => m.documentId === document.id && m.userId === this.id
+    );
   }
 }
 

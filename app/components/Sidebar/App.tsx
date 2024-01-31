@@ -24,6 +24,7 @@ import Collections from "./components/Collections";
 import DragPlaceholder from "./components/DragPlaceholder";
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
+import SharedWithMe from "./components/SharedWithMe";
 import SidebarAction from "./components/SidebarAction";
 import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
@@ -121,6 +122,9 @@ function AppSidebar() {
                   }
                 />
               )}
+            </Section>
+            <Section>
+              <SharedWithMe />
             </Section>
             <Section>
               <Starred />

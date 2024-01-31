@@ -125,8 +125,19 @@ export type UserEvent = BaseEvent &
       }
   );
 
+export type UserMembershipEvent = BaseEvent & {
+  name: "userMemberships.update";
+  modelId: string;
+  userId: string;
+  documentId: string;
+  data: {
+    index: string | null;
+  };
+};
+
 export type DocumentEvent = BaseEvent &
   (
+    | DocumentUserEvent
     | {
         name:
           | "documents.create"
@@ -207,6 +218,13 @@ export type CollectionGroupEvent = BaseEvent & {
   collectionId: string;
   modelId: string;
   data: { name: string; membershipId: string };
+};
+
+export type DocumentUserEvent = BaseEvent & {
+  name: "documents.add_user" | "documents.remove_user";
+  userId: string;
+  modelId: string;
+  documentId: string;
 };
 
 export type CollectionEvent = BaseEvent &
@@ -383,6 +401,7 @@ export type Event =
   | SubscriptionEvent
   | TeamEvent
   | UserEvent
+  | UserMembershipEvent
   | ViewEvent
   | WebhookSubscriptionEvent
   | NotificationEvent;

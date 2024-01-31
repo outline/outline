@@ -1,11 +1,12 @@
 import path from "path";
+import fractionalIndex from "fractional-index";
 import fs from "fs-extra";
 import invariant from "invariant";
 import JSZip from "jszip";
 import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
-import { Op, ScopeOptions, WhereOptions } from "sequelize";
+import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
@@ -40,6 +41,7 @@ import {
   SearchQuery,
   User,
   View,
+  UserMembership,
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
@@ -48,6 +50,7 @@ import {
   presentCollection,
   presentDocument,
   presentPolicies,
+  presentMembership,
   presentPublicTeam,
   presentUser,
 } from "@server/presenters";
@@ -121,6 +124,17 @@ router.post(
     }
 
     if (parentDocumentId) {
+      const membership = await UserMembership.findOne({
+        where: {
+          userId: user.id,
+          documentId: parentDocumentId,
+        },
+      });
+
+      if (membership) {
+        delete where.collectionId;
+      }
+
       where = { ...where, parentDocumentId };
     }
 
@@ -302,7 +316,10 @@ router.post(
       order: [[sort, direction]],
       include: [
         {
-          model: Document,
+          model: Document.scope([
+            "withDrafts",
+            { method: ["withMembership", userId] },
+          ]),
           required: true,
           where: {
             collectionId: collectionIds,
@@ -375,13 +392,7 @@ router.post(
       delete where.updatedAt;
     }
 
-    const collectionScope: Readonly<ScopeOptions> = {
-      method: ["withCollectionPermissions", user.id],
-    };
-    const documents = await Document.scope([
-      "defaultScope",
-      collectionScope,
-    ]).findAll({
+    const documents = await Document.defaultScopeWithUser(user.id).findAll({
       where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
@@ -979,6 +990,7 @@ router.post(
     }
 
     if (publish) {
+      authorize(user, "publish", document);
       if (!document.collectionId) {
         assertPresent(
           collectionId,
@@ -1415,11 +1427,8 @@ router.post(
     let parentDocument;
 
     if (parentDocumentId) {
-      parentDocument = await Document.findOne({
-        where: {
-          id: parentDocumentId,
-          collectionId: collection?.id,
-        },
+      parentDocument = await Document.findByPk(parentDocumentId, {
+        userId: user.id,
       });
       authorize(user, "read", parentDocument, {
         collection,
@@ -1458,6 +1467,222 @@ router.post(
     ctx.body = {
       data: await presentDocument(document),
       policies: presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "documents.add_user",
+  auth(),
+  validate(T.DocumentsAddUserSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsAddUserReq>) => {
+    const { auth, transaction } = ctx.state;
+    const actor = auth.user;
+    const { id, userId, permission } = ctx.input.body;
+
+    if (userId === actor.id) {
+      throw ValidationError("You cannot invite yourself");
+    }
+
+    const [document, user] = await Promise.all([
+      Document.findByPk(id, {
+        userId: actor.id,
+        rejectOnEmpty: true,
+        transaction,
+      }),
+      User.findByPk(userId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
+
+    authorize(actor, "read", user);
+    authorize(actor, "manageUsers", document);
+
+    const UserMemberships = await UserMembership.findAll({
+      where: {
+        userId,
+      },
+      attributes: ["id", "index", "updatedAt"],
+      limit: 1,
+      order: [
+        // using LC_COLLATE:"C" because we need byte order to drive the sorting
+        // find only the first star so we can create an index before it
+        Sequelize.literal('"user_permission"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+      transaction,
+    });
+
+    // create membership at the beginning of their "Shared with me" section
+    const index = fractionalIndex(
+      null,
+      UserMemberships.length ? UserMemberships[0].index : null
+    );
+
+    const [membership] = await UserMembership.findOrCreate({
+      where: {
+        documentId: id,
+        userId,
+      },
+      defaults: {
+        index,
+        permission: permission || user.defaultDocumentPermission,
+        createdById: actor.id,
+      },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    if (permission) {
+      membership.permission = permission;
+
+      // disconnect from the source if the permission is manually updated
+      membership.sourceId = null;
+
+      await membership.save({ transaction });
+    }
+
+    await Event.create(
+      {
+        name: "documents.add_user",
+        userId,
+        modelId: membership.id,
+        documentId: document.id,
+        teamId: document.teamId,
+        actorId: actor.id,
+        ip: ctx.request.ip,
+      },
+      {
+        transaction,
+      }
+    );
+
+    ctx.body = {
+      data: {
+        users: [presentUser(user)],
+        memberships: [presentMembership(membership)],
+      },
+    };
+  }
+);
+
+router.post(
+  "documents.remove_user",
+  auth(),
+  validate(T.DocumentsRemoveUserSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsRemoveUserReq>) => {
+    const { auth, transaction } = ctx.state;
+    const actor = auth.user;
+    const { id, userId } = ctx.input.body;
+
+    const [document, user] = await Promise.all([
+      Document.findByPk(id, {
+        userId: actor.id,
+        rejectOnEmpty: true,
+        transaction,
+      }),
+      User.findByPk(userId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
+
+    if (actor.id !== userId) {
+      authorize(actor, "manageUsers", document);
+      authorize(actor, "read", user);
+    }
+
+    const membership = await UserMembership.findOne({
+      where: {
+        documentId: id,
+        userId,
+      },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+    });
+
+    await membership.destroy({ transaction });
+
+    await Event.create(
+      {
+        name: "documents.remove_user",
+        userId,
+        modelId: membership.id,
+        documentId: document.id,
+        teamId: document.teamId,
+        actorId: actor.id,
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
+  "documents.memberships",
+  auth(),
+  pagination(),
+  validate(T.DocumentsMembershipsSchema),
+  async (ctx: APIContext<T.DocumentsMembershipsReq>) => {
+    const { id, query, permission } = ctx.input.body;
+    const { user: actor } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, { userId: actor.id });
+    authorize(actor, "update", document);
+
+    let where: WhereOptions<UserMembership> = {
+      documentId: id,
+    };
+    let userWhere;
+
+    if (query) {
+      userWhere = {
+        name: {
+          [Op.iLike]: `%${query}%`,
+        },
+      };
+    }
+
+    if (permission) {
+      where = { ...where, permission };
+    }
+
+    const options = {
+      where,
+      include: [
+        {
+          model: User,
+          as: "user",
+          where: userWhere,
+          required: true,
+        },
+      ],
+    };
+
+    const [total, memberships] = await Promise.all([
+      UserMembership.count(options),
+      UserMembership.findAll({
+        ...options,
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+    ]);
+
+    ctx.body = {
+      pagination: { ...ctx.state.pagination, total },
+      data: {
+        memberships: memberships.map(presentMembership),
+        users: memberships.map((membership) => presentUser(membership.user)),
+      },
     };
   }
 );

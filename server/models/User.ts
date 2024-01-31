@@ -40,6 +40,7 @@ import {
   NotificationEventType,
   NotificationEventDefaults,
   UserRole,
+  DocumentPermission,
 } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
@@ -52,7 +53,7 @@ import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
-import UserPermission from "./UserPermission";
+import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Encrypted, {
   setEncryptedColumn,
@@ -253,6 +254,12 @@ class User extends ParanoidModel<
     return this.isViewer
       ? CollectionPermission.Read
       : CollectionPermission.ReadWrite;
+  }
+
+  get defaultDocumentPermission(): DocumentPermission {
+    return this.isViewer
+      ? DocumentPermission.Read
+      : DocumentPermission.ReadWrite;
   }
 
   /**
@@ -559,7 +566,7 @@ class User extends ParanoidModel<
           },
           options
         );
-        await UserPermission.update(
+        await UserMembership.update(
           {
             permission: CollectionPermission.Read,
           },

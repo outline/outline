@@ -3,6 +3,7 @@ import formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
+import { DocumentPermission } from "@shared/types";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import { BaseSchema } from "@server/routes/api/schema";
 
@@ -353,3 +354,47 @@ export const DocumentsUsersSchema = BaseSchema.extend({
 });
 
 export type DocumentsUsersReq = z.infer<typeof DocumentsUsersSchema>;
+
+export const DocumentsAddUserSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the document to which the user is supposed to be added */
+    id: z.string().uuid(),
+    /** Id of the user who is to be added*/
+    userId: z.string().uuid(),
+    /** Permission to be granted to the added user  */
+    permission: z.nativeEnum(DocumentPermission).optional(),
+  }),
+});
+
+export type DocumentsAddUserReq = z.infer<typeof DocumentsAddUserSchema>;
+
+export const DocumentsRemoveUserSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the document from which to remove the user */
+    id: z.string().uuid(),
+    /** Id of the user who is to be removed */
+    userId: z.string().uuid(),
+  }),
+});
+
+export type DocumentsRemoveUserReq = z.infer<typeof DocumentsRemoveUserSchema>;
+
+export const DocumentsSharedWithUserSchema = BaseSchema.extend({
+  body: DocumentsSortParamsSchema,
+});
+
+export type DocumentsSharedWithUserReq = z.infer<
+  typeof DocumentsSharedWithUserSchema
+>;
+
+export const DocumentsMembershipsSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    query: z.string().optional(),
+    permission: z.nativeEnum(DocumentPermission).optional(),
+  }),
+});
+
+export type DocumentsMembershipsReq = z.infer<
+  typeof DocumentsMembershipsSchema
+>;

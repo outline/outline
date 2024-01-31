@@ -114,7 +114,11 @@ const Modal: React.FC<Props> = ({
                 >
                   <Content>
                     <Centered onClick={(ev) => ev.stopPropagation()} column>
-                      {title && <h1>{title}</h1>}
+                      {title && (
+                        <Text size="xlarge" weight="bold">
+                          {title}
+                        </Text>
+                      )}
                       <ErrorBoundary>{children}</ErrorBoundary>
                     </Centered>
                   </Content>
@@ -188,7 +192,7 @@ const Fullscreen = styled.div<FullscreenProps>`
 
 const Content = styled(Scrollable)`
   width: 100%;
-  padding: 8vh 32px;
+  padding: 8vh 12px;
 
   ${breakpoint("tablet")`
     padding: 13vh 2rem 2rem;

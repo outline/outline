@@ -39,6 +39,7 @@ import {
   IsNumeric,
   IsDate,
   AllowNull,
+  BelongsToMany,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type {
@@ -58,6 +59,7 @@ import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
+import UserMembership from "./UserMembership";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -100,33 +102,20 @@ type AdditionalFindOptions = {
   },
 }))
 @Scopes(() => ({
-  withCollectionPermissions: (userId: string, paranoid = true) => {
-    if (userId) {
-      return {
-        include: [
-          {
-            attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
-            model: Collection.scope({
+  withCollectionPermissions: (userId: string, paranoid = true) => ({
+    include: [
+      {
+        attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
+        model: userId
+          ? Collection.scope({
               method: ["withMembership", userId],
-            }),
-            as: "collection",
-            paranoid,
-          },
-        ],
-      };
-    }
-
-    return {
-      include: [
-        {
-          attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
-          model: Collection,
-          as: "collection",
-          paranoid,
-        },
-      ],
-    };
-  },
+            })
+          : Collection,
+        as: "collection",
+        paranoid,
+      },
+    ],
+  }),
   withoutState: {
     attributes: {
       exclude: ["state"],
@@ -185,6 +174,22 @@ type AdditionalFindOptions = {
           },
           required: false,
           separate: true,
+        },
+      ],
+    };
+  },
+  withMembership: (userId: string) => {
+    if (!userId) {
+      return {};
+    }
+    return {
+      include: [
+        {
+          association: "memberships",
+          where: {
+            userId,
+          },
+          required: false,
         },
       ],
     };
@@ -501,9 +506,15 @@ class Document extends ParanoidModel<
   @BelongsTo(() => Collection, "collectionId")
   collection: Collection | null | undefined;
 
+  @BelongsToMany(() => User, () => UserMembership)
+  users: User[];
+
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
+
+  @HasMany(() => UserMembership)
+  memberships: UserMembership[];
 
   @HasMany(() => Revision)
   revisions: Revision[];
@@ -524,7 +535,15 @@ class Document extends ParanoidModel<
     const viewScope: Readonly<ScopeOptions> = {
       method: ["withViews", userId],
     };
-    return this.scope(["defaultScope", collectionScope, viewScope]);
+    const membershipScope: Readonly<ScopeOptions> = {
+      method: ["withMembership", userId],
+    };
+    return this.scope([
+      "defaultScope",
+      collectionScope,
+      viewScope,
+      membershipScope,
+    ]);
   }
 
   /**
@@ -563,6 +582,9 @@ class Document extends ParanoidModel<
       },
       {
         method: ["withViews", userId],
+      },
+      {
+        method: ["withMembership", userId],
       },
     ]);
 
@@ -788,9 +810,51 @@ class Document extends ParanoidModel<
       }
     }
 
+    const parentDocumentPermissions = this.parentDocumentId
+      ? await UserMembership.findAll({
+          where: {
+            documentId: this.parentDocumentId,
+          },
+          transaction,
+        })
+      : [];
+
+    await Promise.all(
+      parentDocumentPermissions.map((permission) =>
+        UserMembership.create(
+          {
+            documentId: this.id,
+            userId: permission.userId,
+            sourceId: permission.sourceId ?? permission.id,
+            permission: permission.permission,
+            createdById: permission.createdById,
+          },
+          {
+            transaction,
+          }
+        )
+      )
+    );
+
     this.lastModifiedById = userId;
     this.publishedAt = new Date();
     return this.save({ transaction });
+  };
+
+  isCollectionDeleted = async () => {
+    if (this.deletedAt || this.archivedAt) {
+      if (this.collectionId) {
+        const collection =
+          this.collection ??
+          (await Collection.findByPk(this.collectionId, {
+            attributes: ["deletedAt"],
+            paranoid: false,
+          }));
+
+        return !!collection?.deletedAt;
+      }
+    }
+    return false;
   };
 
   unpublish = async (userId: string) => {

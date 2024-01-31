@@ -2,32 +2,19 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { CollectionPermission } from "@shared/types";
 import InputSelect, { Props as SelectProps } from "~/components/InputSelect";
+import { Permission } from "~/types";
 
 export default function InputMemberPermissionSelect(
-  props: Partial<SelectProps>
+  props: Partial<SelectProps> & { permissions: Permission[] }
 ) {
   const { t } = useTranslation();
 
   return (
     <Select
       label={t("Permissions")}
-      options={[
-        {
-          label: t("View only"),
-          value: CollectionPermission.Read,
-        },
-        {
-          label: t("View and edit"),
-          value: CollectionPermission.ReadWrite,
-        },
-        {
-          label: t("Admin"),
-          value: CollectionPermission.Admin,
-        },
-      ]}
-      ariaLabel={t("Permission")}
+      options={props.permissions}
+      ariaLabel={t("Permissions")}
       labelHidden
       nude
       {...props}

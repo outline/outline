@@ -2,7 +2,7 @@ import styled, { css } from "styled-components";
 
 type Props = {
   type?: "secondary" | "tertiary" | "danger";
-  size?: "large" | "small" | "xsmall";
+  size?: "xlarge" | "large" | "medium" | "small" | "xsmall";
   dir?: "ltr" | "rtl" | "auto";
   selectable?: boolean;
   weight?: "bold" | "normal";
@@ -24,8 +24,12 @@ const Text = styled.p<Props>`
       ? props.theme.brand.red
       : props.theme.text};
   font-size: ${(props) =>
-    props.size === "large"
+    props.size === "xlarge"
+      ? "26px"
+      : props.size === "large"
       ? "18px"
+      : props.size === "medium"
+      ? "16px"
       : props.size === "small"
       ? "14px"
       : props.size === "xsmall"

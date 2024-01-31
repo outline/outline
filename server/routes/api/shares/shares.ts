@@ -243,12 +243,8 @@ router.post(
 
     if (published !== undefined) {
       share.published = published;
-
-      // Reset nested document sharing when unpublishing a share link. So that
-      // If it's ever re-published this doesn't immediately share nested docs
-      // without forewarning the user
-      if (!published) {
-        share.includeChildDocuments = false;
+      if (published) {
+        share.includeChildDocuments = true;
       }
     }
 

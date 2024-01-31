@@ -14,6 +14,7 @@ import {
   Team,
   Subscription,
   Notification,
+  UserMembership,
 } from "@server/models";
 import {
   presentComment,
@@ -25,12 +26,13 @@ import {
   presentStar,
   presentSubscription,
   presentTeam,
+  presentMembership,
 } from "@server/presenters";
 import presentNotification from "@server/presenters/notification";
 import { Event } from "../../types";
 
 export default class WebsocketsProcessor {
-  async perform(event: Event, socketio: Server) {
+  public async perform(event: Event, socketio: Server) {
     switch (event.name) {
       case "documents.publish":
       case "documents.unpublish":
@@ -43,10 +45,8 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const channel = document.publishedAt
-          ? `collection-${document.collectionId}`
-          : `user-${event.actorId}`;
-        return socketio.to(channel).emit("entities", {
+        const channels = await this.getDocumentEventChannels(event, document);
+        return socketio.to(channels).emit("entities", {
           event: event.name,
           documentIds: [
             {
@@ -79,12 +79,9 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
-        const channel = document.publishedAt
-          ? `collection-${document.collectionId}`
-          : `user-${event.actorId}`;
-
         const data = await presentDocument(document);
-        return socketio.to(channel).emit(event.name, data);
+        const channels = await this.getDocumentEventChannels(event, document);
+        return socketio.to(channels).emit(event.name, data);
       }
 
       case "documents.create": {
@@ -92,7 +89,9 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
-        return socketio.to(`user-${event.actorId}`).emit("entities", {
+
+        const channels = await this.getDocumentEventChannels(event, document);
+        return socketio.to(channels).emit("entities", {
           event: event.name,
           documentIds: [
             {
@@ -135,6 +134,35 @@ export default class WebsocketsProcessor {
               },
             ],
           });
+        });
+        return;
+      }
+
+      case "documents.add_user": {
+        const [document, membership] = await Promise.all([
+          Document.findByPk(event.documentId),
+          UserMembership.findByPk(event.modelId),
+        ]);
+        if (!document || !membership) {
+          return;
+        }
+
+        const channels = await this.getDocumentEventChannels(event, document);
+        socketio.to(channels).emit(event.name, presentMembership(membership));
+        return;
+      }
+
+      case "documents.remove_user": {
+        const document = await Document.findByPk(event.documentId);
+        if (!document) {
+          return;
+        }
+
+        const channels = await this.getDocumentEventChannels(event, document);
+        socketio.to([...channels, `user-${event.userId}`]).emit(event.name, {
+          id: event.modelId,
+          userId: event.userId,
+          documentId: event.documentId,
         });
         return;
       }
@@ -372,24 +400,47 @@ export default class WebsocketsProcessor {
 
       case "comments.create":
       case "comments.update": {
-        const comment = await Comment.scope([
-          "defaultScope",
-          "withDocument",
-        ]).findByPk(event.modelId);
+        const comment = await Comment.findByPk(event.modelId, {
+          include: [
+            {
+              model: Document.scope(["withoutState", "withDrafts"]),
+              as: "document",
+              required: true,
+            },
+          ],
+        });
         if (!comment) {
           return;
         }
-        return socketio
-          .to(`collection-${comment.document.collectionId}`)
-          .emit(event.name, presentComment(comment));
+
+        const channels = await this.getDocumentEventChannels(
+          event,
+          comment.document
+        );
+        return socketio.to(channels).emit(event.name, presentComment(comment));
       }
 
       case "comments.delete": {
-        return socketio
-          .to(`collection-${event.collectionId}`)
-          .emit(event.name, {
-            modelId: event.modelId,
-          });
+        const comment = await Comment.findByPk(event.modelId, {
+          include: [
+            {
+              model: Document.scope(["withoutState", "withDrafts"]),
+              as: "document",
+              required: true,
+            },
+          ],
+        });
+        if (!comment) {
+          return;
+        }
+
+        const channels = await this.getDocumentEventChannels(
+          event,
+          comment.document
+        );
+        return socketio.to(channels).emit(event.name, {
+          modelId: event.modelId,
+        });
       }
 
       case "notifications.create":
@@ -622,8 +673,41 @@ export default class WebsocketsProcessor {
           .emit(event.name, { id: event.userId });
       }
 
+      case "userMemberships.update": {
+        return socketio
+          .to(`user-${event.userId}`)
+          .emit(event.name, { id: event.modelId, ...event.data });
+      }
+
       default:
         return;
     }
+  }
+
+  private async getDocumentEventChannels(
+    event: Event,
+    document: Document
+  ): Promise<string[]> {
+    const channels = [];
+
+    if (event.actorId) {
+      channels.push(`user-${event.actorId}`);
+    }
+
+    if (document.publishedAt) {
+      channels.push(`collection-${document.collectionId}`);
+    }
+
+    const memberships = await UserMembership.findAll({
+      where: {
+        documentId: document.id,
+      },
+    });
+
+    for (const membership of memberships) {
+      channels.push(`user-${membership.userId}`);
+    }
+
+    return channels;
   }
 }
