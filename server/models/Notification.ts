@@ -189,9 +189,9 @@ class Notification extends Model<
 
     if (options.transaction) {
       options.transaction.afterCommit(() => void Event.schedule(params));
-    } else {
-      setTimeout(() => void Event.schedule(params), 100);
+      return;
     }
+    await Event.schedule(params);
   }
 
   /**

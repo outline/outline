@@ -117,7 +117,7 @@ class Notification extends Model {
       case NotificationEventType.AddUserToDocument:
         return t("shared");
       case NotificationEventType.AddUserToCollection:
-        return t("added you to");
+        return t("invited you to");
       default:
         return this.event;
     }

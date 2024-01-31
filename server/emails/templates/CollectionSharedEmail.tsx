@@ -70,30 +70,30 @@ View Document: ${teamUrl}${collection.path}
 
   protected render(props: Props) {
     const { collection, membership, actorName, teamUrl } = props;
-    const collectionLink = `${teamUrl}${collection.path}?ref=notification-email`;
+    const collectionUrl = `${teamUrl}${collection.path}?ref=notification-email`;
 
     const permission =
       membership.permission === CollectionPermission.ReadWrite
         ? "view and edit"
         : CollectionPermission.Admin
-        ? "view and administer"
+        ? "manage"
         : "view";
 
     return (
       <EmailTemplate
         previewText={this.preview(props)}
-        goToAction={{ url: collectionLink, name: "View Collection" }}
+        goToAction={{ url: collectionUrl, name: "View Collection" }}
       >
         <Header />
 
         <Body>
           <Heading>{collection.name}</Heading>
           <p>
-            {actorName} invited you to {permission} documents in this
-            collection.
+            {actorName} invited you to {permission} documents in the{" "}
+            <a href={collectionUrl}>{collection.name}</a> collection.
           </p>
           <p>
-            <Button href={collectionLink}>View Collection</Button>
+            <Button href={collectionUrl}>View Collection</Button>
           </p>
         </Body>
       </EmailTemplate>

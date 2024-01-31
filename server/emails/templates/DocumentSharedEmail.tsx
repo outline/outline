@@ -70,7 +70,7 @@ View Document: ${teamUrl}${document.path}
 
   protected render(props: Props) {
     const { document, membership, actorName, teamUrl } = props;
-    const documentLink = `${teamUrl}${document.path}?ref=notification-email`;
+    const documentUrl = `${teamUrl}${document.path}?ref=notification-email`;
 
     const permission =
       membership.permission === DocumentPermission.ReadWrite ? "edit" : "view";
@@ -78,17 +78,18 @@ View Document: ${teamUrl}${document.path}
     return (
       <EmailTemplate
         previewText={this.preview(props)}
-        goToAction={{ url: documentLink, name: "View Document" }}
+        goToAction={{ url: documentUrl, name: "View Document" }}
       >
         <Header />
 
         <Body>
           <Heading>{document.title}</Heading>
           <p>
-            {actorName} invited you to {permission} this document.
+            {actorName} invited you to {permission} the{" "}
+            <a href={documentUrl}>{document.title}</a> document.
           </p>
           <p>
-            <Button href={documentLink}>View Document</Button>
+            <Button href={documentUrl}>View Document</Button>
           </p>
         </Body>
       </EmailTemplate>

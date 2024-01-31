@@ -25,6 +25,10 @@ export default class EmailsProcessor extends BaseProcessor {
 
     const notificationId = notification.id;
 
+    if (notification.user.isSuspended) {
+      return;
+    }
+
     switch (notification.event) {
       case NotificationEventType.UpdateDocument:
       case NotificationEventType.PublishDocument: {
