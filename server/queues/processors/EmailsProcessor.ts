@@ -4,6 +4,7 @@ import CommentCreatedEmail from "@server/emails/templates/CommentCreatedEmail";
 import CommentMentionedEmail from "@server/emails/templates/CommentMentionedEmail";
 import DocumentMentionedEmail from "@server/emails/templates/DocumentMentionedEmail";
 import DocumentPublishedOrUpdatedEmail from "@server/emails/templates/DocumentPublishedOrUpdatedEmail";
+import DocumentSharedEmail from "@server/emails/templates/DocumentSharedEmail";
 import { Notification } from "@server/models";
 import { Event, NotificationEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
@@ -32,6 +33,19 @@ export default class EmailsProcessor extends BaseProcessor {
             userId: notification.userId,
             eventType: notification.event,
             revisionId: notification.revisionId,
+            documentId: notification.documentId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+          },
+          { notificationId }
+        ).schedule();
+        return;
+      }
+
+      case NotificationEventType.AddUserToDocument: {
+        await new DocumentSharedEmail(
+          {
+            to: notification.user.email,
             documentId: notification.documentId,
             teamUrl: notification.team.url,
             actorName: notification.actor.name,

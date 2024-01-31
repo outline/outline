@@ -203,6 +203,8 @@ export type CollectionSort = {
 export enum NotificationEventType {
   PublishDocument = "documents.publish",
   UpdateDocument = "documents.update",
+  AddUserToDocument = "documents.add_user",
+  AddUserToCollection = "collections.add_user",
   CreateRevision = "revisions.create",
   CreateCollection = "collections.create",
   CreateComment = "comments.create",
@@ -239,6 +241,8 @@ export const NotificationEventDefaults = {
   [NotificationEventType.Onboarding]: true,
   [NotificationEventType.Features]: true,
   [NotificationEventType.ExportCompleted]: true,
+  [NotificationEventType.AddUserToDocument]: true,
+  [NotificationEventType.AddUserToCollection]: true,
 };
 
 export enum UnfurlType {

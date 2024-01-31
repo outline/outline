@@ -7,6 +7,7 @@ import {
   NavigationNode,
   Client,
   CollectionPermission,
+  DocumentPermission,
 } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { AccountProvisionerResult } from "./commands/accountProvisioner";
@@ -225,6 +226,7 @@ export type DocumentUserEvent = BaseEvent & {
   userId: string;
   modelId: string;
   documentId: string;
+  data: { title: string; isNew: boolean; permission: DocumentPermission };
 };
 
 export type CollectionEvent = BaseEvent &

@@ -114,6 +114,9 @@ class Notification extends Model {
         return t("mentioned you in");
       case NotificationEventType.CreateComment:
         return t("left a comment on");
+      case NotificationEventType.AddUserToDocument:
+      case NotificationEventType.AddUserToCollection:
+        return t("shared");
       default:
         return this.event;
     }
@@ -142,12 +145,14 @@ class Notification extends Model {
       case NotificationEventType.CreateRevision: {
         return this.document ? documentPath(this.document) : "";
       }
+      case NotificationEventType.AddUserToCollection:
       case NotificationEventType.CreateCollection: {
         const collection = this.collectionId
           ? this.store.rootStore.documents.get(this.collectionId)
           : undefined;
         return collection ? collectionPath(collection.url) : "";
       }
+      case NotificationEventType.AddUserToDocument:
       case NotificationEventType.MentionedInDocument: {
         return this.document?.url;
       }
