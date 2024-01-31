@@ -75,7 +75,7 @@ function Slack() {
           </Trans>
         </Notice>
       )}
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans
           defaults="Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat."
           values={{
@@ -113,7 +113,7 @@ function Slack() {
           <p>&nbsp;</p>
 
           <h2>{t("Collections")}</h2>
-          <Text type="secondary">
+          <Text as="p" type="secondary">
             <Trans>
               Connect {{ appName }} collections to Slack channels. Messages will
               be automatically posted to Slack when documents are published or

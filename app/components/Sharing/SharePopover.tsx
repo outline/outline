@@ -478,7 +478,7 @@ const AccessTooltip = ({
 
   return (
     <Flex align="center" gap={2}>
-      <Text type="secondary" size="small" as="span">
+      <Text type="secondary" size="small">
         {children}
       </Text>
       <Tooltip tooltip={tooltip ?? t("Access inherited from collection")}>

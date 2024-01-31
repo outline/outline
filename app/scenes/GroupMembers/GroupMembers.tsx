@@ -51,7 +51,7 @@ function GroupMembers({ group }: Props) {
     <Flex column>
       {can.update ? (
         <>
-          <Text type="secondary">
+          <Text as="p" type="secondary">
             <Trans
               defaults="Add and remove members to the <em>{{groupName}}</em> group. Members of the group will have access to any collections this group has been added to."
               values={{
@@ -74,7 +74,7 @@ function GroupMembers({ group }: Props) {
           </span>
         </>
       ) : (
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <Trans
             defaults="Listing members of the <em>{{groupName}}</em> group."
             values={{

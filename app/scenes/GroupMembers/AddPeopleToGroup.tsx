@@ -75,7 +75,7 @@ function AddPeopleToGroup(props: Props) {
 
   return (
     <Flex column>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         {t(
           "Add members below to give them access to the group. Need to add someone who’s not yet a member?"
         )}{" "}

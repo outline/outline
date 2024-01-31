@@ -12,7 +12,7 @@ type Props = {
  * Use this component for all interface text that should not be selectable
  * by the user, this is the majority of UI text explainers, notes, headings.
  */
-const Text = styled.p<Props>`
+const Text = styled.span<Props>`
   margin-top: 0;
   text-align: ${(props) => (props.dir ? props.dir : "inherit")};
   color: ${(props) =>

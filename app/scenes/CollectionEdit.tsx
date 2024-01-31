@@ -78,7 +78,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <Trans>
             You can edit the name and other details at any time, however doing
             so often might confuse your team mates.

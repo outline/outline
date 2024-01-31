@@ -82,7 +82,7 @@ class ErrorBoundary extends React.Component<Props> {
                 </h1>
               </>
             )}
-            <Text type="secondary">
+            <Text as="p" type="secondary">
               <Trans>
                 Sorry, part of the application failed to load. This may be
                 because it was updated since you opened the tab or because of a
@@ -106,7 +106,7 @@ class ErrorBoundary extends React.Component<Props> {
               </h1>
             </>
           )}
-          <Text type="secondary">
+          <Text as="p" type="secondary">
             <Trans
               defaults="Sorry, an unrecoverable error occurred{{notified}}. Please try reloading the page, it may have been a temporary glitch."
               values={{

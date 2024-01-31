@@ -119,7 +119,7 @@ class CollectionNew extends React.Component<Props> {
     const teamSharingEnabled = !!auth.team && auth.team.sharing;
     return (
       <form onSubmit={this.handleSubmit}>
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <Trans>
             Collections are for grouping your documents. They work best when
             organized around a topic or internal team — Product or Engineering

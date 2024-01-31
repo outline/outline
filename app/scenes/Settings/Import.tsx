@@ -28,7 +28,7 @@ function Import() {
   return (
     <Scene title={t("Import")} icon={<NewDocumentIcon />}>
       <Heading>{t("Import")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Quickly transfer your existing documents, pages, and files from other
           tools and services into {{ appName }}. You can also drag and drop any

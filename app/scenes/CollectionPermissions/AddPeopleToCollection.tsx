@@ -69,7 +69,7 @@ function AddPeopleToCollection({ collection }: Props) {
 
   return (
     <Flex column>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         {t("Need to add someone who’s not on the team yet?")}{" "}
         {can.inviteUser ? (
           <ButtonLink onClick={setInviteModalOpen}>

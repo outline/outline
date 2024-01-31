@@ -43,7 +43,7 @@ function APITokenNew({ onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         {t(
           `Name your token something that will help you to remember it's use in the future, for example "local development", "production", or "continuous integration".`
         )}

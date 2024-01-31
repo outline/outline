@@ -89,11 +89,7 @@ const Modal: React.FC<Props> = ({
                       <ErrorBoundary component="div">{children}</ErrorBoundary>
                     </SmallContent>
                     <Header>
-                      {title && (
-                        <Text as="span" size="large">
-                          {title}
-                        </Text>
-                      )}
+                      {title && <Text size="large">{title}</Text>}
                       <NudeButton onClick={onRequestClose}>
                         <CloseIcon />
                       </NudeButton>
@@ -127,7 +123,7 @@ const Modal: React.FC<Props> = ({
                   </Close>
                   <Back onClick={onRequestClose}>
                     <BackIcon size={32} />
-                    <Text as="span">{t("Back")} </Text>
+                    <Text>{t("Back")} </Text>
                   </Back>
                 </Fullscreen>
               )

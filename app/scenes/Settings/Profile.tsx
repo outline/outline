@@ -48,7 +48,7 @@ const Profile = () => {
   return (
     <Scene title={t("Profile")} icon={<ProfileIcon />}>
       <Heading>{t("Profile")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>Manage how you appear to other members of the workspace.</Trans>
       </Text>
 

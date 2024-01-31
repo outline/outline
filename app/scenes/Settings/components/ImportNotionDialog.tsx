@@ -13,7 +13,7 @@ function ImportNotionDialog() {
 
   return (
     <Flex column>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <DropToImport
           onSubmit={dialogs.closeAllModals}
           format={FileOperationFormat.Notion}

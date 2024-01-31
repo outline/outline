@@ -65,7 +65,7 @@ function TeamNew({ user }: Props) {
           />
         </Flex>
 
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <Trans
             defaults="You are creating a new workspace using your current account — <em>{{email}}</em>"
             values={{

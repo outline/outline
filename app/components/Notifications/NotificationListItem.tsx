@@ -45,15 +45,13 @@ function NotificationListItem({ notification, onNavigate }: Props) {
         <StyledAvatar model={notification.actor} size={AvatarSize.Large} />
         <Flex column>
           <Text as="div" size="small">
-            <Text as="span" weight="bold">
+            <Text weight="bold">
               {notification.actor?.name ?? t("Unknown")}
             </Text>{" "}
             {notification.eventText(t)}{" "}
-            <Text as="span" weight="bold">
-              {notification.subject}
-            </Text>
+            <Text weight="bold">{notification.subject}</Text>
           </Text>
-          <Text as="span" type="tertiary" size="xsmall">
+          <Text type="tertiary" size="xsmall">
             <Time
               dateTime={notification.createdAt}
               tooltipDelay={1000}

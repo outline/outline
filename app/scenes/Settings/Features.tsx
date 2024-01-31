@@ -29,7 +29,7 @@ function Features() {
   return (
     <Scene title={t("Features")} icon={<BeakerIcon />}>
       <Heading>{t("Features")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Manage optional and beta features. Changing these settings will affect
           the experience for all members of the workspace.

@@ -167,7 +167,7 @@ function Members() {
       wide
     >
       <Heading>{t("Members")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Everyone that has signed into {{ appName }} is listed here. It’s
           possible that there are other users who have access through{" "}

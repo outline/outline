@@ -135,7 +135,7 @@ function Security() {
   return (
     <Scene title={t("Security")} icon={<PadlockIcon />}>
       <Heading>{t("Security")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Settings that impact the access, security, and content of your
           workspace.
@@ -164,7 +164,7 @@ function Security() {
                 color={provider.isActive ? theme.accent : undefined}
                 checked={provider.isActive}
               />{" "}
-              <Text type="secondary">
+              <Text as="p" type="secondary">
                 {provider.isActive ? t("Connected") : t("Disabled")}
               </Text>
             </Flex>

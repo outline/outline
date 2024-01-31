@@ -25,7 +25,7 @@ function EmptyCollection({ collection }: Props) {
 
   return (
     <Centered column>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans
           defaults="<em>{{ collectionName }}</em> doesn’t contain any
                     documents yet."

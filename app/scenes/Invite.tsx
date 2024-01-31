@@ -160,7 +160,7 @@ function Invite({ onSubmit }: Props) {
   return (
     <form onSubmit={handleSubmit}>
       {team.guestSignin ? (
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <Trans
             defaults="Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address."
             values={{
@@ -170,7 +170,7 @@ function Invite({ onSubmit }: Props) {
           {collectionAccessNote}
         </Text>
       ) : (
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <Trans
             defaults="Invite members to join your workspace. They will need to sign in with {{signinMethods}}."
             values={{

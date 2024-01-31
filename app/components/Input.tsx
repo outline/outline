@@ -245,9 +245,9 @@ function Input(
       </label>
       {error && (
         <TextWrapper>
-          <StyledText type="danger" size="xsmall">
+          <Text type="danger" size="xsmall">
             {error}
-          </StyledText>
+          </Text>
         </TextWrapper>
       )}
     </Wrapper>
@@ -258,10 +258,6 @@ export const TextWrapper = styled.span`
   min-height: 16px;
   display: block;
   margin-top: -16px;
-`;
-
-export const StyledText = styled(Text)`
-  margin-bottom: 0;
 `;
 
 export default React.forwardRef(Input);

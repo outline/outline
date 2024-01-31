@@ -50,7 +50,7 @@ function Preferences() {
   return (
     <Scene title={t("Preferences")} icon={<SettingsIcon />}>
       <Heading>{t("Preferences")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>Manage settings that affect your personal experience.</Trans>
       </Text>
 

@@ -131,7 +131,7 @@ function Notifications() {
           </Trans>
         </Notice>
       )}
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>Manage when and where you receive email notifications.</Trans>
       </Text>
 

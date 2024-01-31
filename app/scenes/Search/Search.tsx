@@ -247,7 +247,7 @@ function Search(props: Props) {
             {showEmpty && (
               <Fade>
                 <Centered column>
-                  <Text type="secondary">
+                  <Text as="p" type="secondary">
                     {t("No documents found for your search filters.")}
                   </Text>
                 </Centered>

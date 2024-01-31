@@ -33,7 +33,7 @@ const HelpDisclosure: React.FC<Props> = ({ title, children }: Props) => {
         )}
       </Disclosure>
       <HelpContent {...disclosure}>
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <br />
           {children}
         </Text>

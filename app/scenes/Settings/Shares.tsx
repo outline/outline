@@ -86,7 +86,7 @@ function Shares() {
         </>
       )}
 
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Documents that have been shared are listed below. Anyone that has the
           public link can access a read-only version of the document until the

@@ -67,7 +67,7 @@ function TeamDelete({ onSubmit }: Props) {
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       {isWaitingCode ? (
         <>
-          <Text type="secondary">
+          <Text as="p" type="secondary">
             <Trans>
               A confirmation code has been sent to your email address, please
               enter the code below to permanently destroy this workspace.
@@ -84,7 +84,7 @@ function TeamDelete({ onSubmit }: Props) {
         </>
       ) : (
         <>
-          <Text type="secondary">
+          <Text as="p" type="secondary">
             <Trans>
               Deleting the <strong>{{ workspaceName }}</strong> workspace will
               destroy all collections, documents, users, and associated data.

@@ -55,7 +55,7 @@ function Insights() {
           <div>
             <Content column>
               <Heading>{t("Stats")}</Heading>
-              <Text type="secondary" size="small">
+              <Text as="p" type="secondary" size="small">
                 <List>
                   {stats.total.words > 0 && (
                     <li>
@@ -98,7 +98,7 @@ function Insights() {
               <>
                 <Content column>
                   <Heading>{t("Contributors")}</Heading>
-                  <Text type="secondary" size="small">
+                  <Text as="p" type="secondary" size="small">
                     {t(`Created`)}{" "}
                     <Time dateTime={document.createdAt} addSuffix />.
                     <br />
@@ -130,7 +130,7 @@ function Insights() {
                 </Content>
                 <Content column>
                   <Heading>{t("Views")}</Heading>
-                  <Text type="secondary" size="small">
+                  <Text as="p" type="secondary" size="small">
                     {documentViews.length <= 1
                       ? t("No one else has viewed yet")
                       : t(
@@ -157,10 +157,10 @@ function Insights() {
           {can.updateInsights && (
             <Manage>
               <Flex column>
-                <Text size="small" weight="bold">
+                <Text as="p" size="small" weight="bold">
                   {t("Viewer insights")}
                 </Text>
-                <Text type="secondary" size="small">
+                <Text as="p" type="secondary" size="small">
                   {t(
                     "As an admin you can manage if team members can see who has viewed this document"
                   )}

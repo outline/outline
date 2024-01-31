@@ -5,6 +5,7 @@ import { DocumentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Input from "./Input";
+import Switch from "./Switch";
 import Text from "./Text";
 
 type Props = {
@@ -55,17 +56,15 @@ function DuplicateDialog({ document, onSubmit }: Props) {
         defaultValue={defaultTitle}
       />
       {document.publishedAt && !document.isTemplate && (
-        <label>
-          <Text size="small">
-            <input
-              type="checkbox"
-              name="recursive"
-              checked={recursive}
-              onChange={handleRecursiveChange}
-            />{" "}
-            {t("Include nested documents")}
-          </Text>
-        </label>
+        <Text size="small">
+          <Switch
+            name="recursive"
+            label={t("Include nested documents")}
+            labelPosition="right"
+            checked={recursive}
+            onChange={handleRecursiveChange}
+          />
+        </Text>
       )}
     </ConfirmationDialog>
   );
