@@ -1475,6 +1475,7 @@ router.post(
   "documents.add_user",
   auth(),
   validate(T.DocumentsAddUserSchema),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   transaction(),
   async (ctx: APIContext<T.DocumentsAddUserReq>) => {
     const { auth, transaction } = ctx.state;
@@ -1521,7 +1522,7 @@ router.post(
       UserMemberships.length ? UserMemberships[0].index : null
     );
 
-    const [membership] = await UserMembership.findOrCreate({
+    const [membership, isNew] = await UserMembership.findOrCreate({
       where: {
         documentId: id,
         userId,
@@ -1553,6 +1554,11 @@ router.post(
         teamId: document.teamId,
         actorId: actor.id,
         ip: ctx.request.ip,
+        data: {
+          title: document.title,
+          isNew,
+          permission: membership.permission,
+        },
       },
       {
         transaction,

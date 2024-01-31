@@ -5,6 +5,7 @@ import {
   CheckboxIcon,
   CollectionIcon,
   CommentIcon,
+  DocumentIcon,
   EditIcon,
   EmailIcon,
   PublishIcon,
@@ -78,6 +79,22 @@ function Notifications() {
       title: t("Invite accepted"),
       description: t(
         "Receive a notification when someone you invited creates an account"
+      ),
+    },
+    {
+      event: NotificationEventType.AddUserToDocument,
+      icon: <DocumentIcon />,
+      title: t("Invited to document"),
+      description: t(
+        "Receive a notification when a document is shared with you"
+      ),
+    },
+    {
+      event: NotificationEventType.AddUserToCollection,
+      icon: <CollectionIcon />,
+      title: t("Invited to collection"),
+      description: t(
+        "Receive a notification when you are given access to a collection"
       ),
     },
     {

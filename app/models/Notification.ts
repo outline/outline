@@ -7,6 +7,7 @@ import {
   documentPath,
   settingsPath,
 } from "~/utils/routeHelpers";
+import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";
 import User from "./User";
@@ -56,6 +57,14 @@ class Notification extends Model {
    * The collection ID that the notification is associated with.
    */
   collectionId?: string;
+
+  /**
+   * The collection that the notification is associated with.
+   */
+  @Relation(() => Collection, { onDelete: "cascade" })
+  collection?: Collection;
+
+  commentId?: string;
 
   /**
    * The comment that the notification is associated with.
@@ -114,6 +123,10 @@ class Notification extends Model {
         return t("mentioned you in");
       case NotificationEventType.CreateComment:
         return t("left a comment on");
+      case NotificationEventType.AddUserToDocument:
+        return t("shared");
+      case NotificationEventType.AddUserToCollection:
+        return t("invited you to");
       default:
         return this.event;
     }
@@ -126,7 +139,13 @@ class Notification extends Model {
    * @returns The subject
    */
   get subject() {
-    return this.document?.title;
+    if (this.documentId) {
+      return this.document?.title ?? "a document";
+    }
+    if (this.collectionId) {
+      return this.collection?.name ?? "a collection";
+    }
+    return "Unknown";
   }
 
   /**
@@ -142,20 +161,22 @@ class Notification extends Model {
       case NotificationEventType.CreateRevision: {
         return this.document ? documentPath(this.document) : "";
       }
+      case NotificationEventType.AddUserToCollection:
       case NotificationEventType.CreateCollection: {
         const collection = this.collectionId
           ? this.store.rootStore.documents.get(this.collectionId)
           : undefined;
-        return collection ? collectionPath(collection.url) : "";
+        return collection ? collectionPath(collection.path) : "";
       }
+      case NotificationEventType.AddUserToDocument:
       case NotificationEventType.MentionedInDocument: {
-        return this.document?.url;
+        return this.document?.path;
       }
       case NotificationEventType.MentionedInComment:
       case NotificationEventType.CreateComment: {
         return this.document && this.comment
           ? commentPath(this.document, this.comment)
-          : this.document?.url;
+          : this.document?.path;
       }
       case NotificationEventType.InviteAccepted: {
         return settingsPath("members");

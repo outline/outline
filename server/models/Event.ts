@@ -137,6 +137,8 @@ class Event extends IdModel<
     "collections.delete",
     "collections.move",
     "collections.permission_changed",
+    "collections.add_user",
+    "collections.remove_user",
     "documents.publish",
     "documents.unpublish",
     "documents.archive",

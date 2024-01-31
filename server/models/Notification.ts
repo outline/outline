@@ -72,12 +72,15 @@ import Fix from "./decorators/Fix";
   include: [
     {
       association: "document",
+      required: false,
     },
     {
       association: "comment",
+      required: false,
     },
     {
       association: "actor",
+      required: false,
     },
   ],
 }))
@@ -181,7 +184,9 @@ class Notification extends Model<
       userId: model.userId,
       modelId: model.id,
       teamId: model.teamId,
+      commentId: model.commentId,
       documentId: model.documentId,
+      collectionId: model.collectionId,
       actorId: model.actorId,
     };
 

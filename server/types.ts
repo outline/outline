@@ -7,6 +7,7 @@ import {
   NavigationNode,
   Client,
   CollectionPermission,
+  DocumentPermission,
 } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { AccountProvisionerResult } from "./commands/accountProvisioner";
@@ -209,15 +210,19 @@ export type FileOperationEvent = BaseEvent & {
 export type CollectionUserEvent = BaseEvent & {
   name: "collections.add_user" | "collections.remove_user";
   userId: string;
+  modelId: string;
   collectionId: string;
-  data: { name: string; membershipId: string };
+  data: {
+    isNew?: boolean;
+    permission?: CollectionPermission;
+  };
 };
 
 export type CollectionGroupEvent = BaseEvent & {
   name: "collections.add_group" | "collections.remove_group";
   collectionId: string;
   modelId: string;
-  data: { name: string; membershipId: string };
+  data: { name: string };
 };
 
 export type DocumentUserEvent = BaseEvent & {
@@ -225,6 +230,11 @@ export type DocumentUserEvent = BaseEvent & {
   userId: string;
   modelId: string;
   documentId: string;
+  data: {
+    title: string;
+    isNew?: boolean;
+    permission?: DocumentPermission;
+  };
 };
 
 export type CollectionEvent = BaseEvent &
@@ -381,7 +391,10 @@ export type NotificationEvent = BaseEvent & {
   modelId: string;
   teamId: string;
   userId: string;
+  actorId: string;
+  commentId?: string;
   documentId?: string;
+  collectionId?: string;
 };
 
 export type Event =
