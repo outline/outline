@@ -141,7 +141,6 @@ function SharePopover({
   React.useEffect(() => {
     if (visible) {
       void document.share();
-      linkButtonRef.current?.focus();
     }
   }, [document, hidePicker, visible]);
 
@@ -219,14 +218,16 @@ function SharePopover({
       </ButtonSmall>
     ) : null
   ) : (
-    <CopyToClipboard
-      text={urlify(documentPath(document))}
-      onCopy={handleCopied}
-    >
-      <NudeButton type="button" disabled={!share} ref={linkButtonRef}>
-        <LinkIcon size={20} />
-      </NudeButton>
-    </CopyToClipboard>
+    <Tooltip tooltip={t("Copy link")} delay={500} placement="top">
+      <CopyToClipboard
+        text={urlify(documentPath(document))}
+        onCopy={handleCopied}
+      >
+        <NudeButton type="button" disabled={!share} ref={linkButtonRef}>
+          <LinkIcon size={20} />
+        </NudeButton>
+      </CopyToClipboard>
+    </Tooltip>
   );
 
   return (
@@ -241,6 +242,7 @@ function SharePopover({
               value={query}
               onChange={handleQuery}
               onClick={showPicker}
+              autoFocus
               margin={0}
               flex
             >
@@ -356,7 +358,7 @@ const Picker = observer(
         ))}
       </>
     ) : (
-      <Empty>{t("No matches")}</Empty>
+      <Empty style={{ marginTop: 22 }}>{t("No matches")}</Empty>
     );
   }
 );
