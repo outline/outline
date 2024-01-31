@@ -151,6 +151,17 @@ const embeds: EmbedDescriptor[] = [
     icon: <Img src="/images/bilibili.png" alt="Bilibili" />,
   }),
   new EmbedDescriptor({
+    title: "Camunda Modeler",
+    keywords: "bpmn process cawemo",
+    defaultHidden: true,
+    regexMatch: [
+      new RegExp("^https?://modeler.cloud.camunda.io/(?:share|embed)/(.*)$"),
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://modeler.cloud.camunda.io/embed/${matches[1]}`,
+    icon: <Img src="/images/camunda.png" alt="Camunda" />,
+  }),
+  new EmbedDescriptor({
     title: "Canva",
     keywords: "design",
     regexMatch: [
