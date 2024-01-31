@@ -310,16 +310,16 @@ class Document extends ParanoidModel<
    * @deprecated Use `path` instead.
    */
   get url() {
+    return this.path;
+  }
+
+  /** The frontend path to this document. */
+  get path() {
     if (!this.title) {
       return `/doc/untitled-${this.urlId}`;
     }
     const slugifiedTitle = slugify(this.title);
     return `/doc/${slugifiedTitle}-${this.urlId}`;
-  }
-
-  /** The frontend path to this document. */
-  get path() {
-    return this.url;
   }
 
   get tasks() {

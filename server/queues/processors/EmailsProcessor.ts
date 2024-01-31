@@ -1,5 +1,6 @@
 import { NotificationEventType } from "@shared/types";
 import CollectionCreatedEmail from "@server/emails/templates/CollectionCreatedEmail";
+import CollectionSharedEmail from "@server/emails/templates/CollectionSharedEmail";
 import CommentCreatedEmail from "@server/emails/templates/CommentCreatedEmail";
 import CommentMentionedEmail from "@server/emails/templates/CommentMentionedEmail";
 import DocumentMentionedEmail from "@server/emails/templates/DocumentMentionedEmail";
@@ -46,7 +47,22 @@ export default class EmailsProcessor extends BaseProcessor {
         await new DocumentSharedEmail(
           {
             to: notification.user.email,
+            userId: notification.userId,
             documentId: notification.documentId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+          },
+          { notificationId }
+        ).schedule();
+        return;
+      }
+
+      case NotificationEventType.AddUserToCollection: {
+        await new CollectionSharedEmail(
+          {
+            to: notification.user.email,
+            userId: notification.userId,
+            collectionId: notification.collectionId,
             teamUrl: notification.team.url,
             actorName: notification.actor.name,
           },

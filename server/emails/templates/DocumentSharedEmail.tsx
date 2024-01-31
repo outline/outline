@@ -1,5 +1,6 @@
 import * as React from "react";
-import { Document } from "@server/models";
+import { DocumentPermission } from "@shared/types";
+import { Document, UserMembership } from "@server/models";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -8,6 +9,7 @@ import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 type InputProps = EmailProps & {
+  userId: string;
   documentId: string;
   actorName: string;
   teamUrl: string;
@@ -15,6 +17,7 @@ type InputProps = EmailProps & {
 
 type BeforeSend = {
   document: Document;
+  membership: UserMembership;
 };
 
 type Props = InputProps & BeforeSend;
@@ -26,13 +29,23 @@ export default class DocumentSharedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({ documentId }: InputProps) {
+  protected async beforeSend({ documentId, userId }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
       return false;
     }
 
-    return { document };
+    const membership = await UserMembership.findOne({
+      where: {
+        documentId,
+        userId,
+      },
+    });
+    if (!membership) {
+      return false;
+    }
+
+    return { document, membership };
   }
 
   protected subject({ actorName, document }: Props) {
@@ -56,8 +69,11 @@ View Document: ${teamUrl}${document.path}
   }
 
   protected render(props: Props) {
-    const { document, actorName, teamUrl } = props;
-    const documentLink = `${teamUrl}${document.url}?ref=notification-email`;
+    const { document, membership, actorName, teamUrl } = props;
+    const documentLink = `${teamUrl}${document.path}?ref=notification-email`;
+
+    const permission =
+      membership.permission === DocumentPermission.ReadWrite ? "edit" : "view";
 
     return (
       <EmailTemplate
@@ -68,7 +84,9 @@ View Document: ${teamUrl}${document.path}
 
         <Body>
           <Heading>{document.title}</Heading>
-          <p>{actorName} shared this document with you.</p>
+          <p>
+            {actorName} invited you to {permission} this document.
+          </p>
           <p>
             <Button href={documentLink}>View Document</Button>
           </p>

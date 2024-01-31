@@ -115,8 +115,9 @@ class Notification extends Model {
       case NotificationEventType.CreateComment:
         return t("left a comment on");
       case NotificationEventType.AddUserToDocument:
-      case NotificationEventType.AddUserToCollection:
         return t("shared");
+      case NotificationEventType.AddUserToCollection:
+        return t("added you to");
       default:
         return this.event;
     }
@@ -150,17 +151,17 @@ class Notification extends Model {
         const collection = this.collectionId
           ? this.store.rootStore.documents.get(this.collectionId)
           : undefined;
-        return collection ? collectionPath(collection.url) : "";
+        return collection ? collectionPath(collection.path) : "";
       }
       case NotificationEventType.AddUserToDocument:
       case NotificationEventType.MentionedInDocument: {
-        return this.document?.url;
+        return this.document?.path;
       }
       case NotificationEventType.MentionedInComment:
       case NotificationEventType.CreateComment: {
         return this.document && this.comment
           ? commentPath(this.document, this.comment)
-          : this.document?.url;
+          : this.document?.path;
       }
       case NotificationEventType.InviteAccepted: {
         return settingsPath("members");

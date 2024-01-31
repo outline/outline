@@ -181,15 +181,17 @@ class Notification extends Model<
       userId: model.userId,
       modelId: model.id,
       teamId: model.teamId,
+      commentId: model.commentId,
       documentId: model.documentId,
+      collectionId: model.collectionId,
       actorId: model.actorId,
     };
 
     if (options.transaction) {
       options.transaction.afterCommit(() => void Event.schedule(params));
-      return;
+    } else {
+      setTimeout(() => void Event.schedule(params), 100);
     }
-    await Event.schedule(params);
   }
 
   /**

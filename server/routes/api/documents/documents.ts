@@ -1475,7 +1475,7 @@ router.post(
   "documents.add_user",
   auth(),
   validate(T.DocumentsAddUserSchema),
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   transaction(),
   async (ctx: APIContext<T.DocumentsAddUserReq>) => {
     const { auth, transaction } = ctx.state;
@@ -1557,7 +1557,7 @@ router.post(
         data: {
           title: document.title,
           isNew,
-          permission,
+          permission: membership.permission,
         },
       },
       {
