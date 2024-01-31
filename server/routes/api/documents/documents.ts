@@ -517,7 +517,7 @@ router.post(
 
 router.post(
   "documents.export",
-  rateLimiter(RateLimiterStrategy.FivePerMinute),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth({ optional: true }),
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
