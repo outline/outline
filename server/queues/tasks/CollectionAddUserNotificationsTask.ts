@@ -11,6 +11,7 @@ export default class CollectionAddUserNotificationsTask extends BaseTask<Collect
     }
 
     if (
+      !recipient.isSuspended &&
       recipient.subscribedToEventType(NotificationEventType.AddUserToCollection)
     ) {
       await Notification.create({

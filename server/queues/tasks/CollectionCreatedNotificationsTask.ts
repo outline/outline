@@ -20,6 +20,11 @@ export default class CollectionCreatedNotificationsTask extends BaseTask<Collect
       );
 
     for (const recipient of recipients) {
+      // Suppress notifications for suspended users
+      if (recipient.isSuspended || !recipient.email) {
+        continue;
+      }
+
       await Notification.create({
         event: NotificationEventType.CreateCollection,
         userId: recipient.id,

@@ -7,6 +7,7 @@ import {
   documentPath,
   settingsPath,
 } from "~/utils/routeHelpers";
+import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";
 import User from "./User";
@@ -56,6 +57,14 @@ class Notification extends Model {
    * The collection ID that the notification is associated with.
    */
   collectionId?: string;
+
+  /**
+   * The collection that the notification is associated with.
+   */
+  @Relation(() => Collection, { onDelete: "cascade" })
+  collection?: Collection;
+
+  commentId?: string;
 
   /**
    * The comment that the notification is associated with.
@@ -130,7 +139,13 @@ class Notification extends Model {
    * @returns The subject
    */
   get subject() {
-    return this.document?.title;
+    if (this.documentId) {
+      return this.document?.title ?? "a document";
+    }
+    if (this.collectionId) {
+      return this.collection?.name ?? "a collection";
+    }
+    return "Unknown";
   }
 
   /**

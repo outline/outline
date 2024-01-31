@@ -72,12 +72,15 @@ import Fix from "./decorators/Fix";
   include: [
     {
       association: "document",
+      required: false,
     },
     {
       association: "comment",
+      required: false,
     },
     {
       association: "actor",
+      required: false,
     },
   ],
 }))

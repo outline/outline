@@ -11,6 +11,7 @@ export default class DocumentAddUserNotificationsTask extends BaseTask<DocumentU
     }
 
     if (
+      !recipient.isSuspended &&
       recipient.subscribedToEventType(NotificationEventType.AddUserToDocument)
     ) {
       await Notification.create({
