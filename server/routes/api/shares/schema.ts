@@ -1,7 +1,7 @@
 import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
-import { SHARE_URL_SLUG_REGEX, SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { Share } from "@server/models";
 import { BaseSchema } from "../schema";
 
@@ -13,7 +13,8 @@ export const SharesInfoSchema = BaseSchema.extend({
         .string()
         .optional()
         .refine(
-          (val) => (val ? isUUID(val) || SLUG_URL_REGEX.test(val) : true),
+          (val) =>
+            val ? isUUID(val) || UrlHelper.SLUG_URL_REGEX.test(val) : true,
           {
             message: "must be uuid or url slug",
           }
@@ -52,7 +53,7 @@ export const SharesUpdateSchema = BaseSchema.extend({
     published: z.boolean().optional(),
     urlId: z
       .string()
-      .regex(SHARE_URL_SLUG_REGEX, {
+      .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
         message: "must contain only alphanumeric and dashes",
       })
       .nullish(),
@@ -65,13 +66,13 @@ export const SharesCreateSchema = BaseSchema.extend({
   body: z.object({
     documentId: z
       .string()
-      .refine((val) => isUUID(val) || SLUG_URL_REGEX.test(val), {
+      .refine((val) => isUUID(val) || UrlHelper.SLUG_URL_REGEX.test(val), {
         message: "must be uuid or url slug",
       }),
     published: z.boolean().default(false),
     urlId: z
       .string()
-      .regex(SHARE_URL_SLUG_REGEX, {
+      .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
         message: "must contain only alphanumeric and dashes",
       })
       .optional(),

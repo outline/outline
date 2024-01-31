@@ -4,7 +4,7 @@ import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { githubIssuesUrl, feedbackUrl } from "@shared/utils/urlHelpers";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
 import PageTitle from "~/components/PageTitle";
@@ -57,7 +57,9 @@ class ErrorBoundary extends React.Component<Props> {
   };
 
   handleReportBug = () => {
-    window.open(isCloudHosted ? feedbackUrl() : githubIssuesUrl());
+    window.open(
+      isCloudHosted ? UrlHelper.Outline.contact : UrlHelper.Outline.github
+    );
   };
 
   render() {

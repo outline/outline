@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
@@ -104,7 +105,7 @@ function Slack() {
                   // "users:read",
                   // "users:read.email",
                 ]}
-                redirectUri={`${env.URL}/auth/slack.commands`}
+                redirectUri={UrlHelper.Slack.commands()}
                 state={team.id}
                 icon={<SlackIcon />}
               />

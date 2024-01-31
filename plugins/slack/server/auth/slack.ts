@@ -4,7 +4,7 @@ import Router from "koa-router";
 import { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { integrationSettingsPath } from "@shared/utils/routeHelpers";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import auth from "@server/middlewares/authentication";
 import passportMiddleware from "@server/middlewares/passport";
@@ -66,7 +66,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
     {
       clientID: env.SLACK_CLIENT_ID,
       clientSecret: env.SLACK_CLIENT_SECRET,
-      callbackURL: `${env.URL}/auth/slack.callback`,
+      callbackURL: UrlHelper.Slack.callback(),
       passReqToCallback: true,
       // @ts-expect-error StateStore
       store: new StateStore(),
@@ -139,7 +139,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       const { user } = ctx.state.auth;
 
       if (error) {
-        ctx.redirect(integrationSettingsPath(`slack?error=${error}`));
+        ctx.redirect(UrlHelper.Slack.error(error));
         return;
       }
 
@@ -154,23 +154,21 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             });
             return redirectOnClient(
               ctx,
-              `${team.url}/auth/slack.commands?${ctx.request.querystring}`
+              UrlHelper.Slack.commands({
+                baseUrl: team.url,
+                params: ctx.request.querystring,
+              })
             );
           } catch (err) {
-            return ctx.redirect(
-              integrationSettingsPath(`slack?error=unauthenticated`)
-            );
+            return ctx.redirect(UrlHelper.Slack.error("unauthenticated"));
           }
         } else {
-          return ctx.redirect(
-            integrationSettingsPath(`slack?error=unauthenticated`)
-          );
+          return ctx.redirect(UrlHelper.Slack.error("unauthenticated"));
         }
       }
 
-      const endpoint = `${env.URL}/auth/slack.commands`;
       // validation middleware ensures that code is non-null at this point
-      const data = await Slack.oauthAccess(code!, endpoint);
+      const data = await Slack.oauthAccess(code!, UrlHelper.Slack.commands());
       const authentication = await IntegrationAuthentication.create({
         service: IntegrationService.Slack,
         userId: user.id,
@@ -188,7 +186,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           serviceTeamId: data.team_id,
         },
       });
-      ctx.redirect(integrationSettingsPath("slack"));
+      ctx.redirect(UrlHelper.Slack.url);
     }
   );
 
@@ -203,7 +201,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       const { user } = ctx.state.auth;
 
       if (error) {
-        ctx.redirect(integrationSettingsPath(`slack?error=${error}`));
+        ctx.redirect(UrlHelper.Slack.error(error));
         return;
       }
 
@@ -221,23 +219,21 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             });
             return redirectOnClient(
               ctx,
-              `${team.url}/auth/slack.post?${ctx.request.querystring}`
+              UrlHelper.Slack.post({
+                baseUrl: team.url,
+                params: ctx.request.querystring,
+              })
             );
           } catch (err) {
-            return ctx.redirect(
-              integrationSettingsPath(`slack?error=unauthenticated`)
-            );
+            return ctx.redirect(UrlHelper.Slack.error("unauthenticated"));
           }
         } else {
-          return ctx.redirect(
-            integrationSettingsPath(`slack?error=unauthenticated`)
-          );
+          return ctx.redirect(UrlHelper.Slack.error("unauthenticated"));
         }
       }
 
-      const endpoint = `${env.URL}/auth/slack.post`;
       // validation middleware ensures that code is non-null at this point
-      const data = await Slack.oauthAccess(code!, endpoint);
+      const data = await Slack.oauthAccess(code!, UrlHelper.Slack.post());
       const authentication = await IntegrationAuthentication.create({
         service: IntegrationService.Slack,
         userId: user.id,
@@ -260,7 +256,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           channelId: data.incoming_webhook.channel_id,
         },
       });
-      ctx.redirect(integrationSettingsPath("slack"));
+      ctx.redirect(UrlHelper.Slack.url);
     }
   );
 }

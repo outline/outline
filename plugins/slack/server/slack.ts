@@ -1,4 +1,5 @@
 import querystring from "querystring";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { InvalidRequestError } from "@server/errors";
 import fetch from "@server/utils/fetch";
 import env from "./env";
@@ -49,7 +50,7 @@ export async function request(endpoint: string, body: Record<string, any>) {
 
 export async function oauthAccess(
   code: string,
-  redirect_uri = `${env.URL}/auth/slack.callback`
+  redirect_uri = UrlHelper.Slack.callback()
 ) {
   return request("oauth.access", {
     client_id: env.SLACK_CLIENT_ID,
