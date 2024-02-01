@@ -54,7 +54,7 @@ const CollectionLink: React.FC<Props> = ({
       await collection.save({
         name,
       });
-      history.replace(collection.url, history.location.state);
+      history.replace(collection.path, history.location.state);
     },
     [collection, history]
   );
@@ -133,7 +133,7 @@ const CollectionLink: React.FC<Props> = ({
         <DropToImport collectionId={collection.id}>
           <SidebarLink
             to={{
-              pathname: collection.url,
+              pathname: collection.path,
               state: { starred: inStarredSection },
             }}
             expanded={expanded}

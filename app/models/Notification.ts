@@ -166,7 +166,7 @@ class Notification extends Model {
         const collection = this.collectionId
           ? this.store.rootStore.collections.get(this.collectionId)
           : undefined;
-        return collection ? collectionPath(collection.url) : "";
+        return collection ? collectionPath(collection.path) : "";
       }
       case NotificationEventType.AddUserToDocument:
       case NotificationEventType.MentionedInDocument: {

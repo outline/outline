@@ -42,7 +42,7 @@ export function updateCollectionPath(
   // Update url to match the current one
   return oldUrl.replace(
     new RegExp("/collection/[0-9a-zA-Z-_~]*"),
-    collection.url
+    collection.path
   );
 }
 

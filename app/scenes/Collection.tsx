@@ -179,27 +179,27 @@ function CollectionScene() {
 
               <Documents>
                 <Tabs>
-                  <Tab to={collectionPath(collection.url)} exact>
+                  <Tab to={collectionPath(collection.path)} exact>
                     {t("Documents")}
                   </Tab>
-                  <Tab to={collectionPath(collection.url, "updated")} exact>
+                  <Tab to={collectionPath(collection.path, "updated")} exact>
                     {t("Recently updated")}
                   </Tab>
-                  <Tab to={collectionPath(collection.url, "published")} exact>
+                  <Tab to={collectionPath(collection.path, "published")} exact>
                     {t("Recently published")}
                   </Tab>
-                  <Tab to={collectionPath(collection.url, "old")} exact>
+                  <Tab to={collectionPath(collection.path, "old")} exact>
                     {t("Least recently updated")}
                   </Tab>
                   <Tab
-                    to={collectionPath(collection.url, "alphabetical")}
+                    to={collectionPath(collection.path, "alphabetical")}
                     exact
                   >
                     {t("A–Z")}
                   </Tab>
                 </Tabs>
                 <Switch>
-                  <Route path={collectionPath(collection.url, "alphabetical")}>
+                  <Route path={collectionPath(collection.path, "alphabetical")}>
                     <PaginatedDocumentList
                       key="alphabetical"
                       documents={documents.alphabeticalInCollection(
@@ -211,7 +211,7 @@ function CollectionScene() {
                       }}
                     />
                   </Route>
-                  <Route path={collectionPath(collection.url, "old")}>
+                  <Route path={collectionPath(collection.path, "old")}>
                     <PaginatedDocumentList
                       key="old"
                       documents={documents.leastRecentlyUpdatedInCollection(
@@ -223,12 +223,12 @@ function CollectionScene() {
                       }}
                     />
                   </Route>
-                  <Route path={collectionPath(collection.url, "recent")}>
+                  <Route path={collectionPath(collection.path, "recent")}>
                     <Redirect
-                      to={collectionPath(collection.url, "published")}
+                      to={collectionPath(collection.path, "published")}
                     />
                   </Route>
-                  <Route path={collectionPath(collection.url, "published")}>
+                  <Route path={collectionPath(collection.path, "published")}>
                     <PaginatedDocumentList
                       key="published"
                       documents={documents.recentlyPublishedInCollection(
@@ -241,7 +241,7 @@ function CollectionScene() {
                       showPublished
                     />
                   </Route>
-                  <Route path={collectionPath(collection.url, "updated")}>
+                  <Route path={collectionPath(collection.path, "updated")}>
                     <PaginatedDocumentList
                       key="updated"
                       documents={documents.recentlyUpdatedInCollection(
@@ -253,7 +253,7 @@ function CollectionScene() {
                       }}
                     />
                   </Route>
-                  <Route path={collectionPath(collection.url)} exact>
+                  <Route path={collectionPath(collection.path)} exact>
                     <PaginatedDocumentList
                       documents={documents.rootInCollection(collection.id)}
                       fetch={documents.fetchPage}

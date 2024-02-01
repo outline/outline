@@ -65,7 +65,7 @@ class CollectionNew extends React.Component<Props> {
     try {
       await collection.save();
       this.props.onSubmit();
-      history.push(collection.url);
+      history.push(collection.path);
     } catch (err) {
       toast.error(err.message);
     } finally {

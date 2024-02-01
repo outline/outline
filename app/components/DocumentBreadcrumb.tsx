@@ -79,7 +79,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
       type: "route",
       title: collection.name,
       icon: <CollectionIcon collection={collection} expanded />,
-      to: collectionPath(collection.url),
+      to: collectionPath(collection.path),
     };
   } else if (document.isCollectionDeleted) {
     collectionNode = {

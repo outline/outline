@@ -121,13 +121,13 @@ export default class CollectionsStore extends Store<Collection> {
 
     if (this.isLoaded) {
       this.data.forEach((collection) => {
-        const { id, name, url } = collection;
+        const { id, name, path } = collection;
         const node = {
           type: DocumentPathItemType.Collection,
           id,
           collectionId: id,
           title: name,
-          url,
+          url: path,
         };
         results.push([node]);
 

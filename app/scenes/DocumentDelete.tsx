@@ -51,7 +51,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
           }
 
           // otherwise, redirect to the collection home
-          history.push(collectionPath(collection?.url || "/"));
+          history.push(collectionPath(collection?.path || "/"));
         }
 
         onSubmit();
