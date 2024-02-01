@@ -103,7 +103,7 @@ function Github() {
                   const user = integration.user.name;
                   const day = format(
                     new Date(integration.createdAt),
-                    "LLLL, y"
+                    "MMMM d, y"
                   );
                   return (
                     <ListItem
