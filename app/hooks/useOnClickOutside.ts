@@ -22,6 +22,6 @@ export default function useOnClickOutside(
     [ref, callback]
   );
 
-  useEventListener("mousedown", listener);
-  useEventListener("touchstart", listener);
+  useEventListener("mousedown", listener, window);
+  useEventListener("touchstart", listener, window);
 }

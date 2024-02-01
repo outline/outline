@@ -6,6 +6,7 @@ import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
+import useOnClickOutside from "~/hooks/useOnClickOutside";
 import { fadeAndScaleIn } from "~/styles/animations";
 
 type Props = PopoverProps & {
@@ -29,6 +30,7 @@ const Popover: React.FC<Props> = ({
   mobilePosition,
   ...rest
 }: Props) => {
+  const contentRef = React.useRef<HTMLDivElement>(null);
   const isMobile = useMobile();
 
   // Custom Escape handler rather than using hideOnEsc from reakit so we can
@@ -46,6 +48,16 @@ const Popover: React.FC<Props> = ({
     }
   );
 
+  // Custom click outside handling rather than using `hideOnClickOutside` from reakit so that we can
+  // respect event.defaultPrevented.
+  useOnClickOutside(contentRef, (event) => {
+    if (rest.visible && !event.defaultPrevented) {
+      event.stopPropagation();
+      event.preventDefault();
+      rest.hide();
+    }
+  });
+
   if (isMobile) {
     return (
       <Dialog {...rest} modal>
@@ -62,8 +74,9 @@ const Popover: React.FC<Props> = ({
   }
 
   return (
-    <ReakitPopover {...rest} hideOnEsc={false}>
+    <ReakitPopover {...rest} hideOnEsc={false} hideOnClickOutside={false}>
       <Contents
+        ref={contentRef}
         $shrink={shrink}
         $width={width}
         $scrollable={scrollable}
