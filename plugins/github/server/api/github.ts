@@ -96,9 +96,13 @@ if (GitHub.clientId && GitHub.clientSecret) {
             github: {
               installation: {
                 id: installationId,
-                accountName:
-                  // @ts-expect-error Property 'login' does not exist on type
-                  installation.account?.name ?? installation.account?.login,
+                account: {
+                  id: installation.account?.id,
+                  name:
+                    // @ts-expect-error Property 'login' does not exist on type
+                    installation.account?.name ?? installation.account?.login,
+                  avatarUrl: installation.account?.avatar_url,
+                },
               },
             },
           },

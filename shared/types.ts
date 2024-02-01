@@ -108,7 +108,15 @@ export enum DocumentPermission {
 }
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
-  ? { url: string }
+  ? {
+      url?: string;
+      github?: {
+        installation: {
+          id: number;
+          account: { id: number; name: string; avatarUrl: string };
+        };
+      };
+    }
   : T extends IntegrationType.Analytics
   ? { measurementId: string }
   : T extends IntegrationType.Post
@@ -116,13 +124,18 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   : T extends IntegrationType.Command
   ? { serviceTeamId: string }
   :
-      | { url: string }
+      | {
+          url?: string;
+          github?: {
+            installation: {
+              id: number;
+              account: { id?: number; name: string; avatarUrl?: string };
+            };
+          };
+        }
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string }
       | { measurementId: string }
-      | {
-          github: { installation: { id: number; accountName?: string | null } };
-        }
       | undefined;
 
 export enum UserPreference {
