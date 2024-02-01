@@ -88,7 +88,11 @@ export default class UsersStore extends Store<User> {
 
   @computed
   get orderedData(): User[] {
-    return orderBy(Array.from(this.data.values()), "name", "asc");
+    return orderBy(
+      Array.from(this.data.values()),
+      (user) => user.name.toLocaleLowerCase(),
+      "asc"
+    );
   }
 
   @action
