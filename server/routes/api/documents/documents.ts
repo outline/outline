@@ -1334,16 +1334,11 @@ router.post(
     let parentDocument;
 
     if (parentDocumentId) {
-      parentDocument = await Document.findOne({
-        where: {
-          id: parentDocumentId,
-          collectionId: collection.id,
-        },
+      parentDocument = await Document.findByPk(parentDocumentId, {
+        userId: user.id,
         transaction,
       });
-      authorize(user, "read", parentDocument, {
-        collection,
-      });
+      authorize(user, "read", parentDocument);
     }
 
     const content = await fs.readFile(file.filepath);
