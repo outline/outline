@@ -110,13 +110,17 @@ const InputSelect = (props: Props) => {
 
   // Custom click outside handling rather than using `hideOnClickOutside` from reakit so that we can
   // prevent event bubbling.
-  useOnClickOutside(contentRef, (event) => {
-    if (select.visible) {
-      event.stopPropagation();
-      event.preventDefault();
-      select.hide();
-    }
-  });
+  useOnClickOutside(
+    contentRef,
+    (event) => {
+      if (select.visible) {
+        event.stopPropagation();
+        event.preventDefault();
+        select.hide();
+      }
+    },
+    { capture: true }
+  );
 
   React.useEffect(() => {
     previousValue.current = value;
