@@ -2,7 +2,7 @@ import invariant from "invariant";
 import debounce from "lodash/debounce";
 import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
-import { CopyIcon, GlobeIcon } from "outline-icons";
+import { CopyIcon, GlobeIcon, InfoIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -22,6 +22,7 @@ import CopyToClipboard from "../CopyToClipboard";
 import NudeButton from "../NudeButton";
 import { ResizingHeightContainer } from "../ResizingHeightContainer";
 import Squircle from "../Squircle";
+import Text from "../Text";
 import Tooltip from "../Tooltip";
 import { StyledListItem } from "./MemberListItem";
 
@@ -132,14 +133,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
                 , is shared
               </Trans>
             ) : (
-              <>
-                {t("Allow anyone with the link to access")}
-                {share?.published && !share.includeChildDocuments
-                  ? `. ${t(
-                      "Child documents are not shared, toggling sharing to enable"
-                    )}.`
-                  : ""}
-              </>
+              t("Allow anyone with the link to access")
             )}
           </>
         }
@@ -186,10 +180,27 @@ function PublicAccess({ document, share, sharedParent }: Props) {
             {copyButton}
           </ShareLinkInput>
         ) : null}
+
+        {share?.published && !share.includeChildDocuments ? (
+          <Text as="p" type="tertiary" size="xsmall">
+            <StyledInfoIcon size={18} />
+            <span>
+              {t(
+                "Nested documents are not shared on the web. Toggle sharing to enable access, this will be the default behavior in the future"
+              )}
+              .
+            </span>
+          </Text>
+        ) : null}
       </ResizingHeightContainer>
     </Wrapper>
   );
 }
+
+const StyledInfoIcon = styled(InfoIcon)`
+  vertical-align: bottom;
+  margin-right: 2px;
+`;
 
 const Wrapper = styled.div`
   margin-bottom: 8px;
@@ -211,6 +222,7 @@ const ShareLinkInput = styled(Input)`
 
   ${NativeInput} {
     padding: 4px 8px;
+    flex: 1;
   }
 `;
 

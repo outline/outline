@@ -323,7 +323,9 @@ const Picker = observer(
 
     const suggestions = React.useMemo(
       () =>
-        users.notInDocument(document.id, query).filter((u) => u.id !== user.id),
+        users
+          .notInDocument(document.id, query)
+          .filter((u) => u.id !== user.id && !user.isSuspended),
       [users, users.orderedData, document.id, document.members, user.id, query]
     );
 
@@ -340,17 +342,7 @@ const Picker = observer(
             key={suggestion.id}
             onClick={() => onInvite(suggestion)}
             title={suggestion.name}
-            subtitle={
-              suggestion.isSuspended
-                ? t("Suspended")
-                : suggestion.isInvited
-                ? t("Invited")
-                : suggestion.isViewer
-                ? t("Viewer")
-                : suggestion.email
-                ? suggestion.email
-                : t("Member")
-            }
+            subtitle={suggestion.isViewer ? t("Viewer") : t("Editor")}
             image={
               <Avatar
                 model={suggestion}
