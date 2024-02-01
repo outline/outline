@@ -106,7 +106,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
         document.members,
         (user) =>
           (invitedInSession.includes(user.id) ? "_" : "") +
-          user.name.toLowerCase(),
+          user.name.toLocaleLowerCase(),
         "asc"
       ),
     [document.members, invitedInSession]

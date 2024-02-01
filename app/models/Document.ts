@@ -242,7 +242,8 @@ export default class Document extends ParanoidModel {
   get members(): User[] {
     return this.store.rootStore.userMemberships.orderedData
       .filter((m) => m.documentId === this.id)
-      .map((m) => m.user);
+      .map((m) => m.user)
+      .filter(Boolean);
   }
 
   @computed
