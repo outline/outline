@@ -36,12 +36,11 @@ function UserDelete({ onSubmit }: Props) {
       try {
         await auth.requestDeleteUser();
         setWaitingCode(true);
-        onSubmit();
       } catch (err) {
         toast.error(err.message);
       }
     },
-    [auth, onSubmit]
+    [auth]
   );
 
   const handleSubmit = React.useCallback(
@@ -49,11 +48,12 @@ function UserDelete({ onSubmit }: Props) {
       try {
         await auth.deleteUser(data);
         await auth.logout();
+        onSubmit();
       } catch (err) {
         toast.error(err.message);
       }
     },
-    [auth]
+    [auth, onSubmit]
   );
 
   const inputProps = register("code", {
