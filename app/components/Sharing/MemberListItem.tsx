@@ -86,12 +86,12 @@ const MemberListItem = ({
           </Trans>
         ) : user.isSuspended ? (
           t("Suspended")
+        ) : user.email ? (
+          user.email
         ) : user.isInvited ? (
           t("Invited")
         ) : user.isViewer ? (
           t("Viewer")
-        ) : user.email ? (
-          user.email
         ) : (
           t("Editor")
         )
