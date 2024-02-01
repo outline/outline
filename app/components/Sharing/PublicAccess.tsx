@@ -42,12 +42,16 @@ function PublicAccess({ document, share, sharedParent }: Props) {
   const { shares } = useStores();
   const { t } = useTranslation();
   const theme = useTheme();
-  const [slugValidationError, setSlugValidationError] = React.useState("");
-  const [urlSlug, setUrlSlug] = React.useState("");
+  const [validationError, setValidationError] = React.useState("");
+  const [urlId, setUrlId] = React.useState(share?.urlId);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const can = usePolicy(share);
   const documentAbilities = usePolicy(document);
   const canPublish = can.update && documentAbilities.share;
+
+  React.useEffect(() => {
+    setUrlId(share?.urlId);
+  }, [share?.urlId]);
 
   const handlePublishedChange = React.useCallback(
     async (event) => {
@@ -65,7 +69,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
     [document.id, shares]
   );
 
-  const handleUrlSlugChange = React.useMemo(
+  const handleUrlChange = React.useMemo(
     () =>
       debounce(async (ev) => {
         if (!share) {
@@ -73,13 +77,13 @@ function PublicAccess({ document, share, sharedParent }: Props) {
         }
 
         const val = ev.target.value;
-        setUrlSlug(val);
+        setUrlId(val);
         if (val && !SHARE_URL_SLUG_REGEX.test(val)) {
-          setSlugValidationError(
+          setValidationError(
             t("Only lowercase letters, digits and dashes allowed")
           );
         } else {
-          setSlugValidationError("");
+          setValidationError("");
           if (share.urlId !== val) {
             try {
               await share.save({
@@ -87,9 +91,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
               });
             } catch (err) {
               if (err.message.includes("must be unique")) {
-                setSlugValidationError(
-                  t("Sorry, this link has already been used")
-                );
+                setValidationError(t("Sorry, this link has already been used"));
               }
             }
           }
@@ -166,9 +168,9 @@ function PublicAccess({ document, share, sharedParent }: Props) {
             type="text"
             ref={inputRef}
             placeholder={share?.id}
-            onChange={handleUrlSlugChange}
-            error={slugValidationError}
-            defaultValue={urlSlug}
+            onChange={handleUrlChange}
+            error={validationError}
+            defaultValue={urlId}
             prefix={
               <DomainPrefix
                 readOnly
