@@ -40,7 +40,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
   };
 
   return (
-    <Link to={notification.path ?? ""} onClick={handleClick}>
+    <StyledLink to={notification.path ?? ""} onClick={handleClick}>
       <Container gap={8} $unread={!notification.viewedAt}>
         <StyledAvatar model={notification.actor} size={AvatarSize.Large} />
         <Flex column>
@@ -67,9 +67,15 @@ function NotificationListItem({ notification, onNavigate }: Props) {
         </Flex>
         {notification.viewedAt ? null : <Unread />}
       </Container>
-    </Link>
+    </StyledLink>
   );
 }
+
+const StyledLink = styled(Link)`
+  display: block;
+  margin: 0 8px;
+  cursor: var(--pointer);
+`;
 
 const StyledCommentEditor = styled(CommentEditor)`
   font-size: 0.9em;
@@ -86,13 +92,11 @@ const Container = styled(Flex)<{ $unread: boolean }>`
   position: relative;
   padding: 8px 12px;
   padding-right: 40px;
-  margin: 0 8px;
   border-radius: 4px;
 
   &:${hover},
   &:active {
     background: ${s("listItemHoverBackground")};
-    cursor: var(--pointer);
   }
 `;
 
