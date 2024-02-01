@@ -79,7 +79,7 @@ if (GitHub.clientId && GitHub.clientSecret) {
 
       const authentication = await IntegrationAuthentication.create(
         {
-          service: IntegrationService.Github,
+          service: IntegrationService.GitHub,
           userId: user.id,
           teamId: user.teamId,
         },
@@ -87,7 +87,7 @@ if (GitHub.clientId && GitHub.clientSecret) {
       );
       await Integration.create(
         {
-          service: IntegrationService.Github,
+          service: IntegrationService.GitHub,
           type: IntegrationType.Embed,
           userId: user.id,
           teamId: user.teamId,
