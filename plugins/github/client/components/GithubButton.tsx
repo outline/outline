@@ -24,7 +24,7 @@ function GithubButton({ state = "", redirectUri, label, icon }: Props) {
 
   return (
     <Button onClick={handleClick} icon={icon} neutral>
-      {label || t("Add to GitHub")}
+      {label || t("Connect GitHub")}
     </Button>
   );
 }
