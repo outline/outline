@@ -51,6 +51,7 @@ router.post(
     ctx.body = {
       pagination: ctx.state.pagination,
       data: integrations.map(presentIntegration),
+      policies: presentPolicies(user, integrations),
     };
   }
 );
@@ -75,6 +76,7 @@ router.post(
 
     ctx.body = {
       data: presentIntegration(integration),
+      policies: presentPolicies(user, [integration]),
     };
   }
 );
@@ -122,6 +124,7 @@ router.post(
 
     ctx.body = {
       data: presentIntegration(integration),
+      policies: presentPolicies(user, [integration]),
     };
   }
 );

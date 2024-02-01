@@ -27,6 +27,7 @@ function Github() {
   const { t } = useTranslation();
   const query = useQuery();
   const error = query.get("error");
+  const [relationsLoaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
     void integrations.fetchPage({
@@ -35,14 +36,38 @@ function Github() {
     });
   }, [integrations]);
 
+  React.useEffect(() => {
+    const loadRelations = async () => {
+      if (integrations.orderedData.length) {
+        await Promise.all(
+          integrations.orderedData.map((integration) =>
+            integration.loadRelations()
+          )
+        );
+      }
+      setLoaded(true);
+    };
+
+    if (!relationsLoaded) {
+      void loadRelations();
+    }
+  }, [integrations.orderedData, relationsLoaded]);
+
   const githubIntegrations = React.useMemo(
     (): Integration<IntegrationType.Embed>[] =>
-      filter(
-        integrations.orderedData,
-        (i) => i.service === IntegrationService.GitHub && i.teamId === team.id
-      ),
-    [integrations.orderedData]
+      relationsLoaded
+        ? filter(
+            integrations.orderedData,
+            (i) =>
+              i.service === IntegrationService.GitHub && i.teamId === team.id
+          )
+        : [],
+    [integrations.orderedData, relationsLoaded]
   );
+
+  if (!relationsLoaded) {
+    return null;
+  }
 
   const appName = env.APP_NAME;
 
