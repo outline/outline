@@ -1,15 +1,21 @@
-import find from "lodash/find";
+import filter from "lodash/filter";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { IntegrationService } from "@shared/types";
+import { IntegrationService, IntegrationType } from "@shared/types";
+import Integration from "~/models/Integration";
+import Avatar from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar/Avatar";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
+import List from "~/components/List";
+import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import GithubIcon from "./Icon";
@@ -17,6 +23,7 @@ import GithubButton from "./components/GithubButton";
 
 function Github() {
   const team = useCurrentTeam();
+  const user = useCurrentUser();
   const { integrations } = useStores();
   const { t } = useTranslation();
   const query = useQuery();
@@ -28,10 +35,10 @@ function Github() {
     });
   }, [integrations]);
 
-  const githubIntegration = find(
+  const githubIntegrations = filter(
     integrations.orderedData,
-    (i) => i.service === IntegrationService.Github
-  );
+    (i) => i.service === IntegrationService.Github && i.userId === user.id
+  ) as Integration<IntegrationType.Embed>[];
 
   const appName = env.APP_NAME;
 
@@ -42,7 +49,7 @@ function Github() {
       {error === "access_denied" && (
         <Notice>
           <Trans>
-            Whoops, you need to accept the permissions in Github to connect{" "}
+            Whoops, you need to accept the permissions in GitHub to connect{" "}
             {{ appName }} to your workspace. Try again?
           </Trans>
         </Notice>
@@ -61,19 +68,56 @@ function Github() {
       {env.GITHUB_CLIENT_ID ? (
         <>
           <p>
-            {githubIntegration ? (
-              <Button onClick={() => githubIntegration.delete()}>
-                {t("Disconnect")}
-              </Button>
-            ) : (
-              <GithubButton
-                redirectUri={`${env.URL}/api/github.callback`}
-                state={team.id}
-                icon={<GithubIcon />}
-              />
-            )}
+            <GithubButton
+              redirectUri={`${env.URL}/api/github.callback`}
+              state={team.id}
+              label={
+                githubIntegrations.length
+                  ? t("Connect another account")
+                  : t("Connect GitHub")
+              }
+              icon={<GithubIcon />}
+            />
           </p>
           <p>&nbsp;</p>
+
+          {githubIntegrations.length ? (
+            <>
+              <h2>{t("Connected accounts")}</h2>
+              <Text as="p" type="secondary">
+                <Trans>
+                  GitHub links(pull request, issues etc.) accessible to any of
+                  the following accounts, will get rich previews inside{" "}
+                  {{ appName }}.
+                </Trans>
+              </Text>
+
+              <List>
+                {githubIntegrations.map((integration) => {
+                  const account =
+                    integration.settings?.github?.installation.account;
+                  return (
+                    <ListItem
+                      key={account?.id}
+                      title={account?.name}
+                      image={
+                        <Avatar
+                          src={account?.avatarUrl}
+                          size={AvatarSize.Medium}
+                          showBorder={false}
+                        />
+                      }
+                      actions={
+                        <Button onClick={integration.delete} neutral>
+                          {t("Disconnect")}
+                        </Button>
+                      }
+                    />
+                  );
+                })}
+              </List>
+            </>
+          ) : null}
         </>
       ) : (
         <Notice>
