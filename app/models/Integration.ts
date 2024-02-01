@@ -18,6 +18,10 @@ class Integration<T = unknown> extends Model {
 
   collectionId: string;
 
+  userId: string;
+
+  teamId: string;
+
   @Field
   @observable
   events: string[];
