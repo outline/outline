@@ -950,6 +950,7 @@
   "Connect another account": "Connect another account",
   "Connected accounts": "Connected accounts",
   "GitHub links(pull request, issues etc.) accessible to any of the following accounts, will get rich previews inside {{appName}}.": "GitHub links(pull request, issues etc.) accessible to any of the following accounts, will get rich previews inside {{appName}}.",
+  "Enabled by {{user}} on {{day}}": "Enabled by {{user}} on {{day}}",
   "Disconnect": "Disconnect",
   "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.",
   "Add to Slack": "Add to Slack",
