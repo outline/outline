@@ -87,7 +87,7 @@ export enum IntegrationService {
   Grist = "grist",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
-  Github = "github",
+  GitHub = "github",
 }
 
 export enum UserCreatableIntegrationService {

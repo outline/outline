@@ -1,3 +1,4 @@
+import format from "date-fns/format";
 import filter from "lodash/filter";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -15,7 +16,6 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import GithubIcon from "./Icon";
@@ -23,7 +23,6 @@ import GithubButton from "./components/GithubButton";
 
 function Github() {
   const team = useCurrentTeam();
-  const user = useCurrentUser();
   const { integrations } = useStores();
   const { t } = useTranslation();
   const query = useQuery();
@@ -31,14 +30,19 @@ function Github() {
 
   React.useEffect(() => {
     void integrations.fetchPage({
+      service: IntegrationService.GitHub,
       limit: 100,
     });
   }, [integrations]);
 
-  const githubIntegrations = filter(
-    integrations.orderedData,
-    (i) => i.service === IntegrationService.Github && i.userId === user.id
-  ) as Integration<IntegrationType.Embed>[];
+  const githubIntegrations = React.useMemo(
+    (): Integration<IntegrationType.Embed>[] =>
+      filter(
+        integrations.orderedData,
+        (i) => i.service === IntegrationService.GitHub && i.teamId === team.id
+      ),
+    [integrations.orderedData]
+  );
 
   const appName = env.APP_NAME;
 
@@ -96,14 +100,25 @@ function Github() {
                 {githubIntegrations.map((integration) => {
                   const account =
                     integration.settings?.github?.installation.account;
+                  const user = integration.user.name;
+                  const day = format(
+                    new Date(integration.createdAt),
+                    "LLLL, y"
+                  );
                   return (
                     <ListItem
                       key={account?.id}
+                      small
                       title={account?.name}
+                      subtitle={
+                        <Trans>
+                          Enabled by {{ user }} on {{ day }}
+                        </Trans>
+                      }
                       image={
                         <Avatar
                           src={account?.avatarUrl}
-                          size={AvatarSize.Medium}
+                          size={AvatarSize.Large}
                           showBorder={false}
                         />
                       }

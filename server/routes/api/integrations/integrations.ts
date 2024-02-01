@@ -20,7 +20,7 @@ router.post(
   pagination(),
   validate(T.IntegrationsListSchema),
   async (ctx: APIContext<T.IntegrationsListReq>) => {
-    const { direction, type, sort } = ctx.input.body;
+    const { direction, type, service, sort } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     let where: WhereOptions<Integration> = {
@@ -31,6 +31,13 @@ router.post(
       where = {
         ...where,
         type,
+      };
+    }
+
+    if (service) {
+      where = {
+        ...where,
+        service,
       };
     }
 
