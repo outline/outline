@@ -56,7 +56,7 @@ function UserMenu({ user }: Props) {
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
       dialogs.openModal({
-        title: t("Change role to member"),
+        title: t("Change role to editor"),
         isCentered: true,
         content: (
           <UserChangeToMemberDialog
@@ -155,7 +155,7 @@ function UserMenu({ user }: Props) {
           items={[
             {
               type: "button",
-              title: `${t("Change role to member")}…`,
+              title: `${t("Change role to editor")}…`,
               onClick: handleMember,
               visible: can.demote && user.role !== "member",
             },

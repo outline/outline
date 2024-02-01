@@ -161,9 +161,10 @@ export const unstarCollection = createAction({
 });
 
 export const deleteCollection = createAction({
-  name: ({ t }) => t("Delete"),
+  name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete collection",
   section: CollectionSection,
+  dangerous: true,
   icon: <TrashIcon />,
   visible: ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {

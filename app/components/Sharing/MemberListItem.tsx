@@ -93,7 +93,7 @@ const MemberListItem = ({
         ) : user.email ? (
           user.email
         ) : (
-          t("Member")
+          t("Editor")
         )
       }
       actions={
