@@ -150,13 +150,36 @@ export default function FindAndReplace({
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
-      if (ev.key === "Enter") {
-        ev.preventDefault();
-
+      function nextPrevious(ev: React.KeyboardEvent<HTMLInputElement>) {
         if (ev.shiftKey) {
           editor.commands.prevSearchMatch();
         } else {
           editor.commands.nextSearchMatch();
+        }
+      }
+      function selectInputText() {
+        inputRef.current?.setSelectionRange(0, inputRef.current?.value.length);
+      }
+
+      switch (ev.key) {
+        case "Enter": {
+          ev.preventDefault();
+          nextPrevious(ev);
+          return;
+        }
+        case "g": {
+          if (ev.metaKey) {
+            ev.preventDefault();
+            nextPrevious(ev);
+            selectInputText();
+          }
+          return;
+        }
+        case "F3": {
+          ev.preventDefault();
+          nextPrevious(ev);
+          selectInputText();
+          return;
         }
       }
     },
