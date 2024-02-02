@@ -415,6 +415,16 @@ export class Environment {
   @CannotUseWithout("GITHUB_CLIENT_ID")
   public GITHUB_APP_NAME = this.toOptionalString(process.env.GITHUB_APP_NAME);
 
+  @IsOptional()
+  @CannotUseWithout("GITHUB_APP_PRIVATE_KEY")
+  public GITHUB_APP_ID = this.toOptionalString(process.env.GITHUB_APP_ID);
+
+  @IsOptional()
+  @CannotUseWithout("GITHUB_APP_ID")
+  public GITHUB_APP_PRIVATE_KEY = this.toOptionalString(
+    process.env.GITHUB_APP_PRIVATE_KEY
+  );
+
   /**
    * This is used to verify webhook requests received from Slack.
    */
