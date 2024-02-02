@@ -3,7 +3,6 @@ import filter from "lodash/filter";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { toast } from "sonner";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import Integration from "~/models/Integration";
 import Avatar from "~/components/Avatar";
@@ -29,7 +28,6 @@ function Github() {
   const query = useQuery();
   const error = query.get("error");
   const [relationsLoaded, setLoaded] = React.useState(false);
-  const [disabled, disable] = React.useState(false);
 
   React.useEffect(() => {
     void integrations.fetchPage({
@@ -70,17 +68,6 @@ function Github() {
   if (!relationsLoaded) {
     return null;
   }
-
-  const handleItemClick = async (integration: Integration) => {
-    try {
-      disable(true);
-      await integration.delete();
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      disable(false);
-    }
-  };
 
   const appName = env.APP_NAME;
 
@@ -162,8 +149,8 @@ function Github() {
                       }
                       actions={
                         <Button
-                          onClick={() => handleItemClick(integration)}
-                          disabled={disabled}
+                          onClick={integration.delete}
+                          disabled={integration.isSaving}
                           neutral
                         >
                           {t("Disconnect")}
