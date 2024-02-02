@@ -929,7 +929,7 @@
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "Potvrzovací kód byl odeslán na vaši e-mailovou adresu, zadejte jej prosím níže pro trvalé odstranění tohoto pracovního prostoru.",
   "Confirmation code": "Potvrzovací kód",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "Smazání <1>{{workspaceName}}</1> pracovního prostoru odstraní všechny kolekce, dokumenty, uživatele a související data. Budete okamžitě odhlášeni z {{appName}}.",
-  "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.": "Vezměte prosím na vědomí, že pracovní prostory jsou zcela odděleny. Mohou mít jinou doménu, nastavení, uživatele a fakturaci.",
+  "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.",
   "Workspace name": "Název pracovního prostoru",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "Vytváříte nový pracovní prostor pomocí svého aktuálního účtu — <em>{{email}}</em>",
   "To create a workspace under another email please sign up from the homepage": "Chcete-li vytvořit pracovní prostor pod jiným e-mailem, zaregistrujte se z domovské stránky",
