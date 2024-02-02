@@ -81,6 +81,15 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
 
 export type IntegrationsUpdateReq = z.infer<typeof IntegrationsUpdateSchema>;
 
+export const IntegrationsInfoSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of integration to find */
+    id: z.string().uuid(),
+  }),
+});
+
+export type IntegrationsInfoReq = z.infer<typeof IntegrationsInfoSchema>;
+
 export const IntegrationsDeleteSchema = BaseSchema.extend({
   body: z.object({
     /** Id of integration to be deleted */
