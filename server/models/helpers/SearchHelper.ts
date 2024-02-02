@@ -416,12 +416,8 @@ export default class SearchHelper {
     // limit length of search queries as we're using regex against untrusted input
     let limitedQuery = this.escapeQuery(query.slice(0, this.maxQueryLength));
 
-    // if the search term is one unquoted word then allow partial matches automatically
-    const queryWordCount = limitedQuery.split(" ").length;
-    const singleUnquotedSearch =
-      queryWordCount === 1 &&
-      !limitedQuery.startsWith('"') &&
-      !limitedQuery.endsWith('"');
+    const quotedSearch =
+      limitedQuery.startsWith('"') && limitedQuery.endsWith('"');
 
     // Replace single quote characters with &.
     const singleQuotes = limitedQuery.matchAll(/'+/g);
@@ -440,7 +436,7 @@ export default class SearchHelper {
     }
 
     return (
-      queryParser()(singleUnquotedSearch ? `${limitedQuery}*` : limitedQuery)
+      queryParser()(quotedSearch ? limitedQuery : `${limitedQuery}*`)
         // Remove any trailing join characters
         .replace(/&$/, "")
     );
