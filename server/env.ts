@@ -409,6 +409,12 @@ export class Environment {
     process.env.GITHUB_APP_PRIVATE_KEY
   );
 
+  @IsOptional()
+  @IsBoolean()
+  public GITHUB_INTEGRATION_DISABLED = this.toBoolean(
+    process.env.GITHUB_INTEGRATION_DISABLED ?? "true"
+  );
+
   /**
    * A string representing the version of the software.
    *
