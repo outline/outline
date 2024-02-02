@@ -929,7 +929,7 @@
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "Ein Bestätigungscode wurde an deine E-Mail-Adresse gesendet. Bitte gebe diesen Code unten ein, um diesen Arbeitsbereich endgültig zu löschen.",
   "Confirmation code": "Bestätigungscode",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "Das Löschen des <1>{{workspaceName}}</1>-Arbeitsbereichs entfernt alle Sammlungen, Dokumente, Benutzer und zugehörigen Daten. Du wirst sofort von {{appName}} abgemeldet.",
-  "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.": "Es ist zu beachten, dass Arbeitsbereiche völlig getrennt sind. Diese können eine andere Domäne, Einstellungen, Benutzer und Abrechnung haben.",
+  "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.",
   "Workspace name": "Arbeitsbereichs-Name",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "Du erstellst einen neuen Arbeitsbereich mit deinem aktuellen Konto - <em>{{email}}</em>",
   "To create a workspace under another email please sign up from the homepage": "Um einen Arbeitsbereich unter einer anderen E-Mail-Adresse zu erstellen, melden dich bitte auf der Homepage an",
