@@ -7,7 +7,7 @@ import validate from "@server/middlewares/validate";
 import { Event, IntegrationAuthentication } from "@server/models";
 import Integration from "@server/models/Integration";
 import { authorize } from "@server/policies";
-import { presentIntegration } from "@server/presenters";
+import { presentIntegration, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -68,6 +68,26 @@ router.post(
 
     ctx.body = {
       data: presentIntegration(integration),
+    };
+  }
+);
+
+router.post(
+  "integrations.info",
+  auth(),
+  validate(T.IntegrationsInfoSchema),
+  async (ctx: APIContext<T.IntegrationsInfoReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const integration = await Integration.findByPk(id, {
+      rejectOnEmpty: true,
+    });
+    authorize(user, "read", integration);
+
+    ctx.body = {
+      data: presentIntegration(integration),
+      policies: presentPolicies(user, [integration]),
     };
   }
 );
