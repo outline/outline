@@ -929,7 +929,7 @@
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "验证码已经发送至您的电子邮箱，请在下面输入代码以永久销毁此工作区。",
   "Confirmation code": "验证码",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "删除工作区<1>{{workspaceName}}</1>将会销毁所有的文档集、文档、用户和相关数据。您将立即注销{{appName}}。",
-  "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.": "请注意，工作区是完全分离的。他们可以有不同的域名、设置、用户和计费。",
+  "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.",
   "Workspace name": "工作区名称",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "You are creating a new workspace using your current account — <em>{{email}}</em>",
   "To create a workspace under another email please sign up from the homepage": "若要在另一个电子邮件下创建工作区，请从主页注册",
