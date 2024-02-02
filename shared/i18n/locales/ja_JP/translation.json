@@ -929,7 +929,7 @@
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "登録されたメールアドレスに認証用のコードが送信されました。メール内のコードを入力し、アカウントを削除してください。",
   "Confirmation code": "認証コード",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "<1>{{workspaceName}}</1> ワークスペースを削除すると、すべてのコレクション、ドキュメント、ユーザー、および関連データが破棄されます。 {{appName}} からすぐにログアウトされます。",
-  "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.": "ワークスペースは完全に分離されているため、異なるドメイン、設定、ユーザー、および請求書を保持できます。",
+  "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.",
   "Workspace name": "ワークスペース名",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "現在のアカウントを使用して新しいワークスペースを作成しています — <em>{{email}}</em>",
   "To create a workspace under another email please sign up from the homepage": "別のメールアドレスでワークスペースを作成するには、ホームページからサインアップしてください",
