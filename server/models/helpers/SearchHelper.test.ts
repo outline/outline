@@ -492,14 +492,19 @@ describe("SearchHelper", () => {
       expect(SearchHelper.webSearchQuery("one\\two")).toBe("one\\\\two:*");
       expect(SearchHelper.webSearchQuery("test''")).toBe("test");
     });
-    test("should wildcard single word queries", () => {
+    test("should wildcard unquoted queries", () => {
       expect(SearchHelper.webSearchQuery("test")).toBe("test:*");
       expect(SearchHelper.webSearchQuery("'")).toBe("");
       expect(SearchHelper.webSearchQuery("'quoted'")).toBe(`"quoted":*`);
     });
-    test("should not wildcard other queries", () => {
+    test("should wildcard multi-word queries", () => {
       expect(SearchHelper.webSearchQuery("this is a test")).toBe(
-        "this&is&a&test"
+        "this&is&a&test:*"
+      );
+    });
+    test("should now wildcard quoted queries", () => {
+      expect(SearchHelper.webSearchQuery(`"this is a test"`)).toBe(
+        `"this<->is<->a<->test"`
       );
     });
   });
