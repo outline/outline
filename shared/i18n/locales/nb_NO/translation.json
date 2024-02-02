@@ -929,7 +929,7 @@
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "En bekreftelseskode har blitt sendt til din e-postadresse, vennligst skriv inn koden nedenfor for å permanent ødelegge dette arbeidsområdet.",
   "Confirmation code": "Bekreftelseskode",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "Sletting av <1>{{workspaceName}}</1>-arbeidsområdet vil ødelegge alle samlinger, dokumenter, brukere og tilknyttede data. Du vil umiddelbart bli logget ut av {{appName}}.",
-  "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.": "Vær oppmerksom på at arbeidsområder er helt separate. De kan ha et annet domene, innstillinger, brukere og fakturering.",
+  "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.",
   "Workspace name": "Navn på arbeidsområde",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "Du oppretter et nytt arbeidsområde ved hjelp av din nåværende konto — <em>{{email}}</em>",
   "To create a workspace under another email please sign up from the homepage": "For å opprette et arbeidsområde under en annen e-post, vennligst registrer deg fra hjemmesiden",
