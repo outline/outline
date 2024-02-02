@@ -929,7 +929,7 @@
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "確認碼已發送至您的電子郵件，請輸入確認碼以永久地刪除這個工作區。",
   "Confirmation code": "驗證碼",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "刪除<1>{{workspaceName}}</1>工作區會刪除所有文件集，文件，使用者，以及相關資料。您會立即從{{appName}} 登出。",
-  "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.": "請留意工作區是完全分開的。它們可以有不同的網域，設定，使用者，帳務資訊。",
+  "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.",
   "Workspace name": "工作區名字",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "您正在使用當前帳戶建立新的工作區 — <em>{{email}}</em>",
   "To create a workspace under another email please sign up from the homepage": "要使用另一個電子郵件建立工作區請從首頁登入",
