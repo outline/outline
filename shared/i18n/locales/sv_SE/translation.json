@@ -929,7 +929,7 @@
   "A confirmation code has been sent to your email address, please enter the code below to permanently destroy this workspace.": "En bekräftelsekod har skickats till din e-postadress, ange koden nedan för att permanent förstöra denna arbetsyta.",
   "Confirmation code": "Bekräftelsekod",
   "Deleting the <1>{{workspaceName}}</1> workspace will destroy all collections, documents, users, and associated data. You will be immediately logged out of {{appName}}.": "Om du tar bort arbetsytan <1>{{workspaceName}}</1> kommer alla samlingar, dokument, användare och tillhörande data att förstöras. Du kommer omedelbart att loggas ut från {{appName}}.",
-  "Please note that workspaces are completely separate. They can have a different domain, settings, users, and billing.": "Observera att arbetsytor är helt separerade. De kan ha en annan domän, inställningar, användare och fakturering.",
+  "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.": "Please note that workspaces are completely separated. They can have a different domain, settings, users, and billing.",
   "Workspace name": "Arbetsytans namn",
   "You are creating a new workspace using your current account — <em>{{email}}</em>": "Du skapar en ny arbetsyta med ditt nuvarande konto — <em>{{email}}</em>",
   "To create a workspace under another email please sign up from the homepage": "För att skapa en arbetsyta under ett annat e-postmeddelande vänligen registrera dig från hemsidan",
