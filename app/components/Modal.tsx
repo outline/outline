@@ -31,7 +31,7 @@ type Props = {
 const Modal: React.FC<Props> = ({
   children,
   isOpen,
-  fullscreen,
+  fullscreen = true,
   title = "Untitled",
   onRequestClose,
 }: Props) => {
