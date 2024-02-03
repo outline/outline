@@ -7,6 +7,7 @@ import { colorPalette } from "@shared/utils/collections";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
+import useOnClickOutside from "~/hooks/useOnClickOutside";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import DelayedMount from "./DelayedMount";
 import { IconLibrary } from "./Icons/IconLibrary";
@@ -41,7 +42,7 @@ function IconPicker({
   const theme = useTheme();
   const popover = usePopoverState({
     gutter: 0,
-    placement: "bottom-end",
+    placement: "bottom",
     modal: true,
   });
 
@@ -77,6 +78,20 @@ function IconPicker({
     [theme]
   );
 
+  // Custom click outside handling rather than using `hideOnClickOutside` from reakit so that we can
+  // prevent event bubbling.
+  useOnClickOutside(
+    popover.unstable_popoverRef,
+    (event) => {
+      if (popover.visible) {
+        event.stopPropagation();
+        event.preventDefault();
+        popover.hide();
+      }
+    },
+    { capture: true }
+  );
+
   return (
     <>
       <PopoverDisclosure {...popover}>
@@ -95,7 +110,12 @@ function IconPicker({
           </NudeButton>
         )}
       </PopoverDisclosure>
-      <Popover {...popover} width={388} aria-label={t("Choose icon")}>
+      <Popover
+        {...popover}
+        width={388}
+        aria-label={t("Choose icon")}
+        hideOnClickOutside={false}
+      >
         <Icons>
           {Object.keys(icons).map((name, index) => (
             <MenuItem key={name} onClick={() => onChange(color, name)}>
