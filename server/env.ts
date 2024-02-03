@@ -425,11 +425,7 @@ export class Environment {
     process.env.GITHUB_APP_PRIVATE_KEY
   );
 
-  @IsOptional()
-  @IsBoolean()
-  public GITHUB_INTEGRATION_DISABLED = this.toBoolean(
-    process.env.GITHUB_INTEGRATION_DISABLED ?? "true"
-  );
+  public PLUGINS_DISABLED = (process.env.PLUGINS_DISABLED ?? "").split(",");
 
   /**
    * This is used to verify webhook requests received from Slack.
