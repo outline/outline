@@ -24,7 +24,7 @@ export default class PluginLoader {
     function importAll(r: any, property: string) {
       Object.keys(r).forEach((key: string) => {
         const id = key.split("/")[3];
-        if (id === "github" && env.GITHUB_INTEGRATION_DISABLED) {
+        if (env.PLUGINS_DISABLED.includes(id)) {
           return;
         }
         plugins[id] = plugins[id] || {
