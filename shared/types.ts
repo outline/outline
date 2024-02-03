@@ -60,7 +60,7 @@ export type PublicEnv = {
   SLACK_CLIENT_ID: string | undefined;
   GITHUB_CLIENT_ID: string | undefined;
   GITHUB_APP_NAME?: string;
-  GITHUB_INTEGRATION_DISABLED: boolean;
+  PLUGINS_DISABLED: string[];
   SLACK_APP_ID: string | undefined;
   FILE_STORAGE_IMPORT_MAX_SIZE: number;
   EMAIL_ENABLED: boolean;
