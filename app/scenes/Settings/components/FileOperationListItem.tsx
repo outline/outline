@@ -76,7 +76,6 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
 
   const handleConfirmDelete = React.useCallback(async () => {
     dialogs.openModal({
-      isCentered: true,
       title: t("Are you sure you want to delete this import?"),
       content: (
         <ConfirmationDialog

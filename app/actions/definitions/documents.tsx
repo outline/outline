@@ -224,7 +224,6 @@ export const publishDocument = createAction({
     } else if (document) {
       stores.dialogs.openModal({
         title: t("Publish document"),
-        isCentered: true,
         content: <DocumentPublish document={document} />,
       });
     }
@@ -345,7 +344,6 @@ export const shareDocument = createAction({
 
     stores.dialogs.openModal({
       title: t("Share this document"),
-      isCentered: true,
       content: (
         <SharePopover
           document={document}
@@ -495,7 +493,6 @@ export const duplicateDocument = createAction({
 
     stores.dialogs.openModal({
       title: t("Copy document"),
-      isCentered: true,
       content: (
         <DuplicateDialog
           document={document}
@@ -692,7 +689,6 @@ export const createTemplate = createAction({
 
     stores.dialogs.openModal({
       title: t("Create template"),
-      isCentered: true,
       content: <DocumentTemplatizeDialog documentId={activeDocumentId} />,
     });
   },
@@ -751,7 +747,6 @@ export const moveDocument = createAction({
         title: t("Move {{ documentType }}", {
           documentType: document.noun,
         }),
-        isCentered: true,
         content: <DocumentMove document={document} />,
       });
     }
@@ -805,7 +800,6 @@ export const deleteDocument = createAction({
         title: t("Delete {{ documentName }}", {
           documentName: document.noun,
         }),
-        isCentered: true,
         content: (
           <DocumentDelete
             document={document}
@@ -840,7 +834,6 @@ export const permanentlyDeleteDocument = createAction({
         title: t("Permanently delete {{ documentName }}", {
           documentName: document.noun,
         }),
-        isCentered: true,
         content: (
           <DocumentPermanentDelete
             document={document}

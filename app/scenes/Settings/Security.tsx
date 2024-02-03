@@ -102,7 +102,6 @@ function Security() {
 
       if (inviteRequired) {
         dialogs.openModal({
-          isCentered: true,
           title: t("Are you sure you want to require invites?"),
           content: (
             <ConfirmationDialog

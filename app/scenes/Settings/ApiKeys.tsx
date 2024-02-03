@@ -71,7 +71,6 @@ function ApiKeys() {
         title={t("Create a token")}
         onRequestClose={handleNewModalClose}
         isOpen={newModalOpen}
-        isCentered
       >
         <APITokenNew onSubmit={handleNewModalClose} />
       </Modal>

@@ -113,7 +113,6 @@ function Details() {
     dialogs.openModal({
       title: t("Delete workspace"),
       content: <TeamDelete onSubmit={dialogs.closeAllModals} />,
-      isCentered: true,
     });
   };
 

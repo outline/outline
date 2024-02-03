@@ -43,7 +43,6 @@ function Preferences() {
     dialogs.openModal({
       title: t("Delete account"),
       content: <UserDelete onSubmit={dialogs.closeAllModals} />,
-      isCentered: true,
     });
   };
 

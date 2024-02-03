@@ -56,7 +56,6 @@ export const createCollection = createAction({
     event?.stopPropagation();
     stores.dialogs.openModal({
       title: t("Create a collection"),
-      isCentered: true,
       content: <CollectionNew onSubmit={stores.dialogs.closeAllModals} />,
     });
   },
@@ -78,7 +77,6 @@ export const editCollection = createAction({
 
     stores.dialogs.openModal({
       title: t("Edit collection"),
-      isCentered: true,
       content: (
         <CollectionEdit
           onSubmit={stores.dialogs.closeAllModals}
@@ -105,6 +103,7 @@ export const editCollectionPermissions = createAction({
 
     stores.dialogs.openModal({
       title: t("Collection permissions"),
+      fullscreen: true,
       content: <CollectionPermissions collectionId={activeCollectionId} />,
     });
   },
@@ -185,7 +184,6 @@ export const deleteCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      isCentered: true,
       title: t("Delete collection"),
       content: (
         <CollectionDeleteDialog

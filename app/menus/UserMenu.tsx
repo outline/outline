@@ -40,7 +40,6 @@ function UserMenu({ user }: Props) {
       ev.preventDefault();
       dialogs.openModal({
         title: t("Change role to admin"),
-        isCentered: true,
         content: (
           <UserChangeToAdminDialog
             user={user}
@@ -57,7 +56,6 @@ function UserMenu({ user }: Props) {
       ev.preventDefault();
       dialogs.openModal({
         title: t("Change role to editor"),
-        isCentered: true,
         content: (
           <UserChangeToMemberDialog
             user={user}
@@ -74,7 +72,6 @@ function UserMenu({ user }: Props) {
       ev.preventDefault();
       dialogs.openModal({
         title: t("Change role to viewer"),
-        isCentered: true,
         content: (
           <UserChangeToViewerDialog
             user={user}
@@ -91,7 +88,6 @@ function UserMenu({ user }: Props) {
       ev.preventDefault();
       dialogs.openModal({
         title: t("Change name"),
-        isCentered: true,
         content: (
           <UserChangeNameDialog user={user} onSubmit={dialogs.closeAllModals} />
         ),
@@ -105,7 +101,6 @@ function UserMenu({ user }: Props) {
       ev.preventDefault();
       dialogs.openModal({
         title: t("Suspend user"),
-        isCentered: true,
         content: (
           <UserSuspendDialog user={user} onSubmit={dialogs.closeAllModals} />
         ),

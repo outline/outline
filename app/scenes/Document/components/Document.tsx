@@ -208,7 +208,6 @@ class DocumentScene extends React.Component<Props> {
     if (abilities.move) {
       dialogs.openModal({
         title: t("Move document"),
-        isCentered: true,
         content: <DocumentMove document={document} />,
       });
     }
@@ -258,7 +257,6 @@ class DocumentScene extends React.Component<Props> {
     } else {
       dialogs.openModal({
         title: t("Publish document"),
-        isCentered: true,
         content: <DocumentPublish document={document} />,
       });
     }
