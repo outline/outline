@@ -1,6 +1,7 @@
 import type { Context } from "koa";
 import Router from "koa-router";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -61,6 +62,7 @@ if (GitHub.clientId && GitHub.clientSecret) {
               })
             );
           } catch (err) {
+            Logger.error(`Error fetching team for teamId: ${teamId}!`, err);
             return ctx.redirect(GitHub.errorUrl("unauthenticated"));
           }
         } else {
@@ -74,6 +76,7 @@ if (GitHub.clientId && GitHub.clientSecret) {
       try {
         installation = await github.getInstallation(installationId);
       } catch (err) {
+        Logger.error("Failed to fetch GitHub App installation", err);
         return ctx.redirect(GitHub.errorUrl("unauthenticated"));
       }
 
