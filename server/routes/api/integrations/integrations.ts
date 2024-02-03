@@ -1,12 +1,10 @@
 import Router from "koa-router";
-import { App } from "octokit";
 import { WhereOptions } from "sequelize";
-import { IntegrationService, IntegrationType } from "@shared/types";
-import env from "@server/env";
+import { IntegrationType } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Event, IntegrationAuthentication } from "@server/models";
+import { Event } from "@server/models";
 import Integration from "@server/models/Integration";
 import { authorize } from "@server/policies";
 import { presentIntegration, presentPolicies } from "@server/presenters";
@@ -147,36 +145,7 @@ router.post(
     });
     authorize(user, "delete", integration);
 
-    // If it's GitHub, trigger its API for deletion of this installation
-    if (integration.service === IntegrationService.GitHub) {
-      const installationId = (integration as Integration<IntegrationType.Embed>)
-        .settings?.github?.installation.id;
-
-      if (env.GITHUB_APP_ID && env.GITHUB_APP_PRIVATE_KEY && installationId) {
-        const { octokit } = new App({
-          appId: env.GITHUB_APP_ID,
-          privateKey: Buffer.from(
-            env.GITHUB_APP_PRIVATE_KEY,
-            "base64"
-          ).toString("ascii"),
-        });
-
-        await octokit.request("DELETE /app/installations/{installation_id}", {
-          installation_id: installationId,
-        });
-      }
-    }
-
     await integration.destroy({ transaction });
-    // also remove the corresponding authentication if it exists
-    if (integration.authenticationId) {
-      await IntegrationAuthentication.destroy({
-        where: {
-          id: integration.authenticationId,
-        },
-        transaction,
-      });
-    }
 
     await Event.create(
       {
