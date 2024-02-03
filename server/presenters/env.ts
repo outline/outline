@@ -14,6 +14,7 @@ export default function present(
   return {
     GITHUB_CLIENT_ID: env.GITHUB_CLIENT_ID,
     GITHUB_APP_NAME: env.GITHUB_APP_NAME,
+    PLUGINS_DISABLED: env.PLUGINS_DISABLED,
     ROOT_SHARE_ID: options.rootShareId || undefined,
     analytics: {
       service: options.analytics?.service,

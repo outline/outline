@@ -51,6 +51,7 @@ export enum MentionType {
 export type PublicEnv = {
   GITHUB_CLIENT_ID?: string;
   GITHUB_APP_NAME?: string;
+  PLUGINS_DISABLED: string[];
   ROOT_SHARE_ID?: string;
   analytics: {
     service?: IntegrationService | UserCreatableIntegrationService;
