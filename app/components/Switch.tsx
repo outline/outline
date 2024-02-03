@@ -24,16 +24,19 @@ interface Props extends React.HTMLAttributes<HTMLInputElement> {
   disabled?: boolean;
 }
 
-function Switch({
-  width = 32,
-  height = 18,
-  labelPosition = "left",
-  label,
-  disabled,
-  className,
-  note,
-  ...props
-}: Props) {
+function Switch(
+  {
+    width = 32,
+    height = 18,
+    labelPosition = "left",
+    label,
+    disabled,
+    className,
+    note,
+    ...props
+  }: Props,
+  ref: React.Ref<HTMLInputElement>
+) {
   const component = (
     <Input
       width={width}
@@ -41,6 +44,7 @@ function Switch({
       className={label ? undefined : className}
     >
       <HiddenInput
+        ref={ref}
         type="checkbox"
         width={width}
         height={height}
@@ -164,4 +168,4 @@ const HiddenInput = styled.input<{ width: number; height: number }>`
   }
 `;
 
-export default Switch;
+export default React.forwardRef(Switch);

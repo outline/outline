@@ -48,6 +48,12 @@ export type Props = {
   onChange?: (value: string | null) => void;
 };
 
+export interface InputSelectRef {
+  value: string | null;
+  focus: () => void;
+  blur: () => void;
+}
+
 interface InnerProps extends React.HTMLAttributes<HTMLDivElement> {
   placement: Placement;
 }
@@ -55,7 +61,7 @@ interface InnerProps extends React.HTMLAttributes<HTMLDivElement> {
 const getOptionFromValue = (options: Option[], value: string | null) =>
   options.find((option) => option.value === value);
 
-const InputSelect = (props: Props) => {
+const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
   const {
     value = null,
     label,
@@ -121,6 +127,16 @@ const InputSelect = (props: Props) => {
     },
     { capture: true }
   );
+
+  React.useImperativeHandle(ref, () => ({
+    focus: () => {
+      buttonRef.current?.focus();
+    },
+    blur: () => {
+      buttonRef.current?.blur();
+    },
+    value: select.selectedValue,
+  }));
 
   React.useEffect(() => {
     previousValue.current = value;
@@ -306,4 +322,4 @@ export const Positioner = styled(Position)`
   }
 `;
 
-export default InputSelect;
+export default React.forwardRef(InputSelect);
