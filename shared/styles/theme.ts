@@ -130,7 +130,7 @@ export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
 
     commentBackground: colors.warmGrey,
 
-    modalBackdrop: colors.black10,
+    modalBackdrop: "rgba(0, 0, 0, 0.15)",
     modalBackground: colors.white,
     modalShadow:
       "0 4px 8px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 0%), 0 30px 40px rgb(0 0 0 / 8%)",

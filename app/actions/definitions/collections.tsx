@@ -56,6 +56,7 @@ export const createCollection = createAction({
     event?.stopPropagation();
     stores.dialogs.openModal({
       title: t("Create a collection"),
+      isCentered: true,
       content: <CollectionNew onSubmit={stores.dialogs.closeAllModals} />,
     });
   },

@@ -1,9 +1,9 @@
-import intersection from "lodash/intersection";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
 import { toast } from "sonner";
+import styled from "styled-components";
 import { randomElement } from "@shared/random";
 import { CollectionPermission } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
@@ -12,7 +12,8 @@ import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import IconPicker, { icons } from "~/components/IconPicker";
+import IconPicker from "~/components/IconPicker";
+import { IconLibrary } from "~/components/Icons/IconLibrary";
 import Input from "~/components/Input";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Switch from "~/components/Switch";
@@ -27,6 +28,8 @@ type Props = RootStore &
 
 @observer
 class CollectionNew extends React.Component<Props> {
+  nameInputRef = React.createRef<HTMLInputElement>();
+
   @observable
   name = "";
 
@@ -40,7 +43,7 @@ class CollectionNew extends React.Component<Props> {
   sharing = true;
 
   @observable
-  permission = CollectionPermission.ReadWrite;
+  permission: CollectionPermission;
 
   @observable
   isSaving: boolean;
@@ -79,21 +82,7 @@ class CollectionNew extends React.Component<Props> {
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
     // the name of the collection. It's the little things sometimes.
     if (!this.hasOpenedIconPicker) {
-      const keys = Object.keys(icons);
-
-      for (const key of keys) {
-        const icon = icons[key];
-        const keywords = icon.keywords.split(" ");
-        const namewords = this.name.toLowerCase().split(" ");
-        const matches = intersection(namewords, keywords);
-
-        if (matches.length > 0) {
-          this.icon = key;
-          return;
-        }
-      }
-
-      this.icon = "collection";
+      this.icon = IconLibrary.findIconByKeyword(this.name) ?? "collection";
     }
   };
 
@@ -110,6 +99,10 @@ class CollectionNew extends React.Component<Props> {
   };
 
   handleChange = (color: string, icon: string) => {
+    if (icon !== this.icon) {
+      this.nameInputRef.current?.focus();
+    }
+
     this.color = color;
     this.icon = icon;
   };
@@ -117,39 +110,43 @@ class CollectionNew extends React.Component<Props> {
   render() {
     const { t, auth } = this.props;
     const teamSharingEnabled = !!auth.team && auth.team.sharing;
+
     return (
       <form onSubmit={this.handleSubmit}>
-        <Text as="p" type="secondary">
+        <Text as="p">
           <Trans>
-            Collections are for grouping your documents. They work best when
-            organized around a topic or internal team — Product or Engineering
-            for example.
+            Collections are used to group documents and choose permissions
           </Trans>
+          .
         </Text>
         <Flex gap={8}>
           <Input
             type="text"
-            label={t("Name")}
+            ref={this.nameInputRef}
+            placeholder={t("Name")}
             onChange={this.handleNameChange}
             maxLength={CollectionValidation.maxNameLength}
             value={this.name}
+            prefix={
+              <StyledIconPicker
+                onOpen={this.handleIconPickerOpen}
+                onChange={this.handleChange}
+                initial={this.name[0]}
+                color={this.color}
+                icon={this.icon}
+              />
+            }
             required
             autoFocus
             flex
           />
-          <IconPicker
-            onOpen={this.handleIconPickerOpen}
-            onChange={this.handleChange}
-            initial={this.name[0]}
-            color={this.color}
-            icon={this.icon}
-          />
         </Flex>
         <InputSelectPermission
           value={this.permission}
+          label={t("Permission")}
           onChange={this.handlePermissionChange}
           note={t(
-            "This is the default level of access, you can give individual users or groups more access once the collection is created."
+            "The default access for workspace members, you can share with more users or groups later."
           )}
         />
         {teamSharingEnabled && (
@@ -159,17 +156,24 @@ class CollectionNew extends React.Component<Props> {
             onChange={this.handleSharingChange}
             checked={this.sharing}
             note={t(
-              "When enabled any documents within this collection can be shared publicly on the internet."
+              "Allow documents within this collection to be shared publicly on the internet."
             )}
           />
         )}
 
-        <Button type="submit" disabled={this.isSaving || !this.name}>
-          {this.isSaving ? `${t("Creating")}…` : t("Create")}
-        </Button>
+        <Flex justify="flex-end">
+          <Button type="submit" disabled={this.isSaving || !this.name}>
+            {this.isSaving ? `${t("Creating")}…` : t("Create")}
+          </Button>
+        </Flex>
       </form>
     );
   }
 }
+
+const StyledIconPicker = styled(IconPicker)`
+  margin-left: 4px;
+  margin-right: -8px;
+`;
 
 export default withTranslation()(withStores(CollectionNew));

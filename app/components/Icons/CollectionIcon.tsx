@@ -3,9 +3,9 @@ import { CollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
 import * as React from "react";
 import Collection from "~/models/Collection";
-import { icons } from "~/components/IconPicker";
 import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
+import { IconLibrary } from "./IconLibrary";
 
 type Props = {
   /** The collection to show an icon for */
@@ -38,7 +38,7 @@ function ResolvedCollectionIcon({
 
   if (collection.icon && collection.icon !== "collection") {
     try {
-      const Component = icons[collection.icon].component;
+      const Component = IconLibrary.getComponent(collection.icon);
       return (
         <Component color={color} size={size}>
           {collection.initial}
