@@ -74,7 +74,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
       context={context}
       action={editCollectionPermissions}
       tooltip={{
-        tooltip:
+        content:
           usersCount > 0
             ? groupsCount > 0
               ? groupsCount > 1

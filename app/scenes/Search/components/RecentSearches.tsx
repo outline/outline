@@ -52,7 +52,7 @@ function RecentSearches(
                   {...compositeProps}
                 >
                   {searchQuery.query}
-                  <Tooltip tooltip={t("Remove search")} delay={150}>
+                  <Tooltip content={t("Remove search")} delay={150}>
                     <RemoveButton
                       aria-label={t("Remove search")}
                       onClick={async (ev) => {

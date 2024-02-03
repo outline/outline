@@ -83,7 +83,7 @@ export const OtherAccess = observer(({ document, children }: Props) => {
             image={<Avatar model={document.createdBy} showBorder={false} />}
             title={document.createdBy.name}
             actions={
-              <AccessTooltip tooltip={t("Created the document")}>
+              <AccessTooltip content={t("Created the document")}>
                 {t("Can edit")}
               </AccessTooltip>
             }
@@ -103,7 +103,7 @@ export const OtherAccess = observer(({ document, children }: Props) => {
             subtitle={t("Other workspace members may have access")}
             actions={
               <AccessTooltip
-                tooltip={t(
+                content={t(
                   "This document may be shared with more workspace members through a parent document or collection you do not have access to"
                 )}
               />
@@ -117,10 +117,10 @@ export const OtherAccess = observer(({ document, children }: Props) => {
 
 const AccessTooltip = ({
   children,
-  tooltip,
+  content,
 }: {
   children?: React.ReactNode;
-  tooltip?: string;
+  content?: string;
 }) => {
   const { t } = useTranslation();
 
@@ -129,7 +129,7 @@ const AccessTooltip = ({
       <Text type="secondary" size="small">
         {children}
       </Text>
-      <Tooltip tooltip={tooltip ?? t("Access inherited from collection")}>
+      <Tooltip content={content ?? t("Access inherited from collection")}>
         <QuestionMarkIcon size={18} />
       </Tooltip>
     </Flex>

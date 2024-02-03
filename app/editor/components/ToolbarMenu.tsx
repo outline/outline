@@ -93,7 +93,7 @@ function ToolbarMenu(props: Props) {
 
         return (
           <Tooltip
-            tooltip={item.label === item.tooltip ? undefined : item.tooltip}
+            content={item.label === item.tooltip ? undefined : item.tooltip}
             key={index}
           >
             {item.children ? (

@@ -334,13 +334,13 @@ class LinkEditor extends React.Component<Props, State> {
         />
 
         <Tooltip
-          tooltip={isInternal ? dictionary.goToLink : dictionary.openLink}
+          content={isInternal ? dictionary.goToLink : dictionary.openLink}
         >
           <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
             {isInternal ? <ArrowIcon /> : <OpenIcon />}
           </ToolbarButton>
         </Tooltip>
-        <Tooltip tooltip={dictionary.removeLink}>
+        <Tooltip content={dictionary.removeLink}>
           <ToolbarButton onClick={this.handleRemoveLink}>
             <CloseIcon />
           </ToolbarButton>

@@ -25,7 +25,7 @@ function Actions({ collection }: Props) {
         <>
           <Action>
             <Tooltip
-              tooltip={t("New document")}
+              content={t("New document")}
               shortcut="n"
               delay={500}
               placement="bottom"

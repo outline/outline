@@ -161,7 +161,7 @@ function CollectionScene() {
                 {collection.name}
                 {collection.isPrivate && (
                   <Tooltip
-                    tooltip={t(
+                    content={t(
                       "This collection is only visible to those given access"
                     )}
                     placement="bottom"

@@ -120,7 +120,7 @@ function DocumentHeader({
   const canToggleEmbeds = team?.documentEmbeds;
   const toc = (
     <Tooltip
-      tooltip={ui.tocVisible ? t("Hide contents") : t("Show contents")}
+      content={ui.tocVisible ? t("Hide contents") : t("Show contents")}
       shortcut="ctrl+alt+h"
       delay={250}
       placement="bottom"
@@ -138,7 +138,7 @@ function DocumentHeader({
   const editAction = (
     <Action>
       <Tooltip
-        tooltip={t("Edit {{noun}}", {
+        content={t("Edit {{noun}}", {
           noun: document.noun,
         })}
         shortcut="e"
@@ -159,7 +159,7 @@ function DocumentHeader({
   const appearanceAction = (
     <Action>
       <Tooltip
-        tooltip={
+        content={
           resolvedTheme === "light" ? t("Switch to dark") : t("Switch to light")
         }
         delay={500}
@@ -265,7 +265,7 @@ function DocumentHeader({
             {(isEditing || isTemplate) && (
               <Action>
                 <Tooltip
-                  tooltip={t("Save")}
+                  content={t("Save")}
                   shortcut={`${metaDisplay}+enter`}
                   delay={500}
                   placement="bottom"
@@ -297,7 +297,7 @@ function DocumentHeader({
                     document={document}
                     label={(props) => (
                       <Tooltip
-                        tooltip={t("New document")}
+                        content={t("New document")}
                         shortcut="n"
                         delay={500}
                         placement="bottom"
@@ -313,7 +313,7 @@ function DocumentHeader({
             {revision && revision.createdAt !== document.updatedAt && (
               <Action>
                 <Tooltip
-                  tooltip={t("Restore version")}
+                  content={t("Restore version")}
                   delay={500}
                   placement="bottom"
                 >

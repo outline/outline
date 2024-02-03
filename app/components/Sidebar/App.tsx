@@ -76,7 +76,7 @@ function AppSidebar() {
                 }
               >
                 <Tooltip
-                  tooltip={t("Toggle sidebar")}
+                  content={t("Toggle sidebar")}
                   shortcut={`${metaDisplay}+.`}
                   delay={500}
                 >

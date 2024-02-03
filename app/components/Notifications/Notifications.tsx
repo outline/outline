@@ -58,13 +58,13 @@ function Notifications(
           </Text>
           <Text color="textSecondary" as={Flex} gap={8}>
             {notifications.approximateUnreadCount > 0 && (
-              <Tooltip delay={500} tooltip={t("Mark all as read")}>
+              <Tooltip delay={500} content={t("Mark all as read")}>
                 <Button action={markNotificationsAsRead} context={context}>
                   <MarkAsReadIcon />
                 </Button>
               </Tooltip>
             )}
-            <Tooltip delay={500} tooltip={t("Settings")}>
+            <Tooltip delay={500} content={t("Settings")}>
               <Button action={navigateToNotificationSettings} context={context}>
                 <SettingsIcon />
               </Button>

@@ -162,7 +162,7 @@ const CollectionLink: React.FC<Props> = ({
               !isDraggingAnyCollection && (
                 <Fade>
                   <NudeButton
-                    tooltip={{ tooltip: t("New doc"), delay: 500 }}
+                    tooltip={{ content: t("New doc"), delay: 500 }}
                     action={createDocument}
                     context={context}
                     hideOnActionDisabled

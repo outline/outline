@@ -145,7 +145,7 @@ function DocumentCard(props: Props) {
           {canUpdatePin && (
             <Actions dir={document.dir} gap={4}>
               {!isDragging && pin && (
-                <Tooltip tooltip={t("Unpin")}>
+                <Tooltip content={t("Unpin")}>
                   <PinButton onClick={handleUnpin} aria-label={t("Unpin")}>
                     <CloseIcon />
                   </PinButton>

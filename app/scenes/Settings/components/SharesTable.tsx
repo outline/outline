@@ -70,7 +70,7 @@ function SharesTable({ canManage, data, ...rest }: Props) {
           Cell: observer(({ value }: { value: string }) =>
             value ? (
               <Flex align="center">
-                <Tooltip tooltip={t("Nested documents are publicly available")}>
+                <Tooltip content={t("Nested documents are publicly available")}>
                   <CheckmarkIcon color={theme.accent} />
                 </Tooltip>
               </Flex>

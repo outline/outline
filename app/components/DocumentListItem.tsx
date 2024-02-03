@@ -107,7 +107,7 @@ function DocumentListItem(
           )}
           {document.isDraft && showDraft && (
             <Tooltip
-              tooltip={t("Only visible to you")}
+              content={t("Only visible to you")}
               delay={500}
               placement="top"
             >

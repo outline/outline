@@ -42,7 +42,7 @@ function ConnectionStatus() {
   return ui.multiplayerStatus === "connecting" ||
     ui.multiplayerStatus === "disconnected" ? (
     <Tooltip
-      tooltip={
+      content={
         message ? (
           <Centered>
             <strong>{message.title}</strong>

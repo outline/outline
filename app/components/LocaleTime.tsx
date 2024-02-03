@@ -79,7 +79,7 @@ const LocaleTime: React.FC<Props> = ({
         });
 
   return (
-    <Tooltip tooltip={tooltipContent} delay={tooltipDelay} placement="bottom">
+    <Tooltip content={tooltipContent} delay={tooltipDelay} placement="bottom">
       <time dateTime={dateTime}>{children || content}</time>
     </Tooltip>
   );

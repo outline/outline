@@ -228,7 +228,7 @@ function SharePopover({
     ) : null
   ) : (
     <Tooltip
-      tooltip={t("Copy link")}
+      content={t("Copy link")}
       delay={500}
       placement="top"
       key="copy-link"

@@ -141,7 +141,7 @@ function Invite({ onSubmit }: Props) {
     <span>
       <Trans>Invited members will receive access to</Trans>{" "}
       <Tooltip
-        tooltip={
+        content={
           <>
             {collections.nonPrivate.map((collection) => (
               <li key={collection.id}>{collection.name}</li>
@@ -244,7 +244,7 @@ function Invite({ onSubmit }: Props) {
             />
             {index !== 0 && (
               <Remove>
-                <Tooltip tooltip={t("Remove invite")} placement="top">
+                <Tooltip content={t("Remove invite")} placement="top">
                   <NudeButton onClick={(ev) => handleRemove(ev, index)}>
                     <CloseIcon />
                   </NudeButton>
