@@ -24,7 +24,7 @@ function Gist(props: Props) {
       height="200px"
       scrolling="no"
       id={`gist-${id}`}
-      title="Github Gist"
+      title="GitHub Gist"
     />
   );
 }
