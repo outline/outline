@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { EditIcon, RestoreIcon, SearchIcon } from "outline-icons";
+import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -284,7 +284,7 @@ function DocumentMenu({
               title: `${t("Rename")}…`,
               visible: !!can.update && !user.separateEditMode && !!onRename,
               onClick: () => onRename?.(),
-              icon: <EditIcon />,
+              icon: <InputIcon />,
             },
             actionToMenuItem(createNestedDocument, context),
             actionToMenuItem(importDocument, context),
