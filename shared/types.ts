@@ -119,7 +119,7 @@ export enum DocumentPermission {
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? {
-      url?: string;
+      url: string;
       github?: {
         installation: {
           id: number;
@@ -134,8 +134,8 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   : T extends IntegrationType.Command
   ? { serviceTeamId: string }
   :
+      | { url: string }
       | {
-          url?: string;
           github?: {
             installation: {
               id: number;
