@@ -1,4 +1,4 @@
-import { intersection } from "lodash";
+import intersection from "lodash/intersection";
 import {
   BookmarkedIcon,
   BicycleIcon,
@@ -24,12 +24,14 @@ import {
   EyeIcon,
   GlobeIcon,
   InfoIcon,
+  IceCreamIcon,
   ImageIcon,
   LeafIcon,
   LightBulbIcon,
   MathIcon,
   MoonIcon,
   NotepadIcon,
+  TeamIcon,
   PadlockIcon,
   PaletteIcon,
   PromoteIcon,
@@ -50,6 +52,7 @@ import {
   FeedbackIcon,
   ServerRackIcon,
   ThumbsUpIcon,
+  TruckIcon,
 } from "outline-icons";
 import LetterIcon from "./LetterIcon";
 
@@ -166,7 +169,7 @@ export class IconLibrary {
     },
     flame: {
       component: FlameIcon,
-      keywords: "fire hot",
+      keywords: "fire flame hot",
     },
     graph: {
       component: GraphIcon,
@@ -183,6 +186,10 @@ export class IconLibrary {
     info: {
       component: InfoIcon,
       keywords: "info information",
+    },
+    icecream: {
+      component: IceCreamIcon,
+      keywords: "food dessert cone scoop",
     },
     image: {
       component: ImageIcon,
@@ -276,6 +283,10 @@ export class IconLibrary {
       component: TargetIcon,
       keywords: "target goal sales",
     },
+    team: {
+      component: TeamIcon,
+      keywords: "team building organization office",
+    },
     terminal: {
       component: TerminalIcon,
       keywords: "terminal code",
@@ -283,6 +294,10 @@ export class IconLibrary {
     thumbsup: {
       component: ThumbsUpIcon,
       keywords: "like social favorite upvote",
+    },
+    truck: {
+      component: TruckIcon,
+      keywords: "truck transport vehicle",
     },
     tools: {
       component: ToolsIcon,

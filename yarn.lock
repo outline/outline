@@ -2627,13 +2627,6 @@
     "@sentry/types" "7.99.0"
     "@sentry/utils" "7.99.0"
 
-"@sentry/tracing@^7.99.0":
-  version "7.99.0"
-  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-7.99.0.tgz#75ecdda05fa37e1a3e6bc43b39d71b5b51db2290"
-  integrity sha512-Cf622gSeamiSsi0JEj3PTXnq019OymaCrGf91x1d6OPyJ5jAXdlNuhw7NkqCEw8euIhhULuS81l5nGfBrgjj9Q==
-  dependencies:
-    "@sentry-internal/tracing" "7.99.0"
-
 "@sentry/types@7.99.0":
   version "7.99.0"
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.99.0.tgz#bba7a514abab445026ee42f40f92f81275a6deba"
@@ -10068,10 +10061,10 @@ os-tmpdir@~1.0.2:
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
   integrity "sha1-u+Z0BseaqFxc/sdm/lc0VV36EnQ= sha512-D2FR03Vir7FIu45XBY20mTb+/ZSWB00sjU9jdQXt83gDrI4Ztz5Fs7/yy74g2N5SVQY4xY1qDr4rNddwYRVX0g=="
 
-outline-icons@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-3.1.0.tgz#ca7607bd446af57f761846ff1cd1d284ec640bf1"
-  integrity sha512-uXA1GR90bs/ohrVwysUpRdoMz1zuNsWVjY8AT5oozgbFHcZOZuZFOxE37cpEY3gZu4efOK2Y0L7sRY9UAAy3Og==
+outline-icons@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-3.2.0.tgz#6b7752a88b242f00dcb0913fc04c7da3a38edc3f"
+  integrity sha512-EMuX0QAWNjvoi9R1BzyL4oMd/2+YG3lKCPRIqIaVQ4gymwIxK90eRugluyMtEiaZHIlIT/T4WVT6YWxhkYj3Lg==
 
 oy-vey@^0.12.1:
   version "0.12.1"
