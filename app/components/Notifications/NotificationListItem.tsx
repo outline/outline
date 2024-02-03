@@ -14,6 +14,7 @@ import { AvatarSize } from "../Avatar/Avatar";
 import Flex from "../Flex";
 import Text from "../Text";
 import Time from "../Time";
+import { UnreadBadge } from "../UnreadBadge";
 
 type Props = {
   notification: Notification;
@@ -65,7 +66,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
             />
           )}
         </Flex>
-        {notification.viewedAt ? null : <Unread />}
+        {notification.viewedAt ? null : <UnreadBadge style={{ right: 20 }} />}
       </Container>
     </StyledLink>
   );
@@ -98,16 +99,6 @@ const Container = styled(Flex)<{ $unread: boolean }>`
   &:active {
     background: ${s("listItemHoverBackground")};
   }
-`;
-
-const Unread = styled.div`
-  width: 8px;
-  height: 8px;
-  background: ${s("accent")};
-  border-radius: 8px;
-  align-self: center;
-  position: absolute;
-  right: 20px;
 `;
 
 export default observer(NotificationListItem);

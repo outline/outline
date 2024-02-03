@@ -1,5 +1,5 @@
 import { TFunction } from "i18next";
-import { action, observable } from "mobx";
+import { action, computed, observable } from "mobx";
 import { NotificationEventType } from "@shared/types";
 import {
   collectionPath,
@@ -154,6 +154,7 @@ class Notification extends Model {
    *
    * @returns The router path.
    */
+  @computed
   get path() {
     switch (this.event) {
       case NotificationEventType.PublishDocument:

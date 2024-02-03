@@ -2,6 +2,7 @@ import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
+import { NotificationEventType } from "@shared/types";
 import UserMembership from "~/models/UserMembership";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
@@ -99,7 +100,7 @@ function SharedWithMeLink({ userMembership }: Props) {
           <SidebarLink
             depth={0}
             to={{
-              pathname: document.url,
+              pathname: document.path,
               state: { starred: true },
             }}
             expanded={hasChildDocuments && !isDragging ? expanded : undefined}
@@ -107,6 +108,12 @@ function SharedWithMeLink({ userMembership }: Props) {
             icon={icon}
             label={label}
             exact={false}
+            unreadBadge={
+              document.unreadNotifications.filter(
+                (notification) =>
+                  notification.event === NotificationEventType.AddUserToDocument
+              ).length > 0
+            }
             showActions={menuOpen}
             menu={
               document && !isDragging ? (
