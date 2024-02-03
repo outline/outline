@@ -211,7 +211,6 @@ const Wrapper = styled.div`
 const DomainPrefix = styled(NativeInput)`
   flex: 0 1 auto;
   padding-right: 0 !important;
-  margin-right: -10px;
   cursor: text;
   color: ${s("placeholder")};
   user-select: none;
@@ -223,7 +222,7 @@ const ShareLinkInput = styled(Input)`
   flex: 1;
 
   ${NativeInput} {
-    padding: 4px 8px;
+    padding: 4px 8px 4px 0;
     flex: 1;
   }
 `;

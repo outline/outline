@@ -8,10 +8,14 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
 
-export const NativeTextarea = styled.textarea<{ hasIcon?: boolean }>`
+export const NativeTextarea = styled.textarea<{
+  hasIcon?: boolean;
+  hasPrefix?: boolean;
+}>`
   border: 0;
   flex: 1;
-  padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
+  padding: 8px 12px 8px
+    ${(props) => (props.hasPrefix ? 0 : props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
   color: ${s("text")};
@@ -23,10 +27,14 @@ export const NativeTextarea = styled.textarea<{ hasIcon?: boolean }>`
   }
 `;
 
-export const NativeInput = styled.input<{ hasIcon?: boolean }>`
+export const NativeInput = styled.input<{
+  hasIcon?: boolean;
+  hasPrefix?: boolean;
+}>`
   border: 0;
   flex: 1;
-  padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
+  padding: 8px 12px 8px
+    ${(props) => (props.hasPrefix ? 0 : props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
   color: ${s("text")};
@@ -224,6 +232,7 @@ function Input(
               onFocus={handleFocus}
               onKeyDown={handleKeyDown}
               hasIcon={!!icon}
+              hasPrefix={!!prefix}
               {...rest}
             />
           ) : (
@@ -236,6 +245,7 @@ function Input(
               onFocus={handleFocus}
               onKeyDown={handleKeyDown}
               hasIcon={!!icon}
+              hasPrefix={!!prefix}
               type={type}
               {...rest}
             />
