@@ -1,12 +1,21 @@
 import {
   BookmarkedIcon,
   BicycleIcon,
-  CollectionIcon,
-  CoinsIcon,
   AcademicCapIcon,
   BeakerIcon,
   BuildingBlocksIcon,
+  BrowserIcon,
+  CollectionIcon,
+  CoinsIcon,
   CameraIcon,
+  CarrotIcon,
+  FlameIcon,
+  HashtagIcon,
+  GraphIcon,
+  InternetIcon,
+  LibraryIcon,
+  PlaneIcon,
+  RamenIcon,
   CloudIcon,
   CodeIcon,
   EditIcon,
@@ -26,6 +35,7 @@ import {
   QuestionMarkIcon,
   SportIcon,
   SunIcon,
+  ShapesIcon,
   TargetIcon,
   TerminalIcon,
   ToolsIcon,
@@ -34,6 +44,11 @@ import {
   DatabaseIcon,
   SmileyIcon,
   LightningIcon,
+  ClockIcon,
+  DoneIcon,
+  FeedbackIcon,
+  ServerRackIcon,
+  ThumbsUpIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -76,6 +91,10 @@ export const icons = {
     component: BookmarkedIcon,
     keywords: "bookmark",
   },
+  browser: {
+    component: BrowserIcon,
+    keywords: "browser web app",
+  },
   collection: {
     component: CollectionIcon,
     keywords: "collection",
@@ -87,6 +106,14 @@ export const icons = {
   camera: {
     component: CameraIcon,
     keywords: "photo picture",
+  },
+  carrot: {
+    component: CarrotIcon,
+    keywords: "food vegetable produce",
+  },
+  clock: {
+    component: ClockIcon,
+    keywords: "time",
   },
   cloud: {
     component: CloudIcon,
@@ -100,6 +127,10 @@ export const icons = {
     component: DatabaseIcon,
     keywords: "server ops database",
   },
+  done: {
+    component: DoneIcon,
+    keywords: "checkmark success complete finished",
+  },
   email: {
     component: EmailIcon,
     keywords: "email at",
@@ -108,9 +139,25 @@ export const icons = {
     component: EyeIcon,
     keywords: "eye view",
   },
+  feedback: {
+    component: FeedbackIcon,
+    keywords: "faq help support",
+  },
+  flame: {
+    component: FlameIcon,
+    keywords: "fire hot",
+  },
+  graph: {
+    component: GraphIcon,
+    keywords: "chart analytics data",
+  },
   globe: {
     component: GlobeIcon,
     keywords: "world translate",
+  },
+  hashtag: {
+    component: HashtagIcon,
+    keywords: "social media tag",
   },
   info: {
     component: InfoIcon,
@@ -120,9 +167,17 @@ export const icons = {
     component: ImageIcon,
     keywords: "image photo picture",
   },
+  internet: {
+    component: InternetIcon,
+    keywords: "network global globe world",
+  },
   leaf: {
     component: LeafIcon,
     keywords: "leaf plant outdoors nature ecosystem climate",
+  },
+  library: {
+    component: LibraryIcon,
+    keywords: "library collection archive",
   },
   lightbulb: {
     component: LightBulbIcon,
@@ -160,17 +215,33 @@ export const icons = {
     component: EditIcon,
     keywords: "copy writing post blog",
   },
+  plane: {
+    component: PlaneIcon,
+    keywords: "airplane travel flight trip vacation",
+  },
   promote: {
     component: PromoteIcon,
     keywords: "marketing promotion",
+  },
+  ramen: {
+    component: RamenIcon,
+    keywords: "soup food noodle bowl meal",
   },
   question: {
     component: QuestionMarkIcon,
     keywords: "question help support faq",
   },
+  server: {
+    component: ServerRackIcon,
+    keywords: "ops infra server",
+  },
   sun: {
     component: SunIcon,
     keywords: "day sun weather",
+  },
+  shapes: {
+    component: ShapesIcon,
+    keywords: "blocks toy",
   },
   sport: {
     component: SportIcon,
@@ -187,6 +258,10 @@ export const icons = {
   terminal: {
     component: TerminalIcon,
     keywords: "terminal code",
+  },
+  thumbsup: {
+    component: ThumbsUpIcon,
+    keywords: "like social favorite upvote",
   },
   tools: {
     component: ToolsIcon,
