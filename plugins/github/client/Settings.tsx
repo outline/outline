@@ -18,10 +18,10 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import GithubIcon from "./Icon";
-import GithubButton from "./components/GithubButton";
+import GitHubIcon from "./Icon";
+import GitHubButton from "./components/GitHubButton";
 
-function Github() {
+function GitHub() {
   const team = useCurrentTeam();
   const { integrations } = useStores();
   const { t } = useTranslation();
@@ -72,7 +72,7 @@ function Github() {
   const appName = env.APP_NAME;
 
   return (
-    <Scene title="GitHub" icon={<GithubIcon />}>
+    <Scene title="GitHub" icon={<GitHubIcon />}>
       <Heading>GitHub</Heading>
 
       {error === "access_denied" && (
@@ -97,7 +97,7 @@ function Github() {
       {env.GITHUB_CLIENT_ID ? (
         <>
           <p>
-            <GithubButton
+            <GitHubButton
               redirectUri={`${env.URL}/api/github.callback`}
               state={team.id}
               label={
@@ -105,7 +105,7 @@ function Github() {
                   ? t("Connect another account")
                   : t("Connect GitHub")
               }
-              icon={<GithubIcon />}
+              icon={<GitHubIcon />}
             />
           </p>
           <p>&nbsp;</p>
@@ -176,4 +176,4 @@ function Github() {
   );
 }
 
-export default observer(Github);
+export default observer(GitHub);
