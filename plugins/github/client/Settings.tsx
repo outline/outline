@@ -19,7 +19,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import GitHubIcon from "./Icon";
-import GitHubButton from "./components/GithubButton";
+import GitHubButton from "./components/GitHubButton";
 
 function GitHub() {
   const team = useCurrentTeam();
