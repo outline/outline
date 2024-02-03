@@ -23,7 +23,7 @@ let openModals = 0;
 type Props = {
   children?: React.ReactNode;
   isOpen: boolean;
-  isCentered?: boolean;
+  fullscreen?: boolean;
   title?: React.ReactNode;
   onRequestClose: () => void;
 };
@@ -31,7 +31,7 @@ type Props = {
 const Modal: React.FC<Props> = ({
   children,
   isOpen,
-  isCentered,
+  fullscreen,
   title = "Untitled",
   onRequestClose,
 }: Props) => {
@@ -68,35 +68,17 @@ const Modal: React.FC<Props> = ({
   return (
     <DialogBackdrop {...dialog}>
       {(props) => (
-        <Backdrop $isCentered={isCentered} {...props}>
+        <Backdrop $fullscreen={fullscreen} {...props}>
           <Dialog
             {...dialog}
             aria-label={typeof title === "string" ? title : undefined}
             preventBodyScroll
             hideOnEsc
-            hideOnClickOutside={!!isCentered}
+            hideOnClickOutside={!fullscreen}
             hide={onRequestClose}
           >
             {(props) =>
-              isCentered && !isMobile ? (
-                <Small {...props}>
-                  <Centered
-                    onClick={(ev) => ev.stopPropagation()}
-                    column
-                    reverse
-                  >
-                    <SmallContent shadow>
-                      <ErrorBoundary component="div">{children}</ErrorBoundary>
-                    </SmallContent>
-                    <Header>
-                      {title && <Text size="large">{title}</Text>}
-                      <NudeButton onClick={onRequestClose}>
-                        <CloseIcon />
-                      </NudeButton>
-                    </Header>
-                  </Centered>
-                </Small>
-              ) : (
+              fullscreen || isMobile ? (
                 <Fullscreen
                   $nested={!!depth}
                   style={
@@ -126,6 +108,24 @@ const Modal: React.FC<Props> = ({
                     <Text>{t("Back")} </Text>
                   </Back>
                 </Fullscreen>
+              ) : (
+                <Small {...props}>
+                  <Centered
+                    onClick={(ev) => ev.stopPropagation()}
+                    column
+                    reverse
+                  >
+                    <SmallContent shadow>
+                      <ErrorBoundary component="div">{children}</ErrorBoundary>
+                    </SmallContent>
+                    <Header>
+                      {title && <Text size="large">{title}</Text>}
+                      <NudeButton onClick={onRequestClose}>
+                        <CloseIcon />
+                      </NudeButton>
+                    </Header>
+                  </Centered>
+                </Small>
               )
             }
           </Dialog>
@@ -135,16 +135,16 @@ const Modal: React.FC<Props> = ({
   );
 };
 
-const Backdrop = styled(Flex)<{ $isCentered?: boolean }>`
+const Backdrop = styled(Flex)<{ $fullscreen?: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background-color: ${(props) =>
-    props.$isCentered
-      ? props.theme.modalBackdrop
-      : transparentize(0.25, props.theme.background)} !important;
+    props.$fullscreen
+      ? transparentize(0.25, props.theme.background)
+      : props.theme.modalBackdrop} !important;
   z-index: ${depths.modalOverlay};
   transition: opacity 50ms ease-in-out;
   opacity: 0;

@@ -10,9 +10,9 @@ import {
 import * as React from "react";
 import stores from "~/stores";
 import Collection from "~/models/Collection";
-import CollectionEdit from "~/scenes/CollectionEdit";
-import CollectionNew from "~/scenes/CollectionNew";
 import CollectionPermissions from "~/scenes/CollectionPermissions";
+import { CollectionEdit } from "~/components/Collection/CollectionEdit";
+import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { createAction } from "~/actions";
@@ -103,6 +103,7 @@ export const editCollectionPermissions = createAction({
 
     stores.dialogs.openModal({
       title: t("Collection permissions"),
+      fullscreen: true,
       content: <CollectionPermissions collectionId={activeCollectionId} />,
     });
   },
@@ -183,7 +184,6 @@ export const deleteCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      isCentered: true,
       title: t("Delete collection"),
       content: (
         <CollectionDeleteDialog

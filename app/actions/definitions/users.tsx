@@ -17,6 +17,7 @@ export const inviteUser = createAction({
   perform: ({ t }) => {
     stores.dialogs.openModal({
       title: t("Invite people"),
+      fullscreen: true,
       content: <Invite onSubmit={stores.dialogs.closeAllModals} />,
     });
   },
@@ -38,7 +39,6 @@ export const deleteUserActionFactory = (userId: string) =>
 
       stores.dialogs.openModal({
         title: t("Delete user"),
-        isCentered: true,
         content: (
           <UserDeleteDialog
             user={user}

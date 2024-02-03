@@ -24,7 +24,6 @@ function ApiKeyMenu({ apiKey }: Props) {
   const handleRevoke = React.useCallback(() => {
     dialogs.openModal({
       title: t("Revoke token"),
-      isCentered: true,
       content: (
         <ApiKeyRevokeDialog onSubmit={dialogs.closeAllModals} apiKey={apiKey} />
       ),

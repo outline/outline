@@ -24,7 +24,6 @@ function Export() {
 
       dialogs.openModal({
         title: t("Export data"),
-        isCentered: true,
         content: <ExportDialog onSubmit={dialogs.closeAllModals} />,
       });
     },

@@ -51,7 +51,6 @@ function Import() {
               onClick={() => {
                 dialogs.openModal({
                   title: t("Import data"),
-                  isCentered: true,
                   content: <ImportMarkdownDialog />,
                 });
               }}
@@ -77,7 +76,6 @@ function Import() {
               onClick={() => {
                 dialogs.openModal({
                   title: t("Import data"),
-                  isCentered: true,
                   content: <ImportJSONDialog />,
                 });
               }}
@@ -98,7 +96,6 @@ function Import() {
               onClick={() => {
                 dialogs.openModal({
                   title: t("Import data"),
-                  isCentered: true,
                   content: <ImportNotionDialog />,
                 });
               }}

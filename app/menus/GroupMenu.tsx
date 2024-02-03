@@ -39,7 +39,6 @@ function GroupMenu({ group, onMembers }: Props) {
         title={t("Delete group")}
         onRequestClose={() => setDeleteModalOpen(false)}
         isOpen={deleteModalOpen}
-        isCentered
       >
         <GroupDelete group={group} onSubmit={() => setDeleteModalOpen(false)} />
       </Modal>
