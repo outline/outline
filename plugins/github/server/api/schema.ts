@@ -2,7 +2,7 @@ import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
 import { BaseSchema } from "@server/routes/api/schema";
 
-export const GithubCallbackSchema = BaseSchema.extend({
+export const GitHubCallbackSchema = BaseSchema.extend({
   query: z
     .object({
       code: z.string().nullish(),
@@ -15,4 +15,4 @@ export const GithubCallbackSchema = BaseSchema.extend({
     }),
 });
 
-export type GithubCallbackReq = z.infer<typeof GithubCallbackSchema>;
+export type GitHubCallbackReq = z.infer<typeof GitHubCallbackSchema>;
