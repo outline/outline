@@ -37,6 +37,8 @@ export default class SlackProcessor extends BaseProcessor {
 
       case "integrations.create":
         return this.integrationCreated(event);
+      case "integrations.delete":
+        return this.integrationDeleted(event);
 
       default:
     }
