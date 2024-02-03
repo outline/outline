@@ -112,24 +112,28 @@ export const CollectionForm = observer(function CollectionForm_({
           flex
         />
       </Flex>
-      <Controller
-        control={control}
-        name="permission"
-        render={({ field }) => (
-          <InputSelectPermission
-            ref={field.ref}
-            value={field.value}
-            onChange={(value: CollectionPermission) => {
-              field.onChange(value);
-            }}
-            note={t(
-              "The default access for workspace members, you can share with more users or groups later."
-            )}
-          />
-        )}
-      />
 
-      {team.sharing && (
+      {/* Following controls are available in create flow, but moved elsewhere for edit */}
+      {!collection && (
+        <Controller
+          control={control}
+          name="permission"
+          render={({ field }) => (
+            <InputSelectPermission
+              ref={field.ref}
+              value={field.value}
+              onChange={(value: CollectionPermission) => {
+                field.onChange(value);
+              }}
+              note={t(
+                "The default access for workspace members, you can share with more users or groups later."
+              )}
+            />
+          )}
+        />
+      )}
+
+      {team.sharing && !collection && (
         <Switch
           id="sharing"
           label={t("Public document sharing")}
