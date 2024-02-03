@@ -2,6 +2,7 @@ import { ellipsis, smartQuotes, InputRule } from "prosemirror-inputrules";
 import Extension from "@shared/editor/lib/Extension";
 
 const rightArrow = new InputRule(/->$/, "→");
+const emdash = new InputRule(/--$/, "—");
 const oneHalf = new InputRule(/1\/2$/, "½");
 const threeQuarters = new InputRule(/3\/4$/, "¾");
 const copyright = new InputRule(/\(c\)$/, "©️");
@@ -16,6 +17,7 @@ export default class SmartText extends Extension {
   inputRules() {
     return [
       rightArrow,
+      emdash,
       oneHalf,
       threeQuarters,
       copyright,
