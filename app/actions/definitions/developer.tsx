@@ -86,19 +86,14 @@ export const clearIndexedDB = createAction({
 });
 
 export const createTestUsers = createAction({
-  name: "Create test users",
+  name: "Create 10 test users",
   icon: <UserIcon />,
   section: DeveloperSection,
   visible: () => env.ENVIRONMENT === "development",
   perform: async () => {
     const count = 10;
-
-    try {
-      await client.post("/developer.create_test_users", { count });
-      toast.message(`${count} test users created`);
-    } catch (err) {
-      toast.error(err.message);
-    }
+    await client.post("/developer.create_test_users", { count });
+    toast.message(`${count} test users created`);
   },
 });
 
