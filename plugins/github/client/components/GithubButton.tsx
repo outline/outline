@@ -11,7 +11,7 @@ type Props = {
   label?: string;
 };
 
-function GithubButton({ state = "", redirectUri, label, icon }: Props) {
+function GitHubButton({ state = "", redirectUri, label, icon }: Props) {
   const { t } = useTranslation();
 
   const handleClick = () => {
@@ -29,4 +29,4 @@ function GithubButton({ state = "", redirectUri, label, icon }: Props) {
   );
 }
 
-export default GithubButton;
+export default GitHubButton;

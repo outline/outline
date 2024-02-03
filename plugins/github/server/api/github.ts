@@ -27,9 +27,9 @@ if (GitHub.clientId && GitHub.clientSecret) {
     auth({
       optional: true,
     }),
-    validate(T.GithubCallbackSchema),
+    validate(T.GitHubCallbackSchema),
     transaction(),
-    async (ctx: APIContext<T.GithubCallbackReq>) => {
+    async (ctx: APIContext<T.GitHubCallbackReq>) => {
       const {
         code,
         state: teamId,
