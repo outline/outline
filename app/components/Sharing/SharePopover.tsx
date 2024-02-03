@@ -9,9 +9,11 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
-import User from "~/models/User";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
+import { createAction } from "~/actions";
+import { UserSection } from "~/actions/sections";
+import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -76,13 +78,14 @@ function SharePopover({
   const { t } = useTranslation();
   const can = usePolicy(document);
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const { userMemberships } = useStores();
+  const { users, userMemberships } = useStores();
   const isMobile = useMobile();
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const linkButtonRef = React.useRef<HTMLButtonElement>(null);
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
+  const [pendingIds, setPendingIds] = React.useState<string[]>([]);
   const collectionSharingDisabled = document.collection?.sharing === false;
 
   useKeyDown(
@@ -112,6 +115,7 @@ function SharePopover({
   // Hide the picker when the popover is closed
   React.useEffect(() => {
     if (visible) {
+      setPendingIds([]);
       hidePicker();
     }
   }, [hidePicker, visible]);
@@ -137,18 +141,44 @@ function SharePopover({
     };
   }, [onRequestClose, t]);
 
-  const handleInvite = React.useCallback(
-    async (user: User) => {
-      setInvitedInSession((prev) => [...prev, user.id]);
-      await userMemberships.create({
-        documentId: document.id,
-        userId: user.id,
-      });
-      toast.message(
-        t("{{ userName }} was invited to the document", { userName: user.name })
-      );
-    },
-    [t, userMemberships, document.id]
+  const context = useActionContext();
+
+  const inviteAction = React.useMemo(
+    () =>
+      createAction({
+        name: t("Invite"),
+        section: UserSection,
+        perform: async () => {
+          await Promise.all(
+            pendingIds.map((userId) =>
+              userMemberships.create({
+                documentId: document.id,
+                userId,
+              })
+            )
+          );
+
+          if (pendingIds.length === 1) {
+            const user = users.get(pendingIds[0]);
+            toast.message(
+              t("{{ userName }} was invited to the document", {
+                userName: user!.name,
+              })
+            );
+          } else {
+            toast.message(
+              t("{{ count }} people invited to the document", {
+                count: pendingIds.length,
+              })
+            );
+          }
+
+          setInvitedInSession((prev) => [...prev, ...pendingIds]);
+          setPendingIds([]);
+          hidePicker();
+        },
+      }),
+    [document.id, hidePicker, pendingIds, t, users, userMemberships]
   );
 
   const handleQuery = React.useCallback(
@@ -166,6 +196,20 @@ function SharePopover({
     }
   }, [picker, showPicker]);
 
+  const handleAddPendingId = React.useCallback(
+    (id: string) => {
+      setPendingIds((prev) => [...prev, id]);
+    },
+    [setPendingIds]
+  );
+
+  const handleRemovePendingId = React.useCallback(
+    (id: string) => {
+      setPendingIds((prev) => prev.filter((i) => i !== id));
+    },
+    [setPendingIds]
+  );
+
   const backButton = (
     <>
       {picker && (
@@ -176,10 +220,10 @@ function SharePopover({
     </>
   );
 
-  const doneButton = picker ? (
-    invitedInSession.length ? (
-      <ButtonSmall onClick={hidePicker} key="done" neutral>
-        {t("Done")}
+  const rightButton = picker ? (
+    pendingIds.length ? (
+      <ButtonSmall action={inviteAction} context={context} key="invite">
+        {t("Invite")}
       </ButtonSmall>
     ) : null
   ) : (
@@ -216,7 +260,7 @@ function SharePopover({
               margin={0}
               flex
             >
-              {doneButton}
+              {rightButton}
             </Input>
           </Flex>
         ) : (
@@ -232,7 +276,7 @@ function SharePopover({
                 onClick={showPicker}
                 style={{ padding: "6px 0" }}
               />
-              {doneButton}
+              {rightButton}
             </AnimatePresence>
           </HeaderInput>
         ))}
@@ -242,7 +286,9 @@ function SharePopover({
           <UserSuggestions
             document={document}
             query={query}
-            onInvite={handleInvite}
+            pendingIds={pendingIds}
+            addPendingId={handleAddPendingId}
+            removePendingId={handleRemovePendingId}
           />
         </div>
       )}

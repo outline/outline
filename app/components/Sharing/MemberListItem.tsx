@@ -12,6 +12,7 @@ import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import ListItem from "~/components/List/Item";
+import { hover } from "~/styles";
 import { EmptySelectValue, Permission } from "~/types";
 
 type Props = {
@@ -133,7 +134,7 @@ export const StyledListItem = styled(ListItem).attrs({
   padding: 6px 16px;
   border-radius: 8px;
 
-  &:hover ${InviteIcon} {
+  &: ${hover} ${InviteIcon} {
     opacity: 1;
   }
 `;

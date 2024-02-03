@@ -18,104 +18,102 @@ import Squircle from "../Squircle";
 import Tooltip from "../Tooltip";
 import { StyledListItem } from "./MemberListItem";
 
-export const OtherAccess = observer(
-  ({
-    document,
-    children,
-  }: {
-    document: Document;
-    children: React.ReactNode;
-  }) => {
-    const { t } = useTranslation();
-    const theme = useTheme();
-    const collection = document.collection;
-    const usersInCollection = useUsersInCollection(collection);
-    const user = useCurrentUser();
+type Props = {
+  /** The document being shared. */
+  document: Document;
+  children: React.ReactNode;
+};
 
-    return (
-      <>
-        {collection ? (
-          <>
-            {collection.permission ? (
-              <StyledListItem
-                image={
-                  <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                    <UserIcon color={theme.accentText} size={16} />
-                  </Squircle>
-                }
-                title={t("All members")}
-                subtitle={t("Everyone in the workspace")}
-                actions={
-                  <AccessTooltip>
-                    {collection?.permission === CollectionPermission.ReadWrite
-                      ? t("Can edit")
-                      : t("Can view")}
-                  </AccessTooltip>
-                }
-              />
-            ) : usersInCollection ? (
-              <StyledListItem
-                image={
-                  <Squircle color={collection.color} size={AvatarSize.Medium}>
-                    <CollectionIcon
-                      collection={collection}
-                      color={theme.white}
-                      size={16}
-                    />
-                  </Squircle>
-                }
-                title={collection.name}
-                subtitle={t("Everyone in the collection")}
-                actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
-              />
-            ) : (
-              <StyledListItem
-                image={<Avatar model={user} showBorder={false} />}
-                title={user.name}
-                subtitle={t("You have full access")}
-                actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
-              />
-            )}
-            {children}
-          </>
-        ) : document.isDraft ? (
-          <>
-            <StyledListItem
-              image={<Avatar model={document.createdBy} showBorder={false} />}
-              title={document.createdBy.name}
-              actions={
-                <AccessTooltip tooltip={t("Created the document")}>
-                  {t("Can edit")}
-                </AccessTooltip>
-              }
-            />
-            {children}
-          </>
-        ) : (
-          <>
-            {children}
+export const OtherAccess = observer(({ document, children }: Props) => {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const collection = document.collection;
+  const usersInCollection = useUsersInCollection(collection);
+  const user = useCurrentUser();
+
+  return (
+    <>
+      {collection ? (
+        <>
+          {collection.permission ? (
             <StyledListItem
               image={
                 <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                  <MoreIcon color={theme.accentText} size={16} />
+                  <UserIcon color={theme.accentText} size={16} />
                 </Squircle>
               }
-              title={t("Other people")}
-              subtitle={t("Other workspace members may have access")}
+              title={t("All members")}
+              subtitle={t("Everyone in the workspace")}
               actions={
-                <AccessTooltip
-                  tooltip={t(
-                    "This document may be shared with more workspace members through a parent document or collection you do not have access to"
-                  )}
-                />
+                <AccessTooltip>
+                  {collection?.permission === CollectionPermission.ReadWrite
+                    ? t("Can edit")
+                    : t("Can view")}
+                </AccessTooltip>
               }
             />
-          </>
-        )}
-      </>
-    );
-  }
-);
+          ) : usersInCollection ? (
+            <StyledListItem
+              image={
+                <Squircle color={collection.color} size={AvatarSize.Medium}>
+                  <CollectionIcon
+                    collection={collection}
+                    color={theme.white}
+                    size={16}
+                  />
+                </Squircle>
+              }
+              title={collection.name}
+              subtitle={t("Everyone in the collection")}
+              actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
+            />
+          ) : (
+            <StyledListItem
+              image={<Avatar model={user} showBorder={false} />}
+              title={user.name}
+              subtitle={t("You have full access")}
+              actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
+            />
+          )}
+          {children}
+        </>
+      ) : document.isDraft ? (
+        <>
+          <StyledListItem
+            image={<Avatar model={document.createdBy} showBorder={false} />}
+            title={document.createdBy.name}
+            actions={
+              <AccessTooltip tooltip={t("Created the document")}>
+                {t("Can edit")}
+              </AccessTooltip>
+            }
+          />
+          {children}
+        </>
+      ) : (
+        <>
+          {children}
+          <StyledListItem
+            image={
+              <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                <MoreIcon color={theme.accentText} size={16} />
+              </Squircle>
+            }
+            title={t("Other people")}
+            subtitle={t("Other workspace members may have access")}
+            actions={
+              <AccessTooltip
+                tooltip={t(
+                  "This document may be shared with more workspace members through a parent document or collection you do not have access to"
+                )}
+              />
+            }
+          />
+        </>
+      )}
+    </>
+  );
+});
 
 const AccessTooltip = ({
   children,
