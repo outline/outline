@@ -396,11 +396,7 @@ export class Environment {
     process.env.GITHUB_APP_PRIVATE_KEY
   );
 
-  @IsOptional()
-  @IsBoolean()
-  public GITHUB_INTEGRATION_DISABLED = this.toBoolean(
-    process.env.GITHUB_INTEGRATION_DISABLED ?? "true"
-  );
+  public PLUGINS_DISABLED = (process.env.PLUGINS_DISABLED ?? "").split(",");
 
   /**
    * Disable autoredirect to the OIDC login page if there is only one
