@@ -1,8 +1,10 @@
+import { TeamPreference } from "@shared/types";
 import {
   buildTeam,
   buildAdmin,
   buildUser,
   buildInvite,
+  buildViewer,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -271,11 +273,51 @@ describe("#users.invite", () => {
     expect(res.status).toEqual(400);
   });
 
-  it("should require admin", async () => {
-    const admin = await buildUser();
+  it("should allow members to invite members", async () => {
+    const user = await buildUser();
     const res = await server.post("/api/users.invite", {
       body: {
-        token: admin.getJwtToken(),
+        token: user.getJwtToken(),
+        invites: [
+          {
+            email: "test@example.com",
+            name: "Test",
+            role: "member",
+          },
+        ],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.sent.length).toEqual(1);
+  });
+
+  it("should now allow viewers to invite", async () => {
+    const user = await buildViewer();
+    const res = await server.post("/api/users.invite", {
+      body: {
+        token: user.getJwtToken(),
+        invites: [
+          {
+            email: "test@example.com",
+            name: "Test",
+            role: "member",
+          },
+        ],
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow restricting invites to admin", async () => {
+    const team = await buildTeam();
+    team.setPreference(TeamPreference.MembersCanInvite, false);
+    await team.save();
+
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/users.invite", {
+      body: {
+        token: user.getJwtToken(),
         invites: [
           {
             email: "test@example.com",
