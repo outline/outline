@@ -122,9 +122,12 @@ export default function auth(options: AuthenticationOptions = {}) {
         }
       }
 
-      // not awaiting the promise here so that the request is not blocked
+      // not awaiting the promises here so that the request is not blocked
       user.updateActiveAt(ctx).catch((err) => {
         Logger.error("Failed to update user activeAt", err);
+      });
+      user.team?.updateActiveAt().catch((err) => {
+        Logger.error("Failed to update team activeAt", err);
       });
 
       ctx.state.auth = {
