@@ -39,7 +39,7 @@ class Model<
   /**
    * Returns the attributes that have changed since the last save and their previous values.
    *
-   * @returns An object with `attributes` and `previous` keys.
+   * @returns An object with `attributes` and `previousAttributes` keys.
    */
   public get changeset(): NonAttribute<{
     attributes: Partial<TModelAttributes>;
@@ -47,12 +47,12 @@ class Model<
   }> {
     const changes = this.changed() as Array<keyof TModelAttributes> | false;
     const attributes: Partial<TModelAttributes> = {};
-    const previous: Partial<TModelAttributes> = {};
+    const previousAttributes: Partial<TModelAttributes> = {};
 
     if (!changes) {
       return {
         attributes,
-        previous,
+        previous: previousAttributes,
       };
     }
 
@@ -70,7 +70,7 @@ class Model<
           .concat(Object.keys(current))
           .filter((key) => !isEqual(previous[key], current[key]));
 
-        previous[change] = pick(
+        previousAttributes[change] = pick(
           previous,
           difference
         ) as TModelAttributes[keyof TModelAttributes];
@@ -79,14 +79,14 @@ class Model<
           difference
         ) as TModelAttributes[keyof TModelAttributes];
       } else {
-        previous[change] = previous;
+        previousAttributes[change] = previous;
         attributes[change] = current;
       }
     }
 
     return {
       attributes,
-      previous,
+      previous: previousAttributes,
     };
   }
 }
