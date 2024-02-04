@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { URL } from "url";
 import util from "util";
+import { subMinutes } from "date-fns";
 import {
   InferAttributes,
   InferCreationAttributes,
@@ -163,6 +164,10 @@ class Team extends ParanoidModel<
   @Column
   suspendedAt: Date | null;
 
+  @IsDate
+  @Column
+  lastActiveAt: Date | null;
+
   // getters
 
   /**
@@ -247,6 +252,27 @@ class Team extends ParanoidModel<
     this.preferences?.[preference] ??
     TeamPreferenceDefaults[preference] ??
     false;
+
+  /**
+   * Updates the lastActiveAt timestamp to the current time.
+   *
+   * @param force Whether to force the update even if the last update was recent
+   * @returns A promise that resolves with the updated team
+   */
+  public updateActiveAt = async (force = false) => {
+    const fiveMinutesAgo = subMinutes(new Date(), 5);
+
+    // ensure this is updated only every few minutes otherwise
+    // we'll be constantly writing to the DB as API requests happen
+    if (!this.lastActiveAt || this.lastActiveAt < fiveMinutesAgo || force) {
+      this.lastActiveAt = new Date();
+    }
+
+    // Save only writes to the database if there are changes
+    return this.save({
+      hooks: false,
+    });
+  };
 
   provisionFirstCollection = async (userId: string) => {
     await this.sequelize!.transaction(async (transaction) => {
@@ -356,6 +382,10 @@ class Team extends ParanoidModel<
     // Set here rather than in TeamPreferenceDefaults as we only want to enable by default for new
     // workspaces.
     model.setPreference(TeamPreference.MembersCanInvite, true);
+
+    // Set last active at on creation.
+    model.lastActiveAt = new Date();
+
     return model;
   }
 
