@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import isEqual from "lodash/isEqual";
+import pick from "lodash/pick";
 import { FindOptions } from "sequelize";
 import { Model as SequelizeModel } from "sequelize-typescript";
 
@@ -30,6 +32,60 @@ class Model<
       await callback(results, query);
       query.offset += query.limit;
     } while (results.length >= query.limit);
+  }
+
+  /**
+   * Returns the attributes that have changed since the last save and their previous values.
+   *
+   * @returns An object with `attributes` and `previousAttributes` keys.
+   */
+  public get changeset(): {
+    attributes: Partial<TModelAttributes>;
+    previousAttributes: Partial<TModelAttributes>;
+  } {
+    const changes = this.changed() as Array<keyof TModelAttributes> | false;
+    const attributes: Partial<TModelAttributes> = {};
+    const previousAttributes: Partial<TModelAttributes> = {};
+
+    if (!changes) {
+      return {
+        attributes,
+        previousAttributes,
+      };
+    }
+
+    for (const change of changes) {
+      const previous = this.previous(change);
+      const current = this.getDataValue(change);
+
+      if (
+        typeof previous === "object" &&
+        typeof current === "object" &&
+        previous !== null &&
+        current !== null
+      ) {
+        const difference = Object.keys(previous)
+          .concat(Object.keys(current))
+          .filter((key) => !isEqual(previous[key], current[key]));
+
+        previousAttributes[change] = pick(
+          previous,
+          difference
+        ) as TModelAttributes[keyof TModelAttributes];
+        attributes[change] = pick(
+          current,
+          difference
+        ) as TModelAttributes[keyof TModelAttributes];
+      } else {
+        previousAttributes[change] = previous;
+        attributes[change] = current;
+      }
+    }
+
+    return {
+      attributes,
+      previousAttributes,
+    };
   }
 }
 
