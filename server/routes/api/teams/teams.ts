@@ -47,7 +47,7 @@ const handleTeamUpdate = async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
 
 router.post(
   "team.update",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
   validate(T.TeamsUpdateSchema),
   transaction(),
@@ -56,7 +56,7 @@ router.post(
 
 router.post(
   "teams.update",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
   validate(T.TeamsUpdateSchema),
   transaction(),

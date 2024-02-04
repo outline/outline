@@ -1,3 +1,4 @@
+import { TeamPreference } from "@shared/types";
 import { User, Team } from "@server/models";
 import { AdminRequiredError } from "../errors";
 import { allow } from "./cancan";
@@ -10,10 +11,10 @@ allow(
 );
 
 allow(User, "inviteUser", Team, (actor, team) => {
-  if (!team || actor.teamId !== team.id) {
+  if (!team || actor.teamId !== team.id || actor.isViewer) {
     return false;
   }
-  if (actor.isAdmin) {
+  if (actor.isAdmin || team.getPreference(TeamPreference.MembersCanInvite)) {
     return true;
   }
 
