@@ -184,6 +184,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         await this.handleIntegrationEvent(subscription, event);
         return;
       case "teams.create":
+      case "teams.delete":
+      case "teams.destroy":
         // Ignored
         return;
       case "teams.update":

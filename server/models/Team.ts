@@ -228,8 +228,11 @@ class Team extends ParanoidModel<
     if (!this.preferences) {
       this.preferences = {};
     }
-    this.preferences[preference] = value;
-    this.changed("preferences", true);
+
+    this.preferences = {
+      ...this.preferences,
+      [preference]: value,
+    };
 
     return this.preferences;
   };

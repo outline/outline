@@ -226,17 +226,17 @@ router.post(
         user.setPreference(key, preferences[key] as boolean);
       }
     }
-    await user.save({ transaction });
-    await Event.create(
+
+    await Event.createFromContext(
+      ctx,
       {
         name: "users.update",
-        actorId: user.id,
         userId: user.id,
-        teamId: user.teamId,
-        ip: ctx.request.ip,
+        changes: user.changeset,
       },
       { transaction }
     );
+    await user.save({ transaction });
 
     ctx.body = {
       data: presentUser(user, {
@@ -547,9 +547,18 @@ router.post(
   async (ctx: APIContext<T.UsersNotificationsSubscribeReq>) => {
     const { eventType } = ctx.input.body;
     const { transaction } = ctx.state;
-
     const { user } = ctx.state.auth;
     user.setNotificationEventType(eventType, true);
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "users.update",
+        userId: user.id,
+        changes: user.changeset,
+      },
+      { transaction }
+    );
     await user.save({ transaction });
 
     ctx.body = {
@@ -566,9 +575,18 @@ router.post(
   async (ctx: APIContext<T.UsersNotificationsUnsubscribeReq>) => {
     const { eventType } = ctx.input.body;
     const { transaction } = ctx.state;
-
     const { user } = ctx.state.auth;
     user.setNotificationEventType(eventType, false);
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "users.update",
+        userId: user.id,
+        changes: user.changeset,
+      },
+      { transaction }
+    );
     await user.save({ transaction });
 
     ctx.body = {
