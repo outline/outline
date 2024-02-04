@@ -1,3 +1,4 @@
+import commandScore from "command-score";
 import invariant from "invariant";
 import deburr from "lodash/deburr";
 import differenceWith from "lodash/differenceWith";
@@ -331,11 +332,20 @@ export default class UsersStore extends Store<User> {
 }
 
 function queriedUsers(users: User[], query?: string) {
-  return query
-    ? filter(users, (user) =>
-        deburr(user.name.toLocaleLowerCase()).includes(
-          deburr(query.toLocaleLowerCase())
-        )
+  const normalizedQuery = deburr((query || "").toLocaleLowerCase());
+
+  return normalizedQuery
+    ? filter(
+        users,
+        (user) =>
+          deburr(user.name.toLocaleLowerCase()).includes(normalizedQuery) ||
+          user.email?.includes(normalizedQuery)
       )
+        .map((user) => ({
+          user,
+          score: commandScore(user.name, normalizedQuery),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .map(({ user }) => user)
     : users;
 }
