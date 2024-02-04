@@ -12,7 +12,7 @@ import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
-import InputSelectRole from "~/components/InputSelectRole";
+import InputSelect from "~/components/InputSelect";
 import NudeButton from "~/components/NudeButton";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Text from "~/components/Text";
@@ -157,6 +157,28 @@ function Invite({ onSubmit }: Props) {
     </span>
   );
 
+  const options = React.useMemo(() => {
+    const options = [
+      {
+        label: t("Editor"),
+        value: "member",
+      },
+      {
+        label: t("Viewer"),
+        value: "viewer",
+      },
+    ];
+
+    if (user.isAdmin) {
+      options.push({
+        label: t("Admin"),
+        value: "admin",
+      });
+    }
+
+    return options;
+  }, [t, user]);
+
   return (
     <form onSubmit={handleSubmit}>
       {team.guestSignin ? (
@@ -236,7 +258,10 @@ function Invite({ onSubmit }: Props) {
               required={!!invite.email}
               flex
             />
-            <InputSelectRole
+            <InputSelect
+              label={t("Role")}
+              ariaLabel={t("Role")}
+              options={options}
               onChange={(role: UserRole) => handleRoleChange(role, index)}
               value={invite.role}
               labelHidden={index !== 0}

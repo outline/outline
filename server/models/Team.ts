@@ -26,6 +26,7 @@ import {
   AllowNull,
   AfterUpdate,
   BeforeUpdate,
+  BeforeCreate,
 } from "sequelize-typescript";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import {
@@ -346,6 +347,14 @@ class Team extends ParanoidModel<
   allowedDomains: TeamDomain[];
 
   // hooks
+
+  @BeforeCreate
+  static async setPreferences(model: Team) {
+    // Set here rather than in TeamPreferenceDefaults as we only want to enable by default for new
+    // workspaces.
+    model.setPreference(TeamPreference.MembersCanInvite, true);
+    return model;
+  }
 
   @BeforeUpdate
   static async checkDomain(model: Team, options: SaveOptions) {
