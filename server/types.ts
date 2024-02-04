@@ -324,7 +324,6 @@ export type IntegrationEvent = BaseEvent<Integration> & {
 
 export type TeamEvent = BaseEvent<Team> & {
   name: "teams.create" | "teams.update" | "teams.delete" | "teams.destroy";
-  data: Partial<Team>;
 };
 
 export type PinEvent = BaseEvent<Pin> & {
