@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import { isArray } from "lodash";
 import isEqual from "lodash/isEqual";
+import isObject from "lodash/isObject";
 import pick from "lodash/pick";
 import { FindOptions } from "sequelize";
 import { Model as SequelizeModel } from "sequelize-typescript";
@@ -59,10 +61,10 @@ class Model<
       const current = this.getDataValue(change);
 
       if (
-        typeof previous === "object" &&
-        typeof current === "object" &&
-        previous !== null &&
-        current !== null
+        isObject(previous) &&
+        isObject(current) &&
+        !isArray(previous) &&
+        !isArray(current)
       ) {
         const difference = Object.keys(previous)
           .concat(Object.keys(current))

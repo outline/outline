@@ -230,8 +230,10 @@ class Team extends ParanoidModel<
     }
 
     // Do not mutate the original object here or it will mess up change tracking.
-    this.preferences = { ...this.preferences, [preference]: value };
-    this.changed("preferences", true);
+    this.preferences = {
+      ...this.preferences,
+      [preference]: value,
+    };
 
     return this.preferences;
   };

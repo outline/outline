@@ -1,5 +1,6 @@
+import { v4 as uuid } from "uuid";
 import { TeamPreference } from "@shared/types";
-import { buildTeam } from "@server/test/factories";
+import { buildDocument, buildTeam } from "@server/test/factories";
 
 describe("Model", () => {
   describe("changeset", () => {
@@ -34,6 +35,20 @@ describe("Model", () => {
       team.guestSignin = true;
       expect(team.changeset.attributes.guestSignin).toEqual(true);
       expect(team.changeset.previousAttributes.guestSignin).toEqual(false);
+    });
+
+    it("should return full array if changed", async () => {
+      const collaboratorId = uuid();
+      const document = await buildDocument();
+      const prev = document.collaboratorIds;
+
+      document.collaboratorIds = [...document.collaboratorIds, collaboratorId];
+      expect(document.changeset.attributes.collaboratorIds).toEqual(
+        document.collaboratorIds
+      );
+      expect(document.changeset.previousAttributes.collaboratorIds).toEqual(
+        prev
+      );
     });
   });
 });
