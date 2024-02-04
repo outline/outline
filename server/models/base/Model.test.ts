@@ -10,13 +10,13 @@ describe("Model", () => {
       });
       team.name = "New Name";
       expect(Object.keys(team.changeset.attributes).length).toEqual(1);
-      expect(Object.keys(team.changeset.previousAttributes).length).toEqual(1);
+      expect(Object.keys(team.changeset.previous).length).toEqual(1);
       expect(team.changeset.attributes.name).toEqual("New Name");
-      expect(team.changeset.previousAttributes.name).toEqual("Test Team");
+      expect(team.changeset.previous.name).toEqual("Test Team");
 
       await team.save();
       expect(team.changeset.attributes).toEqual({});
-      expect(team.changeset.previousAttributes).toEqual({});
+      expect(team.changeset.previous).toEqual({});
     });
 
     it("should return partial of objects", async () => {
@@ -25,7 +25,7 @@ describe("Model", () => {
       expect(team.changeset.attributes.preferences).toEqual({
         commenting: false,
       });
-      expect(team.changeset.previousAttributes.preferences).toEqual({});
+      expect(team.changeset.previous.preferences).toEqual({});
     });
 
     it("should return boolean values", async () => {
@@ -34,10 +34,10 @@ describe("Model", () => {
       });
       team.guestSignin = true;
       expect(team.changeset.attributes.guestSignin).toEqual(true);
-      expect(team.changeset.previousAttributes.guestSignin).toEqual(false);
+      expect(team.changeset.previous.guestSignin).toEqual(false);
     });
 
-    it("should return full array if changed", async () => {
+    it("should return full array if value changed", async () => {
       const collaboratorId = uuid();
       const document = await buildDocument();
       const prev = document.collaboratorIds;
@@ -46,9 +46,7 @@ describe("Model", () => {
       expect(document.changeset.attributes.collaboratorIds).toEqual(
         document.collaboratorIds
       );
-      expect(document.changeset.previousAttributes.collaboratorIds).toEqual(
-        prev
-      );
+      expect(document.changeset.previous.collaboratorIds).toEqual(prev);
     });
   });
 });

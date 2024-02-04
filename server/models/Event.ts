@@ -1,4 +1,5 @@
 import type {
+  CreateOptions,
   InferAttributes,
   InferCreationAttributes,
   SaveOptions,
@@ -17,7 +18,7 @@ import {
   Length,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
-import { Event as TEvent } from "../types";
+import { APIContext, Event as TEvent } from "../types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -35,19 +36,35 @@ class Event extends IdModel<
   @Column(DataType.UUID)
   modelId: string | null;
 
+  /**
+   * The name of the event.
+   */
   @Length({
     max: 255,
     msg: "name must be 255 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
+  /**
+   * The originating IP address of the event.
+   */
   @IsIP
   @Column
   ip: string | null;
 
+  /**
+   * Metadata associated with the event, previously used for storing some changed attributes.
+   */
   @Column(DataType.JSONB)
   data: Record<string, any> | null;
+
+  /**
+   * The changes made to the model – gradually moving to this column away from `data` which can be
+   * used for arbitrary data associated with the event.
+   */
+  @Column(DataType.JSONB)
+  changes?: Record<string, any> | null;
 
   // hooks
 
@@ -130,6 +147,30 @@ class Event extends IdModel<
       where,
       order: [["createdAt", "DESC"]],
     });
+  }
+
+  /**
+   * Create and persist new event from request context
+   *
+   * @param ctx The request context to use
+   * @param attributes The event attributes
+   * @returns A promise resolving to the new event
+   */
+  static createFromContext(
+    ctx: APIContext,
+    attributes: Omit<Partial<Event>, "ip" | "teamId" | "actorId"> = {},
+    options?: CreateOptions<InferAttributes<Event>>
+  ) {
+    const { user } = ctx.state.auth;
+    return this.create(
+      {
+        ...attributes,
+        actorId: user.id,
+        teamId: user.teamId,
+        ip: ctx.request.ip,
+      },
+      options
+    );
   }
 
   static ACTIVITY_EVENTS: TEvent["name"][] = [

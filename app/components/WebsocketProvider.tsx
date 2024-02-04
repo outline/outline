@@ -88,6 +88,7 @@ class WebsocketProvider extends React.Component<Props> {
       pins,
       stars,
       memberships,
+      users,
       userMemberships,
       policies,
       comments,
@@ -508,6 +509,10 @@ class WebsocketProvider extends React.Component<Props> {
         subscriptions.remove(event.modelId);
       }
     );
+
+    this.socket.on("users.update", (event: PartialWithId<User>) => {
+      users.add(event);
+    });
 
     this.socket.on("users.demote", async (event: PartialWithId<User>) => {
       if (event.id === auth.user?.id) {

@@ -15,6 +15,7 @@ import {
   Subscription,
   Notification,
   UserMembership,
+  User,
 } from "@server/models";
 import {
   presentComment,
@@ -27,6 +28,7 @@ import {
   presentSubscription,
   presentTeam,
   presentMembership,
+  presentUser,
 } from "@server/presenters";
 import presentNotification from "@server/presenters/notification";
 import { Event } from "../../types";
@@ -665,6 +667,19 @@ export default class WebsocketsProcessor {
         return socketio
           .to(`team-${event.teamId}`)
           .emit(event.name, presentTeam(team));
+      }
+
+      case "users.update": {
+        const user = await User.findByPk(event.userId);
+        if (!user) {
+          return;
+        }
+        socketio
+          .to(`user-${event.userId}`)
+          .emit(event.name, presentUser(user, { includeDetails: true }));
+
+        socketio.to(`team-${user.teamId}`).emit(event.name, presentUser(user));
+        return;
       }
 
       case "users.demote": {
