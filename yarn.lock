@@ -9224,10 +9224,10 @@ levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-lib0@^0.2.42, lib0@^0.2.46, lib0@^0.2.47, lib0@^0.2.74:
-  version "0.2.74"
-  resolved "https://registry.yarnpkg.com/lib0/-/lib0-0.2.74.tgz#7a4cc816a0420e76de85009423c8ab63655ff817"
-  integrity "sha1-ekzIFqBCDnbehQCUI8irY2Vf+Bc= sha512-roj9i46/JwG5ik5KNTkxP2IytlnrssAkD/OhlAVtE+GqectrdkfR+pttszVLrOzMDeXNs1MPt6yo66MUolWSiA=="
+lib0@^0.2.42, lib0@^0.2.46, lib0@^0.2.47, lib0@^0.2.74, lib0@^0.2.85:
+  version "0.2.88"
+  resolved "https://registry.yarnpkg.com/lib0/-/lib0-0.2.88.tgz#18618e0c3b63f6260255eb760f9247d9cc6c6a5b"
+  integrity sha512-KyroiEvCeZcZEMx5Ys+b4u4eEBbA1ch7XUaBhYpwa/nPMrzTjUhI4RfcytmQfYoTBPcdyx+FX6WFNIoNuJzJfQ==
   dependencies:
     isomorphic.js "^0.2.4"
 
@@ -13766,12 +13766,12 @@ y-indexeddb@^9.0.11:
   dependencies:
     lib0 "^0.2.74"
 
-y-protocols@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/y-protocols/-/y-protocols-1.0.5.tgz#91d574250060b29fcac8f8eb5e276fbad594245e"
-  integrity "sha1-kdV0JQBgsp/KyPjrXidvutWUJF4= sha512-Wil92b7cGk712lRHDqS4T90IczF6RkcvCwAD0A2OPg+adKmOe+nOiT/N2hvpQIWS3zfjmtL4CPaH5sIW1Hkm/A=="
+y-protocols@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/y-protocols/-/y-protocols-1.0.6.tgz#66dad8a95752623443e8e28c0e923682d2c0d495"
+  integrity sha512-vHRF2L6iT3rwj1jub/K5tYcTT/mEYDUppgNPXwp8fmLpui9f7Yeq3OEtTLVF012j39QnV+KEQpNqoN7CWU7Y9Q==
   dependencies:
-    lib0 "^0.2.42"
+    lib0 "^0.2.85"
 
 y18n@^5.0.5:
   version "5.0.8"
