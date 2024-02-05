@@ -52,15 +52,6 @@ const scopes = [
   "identity.team",
 ];
 
-function redirectOnClient(ctx: Context, url: string) {
-  ctx.type = "text/html";
-  ctx.body = `
-<html>
-<head>
-<meta http-equiv="refresh" content="0;URL='${url}'"/>
-</head>`;
-}
-
 if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   const strategy = new SlackStrategy(
     {
@@ -152,8 +143,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             const team = await Team.findByPk(teamId, {
               rejectOnEmpty: true,
             });
-            return redirectOnClient(
-              ctx,
+            return ctx.redirectOnClient(
               `${team.url}/auth/slack.commands?${ctx.request.querystring}`
             );
           } catch (err) {
@@ -219,8 +209,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             const team = await Team.findByPk(collection.teamId, {
               rejectOnEmpty: true,
             });
-            return redirectOnClient(
-              ctx,
+            return ctx.redirectOnClient(
               `${team.url}/auth/slack.post?${ctx.request.querystring}`
             );
           } catch (err) {
