@@ -41,15 +41,20 @@ router.post(
       };
     }
 
-    const integrations = await Integration.findAll({
-      where,
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    const [integrations, total] = await Promise.all([
+      await Integration.findAll({
+        where,
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Integration.count({
+        where,
+      }),
+    ]);
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: integrations.map(presentIntegration),
       policies: presentPolicies(user, integrations),
     };
