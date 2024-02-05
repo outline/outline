@@ -115,9 +115,9 @@ function GitHub() {
               <h2>{t("Connected accounts")}</h2>
               <Text as="p" type="secondary">
                 <Trans>
-                  GitHub links(pull request, issues etc.) accessible to any of
-                  the following accounts, will get rich previews inside{" "}
-                  {{ appName }}.
+                  GitHub links (pull requests, issues, and commits) accessible
+                  to any of the following accounts, will get rich previews
+                  inside {{ appName }}.
                 </Trans>
               </Text>
 
