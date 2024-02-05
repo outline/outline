@@ -1,4 +1,8 @@
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  type InstanceDestroyOptions,
+} from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -7,6 +11,7 @@ import {
   DataType,
   Scopes,
   IsIn,
+  AfterDestroy,
 } from "sequelize-typescript";
 import { IntegrationType, IntegrationService } from "@shared/types";
 import type {
@@ -80,6 +85,22 @@ class Integration<T = unknown> extends ParanoidModel<
   @ForeignKey(() => IntegrationAuthentication)
   @Column(DataType.UUID)
   authenticationId: string;
+
+  // hooks
+
+  @AfterDestroy
+  static async destoryIntegrationAuthentications(
+    model: Integration,
+    options?: InstanceDestroyOptions
+  ) {
+    if (options?.force && model.authenticationId) {
+      await IntegrationAuthentication.destroy({
+        where: {
+          id: model.authenticationId,
+        },
+      });
+    }
+  }
 }
 
 export default Integration;
