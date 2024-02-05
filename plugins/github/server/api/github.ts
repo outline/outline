@@ -1,4 +1,3 @@
-import type { Context } from "koa";
 import Router from "koa-router";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import Logger from "@server/logging/Logger";
@@ -11,15 +10,6 @@ import { GitHub } from "../github";
 import * as T from "./schema";
 
 const router = new Router();
-
-function redirectOnClient(ctx: Context, url: string) {
-  ctx.type = "text/html";
-  ctx.body = `
-<html>
-<head>
-<meta http-equiv="refresh" content="0;URL='${url}'"/>
-</head>`;
-}
 
 if (GitHub.clientId && GitHub.clientSecret) {
   router.get(
@@ -54,8 +44,7 @@ if (GitHub.clientId && GitHub.clientSecret) {
               rejectOnEmpty: true,
               transaction,
             });
-            return redirectOnClient(
-              ctx,
+            return ctx.redirectOnClient(
               GitHub.callbackUrl({
                 baseUrl: team.url,
                 params: ctx.request.querystring,
