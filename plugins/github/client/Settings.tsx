@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { dateLocale } from "@shared/utils/date";
 import Integration from "~/models/Integration";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
@@ -16,6 +17,7 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import GitHubIcon from "./Icon";
@@ -23,6 +25,7 @@ import GitHubButton from "./components/GitHubButton";
 
 function GitHub() {
   const team = useCurrentTeam();
+  const currentUser = useCurrentUser();
   const { integrations } = useStores();
   const { t } = useTranslation();
   const query = useQuery();
@@ -124,8 +127,9 @@ function GitHub() {
                     integration.settings?.github?.installation.account;
                   const user = integration.user.name;
                   const day = format(
-                    new Date(integration.createdAt),
-                    "MMMM d, y"
+                    Date.parse(integration.createdAt),
+                    "MMMM d, y",
+                    { locale: dateLocale(currentUser.language) }
                   );
                   return (
                     <ListItem
@@ -134,7 +138,8 @@ function GitHub() {
                       title={account?.name}
                       subtitle={
                         <Trans>
-                          Enabled by {{ user }} on {{ day }}
+                          Enabled by {{ user }} on{" "}
+                          <Text type="tertiary">{day}</Text>
                         </Trans>
                       }
                       image={
