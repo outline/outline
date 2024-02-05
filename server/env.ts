@@ -370,7 +370,7 @@ export class Environment {
   public SLACK_APP_ID = this.toOptionalString(environment.SLACK_APP_ID);
 
   /**
-   * GitHub OAuth2 client credentials. To enable authentication with GitHub.
+   * GitHub OAuth2 client credentials. To enable integration with GitHub.
    */
   @IsOptional()
   @CannotUseWithout("GITHUB_CLIENT_SECRET")
