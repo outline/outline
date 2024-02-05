@@ -3,15 +3,8 @@ import { Op } from "sequelize";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { Minute } from "@shared/utils/time";
 import env from "@server/env";
-import {
-  Document,
-  Integration,
-  Collection,
-  Team,
-  IntegrationAuthentication,
-} from "@server/models";
+import { Document, Integration, Collection, Team } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
-import { sequelize } from "@server/storage/database";
 import {
   DocumentEvent,
   IntegrationEvent,
@@ -26,7 +19,6 @@ export default class SlackProcessor extends BaseProcessor {
     "documents.publish",
     "revisions.create",
     "integrations.create",
-    "integrations.delete",
   ];
 
   async perform(event: Event) {
@@ -37,8 +29,6 @@ export default class SlackProcessor extends BaseProcessor {
 
       case "integrations.create":
         return this.integrationCreated(event);
-      case "integrations.delete":
-        return this.integrationDeleted(event);
 
       default:
     }
@@ -149,32 +139,6 @@ export default class SlackProcessor extends BaseProcessor {
           presentMessageAttachment(document, team, document.collection),
         ],
       }),
-    });
-  }
-
-  async integrationDeleted(event: IntegrationEvent) {
-    const integration = (await Integration.findOne({
-      where: {
-        id: event.modelId,
-        service: IntegrationService.Slack,
-      },
-      paranoid: false,
-    })) as Integration<IntegrationType.Embed>;
-    if (!integration) {
-      return;
-    }
-
-    await sequelize.transaction(async (transaction) => {
-      await integration.destroy({ transaction, force: true });
-      // also remove the corresponding authentication if it exists
-      if (integration.authenticationId) {
-        await IntegrationAuthentication.destroy({
-          where: {
-            id: integration.authenticationId,
-          },
-          transaction,
-        });
-      }
     });
   }
 }
