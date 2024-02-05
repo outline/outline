@@ -87,6 +87,7 @@ async function start(id: number, disconnect: () => void) {
   // Apply default rate limit to all routes
   app.use(defaultRateLimiter());
 
+  /** Perform a redirect on the browser so that the user's auth cookies are included in the request. */
   app.context.redirectOnClient = function (url: string) {
     this.type = "text/html";
     this.body = `
