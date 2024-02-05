@@ -383,7 +383,7 @@ export class Environment {
   public DD_SERVICE = environment.DD_SERVICE ?? "outline";
 
   /**
-   * GitHub OAuth2 client credentials. To enable authentication with GitHub.
+   * GitHub OAuth2 client credentials. To enable integration with GitHub.
    */
   @IsOptional()
   @CannotUseWithout("GITHUB_CLIENT_SECRET")
