@@ -35,6 +35,14 @@
   ],
   "env": {
     "production": {
+      "plugins": [
+        [
+          "styled-components",
+          {
+            "displayName": false
+          }
+        ]
+      ],
       "ignore": [
         "**/__mocks__",
         "**/*.test.ts"
