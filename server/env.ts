@@ -398,7 +398,7 @@ export class Environment {
   );
 
   /**
-   * GitHub OAuth2 client credentials. To enable authentication with GitHub.
+   * GitHub OAuth2 client credentials. To enable integration with GitHub.
    */
 
   @IsOptional()
