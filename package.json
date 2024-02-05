@@ -136,7 +136,7 @@
     "koa-sslify": "5.0.1",
     "koa-useragent": "^4.1.0",
     "lodash": "^4.17.21",
-    "mailparser": "^3.6.6",
+    "mailparser": "^3.6.7",
     "mammoth": "^1.6.0",
     "markdown-it": "^13.0.1",
     "markdown-it-container": "^3.0.0",
