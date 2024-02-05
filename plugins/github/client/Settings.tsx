@@ -30,10 +30,7 @@ function GitHub() {
   const [relationsLoaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    void integrations.fetchPage({
-      service: IntegrationService.GitHub,
-      limit: 100,
-    });
+    void integrations.fetchAll({ service: IntegrationService.GitHub });
   }, [integrations]);
 
   React.useEffect(() => {
