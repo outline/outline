@@ -1,46 +1,46 @@
 {
   "presets": [
     "@babel/preset-react",
-    "@babel/preset-typescript",
     [
       "@babel/preset-env",
       {
-        "corejs": {
-          "version": "3",
-          "proposals": true
-        },
-        "useBuiltIns": "usage"
+        "targets": {
+          "node": "18"
+        }
       }
-    ]
+    ],
+    "@babel/preset-typescript"
   ],
   "plugins": [
-    "styled-components",
+    "babel-plugin-transform-typescript-metadata",
     [
       "@babel/plugin-proposal-decorators",
       {
         "legacy": true
       }
     ],
-    "@babel/plugin-transform-destructuring",
-    "@babel/plugin-transform-regenerator",
-    "transform-class-properties"
+    "@babel/plugin-proposal-class-properties",
+    [
+      "transform-inline-environment-variables",
+      {
+        "include": [
+          "SOURCE_COMMIT",
+          "SOURCE_VERSION"
+        ]
+      }
+    ],
+    "tsconfig-paths-module-resolver"
   ],
   "env": {
     "production": {
-      "plugins": [
-        [
-          "styled-components",
-          {
-            "displayName": false
-          }
-        ]
-      ],
       "ignore": [
+        "**/__mocks__",
         "**/*.test.ts"
       ]
     },
     "development": {
       "ignore": [
+        "**/__mocks__",
         "**/*.test.ts"
       ]
     }
