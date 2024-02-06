@@ -43,17 +43,8 @@ export const UserSuggestions = observer(
       () =>
         users
           .notInDocument(document.id, query)
-          .filter((u) => u.id !== user.id && !u.isSuspended)
-          .filter((u) => !pendingIds.includes(u.id)),
-      [
-        users,
-        users.orderedData,
-        document.id,
-        document.members,
-        user.id,
-        pendingIds,
-        query,
-      ]
+          .filter((u) => u.id !== user.id && !u.isSuspended),
+      [users, users.orderedData, document.id, document.members, user.id, query]
     );
 
     const pending = React.useMemo(
@@ -85,7 +76,10 @@ export const UserSuggestions = observer(
       };
     }
 
-    const isEmpty = suggestions.length === 0 && query;
+    const isEmpty = suggestions.length === 0;
+    const suggestionsWithPending = suggestions.filter(
+      (u) => !pendingIds.includes(u.id)
+    );
 
     return (
       <>
@@ -102,10 +96,9 @@ export const UserSuggestions = observer(
             }
           />
         ))}
-        {pending.length > 0 && (suggestions.length > 0 || isEmpty) && (
-          <Separator />
-        )}
-        {suggestions.map((suggestion) => (
+        {pending.length > 0 &&
+          (suggestionsWithPending.length > 0 || isEmpty) && <Separator />}
+        {suggestionsWithPending.map((suggestion) => (
           <StyledListItem
             {...getListItemProps(suggestion)}
             key={suggestion.id}
