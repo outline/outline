@@ -98,6 +98,7 @@ class Integration<T = unknown> extends ParanoidModel<
         where: {
           id: model.authenticationId,
         },
+        ...options,
       });
     }
   }
