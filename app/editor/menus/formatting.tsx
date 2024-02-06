@@ -15,6 +15,7 @@ import {
   ItalicIcon,
   OutdentIcon,
   IndentIcon,
+  CopyIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
@@ -170,6 +171,16 @@ export default function formattingMenuItems(
       icon: <CommentIcon />,
       label: isCodeBlock ? dictionary.comment : undefined,
       active: isMarkActive(schema.marks.comment),
+    },
+    {
+      name: "separator",
+      visible: isCode,
+    },
+    {
+      name: "copyToClipboard",
+      icon: <CopyIcon />,
+      tooltip: dictionary.copy,
+      visible: isCode,
     },
   ];
 }

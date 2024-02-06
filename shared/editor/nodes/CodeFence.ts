@@ -8,7 +8,7 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { Command, Plugin, PluginKey } from "prosemirror-state";
+import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
 import bash from "refractor/lang/bash";
@@ -74,6 +74,7 @@ import Prism from "../extensions/Prism";
 import { isCode } from "../lib/isCode";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findParentNode } from "../queries/findParentNode";
+import getMarkRange from "../queries/getMarkRange";
 import isInCode from "../queries/isInCode";
 import Node from "./Node";
 
@@ -193,16 +194,37 @@ export default class CodeFence extends Node {
           ...attrs,
         });
       },
-      copyToClipboard: (): Command => (state) => {
+      copyToClipboard: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
 
-        if (!codeBlock) {
-          return false;
+        if (codeBlock) {
+          copy(codeBlock.node.textContent);
+          toast.message(this.options.dictionary.codeCopied);
+          return true;
         }
 
-        copy(codeBlock.node.textContent);
-        toast.message(this.options.dictionary.codeCopied);
-        return true;
+        const { doc, tr } = state;
+        const range =
+          getMarkRange(
+            doc.resolve(state.selection.from),
+            this.editor.schema.marks.code_inline
+          ) ||
+          getMarkRange(
+            doc.resolve(state.selection.to),
+            this.editor.schema.marks.code_inline
+          );
+
+        if (range) {
+          const $end = doc.resolve(range.to);
+          tr.setSelection(new TextSelection($end, $end));
+          dispatch?.(tr);
+
+          copy(tr.doc.textBetween(state.selection.from, state.selection.to));
+          toast.message(this.options.dictionary.codeCopied);
+          return true;
+        }
+
+        return false;
       },
     };
   }
