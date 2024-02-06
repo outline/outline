@@ -1,6 +1,7 @@
 import { addHours } from "date-fns";
 import { AttachmentPreset } from "@shared/types";
 import env from "@server/env";
+import { ValidateKey } from "@server/validation";
 
 export enum Buckets {
   public = "public",
@@ -30,7 +31,7 @@ export default class AttachmentHelper {
   }) {
     const bucket = acl === "public-read" ? Buckets.public : Buckets.uploads;
     const keyPrefix = `${bucket}/${userId}/${id}`;
-    return `${keyPrefix}/${name}`;
+    return `${keyPrefix}/${ValidateKey.sanitize(name)}`;
   }
 
   /**
