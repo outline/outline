@@ -107,6 +107,10 @@ export type Action = {
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: (context: ActionContext) => boolean;
   visible?: (context: ActionContext) => boolean;
+  /**
+   * Perform the action – note this should generally not be called directly, use `performAction`
+   * instead. Errors will be caught and displayed to the user as a toast message.
+   */
   perform?: (context: ActionContext) => Promise<any> | any;
   children?: ((context: ActionContext) => Action[]) | Action[];
 };

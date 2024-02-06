@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import * as React from "react";
 import Tooltip, { Props as TooltipProps } from "~/components/Tooltip";
+import { performAction } from "~/actions";
 import { Action, ActionContext } from "~/types";
 
 export type Props = React.HTMLAttributes<HTMLButtonElement> & {
@@ -60,10 +61,10 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
             ? (ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
-                const response = action.perform?.(actionContext);
+                const response = performAction(action, actionContext);
                 if (response?.finally) {
                   setExecuting(true);
-                  response.finally(() => setExecuting(false));
+                  void response.finally(() => setExecuting(false));
                 }
               }
             : rest.onClick

@@ -251,17 +251,13 @@ export const unpublishDocument = createAction({
       return;
     }
 
-    try {
-      await document.unpublish();
+    await document.unpublish();
 
-      toast.success(
-        t("Unpublished {{ documentName }}", {
-          documentName: document.noun,
-        })
-      );
-    } catch (err) {
-      toast.error(err.message);
-    }
+    toast.success(
+      t("Unpublished {{ documentName }}", {
+        documentName: document.noun,
+      })
+    );
   },
 });
 
@@ -288,9 +284,7 @@ export const subscribeDocument = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
-
     await document?.subscribe();
-
     toast.success(t("Subscribed to document notifications"));
   },
 });
@@ -540,17 +534,13 @@ export const pinDocumentToCollection = createAction({
       return;
     }
 
-    try {
-      const document = stores.documents.get(activeDocumentId);
-      await document?.pin(document.collectionId);
+    const document = stores.documents.get(activeDocumentId);
+    await document?.pin(document.collectionId);
 
-      const collection = stores.collections.get(activeCollectionId);
+    const collection = stores.collections.get(activeCollectionId);
 
-      if (!collection || !location.pathname.startsWith(collection?.url)) {
-        toast.success(t("Pinned to collection"));
-      }
-    } catch (err) {
-      toast.error(err.message);
+    if (!collection || !location.pathname.startsWith(collection?.url)) {
+      toast.success(t("Pinned to collection"));
     }
   },
 });
@@ -583,14 +573,10 @@ export const pinDocumentToHome = createAction({
     }
     const document = stores.documents.get(activeDocumentId);
 
-    try {
-      await document?.pin();
+    await document?.pin();
 
-      if (location.pathname !== homePath()) {
-        toast.success(t("Pinned to home"));
-      }
-    } catch (err) {
-      toast.error(err.message);
+    if (location.pathname !== homePath()) {
+      toast.success(t("Pinned to home"));
     }
   },
 });
@@ -641,21 +627,16 @@ export const importDocument = createAction({
     input.onchange = async (ev) => {
       const files = getEventFiles(ev);
 
-      try {
-        const file = files[0];
-        const document = await documents.import(
-          file,
-          activeDocumentId,
-          activeCollectionId,
-          {
-            publish: true,
-          }
-        );
-        history.push(document.url);
-      } catch (err) {
-        toast.error(err.message);
-        throw err;
-      }
+      const file = files[0];
+      const document = await documents.import(
+        file,
+        activeDocumentId,
+        activeCollectionId,
+        {
+          publish: true,
+        }
+      );
+      history.push(document.url);
     };
 
     input.click();
