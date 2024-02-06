@@ -119,7 +119,7 @@ export function actionToKBar(
 }
 
 export async function performAction(action: Action, context: ActionContext) {
-  return action.perform?.(context).catch((err: Error) => {
+  return action.perform?.(context)?.catch((err: Error) => {
     toast.error(err.message);
   });
 }

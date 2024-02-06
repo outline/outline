@@ -74,6 +74,7 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
     disabled,
     note,
     icon,
+    nude,
     ...rest
   } = props;
 
@@ -179,6 +180,7 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
               disclosure
               className={className}
               icon={icon}
+              $nude={nude}
               {...props}
             >
               {getOptionFromValue(options, select.selectedValue)?.label || (
@@ -261,7 +263,7 @@ const Spacer = styled.div`
   flex-shrink: 0;
 `;
 
-const StyledButton = styled(Button)<{ nude?: boolean }>`
+const StyledButton = styled(Button)<{ $nude?: boolean }>`
   font-weight: normal;
   text-transform: none;
   margin-bottom: 16px;
@@ -274,7 +276,7 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
   }
 
   ${(props) =>
-    props.nude &&
+    props.$nude &&
     css`
       border-color: transparent;
       box-shadow: none;

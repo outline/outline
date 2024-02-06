@@ -2,6 +2,7 @@
 import * as React from "react";
 import Tooltip, { Props as TooltipProps } from "~/components/Tooltip";
 import { performAction } from "~/actions";
+import useIsMounted from "~/hooks/useIsMounted";
 import { Action, ActionContext } from "~/types";
 
 export type Props = React.HTMLAttributes<HTMLButtonElement> & {
@@ -25,6 +26,7 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
     { action, context, tooltip, hideOnActionDisabled, ...rest }: Props,
     ref: React.Ref<HTMLButtonElement>
   ) {
+    const isMounted = useIsMounted();
     const [executing, setExecuting] = React.useState(false);
     const disabled = rest.disabled;
 
@@ -64,7 +66,9 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
                 const response = performAction(action, actionContext);
                 if (response?.finally) {
                   setExecuting(true);
-                  void response.finally(() => setExecuting(false));
+                  void response.finally(
+                    () => isMounted() && setExecuting(false)
+                  );
                 }
               }
             : rest.onClick
