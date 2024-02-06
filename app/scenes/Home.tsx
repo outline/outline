@@ -12,6 +12,7 @@ import InputSearchPage from "~/components/InputSearchPage";
 import LanguagePrompt from "~/components/LanguagePrompt";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
+import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scene from "~/components/Scene";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
@@ -47,7 +48,9 @@ function Home() {
         </Action>
       }
     >
-      {!ui.languagePromptDismissed && <LanguagePrompt />}
+      <ResizingHeightContainer>
+        {!ui.languagePromptDismissed && <LanguagePrompt key="language" />}
+      </ResizingHeightContainer>
       <Heading>{t("Home")}</Heading>
       <PinnedDocuments pins={pins.home} canUpdate={can.update} />
       <Documents>
