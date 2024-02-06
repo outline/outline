@@ -1,16 +1,7 @@
 {
   "presets": [
     "@babel/preset-react",
-    [
-      "@babel/preset-env",
-      {
-        "corejs": {
-          "version": "3",
-          "proposals": true
-        },
-        "useBuiltIns": "usage"
-      }
-    ],
+    "@babel/preset-env",
     "@babel/preset-typescript"
   ],
   "plugins": [
@@ -52,6 +43,20 @@
       "ignore": [
         "**/__mocks__",
         "**/*.test.ts"
+      ]
+    },
+    "test": {
+      "presets": [
+        [
+          "@babel/preset-env",
+          {
+            "corejs": {
+              "version": "3",
+              "proposals": true
+            },
+            "useBuiltIns": "usage"
+          }
+        ]
       ]
     }
   }
