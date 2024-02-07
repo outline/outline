@@ -74,14 +74,18 @@ router.post(
     }
 
     // External resources
-    if (resolvers.Iframely) {
-      const data = await resolvers.Iframely.unfurl(url);
-      return data.error
-        ? (ctx.response.status = 204)
-        : (ctx.body = presentUnfurl(data));
+    let data;
+    for (const key of Object.keys(resolvers)) {
+      const resolver = resolvers[key];
+      data = await resolver.unfurl(url);
+      if (data) {
+        break;
+      }
     }
 
-    return (ctx.response.status = 204);
+    return !data || data.error
+      ? (ctx.response.status = 204)
+      : (ctx.body = presentUnfurl(data));
   }
 );
 
