@@ -174,13 +174,13 @@ export default function formattingMenuItems(
     },
     {
       name: "separator",
-      visible: isCode,
+      visible: isCode && !isCodeBlock,
     },
     {
       name: "copyToClipboard",
       icon: <CopyIcon />,
       tooltip: dictionary.copy,
-      visible: isCode,
+      visible: isCode && !isCodeBlock,
     },
   ];
 }

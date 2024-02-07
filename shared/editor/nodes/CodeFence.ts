@@ -68,6 +68,7 @@ import {
   moveToNextNewline,
   moveToPreviousNewline,
 } from "../commands/codeFence";
+import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
 import Mermaid from "../extensions/Mermaid";
 import Prism from "../extensions/Prism";
@@ -255,6 +256,7 @@ export default class CodeFence extends Node {
         return newlineInCode(state, dispatch);
       },
       "Shift-Enter": newlineInCode,
+      "Mod-a": selectAll(type),
     };
 
     if (isMac()) {

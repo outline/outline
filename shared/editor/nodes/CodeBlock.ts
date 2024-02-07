@@ -1,3 +1,5 @@
+import { NodeType } from "prosemirror-model";
+import { selectAll } from "../commands/selectAll";
 import CodeFence from "./CodeFence";
 
 export default class CodeBlock extends CodeFence {
@@ -7,5 +9,11 @@ export default class CodeBlock extends CodeFence {
 
   get markdownToken() {
     return "code_block";
+  }
+
+  keys({ type }: { type: NodeType }) {
+    return {
+      "Mod-a": selectAll(type),
+    };
   }
 }
