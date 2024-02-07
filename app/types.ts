@@ -111,7 +111,7 @@ export type Action = {
    * Perform the action – note this should generally not be called directly, use `performAction`
    * instead. Errors will be caught and displayed to the user as a toast message.
    */
-  perform?: (context: ActionContext) => Promise<any> | any;
+  perform?: (context: ActionContext) => any;
   children?: ((context: ActionContext) => Action[]) | Action[];
 };
 
