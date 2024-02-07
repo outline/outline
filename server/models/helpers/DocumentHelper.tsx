@@ -30,6 +30,8 @@ type HTMLOptions = {
    * number then the urls will be signed for that many seconds. (defaults to false)
    */
   signedUrls?: boolean | number;
+  /** The base URL to use for relative links */
+  baseUrl?: string;
 };
 
 @trace()
@@ -111,6 +113,7 @@ export default class DocumentHelper {
       includeStyles: options?.includeStyles,
       includeMermaid: options?.includeMermaid,
       centered: options?.centered,
+      baseUrl: options?.baseUrl,
     });
 
     addTags({
