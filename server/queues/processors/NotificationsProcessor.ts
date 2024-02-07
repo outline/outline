@@ -1,4 +1,3 @@
-import { Minute } from "@shared/utils/time";
 import {
   CollectionEvent,
   RevisionEvent,
@@ -65,10 +64,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     if (!event.data.isNew || event.userId === event.actorId) {
       return;
     }
-
-    await DocumentAddUserNotificationsTask.schedule(event, {
-      delay: Minute,
-    });
+    await DocumentAddUserNotificationsTask.schedule(event);
   }
 
   async revisionCreated(event: RevisionEvent) {
@@ -93,20 +89,14 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    await CollectionAddUserNotificationsTask.schedule(event, {
-      delay: Minute,
-    });
+    await CollectionAddUserNotificationsTask.schedule(event);
   }
 
   async commentCreated(event: CommentEvent) {
-    await CommentCreatedNotificationsTask.schedule(event, {
-      delay: Minute,
-    });
+    await CommentCreatedNotificationsTask.schedule(event);
   }
 
   async commentUpdated(event: CommentEvent) {
-    await CommentUpdatedNotificationsTask.schedule(event, {
-      delay: Minute,
-    });
+    await CommentUpdatedNotificationsTask.schedule(event);
   }
 }

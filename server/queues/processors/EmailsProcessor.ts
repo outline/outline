@@ -1,4 +1,5 @@
 import { NotificationEventType } from "@shared/types";
+import { Minute } from "@shared/utils/time";
 import CollectionCreatedEmail from "@server/emails/templates/CollectionCreatedEmail";
 import CollectionSharedEmail from "@server/emails/templates/CollectionSharedEmail";
 import CommentCreatedEmail from "@server/emails/templates/CommentCreatedEmail";
@@ -32,6 +33,7 @@ export default class EmailsProcessor extends BaseProcessor {
     switch (notification.event) {
       case NotificationEventType.UpdateDocument:
       case NotificationEventType.PublishDocument: {
+        // No need to delay email here as the notification itself is already delayed
         await new DocumentPublishedOrUpdatedEmail(
           {
             to: notification.user.email,
@@ -57,7 +59,9 @@ export default class EmailsProcessor extends BaseProcessor {
             actorName: notification.actor.name,
           },
           { notificationId }
-        ).schedule();
+        ).schedule({
+          delay: Minute,
+        });
         return;
       }
 
@@ -71,11 +75,14 @@ export default class EmailsProcessor extends BaseProcessor {
             actorName: notification.actor.name,
           },
           { notificationId }
-        ).schedule();
+        ).schedule({
+          delay: Minute,
+        });
         return;
       }
 
       case NotificationEventType.MentionedInDocument: {
+        // No need to delay email here as the notification itself is already delayed
         await new DocumentMentionedEmail(
           {
             to: notification.user.email,
@@ -99,7 +106,9 @@ export default class EmailsProcessor extends BaseProcessor {
             commentId: notification.commentId,
           },
           { notificationId: notification.id }
-        ).schedule();
+        ).schedule({
+          delay: Minute,
+        });
         return;
       }
 
@@ -112,7 +121,9 @@ export default class EmailsProcessor extends BaseProcessor {
             teamUrl: notification.team.url,
           },
           { notificationId: notification.id }
-        ).schedule();
+        ).schedule({
+          delay: Minute,
+        });
         return;
       }
 
@@ -127,7 +138,9 @@ export default class EmailsProcessor extends BaseProcessor {
             commentId: notification.commentId,
           },
           { notificationId: notification.id }
-        ).schedule();
+        ).schedule({
+          delay: Minute,
+        });
       }
     }
   }

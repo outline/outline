@@ -92,6 +92,15 @@ export default abstract class BaseEmail<
       ? await Notification.unscoped().findByPk(this.metadata?.notificationId)
       : undefined;
 
+    if (notification?.viewedAt) {
+      Logger.info(
+        "email",
+        `Email ${templateName} not sent as already viewed`,
+        this.props
+      );
+      return;
+    }
+
     try {
       await mailer.sendMail({
         to: this.props.to,
