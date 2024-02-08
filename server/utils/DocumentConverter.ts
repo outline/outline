@@ -2,8 +2,10 @@ import escapeRegExp from "lodash/escapeRegExp";
 import { simpleParser } from "mailparser";
 import mammoth from "mammoth";
 import { FileImportError } from "@server/errors";
+import { trace } from "@server/logging/tracing";
 import turndownService from "@server/utils/turndown";
 
+@trace()
 export class DocumentConverter {
   /**
    * Convert an incoming file to markdown.
