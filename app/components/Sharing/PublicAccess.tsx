@@ -221,7 +221,7 @@ const ShareLinkInput = styled(Input)`
   min-width: 100px;
   flex: 1;
 
-  ${NativeInput} {
+  ${NativeInput}:not(:first-child) {
     padding: 4px 8px 4px 0;
     flex: 1;
   }
