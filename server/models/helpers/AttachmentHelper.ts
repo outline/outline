@@ -31,7 +31,7 @@ export default class AttachmentHelper {
   }) {
     const bucket = acl === "public-read" ? Buckets.public : Buckets.uploads;
     const keyPrefix = `${bucket}/${userId}/${id}`;
-    return `${keyPrefix}/${ValidateKey.sanitize(name)}`;
+    return ValidateKey.sanitize(`${keyPrefix}/${name}`);
   }
 
   /**
