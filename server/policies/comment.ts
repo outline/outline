@@ -8,7 +8,14 @@ allow(User, "createComment", Team, (user, team) => {
   return true;
 });
 
-allow(User, ["read", "update", "delete"], Comment, (user, comment) => {
+allow(User, "read", Comment, (user, comment) => {
+  if (!comment) {
+    return false;
+  }
+  return user.teamId === comment.createdBy.teamId;
+});
+
+allow(User, ["update", "delete"], Comment, (user, comment) => {
   if (!comment) {
     return false;
   }

@@ -69,6 +69,13 @@ router.post(
     });
     authorize(user, "read", comment);
 
+    if (comment.documentId) {
+      const document = await Document.findByPk(comment.documentId, {
+        userId: user.id,
+      });
+      authorize(user, "read", document);
+    }
+
     ctx.body = {
       data: presentComment(comment),
       policies: presentPolicies(user, [comment]),
