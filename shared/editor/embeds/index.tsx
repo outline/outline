@@ -93,7 +93,9 @@ export class EmbedDescriptor {
 
   matcher(url: string): false | RegExpMatchArray {
     const regexes = this.regexMatch ?? [];
-    const settingsDomainRegex = urlRegex(this.settings?.url);
+    const settingsDomainRegex = this.settings?.url
+      ? urlRegex(this.settings?.url)
+      : undefined;
 
     if (settingsDomainRegex) {
       regexes.unshift(settingsDomainRegex);
@@ -372,11 +374,13 @@ const embeds: EmbedDescriptor[] = [
     keywords: "spreadsheet",
     regexMatch: [new RegExp("^https?://([a-z.-]+\\.)?getgrist\\.com/(.+)$")],
     transformMatch: (matches: RegExpMatchArray) => {
-      if (matches[0].includes("style=singlePage")) {
-        return matches[0];
+      const input = matches.input ?? matches[0];
+
+      if (input.includes("style=singlePage")) {
+        return input;
       }
 
-      return matches[0].replace(/(\?embed=true)?$/, "?embed=true");
+      return input.replace(/(\?embed=true)?$/, "?embed=true");
     },
     icon: <Img src="/images/grist.png" alt="Grist" />,
   }),
