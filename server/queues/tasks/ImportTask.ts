@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs-extra";
+import chunk from "lodash/chunk";
 import truncate from "lodash/truncate";
 import tmp from "tmp";
 import {
@@ -288,39 +289,19 @@ export default abstract class ImportTask extends BaseTask<Props> {
     const documents = new Map<string, Document>();
     const attachments = new Map<string, Attachment>();
 
+    const user = await User.findByPk(fileOperation.userId, {
+      rejectOnEmpty: true,
+    });
+    const ip = user.lastActiveIp || undefined;
+
     try {
-      return await sequelize.transaction(async (transaction) => {
-        const user = await User.findByPk(fileOperation.userId, {
-          transaction,
-          rejectOnEmpty: true,
-        });
-
-        const ip = user.lastActiveIp || undefined;
-
-        // Attachments
-        await Promise.all(
-          data.attachments.map(async (item) => {
-            Logger.debug("task", `ImportTask persisting attachment ${item.id}`);
-            const attachment = await attachmentCreator({
-              source: "import",
-              preset: AttachmentPreset.DocumentAttachment,
-              id: item.id,
-              name: item.name,
-              type: item.mimeType,
-              buffer: await item.buffer(),
-              user,
-              ip,
-              transaction,
-            });
-            if (attachment) {
-              attachments.set(item.id, attachment);
-            }
-          })
-        );
-
-        // Collections
-        for (const item of data.collections) {
-          Logger.debug("task", `ImportTask persisting collection ${item.id}`);
+      // Collections
+      for (const item of data.collections) {
+        await sequelize.transaction(async (transaction) => {
+          Logger.debug(
+            "task",
+            `ImportTask persisting collection ${item.name} (${item.id})`
+          );
           let description = item.description;
 
           // Description can be markdown text or a Prosemirror object if coming
@@ -333,13 +314,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
             // Check all of the attachments we've created against urls in the text
             // and replace them out with attachment redirect urls before saving.
             for (const aitem of data.attachments) {
-              const attachment = attachments.get(aitem.id);
-              if (!attachment) {
-                continue;
-              }
               description = description.replace(
-                new RegExp(`<<${attachment.id}>>`, "g"),
-                attachment.redirectUrl
+                new RegExp(`<<${aitem.id}>>`, "g"),
+                Attachment.getRedirectUrl(aitem.id)
               );
             }
 
@@ -437,89 +414,114 @@ export default abstract class ImportTask extends BaseTask<Props> {
           );
 
           collections.set(item.id, collection);
-        }
 
-        // Documents
-        for (const item of data.documents) {
-          Logger.debug("task", `ImportTask persisting document ${item.id}`);
-          let text = item.text;
+          // Documents
+          for (const item of data.documents.filter(
+            (d) => d.collectionId === collection.id
+          )) {
+            Logger.debug(
+              "task",
+              `ImportTask persisting document ${item.title} (${item.id})`
+            );
+            let text = item.text;
 
-          // Check all of the attachments we've created against urls in the text
-          // and replace them out with attachment redirect urls before saving.
-          for (const aitem of data.attachments) {
-            const attachment = attachments.get(aitem.id);
-            if (!attachment) {
-              continue;
+            // Check all of the attachments we've created against urls in the text
+            // and replace them out with attachment redirect urls before saving.
+            for (const aitem of data.attachments) {
+              text = text.replace(
+                new RegExp(`<<${aitem.id}>>`, "g"),
+                Attachment.getRedirectUrl(aitem.id)
+              );
             }
-            text = text.replace(
-              new RegExp(`<<${attachment.id}>>`, "g"),
-              attachment.redirectUrl
-            );
-          }
 
-          // Check all of the document we've created against urls in the text
-          // and replace them out with a valid internal link. Because we are doing
-          // this before saving, we can't use the document slug, but we can take
-          // advantage of the fact that the document id will redirect in the client
-          for (const ditem of data.documents) {
-            text = text.replace(
-              new RegExp(`<<${ditem.id}>>`, "g"),
-              `/doc/${ditem.id}`
-            );
-          }
+            // Check all of the document we've created against urls in the text
+            // and replace them out with a valid internal link. Because we are doing
+            // this before saving, we can't use the document slug, but we can take
+            // advantage of the fact that the document id will redirect in the client
+            for (const ditem of data.documents) {
+              text = text.replace(
+                new RegExp(`<<${ditem.id}>>`, "g"),
+                `/doc/${ditem.id}`
+              );
+            }
 
-          const options: { urlId?: string } = {};
-          if (item.urlId) {
-            const existing = await Document.unscoped().findOne({
-              attributes: ["id"],
-              paranoid: false,
-              transaction,
-              where: {
-                urlId: item.urlId,
+            const options: { urlId?: string } = {};
+            if (item.urlId) {
+              const existing = await Document.unscoped().findOne({
+                attributes: ["id"],
+                paranoid: false,
+                transaction,
+                where: {
+                  urlId: item.urlId,
+                },
+              });
+
+              if (!existing) {
+                options.urlId = item.urlId;
+              }
+            }
+
+            const document = await documentCreator({
+              ...options,
+              sourceMetadata: {
+                fileName: path.basename(item.path),
+                mimeType: item.mimeType,
+                externalId: item.externalId,
               },
+              id: item.id,
+              title: item.title,
+              text,
+              collectionId: item.collectionId,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt ?? item.createdAt,
+              publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
+              parentDocumentId: item.parentDocumentId,
+              importId: fileOperation.id,
+              user,
+              ip,
+              transaction,
             });
+            documents.set(item.id, document);
 
-            if (!existing) {
-              options.urlId = item.urlId;
-            }
-          }
-
-          const document = await documentCreator({
-            ...options,
-            sourceMetadata: {
-              fileName: path.basename(item.path),
-              mimeType: item.mimeType,
-              externalId: item.externalId,
-            },
-            id: item.id,
-            title: item.title,
-            text,
-            collectionId: item.collectionId,
-            createdAt: item.createdAt,
-            updatedAt: item.updatedAt ?? item.createdAt,
-            publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
-            parentDocumentId: item.parentDocumentId,
-            importId: fileOperation.id,
-            user,
-            ip,
-            transaction,
-          });
-          documents.set(item.id, document);
-
-          const collection = collections.get(item.collectionId);
-          if (collection) {
             await collection.addDocumentToStructure(document, 0, {
               transaction,
+              save: false,
             });
           }
-        }
 
-        // Return value is only used for testing
-        return {
-          collections,
-          documents,
-          attachments,
-        };
+          await collection.save({ transaction });
+        });
+      }
+
+      // Attachments
+      await sequelize.transaction(async (transaction) => {
+        const chunks = chunk(data.attachments, 10);
+
+        for (const chunk of chunks) {
+          // Parallelize 10 uploads at a time
+          await Promise.all(
+            chunk.map(async (item) => {
+              Logger.debug(
+                "task",
+                `ImportTask persisting attachment ${item.name} (${item.id})`
+              );
+              const attachment = await attachmentCreator({
+                source: "import",
+                preset: AttachmentPreset.DocumentAttachment,
+                id: item.id,
+                name: item.name,
+                type: item.mimeType,
+                buffer: await item.buffer(),
+                user,
+                ip,
+                transaction,
+              });
+              if (attachment) {
+                attachments.set(item.id, attachment);
+              }
+            })
+          );
+        }
       });
     } catch (err) {
       Logger.info(
@@ -534,6 +536,13 @@ export default abstract class ImportTask extends BaseTask<Props> {
       );
       throw err;
     }
+
+    // Return value is only used for testing
+    return {
+      collections,
+      documents,
+      attachments,
+    };
   }
 
   /**
