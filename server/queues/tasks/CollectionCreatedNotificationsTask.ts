@@ -13,6 +13,10 @@ export default class CollectionCreatedNotificationsTask extends BaseTask<Collect
       return;
     }
 
+    if ("source" in event.data && event.data.source === "import") {
+      return;
+    }
+
     const recipients =
       await NotificationHelper.getCollectionNotificationRecipients(
         collection,
