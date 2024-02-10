@@ -39,6 +39,7 @@ import Actions from "./components/Actions";
 import DropToImport from "./components/DropToImport";
 import Empty from "./components/Empty";
 import MembershipPreview from "./components/MembershipPreview";
+import ShareButton from "./components/ShareButton";
 
 function CollectionScene() {
   const params = useParams<{ id?: string }>();
@@ -142,6 +143,7 @@ function CollectionScene() {
       actions={
         <>
           <MembershipPreview collection={collection} />
+          <ShareButton collection={collection} />
           <Actions collection={collection} />
         </>
       }
