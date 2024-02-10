@@ -35,10 +35,10 @@ import useLastVisitedPath from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { collectionPath, updateCollectionPath } from "~/utils/routeHelpers";
-import Actions from "./Collection/Actions";
-import DropToImport from "./Collection/DropToImport";
-import Empty from "./Collection/Empty";
-import MembershipPreview from "./Collection/MembershipPreview";
+import Actions from "./components/Actions";
+import DropToImport from "./components/DropToImport";
+import Empty from "./components/Empty";
+import MembershipPreview from "./components/MembershipPreview";
 
 function CollectionScene() {
   const params = useParams<{ id?: string }>();
