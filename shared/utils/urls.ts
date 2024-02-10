@@ -152,5 +152,7 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
 
   const urlObj = new URL(sanitizeUrl(url) as string);
 
-  return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
+  return new RegExp(
+    "^" + escapeRegExp(`${urlObj.protocol}//${urlObj.host}`) + "/(.+)$"
+  );
 }
