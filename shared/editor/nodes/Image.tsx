@@ -100,7 +100,9 @@ export default class Image extends SimpleImage {
       marks: "",
       group: "inline",
       selectable: true,
-      draggable: true,
+      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1289000
+      draggable: false,
+      atom: true,
       parseDOM: [
         {
           tag: "div[class~=image]",
