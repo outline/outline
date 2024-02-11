@@ -26,6 +26,7 @@ type Options = {
 
 interface FetchOptions {
   download?: boolean;
+  retry?: boolean;
   credentials?: "omit" | "same-origin" | "include";
   headers?: Record<string, string>;
 }
@@ -99,14 +100,17 @@ class ApiClient {
     let response;
 
     try {
-      response = await fetchWithRetry(urlToFetch, {
-        method,
-        body,
-        headers,
-        redirect: "follow",
-        credentials: "same-origin",
-        cache: "no-cache",
-      });
+      response = await (options?.retry === false ? fetch : fetchWithRetry)(
+        urlToFetch,
+        {
+          method,
+          body,
+          headers,
+          redirect: "follow",
+          credentials: "same-origin",
+          cache: "no-cache",
+        }
+      );
     } catch (err) {
       if (window.navigator.onLine) {
         throw new NetworkError("A network error occurred, try again?");
