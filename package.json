@@ -240,7 +240,7 @@
   "devDependencies": {
     "@babel/cli": "^7.23.4",
     "@babel/preset-typescript": "^7.23.3",
-    "@faker-js/faker": "^8.0.2",
+    "@faker-js/faker": "^8.4.1",
     "@relative-ci/agent": "^4.1.10",
     "@testing-library/react": "^12.0.0",
     "@types/addressparser": "^1.0.3",
