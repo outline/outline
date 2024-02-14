@@ -732,14 +732,8 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchSchema),
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
-    const {
-      query,
-      includeArchived,
-      includeDrafts,
-      dateFilter,
-      collectionId,
-      userId,
-    } = ctx.input.body;
+    const { query, statusFilter, dateFilter, collectionId, userId } =
+      ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
     let collaboratorIds = undefined;
@@ -756,9 +750,8 @@ router.post(
     }
 
     const documents = await SearchHelper.searchTitlesForUser(user, query, {
-      includeArchived,
-      includeDrafts,
       dateFilter,
+      statusFilter,
       collectionId,
       collaboratorIds,
       offset,
@@ -786,11 +779,10 @@ router.post(
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
     const {
       query,
-      includeArchived,
-      includeDrafts,
       collectionId,
       userId,
       dateFilter,
+      statusFilter,
       shareId,
       snippetMinWords,
       snippetMaxWords,
@@ -823,11 +815,10 @@ router.post(
       invariant(team, "Share must belong to a team");
 
       response = await SearchHelper.searchForTeam(team, query, {
-        includeArchived,
-        includeDrafts,
         collectionId: document.collectionId,
         share,
         dateFilter,
+        statusFilter,
         offset,
         limit,
         snippetMinWords,
@@ -854,11 +845,10 @@ router.post(
       }
 
       response = await SearchHelper.searchForUser(user, query, {
-        includeArchived,
-        includeDrafts,
         collaboratorIds,
         collectionId,
         dateFilter,
+        statusFilter,
         offset,
         limit,
         snippetMinWords,

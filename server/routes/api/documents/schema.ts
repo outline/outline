@@ -3,7 +3,7 @@ import formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
-import { DocumentPermission } from "@shared/types";
+import { DocumentPermission, StatusFilter } from "@shared/types";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import { BaseSchema } from "@server/routes/api/schema";
 
@@ -25,6 +25,7 @@ const DocumentsSortParamsSchema = z.object({
 
 const DateFilterSchema = z.object({
   /** Date filter */
+  statusFilter: z.nativeEnum(StatusFilter).array().optional(),
   dateFilter: z
     .union([
       z.literal("day"),
@@ -147,12 +148,6 @@ export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreSchema>;
 
 export const DocumentsSearchSchema = BaseSchema.extend({
   body: SearchQuerySchema.merge(DateFilterSchema).extend({
-    /** Whether to include archived docs in results */
-    includeArchived: z.boolean().optional(),
-
-    /** Whether to include drafts in results */
-    includeDrafts: z.boolean().optional(),
-
     /** Filter results for team based on the collection */
     collectionId: z.string().uuid().optional(),
 

@@ -6,6 +6,12 @@ export enum UserRole {
 
 export type DateFilter = "day" | "week" | "month" | "year";
 
+export enum StatusFilter {
+  Published = "published",
+  Archived = "archived",
+  Draft = "draft",
+}
+
 export enum Client {
   Web = "web",
   Desktop = "desktop",
