@@ -211,7 +211,7 @@ export const logout = createAction({
   section: NavigationSection,
   icon: <LogoutIcon />,
   perform: () => {
-    stores.auth.logout();
+    void stores.auth.logout();
     if (env.OIDC_LOGOUT_URI) {
       window.location.replace(env.OIDC_LOGOUT_URI);
     }
