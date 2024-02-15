@@ -1,6 +1,6 @@
-import env from "@shared/env";
 import * as React from "react";
 import { Redirect } from "react-router-dom";
+import env from "@shared/env";
 import useStores from "~/hooks/useStores";
 
 const Logout = () => {
