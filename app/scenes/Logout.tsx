@@ -8,6 +8,7 @@ const Logout = () => {
   void auth.logout();
   if (env.OIDC_LOGOUT_URI) {
     window.location.replace(env.OIDC_LOGOUT_URI);
+    return null;
   }
   return <Redirect to="/" />;
 };
