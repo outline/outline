@@ -500,6 +500,15 @@ export class Environment {
   );
 
   /**
+   * Auto-redirect to https in production. The default is true but you may set
+   * to false if you can be sure that SSL is terminated at an external
+   * loadbalancer.
+   */
+  @IsOptional()
+  @IsBoolean()
+  public OIDC_PREVENT_REDIRECT = this.toOptionalBoolean(process.env.OIDC_PREVENT_REDIRECT);
+
+  /**
    * The OIDC profile field to use as the username. The default value is
    * "preferred_username".
    */
@@ -764,6 +773,26 @@ export class Environment {
       throw new Error(
         `"${value}" could not be parsed as a boolean, must be "true" or "false"`
       );
+    }
+  }
+
+  /**
+   * Convert a string to a boolean. Supports the following:
+   *
+   * 0 = false
+   * 1 = true
+   * "true" = true
+   * "false" = false
+   * "" = undefined
+   *
+   * @param value The string to convert
+   * @returns A boolean or undefined
+   */
+  private toOptionalBoolean(value: string) {
+    try {
+      return value ? !!JSON.parse(value) : undefined;
+    } catch (err) {
+      return undefined
     }
   }
 }

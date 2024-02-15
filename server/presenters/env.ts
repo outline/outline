@@ -33,6 +33,7 @@ export default function present(
       process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION || undefined,
     APP_NAME: env.APP_NAME,
     ROOT_SHARE_ID: options.rootShareId || undefined,
+    OIDC_PREVENT_REDIRECT: env.OIDC_PREVENT_REDIRECT || undefined,
 
     analytics: {
       service: options.analytics?.service,

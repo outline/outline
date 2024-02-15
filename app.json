@@ -81,6 +81,10 @@
       "description": "",
       "required": false
     },
+    "OIDC_PREVENT_REDIRECT": {
+      "description": "Prevent the app from automatically redirecting to the OIDC login page",
+      "required": false
+    },
     "OIDC_USERNAME_CLAIM": {
       "description": "Specify which claims to derive user information from. Supports any valid JSON path with the JWT payload",
       "value": "preferred_username",
