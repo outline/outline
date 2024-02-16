@@ -788,7 +788,7 @@ export class Environment {
    * @param value The string to convert
    * @returns A boolean or undefined
    */
-  private toOptionalBoolean(value: string) {
+  private toOptionalBoolean(value: string | undefined) {
     try {
       return value ? !!JSON.parse(value) : undefined;
     } catch (err) {
