@@ -217,6 +217,13 @@ class Document extends ParanoidModel<
   @Column
   title: string;
 
+  @Length({
+    max: DocumentValidation.maxSummaryLength,
+    msg: `Document summary must be ${DocumentValidation.maxSummaryLength} characters or less`,
+  })
+  @Column
+  summary: string;
+
   @Column(DataType.ARRAY(DataType.STRING))
   previousTitles: string[] = [];
 
@@ -985,6 +992,10 @@ class Document extends ParanoidModel<
   getTimestamp = () => Math.round(new Date(this.updatedAt).getTime() / 1000);
 
   getSummary = () => {
+    if (this.summary) {
+      return this.summary;
+    }
+
     const plainText = DocumentHelper.toPlainText(this);
     const lines = compact(plainText.split("\n"));
     const notEmpty = lines.length >= 1;

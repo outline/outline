@@ -470,11 +470,6 @@ export default class Document extends ParanoidModel {
   duplicate = (options?: { title?: string; recursive?: boolean }) =>
     this.store.duplicate(this, options);
 
-  getSummary = (paragraphs = 4) => {
-    const result = this.text.trim().split("\n").slice(0, paragraphs).join("\n");
-    return result;
-  };
-
   @computed
   get pinned(): boolean {
     return !!this.store.rootStore.pins.orderedData.find(
