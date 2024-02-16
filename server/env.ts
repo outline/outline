@@ -500,6 +500,16 @@ export class Environment {
   );
 
   /**
+   * The OIDC logout endpoint.
+   */
+  @IsOptional()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+  })
+  public OIDC_LOGOUT_URI = this.toOptionalString(process.env.OIDC_LOGOUT_URI);
+
+  /**
    * The OIDC profile field to use as the username. The default value is
    * "preferred_username".
    */
