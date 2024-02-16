@@ -26,6 +26,7 @@ import SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";
 import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
+import env from "~/env";
 import Desktop from "~/utils/Desktop";
 import history from "~/utils/history";
 import isCloudHosted from "~/utils/isCloudHosted";
@@ -209,7 +210,12 @@ export const logout = createAction({
   analyticsName: "Log out",
   section: NavigationSection,
   icon: <LogoutIcon />,
-  perform: () => stores.auth.logout(),
+  perform: () => {
+    void stores.auth.logout();
+    if (env.OIDC_LOGOUT_URI) {
+      window.location.replace(env.OIDC_LOGOUT_URI);
+    }
+  },
 });
 
 export const rootNavigationActions = [

@@ -49,9 +49,11 @@ type SearchOptions = {
 };
 
 type RankedDocument = Document & {
-  searchRanking: number;
-  searchContext: string;
   id: string;
+  dataValues: Partial<Document> & {
+    searchRanking: number;
+    searchContext: string;
+  };
 };
 
 export default class SearchHelper {
@@ -394,8 +396,8 @@ export default class SearchHelper {
   ): SearchResponse {
     return {
       results: map(results, (result) => ({
-        ranking: result.searchRanking,
-        context: removeMarkdown(result.searchContext, {
+        ranking: result.dataValues.searchRanking,
+        context: removeMarkdown(result.dataValues.searchContext, {
           stripHTML: false,
         }),
         document: find(documents, {
@@ -443,8 +445,14 @@ export default class SearchHelper {
   }
 
   private static escapeQuery(query: string): string {
-    // replace "\" with escaped "\\" because sequelize.escape doesn't do it
-    // https://github.com/sequelize/sequelize/issues/2950
-    return query.replace(/\\/g, "\\\\");
+    return (
+      query
+        // replace "\" with escaped "\\" because sequelize.escape doesn't do it
+        // see: https://github.com/sequelize/sequelize/issues/2950
+        .replace(/\\/g, "\\\\")
+        // replace ":" with escaped "\:" because it's a reserved character in tsquery
+        // see: https://github.com/outline/outline/issues/6542
+        .replace(/:/g, "\\:")
+    );
   }
 }

@@ -62,6 +62,7 @@ export type PublicEnv = {
   APP_NAME: string;
   ROOT_SHARE_ID?: string;
   OIDC_DISABLE_REDIRECT?: boolean;
+  OIDC_LOGOUT_URI?: string;
   analytics: {
     service?: IntegrationService | UserCreatableIntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;

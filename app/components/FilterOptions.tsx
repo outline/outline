@@ -76,8 +76,8 @@ const FilterOptions = ({
 };
 
 const Note = styled(Text)`
-  margin-top: 2px;
-  margin-bottom: 0;
+  display: block;
+  margin: 2px 0;
   line-height: 1.2em;
   font-size: 14px;
   font-weight: 500;

@@ -34,7 +34,7 @@ export default function present(
     APP_NAME: env.APP_NAME,
     ROOT_SHARE_ID: options.rootShareId || undefined,
     OIDC_DISABLE_REDIRECT: env.OIDC_DISABLE_REDIRECT || undefined,
-
+    OIDC_LOGOUT_URI: env.OIDC_LOGOUT_URI || undefined,
     analytics: {
       service: options.analytics?.service,
       settings: options.analytics?.settings,
