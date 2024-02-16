@@ -186,6 +186,7 @@ describe("SearchHelper", () => {
       });
       const { results } = await SearchHelper.searchForUser(user, "test");
       expect(results.length).toBe(1);
+      expect(results[0].ranking).toBeTruthy();
       expect(results[0].document?.id).toBe(document.id);
     });
 

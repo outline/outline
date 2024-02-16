@@ -49,9 +49,11 @@ type SearchOptions = {
 };
 
 type RankedDocument = Document & {
-  searchRanking: number;
-  searchContext: string;
   id: string;
+  dataValues: Partial<Document> & {
+    searchRanking: number;
+    searchContext: string;
+  };
 };
 
 export default class SearchHelper {
@@ -394,8 +396,8 @@ export default class SearchHelper {
   ): SearchResponse {
     return {
       results: map(results, (result) => ({
-        ranking: result.searchRanking,
-        context: removeMarkdown(result.searchContext, {
+        ranking: result.dataValues.searchRanking,
+        context: removeMarkdown(result.dataValues.searchContext, {
           stripHTML: false,
         }),
         document: find(documents, {
