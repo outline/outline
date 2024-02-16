@@ -107,6 +107,16 @@ export function unicodeBCP47toCLDR(locale: string) {
 }
 
 /**
+ * Converts a locale string from Unicode CLDR format to ISO 639 format.
+ *
+ * @param locale The locale string to convert
+ * @returns The converted locale string
+ */
+export function unicodeCLDRtoISO639(locale: string) {
+  return locale.split("_")[0];
+}
+
+/**
  * Returns the current date as a string formatted depending on current locale.
  *
  * @returns The current date
