@@ -500,6 +500,16 @@ export class Environment {
   );
 
   /**
+   * Disable autoredirect to the OIDC login page if there is only one
+   * authentication method and that method is OIDC.
+   */
+  @IsOptional()
+  @IsBoolean()
+  public OIDC_DISABLE_REDIRECT = this.toOptionalBoolean(
+    process.env.OIDC_DISABLE_REDIRECT
+  );
+
+  /**
    * The OIDC logout endpoint.
    */
   @IsOptional()
@@ -774,6 +784,26 @@ export class Environment {
       throw new Error(
         `"${value}" could not be parsed as a boolean, must be "true" or "false"`
       );
+    }
+  }
+
+  /**
+   * Convert a string to an optional boolean. Supports the following:
+   *
+   * 0 = false
+   * 1 = true
+   * "true" = true
+   * "false" = false
+   * "" = undefined
+   *
+   * @param value The string to convert
+   * @returns A boolean or undefined
+   */
+  private toOptionalBoolean(value: string | undefined) {
+    try {
+      return value ? !!JSON.parse(value) : undefined;
+    } catch (err) {
+      return undefined;
     }
   }
 }
