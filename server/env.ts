@@ -506,7 +506,9 @@ export class Environment {
    */
   @IsOptional()
   @IsBoolean()
-  public OIDC_PREVENT_REDIRECT = this.toOptionalBoolean(process.env.OIDC_PREVENT_REDIRECT);
+  public OIDC_PREVENT_REDIRECT = this.toOptionalBoolean(
+    process.env.OIDC_PREVENT_REDIRECT
+  );
 
   /**
    * The OIDC profile field to use as the username. The default value is
@@ -792,7 +794,7 @@ export class Environment {
     try {
       return value ? !!JSON.parse(value) : undefined;
     } catch (err) {
-      return undefined
+      return undefined;
     }
   }
 }
