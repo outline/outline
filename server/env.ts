@@ -500,14 +500,13 @@ export class Environment {
   );
 
   /**
-   * Auto-redirect to https in production. The default is true but you may set
-   * to false if you can be sure that SSL is terminated at an external
-   * loadbalancer.
+   * Disable autoredirect to the OIDC login page if there is only one
+   * authentication method and that method is OIDC.
    */
   @IsOptional()
   @IsBoolean()
-  public OIDC_PREVENT_REDIRECT = this.toOptionalBoolean(
-    process.env.OIDC_PREVENT_REDIRECT
+  public OIDC_DISABLE_REDIRECT = this.toOptionalBoolean(
+    process.env.OIDC_DISABLE_REDIRECT
   );
 
   /**
@@ -779,7 +778,7 @@ export class Environment {
   }
 
   /**
-   * Convert a string to a boolean. Supports the following:
+   * Convert a string to an optional boolean. Supports the following:
    *
    * 0 = false
    * 1 = true

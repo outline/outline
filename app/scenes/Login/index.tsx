@@ -232,7 +232,7 @@ function Login({ children }: Props) {
   if (
     config.providers.length === 1 &&
     config.providers[0].id === "oidc" &&
-    !env.OIDC_PREVENT_REDIRECT
+    !env.OIDC_DISABLE_REDIRECT
   ) {
     window.location.href = getRedirectUrl(config.providers[0].authUrl);
     return null;

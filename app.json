@@ -81,7 +81,7 @@
       "description": "",
       "required": false
     },
-    "OIDC_PREVENT_REDIRECT": {
+    "OIDC_DISABLE_REDIRECT": {
       "description": "Prevent the app from automatically redirecting to the OIDC login page",
       "required": false
     },

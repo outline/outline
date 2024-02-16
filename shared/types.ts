@@ -61,7 +61,7 @@ export type PublicEnv = {
   RELEASE: string | undefined;
   APP_NAME: string;
   ROOT_SHARE_ID?: string;
-  OIDC_PREVENT_REDIRECT?: boolean;
+  OIDC_DISABLE_REDIRECT?: boolean;
   analytics: {
     service?: IntegrationService | UserCreatableIntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;
