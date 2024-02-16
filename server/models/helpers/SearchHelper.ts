@@ -443,8 +443,14 @@ export default class SearchHelper {
   }
 
   private static escapeQuery(query: string): string {
-    // replace "\" with escaped "\\" because sequelize.escape doesn't do it
-    // https://github.com/sequelize/sequelize/issues/2950
-    return query.replace(/\\/g, "\\\\");
+    return (
+      query
+        // replace "\" with escaped "\\" because sequelize.escape doesn't do it
+        // see: https://github.com/sequelize/sequelize/issues/2950
+        .replace(/\\/g, "\\\\")
+        // replace ":" with escaped "\:" because it's a reserved character in tsquery
+        // see: https://github.com/outline/outline/issues/6542
+        .replace(/:/g, "\\:")
+    );
   }
 }
