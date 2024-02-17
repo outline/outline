@@ -72,7 +72,7 @@ const DocumentTypeFilter = ({
   return (
     <FilterOptions
       options={options}
-      activeKey={getActiveKey()}
+      selectedKeys={[getActiveKey()]}
       onSelect={handleSelect}
       defaultLabel={t("Document type")}
     />
