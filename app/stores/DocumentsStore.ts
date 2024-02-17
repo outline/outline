@@ -10,6 +10,7 @@ import type {
   JSONObject,
   NavigationNode,
   PublicTeam,
+  StatusFilter,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -36,8 +37,7 @@ export type SearchParams = {
   offset?: number;
   limit?: number;
   dateFilter?: DateFilter;
-  includeArchived?: boolean;
-  includeDrafts?: boolean;
+  statusFilter?: StatusFilter[];
   collectionId?: string;
   userId?: string;
   shareId?: string;
