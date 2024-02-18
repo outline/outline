@@ -15,7 +15,7 @@ function Diagrams({ matches, ...props }: Props) {
   return (
     <Frame
       {...props}
-      src={embedUrl}
+      src={props.attrs.href}
       icon={
         <Image
           src="/images/diagrams.png"
