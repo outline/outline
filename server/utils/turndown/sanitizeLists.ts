@@ -1,4 +1,5 @@
 import TurndownService from "turndown";
+import { inHtmlContext } from "./utils";
 
 /**
  * A turndown plugin for removing incompatible nodes from lists.
@@ -6,20 +7,6 @@ import TurndownService from "turndown";
  * @param turndownService The TurndownService instance.
  */
 export default function sanitizeLists(turndownService: TurndownService) {
-  function inHtmlContext(node: HTMLElement, selector: string) {
-    let currentNode = node;
-    // start at the closest element
-    while (currentNode !== null && currentNode.nodeType !== 1) {
-      currentNode = (currentNode.parentElement ||
-        currentNode.parentNode) as HTMLElement;
-    }
-    return (
-      currentNode !== null &&
-      currentNode.nodeType === 1 &&
-      currentNode.closest(selector) !== null
-    );
-  }
-
   turndownService.addRule("headingsInLists", {
     filter(node) {
       return (
