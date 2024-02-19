@@ -467,7 +467,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
       if (event.key === "Enter") {
         event.preventDefault();
-        event.stopPropagation();
 
         const item = filtered[selectedIndex];
 
