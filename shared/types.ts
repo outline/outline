@@ -93,6 +93,7 @@ export enum IntegrationService {
 export enum UserCreatableIntegrationService {
   Diagrams = "diagrams",
   Grist = "grist",
+  GitLabSnippet = "gitlabsnippet",
   GoogleAnalytics = "google-analytics",
 }
 
