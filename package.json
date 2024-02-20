@@ -255,7 +255,7 @@
     "@types/glob": "^8.0.1",
     "@types/google.analytics": "^0.0.42",
     "@types/invariant": "^2.2.37",
-    "@types/jest": "^29.4.0",
+    "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/katex": "^0.16.0",
     "@types/koa": "^2.14.0",
