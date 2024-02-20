@@ -337,7 +337,7 @@
     "prettier": "^2.8.8",
     "react-refresh": "^0.14.0",
     "rimraf": "^2.5.4",
-    "rollup-plugin-webpack-stats": "^0.2.2",
+    "rollup-plugin-webpack-stats": "^0.2.4",
     "terser": "^5.19.2",
     "typescript": "^5.3.3",
     "vite-plugin-static-copy": "^0.17.0",
