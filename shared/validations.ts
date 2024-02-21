@@ -49,7 +49,7 @@ export const PinValidation = {
 };
 
 export const TeamValidation = {
-  /** The maximum number of domains per team */
+  /** The maximum number of domains per team on cloud hosted */
   maxDomains: 10,
 };
 
