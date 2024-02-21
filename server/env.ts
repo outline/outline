@@ -582,7 +582,8 @@ export class Environment {
     this.toOptionalNumber(process.env.RATE_LIMITER_DURATION_WINDOW) ?? 60;
 
   /**
-   * @deprecated Set max allowed upload size for file attachments.
+   * Set max allowed upload size for file attachments.
+   * @deprecated Use FILE_STORAGE_UPLOAD_MAX_SIZE instead
    */
   @IsOptional()
   @IsNumber()
@@ -671,17 +672,39 @@ export class Environment {
   public FILE_STORAGE_UPLOAD_MAX_SIZE =
     this.toOptionalNumber(process.env.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
     this.toOptionalNumber(process.env.AWS_S3_UPLOAD_MAX_SIZE) ??
-    100000000;
+    1000000;
+
+  /**
+   * Set max allowed upload size for document imports.
+   */
+  @IsNumber()
+  public FILE_STORAGE_IMPORT_MAX_SIZE =
+    this.toOptionalNumber(process.env.FILE_STORAGE_IMPORT_MAX_SIZE) ??
+    this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ??
+    this.toOptionalNumber(process.env.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
+    1000000;
+
+  /**
+   * Set max allowed upload size for imports at workspace level.
+   */
+  @IsNumber()
+  public FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE =
+    this.toOptionalNumber(process.env.FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE) ??
+    this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ??
+    this.toOptionalNumber(process.env.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
+    1000000;
 
   /**
    * Because imports can be much larger than regular file attachments and are
    * deleted automatically we allow an optional separate limit on the size of
    * imports.
+   *
+   * @deprecated Use `FILE_STORAGE_IMPORT_MAX_SIZE` or `FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE` instead
    */
   @IsNumber()
-  public MAXIMUM_IMPORT_SIZE = Math.max(
-    this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ?? 100000000,
-    this.FILE_STORAGE_UPLOAD_MAX_SIZE
+  @Deprecated("Use FILE_STORAGE_IMPORT_MAX_SIZE instead")
+  public MAXIMUM_IMPORT_SIZE = this.toOptionalNumber(
+    process.env.MAXIMUM_IMPORT_SIZE
   );
 
   /**

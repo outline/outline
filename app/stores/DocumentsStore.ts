@@ -596,10 +596,10 @@ export default class DocumentsStore extends Store<Document> {
       throw new Error(`The selected file type is not supported (${file.type})`);
     }
 
-    if (file.size > env.MAXIMUM_IMPORT_SIZE) {
+    if (file.size > env.FILE_STORAGE_IMPORT_MAX_SIZE) {
       throw new Error(
         `The selected file was larger than the ${bytesToHumanReadable(
-          env.MAXIMUM_IMPORT_SIZE
+          env.FILE_STORAGE_IMPORT_MAX_SIZE
         )} maximum size`
       );
     }

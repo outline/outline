@@ -53,7 +53,7 @@ export type PublicEnv = {
   SENTRY_TUNNEL: string | undefined;
   SLACK_CLIENT_ID: string | undefined;
   SLACK_APP_ID: string | undefined;
-  MAXIMUM_IMPORT_SIZE: number;
+  FILE_STORAGE_IMPORT_MAX_SIZE: number;
   EMAIL_ENABLED: boolean;
   PDF_EXPORT_ENABLED: boolean;
   DEFAULT_LANGUAGE: string;
@@ -71,6 +71,7 @@ export type PublicEnv = {
 
 export enum AttachmentPreset {
   DocumentAttachment = "documentAttachment",
+  WorkspaceImport = "workspaceImport",
   Import = "import",
   Avatar = "avatar",
 }
