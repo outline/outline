@@ -701,6 +701,7 @@ export class Environment {
    *
    * @deprecated Use `FILE_STORAGE_IMPORT_MAX_SIZE` or `FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE` instead
    */
+  @IsOptional()
   @IsNumber()
   @Deprecated("Use FILE_STORAGE_IMPORT_MAX_SIZE instead")
   public MAXIMUM_IMPORT_SIZE = this.toOptionalNumber(
