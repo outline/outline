@@ -86,6 +86,7 @@ export default class AttachmentHelper {
   static presetToExpiry(preset: AttachmentPreset) {
     switch (preset) {
       case AttachmentPreset.Import:
+      case AttachmentPreset.WorkspaceImport:
         return addHours(new Date(), 24);
       default:
         return undefined;
@@ -101,7 +102,9 @@ export default class AttachmentHelper {
   static presetToMaxUploadSize(preset: AttachmentPreset) {
     switch (preset) {
       case AttachmentPreset.Import:
-        return env.MAXIMUM_IMPORT_SIZE;
+        return env.FILE_STORAGE_IMPORT_MAX_SIZE;
+      case AttachmentPreset.WorkspaceImport:
+        return env.FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE;
       case AttachmentPreset.Avatar:
       case AttachmentPreset.DocumentAttachment:
       default:
