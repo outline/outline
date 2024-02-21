@@ -23,8 +23,8 @@ export default function sanitizeTables(turndownService: TurndownService) {
     filter(node) {
       return node.nodeName === "P" && inHtmlContext(node, "table");
     },
-    replacement(content) {
-      return content.trim();
+    replacement(content, node) {
+      return content.trim() + (node.nextSibling ? "\\n" : "");
     },
   });
 }
