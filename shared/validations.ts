@@ -47,7 +47,7 @@ export const PinValidation = {
 
 export const TeamValidation = {
   /** The maximum number of domains per team */
-  maxDomains: 10,
+  maxDomains: 15,
 };
 
 export const UserValidation = {
