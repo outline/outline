@@ -700,7 +700,7 @@
   "The domain associated with your email address has not been allowed for this workspace.": "Domain yang dikaitkan dengan alamat email Anda belum diizinkan untuk workspace ini.",
   "Unable to sign-in. Please navigate to your workspace's custom URL, then try to sign-in again.<1></1>If you were invited to a workspace, you will find a link to it in the invite email.": "Tidak dapat masuk. Buka URL khusus workspace Anda, lalu coba masuk lagi.<1></1> Jika Anda diundang ke workspace, Anda akan menemukan tautan ke workspace tersebut di email undangan.",
   "Sorry, a new account cannot be created with a personal Gmail address.<1></1>Please use a Google Workspaces account instead.": "Maaf, akun baru tidak dapat dibuat dengan alamat Gmail pribadi.<1></1> Harap gunakan akun Google Workspaces sebagai gantinya.",
-  "The workspace associated with your user is scheduled for deletion and cannot at accessed at this time.": "The workspace associated with your user is scheduled for deletion and cannot at accessed at this time.",
+  "The workspace associated with your user is scheduled for deletion and cannot be accessed at this time.": "The workspace associated with your user is scheduled for deletion and cannot be accessed at this time.",
   "The workspace you authenticated with is not authorized on this installation. Try another?": "Workspace yang Anda autentikasi tidak diotorisasi pada penginstalan ini. Coba yang lain?",
   "We could not read the user info supplied by your identity provider.": "Kami tidak dapat membaca info pengguna yang diberikan oleh penyedia identitas Anda.",
   "Your account uses email sign-in, please sign-in with email to continue.": "Akun Anda menggunakan email, harap masuk dengan email untuk melanjutkan.",
