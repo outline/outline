@@ -119,6 +119,16 @@ if (
             );
           }
 
+          let groups: undefined | string[];
+          if (env.OIDC_GROUPS_CLAIM && profile[env.OIDC_GROUPS_CLAIM]) {
+            if (!Array.isArray(profile[env.OIDC_GROUPS_CLAIM])) {
+              throw AuthenticationError(
+                "The groups claim in the profile parameter that was returned must be an array."
+              );
+            }
+            groups = (profile[env.OIDC_GROUPS_CLAIM] as unknown) as string[];
+          }
+
           const result = await accountProvisioner({
             ip: ctx.ip,
             team: {
@@ -137,6 +147,7 @@ if (
               name: providerName,
               providerId: domain,
             },
+            groups,
             authentication: {
               providerId,
               accessToken,
