@@ -137,29 +137,25 @@ function Invite({ onSubmit }: Props) {
   );
 
   const collectionCount = collections.nonPrivate.length;
-  const collectionAccessNote = (
+  const collectionAccessNote = collectionCount ? (
     <span>
       <Trans>Invited members will receive access to</Trans>{" "}
-      {collectionCount > 0 ? (
-        <Tooltip
-          content={
-            <>
-              {collections.nonPrivate.map((collection) => (
-                <li key={collection.id}>{collection.name}</li>
-              ))}
-            </>
-          }
-        >
-          <Def>
-            <Trans>{{ collectionCount }} collections</Trans>
-          </Def>
-        </Tooltip>
-      ) : (
-        <Trans>non-private collections when added</Trans>
-      )}
+      <Tooltip
+        content={
+          <>
+            {collections.nonPrivate.map((collection) => (
+              <li key={collection.id}>{collection.name}</li>
+            ))}
+          </>
+        }
+      >
+        <Def>
+          <Trans>{{ collectionCount }} collections</Trans>
+        </Def>
+      </Tooltip>
       .
     </span>
-  );
+  ) : undefined;
 
   const options = React.useMemo(() => {
     const options = [

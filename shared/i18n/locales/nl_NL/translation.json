@@ -655,7 +655,6 @@
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Sorry, je kunt enkel {{MAX_INVITES}} uitnodigingen tegelijk verzenden",
   "Invited members will receive access to": "Invited members will receive access to",
   "{{collectionCount}} collections": "{{collectionCount}} collections",
-  "non-private collections when added": "non-private collections when added",
   "Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address.": "Nodig teamleden of gasten uit om lid te worden van jouw team. Teamleden kunnen inloggen met {{signinMethods}} of hun e-mailadres gebruiken.",
   "Invite members to join your workspace. They will need to sign in with {{signinMethods}}.": "Nodig teamleden uit om deel te nemen aan je team. Ze moeten zich aanmelden met {{signinMethods}}.",
   "As an admin you can also <2>enable email sign-in</2>.": "Als beheerder kun je ook <2>inloggen via e-mail inschakelen</2>.",

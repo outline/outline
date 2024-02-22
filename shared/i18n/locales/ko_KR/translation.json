@@ -655,7 +655,6 @@
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "죄송합니다. 한 번에 {{MAX_INVITES}} 명만 초대할 수 있습니다.",
   "Invited members will receive access to": "Invited members will receive access to",
   "{{collectionCount}} collections": "{{collectionCount}} collections",
-  "non-private collections when added": "non-private collections when added",
   "Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address.": "워크스페이스에 참여하도록 멤버나 게스트를 초대합니다. 멤버는 {{signinMethods}} 혹은 이메일 주소를 통해 가입할 수 있습니다.",
   "Invite members to join your workspace. They will need to sign in with {{signinMethods}}.": "워크스페이스에 참여하도록 멤버를 초대합니다. {{signinMethods}} 으로 로그인해야 합니다.",
   "As an admin you can also <2>enable email sign-in</2>.": "관리자는 <2>이메일 로그인을 활성화</2>를 할 수 있습니다.",

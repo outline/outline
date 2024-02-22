@@ -655,7 +655,6 @@
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "抱歉，您一次最多只能發送 {{MAX_INVITES}} 個邀請",
   "Invited members will receive access to": "被邀請的用戶可以存取",
   "{{collectionCount}} collections": "{{collectionCount}} 個文件集",
-  "non-private collections when added": "non-private collections when added",
   "Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address.": "邀請成員或訪客加入您的工作區。他們可以使用 {{signinMethods}} 或電子郵件地址登入。",
   "Invite members to join your workspace. They will need to sign in with {{signinMethods}}.": "邀請成員加入您的工作區。他們需要使用 {{signinMethods}} 登入。",
   "As an admin you can also <2>enable email sign-in</2>.": "\b身為管理員，您也可以啟用<2>使用電子郵件登入</2>功能。",
