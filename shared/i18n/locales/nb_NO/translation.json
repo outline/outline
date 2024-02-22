@@ -655,6 +655,7 @@
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Beklager, du kan bare sende {{MAX_INVITES}} invitasjoner om gangen",
   "Invited members will receive access to": "Inviterte medlemmer vil motta tilgang til",
   "{{collectionCount}} collections": "{{collectionCount}} samlinger",
+  "non-private collections when added": "non-private collections when added",
   "Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address.": "Inviter medlemmer eller gjester til å bli med i ditt arbeidsområde. De kan logge inn med {{signinMethods}} eller bruke sin e-postadresse.",
   "Invite members to join your workspace. They will need to sign in with {{signinMethods}}.": "Inviter medlemmer til å bli med i ditt arbeidsområde. De må logge inn med {{signinMethods}}.",
   "As an admin you can also <2>enable email sign-in</2>.": "Som admin kan du også <2>aktivere e-postinnlogging</2>.",

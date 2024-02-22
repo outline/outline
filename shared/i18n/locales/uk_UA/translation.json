@@ -655,6 +655,7 @@
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Вибачте, ви можете надіслати лише {{MAX_INVITES}} запрошень одночасно",
   "Invited members will receive access to": "Invited members will receive access to",
   "{{collectionCount}} collections": "{{collectionCount}} collections",
+  "non-private collections when added": "non-private collections when added",
   "Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address.": "Запросіть учасників або гостей приєднатися до вашого робочого простору. Вони можуть увійти за допомогою {{signinMethods}} або використати свою електронну адресу.",
   "Invite members to join your workspace. They will need to sign in with {{signinMethods}}.": "Запросіть учасників приєднатися до вашого робочого простору. Їм потрібно буде ввійти за допомогою {{signinMethods}}.",
   "As an admin you can also <2>enable email sign-in</2>.": "Як адміністратор ви також можете <2>увімкнути вхід за допомогою електронної пошти</2>.",

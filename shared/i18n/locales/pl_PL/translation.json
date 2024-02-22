@@ -655,6 +655,7 @@
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Przepraszamy, można wysłać tylko {{MAX_INVITES}} zaproszeń na raz",
   "Invited members will receive access to": "Zaproszeni członkowie otrzymają dostęp do",
   "{{collectionCount}} collections": "{{collectionCount}} kolekcji",
+  "non-private collections when added": "non-private collections when added",
   "Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address.": "Zaproś członków lub gości do dołączenia do Twojego obszaru roboczego. Mogą się zalogować przy użyciu {{signinMethods}} lub użyć swojego adresu e-mail.",
   "Invite members to join your workspace. They will need to sign in with {{signinMethods}}.": "Zaproś członków do dołączenia do Twojego obszaru roboczego. Będą musieli się zalogować przy użyciu {{signinMethods}}.",
   "As an admin you can also <2>enable email sign-in</2>.": "Jako administrator możesz także <2>włączyć logowanie przez e-mail</2>.",

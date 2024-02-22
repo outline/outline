@@ -140,19 +140,23 @@ function Invite({ onSubmit }: Props) {
   const collectionAccessNote = (
     <span>
       <Trans>Invited members will receive access to</Trans>{" "}
-      <Tooltip
-        content={
-          <>
-            {collections.nonPrivate.map((collection) => (
-              <li key={collection.id}>{collection.name}</li>
-            ))}
-          </>
-        }
-      >
-        <Def>
-          <Trans>{{ collectionCount }} collections</Trans>
-        </Def>
-      </Tooltip>
+      {collectionCount > 0 ? (
+        <Tooltip
+          content={
+            <>
+              {collections.nonPrivate.map((collection) => (
+                <li key={collection.id}>{collection.name}</li>
+              ))}
+            </>
+          }
+        >
+          <Def>
+            <Trans>{{ collectionCount }} collections</Trans>
+          </Def>
+        </Tooltip>
+      ) : (
+        <Trans>non-private collections when added</Trans>
+      )}
       .
     </span>
   );

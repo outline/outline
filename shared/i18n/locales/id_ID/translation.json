@@ -655,6 +655,7 @@
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Maaf, Anda hanya dapat mengirim {{MAX_INVITES}} undangan sekaligus",
   "Invited members will receive access to": "Invited members will receive access to",
   "{{collectionCount}} collections": "{{collectionCount}} collections",
+  "non-private collections when added": "non-private collections when added",
   "Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address.": "Undang anggota atau tamu untuk bergabung dengan workspace Anda. Mereka dapat masuk dengan {{signinMethods}} atau menggunakan alamat email mereka.",
   "Invite members to join your workspace. They will need to sign in with {{signinMethods}}.": "Undang anggota untuk bergabung dengan workspace Anda. Mereka harus masuk dengan {{signinMethods}}.",
   "As an admin you can also <2>enable email sign-in</2>.": "Sebagai admin, Anda juga dapat <2>mengaktifkan email sign-in</2>.",

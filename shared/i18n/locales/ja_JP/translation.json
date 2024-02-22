@@ -655,6 +655,7 @@
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "一度に送信できる招待状は最大{{MAX_INVITES}}枚までです。",
   "Invited members will receive access to": "招待されたメンバーは次のメンバーにアクセスできます：",
   "{{collectionCount}} collections": "{{collectionCount}} コレクション",
+  "non-private collections when added": "non-private collections when added",
   "Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address.": "メンバーやゲストをワークスペースに招待します。 {{signinMethods}} でサインインするか、メール アドレスを使用できます。",
   "Invite members to join your workspace. They will need to sign in with {{signinMethods}}.": "メンバーをワークスペースに招待します。 {{signinMethods}} でサインインする必要があります。",
   "As an admin you can also <2>enable email sign-in</2>.": "管理者として、<2>電子メールによるサインインを有効にする</2>こともできます。",
