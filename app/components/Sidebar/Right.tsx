@@ -67,13 +67,10 @@ function Right({ children, border, className }: Props) {
   }, [isResizing, handleDrag, handleStopDrag]);
 
   const style = React.useMemo(
-    () =>
-      isMobile
-        ? { width: "80%" }
-        : {
-            width: `${ui.sidebarRightWidth}px`,
-          },
-    [isMobile, ui.sidebarRightWidth]
+    () => ({
+      width: `${ui.sidebarRightWidth}px`,
+    }),
+    [ui.sidebarRightWidth]
   );
 
   const animationProps = {
@@ -115,6 +112,7 @@ const Position = styled(Flex)`
   position: fixed;
   top: 0;
   bottom: 0;
+  max-width: 80%;
 `;
 
 const Sidebar = styled(m.div)<{
