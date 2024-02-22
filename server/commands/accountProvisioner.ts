@@ -7,8 +7,8 @@ import {
 import { traceFunction } from "@server/logging/tracing";
 import { AuthenticationProvider, Collection, Team, User } from "@server/models";
 import teamProvisioner from "./teamProvisioner";
-import userProvisioner from "./userProvisioner";
 import userGroupsUpdater from "./userGroupsUpdater";
+import userProvisioner from "./userProvisioner";
 
 type Props = {
   /** The IP address of the incoming request */

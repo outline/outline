@@ -126,7 +126,7 @@ if (
                 "The groups claim in the profile parameter that was returned must be an array."
               );
             }
-            groups = (profile[env.OIDC_GROUPS_CLAIM] as unknown) as string[];
+            groups = profile[env.OIDC_GROUPS_CLAIM] as unknown as string[];
           }
 
           const result = await accountProvisioner({

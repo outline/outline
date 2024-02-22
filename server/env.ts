@@ -535,7 +535,6 @@ export class Environment {
     process.env.OIDC_GROUPS_CLAIM
   );
 
-
   /**
    * A space separated list of OIDC scopes to request. Defaults to "openid
    * profile email".
