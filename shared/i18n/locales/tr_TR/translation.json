@@ -700,7 +700,7 @@
   "The domain associated with your email address has not been allowed for this workspace.": "The domain associated with your email address has not been allowed for this workspace.",
   "Unable to sign-in. Please navigate to your workspace's custom URL, then try to sign-in again.<1></1>If you were invited to a workspace, you will find a link to it in the invite email.": "Unable to sign-in. Please navigate to your workspace's custom URL, then try to sign-in again.<1></1>If you were invited to a workspace, you will find a link to it in the invite email.",
   "Sorry, a new account cannot be created with a personal Gmail address.<1></1>Please use a Google Workspaces account instead.": "Sorry, a new account cannot be created with a personal Gmail address.<1></1>Please use a Google Workspaces account instead.",
-  "The workspace associated with your user is scheduled for deletion and cannot at accessed at this time.": "The workspace associated with your user is scheduled for deletion and cannot at accessed at this time.",
+  "The workspace associated with your user is scheduled for deletion and cannot be accessed at this time.": "The workspace associated with your user is scheduled for deletion and cannot be accessed at this time.",
   "The workspace you authenticated with is not authorized on this installation. Try another?": "The workspace you authenticated with is not authorized on this installation. Try another?",
   "We could not read the user info supplied by your identity provider.": "We could not read the user info supplied by your identity provider.",
   "Your account uses email sign-in, please sign-in with email to continue.": "Your account uses email sign-in, please sign-in with email to continue.",
