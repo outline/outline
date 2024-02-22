@@ -700,7 +700,7 @@
   "The domain associated with your email address has not been allowed for this workspace.": "メールアドレスに関連付けられたドメインは、このワークスペースで許可されていません。",
   "Unable to sign-in. Please navigate to your workspace's custom URL, then try to sign-in again.<1></1>If you were invited to a workspace, you will find a link to it in the invite email.": "サインインできません。ワークスペースのカスタム URL に移動し、再度サインインしてみてください。<1></1>ワークスペースに招待された場合、招待メールにリンクが表示されます。",
   "Sorry, a new account cannot be created with a personal Gmail address.<1></1>Please use a Google Workspaces account instead.": "申し訳ありませんが、個人のGmailアドレスで新しいアカウントを作成することはできません。<1></1>代わりにGoogle Workspaceのアカウントを使用してください。",
-  "The workspace associated with your user is scheduled for deletion and cannot at accessed at this time.": "ユーザーに関連付けられたワークスペースは削除予定であり、現時点ではアクセスできません。",
+  "The workspace associated with your user is scheduled for deletion and cannot be accessed at this time.": "The workspace associated with your user is scheduled for deletion and cannot be accessed at this time.",
   "The workspace you authenticated with is not authorized on this installation. Try another?": "あなたが認証したワークスペースは、このインストールでは許可されていません。別のワークスペースを試してみますか？",
   "We could not read the user info supplied by your identity provider.": "あなたのIDプロバイダーから提供されたユーザー情報を読み取ることができませんでした。",
   "Your account uses email sign-in, please sign-in with email to continue.": "あなたのアカウントはメールサインインを使用しています。続行するにはメールでサインインしてください。",
