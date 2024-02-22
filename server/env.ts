@@ -191,6 +191,15 @@ export class Environment {
   );
 
   /**
+   * The maximum number of domains allowed to log in / create accounts.
+   * Defaults to 15.
+   */
+  @IsOptional()
+  @IsNumber()
+  public MAX_ALLOWED_DOMAINS = this.toOptionalNumber(process.env.MAX_ALLOWED_DOMAINS) ?? 15;
+
+
+  /**
    * The port that the server will listen on, defaults to 3000.
    */
   @IsNumber()
