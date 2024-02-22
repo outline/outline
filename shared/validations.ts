@@ -1,3 +1,4 @@
+import env from "./env";
 export const AttachmentValidation = {
   /** The limited allowable mime-types for user and team avatars */
   avatarContentTypes: ["image/jpg", "image/jpeg", "image/png"],
@@ -87,8 +88,8 @@ export const PinValidation = {
 };
 
 export const TeamValidation = {
-  /** The maximum number of domains per team on cloud hosted */
-  maxDomains: 10,
+  /** The maximum number of domains per instance */
+  maxDomains: env.MAX_ALLOWED_DOMAINS,
 };
 
 export const UserValidation = {
