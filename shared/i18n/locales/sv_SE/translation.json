@@ -700,7 +700,7 @@
   "The domain associated with your email address has not been allowed for this workspace.": "Domänen som är kopplad till din e-postadress har inte tillåtits för denna arbetsyta.",
   "Unable to sign-in. Please navigate to your workspace's custom URL, then try to sign-in again.<1></1>If you were invited to a workspace, you will find a link to it in the invite email.": "Det gick inte att logga in. Vänligen navigera till arbetsytans anpassade URL, försök sedan logga in igen. <1></1>Om du blev inbjuden till en arbetsyta, hittar du en länk till den i inbjudningsmailet.",
   "Sorry, a new account cannot be created with a personal Gmail address.<1></1>Please use a Google Workspaces account instead.": "Tyvärr, ett nytt konto kan inte skapas med en personlig Gmail-adress.<1></1>Använd ett Google Workspaces konto istället.",
-  "The workspace associated with your user is scheduled for deletion and cannot at accessed at this time.": "Arbetsytan som associeras med din användare är schemalagd för radering och kan inte nås just nu.",
+  "The workspace associated with your user is scheduled for deletion and cannot be accessed at this time.": "The workspace associated with your user is scheduled for deletion and cannot be accessed at this time.",
   "The workspace you authenticated with is not authorized on this installation. Try another?": "Den arbetsyta du autentiserade med är inte auktoriserad på den här installationen. Prova en annan?",
   "We could not read the user info supplied by your identity provider.": "Vi kunde inte läsa användarinformationen från din identitetsleverantör.",
   "Your account uses email sign-in, please sign-in with email to continue.": "Ditt konto använder e-postinloggning, vänligen logga in med e-post för att fortsätta.",
