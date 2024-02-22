@@ -700,7 +700,7 @@
   "The domain associated with your email address has not been allowed for this workspace.": "与您的电子邮件地址相关联的域名未被允许在此工作区使用。",
   "Unable to sign-in. Please navigate to your workspace's custom URL, then try to sign-in again.<1></1>If you were invited to a workspace, you will find a link to it in the invite email.": "无法登录。请导航至您工作区的自定义 URL，然后尝试重新登录。<1></1>如果您受邀加入某个工作区，您会在邀请电子邮件中找到指向该工作区的链接。",
   "Sorry, a new account cannot be created with a personal Gmail address.<1></1>Please use a Google Workspaces account instead.": "抱歉，无法使用个人Gmail地址创建新账户。<1></1>请使用 Google Workspaces 账户。",
-  "The workspace associated with your user is scheduled for deletion and cannot at accessed at this time.": "与您的用户相关联的工作区已计划删除，此时无法访问。",
+  "The workspace associated with your user is scheduled for deletion and cannot be accessed at this time.": "The workspace associated with your user is scheduled for deletion and cannot be accessed at this time.",
   "The workspace you authenticated with is not authorized on this installation. Try another?": "您使用的工作区未被授权在此安装中进行操作。请尝试其他工作区？",
   "We could not read the user info supplied by your identity provider.": "我们无法读取您的身份验证提供者提供的用户信息。",
   "Your account uses email sign-in, please sign-in with email to continue.": "您的账户使用电子邮件登录，请使用电子邮件进行登录以继续。",
