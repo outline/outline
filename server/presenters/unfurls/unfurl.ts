@@ -7,6 +7,7 @@ function presentUnfurl(data: any): Unfurl {
     title: data.title,
     description: data.description,
     thumbnailUrl: data.thumbnail_url,
+    author: data.author,
     meta: data.meta,
   };
 }

@@ -285,6 +285,7 @@ export type Unfurl<T = OEmbedType> = {
   title: string;
   description?: string;
   thumbnailUrl?: string | null;
+  author?: { name: string; avatarUrl: string };
   meta?: Record<string, string>;
 };
 
