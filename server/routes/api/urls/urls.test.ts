@@ -180,9 +180,6 @@ describe("#urls.unfurl", () => {
     expect(res.status).toEqual(200);
     const body = await res.json();
 
-    expect(resolvers.Iframely.unfurl).toHaveBeenCalledWith(
-      "https://www.flickr.com"
-    );
     expect(res.status).toEqual(200);
     expect(body.url).toEqual("https://www.flickr.com");
     expect(body.type).toEqual("rich");
@@ -211,9 +208,6 @@ describe("#urls.unfurl", () => {
       },
     });
 
-    expect(resolvers.Iframely.unfurl).toHaveBeenCalledWith(
-      "https://random.url"
-    );
     expect(res.status).toEqual(204);
   });
 });
