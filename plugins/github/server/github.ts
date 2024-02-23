@@ -14,6 +14,7 @@ export class GitHub {
   public static clientId = env.GITHUB_CLIENT_ID;
   public static clientSecret = env.GITHUB_CLIENT_SECRET;
   public static clientType = "github-app";
+  public static allowedResources = ["pull", "issues"];
 
   /** GitHub client for accessing its APIs */
   public client: Octokit;
@@ -50,6 +51,27 @@ export class GitHub {
     params?: string;
   }) {
     return `${baseUrl}/api/github.callback?${params}`;
+  }
+
+  /**
+   * Parses a GitHub like URL to obtain info like repo name, owner, resource type(issue or PR).
+   *
+   * @param url URL to parse
+   * @returns An object containing repository, owner, resource type(issue or pull request) and resource id
+   */
+  public static parseUrl(url: string) {
+    const { hostname, pathname } = new URL(url);
+    if (hostname !== "github.com") {
+      return {};
+    }
+
+    const [, owner, repo, resourceType, resourceId] = pathname.split("/");
+
+    if (!this.allowedResources.includes(resourceType)) {
+      return {};
+    }
+
+    return { owner, repo, resourceType, resourceId };
   }
 
   /**

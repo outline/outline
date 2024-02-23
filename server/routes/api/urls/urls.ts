@@ -77,7 +77,7 @@ router.post(
     let data;
     for (const key of Object.keys(resolvers)) {
       const resolver = resolvers[key];
-      data = await resolver.unfurl(url);
+      data = await resolver.unfurl(url, actor);
       if (data) {
         break;
       }
