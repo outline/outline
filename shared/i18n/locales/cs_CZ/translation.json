@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} archivoval",
   "{{userName}} restored": "{{userName}} obnovil",
   "{{userName}} deleted": "{{userName}} odstranil",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} přesunuto z koše",
   "{{userName}} published": "{{userName}} zveřejnil",
   "{{userName}} unpublished": "{{userName}} zrušil publikování",
