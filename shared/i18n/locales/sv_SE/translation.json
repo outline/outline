@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} arkiverade",
   "{{userName}} restored": "{{userName}} återställde",
   "{{userName}} deleted": "{{userName}} raderade",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} flyttade från papperskorgen",
   "{{userName}} published": "{{userName}} publicerade",
   "{{userName}} unpublished": "{{userName}} opublicerade",
