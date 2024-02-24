@@ -72,7 +72,10 @@ export default class SearchHelper {
       offset = 0,
     } = options;
 
-    const where = await this.buildWhere(team, options);
+    const where = await this.buildWhere(team, {
+      ...options,
+      statusFilter: [...(options.statusFilter || []), StatusFilter.Published],
+    });
 
     if (options.share?.includeChildDocuments) {
       const sharedDocument = await options.share.$get("document");
@@ -390,12 +393,6 @@ export default class SearchHelper {
             ],
           },
         ],
-      });
-    } else {
-      statusQuery.push({
-        publishedAt: {
-          [Op.ne]: null,
-        },
       });
     }
 
