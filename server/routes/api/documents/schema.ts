@@ -25,7 +25,6 @@ const DocumentsSortParamsSchema = z.object({
 
 const DateFilterSchema = z.object({
   /** Date filter */
-  statusFilter: z.nativeEnum(StatusFilter).array().optional(),
   dateFilter: z
     .union([
       z.literal("day"),
@@ -153,6 +152,23 @@ export const DocumentsSearchSchema = BaseSchema.extend({
 
     /** Filter results based on user */
     userId: z.string().uuid().optional(),
+
+    /**
+     * Whether to include archived documents in results
+     *
+     * @deprecated Use `statusFilter` instead
+     */
+    includeArchived: z.boolean().optional(),
+
+    /**
+     * Whether to include draft documents in results
+     *
+     * @deprecated Use `statusFilter` instead
+     */
+    includeDrafts: z.boolean().optional(),
+
+    /** Document statuses to include in results */
+    statusFilter: z.nativeEnum(StatusFilter).array().optional(),
 
     /** Filter results for the team derived from shareId */
     shareId: z

@@ -7,7 +7,7 @@ import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
-import { TeamPreference } from "@shared/types";
+import { StatusFilter, TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -782,7 +782,9 @@ router.post(
       collectionId,
       userId,
       dateFilter,
-      statusFilter,
+      statusFilter = [],
+      includeArchived,
+      includeDrafts,
       shareId,
       snippetMinWords,
       snippetMaxWords,
@@ -791,6 +793,14 @@ router.post(
 
     // Unfortunately, this still doesn't adequately handle cases when auth is optional
     const { user } = ctx.state.auth;
+
+    // TODO: Deprecated filter options, remove in a few versions
+    if (includeArchived && !statusFilter.includes(StatusFilter.Archived)) {
+      statusFilter.push(StatusFilter.Archived);
+    }
+    if (includeDrafts && !statusFilter.includes(StatusFilter.Draft)) {
+      statusFilter.push(StatusFilter.Draft);
+    }
 
     let teamId;
     let response;
