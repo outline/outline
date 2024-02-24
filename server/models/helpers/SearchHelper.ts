@@ -391,6 +391,12 @@ export default class SearchHelper {
           },
         ],
       });
+    } else {
+      statusQuery.push({
+        publishedAt: {
+          [Op.ne]: null,
+        },
+      });
     }
 
     if (options.statusFilter?.includes(StatusFilter.Archived)) {
@@ -401,7 +407,7 @@ export default class SearchHelper {
       });
     }
 
-    if (options.statusFilter?.length) {
+    if (statusQuery.length) {
       where[Op.and].push({
         [Op.or]: statusQuery,
       });
