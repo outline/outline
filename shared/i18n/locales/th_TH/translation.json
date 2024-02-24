@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} เก็บเข้าที่เก็บถาวร",
   "{{userName}} restored": "{{userName}} กู้คืนจากที่เก็บถาวร",
   "{{userName}} deleted": "{{userName}} ลบทิ้ง",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} moved from trash",
   "{{userName}} published": "{{userName}} published",
   "{{userName}} unpublished": "{{userName}} unpublished",
