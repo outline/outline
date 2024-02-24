@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} заархівовано",
   "{{userName}} restored": "{{userName}} відновлено",
   "{{userName}} deleted": "{{userName}} видалено",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} переміщено з кошика",
   "{{userName}} published": "{{userName}} опубліковано",
   "{{userName}} unpublished": "{{userName}} знятий з публікації",
