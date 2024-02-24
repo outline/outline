@@ -1,4 +1,4 @@
-import { gfm } from "@joplin/turndown-plugin-gfm";
+import { taskListItems, strikethrough } from "@joplin/turndown-plugin-gfm";
 import TurndownService from "turndown";
 import breaks from "./breaks";
 import emptyLists from "./emptyLists";
@@ -8,6 +8,7 @@ import images from "./images";
 import inlineLink from "./inlineLink";
 import sanitizeLists from "./sanitizeLists";
 import sanitizeTables from "./sanitizeTables";
+import tables from "./tables";
 import underlines from "./underlines";
 import { inHtmlContext } from "./utils";
 
@@ -27,7 +28,9 @@ const service = new TurndownService({
       : "",
 })
   .remove(["script", "style", "title", "head"])
-  .use(gfm)
+  .use(taskListItems)
+  .use(strikethrough)
+  .use(tables)
   .use(inlineLink)
   .use(emptyParagraph)
   .use(sanitizeTables)
