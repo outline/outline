@@ -137,7 +137,7 @@ function Invite({ onSubmit }: Props) {
   );
 
   const collectionCount = collections.nonPrivate.length;
-  const collectionAccessNote = (
+  const collectionAccessNote = collectionCount ? (
     <span>
       <Trans>Invited members will receive access to</Trans>{" "}
       <Tooltip
@@ -155,7 +155,7 @@ function Invite({ onSubmit }: Props) {
       </Tooltip>
       .
     </span>
-  );
+  ) : undefined;
 
   const options = React.useMemo(() => {
     const options = [
