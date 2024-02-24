@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} mengarsipkan",
   "{{userName}} restored": "{{userName}} memulihkan",
   "{{userName}} deleted": "{{userName}} menghapus",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} memindahkan dari sampah",
   "{{userName}} published": "{{userName}} menerbitkan",
   "{{userName}} unpublished": "{{userName}} tidak menerbitkan",
