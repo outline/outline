@@ -11,18 +11,21 @@ class Event extends Model {
 
   modelId: string | null | undefined;
 
-  actorId: string;
-
   actorIpAddress: string | null | undefined;
 
   documentId: string;
 
   collectionId: string | null | undefined;
 
+  @Relation(() => User)
+  user: User;
+
   userId: string;
 
   @Relation(() => User)
   actor: User;
+
+  actorId: string;
 
   data: {
     name: string;
