@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} archiválta",
   "{{userName}} restored": "{{userName}} visszaállította",
   "{{userName}} deleted": "{{userName}} törölve",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} lomtárból áthelyezve",
   "{{userName}} published": "{{userName}} publikálta",
   "{{userName}} unpublished": "{{userName}} visszavonta",
