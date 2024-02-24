@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} archived",
   "{{userName}} restored": "{{userName}} restored",
   "{{userName}} deleted": "{{userName}} deleted",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} moved from trash",
   "{{userName}} published": "{{userName}} published",
   "{{userName}} unpublished": "{{userName}} unpublished",
