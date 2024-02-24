@@ -3032,6 +3032,7 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
+        publish: true,
       },
     });
     const body = await res.json();
