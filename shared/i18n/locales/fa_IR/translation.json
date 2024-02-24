@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} بایگانی شد",
   "{{userName}} restored": "{{userName}} بازیابی شد",
   "{{userName}} deleted": "{{userName}} حذف شد",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} از سطل زباله خارج شد",
   "{{userName}} published": "{{userName}} منتشر شد",
   "{{userName}} unpublished": "{{userName}} unpublished",
