@@ -219,7 +219,7 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     toastText: colors.almostWhite,
     quote: colors.almostWhite,
     code: colors.almostWhite,
-    codeBackground: colors.black75,
+    codeBackground: "#1d202a",
     codeBorder: colors.white10,
     codeTag: "#b5cea8",
     codeString: "#ce9178",
