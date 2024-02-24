@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} 이(가) 보관함",
   "{{userName}} restored": "{{userName}} 이(가) 복원함",
   "{{userName}} deleted": "{{userName}} 이(가) 삭제함",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} 이(가) 휴지통에서 이동함",
   "{{userName}} published": "{{userName}} 이(가) 게시함",
   "{{userName}} unpublished": "{{userName}} 이(가) 게시 취소",
