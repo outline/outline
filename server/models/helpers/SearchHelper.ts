@@ -368,7 +368,11 @@ export default class SearchHelper {
       });
     }
 
-    if (options.statusFilter?.includes(StatusFilter.Draft)) {
+    if (
+      options.statusFilter?.includes(StatusFilter.Draft) &&
+      // Only ever include draft results for the user's own documents
+      model instanceof User
+    ) {
       statusQuery.push({
         [Op.and]: [
           {
@@ -378,12 +382,10 @@ export default class SearchHelper {
             archivedAt: {
               [Op.eq]: null,
             },
-            ...(model instanceof User && {
-              [Op.or]: [
-                { createdById: model.id },
-                { "$memberships.id$": { [Op.ne]: null } },
-              ],
-            }),
+            [Op.or]: [
+              { createdById: model.id },
+              { "$memberships.id$": { [Op.ne]: null } },
+            ],
           },
         ],
       });

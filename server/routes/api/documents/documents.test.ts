@@ -1376,7 +1376,7 @@ describe("#documents.search", () => {
       body: {
         token: user.getJwtToken(),
         shareId: share.id,
-        statusFilter: [StatusFilter.Published, StatusFilter.Archived],
+        statusFilter: [StatusFilter.Draft],
         query: "test",
       },
     });
