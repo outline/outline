@@ -7,7 +7,7 @@ import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
-import { TeamPreference } from "@shared/types";
+import { StatusFilter, TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -732,14 +732,8 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchSchema),
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
-    const {
-      query,
-      includeArchived,
-      includeDrafts,
-      dateFilter,
-      collectionId,
-      userId,
-    } = ctx.input.body;
+    const { query, statusFilter, dateFilter, collectionId, userId } =
+      ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
     let collaboratorIds = undefined;
@@ -756,9 +750,8 @@ router.post(
     }
 
     const documents = await SearchHelper.searchTitlesForUser(user, query, {
-      includeArchived,
-      includeDrafts,
       dateFilter,
+      statusFilter,
       collectionId,
       collaboratorIds,
       offset,
@@ -786,11 +779,12 @@ router.post(
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
     const {
       query,
-      includeArchived,
-      includeDrafts,
       collectionId,
       userId,
       dateFilter,
+      statusFilter = [],
+      includeArchived,
+      includeDrafts,
       shareId,
       snippetMinWords,
       snippetMaxWords,
@@ -799,6 +793,14 @@ router.post(
 
     // Unfortunately, this still doesn't adequately handle cases when auth is optional
     const { user } = ctx.state.auth;
+
+    // TODO: Deprecated filter options, remove in a few versions
+    if (includeArchived && !statusFilter.includes(StatusFilter.Archived)) {
+      statusFilter.push(StatusFilter.Archived);
+    }
+    if (includeDrafts && !statusFilter.includes(StatusFilter.Draft)) {
+      statusFilter.push(StatusFilter.Draft);
+    }
 
     let teamId;
     let response;
@@ -823,11 +825,10 @@ router.post(
       invariant(team, "Share must belong to a team");
 
       response = await SearchHelper.searchForTeam(team, query, {
-        includeArchived,
-        includeDrafts,
         collectionId: document.collectionId,
         share,
         dateFilter,
+        statusFilter,
         offset,
         limit,
         snippetMinWords,
@@ -854,11 +855,10 @@ router.post(
       }
 
       response = await SearchHelper.searchForUser(user, query, {
-        includeArchived,
-        includeDrafts,
         collaboratorIds,
         collectionId,
         dateFilter,
+        statusFilter,
         offset,
         limit,
         snippetMinWords,

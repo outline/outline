@@ -9,7 +9,10 @@ import breakpoint from "styled-components-breakpoint";
 import { v4 as uuidv4 } from "uuid";
 import { Pagination } from "@shared/constants";
 import { hideScrollbars } from "@shared/styles";
-import { DateFilter as TDateFilter } from "@shared/types";
+import {
+  DateFilter as TDateFilter,
+  StatusFilter as TStatusFilter,
+} from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
 import Empty from "~/components/Empty";
@@ -54,18 +57,18 @@ function Search(props: Props) {
 
   // filters
   const query = decodeURIComponentSafe(routeMatch.params.term ?? "");
-  const includeArchived = params.get("includeArchived") === "true";
-  const includeDrafts = params.get("includeDrafts") !== "false";
   const collectionId = params.get("collectionId") ?? undefined;
   const userId = params.get("userId") ?? undefined;
   const dateFilter = (params.get("dateFilter") as TDateFilter) ?? undefined;
+  const statusFilter = params.getAll("statusFilter")?.length
+    ? (params.getAll("statusFilter") as TStatusFilter[])
+    : [TStatusFilter.Published, TStatusFilter.Draft];
   const titleFilter = params.get("titleFilter") === "true";
 
   const filters = React.useMemo(
     () => ({
       query,
-      includeArchived,
-      includeDrafts,
+      statusFilter,
       collectionId,
       userId,
       dateFilter,
@@ -73,8 +76,7 @@ function Search(props: Props) {
     }),
     [
       query,
-      includeArchived,
-      includeDrafts,
+      JSON.stringify(statusFilter),
       collectionId,
       userId,
       dateFilter,
@@ -118,8 +120,7 @@ function Search(props: Props) {
     collectionId?: string | undefined;
     userId?: string | undefined;
     dateFilter?: TDateFilter;
-    includeArchived?: boolean | undefined;
-    includeDrafts?: boolean | undefined;
+    statusFilter?: TStatusFilter[];
     titleFilter?: boolean | undefined;
   }) => {
     history.replace({
@@ -214,10 +215,9 @@ function Search(props: Props) {
           <>
             <Filters>
               <DocumentTypeFilter
-                includeArchived={includeArchived}
-                includeDrafts={includeDrafts}
-                onSelect={({ includeArchived, includeDrafts }) =>
-                  handleFilterChange({ includeArchived, includeDrafts })
+                statusFilter={statusFilter}
+                onSelect={({ statusFilter }) =>
+                  handleFilterChange({ statusFilter })
                 }
               />
               <CollectionFilter
