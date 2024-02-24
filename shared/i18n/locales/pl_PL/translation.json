@@ -204,6 +204,8 @@
   "{{userName}} archived": "Użytkownik {{userName}} zarchiwizował",
   "{{userName}} restored": "Użytkownik {{userName}} przywrócił",
   "{{userName}} deleted": "Użytkownik {{userName}} usunął",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "Użytkownik {{userName}} przeniósł z kosza",
   "{{userName}} published": "Użytkownik {{userName}} opublikował",
   "{{userName}} unpublished": "{{userName}} nieopublikowane",
