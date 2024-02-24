@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} がアーカイブしました",
   "{{userName}} restored": "{{userName}} が復元しました",
   "{{userName}} deleted": "{{userName}} が削除しました",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} がゴミ箱から移動しました",
   "{{userName}} published": "{{userName}} が公開しました",
   "{{userName}} unpublished": "{{userName}} はドキュメントを取り下げました",
