@@ -11,6 +11,7 @@ function Toasts() {
   return (
     <Toaster
       theme={ui.resolvedTheme}
+      closeButton
       toastOptions={{
         duration: 5000,
         style: {
