@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} gearchiveerd",
   "{{userName}} restored": "{{userName}} hersteld",
   "{{userName}} deleted": "{{userName}} verwijderd",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} uit prullenbak verplaatst",
   "{{userName}} published": "{{userName}} gepubliceerd",
   "{{userName}} unpublished": "{{userName}} gedepubliceerd",
