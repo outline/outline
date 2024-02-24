@@ -143,7 +143,7 @@ export default function init() {
         const task = new TaskClass();
 
         try {
-          await task.perform(props);
+          return await task.perform(props);
         } catch (err) {
           Logger.error(`Error processing task in ${name}`, err, props);
           throw err;
