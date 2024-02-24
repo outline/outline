@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} 將其封存",
   "{{userName}} restored": "{{userName}} 將其還原",
   "{{userName}} deleted": "{{userName}} 將其刪除",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} 從垃圾桶移出",
   "{{userName}} published": "{{userName}} 已將其發布",
   "{{userName}} unpublished": "{{userName}} 已取消將其發布",
