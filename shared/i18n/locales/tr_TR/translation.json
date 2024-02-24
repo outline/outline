@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} arşivledi",
   "{{userName}} restored": "{{userName}} geri yükledi",
   "{{userName}} deleted": "{{userName}} sildi",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} çöp kutusundan taşıdı",
   "{{userName}} published": "{{userName}} yayınladı",
   "{{userName}} unpublished": "{{userName}} yayınlanmamış",
