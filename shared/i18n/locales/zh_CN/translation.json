@@ -204,6 +204,8 @@
   "{{userName}} archived": "已被 {{userName}} 归档",
   "{{userName}} restored": "已被 {{userName}} 恢复",
   "{{userName}} deleted": "已被 {{userName}} 删除",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "已被 {{userName}} 已从回收站移出",
   "{{userName}} published": "已被 {{userName}} 发布",
   "{{userName}} unpublished": "{{userName}} 未发布",
