@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} được lưu trữ",
   "{{userName}} restored": "{{userName}} khôi phục",
   "{{userName}} deleted": "{{userName}} đã bị xóa",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} chuyển từ thùng rác",
   "{{userName}} published": "{{userName}} đã đăng tải",
   "{{userName}} unpublished": "{{userName}} bỏ đăng tải",
