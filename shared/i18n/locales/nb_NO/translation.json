@@ -204,6 +204,8 @@
   "{{userName}} archived": "{{userName}} arkiverte",
   "{{userName}} restored": "{{userName}} gjenopprettet",
   "{{userName}} deleted": "{{userName}} slettet",
+  "{{userName}} added {{addedUserName}}": "{{userName}} added {{addedUserName}}",
+  "{{userName}} removed {{removedUserName}}": "{{userName}} removed {{removedUserName}}",
   "{{userName}} moved from trash": "{{userName}} flyttet fra søppel",
   "{{userName}} published": "{{userName}} publiserte",
   "{{userName}} unpublished": "{{userName}} avpublisert",
