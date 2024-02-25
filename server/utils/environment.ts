@@ -26,7 +26,7 @@ for (const env of environments) {
 }
 
 export default {
-  ...process.env,
   ...envDefault,
   ...environment,
+  ...process.env,
 };
