@@ -13,7 +13,11 @@ const envDefault = fs.existsSync(envPath)
 const environments = ["production", "development", "local", "test"];
 
 for (const env of environments) {
-  if (process.env.NODE_ENV === env || envDefault.NODE_ENV === env) {
+  const isEnv = process.env.NODE_ENV === env || envDefault.NODE_ENV === env;
+  const isLocalDevelopment =
+    env === "local" && process.env.NODE_ENV === "development";
+
+  if (isEnv || isLocalDevelopment) {
     const resolvedPath = path.resolve(process.cwd(), `.env.${env}`);
     if (fs.existsSync(resolvedPath)) {
       environment = dotenv.parse(fs.readFileSync(resolvedPath, "utf8"));
