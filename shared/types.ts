@@ -271,6 +271,8 @@ export const NotificationEventDefaults = {
 export enum UnfurlType {
   Mention = "mention",
   Document = "document",
+  Issue = "issue",
+  Pull = "pull",
 }
 
 export enum QueryNotices {
