@@ -160,7 +160,7 @@
     "pg-tsquery": "^8.4.2",
     "pluralize": "^8.0.0",
     "png-chunks-extract": "^1.0.0",
-    "polished": "^4.2.2",
+    "polished": "^4.3.1",
     "prosemirror-codemark": "^0.4.2",
     "prosemirror-commands": "^1.5.2",
     "prosemirror-dropcursor": "^1.8.1",

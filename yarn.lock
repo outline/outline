@@ -10541,10 +10541,10 @@ png-chunks-extract@^1.0.0:
   dependencies:
     crc-32 "^0.3.0"
 
-polished@^4.2.2:
-  version "4.2.2"
-  resolved "https://registry.yarnpkg.com/polished/-/polished-4.2.2.tgz#2529bb7c3198945373c52e34618c8fe7b1aa84d1"
-  integrity "sha1-JSm7fDGYlFNzxS40YYyP57GqhNE= sha512-Sz2Lkdxz6F2Pgnpi9U5Ng/WdWAUZxmHrNPoVlm3aAemxoy2Qy7LGjQg4uf8qKelDAUW94F4np3iH2YPf2qefcQ=="
+polished@^4.3.1:
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/polished/-/polished-4.3.1.tgz#5a00ae32715609f83d89f6f31d0f0261c6170548"
+  integrity sha512-OBatVyC/N7SCW/FaDHrSd+vn0o5cS855TOmYi4OkdWUMSJCET/xip//ch8xGUvtr3i44X9LVyWwQlRMTN3pwSA==
   dependencies:
     "@babel/runtime" "^7.17.8"
 
