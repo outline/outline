@@ -54,7 +54,7 @@ export const unfurl = async (url: string, actor: User) => {
     );
     return {
       url,
-      type: resourceType,
+      type: pluralize.singular(resourceType),
       title: data.title,
       description: data.body,
       author: {
