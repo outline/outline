@@ -12365,10 +12365,10 @@ styled-components@^5.3.11:
     shallowequal "^1.1.0"
     supports-color "^5.5.0"
 
-styled-normalize@^8.1.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/styled-normalize/-/styled-normalize-8.1.0.tgz#bf2695104c9df85c6caa2205d207f03d22bfd792"
-  integrity sha512-GzcJvU/mHI2FXjdnTysDpRZSG+5NPid/bNIR/QZ/vOwc8HuqvOlOMDVr457sTKN+M3Hd3s5fdv9tC1v0BhT1nA==
+styled-normalize@^8.1.1:
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/styled-normalize/-/styled-normalize-8.1.1.tgz#333e2f7832d6d6443d05eacb2b29908dc26a0222"
+  integrity sha512-Nd6iLDjKuxotRHSewe+qFqvw33WxIotbjZ3YkC8802manACBchUIb7vJt/C8ylDrO5850HmlnQTApwJLuN9sug==
 
 stylis@^4.1.2:
   version "4.1.3"

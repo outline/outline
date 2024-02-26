@@ -218,7 +218,7 @@
     "string-replace-to-array": "^2.1.0",
     "styled-components": "^5.3.11",
     "styled-components-breakpoint": "^2.1.1",
-    "styled-normalize": "^8.1.0",
+    "styled-normalize": "^8.1.1",
     "throng": "^5.0.0",
     "tiny-cookie": "^2.5.1",
     "tmp": "^0.2.1",
