@@ -9,7 +9,7 @@ const envDefault = fs.existsSync(envPath)
   ? dotenv.parse(fs.readFileSync(envPath, "utf8"))
   : {};
 
-// Load environment specific variables, in reverse order of precedenceq
+// Load environment specific variables, in reverse order of precedence
 const environments = ["production", "development", "local", "test"];
 
 for (const env of environments) {
