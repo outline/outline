@@ -99,9 +99,9 @@ const ContextMenu: React.FC<Props> = ({
     t,
   ]);
 
-  // Perf win – render an empty menu until the menu has been opened
+  // Perf win – don't render anything until the menu has been opened
   if (!rest.visible && !previousVisible) {
-    return <Menu {...rest} />;
+    return null;
   }
 
   // sets the menu height based on the available space between the disclosure/

@@ -17,9 +17,7 @@ import { MenuItem } from "~/types";
 
 const NotificationMenu: React.FC = () => {
   const menuRef = React.useRef<HTMLDivElement>(null);
-  const menu = useMenuState({
-    modal: true,
-  });
+  const menu = useMenuState();
   const context = useActionContext();
   const items: MenuItem[] = React.useMemo(
     () => [
