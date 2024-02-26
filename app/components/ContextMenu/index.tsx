@@ -38,6 +38,8 @@ export type Placement =
 
 type Props = MenuStateReturn & {
   "aria-label"?: string;
+  /** Reference to the rendered menu div element */
+  menuRef?: React.RefObject<HTMLDivElement>;
   /** The parent menu state if this is a submenu. */
   parentMenuState?: Omit<MenuStateReturn, "items">;
   /** Called when the context menu is opened. */
@@ -52,6 +54,7 @@ type Props = MenuStateReturn & {
 };
 
 const ContextMenu: React.FC<Props> = ({
+  menuRef,
   children,
   onOpen,
   onClose,
@@ -96,16 +99,21 @@ const ContextMenu: React.FC<Props> = ({
     t,
   ]);
 
-  // Perf win – don't render anything until the menu has been opened
+  // Perf win – render an empty menu until the menu has been opened
   if (!rest.visible && !previousVisible) {
-    return null;
+    return <Menu {...rest} />;
   }
 
   // sets the menu height based on the available space between the disclosure/
   // trigger and the bottom of the window
   return (
     <>
-      <Menu hideOnClickOutside={!isMobile} preventBodyScroll={false} {...rest}>
+      <Menu
+        ref={menuRef}
+        hideOnClickOutside={!isMobile}
+        preventBodyScroll={false}
+        {...rest}
+      >
         {(props) => (
           <InnerContextMenu
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
