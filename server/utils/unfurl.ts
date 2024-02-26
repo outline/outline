@@ -25,7 +25,7 @@ const resolvers: Record<string, UnfurlResolver> = plugins.reduce(
 
     // Test the all required env vars are set for the resolver
     const enabled = (config.requiredEnvVars ?? []).every(
-      (name: string) => !!env[name]
+      (name: string) => !!process.env[name]
     );
     if (!enabled) {
       return resolvers;

@@ -11,7 +11,6 @@ import {
   IsIn,
   IsEmail,
   IsBoolean,
-  MaxLength,
 } from "class-validator";
 import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
@@ -20,7 +19,7 @@ import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
 
 export class Environment {
-  private validationPromise;
+  protected validationPromise;
 
   constructor() {
     this.validationPromise = validate(this);
@@ -201,7 +200,7 @@ export class Environment {
     this.toOptionalNumber(environment.REQUEST_TIMEOUT) ?? 10 * 1000;
 
   /**
-   * Base64 encoded private key if Outline is to perform SSL termination.
+   * Base64 encoded protected key if Outline is to perform SSL termination.
    */
   @IsOptional()
   @CannotUseWithout("SSL_CERT")
@@ -356,143 +355,17 @@ export class Environment {
    */
   public DD_SERVICE = environment.DD_SERVICE ?? "outline";
 
-  /**
-   * Google OAuth2 client credentials. To enable authentication with Google.
-   */
   @IsOptional()
-  @CannotUseWithout("GOOGLE_CLIENT_SECRET")
-  public GOOGLE_CLIENT_ID = this.toOptionalString(environment.GOOGLE_CLIENT_ID);
-
-  @IsOptional()
-  @CannotUseWithout("GOOGLE_CLIENT_ID")
-  public GOOGLE_CLIENT_SECRET = this.toOptionalString(
-    environment.GOOGLE_CLIENT_SECRET
-  );
-
-  /**
-   * Slack OAuth2 client credentials. To enable authentication with Slack.
-   */
-  @IsOptional()
-  @Deprecated("Use SLACK_CLIENT_SECRET instead")
-  public SLACK_SECRET = this.toOptionalString(environment.SLACK_SECRET);
-
-  @IsOptional()
-  @Deprecated("Use SLACK_CLIENT_ID instead")
-  public SLACK_KEY = this.toOptionalString(environment.SLACK_KEY);
-
-  @IsOptional()
-  @CannotUseWithout("SLACK_CLIENT_SECRET")
   public SLACK_CLIENT_ID = this.toOptionalString(
     environment.SLACK_CLIENT_ID ?? environment.SLACK_KEY
   );
 
-  @IsOptional()
-  @CannotUseWithout("SLACK_CLIENT_ID")
-  public SLACK_CLIENT_SECRET = this.toOptionalString(
-    environment.SLACK_CLIENT_SECRET ?? environment.SLACK_SECRET
-  );
-
   /**
-   * This is used to verify webhook requests received from Slack.
-   */
-  @IsOptional()
-  public SLACK_VERIFICATION_TOKEN = this.toOptionalString(
-    environment.SLACK_VERIFICATION_TOKEN
-  );
-
-  /**
-   * This is injected into the slack-app-id header meta tag if provided.
+   * Injected into the `slack-app-id` header meta tag if provided.
    */
   @IsOptional()
   @CannotUseWithout("SLACK_CLIENT_ID")
   public SLACK_APP_ID = this.toOptionalString(environment.SLACK_APP_ID);
-
-  /**
-   * If enabled a "Post to Channel" button will be added to search result
-   * messages inside of Slack. This also requires setup in Slack UI.
-   */
-  @IsOptional()
-  @IsBoolean()
-  public SLACK_MESSAGE_ACTIONS = this.toBoolean(
-    environment.SLACK_MESSAGE_ACTIONS ?? "false"
-  );
-
-  /**
-   * Azure OAuth2 client credentials. To enable authentication with Azure.
-   */
-  @IsOptional()
-  @CannotUseWithout("AZURE_CLIENT_SECRET")
-  public AZURE_CLIENT_ID = this.toOptionalString(environment.AZURE_CLIENT_ID);
-
-  @IsOptional()
-  @CannotUseWithout("AZURE_CLIENT_ID")
-  public AZURE_CLIENT_SECRET = this.toOptionalString(
-    environment.AZURE_CLIENT_SECRET
-  );
-
-  @IsOptional()
-  @CannotUseWithout("AZURE_CLIENT_ID")
-  public AZURE_RESOURCE_APP_ID = this.toOptionalString(
-    environment.AZURE_RESOURCE_APP_ID
-  );
-
-  /**
-   * OIDC client credentials. To enable authentication with any
-   * compatible provider.
-   */
-  @IsOptional()
-  @CannotUseWithout("OIDC_CLIENT_SECRET")
-  @CannotUseWithout("OIDC_AUTH_URI")
-  @CannotUseWithout("OIDC_TOKEN_URI")
-  @CannotUseWithout("OIDC_USERINFO_URI")
-  @CannotUseWithout("OIDC_DISPLAY_NAME")
-  public OIDC_CLIENT_ID = this.toOptionalString(environment.OIDC_CLIENT_ID);
-
-  @IsOptional()
-  @CannotUseWithout("OIDC_CLIENT_ID")
-  public OIDC_CLIENT_SECRET = this.toOptionalString(
-    environment.OIDC_CLIENT_SECRET
-  );
-
-  /**
-   * The name of the OIDC provider, eg "GitLab" – this will be displayed on the
-   * sign-in button and other places in the UI. The default value is:
-   * "OpenID Connect".
-   */
-  @MaxLength(50)
-  public OIDC_DISPLAY_NAME = environment.OIDC_DISPLAY_NAME ?? "OpenID Connect";
-
-  /**
-   * The OIDC authorization endpoint.
-   */
-  @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-  })
-  public OIDC_AUTH_URI = this.toOptionalString(environment.OIDC_AUTH_URI);
-
-  /**
-   * The OIDC token endpoint.
-   */
-  @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-  })
-  public OIDC_TOKEN_URI = this.toOptionalString(environment.OIDC_TOKEN_URI);
-
-  /**
-   * The OIDC userinfo endpoint.
-   */
-  @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-  })
-  public OIDC_USERINFO_URI = this.toOptionalString(
-    environment.OIDC_USERINFO_URI
-  );
 
   /**
    * Disable autoredirect to the OIDC login page if there is only one
@@ -513,19 +386,6 @@ export class Environment {
     allow_underscores: true,
   })
   public OIDC_LOGOUT_URI = this.toOptionalString(environment.OIDC_LOGOUT_URI);
-
-  /**
-   * The OIDC profile field to use as the username. The default value is
-   * "preferred_username".
-   */
-  public OIDC_USERNAME_CLAIM =
-    environment.OIDC_USERNAME_CLAIM ?? "preferred_username";
-
-  /**
-   * A space separated list of OIDC scopes to request. Defaults to "openid
-   * profile email".
-   */
-  public OIDC_SCOPES = environment.OIDC_SCOPES ?? "openid profile email";
 
   /**
    * A string representing the version of the software.
@@ -712,25 +572,6 @@ export class Environment {
     this.toOptionalNumber(environment.MAXIMUM_EXPORT_SIZE) ?? os.totalmem();
 
   /**
-   * Iframely url
-   */
-  @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    require_protocol: true,
-    allow_underscores: true,
-    protocols: ["http", "https"],
-  })
-  public IFRAMELY_URL = environment.IFRAMELY_URL ?? "https://iframe.ly";
-
-  /**
-   * Iframely API key
-   */
-  @IsOptional()
-  @CannotUseWithout("IFRAMELY_URL")
-  public IFRAMELY_API_KEY = this.toOptionalString(environment.IFRAMELY_API_KEY);
-
-  /**
    * Enable unsafe-inline in script-src CSP directive
    */
   @IsBoolean()
@@ -776,11 +617,11 @@ export class Environment {
     return this.ENVIRONMENT === "test";
   }
 
-  private toOptionalString(value: string | undefined) {
+  protected toOptionalString(value: string | undefined) {
     return value ? value : undefined;
   }
 
-  private toOptionalNumber(value: string | undefined) {
+  protected toOptionalNumber(value: string | undefined) {
     return value ? parseInt(value, 10) : undefined;
   }
 
@@ -796,7 +637,7 @@ export class Environment {
    * @param value The string to convert
    * @returns A boolean
    */
-  private toBoolean(value: string) {
+  protected toBoolean(value: string) {
     try {
       return value ? !!JSON.parse(value) : false;
     } catch (err) {
@@ -818,7 +659,7 @@ export class Environment {
    * @param value The string to convert
    * @returns A boolean or undefined
    */
-  private toOptionalBoolean(value: string | undefined) {
+  protected toOptionalBoolean(value: string | undefined) {
     try {
       return value ? !!JSON.parse(value) : undefined;
     } catch (err) {
@@ -827,6 +668,4 @@ export class Environment {
   }
 }
 
-const env = new Environment();
-
-export default env;
+export default new Environment();

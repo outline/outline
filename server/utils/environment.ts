@@ -15,7 +15,9 @@ const environments = ["production", "development", "local", "test"];
 for (const env of environments) {
   const isEnv = process.env.NODE_ENV === env || envDefault.NODE_ENV === env;
   const isLocalDevelopment =
-    env === "local" && process.env.NODE_ENV === "development";
+    env === "local" &&
+    (process.env.NODE_ENV === "development" ||
+      envDefault.NODE_ENV === "development");
 
   if (isEnv || isLocalDevelopment) {
     const resolvedPath = path.resolve(process.cwd(), `.env.${env}`);
@@ -25,8 +27,10 @@ for (const env of environments) {
   }
 }
 
-export default {
+process.env = {
   ...envDefault,
   ...environment,
   ...process.env,
 };
+
+export default process.env;

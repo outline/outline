@@ -49,7 +49,7 @@ export default class AuthenticationHelper {
 
         // Test the all required env vars are set for the auth provider
         const enabled = (config.requiredEnvVars ?? []).every(
-          (name: string) => !!env[name]
+          (name: string) => !!process.env[name]
         );
 
         if (enabled) {

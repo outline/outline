@@ -1,9 +1,9 @@
 import { Day } from "@shared/utils/time";
-import env from "@server/env";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
 import fetch from "@server/utils/fetch";
+import env from "./env";
 
 class Iframely {
   private static apiUrl = `${env.IFRAMELY_URL}/api`;
