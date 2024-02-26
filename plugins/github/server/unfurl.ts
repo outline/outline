@@ -10,12 +10,6 @@ export const unfurl = async (url: string, actor: User) => {
   if (!(env.GITHUB_APP_ID && env.GITHUB_APP_PRIVATE_KEY)) {
     return;
   }
-  const app = new App({
-    appId: env.GITHUB_APP_ID,
-    privateKey: Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString(
-      "ascii"
-    ),
-  });
 
   const { owner, repo, resourceType, resourceId } = GitHub.parseUrl(url);
 
@@ -35,6 +29,13 @@ export const unfurl = async (url: string, actor: User) => {
   if (!integration) {
     return;
   }
+
+  const app = new App({
+    appId: env.GITHUB_APP_ID,
+    privateKey: Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString(
+      "ascii"
+    ),
+  });
 
   try {
     const octokit = await app.getInstallationOctokit(
