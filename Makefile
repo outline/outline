@@ -9,16 +9,16 @@ build:
 
 test:
 	docker-compose up -d redis postgres
-	yarn sequelize db:drop --env=test
-	yarn sequelize db:create --env=test
-	NODE_ENV=test yarn sequelize db:migrate --env=test
+	NODE_ENV=test yarn sequelize db:drop
+	NODE_ENV=test yarn sequelize db:create
+	NODE_ENV=test yarn sequelize db:migrate
 	yarn test
 
 watch:
 	docker-compose up -d redis postgres
-	yarn sequelize db:drop --env=test
-	yarn sequelize db:create --env=test
-	NODE_ENV=test yarn sequelize db:migrate --env=test
+	NODE_ENV=test yarn sequelize db:drop
+	NODE_ENV=test yarn sequelize db:create
+	NODE_ENV=test yarn sequelize db:migrate
 	yarn test:watch
 
 destroy:
