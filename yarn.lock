@@ -2937,10 +2937,10 @@
     "@types/minimatch" "^5.1.2"
     "@types/node" "*"
 
-"@types/google.analytics@^0.0.42":
-  version "0.0.42"
-  resolved "https://registry.yarnpkg.com/@types/google.analytics/-/google.analytics-0.0.42.tgz#efe6ef9251a22ec8208dbb09f221a48a1863d720"
-  integrity "sha1-7+bvklGiLsggjbsJ8iGkihhj1yA= sha512-w0ZFj3SHznQXSq99kFCuO8tkN6w4T14znjrF2alLCSDnHOXEnpzneyNwxLvekcsDBInr8b5mXmzYh03GArqEyw=="
+"@types/google.analytics@^0.0.46":
+  version "0.0.46"
+  resolved "https://registry.yarnpkg.com/@types/google.analytics/-/google.analytics-0.0.46.tgz#621be217fa21f847df62188fcaa86a7340c689da"
+  integrity sha512-wuMJ3GqLFGsTZdJ315b+uNnH2AwFScyS67NHlKOD4RaPMFt/N0vxdh6fvDgvOFg62a11Fqn2ggJwUypFmIko+A==
 
 "@types/graceful-fs@^4.1.3":
   version "4.1.5"
