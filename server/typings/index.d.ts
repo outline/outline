@@ -23,8 +23,8 @@ declare module "@joplin/turndown-plugin-gfm" {
 }
 
 declare module "aws-sdk/lib/maintenance_mode_message" {
-  const maintance: {
+  const maintenance: {
     suppress: boolean;
   };
-  export default maintance;
+  export default maintenance;
 }
