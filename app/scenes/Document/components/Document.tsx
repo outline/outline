@@ -123,7 +123,7 @@ class DocumentScene extends React.Component<Props> {
   componentWillUnmount() {
     if (
       this.isEmpty &&
-      this.props.document.createdBy.id === this.props.auth.user?.id &&
+      this.props.document.createdBy?.id === this.props.auth.user?.id &&
       this.props.document.isDraft &&
       this.props.document.isActive &&
       this.props.document.hasEmptyTitle &&

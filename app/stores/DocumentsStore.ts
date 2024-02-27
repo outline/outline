@@ -109,7 +109,7 @@ export default class DocumentsStore extends Store<Document> {
 
   createdByUser(userId: string): Document[] {
     return orderBy(
-      filter(this.all, (d) => d.createdBy.id === userId),
+      filter(this.all, (d) => d.createdBy?.id === userId),
       "updatedAt",
       "desc"
     );

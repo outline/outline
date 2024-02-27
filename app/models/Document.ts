@@ -126,10 +126,10 @@ export default class Document extends ParanoidModel {
   collaboratorIds: string[];
 
   @observable
-  createdBy: User;
+  createdBy: User | undefined;
 
   @observable
-  updatedBy: User;
+  updatedBy: User | undefined;
 
   @observable
   publishedAt: string | undefined;

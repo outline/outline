@@ -115,9 +115,9 @@ function Insights() {
                           title={model.name}
                           image={<Avatar model={model} size={32} />}
                           subtitle={
-                            model.id === document.createdBy.id
+                            model.id === document.createdBy?.id
                               ? t("Creator")
-                              : model.id === document.updatedBy.id
+                              : model.id === document.updatedBy?.id
                               ? t("Last edited")
                               : t("Previously edited")
                           }
