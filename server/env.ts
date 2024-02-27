@@ -44,7 +44,9 @@ export class Environment {
    * The secret key is used for encrypting data. Do not change this value once
    * set or your users will be unable to login.
    */
-  @IsByteLength(32, 64)
+  @IsByteLength(32, 64, {
+    message: `The SECRET_KEY environment variable is invalid (Use \`openssl rand -hex 32\` to generate a value).`,
+  })
   public SECRET_KEY = environment.SECRET_KEY ?? "";
 
   /**
