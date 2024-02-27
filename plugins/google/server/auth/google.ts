@@ -6,7 +6,6 @@ import { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
 import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import env from "@server/env";
 import {
   GmailAccountCreationError,
   TeamDomainRequiredError,
@@ -19,6 +18,7 @@ import {
   getTeamFromContext,
   getClientFromContext,
 } from "@server/utils/passport";
+import env from "../env";
 
 const router = new Router();
 const providerName = "google";

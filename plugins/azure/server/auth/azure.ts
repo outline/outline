@@ -6,7 +6,6 @@ import Router from "koa-router";
 import { Profile } from "passport";
 import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import env from "@server/env";
 import { MicrosoftGraphError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
@@ -17,6 +16,7 @@ import {
   getTeamFromContext,
   getClientFromContext,
 } from "@server/utils/passport";
+import env from "../env";
 
 const router = new Router();
 const providerName = "azure";

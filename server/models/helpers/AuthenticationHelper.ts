@@ -6,6 +6,7 @@ import find from "lodash/find";
 import sortBy from "lodash/sortBy";
 import env from "@server/env";
 import Team from "@server/models/Team";
+import environment from "@server/utils/environment";
 
 export type AuthenticationProviderConfig = {
   id: string;
@@ -49,7 +50,7 @@ export default class AuthenticationHelper {
 
         // Test the all required env vars are set for the auth provider
         const enabled = (config.requiredEnvVars ?? []).every(
-          (name: string) => !!env[name]
+          (name: string) => !!environment[name]
         );
 
         if (enabled) {

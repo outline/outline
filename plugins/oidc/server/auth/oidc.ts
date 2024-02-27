@@ -5,7 +5,6 @@ import get from "lodash/get";
 import { Strategy } from "passport-oauth2";
 import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import env from "@server/env";
 import {
   OIDCMalformedUserInfoError,
   AuthenticationError,
@@ -19,6 +18,7 @@ import {
   getTeamFromContext,
   getClientFromContext,
 } from "@server/utils/passport";
+import env from "../env";
 
 const router = new Router();
 const providerName = "oidc";

@@ -1,10 +1,5 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-
-// Load the process environment variables
-require("dotenv").config({
-  silent: true,
-});
-
+// eslint-disable-next-line import/order
+import environment from "./utils/environment";
 import os from "os";
 import {
   validate,
@@ -16,7 +11,6 @@ import {
   IsIn,
   IsEmail,
   IsBoolean,
-  MaxLength,
 } from "class-validator";
 import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
@@ -25,7 +19,7 @@ import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
 
 export class Environment {
-  private validationPromise;
+  protected validationPromise;
 
   constructor() {
     this.validationPromise = validate(this);
@@ -44,21 +38,23 @@ export class Environment {
    * The current environment name.
    */
   @IsIn(["development", "production", "staging", "test"])
-  public ENVIRONMENT = process.env.NODE_ENV ?? "production";
+  public ENVIRONMENT = environment.NODE_ENV ?? "production";
 
   /**
    * The secret key is used for encrypting data. Do not change this value once
    * set or your users will be unable to login.
    */
-  @IsByteLength(32, 64)
-  public SECRET_KEY = process.env.SECRET_KEY ?? "";
+  @IsByteLength(32, 64, {
+    message: `The SECRET_KEY environment variable is invalid (Use \`openssl rand -hex 32\` to generate a value).`,
+  })
+  public SECRET_KEY = environment.SECRET_KEY ?? "";
 
   /**
    * The secret that should be passed to the cron utility endpoint to enable
    * triggering of scheduled tasks.
    */
   @IsNotEmpty()
-  public UTILS_SECRET = process.env.UTILS_SECRET ?? "";
+  public UTILS_SECRET = environment.UTILS_SECRET ?? "";
 
   /**
    * The url of the database.
@@ -69,7 +65,7 @@ export class Environment {
     allow_underscores: true,
     protocols: ["postgres", "postgresql"],
   })
-  public DATABASE_URL = process.env.DATABASE_URL ?? "";
+  public DATABASE_URL = environment.DATABASE_URL ?? "";
 
   /**
    * The url of the database pool.
@@ -81,7 +77,7 @@ export class Environment {
     protocols: ["postgres", "postgresql"],
   })
   public DATABASE_CONNECTION_POOL_URL = this.toOptionalString(
-    process.env.DATABASE_CONNECTION_POOL_URL
+    environment.DATABASE_CONNECTION_POOL_URL
   );
 
   /**
@@ -90,7 +86,7 @@ export class Environment {
   @IsNumber()
   @IsOptional()
   public DATABASE_CONNECTION_POOL_MIN = this.toOptionalNumber(
-    process.env.DATABASE_CONNECTION_POOL_MIN
+    environment.DATABASE_CONNECTION_POOL_MIN
   );
 
   /**
@@ -99,7 +95,7 @@ export class Environment {
   @IsNumber()
   @IsOptional()
   public DATABASE_CONNECTION_POOL_MAX = this.toOptionalNumber(
-    process.env.DATABASE_CONNECTION_POOL_MAX
+    environment.DATABASE_CONNECTION_POOL_MAX
   );
 
   /**
@@ -110,7 +106,7 @@ export class Environment {
    */
   @IsIn(["disable", "allow", "require", "prefer", "verify-ca", "verify-full"])
   @IsOptional()
-  public PGSSLMODE = process.env.PGSSLMODE;
+  public PGSSLMODE = environment.PGSSLMODE;
 
   /**
    * The url of redis. Note that redis does not have a database after the port.
@@ -118,7 +114,7 @@ export class Environment {
    * base64-encoded configuration.
    */
   @IsNotEmpty()
-  public REDIS_URL = process.env.REDIS_URL;
+  public REDIS_URL = environment.REDIS_URL;
 
   /**
    * The fully qualified, external facing domain name of the server.
@@ -129,7 +125,7 @@ export class Environment {
     require_protocol: true,
     require_tld: false,
   })
-  public URL = process.env.URL || "";
+  public URL = environment.URL || "";
 
   /**
    * If using a Cloudfront/Cloudflare distribution or similar it can be set below.
@@ -143,7 +139,7 @@ export class Environment {
     require_protocol: true,
     require_tld: false,
   })
-  public CDN_URL = this.toOptionalString(process.env.CDN_URL);
+  public CDN_URL = this.toOptionalString(environment.CDN_URL);
 
   /**
    * The fully qualified, external facing domain name of the collaboration
@@ -156,7 +152,7 @@ export class Environment {
   })
   @IsOptional()
   public COLLABORATION_URL = this.toOptionalString(
-    process.env.COLLABORATION_URL
+    environment.COLLABORATION_URL
   );
 
   /**
@@ -166,7 +162,7 @@ export class Environment {
   @IsOptional()
   @IsNumber()
   public COLLABORATION_MAX_CLIENTS_PER_DOCUMENT = parseInt(
-    process.env.COLLABORATION_MAX_CLIENTS_PER_DOCUMENT || "100",
+    environment.COLLABORATION_MAX_CLIENTS_PER_DOCUMENT || "100",
     10
   );
 
@@ -175,18 +171,18 @@ export class Environment {
    */
   @IsNumber()
   @IsOptional()
-  public PORT = this.toOptionalNumber(process.env.PORT) ?? 3000;
+  public PORT = this.toOptionalNumber(environment.PORT) ?? 3000;
 
   /**
    * Optional extra debugging. Comma separated
    */
-  public DEBUG = process.env.DEBUG || "";
+  public DEBUG = environment.DEBUG || "";
 
   /**
    * Configure lowest severity level for server logs
    */
   @IsIn(["error", "warn", "info", "http", "verbose", "debug", "silly"])
-  public LOG_LEVEL = process.env.LOG_LEVEL || "info";
+  public LOG_LEVEL = environment.LOG_LEVEL || "info";
 
   /**
    * How many processes should be spawned. As a reasonable rule divide your
@@ -194,7 +190,7 @@ export class Environment {
    */
   @IsNumber()
   @IsOptional()
-  public WEB_CONCURRENCY = this.toOptionalNumber(process.env.WEB_CONCURRENCY);
+  public WEB_CONCURRENCY = this.toOptionalNumber(environment.WEB_CONCURRENCY);
 
   /**
    * How long a request should be processed before giving up and returning an
@@ -203,28 +199,28 @@ export class Environment {
   @IsNumber()
   @IsOptional()
   public REQUEST_TIMEOUT =
-    this.toOptionalNumber(process.env.REQUEST_TIMEOUT) ?? 10 * 1000;
+    this.toOptionalNumber(environment.REQUEST_TIMEOUT) ?? 10 * 1000;
 
   /**
-   * Base64 encoded private key if Outline is to perform SSL termination.
+   * Base64 encoded protected key if Outline is to perform SSL termination.
    */
   @IsOptional()
   @CannotUseWithout("SSL_CERT")
-  public SSL_KEY = this.toOptionalString(process.env.SSL_KEY);
+  public SSL_KEY = this.toOptionalString(environment.SSL_KEY);
 
   /**
    * Base64 encoded public certificate if Outline is to perform SSL termination.
    */
   @IsOptional()
   @CannotUseWithout("SSL_KEY")
-  public SSL_CERT = this.toOptionalString(process.env.SSL_CERT);
+  public SSL_CERT = this.toOptionalString(environment.SSL_CERT);
 
   /**
    * The default interface language. See translate.getoutline.com for a list of
    * available language codes and their percentage translated.
    */
   @IsIn(languages)
-  public DEFAULT_LANGUAGE = process.env.DEFAULT_LANGUAGE ?? "en_US";
+  public DEFAULT_LANGUAGE = environment.DEFAULT_LANGUAGE ?? "en_US";
 
   /**
    * A comma list of which services should be enabled on this instance – defaults to all.
@@ -235,7 +231,7 @@ export class Environment {
   public SERVICES = uniq(
     (
       getArg("services") ??
-      process.env.SERVICES ??
+      environment.SERVICES ??
       "collaboration,websockets,worker,web"
     )
       .split(",")
@@ -248,7 +244,7 @@ export class Environment {
    * loadbalancer.
    */
   @IsBoolean()
-  public FORCE_HTTPS = this.toBoolean(process.env.FORCE_HTTPS ?? "true");
+  public FORCE_HTTPS = this.toBoolean(environment.FORCE_HTTPS ?? "true");
 
   /**
    * Should the installation send anonymized statistics to the maintainers.
@@ -256,51 +252,51 @@ export class Environment {
    */
   @IsBoolean()
   public TELEMETRY = this.toBoolean(
-    process.env.ENABLE_UPDATES ?? process.env.TELEMETRY ?? "true"
+    environment.ENABLE_UPDATES ?? environment.TELEMETRY ?? "true"
   );
 
   /**
    * An optional comma separated list of allowed domains.
    */
   public ALLOWED_DOMAINS =
-    process.env.ALLOWED_DOMAINS ?? process.env.GOOGLE_ALLOWED_DOMAINS;
+    environment.ALLOWED_DOMAINS ?? environment.GOOGLE_ALLOWED_DOMAINS;
 
   // Third-party services
 
   /**
    * The host of your SMTP server for enabling emails.
    */
-  public SMTP_HOST = process.env.SMTP_HOST;
+  public SMTP_HOST = environment.SMTP_HOST;
 
   /**
    * Optional hostname of the client, used for identifying to the server
    * defaults to hostname of the machine.
    */
-  public SMTP_NAME = process.env.SMTP_NAME;
+  public SMTP_NAME = environment.SMTP_NAME;
 
   /**
    * The port of your SMTP server.
    */
   @IsNumber()
   @IsOptional()
-  public SMTP_PORT = this.toOptionalNumber(process.env.SMTP_PORT);
+  public SMTP_PORT = this.toOptionalNumber(environment.SMTP_PORT);
 
   /**
    * The username of your SMTP server, if any.
    */
-  public SMTP_USERNAME = process.env.SMTP_USERNAME;
+  public SMTP_USERNAME = environment.SMTP_USERNAME;
 
   /**
    * The password for the SMTP username, if any.
    */
-  public SMTP_PASSWORD = process.env.SMTP_PASSWORD;
+  public SMTP_PASSWORD = environment.SMTP_PASSWORD;
 
   /**
    * The email address from which emails are sent.
    */
   @IsEmail({ allow_display_name: true, allow_ip_domain: true })
   @IsOptional()
-  public SMTP_FROM_EMAIL = this.toOptionalString(process.env.SMTP_FROM_EMAIL);
+  public SMTP_FROM_EMAIL = this.toOptionalString(environment.SMTP_FROM_EMAIL);
 
   /**
    * The reply-to address for emails sent from Outline. If unset the from
@@ -308,12 +304,12 @@ export class Environment {
    */
   @IsEmail({ allow_display_name: true, allow_ip_domain: true })
   @IsOptional()
-  public SMTP_REPLY_EMAIL = this.toOptionalString(process.env.SMTP_REPLY_EMAIL);
+  public SMTP_REPLY_EMAIL = this.toOptionalString(environment.SMTP_REPLY_EMAIL);
 
   /**
    * Override the cipher used for SMTP SSL connections.
    */
-  public SMTP_TLS_CIPHERS = this.toOptionalString(process.env.SMTP_TLS_CIPHERS);
+  public SMTP_TLS_CIPHERS = this.toOptionalString(environment.SMTP_TLS_CIPHERS);
 
   /**
    * If true (the default) the connection will use TLS when connecting to server.
@@ -322,182 +318,56 @@ export class Environment {
    * Setting secure to false therefore does not mean that you would not use an
    * encrypted connection.
    */
-  public SMTP_SECURE = this.toBoolean(process.env.SMTP_SECURE ?? "true");
+  public SMTP_SECURE = this.toBoolean(environment.SMTP_SECURE ?? "true");
 
   /**
    * Sentry DSN for capturing errors and frontend performance.
    */
   @IsUrl()
   @IsOptional()
-  public SENTRY_DSN = this.toOptionalString(process.env.SENTRY_DSN);
+  public SENTRY_DSN = this.toOptionalString(environment.SENTRY_DSN);
 
   /**
    * Sentry tunnel URL for bypassing ad blockers
    */
   @IsUrl()
   @IsOptional()
-  public SENTRY_TUNNEL = this.toOptionalString(process.env.SENTRY_TUNNEL);
+  public SENTRY_TUNNEL = this.toOptionalString(environment.SENTRY_TUNNEL);
 
   /**
    * A release SHA or other identifier for Sentry.
    */
-  public RELEASE = this.toOptionalString(process.env.RELEASE);
+  public RELEASE = this.toOptionalString(environment.RELEASE);
 
   /**
    * A Google Analytics tracking ID, supports v3 or v4 properties.
    */
   @IsOptional()
   public GOOGLE_ANALYTICS_ID = this.toOptionalString(
-    process.env.GOOGLE_ANALYTICS_ID
+    environment.GOOGLE_ANALYTICS_ID
   );
 
   /**
    * A DataDog API key for tracking server metrics.
    */
-  public DD_API_KEY = process.env.DD_API_KEY;
+  public DD_API_KEY = environment.DD_API_KEY;
 
   /**
    * The name of the service to use in DataDog.
    */
-  public DD_SERVICE = process.env.DD_SERVICE ?? "outline";
-
-  /**
-   * Google OAuth2 client credentials. To enable authentication with Google.
-   */
-  @IsOptional()
-  @CannotUseWithout("GOOGLE_CLIENT_SECRET")
-  public GOOGLE_CLIENT_ID = this.toOptionalString(process.env.GOOGLE_CLIENT_ID);
+  public DD_SERVICE = environment.DD_SERVICE ?? "outline";
 
   @IsOptional()
-  @CannotUseWithout("GOOGLE_CLIENT_ID")
-  public GOOGLE_CLIENT_SECRET = this.toOptionalString(
-    process.env.GOOGLE_CLIENT_SECRET
-  );
-
-  /**
-   * Slack OAuth2 client credentials. To enable authentication with Slack.
-   */
-  @IsOptional()
-  @Deprecated("Use SLACK_CLIENT_SECRET instead")
-  public SLACK_SECRET = this.toOptionalString(process.env.SLACK_SECRET);
-
-  @IsOptional()
-  @Deprecated("Use SLACK_CLIENT_ID instead")
-  public SLACK_KEY = this.toOptionalString(process.env.SLACK_KEY);
-
-  @IsOptional()
-  @CannotUseWithout("SLACK_CLIENT_SECRET")
   public SLACK_CLIENT_ID = this.toOptionalString(
-    process.env.SLACK_CLIENT_ID ?? process.env.SLACK_KEY
-  );
-
-  @IsOptional()
-  @CannotUseWithout("SLACK_CLIENT_ID")
-  public SLACK_CLIENT_SECRET = this.toOptionalString(
-    process.env.SLACK_CLIENT_SECRET ?? process.env.SLACK_SECRET
+    environment.SLACK_CLIENT_ID ?? environment.SLACK_KEY
   );
 
   /**
-   * This is used to verify webhook requests received from Slack.
-   */
-  @IsOptional()
-  public SLACK_VERIFICATION_TOKEN = this.toOptionalString(
-    process.env.SLACK_VERIFICATION_TOKEN
-  );
-
-  /**
-   * This is injected into the slack-app-id header meta tag if provided.
+   * Injected into the `slack-app-id` header meta tag if provided.
    */
   @IsOptional()
   @CannotUseWithout("SLACK_CLIENT_ID")
-  public SLACK_APP_ID = this.toOptionalString(process.env.SLACK_APP_ID);
-
-  /**
-   * If enabled a "Post to Channel" button will be added to search result
-   * messages inside of Slack. This also requires setup in Slack UI.
-   */
-  @IsOptional()
-  @IsBoolean()
-  public SLACK_MESSAGE_ACTIONS = this.toBoolean(
-    process.env.SLACK_MESSAGE_ACTIONS ?? "false"
-  );
-
-  /**
-   * Azure OAuth2 client credentials. To enable authentication with Azure.
-   */
-  @IsOptional()
-  @CannotUseWithout("AZURE_CLIENT_SECRET")
-  public AZURE_CLIENT_ID = this.toOptionalString(process.env.AZURE_CLIENT_ID);
-
-  @IsOptional()
-  @CannotUseWithout("AZURE_CLIENT_ID")
-  public AZURE_CLIENT_SECRET = this.toOptionalString(
-    process.env.AZURE_CLIENT_SECRET
-  );
-
-  @IsOptional()
-  @CannotUseWithout("AZURE_CLIENT_ID")
-  public AZURE_RESOURCE_APP_ID = this.toOptionalString(
-    process.env.AZURE_RESOURCE_APP_ID
-  );
-
-  /**
-   * OIDC client credentials. To enable authentication with any
-   * compatible provider.
-   */
-  @IsOptional()
-  @CannotUseWithout("OIDC_CLIENT_SECRET")
-  @CannotUseWithout("OIDC_AUTH_URI")
-  @CannotUseWithout("OIDC_TOKEN_URI")
-  @CannotUseWithout("OIDC_USERINFO_URI")
-  @CannotUseWithout("OIDC_DISPLAY_NAME")
-  public OIDC_CLIENT_ID = this.toOptionalString(process.env.OIDC_CLIENT_ID);
-
-  @IsOptional()
-  @CannotUseWithout("OIDC_CLIENT_ID")
-  public OIDC_CLIENT_SECRET = this.toOptionalString(
-    process.env.OIDC_CLIENT_SECRET
-  );
-
-  /**
-   * The name of the OIDC provider, eg "GitLab" – this will be displayed on the
-   * sign-in button and other places in the UI. The default value is:
-   * "OpenID Connect".
-   */
-  @MaxLength(50)
-  public OIDC_DISPLAY_NAME = process.env.OIDC_DISPLAY_NAME ?? "OpenID Connect";
-
-  /**
-   * The OIDC authorization endpoint.
-   */
-  @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-  })
-  public OIDC_AUTH_URI = this.toOptionalString(process.env.OIDC_AUTH_URI);
-
-  /**
-   * The OIDC token endpoint.
-   */
-  @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-  })
-  public OIDC_TOKEN_URI = this.toOptionalString(process.env.OIDC_TOKEN_URI);
-
-  /**
-   * The OIDC userinfo endpoint.
-   */
-  @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-  })
-  public OIDC_USERINFO_URI = this.toOptionalString(
-    process.env.OIDC_USERINFO_URI
-  );
+  public SLACK_APP_ID = this.toOptionalString(environment.SLACK_APP_ID);
 
   /**
    * Disable autoredirect to the OIDC login page if there is only one
@@ -506,7 +376,7 @@ export class Environment {
   @IsOptional()
   @IsBoolean()
   public OIDC_DISABLE_REDIRECT = this.toOptionalBoolean(
-    process.env.OIDC_DISABLE_REDIRECT
+    environment.OIDC_DISABLE_REDIRECT
   );
 
   /**
@@ -517,20 +387,7 @@ export class Environment {
     require_tld: false,
     allow_underscores: true,
   })
-  public OIDC_LOGOUT_URI = this.toOptionalString(process.env.OIDC_LOGOUT_URI);
-
-  /**
-   * The OIDC profile field to use as the username. The default value is
-   * "preferred_username".
-   */
-  public OIDC_USERNAME_CLAIM =
-    process.env.OIDC_USERNAME_CLAIM ?? "preferred_username";
-
-  /**
-   * A space separated list of OIDC scopes to request. Defaults to "openid
-   * profile email".
-   */
-  public OIDC_SCOPES = process.env.OIDC_SCOPES ?? "openid profile email";
+  public OIDC_LOGOUT_URI = this.toOptionalString(environment.OIDC_LOGOUT_URI);
 
   /**
    * A string representing the version of the software.
@@ -539,7 +396,7 @@ export class Environment {
    * SOURCE_VERSION is used by Heroku
    */
   public VERSION = this.toOptionalString(
-    process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION
+    environment.SOURCE_COMMIT || environment.SOURCE_VERSION
   );
 
   /**
@@ -548,7 +405,7 @@ export class Environment {
   @IsOptional()
   @IsBoolean()
   public RATE_LIMITER_ENABLED = this.toBoolean(
-    process.env.RATE_LIMITER_ENABLED ?? "false"
+    environment.RATE_LIMITER_ENABLED ?? "false"
   );
 
   /**
@@ -559,7 +416,7 @@ export class Environment {
   @IsNumber()
   @CannotUseWithout("RATE_LIMITER_ENABLED")
   public RATE_LIMITER_REQUESTS =
-    this.toOptionalNumber(process.env.RATE_LIMITER_REQUESTS) ?? 1000;
+    this.toOptionalNumber(environment.RATE_LIMITER_REQUESTS) ?? 1000;
 
   /**
    * Set max allowed realtime connections before throttling. Defaults to 50
@@ -568,7 +425,7 @@ export class Environment {
   @IsOptional()
   @IsNumber()
   public RATE_LIMITER_COLLABORATION_REQUESTS =
-    this.toOptionalNumber(process.env.RATE_LIMITER_COLLABORATION_REQUESTS) ??
+    this.toOptionalNumber(environment.RATE_LIMITER_COLLABORATION_REQUESTS) ??
     50;
 
   /**
@@ -579,7 +436,7 @@ export class Environment {
   @IsNumber()
   @CannotUseWithout("RATE_LIMITER_ENABLED")
   public RATE_LIMITER_DURATION_WINDOW =
-    this.toOptionalNumber(process.env.RATE_LIMITER_DURATION_WINDOW) ?? 60;
+    this.toOptionalNumber(environment.RATE_LIMITER_DURATION_WINDOW) ?? 60;
 
   /**
    * Set max allowed upload size for file attachments.
@@ -589,7 +446,7 @@ export class Environment {
   @IsNumber()
   @Deprecated("Use FILE_STORAGE_UPLOAD_MAX_SIZE instead")
   public AWS_S3_UPLOAD_MAX_SIZE = this.toOptionalNumber(
-    process.env.AWS_S3_UPLOAD_MAX_SIZE
+    environment.AWS_S3_UPLOAD_MAX_SIZE
   );
 
   /**
@@ -597,7 +454,7 @@ export class Environment {
    */
   @IsOptional()
   public AWS_ACCESS_KEY_ID = this.toOptionalString(
-    process.env.AWS_ACCESS_KEY_ID
+    environment.AWS_ACCESS_KEY_ID
   );
 
   /**
@@ -606,35 +463,35 @@ export class Environment {
   @IsOptional()
   @CannotUseWithout("AWS_ACCESS_KEY_ID")
   public AWS_SECRET_ACCESS_KEY = this.toOptionalString(
-    process.env.AWS_SECRET_ACCESS_KEY
+    environment.AWS_SECRET_ACCESS_KEY
   );
 
   /**
    * The name of the AWS S3 region to use.
    */
   @IsOptional()
-  public AWS_REGION = this.toOptionalString(process.env.AWS_REGION);
+  public AWS_REGION = this.toOptionalString(environment.AWS_REGION);
 
   /**
    * Optional AWS S3 endpoint URL for file attachments.
    */
   @IsOptional()
   public AWS_S3_ACCELERATE_URL = this.toOptionalString(
-    process.env.AWS_S3_ACCELERATE_URL
+    environment.AWS_S3_ACCELERATE_URL
   );
 
   /**
    * Optional AWS S3 endpoint URL for file attachments.
    */
   @IsOptional()
-  public AWS_S3_UPLOAD_BUCKET_URL = process.env.AWS_S3_UPLOAD_BUCKET_URL ?? "";
+  public AWS_S3_UPLOAD_BUCKET_URL = environment.AWS_S3_UPLOAD_BUCKET_URL ?? "";
 
   /**
    * The bucket name to store file attachments in.
    */
   @IsOptional()
   public AWS_S3_UPLOAD_BUCKET_NAME = this.toOptionalString(
-    process.env.AWS_S3_UPLOAD_BUCKET_NAME
+    environment.AWS_S3_UPLOAD_BUCKET_NAME
   );
 
   /**
@@ -643,26 +500,26 @@ export class Environment {
    */
   @IsOptional()
   public AWS_S3_FORCE_PATH_STYLE = this.toBoolean(
-    process.env.AWS_S3_FORCE_PATH_STYLE ?? "true"
+    environment.AWS_S3_FORCE_PATH_STYLE ?? "true"
   );
 
   /**
    * Set default AWS S3 ACL for file attachments.
    */
   @IsOptional()
-  public AWS_S3_ACL = process.env.AWS_S3_ACL ?? "private";
+  public AWS_S3_ACL = environment.AWS_S3_ACL ?? "private";
 
   /**
    * Which file storage system to use
    */
   @IsIn(["local", "s3"])
-  public FILE_STORAGE = this.toOptionalString(process.env.FILE_STORAGE) ?? "s3";
+  public FILE_STORAGE = this.toOptionalString(environment.FILE_STORAGE) ?? "s3";
 
   /**
    * Set default root dir path for local file storage
    */
   public FILE_STORAGE_LOCAL_ROOT_DIR =
-    this.toOptionalString(process.env.FILE_STORAGE_LOCAL_ROOT_DIR) ??
+    this.toOptionalString(environment.FILE_STORAGE_LOCAL_ROOT_DIR) ??
     "/var/lib/outline/data";
 
   /**
@@ -670,8 +527,8 @@ export class Environment {
    */
   @IsNumber()
   public FILE_STORAGE_UPLOAD_MAX_SIZE =
-    this.toOptionalNumber(process.env.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
-    this.toOptionalNumber(process.env.AWS_S3_UPLOAD_MAX_SIZE) ??
+    this.toOptionalNumber(environment.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
+    this.toOptionalNumber(environment.AWS_S3_UPLOAD_MAX_SIZE) ??
     1000000;
 
   /**
@@ -679,9 +536,9 @@ export class Environment {
    */
   @IsNumber()
   public FILE_STORAGE_IMPORT_MAX_SIZE =
-    this.toOptionalNumber(process.env.FILE_STORAGE_IMPORT_MAX_SIZE) ??
-    this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ??
-    this.toOptionalNumber(process.env.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
+    this.toOptionalNumber(environment.FILE_STORAGE_IMPORT_MAX_SIZE) ??
+    this.toOptionalNumber(environment.MAXIMUM_IMPORT_SIZE) ??
+    this.toOptionalNumber(environment.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
     1000000;
 
   /**
@@ -689,9 +546,9 @@ export class Environment {
    */
   @IsNumber()
   public FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE =
-    this.toOptionalNumber(process.env.FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE) ??
-    this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ??
-    this.toOptionalNumber(process.env.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
+    this.toOptionalNumber(environment.FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE) ??
+    this.toOptionalNumber(environment.MAXIMUM_IMPORT_SIZE) ??
+    this.toOptionalNumber(environment.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
     1000000;
 
   /**
@@ -705,7 +562,7 @@ export class Environment {
   @IsNumber()
   @Deprecated("Use FILE_STORAGE_IMPORT_MAX_SIZE instead")
   public MAXIMUM_IMPORT_SIZE = this.toOptionalNumber(
-    process.env.MAXIMUM_IMPORT_SIZE
+    environment.MAXIMUM_IMPORT_SIZE
   );
 
   /**
@@ -714,33 +571,14 @@ export class Environment {
    */
   @IsNumber()
   public MAXIMUM_EXPORT_SIZE =
-    this.toOptionalNumber(process.env.MAXIMUM_EXPORT_SIZE) ?? os.totalmem();
-
-  /**
-   * Iframely url
-   */
-  @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    require_protocol: true,
-    allow_underscores: true,
-    protocols: ["http", "https"],
-  })
-  public IFRAMELY_URL = process.env.IFRAMELY_URL ?? "https://iframe.ly";
-
-  /**
-   * Iframely API key
-   */
-  @IsOptional()
-  @CannotUseWithout("IFRAMELY_URL")
-  public IFRAMELY_API_KEY = this.toOptionalString(process.env.IFRAMELY_API_KEY);
+    this.toOptionalNumber(environment.MAXIMUM_EXPORT_SIZE) ?? os.totalmem();
 
   /**
    * Enable unsafe-inline in script-src CSP directive
    */
   @IsBoolean()
   public DEVELOPMENT_UNSAFE_INLINE_CSP = this.toBoolean(
-    process.env.DEVELOPMENT_UNSAFE_INLINE_CSP ?? "false"
+    environment.DEVELOPMENT_UNSAFE_INLINE_CSP ?? "false"
   );
 
   /**
@@ -781,11 +619,11 @@ export class Environment {
     return this.ENVIRONMENT === "test";
   }
 
-  private toOptionalString(value: string | undefined) {
+  protected toOptionalString(value: string | undefined) {
     return value ? value : undefined;
   }
 
-  private toOptionalNumber(value: string | undefined) {
+  protected toOptionalNumber(value: string | undefined) {
     return value ? parseInt(value, 10) : undefined;
   }
 
@@ -801,7 +639,7 @@ export class Environment {
    * @param value The string to convert
    * @returns A boolean
    */
-  private toBoolean(value: string) {
+  protected toBoolean(value: string) {
     try {
       return value ? !!JSON.parse(value) : false;
     } catch (err) {
@@ -823,7 +661,7 @@ export class Environment {
    * @param value The string to convert
    * @returns A boolean or undefined
    */
-  private toOptionalBoolean(value: string | undefined) {
+  protected toOptionalBoolean(value: string | undefined) {
     try {
       return value ? !!JSON.parse(value) : undefined;
     } catch (err) {
@@ -832,6 +670,4 @@ export class Environment {
   }
 }
 
-const env = new Environment();
-
-export default env;
+export default new Environment();

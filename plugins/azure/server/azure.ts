@@ -1,6 +1,7 @@
+import invariant from "invariant";
 import JWT from "jsonwebtoken";
-import env from "@server/env";
-import OAuthClient from "./oauth";
+import OAuthClient from "@server/utils/oauth";
+import env from "./env";
 
 type AzurePayload = {
   /** A GUID that represents the Azure AD tenant that the user is from */
@@ -13,6 +14,13 @@ export default class AzureClient extends OAuthClient {
     token: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
     userinfo: "https://graph.microsoft.com/v1.0/me",
   };
+
+  constructor() {
+    invariant(env.AZURE_CLIENT_ID, "AZURE_CLIENT_ID is required");
+    invariant(env.AZURE_CLIENT_SECRET, "AZURE_CLIENT_SECRET is required");
+
+    super(env.AZURE_CLIENT_ID, env.AZURE_CLIENT_SECRET);
+  }
 
   async rotateToken(
     accessToken: string,
