@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import { MoreIcon, SettingsIcon } from "outline-icons";
+import { MoreIcon } from "outline-icons";
 import React from "react";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
@@ -27,7 +27,6 @@ const NotificationMenu: React.FC = () => {
         title: "Notification settings",
         visible: true,
         onClick: () => performAction(navigateToNotificationSettings, context),
-        icon: <SettingsIcon />,
       },
     ],
     [context]

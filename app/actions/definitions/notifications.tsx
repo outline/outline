@@ -18,6 +18,7 @@ export const markNotificationsAsArchived = createAction({
   analyticsName: "Mark notifications as archived",
   section: NotificationSection,
   icon: <ArchiveIcon />,
+  iconInContextMenu: false,
   perform: ({ stores }) => stores.notifications.markAllAsArchived(),
   visible: ({ stores }) => stores.notifications.orderedData.length > 0,
 });
