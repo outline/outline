@@ -253,7 +253,7 @@
     "@types/fs-extra": "^11.0.4",
     "@types/fuzzy-search": "^2.1.5",
     "@types/glob": "^8.0.1",
-    "@types/google.analytics": "^0.0.42",
+    "@types/google.analytics": "^0.0.46",
     "@types/invariant": "^2.2.37",
     "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^8.5.9",
