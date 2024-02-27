@@ -22,7 +22,10 @@ for (const env of environments) {
   if (isEnv || isLocalDevelopment) {
     const resolvedPath = path.resolve(process.cwd(), `.env.${env}`);
     if (fs.existsSync(resolvedPath)) {
-      environment = dotenv.parse(fs.readFileSync(resolvedPath, "utf8"));
+      environment = {
+        ...environment,
+        ...dotenv.parse(fs.readFileSync(resolvedPath, "utf8")),
+      };
     }
   }
 }
