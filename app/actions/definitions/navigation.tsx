@@ -133,7 +133,7 @@ export const openAPIDocumentation = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  perform: () => window.open(UrlHelper.Outline.developers),
+  perform: () => window.open(UrlHelper.developers),
 });
 
 export const toggleSidebar = createAction({
@@ -150,14 +150,14 @@ export const openFeedbackUrl = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <EmailIcon />,
-  perform: () => window.open(UrlHelper.Outline.contact),
+  perform: () => window.open(UrlHelper.contact),
 });
 
 export const openBugReportUrl = createAction({
   name: ({ t }) => t("Report a bug"),
   analyticsName: "Open bug report",
   section: NavigationSection,
-  perform: () => window.open(UrlHelper.Outline.github),
+  perform: () => window.open(UrlHelper.github),
 });
 
 export const openChangelog = createAction({
@@ -166,7 +166,7 @@ export const openChangelog = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  perform: () => window.open(UrlHelper.Outline.changelog),
+  perform: () => window.open(UrlHelper.changelog),
 });
 
 export const openKeyboardShortcuts = createAction({

@@ -54,7 +54,7 @@ export default ({ unsubscribeUrl, children }: Props) => {
         <TR>
           <TD style={footerStyle}>
             <Link href={env.URL}>{env.APP_NAME}</Link>
-            <a href={UrlHelper.Outline.twitter} style={externalLinkStyle}>
+            <a href={UrlHelper.twitter} style={externalLinkStyle}>
               Twitter
             </a>
           </TD>

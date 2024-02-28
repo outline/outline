@@ -57,9 +57,7 @@ class ErrorBoundary extends React.Component<Props> {
   };
 
   handleReportBug = () => {
-    window.open(
-      isCloudHosted ? UrlHelper.Outline.contact : UrlHelper.Outline.github
-    );
+    window.open(isCloudHosted ? UrlHelper.contact : UrlHelper.github);
   };
 
   render() {
