@@ -86,6 +86,7 @@
   "Download {{ platform }} app": "{{ platform }} uygulamasını indir",
   "Log out": "Oturumu kapat",
   "Mark notifications as read": "Mark notifications as read",
+  "Archive all notifications": "Archive all notifications",
   "Restore revision": "Bu sürüme döndür",
   "Link copied": "Bağlantı kopyalandı",
   "Dark": "Koyu",
