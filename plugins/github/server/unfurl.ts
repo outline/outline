@@ -1,13 +1,12 @@
 import { App } from "octokit";
 import pluralize from "pluralize";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Integration, User } from "@server/models";
 import { GitHub } from "./github";
 
 export const unfurl = async (url: string, actor: User) => {
-  if (!(env.GITHUB_APP_ID && env.GITHUB_APP_PRIVATE_KEY)) {
+  if (!(GitHub.appId && GitHub.appPrivateKey)) {
     return;
   }
 
@@ -31,10 +30,8 @@ export const unfurl = async (url: string, actor: User) => {
   }
 
   const app = new App({
-    appId: env.GITHUB_APP_ID,
-    privateKey: Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString(
-      "ascii"
-    ),
+    appId: GitHub.appId,
+    privateKey: GitHub.appPrivateKey,
   });
 
   try {
@@ -62,7 +59,7 @@ export const unfurl = async (url: string, actor: User) => {
         avatarUrl: data.user.avatar_url,
       },
       meta: {
-        labels: data.labels.map((label: any) => ({
+        labels: data.labels.map((label: { name: string; color: string }) => ({
           name: label.name,
           color: label.color,
         })),
