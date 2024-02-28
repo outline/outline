@@ -24,7 +24,7 @@ import {
 import env from "../env";
 import * as Slack from "../slack";
 import * as T from "./schema";
-import { SlackUtils } from "plugins/slack/shared/Slack";
+import { SlackUtils } from "plugins/slack/shared/SlackUtils";
 
 type SlackProfile = Profile & {
   team: {
