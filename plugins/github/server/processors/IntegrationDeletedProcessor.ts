@@ -1,9 +1,9 @@
 import { App, Octokit } from "octokit";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import env from "@server/env";
 import { Integration } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import { IntegrationEvent, Event } from "@server/types";
+import { GitHub } from "../github";
 
 export default class IntegrationDeletedProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = ["integrations.delete"];
@@ -12,14 +12,12 @@ export default class IntegrationDeletedProcessor extends BaseProcessor {
 
   constructor() {
     super();
-    if (!env.GITHUB_APP_ID || !env.GITHUB_APP_PRIVATE_KEY) {
+    if (!GitHub.appId || !GitHub.appPrivateKey) {
       return;
     }
     const { octokit } = new App({
-      appId: env.GITHUB_APP_ID,
-      privateKey: Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString(
-        "ascii"
-      ),
+      appId: GitHub.appId,
+      privateKey: Buffer.from(GitHub.appPrivateKey, "base64").toString("ascii"),
     });
 
     this.githubClient = octokit;
