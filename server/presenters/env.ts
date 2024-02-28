@@ -27,7 +27,7 @@ export default function present(
     GITHUB_APP_NAME: env.GITHUB_APP_NAME,
     PLUGINS_DISABLED: env.PLUGINS_DISABLED,
     SLACK_APP_ID: env.SLACK_APP_ID,
-    MAXIMUM_IMPORT_SIZE: env.MAXIMUM_IMPORT_SIZE,
+    FILE_STORAGE_IMPORT_MAX_SIZE: env.FILE_STORAGE_IMPORT_MAX_SIZE,
     PDF_EXPORT_ENABLED: false,
     DEFAULT_LANGUAGE: env.DEFAULT_LANGUAGE,
     EMAIL_ENABLED: !!env.SMTP_HOST || env.isDevelopment,
@@ -36,7 +36,8 @@ export default function present(
       process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION || undefined,
     APP_NAME: env.APP_NAME,
     ROOT_SHARE_ID: options.rootShareId || undefined,
-
+    OIDC_DISABLE_REDIRECT: env.OIDC_DISABLE_REDIRECT || undefined,
+    OIDC_LOGOUT_URI: env.OIDC_LOGOUT_URI || undefined,
     analytics: {
       service: options.analytics?.service,
       settings: options.analytics?.settings,

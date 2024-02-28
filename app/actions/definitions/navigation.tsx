@@ -209,7 +209,9 @@ export const logout = createAction({
   analyticsName: "Log out",
   section: NavigationSection,
   icon: <LogoutIcon />,
-  perform: () => stores.auth.logout(),
+  perform: () => {
+    void stores.auth.logout();
+  },
 });
 
 export const rootNavigationActions = [

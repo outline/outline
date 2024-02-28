@@ -61,6 +61,10 @@ class TeamDomain extends IdModel<
 
   @BeforeCreate
   static async checkLimit(model: TeamDomain) {
+    if (!env.isCloudHosted) {
+      return;
+    }
+
     const count = await this.count({
       where: { teamId: model.teamId },
     });

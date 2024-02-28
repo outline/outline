@@ -6,6 +6,12 @@ export enum UserRole {
 
 export type DateFilter = "day" | "week" | "month" | "year";
 
+export enum StatusFilter {
+  Published = "published",
+  Archived = "archived",
+  Draft = "draft",
+}
+
 export enum Client {
   Web = "web",
   Desktop = "desktop",
@@ -56,7 +62,7 @@ export type PublicEnv = {
   GITHUB_APP_NAME?: string;
   PLUGINS_DISABLED: string[];
   SLACK_APP_ID: string | undefined;
-  MAXIMUM_IMPORT_SIZE: number;
+  FILE_STORAGE_IMPORT_MAX_SIZE: number;
   EMAIL_ENABLED: boolean;
   PDF_EXPORT_ENABLED: boolean;
   DEFAULT_LANGUAGE: string;
@@ -64,6 +70,8 @@ export type PublicEnv = {
   RELEASE: string | undefined;
   APP_NAME: string;
   ROOT_SHARE_ID?: string;
+  OIDC_DISABLE_REDIRECT?: boolean;
+  OIDC_LOGOUT_URI?: string;
   analytics: {
     service?: IntegrationService | UserCreatableIntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;
@@ -72,6 +80,7 @@ export type PublicEnv = {
 
 export enum AttachmentPreset {
   DocumentAttachment = "documentAttachment",
+  WorkspaceImport = "workspaceImport",
   Import = "import",
   Avatar = "avatar",
 }

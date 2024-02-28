@@ -51,6 +51,8 @@ export class EmbedDescriptor {
   tooltip?: string;
   /** Whether the embed should be hidden in menus by default */
   defaultHidden?: boolean;
+  /** Whether the bottom toolbar should be hidden – use this when the embed itself includes a footer */
+  hideToolbar?: boolean;
   /** A regex that will be used to match the embed when pasting a URL */
   regexMatch?: RegExp[];
   /**
@@ -81,6 +83,7 @@ export class EmbedDescriptor {
     this.keywords = options.keywords;
     this.tooltip = options.tooltip;
     this.defaultHidden = options.defaultHidden;
+    this.hideToolbar = options.hideToolbar;
     this.regexMatch = options.regexMatch;
     this.transformMatch = options.transformMatch;
     this.attrs = options.attrs;
@@ -90,7 +93,9 @@ export class EmbedDescriptor {
 
   matcher(url: string): false | RegExpMatchArray {
     const regexes = this.regexMatch ?? [];
-    const settingsDomainRegex = urlRegex(this.settings?.url);
+    const settingsDomainRegex = this.settings?.url
+      ? urlRegex(this.settings?.url)
+      : undefined;
 
     if (settingsDomainRegex) {
       regexes.unshift(settingsDomainRegex);
@@ -369,11 +374,13 @@ const embeds: EmbedDescriptor[] = [
     keywords: "spreadsheet",
     regexMatch: [new RegExp("^https?://([a-z.-]+\\.)?getgrist\\.com/(.+)$")],
     transformMatch: (matches: RegExpMatchArray) => {
-      if (matches[0].includes("style=singlePage")) {
-        return matches[0];
+      const input = matches.input ?? matches[0];
+
+      if (input.includes("style=singlePage")) {
+        return input;
       }
 
-      return matches[0].replace(/(\?embed=true)?$/, "?embed=true");
+      return input.replace(/(\?embed=true)?$/, "?embed=true");
     },
     icon: <Img src="/images/grist.png" alt="Grist" />,
   }),
@@ -511,6 +518,17 @@ const embeds: EmbedDescriptor[] = [
     transformMatch: (matches: RegExpMatchArray) =>
       `https://scribehow.com/embed/${matches[1]}`,
     icon: <Img src="/images/scribe.png" alt="Scribe" />,
+  }),
+  new EmbedDescriptor({
+    title: "SmartSuite",
+    regexMatch: [
+      new RegExp("^https?://app\\.smartsuite\\.com/shared/(.*)(?:\\?)?(?:.*)$"),
+    ],
+    icon: <Img src="/images/smartsuite.png" alt="SmartSuite" />,
+    defaultHidden: true,
+    hideToolbar: true,
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://app.smartsuite.com/shared/${matches[1]}?embed=true&header=false&toolbar=true`,
   }),
   new EmbedDescriptor({
     title: "Spotify",

@@ -26,6 +26,10 @@ export const ResizeLeft = styled.div<{ $dragging: boolean }>`
     box-shadow: 0 0 0 1px ${s("textSecondary")};
     opacity: 0.75;
   }
+
+  @media print {
+    display: none;
+  }
 `;
 
 export const ResizeRight = styled(ResizeLeft)`

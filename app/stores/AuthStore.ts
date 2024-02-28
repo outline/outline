@@ -14,6 +14,7 @@ import { PartialWithId } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import Logger from "~/utils/Logger";
+import history from "~/utils/history";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Store from "./base/Store";
 
@@ -304,16 +305,15 @@ export default class AuthStore extends Store<Team> {
     }
   };
 
+  /**
+   * Logs the user out and optionally revokes the authentication token.
+   *
+   * @param savePath Whether the current path should be saved and returned to after login.
+   * @param tryRevokingToken Whether the auth token should attempt to be revoked, this should be
+   * disabled with requests from ApiClient to prevent infinite loops.
+   */
   @action
-  logout = async (
-    /** Whether the current path should be saved and returned to after login */
-    savePath = false,
-    /**
-     * Whether the auth token should attempt to be revoked, this should be disabled
-     * with requests from ApiClient to prevent infinite loops.
-     */
-    tryRevokingToken = true
-  ) => {
+  logout = async (savePath = false, tryRevokingToken = true) => {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
@@ -348,9 +348,16 @@ export default class AuthStore extends Store<Team> {
     this.currentUserId = null;
     this.currentTeamId = null;
     this.collaborationToken = null;
+    this.rootStore.clear();
 
     // Tell the host application we logged out, if any – allows window cleanup.
-    void Desktop.bridge?.onLogout?.();
-    this.rootStore.clear();
+    if (Desktop.isElectron()) {
+      void Desktop.bridge?.onLogout?.();
+    } else if (env.OIDC_LOGOUT_URI) {
+      window.location.replace(env.OIDC_LOGOUT_URI);
+      return;
+    }
+
+    history.replace("/");
   };
 }

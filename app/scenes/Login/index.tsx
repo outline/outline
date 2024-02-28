@@ -229,7 +229,12 @@ function Login({ children }: Props) {
   }
 
   // If there is only one provider and it's OIDC, redirect immediately.
-  if (config.providers.length === 1 && config.providers[0].id === "oidc") {
+  if (
+    config.providers.length === 1 &&
+    config.providers[0].id === "oidc" &&
+    !env.OIDC_DISABLE_REDIRECT &&
+    !query.get("notice")
+  ) {
     window.location.href = getRedirectUrl(config.providers[0].authUrl);
     return null;
   }

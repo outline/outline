@@ -126,10 +126,10 @@ export default class Document extends ParanoidModel {
   collaboratorIds: string[];
 
   @observable
-  createdBy: User;
+  createdBy: User | undefined;
 
   @observable
-  updatedBy: User;
+  updatedBy: User | undefined;
 
   @observable
   publishedAt: string | undefined;
@@ -469,11 +469,6 @@ export default class Document extends ParanoidModel {
 
   duplicate = (options?: { title?: string; recursive?: boolean }) =>
     this.store.duplicate(this, options);
-
-  getSummary = (paragraphs = 4) => {
-    const result = this.text.trim().split("\n").slice(0, paragraphs).join("\n");
-    return result;
-  };
 
   @computed
   get pinned(): boolean {

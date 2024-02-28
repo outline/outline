@@ -6,7 +6,6 @@ import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import passportMiddleware from "@server/middlewares/passport";
 import validate from "@server/middlewares/validate";
@@ -23,6 +22,7 @@ import {
   getTeamFromContext,
   StateStore,
 } from "@server/utils/passport";
+import env from "../env";
 import * as Slack from "../slack";
 import * as T from "./schema";
 

@@ -1,4 +1,5 @@
 import {
+  buildAdmin,
   buildCollection,
   buildComment,
   buildDocument,
@@ -211,12 +212,42 @@ describe("#comments.info", () => {
   it("should return comment info", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
     });
     const comment = await buildComment({
+      userId: user2.id,
+      documentId: document.id,
+    });
+    const res = await server.post("/api/comments.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(comment.id);
+    expect(body.data.data).toEqual(comment.data);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.update).toEqual(false);
+    expect(body.policies[0].abilities.delete).toEqual(false);
+  });
+
+  it("should return comment info for admin", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
       userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user2.id,
       documentId: document.id,
     });
     const res = await server.post("/api/comments.info", {

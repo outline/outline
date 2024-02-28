@@ -9,11 +9,13 @@ import {
   unicodeCLDRtoBCP47,
 } from "@shared/utils/date";
 import attachmentCreator from "@server/commands/attachmentCreator";
+import { trace } from "@server/logging/tracing";
 import { Attachment, User } from "@server/models";
 import FileStorage from "@server/storage/files";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import parseImages from "@server/utils/parseImages";
 
+@trace()
 export default class TextHelper {
   /**
    * Replaces template variables in the given text with the current date and time.

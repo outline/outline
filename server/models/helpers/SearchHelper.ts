@@ -4,7 +4,7 @@ import find from "lodash/find";
 import map from "lodash/map";
 import queryParser from "pg-tsquery";
 import { Op, Sequelize, WhereOptions } from "sequelize";
-import { DateFilter } from "@shared/types";
+import { DateFilter, StatusFilter } from "@shared/types";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
 import Share from "@server/models/Share";
@@ -36,12 +36,10 @@ type SearchOptions = {
   share?: Share;
   /** Limit results to a date range. */
   dateFilter?: DateFilter;
+  /** Status of the documents to return */
+  statusFilter?: StatusFilter[];
   /** Limit results to a list of users that collaborated on the document. */
   collaboratorIds?: string[];
-  /** Include archived documents in the results */
-  includeArchived?: boolean;
-  /** Include draft documents in the results (will only ever return your own) */
-  includeDrafts?: boolean;
   /** The minimum number of words to be returned in the contextual snippet */
   snippetMinWords?: number;
   /** The maximum number of words to be returned in the contextual snippet */
@@ -49,9 +47,11 @@ type SearchOptions = {
 };
 
 type RankedDocument = Document & {
-  searchRanking: number;
-  searchContext: string;
   id: string;
+  dataValues: Partial<Document> & {
+    searchRanking: number;
+    searchContext: string;
+  };
 };
 
 export default class SearchHelper {
@@ -72,7 +72,10 @@ export default class SearchHelper {
       offset = 0,
     } = options;
 
-    const where = await this.buildWhere(team, options);
+    const where = await this.buildWhere(team, {
+      ...options,
+      statusFilter: [...(options.statusFilter || []), StatusFilter.Published],
+    });
 
     if (options.share?.includeChildDocuments) {
       const sharedDocument = await options.share.$get("document");
@@ -354,33 +357,56 @@ export default class SearchHelper {
       });
     }
 
-    if (!options.includeArchived) {
-      where[Op.and].push({
-        archivedAt: {
-          [Op.eq]: null,
-        },
-      });
-    }
-
-    if (options.includeDrafts && model instanceof User) {
-      where[Op.and].push({
-        [Op.or]: [
+    const statusQuery = [];
+    if (options.statusFilter?.includes(StatusFilter.Published)) {
+      statusQuery.push({
+        [Op.and]: [
           {
             publishedAt: {
               [Op.ne]: null,
             },
+            archivedAt: {
+              [Op.eq]: null,
+            },
           },
-          {
-            createdById: model.id,
-          },
-          { "$memberships.id$": { [Op.ne]: null } },
         ],
       });
-    } else {
-      where[Op.and].push({
-        publishedAt: {
+    }
+
+    if (
+      options.statusFilter?.includes(StatusFilter.Draft) &&
+      // Only ever include draft results for the user's own documents
+      model instanceof User
+    ) {
+      statusQuery.push({
+        [Op.and]: [
+          {
+            publishedAt: {
+              [Op.eq]: null,
+            },
+            archivedAt: {
+              [Op.eq]: null,
+            },
+            [Op.or]: [
+              { createdById: model.id },
+              { "$memberships.id$": { [Op.ne]: null } },
+            ],
+          },
+        ],
+      });
+    }
+
+    if (options.statusFilter?.includes(StatusFilter.Archived)) {
+      statusQuery.push({
+        archivedAt: {
           [Op.ne]: null,
         },
+      });
+    }
+
+    if (statusQuery.length) {
+      where[Op.and].push({
+        [Op.or]: statusQuery,
       });
     }
 
@@ -394,8 +420,8 @@ export default class SearchHelper {
   ): SearchResponse {
     return {
       results: map(results, (result) => ({
-        ranking: result.searchRanking,
-        context: removeMarkdown(result.searchContext, {
+        ranking: result.dataValues.searchRanking,
+        context: removeMarkdown(result.dataValues.searchContext, {
           stripHTML: false,
         }),
         document: find(documents, {
@@ -443,8 +469,14 @@ export default class SearchHelper {
   }
 
   private static escapeQuery(query: string): string {
-    // replace "\" with escaped "\\" because sequelize.escape doesn't do it
-    // https://github.com/sequelize/sequelize/issues/2950
-    return query.replace(/\\/g, "\\\\");
+    return (
+      query
+        // replace "\" with escaped "\\" because sequelize.escape doesn't do it
+        // see: https://github.com/sequelize/sequelize/issues/2950
+        .replace(/\\/g, "\\\\")
+        // replace ":" with escaped "\:" because it's a reserved character in tsquery
+        // see: https://github.com/outline/outline/issues/6542
+        .replace(/:/g, "\\:")
+    );
   }
 }

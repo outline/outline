@@ -190,7 +190,7 @@ function DocumentHeader({
       <StyledHeader
         $hidden={isEditingFocus}
         title={document.title}
-        hasSidebar={!!sharedTree}
+        hasSidebar={sharedTree && sharedTree.children?.length > 0}
         left={
           isMobile ? (
             <TableOfContentsMenu headings={headings} />

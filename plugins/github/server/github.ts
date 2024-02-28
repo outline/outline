@@ -2,8 +2,8 @@ import { createOAuthUserAuth } from "@octokit/auth-oauth-user";
 import find from "lodash/find";
 import { Octokit } from "octokit";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
-import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import env from "./env";
 
 export class GitHub {
   /**
@@ -15,6 +15,10 @@ export class GitHub {
   public static clientSecret = env.GITHUB_CLIENT_SECRET;
   public static clientType = "github-app";
   public static allowedResources = ["pull", "issues"];
+  public static appId = env.GITHUB_APP_ID;
+  public static appPrivateKey = env.GITHUB_APP_PRIVATE_KEY
+    ? Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString("ascii")
+    : undefined;
 
   /** GitHub client for accessing its APIs */
   public client: Octokit;

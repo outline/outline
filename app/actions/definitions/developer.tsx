@@ -8,6 +8,8 @@ import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Logger from "~/utils/Logger";
 import { deleteAllDatabases } from "~/utils/developer";
+import history from "~/utils/history";
+import { homePath } from "~/utils/routeHelpers";
 
 export const copyId = createAction({
   name: ({ t }) => t("Copy ID"),
@@ -75,13 +77,14 @@ export const copyId = createAction({
 });
 
 export const clearIndexedDB = createAction({
-  name: ({ t }) => t("Delete IndexedDB cache"),
+  name: ({ t }) => t("Clear IndexedDB cache"),
   icon: <TrashIcon />,
   keywords: "cache clear database",
   section: DeveloperSection,
   perform: async ({ t }) => {
+    history.push(homePath());
     await deleteAllDatabases();
-    toast.message(t("IndexedDB cache deleted"));
+    toast.success(t("IndexedDB cache cleared"));
   },
 });
 

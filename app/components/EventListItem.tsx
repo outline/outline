@@ -86,6 +86,18 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       icon = <TrashIcon size={16} />;
       meta = t("{{userName}} deleted", opts);
       break;
+    case "documents.add_user":
+      meta = t("{{userName}} added {{addedUserName}}", {
+        ...opts,
+        addedUserName: event.user?.name ?? t("a user"),
+      });
+      break;
+    case "documents.remove_user":
+      meta = t("{{userName}} removed {{removedUserName}}", {
+        ...opts,
+        removedUserName: event.user?.name ?? t("a user"),
+      });
+      break;
 
     case "documents.restore":
       meta = t("{{userName}} moved from trash", opts);

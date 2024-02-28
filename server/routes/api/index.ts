@@ -48,7 +48,7 @@ api.use(
     formidable: {
       maxFileSize: Math.max(
         env.FILE_STORAGE_UPLOAD_MAX_SIZE,
-        env.MAXIMUM_IMPORT_SIZE
+        env.FILE_STORAGE_IMPORT_MAX_SIZE
       ),
       maxFieldsSize: 10 * 1024 * 1024,
     },

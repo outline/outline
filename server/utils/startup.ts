@@ -5,13 +5,23 @@ import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
 import { migrations } from "@server/storage/database";
+import { getArg } from "./args";
 
 export async function checkPendingMigrations() {
   try {
     const pending = await migrations.pending();
     if (!isEmpty(pending)) {
-      Logger.info("database", "Running migrations…");
-      await migrations.up();
+      if (getArg("no-migrate")) {
+        Logger.warn(
+          chalk.red(
+            `Database migrations are pending and were not ran because --no-migrate flag was passed.\nRun the migrations with "yarn db:migrate".`
+          )
+        );
+        process.exit(1);
+      } else {
+        Logger.info("database", "Running migrations…");
+        await migrations.up();
+      }
     }
     await checkDataMigrations();
   } catch (err) {

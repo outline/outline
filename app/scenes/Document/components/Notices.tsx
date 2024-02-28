@@ -65,7 +65,7 @@ export default function Notices({ document, readOnly }: Props) {
       {document.archivedAt && !document.deletedAt && (
         <Notice icon={<ArchiveIcon />}>
           {t("Archived by {{userName}}", {
-            userName: document.updatedBy.name,
+            userName: document.updatedBy?.name ?? t("Unknown"),
           })}
           &nbsp;
           <Time dateTime={document.updatedAt} addSuffix />
@@ -77,7 +77,7 @@ export default function Notices({ document, readOnly }: Props) {
           description={permanentlyDeletedDescription()}
         >
           {t("Deleted by {{userName}}", {
-            userName: document.updatedBy.name,
+            userName: document.updatedBy?.name ?? t("Unknown"),
           })}
           &nbsp;
           <Time dateTime={document.deletedAt} addSuffix />

@@ -29,7 +29,7 @@ function CollectionFilter(props: Props) {
   return (
     <FilterOptions
       options={options}
-      activeKey={collectionId}
+      selectedKeys={[collectionId]}
       onSelect={onSelect}
       defaultLabel={t("Any collection")}
       selectedPrefix={`${t("Collection")}:`}

@@ -81,7 +81,7 @@ export const OtherAccess = observer(({ document, children }: Props) => {
         <>
           <StyledListItem
             image={<Avatar model={document.createdBy} showBorder={false} />}
-            title={document.createdBy.name}
+            title={document.createdBy?.name}
             actions={
               <AccessTooltip content={t("Created the document")}>
                 {t("Can edit")}

@@ -13,13 +13,8 @@ defaults: &defaults
   resource_class: large
   environment:
     NODE_ENV: test
-    SECRET_KEY: F0E5AD933D7F6FD8F4DBB3E038C501C052DC0593C686D21ACB30AE205D2F634B
-    DATABASE_URL_TEST: postgres://postgres:password@localhost:5432/circle_test
     DATABASE_URL: postgres://postgres:password@localhost:5432/circle_test
     URL: http://localhost:3000
-    SMTP_FROM_EMAIL: hello@example.com
-    AWS_S3_UPLOAD_BUCKET_URL: https://s3.amazonaws.com
-    AWS_S3_UPLOAD_BUCKET_NAME: outline-circle
     NODE_OPTIONS: --max-old-space-size=8000
 
 executors:
@@ -89,7 +84,7 @@ jobs:
           key: dependency-cache-v1-{{ checksum "package.json" }}
       - run:
           name: migrate
-          command: ./node_modules/.bin/sequelize db:migrate --url $DATABASE_URL_TEST
+          command: ./node_modules/.bin/sequelize db:migrate
       - run:
           name: test
           command: |

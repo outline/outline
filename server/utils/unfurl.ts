@@ -4,6 +4,7 @@ import glob from "glob";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { UnfurlResolver } from "@server/types";
+import environment from "./environment";
 
 const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
 
@@ -25,7 +26,7 @@ const resolvers: Record<string, UnfurlResolver> = plugins.reduce(
 
     // Test the all required env vars are set for the resolver
     const enabled = (config.requiredEnvVars ?? []).every(
-      (name: string) => !!env[name]
+      (name: string) => !!environment[name]
     );
     if (!enabled) {
       return resolvers;

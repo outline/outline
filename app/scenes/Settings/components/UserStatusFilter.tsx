@@ -56,7 +56,7 @@ const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
   return (
     <FilterOptions
       options={options}
-      activeKey={activeKey}
+      selectedKeys={[activeKey]}
       onSelect={onSelect}
       defaultLabel={t("Active")}
       {...rest}

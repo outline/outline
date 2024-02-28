@@ -544,6 +544,10 @@ iframe.embed {
 .ProseMirror-selectednode {
   outline: 2px solid
     ${props.readOnly ? "transparent" : props.theme.selected};
+
+  @media print {
+    outline: none;
+  }
 }
 
 /* Make sure li selections wrap around markers */

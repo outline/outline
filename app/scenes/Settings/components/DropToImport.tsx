@@ -38,7 +38,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
       try {
         const attachment = await uploadFile(file, {
           name: file.name,
-          preset: AttachmentPreset.Import,
+          preset: AttachmentPreset.WorkspaceImport,
         });
         await collections.import(attachment.id, format);
         onSubmit();

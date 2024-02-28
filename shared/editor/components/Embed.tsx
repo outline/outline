@@ -45,7 +45,7 @@ const EmbedComponent = ({
       <Frame
         src={src}
         isSelected={isSelected}
-        canonicalUrl={node.attrs.href}
+        canonicalUrl={embed.hideToolbar ? undefined : node.attrs.href}
         title={embed.title}
         referrerPolicy="origin"
         border

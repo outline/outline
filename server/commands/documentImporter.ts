@@ -77,6 +77,13 @@ async function documentImporter({
     transaction
   );
 
+  // Sanity check – text cannot possibly be longer than state so if it is, we can short-circuit here
+  if (text.length > DocumentValidation.maxStateLength) {
+    throw InvalidRequestError(
+      `The document "${title}" is too large to import, please reduce the length and try again`
+    );
+  }
+
   // It's better to truncate particularly long titles than fail the import
   title = truncate(title, { length: DocumentValidation.maxTitleLength });
 
