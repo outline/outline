@@ -86,6 +86,7 @@
   "Download {{ platform }} app": "Tải xuống ứng dụng {{ platform }}",
   "Log out": "Đăng xuất",
   "Mark notifications as read": "Mark notifications as read",
+  "Archive all notifications": "Archive all notifications",
   "Restore revision": "Khôi phục phiên bản",
   "Link copied": "Đã sao chép Link",
   "Dark": "Dark",
