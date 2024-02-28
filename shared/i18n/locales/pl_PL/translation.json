@@ -86,6 +86,7 @@
   "Download {{ platform }} app": "Pobierz aplikację {{ platform }}",
   "Log out": "Wyloguj",
   "Mark notifications as read": "Oznaczaj powiadomienia jako przeczytane",
+  "Archive all notifications": "Archive all notifications",
   "Restore revision": "Przywróć wersję",
   "Link copied": "Link skopiowany",
   "Dark": "Ciemny",
