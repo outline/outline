@@ -86,6 +86,7 @@
   "Download {{ platform }} app": "Last ned {{ platform }}-app",
   "Log out": "Logg ut",
   "Mark notifications as read": "Merk varsler som lest",
+  "Archive all notifications": "Archive all notifications",
   "Restore revision": "Gjenopprett revisjon",
   "Link copied": "Lenke kopiert",
   "Dark": "Mørk",
