@@ -86,6 +86,7 @@
   "Download {{ platform }} app": "Stáhněte si aplikaci {{ platform }}",
   "Log out": "Odhlásit se",
   "Mark notifications as read": "Označit upozornění jako přečtená",
+  "Archive all notifications": "Archive all notifications",
   "Restore revision": "Obnovit revizi",
   "Link copied": "Odkaz zkopírován",
   "Dark": "Temný",
