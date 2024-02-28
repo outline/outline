@@ -86,6 +86,7 @@
   "Download {{ platform }} app": "{{ platform }} 앱 다운로드",
   "Log out": "로그아웃",
   "Mark notifications as read": "알림을 읽은 상태로 표시",
+  "Archive all notifications": "Archive all notifications",
   "Restore revision": "리비전 복구하기",
   "Link copied": "링크 복사됨",
   "Dark": "어둡게 보기",
