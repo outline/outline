@@ -1,4 +1,3 @@
-import { App, Octokit } from "octokit";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { Integration } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
@@ -7,21 +6,6 @@ import { GitHub } from "../github";
 
 export default class IntegrationDeletedProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = ["integrations.delete"];
-
-  private githubClient?: Octokit;
-
-  constructor() {
-    super();
-    if (!GitHub.appId || !GitHub.appPrivateKey) {
-      return;
-    }
-    const { octokit } = new App({
-      appId: GitHub.appId,
-      privateKey: GitHub.appPrivateKey,
-    });
-
-    this.githubClient = octokit;
-  }
 
   async perform(event: Event) {
     switch (event.name) {
@@ -48,12 +32,8 @@ export default class IntegrationDeletedProcessor extends BaseProcessor {
         .settings?.github?.installation.id;
 
       if (installationId) {
-        await this.githubClient?.request(
-          "DELETE /app/installations/{installation_id}",
-          {
-            installation_id: installationId,
-          }
-        );
+        const github = new GitHub();
+        await github.deleteInstallation(installationId);
       }
     }
 
