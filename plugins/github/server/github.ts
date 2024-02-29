@@ -1,6 +1,6 @@
 import { createOAuthUserAuth } from "@octokit/auth-oauth-user";
 import find from "lodash/find";
-import { Octokit } from "octokit";
+import { App, Octokit } from "octokit";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import Logger from "@server/logging/Logger";
 import env from "./env";
@@ -19,20 +19,33 @@ export class GitHub {
     ? Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString("ascii")
     : undefined;
 
-  /** GitHub client for accessing its APIs */
-  public client: Octokit;
+  /** GitHub client for accessing its APIs when authenticated as the GitHub user */
+  private userClient: Octokit;
 
-  constructor({ code, state }: { code: string; state?: string | null }) {
-    this.client = new Octokit({
-      authStrategy: createOAuthUserAuth,
-      auth: {
-        clientId: GitHub.clientId,
-        clientSecret: GitHub.clientSecret,
-        clientType: GitHub.clientType,
-        code,
-        state,
-      },
-    });
+  /** GitHub client for accessing its APIs when authenticated as the GitHub app */
+  private appClient: Octokit;
+
+  constructor(options?: { code: string; state?: string | null }) {
+    if (options) {
+      this.userClient = new Octokit({
+        authStrategy: createOAuthUserAuth,
+        auth: {
+          clientId: GitHub.clientId,
+          clientSecret: GitHub.clientSecret,
+          clientType: GitHub.clientType,
+          code: options.code,
+          state: options.state,
+        },
+      });
+    } else {
+      if (GitHub.appId && GitHub.appPrivateKey) {
+        const { octokit } = new App({
+          appId: GitHub.appId,
+          privateKey: GitHub.appPrivateKey,
+        });
+        this.appClient = octokit;
+      }
+    }
   }
 
   /**
@@ -41,7 +54,9 @@ export class GitHub {
    * e.g, installation target, account which installed the app etc.
    */
   public async getInstallation(installationId: number) {
-    const installations = await this.client.paginate("GET /user/installations");
+    const installations = await this.userClient.paginate(
+      "GET /user/installations"
+    );
     const installation = find(
       installations,
       (installation) => installation.id === installationId
@@ -51,5 +66,14 @@ export class GitHub {
       throw Error("Invalid installationId!");
     }
     return installation;
+  }
+
+  public async deleteInstallation(installationId: number) {
+    await this.appClient.request(
+      "DELETE /app/installations/{installation_id}",
+      {
+        installation_id: installationId,
+      }
+    );
   }
 }
