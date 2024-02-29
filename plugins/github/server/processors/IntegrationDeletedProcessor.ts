@@ -17,7 +17,7 @@ export default class IntegrationDeletedProcessor extends BaseProcessor {
     }
     const { octokit } = new App({
       appId: GitHub.appId,
-      privateKey: Buffer.from(GitHub.appPrivateKey, "base64").toString("ascii"),
+      privateKey: GitHub.appPrivateKey,
     });
 
     this.githubClient = octokit;
