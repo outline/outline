@@ -5,10 +5,10 @@ import validator from "validator";
 import isIn from "validator/lib/isIn";
 import isUUID from "validator/lib/isUUID";
 import { CollectionPermission } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { validateColorHex } from "@shared/utils/color";
 import { validateIndexCharacters } from "@shared/utils/indexCharacters";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
-import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { isUrl } from "@shared/utils/urls";
 import { ParamRequiredError, ValidationError } from "./errors";
 import { Buckets } from "./models/helpers/AttachmentHelper";
@@ -210,7 +210,7 @@ export class ValidateDocumentId {
    * @returns true if documentId is valid, false otherwise
    */
   public static isValid = (documentId: string) =>
-    isUUID(documentId) || SLUG_URL_REGEX.test(documentId);
+    isUUID(documentId) || UrlHelper.SLUG_URL_REGEX.test(documentId);
 
   public static message = "Must be uuid or url slug";
 }

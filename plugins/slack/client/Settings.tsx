@@ -17,6 +17,7 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import { SlackUtils } from "../shared/SlackUtils";
 import SlackIcon from "./Icon";
 import SlackButton from "./components/SlackButton";
 import SlackListItem from "./components/SlackListItem";
@@ -104,7 +105,7 @@ function Slack() {
                   // "users:read",
                   // "users:read.email",
                 ]}
-                redirectUri={`${env.URL}/auth/slack.commands`}
+                redirectUri={SlackUtils.commandsUrl()}
                 state={team.id}
                 icon={<SlackIcon />}
               />

@@ -53,6 +53,14 @@ async function build() {
           `yarn babel --extensions .ts,.tsx --quiet -d "./build/plugins/${plugin}/server" "./plugins/${plugin}/server"`
         );
       }
+
+      const hasShared = existsSync(`./plugins/${plugin}/shared`);
+
+      if (hasShared) {
+        await execAsync(
+          `yarn babel --extensions .ts,.tsx --quiet -d "./build/plugins/${plugin}/shared" "./plugins/${plugin}/shared"`
+        );
+      }
     }),
   ]);
 

@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import { Op, WhereOptions } from "sequelize";
 import isUUID from "validator/lib/isUUID";
-import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
   NotFoundError,
   InvalidRequestError,
@@ -42,7 +42,7 @@ export default async function loadDocument({
   }
 
   const shareUrlId =
-    shareId && !isUUID(shareId) && SHARE_URL_SLUG_REGEX.test(shareId)
+    shareId && !isUUID(shareId) && UrlHelper.SHARE_URL_SLUG_REGEX.test(shareId)
       ? shareId
       : undefined;
 
