@@ -1,8 +1,8 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { githubAuth } from "@shared/utils/urlHelpers";
 import Button from "~/components/Button";
 import env from "~/env";
+import { GitHubUtils } from "../../shared/GitHubUtils";
 
 type Props = {
   redirectUri: string;
@@ -19,7 +19,11 @@ function GitHubButton({ state = "", redirectUri, label, icon }: Props) {
       return;
     }
 
-    window.location.href = githubAuth(state, env.GITHUB_CLIENT_ID, redirectUri);
+    window.location.href = GitHubUtils.authUrl(
+      state,
+      env.GITHUB_CLIENT_ID,
+      redirectUri
+    );
   };
 
   return (

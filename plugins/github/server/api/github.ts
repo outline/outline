@@ -6,6 +6,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration, Team } from "@server/models";
 import { APIContext } from "@server/types";
+import { GitHubUtils } from "../../shared/GitHubUtils";
 import { GitHub } from "../github";
 import * as T from "./schema";
 
@@ -30,7 +31,7 @@ if (GitHub.clientId && GitHub.clientSecret) {
       const { transaction } = ctx.state;
 
       if (error) {
-        ctx.redirect(GitHub.errorUrl(error));
+        ctx.redirect(GitHubUtils.errorUrl(error));
         return;
       }
 
@@ -45,17 +46,17 @@ if (GitHub.clientId && GitHub.clientSecret) {
               transaction,
             });
             return ctx.redirectOnClient(
-              GitHub.callbackUrl({
+              GitHubUtils.callbackUrl({
                 baseUrl: team.url,
                 params: ctx.request.querystring,
               })
             );
           } catch (err) {
             Logger.error(`Error fetching team for teamId: ${teamId}!`, err);
-            return ctx.redirect(GitHub.errorUrl("unauthenticated"));
+            return ctx.redirect(GitHubUtils.errorUrl("unauthenticated"));
           }
         } else {
-          return ctx.redirect(GitHub.errorUrl("unauthenticated"));
+          return ctx.redirect(GitHubUtils.errorUrl("unauthenticated"));
         }
       }
 
@@ -66,7 +67,7 @@ if (GitHub.clientId && GitHub.clientSecret) {
         installation = await github.getInstallation(installationId);
       } catch (err) {
         Logger.error("Failed to fetch GitHub App installation", err);
-        return ctx.redirect(GitHub.errorUrl("unauthenticated"));
+        return ctx.redirect(GitHubUtils.errorUrl("unauthenticated"));
       }
 
       const authentication = await IntegrationAuthentication.create(
