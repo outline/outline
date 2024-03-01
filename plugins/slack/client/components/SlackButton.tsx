@@ -1,8 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { slackAuth } from "@shared/utils/urlHelpers";
 import Button from "~/components/Button";
-import env from "~/env";
+import { SlackUtils } from "../../shared/SlackUtils";
 
 type Props = {
   scopes?: string[];
@@ -16,16 +15,7 @@ function SlackButton({ state = "", scopes, redirectUri, label, icon }: Props) {
   const { t } = useTranslation();
 
   const handleClick = () => {
-    if (!env.SLACK_CLIENT_ID) {
-      return;
-    }
-
-    window.location.href = slackAuth(
-      state,
-      scopes,
-      env.SLACK_CLIENT_ID,
-      redirectUri
-    );
+    window.location.href = SlackUtils.authUrl(state, scopes, redirectUri);
   };
 
   return (

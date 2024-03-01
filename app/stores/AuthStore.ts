@@ -14,7 +14,6 @@ import { PartialWithId } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import Logger from "~/utils/Logger";
-import history from "~/utils/history";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Store from "./base/Store";
 
@@ -353,11 +352,6 @@ export default class AuthStore extends Store<Team> {
     // Tell the host application we logged out, if any – allows window cleanup.
     if (Desktop.isElectron()) {
       void Desktop.bridge?.onLogout?.();
-    } else if (env.OIDC_LOGOUT_URI) {
-      window.location.replace(env.OIDC_LOGOUT_URI);
-      return;
     }
-
-    history.replace("/");
   };
 }

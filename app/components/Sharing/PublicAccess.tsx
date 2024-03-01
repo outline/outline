@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
 import { s } from "@shared/styles";
-import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
 import Input, { NativeInput } from "~/components/Input";
@@ -78,7 +78,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
 
         const val = ev.target.value;
         setUrlId(val);
-        if (val && !SHARE_URL_SLUG_REGEX.test(val)) {
+        if (val && !UrlHelper.SHARE_URL_SLUG_REGEX.test(val)) {
           setValidationError(
             t("Only lowercase letters, digits and dashes allowed")
           );
