@@ -3,6 +3,7 @@ import pluralize from "pluralize";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration, User } from "@server/models";
+import { GitHubUtils } from "../shared/GitHubUtils";
 import { GitHub } from "./github";
 
 export const unfurl = async (url: string, actor: User) => {
@@ -10,7 +11,7 @@ export const unfurl = async (url: string, actor: User) => {
     return;
   }
 
-  const { owner, repo, resourceType, resourceId } = GitHub.parseUrl(url);
+  const { owner, repo, resourceType, resourceId } = GitHubUtils.parseUrl(url);
 
   if (!owner) {
     return;

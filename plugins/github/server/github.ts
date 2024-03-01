@@ -14,7 +14,6 @@ export class GitHub {
   public static clientId = env.GITHUB_CLIENT_ID;
   public static clientSecret = env.GITHUB_CLIENT_SECRET;
   public static clientType = "github-app";
-  public static allowedResources = ["pull", "issues"];
   public static appId = env.GITHUB_APP_ID;
   public static appPrivateKey = env.GITHUB_APP_PRIVATE_KEY
     ? Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString("ascii")
