@@ -1,5 +1,5 @@
 {
+  "id": "azure",
   "name": "Microsoft",
-  "description": "Adds a Microsoft Azure authentication provider.",
-  "requiredEnvVars": ["AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET"]
+  "description": "Adds a Microsoft Azure authentication provider."
 }

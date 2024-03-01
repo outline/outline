@@ -26,6 +26,7 @@ import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
 import { checkConnection, sequelize } from "./storage/database";
 import RedisAdapter from "./storage/redis";
 import Metrics from "./logging/Metrics";
+import { PluginManager } from "./utils/PluginManager";
 
 // Suppress the AWS maintenance message until upgrade to v3.
 maintenance.suppress = true;
@@ -59,6 +60,9 @@ async function master() {
 
 // This function will only be called in each forked process
 async function start(id: number, disconnect: () => void) {
+  // Ensure plugins are loaded
+  PluginManager.loadPlugins();
+
   // Find if SSL certs are available
   const ssl = getSSLOptions();
   const useHTTPS = !!ssl.key && !!ssl.cert;

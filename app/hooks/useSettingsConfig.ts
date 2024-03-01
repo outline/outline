@@ -197,7 +197,7 @@ const useSettingsConfig = () => {
     Object.values(PluginLoader.plugins).map((plugin) => {
       const hasSettings = !!plugin.settings;
       const enabledInDeployment =
-        !plugin.config.deployments ||
+        !plugin.config?.deployments ||
         plugin.config.deployments.length === 0 ||
         (plugin.config.deployments.includes("cloud") && isCloudHosted) ||
         (plugin.config.deployments.includes("enterprise") && !isCloudHosted);
