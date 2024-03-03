@@ -17,6 +17,7 @@ import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
 import { CannotUseWithout } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
+import Public, { getPublicEnv } from "./models/decorators/Public";
 import { getArg } from "./utils/args";
 
 export class Environment {
@@ -34,6 +35,10 @@ export class Environment {
         }
       });
     });
+  }
+
+  get public() {
+    return getPublicEnv(this);
   }
 
   /**
@@ -359,6 +364,7 @@ export class Environment {
    */
   public DD_SERVICE = environment.DD_SERVICE ?? "outline";
 
+  @Public
   @IsOptional()
   public SLACK_CLIENT_ID = this.toOptionalString(
     environment.SLACK_CLIENT_ID ?? environment.SLACK_KEY
@@ -367,6 +373,7 @@ export class Environment {
   /**
    * Injected into the `slack-app-id` header meta tag if provided.
    */
+  @Public
   @IsOptional()
   @CannotUseWithout("SLACK_CLIENT_ID")
   public SLACK_APP_ID = this.toOptionalString(environment.SLACK_APP_ID);
