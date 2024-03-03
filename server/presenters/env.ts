@@ -22,8 +22,6 @@ export default function present(
     ENVIRONMENT: env.ENVIRONMENT,
     SENTRY_DSN: env.SENTRY_DSN,
     SENTRY_TUNNEL: env.SENTRY_TUNNEL,
-    SLACK_CLIENT_ID: env.SLACK_CLIENT_ID,
-    SLACK_APP_ID: env.SLACK_APP_ID,
     FILE_STORAGE_IMPORT_MAX_SIZE: env.FILE_STORAGE_IMPORT_MAX_SIZE,
     PDF_EXPORT_ENABLED: false,
     DEFAULT_LANGUAGE: env.DEFAULT_LANGUAGE,
@@ -39,5 +37,6 @@ export default function present(
       service: options.analytics?.service,
       settings: options.analytics?.settings,
     },
+    ...env.public,
   };
 }

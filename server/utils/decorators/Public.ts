@@ -1,5 +1,5 @@
-import { Environment } from "@server/env";
 import "reflect-metadata";
+import { Environment } from "@server/env";
 
 const key = Symbol("env:public");
 
@@ -18,7 +18,7 @@ export function Public(target: any, propertyKey: string) {
 
 export function getPublicEnv(env: Environment) {
   const vars: string[] = Reflect.getMetadata(key, env);
-  return vars.reduce((acc, curr) => {
+  return (vars ?? []).reduce((acc, curr) => {
     acc[curr] = env[curr];
     return acc;
   }, {});
