@@ -6,7 +6,7 @@ const key = Symbol("env:public");
 /**
  * This decorator on an environment variable makes that variable available client-side
  */
-export default function Public(target: any, propertyKey: string) {
+export function Public(target: any, propertyKey: string) {
   const publicVars: string[] = Reflect.getMetadata(key, target);
 
   if (!publicVars) {

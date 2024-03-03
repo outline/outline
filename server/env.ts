@@ -17,8 +17,8 @@ import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
 import { CannotUseWithout } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
-import Public, { getPublicEnv } from "./models/decorators/Public";
 import { getArg } from "./utils/args";
+import { Public, getPublicEnv } from "./utils/decorators/Public";
 
 export class Environment {
   constructor() {
