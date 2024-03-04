@@ -1,12 +1,7 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import crypto from "crypto";
 import { Server } from "https";
 import Koa from "koa";
-import {
-  contentSecurityPolicy,
-  dnsPrefetchControl,
-  referrerPolicy,
-} from "koa-helmet";
+import koaHelmet from "koa-helmet";
 import mount from "koa-mount";
 import enforceHttps, {
   httpsResolver,
@@ -22,41 +17,28 @@ import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
 
-// Construct scripts CSP based on services in use by this installation
-const defaultSrc = ["'self'"];
-const scriptSrc = [
-  "'self'",
-  "gist.github.com",
-  "www.googletagmanager.com",
-  "gitlab.com",
-];
+const securityHeaders: Record<string, string[]> = {
+  "Content-Security-Policy": [
+    `default-src ${env.isProduction ? "'self'" : "*"}`,
+    `style-src ${env.isProduction ? "'self'" : "'unsafe-inline'"} ${
+      env.CDN_URL ?? ""
+    }`,
+    `script-src ${env.isProduction ? "'self'" : "'unsafe-inline'"} ${
+      env.DEVELOPMENT_UNSAFE_INLINE_CSP ? "'unsafe-inline'" : `'nonce-${ctx.state.cspNonce}'`
+    } ${env.GOOGLE_ANALYTICS_ID ? "www.google-analytics.com" : ""} ${
+      env.CDN_URL ?? ""
+    }`,
+    "media-src * data: blob:",
+    "img-src * data: blob:",
+    "frame-src * data:",
+    "connect-src *",
+  ],
+  "DNS-Prefetch-Control": ["on"],
+  Referrer-Policy: ["no-referrer"],
+};
 
-const styleSrc = [
-  "'self'",
-  "'unsafe-inline'",
-  "github.githubassets.com",
-  "gitlab.com",
-];
-
-if (env.isCloudHosted) {
-  scriptSrc.push("cdn.zapier.com");
-  styleSrc.push("cdn.zapier.com");
-}
-
-// Allow to load assets from Vite
-if (!env.isProduction) {
-  scriptSrc.push(env.URL.replace(`:${env.PORT}`, ":3001"));
-  scriptSrc.push("localhost:3001");
-}
-
-if (env.GOOGLE_ANALYTICS_ID) {
-  scriptSrc.push("www.google-analytics.com");
-}
-
-if (env.CDN_URL) {
-  scriptSrc.push(env.CDN_URL);
-  styleSrc.push(env.CDN_URL);
-  defaultSrc.push(env.CDN_URL);
+if (env.isProduction && env.FORCE_HTTPS) {
+  securityHeaders["Strict-Transport-Security"] = ["max-age=31536000; includeSubDomains; preload"];
 }
 
 export default function init(app: Koa = new Koa(), server?: Server) {
@@ -105,41 +87,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   // Sets common security headers by default, such as no-sniff, hsts, hide powered
   // by etc, these are applied after auth and api so they are only returned on
   // standard non-XHR accessed routes
-  app.use((ctx, next) => {
-    ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
-
-    return contentSecurityPolicy({
-      directives: {
-        defaultSrc,
-        styleSrc,
-        scriptSrc: [
-          ...scriptSrc,
-          env.DEVELOPMENT_UNSAFE_INLINE_CSP
-            ? "'unsafe-inline'"
-            : `'nonce-${ctx.state.cspNonce}'`,
-        ],
-        mediaSrc: ["*", "data:", "blob:"],
-        imgSrc: ["*", "data:", "blob:"],
-        frameSrc: ["*", "data:"],
-        // Do not use connect-src: because self + websockets does not work in
-        // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
-        connectSrc: ["*"],
-      },
-    })(ctx, next);
-  });
-
-  // Allow DNS prefetching for performance, we do not care about leaking requests
-  // to our own CDN's
-  app.use(
-    dnsPrefetchControl({
-      allow: true,
-    })
-  );
-  app.use(
-    referrerPolicy({
-      policy: "no-referrer",
-    })
-  );
+  app.use(koaHelmet(securityHeaders));
 
   app.use(mount(routes));
 
