@@ -15,6 +15,7 @@ import PaginatedList from "~/components/PaginatedList";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -25,6 +26,7 @@ import Sidebar from "./SidebarLayout";
 function Insights() {
   const { views, documents } = useStores();
   const { t } = useTranslation();
+  const user = useCurrentUser();
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
   const selectedText = useTextSelection();
@@ -161,9 +163,13 @@ function Insights() {
                   {t("Viewer insights")}
                 </Text>
                 <Text as="p" type="secondary" size="small">
-                  {t(
-                    "As an admin you can manage if team members can see who has viewed this document"
-                  )}
+                  {user.isAdmin
+                    ? t(
+                        "As an admin you can manage if team members can see who has viewed this document"
+                      )
+                    : t(
+                        "As the doc owner you can manage if team members can see who has viewed this document"
+                      )}
                 </Text>
               </Flex>
               <Switch
