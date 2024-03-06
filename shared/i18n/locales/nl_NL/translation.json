@@ -586,6 +586,7 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "{{ count }} keer bekeken door {{ teamMembers }} personen",
   "Viewer insights": "Inzichten van kijkers",
   "As an admin you can manage if team members can see who has viewed this document": "Als beheerder kun je instellen of teamleden kunnen zien wie dit document heeft bekeken",
+  "As the doc owner you can manage if team members can see who has viewed this document": "As the doc owner you can manage if team members can see who has viewed this document",
   "Sorry, the last change could not be persisted – please reload the page": "Sorry, de laatste wijziging kon niet worden bewaard - laad de pagina opnieuw",
   "{{ count }} days": "{{ count }} dag",
   "{{ count }} days_plural": "{{ count }} dagen",
