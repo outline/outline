@@ -586,6 +586,7 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Megtekintette {{ teamMembers }} személy {{ count }} alkalommal",
   "Viewer insights": "Néző részletek",
   "As an admin you can manage if team members can see who has viewed this document": "Admin-ként kezelheti, hogy a csapattagok lássák-e, ki nézte meg a dokumentumot",
+  "As the doc owner you can manage if team members can see who has viewed this document": "As the doc owner you can manage if team members can see who has viewed this document",
   "Sorry, the last change could not be persisted – please reload the page": "Elnézést, az utolsó változás nem menthető – kérem töltse újra az oldalt",
   "{{ count }} days": "{{ count }} day",
   "{{ count }} days_plural": "{{ count }} days",
