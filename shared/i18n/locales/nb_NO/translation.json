@@ -586,6 +586,7 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Vist {{ count }} ganger av {{ teamMembers }} personer",
   "Viewer insights": "Innsikt fra seere",
   "As an admin you can manage if team members can see who has viewed this document": "Som admin kan du administrere om teammedlemmer kan se hvem som har sett dette dokumentet",
+  "As the doc owner you can manage if team members can see who has viewed this document": "As the doc owner you can manage if team members can see who has viewed this document",
   "Sorry, the last change could not be persisted – please reload the page": "Beklager, den siste endringen kunne ikke lagres – vennligst last inn siden på nytt",
   "{{ count }} days": "{{ count }} dag",
   "{{ count }} days_plural": "{{ count }} dager",
