@@ -586,6 +586,7 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "{{ teamMembers }} 人が{{ count }} 回閲覧",
   "Viewer insights": "閲覧者情報",
   "As an admin you can manage if team members can see who has viewed this document": "管理者は、チームメンバーがこのドキュメントを閲覧したユーザーを確認できるかどうかを管理できます。",
+  "As the doc owner you can manage if team members can see who has viewed this document": "As the doc owner you can manage if team members can see who has viewed this document",
   "Sorry, the last change could not be persisted – please reload the page": "申し訳ありませんが、最後の変更を保持できませんでした。ページをリロードしてください",
   "{{ count }} days": "{{ count }} day",
   "{{ count }} days_plural": "{{ count }} days",
