@@ -586,6 +586,7 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Переглянуто {{ count }} разів {{ teamMembers }} людьми",
   "Viewer insights": "Статистика глядачів",
   "As an admin you can manage if team members can see who has viewed this document": "Як адміністратор ви можете контролювати, чи можуть члени команди бачити, хто переглядав цей документ",
+  "As the doc owner you can manage if team members can see who has viewed this document": "As the doc owner you can manage if team members can see who has viewed this document",
   "Sorry, the last change could not be persisted – please reload the page": "На жаль, не вдалося зберегти останню зміну – перезавантажте сторінку",
   "{{ count }} days": "{{ count }} day",
   "{{ count }} days_plural": "{{ count }} days",
