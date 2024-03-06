@@ -586,6 +586,7 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "{{ count }} Mal von {{ teamMembers }} Personen angesehen",
   "Viewer insights": "Viewer Einblicke",
   "As an admin you can manage if team members can see who has viewed this document": "Als Administrator können Sie verwalten, ob Teammitglieder sehen, wer dieses Dokument angesehen hat",
+  "As the doc owner you can manage if team members can see who has viewed this document": "As the doc owner you can manage if team members can see who has viewed this document",
   "Sorry, the last change could not be persisted – please reload the page": "Die letzte Änderung konnte leider nicht übernommen werden – bitte lade die Seite neu",
   "{{ count }} days": "{{ count }} Tag",
   "{{ count }} days_plural": "{{ count }} Tage",
