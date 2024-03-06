@@ -213,4 +213,76 @@ describe("documentImporter", () => {
 
     expect(error).toEqual("File type executable/zip not supported");
   });
+
+  it("should escape dollar signs in HTML input", async () => {
+    const user = await buildUser();
+    const fileName = "test.html";
+    const content = `
+      <!DOCTYPE html>
+      <html>
+          <head>
+              <title>Test</title>
+          </head>
+          <body>
+            <p>$100</p>
+          </body>
+      </html>
+    `;
+    const response = await documentImporter({
+      user,
+      mimeType: "text/html",
+      fileName,
+      content,
+      ip,
+    });
+    expect(response.text).toEqual("\\$100");
+  });
+
+  it("should not escape dollar signs in inline code in HTML input", async () => {
+    const user = await buildUser();
+    const fileName = "test.html";
+    const content = `
+      <!DOCTYPE html>
+      <html>
+          <head>
+              <title>Test</title>
+          </head>
+          <body>
+            <code>echo $foo</code>
+          </body>
+      </html>
+    `;
+    const response = await documentImporter({
+      user,
+      mimeType: "text/html",
+      fileName,
+      content,
+      ip,
+    });
+    expect(response.text).toEqual("`echo $foo`");
+  });
+
+  it("should not escape dollar signs in code blocks in HTML input", async () => {
+    const user = await buildUser();
+    const fileName = "test.html";
+    const content = `
+      <!DOCTYPE html>
+      <html>
+          <head>
+              <title>Test</title>
+          </head>
+          <body>
+            <pre><code>echo $foo</code></pre>
+          </body>
+      </html>
+    `;
+    const response = await documentImporter({
+      user,
+      mimeType: "text/html",
+      fileName,
+      content,
+      ip,
+    });
+    expect(response.text).toEqual("```\necho $foo\n```");
+  });
 });

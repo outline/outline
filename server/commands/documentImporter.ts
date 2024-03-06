@@ -63,10 +63,6 @@ async function documentImporter({
   // to match our hardbreak parser.
   text = text.trim().replace(/<br>/gi, "\\n");
 
-  // Escape any dollar signs in the text to prevent them being interpreted as
-  // math blocks
-  text = text.replace(/\$/g, "\\$");
-
   // Remove any closed and immediately reopened formatting marks
   text = text.replace(/\*\*\*\*/gi, "").replace(/____/gi, "");
 
