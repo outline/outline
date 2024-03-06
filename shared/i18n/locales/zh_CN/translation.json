@@ -586,6 +586,7 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "{{ teamMembers }} 人浏览 {{ count }} 次",
   "Viewer insights": "查看者分析",
   "As an admin you can manage if team members can see who has viewed this document": "作为管理员，您可以管理团队成员是否可以看到谁查看过此文档",
+  "As the doc owner you can manage if team members can see who has viewed this document": "As the doc owner you can manage if team members can see who has viewed this document",
   "Sorry, the last change could not be persisted – please reload the page": "抱歉，无法保存上次更改 - 请重新载入页面",
   "{{ count }} days": "{{ count }} day",
   "{{ count }} days_plural": "{{ count }} days",
