@@ -258,7 +258,7 @@
     "@types/invariant": "^2.2.37",
     "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^8.5.9",
-    "@types/katex": "^0.16.0",
+    "@types/katex": "^0.16.7",
     "@types/koa": "^2.15.0",
     "@types/koa-compress": "^4.0.6",
     "@types/koa-helmet": "^6.0.8",
