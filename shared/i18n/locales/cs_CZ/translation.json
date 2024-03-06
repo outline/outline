@@ -586,6 +586,7 @@
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Zobrazeno {{ count }} krát {{ teamMembers }} lidmi",
   "Viewer insights": "Statistiky shlédnutí",
   "As an admin you can manage if team members can see who has viewed this document": "Jako správce můžete spravovat, zda členové týmu uvidí, kdo si tento dokument prohlížel",
+  "As the doc owner you can manage if team members can see who has viewed this document": "As the doc owner you can manage if team members can see who has viewed this document",
   "Sorry, the last change could not be persisted – please reload the page": "Je nám líto, poslední změna nemohla být zachována - prosím znovu načtěte stránku",
   "{{ count }} days": "{{ count }} day",
   "{{ count }} days_plural": "{{ count }} days",
