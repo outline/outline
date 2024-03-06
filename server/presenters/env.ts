@@ -29,7 +29,6 @@ export default function present(
     GOOGLE_ANALYTICS_ID: env.GOOGLE_ANALYTICS_ID,
     RELEASE:
       process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION || undefined,
-    APP_NAME: env.APP_NAME,
     ROOT_SHARE_ID: options.rootShareId || undefined,
     OIDC_DISABLE_REDIRECT: env.OIDC_DISABLE_REDIRECT || undefined,
     OIDC_LOGOUT_URI: env.OIDC_LOGOUT_URI || undefined,

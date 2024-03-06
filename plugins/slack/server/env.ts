@@ -1,6 +1,7 @@
 import { IsBoolean, IsOptional } from "class-validator";
 import { Environment } from "@server/env";
 import Deprecated from "@server/models/decorators/Deprecated";
+import { Public } from "@server/utils/decorators/Public";
 import environment from "@server/utils/environment";
 import { CannotUseWithout } from "@server/utils/validators";
 
@@ -8,6 +9,20 @@ class SlackPluginEnvironment extends Environment {
   /**
    * Slack OAuth2 client credentials. To enable authentication with Slack.
    */
+  @Public
+  @IsOptional()
+  public SLACK_CLIENT_ID = this.toOptionalString(
+    environment.SLACK_CLIENT_ID ?? environment.SLACK_KEY
+  );
+
+  /**
+   * Injected into the `slack-app-id` header meta tag if provided.
+   */
+  @Public
+  @IsOptional()
+  @CannotUseWithout("SLACK_CLIENT_ID")
+  public SLACK_APP_ID = this.toOptionalString(environment.SLACK_APP_ID);
+
   @IsOptional()
   @Deprecated("Use SLACK_CLIENT_SECRET instead")
   public SLACK_SECRET = this.toOptionalString(environment.SLACK_SECRET);

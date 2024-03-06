@@ -16,10 +16,19 @@ export function Public(target: any, propertyKey: string) {
   publicVars.push(propertyKey);
 }
 
-export function getPublicEnv(env: Environment) {
-  const vars: string[] = Reflect.getMetadata(key, env);
-  return (vars ?? []).reduce((acc, curr) => {
-    acc[curr] = env[curr];
-    return acc;
-  }, {});
+export class PublicEnvironmentRegister {
+  private static publicEnv = {};
+
+  static registerEnv(env: Environment) {
+    process.nextTick(() => {
+      const vars: string[] = Reflect.getMetadata(key, env);
+      (vars ?? []).forEach((key: string) => {
+        this.publicEnv[key] = env[key];
+      });
+    });
+  }
+
+  static getEnv() {
+    return this.publicEnv;
+  }
 }

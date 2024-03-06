@@ -63,7 +63,6 @@ export type PublicEnv = {
   DEFAULT_LANGUAGE: string;
   GOOGLE_ANALYTICS_ID: string | undefined;
   RELEASE: string | undefined;
-  APP_NAME: string;
   ROOT_SHARE_ID?: string;
   OIDC_DISABLE_REDIRECT?: boolean;
   OIDC_LOGOUT_URI?: string;

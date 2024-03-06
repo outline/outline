@@ -18,7 +18,7 @@ import { languages } from "@shared/i18n";
 import { CannotUseWithout } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
-import { Public, getPublicEnv } from "./utils/decorators/Public";
+import { Public, PublicEnvironmentRegister } from "./utils/decorators/Public";
 
 export class Environment {
   constructor() {
@@ -35,10 +35,12 @@ export class Environment {
         }
       });
     });
+
+    PublicEnvironmentRegister.registerEnv(this);
   }
 
   get public() {
-    return getPublicEnv(this);
+    return PublicEnvironmentRegister.getEnv();
   }
 
   /**
@@ -364,20 +366,6 @@ export class Environment {
    */
   public DD_SERVICE = environment.DD_SERVICE ?? "outline";
 
-  @Public
-  @IsOptional()
-  public SLACK_CLIENT_ID = this.toOptionalString(
-    environment.SLACK_CLIENT_ID ?? environment.SLACK_KEY
-  );
-
-  /**
-   * Injected into the `slack-app-id` header meta tag if provided.
-   */
-  @Public
-  @IsOptional()
-  @CannotUseWithout("SLACK_CLIENT_ID")
-  public SLACK_APP_ID = this.toOptionalString(environment.SLACK_APP_ID);
-
   /**
    * Disable autoredirect to the OIDC login page if there is only one
    * authentication method and that method is OIDC.
@@ -593,6 +581,7 @@ export class Environment {
   /**
    * The product name
    */
+  @Public
   public APP_NAME = "Outline";
 
   /**
