@@ -383,28 +383,6 @@ export class Environment {
   public DD_SERVICE = environment.DD_SERVICE ?? "outline";
 
   /**
-   * Disable autoredirect to the OIDC login page if there is only one
-   * authentication method and that method is OIDC.
-   */
-  @Public
-  @IsOptional()
-  @IsBoolean()
-  public OIDC_DISABLE_REDIRECT = this.toOptionalBoolean(
-    environment.OIDC_DISABLE_REDIRECT
-  );
-
-  /**
-   * The OIDC logout endpoint.
-   */
-  @Public
-  @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-  })
-  public OIDC_LOGOUT_URI = this.toOptionalString(environment.OIDC_LOGOUT_URI);
-
-  /**
    * A string representing the version of the software.
    *
    * SOURCE_COMMIT is used by Docker Hub
