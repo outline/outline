@@ -56,6 +56,20 @@ function Insights() {
         >
           <div>
             <Content column>
+              {document.sourceMetadata && (
+                <>
+                  <Heading>{t("Source")}</Heading>
+                  {
+                    <Text as="p" type="secondary" size="small">
+                      {t("Imported from {{ source }}", {
+                        source: document.sourceMetadata.fileName
+                          ? `“${document.sourceMetadata.fileName}”`
+                          : document.sourceName,
+                      })}
+                    </Text>
+                  }
+                </>
+              )}
               <Heading>{t("Stats")}</Heading>
               <Text as="p" type="secondary" size="small">
                 <List>

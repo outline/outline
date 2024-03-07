@@ -96,7 +96,11 @@ const DocumentMeta: React.FC<Props> = ({
       </span>
     );
   } else if (createdAt === updatedAt) {
-    content = (
+    content = document.sourceMetadata ? (
+      <span>
+        {t("Imported")} <Time dateTime={updatedAt} addSuffix />
+      </span>
+    ) : (
       <span>
         {lastUpdatedByCurrentUser
           ? t("You created")

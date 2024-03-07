@@ -42,6 +42,12 @@ async function presentDocument(
     parentDocumentId: undefined,
     lastViewedAt: undefined,
     isCollectionDeleted: await document.isCollectionDeleted(),
+    sourceMetadata: document.sourceMetadata
+      ? {
+          importType: (await document.$get("import"))?.format,
+          fileName: document.sourceMetadata?.fileName,
+        }
+      : undefined,
   };
 
   if (!!document.views && document.views.length > 0) {
