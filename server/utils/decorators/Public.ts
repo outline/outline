@@ -17,7 +17,7 @@ export function Public(target: any, propertyKey: string) {
 }
 
 export class PublicEnvironmentRegister {
-  private static publicEnv = {};
+  private static publicEnv: Record<string, any> = {};
 
   static registerEnv(env: Environment) {
     process.nextTick(() => {
