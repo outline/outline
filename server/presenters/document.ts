@@ -42,12 +42,6 @@ async function presentDocument(
     parentDocumentId: undefined,
     lastViewedAt: undefined,
     isCollectionDeleted: await document.isCollectionDeleted(),
-    sourceMetadata: document.sourceMetadata
-      ? {
-          importType: (await document.$get("import"))?.format,
-          fileName: document.sourceMetadata?.fileName,
-        }
-      : undefined,
   };
 
   if (!!document.views && document.views.length > 0) {
@@ -63,6 +57,12 @@ async function presentDocument(
     data.templateId = document.templateId;
     data.template = document.template;
     data.insightsEnabled = document.insightsEnabled;
+    data.sourceMetadata = document.sourceMetadata
+      ? {
+          importType: (await document.$get("import"))?.format,
+          fileName: document.sourceMetadata?.fileName,
+        }
+      : undefined;
   }
 
   return data;
