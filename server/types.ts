@@ -467,6 +467,7 @@ export type DocumentJSONExport = {
   title: string;
   data: Record<string, any>;
   createdById: string;
+  createdByName: string;
   createdByEmail: string | null;
   createdAt: string;
   updatedAt: string;

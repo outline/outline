@@ -65,7 +65,16 @@ export default class Document extends ParanoidModel {
    * The original data source of the document, if imported.
    */
   sourceMetadata?: {
-    importType: FileOperationFormat;
+    /**
+     * The type of importer that was used, if any. This can also be empty if an individual file was
+     * imported through drag-and-drop, for example.
+     */
+    importType?: FileOperationFormat;
+    /** The date this document was imported. */
+    importedAt?: string;
+    /** The name of the user the created the original source document. */
+    createdByName?: string;
+    /** The name of the file this document was imported from. */
     fileName?: string;
   };
 
