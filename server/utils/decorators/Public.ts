@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import isUndefined from "lodash/isUndefined";
 import type { Environment } from "@server/env";
 
 const key = Symbol("env:public");
@@ -23,7 +24,9 @@ export class PublicEnvironmentRegister {
     process.nextTick(() => {
       const vars: string[] = Reflect.getMetadata(key, env);
       (vars ?? []).forEach((key: string) => {
-        this.publicEnv[key] = env[key];
+        if (isUndefined(this.publicEnv[key])) {
+          this.publicEnv[key] = env[key];
+        }
       });
     });
   }
