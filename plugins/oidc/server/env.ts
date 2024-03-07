@@ -1,4 +1,4 @@
-import { IsOptional, IsUrl, MaxLength } from "class-validator";
+import { IsOptional, IsUrl, MaxLength, MinLength } from "class-validator";
 import { Environment } from "@server/env";
 import environment from "@server/utils/environment";
 import { CannotUseWithout } from "@server/utils/validators";
@@ -28,6 +28,7 @@ class OIDCPluginEnvironment extends Environment {
    * "OpenID Connect".
    */
   @MaxLength(50)
+  @MinLength(2)
   public OIDC_DISPLAY_NAME = environment.OIDC_DISPLAY_NAME ?? "OpenID Connect";
 
   /**
