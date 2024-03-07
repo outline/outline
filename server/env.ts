@@ -46,6 +46,7 @@ export class Environment {
   /**
    * The current environment name.
    */
+  @Public
   @IsIn(["development", "production", "staging", "test"])
   public ENVIRONMENT = environment.NODE_ENV ?? "production";
 
@@ -128,13 +129,14 @@ export class Environment {
   /**
    * The fully qualified, external facing domain name of the server.
    */
+  @Public
   @IsNotEmpty()
   @IsUrl({
     protocols: ["http", "https"],
     require_protocol: true,
     require_tld: false,
   })
-  public URL = environment.URL || "";
+  public URL = (environment.URL ?? "").replace(/\/$/, "");
 
   /**
    * If using a Cloudfront/Cloudflare distribution or similar it can be set below.
@@ -142,27 +144,34 @@ export class Environment {
    * the hostname defined in CDN_URL. In your CDN configuration the origin server
    * should be set to the same as URL.
    */
+  @Public
   @IsOptional()
   @IsUrl({
     protocols: ["http", "https"],
     require_protocol: true,
     require_tld: false,
   })
-  public CDN_URL = this.toOptionalString(environment.CDN_URL);
+  public CDN_URL = this.toOptionalString(
+    environment.CDN_URL ? environment.CDN_URL.replace(/\/$/, "") : ""
+  );
 
   /**
    * The fully qualified, external facing domain name of the collaboration
    * service, if different (unlikely)
    */
+  @Public
   @IsUrl({
     require_tld: false,
     require_protocol: true,
     protocols: ["http", "https", "ws", "wss"],
   })
   @IsOptional()
-  public COLLABORATION_URL = this.toOptionalString(
-    environment.COLLABORATION_URL
-  );
+  public COLLABORATION_URL = (
+    (environment.COLLABORATION_URL || environment.URL) ??
+    ""
+  )
+    .replace(/\/$/, "")
+    .replace(/^http/, "ws");
 
   /**
    * The maximum number of network clients that can be connected to a single
@@ -228,6 +237,7 @@ export class Environment {
    * The default interface language. See translate.getoutline.com for a list of
    * available language codes and their percentage translated.
    */
+  @Public
   @IsIn(languages)
   public DEFAULT_LANGUAGE = environment.DEFAULT_LANGUAGE ?? "en_US";
 
@@ -276,6 +286,9 @@ export class Environment {
    * The host of your SMTP server for enabling emails.
    */
   public SMTP_HOST = environment.SMTP_HOST;
+
+  @Public
+  public EMAIL_ENABLED = !!this.SMTP_HOST || this.isDevelopment;
 
   /**
    * Optional hostname of the client, used for identifying to the server
@@ -332,6 +345,7 @@ export class Environment {
   /**
    * Sentry DSN for capturing errors and frontend performance.
    */
+  @Public
   @IsUrl()
   @IsOptional()
   public SENTRY_DSN = this.toOptionalString(environment.SENTRY_DSN);
@@ -339,6 +353,7 @@ export class Environment {
   /**
    * Sentry tunnel URL for bypassing ad blockers
    */
+  @Public
   @IsUrl()
   @IsOptional()
   public SENTRY_TUNNEL = this.toOptionalString(environment.SENTRY_TUNNEL);
@@ -351,6 +366,7 @@ export class Environment {
   /**
    * A Google Analytics tracking ID, supports v3 or v4 properties.
    */
+  @Public
   @IsOptional()
   public GOOGLE_ANALYTICS_ID = this.toOptionalString(
     environment.GOOGLE_ANALYTICS_ID
@@ -370,6 +386,7 @@ export class Environment {
    * Disable autoredirect to the OIDC login page if there is only one
    * authentication method and that method is OIDC.
    */
+  @Public
   @IsOptional()
   @IsBoolean()
   public OIDC_DISABLE_REDIRECT = this.toOptionalBoolean(
@@ -379,6 +396,7 @@ export class Environment {
   /**
    * The OIDC logout endpoint.
    */
+  @Public
   @IsOptional()
   @IsUrl({
     require_tld: false,
@@ -392,6 +410,7 @@ export class Environment {
    * SOURCE_COMMIT is used by Docker Hub
    * SOURCE_VERSION is used by Heroku
    */
+  @Public
   public VERSION = this.toOptionalString(
     environment.SOURCE_COMMIT || environment.SOURCE_VERSION
   );
@@ -472,14 +491,14 @@ export class Environment {
   /**
    * Optional AWS S3 endpoint URL for file attachments.
    */
+  @Public
   @IsOptional()
-  public AWS_S3_ACCELERATE_URL = this.toOptionalString(
-    environment.AWS_S3_ACCELERATE_URL
-  );
+  public AWS_S3_ACCELERATE_URL = environment.AWS_S3_ACCELERATE_URL ?? "";
 
   /**
    * Optional AWS S3 endpoint URL for file attachments.
    */
+  @Public
   @IsOptional()
   public AWS_S3_UPLOAD_BUCKET_URL = environment.AWS_S3_UPLOAD_BUCKET_URL ?? "";
 
@@ -531,6 +550,7 @@ export class Environment {
   /**
    * Set max allowed upload size for document imports.
    */
+  @Public
   @IsNumber()
   public FILE_STORAGE_IMPORT_MAX_SIZE =
     this.toOptionalNumber(environment.FILE_STORAGE_IMPORT_MAX_SIZE) ??

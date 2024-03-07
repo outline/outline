@@ -69,8 +69,8 @@ export const copyId = createAction({
         name: "Copy Release ID",
         icon: <CopyIcon />,
         section: DeveloperSection,
-        visible: () => !!env.RELEASE,
-        perform: () => copyAndToast(env.RELEASE),
+        visible: () => !!env.VERSION,
+        perform: () => copyAndToast(env.VERSION),
       }),
     ];
   },
