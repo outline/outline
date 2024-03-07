@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { Environment } from "@server/env";
+import type { Environment } from "@server/env";
 
 const key = Symbol("env:public");
 
