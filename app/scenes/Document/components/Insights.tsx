@@ -63,9 +63,9 @@ function Insights() {
                   {
                     <Text as="p" type="secondary" size="small">
                       {t("Imported from {{ source }}", {
-                        source: document.sourceMetadata.fileName
-                          ? `“${document.sourceMetadata.fileName}”`
-                          : document.sourceName,
+                        source:
+                          document.sourceName ??
+                          `“${document.sourceMetadata.fileName}”`,
                       })}
                     </Text>
                   }
