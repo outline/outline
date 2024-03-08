@@ -39,6 +39,9 @@ export class Environment {
     PublicEnvironmentRegister.registerEnv(this);
   }
 
+  /**
+   * Returns an object consisting of env vars annotated with `@Public` decorator
+   */
   get public() {
     return PublicEnvironmentRegister.getEnv();
   }
@@ -152,7 +155,7 @@ export class Environment {
     require_tld: false,
   })
   public CDN_URL = this.toOptionalString(
-    environment.CDN_URL ? environment.CDN_URL.replace(/\/$/, "") : ""
+    environment.CDN_URL ? environment.CDN_URL.replace(/\/$/, "") : undefined
   );
 
   /**
@@ -166,10 +169,7 @@ export class Environment {
     protocols: ["http", "https", "ws", "wss"],
   })
   @IsOptional()
-  public COLLABORATION_URL = (
-    (environment.COLLABORATION_URL || environment.URL) ??
-    ""
-  )
+  public COLLABORATION_URL = (environment.COLLABORATION_URL || this.URL)
     .replace(/\/$/, "")
     .replace(/^http/, "ws");
 
