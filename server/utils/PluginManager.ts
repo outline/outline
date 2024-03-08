@@ -2,6 +2,7 @@ import path from "path";
 import { glob } from "glob";
 import type Router from "koa-router";
 import sortBy from "lodash/sortBy";
+import { v4 as uuid } from "uuid";
 import { UnfurlSignature } from "@shared/types";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
@@ -55,21 +56,16 @@ export class PluginManager {
 
   public static register<T extends PluginType>(
     type: T,
-    id: string,
     value: PluginValueMap[T],
-    options: Omit<Plugin<T>, "id" | "value"> = {}
+    options: Omit<Plugin<T>, "value"> = {
+      id: uuid(),
+    }
   ) {
     if (!this.plugins.has(type)) {
       this.plugins.set(type, []);
     }
-    if (this.getPlugin(type, id)) {
-      throw Error(
-        `Attempt to register plugin ${id} of type ${type} that is already registered.`
-      );
-    }
 
     const plugin = {
-      id,
       value,
       priority: PluginPriority.Normal,
       ...options,
@@ -77,9 +73,9 @@ export class PluginManager {
 
     Logger.debug(
       "plugins",
-      `Plugin ${options.enabled === false ? "disabled" : "enabled"} "${id}" (${
-        options.description
-      })`
+      `Plugin ${options.enabled === false ? "disabled" : "enabled"} "${
+        options.id
+      }" (${options.description})`
     );
 
     this.plugins.get(type)!.push(plugin);
@@ -90,29 +86,22 @@ export class PluginManager {
 
   public static registerTask(
     value: PluginValueMap[PluginType.Task],
-    options: Omit<Plugin<PluginType.Task>, "id" | "value"> = {}
+    options?: Omit<Plugin<PluginType.Task>, "id" | "value">
   ) {
-    return this.register(PluginType.Task, value.name, value, options);
+    return this.register(PluginType.Task, value, {
+      id: value.name,
+      ...options,
+    });
   }
 
   public static registerProcessor(
     value: PluginValueMap[PluginType.Processor],
-    options: Omit<Plugin<PluginType.Processor>, "id" | "value"> = {}
+    options?: Omit<Plugin<PluginType.Processor>, "id" | "value">
   ) {
-    return this.register(PluginType.Processor, value.name, value, options);
-  }
-
-  /**
-   * Return a single registered plugin of a type, mainly useful for tests.
-   *
-   * @param type The type of plugin to filter by
-   * @param id The ID to find
-   * @returns The plugin if found, otherwise undefined
-   */
-  public static getPlugin<T extends PluginType>(type: T, id: string) {
-    return this.plugins.get(type)?.filter((plugin) => plugin.id === id)[0] as
-      | Plugin<T>
-      | undefined;
+    return this.register(PluginType.Processor, value, {
+      id: value.name,
+      ...options,
+    });
   }
 
   /**

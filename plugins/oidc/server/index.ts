@@ -3,10 +3,9 @@ import config from "../plugin.json";
 import router from "./auth/oidc";
 import env from "./env";
 
-PluginManager.register(PluginType.AuthProvider, config.id, router, {
-  priority: 30,
+PluginManager.register(PluginType.AuthProvider, router, {
+  ...config,
   name: env.OIDC_DISPLAY_NAME || config.name,
-  description: config.description,
   enabled: !!(
     env.OIDC_CLIENT_ID &&
     env.OIDC_CLIENT_SECRET &&

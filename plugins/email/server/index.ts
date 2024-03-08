@@ -3,8 +3,7 @@ import { PluginManager, PluginType } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import router from "./auth/email";
 
-PluginManager.register(PluginType.AuthProvider, config.id, router, {
-  name: config.name,
-  description: config.description,
+PluginManager.register(PluginType.AuthProvider, router, {
+  ...config,
   enabled: (!!env.SMTP_HOST && !!env.SMTP_USERNAME) || env.isDevelopment,
 });

@@ -1,5 +1,6 @@
 {
   "id": "azure",
   "name": "Microsoft",
+  "priority": 20,
   "description": "Adds a Microsoft Azure authentication provider."
 }

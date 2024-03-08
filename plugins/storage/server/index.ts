@@ -19,7 +19,8 @@ if (env.FILE_STORAGE === "local") {
   }
 }
 
-PluginManager.register(PluginType.API, "files", router, {
+PluginManager.register(PluginType.API, router, {
+  id: "files",
   name: "Local file storage",
   description: "Plugin for storing files on the local file system",
   enabled: !!(
