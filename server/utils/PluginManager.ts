@@ -75,7 +75,7 @@ export class PluginManager {
       "plugins",
       `Plugin ${options.enabled === false ? "disabled" : "enabled"} "${
         options.id
-      }" (${options.description})`
+      }" ${options.description ? `(${options.description})` : ""}`
     );
 
     this.plugins.get(type)!.push(plugin);
