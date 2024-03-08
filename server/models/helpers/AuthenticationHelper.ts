@@ -28,7 +28,7 @@ export default class AuthenticationHelper {
     return AuthenticationHelper.providers
       .sort((plugin) => (plugin.id === "email" ? 1 : -1))
       .filter((plugin) => {
-        // Guest sign-in is an exception as it does not have an authentication
+        // Email sign-in is an exception as it does not have an authentication
         // provider using passport, instead it exists as a boolean option.
         if (plugin.id === "email") {
           return team?.emailSigninEnabled;
