@@ -1,8 +1,13 @@
 import { addDays, differenceInDays } from "date-fns";
 import i18n, { t } from "i18next";
+import capitalize from "lodash/capitalize";
 import floor from "lodash/floor";
 import { action, autorun, computed, observable, set } from "mobx";
-import { ExportContentType, NotificationEventType } from "@shared/types";
+import {
+  ExportContentType,
+  FileOperationFormat,
+  NotificationEventType,
+} from "@shared/types";
 import type { JSONObject, NavigationNode } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
@@ -55,6 +60,43 @@ export default class Document extends ParanoidModel {
   @Field
   @observable
   id: string;
+
+  /**
+   * The original data source of the document, if imported.
+   */
+  sourceMetadata?: {
+    /**
+     * The type of importer that was used, if any. This can also be empty if an individual file was
+     * imported through drag-and-drop, for example.
+     */
+    importType?: FileOperationFormat;
+    /** The date this document was imported. */
+    importedAt?: string;
+    /** The name of the user the created the original source document. */
+    createdByName?: string;
+    /** The name of the file this document was imported from. */
+    fileName?: string;
+  };
+
+  /**
+   * The name of the original data source, if imported.
+   */
+  get sourceName() {
+    if (!this.sourceMetadata) {
+      return undefined;
+    }
+
+    switch (this.sourceMetadata.importType) {
+      case FileOperationFormat.MarkdownZip:
+        return "Markdown";
+      case FileOperationFormat.JSON:
+        return "JSON";
+      case FileOperationFormat.Notion:
+        return "Notion";
+      default:
+        return capitalize(this.sourceMetadata.importType);
+    }
+  }
 
   /**
    * The id of the collection that this document belongs to, if any.

@@ -49,6 +49,8 @@ async function presentDocument(
   }
 
   if (!options.isPublic) {
+    const source = await document.$get("import");
+
     data.collectionId = document.collectionId;
     data.parentDocumentId = document.parentDocumentId;
     data.createdBy = presentUser(document.createdBy);
@@ -57,6 +59,14 @@ async function presentDocument(
     data.templateId = document.templateId;
     data.template = document.template;
     data.insightsEnabled = document.insightsEnabled;
+    data.sourceMetadata = document.sourceMetadata
+      ? {
+          importedAt: source?.createdAt ?? document.createdAt,
+          importType: source?.format,
+          createdByName: document.sourceMetadata.createdByName,
+          fileName: document.sourceMetadata?.fileName,
+        }
+      : undefined;
   }
 
   return data;

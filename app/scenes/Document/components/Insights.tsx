@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { stringToColor } from "@shared/utils/color";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -56,6 +57,20 @@ function Insights() {
         >
           <div>
             <Content column>
+              {document.sourceMetadata && (
+                <>
+                  <Heading>{t("Source")}</Heading>
+                  {
+                    <Text as="p" type="secondary" size="small">
+                      {t("Imported from {{ source }}", {
+                        source:
+                          document.sourceName ??
+                          `“${document.sourceMetadata.fileName}”`,
+                      })}
+                    </Text>
+                  }
+                </>
+              )}
               <Heading>{t("Stats")}</Heading>
               <Text as="p" type="secondary" size="small">
                 <List>
@@ -108,6 +123,26 @@ function Insights() {
                     <Time dateTime={document.updatedAt} addSuffix />.
                   </Text>
                   <ListSpacing>
+                    {document.sourceMetadata?.createdByName && (
+                      <ListItem
+                        title={document.sourceMetadata?.createdByName}
+                        image={
+                          <Avatar
+                            model={{
+                              color: stringToColor(
+                                document.sourceMetadata.createdByName
+                              ),
+                              avatarUrl: null,
+                              initial: document.sourceMetadata.createdByName[0],
+                            }}
+                            size={32}
+                          />
+                        }
+                        subtitle={t("Creator")}
+                        border={false}
+                        small
+                      />
+                    )}
                     <PaginatedList
                       aria-label={t("Contributors")}
                       items={document.collaborators}
@@ -118,7 +153,9 @@ function Insights() {
                           image={<Avatar model={model} size={32} />}
                           subtitle={
                             model.id === document.createdBy?.id
-                              ? t("Creator")
+                              ? document.sourceMetadata?.createdByName
+                                ? t("Imported")
+                                : t("Creator")
                               : model.id === document.updatedBy?.id
                               ? t("Last edited")
                               : t("Previously edited")
