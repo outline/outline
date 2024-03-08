@@ -14,13 +14,8 @@ import {
   ShapesIcon,
 } from "outline-icons";
 import * as React from "react";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isMac } from "@shared/utils/browser";
-import {
-  developersUrl,
-  changelogUrl,
-  feedbackUrl,
-  githubIssuesUrl,
-} from "@shared/utils/urlHelpers";
 import stores from "~/stores";
 import SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
@@ -139,7 +134,7 @@ export const openAPIDocumentation = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  perform: () => window.open(developersUrl()),
+  perform: () => window.open(UrlHelper.developers),
 });
 
 export const toggleSidebar = createAction({
@@ -156,14 +151,14 @@ export const openFeedbackUrl = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <EmailIcon />,
-  perform: () => window.open(feedbackUrl()),
+  perform: () => window.open(UrlHelper.contact),
 });
 
 export const openBugReportUrl = createAction({
   name: ({ t }) => t("Report a bug"),
   analyticsName: "Open bug report",
   section: NavigationSection,
-  perform: () => window.open(githubIssuesUrl()),
+  perform: () => window.open(UrlHelper.github),
 });
 
 export const openChangelog = createAction({
@@ -172,7 +167,7 @@ export const openChangelog = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  perform: () => window.open(changelogUrl()),
+  perform: () => window.open(UrlHelper.changelog),
 });
 
 export const openKeyboardShortcuts = createAction({

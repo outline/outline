@@ -4,7 +4,7 @@ import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { DocumentPermission, StatusFilter } from "@shared/types";
-import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { BaseSchema } from "@server/routes/api/schema";
 
 const DocumentsSortParamsSchema = z.object({
@@ -115,7 +115,7 @@ export const DocumentsInfoSchema = BaseSchema.extend({
     /** Share Id, if available */
     shareId: z
       .string()
-      .refine((val) => isUUID(val) || SHARE_URL_SLUG_REGEX.test(val))
+      .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
       .optional(),
 
     /** Version of the API to be used */
@@ -173,7 +173,7 @@ export const DocumentsSearchSchema = BaseSchema.extend({
     /** Filter results for the team derived from shareId */
     shareId: z
       .string()
-      .refine((val) => isUUID(val) || SHARE_URL_SLUG_REGEX.test(val))
+      .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
       .optional(),
 
     /** Min words to be shown in the results snippets */

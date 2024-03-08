@@ -47,9 +47,9 @@ import type {
   ProsemirrorData,
   SourceMetadata,
 } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import getTasks from "@shared/utils/getTasks";
 import slugify from "@shared/utils/slugify";
-import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import Backlink from "./Backlink";
@@ -611,7 +611,7 @@ class Document extends ParanoidModel<
       return document;
     }
 
-    const match = id.match(SLUG_URL_REGEX);
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
       const document = await scope.findOne({
         where: {

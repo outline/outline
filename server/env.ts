@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // eslint-disable-next-line import/order
 import environment from "./utils/environment";
 import os from "os";
@@ -19,19 +20,20 @@ import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
 
 export class Environment {
-  protected validationPromise;
-
   constructor() {
-    this.validationPromise = validate(this);
-  }
-
-  /**
-   * Allows waiting on the environment to be validated.
-   *
-   * @returns A promise that resolves when the environment is validated.
-   */
-  public validate() {
-    return this.validationPromise;
+    process.nextTick(() => {
+      void validate(this).then((errors) => {
+        if (errors.length > 0) {
+          let output =
+            "Environment configuration is invalid, please check the following:\n\n";
+          output += errors.map(
+            (error) => "- " + Object.values(error.constraints ?? {}).join(", ")
+          );
+          console.warn(output);
+          process.exit(1);
+        }
+      });
+    });
   }
 
   /**

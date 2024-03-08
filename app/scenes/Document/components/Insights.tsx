@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { stringToColor } from "@shared/utils/color";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -15,6 +16,7 @@ import PaginatedList from "~/components/PaginatedList";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -25,6 +27,7 @@ import Sidebar from "./SidebarLayout";
 function Insights() {
   const { views, documents } = useStores();
   const { t } = useTranslation();
+  const user = useCurrentUser();
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
   const selectedText = useTextSelection();
@@ -54,6 +57,20 @@ function Insights() {
         >
           <div>
             <Content column>
+              {document.sourceMetadata && (
+                <>
+                  <Heading>{t("Source")}</Heading>
+                  {
+                    <Text as="p" type="secondary" size="small">
+                      {t("Imported from {{ source }}", {
+                        source:
+                          document.sourceName ??
+                          `“${document.sourceMetadata.fileName}”`,
+                      })}
+                    </Text>
+                  }
+                </>
+              )}
               <Heading>{t("Stats")}</Heading>
               <Text as="p" type="secondary" size="small">
                 <List>
@@ -106,6 +123,26 @@ function Insights() {
                     <Time dateTime={document.updatedAt} addSuffix />.
                   </Text>
                   <ListSpacing>
+                    {document.sourceMetadata?.createdByName && (
+                      <ListItem
+                        title={document.sourceMetadata?.createdByName}
+                        image={
+                          <Avatar
+                            model={{
+                              color: stringToColor(
+                                document.sourceMetadata.createdByName
+                              ),
+                              avatarUrl: null,
+                              initial: document.sourceMetadata.createdByName[0],
+                            }}
+                            size={32}
+                          />
+                        }
+                        subtitle={t("Creator")}
+                        border={false}
+                        small
+                      />
+                    )}
                     <PaginatedList
                       aria-label={t("Contributors")}
                       items={document.collaborators}
@@ -116,7 +153,9 @@ function Insights() {
                           image={<Avatar model={model} size={32} />}
                           subtitle={
                             model.id === document.createdBy?.id
-                              ? t("Creator")
+                              ? document.sourceMetadata?.createdByName
+                                ? t("Imported")
+                                : t("Creator")
                               : model.id === document.updatedBy?.id
                               ? t("Last edited")
                               : t("Previously edited")
@@ -161,9 +200,13 @@ function Insights() {
                   {t("Viewer insights")}
                 </Text>
                 <Text as="p" type="secondary" size="small">
-                  {t(
-                    "As an admin you can manage if team members can see who has viewed this document"
-                  )}
+                  {user.isAdmin
+                    ? t(
+                        "As an admin you can manage if team members can see who has viewed this document"
+                      )
+                    : t(
+                        "As the doc owner you can manage if team members can see who has viewed this document"
+                      )}
                 </Text>
               </Flex>
               <Switch

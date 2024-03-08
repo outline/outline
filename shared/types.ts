@@ -148,6 +148,8 @@ export type SourceMetadata = {
   fileName?: string;
   /** The original source mime type. */
   mimeType?: string;
+  /** The creator of the original external source. */
+  createdByName?: string;
   /** An ID in the external source. */
   externalId?: string;
   /** Whether the item was created through a trial license. */
