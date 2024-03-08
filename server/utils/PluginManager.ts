@@ -18,6 +18,9 @@ export enum PluginPriority {
   VeryLow = 500,
 }
 
+/**
+ * The different types of server plugins that can be registered.
+ */
 export enum PluginType {
   API = "api",
   AuthProvider = "authProvider",
@@ -27,6 +30,10 @@ export enum PluginType {
   UnfurlProvider = "unfurl",
 }
 
+/**
+ * A map of plugin types to their values, for example an API plugin would have a value of type
+ * Router. Registering an API plugin causes the router to be mounted.
+ */
 type PluginValueMap = {
   [PluginType.API]: Router;
   [PluginType.AuthProvider]: Router;
@@ -54,6 +61,14 @@ export type Plugin<T extends PluginType> = {
 export class PluginManager {
   private static plugins = new Map<PluginType, Plugin<PluginType>[]>();
 
+  /**
+   * Register a plugin of a given type.
+   *
+   * @param type The plugin type
+   * @param value The plugin value
+   * @param options Additional options, including whether the plugin is enabled and it's priority.
+   * @returns The PluginManager instance, for chaining.
+   */
   public static register<T extends PluginType>(
     type: T,
     value: PluginValueMap[T],
@@ -84,6 +99,12 @@ export class PluginManager {
     return this;
   }
 
+  /**
+   * Syntactic sugar for registering a background Task.
+   *
+   * @param value The task class
+   * @param options Additional options
+   */
   public static registerTask(
     value: PluginValueMap[PluginType.Task],
     options?: Omit<Plugin<PluginType.Task>, "id" | "value">
@@ -94,6 +115,12 @@ export class PluginManager {
     });
   }
 
+  /**
+   * Syntactic sugar for registering a background Processor.
+   *
+   * @param value The processor class
+   * @param options Additional options
+   */
   public static registerProcessor(
     value: PluginValueMap[PluginType.Processor],
     options?: Omit<Plugin<PluginType.Processor>, "id" | "value">
