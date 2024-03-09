@@ -79,7 +79,7 @@ async function build() {
     execAsync("cp package.json ./build"),
     ...d.map(async (plugin) =>
       execAsync(
-        `mkdir -p ./build/plugins/${plugin} && cp ./plugins/${plugin}/plugin.json ./build/plugins/${plugin}/plugin.json`
+        `mkdir -p ./build/plugins/${plugin} && cp ./plugins/${plugin}/plugin.json ./build/plugins/${plugin}/plugin.json 2>/dev/null || :`
       )
     ),
   ]);
