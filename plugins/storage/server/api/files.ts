@@ -18,10 +18,7 @@ import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
-import { createRootDirForLocalStorage } from "../utils";
 import * as T from "./schema";
-
-createRootDirForLocalStorage();
 
 const router = new Router();
 

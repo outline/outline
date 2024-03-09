@@ -13,11 +13,12 @@ import { authorize } from "@server/policies";
 import { presentDocument, presentMention } from "@server/presenters/unfurls";
 import presentUnfurl from "@server/presenters/unfurls/unfurl";
 import { APIContext } from "@server/types";
+import { PluginManager, PluginType } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import resolvers from "@server/utils/unfurl";
 import * as T from "./schema";
 
 const router = new Router();
+const plugins = PluginManager.getEnabledPlugins(PluginType.UnfurlProvider);
 
 router.post(
   "urls.unfurl",
@@ -74,11 +75,13 @@ router.post(
     }
 
     // External resources
-    if (resolvers.Iframely) {
-      const data = await resolvers.Iframely.unfurl(url);
-      return data.error
-        ? (ctx.response.status = 204)
-        : (ctx.body = presentUnfurl(data));
+    for (const plugin of plugins) {
+      const data = await plugin.value(url);
+      if (data) {
+        return "error" in data
+          ? (ctx.response.status = 204)
+          : (ctx.body = presentUnfurl(data));
+      }
     }
 
     return (ctx.response.status = 204);

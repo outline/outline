@@ -18,10 +18,10 @@ import {
   getTeamFromContext,
   getClientFromContext,
 } from "@server/utils/passport";
+import config from "../../plugin.json";
 import env from "../env";
 
 const router = new Router();
-const providerName = "google";
 
 const scopes = [
   "https://www.googleapis.com/auth/userinfo.profile",
@@ -42,7 +42,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
       {
         clientID: env.GOOGLE_CLIENT_ID,
         clientSecret: env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `${env.URL}/auth/google.callback`,
+        callbackURL: `${env.URL}/auth/${config.id}.callback`,
         passReqToCallback: true,
         // @ts-expect-error StateStore
         store: new StateStore(),
@@ -110,7 +110,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
               avatarUrl,
             },
             authenticationProvider: {
-              name: providerName,
+              name: config.id,
               providerId: domain ?? "",
             },
             authentication: {
@@ -131,14 +131,13 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
   );
 
   router.get(
-    "google",
-    passport.authenticate(providerName, {
+    config.id,
+    passport.authenticate(config.id, {
       accessType: "offline",
       prompt: "select_account consent",
     })
   );
-
-  router.get("google.callback", passportMiddleware(providerName));
+  router.get(`${config.id}.callback`, passportMiddleware(config.id));
 }
 
 export default router;

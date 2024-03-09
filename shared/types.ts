@@ -270,14 +270,20 @@ export enum QueryNotices {
 
 export type OEmbedType = "photo" | "video" | "rich";
 
-export type Unfurl<T = OEmbedType> = {
-  url?: string;
-  type: T;
-  title: string;
-  description?: string;
-  thumbnailUrl?: string | null;
-  meta?: Record<string, string>;
-};
+export type Unfurl<T = OEmbedType> =
+  | {
+      url?: string;
+      type: T;
+      title: string;
+      description?: string;
+      thumbnailUrl?: string | null;
+      meta?: Record<string, string>;
+    }
+  | {
+      error: string;
+    };
+
+export type UnfurlSignature = (url: string) => Promise<Unfurl | false>;
 
 export type JSONValue =
   | string
