@@ -56,8 +56,8 @@ export default function markdownItCheckbox(md: MarkdownIt): void {
 
     // work backwards through the tokens and find text that looks like a checkbox
     for (let i = tokens.length - 1; i > 0; i--) {
-      const matches = looksLikeChecklist(tokens, i);
-      if (matches) {
+      const matchesChecklist = looksLikeChecklist(tokens, i);
+      if (matchesChecklist) {
         const value = matches[1];
         const checked = value.toLowerCase() === "x";
 

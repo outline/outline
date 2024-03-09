@@ -35,14 +35,14 @@ export default class ProsemirrorHelper {
    * @param schema The schema to use.
    * @returns The document content as plain text without formatting.
    */
-  static toPlainText(node: Node, schema: Schema) {
+  static toPlainText(root: Node, schema: Schema) {
     const textSerializers = Object.fromEntries(
       Object.entries(schema.nodes)
         .filter(([, node]) => node.spec.toPlainText)
         .map(([name, node]) => [name, node.spec.toPlainText])
     );
 
-    return textBetween(node, 0, node.content.size, textSerializers);
+    return textBetween(root, 0, root.content.size, textSerializers);
   }
 
   /**

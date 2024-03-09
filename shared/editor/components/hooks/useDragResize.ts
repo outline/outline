@@ -84,7 +84,7 @@ export default function useDragResize(props: Props): ReturnValue {
   };
 
   const handlePointerDown =
-    (dragging: "left" | "right") =>
+    (dragDirection: "left" | "right") =>
     (event: React.PointerEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
@@ -93,7 +93,7 @@ export default function useDragResize(props: Props): ReturnValue {
         height: size.height,
       });
       setOffset(event.pageX);
-      setDragging(dragging);
+      setDragging(dragDirection);
     };
 
   React.useEffect(() => {

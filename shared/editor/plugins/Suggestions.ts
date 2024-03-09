@@ -28,11 +28,11 @@ export class SuggestionsMenuPlugin extends Plugin {
             // timeout ensures that the delete has been handled by prosemirror
             // and any characters removed, before we evaluate the rule.
             setTimeout(() => {
-              const { pos } = view.state.selection.$from;
+              const { pos: fromPos } = view.state.selection.$from;
               return this.execute(
                 view,
-                pos,
-                pos,
+                fromPos,
+                fromPos,
                 options.openRegex,
                 action((_, match) => {
                   if (match) {
