@@ -389,18 +389,6 @@ export class Environment {
   public DD_SERVICE = environment.DD_SERVICE ?? "outline";
 
   /**
-   * GitHub OAuth2 client credentials. To enable integration with GitHub.
-   */
-  @IsOptional()
-  public GITHUB_CLIENT_ID = this.toOptionalString(environment.GITHUB_CLIENT_ID);
-
-  @IsOptional()
-  @CannotUseWithout("GITHUB_CLIENT_ID")
-  public GITHUB_APP_NAME = this.toOptionalString(environment.GITHUB_APP_NAME);
-
-  public PLUGINS_DISABLED = (environment.PLUGINS_DISABLED ?? "").split(",");
-
-  /**
    * A string representing the version of the software.
    *
    * SOURCE_COMMIT is used by Docker Hub

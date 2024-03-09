@@ -1,9 +1,6 @@
 {
+  "id": "github",
   "name": "GitHub",
-  "description": "Adds a GitHub integration for link unfurling.",
-  "requiredEnvVars": [
-    "GITHUB_CLIENT_ID",
-    "GITHUB_CLIENT_SECRET",
-    "GITHUB_APP_NAME"
-  ]
+  "priority": 10,
+  "description": "Adds a GitHub integration for link unfurling."
 }

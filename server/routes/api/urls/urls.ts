@@ -76,7 +76,7 @@ router.post(
 
     // External resources
     for (const plugin of plugins) {
-      const data = await plugin.value(url);
+      const data = await plugin.value(url, actor);
       if (data) {
         return "error" in data
           ? (ctx.response.status = 204)

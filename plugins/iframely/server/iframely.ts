@@ -61,7 +61,7 @@ class Iframely {
    * @param url
    * @returns Preview data for the url
    */
-  public static async get(url: string): Promise<Unfurl | false> {
+  public static async get(url: string): Promise<Unfurl | void> {
     try {
       const cached = await Iframely.cached(url);
       if (cached) {
