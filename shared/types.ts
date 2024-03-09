@@ -218,9 +218,9 @@ export enum NotificationChannelType {
 }
 
 export type NotificationSettings = {
-  [key in NotificationEventType]?:
+  [event in NotificationEventType]?:
     | {
-        [key in NotificationChannelType]?: boolean;
+        [type in NotificationChannelType]?: boolean;
       }
     | boolean;
 };
