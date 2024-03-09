@@ -58,7 +58,7 @@ export default function markdownItCheckbox(md: MarkdownIt): void {
     for (let i = tokens.length - 1; i > 0; i--) {
       const matchesChecklist = looksLikeChecklist(tokens, i);
       if (matchesChecklist) {
-        const value = matches[1];
+        const value = matchesChecklist[1];
         const checked = value.toLowerCase() === "x";
 
         // convert surrounding list tokens
