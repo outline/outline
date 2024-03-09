@@ -49,29 +49,10 @@ export enum MentionType {
 }
 
 export type PublicEnv = {
-  URL: string;
-  CDN_URL: string;
-  COLLABORATION_URL: string;
-  AWS_S3_UPLOAD_BUCKET_URL: string;
-  AWS_S3_ACCELERATE_URL: string;
-  ENVIRONMENT: string;
-  SENTRY_DSN: string | undefined;
-  SENTRY_TUNNEL: string | undefined;
-  SLACK_CLIENT_ID: string | undefined;
-  GITHUB_CLIENT_ID: string | undefined;
+  GITHUB_CLIENT_ID?: string;
   GITHUB_APP_NAME?: string;
   PLUGINS_DISABLED: string[];
-  SLACK_APP_ID: string | undefined;
-  FILE_STORAGE_IMPORT_MAX_SIZE: number;
-  EMAIL_ENABLED: boolean;
-  PDF_EXPORT_ENABLED: boolean;
-  DEFAULT_LANGUAGE: string;
-  GOOGLE_ANALYTICS_ID: string | undefined;
-  RELEASE: string | undefined;
-  APP_NAME: string;
   ROOT_SHARE_ID?: string;
-  OIDC_DISABLE_REDIRECT?: boolean;
-  OIDC_LOGOUT_URI?: string;
   analytics: {
     service?: IntegrationService | UserCreatableIntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;
@@ -168,6 +149,8 @@ export type SourceMetadata = {
   fileName?: string;
   /** The original source mime type. */
   mimeType?: string;
+  /** The creator of the original external source. */
+  createdByName?: string;
   /** An ID in the external source. */
   externalId?: string;
   /** Whether the item was created through a trial license. */
@@ -290,15 +273,21 @@ export enum QueryNotices {
 
 export type OEmbedType = "photo" | "video" | "rich";
 
-export type Unfurl<T = OEmbedType> = {
-  url?: string;
-  type: T;
-  title: string;
-  description?: string;
-  thumbnailUrl?: string | null;
-  author?: { name: string; avatarUrl: string };
-  meta?: Record<string, string>;
-};
+export type Unfurl<T = OEmbedType> =
+  | {
+      url?: string;
+      type: T;
+      title: string;
+      description?: string;
+      thumbnailUrl?: string | null;
+      author?: { name: string; avatarUrl: string };
+      meta?: Record<string, string>;
+    }
+  | {
+      error: string;
+    };
+
+export type UnfurlSignature = (url: string) => Promise<Unfurl | false>;
 
 export type JSONValue =
   | string

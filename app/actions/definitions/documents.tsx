@@ -26,6 +26,7 @@ import {
   CommentIcon,
   GlobeIcon,
   CopyIcon,
+  EyeIcon,
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
@@ -896,6 +897,37 @@ export const openDocumentInsights = createAction({
       return;
     }
     history.push(documentInsightsPath(document));
+  },
+});
+
+export const toggleViewerInsights = createAction({
+  name: ({ t, stores, activeDocumentId }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    return document?.insightsEnabled
+      ? t("Disable viewer insights")
+      : t("Enable viewer insights");
+  },
+  analyticsName: "Toggle viewer insights",
+  section: DocumentSection,
+  icon: <EyeIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    const can = stores.policies.abilities(activeDocumentId ?? "");
+    return can.updateInsights;
+  },
+  perform: async ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    if (!document) {
+      return;
+    }
+
+    await document.save({
+      insightsEnabled: !document.insightsEnabled,
+    });
   },
 });
 

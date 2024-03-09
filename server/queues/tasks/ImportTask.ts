@@ -78,6 +78,7 @@ export type StructuredImportData = {
     publishedAt?: Date | null;
     parentDocumentId?: string | null;
     createdById?: string;
+    createdByName?: string;
     createdByEmail?: string | null;
     path: string;
     mimeType: string;
@@ -467,6 +468,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
                 fileName: path.basename(item.path),
                 mimeType: item.mimeType,
                 externalId: item.externalId,
+                createdByName: item.createdByName,
               },
               id: item.id,
               title: item.title,

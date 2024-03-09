@@ -98,7 +98,7 @@ export const renderApp = async (
     .replace(/\{canonical-url\}/g, canonical)
     .replace(/\{shortcut-icon\}/g, shortcutIcon)
     .replace(/\{prefetch\}/g, shareId ? "" : prefetchTags)
-    .replace(/\{slack-app-id\}/g, env.SLACK_APP_ID || "")
+    .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{cdn-url\}/g, env.CDN_URL || "")
     .replace(/\{script-tags\}/g, scriptTags)
     .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);

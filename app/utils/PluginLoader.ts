@@ -6,7 +6,6 @@ interface Plugin {
   config: {
     name: string;
     description: string;
-    requiredEnvVars?: string[];
     deployments?: string[];
   };
   settings: React.FC;
