@@ -7,7 +7,7 @@ export function initSentry(history: History) {
   Sentry.init({
     dsn: env.SENTRY_DSN,
     environment: env.ENVIRONMENT,
-    release: env.RELEASE,
+    release: env.VERSION,
     tunnel: env.SENTRY_TUNNEL,
     allowUrls: [env.URL, env.CDN_URL, env.COLLABORATION_URL],
     integrations: [

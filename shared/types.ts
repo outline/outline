@@ -49,26 +49,7 @@ export enum MentionType {
 }
 
 export type PublicEnv = {
-  URL: string;
-  CDN_URL: string;
-  COLLABORATION_URL: string;
-  AWS_S3_UPLOAD_BUCKET_URL: string;
-  AWS_S3_ACCELERATE_URL: string;
-  ENVIRONMENT: string;
-  SENTRY_DSN: string | undefined;
-  SENTRY_TUNNEL: string | undefined;
-  SLACK_CLIENT_ID: string | undefined;
-  SLACK_APP_ID: string | undefined;
-  FILE_STORAGE_IMPORT_MAX_SIZE: number;
-  EMAIL_ENABLED: boolean;
-  PDF_EXPORT_ENABLED: boolean;
-  DEFAULT_LANGUAGE: string;
-  GOOGLE_ANALYTICS_ID: string | undefined;
-  RELEASE: string | undefined;
-  APP_NAME: string;
   ROOT_SHARE_ID?: string;
-  OIDC_DISABLE_REDIRECT?: boolean;
-  OIDC_LOGOUT_URI?: string;
   analytics: {
     service?: IntegrationService | UserCreatableIntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;

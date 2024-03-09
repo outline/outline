@@ -9,7 +9,7 @@ import { RESERVED_SUBDOMAINS, getBaseDomain, parseDomain } from "./domains";
  * @returns The path with the CDN url prepended.
  */
 export function cdnPath(path: string): string {
-  return `${env.CDN_URL}${path}`;
+  return `${env.CDN_URL ?? ""}${path}`;
 }
 
 /**
