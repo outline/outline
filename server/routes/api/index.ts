@@ -62,8 +62,8 @@ api.use(editor());
 const plugins = PluginManager.getEnabledPlugins(PluginType.API).map(
   (plugin) => plugin.value
 );
-for (const router of plugins) {
-  router.use("/", router.routes());
+for (const plugin of plugins) {
+  router.use("/", plugin.routes());
 }
 
 // routes
