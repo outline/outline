@@ -13,21 +13,19 @@ import DocumentViews from "~/components/DocumentViews";
 import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
-import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useTextSelection from "~/hooks/useTextSelection";
+import InsightsMenu from "~/menus/InsightsMenu";
 import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
 
 function Insights() {
   const { views, documents } = useStores();
   const { t } = useTranslation();
-  const user = useCurrentUser();
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
   const selectedText = useTextSelection();
@@ -111,114 +109,99 @@ function Insights() {
                 </List>
               </Text>
             </Content>
-            {document.insightsEnabled && (
-              <>
-                <Content column>
-                  <Heading>{t("Contributors")}</Heading>
-                  <Text as="p" type="secondary" size="small">
-                    {t(`Created`)}{" "}
-                    <Time dateTime={document.createdAt} addSuffix />.
-                    <br />
-                    {t(`Last updated`)}{" "}
-                    <Time dateTime={document.updatedAt} addSuffix />.
-                  </Text>
-                  <ListSpacing>
-                    {document.sourceMetadata?.createdByName && (
-                      <ListItem
-                        title={document.sourceMetadata?.createdByName}
-                        image={
-                          <Avatar
-                            model={{
-                              color: stringToColor(
-                                document.sourceMetadata.createdByName
-                              ),
-                              avatarUrl: null,
-                              initial: document.sourceMetadata.createdByName[0],
-                            }}
-                            size={32}
-                          />
-                        }
-                        subtitle={t("Creator")}
-                        border={false}
-                        small
+
+            <Content column>
+              <Heading>{t("Contributors")}</Heading>
+              <Text as="p" type="secondary" size="small">
+                {t(`Created`)} <Time dateTime={document.createdAt} addSuffix />.
+                <br />
+                {t(`Last updated`)}{" "}
+                <Time dateTime={document.updatedAt} addSuffix />.
+              </Text>
+              <ListSpacing>
+                {document.sourceMetadata?.createdByName && (
+                  <ListItem
+                    title={document.sourceMetadata?.createdByName}
+                    image={
+                      <Avatar
+                        model={{
+                          color: stringToColor(
+                            document.sourceMetadata.createdByName
+                          ),
+                          avatarUrl: null,
+                          initial: document.sourceMetadata.createdByName[0],
+                        }}
+                        size={32}
                       />
-                    )}
-                    <PaginatedList
-                      aria-label={t("Contributors")}
-                      items={document.collaborators}
-                      renderItem={(model: User) => (
-                        <ListItem
-                          key={model.id}
-                          title={model.name}
-                          image={<Avatar model={model} size={32} />}
-                          subtitle={
-                            model.id === document.createdBy?.id
-                              ? document.sourceMetadata?.createdByName
-                                ? t("Imported")
-                                : t("Creator")
-                              : model.id === document.updatedBy?.id
-                              ? t("Last edited")
-                              : t("Previously edited")
-                          }
-                          border={false}
-                          small
-                        />
-                      )}
+                    }
+                    subtitle={t("Creator")}
+                    border={false}
+                    small
+                  />
+                )}
+                <PaginatedList
+                  aria-label={t("Contributors")}
+                  items={document.collaborators}
+                  renderItem={(model: User) => (
+                    <ListItem
+                      key={model.id}
+                      title={model.name}
+                      image={<Avatar model={model} size={32} />}
+                      subtitle={
+                        model.id === document.createdBy?.id
+                          ? document.sourceMetadata?.createdByName
+                            ? t("Imported")
+                            : t("Creator")
+                          : model.id === document.updatedBy?.id
+                          ? t("Last edited")
+                          : t("Previously edited")
+                      }
+                      border={false}
+                      small
                     />
-                  </ListSpacing>
-                </Content>
-                <Content column>
-                  <Heading>{t("Views")}</Heading>
-                  <Text as="p" type="secondary" size="small">
-                    {documentViews.length <= 1
-                      ? t("No one else has viewed yet")
-                      : t(
-                          `Viewed {{ count }} times by {{ teamMembers }} people`,
-                          {
-                            count: documentViews.reduce(
-                              (memo, view) => memo + view.count,
-                              0
-                            ),
-                            teamMembers: documentViews.length,
-                          }
-                        )}
-                    .
-                  </Text>
-                  {documentViews.length > 1 && (
-                    <ListSpacing>
-                      <DocumentViews document={document} isOpen />
-                    </ListSpacing>
                   )}
-                </Content>
-              </>
+                />
+              </ListSpacing>
+            </Content>
+            {(document.insightsEnabled || can.updateInsights) && (
+              <Content column>
+                <Heading>
+                  <Flex justify="space-between">
+                    {t("Viewed by")}
+                    {can.updateInsights && <InsightsMenu />}
+                  </Flex>
+                </Heading>
+                {document.insightsEnabled ? (
+                  <>
+                    <Text as="p" type="secondary" size="small">
+                      {documentViews.length <= 1
+                        ? t("No one else has viewed yet")
+                        : t(
+                            `Viewed {{ count }} times by {{ teamMembers }} people`,
+                            {
+                              count: documentViews.reduce(
+                                (memo, view) => memo + view.count,
+                                0
+                              ),
+                              teamMembers: documentViews.length,
+                            }
+                          )}
+                      .
+                    </Text>
+                    {documentViews.length > 1 && (
+                      <ListSpacing>
+                        <DocumentViews document={document} isOpen />
+                      </ListSpacing>
+                    )}
+                  </>
+                ) : (
+                  <Text as="p" type="secondary" size="small">
+                    {t("Viewer insights are disabled.")}
+                  </Text>
+                )}
+              </Content>
             )}
           </div>
-          {can.updateInsights && (
-            <Manage>
-              <Flex column>
-                <Text as="p" size="small" weight="bold">
-                  {t("Viewer insights")}
-                </Text>
-                <Text as="p" type="secondary" size="small">
-                  {user.isAdmin
-                    ? t(
-                        "As an admin you can manage if team members can see who has viewed this document"
-                      )
-                    : t(
-                        "As the doc owner you can manage if team members can see who has viewed this document"
-                      )}
-                </Text>
-              </Flex>
-              <Switch
-                checked={document.insightsEnabled}
-                onChange={async (ev) => {
-                  await document.save({
-                    insightsEnabled: ev.currentTarget.checked,
-                  });
-                }}
-              />
-            </Manage>
-          )}
         </Flex>
       ) : null}
     </Sidebar>
@@ -250,16 +233,6 @@ function countWords(text: string): number {
   // Hyphenated words are counted as two words
   return t ? t.replace(/-/g, " ").split(/\s+/g).length : 0;
 }
-
-const Manage = styled(Flex)`
-  background: ${s("background")};
-  border: 1px solid ${s("inputBorder")};
-  border-bottom-width: 2px;
-  border-radius: 8px;
-  margin: 16px;
-  padding: 16px 16px 0;
-  justify-self: flex-end;
-`;
 
 const ListSpacing = styled("div")`
   margin-top: -0.5em;
