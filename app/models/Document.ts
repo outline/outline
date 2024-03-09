@@ -82,7 +82,7 @@ export default class Document extends ParanoidModel {
    * The name of the original data source, if imported.
    */
   get sourceName() {
-    if (!this.sourceMetadata) {
+    if (!this.sourceMetadata?.importType) {
       return undefined;
     }
 
