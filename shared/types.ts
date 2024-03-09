@@ -263,6 +263,8 @@ export const NotificationEventDefaults = {
 export enum UnfurlType {
   Mention = "mention",
   Document = "document",
+  Issue = "issue",
+  Pull = "pull",
 }
 
 export enum QueryNotices {
@@ -278,6 +280,7 @@ export type Unfurl<T = OEmbedType> =
       title: string;
       description?: string;
       thumbnailUrl?: string | null;
+      author?: { name: string; avatarUrl: string };
       meta?: Record<string, string>;
     }
   | {

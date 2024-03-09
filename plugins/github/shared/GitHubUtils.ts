@@ -2,6 +2,8 @@ import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
 export class GitHubUtils {
+  public static allowedResources = ["pull", "issues"];
+
   static get url() {
     return integrationSettingsPath("github");
   }
@@ -42,5 +44,26 @@ export class GitHubUtils {
       .map((key) => `${key}=${encodeURIComponent(params[key])}`)
       .join("&");
     return `${baseUrl}?${urlParams}`;
+  }
+
+  /**
+   * Parses a GitHub like URL to obtain info like repo name, owner, resource type(issue or PR).
+   *
+   * @param url URL to parse
+   * @returns An object containing repository, owner, resource type(issue or pull request) and resource id
+   */
+  public static parseUrl(url: string) {
+    const { hostname, pathname } = new URL(url);
+    if (hostname !== "github.com") {
+      return {};
+    }
+
+    const [, owner, repo, resourceType, resourceId] = pathname.split("/");
+
+    if (!this.allowedResources.includes(resourceType)) {
+      return {};
+    }
+
+    return { owner, repo, resourceType, resourceId };
   }
 }

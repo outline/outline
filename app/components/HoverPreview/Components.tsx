@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import Text from "~/components/Text";
+import Flex from "../Flex";
 
 export const CARD_MARGIN = 10;
 
@@ -52,6 +53,35 @@ export const Thumbnail = styled.img`
   object-fit: cover;
   height: 200px;
   background: ${s("menuBackground")};
+`;
+
+export const LabelContainer = styled(Flex)`
+  margin-top: 1em;
+  margin-bottom: 1em;
+`;
+
+export const Label = styled.div<{ color?: string }>`
+  background-color: ${(props) =>
+    props.color ? `#${props.color}` : props.theme.textTertiary};
+  width: fit-content;
+  border-radius: 12px;
+  padding-left: 6px;
+  padding-right: 6px;
+  font-size: 0.9em;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-right: 0.3em;
+  margin-top: 0.3em;
+`;
+
+export const MetaInfoContainer = styled(Flex)`
+  margin-top: 1em;
+`;
+
+export const Status = styled(Label)<{ type: string }>`
+  background-color: ${(props) =>
+    props.type === "open" ? "#1f883d" : "#8250df"};
 `;
 
 export const CardContent = styled.div`
