@@ -21,7 +21,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import GitHubIcon from "./Icon";
-import GitHubButton from "./components/GitHubButton";
+import GitHubConnectButton from "./components/GitHubButton";
 
 function GitHub() {
   const team = useCurrentTeam();
@@ -97,16 +97,7 @@ function GitHub() {
       {env.GITHUB_CLIENT_ID ? (
         <>
           <p>
-            <GitHubButton
-              redirectUri={`${env.URL}/api/github.callback`}
-              state={team.id}
-              label={
-                githubIntegrations.length
-                  ? t("Connect another account")
-                  : t("Connect GitHub")
-              }
-              icon={<GitHubIcon />}
-            />
+            <GitHubConnectButton />
           </p>
           <p>&nbsp;</p>
 

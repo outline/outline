@@ -1,7 +1,10 @@
+import queryString from "query-string";
 import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
 export class GitHubUtils {
+  public static clientId = env.GITHUB_CLIENT_ID;
+
   public static allowedResources = ["pull", "issues"];
 
   static get url() {
@@ -19,31 +22,25 @@ export class GitHubUtils {
   /**
    * @returns Callback URL configured for GitHub, to which users will be redirected upon authorization
    */
-  public static callbackUrl({
-    baseUrl = `${env.URL}/api/github.callback`,
-    params,
-  }: {
-    baseUrl: string;
-    params?: string;
-  }) {
-    return `${baseUrl}/api/github.callback?${params}`;
+  public static callbackUrl(
+    { baseUrl, params }: { baseUrl: string; params?: string } = {
+      baseUrl: `${env.URL}`,
+      params: undefined,
+    }
+  ) {
+    return params
+      ? `${baseUrl}/api/github.callback?${params}`
+      : `${baseUrl}/api/github.callback`;
   }
 
-  static authUrl(
-    state: string,
-    clientId: string,
-    redirectUri = `${env.URL}/api/github.callback`
-  ): string {
+  static authUrl(state: string): string {
     const baseUrl = `https://github.com/apps/${env.GITHUB_APP_NAME}/installations/new`;
     const params = {
-      client_id: clientId,
-      redirect_uri: redirectUri,
+      client_id: this.clientId,
+      redirect_uri: this.callbackUrl(),
       state,
     };
-    const urlParams = Object.keys(params)
-      .map((key) => `${key}=${encodeURIComponent(params[key])}`)
-      .join("&");
-    return `${baseUrl}?${urlParams}`;
+    return `${baseUrl}?${queryString.stringify(params)}`;
   }
 
   /**

@@ -1,36 +1,24 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Button from "~/components/Button";
-import env from "~/env";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import { redirectTo } from "~/utils/urls";
 import { GitHubUtils } from "../../shared/GitHubUtils";
+import GitHubIcon from "../Icon";
 
-type Props = {
-  redirectUri: string;
-  state?: string;
-  icon?: React.ReactNode;
-  label?: string;
-};
-
-function GitHubButton({ state = "", redirectUri, label, icon }: Props) {
+function GitHubConnectButton() {
   const { t } = useTranslation();
-
-  const handleClick = () => {
-    if (!env.GITHUB_CLIENT_ID) {
-      return;
-    }
-
-    window.location.href = GitHubUtils.authUrl(
-      state,
-      env.GITHUB_CLIENT_ID,
-      redirectUri
-    );
-  };
+  const team = useCurrentTeam();
 
   return (
-    <Button onClick={handleClick} icon={icon} neutral>
-      {label || t("Connect GitHub")}
+    <Button
+      onClick={() => redirectTo(GitHubUtils.authUrl(team.id))}
+      icon={<GitHubIcon />}
+      neutral
+    >
+      {t("Connect")}
     </Button>
   );
 }
 
-export default GitHubButton;
+export default GitHubConnectButton;
