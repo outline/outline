@@ -19,7 +19,16 @@ function getMarksBetween(start: number, end: number, state: EditorState) {
   return marks;
 }
 
-export default function (
+/**
+ * A factory function for creating Prosemirror plugins that automatically apply a mark to text
+ * that matches a given regular expression.
+ *
+ * @param regexp The regular expression to match
+ * @param markType The mark type to apply
+ * @param getAttrs A function that returns the attributes to apply to the mark
+ * @returns The input rule
+ */
+export default function markInputRule(
   regexp: RegExp,
   markType: MarkType,
   getAttrs?: (match: string[]) => Record<string, unknown>
@@ -29,8 +38,7 @@ export default function (
     (state: EditorState, match: string[], start: number, end: number) => {
       const attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
       const { tr } = state;
-      const m = match.length - 1;
-      const captureGroup = match[m];
+      const captureGroup = match[match.length - 1];
       const fullMatch = match[0];
       const startSpaces = fullMatch.search(/\S/);
 
