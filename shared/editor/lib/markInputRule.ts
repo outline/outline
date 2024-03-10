@@ -30,14 +30,14 @@ export default function (
       const attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
       const { tr } = state;
       const m = match.length - 1;
-      let markEnd = end;
-      let markStart = start;
+      const captureGroup = match[m];
+      const fullMatch = match[0];
+      const startSpaces = fullMatch.search(/\S/);
 
-      if (match[m]) {
-        const matchStart = start + match[0].indexOf(match[m - 1]);
-        const matchEnd = matchStart + match[m - 1].length - 1;
-        const textStart = matchStart + match[m - 1].lastIndexOf(match[m]);
-        const textEnd = textStart + match[m].length;
+      if (captureGroup) {
+        const matchStart = start + fullMatch.indexOf(captureGroup);
+        const textStart = start + fullMatch.lastIndexOf(captureGroup);
+        const textEnd = textStart + captureGroup.length;
 
         const excludedMarks = getMarksBetween(start, end, state)
           .filter((item) => item.mark.type.excludes(markType))
@@ -47,17 +47,16 @@ export default function (
           return null;
         }
 
-        if (textEnd < matchEnd) {
-          tr.delete(textEnd, matchEnd);
+        if (textEnd < end) {
+          tr.delete(textEnd, end);
         }
-        if (textStart > matchStart) {
-          tr.delete(matchStart, textStart);
+        if (textStart > start) {
+          tr.delete(start + startSpaces, textStart);
         }
-        markStart = matchStart;
-        markEnd = markStart + match[m].length;
+        end = start + startSpaces + captureGroup.length;
       }
 
-      tr.addMark(markStart, markEnd, markType.create(attrs));
+      tr.addMark(start + startSpaces, end, markType.create(attrs));
       tr.removeStoredMark(markType);
       return tr;
     }
