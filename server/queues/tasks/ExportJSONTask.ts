@@ -123,6 +123,7 @@ export default class ExportJSONTask extends ExportTask {
           id: document.id,
           urlId: document.urlId,
           title: document.title,
+          emoji: document.emoji,
           data: DocumentHelper.toProsemirror(document),
           createdById: document.createdById,
           createdByName: document.createdBy.name,
