@@ -213,7 +213,7 @@
     "socket.io": "^4.7.4",
     "socket.io-client": "^4.6.1",
     "socket.io-redis": "^6.1.1",
-    "sonner": "^1.0.3",
+    "sonner": "^1.4.3",
     "stoppable": "^1.1.0",
     "string-replace-to-array": "^2.1.0",
     "styled-components": "^5.3.11",
