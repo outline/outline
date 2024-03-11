@@ -79,6 +79,7 @@ export default class ImportJSONTask extends ImportTask {
           // TODO: This is kind of temporary, we can import the document
           // structure directly in the future.
           text: serializer.serialize(Node.fromJSON(schema, node.data)),
+          emoji: node.emoji,
           createdAt: node.createdAt ? new Date(node.createdAt) : undefined,
           updatedAt: node.updatedAt ? new Date(node.updatedAt) : undefined,
           publishedAt: node.publishedAt ? new Date(node.publishedAt) : null,
