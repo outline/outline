@@ -1,11 +1,9 @@
 import format from "date-fns/format";
-import filter from "lodash/filter";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { IntegrationService, IntegrationType } from "@shared/types";
+import { IntegrationService } from "@shared/types";
 import { dateLocale } from "@shared/utils/date";
-import Integration from "~/models/Integration";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import Button from "~/components/Button";
@@ -16,7 +14,6 @@ import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import env from "~/env";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
@@ -24,52 +21,18 @@ import GitHubIcon from "./Icon";
 import GitHubConnectButton from "./components/GitHubButton";
 
 function GitHub() {
-  const team = useCurrentTeam();
   const currentUser = useCurrentUser();
   const { integrations } = useStores();
   const { t } = useTranslation();
   const query = useQuery();
   const error = query.get("error");
-  const [relationsLoaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    void integrations.fetchAll({ service: IntegrationService.GitHub });
+    void integrations.fetchAll({
+      service: IntegrationService.GitHub,
+      withRelations: true,
+    });
   }, [integrations]);
-
-  React.useEffect(() => {
-    const loadRelations = async () => {
-      if (integrations.orderedData.length) {
-        await Promise.all(
-          integrations.orderedData.map((integration) =>
-            integration.loadRelations()
-          )
-        );
-      }
-      setLoaded(true);
-    };
-
-    if (!relationsLoaded) {
-      void loadRelations();
-    }
-  }, [integrations.orderedData, relationsLoaded]);
-
-  const githubIntegrations = React.useMemo(
-    (): Integration<IntegrationType.Embed>[] =>
-      relationsLoaded
-        ? filter(
-            integrations.orderedData,
-            (i) =>
-              i.service === IntegrationService.GitHub && i.teamId === team.id
-          )
-        : [],
-    [integrations.orderedData, relationsLoaded]
-  );
-
-  if (!relationsLoaded) {
-    return null;
-  }
-
-  const appName = env.APP_NAME;
 
   return (
     <Scene title="GitHub" icon={<GitHubIcon />}>
@@ -79,7 +42,7 @@ function GitHub() {
         <Notice>
           <Trans>
             Whoops, you need to accept the permissions in GitHub to connect{" "}
-            {{ appName }} to your workspace. Try again?
+            {{ appName: env.APP_NAME }} to your workspace. Try again?
           </Trans>
         </Notice>
       )}
@@ -101,41 +64,41 @@ function GitHub() {
           </p>
           <p>&nbsp;</p>
 
-          {githubIntegrations.length ? (
+          {integrations.github.length ? (
             <>
               <h2>{t("Connected accounts")}</h2>
               <Text as="p" type="secondary">
                 <Trans>
                   GitHub links (pull requests, issues, and commits) accessible
                   to any of the following accounts, will get rich previews
-                  inside {{ appName }}.
+                  inside {{ appName: env.APP_NAME }}.
                 </Trans>
               </Text>
 
               <List>
-                {githubIntegrations.map((integration) => {
-                  const account =
+                {integrations.github.map((integration) => {
+                  const githubAccount =
                     integration.settings?.github?.installation.account;
-                  const user = integration.user.name;
-                  const day = format(
+                  const integrationCreatedBy = integration.user.name;
+                  const integrationCreatedAt = format(
                     Date.parse(integration.createdAt),
                     "MMMM d, y",
                     { locale: dateLocale(currentUser.language) }
                   );
                   return (
                     <ListItem
-                      key={account?.id}
+                      key={githubAccount?.id}
                       small
-                      title={account?.name}
+                      title={githubAccount?.name}
                       subtitle={
                         <Trans>
-                          Enabled by {{ user }} on{" "}
-                          <Text type="tertiary">{day}</Text>
+                          Enabled by {{ integrationCreatedBy }} on{" "}
+                          <Text type="tertiary">{integrationCreatedAt}</Text>
                         </Trans>
                       }
                       image={
                         <Avatar
-                          src={account?.avatarUrl}
+                          src={githubAccount?.avatarUrl}
                           size={AvatarSize.Large}
                           showBorder={false}
                         />

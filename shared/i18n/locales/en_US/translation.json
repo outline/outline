@@ -953,7 +953,7 @@
   "Get rich previews of GitHub links in documents": "Get rich previews of GitHub links in documents",
   "Connected accounts": "Connected accounts",
   "GitHub links (pull requests, issues, and commits) accessible to any of the following accounts, will get rich previews inside {{appName}}.": "GitHub links (pull requests, issues, and commits) accessible to any of the following accounts, will get rich previews inside {{appName}}.",
-  "Enabled by {{user}} on <4>{day}</4>": "Enabled by {{user}} on <4>{day}</4>",
+  "Enabled by {{integrationCreatedBy}} on <4>{integrationCreatedAt}</4>": "Enabled by {{integrationCreatedBy}} on <4>{integrationCreatedAt}</4>",
   "Disconnect": "Disconnect",
   "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "The GitHub integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.",
   "Add to Slack": "Add to Slack",

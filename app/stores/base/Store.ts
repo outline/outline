@@ -300,8 +300,17 @@ export default abstract class Store<T extends Model> {
       );
     }
 
-    const results = await Promise.all(fetchPages);
-    return flatten(results);
+    const results = flatten(
+      fetchPages.length ? await Promise.all(fetchPages) : [response]
+    );
+
+    if (params?.withRelations) {
+      await Promise.all(
+        this.orderedData.map((integration) => integration.loadRelations())
+      );
+    }
+
+    return results;
   };
 
   @computed
