@@ -11,7 +11,7 @@ const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
 const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
 const url = env.DATABASE_CONNECTION_POOL_URL || env.DATABASE_URL;
-const schema = env.DATABASE_SCHEMA ?? null;
+const schema = env.DATABASE_SCHEMA;
 
 export function createDatabaseInstance(
   url: string,
