@@ -2,8 +2,8 @@ import { PluginManager, PluginType } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import router from "./api/github";
 import env from "./env";
+import { githubApp } from "./github";
 import IntegrationDeletedProcessor from "./processors/IntegrationDeletedProcessor";
-import { unfurl } from "./unfurl";
 
 const enabled =
   !!env.GITHUB_CLIENT_ID &&
@@ -14,7 +14,7 @@ const enabled =
 
 PluginManager.register(PluginType.API, router, { ...config, enabled });
 
-PluginManager.register(PluginType.UnfurlProvider, unfurl as any, {
+PluginManager.register(PluginType.UnfurlProvider, githubApp.unfurl as any, {
   enabled,
   ...config,
 });

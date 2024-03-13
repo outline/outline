@@ -1,51 +1,139 @@
 import { createOAuthUserAuth } from "@octokit/auth-oauth-user";
 import find from "lodash/find";
 import { App, Octokit } from "octokit";
-import { integrationSettingsPath } from "@shared/utils/routeHelpers";
+import pluralize from "pluralize";
+import { IntegrationService, IntegrationType } from "@shared/types";
 import Logger from "@server/logging/Logger";
+import { Integration, User } from "@server/models";
+import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
-export class GitHub {
+/**
+ * It exposes a GitHub REST client for accessing APIs which
+ * particulary require the client to authenticate as a GitHub App
+ */
+class GitHubApp {
+  /** Required to authenticate as GitHub App */
+  private static id = env.GITHUB_APP_ID;
+  private static key = Buffer.from(
+    env.GITHUB_APP_PRIVATE_KEY!,
+    "base64"
+  ).toString("ascii");
+
+  /** GitHub App instance */
+  private app: App;
+
+  constructor() {
+    this.app = new App({
+      appId: GitHubApp.id!,
+      privateKey: GitHubApp.key!,
+    });
+  }
+
   /**
-   * GitHub settings url
+   * Given an `installationId`, removes that GitHub App installation
+   * @param installationId
    */
-  public static url = integrationSettingsPath("github");
-
-  public static clientId = env.GITHUB_CLIENT_ID;
-  public static clientSecret = env.GITHUB_CLIENT_SECRET;
-  public static clientType = "github-app";
-  public static appId = env.GITHUB_APP_ID;
-  public static appPrivateKey = env.GITHUB_APP_PRIVATE_KEY
-    ? Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString("ascii")
-    : undefined;
-
-  /** GitHub client for accessing its APIs when authenticated as the GitHub user */
-  private userClient: Octokit;
-
-  /** GitHub client for accessing its APIs when authenticated as the GitHub app */
-  private appClient: Octokit;
-
-  constructor(options?: { code: string; state?: string | null }) {
-    if (options) {
-      this.userClient = new Octokit({
-        authStrategy: createOAuthUserAuth,
-        auth: {
-          clientId: GitHub.clientId,
-          clientSecret: GitHub.clientSecret,
-          clientType: GitHub.clientType,
-          code: options.code,
-          state: options.state,
-        },
-      });
-    } else {
-      if (GitHub.appId && GitHub.appPrivateKey) {
-        const { octokit } = new App({
-          appId: GitHub.appId,
-          privateKey: GitHub.appPrivateKey,
-        });
-        this.appClient = octokit;
+  public async deleteInstallation(installationId: number) {
+    await this.app.octokit.request(
+      "DELETE /app/installations/{installation_id}",
+      {
+        installation_id: installationId,
       }
+    );
+  }
+
+  /**
+   *
+   * @param url GitHub resource url - could be a url of a pull request or an issue
+   * @param installationId Id corresponding to the GitHub App installation
+   * @returns {object} An object container the resource details - could be a pull request
+   * details or an issue details
+   */
+  public async unfurl(url: string, actor: User) {
+    const { owner, repo, resourceType, resourceId } = GitHubUtils.parseUrl(url);
+
+    if (!owner) {
+      return;
     }
+
+    const integration = (await Integration.findOne({
+      where: {
+        service: IntegrationService.GitHub,
+        userId: actor.id,
+        teamId: actor.teamId,
+        "settings.github.installation.account.name": owner,
+      },
+    })) as Integration<IntegrationType.Embed>;
+
+    if (!integration) {
+      return;
+    }
+
+    try {
+      const octokit = await this.app.getInstallationOctokit(
+        integration.settings.github!.installation.id
+      );
+      const { data } = await octokit.request(
+        `GET /repos/{owner}/{repo}/${pluralize(resourceType)}/{ref}`,
+        {
+          owner,
+          repo,
+          ref: resourceId,
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28",
+          },
+        }
+      );
+      return {
+        url,
+        type: pluralize.singular(resourceType),
+        title: data.title,
+        description: data.body,
+        author: {
+          name: data.user.login,
+          avatarUrl: data.user.avatar_url,
+        },
+        meta: {
+          labels: data.labels.map((label: { name: string; color: string }) => ({
+            name: label.name,
+            color: label.color,
+          })),
+          status: { name: data.state },
+        },
+      };
+    } catch (err) {
+      return Logger.warn("Failed to fetch resource from GitHub", err);
+    }
+  }
+}
+
+export const githubApp = new GitHubApp();
+
+/**
+ * It exposes a GitHub REST client for accessing APIs which
+ * particularly require the client to authenticate as a user
+ * through the user access token
+ */
+export class GitHubUser {
+  private static clientId = env.GITHUB_CLIENT_ID;
+  private static clientSecret = env.GITHUB_CLIENT_SECRET;
+  private static clientType = "github-app";
+
+  /** GitHub client for accessing its APIs */
+  private client: Octokit;
+
+  constructor(options: { code: string; state?: string | null }) {
+    this.client = new Octokit({
+      authStrategy: createOAuthUserAuth,
+      auth: {
+        clientId: GitHubUser.clientId,
+        clientSecret: GitHubUser.clientSecret,
+        clientType: GitHubUser.clientType,
+        code: options.code,
+        state: options.state,
+      },
+    });
   }
 
   /**
@@ -54,9 +142,7 @@ export class GitHub {
    * e.g, installation target, account which installed the app etc.
    */
   public async getInstallation(installationId: number) {
-    const installations = await this.userClient.paginate(
-      "GET /user/installations"
-    );
+    const installations = await this.client.paginate("GET /user/installations");
     const installation = find(
       installations,
       (installation) => installation.id === installationId
@@ -66,14 +152,5 @@ export class GitHub {
       throw Error("Invalid installationId!");
     }
     return installation;
-  }
-
-  public async deleteInstallation(installationId: number) {
-    await this.appClient.request(
-      "DELETE /app/installations/{installation_id}",
-      {
-        installation_id: installationId,
-      }
-    );
   }
 }

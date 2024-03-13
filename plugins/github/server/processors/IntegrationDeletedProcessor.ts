@@ -2,7 +2,7 @@ import { IntegrationService, IntegrationType } from "@shared/types";
 import { Integration } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import { IntegrationEvent, Event } from "@server/types";
-import { GitHub } from "../github";
+import { githubApp } from "../github";
 
 export default class IntegrationDeletedProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = ["integrations.delete"];
@@ -32,8 +32,7 @@ export default class IntegrationDeletedProcessor extends BaseProcessor {
         .settings?.github?.installation.id;
 
       if (installationId) {
-        const github = new GitHub();
-        await github.deleteInstallation(installationId);
+        await githubApp.deleteInstallation(installationId);
       }
     }
 

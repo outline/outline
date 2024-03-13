@@ -7,7 +7,7 @@ import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration, Team } from "@server/models";
 import { APIContext } from "@server/types";
 import { GitHubUtils } from "../../shared/GitHubUtils";
-import { GitHub } from "../github";
+import { GitHubUser } from "../github";
 import * as T from "./schema";
 
 const router = new Router();
@@ -59,11 +59,11 @@ router.get(
       }
     }
 
-    const github = new GitHub({ code: code!, state: teamId });
+    const githubUser = new GitHubUser({ code: code!, state: teamId });
 
     let installation;
     try {
-      installation = await github.getInstallation(installationId);
+      installation = await githubUser.getInstallation(installationId);
     } catch (err) {
       Logger.error("Failed to fetch GitHub App installation", err);
       return ctx.redirect(GitHubUtils.errorUrl("unauthenticated"));
@@ -101,7 +101,7 @@ router.get(
       },
       { transaction }
     );
-    ctx.redirect(GitHub.url);
+    ctx.redirect(GitHubUtils.url);
   }
 );
 
