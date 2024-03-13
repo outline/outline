@@ -15,10 +15,9 @@ import env from "./env";
 class GitHubApp {
   /** Required to authenticate as GitHub App */
   private static id = env.GITHUB_APP_ID;
-  private static key = Buffer.from(
-    env.GITHUB_APP_PRIVATE_KEY!,
-    "base64"
-  ).toString("ascii");
+  private static key = env.GITHUB_APP_PRIVATE_KEY
+    ? Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString("ascii")
+    : undefined;
 
   /** GitHub App instance */
   private app: App;
