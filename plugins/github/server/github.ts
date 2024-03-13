@@ -23,10 +23,12 @@ class GitHubApp {
   private app: App;
 
   constructor() {
-    this.app = new App({
-      appId: GitHubApp.id!,
-      privateKey: GitHubApp.key!,
-    });
+    if (GitHubApp.id && GitHubApp.key) {
+      this.app = new App({
+        appId: GitHubApp.id!,
+        privateKey: GitHubApp.key!,
+      });
+    }
   }
 
   /**
