@@ -3,7 +3,10 @@ import config from "../plugin.json";
 import router from "./auth/google";
 import env from "./env";
 
-PluginManager.register(PluginType.AuthProvider, router, {
-  ...config,
-  enabled: !!env.GOOGLE_CLIENT_ID && !!env.GOOGLE_CLIENT_SECRET,
-});
+const enabled = !!env.GOOGLE_CLIENT_ID && !!env.GOOGLE_CLIENT_SECRET;
+
+if (enabled) {
+  PluginManager.add([
+    { ...config, type: PluginType.AuthProvider, value: router },
+  ]);
+}

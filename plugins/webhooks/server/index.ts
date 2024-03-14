@@ -5,7 +5,25 @@ import WebhookProcessor from "./processors/WebhookProcessor";
 import CleanupWebhookDeliveriesTask from "./tasks/CleanupWebhookDeliveriesTask";
 import DeliverWebhookTask from "./tasks/DeliverWebhookTask";
 
-PluginManager.register(PluginType.API, webhookSubscriptions, config)
-  .registerProcessor(WebhookProcessor)
-  .registerTask(DeliverWebhookTask)
-  .registerTask(CleanupWebhookDeliveriesTask);
+PluginManager.add([
+  {
+    ...config,
+    type: PluginType.API,
+    value: webhookSubscriptions,
+  },
+  {
+    ...config,
+    type: PluginType.Processor,
+    value: WebhookProcessor,
+  },
+  {
+    ...config,
+    type: PluginType.Task,
+    value: DeliverWebhookTask,
+  },
+  {
+    ...config,
+    type: PluginType.Task,
+    value: CleanupWebhookDeliveriesTask,
+  },
+]);

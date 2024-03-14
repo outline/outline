@@ -18,7 +18,7 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
 
 const router = new Router();
-const plugins = PluginManager.getEnabledPlugins(PluginType.UnfurlProvider);
+const plugins = PluginManager.getPlugins(PluginType.UnfurlProvider);
 
 router.post(
   "urls.unfurl",

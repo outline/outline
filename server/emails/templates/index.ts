@@ -14,7 +14,7 @@ requireDirectory<{ default: BaseEmail<any> }>(__dirname).forEach(
   }
 );
 
-PluginManager.getEnabledPlugins(PluginType.EmailTemplate).forEach((plugin) => {
+PluginManager.getPlugins(PluginType.EmailTemplate).forEach((plugin) => {
   emails[plugin.id] = plugin.value;
 });
 

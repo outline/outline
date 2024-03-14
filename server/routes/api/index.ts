@@ -59,7 +59,7 @@ api.use(apiResponse());
 api.use(editor());
 
 // Register plugin API routes before others to allow for overrides
-PluginManager.getEnabledPlugins(PluginType.API).forEach((plugin) =>
+PluginManager.getPlugins(PluginType.API).forEach((plugin) =>
   router.use("/", plugin.value.routes())
 );
 

@@ -13,7 +13,7 @@ requireDirectory<{ default: BaseProcessor }>(__dirname).forEach(
   }
 );
 
-PluginManager.getEnabledPlugins(PluginType.Processor).forEach((plugin) => {
+PluginManager.getPlugins(PluginType.Processor).forEach((plugin) => {
   processors[plugin.id] = plugin.value;
 });
 

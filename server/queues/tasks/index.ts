@@ -13,7 +13,7 @@ requireDirectory<{ default: BaseTask<any> }>(__dirname).forEach(
   }
 );
 
-PluginManager.getEnabledPlugins(PluginType.Task).forEach((plugin) => {
+PluginManager.getPlugins(PluginType.Task).forEach((plugin) => {
   tasks[plugin.id] = plugin.value;
 });
 

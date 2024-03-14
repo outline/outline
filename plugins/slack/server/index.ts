@@ -7,14 +7,22 @@ import SlackProcessor from "./processors/SlackProcessor";
 
 const enabled = !!env.SLACK_CLIENT_ID && !!env.SLACK_CLIENT_SECRET;
 
-PluginManager.register(PluginType.AuthProvider, router, {
-  ...config,
-  enabled,
-});
-
-PluginManager.register(PluginType.API, hooks, {
-  ...config,
-  enabled,
-});
-
-PluginManager.registerProcessor(SlackProcessor, { enabled });
+if (enabled) {
+  PluginManager.add([
+    {
+      ...config,
+      type: PluginType.AuthProvider,
+      value: router,
+    },
+    {
+      ...config,
+      type: PluginType.API,
+      value: hooks,
+    },
+    {
+      ...config,
+      type: PluginType.Processor,
+      value: SlackProcessor,
+    },
+  ]);
+}

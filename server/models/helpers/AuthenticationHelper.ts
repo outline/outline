@@ -12,7 +12,7 @@ export default class AuthenticationHelper {
    * @returns A list of authentication providers
    */
   public static get providers() {
-    return PluginManager.getEnabledPlugins(PluginType.AuthProvider);
+    return PluginManager.getPlugins(PluginType.AuthProvider);
   }
 
   /**
