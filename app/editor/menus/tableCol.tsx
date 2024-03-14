@@ -5,6 +5,7 @@ import {
   AlignCenterIcon,
   InsertLeftIcon,
   InsertRightIcon,
+  ArrowIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
@@ -66,6 +67,18 @@ export default function tableColMenuItems(
       name: rtl ? "addColumnBefore" : "addColumnAfter",
       tooltip: rtl ? dictionary.addColumnBefore : dictionary.addColumnAfter,
       icon: <InsertRightIcon />,
+    },
+    {
+      name: "sort",
+      tooltip: "Sort ascending",
+      attrs: { index, direction: "asc" },
+      icon: <ArrowIcon />,
+    },
+    {
+      name: "sort",
+      tooltip: "Sort descending",
+      attrs: { index, direction: "desc" },
+      icon: <ArrowIcon />,
     },
     {
       name: "separator",

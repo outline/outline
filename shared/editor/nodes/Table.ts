@@ -1,13 +1,22 @@
 import { chainCommands } from "prosemirror-commands";
 import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
-import { Command, Plugin, TextSelection } from "prosemirror-state";
 import {
+  Command,
+  NodeSelection,
+  Plugin,
+  Selection,
+  TextSelection,
+} from "prosemirror-state";
+import {
+  CellSelection,
   addColumnAfter,
   addColumnBefore,
   deleteColumn,
   deleteRow,
   deleteTable,
   goToNextCell,
+  isInTable,
+  selectedRect,
   tableEditing,
   toggleHeaderCell,
   toggleHeaderColumn,
@@ -19,9 +28,11 @@ import {
   setColumnAttr,
   createTable,
 } from "../commands/table";
+import chainTransactions from "../lib/chainTransactions";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import tablesRule from "../rules/tables";
 import Node from "./Node";
+import TableHeadCell from "./TableHeadCell";
 
 export default class Table extends Node {
   get name() {
@@ -75,6 +86,74 @@ export default class Table extends Node {
           return true;
         },
       setColumnAttr,
+      sort:
+        ({ index, direction }): Command =>
+        (state, dispatch) => {
+          if (!isInTable(state)) {
+            return false;
+          }
+          if (dispatch) {
+            const rect = selectedRect(state);
+            const table = [];
+
+            for (let r = 0; r < rect.map.height; r++) {
+              const cells = [];
+              for (let c = 0; c < rect.map.width; c++) {
+                cells.push(
+                  state.doc.nodeAt(
+                    rect.tableStart + rect.map.map[r * rect.map.width + c]
+                  )
+                );
+              }
+              table.push(cells);
+            }
+
+            // sort table array based on column at index, if direction is "desc", reverse the array
+            table.sort((a, b) => {
+              // TODO: Handle header row
+              // TODO: Handle numeric values
+
+              if (direction === "asc") {
+                return (a[index]?.textContent ?? "").localeCompare(
+                  b[index]?.textContent ?? ""
+                );
+              }
+              return (b[index]?.textContent ?? "").localeCompare(
+                a[index]?.textContent ?? ""
+              );
+            });
+
+            // create the new table
+            const rows = [];
+            for (let i = 0; i < table.length; i += 1) {
+              rows.push(
+                state.schema.nodes.tr.createChecked(null, table[i] ?? [])
+              );
+            }
+
+            // replace the original table with this sorted one
+            const nodes = state.schema.nodes.table.createChecked(null, rows);
+            const tr = state.tr.replaceRangeWith(
+              rect.tableStart - 1,
+              rect.tableStart - 1 + rect.table.nodeSize,
+              nodes
+            );
+
+            dispatch(
+              tr
+                // .setSelection(
+                //   CellSelection.colSelection(
+                //     tr.doc.resolve(
+                //       rect.tableStart +
+                //         rect.map.positionAt(0, index, rect.table)
+                //     )
+                //   )
+                // )
+                .scrollIntoView()
+            );
+          }
+          return true;
+        },
       addColumnBefore: () => addColumnBefore,
       addColumnAfter: () => addColumnAfter,
       deleteColumn: () => deleteColumn,
