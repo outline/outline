@@ -43,6 +43,8 @@ function ToolbarDropdown(props: { item: MenuItem }) {
           type: "button",
           title: child.label,
           icon: child.icon,
+          dangerous: child.dangerous,
+          visible: child.visible,
           selected:
             child.active !== undefined ? child.active(state) : undefined,
           onClick: handleClick(child),

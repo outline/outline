@@ -21,6 +21,7 @@ export type MenuItem = {
   keywords?: string;
   tooltip?: string;
   label?: string;
+  dangerous?: boolean;
   children?: MenuItem[];
   defaultHidden?: boolean;
   attrs?:

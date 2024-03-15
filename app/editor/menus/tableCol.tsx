@@ -90,6 +90,7 @@ export default function tableColMenuItems(
         },
         {
           name: "deleteColumn",
+          dangerous: true,
           label: dictionary.deleteColumn,
           icon: <TrashIcon />,
         },
