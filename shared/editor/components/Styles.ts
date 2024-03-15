@@ -1278,6 +1278,10 @@ table {
     border-bottom: 1px solid ${props.theme.tableDivider};
   }
 
+  tr:first-child {
+    background: ${props.theme.secondaryBackground};
+  }
+
   th {
     background: transparent;
   }
