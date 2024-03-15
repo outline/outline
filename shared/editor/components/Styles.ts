@@ -1274,6 +1274,10 @@ table {
     border-bottom: 1px solid ${props.theme.tableDivider};
   }
 
+  tr:first-of-type {
+    background: ${props.theme.secondaryBackground};
+  }
+
   th {
     background: transparent;
   }
@@ -1436,7 +1440,8 @@ table {
   top: 0;
   bottom: 0;
   ${props.rtl ? "right" : "left"}: -1em;
-  width: 16px;
+  width: 32px;
+  z-index: 1;
   transition: box-shadow 250ms ease-in-out;
   border: 0px solid transparent;
   border-${props.rtl ? "right" : "left"}-width: 1em;

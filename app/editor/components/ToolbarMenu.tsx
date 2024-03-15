@@ -1,4 +1,3 @@
-import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
 import { useMenuState } from "reakit";
 import { MenuButton } from "reakit/Menu";
@@ -27,13 +26,15 @@ function ToolbarDropdown(props: { item: MenuItem }) {
   const { state } = view;
 
   const items: TMenuItem[] = React.useMemo(() => {
-    const handleClick = (item: MenuItem) => () => {
-      if (!item.name) {
+    const handleClick = (menuItem: MenuItem) => () => {
+      if (!menuItem.name) {
         return;
       }
 
-      commands[item.name](
-        typeof item.attrs === "function" ? item.attrs(state) : item.attrs
+      commands[menuItem.name](
+        typeof menuItem.attrs === "function"
+          ? menuItem.attrs(state)
+          : menuItem.attrs
       );
     };
 
@@ -42,7 +43,10 @@ function ToolbarDropdown(props: { item: MenuItem }) {
           type: "button",
           title: child.label,
           icon: child.icon,
-          selected: child.active ? child.active(state) : false,
+          dangerous: child.dangerous,
+          visible: child.visible,
+          selected:
+            child.active !== undefined ? child.active(state) : undefined,
           onClick: handleClick(child),
         }))
       : [];
@@ -51,10 +55,10 @@ function ToolbarDropdown(props: { item: MenuItem }) {
   return (
     <>
       <MenuButton {...menu}>
-        {(props) => (
-          <ToolbarButton {...props} hovering={menu.visible}>
+        {(buttonProps) => (
+          <ToolbarButton {...buttonProps} hovering={menu.visible}>
             {item.label && <Label>{item.label}</Label>}
-            <Arrow />
+            {item.icon}
           </ToolbarButton>
         )}
       </MenuButton>
@@ -119,11 +123,6 @@ const FlexibleWrapper = styled.div`
   overflow: hidden;
   display: flex;
   gap: 6px;
-`;
-
-const Arrow = styled(ExpandedIcon)`
-  margin-right: -4px;
-  color: ${s("textSecondary")};
 `;
 
 const Label = styled.span`
