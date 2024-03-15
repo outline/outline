@@ -81,6 +81,12 @@ export class Environment {
   public DATABASE_URL = environment.DATABASE_URL ?? "";
 
   /**
+   * An optional database schema.
+   */
+  @IsOptional()
+  public DATABASE_SCHEMA = this.toOptionalString(environment.DATABASE_SCHEMA);
+
+  /**
    * The url of the database pool.
    */
   @IsOptional()
