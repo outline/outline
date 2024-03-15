@@ -12,12 +12,10 @@ const enabled = !!(
 );
 
 if (enabled) {
-  PluginManager.add([
-    {
-      ...config,
-      type: PluginType.AuthProvider,
-      value: { router, id: config.id },
-      name: env.OIDC_DISPLAY_NAME || config.name,
-    },
-  ]);
+  PluginManager.add({
+    ...config,
+    type: PluginType.AuthProvider,
+    value: { router, id: config.id },
+    name: env.OIDC_DISPLAY_NAME || config.name,
+  });
 }

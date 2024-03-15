@@ -1,6 +1,7 @@
 import path from "path";
 import { glob } from "glob";
 import type Router from "koa-router";
+import isArray from "lodash/isArray";
 import sortBy from "lodash/sortBy";
 import { UnfurlSignature } from "@shared/types";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
@@ -63,8 +64,12 @@ export class PluginManager {
    * Add plugins
    * @param plugins
    */
-  public static add(plugins: Array<Plugin<PluginType>>) {
-    plugins.forEach((plugin) => this.register(plugin));
+  public static add(plugins: Array<Plugin<PluginType>> | Plugin<PluginType>) {
+    if (isArray(plugins)) {
+      return plugins.forEach((plugin) => this.register(plugin));
+    }
+
+    this.register(plugins);
   }
 
   private static register<T extends PluginType>(plugin: Plugin<T>) {
