@@ -14,7 +14,7 @@ requireDirectory<{ default: BaseTask<any> }>(__dirname).forEach(
 );
 
 PluginManager.getPlugins(PluginType.Task).forEach((plugin) => {
-  tasks[plugin.id] = plugin.value;
+  tasks[plugin.value.name] = plugin.value;
 });
 
 export default tasks;

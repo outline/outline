@@ -35,7 +35,7 @@ export enum PluginType {
  */
 type PluginValueMap = {
   [PluginType.API]: Router;
-  [PluginType.AuthProvider]: Router;
+  [PluginType.AuthProvider]: { router: Router; id: string };
   [PluginType.EmailTemplate]: typeof BaseEmail;
   [PluginType.Processor]: typeof BaseProcessor;
   [PluginType.Task]: typeof BaseTask<any>;
@@ -46,7 +46,7 @@ export type Plugin<T extends PluginType> = {
   /** Plugin type */
   type: T;
   /** A unique ID for the plugin */
-  id: string;
+  id?: string;
   /** The plugin's display name */
   name?: string;
   /** A brief description of the plugin */
@@ -54,7 +54,7 @@ export type Plugin<T extends PluginType> = {
   /** The plugin content */
   value: PluginValueMap[T];
   /** Priority will affect order in menus and execution. Lower is earlier. */
-  priority: number;
+  priority?: number;
 };
 
 export class PluginManager {
@@ -72,7 +72,9 @@ export class PluginManager {
       this.plugins.set(plugin.type, []);
     }
 
-    this.plugins.get(plugin.type)!.push(plugin);
+    this.plugins
+      .get(plugin.type)!
+      .push({ ...plugin, priority: plugin.priority ?? PluginPriority.Normal });
 
     Logger.debug(
       "plugins",

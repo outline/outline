@@ -12,17 +12,14 @@ PluginManager.add([
     value: webhookSubscriptions,
   },
   {
-    ...config,
     type: PluginType.Processor,
     value: WebhookProcessor,
   },
   {
-    ...config,
     type: PluginType.Task,
     value: DeliverWebhookTask,
   },
   {
-    ...config,
     type: PluginType.Task,
     value: CleanupWebhookDeliveriesTask,
   },

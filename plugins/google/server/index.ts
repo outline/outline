@@ -7,6 +7,10 @@ const enabled = !!env.GOOGLE_CLIENT_ID && !!env.GOOGLE_CLIENT_SECRET;
 
 if (enabled) {
   PluginManager.add([
-    { ...config, type: PluginType.AuthProvider, value: router },
+    {
+      ...config,
+      type: PluginType.AuthProvider,
+      value: { router, id: config.id },
+    },
   ]);
 }

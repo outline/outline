@@ -12,7 +12,7 @@ if (enabled) {
     {
       ...config,
       type: PluginType.AuthProvider,
-      value: router,
+      value: { router, id: config.id },
     },
     {
       ...config,
@@ -20,7 +20,6 @@ if (enabled) {
       value: hooks,
     },
     {
-      ...config,
       type: PluginType.Processor,
       value: SlackProcessor,
     },

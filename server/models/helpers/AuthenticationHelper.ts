@@ -26,11 +26,11 @@ export default class AuthenticationHelper {
     const isCloudHosted = env.isCloudHosted;
 
     return AuthenticationHelper.providers
-      .sort((plugin) => (plugin.id === "email" ? 1 : -1))
+      .sort((plugin) => (plugin.value.id === "email" ? 1 : -1))
       .filter((plugin) => {
         // Email sign-in is an exception as it does not have an authentication
         // provider using passport, instead it exists as a boolean option.
-        if (plugin.id === "email") {
+        if (plugin.value.id === "email") {
           return team?.emailSigninEnabled;
         }
 
@@ -40,7 +40,7 @@ export default class AuthenticationHelper {
         }
 
         const authProvider = find(team.authenticationProviders, {
-          name: plugin.id,
+          name: plugin.value.id,
         });
 
         // If cloud hosted then the auth provider must be enabled for the team,

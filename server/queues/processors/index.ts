@@ -14,7 +14,7 @@ requireDirectory<{ default: BaseProcessor }>(__dirname).forEach(
 );
 
 PluginManager.getPlugins(PluginType.Processor).forEach((plugin) => {
-  processors[plugin.id] = plugin.value;
+  processors[plugin.value.name] = plugin.value;
 });
 
 export default processors;
