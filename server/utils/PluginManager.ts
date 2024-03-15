@@ -21,7 +21,7 @@ export enum PluginPriority {
 /**
  * The different types of server plugins that can be registered.
  */
-export enum PluginType {
+export enum Hook {
   API = "api",
   AuthProvider = "authProvider",
   EmailTemplate = "emailTemplate",
@@ -35,15 +35,15 @@ export enum PluginType {
  * Router. Registering an API plugin causes the router to be mounted.
  */
 type PluginValueMap = {
-  [PluginType.API]: Router;
-  [PluginType.AuthProvider]: { router: Router; id: string };
-  [PluginType.EmailTemplate]: typeof BaseEmail;
-  [PluginType.Processor]: typeof BaseProcessor;
-  [PluginType.Task]: typeof BaseTask<any>;
-  [PluginType.UnfurlProvider]: UnfurlSignature;
+  [Hook.API]: Router;
+  [Hook.AuthProvider]: { router: Router; id: string };
+  [Hook.EmailTemplate]: typeof BaseEmail;
+  [Hook.Processor]: typeof BaseProcessor;
+  [Hook.Task]: typeof BaseTask<any>;
+  [Hook.UnfurlProvider]: UnfurlSignature;
 };
 
-export type Plugin<T extends PluginType> = {
+export type Plugin<T extends Hook> = {
   /** Plugin type */
   type: T;
   /** A unique ID for the plugin */
@@ -59,12 +59,12 @@ export type Plugin<T extends PluginType> = {
 };
 
 export class PluginManager {
-  private static plugins = new Map<PluginType, Plugin<PluginType>[]>();
+  private static plugins = new Map<Hook, Plugin<Hook>[]>();
   /**
    * Add plugins
    * @param plugins
    */
-  public static add(plugins: Array<Plugin<PluginType>> | Plugin<PluginType>) {
+  public static add(plugins: Array<Plugin<Hook>> | Plugin<Hook>) {
     if (isArray(plugins)) {
       return plugins.forEach((plugin) => this.register(plugin));
     }
@@ -72,7 +72,7 @@ export class PluginManager {
     this.register(plugins);
   }
 
-  private static register<T extends PluginType>(plugin: Plugin<T>) {
+  private static register<T extends Hook>(plugin: Plugin<T>) {
     if (!this.plugins.has(plugin.type)) {
       this.plugins.set(plugin.type, []);
     }
@@ -95,7 +95,7 @@ export class PluginManager {
    * @param type The type of plugin to filter by
    * @returns A list of plugins
    */
-  public static getPlugins<T extends PluginType>(type: T) {
+  public static getHooks<T extends Hook>(type: T) {
     this.loadPlugins();
     return sortBy(this.plugins.get(type) || [], "priority") as Plugin<T>[];
   }

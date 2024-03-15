@@ -1,7 +1,7 @@
 import {
   PluginManager,
   PluginPriority,
-  PluginType,
+  Hook,
 } from "@server/utils/PluginManager";
 import env from "./env";
 import Iframely from "./iframely";
@@ -12,7 +12,7 @@ if (enabled) {
   PluginManager.add([
     {
       id: "iframely",
-      type: PluginType.UnfurlProvider,
+      type: Hook.UnfurlProvider,
       value: Iframely.get,
 
       // Make sure this is last in the stack to be evaluated after all other unfurl providers

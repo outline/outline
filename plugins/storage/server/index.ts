@@ -4,7 +4,7 @@ import Logger from "@server/logging/Logger";
 import {
   PluginManager,
   PluginPriority,
-  PluginType,
+  Hook,
 } from "@server/utils/PluginManager";
 import router from "./api/files";
 
@@ -35,7 +35,7 @@ if (enabled) {
       id: "files",
       name: "Local file storage",
       description: "Plugin for storing files on the local file system",
-      type: PluginType.API,
+      type: Hook.API,
       value: router,
       priority: PluginPriority.Normal,
     },

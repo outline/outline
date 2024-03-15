@@ -1,4 +1,4 @@
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import webhookSubscriptions from "./api/webhookSubscriptions";
 import WebhookProcessor from "./processors/WebhookProcessor";
@@ -8,19 +8,19 @@ import DeliverWebhookTask from "./tasks/DeliverWebhookTask";
 PluginManager.add([
   {
     ...config,
-    type: PluginType.API,
+    type: Hook.API,
     value: webhookSubscriptions,
   },
   {
-    type: PluginType.Processor,
+    type: Hook.Processor,
     value: WebhookProcessor,
   },
   {
-    type: PluginType.Task,
+    type: Hook.Task,
     value: DeliverWebhookTask,
   },
   {
-    type: PluginType.Task,
+    type: Hook.Task,
     value: CleanupWebhookDeliveriesTask,
   },
 ]);

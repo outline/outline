@@ -1,4 +1,4 @@
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import router from "./auth/oidc";
 import env from "./env";
@@ -14,7 +14,7 @@ const enabled = !!(
 if (enabled) {
   PluginManager.add({
     ...config,
-    type: PluginType.AuthProvider,
+    type: Hook.AuthProvider,
     value: { router, id: config.id },
     name: env.OIDC_DISPLAY_NAME || config.name,
   });

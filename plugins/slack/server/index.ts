@@ -1,4 +1,4 @@
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import hooks from "./api/hooks";
 import router from "./auth/slack";
@@ -11,16 +11,16 @@ if (enabled) {
   PluginManager.add([
     {
       ...config,
-      type: PluginType.AuthProvider,
+      type: Hook.AuthProvider,
       value: { router, id: config.id },
     },
     {
       ...config,
-      type: PluginType.API,
+      type: Hook.API,
       value: hooks,
     },
     {
-      type: PluginType.Processor,
+      type: Hook.Processor,
       value: SlackProcessor,
     },
   ]);

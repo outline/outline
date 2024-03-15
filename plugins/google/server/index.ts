@@ -1,4 +1,4 @@
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import router from "./auth/google";
 import env from "./env";
@@ -8,7 +8,7 @@ const enabled = !!env.GOOGLE_CLIENT_ID && !!env.GOOGLE_CLIENT_SECRET;
 if (enabled) {
   PluginManager.add({
     ...config,
-    type: PluginType.AuthProvider,
+    type: Hook.AuthProvider,
     value: { router, id: config.id },
   });
 }
