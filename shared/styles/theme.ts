@@ -27,7 +27,7 @@ const defaultColors: Colors = {
   accent: "#0366d6",
   yellow: "#EDBA07",
   warmGrey: "#EDF2F7",
-  danger: "#f4345d",
+  danger: "#ed2651",
   warning: "#f08a24",
   success: "#2f3336",
   info: "#a0d3e8",

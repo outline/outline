@@ -107,7 +107,7 @@ const mathStyle = (props: Props) => css`
     background: ${props.theme.codeBackground};
     padding: 0.75em 1em;
     font-family: ${props.theme.fontFamilyMono};
-    font-size: 90%;
+    font-size: 80%;
   }
 
   math-block.empty-math {
@@ -324,17 +324,40 @@ width: 100%;
     margin-top: 0;
   }
 
+  h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
     margin-top: 1em;
-  }
-
-  h1 {
-    margin-top: .75em;
     margin-bottom: 0.25em;
+    font-weight: 600;
+    cursor: text;
+
+    & + p {
+      margin-top: 0.25em;
+    }
+
+    &:not(.placeholder):before {
+      display: ${props.readOnly ? "none" : "inline-block"};
+      font-family: ${props.theme.fontFamilyMono};
+      color: ${props.theme.textSecondary};
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 0;
+      margin-${props.rtl ? "right" : "left"}: -24px;
+      transition: opacity 150ms ease-in-out;
+      opacity: 0;
+      width: 24px;
+    }
+
+    &:hover,
+    &:focus-within {
+      .heading-actions {
+        opacity: 1;
+      }
+    }
   }
 
   // all of heading sizes are stepped down one from global styles, except h1
@@ -589,35 +612,6 @@ img.ProseMirror-separator {
   }
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: 500;
-  cursor: text;
-
-  &:not(.placeholder):before {
-    display: ${props.readOnly ? "none" : "inline-block"};
-    font-family: ${props.theme.fontFamilyMono};
-    color: ${props.theme.textSecondary};
-    font-size: 13px;
-    line-height: 0;
-    margin-${props.rtl ? "right" : "left"}: -24px;
-    transition: opacity 150ms ease-in-out;
-    opacity: 0;
-    width: 24px;
-  }
-
-  &:hover,
-  &:focus-within {
-    .heading-actions {
-      opacity: 1;
-    }
-  }
-}
-
 .heading-content {
   &:before {
     content: "​";
@@ -708,6 +702,7 @@ h6:not(.placeholder):before {
   margin: 0;
   padding: 0;
   text-align: left;
+  font-weight: 500;
   font-family: ${props.theme.fontFamilyMono};
   font-size: 14px;
   line-height: 0;
@@ -1116,8 +1111,9 @@ code {
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
   padding: 3px 4px;
+  color: ${props.theme.codeString};
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 90%;
+  font-size: 80%;
 }
 
 mark {
