@@ -4,6 +4,7 @@ import Router from "koa-router";
 import capitalize from "lodash/capitalize";
 import { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
+import { languages } from "@shared/i18n";
 import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import {
@@ -33,6 +34,7 @@ type GoogleProfile = Profile & {
   picture: string;
   _json: {
     hd?: string;
+    locale?: string;
   };
 };
 
@@ -92,6 +94,10 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           // Request a larger size profile picture than the default by tweaking
           // the query parameter.
           const avatarUrl = profile.picture.replace("=s96-c", "=s128-c");
+          const locale = profile._json.locale;
+          const language = locale
+            ? languages.find((l) => l.startsWith(locale))
+            : undefined;
 
           // if a team can be inferred, we assume the user is only interested in signing into
           // that team in particular; otherwise, we will do a best effort at finding their account
@@ -107,6 +113,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             user: {
               email: profile.email,
               name: profile.displayName,
+              language,
               avatarUrl,
             },
             authenticationProvider: {
