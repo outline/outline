@@ -32,7 +32,6 @@ const enabled = !!(
 if (enabled) {
   PluginManager.add([
     {
-      id: "files",
       name: "Local file storage",
       description: "Plugin for storing files on the local file system",
       type: Hook.API,

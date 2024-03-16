@@ -11,7 +11,6 @@ const enabled = !!env.IFRAMELY_API_KEY && !!env.IFRAMELY_URL;
 if (enabled) {
   PluginManager.add([
     {
-      id: "iframely",
       type: Hook.UnfurlProvider,
       value: Iframely.get,
 

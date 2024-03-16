@@ -5,8 +5,8 @@ export default function presentProviderConfig(
   config: Plugin<Hook.AuthProvider>
 ) {
   return {
-    id: config.id,
+    id: config.value.id,
     name: config.name,
-    authUrl: signin(config.id),
+    authUrl: signin(config.value.id),
   };
 }

@@ -89,13 +89,15 @@ router.post(
     )) as AuthenticationProvider[];
 
     const data = AuthenticationHelper.providers
-      .filter((p) => p.id !== "email")
+      .filter((p) => p.value.id !== "email")
       .map((p) => {
-        const row = teamAuthenticationProviders.find((t) => t.name === p.id);
+        const row = teamAuthenticationProviders.find(
+          (t) => t.name === p.value.id
+        );
 
         return {
-          id: p.id,
-          name: p.id,
+          id: p.value.id,
+          name: p.value.id,
           displayName: p.name,
           isEnabled: false,
           isConnected: false,

@@ -46,8 +46,6 @@ type PluginValueMap = {
 export type Plugin<T extends Hook> = {
   /** Plugin type */
   type: T;
-  /** A unique ID for the plugin */
-  id?: string;
   /** The plugin's display name */
   name?: string;
   /** A brief description of the plugin */
@@ -83,9 +81,9 @@ export class PluginManager {
 
     Logger.debug(
       "plugins",
-      `Plugin(type=${plugin.type}) registered "${plugin.id}" ${
-        plugin.description ? `(${plugin.description})` : ""
-      }`
+      `Plugin(type=${plugin.type}) registered ${
+        "name" in plugin.value ? plugin.value.name : ""
+      } ${plugin.description ? `(${plugin.description})` : ""}`
     );
   }
 
