@@ -1,4 +1,4 @@
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { requireDirectory } from "@server/utils/fs";
 import BaseProcessor from "./BaseProcessor";
 
@@ -13,8 +13,8 @@ requireDirectory<{ default: BaseProcessor }>(__dirname).forEach(
   }
 );
 
-PluginManager.getEnabledPlugins(PluginType.Processor).forEach((plugin) => {
-  processors[plugin.id] = plugin.value;
+PluginManager.getHooks(Hook.Processor).forEach((hook) => {
+  processors[hook.value.name] = hook.value;
 });
 
 export default processors;

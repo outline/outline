@@ -1,8 +1,8 @@
 import path from "path";
 import { glob } from "glob";
 import type Router from "koa-router";
+import isArray from "lodash/isArray";
 import sortBy from "lodash/sortBy";
-import { v4 as uuid } from "uuid";
 import { UnfurlSignature } from "@shared/types";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
@@ -21,7 +21,7 @@ export enum PluginPriority {
 /**
  * The different types of server plugins that can be registered.
  */
-export enum PluginType {
+export enum Hook {
   API = "api",
   AuthProvider = "authProvider",
   EmailTemplate = "emailTemplate",
@@ -35,100 +35,56 @@ export enum PluginType {
  * Router. Registering an API plugin causes the router to be mounted.
  */
 type PluginValueMap = {
-  [PluginType.API]: Router;
-  [PluginType.AuthProvider]: Router;
-  [PluginType.EmailTemplate]: typeof BaseEmail;
-  [PluginType.Processor]: typeof BaseProcessor;
-  [PluginType.Task]: typeof BaseTask<any>;
-  [PluginType.UnfurlProvider]: UnfurlSignature;
+  [Hook.API]: Router;
+  [Hook.AuthProvider]: { router: Router; id: string };
+  [Hook.EmailTemplate]: typeof BaseEmail;
+  [Hook.Processor]: typeof BaseProcessor;
+  [Hook.Task]: typeof BaseTask<any>;
+  [Hook.UnfurlProvider]: UnfurlSignature;
 };
 
-export type Plugin<T extends PluginType> = {
-  /** A unique ID for the plugin */
-  id: string;
+export type Plugin<T extends Hook> = {
+  /** Plugin type */
+  type: T;
   /** The plugin's display name */
   name?: string;
   /** A brief description of the plugin */
   description?: string;
   /** The plugin content */
   value: PluginValueMap[T];
-  /** An optional priority, will affect order in menus and execution. Lower is earlier. */
+  /** Priority will affect order in menus and execution. Lower is earlier. */
   priority?: number;
-  /** Whether the plugin is enabled (default: true) */
-  enabled?: boolean;
 };
 
 export class PluginManager {
-  private static plugins = new Map<PluginType, Plugin<PluginType>[]>();
-
+  private static plugins = new Map<Hook, Plugin<Hook>[]>();
   /**
-   * Register a plugin of a given type.
-   *
-   * @param type The plugin type
-   * @param value The plugin value
-   * @param options Additional options, including whether the plugin is enabled and it's priority.
-   * @returns The PluginManager instance, for chaining.
+   * Add plugins
+   * @param plugins
    */
-  public static register<T extends PluginType>(
-    type: T,
-    value: PluginValueMap[T],
-    options: Omit<Plugin<T>, "value"> = {
-      id: uuid(),
-    }
-  ) {
-    if (!this.plugins.has(type)) {
-      this.plugins.set(type, []);
+  public static add(plugins: Array<Plugin<Hook>> | Plugin<Hook>) {
+    if (isArray(plugins)) {
+      return plugins.forEach((plugin) => this.register(plugin));
     }
 
-    const plugin = {
-      value,
-      priority: PluginPriority.Normal,
-      ...options,
-    };
+    this.register(plugins);
+  }
+
+  private static register<T extends Hook>(plugin: Plugin<T>) {
+    if (!this.plugins.has(plugin.type)) {
+      this.plugins.set(plugin.type, []);
+    }
+
+    this.plugins
+      .get(plugin.type)!
+      .push({ ...plugin, priority: plugin.priority ?? PluginPriority.Normal });
 
     Logger.debug(
       "plugins",
-      `Plugin ${options.enabled === false ? "disabled" : "enabled"} "${
-        options.id
-      }" ${options.description ? `(${options.description})` : ""}`
+      `Plugin(type=${plugin.type}) registered ${
+        "name" in plugin.value ? plugin.value.name : ""
+      } ${plugin.description ? `(${plugin.description})` : ""}`
     );
-
-    this.plugins.get(type)!.push(plugin);
-
-    // allow chaining
-    return this;
-  }
-
-  /**
-   * Syntactic sugar for registering a background Task.
-   *
-   * @param value The task class
-   * @param options Additional options
-   */
-  public static registerTask(
-    value: PluginValueMap[PluginType.Task],
-    options?: Omit<Plugin<PluginType.Task>, "id" | "value">
-  ) {
-    return this.register(PluginType.Task, value, {
-      id: value.name,
-      ...options,
-    });
-  }
-
-  /**
-   * Syntactic sugar for registering a background Processor.
-   *
-   * @param value The processor class
-   * @param options Additional options
-   */
-  public static registerProcessor(
-    value: PluginValueMap[PluginType.Processor],
-    options?: Omit<Plugin<PluginType.Processor>, "id" | "value">
-  ) {
-    return this.register(PluginType.Processor, value, {
-      id: value.name,
-      ...options,
-    });
   }
 
   /**
@@ -137,19 +93,9 @@ export class PluginManager {
    * @param type The type of plugin to filter by
    * @returns A list of plugins
    */
-  public static getPlugins<T extends PluginType>(type: T) {
+  public static getHooks<T extends Hook>(type: T) {
     this.loadPlugins();
     return sortBy(this.plugins.get(type) || [], "priority") as Plugin<T>[];
-  }
-
-  /**
-   * Returns all the enabled plugins of a given type in order of priority.
-   *
-   * @param type The type of plugin to filter by
-   * @returns A list of plugins
-   */
-  public static getEnabledPlugins<T extends PluginType>(type: T) {
-    return this.getPlugins(type).filter((plugin) => plugin.enabled !== false);
   }
 
   /**

@@ -1,4 +1,4 @@
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { requireDirectory } from "@server/utils/fs";
 import BaseTask from "./BaseTask";
 
@@ -13,8 +13,8 @@ requireDirectory<{ default: BaseTask<any> }>(__dirname).forEach(
   }
 );
 
-PluginManager.getEnabledPlugins(PluginType.Task).forEach((plugin) => {
-  tasks[plugin.id] = plugin.value;
+PluginManager.getHooks(Hook.Task).forEach((hook) => {
+  tasks[hook.value.name] = hook.value;
 });
 
 export default tasks;

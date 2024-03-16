@@ -1,4 +1,4 @@
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { requireDirectory } from "@server/utils/fs";
 import BaseEmail from "./BaseEmail";
 
@@ -14,8 +14,8 @@ requireDirectory<{ default: BaseEmail<any> }>(__dirname).forEach(
   }
 );
 
-PluginManager.getEnabledPlugins(PluginType.EmailTemplate).forEach((plugin) => {
-  emails[plugin.id] = plugin.value;
+PluginManager.getHooks(Hook.EmailTemplate).forEach((hook) => {
+  emails[hook.value.name] = hook.value;
 });
 
 export default emails;

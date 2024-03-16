@@ -2,7 +2,7 @@
 import find from "lodash/find";
 import env from "@server/env";
 import Team from "@server/models/Team";
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 export default class AuthenticationHelper {
   /**
@@ -12,7 +12,7 @@ export default class AuthenticationHelper {
    * @returns A list of authentication providers
    */
   public static get providers() {
-    return PluginManager.getEnabledPlugins(PluginType.AuthProvider);
+    return PluginManager.getHooks(Hook.AuthProvider);
   }
 
   /**
@@ -26,11 +26,11 @@ export default class AuthenticationHelper {
     const isCloudHosted = env.isCloudHosted;
 
     return AuthenticationHelper.providers
-      .sort((plugin) => (plugin.id === "email" ? 1 : -1))
-      .filter((plugin) => {
+      .sort((hook) => (hook.value.id === "email" ? 1 : -1))
+      .filter((hook) => {
         // Email sign-in is an exception as it does not have an authentication
         // provider using passport, instead it exists as a boolean option.
-        if (plugin.id === "email") {
+        if (hook.value.id === "email") {
           return team?.emailSigninEnabled;
         }
 
@@ -40,7 +40,7 @@ export default class AuthenticationHelper {
         }
 
         const authProvider = find(team.authenticationProviders, {
-          name: plugin.id,
+          name: hook.value.id,
         });
 
         // If cloud hosted then the auth provider must be enabled for the team,

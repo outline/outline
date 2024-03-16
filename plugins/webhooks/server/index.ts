@@ -1,11 +1,26 @@
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import webhookSubscriptions from "./api/webhookSubscriptions";
 import WebhookProcessor from "./processors/WebhookProcessor";
 import CleanupWebhookDeliveriesTask from "./tasks/CleanupWebhookDeliveriesTask";
 import DeliverWebhookTask from "./tasks/DeliverWebhookTask";
 
-PluginManager.register(PluginType.API, webhookSubscriptions, config)
-  .registerProcessor(WebhookProcessor)
-  .registerTask(DeliverWebhookTask)
-  .registerTask(CleanupWebhookDeliveriesTask);
+PluginManager.add([
+  {
+    ...config,
+    type: Hook.API,
+    value: webhookSubscriptions,
+  },
+  {
+    type: Hook.Processor,
+    value: WebhookProcessor,
+  },
+  {
+    type: Hook.Task,
+    value: DeliverWebhookTask,
+  },
+  {
+    type: Hook.Task,
+    value: CleanupWebhookDeliveriesTask,
+  },
+]);

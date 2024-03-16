@@ -6,7 +6,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import { AppState, AppContext } from "@server/types";
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
@@ -59,8 +59,8 @@ api.use(apiResponse());
 api.use(editor());
 
 // Register plugin API routes before others to allow for overrides
-PluginManager.getEnabledPlugins(PluginType.API).forEach((plugin) =>
-  router.use("/", plugin.value.routes())
+PluginManager.getHooks(Hook.API).forEach((hook) =>
+  router.use("/", hook.value.routes())
 );
 
 // routes

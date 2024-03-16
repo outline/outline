@@ -13,12 +13,12 @@ import { authorize } from "@server/policies";
 import { presentDocument, presentMention } from "@server/presenters/unfurls";
 import presentUnfurl from "@server/presenters/unfurls/unfurl";
 import { APIContext } from "@server/types";
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
 
 const router = new Router();
-const plugins = PluginManager.getEnabledPlugins(PluginType.UnfurlProvider);
+const plugins = PluginManager.getHooks(Hook.UnfurlProvider);
 
 router.post(
   "urls.unfurl",
