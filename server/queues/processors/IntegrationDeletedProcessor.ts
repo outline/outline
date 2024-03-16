@@ -1,8 +1,7 @@
-import { IntegrationService, IntegrationType } from "@shared/types";
 import { Integration } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import { IntegrationEvent, Event } from "@server/types";
-import { githubApp } from "../github";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 export default class IntegrationDeletedProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = ["integrations.delete"];
@@ -26,14 +25,9 @@ export default class IntegrationDeletedProcessor extends BaseProcessor {
       return;
     }
 
-    // If GitHub, delete this installation
-    if (integration.service === IntegrationService.GitHub) {
-      const installationId = (integration as Integration<IntegrationType.Embed>)
-        .settings?.github?.installation.id;
-
-      if (installationId) {
-        await githubApp.deleteInstallation(installationId);
-      }
+    const uninstallHooks = PluginManager.getHooks(Hook.Uninstall);
+    for (const hook of uninstallHooks) {
+      await hook.value(integration);
     }
 
     await integration.destroy({ force: true });

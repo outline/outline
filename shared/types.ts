@@ -289,6 +289,10 @@ export type UnfurlSignature = (
   actor?: any
 ) => Promise<Unfurl | void>;
 
+export type UninstallSignature = (
+  integration: Record<string, any>
+) => Promise<void>;
+
 export type JSONValue =
   | string
   | number

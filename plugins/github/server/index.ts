@@ -1,9 +1,9 @@
-import { PluginManager, PluginType } from "@server/utils/PluginManager";
+import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import router from "./api/github";
 import env from "./env";
 import { githubApp } from "./github";
-import IntegrationDeletedProcessor from "./processors/IntegrationDeletedProcessor";
+import { uninstall } from "./uninstall";
 
 const enabled =
   !!env.GITHUB_CLIENT_ID &&
@@ -12,11 +12,20 @@ const enabled =
   !!env.GITHUB_APP_ID &&
   !!env.GITHUB_APP_PRIVATE_KEY;
 
-PluginManager.register(PluginType.API, router, { ...config, enabled });
-
-PluginManager.register(PluginType.UnfurlProvider, githubApp.unfurl as any, {
-  enabled,
-  ...config,
-});
-
-PluginManager.registerProcessor(IntegrationDeletedProcessor, { enabled });
+if (enabled) {
+  PluginManager.add([
+    {
+      ...config,
+      type: Hook.API,
+      value: router,
+    },
+    {
+      type: Hook.UnfurlProvider,
+      value: githubApp.unfurl as any,
+    },
+    {
+      type: Hook.Uninstall,
+      value: uninstall,
+    },
+  ]);
+}

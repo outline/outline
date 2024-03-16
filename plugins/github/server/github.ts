@@ -51,7 +51,7 @@ class GitHubApp {
    * @returns {object} An object container the resource details - could be a pull request
    * details or an issue details
    */
-  public async unfurl(url: string, actor: User) {
+  unfurl = async (url: string, actor: User) => {
     const { owner, repo, resourceType, resourceId } = GitHubUtils.parseUrl(url);
 
     if (!owner) {
@@ -106,7 +106,7 @@ class GitHubApp {
     } catch (err) {
       return Logger.warn("Failed to fetch resource from GitHub", err);
     }
-  }
+  };
 }
 
 export const githubApp = new GitHubApp();
