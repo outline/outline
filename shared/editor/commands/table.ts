@@ -119,6 +119,9 @@ export function sortTable({
       // remove the header row
       const header = table.shift();
 
+      // column data before sort
+      const columnData = table.map((row) => row[index]?.textContent ?? "");
+
       // sort table data based on column at index
       table.sort((a, b) => {
         if (compareAsText) {
@@ -135,6 +138,13 @@ export function sortTable({
 
       if (direction === "desc") {
         table.reverse();
+      }
+
+      // check if column data changed, if not then do not replace table
+      if (
+        columnData.join() === table.map((row) => row[index]?.textContent).join()
+      ) {
+        return true;
       }
 
       // add the header row back
