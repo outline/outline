@@ -71,6 +71,7 @@ import {
 } from "../commands/codeFence";
 import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
+import Kroki from "../extensions/Kroki";
 import Mermaid from "../extensions/Mermaid";
 import Prism from "../extensions/Prism";
 import { isCode } from "../lib/isCode";
@@ -281,6 +282,10 @@ export default class CodeFence extends Node {
       Mermaid({
         name: this.name,
         isDark: this.editor.props.theme.isDark,
+      }),
+      Kroki({
+        name: this.name,
+        url: "https://kroki.io",
       }),
       new Plugin({
         key: new PluginKey("triple-click"),

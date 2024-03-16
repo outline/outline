@@ -440,6 +440,25 @@ export class ProsemirrorHelper {
       dom.window.document.body.appendChild(element);
     }
 
+    // TODO: Add an option includeKroki too?
+    {
+      const krokiElements = dom.window.document.querySelectorAll(
+        `[data-language^="kroki"] pre code`
+      );
+
+      // Unwrap <pre> tags to enable Kroki script to correctly render inner content
+      for (const el of krokiElements) {
+        const parent = el.parentNode as HTMLElement;
+        if (parent) {
+          while (el.firstChild) {
+            parent.insertBefore(el.firstChild, el);
+          }
+          parent.removeChild(el);
+          parent.setAttribute("class", "kroki");
+        }
+      }
+    }
+
     return dom.serialize();
   }
 }

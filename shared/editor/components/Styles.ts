@@ -1232,6 +1232,36 @@ mark {
   overflow: hidden;
 }
 
+.code-block[data-language^=kroki] {
+  margin: 0.75em 0;
+
+  pre {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: -20px;
+    overflow: hidden;
+  }
+
+  // Hide code without display none so toolbar can still be positioned against it
+  &:not(.code-active) {
+    height: ${props.staticHTML ? "auto" : "0"};
+    margin: -0.75em 0;
+    overflow: hidden;
+
+    // Allows the margin to collapse correctly by moving div out of the flow
+    position: absolute;
+  }
+}
+
+/* Hide code without display none so toolbar can still be positioned against it */
+.ProseMirror[contenteditable="false"] .code-block[data-language^=kroki] {
+  height: ${props.staticHTML ? "auto" : "0"};
+  margin: -0.5em 0;
+  overflow: hidden;
+}
+
+
+
 .code-block.with-line-numbers {
   pre {
     padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1.5em);
@@ -1254,6 +1284,36 @@ mark {
     text-align: right;
     font-variant-numeric: tabular-nums;
     user-select: none;
+  }
+}
+
+.kroki-diagram-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.75em 0;
+  min-height: 1.6em;
+  background: ${props.theme.codeBackground};
+  border-radius: 6px;
+  border: 1px solid ${props.theme.codeBorder};
+  padding: 8px;
+  user-select: none;
+  cursor: default;
+
+  * {
+    font-family: ${props.theme.fontFamily};
+  }
+
+  &.empty {
+    font-family: ${props.theme.fontFamilyMono};
+    font-size: 14px;
+    color: ${props.theme.placeholder};
+  }
+
+  &.parse-error {
+    font-family: ${props.theme.fontFamilyMono};
+    font-size: 14px;
+    color: ${props.theme.brand.red};
   }
 }
 
@@ -1715,6 +1775,12 @@ table {
 
 .folded-content,
 .folded-content + .mermaid-diagram-wrapper {
+  display: none;
+  user-select: none;
+}
+
+.folded-content,
+.folded-content + .kroki-diagram-wrapper {
   display: none;
   user-select: none;
 }
