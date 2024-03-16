@@ -20,6 +20,8 @@ type Props = {
     email: string;
     /** The public url of an image representing the user */
     avatarUrl?: string | null;
+    /** The language of the user, if known */
+    language?: string;
   };
   /** Details of the team the user is logging into */
   team: {
@@ -129,6 +131,7 @@ async function accountProvisioner({
   result = await userProvisioner({
     name: userParams.name,
     email: userParams.email,
+    language: userParams.language,
     isAdmin: isNewTeam || undefined,
     avatarUrl: userParams.avatarUrl,
     teamId: team.id,
