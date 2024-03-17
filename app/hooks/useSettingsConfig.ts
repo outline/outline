@@ -5,7 +5,7 @@ import {
   CodeIcon,
   UserIcon,
   GroupIcon,
-  LinkIcon,
+  GlobeIcon,
   TeamIcon,
   BeakerIcon,
   BuildingBlocksIcon,
@@ -148,7 +148,7 @@ const useSettingsConfig = () => {
         component: Shares,
         enabled: true,
         group: t("Workspace"),
-        icon: LinkIcon,
+        icon: GlobeIcon,
       },
       {
         name: t("Import"),
