@@ -1,6 +1,6 @@
 import {
   IntegrationService,
-  UserCreatableIntegrationService,
+  IntegrationService,
   IntegrationType,
 } from "@shared/types";
 import { IntegrationAuthentication, User } from "@server/models";
@@ -108,7 +108,7 @@ describe("#integrations.create", () => {
       body: {
         token: admin.getJwtToken(),
         type: IntegrationType.Embed,
-        service: UserCreatableIntegrationService.Diagrams,
+        service: IntegrationService.Diagrams,
         settings: { url: "not a url" },
       },
     });
@@ -124,16 +124,14 @@ describe("#integrations.create", () => {
       body: {
         token: admin.getJwtToken(),
         type: IntegrationType.Analytics,
-        service: UserCreatableIntegrationService.GoogleAnalytics,
+        service: IntegrationService.GoogleAnalytics,
         settings: { measurementId: "123" },
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.type).toEqual(IntegrationType.Analytics);
-    expect(body.data.service).toEqual(
-      UserCreatableIntegrationService.GoogleAnalytics
-    );
+    expect(body.data.service).toEqual(IntegrationService.GoogleAnalytics);
     expect(body.data.settings).not.toBeFalsy();
     expect(body.data.settings.measurementId).toEqual("123");
   });
@@ -145,14 +143,14 @@ describe("#integrations.create", () => {
       body: {
         token: admin.getJwtToken(),
         type: IntegrationType.Embed,
-        service: UserCreatableIntegrationService.Grist,
+        service: IntegrationService.Grist,
         settings: { url: "https://grist.example.com" },
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.type).toEqual(IntegrationType.Embed);
-    expect(body.data.service).toEqual(UserCreatableIntegrationService.Grist);
+    expect(body.data.service).toEqual(IntegrationService.Grist);
     expect(body.data.settings).not.toBeFalsy();
     expect(body.data.settings.url).toEqual("https://grist.example.com");
   });

@@ -9,10 +9,7 @@ import {
   IsIn,
 } from "sequelize-typescript";
 import { IntegrationType, IntegrationService } from "@shared/types";
-import type {
-  IntegrationSettings,
-  UserCreatableIntegrationService,
-} from "@shared/types";
+import type { IntegrationSettings } from "@shared/types";
 import Collection from "./Collection";
 import IntegrationAuthentication from "./IntegrationAuthentication";
 import Team from "./Team";
@@ -43,7 +40,7 @@ class Integration<T = unknown> extends IdModel<
 
   @IsIn([Object.values(IntegrationService)])
   @Column(DataType.STRING)
-  service: IntegrationService | UserCreatableIntegrationService;
+  service: IntegrationService;
 
   @Column(DataType.JSONB)
   settings: IntegrationSettings<T>;

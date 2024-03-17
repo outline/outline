@@ -1,18 +1,22 @@
 import env from "@shared/env";
+import { IntegrationType } from "@shared/types";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
 export class SlackUtils {
   private static authBaseUrl = "https://slack.com/oauth/authorize";
 
-  static commandsUrl(
-    { baseUrl, params }: { baseUrl: string; params?: string } = {
-      baseUrl: `${env.URL}`,
-      params: undefined,
-    }
+  static createState(
+    teamId: string,
+    type: IntegrationType,
+    data?: Record<string, any>
   ) {
-    return params
-      ? `${baseUrl}/auth/slack.commands?${params}`
-      : `${baseUrl}/auth/slack.commands`;
+    return JSON.stringify({ type, teamId, ...data });
+  }
+
+  static parseState<T>(
+    state: string
+  ): { teamId: string; type: IntegrationType } & T {
+    return JSON.parse(state);
   }
 
   static callbackUrl(

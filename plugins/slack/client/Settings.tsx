@@ -15,6 +15,7 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { SlackUtils } from "../shared/SlackUtils";
@@ -27,6 +28,7 @@ function Slack() {
   const { collections, integrations } = useStores();
   const { t } = useTranslation();
   const query = useQuery();
+  const can = usePolicy(team);
   const error = query.get("error");
 
   React.useEffect(() => {
@@ -34,12 +36,18 @@ function Slack() {
       limit: 100,
     });
     void integrations.fetchPage({
+      service: IntegrationService.Slack,
       limit: 100,
     });
   }, [collections, integrations]);
 
   const commandIntegration = integrations.find({
     type: IntegrationType.Command,
+    service: IntegrationService.Slack,
+  });
+
+  const linkedAccountIntegration = integrations.find({
+    type: IntegrationType.LinkedAccount,
     service: IntegrationService.Slack,
   });
 
@@ -60,6 +68,25 @@ function Slack() {
     <Scene title="Slack" icon={<SlackIcon />}>
       <Heading>Slack</Heading>
 
+      <Text as="p" type="secondary">
+        <Trans>
+          Link your account to Slack to enable searching all the documents you
+          have access to in {{ appName }} from within Slack.
+        </Trans>
+      </Text>
+
+      {linkedAccountIntegration ? (
+        <Button onClick={() => linkedAccountIntegration.delete()} neutral>
+          {t("Disconnect")}
+        </Button>
+      ) : (
+        <SlackButton
+          redirectUri={SlackUtils.postUrl()}
+          state={SlackUtils.createState(team.id, IntegrationType.LinkedAccount)}
+          label={t("Connect")}
+        />
+      )}
+
       {error === "access_denied" && (
         <Notice>
           <Trans>
@@ -76,37 +103,30 @@ function Slack() {
           </Trans>
         </Notice>
       )}
-      <Text as="p" type="secondary">
-        <Trans
-          defaults="Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat."
-          values={{
-            command: "/outline",
-            appName,
-          }}
-          components={{
-            em: <Code />,
-          }}
-        />
-      </Text>
-      {env.SLACK_CLIENT_ID ? (
+      {can.update && (
         <>
+          <Text as="p" type="secondary">
+            <Trans
+              defaults="Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat."
+              values={{
+                command: "/outline",
+                appName,
+              }}
+              components={{
+                em: <Code />,
+              }}
+            />
+          </Text>
           <p>
             {commandIntegration ? (
-              <Button onClick={() => commandIntegration.delete()}>
+              <Button onClick={() => commandIntegration.delete()} neutral>
                 {t("Disconnect")}
               </Button>
             ) : (
               <SlackButton
-                scopes={[
-                  "commands",
-                  "links:read",
-                  "links:write",
-                  // TODO: Wait forever for Slack to approve these scopes.
-                  // "users:read",
-                  // "users:read.email",
-                ]}
-                redirectUri={SlackUtils.commandsUrl()}
-                state={team.id}
+                scopes={["commands", "links:read", "links:write"]}
+                redirectUri={SlackUtils.postUrl()}
+                state={SlackUtils.createState(team.id, IntegrationType.Command)}
                 icon={<SlackIcon />}
               />
             )}
@@ -144,8 +164,12 @@ function Slack() {
                   actions={
                     <SlackButton
                       scopes={["incoming-webhook"]}
-                      redirectUri={`${env.URL}/auth/slack.post`}
-                      state={collection.id}
+                      redirectUri={SlackUtils.postUrl()}
+                      state={SlackUtils.createState(
+                        team.id,
+                        IntegrationType.Post,
+                        { collectionId: collection.id }
+                      )}
                       label={t("Connect")}
                     />
                   }
@@ -154,14 +178,6 @@ function Slack() {
             })}
           </List>
         </>
-      ) : (
-        <Notice>
-          <Trans>
-            The Slack integration is currently disabled. Please set the
-            associated environment variables and restart the server to enable
-            the integration.
-          </Trans>
-        </Notice>
       )}
     </Scene>
   );

@@ -15,6 +15,7 @@ import {
   Table,
   IsUUID,
   PrimaryKey,
+  Scopes,
 } from "sequelize-typescript";
 import Model from "@server/models/base/Model";
 import { ValidationError } from "../errors";
@@ -28,6 +29,20 @@ import AzureClient from "plugins/azure/server/azure";
 import GoogleClient from "plugins/google/server/google";
 import OIDCClient from "plugins/oidc/server/oidc";
 
+@Scopes(() => ({
+  withUserAuthentication: (userId: string) => ({
+    include: [
+      {
+        model: UserAuthentication,
+        as: "userAuthentications",
+        required: true,
+        where: {
+          userId,
+        },
+      },
+    ],
+  }),
+}))
 @Table({
   tableName: "authentication_providers",
   modelName: "authentication_provider",

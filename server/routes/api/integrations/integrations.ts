@@ -20,18 +20,17 @@ router.post(
   pagination(),
   validate(T.IntegrationsListSchema),
   async (ctx: APIContext<T.IntegrationsListReq>) => {
-    const { direction, type, sort } = ctx.input.body;
+    const { direction, service, type, sort } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     let where: WhereOptions<Integration> = {
       teamId: user.teamId,
     };
-
     if (type) {
-      where = {
-        ...where,
-        type,
-      };
+      where = { ...where, type };
+    }
+    if (service) {
+      where = { ...where, service };
     }
 
     const integrations = await Integration.findAll({

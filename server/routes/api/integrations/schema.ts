@@ -1,8 +1,5 @@
 import { z } from "zod";
-import {
-  IntegrationType,
-  UserCreatableIntegrationService,
-} from "@shared/types";
+import { IntegrationType, IntegrationService } from "@shared/types";
 import { Integration } from "@server/models";
 import { BaseSchema } from "../schema";
 
@@ -24,6 +21,9 @@ export const IntegrationsListSchema = BaseSchema.extend({
 
     /** Integration type */
     type: z.nativeEnum(IntegrationType).optional(),
+
+    /** Integration service */
+    service: z.nativeEnum(IntegrationService).optional(),
   }),
 });
 
@@ -35,7 +35,7 @@ export const IntegrationsCreateSchema = BaseSchema.extend({
     type: z.nativeEnum(IntegrationType),
 
     /** Integration service */
-    service: z.nativeEnum(UserCreatableIntegrationService),
+    service: z.nativeEnum(IntegrationService),
 
     /** Integration config/settings */
     settings: z
