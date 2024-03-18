@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { WhereOptions } from "sequelize";
+import { WhereOptions, Op } from "sequelize";
 import { IntegrationType } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -32,6 +32,19 @@ router.post(
     if (service) {
       where = { ...where, service };
     }
+
+    // Linked account is special as these are user-specific, other integrations are workspace-wide.
+    where = {
+      ...where,
+      [Op.or]: [
+        { userId: user.id, type: IntegrationType.LinkedAccount },
+        {
+          type: {
+            [Op.not]: IntegrationType.LinkedAccount,
+          },
+        },
+      ],
+    };
 
     const integrations = await Integration.findAll({
       where,

@@ -5,7 +5,9 @@ import styled from "styled-components";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
+import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Button from "~/components/Button";
+import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import List from "~/components/List";
@@ -68,25 +70,6 @@ function Slack() {
     <Scene title="Slack" icon={<SlackIcon />}>
       <Heading>Slack</Heading>
 
-      <Text as="p" type="secondary">
-        <Trans>
-          Link your account to Slack to enable searching all the documents you
-          have access to in {{ appName }} from within Slack.
-        </Trans>
-      </Text>
-
-      {linkedAccountIntegration ? (
-        <Button onClick={() => linkedAccountIntegration.delete()} neutral>
-          {t("Disconnect")}
-        </Button>
-      ) : (
-        <SlackButton
-          redirectUri={SlackUtils.connectUrl()}
-          state={SlackUtils.createState(team.id, IntegrationType.LinkedAccount)}
-          label={t("Connect")}
-        />
-      )}
-
       {error === "access_denied" && (
         <Notice>
           <Trans>
@@ -103,37 +86,76 @@ function Slack() {
           </Trans>
         </Notice>
       )}
+
+      <Heading as="h2">{t("Search in Slack")}</Heading>
+
+      <SettingRow
+        name="link"
+        label={t("Personal account")}
+        description={
+          <Trans>
+            Link your {{ appName }} account to Slack to enable searching all the
+            documents you have access to directly within chat.
+          </Trans>
+        }
+      >
+        <Flex align="flex-end" column>
+          {linkedAccountIntegration ? (
+            <Button onClick={() => linkedAccountIntegration.delete()} neutral>
+              {t("Disconnect")}
+            </Button>
+          ) : (
+            <SlackButton
+              redirectUri={SlackUtils.connectUrl()}
+              state={SlackUtils.createState(
+                team.id,
+                IntegrationType.LinkedAccount
+              )}
+              label={t("Connect")}
+            />
+          )}
+        </Flex>
+      </SettingRow>
+
       {can.update && (
         <>
-          <Text as="p" type="secondary">
-            <Trans
-              defaults="Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat."
-              values={{
-                command: "/outline",
-                appName,
-              }}
-              components={{
-                em: <Code />,
-              }}
-            />
-          </Text>
-          <p>
-            {commandIntegration ? (
-              <Button onClick={() => commandIntegration.delete()} neutral>
-                {t("Disconnect")}
-              </Button>
-            ) : (
-              <SlackButton
-                scopes={["commands", "links:read", "links:write"]}
-                redirectUri={SlackUtils.connectUrl()}
-                state={SlackUtils.createState(team.id, IntegrationType.Command)}
-                icon={<SlackIcon />}
+          <SettingRow
+            name="slash"
+            border={false}
+            label={t("Slash command")}
+            description={
+              <Trans
+                defaults="Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat."
+                values={{
+                  command: "/outline",
+                  appName,
+                }}
+                components={{
+                  em: <Code />,
+                }}
               />
-            )}
-          </p>
-          <p>&nbsp;</p>
+            }
+          >
+            <Flex align="flex-end" column>
+              {commandIntegration ? (
+                <Button onClick={() => commandIntegration.delete()} neutral>
+                  {t("Disconnect")}
+                </Button>
+              ) : (
+                <SlackButton
+                  scopes={["commands", "links:read", "links:write"]}
+                  redirectUri={SlackUtils.connectUrl()}
+                  state={SlackUtils.createState(
+                    team.id,
+                    IntegrationType.Command
+                  )}
+                  icon={<SlackIcon />}
+                />
+              )}
+            </Flex>
+          </SettingRow>
 
-          <h2>{t("Collections")}</h2>
+          <Heading as="h2">{t("Collections")}</Heading>
           <Text as="p" type="secondary">
             <Trans>
               Connect {{ appName }} collections to Slack channels. Messages will
@@ -188,6 +210,7 @@ const Code = styled.code`
   margin: 0 2px;
   background: ${(props) => props.theme.codeBackground};
   border-radius: 4px;
+  font-size: 80%;
 `;
 
 export default observer(Slack);
