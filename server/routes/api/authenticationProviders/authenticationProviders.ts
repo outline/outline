@@ -22,9 +22,7 @@ router.post(
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const authenticationProvider = await AuthenticationProvider.scope({
-      method: ["withUserAuthentication", user.id],
-    }).findByPk(id);
+    const authenticationProvider = await AuthenticationProvider.findByPk(id);
     authorize(user, "read", authenticationProvider);
 
     ctx.body = {
@@ -44,9 +42,7 @@ router.post(
     const { id, isEnabled } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const authenticationProvider = await AuthenticationProvider.scope({
-      method: ["withUserAuthentication", user.id],
-    }).findByPk(id, {
+    const authenticationProvider = await AuthenticationProvider.findByPk(id, {
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
@@ -88,13 +84,9 @@ router.post(
     const { user } = ctx.state.auth;
     authorize(user, "read", user.team);
 
-    const teamAuthenticationProviders = await AuthenticationProvider.scope({
-      method: ["withUserAuthentication", user.id],
-    }).findAll({
-      where: {
-        teamId: user.teamId,
-      },
-    });
+    const teamAuthenticationProviders = (await user.team.$get(
+      "authenticationProviders"
+    )) as AuthenticationProvider[];
 
     const data = AuthenticationHelper.providers
       .filter((p) => p.value.id !== "email")
