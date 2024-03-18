@@ -8,6 +8,6 @@ export default function presentAuthenticationProvider(
     name: authenticationProvider.name,
     createdAt: authenticationProvider.createdAt,
     isEnabled: authenticationProvider.enabled,
-    isConnected: authenticationProvider.userAuthentications.length > 0,
+    isConnected: true,
   };
 }

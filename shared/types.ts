@@ -83,6 +83,19 @@ export enum IntegrationService {
   GoogleAnalytics = "google-analytics",
 }
 
+export type UserCreatableIntegrationService = Extract<
+  IntegrationService,
+  | IntegrationService.Diagrams
+  | IntegrationService.Grist
+  | IntegrationService.GoogleAnalytics
+>;
+
+export const UserCreatableIntegrationService = {
+  Diagrams: IntegrationService.Diagrams,
+  Grist: IntegrationService.Grist,
+  GoogleAnalytics: IntegrationService.GoogleAnalytics,
+} as const;
+
 export enum CollectionPermission {
   Read = "read",
   ReadWrite = "read_write",

@@ -1,8 +1,4 @@
-import {
-  IntegrationService,
-  IntegrationService,
-  IntegrationType,
-} from "@shared/types";
+import { IntegrationService, IntegrationType } from "@shared/types";
 import { IntegrationAuthentication, User } from "@server/models";
 import Integration from "@server/models/Integration";
 import {
