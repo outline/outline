@@ -17,6 +17,7 @@ import {
   Collection,
 } from "@server/models";
 import { authorize } from "@server/policies";
+import { sequelize } from "@server/storage/database";
 import { APIContext, AuthenticationResult } from "@server/types";
 import {
   getClientFromContext,
@@ -165,7 +166,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             });
             return redirectOnClient(
               ctx,
-              SlackUtils.postUrl({
+              SlackUtils.connectUrl({
                 baseUrl: team.url,
                 params: ctx.request.querystring,
               })
@@ -187,28 +188,36 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           authorize(user, "update", user.team);
 
           // validation middleware ensures that code is non-null at this point
-          const data = await Slack.oauthAccess(code!, SlackUtils.postUrl());
-          const authentication = await IntegrationAuthentication.create({
-            service: IntegrationService.Slack,
-            userId: user.id,
-            teamId: user.teamId,
-            token: data.access_token,
-            scopes: data.scope.split(","),
-          });
+          const data = await Slack.oauthAccess(code!, SlackUtils.connectUrl());
 
-          await Integration.create({
-            service: IntegrationService.Slack,
-            type: IntegrationType.Post,
-            userId: user.id,
-            teamId: user.teamId,
-            authenticationId: authentication.id,
-            collectionId,
-            events: ["documents.update", "documents.publish"],
-            settings: {
-              url: data.incoming_webhook.url,
-              channel: data.incoming_webhook.channel,
-              channelId: data.incoming_webhook.channel_id,
-            },
+          await sequelize.transaction(async (transaction) => {
+            const authentication = await IntegrationAuthentication.create(
+              {
+                service: IntegrationService.Slack,
+                userId: user.id,
+                teamId: user.teamId,
+                token: data.access_token,
+                scopes: data.scope.split(","),
+              },
+              { transaction }
+            );
+            await Integration.create(
+              {
+                service: IntegrationService.Slack,
+                type: IntegrationType.Post,
+                userId: user.id,
+                teamId: user.teamId,
+                authenticationId: authentication.id,
+                collectionId,
+                events: ["documents.update", "documents.publish"],
+                settings: {
+                  url: data.incoming_webhook.url,
+                  channel: data.incoming_webhook.channel,
+                  channelId: data.incoming_webhook.channel_id,
+                },
+              },
+              { transaction }
+            );
           });
           break;
         }
@@ -217,44 +226,44 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           authorize(user, "update", user.team);
 
           // validation middleware ensures that code is non-null at this point
-          const data = await Slack.oauthAccess(code!, SlackUtils.postUrl());
-          const authentication = await IntegrationAuthentication.create({
-            service: IntegrationService.Slack,
-            userId: user.id,
-            teamId: user.teamId,
-            token: data.access_token,
-            scopes: data.scope.split(","),
-          });
-          await Integration.create({
-            service: IntegrationService.Slack,
-            type: IntegrationType.Command,
-            userId: user.id,
-            teamId: user.teamId,
-            authenticationId: authentication.id,
-            settings: {
-              serviceTeamId: data.team_id,
-            },
+          const data = await Slack.oauthAccess(code!, SlackUtils.connectUrl());
+
+          await sequelize.transaction(async (transaction) => {
+            const authentication = await IntegrationAuthentication.create(
+              {
+                service: IntegrationService.Slack,
+                userId: user.id,
+                teamId: user.teamId,
+                token: data.access_token,
+                scopes: data.scope.split(","),
+              },
+              { transaction }
+            );
+            await Integration.create(
+              {
+                service: IntegrationService.Slack,
+                type: IntegrationType.Command,
+                userId: user.id,
+                teamId: user.teamId,
+                authenticationId: authentication.id,
+                settings: {
+                  serviceTeamId: data.team_id,
+                },
+              },
+              { transaction }
+            );
           });
           break;
         }
 
         case IntegrationType.LinkedAccount: {
           // validation middleware ensures that code is non-null at this point
-          const data = await Slack.oauthAccess(code!, SlackUtils.postUrl());
-          const authentication = await IntegrationAuthentication.create({
-            service: IntegrationService.Slack,
-            userId: user.id,
-            teamId: user.teamId,
-            token: data.access_token,
-            refreshToken: data.refresh_token,
-            scopes: data.scope.split(","),
-          });
+          const data = await Slack.oauthAccess(code!, SlackUtils.connectUrl());
           await Integration.create({
             service: IntegrationService.Slack,
             type: IntegrationType.LinkedAccount,
             userId: user.id,
             teamId: user.teamId,
-            authenticationId: authentication.id,
             settings: {
               slack: {
                 serviceUserId: data.user_id,

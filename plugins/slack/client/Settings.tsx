@@ -81,7 +81,7 @@ function Slack() {
         </Button>
       ) : (
         <SlackButton
-          redirectUri={SlackUtils.postUrl()}
+          redirectUri={SlackUtils.connectUrl()}
           state={SlackUtils.createState(team.id, IntegrationType.LinkedAccount)}
           label={t("Connect")}
         />
@@ -125,7 +125,7 @@ function Slack() {
             ) : (
               <SlackButton
                 scopes={["commands", "links:read", "links:write"]}
-                redirectUri={SlackUtils.postUrl()}
+                redirectUri={SlackUtils.connectUrl()}
                 state={SlackUtils.createState(team.id, IntegrationType.Command)}
                 icon={<SlackIcon />}
               />
@@ -164,7 +164,7 @@ function Slack() {
                   actions={
                     <SlackButton
                       scopes={["incoming-webhook"]}
-                      redirectUri={SlackUtils.postUrl()}
+                      redirectUri={SlackUtils.connectUrl()}
                       state={SlackUtils.createState(
                         team.id,
                         IntegrationType.Post,

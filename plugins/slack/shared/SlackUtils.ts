@@ -30,7 +30,7 @@ export class SlackUtils {
       : `${baseUrl}/auth/slack.callback`;
   }
 
-  static postUrl(
+  static connectUrl(
     { baseUrl, params }: { baseUrl: string; params?: string } = {
       baseUrl: `${env.URL}`,
       params: undefined,
