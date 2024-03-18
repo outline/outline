@@ -5,8 +5,8 @@ import styled from "styled-components";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
+import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
-import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
@@ -87,23 +87,24 @@ function Slack() {
         </Notice>
       )}
 
-      <Heading as="h2">{t("Search in Slack")}</Heading>
-
       <SettingRow
         name="link"
         label={t("Personal account")}
         description={
           <Trans>
-            Link your {{ appName }} account to Slack to enable searching all the
+            Link your {{ appName }} account to Slack to enable searching the
             documents you have access to directly within chat.
           </Trans>
         }
       >
         <Flex align="flex-end" column>
           {linkedAccountIntegration ? (
-            <Button onClick={() => linkedAccountIntegration.delete()} neutral>
-              {t("Disconnect")}
-            </Button>
+            <ConnectedButton
+              onClick={linkedAccountIntegration.delete}
+              confirmationMessage={t(
+                "Disconnecting your personal account will prevent searching for documents from Slack. Are you sure?"
+              )}
+            />
           ) : (
             <SlackButton
               redirectUri={SlackUtils.connectUrl()}
@@ -138,9 +139,12 @@ function Slack() {
           >
             <Flex align="flex-end" column>
               {commandIntegration ? (
-                <Button onClick={() => commandIntegration.delete()} neutral>
-                  {t("Disconnect")}
-                </Button>
+                <ConnectedButton
+                  onClick={commandIntegration.delete}
+                  confirmationMessage={t(
+                    "This will remove the Outline slash command from your Slack workspace. Are you sure?"
+                  )}
+                />
               ) : (
                 <SlackButton
                   scopes={["commands", "links:read", "links:write"]}
