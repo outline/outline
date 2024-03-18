@@ -133,7 +133,7 @@ router.post(
 
 router.post(
   "integrations.delete",
-  auth({ admin: true }),
+  auth(),
   validate(T.IntegrationsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.IntegrationsDeleteReq>) => {
