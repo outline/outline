@@ -177,9 +177,7 @@ describe("#integrations.delete", () => {
         id: integration.id,
       },
     });
-    const body = await res.json();
     expect(res.status).toEqual(403);
-    expect(body.message).toEqual("Admin role required");
   });
 
   it("should fail with status 400 bad request when id is not sent", async () => {
@@ -192,6 +190,23 @@ describe("#integrations.delete", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("id: Required");
+  });
+
+  it("should succeed as user deleting own linked account integration", async () => {
+    const user = await buildUser();
+    const linkedAccount = await buildIntegration({
+      userId: user.id,
+      teamId: user.teamId,
+      service: IntegrationService.Slack,
+      type: IntegrationType.LinkedAccount,
+    });
+    const res = await server.post("/api/integrations.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: linkedAccount.id,
+      },
+    });
+    expect(res.status).toEqual(200);
   });
 
   it("should succeed with status 200 ok when integration is deleted", async () => {
