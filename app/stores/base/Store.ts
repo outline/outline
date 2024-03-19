@@ -43,9 +43,6 @@ export default abstract class Store<T extends Model> {
   @observable
   isLoaded = false;
 
-  @observable
-  areRelationsLoaded = false;
-
   model: typeof Model;
 
   modelName: string;
@@ -312,7 +309,7 @@ export default abstract class Store<T extends Model> {
         this.orderedData.map((integration) => integration.loadRelations())
       );
     }
-    this.areRelationsLoaded = true;
+
     return results;
   };
 

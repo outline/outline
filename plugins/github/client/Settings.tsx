@@ -10,6 +10,7 @@ import Heading from "~/components/Heading";
 import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
+import PlaceholderText from "~/components/PlaceholderText";
 import Scene from "~/components/Scene";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
@@ -35,10 +36,6 @@ function GitHub() {
       withRelations: true,
     });
   }, [integrations]);
-
-  if (!integrations.areRelationsLoaded) {
-    return null;
-  }
 
   return (
     <Scene title="GitHub" icon={<GitHubIcon />}>
@@ -91,7 +88,9 @@ function GitHub() {
                 {integrations.github.map((integration) => {
                   const githubAccount =
                     integration.settings?.github?.installation.account;
-                  const integrationCreatedBy = integration.user.name;
+                  const integrationCreatedBy = integration.user
+                    ? integration.user.name
+                    : undefined;
 
                   return (
                     <ListItem
@@ -99,15 +98,19 @@ function GitHub() {
                       small
                       title={githubAccount?.name}
                       subtitle={
-                        <>
-                          <Trans>Enabled by {{ integrationCreatedBy }}</Trans>{" "}
-                          &middot;{" "}
-                          <Time
-                            dateTime={integration.createdAt}
-                            relative={false}
-                            format={{ en_US: "MMMM d, y" }}
-                          />
-                        </>
+                        integrationCreatedBy ? (
+                          <>
+                            <Trans>Enabled by {{ integrationCreatedBy }}</Trans>{" "}
+                            &middot;{" "}
+                            <Time
+                              dateTime={integration.createdAt}
+                              relative={false}
+                              format={{ en_US: "MMMM d, y" }}
+                            />
+                          </>
+                        ) : (
+                          <PlaceholderText />
+                        )
                       }
                       image={
                         <TeamLogo
