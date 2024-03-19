@@ -5,7 +5,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { redirectTo } from "~/utils/urls";
 import { GitHubUtils } from "../../shared/GitHubUtils";
 
-export function GitHubConnectButton(props: Props) {
+export function GitHubConnectButton(props: Props<HTMLButtonElement>) {
   const { t } = useTranslation();
   const team = useCurrentTeam();
 
