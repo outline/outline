@@ -5,6 +5,14 @@ import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 export class SlackUtils {
   private static authBaseUrl = "https://slack.com/oauth/authorize";
 
+  /**
+   * Create a state string for use in OAuth flows
+   *
+   * @param teamId The team ID
+   * @param type The integration type
+   * @param data Additional data to include in the state
+   * @returns A state string
+   */
   static createState(
     teamId: string,
     type: IntegrationType,
@@ -13,6 +21,12 @@ export class SlackUtils {
     return JSON.stringify({ type, teamId, ...data });
   }
 
+  /**
+   * Parse a state string from an OAuth flow
+   *
+   * @param state The state string
+   * @returns The parsed state
+   */
   static parseState<T>(
     state: string
   ): { teamId: string; type: IntegrationType } & T {

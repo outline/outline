@@ -281,6 +281,12 @@ function verifySlackToken(token: string) {
   }
 }
 
+/**
+ * Find a matching team for the given Slack team ID
+ *
+ * @param serviceTeamId The Slack team ID
+ * @returns A promise resolving to a matching team, if found
+ */
 async function findTeamForRequest(
   serviceTeamId: string
 ): Promise<Team | undefined> {
@@ -328,6 +334,13 @@ async function findTeamForRequest(
   return;
 }
 
+/**
+ * Find a matching user for the given Slack team and user ID
+ *
+ * @param serviceTeamId The Slack team ID
+ * @param serviceUserId The Slack user ID
+ * @returns A promise resolving to a matching user, if found
+ */
 async function findUserForRequest(
   serviceTeamId: string,
   serviceUserId: string
@@ -356,6 +369,7 @@ async function findUserForRequest(
         required: true,
       },
     ],
+    order: [["createdAt", "DESC"]],
   });
 
   if (integration) {
@@ -370,6 +384,7 @@ async function findUserForRequest(
         where: {
           providerId: serviceUserId,
         },
+        order: [["createdAt", "DESC"]],
         model: UserAuthentication,
         as: "authentications",
         required: true,
