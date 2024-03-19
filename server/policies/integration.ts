@@ -1,3 +1,4 @@
+import { IntegrationType } from "@shared/types";
 import { Integration, User, Team } from "@server/models";
 import { AdminRequiredError } from "../errors";
 import { allow } from "./cancan";
@@ -21,10 +22,16 @@ allow(
 );
 
 allow(User, ["update", "delete"], Integration, (user, integration) => {
-  if (user.isViewer) {
+  if (!integration || user.teamId !== integration.teamId) {
     return false;
   }
-  if (!integration || user.teamId !== integration.teamId) {
+  if (
+    integration.userId === user.id &&
+    integration.type === IntegrationType.LinkedAccount
+  ) {
+    return true;
+  }
+  if (user.isViewer) {
     return false;
   }
   if (user.isAdmin) {

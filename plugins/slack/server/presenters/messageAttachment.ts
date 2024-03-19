@@ -1,4 +1,3 @@
-import { traceFunction } from "@server/logging/tracing";
 import { Document, Collection, Team } from "@server/models";
 
 type Action = {
@@ -8,7 +7,7 @@ type Action = {
   value: string;
 };
 
-function presentMessageAttachment(
+export function presentMessageAttachment(
   document: Document,
   team: Team,
   collection?: Collection | null,
@@ -32,7 +31,3 @@ function presentMessageAttachment(
     actions,
   };
 }
-
-export default traceFunction({
-  spanName: "presenters",
-})(presentMessageAttachment);
