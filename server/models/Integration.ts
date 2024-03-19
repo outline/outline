@@ -14,10 +14,7 @@ import {
   AfterDestroy,
 } from "sequelize-typescript";
 import { IntegrationType, IntegrationService } from "@shared/types";
-import type {
-  IntegrationSettings,
-  UserCreatableIntegrationService,
-} from "@shared/types";
+import type { IntegrationSettings } from "@shared/types";
 import Collection from "@server/models/Collection";
 import IntegrationAuthentication from "@server/models/IntegrationAuthentication";
 import Team from "@server/models/Team";
@@ -48,7 +45,7 @@ class Integration<T = unknown> extends ParanoidModel<
 
   @IsIn([Object.values(IntegrationService)])
   @Column(DataType.STRING)
-  service: IntegrationService | UserCreatableIntegrationService;
+  service: IntegrationService;
 
   @Column(DataType.JSONB)
   settings: IntegrationSettings<T>;

@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { WhereOptions } from "sequelize";
+import { WhereOptions, Op } from "sequelize";
 import { IntegrationType } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -20,26 +20,31 @@ router.post(
   pagination(),
   validate(T.IntegrationsListSchema),
   async (ctx: APIContext<T.IntegrationsListReq>) => {
-    const { direction, type, service, sort } = ctx.input.body;
+    const { direction, service, type, sort } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     let where: WhereOptions<Integration> = {
       teamId: user.teamId,
     };
-
     if (type) {
-      where = {
-        ...where,
-        type,
-      };
+      where = { ...where, type };
+    }
+    if (service) {
+      where = { ...where, service };
     }
 
-    if (service) {
-      where = {
-        ...where,
-        service,
-      };
-    }
+    // Linked account is special as these are user-specific, other integrations are workspace-wide.
+    where = {
+      ...where,
+      [Op.or]: [
+        { userId: user.id, type: IntegrationType.LinkedAccount },
+        {
+          type: {
+            [Op.not]: IntegrationType.LinkedAccount,
+          },
+        },
+      ],
+    };
 
     const [integrations, total] = await Promise.all([
       await Integration.findAll({
@@ -136,7 +141,7 @@ router.post(
 
 router.post(
   "integrations.delete",
-  auth({ admin: true }),
+  auth(),
   validate(T.IntegrationsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.IntegrationsDeleteReq>) => {

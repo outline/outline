@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
@@ -8,7 +7,6 @@ import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import TableFromParams from "~/components/TableFromParams";
 import Time from "~/components/Time";
-import Tooltip from "~/components/Tooltip";
 import ShareMenu from "~/menus/ShareMenu";
 
 type Props = Omit<React.ComponentProps<typeof TableFromParams>, "columns"> & {
@@ -61,20 +59,6 @@ function SharesTable({ canManage, data, ...rest }: Props) {
           accessor: "lastAccessedAt",
           Cell: observer(({ value }: { value: string }) =>
             value ? <Time dateTime={value} addSuffix /> : null
-          ),
-        },
-        {
-          id: "includeChildDocuments",
-          Header: t("Shared nested"),
-          accessor: "includeChildDocuments",
-          Cell: observer(({ value }: { value: string }) =>
-            value ? (
-              <Flex align="center">
-                <Tooltip content={t("Nested documents are publicly available")}>
-                  <CheckmarkIcon color={theme.accent} />
-                </Tooltip>
-              </Flex>
-            ) : null
           ),
         },
         hasDomain

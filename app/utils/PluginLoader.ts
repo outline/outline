@@ -6,6 +6,7 @@ interface Plugin {
   config: {
     name: string;
     description: string;
+    adminOnly?: boolean;
     deployments?: string[];
   };
   settings: React.FC;

@@ -5,7 +5,7 @@ import {
   CodeIcon,
   UserIcon,
   GroupIcon,
-  LinkIcon,
+  GlobeIcon,
   TeamIcon,
   BeakerIcon,
   BuildingBlocksIcon,
@@ -148,7 +148,7 @@ const useSettingsConfig = () => {
         component: Shares,
         enabled: true,
         group: t("Workspace"),
-        icon: LinkIcon,
+        icon: GlobeIcon,
       },
       {
         name: t("Import"),
@@ -208,7 +208,10 @@ const useSettingsConfig = () => {
         // TODO: Remove hardcoding of plugin id here
         group: plugin.id === "collections" ? t("Workspace") : t("Integrations"),
         component: plugin.settings,
-        enabled: enabledInDeployment && hasSettings && can.update,
+        enabled:
+          enabledInDeployment &&
+          hasSettings &&
+          (plugin.config.adminOnly === false || can.update),
         icon: plugin.icon,
       } as ConfigItem;
 

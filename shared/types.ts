@@ -51,7 +51,7 @@ export enum MentionType {
 export type PublicEnv = {
   ROOT_SHARE_ID?: string;
   analytics: {
-    service?: IntegrationService | UserCreatableIntegrationService;
+    service?: IntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;
   };
 };
@@ -64,10 +64,16 @@ export enum AttachmentPreset {
 }
 
 export enum IntegrationType {
+  /** An integration that posts updates to an external system. */
   Post = "post",
+  /** An integration that listens for commands from an external system. */
   Command = "command",
+  /** An integration that embeds content from an external system. */
   Embed = "embed",
+  /** An integration that captures analytics data. */
   Analytics = "analytics",
+  /** An integration that maps an Outline user to an external service. */
+  LinkedAccount = "linkedAccount",
 }
 
 export enum IntegrationService {
@@ -78,11 +84,18 @@ export enum IntegrationService {
   GitHub = "github",
 }
 
-export enum UserCreatableIntegrationService {
-  Diagrams = "diagrams",
-  Grist = "grist",
-  GoogleAnalytics = "google-analytics",
-}
+export type UserCreatableIntegrationService = Extract<
+  IntegrationService,
+  | IntegrationService.Diagrams
+  | IntegrationService.Grist
+  | IntegrationService.GoogleAnalytics
+>;
+
+export const UserCreatableIntegrationService = {
+  Diagrams: IntegrationService.Diagrams,
+  Grist: IntegrationService.Grist,
+  GoogleAnalytics: IntegrationService.GoogleAnalytics,
+} as const;
 
 export enum CollectionPermission {
   Read = "read",
@@ -124,6 +137,7 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string }
       | { measurementId: string }
+      | { slack: { serviceTeamId: string; serviceUserId: string } }
       | undefined;
 
 export enum UserPreference {

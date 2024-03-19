@@ -13,7 +13,7 @@ import {
 import fetch from "@server/utils/fetch";
 import { sleep } from "@server/utils/timers";
 import env from "../env";
-import presentMessageAttachment from "../presenters/messageAttachment";
+import { presentMessageAttachment } from "../presenters/messageAttachment";
 
 export default class SlackProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [

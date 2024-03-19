@@ -1430,32 +1430,33 @@ table {
   overflow-x: auto;
   padding-${props.rtl ? "right" : "left"}: 1em;
   margin-${props.rtl ? "right" : "left"}: -1em;
-  border-${props.rtl ? "right" : "left"}: 1px solid transparent;
-  border-${props.rtl ? "left" : "right"}: 1px solid transparent;
   transition: border 250ms ease-in-out 0s;
 }
 
 .scrollable-shadow {
   position: absolute;
-  top: 0;
+  top: 16px;
   bottom: 0;
   ${props.rtl ? "right" : "left"}: -1em;
   width: 32px;
   z-index: 1;
   transition: box-shadow 250ms ease-in-out;
   border: 0px solid transparent;
-  border-${props.rtl ? "right" : "left"}-width: 1em;
   pointer-events: none;
 
   &.left {
-    box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, 0.25);
+    box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
+      props.theme.isDark ? 1 : 0.25
+    });
     border-left: 1em solid ${props.theme.background};
   }
 
   &.right {
     right: 0;
     left: auto;
-    box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, 0.25);
+    box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, ${
+      props.theme.isDark ? 1 : 0.25
+    });
   }
 }
 

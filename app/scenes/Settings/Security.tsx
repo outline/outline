@@ -41,7 +41,7 @@ function Security() {
     data: providers,
     loading,
     request,
-  } = useRequest(() => authenticationProviders.fetchPage({}));
+  } = useRequest(authenticationProviders.fetchPage);
 
   React.useEffect(() => {
     if (!providers && !loading) {

@@ -1,6 +1,6 @@
 import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
-import { LinkIcon, WarningIcon } from "outline-icons";
+import { GlobeIcon, WarningIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -68,7 +68,7 @@ function Shares() {
   }, [shares.orderedData, shareIds]);
 
   return (
-    <Scene title={t("Shared Links")} icon={<LinkIcon />} wide>
+    <Scene title={t("Shared Links")} icon={<GlobeIcon />} wide>
       <Heading>{t("Shared Links")}</Heading>
 
       {can.update && !canShareDocuments && (
