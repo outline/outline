@@ -61,7 +61,6 @@ class GitHubApp {
     const integration = (await Integration.findOne({
       where: {
         service: IntegrationService.GitHub,
-        userId: actor.id,
         teamId: actor.teamId,
         "settings.github.installation.account.name": owner,
       },

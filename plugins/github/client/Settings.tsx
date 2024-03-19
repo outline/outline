@@ -25,7 +25,9 @@ function GitHub() {
   const { t } = useTranslation();
   const query = useQuery();
   const error = query.get("error");
+  const installRequest = query.get("install_request");
   const appName = env.APP_NAME;
+  const githubAppName = env.GITHUB_APP_NAME;
 
   React.useEffect(() => {
     void integrations.fetchAll({
@@ -33,6 +35,10 @@ function GitHub() {
       withRelations: true,
     });
   }, [integrations]);
+
+  if (!integrations.areRelationsLoaded) {
+    return null;
+  }
 
   return (
     <Scene title="GitHub" icon={<GitHubIcon />}>
@@ -51,6 +57,15 @@ function GitHub() {
           <Trans>
             Something went wrong while authenticating your request. Please try
             logging in again.
+          </Trans>
+        </Notice>
+      )}
+      {installRequest === "true" && (
+        <Notice>
+          <Trans>
+            The owner of GitHub account has been requested to install the{" "}
+            {{ githubAppName }} GitHub app. Once approved, previews will be
+            shown for respective links.
           </Trans>
         </Notice>
       )}

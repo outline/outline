@@ -25,12 +25,18 @@ router.get(
       state: teamId,
       error,
       installation_id: installationId,
+      setup_action: setupAction,
     } = ctx.input.query;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
     if (error) {
       ctx.redirect(GitHubUtils.errorUrl(error));
+      return;
+    }
+
+    if (setupAction === T.SetupAction.request) {
+      ctx.redirect(GitHubUtils.installRequestUrl());
       return;
     }
 
@@ -63,7 +69,7 @@ router.get(
 
     let installation;
     try {
-      installation = await githubUser.getInstallation(installationId);
+      installation = await githubUser.getInstallation(installationId!);
     } catch (err) {
       Logger.error("Failed to fetch GitHub App installation", err);
       return ctx.redirect(GitHubUtils.errorUrl("unauthenticated"));
@@ -87,7 +93,7 @@ router.get(
         settings: {
           github: {
             installation: {
-              id: installationId,
+              id: installationId!,
               account: {
                 id: installation.account?.id,
                 name:

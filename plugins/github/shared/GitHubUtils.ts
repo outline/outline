@@ -43,6 +43,10 @@ export class GitHubUtils {
     return `${baseUrl}?${queryString.stringify(params)}`;
   }
 
+  static installRequestUrl(): string {
+    return `${this.url}?install_request=true`;
+  }
+
   /**
    * Parses a GitHub like URL to obtain info like repo name, owner, resource type(issue or PR).
    *
