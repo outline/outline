@@ -1,9 +1,9 @@
 import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { IntegrationService } from "@shared/types";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
-import SettingRow from "~/scenes/Settings/components/SettingRow";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -12,18 +12,20 @@ import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import TeamLogo from "~/components/TeamLogo";
+import Text from "~/components/Text";
 import Time from "~/components/Time";
 import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import GitHubIcon from "./Icon";
-import GitHubConnectButton from "./components/GitHubButton";
+import { GitHubConnectButton } from "./components/GitHubButton";
 
 function GitHub() {
   const { integrations } = useStores();
   const { t } = useTranslation();
   const query = useQuery();
   const error = query.get("error");
+  const appName = env.APP_NAME;
 
   React.useEffect(() => {
     void integrations.fetchAll({
@@ -40,7 +42,7 @@ function GitHub() {
         <Notice>
           <Trans>
             Whoops, you need to accept the permissions in GitHub to connect{" "}
-            {{ appName: env.APP_NAME }} to your workspace. Try again?
+            {{ appName }} to your workspace. Try again?
           </Trans>
         </Notice>
       )}
@@ -54,25 +56,22 @@ function GitHub() {
       )}
       {env.GITHUB_CLIENT_ID ? (
         <>
-          <SettingRow
-            name="link"
-            border={false}
-            label={t("Connect account")}
-            description={
-              <Trans>
-                Allow previews of GitHub issues, pull requests, and commits in
-                documents by connecting a GitHub organization.
-              </Trans>
-            }
-          >
-            <Flex align="flex-end" column>
-              <GitHubConnectButton />
-            </Flex>
-          </SettingRow>
+          <Text as="p">
+            <Trans>
+              Enable previews of GitHub issues, pull requests, and commits in
+              documents by connecting a GitHub organization or specific
+              repositories to {appName}.
+            </Trans>
+          </Text>
 
           {integrations.github.length ? (
             <>
-              <Heading as="h2">{t("Connected")}</Heading>
+              <Heading as="h2">
+                <Flex justify="space-between" auto>
+                  {t("Connected")}
+                  <GitHubConnectButton icon={<PlusIcon />} />
+                </Flex>
+              </Heading>
               <List>
                 {integrations.github.map((integration) => {
                   const githubAccount =
@@ -85,14 +84,15 @@ function GitHub() {
                       small
                       title={githubAccount?.name}
                       subtitle={
-                        <Trans>
-                          Enabled by {{ integrationCreatedBy }} on{" "}
+                        <>
+                          <Trans>Enabled by {{ integrationCreatedBy }}</Trans>{" "}
+                          &middot;{" "}
                           <Time
                             dateTime={integration.createdAt}
                             relative={false}
                             format={{ en_US: "MMMM d, y" }}
                           />
-                        </Trans>
+                        </>
                       }
                       image={
                         <TeamLogo
@@ -114,7 +114,11 @@ function GitHub() {
                 })}
               </List>
             </>
-          ) : null}
+          ) : (
+            <p>
+              <GitHubConnectButton icon={<GitHubIcon />} />
+            </p>
+          )}
         </>
       ) : (
         <Notice>
