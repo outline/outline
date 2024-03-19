@@ -1,27 +1,25 @@
-import format from "date-fns/format";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { IntegrationService } from "@shared/types";
-import { dateLocale } from "@shared/utils/date";
-import Avatar from "~/components/Avatar";
+import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
+import SettingRow from "~/scenes/Settings/components/SettingRow";
 import { AvatarSize } from "~/components/Avatar/Avatar";
-import Button from "~/components/Button";
+import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
+import TeamLogo from "~/components/TeamLogo";
+import Time from "~/components/Time";
 import env from "~/env";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import GitHubIcon from "./Icon";
 import GitHubConnectButton from "./components/GitHubButton";
 
 function GitHub() {
-  const currentUser = useCurrentUser();
   const { integrations } = useStores();
   const { t } = useTranslation();
   const query = useQuery();
@@ -54,37 +52,33 @@ function GitHub() {
           </Trans>
         </Notice>
       )}
-      <Text type="secondary">
-        <Trans defaults="Get rich previews of GitHub links in documents" />
-      </Text>
       {env.GITHUB_CLIENT_ID ? (
         <>
-          <p>
-            <GitHubConnectButton />
-          </p>
-          <p>&nbsp;</p>
+          <SettingRow
+            name="link"
+            border={false}
+            label={t("Connect account")}
+            description={
+              <Trans>
+                Allow previews of GitHub issues, pull requests, and commits in
+                documents by connecting a GitHub organization.
+              </Trans>
+            }
+          >
+            <Flex align="flex-end" column>
+              <GitHubConnectButton />
+            </Flex>
+          </SettingRow>
 
           {integrations.github.length ? (
             <>
-              <h2>{t("Connected accounts")}</h2>
-              <Text as="p" type="secondary">
-                <Trans>
-                  GitHub links (pull requests, issues, and commits) accessible
-                  to any of the following accounts, will get rich previews
-                  inside {{ appName: env.APP_NAME }}.
-                </Trans>
-              </Text>
-
+              <Heading as="h2">{t("Connected")}</Heading>
               <List>
                 {integrations.github.map((integration) => {
                   const githubAccount =
                     integration.settings?.github?.installation.account;
                   const integrationCreatedBy = integration.user.name;
-                  const integrationCreatedAt = format(
-                    Date.parse(integration.createdAt),
-                    "MMMM d, y",
-                    { locale: dateLocale(currentUser.language) }
-                  );
+
                   return (
                     <ListItem
                       key={githubAccount?.id}
@@ -93,24 +87,27 @@ function GitHub() {
                       subtitle={
                         <Trans>
                           Enabled by {{ integrationCreatedBy }} on{" "}
-                          <Text type="tertiary">{integrationCreatedAt}</Text>
+                          <Time
+                            dateTime={integration.createdAt}
+                            relative={false}
+                            format={{ en_US: "MMMM d, y" }}
+                          />
                         </Trans>
                       }
                       image={
-                        <Avatar
+                        <TeamLogo
                           src={githubAccount?.avatarUrl}
                           size={AvatarSize.Large}
                           showBorder={false}
                         />
                       }
                       actions={
-                        <Button
+                        <ConnectedButton
                           onClick={integration.delete}
-                          disabled={integration.isSaving}
-                          neutral
-                        >
-                          {t("Disconnect")}
-                        </Button>
+                          confirmationMessage={t(
+                            "Disconnecting will prevent previewing GitHub links from this organization in documents. Are you sure?"
+                          )}
+                        />
                       }
                     />
                   );
