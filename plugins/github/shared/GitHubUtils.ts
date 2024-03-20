@@ -67,4 +67,18 @@ export class GitHubUtils {
 
     return { owner, repo, resourceType, resourceId };
   }
+
+  public static getColorForStatus(status: string) {
+    switch (status) {
+      case "open":
+        return "#238636";
+      case "done":
+        return "#a371f7";
+      case "closed":
+        return "#f85149";
+      case "canceled":
+      default:
+        return "#848d97";
+    }
+  }
 }

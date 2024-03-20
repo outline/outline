@@ -2,7 +2,12 @@ import { createOAuthUserAuth } from "@octokit/auth-oauth-user";
 import find from "lodash/find";
 import { App, Octokit } from "octokit";
 import pluralize from "pluralize";
-import { IntegrationService, IntegrationType } from "@shared/types";
+import {
+  IntegrationService,
+  IntegrationType,
+  Unfurl,
+  UnfurlResponse,
+} from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration, User } from "@server/models";
 import { GitHubUtils } from "../shared/GitHubUtils";
@@ -51,7 +56,7 @@ class GitHubApp {
    * @returns {object} An object container the resource details - could be a pull request
    * details or an issue details
    */
-  unfurl = async (url: string, actor: User) => {
+  unfurl = async (url: string, actor: User): Promise<Unfurl | undefined> => {
     const { owner, repo, resourceType, resourceId } = GitHubUtils.parseUrl(url);
 
     if (!owner) {
@@ -81,29 +86,37 @@ class GitHubApp {
           repo,
           ref: resourceId,
           headers: {
+            Accept: "application/vnd.github.text+json",
             "X-GitHub-Api-Version": "2022-11-28",
           },
         }
       );
+
       return {
         url,
-        type: pluralize.singular(resourceType),
+        type: pluralize.singular(resourceType) as UnfurlResponse["type"],
         title: data.title,
-        description: data.body,
+        description: data.body_text,
         author: {
           name: data.user.login,
           avatarUrl: data.user.avatar_url,
         },
+        createdAt: data.created_at,
         meta: {
+          identifier: `#${data.number}`,
           labels: data.labels.map((label: { name: string; color: string }) => ({
             name: label.name,
             color: label.color,
           })),
-          status: { name: data.state },
+          status: {
+            name: data.state,
+            color: GitHubUtils.getColorForStatus(data.state),
+          },
         },
       };
     } catch (err) {
-      return Logger.warn("Failed to fetch resource from GitHub", err);
+      Logger.warn("Failed to fetch resource from GitHub", err);
+      return;
     }
   };
 }
@@ -143,10 +156,7 @@ export class GitHubUser {
    */
   public async getInstallation(installationId: number) {
     const installations = await this.client.paginate("GET /user/installations");
-    const installation = find(
-      installations,
-      (installation) => installation.id === installationId
-    );
+    const installation = find(installations, (i) => i.id === installationId);
     if (!installation) {
       Logger.warn("installationId mismatch!");
       throw Error("Invalid installationId!");

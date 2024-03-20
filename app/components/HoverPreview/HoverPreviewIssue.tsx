@@ -1,9 +1,11 @@
-import { t } from "i18next";
 import * as React from "react";
+import { Trans } from "react-i18next";
+import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Avatar from "../Avatar";
-import Divider from "../Divider";
+import { IssueStatusIcon } from "../Icons/IssueStatusIcon";
 import Text from "../Text";
+import Time from "../Time";
 import {
   Preview,
   Title,
@@ -12,8 +14,7 @@ import {
   CardContent,
   Label,
   LabelContainer,
-  MetaInfoContainer,
-  Status,
+  Info,
 } from "./Components";
 
 type Props = {
@@ -23,26 +24,57 @@ type Props = {
   title: string;
   /** Issue description */
   description: string;
+  /** Wehn the issue was created */
+  createdAt: string;
   /** Author of the issue */
   author: { name: string; avatarUrl: string };
   /** Labels attached to the issue */
   labels: Array<{ name: string; color: string }>;
   /** Issue status */
-  status: { name: string };
+  status: { name: string; color: string };
+  /** Issue identifier */
+  identifier: string;
 };
 
 const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
-  { url, title, description, author, labels, status }: Props,
+  {
+    url,
+    title,
+    identifier,
+    description,
+    author,
+    labels,
+    status,
+    createdAt,
+  }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {
+  const authorName = author.name;
+
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
       <Flex column ref={ref}>
         <Card fadeOut={false}>
           <CardContent>
-            <Flex column>
-              <Title>{title}</Title>
+            <Flex gap={2} column>
+              <Title>
+                <StyledIssueStatusIcon
+                  status={status.name}
+                  color={status.color}
+                />{" "}
+                {title}&nbsp;<Text type="tertiary">{identifier}</Text>
+              </Title>
+              <Flex align="center" gap={8}>
+                <Avatar src={author.avatarUrl} />
+                <Info>
+                  <Trans>
+                    {{ authorName }} created{" "}
+                    <Time dateTime={createdAt} addSuffix />
+                  </Trans>
+                </Info>
+              </Flex>
               <Description>{description}</Description>
+
               <LabelContainer wrap>
                 {labels.map((label, index) => (
                   <Label key={index} color={label.color}>
@@ -50,19 +82,6 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
                   </Label>
                 ))}
               </LabelContainer>
-              <Divider />
-              <MetaInfoContainer column gap={12}>
-                <Flex gap={8}>
-                  <Avatar src={author.avatarUrl} />
-                  <Text type="secondary" size="xsmall" weight="bold">
-                    {author.name}{" "}
-                  </Text>
-                  <Text type="secondary" size="xsmall" weight="bold">
-                    {t("created this issue")}
-                  </Text>
-                </Flex>
-                <Status type={status.name}>status: {status.name}</Status>
-              </MetaInfoContainer>
             </Flex>
           </CardContent>
         </Card>
@@ -70,5 +89,9 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
     </Preview>
   );
 });
+
+const StyledIssueStatusIcon = styled(IssueStatusIcon)`
+  vertical-align: middle;
+`;
 
 export default HoverPreviewIssue;

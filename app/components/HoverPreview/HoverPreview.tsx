@@ -136,6 +136,8 @@ function HoverPreviewDesktop({ element, onClose }: Props) {
                   title={data.title}
                   description={data.description}
                   author={data.author}
+                  createdAt={data.createdAt}
+                  identifier={data.meta.identifier}
                   labels={data.meta.labels}
                   status={data.meta.status}
                 />
@@ -145,7 +147,8 @@ function HoverPreviewDesktop({ element, onClose }: Props) {
                   title={data.title}
                   description={data.description}
                   author={data.author}
-                  labels={data.meta.labels}
+                  createdAt={data.createdAt}
+                  identifier={data.meta.identifier}
                   status={data.meta.status}
                 />
               ) : (

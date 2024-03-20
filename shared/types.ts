@@ -284,16 +284,19 @@ export enum QueryNotices {
 
 export type OEmbedType = "photo" | "video" | "rich";
 
-export type Unfurl<T = OEmbedType> =
-  | {
-      url?: string;
-      type: T;
-      title: string;
-      description?: string;
-      thumbnailUrl?: string | null;
-      author?: { name: string; avatarUrl: string };
-      meta?: Record<string, string>;
-    }
+export type UnfurlResponse<S = OEmbedType, T = Record<string, any>> = {
+  url?: string;
+  type: S | ("issue" | "pull" | "commit");
+  title: string;
+  description?: string;
+  createdAt?: string;
+  thumbnailUrl?: string | null;
+  author?: { name: string; avatarUrl: string };
+  meta?: T;
+};
+
+export type Unfurl =
+  | UnfurlResponse
   | {
       error: string;
     };

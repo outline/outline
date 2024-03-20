@@ -29,10 +29,8 @@ export const Preview = styled(Link)`
   max-width: 375px;
 `;
 
-export const Title = styled.h2`
-  font-size: 1.25em;
-  margin: 0;
-  color: ${s("text")};
+export const Title = styled(Text).attrs({ as: "h2", size: "large" })`
+  margin-bottom: 0;
 `;
 
 export const Info = styled(StyledText).attrs(() => ({
@@ -47,6 +45,7 @@ export const Description = styled(StyledText)`
   margin-top: 0.5em;
   line-height: var(--line-height);
   max-height: calc(var(--line-height) * ${NUMBER_OF_LINES});
+  overflow: hidden;
 `;
 
 export const Thumbnail = styled.img`
@@ -73,15 +72,6 @@ export const Label = styled.div<{ color?: string }>`
   letter-spacing: -0.02em;
   margin-right: 0.3em;
   margin-top: 0.3em;
-`;
-
-export const MetaInfoContainer = styled(Flex)`
-  margin-top: 1em;
-`;
-
-export const Status = styled(Label)<{ type: string }>`
-  background-color: ${(props) =>
-    props.type === "open" ? "#1f883d" : "#8250df"};
 `;
 
 export const CardContent = styled.div`
