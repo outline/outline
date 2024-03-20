@@ -1,15 +1,34 @@
 import * as React from "react";
+import styled from "styled-components";
 
 type Props = {
   status: string;
   color: string;
+  size?: number;
   className?: string;
 };
 
 /**
  * Issue status icon based on GitHub issue status, but can be used for any git-style integration.
  */
-export function IssueStatusIcon(props: Props) {
+export function IssueStatusIcon({ size, ...rest }: Props) {
+  return (
+    <Icon size={size}>
+      <BaseIcon {...rest} />
+    </Icon>
+  );
+}
+
+const Icon = styled.span<{ size?: number }>`
+  display: inline-flex;
+  flex-shrink: 0;
+  width: ${(props) => props.size ?? 24}px;
+  height: ${(props) => props.size ?? 24}px;
+  align-items: center;
+  justify-content: center;
+`;
+
+function BaseIcon(props: Props) {
   switch (props.status) {
     case "open":
       return (

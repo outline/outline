@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Trans } from "react-i18next";
-import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Avatar from "../Avatar";
 import { IssueStatusIcon } from "../Icons/IssueStatusIcon";
@@ -46,13 +45,12 @@ const HoverPreviewPullRequest = React.forwardRef(
             <CardContent>
               <Flex gap={2} column>
                 <Title>
-                  <StyledIssueStatusIcon
-                    status={status.name}
-                    color={status.color}
-                  />{" "}
-                  {title}&nbsp;<Text type="tertiary">{identifier}</Text>
+                  <IssueStatusIcon status={status.name} color={status.color} />
+                  <span>
+                    {title}&nbsp;<Text type="tertiary">{identifier}</Text>
+                  </span>
                 </Title>
-                <Flex align="center" gap={8}>
+                <Flex align="center" gap={4}>
                   <Avatar src={author.avatarUrl} />
                   <Info>
                     <Trans>
@@ -70,9 +68,5 @@ const HoverPreviewPullRequest = React.forwardRef(
     );
   }
 );
-
-const StyledIssueStatusIcon = styled(IssueStatusIcon)`
-  vertical-align: middle;
-`;
 
 export default HoverPreviewPullRequest;

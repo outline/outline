@@ -2,8 +2,8 @@ import { transparentize } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
+import { getTextColor } from "@shared/utils/color";
 import Text from "~/components/Text";
-import Flex from "../Flex";
 
 export const CARD_MARGIN = 10;
 
@@ -30,7 +30,11 @@ export const Preview = styled(Link)`
 `;
 
 export const Title = styled(Text).attrs({ as: "h2", size: "large" })`
-  margin-bottom: 0;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4px;
 `;
 
 export const Info = styled(StyledText).attrs(() => ({
@@ -54,24 +58,18 @@ export const Thumbnail = styled.img`
   background: ${s("menuBackground")};
 `;
 
-export const LabelContainer = styled(Flex)`
-  margin-top: 1em;
-  margin-bottom: 1em;
-`;
-
-export const Label = styled.div<{ color?: string }>`
+export const Label = styled(Text).attrs({ size: "xsmall", weight: "bold" })<{
+  color?: string;
+}>`
   background-color: ${(props) =>
-    props.color ? `#${props.color}` : props.theme.textTertiary};
+    props.color ?? props.theme.secondaryBackground};
+  color: ${(props) =>
+    props.color ? getTextColor(props.color) : props.theme.text};
   width: fit-content;
-  border-radius: 12px;
-  padding-left: 6px;
-  padding-right: 6px;
-  font-size: 0.9em;
-  color: #fff;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  margin-right: 0.3em;
-  margin-top: 0.3em;
+  border-radius: 2em;
+  padding: 0 8px;
+  margin-right: 0.5em;
+  margin-top: 0.5em;
 `;
 
 export const CardContent = styled.div`

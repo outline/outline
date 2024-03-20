@@ -106,7 +106,7 @@ class GitHubApp {
           identifier: `#${data.number}`,
           labels: data.labels.map((label: { name: string; color: string }) => ({
             name: label.name,
-            color: label.color,
+            color: `#${label.color}`,
           })),
           status: {
             name: data.state,

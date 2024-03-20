@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Trans } from "react-i18next";
-import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Avatar from "../Avatar";
 import { IssueStatusIcon } from "../Icons/IssueStatusIcon";
@@ -13,7 +12,6 @@ import {
   Card,
   CardContent,
   Label,
-  LabelContainer,
   Info,
 } from "./Components";
 
@@ -58,13 +56,12 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
           <CardContent>
             <Flex gap={2} column>
               <Title>
-                <StyledIssueStatusIcon
-                  status={status.name}
-                  color={status.color}
-                />{" "}
-                {title}&nbsp;<Text type="tertiary">{identifier}</Text>
+                <IssueStatusIcon status={status.name} color={status.color} />
+                <span>
+                  {title}&nbsp;<Text type="tertiary">{identifier}</Text>
+                </span>
               </Title>
-              <Flex align="center" gap={8}>
+              <Flex align="center" gap={4}>
                 <Avatar src={author.avatarUrl} />
                 <Info>
                   <Trans>
@@ -75,13 +72,13 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
               </Flex>
               <Description>{description}</Description>
 
-              <LabelContainer wrap>
+              <Flex wrap>
                 {labels.map((label, index) => (
                   <Label key={index} color={label.color}>
                     {label.name}
                   </Label>
                 ))}
-              </LabelContainer>
+              </Flex>
             </Flex>
           </CardContent>
         </Card>
@@ -89,9 +86,5 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
     </Preview>
   );
 });
-
-const StyledIssueStatusIcon = styled(IssueStatusIcon)`
-  vertical-align: middle;
-`;
 
 export default HoverPreviewIssue;
