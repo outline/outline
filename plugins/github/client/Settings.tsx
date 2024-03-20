@@ -70,9 +70,9 @@ function GitHub() {
         <>
           <Text as="p">
             <Trans>
-              Enable previews of GitHub issues, pull requests, and commits in
-              documents by connecting a GitHub organization or specific
-              repositories to {appName}.
+              Enable previews of GitHub issues and pull requests in documents by
+              connecting a GitHub organization or specific repositories to{" "}
+              {appName}.
             </Trans>
           </Text>
 
