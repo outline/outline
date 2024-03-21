@@ -7,7 +7,7 @@ import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
 
 export type CacheConfig = {
-  /** Set cache data expirt in ms  */
+  /** Set cache data expiry in ms  */
   expiry: number;
 };
 
@@ -16,7 +16,7 @@ export class CacheHelper {
 
   /**
    * Given a key, gets the data from cache store
-   * @param key Key through which data will be referenced
+   * @param key Key against which data will be accessed
    */
   public static async getData(key: string) {
     try {
