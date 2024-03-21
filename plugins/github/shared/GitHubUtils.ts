@@ -76,6 +76,8 @@ export class GitHubUtils {
         return "#a371f7";
       case "closed":
         return "#f85149";
+      case "merged":
+        return "#8250df";
       case "canceled":
       default:
         return "#848d97";

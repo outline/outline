@@ -92,6 +92,8 @@ class GitHubApp {
         }
       );
 
+      const status = data.merged ? "merged" : data.state;
+
       return {
         url,
         type: pluralize.singular(resourceType) as UnfurlResponse["type"],
@@ -109,8 +111,8 @@ class GitHubApp {
             color: `#${label.color}`,
           })),
           status: {
-            name: data.state,
-            color: GitHubUtils.getColorForStatus(data.state),
+            name: status,
+            color: GitHubUtils.getColorForStatus(status),
           },
         },
       };

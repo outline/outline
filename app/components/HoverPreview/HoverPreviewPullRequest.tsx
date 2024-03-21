@@ -2,7 +2,7 @@ import * as React from "react";
 import { Trans } from "react-i18next";
 import Flex from "~/components/Flex";
 import Avatar from "../Avatar";
-import { IssueStatusIcon } from "../Icons/IssueStatusIcon";
+import { PullRequestIcon } from "../Icons/PullRequestIcon";
 import Text from "../Text";
 import Time from "../Time";
 import {
@@ -45,7 +45,7 @@ const HoverPreviewPullRequest = React.forwardRef(
             <CardContent>
               <Flex gap={2} column>
                 <Title>
-                  <IssueStatusIcon status={status.name} color={status.color} />
+                  <PullRequestIcon status={status.name} color={status.color} />
                   <span>
                     {title}&nbsp;<Text type="tertiary">{identifier}</Text>
                   </span>
