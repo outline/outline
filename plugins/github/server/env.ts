@@ -17,9 +17,6 @@ class GitHubPluginEnvironment extends Environment {
   @CannotUseWithout("GITHUB_CLIENT_ID")
   public GITHUB_APP_NAME = this.toOptionalString(environment.GITHUB_APP_NAME);
 
-  @Public
-  public PLUGINS_DISABLED = (environment.PLUGINS_DISABLED ?? "").split(",");
-
   /**
    * GitHub OAuth2 client credentials. To enable integration with GitHub.
    */
