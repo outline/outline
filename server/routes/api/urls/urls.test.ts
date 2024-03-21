@@ -17,7 +17,7 @@ jest.mock("dns", () => ({
   },
 }));
 
-jest.spyOn(Iframely, "fetch").mockImplementation(() => Promise.resolve(false));
+jest.spyOn(Iframely, "unfurl").mockImplementation(() => Promise.resolve(false));
 
 const server = getTestServer();
 
@@ -156,7 +156,7 @@ describe("#urls.unfurl", () => {
   });
 
   it("should succeed with status 200 ok for a valid external url", async () => {
-    (Iframely.fetch as jest.Mock).mockResolvedValue(
+    (Iframely.unfurl as jest.Mock).mockResolvedValue(
       Promise.resolve({
         url: "https://www.flickr.com",
         type: "rich",
@@ -191,7 +191,7 @@ describe("#urls.unfurl", () => {
   });
 
   it("should succeed with status 204 no content for a non-existing external url", async () => {
-    (Iframely.fetch as jest.Mock).mockResolvedValue(
+    (Iframely.unfurl as jest.Mock).mockResolvedValue(
       Promise.resolve({
         status: 404,
         error:
