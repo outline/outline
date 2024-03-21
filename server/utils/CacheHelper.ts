@@ -57,7 +57,7 @@ export class CacheHelper {
    * Gets key against which unfurl response for the given url is stored
    * @param url Gets key corresponding to this url
    */
-  public static getUnfurlKey(url: string) {
-    return `unfurl-${url}`;
+  public static getUnfurlKey(url: string, teamId: string) {
+    return `unfurl:${teamId}:${url}`;
   }
 }
