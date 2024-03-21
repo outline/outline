@@ -4,14 +4,18 @@ import fetch from "@server/utils/fetch";
 import env from "./env";
 
 class Iframely {
-  private static apiUrl = `${env.IFRAMELY_URL}/api`;
-  private static apiKey = env.IFRAMELY_API_KEY;
+  public static defaultUrl = "https://iframe.ly";
 
   public static async fetch(url: string, type = "oembed") {
+    const isDefaultHost = env.IFRAMELY_URL === this.defaultUrl;
+
+    // Cloud Iframely requires /api path, while self-hosted does not.
+    const apiUrl = isDefaultHost ? `${env.IFRAMELY_URL}/api` : env.IFRAMELY_URL;
+
     try {
       const res = await fetch(
-        `${this.apiUrl}/${type}?url=${encodeURIComponent(url)}&api_key=${
-          this.apiKey
+        `${apiUrl}/${type}?url=${encodeURIComponent(url)}&api_key=${
+          env.IFRAMELY_API_KEY
         }`
       );
       return res.json();

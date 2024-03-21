@@ -7,7 +7,8 @@ import {
 import env from "./env";
 import Iframely from "./iframely";
 
-const enabled = !!env.IFRAMELY_API_KEY && !!env.IFRAMELY_URL;
+const isDefaultHost = env.IFRAMELY_URL === Iframely.defaultUrl;
+const enabled = (isDefaultHost && !!env.IFRAMELY_API_KEY) || !!env.IFRAMELY_URL;
 
 if (enabled) {
   PluginManager.add([
