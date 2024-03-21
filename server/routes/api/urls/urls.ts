@@ -13,6 +13,7 @@ import { authorize } from "@server/policies";
 import { presentDocument, presentMention } from "@server/presenters/unfurls";
 import presentUnfurl from "@server/presenters/unfurls/unfurl";
 import { APIContext } from "@server/types";
+import { CacheHelper } from "@server/utils/CacheHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
@@ -75,12 +76,26 @@ router.post(
     }
 
     // External resources
+    const cachedData = await CacheHelper.getData(
+      CacheHelper.getUnfurlKey(url, actor.teamId)
+    );
+    if (cachedData) {
+      return (ctx.body = presentUnfurl(cachedData));
+    }
+
     for (const plugin of plugins) {
-      const data = await plugin.value(url);
+      const data = await plugin.value.unfurl(url);
       if (data) {
-        return "error" in data
-          ? (ctx.response.status = 204)
-          : (ctx.body = presentUnfurl(data));
+        if ("error" in data) {
+          return (ctx.response.status = 204);
+        } else {
+          await CacheHelper.setData(
+            CacheHelper.getUnfurlKey(url, actor.teamId),
+            data,
+            plugin.value.cacheExpiry
+          );
+          return (ctx.body = presentUnfurl(data));
+        }
       }
     }
 

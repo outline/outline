@@ -40,7 +40,7 @@ type PluginValueMap = {
   [Hook.EmailTemplate]: typeof BaseEmail;
   [Hook.Processor]: typeof BaseProcessor;
   [Hook.Task]: typeof BaseTask<any>;
-  [Hook.UnfurlProvider]: UnfurlSignature;
+  [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheExpiry: number };
 };
 
 export type Plugin<T extends Hook> = {

@@ -1,3 +1,4 @@
+import { Day } from "@shared/utils/time";
 import {
   PluginManager,
   PluginPriority,
@@ -12,7 +13,7 @@ if (enabled) {
   PluginManager.add([
     {
       type: Hook.UnfurlProvider,
-      value: Iframely.get,
+      value: { unfurl: Iframely.unfurl, cacheExpiry: Day },
 
       // Make sure this is last in the stack to be evaluated after all other unfurl providers
       priority: PluginPriority.VeryLow,
