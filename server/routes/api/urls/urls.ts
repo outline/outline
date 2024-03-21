@@ -90,7 +90,7 @@ router.post(
           await CacheHelper.setData(
             CacheHelper.getUnfurlKey(url),
             data,
-            plugin.value.cacheConfig
+            plugin.value.cacheExpiry
           );
           return (ctx.body = presentUnfurl(data));
         }

@@ -13,7 +13,7 @@ if (enabled) {
   PluginManager.add([
     {
       type: Hook.UnfurlProvider,
-      value: { unfurl: Iframely.unfurl, cacheConfig: { expiry: Day } },
+      value: { unfurl: Iframely.unfurl, cacheExpiry: Day },
 
       // Make sure this is last in the stack to be evaluated after all other unfurl providers
       priority: PluginPriority.VeryLow,

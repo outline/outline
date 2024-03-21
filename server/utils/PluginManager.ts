@@ -9,7 +9,6 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type BaseTask from "@server/queues/tasks/BaseTask";
-import { CacheConfig } from "./CacheHelper";
 
 export enum PluginPriority {
   VeryHigh = 0,
@@ -41,7 +40,7 @@ type PluginValueMap = {
   [Hook.EmailTemplate]: typeof BaseEmail;
   [Hook.Processor]: typeof BaseProcessor;
   [Hook.Task]: typeof BaseTask<any>;
-  [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheConfig: CacheConfig };
+  [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheExpiry: number };
 };
 
 export type Plugin<T extends Hook> = {

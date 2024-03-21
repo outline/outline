@@ -6,11 +6,6 @@ import { Day } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
 
-export type CacheConfig = {
-  /** Set cache data expiry in ms  */
-  expiry: number;
-};
-
 export class CacheHelper {
   private static defaultDataExpiry = Day;
 
@@ -33,13 +28,13 @@ export class CacheHelper {
   /**
    * Given a key, data and cache config, saves the data in cache store
    * @param key Cache key
-   * @param value Data to be saved against the key
-   * @param options Cache configuration options, e.g, cache expiry
+   * @param data Data to be saved against the key
+   * @param expiry Cache data expiry
    */
   public static async setData(
     key: string,
     data: Record<string, any>,
-    options?: CacheConfig
+    expiry?: number
   ) {
     if ("error" in data) {
       return;
@@ -50,7 +45,7 @@ export class CacheHelper {
         key,
         JSON.stringify(data),
         "EX",
-        options?.expiry || this.defaultDataExpiry
+        expiry || this.defaultDataExpiry
       );
     } catch (err) {
       // just log it, can skip caching and directly return response
