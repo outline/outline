@@ -113,7 +113,11 @@ function HoverPreviewDesktop({ element, onClose }: Props) {
           {(data) => (
             <Animate
               initial={{ opacity: 0, y: -20, pointerEvents: "none" }}
-              animate={{ opacity: 1, y: 0, pointerEvents: "auto" }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                transitionEnd: { pointerEvents: "auto" },
+              }}
             >
               {data.type === UnfurlType.Mention ? (
                 <HoverPreviewMention
