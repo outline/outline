@@ -77,7 +77,7 @@ router.post(
 
     // External resources
     const cachedData = await CacheHelper.getData(
-      CacheHelper.getUnfurlKey(url, actor.teamId)
+      CacheHelper.getUnfurlKey(actor.teamId, url)
     );
     if (cachedData) {
       return (ctx.body = presentUnfurl(cachedData));
@@ -90,7 +90,7 @@ router.post(
           return (ctx.response.status = 204);
         } else {
           await CacheHelper.setData(
-            CacheHelper.getUnfurlKey(url, actor.teamId),
+            CacheHelper.getUnfurlKey(actor.teamId, url),
             data,
             plugin.value.cacheExpiry
           );

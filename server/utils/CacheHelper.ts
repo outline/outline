@@ -57,10 +57,25 @@ export class CacheHelper {
   /**
    * Gets key against which unfurl response for the given url is stored
    *
-   * @param url The url to generate a key for
    * @param teamId The team ID to generate a key for
+   * @param url The url to generate a key for
    */
-  public static getUnfurlKey(url: string, teamId: string) {
+  public static getUnfurlKey(teamId: string, url = "") {
     return `unfurl:${teamId}:${url}`;
+  }
+
+  /**
+   * Clears all cache data with the given prefix
+   *
+   * @param prefix Prefix to clear cache data
+   */
+  public static async clearData(prefix: string) {
+    const keys = await Redis.defaultClient.keys(`${prefix}*`);
+
+    await Promise.all(
+      keys.map(async (key) => {
+        await Redis.defaultClient.del(key);
+      })
+    );
   }
 }
