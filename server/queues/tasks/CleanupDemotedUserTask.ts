@@ -1,7 +1,7 @@
 import Logger from "@server/logging/Logger";
 import { WebhookSubscription, ApiKey, User } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import BaseTask from "./BaseTask";
+import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
   userId: string;
@@ -53,5 +53,11 @@ export default class CleanupDemotedUserTask extends BaseTask<Props> {
         );
       }
     });
+  }
+
+  public get options() {
+    return {
+      priority: TaskPriority.Background,
+    };
   }
 }

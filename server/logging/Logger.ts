@@ -49,6 +49,7 @@ class Logger {
         ? env.LOG_LEVEL
         : "info",
     });
+
     this.output.add(
       new winston.transports.Console({
         format: env.isProduction
@@ -64,6 +65,16 @@ class Logger {
             ),
       })
     );
+
+    if (
+      env.DEBUG &&
+      env.DEBUG !== "http" &&
+      !["silly", "debug"].includes(env.LOG_LEVEL)
+    ) {
+      this.warn(
+        `"DEBUG" set in configuration but the "LOG_LEVEL" configuration is filtering debug messages. To see all logging, set "LOG_LEVEL" to "debug".`
+      );
+    }
   }
 
   /**

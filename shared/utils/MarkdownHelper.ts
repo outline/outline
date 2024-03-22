@@ -13,7 +13,7 @@ export default class MarkdownHelper {
    */
   static toMarkdown(document: DocumentInterface) {
     const text = document.text
-      .replace(/\n\\\n/g, "\n\n")
+      .replace(/\n\\(\n|$)/g, "\n\n")
       .replace(/“/g, '"')
       .replace(/”/g, '"')
       .replace(/‘/g, "'")

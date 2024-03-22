@@ -1,5 +1,5 @@
 import { Attachment } from "@server/models";
-import BaseTask from "./BaseTask";
+import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
   teamId: string;
@@ -20,5 +20,11 @@ export default class DeleteAttachmentTask extends BaseTask<Props> {
     }
 
     await attachment.destroy();
+  }
+
+  public get options() {
+    return {
+      priority: TaskPriority.Background,
+    };
   }
 }

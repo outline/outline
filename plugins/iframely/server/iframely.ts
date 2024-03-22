@@ -1,57 +1,29 @@
 import type { Unfurl } from "@shared/types";
-import { Day } from "@shared/utils/time";
 import { InternalError } from "@server/errors";
-import Logger from "@server/logging/Logger";
-import Redis from "@server/storage/redis";
 import fetch from "@server/utils/fetch";
 import env from "./env";
 
 class Iframely {
-  private static apiUrl = `${env.IFRAMELY_URL}/api`;
-  private static apiKey = env.IFRAMELY_API_KEY;
-  private static cacheKeyPrefix = "unfurl";
-  private static defaultCacheExpiry = Day;
+  public static defaultUrl = "https://iframe.ly";
 
-  private static cacheKey(url: string) {
-    return `${this.cacheKeyPrefix}-${url}`;
-  }
+  public static async fetch(
+    url: string,
+    type = "oembed"
+  ): Promise<Unfurl | void> {
+    const isDefaultHost = env.IFRAMELY_URL === this.defaultUrl;
 
-  private static async cache(url: string, response: any) {
-    // do not cache error responses
-    if (response.error) {
-      return;
-    }
+    // Cloud Iframely requires /api path, while self-hosted does not.
+    const apiUrl = isDefaultHost ? `${env.IFRAMELY_URL}/api` : env.IFRAMELY_URL;
+
     try {
-      await Redis.defaultClient.set(
-        this.cacheKey(url),
-        JSON.stringify(response),
-        "EX",
-        response.cache_age || this.defaultCacheExpiry
+      const res = await fetch(
+        `${apiUrl}/${type}?url=${encodeURIComponent(url)}&api_key=${
+          env.IFRAMELY_API_KEY
+        }`
       );
+      return res.json();
     } catch (err) {
-      // just log it, can skip caching and directly return response
-      Logger.error("Could not cache Iframely response", err);
-    }
-  }
-
-  public static async fetch(url: string, type = "oembed") {
-    const res = await fetch(
-      `${this.apiUrl}/${type}?url=${encodeURIComponent(url)}&api_key=${
-        this.apiKey
-      }`
-    );
-    return res.json();
-  }
-
-  private static async cached(url: string) {
-    try {
-      const val = await Redis.defaultClient.get(this.cacheKey(url));
-      if (val) {
-        return JSON.parse(val);
-      }
-    } catch (err) {
-      // just log it, response can still be obtained using the fetch call
-      Logger.error("Could not fetch cached Iframely response", err);
+      throw InternalError(err);
     }
   }
 
@@ -61,18 +33,8 @@ class Iframely {
    * @param url
    * @returns Preview data for the url
    */
-  public static async get(url: string): Promise<Unfurl | void> {
-    try {
-      const cached = await Iframely.cached(url);
-      if (cached) {
-        return cached;
-      }
-      const res = await Iframely.fetch(url);
-      await Iframely.cache(url, res);
-      return res;
-    } catch (err) {
-      throw InternalError(err);
-    }
+  public static async unfurl(url: string): Promise<Unfurl | void> {
+    return Iframely.fetch(url);
   }
 }
 

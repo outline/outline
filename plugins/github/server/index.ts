@@ -1,3 +1,4 @@
+import { Minute } from "@shared/utils/time";
 import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import router from "./api/github";
@@ -21,7 +22,7 @@ if (enabled) {
     },
     {
       type: Hook.UnfurlProvider,
-      value: githubApp.unfurl as any,
+      value: { unfurl: githubApp.unfurl, cacheExpiry: Minute },
     },
     {
       type: Hook.Uninstall,
