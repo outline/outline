@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { depths } from "@shared/styles";
 import { UnfurlType } from "@shared/types";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import env from "~/env";
 import useEventListener from "~/hooks/useEventListener";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
@@ -188,7 +189,7 @@ function DataLoader({
     React.useCallback(
       () =>
         client.post("/urls.unfurl", {
-          url,
+          url: url.startsWith("/") ? env.URL + url : url,
           documentId: ui.activeDocumentId,
         }),
       [url, ui.activeDocumentId]
