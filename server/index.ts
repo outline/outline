@@ -91,6 +91,16 @@ async function start(id: number, disconnect: () => void) {
   // Apply default rate limit to all routes
   app.use(defaultRateLimiter());
 
+  /** Perform a redirect on the browser so that the user's auth cookies are included in the request. */
+  app.context.redirectOnClient = function (url: string) {
+    this.type = "text/html";
+    this.body = `
+<html>
+<head>
+<meta http-equiv="refresh" content="0;URL='${url}'"/>
+</head>`;
+  };
+
   // Add a health check endpoint to all services
   router.get("/_health", async (ctx) => {
     try {

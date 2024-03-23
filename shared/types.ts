@@ -81,6 +81,7 @@ export enum IntegrationService {
   Grist = "grist",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
+  GitHub = "github",
 }
 
 export type UserCreatableIntegrationService = Extract<
@@ -108,7 +109,15 @@ export enum DocumentPermission {
 }
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
-  ? { url: string }
+  ? {
+      url: string;
+      github?: {
+        installation: {
+          id: number;
+          account: { id: number; name: string; avatarUrl: string };
+        };
+      };
+    }
   : T extends IntegrationType.Analytics
   ? { measurementId: string }
   : T extends IntegrationType.Post
@@ -117,6 +126,14 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { serviceTeamId: string }
   :
       | { url: string }
+      | {
+          github?: {
+            installation: {
+              id: number;
+              account: { id?: number; name: string; avatarUrl?: string };
+            };
+          };
+        }
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string }
       | { measurementId: string }
@@ -257,6 +274,8 @@ export const NotificationEventDefaults = {
 export enum UnfurlType {
   Mention = "mention",
   Document = "document",
+  Issue = "issue",
+  Pull = "pull",
 }
 
 export enum QueryNotices {
@@ -265,20 +284,31 @@ export enum QueryNotices {
 
 export type OEmbedType = "photo" | "video" | "rich";
 
-export type Unfurl<T = OEmbedType> =
-  | {
-      url?: string;
-      type: T;
-      title: string;
-      description?: string;
-      thumbnailUrl?: string | null;
-      meta?: Record<string, string>;
-    }
+export type UnfurlResponse<S = OEmbedType, T = Record<string, any>> = {
+  url?: string;
+  type: S | ("issue" | "pull" | "commit");
+  title: string;
+  description?: string;
+  createdAt?: string;
+  thumbnailUrl?: string | null;
+  author?: { name: string; avatarUrl: string };
+  meta?: T;
+};
+
+export type Unfurl =
+  | UnfurlResponse
   | {
       error: string;
     };
 
-export type UnfurlSignature = (url: string) => Promise<Unfurl | false>;
+export type UnfurlSignature = (
+  url: string,
+  actor?: any
+) => Promise<Unfurl | void>;
+
+export type UninstallSignature = (
+  integration: Record<string, any>
+) => Promise<void>;
 
 export type JSONValue =
   | string

@@ -6,7 +6,10 @@ import env from "./env";
 class Iframely {
   public static defaultUrl = "https://iframe.ly";
 
-  public static async fetch(url: string, type = "oembed") {
+  public static async fetch(
+    url: string,
+    type = "oembed"
+  ): Promise<Unfurl | void> {
     const isDefaultHost = env.IFRAMELY_URL === this.defaultUrl;
 
     // Cloud Iframely requires /api path, while self-hosted does not.
@@ -30,7 +33,7 @@ class Iframely {
    * @param url
    * @returns Preview data for the url
    */
-  public static async unfurl(url: string): Promise<Unfurl | false> {
+  public static async unfurl(url: string): Promise<Unfurl | void> {
     return Iframely.fetch(url);
   }
 }

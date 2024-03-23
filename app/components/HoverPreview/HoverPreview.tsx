@@ -15,8 +15,10 @@ import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import { CARD_MARGIN } from "./Components";
 import HoverPreviewDocument from "./HoverPreviewDocument";
+import HoverPreviewIssue from "./HoverPreviewIssue";
 import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
+import HoverPreviewPullRequest from "./HoverPreviewPullRequest";
 
 const DELAY_CLOSE = 600;
 const POINTER_HEIGHT = 22;
@@ -111,7 +113,11 @@ function HoverPreviewDesktop({ element, onClose }: Props) {
           {(data) => (
             <Animate
               initial={{ opacity: 0, y: -20, pointerEvents: "none" }}
-              animate={{ opacity: 1, y: 0, pointerEvents: "auto" }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                transitionEnd: { pointerEvents: "auto" },
+              }}
             >
               {data.type === UnfurlType.Mention ? (
                 <HoverPreviewMention
@@ -127,6 +133,27 @@ function HoverPreviewDesktop({ element, onClose }: Props) {
                   title={data.title}
                   description={data.description}
                   info={data.meta.info}
+                />
+              ) : data.type === UnfurlType.Issue ? (
+                <HoverPreviewIssue
+                  url={data.url}
+                  title={data.title}
+                  description={data.description}
+                  author={data.author}
+                  createdAt={data.createdAt}
+                  identifier={data.meta.identifier}
+                  labels={data.meta.labels}
+                  status={data.meta.status}
+                />
+              ) : data.type === UnfurlType.Pull ? (
+                <HoverPreviewPullRequest
+                  url={data.url}
+                  title={data.title}
+                  description={data.description}
+                  author={data.author}
+                  createdAt={data.createdAt}
+                  identifier={data.meta.identifier}
+                  status={data.meta.status}
                 />
               ) : (
                 <HoverPreviewLink

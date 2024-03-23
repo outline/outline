@@ -508,5 +508,5 @@ export type CollectionJSONExport = {
 };
 
 export type UnfurlResolver = {
-  unfurl: (url: string) => Promise<any>;
+  unfurl: (url: string, actor?: User) => Promise<any>;
 };

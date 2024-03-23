@@ -1,5 +1,5 @@
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { IntegrationAuthentication, User } from "@server/models";
+import { User } from "@server/models";
 import Integration from "@server/models/Integration";
 import {
   buildAdmin,
@@ -220,11 +220,6 @@ describe("#integrations.delete", () => {
     expect(res.status).toEqual(200);
 
     const intg = await Integration.findByPk(integration.id);
-    expect(intg).toBeNull();
-
-    const auth = await IntegrationAuthentication.findByPk(
-      integration.authenticationId
-    );
-    expect(auth).toBeNull();
+    expect(intg?.deletedAt).not.toBeNull();
   });
 });

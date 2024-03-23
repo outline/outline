@@ -3,7 +3,7 @@ import { glob } from "glob";
 import type Router from "koa-router";
 import isArray from "lodash/isArray";
 import sortBy from "lodash/sortBy";
-import { UnfurlSignature } from "@shared/types";
+import { UnfurlSignature, UninstallSignature } from "@shared/types";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -28,6 +28,7 @@ export enum Hook {
   Processor = "processor",
   Task = "task",
   UnfurlProvider = "unfurl",
+  Uninstall = "uninstall",
 }
 
 /**
@@ -40,6 +41,7 @@ type PluginValueMap = {
   [Hook.EmailTemplate]: typeof BaseEmail;
   [Hook.Processor]: typeof BaseProcessor;
   [Hook.Task]: typeof BaseTask<any>;
+  [Hook.Uninstall]: UninstallSignature;
   [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheExpiry: number };
 };
 

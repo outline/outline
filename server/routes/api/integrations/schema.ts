@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
-  IntegrationType,
   IntegrationService,
+  IntegrationType,
   UserCreatableIntegrationService,
 } from "@shared/types";
 import { Integration } from "@server/models";
