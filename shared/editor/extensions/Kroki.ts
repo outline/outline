@@ -19,23 +19,6 @@ type KrokiState = {
   url: string;
 };
 
-class Cache {
-  static get(key: string) {
-    return this.data.get(key);
-  }
-
-  static set(key: string, value: string) {
-    this.data.set(key, value);
-
-    if (this.data.size > this.maxSize) {
-      this.data.delete(this.data.keys().next().value);
-    }
-  }
-
-  private static maxSize = 20;
-  private static data: Map<string, string> = new Map();
-}
-
 type RendererFunc = (
   block: { node: Node; pos: number },
   diagram: string
@@ -64,14 +47,6 @@ class KrokiRenderer {
     const element = this.element;
     const text = block.node.textContent;
 
-    const cacheKey = `${text}`;
-    const cache = Cache.get(cacheKey);
-    if (cache) {
-      element.classList.remove("parse-error", "empty");
-      element.innerHTML = cache;
-      return;
-    }
-
     try {
       const isEmpty = block.node.textContent.trim().length === 0;
       if (isEmpty) {
@@ -87,7 +62,6 @@ class KrokiRenderer {
       const response = await fetch(`${this.url}/${diagram}/svg/${result}`);
       const svg = await response.text();
       if (response.ok) {
-        Cache.set(cacheKey, svg);
         element.innerHTML = svg;
       }
     } catch (error) {
