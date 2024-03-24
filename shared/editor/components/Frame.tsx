@@ -8,15 +8,26 @@ import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 
 type Props = Omit<Optional<HTMLIFrameElement>, "children"> & {
+  /** The URL to load in the iframe */
   src?: string;
+  /** Whether to display a border, defaults to true */
   border?: boolean;
+  /** The aria title of the frame */
   title?: string;
+  /** An icon to display under the frame representing the service */
   icon?: React.ReactNode;
+  /** The canonical URL of the content */
   canonicalUrl?: string;
+  /** Whether the node is currently selected */
   isSelected?: boolean;
+  /** The width of the frame */
   width?: string;
+  /** The height of the frame */
   height?: string;
+  /** The allow policy of the frame */
   allow?: string;
+  /** Whether to skip sanitization of the `src` prop */
+  dangerouslySkipSanitizeSrc?: boolean;
 };
 
 type PropsWithRef = Props & {
@@ -58,6 +69,7 @@ class Frame extends React.Component<PropsWithRef> {
       isSelected,
       referrerPolicy,
       className = "",
+      dangerouslySkipSanitizeSrc,
       src,
     } = this.props;
     const withBar = !!(icon || canonicalUrl);
@@ -82,7 +94,7 @@ class Frame extends React.Component<PropsWithRef> {
             frameBorder="0"
             title="embed"
             loading="lazy"
-            src={sanitizeUrl(src)}
+            src={dangerouslySkipSanitizeSrc ? src : sanitizeUrl(src)}
             referrerPolicy={referrerPolicy}
             allowFullScreen
           />
@@ -154,6 +166,19 @@ const Bar = styled.div`
   user-select: none;
   position: relative;
 `;
+
+/**
+ * Resize observer script that sends a message to the parent window when content is resized. Inject
+ * this script into the iframe to receive resize events.
+ */
+export const resizeObserverScript = `<script>
+  const resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      window.parent.postMessage({ "type": "frame-resized", "value": entry.contentRect.height }, '*');
+    }
+  });
+  resizeObserver.observe(document.body);
+</script>`;
 
 export default React.forwardRef<HTMLIFrameElement, Props>((props, ref) => (
   <Frame {...props} forwardedRef={ref} />
