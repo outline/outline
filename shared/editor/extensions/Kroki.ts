@@ -56,13 +56,18 @@ class KrokiRenderer {
       }
 
       const { default: pako } = await import("pako");
-      const data = new TextEncoder().encode(text);
+      const data = new TextEncoder("utf-8").encode(text);
       const compressed = pako.deflate(data, { level: 9, to: "string" });
-      const result = btoa(compressed).replace(/\+/g, "-").replace(/\//g, "_");
+      const result = btoa(String.fromCharCode.apply(null, compressed))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_");
       const response = await fetch(`${this.url}/${diagram}/svg/${result}`);
-      const svg = await response.text();
+      const body = await response.text();
       if (response.ok) {
-        element.innerHTML = svg;
+        element.innerHTML = body;
+      } else {
+        element.innerText = body;
+        element.classList.add("parse-error");
       }
     } catch (error) {
       element.innerText = error;
