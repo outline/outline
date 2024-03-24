@@ -38,7 +38,7 @@ class Cache {
 
 type RendererFunc = (
   block: { node: Node; pos: number },
-  language: string
+  diagram: string
 ) => void;
 
 class KrokiRenderer {
@@ -59,7 +59,7 @@ class KrokiRenderer {
 
   renderImmediately = async (
     block: { node: Node; pos: number },
-    language: string
+    diagram: string
   ) => {
     const element = this.element;
     const text = block.node.textContent;
@@ -84,8 +84,7 @@ class KrokiRenderer {
       const data = new TextEncoder().encode(text);
       const compressed = pako.deflate(data, { level: 9, to: "string" });
       const result = btoa(compressed).replace(/\+/g, "-").replace(/\//g, "_");
-      const key = language.substring(6);
-      const response = await fetch(`${this.url}/${key}/svg/${result}`);
+      const response = await fetch(`${this.url}/${diagram}/svg/${result}`);
       const svg = await response.text();
       if (response.ok) {
         Cache.set(cacheKey, svg);
@@ -154,8 +153,7 @@ function getNewState({
   // Find all blocks that represent Kroki diagrams
   const blocks = findBlockNodes(doc).filter(
     (item) =>
-      item.node.type.name === name &&
-      item.node.attrs.language.startsWith("kroki")
+      item.node.type.name === name && item.node.attrs.language === "kroki"
   );
 
   blocks.forEach((block) => {
@@ -176,7 +174,7 @@ function getNewState({
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
       () => {
-        void renderer.render(block, block.node.attrs.language);
+        void renderer.render(block, block.node.attrs.diagram);
         return renderer.element;
       },
       {
@@ -297,7 +295,7 @@ export default function Kroki({ name, url }: { name: string; url: string }) {
               if (
                 nextBlock &&
                 isCode(nextBlock) &&
-                nextBlock.attrs.language.startsWith("kroki")
+                nextBlock.attrs.language === "kroki"
               ) {
                 view.dispatch(
                   view.state.tr
@@ -323,7 +321,7 @@ export default function Kroki({ name, url }: { name: string; url: string }) {
               if (
                 prevBlock &&
                 isCode(prevBlock) &&
-                prevBlock.attrs.language.startsWith("kroki")
+                prevBlock.attrs.language === "kroki"
               ) {
                 view.dispatch(
                   view.state.tr

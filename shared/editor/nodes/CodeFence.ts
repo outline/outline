@@ -153,6 +153,9 @@ export default class CodeFence extends Node {
         language: {
           default: DEFAULT_LANGUAGE,
         },
+        diagram: {
+          default: null,
+        },
       },
       content: "text*",
       marks: "comment",
@@ -190,7 +193,9 @@ export default class CodeFence extends Node {
     return {
       code_block: (attrs: Record<string, Primitive>) => {
         if (attrs?.language) {
-          Storage.set(PERSISTENCE_KEY, attrs.language);
+          if (attrs.language !== "kroki") {
+            Storage.set(PERSISTENCE_KEY, attrs.language);
+          }
         }
         return toggleBlockType(type, schema.nodes.paragraph, {
           language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
