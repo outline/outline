@@ -977,7 +977,7 @@
   "No results for \"{{ term }}\"": "Aucun résultat pour {{ term }}\"",
   "It looks like you haven’t linked your {{ appName }} account to Slack yet": "Il semble que vous n’ayez pas encore lié votre compte {{ appName }} à Slack",
   "Link your account": "Associer votre compte",
-  "Link your account in {{ appName }} settings to search from Slack": "Link your account in {{ appName }} settings to search from Slack",
+  "Link your account in {{ appName }} settings to search from Slack": "Lier votre compte dans les paramètres de {{ appName }} pour rechercher depuis Slack",
   "Are you sure you want to delete the {{ name }} webhook?": "Êtes-vous sûr de vouloir supprimer le webhook {{ name }}?",
   "Webhook updated": "Le webhook a été mis à jour",
   "Update": "Actualiser",
