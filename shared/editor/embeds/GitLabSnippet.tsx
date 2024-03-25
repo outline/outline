@@ -1,5 +1,4 @@
 import * as React from "react";
-import useEventListener from "~/hooks/useEventListener";
 import Frame, { resizeObserverScript } from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
@@ -14,14 +13,16 @@ function GitLabSnippet(props: Props) {
     "<style>body { margin: 0; .gitlab-embed-snippets { margin: 0; } }</style>";
   const iframeHtml = `<html><head><base target="_parent">${styles}</head><body>${snippetScript}</body></html>`;
 
-  useEventListener(
-    "message",
-    (event: MessageEvent<{ type: string; value: number }>) => {
+  React.useEffect(() => {
+    const handler = (event: MessageEvent<{ type: string; value: number }>) => {
       if (event.data.type === "frame-resized") {
         setHeight(event.data.value);
       }
-    }
-  );
+    };
+    window.addEventListener("message", handler);
+
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
   return (
     <Frame
