@@ -156,7 +156,6 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
               rejectOnEmpty: true,
             });
             return ctx.redirectOnClient(
-              ctx,
               SlackUtils.connectUrl({
                 baseUrl: team.url,
                 params: ctx.request.querystring,
