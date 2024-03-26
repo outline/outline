@@ -970,6 +970,7 @@
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "Slack에서 공유되는 {{ appName }} 링크에 대한 미리보기를 받고 <em>{{ command }}</em> 슬래시 명령을 사용하여 채팅에서 문서를 검색하세요.",
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "This will remove the Outline slash command from your Slack workspace. Are you sure?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "{{appName}} 컬렉션을 Slack 채널에 연결합니다. 문서가 게시되거나 업데이트되면 메시지가 자동으로 Slack에 게시됩니다.",
+  "Comment by {{ author }} on \"{{ title }}\"": "Comment by {{ author }} on \"{{ title }}\"",
   "How to use {{ command }}": "{{ command }} 사용 방법",
   "To search your workspace use {{ command }}. \nType {{ command2 }} help to display this help text.": "To search your workspace use {{ command }}. \nType {{ command2 }} help to display this help text.",
   "Post to Channel": "채널에 게시하기",
