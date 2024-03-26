@@ -970,6 +970,7 @@
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "Slackで共有された{{ appName }} のリンクのプレビューを取得し、チャットを離れずにドキュメントを検索するには、<em>{{ command }}</em> スラッシュコマンドを使用してください。",
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "This will remove the Outline slash command from your Slack workspace. Are you sure?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "{{appName}} コレクションを Slack のチャンネルに接続します。ドキュメントが公開または更新されると、メッセージは Slack に自動的に投稿されます。",
+  "Comment by {{ author }} on \"{{ title }}\"": "Comment by {{ author }} on \"{{ title }}\"",
   "How to use {{ command }}": "{{ command }} の使用方法",
   "To search your workspace use {{ command }}. \nType {{ command2 }} help to display this help text.": "ワークスペースを検索するには、 {{ command }} を使用します。\n {{ command2 }} と入力するとこのヘルプテキストを表示します。",
   "Post to Channel": "チャンネルに投稿",
