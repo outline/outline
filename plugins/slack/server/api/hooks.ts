@@ -1,8 +1,10 @@
 import { t } from "i18next";
 import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
+import queryString from "query-string";
 import { z } from "zod";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import {
   AuthenticationError,
   InvalidRequestError,
@@ -19,8 +21,10 @@ import {
   Integration,
   IntegrationAuthentication,
   AuthenticationProvider,
+  Comment,
 } from "@server/models";
 import SearchHelper from "@server/models/helpers/SearchHelper";
+import { can } from "@server/policies";
 import { APIContext } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 import { opts } from "@server/utils/i18n";
@@ -78,16 +82,38 @@ router.post(
     const unfurls = {};
 
     for (const link of event.links) {
-      const id = link.url.slice(link.url.lastIndexOf("/") + 1);
-      const doc = await Document.findByPk(id);
-      if (!doc || doc.teamId !== user.teamId) {
-        continue;
+      const documentId = parseDocumentSlug(link.url);
+      if (documentId) {
+        const doc = await Document.findByPk(documentId, { userId: user.id });
+
+        if (doc && can(user, "read", doc)) {
+          const commentId = queryString.parse(
+            link.url.split("?")[1]
+          )?.commentId;
+
+          if (commentId) {
+            const comment = await Comment.findByPk(commentId as string);
+            if (!comment) {
+              continue;
+            }
+
+            unfurls[link.url] = {
+              title: t(`Comment by {{ author }} on "{{ title }}"`, {
+                author: comment.createdBy.name,
+                title: doc.title,
+                ...opts(user),
+              }),
+              text: comment.toPlainText(),
+            };
+          } else {
+            unfurls[link.url] = {
+              title: doc.title,
+              text: doc.getSummary(),
+              color: doc.collection?.color,
+            };
+          }
+        }
       }
-      unfurls[link.url] = {
-        title: doc.title,
-        text: doc.getSummary(),
-        color: doc.collection?.color,
-      };
     }
 
     await Slack.post("chat.unfurl", {
