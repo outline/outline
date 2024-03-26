@@ -970,6 +970,7 @@
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "Obtenez un aperçu complets des liens {{ appName }} partagés dans Slack et utilisez la commande <em>{{ command }}</em> pour chercher des documents sans quitter la discussion.",
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "Cela supprimera la commande slash Outline de votre espace de travail Slack. Êtes-vous sûr ?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Connectez les collections {{appName}} aux canaux Slack . Les messages seront automatiquement publiés sur Slack lorsque des documents sont publiés ou mis à jour.",
+  "Comment by {{ author }} on \"{{ title }}\"": "Comment by {{ author }} on \"{{ title }}\"",
   "How to use {{ command }}": "Comment utiliser {{ command }}",
   "To search your workspace use {{ command }}. \nType {{ command2 }} help to display this help text.": "Pour rechercher dans votre espace de travail, utilisez {{ command }}. \nAppuyez sur {{ command2 }} pour afficher ce texte d'aide.",
   "Post to Channel": "Publier sur le canal",
