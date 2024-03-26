@@ -45,6 +45,69 @@ type PreviewData = {
   };
 };
 
+const requestPlugin = (octokit: Octokit) => ({
+  requestPR: async (params: ReturnType<typeof GitHub.parseUrl>) =>
+    octokit.request(`GET /repos/{owner}/{repo}/pulls/{id}`, {
+      owner: params?.owner,
+      repo: params?.repo,
+      id: params?.id,
+      headers: {
+        Accept: "application/vnd.github.text+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
+
+  requestIssue: async (params: ReturnType<typeof GitHub.parseUrl>) =>
+    octokit.request(`GET /repos/{owner}/{repo}/issues/{id}`, {
+      owner: params?.owner,
+      repo: params?.repo,
+      id: params?.id,
+      headers: {
+        Accept: "application/vnd.github.text+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
+
+  /**
+   * Fetches app installations accessible to the user
+   *
+   * @returns {Array} Containing details of all app installations done by user
+   */
+  requestAppInstallations: async () =>
+    octokit.paginate("GET /user/installations"),
+
+  /**
+   * Fetches details of a GitHub resource, e.g, a pull request or an issue
+   *
+   * @param resource Contains identifiers which are used to construct resource endpoint, e.g, `/repos/{params.owner}/{params.repo}/pulls/{params.id}`
+   * @returns Response containing resource details
+   */
+  requestResource: async function requestResource(
+    resource: ReturnType<typeof GitHub.parseUrl>
+  ) {
+    switch (resource?.type) {
+      case Resource.PR:
+        return this.requestPR(resource);
+      case Resource.Issue:
+        return this.requestIssue(resource);
+      default:
+        return { data: undefined };
+    }
+  },
+
+  /**
+   * Uninstalls the GitHub app from a given target
+   *
+   * @param installationId Id of the target from where to uninstall
+   */
+  requestAppUninstall: async (installationId: number) =>
+    octokit.request("DELETE /app/installations/{id}", {
+      id: installationId,
+    }),
+});
+
+const CustomOctokit = Octokit.plugin(requestPlugin);
+
 export class GitHub {
   private static appId = env.GITHUB_APP_ID;
   private static appKey = env.GITHUB_APP_PRIVATE_KEY
@@ -57,34 +120,6 @@ export class GitHub {
   private static appOctokit: Octokit;
 
   private static supportedResources = Object.values(Resource);
-
-  private static requestPR = async (
-    params: Record<string, string>,
-    octokit: Octokit
-  ) =>
-    octokit.request(`GET /repos/{owner}/{repo}/pulls/{id}`, {
-      owner: params.owner,
-      repo: params.repo,
-      id: params.id,
-      headers: {
-        Accept: "application/vnd.github.text+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    });
-
-  private static requestIssue = async (
-    params: Record<string, string>,
-    octokit: Octokit
-  ) =>
-    octokit.request(`GET /repos/{owner}/{repo}/issues/{id}`, {
-      owner: params.owner,
-      repo: params.repo,
-      id: params.id,
-      headers: {
-        Accept: "application/vnd.github.text+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    });
 
   private static transformPRData = (
     resource: ReturnType<typeof GitHub.parseUrl>,
@@ -136,7 +171,13 @@ export class GitHub {
     },
   });
 
-  private static parseUrl(url: string) {
+  /**
+   * Parses a given URL and returns resource identifiers for GitHub specific URLs
+   *
+   * @param url URL to parse
+   * @returns {object} Containing resource identifiers - `owner`, `repo`, `type` and `id`.
+   */
+  public static parseUrl(url: string) {
     const { hostname, pathname } = new URL(url);
     if (hostname !== "github.com") {
       return;
@@ -158,7 +199,7 @@ export class GitHub {
 
   private static authenticateAsApp = () => {
     if (!GitHub.appOctokit) {
-      GitHub.appOctokit = new Octokit({
+      GitHub.appOctokit = new CustomOctokit({
         authStrategy: createAppAuth,
         auth: {
           appId: GitHub.appId,
@@ -188,11 +229,11 @@ export class GitHub {
       code,
       state,
       factory: (options: OAuthWebFlowAuthOptions) =>
-        new Octokit({
+        new CustomOctokit({
           authStrategy: createOAuthUserAuth,
           auth: options,
         }),
-    }) as Promise<Octokit>;
+    }) as Promise<InstanceType<typeof CustomOctokit>>;
 
   /**
    * [Authenticates as a GitHub app installation](https://github.com/octokit/auth-app.js/?tab=readme-ov-file#authenticate-as-installation)
@@ -205,55 +246,11 @@ export class GitHub {
       type: "installation",
       installationId,
       factory: (options: InstallationAuthOptions) =>
-        new Octokit({
+        new CustomOctokit({
           authStrategy: createAppAuth,
           auth: options,
         }),
-    }) as Promise<Octokit>;
-
-  /**
-   * Fetches app installations accessible to the user
-   *
-   * @param octokit User-authenticated Octokit instance for making REST calls to GitHub
-   * @returns {Array} Containing details of all app installations done by user
-   */
-  public static requestAppInstallations = async (octokit: Octokit) =>
-    octokit.paginate("GET /user/installations");
-
-  /**
-   * Uninstalls the GitHub app from a given target
-   *
-   * @param installationId Id of the target from where to uninstall
-   * @param octokit Installation-authenticated Octokit instance for making REST calls to GitHub
-   */
-  public static requestAppUninstall = async (
-    installationId: number,
-    octokit: Octokit
-  ) =>
-    octokit.request("DELETE /app/installations/{id}", {
-      id: installationId,
-    });
-
-  /**
-   * Fetches details of a GitHub resource, e.g, a pull request or an issue
-   *
-   * @param params Path params used to construct resource endpoint, e.g, `/repos/{params.owner}/{params.repo}/pulls/{params.id}`
-   * @param octokit Authenticated Octokit instance for making REST calls to GitHub
-   * @returns Response containing resource details
-   */
-  public static requestResource = async (
-    resource: ReturnType<typeof GitHub.parseUrl>,
-    octokit: Octokit
-  ) => {
-    switch (resource?.type) {
-      case Resource.PR:
-        return GitHub.requestPR(resource, octokit);
-      case Resource.Issue:
-        return GitHub.requestIssue(resource, octokit);
-      default:
-        return { data: undefined };
-    }
-  };
+    }) as Promise<InstanceType<typeof CustomOctokit>>;
 
   /**
    * Transforms resource data obtained from GitHub to our own pre-defined preview data
@@ -309,7 +306,7 @@ export class GitHub {
       const client = await GitHub.authenticateAsInstallation(
         integration.settings.github!.installation.id
       );
-      const { data } = await GitHub.requestResource(resource, client);
+      const { data } = await client.requestResource(resource);
       if (!data) {
         return;
       }

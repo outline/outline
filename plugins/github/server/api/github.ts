@@ -67,7 +67,7 @@ router.get(
     }
 
     const client = await GitHub.authenticateAsUser(code!, teamId);
-    const installationsByUser = await GitHub.requestAppInstallations(client);
+    const installationsByUser = await client.requestAppInstallations();
     const installation = find(
       installationsByUser,
       (i) => i.id === installationId

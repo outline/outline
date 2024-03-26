@@ -10,7 +10,7 @@ export async function uninstall(
 
     if (installationId) {
       const client = await GitHub.authenticateAsInstallation(installationId);
-      await GitHub.requestAppUninstall(installationId, client);
+      await client.requestAppUninstall(installationId);
     }
   }
 }
