@@ -970,6 +970,7 @@
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "Získejte bohaté náhledy {{ appName }} odkazů sdílených ve Slacku a pomocí příkazu <em>{{ command }}</em> lomítko vyhledejte dokumenty, aniž byste opustili chat.",
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "This will remove the Outline slash command from your Slack workspace. Are you sure?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Připojte {{appName}} sbírek ke kanálům Slack. Zprávy budou automaticky odesílány do Slacku, jakmile budou dokumenty zveřejněny nebo aktualizovány.",
+  "Comment by {{ author }} on \"{{ title }}\"": "Comment by {{ author }} on \"{{ title }}\"",
   "How to use {{ command }}": "Jak používat {{ command }}",
   "To search your workspace use {{ command }}. \nType {{ command2 }} help to display this help text.": "Pro vyhledávání ve vašem pracovním prostoru použijte {{ command }}. \nZadejte {{ command2 }} nápovědu k zobrazení tohoto nápovědy.",
   "Post to Channel": "Zveřejnit v kanálu",
