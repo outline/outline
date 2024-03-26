@@ -54,15 +54,7 @@ export class GitHub {
   private static clientId = env.GITHUB_CLIENT_ID;
   private static clientSecret = env.GITHUB_CLIENT_SECRET;
 
-  private static appOctokit = new Octokit({
-    authStrategy: createAppAuth,
-    auth: {
-      appId: GitHub.appId,
-      privateKey: GitHub.appKey,
-      clientId: GitHub.clientId,
-      clientSecret: GitHub.clientSecret,
-    },
-  });
+  private static appOctokit: Octokit;
 
   private static supportedResources = Object.values(Resource);
 
@@ -164,6 +156,22 @@ export class GitHub {
     return { owner, repo, type, id, url };
   }
 
+  private static authenticateAsApp = () => {
+    if (!GitHub.appOctokit) {
+      GitHub.appOctokit = new Octokit({
+        authStrategy: createAppAuth,
+        auth: {
+          appId: GitHub.appId,
+          privateKey: GitHub.appKey,
+          clientId: GitHub.clientId,
+          clientSecret: GitHub.clientSecret,
+        },
+      });
+    }
+
+    return GitHub.appOctokit;
+  };
+
   /**
    * [Authenticates as a GitHub user](https://github.com/octokit/auth-app.js/?tab=readme-ov-file#authenticate-as-installation)
    *
@@ -175,7 +183,7 @@ export class GitHub {
     code: string,
     state?: string | null
   ) =>
-    GitHub.appOctokit.auth({
+    GitHub.authenticateAsApp().auth({
       type: "oauth-user",
       code,
       state,
@@ -193,7 +201,7 @@ export class GitHub {
    * @returns {Octokit} Installation-authenticated octokit instance
    */
   public static authenticateAsInstallation = async (installationId: number) =>
-    GitHub.appOctokit.auth({
+    GitHub.authenticateAsApp().auth({
       type: "installation",
       installationId,
       factory: (options: InstallationAuthOptions) =>
