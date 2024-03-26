@@ -970,6 +970,7 @@
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "使用 <em>{{ command }}</em> slash command 功能搜尋文件不需跳開聊天視窗，而且可以在 Slack 獲得更多細節的 {{ appName }} 文件預覽功能。",
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "This will remove the Outline slash command from your Slack workspace. Are you sure?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "將 {{appName}} 文件集連結到 Slack 頻道。若文件已經被更新或公開釋出，則會被自動張貼在 Slack 上。",
+  "Comment by {{ author }} on \"{{ title }}\"": "Comment by {{ author }} on \"{{ title }}\"",
   "How to use {{ command }}": "如何使用 {{ command }}",
   "To search your workspace use {{ command }}. \nType {{ command2 }} help to display this help text.": "要搜尋您的工作區請使用 {{ command }}.\n輸入 {{ command2 }} 來顯示這個幫助文字。",
   "Post to Channel": "發送到頻道",
