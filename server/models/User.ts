@@ -137,14 +137,6 @@ class User extends ParanoidModel<
   @Column
   name: string;
 
-  @Default(false)
-  @Column
-  isAdmin: boolean;
-
-  @Default(false)
-  @Column
-  isViewer: boolean;
-
   @Default(UserRole.Member)
   @Column(DataType.ENUM(...Object.values(UserRole)))
   role: UserRole;
@@ -249,6 +241,14 @@ class User extends ParanoidModel<
 
   get isInvited() {
     return !this.lastActiveAt;
+  }
+
+  get isAdmin() {
+    return this.role === UserRole.Admin;
+  }
+
+  get isViewer() {
+    return this.role === UserRole.Viewer;
   }
 
   get color() {
@@ -551,7 +551,7 @@ class User extends ParanoidModel<
     const res = await (this.constructor as typeof User).findAndCountAll({
       where: {
         teamId: this.teamId,
-        isAdmin: true,
+        role: UserRole.Admin,
         id: {
           [Op.ne]: this.id,
         },
@@ -562,21 +562,9 @@ class User extends ParanoidModel<
 
     if (res.count >= 1) {
       if (to === UserRole.Member) {
-        await this.update(
-          {
-            isAdmin: false,
-            isViewer: false,
-          },
-          options
-        );
+        await this.update({ role: to }, options);
       } else if (to === UserRole.Viewer) {
-        await this.update(
-          {
-            isAdmin: false,
-            isViewer: true,
-          },
-          options
-        );
+        await this.update({ role: to }, options);
         await UserMembership.update(
           {
             permission: CollectionPermission.Read,
@@ -599,13 +587,7 @@ class User extends ParanoidModel<
   promote: (
     options?: InstanceUpdateOptions<InferAttributes<User>>
   ) => Promise<User> = (options) =>
-    this.update(
-      {
-        isAdmin: true,
-        isViewer: false,
-      },
-      options
-    );
+    this.update({ role: UserRole.Admin }, options);
 
   // hooks
 
