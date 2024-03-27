@@ -11,13 +11,13 @@ module.exports = {
     }
 
     await queryInterface.sequelize.query(
-      `UPDATE users SET role = 'admin' WHERE "isAdmin" = true`,
+      `UPDATE users SET role = 'viewer' WHERE "isViewer" = true`,
       {
         type: queryInterface.sequelize.QueryTypes.SELECT,
       }
     );
     await queryInterface.sequelize.query(
-      `UPDATE users SET role = 'viewer' WHERE "isViewer" = true`,
+      `UPDATE users SET role = 'admin' WHERE "isAdmin" = true`,
       {
         type: queryInterface.sequelize.QueryTypes.SELECT,
       }
