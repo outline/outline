@@ -141,10 +141,6 @@ class User extends ParanoidModel<
   @Column(DataType.ENUM(...Object.values(UserRole)))
   role: UserRole;
 
-  @Default(UserRole.Member)
-  @Column(DataType.ENUM(...Object.values(UserRole)))
-  role: UserRole;
-
   @Column(DataType.BLOB)
   @Encrypted
   get jwtSecret() {
@@ -663,8 +659,8 @@ class User extends ParanoidModel<
     const countSql = `
       SELECT
         COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
-        COUNT(CASE WHEN "role" = 'admin' THEN 1 END) as "adminCount",
-        COUNT(CASE WHEN "role" = 'viewer' THEN 1 END) as "viewerCount",
+        COUNT(CASE WHEN "role" = :roleAdmin THEN 1 END) as "adminCount",
+        COUNT(CASE WHEN "role" = :roleViewer THEN 1 END) as "viewerCount",
         COUNT(CASE WHEN "lastActiveAt" IS NULL THEN 1 END) as "invitedCount",
         COUNT(CASE WHEN "suspendedAt" IS NULL AND "lastActiveAt" IS NOT NULL THEN 1 END) as "activeCount",
         COUNT(*) as count
@@ -676,6 +672,8 @@ class User extends ParanoidModel<
       type: QueryTypes.SELECT,
       replacements: {
         teamId,
+        roleAdmin: UserRole.Admin,
+        roleViewer: UserRole.Viewer,
       },
     });
 
