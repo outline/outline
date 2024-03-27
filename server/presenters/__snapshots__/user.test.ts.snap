@@ -11,6 +11,7 @@ exports[`presents a user 1`] = `
   "isViewer": false,
   "lastActiveAt": undefined,
   "name": "Test User",
+  "role": "member",
   "updatedAt": undefined,
 }
 `;
@@ -26,6 +27,7 @@ exports[`presents a user without slack data 1`] = `
   "isViewer": false,
   "lastActiveAt": undefined,
   "name": "Test User",
+  "role": "member",
   "updatedAt": undefined,
 }
 `;
