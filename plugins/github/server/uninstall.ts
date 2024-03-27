@@ -1,6 +1,6 @@
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { Integration } from "@server/models";
-import { githubApp } from "./github";
+import { GitHub } from "./github";
 
 export async function uninstall(
   integration: Integration<IntegrationType.Embed>
@@ -9,7 +9,8 @@ export async function uninstall(
     const installationId = integration.settings?.github?.installation.id;
 
     if (installationId) {
-      return githubApp.deleteInstallation(installationId);
+      const client = await GitHub.authenticateAsInstallation(installationId);
+      await client.requestAppUninstall(installationId);
     }
   }
 }

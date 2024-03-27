@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import find from "lodash/find";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
@@ -7,7 +8,7 @@ import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration, Team } from "@server/models";
 import { APIContext } from "@server/types";
 import { GitHubUtils } from "../../shared/GitHubUtils";
-import { GitHubUser } from "../github";
+import { GitHub } from "../github";
 import * as T from "./schema";
 
 const router = new Router();
@@ -65,13 +66,14 @@ router.get(
       }
     }
 
-    const githubUser = new GitHubUser({ code: code!, state: teamId });
+    const client = await GitHub.authenticateAsUser(code!, teamId);
+    const installationsByUser = await client.requestAppInstallations();
+    const installation = find(
+      installationsByUser,
+      (i) => i.id === installationId
+    );
 
-    let installation;
-    try {
-      installation = await githubUser.getInstallation(installationId!);
-    } catch (err) {
-      Logger.error("Failed to fetch GitHub App installation", err);
+    if (!installation) {
       return ctx.redirect(GitHubUtils.errorUrl("unauthenticated"));
     }
 

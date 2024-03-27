@@ -141,6 +141,10 @@ class User extends ParanoidModel<
   @Column(DataType.ENUM(...Object.values(UserRole)))
   role: UserRole;
 
+  @Default(UserRole.Member)
+  @Column(DataType.ENUM(...Object.values(UserRole)))
+  role: UserRole;
+
   @Column(DataType.BLOB)
   @Encrypted
   get jwtSecret() {
