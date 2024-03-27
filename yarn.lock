@@ -2084,10 +2084,10 @@
     "@octokit/types" "^12.0.0"
     "@octokit/webhooks" "^12.0.4"
 
-"@octokit/auth-app@^6.0.0":
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@octokit/auth-app/-/auth-app-6.0.3.tgz#4c0ba68e8d3b1a55c34d1e68ea0ca92ef018bb7a"
-  integrity sha512-9N7IlBAKEJR3tJgPSubCxIDYGXSdc+2xbkjYpk9nCyqREnH8qEMoMhiEB1WgoA9yTFp91El92XNXAi+AjuKnfw==
+"@octokit/auth-app@^6.0.0", "@octokit/auth-app@^6.0.4":
+  version "6.0.4"
+  resolved "https://registry.yarnpkg.com/@octokit/auth-app/-/auth-app-6.0.4.tgz#3c435c4c9ba9005405d889f4a5018df5e8ca93cf"
+  integrity sha512-TPmJYgd05ok3nzHj7Y6we/V7Ez1wU3ztLFW3zo/afgYFtqYZg0W7zb6Kp5ag6E85r8nCE1JfS6YZoZusa14o9g==
   dependencies:
     "@octokit/auth-oauth-app" "^7.0.0"
     "@octokit/auth-oauth-user" "^4.0.0"

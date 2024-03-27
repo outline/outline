@@ -3,7 +3,7 @@ import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import router from "./api/github";
 import env from "./env";
-import { githubApp } from "./github";
+import { GitHub } from "./github";
 import { uninstall } from "./uninstall";
 
 const enabled =
@@ -22,7 +22,7 @@ if (enabled) {
     },
     {
       type: Hook.UnfurlProvider,
-      value: { unfurl: githubApp.unfurl, cacheExpiry: Minute },
+      value: { unfurl: GitHub.unfurl, cacheExpiry: Minute },
     },
     {
       type: Hook.Uninstall,
