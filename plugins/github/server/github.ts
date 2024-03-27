@@ -6,7 +6,7 @@ import {
 } from "@octokit/auth-app";
 import { Octokit } from "octokit";
 import pluralize from "pluralize";
-import { IntegrationService, IntegrationType, Unfurl } from "@shared/types";
+import { IntegrationService, IntegrationType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration, User } from "@server/models";
 import { GitHubUtils } from "../shared/GitHubUtils";
@@ -281,10 +281,7 @@ export class GitHub {
    * @param actor User attempting to unfurl resource url
    * @returns {object} An object containing resource details e.g, a GitHub Pull Request details
    */
-  public static unfurl = async (
-    url: string,
-    actor: User
-  ): Promise<Unfurl | undefined> => {
+  public static unfurl = async (url: string, actor: User) => {
     const resource = GitHub.parseUrl(url);
 
     if (!resource) {

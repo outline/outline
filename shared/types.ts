@@ -278,11 +278,39 @@ export enum UnfurlType {
   Pull = "pull",
 }
 
+export enum UnfurlResourceType {
+  OEmbed = "oembed",
+  Mention = "mention",
+  Document = "document",
+  Issue = "issue",
+  PR = "pull",
+}
+
+export type UnfurlPreviewData = {
+  [UnfurlResourceType.OEmbed]: {
+    /** The resource type */
+    type: UnfurlResourceType.OEmbed;
+    /** URL pointing to the resource */
+    url: string;
+    /** A text title, describing the resource */
+    title: string;
+    /** A URL to a thumbnail image representing the resource */
+    thumbnailUrl: string;
+    /** A brief description about the resource */
+    description: string;
+  };
+  [UnfurlResourceType.Mention]: {
+    type: UnfurlResourceType.Mention;
+    user: Record<string, JSONValue>;
+    document: Record<string, JSONValue>;
+  };
+};
+
 export enum QueryNotices {
   UnsubscribeDocument = "unsubscribe-document",
 }
 
-export type OEmbedType = "photo" | "video" | "rich";
+export type OEmbedType = "oembed";
 
 export type UnfurlResponse<S = OEmbedType, T = Record<string, any>> = {
   url?: string;
