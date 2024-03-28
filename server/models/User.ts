@@ -29,7 +29,6 @@ import {
   IsDate,
   AllowNull,
   AfterUpdate,
-  BeforeSave,
 } from "sequelize-typescript";
 import { UserPreferenceDefaults } from "@shared/constants";
 import { languages } from "@shared/i18n";
@@ -137,14 +136,6 @@ class User extends ParanoidModel<
   @Column
   name: string;
 
-  @Default(false)
-  @Column
-  isAdmin: boolean;
-
-  @Default(false)
-  @Column
-  isViewer: boolean;
-
   @Default(UserRole.Member)
   @Column(DataType.ENUM(...Object.values(UserRole)))
   role: UserRole;
@@ -249,6 +240,14 @@ class User extends ParanoidModel<
 
   get isInvited() {
     return !this.lastActiveAt;
+  }
+
+  get isAdmin() {
+    return this.role === UserRole.Admin;
+  }
+
+  get isViewer() {
+    return this.role === UserRole.Viewer;
   }
 
   get color() {
@@ -551,7 +550,7 @@ class User extends ParanoidModel<
     const res = await (this.constructor as typeof User).findAndCountAll({
       where: {
         teamId: this.teamId,
-        isAdmin: true,
+        role: UserRole.Admin,
         id: {
           [Op.ne]: this.id,
         },
@@ -562,21 +561,9 @@ class User extends ParanoidModel<
 
     if (res.count >= 1) {
       if (to === UserRole.Member) {
-        await this.update(
-          {
-            isAdmin: false,
-            isViewer: false,
-          },
-          options
-        );
+        await this.update({ role: to }, options);
       } else if (to === UserRole.Viewer) {
-        await this.update(
-          {
-            isAdmin: false,
-            isViewer: true,
-          },
-          options
-        );
+        await this.update({ role: to }, options);
         await UserMembership.update(
           {
             permission: CollectionPermission.Read,
@@ -599,13 +586,7 @@ class User extends ParanoidModel<
   promote: (
     options?: InstanceUpdateOptions<InferAttributes<User>>
   ) => Promise<User> = (options) =>
-    this.update(
-      {
-        isAdmin: true,
-        isViewer: false,
-      },
-      options
-    );
+    this.update({ role: UserRole.Admin }, options);
 
   // hooks
 
@@ -626,20 +607,6 @@ class User extends ParanoidModel<
       hooks: false,
       transaction: options.transaction,
     });
-  };
-
-  /**
-   * Temporary hook to double write role while we transition to the new field.
-   */
-  @BeforeSave
-  static doubleWriteRole = async (model: User) => {
-    if (model.isAdmin) {
-      model.role = UserRole.Admin;
-    } else if (model.isViewer) {
-      model.role = UserRole.Viewer;
-    } else {
-      model.role = UserRole.Member;
-    }
   };
 
   @BeforeCreate
@@ -677,8 +644,8 @@ class User extends ParanoidModel<
     const countSql = `
       SELECT
         COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
-        COUNT(CASE WHEN "isAdmin" = true THEN 1 END) as "adminCount",
-        COUNT(CASE WHEN "isViewer" = true THEN 1 END) as "viewerCount",
+        COUNT(CASE WHEN "role" = :roleAdmin THEN 1 END) as "adminCount",
+        COUNT(CASE WHEN "role" = :roleViewer THEN 1 END) as "viewerCount",
         COUNT(CASE WHEN "lastActiveAt" IS NULL THEN 1 END) as "invitedCount",
         COUNT(CASE WHEN "suspendedAt" IS NULL AND "lastActiveAt" IS NOT NULL THEN 1 END) as "activeCount",
         COUNT(*) as count
@@ -690,6 +657,8 @@ class User extends ParanoidModel<
       type: QueryTypes.SELECT,
       replacements: {
         teamId,
+        roleAdmin: UserRole.Admin,
+        roleViewer: UserRole.Viewer,
       },
     });
 

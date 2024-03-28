@@ -1,4 +1,4 @@
-import { TeamPreference } from "@shared/types";
+import { TeamPreference, UserRole } from "@shared/types";
 import {
   buildTeam,
   buildAdmin,
@@ -368,8 +368,7 @@ describe("#users.invite", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.sent.length).toEqual(1);
-    expect(body.data.users[0].isViewer).toBeTruthy();
-    expect(body.data.users[0].isAdmin).toBeFalsy();
+    expect(body.data.users[0].role).toEqual(UserRole.Viewer);
   });
 
   it("should require authentication", async () => {
@@ -383,7 +382,6 @@ describe("#users.delete", () => {
     const user = await buildAdmin();
     await buildUser({
       teamId: user.teamId,
-      isAdmin: false,
     });
     const res = await server.post("/api/users.delete", {
       body: {
@@ -397,7 +395,6 @@ describe("#users.delete", () => {
     const user = await buildAdmin();
     await buildUser({
       teamId: user.teamId,
-      isAdmin: false,
     });
     const res = await server.post("/api/users.delete", {
       body: {
@@ -572,11 +569,7 @@ describe("#users.demote", () => {
   it("should demote an admin", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
-    const user = await buildUser({ teamId: team.id });
-
-    await user.update({
-      isAdmin: true,
-    }); // Make another admin
+    const user = await buildAdmin({ teamId: team.id });
 
     const res = await server.post("/api/users.demote", {
       body: {
@@ -590,11 +583,7 @@ describe("#users.demote", () => {
   it("should demote an admin to viewer", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
-    const user = await buildUser({ teamId: team.id });
-
-    await user.update({
-      isAdmin: true,
-    }); // Make another admin
+    const user = await buildAdmin({ teamId: team.id });
 
     const res = await server.post("/api/users.demote", {
       body: {
@@ -609,11 +598,7 @@ describe("#users.demote", () => {
   it("should demote an admin to member", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
-    const user = await buildUser({ teamId: team.id });
-
-    await user.update({
-      isAdmin: true,
-    }); // Make another admin
+    const user = await buildAdmin({ teamId: team.id });
 
     const res = await server.post("/api/users.demote", {
       body: {
@@ -748,9 +733,8 @@ describe("#users.count", () => {
 
   it("should count admin users", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
+    const user = await buildAdmin({
       teamId: team.id,
-      isAdmin: true,
     });
     const res = await server.post("/api/users.count", {
       body: {

@@ -1,4 +1,4 @@
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, UserRole } from "@shared/types";
 import { UserMembership, Collection } from "@server/models";
 import {
   buildUser,
@@ -217,7 +217,7 @@ describe("viewer", () => {
     it("should allow read permissions for viewer", async () => {
       const team = await buildTeam();
       const user = await buildUser({
-        isViewer: true,
+        role: UserRole.Viewer,
         teamId: team.id,
       });
       const collection = await buildCollection({
@@ -235,7 +235,7 @@ describe("viewer", () => {
     it("should override read membership permission", async () => {
       const team = await buildTeam();
       const user = await buildUser({
-        isViewer: true,
+        role: UserRole.Viewer,
         teamId: team.id,
       });
       const collection = await buildCollection({
@@ -264,7 +264,7 @@ describe("viewer", () => {
     it("should allow override with read_write membership permission", async () => {
       const team = await buildTeam();
       const user = await buildUser({
-        isViewer: true,
+        role: UserRole.Viewer,
         teamId: team.id,
       });
       const collection = await buildCollection({
@@ -294,7 +294,7 @@ describe("viewer", () => {
     it("should allow no permissions for viewer", async () => {
       const team = await buildTeam();
       const user = await buildUser({
-        isViewer: true,
+        role: UserRole.Viewer,
         teamId: team.id,
       });
       const collection = await buildCollection({
@@ -310,7 +310,7 @@ describe("viewer", () => {
     it("should allow override with team member membership permission", async () => {
       const team = await buildTeam();
       const user = await buildUser({
-        isViewer: true,
+        role: UserRole.Viewer,
         teamId: team.id,
       });
       const collection = await buildCollection({
