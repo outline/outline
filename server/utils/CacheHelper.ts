@@ -1,6 +1,7 @@
 import { Day } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
+import { Unfurl, UnfurlSignature } from "@server/types";
 
 /**
  * A Helper class for server-side cache management
@@ -13,7 +14,7 @@ export class CacheHelper {
    *
    * @param key Key against which data will be accessed
    */
-  public static async getData(key: string) {
+  public static async getData(key: string): ReturnType<UnfurlSignature> {
     try {
       const data = await Redis.defaultClient.get(key);
       if (data) {
@@ -21,7 +22,10 @@ export class CacheHelper {
       }
     } catch (err) {
       // just log it, response can still be obtained using the fetch call
-      Logger.error(`Could not fetch cached response against ${key}`, err);
+      return Logger.error(
+        `Could not fetch cached response against ${key}`,
+        err
+      );
     }
   }
 
@@ -32,11 +36,7 @@ export class CacheHelper {
    * @param data Data to be saved against the key
    * @param expiry Cache data expiry
    */
-  public static async setData(
-    key: string,
-    data: Record<string, any>,
-    expiry?: number
-  ) {
+  public static async setData(key: string, data: Unfurl, expiry?: number) {
     if ("error" in data) {
       return;
     }
