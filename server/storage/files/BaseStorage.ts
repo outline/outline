@@ -1,6 +1,6 @@
 import { Blob } from "buffer";
 import { Readable } from "stream";
-import { PresignedPost } from "aws-sdk/clients/s3";
+import { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import { isBase64Url } from "@shared/utils/urls";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
