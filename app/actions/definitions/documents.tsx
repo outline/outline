@@ -432,7 +432,8 @@ export const copyDocumentAsMarkdown = createAction({
   name: ({ t }) => t("Copy as Markdown"),
   section: DocumentSection,
   keywords: "clipboard",
-  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
   perform: ({ stores, activeDocumentId, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
@@ -856,7 +857,7 @@ export const openDocumentHistory = createAction({
   icon: <HistoryIcon />,
   visible: ({ activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
-    return !!activeDocumentId && can.read && !can.restore;
+    return !!activeDocumentId && can.listRevisions;
   },
   perform: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
@@ -883,7 +884,7 @@ export const openDocumentInsights = createAction({
 
     return (
       !!activeDocumentId &&
-      can.read &&
+      can.listViews &&
       !document?.isTemplate &&
       !document?.isDeleted
     );

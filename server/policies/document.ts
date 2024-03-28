@@ -44,6 +44,31 @@ allow(User, "read", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
+allow(User, ["listRevisions", "listViews"], Document, (user, document) => {
+  if (!document || user.isGuest) {
+    return false;
+  }
+
+  if (
+    includesMembership(document, [
+      DocumentPermission.Read,
+      DocumentPermission.ReadWrite,
+    ])
+  ) {
+    return true;
+  }
+
+  if (cannot(user, "readDocument", document.collection)) {
+    return false;
+  }
+
+  if (document.isDraft) {
+    return user.id === document.createdById;
+  }
+
+  return user.teamId === document.teamId;
+});
+
 allow(User, "download", Document, (user, document) => {
   if (!document) {
     return false;
@@ -81,7 +106,7 @@ allow(User, "download", Document, (user, document) => {
 });
 
 allow(User, "comment", Document, (user, document) => {
-  if (!document || user.isGuest || !document.isActive || document.template) {
+  if (!document || !document.isActive || document.template) {
     return false;
   }
 

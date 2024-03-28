@@ -24,13 +24,13 @@ allow(
   }
 );
 
-allow(User, "createTeam", Team, () => {
+allow(User, "createTeam", Team, (user) => {
   if (!env.isCloudHosted) {
     throw IncorrectEditionError(
       "Functionality is not available in this edition"
     );
   }
-  return true;
+  return !user.isGuest;
 });
 
 allow(User, "update", Team, (user, team) => {

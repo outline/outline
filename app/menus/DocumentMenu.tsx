@@ -312,7 +312,7 @@ function DocumentMenu({
             actionToMenuItem(permanentlyDeleteDocument, context),
           ]}
         />
-        {(showDisplayOptions || showToggleEmbeds) && (
+        {(showDisplayOptions || showToggleEmbeds) && can.update && (
           <>
             <Separator />
             <DisplayOptions>
@@ -332,7 +332,7 @@ function DocumentMenu({
                   />
                 </Style>
               )}
-              {showDisplayOptions && !isMobile && can.update && (
+              {showDisplayOptions && !isMobile && (
                 <Style>
                   <ToggleMenuItem
                     width={26}
