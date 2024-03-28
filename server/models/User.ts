@@ -29,7 +29,6 @@ import {
   IsDate,
   AllowNull,
   AfterUpdate,
-  BeforeSave,
 } from "sequelize-typescript";
 import { UserPreferenceDefaults } from "@shared/constants";
 import { languages } from "@shared/i18n";
@@ -613,20 +612,6 @@ class User extends ParanoidModel<
       hooks: false,
       transaction: options.transaction,
     });
-  };
-
-  /**
-   * Temporary hook to double write role while we transition to the new field.
-   */
-  @BeforeSave
-  static doubleWriteRole = async (model: User) => {
-    if (model.isAdmin) {
-      model.role = UserRole.Admin;
-    } else if (model.isViewer) {
-      model.role = UserRole.Viewer;
-    } else {
-      model.role = UserRole.Member;
-    }
   };
 
   @BeforeCreate
