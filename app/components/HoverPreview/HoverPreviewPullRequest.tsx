@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Trans } from "react-i18next";
+import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import Flex from "~/components/Flex";
 import Avatar from "../Avatar";
 import { PullRequestIcon } from "../Icons/PullRequestIcon";
@@ -14,26 +15,11 @@ import {
   Info,
 } from "./Components";
 
-type Props = {
-  /** Pull request url */
-  url: string;
-  /** Pull request title */
-  title: string;
-  /** Pull request description */
-  description: string;
-  /** When the pull request was opened */
-  createdAt: string;
-  /** Author of the pull request */
-  author: { name: string; avatarUrl: string };
-  /** Pull request status */
-  status: { name: string; color: string };
-  /** Pull request identifier */
-  identifier: string;
-};
+type Props = Omit<UnfurlResponse[UnfurlResourceType.PR], "type">;
 
 const HoverPreviewPullRequest = React.forwardRef(
   function _HoverPreviewPullRequest(
-    { url, title, identifier, description, author, status, createdAt }: Props,
+    { url, title, id, description, author, state, createdAt }: Props,
     ref: React.Ref<HTMLDivElement>
   ) {
     const authorName = author.name;
@@ -45,9 +31,9 @@ const HoverPreviewPullRequest = React.forwardRef(
             <CardContent>
               <Flex gap={2} column>
                 <Title>
-                  <PullRequestIcon status={status.name} color={status.color} />
+                  <PullRequestIcon status={state.name} color={state.color} />
                   <span>
-                    {title}&nbsp;<Text type="tertiary">{identifier}</Text>
+                    {title}&nbsp;<Text type="tertiary">{id}</Text>
                   </span>
                 </Title>
                 <Flex align="center" gap={4}>

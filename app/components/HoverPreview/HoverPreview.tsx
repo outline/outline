@@ -3,7 +3,7 @@ import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import { depths } from "@shared/styles";
-import { UnfurlType } from "@shared/types";
+import { UnfurlResourceType } from "@shared/types";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import env from "~/env";
 import useEventListener from "~/hooks/useEventListener";
@@ -120,41 +120,41 @@ function HoverPreviewDesktop({ element, onClose }: Props) {
                 transitionEnd: { pointerEvents: "auto" },
               }}
             >
-              {data.type === UnfurlType.Mention ? (
+              {data.type === UnfurlResourceType.Mention ? (
                 <HoverPreviewMention
-                  url={data.thumbnailUrl}
-                  title={data.title}
-                  info={data.meta.info}
-                  color={data.meta.color}
+                  name={data.name}
+                  avatarUrl={data.avatarUrl}
+                  color={data.color}
+                  lastActive={data.lastActive}
                 />
-              ) : data.type === UnfurlType.Document ? (
+              ) : data.type === UnfurlResourceType.Document ? (
                 <HoverPreviewDocument
-                  id={data.meta.id}
                   url={data.url}
+                  id={data.id}
                   title={data.title}
-                  description={data.description}
-                  info={data.meta.info}
+                  summary={data.summary}
+                  lastActivityByViewer={data.lastActivityByViewer}
                 />
-              ) : data.type === UnfurlType.Issue ? (
+              ) : data.type === UnfurlResourceType.Issue ? (
                 <HoverPreviewIssue
                   url={data.url}
+                  id={data.id}
                   title={data.title}
                   description={data.description}
                   author={data.author}
+                  labels={data.labels}
+                  state={data.state}
                   createdAt={data.createdAt}
-                  identifier={data.meta.identifier}
-                  labels={data.meta.labels}
-                  status={data.meta.status}
                 />
-              ) : data.type === UnfurlType.Pull ? (
+              ) : data.type === UnfurlResourceType.PR ? (
                 <HoverPreviewPullRequest
                   url={data.url}
+                  id={data.id}
                   title={data.title}
                   description={data.description}
                   author={data.author}
                   createdAt={data.createdAt}
-                  identifier={data.meta.identifier}
-                  status={data.meta.status}
+                  state={data.state}
                 />
               ) : (
                 <HoverPreviewLink

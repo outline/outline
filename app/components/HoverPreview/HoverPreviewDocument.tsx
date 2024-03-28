@@ -1,4 +1,5 @@
 import * as React from "react";
+import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import Editor from "~/components/Editor";
 import Flex from "~/components/Flex";
 import {
@@ -10,21 +11,10 @@ import {
   Description,
 } from "./Components";
 
-type Props = {
-  /** Document id associated with the editor, if any */
-  id?: string;
-  /** Document url */
-  url: string;
-  /** Title for the preview card */
-  title: string;
-  /** Info about last activity on the document */
-  info: string;
-  /** Text preview of document content */
-  description: string;
-};
+type Props = Omit<UnfurlResponse[UnfurlResourceType.Document], "type">;
 
 const HoverPreviewDocument = React.forwardRef(function _HoverPreviewDocument(
-  { id, url, title, info, description }: Props,
+  { url, id, title, summary, lastActivityByViewer }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {
   return (
@@ -33,12 +23,12 @@ const HoverPreviewDocument = React.forwardRef(function _HoverPreviewDocument(
         <CardContent>
           <Flex column gap={2}>
             <Title>{title}</Title>
-            <Info>{info}</Info>
+            <Info>{lastActivityByViewer}</Info>
             <Description as="div">
               <React.Suspense fallback={<div />}>
                 <Editor
                   key={id}
-                  defaultValue={description}
+                  defaultValue={summary}
                   embedsDisabled
                   readOnly
                 />
