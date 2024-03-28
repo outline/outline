@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
-import { UserPreference } from "@shared/types";
+import { UserPreference, UserRole } from "@shared/types";
 import { UserValidation } from "@shared/validations";
 import userDemoter from "@server/commands/userDemoter";
 import userDestroyer from "@server/commands/userDestroyer";
@@ -59,17 +59,17 @@ router.post(
       }
 
       case "viewers": {
-        where = { ...where, isViewer: true };
+        where = { ...where, role: UserRole.Viewer };
         break;
       }
 
       case "admins": {
-        where = { ...where, isAdmin: true };
+        where = { ...where, role: UserRole.Admin };
         break;
       }
 
       case "members": {
-        where = { ...where, isAdmin: false, isViewer: false };
+        where = { ...where, role: UserRole.Member };
         break;
       }
 

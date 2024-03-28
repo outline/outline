@@ -1,4 +1,5 @@
 import invariant from "invariant";
+import { UserRole } from "@shared/types";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import {
   InvalidAuthenticationError,
@@ -132,7 +133,7 @@ async function accountProvisioner({
     name: userParams.name,
     email: userParams.email,
     language: userParams.language,
-    isAdmin: isNewTeam || undefined,
+    role: isNewTeam ? UserRole.Admin : undefined,
     avatarUrl: userParams.avatarUrl,
     teamId: team.id,
     ip,

@@ -1,4 +1,5 @@
 import "./bootstrap";
+import { UserRole } from "@shared/types";
 import teamCreator from "@server/commands/teamCreator";
 import env from "@server/env";
 import { Team, User } from "@server/models";
@@ -23,8 +24,7 @@ export default async function main(exit = false) {
           teamId: team.id,
           name: email.split("@")[0],
           email,
-          isAdmin: true,
-          isViewer: false,
+          role: UserRole.Admin,
         },
         {
           transaction,

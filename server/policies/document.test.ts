@@ -1,4 +1,4 @@
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, UserRole } from "@shared/types";
 import { Document } from "@server/models";
 import {
   buildUser,
@@ -39,7 +39,7 @@ describe("read_write collection", () => {
     const team = await buildTeam();
     const user = await buildUser({
       teamId: team.id,
-      isViewer: true,
+      role: UserRole.Viewer,
     });
     const collection = await buildCollection({
       teamId: team.id,

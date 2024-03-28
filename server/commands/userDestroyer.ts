@@ -1,4 +1,5 @@
 import { Op, Transaction } from "sequelize";
+import { UserRole } from "@shared/types";
 import { Event, User } from "@server/models";
 import { ValidationError } from "../errors";
 
@@ -29,7 +30,7 @@ export default async function userDestroyer({
   if (user.isAdmin) {
     const otherAdminsCount = await User.count({
       where: {
-        isAdmin: true,
+        role: UserRole.Admin,
         teamId,
         id: {
           [Op.ne]: user.id,

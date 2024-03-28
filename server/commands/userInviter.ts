@@ -58,8 +58,12 @@ export default async function userInviter({
       teamId: user.teamId,
       name: invite.name,
       email: invite.email,
-      isAdmin: user.isAdmin && invite.role === UserRole.Admin,
-      isViewer: user.isViewer || invite.role === UserRole.Viewer,
+      role:
+        user.isAdmin && invite.role === UserRole.Admin
+          ? UserRole.Admin
+          : user.isViewer || invite.role === UserRole.Viewer
+          ? UserRole.Viewer
+          : UserRole.Member,
       invitedById: user.id,
       flags: {
         [UserFlag.InviteSent]: 1,
