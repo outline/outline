@@ -9,7 +9,7 @@ import { Document, Revision, User, Team } from "@server/models";
 import { allow, _cannot as cannot, _can as can } from "./cancan";
 
 allow(User, "createDocument", Team, (user, team) => {
-  if (!team || user.isViewer || user.teamId !== team.id) {
+  if (!team || user.isViewer || user.isGuest || user.teamId !== team.id) {
     return false;
   }
   return true;
@@ -50,7 +50,7 @@ allow(User, "download", Document, (user, document) => {
   }
 
   if (
-    user.isViewer &&
+    (user.isViewer || user.isGuest) &&
     !user.team.getPreference(TeamPreference.ViewersCanExport)
   ) {
     return false;
@@ -81,7 +81,7 @@ allow(User, "download", Document, (user, document) => {
 });
 
 allow(User, "comment", Document, (user, document) => {
-  if (!document || !document.isActive || document.template) {
+  if (!document || user.isGuest || !document.isActive || document.template) {
     return false;
   }
 
@@ -139,7 +139,8 @@ allow(User, "share", Document, (user, document) => {
     !document ||
     document.archivedAt ||
     document.deletedAt ||
-    document.template
+    document.template ||
+    user.isGuest
   ) {
     return false;
   }
@@ -162,7 +163,7 @@ allow(User, "share", Document, (user, document) => {
 });
 
 allow(User, "update", Document, (user, document) => {
-  if (!document || !document.isActive) {
+  if (!document || user.isGuest || !document.isActive) {
     return false;
   }
 
@@ -188,7 +189,7 @@ allow(User, "update", Document, (user, document) => {
 });
 
 allow(User, "publish", Document, (user, document) => {
-  if (!document || !document.isActive || !document.isDraft) {
+  if (!document || user.isGuest || !document.isActive || !document.isDraft) {
     return false;
   }
 
@@ -206,7 +207,7 @@ allow(User, "publish", Document, (user, document) => {
 });
 
 allow(User, ["manageUsers", "duplicate"], Document, (user, document) => {
-  if (!document || !document.isActive) {
+  if (!document || user.isGuest || !document.isActive) {
     return false;
   }
 
@@ -224,7 +225,7 @@ allow(User, ["manageUsers", "duplicate"], Document, (user, document) => {
 });
 
 allow(User, "updateInsights", Document, (user, document) => {
-  if (!document || !document.isActive) {
+  if (!document || user.isGuest || !document.isActive) {
     return false;
   }
 
@@ -246,7 +247,8 @@ allow(User, "createChildDocument", Document, (user, document) => {
     !document ||
     !document.isActive ||
     document.isDraft ||
-    document.template
+    document.template ||
+    user.isGuest
   ) {
     return false;
   }
@@ -262,7 +264,7 @@ allow(User, "createChildDocument", Document, (user, document) => {
 });
 
 allow(User, "move", Document, (user, document) => {
-  if (!document || !document.isActive) {
+  if (!document || user.isGuest || !document.isActive) {
     return false;
   }
   if (document.collection && can(user, "updateDocument", document.collection)) {
@@ -276,7 +278,8 @@ allow(User, "pin", Document, (user, document) => {
     !document ||
     !document.isActive ||
     document.isDraft ||
-    document.template
+    document.template ||
+    user.isGuest
   ) {
     return false;
   }
@@ -291,7 +294,7 @@ allow(User, "pin", Document, (user, document) => {
 });
 
 allow(User, "unpin", Document, (user, document) => {
-  if (!document || document.isDraft || document.template) {
+  if (!document || user.isGuest || document.isDraft || document.template) {
     return false;
   }
   invariant(
@@ -339,7 +342,8 @@ allow(User, "pinToHome", Document, (user, document) => {
     !document ||
     !document.isActive ||
     document.isDraft ||
-    document.template
+    document.template ||
+    user.isGuest
   ) {
     return false;
   }
@@ -348,7 +352,7 @@ allow(User, "pinToHome", Document, (user, document) => {
 });
 
 allow(User, "delete", Document, (user, document) => {
-  if (!document || document.deletedAt || user.isViewer) {
+  if (!document || user.isGuest || document.deletedAt || user.isViewer) {
     return false;
   }
 
@@ -369,7 +373,7 @@ allow(User, "delete", Document, (user, document) => {
 });
 
 allow(User, "permanentDelete", Document, (user, document) => {
-  if (!document || !document.deletedAt || user.isViewer) {
+  if (!document || user.isGuest || !document.deletedAt || user.isViewer) {
     return false;
   }
 
@@ -390,7 +394,7 @@ allow(User, "permanentDelete", Document, (user, document) => {
 });
 
 allow(User, "restore", Document, (user, document) => {
-  if (!document || !document.deletedAt) {
+  if (!document || user.isGuest || !document.deletedAt) {
     return false;
   }
 
@@ -414,7 +418,8 @@ allow(User, "archive", Document, (user, document) => {
     !document ||
     !document.isActive ||
     document.isDraft ||
-    document.template
+    document.template ||
+    user.isGuest
   ) {
     return false;
   }
@@ -429,7 +434,7 @@ allow(User, "archive", Document, (user, document) => {
 });
 
 allow(User, "unarchive", Document, (user, document) => {
-  if (!document || !document.archivedAt || document.deletedAt) {
+  if (!document || user.isGuest || !document.archivedAt || document.deletedAt) {
     return false;
   }
 
@@ -456,7 +461,13 @@ allow(
 );
 
 allow(User, "unpublish", Document, (user, document) => {
-  if (!document || !document.isActive || document.isDraft || user.isViewer) {
+  if (
+    !document ||
+    user.isGuest ||
+    user.isViewer ||
+    !document.isActive ||
+    document.isDraft
+  ) {
     return false;
   }
   invariant(

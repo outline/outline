@@ -2,7 +2,7 @@ import { User, Team, WebhookSubscription } from "@server/models";
 import { allow } from "./cancan";
 
 allow(User, "listWebhookSubscription", Team, (user, team) => {
-  if (!team || user.isViewer || user.teamId !== team.id) {
+  if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
     return false;
   }
 
@@ -10,7 +10,7 @@ allow(User, "listWebhookSubscription", Team, (user, team) => {
 });
 
 allow(User, "createWebhookSubscription", Team, (user, team) => {
-  if (!team || user.isViewer || user.teamId !== team.id) {
+  if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
     return false;
   }
 
@@ -22,14 +22,10 @@ allow(
   ["read", "update", "delete"],
   WebhookSubscription,
   (user, webhook): boolean => {
-    if (!user || !webhook) {
+    if (!user || !webhook || user.teamId !== webhook.teamId) {
       return false;
     }
 
-    if (!user.isAdmin) {
-      return false;
-    }
-
-    return user.teamId === webhook.teamId;
+    return user.isAdmin;
   }
 );

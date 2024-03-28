@@ -11,7 +11,7 @@ allow(
 );
 
 allow(User, "inviteUser", Team, (actor, team) => {
-  if (!team || actor.teamId !== team.id || actor.isViewer) {
+  if (!team || actor.isGuest || actor.isViewer || actor.teamId !== team.id) {
     return false;
   }
   if (actor.isAdmin || team.getPreference(TeamPreference.MembersCanInvite)) {

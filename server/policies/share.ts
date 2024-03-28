@@ -5,10 +5,7 @@ import { allow, _cannot as cannot } from "./cancan";
 allow(User, "read", Share, (user, share) => user.teamId === share?.teamId);
 
 allow(User, "update", Share, (user, share) => {
-  if (!share) {
-    return false;
-  }
-  if (user.isViewer) {
+  if (!share || user.isGuest || user.isViewer) {
     return false;
   }
 
@@ -21,13 +18,7 @@ allow(User, "update", Share, (user, share) => {
 });
 
 allow(User, "revoke", Share, (user, share) => {
-  if (!share) {
-    return false;
-  }
-  if (user.isViewer) {
-    return false;
-  }
-  if (user.teamId !== share.teamId) {
+  if (!share || user.isGuest || user.isViewer || user.teamId !== share.teamId) {
     return false;
   }
   if (user.id === share.userId) {

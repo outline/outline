@@ -3,7 +3,7 @@ import { AdminRequiredError } from "../errors";
 import { allow } from "./cancan";
 
 allow(User, "createGroup", Team, (actor, team) => {
-  if (!team || actor.isViewer || actor.teamId !== team.id) {
+  if (!team || actor.isGuest || actor.isViewer || actor.teamId !== team.id) {
     return false;
   }
   if (actor.isAdmin) {
@@ -23,7 +23,12 @@ allow(User, "read", Group, (actor, group) => {
 });
 
 allow(User, ["update", "delete"], Group, (actor, group) => {
-  if (!group || actor.isViewer || actor.teamId !== group.teamId) {
+  if (
+    !group ||
+    actor.isGuest ||
+    actor.isViewer ||
+    actor.teamId !== group.teamId
+  ) {
     return false;
   }
   if (actor.isAdmin) {

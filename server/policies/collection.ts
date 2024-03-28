@@ -6,7 +6,7 @@ import { AdminRequiredError } from "../errors";
 import { allow } from "./cancan";
 
 allow(User, "createCollection", Team, (user, team) => {
-  if (!team || user.isViewer || user.teamId !== team.id) {
+  if (!team || user.isViewer || user.isGuest || user.teamId !== team.id) {
     return false;
   }
   if (user.isAdmin || team.memberCollectionCreate) {
@@ -15,11 +15,11 @@ allow(User, "createCollection", Team, (user, team) => {
   return false;
 });
 
-allow(User, "importCollection", Team, (actor, team) => {
-  if (!team || actor.teamId !== team.id) {
+allow(User, "importCollection", Team, (user, team) => {
+  if (!team || user.isViewer || user.isGuest || user.teamId !== team.id) {
     return false;
   }
-  if (actor.isAdmin) {
+  if (user.isAdmin) {
     return true;
   }
 
@@ -27,7 +27,12 @@ allow(User, "importCollection", Team, (actor, team) => {
 });
 
 allow(User, "move", Collection, (user, collection) => {
-  if (!collection || user.teamId !== collection.teamId) {
+  if (
+    !collection ||
+    user.isViewer ||
+    user.isGuest ||
+    user.teamId !== collection.teamId
+  ) {
     return false;
   }
   if (collection.deletedAt) {
@@ -65,7 +70,7 @@ allow(User, ["star", "unstar"], Collection, (user, collection) => {
 });
 
 allow(User, "share", Collection, (user, collection) => {
-  if (!collection || user.teamId !== collection.teamId) {
+  if (!collection || user.isGuest || user.teamId !== collection.teamId) {
     return false;
   }
   if (!collection.sharing) {
@@ -105,7 +110,7 @@ allow(
   ["updateDocument", "createDocument", "deleteDocument"],
   Collection,
   (user, collection) => {
-    if (!collection || user.teamId !== collection.teamId) {
+    if (!collection || user.isGuest || user.teamId !== collection.teamId) {
       return false;
     }
 
@@ -128,7 +133,7 @@ allow(
 );
 
 allow(User, ["update", "delete"], Collection, (user, collection) => {
-  if (!collection || user.teamId !== collection.teamId) {
+  if (!collection || user.isGuest || user.teamId !== collection.teamId) {
     return false;
   }
   if (user.isAdmin) {

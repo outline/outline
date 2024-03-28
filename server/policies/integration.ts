@@ -4,7 +4,7 @@ import { AdminRequiredError } from "../errors";
 import { allow } from "./cancan";
 
 allow(User, "createIntegration", Team, (actor, team) => {
-  if (!team || actor.isViewer || actor.teamId !== team.id) {
+  if (!team || actor.isGuest || actor.isViewer || actor.teamId !== team.id) {
     return false;
   }
   if (actor.isAdmin) {
@@ -22,7 +22,12 @@ allow(
 );
 
 allow(User, ["update", "delete"], Integration, (user, integration) => {
-  if (!integration || user.teamId !== integration.teamId) {
+  if (
+    !integration ||
+    user.isGuest ||
+    user.isViewer ||
+    user.teamId !== integration.teamId
+  ) {
     return false;
   }
   if (
@@ -30,9 +35,6 @@ allow(User, ["update", "delete"], Integration, (user, integration) => {
     integration.type === IntegrationType.LinkedAccount
   ) {
     return true;
-  }
-  if (user.isViewer) {
-    return false;
   }
   if (user.isAdmin) {
     return true;

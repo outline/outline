@@ -251,6 +251,10 @@ class User extends ParanoidModel<
     return this.role === UserRole.Viewer;
   }
 
+  get isGuest() {
+    return this.role === UserRole.Guest;
+  }
+
   get color() {
     return stringToColor(this.id);
   }

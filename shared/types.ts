@@ -2,6 +2,7 @@ export enum UserRole {
   Admin = "admin",
   Member = "member",
   Viewer = "viewer",
+  Guest = "guest",
 }
 
 export type DateFilter = "day" | "week" | "month" | "year";

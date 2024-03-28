@@ -6,7 +6,7 @@ import { allow } from "./cancan";
 allow(User, "read", Team, (user, team) => user.teamId === team?.id);
 
 allow(User, "share", Team, (user, team) => {
-  if (!team || user.isViewer || user.teamId !== team.id) {
+  if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
     return false;
   }
   return team.sharing;
@@ -22,7 +22,7 @@ allow(User, "createTeam", Team, () => {
 });
 
 allow(User, "update", Team, (user, team) => {
-  if (!team || user.isViewer || user.teamId !== team.id) {
+  if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
     return false;
   }
   return user.isAdmin;
@@ -34,7 +34,7 @@ allow(User, ["delete", "audit"], Team, (user, team) => {
       "Functionality is not available in this edition"
     );
   }
-  if (!team || user.isViewer || user.teamId !== team.id) {
+  if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
     return false;
   }
   return user.isAdmin;

@@ -7,7 +7,7 @@ allow(
   ["createFileOperation", "createImport", "createExport"],
   Team,
   (user, team) => {
-    if (!team || user.isViewer || user.teamId !== team.id) {
+    if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
       return false;
     }
     return user.isAdmin;
@@ -15,14 +15,24 @@ allow(
 );
 
 allow(User, "read", FileOperation, (user, fileOperation) => {
-  if (!fileOperation || user.isViewer || user.teamId !== fileOperation.teamId) {
+  if (
+    !fileOperation ||
+    user.isGuest ||
+    user.isViewer ||
+    user.teamId !== fileOperation.teamId
+  ) {
     return false;
   }
   return user.isAdmin;
 });
 
 allow(User, "delete", FileOperation, (user, fileOperation) => {
-  if (!fileOperation || user.isViewer || user.teamId !== fileOperation.teamId) {
+  if (
+    !fileOperation ||
+    user.isGuest ||
+    user.isViewer ||
+    user.teamId !== fileOperation.teamId
+  ) {
     return false;
   }
   if (
