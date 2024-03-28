@@ -186,11 +186,12 @@ export class GitHub {
     const parts = pathname.split("/");
     const owner = parts[1];
     const repo = parts[2];
-    const type = pluralize.singular(parts[3]) as Resource;
+    const type = parts[3]
+      ? (pluralize.singular(parts[3]) as Resource)
+      : undefined;
     const id = parts[4];
 
-    if (!GitHub.supportedResources.includes(type)) {
-      Logger.warn(`Unsupported GitHub resource type: ${type}`);
+    if (!type || !GitHub.supportedResources.includes(type)) {
       return;
     }
 
