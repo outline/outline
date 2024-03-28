@@ -12,6 +12,18 @@ allow(User, "share", Team, (user, team) => {
   return team.sharing;
 });
 
+allow(
+  User,
+  ["listGroups", "listUsers", "listShares", "listTemplates"],
+  Team,
+  (user, team) => {
+    if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
+      return false;
+    }
+    return true;
+  }
+);
+
 allow(User, "createTeam", Team, () => {
   if (!env.isCloudHosted) {
     throw IncorrectEditionError(

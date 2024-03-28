@@ -50,7 +50,7 @@ allow(User, "read", Collection, (user, collection) => {
     return false;
   }
 
-  if (collection.isPrivate) {
+  if (collection.isPrivate || user.isGuest) {
     return includesMembership(collection, Object.values(CollectionPermission));
   }
 
@@ -62,7 +62,7 @@ allow(User, ["star", "unstar"], Collection, (user, collection) => {
     return false;
   }
 
-  if (collection.isPrivate) {
+  if (collection.isPrivate || user.isGuest) {
     return includesMembership(collection, Object.values(CollectionPermission));
   }
 
@@ -98,7 +98,7 @@ allow(User, ["readDocument", "export"], Collection, (user, collection) => {
     return false;
   }
 
-  if (collection.isPrivate) {
+  if (collection.isPrivate || user.isGuest) {
     return includesMembership(collection, Object.values(CollectionPermission));
   }
 

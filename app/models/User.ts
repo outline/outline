@@ -87,6 +87,13 @@ class User extends ParanoidModel {
   }
 
   /**
+   * Whether the user is a guest.
+   */
+  get isGuest(): boolean {
+    return this.role === UserRole.Guest;
+  }
+
+  /**
    * Whether the user has been recently active. Recently is currently defined
    * as within the last 5 minutes.
    *

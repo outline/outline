@@ -409,9 +409,10 @@ class User extends ParanoidModel<
     return collectionStubs
       .filter(
         (c) =>
-          Object.values(CollectionPermission).includes(
+          (Object.values(CollectionPermission).includes(
             c.permission as CollectionPermission
-          ) ||
+          ) &&
+            !this.isGuest) ||
           c.memberships.length > 0 ||
           c.collectionGroupMemberships.length > 0
       )
