@@ -205,5 +205,11 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       keywords: "diagram flowchart",
       attrs: { language: "mermaidjs" },
     },
+    {
+      name: "code_block",
+      title: "Kroki Diagrams",
+      keywords: "diagram flowchart",
+      attrs: { language: "kroki", diagram: "c4plantuml" },
+    },
   ];
 }

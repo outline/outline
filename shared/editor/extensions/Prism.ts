@@ -56,6 +56,37 @@ export const LANGUAGES = {
   zig: "Zig",
 };
 
+// kroki diagrams;
+export const DIAGRAMS = {
+  blockdiag: "BlockDiag",
+  bpmn: "BPMN",
+  bytefield: "Bytefield",
+  seqdiag: "SeqDiag",
+  actdiag: "ActDiag",
+  nwdiag: "NwDiag",
+  packetdiag: "PacketDiag",
+  rackdiag: "RackDiag",
+  c4plantuml: "C4 with PlantUML",
+  d2: "D2",
+  dbml: "DBML",
+  ditaa: "Ditaa",
+  erd: "Erd",
+  excalidraw: "Excalidraw",
+  graphviz: "GraphViz",
+  mermaid: "Mermaid",
+  nomnoml: "Nomnoml",
+  pikchr: "Pikchr",
+  plantuml: "PlantUML",
+  structurizr: "Structurizr",
+  svgbob: "Svgbob",
+  symbolator: "Symbolator",
+  tikz: "TikZ",
+  vega: "Vega",
+  vegalite: "Vega-Lite",
+  wavedrom: "WaveDrom",
+  wireviz: "WireViz",
+};
+
 type ParsedNode = {
   text: string;
   classes: string[];

@@ -71,6 +71,7 @@ import {
 } from "../commands/codeFence";
 import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
+import Kroki from "../extensions/Kroki";
 import Mermaid from "../extensions/Mermaid";
 import Prism from "../extensions/Prism";
 import { isCode } from "../lib/isCode";
@@ -152,6 +153,9 @@ export default class CodeFence extends Node {
         language: {
           default: DEFAULT_LANGUAGE,
         },
+        diagram: {
+          default: null,
+        },
       },
       content: "text*",
       marks: "comment",
@@ -189,7 +193,9 @@ export default class CodeFence extends Node {
     return {
       code_block: (attrs: Record<string, Primitive>) => {
         if (attrs?.language) {
-          Storage.set(PERSISTENCE_KEY, attrs.language);
+          if (attrs.language !== "kroki") {
+            Storage.set(PERSISTENCE_KEY, attrs.language);
+          }
         }
         return toggleBlockType(type, schema.nodes.paragraph, {
           language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
@@ -281,6 +287,10 @@ export default class CodeFence extends Node {
       Mermaid({
         name: this.name,
         isDark: this.editor.props.theme.isDark,
+      }),
+      Kroki({
+        name: this.name,
+        url: "https://kroki.io",
       }),
       new Plugin({
         key: new PluginKey("triple-click"),
