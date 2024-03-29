@@ -136,6 +136,8 @@ function Invite({ onSubmit }: Props) {
     [handleAdd]
   );
 
+  const [role, setRole] = React.useState<UserRole>(UserRole.Member);
+
   const collectionCount = collections.nonPrivate.length;
   const collectionAccessNote = collectionCount ? (
     <span>
@@ -161,10 +163,12 @@ function Invite({ onSubmit }: Props) {
     const options = [
       {
         label: t("Editor"),
+        description: t("Can create, edit, and delete documents"),
         value: "member",
       },
       {
         label: t("Viewer"),
+        description: t("Can view documents and comments"),
         value: "viewer",
       },
     ];
@@ -172,6 +176,7 @@ function Invite({ onSubmit }: Props) {
     if (user.isAdmin) {
       options.push({
         label: t("Admin"),
+        description: t("Can manage all workspace settings"),
         value: "admin",
       });
     }
@@ -181,125 +186,126 @@ function Invite({ onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      {team.guestSignin ? (
-        <Text as="p" type="secondary">
-          <Trans
-            defaults="Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address."
-            values={{
-              signinMethods: team.signinMethods,
-            }}
-          />{" "}
-          {collectionAccessNote}
-        </Text>
-      ) : (
-        <Text as="p" type="secondary">
-          <Trans
-            defaults="Invite members to join your workspace. They will need to sign in with {{signinMethods}}."
-            values={{
-              signinMethods: team.signinMethods,
-            }}
-          />{" "}
-          {can.update && (
-            <Trans>
-              As an admin you can also{" "}
-              <Link to="/settings/security">enable email sign-in</Link>.
-            </Trans>
-          )}{" "}
-          {collectionAccessNote}
-        </Text>
-      )}
-      {team.subdomain && (
-        <CopyBlock>
-          <Flex align="flex-end" gap={8}>
-            <Input
-              type="text"
-              value={team.url}
-              label={t("Want a link to share directly with your team?")}
-              readOnly
-              flex
-            />
-            <CopyToClipboard text={team.url} onCopy={handleCopy}>
-              <Button
-                type="button"
-                icon={<CopyIcon />}
-                style={{
-                  marginBottom: "16px",
-                }}
-                neutral
-              />
-            </CopyToClipboard>
-          </Flex>
-        </CopyBlock>
-      )}
-      <ResizingHeightContainer>
-        {invites.map((invite, index) => (
-          <Flex key={index} gap={8}>
-            <Input
-              type="email"
-              name="email"
-              label={t("Email")}
-              labelHidden={index !== 0}
-              onKeyDown={handleKeyDown}
-              onChange={(ev) => handleChange(ev, index)}
-              placeholder={`example@${predictedDomain}`}
-              value={invite.email}
-              required={index === 0}
-              autoFocus
-              flex
-            />
-            <Input
-              type="text"
-              name="name"
-              label={t("Name")}
-              labelHidden={index !== 0}
-              onKeyDown={handleKeyDown}
-              onChange={(ev) => handleChange(ev, index)}
-              value={invite.name}
-              required={!!invite.email}
-              flex
-            />
-            <InputSelect
-              label={t("Role")}
-              ariaLabel={t("Role")}
-              options={options}
-              onChange={(role: UserRole) => handleRoleChange(role, index)}
-              value={invite.role}
-              labelHidden={index !== 0}
-              short
-            />
-            {index !== 0 && (
-              <Remove>
-                <Tooltip content={t("Remove invite")} placement="top">
-                  <NudeButton onClick={(ev) => handleRemove(ev, index)}>
-                    <CloseIcon />
-                  </NudeButton>
-                </Tooltip>
-              </Remove>
-            )}
-          </Flex>
-        ))}
-      </ResizingHeightContainer>
-
-      <Flex justify="space-between">
-        {invites.length <= UserValidation.maxInvitesPerRequest ? (
-          <Button type="button" onClick={handleAdd} neutral>
-            {t("Add another")}…
-          </Button>
+      <Flex gap={8} column>
+        {team.guestSignin ? (
+          <Text as="p" type="secondary">
+            <Trans
+              defaults="Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address."
+              values={{
+                signinMethods: team.signinMethods,
+              }}
+            />{" "}
+            {collectionAccessNote}
+          </Text>
         ) : (
-          <span />
+          <Text as="p" type="secondary">
+            <Trans
+              defaults="Invite members to join your workspace. They will need to sign in with {{signinMethods}}."
+              values={{
+                signinMethods: team.signinMethods,
+              }}
+            />{" "}
+            {can.update && (
+              <Trans>
+                As an admin you can also{" "}
+                <Link to="/settings/security">enable email sign-in</Link>.
+              </Trans>
+            )}{" "}
+            {collectionAccessNote}
+          </Text>
         )}
+        {team.subdomain && (
+          <CopyBlock>
+            <Flex align="flex-end" gap={8}>
+              <Input
+                type="text"
+                value={team.url}
+                label={t("Want a link to share directly with your team?")}
+                readOnly
+                flex
+              />
+              <CopyToClipboard text={team.url} onCopy={handleCopy}>
+                <Button
+                  type="button"
+                  icon={<CopyIcon />}
+                  style={{
+                    marginBottom: "16px",
+                  }}
+                  neutral
+                />
+              </CopyToClipboard>
+            </Flex>
+          </CopyBlock>
+        )}
+        <ResizingHeightContainer>
+          {invites.map((invite, index) => (
+            <Flex key={index} gap={8}>
+              <Input
+                type="email"
+                name="email"
+                label={t("Email")}
+                labelHidden={index !== 0}
+                onKeyDown={handleKeyDown}
+                onChange={(ev) => handleChange(ev, index)}
+                placeholder={`example@${predictedDomain}`}
+                value={invite.email}
+                required={index === 0}
+                autoFocus
+                flex
+              />
+              <Input
+                type="text"
+                name="name"
+                label={t("Name")}
+                labelHidden={index !== 0}
+                onKeyDown={handleKeyDown}
+                onChange={(ev) => handleChange(ev, index)}
+                value={invite.name}
+                required={!!invite.email}
+                flex
+              />
+              {index !== 0 && (
+                <Remove>
+                  <Tooltip content={t("Remove invite")} placement="top">
+                    <NudeButton onClick={(ev) => handleRemove(ev, index)}>
+                      <CloseIcon />
+                    </NudeButton>
+                  </Tooltip>
+                </Remove>
+              )}
+            </Flex>
+          ))}
+        </ResizingHeightContainer>
 
-        <Button
-          type="submit"
-          disabled={isSaving}
-          data-on="click"
-          data-event-category="invite"
-          data-event-action="sendInvites"
-        >
-          {isSaving ? `${t("Inviting")}…` : t("Send Invites")}
-        </Button>
+        <div>
+          {invites.length <= UserValidation.maxInvitesPerRequest ? (
+            <Button type="button" onClick={handleAdd} neutral>
+              {t("Add another")}…
+            </Button>
+          ) : null}
+        </div>
+
+        <InputSelect
+          label={t("Role")}
+          ariaLabel={t("Role")}
+          options={options}
+          onChange={(r) => setRole(r as UserRole)}
+          value={role}
+          short
+        />
+
+        <Flex align="flex-end">
+          <Button
+            type="submit"
+            disabled={isSaving}
+            data-on="click"
+            data-event-category="invite"
+            data-event-action="sendInvites"
+          >
+            {isSaving ? `${t("Inviting")}…` : t("Send Invites")}
+          </Button>
+        </Flex>
       </Flex>
-      <br />
     </form>
   );
 }

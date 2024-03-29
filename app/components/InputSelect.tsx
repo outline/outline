@@ -28,6 +28,7 @@ import { LabelText } from "./Input";
 export type Option = {
   label: string | JSX.Element;
   value: string;
+  description?: string;
 };
 
 export type Props = {
@@ -228,7 +229,17 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
                           >
                             <Icon />
                             &nbsp;
-                            {option.label}
+                            <Text as="span" size="small">
+                              {option.label}
+                            </Text>
+                            {option.description && (
+                              <>
+                                &nbsp;
+                                <Text as="span" type="tertiary" size="small">
+                                  – {option.description}
+                                </Text>
+                              </>
+                            )}
                           </StyledSelectOption>
                         );
                       })
