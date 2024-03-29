@@ -14,10 +14,12 @@ services:
       - DATABASE_URL=postgres://user:passwd@outline_postgres:5432/outline_db 
       - DATABASE_URL_TEST=postgres://user:passwd@outline_postgres:5432/outline-test 
       - REDIS_URL=redis://outline_redis:6379 
+# Start parameters through the env.sample configuration outline in the project root directory. 
+# you need to login to your local Outline instance either through the standard OIDC service, or by creating an OAuth application in Slack, Google, Azure, or Github. 
     env_file: 
-      - ./env.outline 
+      - ./env.sample 
     volumes: 
-      - ./outline/outline_wiki_file:/var/lib/outline/data 
+      - ./outline/outline_data:/var/lib/outline/data 
       - /etc/localtime:/etc/localtime:ro 
     depends_on: 
       - outline_postgres 
