@@ -347,8 +347,7 @@ describe("#users.invite", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.sent.length).toEqual(1);
-    expect(body.data.users[0].isAdmin).toBeTruthy();
-    expect(body.data.users[0].isViewer).toBeFalsy();
+    expect(body.data.users[0].role).toEqual(UserRole.Admin);
   });
 
   it("should invite user as a viewer", async () => {
