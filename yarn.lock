@@ -553,6 +553,21 @@
     "@smithy/util-middleware" "^2.2.0"
     tslib "^2.6.2"
 
+"@aws-sdk/s3-presigned-post@3.535.0":
+  version "3.535.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/s3-presigned-post/-/s3-presigned-post-3.535.0.tgz#e7e0935243c7fd55df668a561dd8383387324500"
+  integrity sha512-mhkUGw1cnRj/FglcgkXUolS5UqE/ZkAie+8ZNrfWgwQCtKi5KC/Xm23DsCdtEMgu7bODgRt/7xzamzcH3q/37A==
+  dependencies:
+    "@aws-sdk/client-s3" "3.535.0"
+    "@aws-sdk/types" "3.535.0"
+    "@aws-sdk/util-format-url" "3.535.0"
+    "@smithy/middleware-endpoint" "^2.5.0"
+    "@smithy/signature-v4" "^2.2.0"
+    "@smithy/types" "^2.12.0"
+    "@smithy/util-hex-encoding" "^2.2.0"
+    "@smithy/util-utf8" "^2.3.0"
+    tslib "^2.6.2"
+
 "@aws-sdk/s3-request-presigner@3.535.0":
   version "3.535.0"
   resolved "https://registry.yarnpkg.com/@aws-sdk/s3-request-presigner/-/s3-request-presigner-3.535.0.tgz#1b428e051152b03f19b27d7931eb5786c38694d5"
