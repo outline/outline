@@ -1,16 +1,68 @@
-version: "3"
-services:
-  redis:
-    image: redis
-    ports:
-      - "127.0.0.1:6379:6379"
-    user: "redis:redis"
-  postgres:
-    image: postgres
-    ports:
-      - "127.0.0.1:5432:5432"
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: outline
-    user: "postgres:postgres"
+version: '3.1' 
+services: 
+ 
+  outline: 
+    container_name: outline 
+    image: outlinewiki/outline:0.75.2 
+    user: root 
+    restart: always 
+    command: sh -c "yarn start --env=production-ssl-disabled" 
+# Change port 1234 below to an open port on your own server, and then connect to outline through it 
+    ports: 
+      - "1234:3000" 
+    environment: 
+      - DATABASE_URL=postgres://user:passwd@outline_postgres:5432/outline_db 
+      - DATABASE_URL_TEST=postgres://user:passwd@outline_postgres:5432/outline-test 
+      - REDIS_URL=redis://outline_redis:6379 
+    env_file: 
+      - ./env.outline 
+    volumes: 
+      - ./outline/outline_wiki_file:/var/lib/outline/data 
+      - /etc/localtime:/etc/localtime:ro 
+    depends_on: 
+      - outline_postgres 
+      - outline_redis 
+    networks: 
+      - outline_network 
+      
+  outline_redis: 
+    container_name: outline_redis 
+    image: redis:7.2.4-alpine3.19 
+    restart: always 
+    healthcheck: 
+      test: ["CMD", "redis-cli", "ping"] 
+      interval: 10s 
+      timeout: 30s 
+      retries: 3 
+    volumes: 
+      - /etc/localtime:/etc/localtime:ro 
+    networks: 
+      - outline_network 
+      
+  outline_postgres: 
+    container_name: outline_postgres 
+    image: postgres:16.2-alpine3.19 
+    restart: always 
+# It is usually not necessary to expose the host port, unless you need to connect your database on an external network 
+    #ports: 
+    #  - "5432:5432" 
+    environment: 
+      - POSTGRES_DB=outline_db 
+      - POSTGRES_USER=user 
+      - POSTGRES_PASSWORD=passwd 
+    healthcheck: 
+      test: ["CMD", "pg_isready", "-q", "-d", "outline_db", "-U", "user"] 
+      interval: 10s 
+      timeout: 5s  
+      retries: 3 
+      start_period: 60s 
+    volumes: 
+      - ./outline/postgres/db:/var/lib/postgresql/data 
+      - /etc/localtime:/etc/localtime:ro 
+    networks: 
+      - outline_network 
+
+# Create a bridge network, outline connects redis and postgres through the container's internal network
+networks: 
+  outline_network: 
+  
