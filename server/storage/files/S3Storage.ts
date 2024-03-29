@@ -7,7 +7,7 @@ import {
   ObjectCannedACL,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
-import "@aws-sdk/signature-v4-crt";
+import "@aws-sdk/signature-v4-crt"; // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
 import {
   PresignedPostOptions,
   createPresignedPost,
