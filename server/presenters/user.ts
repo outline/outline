@@ -15,9 +15,7 @@ type UserPresentation = {
   lastActiveAt: Date | null;
   color: string;
   role: UserRole;
-  isAdmin: boolean;
   isSuspended: boolean;
-  isViewer: boolean;
   email?: string | null;
   language?: string;
   preferences?: UserPreferences | null;
@@ -34,9 +32,7 @@ export default function presentUser(
     avatarUrl: user.avatarUrl,
     color: user.color,
     role: user.role,
-    isAdmin: user.isAdmin,
     isSuspended: user.isSuspended,
-    isViewer: user.isViewer,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
     lastActiveAt: user.lastActiveAt,
