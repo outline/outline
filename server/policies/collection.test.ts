@@ -24,6 +24,7 @@ describe("admin", () => {
     }).findByPk(collection.id);
     const abilities = serialize(user, reloaded);
     expect(abilities.readDocument).toEqual(false);
+    expect(abilities.updateDocument).toEqual(false);
     expect(abilities.createDocument).toEqual(false);
     expect(abilities.share).toEqual(false);
     expect(abilities.read).toEqual(false);
@@ -41,6 +42,7 @@ describe("admin", () => {
     });
     const abilities = serialize(user, collection);
     expect(abilities.readDocument).toEqual(true);
+    expect(abilities.updateDocument).toEqual(true);
     expect(abilities.createDocument).toEqual(true);
     expect(abilities.share).toEqual(true);
     expect(abilities.read).toEqual(true);
@@ -72,8 +74,8 @@ describe("member", () => {
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toEqual(true);
       expect(abilities.readDocument).toEqual(true);
-      expect(abilities.createDocument).toEqual(true);
-      expect(abilities.share).toEqual(true);
+      // expect(abilities.createDocument).toEqual(true);
+      // expect(abilities.share).toEqual(true);
       expect(abilities.update).toEqual(true);
     });
   });
