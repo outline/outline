@@ -1,6 +1,6 @@
 import { Share, Team, User } from "@server/models";
 import { allow, _can as can } from "./cancan";
-import { and, isTeamModel, or } from "./utils";
+import { and, isOwner, isTeamModel, or } from "./utils";
 
 allow(User, "createShare", Team, (user, team) =>
   and(
@@ -40,6 +40,6 @@ allow(User, "revoke", Share, (user, share) =>
     isTeamModel(user, share),
     !user.isGuest,
     !user.isViewer,
-    or(user.isAdmin, user.id === share?.userId)
+    or(user.isAdmin, isOwner(user, share))
   )
 );

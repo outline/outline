@@ -1,22 +1,20 @@
 import { IntegrationType } from "@shared/types";
 import { Integration, User, Team } from "@server/models";
 import { allow } from "./cancan";
-import { and, isTeamModel, or } from "./utils";
+import { and, isOwner, isTeamAdmin, isTeamModel, or } from "./utils";
 
-allow(User, "createIntegration", Team, (actor, team) =>
-  and(isTeamModel(actor, team), actor.isAdmin)
-);
+allow(User, "createIntegration", Team, isTeamAdmin);
 
 allow(User, "read", Integration, isTeamModel);
 
-allow(User, ["update", "delete"], Integration, (user, integration) =>
+allow(User, ["update", "delete"], Integration, (actor, integration) =>
   and(
-    isTeamModel(user, integration),
-    !user.isGuest,
-    !user.isViewer,
+    isTeamModel(actor, integration),
+    !actor.isGuest,
+    !actor.isViewer,
     or(
-      user.isAdmin,
-      user.id === integration?.userId &&
+      actor.isAdmin,
+      isOwner(actor, integration) &&
         integration.type === IntegrationType.LinkedAccount
     )
   )

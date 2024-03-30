@@ -1,45 +1,23 @@
 import { FileOperationState, FileOperationType } from "@shared/types";
 import { User, Team, FileOperation } from "@server/models";
 import { allow } from "./cancan";
+import { and, isTeamAdmin, or } from "./utils";
 
 allow(
   User,
   ["createFileOperation", "createImport", "createExport"],
   Team,
-  (user, team) => {
-    if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
-      return false;
-    }
-    return user.isAdmin;
-  }
+  isTeamAdmin
 );
 
-allow(User, "read", FileOperation, (user, fileOperation) => {
-  if (
-    !fileOperation ||
-    user.isGuest ||
-    user.isViewer ||
-    user.teamId !== fileOperation.teamId
-  ) {
-    return false;
-  }
-  return user.isAdmin;
-});
+allow(User, "read", FileOperation, isTeamAdmin);
 
-allow(User, "delete", FileOperation, (user, fileOperation) => {
-  if (
-    !fileOperation ||
-    user.isGuest ||
-    user.isViewer ||
-    user.teamId !== fileOperation.teamId
-  ) {
-    return false;
-  }
-  if (
-    fileOperation.type === FileOperationType.Export &&
-    fileOperation.state !== FileOperationState.Complete
-  ) {
-    return false;
-  }
-  return user.isAdmin;
-});
+allow(User, "delete", FileOperation, (actor, fileOperation) =>
+  and(
+    isTeamAdmin(actor, fileOperation),
+    or(
+      fileOperation?.type !== FileOperationType.Export,
+      fileOperation?.state === FileOperationState.Complete
+    )
+  )
+);

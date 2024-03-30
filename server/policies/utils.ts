@@ -16,7 +16,7 @@ export function or(...args: boolean[]) {
  * @param model The model to check
  * @returns True if the actor is in the same team as the model
  */
-export function isTeamModel(actor: User, model: Team | Model | null) {
+export function isTeamModel(actor: User, model: Model | null): model is Model {
   if (!model) {
     return false;
   }
@@ -27,4 +27,32 @@ export function isTeamModel(actor: User, model: Team | Model | null) {
     return actor.teamId === model.teamId;
   }
   return false;
+}
+
+/**
+ * Check if the actor is the owner of the model.
+ *
+ * @param actor The actor to check
+ * @param model The model to check
+ * @returns True if the actor is the owner of the model
+ */
+export function isOwner(actor: User, model: Model | null): model is Model {
+  if (!model) {
+    return false;
+  }
+  if ("userId" in model) {
+    return actor.id === model.userId;
+  }
+  return false;
+}
+
+/**
+ * Check if the actor is an admin of the team.
+ *
+ * @param actor The actor to check
+ * @param mode The model to check
+ * @returns True if the actor is an admin of the team the model belongs to
+ */
+export function isTeamAdmin(actor: User, model: Model | null): model is Model {
+  return and(isTeamModel(actor, model), actor.isAdmin);
 }
