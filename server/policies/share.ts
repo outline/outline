@@ -1,12 +1,13 @@
 import { Share, Team, User } from "@server/models";
 import { allow, _can as can } from "./cancan";
-import { and, isOwner, isTeamModel, or } from "./utils";
+import { and, isOwner, isTeamModel, isTeamMutable, or } from "./utils";
 
-allow(User, "createShare", Team, (user, team) =>
+allow(User, "createShare", Team, (actor, team) =>
   and(
     //
-    isTeamModel(user, team),
-    !user.isGuest
+    isTeamModel(actor, team),
+    isTeamMutable(actor),
+    !actor.isGuest
   )
 );
 
@@ -18,28 +19,28 @@ allow(User, "listShares", Team, (actor, team) =>
   )
 );
 
-allow(User, "read", Share, (user, share) =>
+allow(User, "read", Share, (actor, share) =>
   and(
     //
-    isTeamModel(user, share),
-    !user.isGuest
+    isTeamModel(actor, share),
+    !actor.isGuest
   )
 );
 
-allow(User, "update", Share, (user, share) =>
+allow(User, "update", Share, (actor, share) =>
   and(
-    isTeamModel(user, share),
-    !user.isGuest,
-    !user.isViewer,
-    can(user, "share", share?.document)
+    isTeamModel(actor, share),
+    !actor.isGuest,
+    !actor.isViewer,
+    can(actor, "share", share?.document)
   )
 );
 
-allow(User, "revoke", Share, (user, share) =>
+allow(User, "revoke", Share, (actor, share) =>
   and(
-    isTeamModel(user, share),
-    !user.isGuest,
-    !user.isViewer,
-    or(user.isAdmin, isOwner(user, share))
+    isTeamModel(actor, share),
+    !actor.isGuest,
+    !actor.isViewer,
+    or(actor.isAdmin, isOwner(actor, share))
   )
 );

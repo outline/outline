@@ -1,8 +1,10 @@
 import { Group, User, Team } from "@server/models";
 import { allow } from "./cancan";
-import { and, isTeamAdmin, isTeamModel } from "./utils";
+import { and, isTeamAdmin, isTeamModel, isTeamMutable } from "./utils";
 
-allow(User, "createGroup", Team, isTeamAdmin);
+allow(User, "createGroup", Team, (actor, team) =>
+  and(isTeamAdmin(actor, team), isTeamMutable(actor))
+);
 
 allow(User, "listGroups", Team, (actor, team) =>
   and(
@@ -20,4 +22,6 @@ allow(User, "read", Group, (actor, team) =>
   )
 );
 
-allow(User, ["update", "delete"], Group, isTeamAdmin);
+allow(User, ["update", "delete"], Group, (actor, team) =>
+  and(isTeamAdmin(actor, team), isTeamMutable(actor))
+);

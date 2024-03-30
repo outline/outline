@@ -1,7 +1,7 @@
 import { TeamPreference } from "@shared/types";
 import { User, Team } from "@server/models";
 import { allow } from "./cancan";
-import { and, isTeamAdmin, isTeamModel, or } from "./utils";
+import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(User, "read", User, isTeamModel);
 
@@ -16,6 +16,7 @@ allow(User, "listUsers", Team, (actor, team) =>
 allow(User, "inviteUser", Team, (actor, team) =>
   and(
     isTeamModel(actor, team),
+    isTeamMutable(actor),
     !actor.isGuest,
     !actor.isViewer,
     actor.isAdmin || !!team?.getPreference(TeamPreference.MembersCanInvite)

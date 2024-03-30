@@ -1,3 +1,5 @@
+import env from "@server/env";
+import { IncorrectEditionError } from "@server/errors";
 import { User, Team } from "@server/models";
 import Model from "@server/models/base/Model";
 
@@ -16,7 +18,10 @@ export function or(...args: boolean[]) {
  * @param model The model to check
  * @returns True if the actor is in the same team as the model
  */
-export function isTeamModel(actor: User, model: Model | null): model is Model {
+export function isTeamModel(
+  actor: User,
+  model: Model | null | undefined
+): model is Model {
   if (!model) {
     return false;
   }
@@ -36,7 +41,10 @@ export function isTeamModel(actor: User, model: Model | null): model is Model {
  * @param model The model to check
  * @returns True if the actor is the owner of the model
  */
-export function isOwner(actor: User, model: Model | null): model is Model {
+export function isOwner(
+  actor: User,
+  model: Model | null | undefined
+): model is Model {
   if (!model) {
     return false;
   }
@@ -53,6 +61,31 @@ export function isOwner(actor: User, model: Model | null): model is Model {
  * @param mode The model to check
  * @returns True if the actor is an admin of the team the model belongs to
  */
-export function isTeamAdmin(actor: User, model: Model | null): model is Model {
+export function isTeamAdmin(
+  actor: User,
+  model: Model | null | undefined
+): model is Model {
   return and(isTeamModel(actor, model), actor.isAdmin);
+}
+
+/**
+ * Check the actors team is mutable, i.e. not suspended or deleted.
+ *
+ * @param actor The actor to check
+ * @returns True if the actor's team is mutable
+ */
+export function isTeamMutable(actor: User, _model?: Model | null) {
+  return !actor.team.isSuspended && !actor.team.deletedAt;
+}
+
+/**
+ * Check if this instance is running in the cloud-hosted environment.
+ */
+export function isCloudHosted() {
+  if (!env.isCloudHosted) {
+    throw IncorrectEditionError(
+      "Functionality is not available in this edition"
+    );
+  }
+  return true;
 }
