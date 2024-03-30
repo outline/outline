@@ -7,17 +7,16 @@ import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import User from "~/models/User";
-import Invite from "~/scenes/Invite";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
-import Modal from "~/components/Modal";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import { inviteUser } from "~/actions/definitions/users";
 import env from "~/env";
-import useBoolean from "~/hooks/useBoolean";
+import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
@@ -28,9 +27,8 @@ import UserStatusFilter from "./components/UserStatusFilter";
 function Members() {
   const location = useLocation();
   const history = useHistory();
-  const [inviteModalOpen, handleInviteModalOpen, handleInviteModalClose] =
-    useBoolean();
   const team = useCurrentTeam();
+  const context = useActionContext();
   const { users } = useStores();
   const { t } = useTranslation();
   const params = useQuery();
@@ -155,7 +153,8 @@ function Members() {
                 data-on="click"
                 data-event-category="invite"
                 data-event-action="peoplePage"
-                onClick={handleInviteModalOpen}
+                action={inviteUser}
+                context={context}
                 icon={<PlusIcon />}
               >
                 {t("Invite people")}…
@@ -195,15 +194,6 @@ function Members() {
         totalPages={totalPages}
         defaultSortDirection="ASC"
       />
-      {can.inviteUser && (
-        <Modal
-          title={t("Invite people")}
-          onRequestClose={handleInviteModalClose}
-          isOpen={inviteModalOpen}
-        >
-          <Invite onSubmit={handleInviteModalClose} />
-        </Modal>
-      )}
     </Scene>
   );
 }

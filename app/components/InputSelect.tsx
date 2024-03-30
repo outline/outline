@@ -113,7 +113,7 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
 
   const wrappedLabel = <LabelText>{label}</LabelText>;
   const selectedValueIndex = options.findIndex(
-    (option) => option.value === select.selectedValue
+    (opt) => opt.value === select.selectedValue
   );
 
   // Custom click outside handling rather than using `hideOnClickOutside` from reakit so that we can
@@ -121,6 +121,9 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
   useOnClickOutside(
     contentRef,
     (event) => {
+      if (buttonRef.current?.contains(event.target as Node)) {
+        return;
+      }
       if (select.visible) {
         event.stopPropagation();
         event.preventDefault();
@@ -164,6 +167,24 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
     }
   }, [select.visible, selectedValueIndex]);
 
+  function labelForOption(opt: Option) {
+    return (
+      <>
+        {opt.label}
+        {opt.description && (
+          <>
+            &nbsp;
+            <Text as="span" type="tertiary" size="small">
+              – {opt.description}
+            </Text>
+          </>
+        )}
+      </>
+    );
+  }
+
+  const option = getOptionFromValue(options, select.selectedValue);
+
   return (
     <>
       <Wrapper short={short}>
@@ -175,28 +196,30 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
           ))}
 
         <Select {...select} disabled={disabled} {...rest} ref={buttonRef}>
-          {(props) => (
+          {(buttonProps) => (
             <StyledButton
               neutral
               disclosure
               className={className}
               icon={icon}
               $nude={nude}
-              {...props}
+              {...buttonProps}
             >
-              {getOptionFromValue(options, select.selectedValue)?.label || (
+              {option ? (
+                labelForOption(option)
+              ) : (
                 <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
               )}
             </StyledButton>
           )}
         </Select>
         <SelectPopover {...select} {...popover} aria-label={ariaLabel}>
-          {(props: InnerProps) => {
-            const topAnchor = props.style?.top === "0";
-            const rightAnchor = props.placement === "bottom-end";
+          {(popoverProps: InnerProps) => {
+            const topAnchor = popoverProps.style?.top === "0";
+            const rightAnchor = popoverProps.placement === "bottom-end";
 
             return (
-              <Positioner {...props}>
+              <Positioner {...popoverProps}>
                 <Background
                   dir="auto"
                   ref={contentRef}
@@ -216,30 +239,19 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
                   }
                 >
                   {select.visible
-                    ? options.map((option) => {
-                        const isSelected =
-                          select.selectedValue === option.value;
+                    ? options.map((opt) => {
+                        const isSelected = select.selectedValue === opt.value;
                         const Icon = isSelected ? CheckmarkIcon : Spacer;
                         return (
                           <StyledSelectOption
                             {...select}
-                            value={option.value}
-                            key={option.value}
+                            value={opt.value}
+                            key={opt.value}
                             ref={isSelected ? selectedRef : undefined}
                           >
                             <Icon />
                             &nbsp;
-                            <Text as="span" size="small">
-                              {option.label}
-                            </Text>
-                            {option.description && (
-                              <>
-                                &nbsp;
-                                <Text as="span" type="tertiary" size="small">
-                                  – {option.description}
-                                </Text>
-                              </>
-                            )}
+                            {labelForOption(opt)}
                           </StyledSelectOption>
                         );
                       })
