@@ -2,8 +2,8 @@
 
 exports[`#groups.add_user should require admin 1`] = `
 {
-  "error": "admin_required",
-  "message": "An admin role is required to access this resource",
+  "error": "authorization_error",
+  "message": "Authorization error",
   "ok": false,
   "status": 403,
 }
@@ -56,8 +56,8 @@ exports[`#groups.memberships should require authentication 1`] = `
 
 exports[`#groups.remove_user should require admin 1`] = `
 {
-  "error": "admin_required",
-  "message": "An admin role is required to access this resource",
+  "error": "authorization_error",
+  "message": "Authorization error",
   "ok": false,
   "status": 403,
 }
