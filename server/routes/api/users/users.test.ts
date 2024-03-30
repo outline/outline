@@ -182,7 +182,7 @@ describe("#users.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
     expect(body.data[0].email).toEqual(undefined);
-    expect(body.data[1].email).toEqual(undefined);
+    expect(body.data[1].email).toEqual(user.email);
   });
 });
 
