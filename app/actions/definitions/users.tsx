@@ -16,8 +16,7 @@ export const inviteUser = createAction({
     stores.policies.abilities(stores.auth.team?.id || "").inviteUser,
   perform: ({ t }) => {
     stores.dialogs.openModal({
-      title: t("Invite people"),
-      fullscreen: true,
+      title: t("Invite to workspace"),
       content: <Invite onSubmit={stores.dialogs.closeAllModals} />,
     });
   },
