@@ -10,6 +10,14 @@ allow(User, "createShare", Team, (user, team) =>
   )
 );
 
+allow(User, "listShares", Team, (actor, team) =>
+  and(
+    //
+    isTeamModel(actor, team),
+    !actor.isGuest
+  )
+);
+
 allow(User, "read", Share, (user, share) =>
   and(
     //

@@ -2,22 +2,18 @@ import env from "@server/env";
 import { IncorrectEditionError } from "@server/errors";
 import { Team, User } from "@server/models";
 import { allow } from "./cancan";
+import { and, isTeamModel } from "./utils";
 
-allow(User, "read", Team, (user, team) => user.teamId === team?.id);
+allow(User, "read", Team, isTeamModel);
 
-allow(User, "share", Team, (user, team) => {
-  if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
-    return false;
-  }
-  return team.sharing;
-});
-
-allow(User, ["listGroups", "listUsers", "listShares"], Team, (user, team) => {
-  if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
-    return false;
-  }
-  return true;
-});
+allow(User, "share", Team, (actor, team) =>
+  and(
+    isTeamModel(actor, team),
+    !actor.isGuest,
+    !actor.isViewer,
+    !!team?.sharing
+  )
+);
 
 allow(User, "createTeam", Team, (user) => {
   if (!env.isCloudHosted) {
@@ -28,21 +24,16 @@ allow(User, "createTeam", Team, (user) => {
   return !user.isGuest;
 });
 
-allow(User, "update", Team, (user, team) => {
-  if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
-    return false;
-  }
-  return user.isAdmin;
-});
+allow(User, "update", Team, (actor, team) =>
+  and(isTeamModel(actor, team), actor.isAdmin)
+);
 
-allow(User, ["delete", "audit"], Team, (user, team) => {
+allow(User, ["delete", "audit"], Team, (actor, team) => {
   if (!env.isCloudHosted) {
     throw IncorrectEditionError(
       "Functionality is not available in this edition"
     );
   }
-  if (!team || user.isGuest || user.isViewer || user.teamId !== team.id) {
-    return false;
-  }
-  return user.isAdmin;
+
+  return and(isTeamModel(actor, team), actor.isAdmin);
 });

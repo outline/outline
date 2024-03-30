@@ -5,6 +5,14 @@ import { and, isTeamModel } from "./utils";
 
 allow(User, "read", User, isTeamModel);
 
+allow(User, "listUsers", Team, (actor, team) =>
+  and(
+    //
+    isTeamModel(actor, team),
+    !actor.isGuest
+  )
+);
+
 allow(User, "inviteUser", Team, (actor, team) =>
   and(
     isTeamModel(actor, team),
