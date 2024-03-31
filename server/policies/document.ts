@@ -12,6 +12,8 @@ import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 allow(User, "createDocument", Team, (actor, document) =>
   and(
     //
+    !actor.isGuest,
+    !actor.isViewer,
     isTeamModel(actor, document),
     isTeamMutable(actor)
   )
@@ -82,7 +84,7 @@ allow(User, "share", Document, (actor, document) =>
   )
 );
 
-allow(User, ["update", "duplicate"], Document, (actor, document) =>
+allow(User, "update", Document, (actor, document) =>
   and(
     can(actor, "read", document),
     isTeamMutable(actor),
@@ -105,7 +107,7 @@ allow(User, "publish", Document, (actor, document) =>
   )
 );
 
-allow(User, ["move", "manageUsers"], Document, (actor, document) =>
+allow(User, ["move", "duplicate", "manageUsers"], Document, (actor, document) =>
   and(
     !actor.isGuest,
     can(actor, "update", document),
