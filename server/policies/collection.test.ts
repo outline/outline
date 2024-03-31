@@ -338,3 +338,53 @@ describe("viewer", () => {
     });
   });
 });
+
+describe("guest", () => {
+  describe("read_write permission", () => {
+    it("should allow no permissions for guest", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({
+        role: UserRole.Guest,
+        teamId: team.id,
+      });
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      const abilities = serialize(user, collection);
+      expect(abilities.read).toEqual(false);
+      expect(abilities.readDocument).toEqual(false);
+      expect(abilities.createDocument).toEqual(false);
+      expect(abilities.update).toEqual(false);
+      expect(abilities.share).toEqual(false);
+    });
+  });
+
+  it("should allow override with team member membership permission", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      role: UserRole.Guest,
+      teamId: team.id,
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    await UserMembership.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: CollectionPermission.Read,
+    });
+    // reload to get membership
+    const reloaded = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(collection.id);
+    const abilities = serialize(user, reloaded);
+    expect(abilities.read).toEqual(true);
+    expect(abilities.readDocument).toEqual(true);
+    expect(abilities.createDocument).toEqual(false);
+    expect(abilities.share).toEqual(false);
+    expect(abilities.update).toEqual(false);
+  });
+});
