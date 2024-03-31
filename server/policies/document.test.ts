@@ -161,8 +161,8 @@ describe("no collection", () => {
     expect(abilities.delete).toEqual(true);
     expect(abilities.share).toEqual(true);
     expect(abilities.move).toEqual(true);
-    expect(abilities.subscribe).toEqual(false);
-    expect(abilities.unsubscribe).toEqual(false);
+    expect(abilities.subscribe).toEqual(true);
+    expect(abilities.unsubscribe).toEqual(true);
     expect(abilities.comment).toEqual(true);
   });
 });
