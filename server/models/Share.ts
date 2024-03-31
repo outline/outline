@@ -59,6 +59,13 @@ import Length from "./validators/Length";
             }),
             as: "collection",
           },
+          {
+            association: "memberships",
+            where: {
+              userId,
+            },
+            required: false,
+          },
         ],
       },
       {

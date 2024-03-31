@@ -1,44 +1,46 @@
 import { Share, Team, User } from "@server/models";
-import { AdminRequiredError } from "../errors";
-import { allow, _cannot as cannot } from "./cancan";
+import { allow, _can as can } from "./cancan";
+import { and, isOwner, isTeamModel, isTeamMutable, or } from "./utils";
 
-allow(User, "createShare", Team, (user, team) => {
-  if (!team || user.isGuest || user.teamId !== team.id) {
-    return false;
-  }
-  return true;
-});
+allow(User, "createShare", Team, (actor, team) =>
+  and(
+    //
+    isTeamModel(actor, team),
+    isTeamMutable(actor),
+    !actor.isGuest
+  )
+);
 
-allow(User, "read", Share, (user, share) => {
-  if (!share || user.isGuest) {
-    return false;
-  }
-  return user.teamId === share.teamId;
-});
+allow(User, "listShares", Team, (actor, team) =>
+  and(
+    //
+    isTeamModel(actor, team),
+    !actor.isGuest
+  )
+);
 
-allow(User, "update", Share, (user, share) => {
-  if (!share || user.isGuest || user.isViewer) {
-    return false;
-  }
+allow(User, "read", Share, (actor, share) =>
+  and(
+    //
+    isTeamModel(actor, share),
+    !actor.isGuest
+  )
+);
 
-  // only the user who can share the document publicly can update the share.
-  if (cannot(user, "share", share.document)) {
-    return false;
-  }
+allow(User, "update", Share, (actor, share) =>
+  and(
+    isTeamModel(actor, share),
+    !actor.isGuest,
+    !actor.isViewer,
+    can(actor, "share", share?.document)
+  )
+);
 
-  return user.teamId === share.teamId;
-});
-
-allow(User, "revoke", Share, (user, share) => {
-  if (!share || user.isGuest || user.isViewer || user.teamId !== share.teamId) {
-    return false;
-  }
-  if (user.id === share.userId) {
-    return true;
-  }
-  if (user.isAdmin) {
-    return true;
-  }
-
-  throw AdminRequiredError();
-});
+allow(User, "revoke", Share, (actor, share) =>
+  and(
+    isTeamModel(actor, share),
+    !actor.isGuest,
+    !actor.isViewer,
+    or(actor.isAdmin, isOwner(actor, share))
+  )
+);

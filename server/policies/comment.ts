@@ -1,27 +1,16 @@
 import { Comment, User, Team } from "@server/models";
 import { allow } from "./cancan";
+import { and, isTeamModel, or } from "./utils";
 
-allow(User, "createComment", Team, (user, team) => {
-  if (!team || user.teamId !== team.id) {
-    return false;
-  }
-  return true;
-});
+allow(User, "createComment", Team, isTeamModel);
 
-allow(User, "read", Comment, (user, comment) => {
-  if (!comment) {
-    return false;
-  }
-  return user.teamId === comment.createdBy.teamId;
-});
+allow(User, "read", Comment, (actor, comment) =>
+  isTeamModel(actor, comment?.createdBy)
+);
 
-allow(User, ["update", "delete"], Comment, (user, comment) => {
-  if (!comment) {
-    return false;
-  }
-  if (user.teamId !== comment.createdBy.teamId) {
-    return false;
-  }
-
-  return user.isAdmin || user?.id === comment.createdById;
-});
+allow(User, ["update", "delete"], Comment, (actor, comment) =>
+  and(
+    isTeamModel(actor, comment?.createdBy),
+    or(actor.isAdmin, actor?.id === comment?.createdById)
+  )
+);

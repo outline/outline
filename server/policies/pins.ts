@@ -1,9 +1,5 @@
 import { User, Pin } from "@server/models";
 import { allow } from "./cancan";
+import { isTeamAdmin } from "./utils";
 
-allow(
-  User,
-  ["update", "delete"],
-  Pin,
-  (user, pin) => user.teamId === pin?.teamId && user.isAdmin
-);
+allow(User, ["update", "delete"], Pin, isTeamAdmin);
