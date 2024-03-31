@@ -7,9 +7,15 @@ import {
 } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, _cannot as cannot, _can as can } from "./cancan";
-import { and, isTeamAdmin, isTeamModel, or } from "./utils";
+import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
-allow(User, "createDocument", Team, isTeamModel);
+allow(User, "createDocument", Team, (actor, document) =>
+  and(
+    //
+    isTeamModel(actor, document),
+    isTeamMutable(actor)
+  )
+);
 
 allow(User, "read", Document, (actor, document) =>
   and(
@@ -47,6 +53,7 @@ allow(User, "comment", Document, (actor, document) =>
   and(
     //
     can(actor, "read", document),
+    isTeamMutable(actor),
     !!document?.isActive,
     !document?.template
   )
@@ -67,6 +74,7 @@ allow(
 allow(User, "share", Document, (actor, document) =>
   and(
     can(actor, "read", document),
+    isTeamMutable(actor),
     !!document?.isActive,
     !document?.template,
     !actor.isGuest,
@@ -77,6 +85,7 @@ allow(User, "share", Document, (actor, document) =>
 allow(User, ["update", "duplicate"], Document, (actor, document) =>
   and(
     can(actor, "read", document),
+    isTeamMutable(actor),
     !!document?.isActive,
     or(
       includesMembership(document, [DocumentPermission.ReadWrite]),
@@ -126,11 +135,18 @@ allow(User, ["pin", "unpin"], Document, (actor, document) =>
   )
 );
 
-allow(User, "pinToHome", Document, isTeamAdmin);
+allow(User, "pinToHome", Document, (actor, document) =>
+  and(
+    //
+    isTeamAdmin(actor, document),
+    isTeamMutable(actor)
+  )
+);
 
 allow(User, "delete", Document, (actor, document) =>
   and(
     isTeamModel(actor, document),
+    isTeamMutable(actor),
     !actor.isGuest,
     !document?.isDeleted,
     or(can(actor, "update", document), !document?.collection)

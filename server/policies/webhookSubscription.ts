@@ -1,12 +1,15 @@
 import { User, Team, WebhookSubscription } from "@server/models";
 import { allow } from "./cancan";
-import { isTeamAdmin } from "./utils";
+import { and, isTeamAdmin, isTeamMutable } from "./utils";
 
-allow(
-  User,
-  ["listWebhookSubscription", "createWebhookSubscription"],
-  Team,
-  isTeamAdmin
+allow(User, "createWebhookSubscription", Team, (actor, team) =>
+  and(
+    //
+    isTeamAdmin(actor, team),
+    isTeamMutable(actor)
+  )
 );
+
+allow(User, "listWebhookSubscription", Team, isTeamAdmin);
 
 allow(User, ["read", "update", "delete"], WebhookSubscription, isTeamAdmin);

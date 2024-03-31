@@ -3,7 +3,11 @@ import { allow } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable } from "./utils";
 
 allow(User, "createGroup", Team, (actor, team) =>
-  and(isTeamAdmin(actor, team), isTeamMutable(actor))
+  and(
+    //
+    isTeamAdmin(actor, team),
+    isTeamMutable(actor)
+  )
 );
 
 allow(User, "listGroups", Team, (actor, team) =>
@@ -23,5 +27,9 @@ allow(User, "read", Group, (actor, team) =>
 );
 
 allow(User, ["update", "delete"], Group, (actor, team) =>
-  and(isTeamAdmin(actor, team), isTeamMutable(actor))
+  and(
+    //
+    isTeamAdmin(actor, team),
+    isTeamMutable(actor)
+  )
 );

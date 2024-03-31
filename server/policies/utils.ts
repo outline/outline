@@ -69,13 +69,13 @@ export function isTeamAdmin(
 }
 
 /**
- * Check the actors team is mutable, i.e. not suspended or deleted.
+ * Check the actors team is mutable, meaning the team models can be modified.
  *
  * @param actor The actor to check
  * @returns True if the actor's team is mutable
  */
-export function isTeamMutable(actor: User, _model?: Model | null) {
-  return !actor.team.isSuspended && !actor.team.deletedAt;
+export function isTeamMutable(_actor: User, _model?: Model | null) {
+  return true;
 }
 
 /**

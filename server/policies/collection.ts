@@ -3,23 +3,31 @@ import some from "lodash/some";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import { Collection, User, Team } from "@server/models";
 import { allow, _can as can } from "./cancan";
-import { and, isTeamAdmin, isTeamModel, or } from "./utils";
+import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(User, "createCollection", Team, (actor, team) =>
   and(
     isTeamModel(actor, team),
+    isTeamMutable(actor),
     !actor.isGuest,
     !actor.isViewer,
     or(actor.isAdmin, !!team?.memberCollectionCreate)
   )
 );
 
-allow(User, "importCollection", Team, isTeamAdmin);
+allow(User, "importCollection", Team, (actor, team) =>
+  and(
+    //
+    isTeamAdmin(actor, team),
+    isTeamMutable(actor)
+  )
+);
 
 allow(User, "move", Collection, (actor, collection) =>
   and(
     //
     isTeamAdmin(actor, collection),
+    isTeamMutable(actor),
     !collection?.deletedAt
   )
 );
@@ -54,7 +62,12 @@ allow(User, "export", Collection, (actor, collection) =>
 );
 
 allow(User, "share", Collection, (user, collection) => {
-  if (!collection || user.isGuest || user.teamId !== collection.teamId) {
+  if (
+    !collection ||
+    user.isGuest ||
+    user.teamId !== collection.teamId ||
+    !isTeamMutable(user)
+  ) {
     return false;
   }
   if (!collection.sharing) {
@@ -82,7 +95,11 @@ allow(
   ["updateDocument", "createDocument", "deleteDocument"],
   Collection,
   (user, collection) => {
-    if (!collection || user.teamId !== collection.teamId) {
+    if (
+      !collection ||
+      user.teamId !== collection.teamId ||
+      !isTeamMutable(user)
+    ) {
       return false;
     }
 
