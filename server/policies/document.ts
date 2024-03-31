@@ -143,60 +143,47 @@ allow(User, ["restore", "permanentDelete"], Document, (actor, document) =>
     !actor.isGuest,
     !!document?.isDeleted,
     or(
-      and(
-        can(actor, "read", document),
-        or(
-          includesMembership(document, [DocumentPermission.ReadWrite]),
-          or(
-            can(actor, "updateDocument", document?.collection),
-            and(!!document?.isDraft && actor.id === document?.createdById)
-          )
-        )
+      includesMembership(document, [DocumentPermission.ReadWrite]),
+      or(
+        can(actor, "updateDocument", document?.collection),
+        and(!!document?.isDraft && actor.id === document?.createdById)
       ),
       !document?.collection
     )
   )
 );
 
-allow(User, "archive", Document, (user, document) => {
-  if (
-    !document ||
-    !document.isActive ||
-    document.isDraft ||
-    document.template ||
-    user.isGuest
-  ) {
-    return false;
-  }
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (cannot(user, "updateDocument", document.collection)) {
-    return false;
-  }
-  return user.teamId === document.teamId;
-});
+allow(User, "archive", Document, (actor, document) =>
+  and(
+    !actor.isGuest,
+    !document?.template,
+    !document?.isDraft,
+    !!document?.isActive,
+    can(actor, "update", document),
+    can(actor, "updateDocument", document?.collection)
+  )
+);
 
-allow(User, "unarchive", Document, (user, document) => {
-  if (!document || user.isGuest || !document.archivedAt || document.isDeleted) {
-    return false;
-  }
-
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (cannot(user, "updateDocument", document.collection)) {
-    return false;
-  }
-
-  if (document.isDraft) {
-    return user.id === document.createdById;
-  }
-
-  return user.teamId === document.teamId;
-});
+allow(User, "unarchive", Document, (actor, document) =>
+  and(
+    !actor.isGuest,
+    !document?.template,
+    !document?.isDraft,
+    !document?.isDeleted,
+    !!document?.archivedAt,
+    and(
+      can(actor, "read", document),
+      or(
+        includesMembership(document, [DocumentPermission.ReadWrite]),
+        or(
+          can(actor, "updateDocument", document?.collection),
+          and(!!document?.isDraft && actor.id === document?.createdById)
+        )
+      )
+    ),
+    can(actor, "updateDocument", document?.collection)
+  )
+);
 
 allow(
   Document,
