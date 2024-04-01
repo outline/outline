@@ -798,6 +798,7 @@
   "Where do I find the file?": "Waar vind ik dit?",
   "In Notion, click <em>Settings & Members</em> in the left sidebar and open Settings. Look for the Export section, and click <em>Export all workspace content</em>. Choose <em>HTML</em> as the format for the best data compatability.": "Klik in Notion op <em>Instellingen en leden</em> in de linkerzijbalk en open Instellingen. Zoek het gedeelte Exporteren en klik op <em>Alle inhoud van de werkruimte exporteren</em>. Kies <em>HTML</em> als het formaat voor de beste gegevenscompatibiliteit.",
   "Last active": "Laatst actief",
+  "Guest": "Guest",
   "Shared": "Gedeeld",
   "by {{ name }}": "op {{ name }}",
   "Last accessed": "Laatst geopend",
