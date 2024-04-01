@@ -798,6 +798,7 @@
   "Where do I find the file?": "Gdzie znajdę plik?",
   "In Notion, click <em>Settings & Members</em> in the left sidebar and open Settings. Look for the Export section, and click <em>Export all workspace content</em>. Choose <em>HTML</em> as the format for the best data compatability.": "W Notion kliknij <em>Ustawienia i członkowie</em> na lewym pasku bocznym i otwórz Ustawienia. Znajdź sekcję Eksport i kliknij <em>Eksportuj całą zawartość obszaru roboczego</em>. Wybierz format <em>HTML</em> dla najlepszej kompatybilności danych.",
   "Last active": "Ostatnio aktywny",
+  "Guest": "Guest",
   "Shared": "Udostępnione",
   "by {{ name }}": "przez {{ name }}",
   "Last accessed": "Ostatnio otwarto",
