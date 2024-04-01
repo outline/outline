@@ -798,6 +798,7 @@
   "Where do I find the file?": "Dosyayı nerede bulurum?",
   "In Notion, click <em>Settings & Members</em> in the left sidebar and open Settings. Look for the Export section, and click <em>Export all workspace content</em>. Choose <em>HTML</em> as the format for the best data compatability.": "Notion'da, sol kenar çubuğunda <em>Ayarlar ve Üyeler</em>'e tıklayın ve Ayarlar'ı açın. Dışa Aktar bölümünü bulun ve <em>Tüm çalışma alanı içeriğini dışa aktar</em>'a tıklayın. En iyi veri uyumluluğu için format olarak <em>HTML</em>'i seçin.",
   "Last active": "Son aktiflik",
+  "Guest": "Guest",
   "Shared": "Paylaşıldı",
   "by {{ name }}": "{{ name }} ile",
   "Last accessed": "Son erişim",
