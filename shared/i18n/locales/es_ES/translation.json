@@ -798,6 +798,7 @@
   "Where do I find the file?": "¿Dónde encuentro el archivo?",
   "In Notion, click <em>Settings & Members</em> in the left sidebar and open Settings. Look for the Export section, and click <em>Export all workspace content</em>. Choose <em>HTML</em> as the format for the best data compatability.": "En Notion, haz clic en <em>Configuración y miembros</em> en la barra lateral izquierda y abre Configuración. Busca la sección Exportar y haz clic en <em>Exportar todo el contenido del espacio de trabajo</em>. Elige <em>HTML</em> como formato para la mejor compatibilidad de datos.",
   "Last active": "Última vez activo",
+  "Guest": "Guest",
   "Shared": "Compartido",
   "by {{ name }}": "por {{ name }}",
   "Last accessed": "Ultimo acceso",
