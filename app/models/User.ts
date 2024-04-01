@@ -80,10 +80,24 @@ class User extends ParanoidModel {
   }
 
   /**
+   * Whether the user is a member (editor).
+   */
+  get isMember(): boolean {
+    return this.role === UserRole.Member;
+  }
+
+  /**
    * Whether the user is a viewer.
    */
   get isViewer(): boolean {
     return this.role === UserRole.Viewer;
+  }
+
+  /**
+   * Whether the user is a guest.
+   */
+  get isGuest(): boolean {
+    return this.role === UserRole.Guest;
   }
 
   /**

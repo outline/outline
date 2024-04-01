@@ -119,7 +119,6 @@ export default abstract class Model {
       try {
         this[key] = data[key];
       } catch (error) {
-        // Temporary as isViewer and isAdmin properties changed to getters
         Logger.warn(`Error setting ${key} on model`, error);
       }
     }

@@ -2,6 +2,6 @@
   "id": "slack",
   "name": "Slack",
   "priority": 40,
-  "adminOnly": false,
+  "roles": ["admin", "member"],
   "description": "Adds a Slack authentication provider, support for the /outline slash command, and link unfurling."
 }

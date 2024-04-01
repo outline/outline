@@ -99,6 +99,8 @@ router.post(
   async (ctx: APIContext<T.SharesListReq>) => {
     const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
+    authorize(user, "listShares", user.team);
+
     const where: WhereOptions<Share> = {
       teamId: user.teamId,
       userId: user.id,
@@ -169,6 +171,8 @@ router.post(
     const { documentId, published, urlId, includeChildDocuments } =
       ctx.input.body;
     const { user } = ctx.state.auth;
+    authorize(user, "createShare", user.team);
+
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });

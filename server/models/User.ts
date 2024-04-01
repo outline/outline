@@ -238,16 +238,39 @@ class User extends ParanoidModel<
     return !!this.suspendedAt || !!this.team?.isSuspended;
   }
 
+  /**
+   * Whether the user has been invited but not yet signed in.
+   */
   get isInvited() {
     return !this.lastActiveAt;
   }
 
+  /**
+   * Whether the user is an admin.
+   */
   get isAdmin() {
     return this.role === UserRole.Admin;
   }
 
+  /**
+   * Whether the user is a member (editor).
+   */
+  get isMember() {
+    return this.role === UserRole.Member;
+  }
+
+  /**
+   * Whether the user is a viewer.
+   */
   get isViewer() {
     return this.role === UserRole.Viewer;
+  }
+
+  /**
+   * Whether the user is a guest.
+   */
+  get isGuest() {
+    return this.role === UserRole.Guest;
   }
 
   get color() {
@@ -404,9 +427,10 @@ class User extends ParanoidModel<
     return collectionStubs
       .filter(
         (c) =>
-          Object.values(CollectionPermission).includes(
+          (Object.values(CollectionPermission).includes(
             c.permission as CollectionPermission
-          ) ||
+          ) &&
+            !this.isGuest) ||
           c.memberships.length > 0 ||
           c.collectionGroupMemberships.length > 0
       )

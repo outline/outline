@@ -62,6 +62,8 @@ function PeopleTable({ canManage, ...rest }: Props) {
                 <Badge primary>{t("Admin")}</Badge>
               ) : row.original.isViewer ? (
                 <Badge>{t("Viewer")}</Badge>
+              ) : row.original.isGuest ? (
+                <Badge yellow>{t("Guest")}</Badge>
               ) : (
                 <Badge>{t("Editor")}</Badge>
               )}
