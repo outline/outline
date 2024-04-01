@@ -798,6 +798,7 @@
   "Where do I find the file?": "Tôi tìm tệp ở đâu?",
   "In Notion, click <em>Settings & Members</em> in the left sidebar and open Settings. Look for the Export section, and click <em>Export all workspace content</em>. Choose <em>HTML</em> as the format for the best data compatability.": "Trong Notion, Click vào <em>Cài đặt & Thành viên</em> ở thanh bên trái và mở Cài đặt. Tìm phần Xuất và nhấp vào <em>Xuất tất cả nội dung không gian làm việc</em>. Chọn <em>HTML</em> làm định dạng để có khả năng tương thích dữ liệu tốt nhất.",
   "Last active": "Hoạt động lần cuối",
+  "Guest": "Guest",
   "Shared": "Được chia sẻ",
   "by {{ name }}": "bằng {{ name }}",
   "Last accessed": "Truy nhập lần cuối",
