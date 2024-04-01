@@ -798,6 +798,7 @@
   "Where do I find the file?": "该在何处找到文件",
   "In Notion, click <em>Settings & Members</em> in the left sidebar and open Settings. Look for the Export section, and click <em>Export all workspace content</em>. Choose <em>HTML</em> as the format for the best data compatability.": "在 Notion 中，点击左侧栏中的 <em>Settings & Members</em> 并打开设置。查找导出部分，然后单击 <em>Export all workspace content</em>。选择 <em>HTML</em> 作为导出格式来获得最佳的数据兼容性。",
   "Last active": "最近活跃",
+  "Guest": "Guest",
   "Shared": "已共享",
   "by {{ name }}": "由 {{ name }}",
   "Last accessed": "上次访问",
