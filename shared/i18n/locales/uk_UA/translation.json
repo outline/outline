@@ -798,6 +798,7 @@
   "Where do I find the file?": "Де я можу знайти файл?",
   "In Notion, click <em>Settings & Members</em> in the left sidebar and open Settings. Look for the Export section, and click <em>Export all workspace content</em>. Choose <em>HTML</em> as the format for the best data compatability.": "У Notion натисніть <em>Налаштування та учасники</em> на лівій бічній панелі та відкрийте Налаштування. Знайдіть розділ «Експорт» і натисніть <em>«Експортувати весь вміст робочого простору</em>. Виберіть <em>HTML</em> як формат для найкращої сумісності даних.",
   "Last active": "Остання активність",
+  "Guest": "Guest",
   "Shared": "Поширено",
   "by {{ name }}": "{{ name }}",
   "Last accessed": "Останній доступ",
