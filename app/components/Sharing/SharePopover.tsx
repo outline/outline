@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { DocumentPermission, UserRole } from "@shared/types";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
 import CopyToClipboard from "~/components/CopyToClipboard";
@@ -150,12 +151,19 @@ function SharePopover({
         section: UserSection,
         perform: async () => {
           await Promise.all(
-            pendingIds.map((userId) =>
-              userMemberships.create({
+            pendingIds.map((userId) => {
+              const user = users.get(userId);
+
+              return userMemberships.create({
                 documentId: document.id,
                 userId,
-              })
-            )
+                permission:
+                  user?.role === UserRole.Viewer ||
+                  user?.role === UserRole.Guest
+                    ? DocumentPermission.Read
+                    : DocumentPermission.ReadWrite,
+              });
+            })
           );
 
           if (pendingIds.length === 1) {
