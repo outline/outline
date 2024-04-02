@@ -174,7 +174,7 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
         {opt.description && (
           <>
             &nbsp;
-            <Text as="span" type="tertiary" size="small">
+            <Text as="span" type="tertiary" size="small" ellipsis>
               – {opt.description}
             </Text>
           </>
