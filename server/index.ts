@@ -68,7 +68,7 @@ async function start(id: number, disconnect: () => void) {
   const useHTTPS = !!ssl.key && !!ssl.cert;
 
   // If a --port flag is passed then it takes priority over the env variable
-  const normalizedPortFlag = getArg("port", "p");
+  const normalizedPort = getArg("port", "p") || env.PORT;
   const app = new Koa();
   const server = stoppable(
     useHTTPS
@@ -136,6 +136,19 @@ async function start(id: number, disconnect: () => void) {
   }
 
   server.on("error", (err) => {
+    if ("code" in err && err.code === "EADDRINUSE") {
+      Logger.error(`Port ${normalizedPort}  is already in use. Exiting…`, err);
+      process.exit(0);
+    }
+
+    if ("code" in err && err.code === "EACCES") {
+      Logger.error(
+        `Port ${normalizedPort} requires elevated privileges. Exiting…`,
+        err
+      );
+      process.exit(0);
+    }
+
     throw err;
   });
   server.on("listening", () => {
@@ -150,7 +163,7 @@ async function start(id: number, disconnect: () => void) {
     );
   });
 
-  server.listen(normalizedPortFlag || env.PORT);
+  server.listen(normalizedPort);
   server.setTimeout(env.REQUEST_TIMEOUT);
 
   ShutdownHelper.add(
