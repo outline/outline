@@ -35,7 +35,8 @@ router.post(
   pagination(),
   validate(T.UsersListSchema),
   async (ctx: APIContext<T.UsersListReq>) => {
-    const { sort, direction, query, filter, ids, emails } = ctx.input.body;
+    const { sort, direction, query, role, filter, ids, emails } =
+      ctx.input.body;
 
     const actor = ctx.state.auth.user;
     let where: WhereOptions<User> = {
@@ -111,6 +112,13 @@ router.post(
         };
         break;
       }
+    }
+
+    if (role) {
+      where = {
+        ...where,
+        role,
+      };
     }
 
     if (query) {
