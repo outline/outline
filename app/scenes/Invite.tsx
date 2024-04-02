@@ -130,28 +130,29 @@ function Invite({ onSubmit }: Props) {
   ) : undefined;
 
   const options = React.useMemo(() => {
-    const memo = [
-      {
-        label: t("Editor"),
-        description: t("Can create, edit, and delete documents"),
-        value: "member",
-      },
-      {
-        label: t("Viewer"),
-        description: t("Can view documents and comment"),
-        value: "viewer",
-      },
-    ];
+    const memo = [];
 
     if (user.isAdmin) {
       memo.push({
         label: t("Admin"),
         description: t("Can manage all workspace settings"),
-        value: "admin",
+        value: UserRole.Admin,
       });
     }
 
-    return memo;
+    return [
+      ...memo,
+      {
+        label: t("Editor"),
+        description: t("Can create, edit, and delete documents"),
+        value: UserRole.Member,
+      },
+      {
+        label: t("Viewer"),
+        description: t("Can view and comment"),
+        value: UserRole.Viewer,
+      },
+    ];
   }, [t, user]);
 
   return (
