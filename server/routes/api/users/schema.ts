@@ -29,6 +29,16 @@ export const UsersListSchema = z.object({
 
     query: z.string().optional(),
 
+    /** The user's role */
+    role: z.nativeEnum(UserRole).optional(),
+
+    /**
+     * Filter the users by their status – passing a user role is deprecated here, instead use the
+     * `role` parameter, which will allow filtering by role and status, eg invited members, or
+     * suspended admins.
+     *
+     * @deprecated
+     */
     filter: z
       .enum([
         "invited",

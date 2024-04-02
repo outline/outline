@@ -40,6 +40,26 @@ describe("#users.list", () => {
     expect(body.data[0].id).toEqual(user.id);
   });
 
+  it("should allow filtering by role", async () => {
+    const user = await buildUser({
+      name: "Tester",
+    });
+    const admin = await buildAdmin({
+      name: "Admin",
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/users.list", {
+      body: {
+        role: UserRole.Admin,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(admin.id);
+  });
+
   it("should allow filtering to suspended users", async () => {
     const admin = await buildAdmin();
     await buildUser({
