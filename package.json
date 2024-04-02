@@ -307,7 +307,7 @@
     "@types/tmp": "^0.2.6",
     "@types/turndown": "^5.0.4",
     "@types/utf8": "^3.0.3",
-    "@types/validator": "^13.11.7",
+    "@types/validator": "^13.11.9",
     "@types/yauzl": "^2.10.3",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.19.1",
