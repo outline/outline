@@ -153,6 +153,7 @@ async function accountProvisioner({
   if (isNewUser) {
     await new WelcomeEmail({
       to: user.email,
+      role: user.role,
       teamUrl: team.url,
     }).schedule();
   }
