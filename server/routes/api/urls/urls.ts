@@ -1,5 +1,6 @@
 import dns from "dns";
 import Router from "koa-router";
+import { UnfurlResourceType } from "@shared/types";
 import { getBaseDomain, parseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
@@ -10,8 +11,7 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { Document, Share, Team, User } from "@server/models";
 import { authorize } from "@server/policies";
-import { presentDocument, presentMention } from "@server/presenters/unfurls";
-import presentUnfurl from "@server/presenters/unfurls/unfurl";
+import presentUnfurl from "@server/presenters/unfurl";
 import { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
@@ -53,7 +53,11 @@ router.post(
       authorize(actor, "read", user);
       authorize(actor, "read", document);
 
-      ctx.body = await presentMention(user, document);
+      ctx.body = await presentUnfurl({
+        type: UnfurlResourceType.Mention,
+        user,
+        document,
+      });
       return;
     }
 
@@ -69,7 +73,11 @@ router.post(
         }
         authorize(actor, "read", document);
 
-        ctx.body = presentDocument(document, actor);
+        ctx.body = await presentUnfurl({
+          type: UnfurlResourceType.Document,
+          document,
+          viewer: actor,
+        });
         return;
       }
       return (ctx.response.status = 204);
@@ -80,7 +88,7 @@ router.post(
       CacheHelper.getUnfurlKey(actor.teamId, url)
     );
     if (cachedData) {
-      return (ctx.body = presentUnfurl(cachedData));
+      return (ctx.body = await presentUnfurl(cachedData));
     }
 
     for (const plugin of plugins) {
@@ -94,7 +102,7 @@ router.post(
             data,
             plugin.value.cacheExpiry
           );
-          return (ctx.body = presentUnfurl(data));
+          return (ctx.body = await presentUnfurl(data));
         }
       }
     }

@@ -8,6 +8,8 @@ import {
   Client,
   CollectionPermission,
   DocumentPermission,
+  JSONValue,
+  UnfurlResourceType,
 } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { AccountProvisionerResult } from "./commands/accountProvisioner";
@@ -507,6 +509,11 @@ export type CollectionJSONExport = {
   };
 };
 
-export type UnfurlResolver = {
-  unfurl: (url: string, actor?: User) => Promise<any>;
-};
+export type Unfurl = { [x: string]: JSONValue; type: UnfurlResourceType };
+
+export type UnfurlSignature = (
+  url: string,
+  actor?: User
+) => Promise<Unfurl | void>;
+
+export type UninstallSignature = (integration: Integration) => Promise<void>;

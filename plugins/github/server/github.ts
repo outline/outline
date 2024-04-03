@@ -6,44 +6,16 @@ import {
 } from "@octokit/auth-app";
 import { Octokit } from "octokit";
 import pluralize from "pluralize";
-import { IntegrationService, IntegrationType, Unfurl } from "@shared/types";
+import {
+  IntegrationService,
+  IntegrationType,
+  JSONObject,
+  UnfurlResourceType,
+} from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration, User } from "@server/models";
-import { GitHubUtils } from "../shared/GitHubUtils";
+import { UnfurlSignature } from "@server/types";
 import env from "./env";
-
-enum Resource {
-  PR = "pull",
-  Issue = "issue",
-}
-
-type PreviewData = {
-  [Resource.PR]: {
-    url: string;
-    type: Resource.PR;
-    title: string;
-    description: string;
-    author: { name: string; avatarUrl: string };
-    createdAt: string;
-    meta: {
-      identifier: string;
-      status: { name: string; color: string };
-    };
-  };
-  [Resource.Issue]: {
-    url: string;
-    type: Resource.Issue;
-    title: string;
-    description: string;
-    author: { name: string; avatarUrl: string };
-    createdAt: string;
-    meta: {
-      identifier: string;
-      labels: Array<{ name: string; color: string }>;
-      status: { name: string; color: string };
-    };
-  };
-};
 
 const requestPlugin = (octokit: Octokit) => ({
   requestPR: async (params: ReturnType<typeof GitHub.parseUrl>) =>
@@ -84,11 +56,11 @@ const requestPlugin = (octokit: Octokit) => ({
    */
   requestResource: async function requestResource(
     resource: ReturnType<typeof GitHub.parseUrl>
-  ) {
+  ): Promise<{ data?: JSONObject }> {
     switch (resource?.type) {
-      case Resource.PR:
+      case UnfurlResourceType.PR:
         return this.requestPR(resource);
-      case Resource.Issue:
+      case UnfurlResourceType.Issue:
         return this.requestIssue(resource);
       default:
         return { data: undefined };
@@ -119,57 +91,7 @@ export class GitHub {
 
   private static appOctokit: Octokit;
 
-  private static supportedResources = Object.values(Resource);
-
-  private static transformPRData = (
-    resource: ReturnType<typeof GitHub.parseUrl>,
-    data: Record<string, any>
-  ): PreviewData[Resource.PR] => ({
-    url: resource!.url,
-    type: Resource.PR,
-    title: data.title,
-    description: data.body,
-    author: {
-      name: data.user.login,
-      avatarUrl: data.user.avatar_url,
-    },
-    createdAt: data.created_at,
-    meta: {
-      identifier: `#${data.number}`,
-      status: {
-        name: data.merged ? "merged" : data.state,
-        color: GitHubUtils.getColorForStatus(
-          data.merged ? "merged" : data.state
-        ),
-      },
-    },
-  });
-
-  private static transformIssueData = (
-    resource: ReturnType<typeof GitHub.parseUrl>,
-    data: Record<string, any>
-  ): PreviewData[Resource.Issue] => ({
-    url: resource!.url,
-    type: Resource.Issue,
-    title: data.title,
-    description: data.body_text,
-    author: {
-      name: data.user.login,
-      avatarUrl: data.user.avatar_url,
-    },
-    createdAt: data.created_at,
-    meta: {
-      identifier: `#${data.number}`,
-      labels: data.labels.map((label: { name: string; color: string }) => ({
-        name: label.name,
-        color: `#${label.color}`,
-      })),
-      status: {
-        name: data.state,
-        color: GitHubUtils.getColorForStatus(data.state),
-      },
-    },
-  });
+  private static supportedResources = Object.values(UnfurlResourceType);
 
   /**
    * Parses a given URL and returns resource identifiers for GitHub specific URLs
@@ -187,7 +109,7 @@ export class GitHub {
     const owner = parts[1];
     const repo = parts[2];
     const type = parts[3]
-      ? (pluralize.singular(parts[3]) as Resource)
+      ? (pluralize.singular(parts[3]) as UnfurlResourceType)
       : undefined;
     const id = parts[4];
 
@@ -254,37 +176,12 @@ export class GitHub {
     }) as Promise<InstanceType<typeof CustomOctokit>>;
 
   /**
-   * Transforms resource data obtained from GitHub to our own pre-defined preview data
-   * which will be consumed by our API clients
-   *
-   * @param resourceType Resource type for which to transform the data, e.g, an issue
-   * @param data Resource data obtained from GitHub via REST calls
-   * @returns {PreviewData} Transformed data suitable for our API clients
-   */
-  public static transformResourceData = (
-    resource: ReturnType<typeof GitHub.parseUrl>,
-    data: Record<string, any>
-  ) => {
-    switch (resource?.type) {
-      case Resource.PR:
-        return GitHub.transformPRData(resource, data);
-      case Resource.Issue:
-        return GitHub.transformIssueData(resource, data);
-      default:
-        return;
-    }
-  };
-
-  /**
    *
    * @param url GitHub resource url
    * @param actor User attempting to unfurl resource url
-   * @returns {object} An object containing resource details e.g, a GitHub Pull Request details
+   * @returns An object containing resource details e.g, a GitHub Pull Request details
    */
-  public static unfurl = async (
-    url: string,
-    actor: User
-  ): Promise<Unfurl | undefined> => {
+  public static unfurl: UnfurlSignature = async (url: string, actor: User) => {
     const resource = GitHub.parseUrl(url);
 
     if (!resource) {
@@ -311,7 +208,7 @@ export class GitHub {
       if (!data) {
         return;
       }
-      return GitHub.transformResourceData(resource, data);
+      return { ...data, type: resource.type };
     } catch (err) {
       Logger.warn("Failed to fetch resource from GitHub", err);
       return;
