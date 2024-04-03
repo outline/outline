@@ -87,8 +87,7 @@ export const navigateToSettings = createAction({
   section: NavigationSection,
   shortcut: ["g", "s"],
   icon: <SettingsIcon />,
-  visible: ({ stores }) =>
-    stores.policies.abilities(stores.auth.team?.id || "").update,
+  visible: () => stores.policies.abilities(stores.auth.team?.id || "").update,
   perform: () => history.push(settingsPath()),
 });
 
@@ -142,7 +141,7 @@ export const toggleSidebar = createAction({
   analyticsName: "Toggle sidebar",
   keywords: "hide show navigation",
   section: NavigationSection,
-  perform: ({ stores }) => stores.ui.toggleCollapsedSidebar(),
+  perform: () => stores.ui.toggleCollapsedSidebar(),
 });
 
 export const openFeedbackUrl = createAction({
@@ -205,8 +204,8 @@ export const logout = createAction({
   analyticsName: "Log out",
   section: NavigationSection,
   icon: <LogoutIcon />,
-  perform: () => {
-    void stores.auth.logout();
+  perform: async () => {
+    await stores.auth.logout();
     if (env.OIDC_LOGOUT_URI) {
       window.location.replace(env.OIDC_LOGOUT_URI);
     }

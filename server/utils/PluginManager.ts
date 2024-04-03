@@ -3,12 +3,12 @@ import { glob } from "glob";
 import type Router from "koa-router";
 import isArray from "lodash/isArray";
 import sortBy from "lodash/sortBy";
-import { UnfurlSignature, UninstallSignature } from "@shared/types";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type BaseTask from "@server/queues/tasks/BaseTask";
+import { UnfurlSignature, UninstallSignature } from "@server/types";
 
 export enum PluginPriority {
   VeryHigh = 0,

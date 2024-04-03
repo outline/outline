@@ -2,43 +2,38 @@ import compact from "lodash/compact";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { UserRole } from "@shared/types";
 import FilterOptions from "~/components/FilterOptions";
-import useCurrentUser from "~/hooks/useCurrentUser";
 
 type Props = {
   activeKey: string;
   onSelect: (key: string | null | undefined) => void;
 };
 
-const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
+const UserRoleFilter = ({ activeKey, onSelect, ...rest }: Props) => {
   const { t } = useTranslation();
-  const user = useCurrentUser();
 
   const options = React.useMemo(
     () =>
       compact([
         {
-          key: "all",
-          label: t("All status"),
-        },
-        {
           key: "",
-          label: t("Active"),
+          label: t("All roles"),
         },
-        ...(user.isAdmin
-          ? [
-              {
-                key: "suspended",
-                label: t("Suspended"),
-              },
-            ]
-          : []),
         {
-          key: "invited",
-          label: t("Invited"),
+          key: UserRole.Admin,
+          label: t("Admins"),
+        },
+        {
+          key: UserRole.Member,
+          label: t("Editors"),
+        },
+        {
+          key: UserRole.Viewer,
+          label: t("Viewers"),
         },
       ]),
-    [t, user.isAdmin]
+    [t]
   );
 
   return (
@@ -46,10 +41,10 @@ const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
       options={options}
       selectedKeys={[activeKey]}
       onSelect={onSelect}
-      defaultLabel={t("Active")}
+      defaultLabel={t("All roles")}
       {...rest}
     />
   );
 };
 
-export default observer(UserStatusFilter);
+export default observer(UserRoleFilter);

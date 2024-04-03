@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Trans } from "react-i18next";
+import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import Flex from "~/components/Flex";
 import Avatar from "../Avatar";
 import { IssueStatusIcon } from "../Icons/IssueStatusIcon";
@@ -15,36 +16,10 @@ import {
   Info,
 } from "./Components";
 
-type Props = {
-  /** Issue url */
-  url: string;
-  /** Issue title */
-  title: string;
-  /** Issue description */
-  description: string;
-  /** Wehn the issue was created */
-  createdAt: string;
-  /** Author of the issue */
-  author: { name: string; avatarUrl: string };
-  /** Labels attached to the issue */
-  labels: Array<{ name: string; color: string }>;
-  /** Issue status */
-  status: { name: string; color: string };
-  /** Issue identifier */
-  identifier: string;
-};
+type Props = Omit<UnfurlResponse[UnfurlResourceType.Issue], "type">;
 
 const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
-  {
-    url,
-    title,
-    identifier,
-    description,
-    author,
-    labels,
-    status,
-    createdAt,
-  }: Props,
+  { url, id, title, description, author, labels, state, createdAt }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {
   const authorName = author.name;
@@ -56,9 +31,9 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
           <CardContent>
             <Flex gap={2} column>
               <Title>
-                <IssueStatusIcon status={status.name} color={status.color} />
+                <IssueStatusIcon status={state.name} color={state.color} />
                 <span>
-                  {title}&nbsp;<Text type="tertiary">{identifier}</Text>
+                  {title}&nbsp;<Text type="tertiary">{id}</Text>
                 </span>
               </Title>
               <Flex align="center" gap={4}>

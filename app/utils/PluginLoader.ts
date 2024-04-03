@@ -1,11 +1,12 @@
 import React from "react";
+import { UserRole } from "@shared/types";
 
 interface Plugin {
   id: string;
   config: {
     name: string;
     description: string;
-    adminOnly?: boolean;
+    roles?: UserRole[];
     deployments?: string[];
   };
   settings: React.FC;

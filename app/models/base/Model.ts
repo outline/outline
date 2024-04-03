@@ -116,7 +116,11 @@ export default abstract class Model {
 
   updateData = action((data: Partial<Model>) => {
     for (const key in data) {
-      this[key] = data[key];
+      try {
+        this[key] = data[key];
+      } catch (error) {
+        Logger.warn(`Error setting ${key} on model`, error);
+      }
     }
 
     this.isNew = false;

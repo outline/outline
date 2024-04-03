@@ -47,7 +47,8 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const { ui, auth } = useStores();
   const location = useLocation();
   const layoutRef = React.useRef<HTMLDivElement>(null);
-  const can = usePolicy(ui.activeCollectionId);
+  const can = usePolicy(ui.activeDocumentId);
+  const canCollection = usePolicy(ui.activeCollectionId);
   const team = useCurrentTeam();
   const documentContext = useLocalStore<DocumentContextValue>(() => ({
     editor: null,
@@ -69,7 +70,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
       return;
     }
     const { activeCollectionId } = ui;
-    if (!activeCollectionId || !can.createDocument) {
+    if (!activeCollectionId || !canCollection.createDocument) {
       return;
     }
     history.push(newDocumentPath(activeCollectionId));
@@ -88,15 +89,18 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     </Fade>
   );
 
-  const showHistory = !!matchPath(location.pathname, {
-    path: matchDocumentHistory,
-  });
-  const showInsights = !!matchPath(location.pathname, {
-    path: matchDocumentInsights,
-  });
+  const showHistory =
+    !!matchPath(location.pathname, {
+      path: matchDocumentHistory,
+    }) && can.listRevisions;
+  const showInsights =
+    !!matchPath(location.pathname, {
+      path: matchDocumentInsights,
+    }) && can.listViews;
   const showComments =
     !showInsights &&
     !showHistory &&
+    can.comment &&
     ui.activeDocumentId &&
     ui.commentsExpanded.includes(ui.activeDocumentId) &&
     team.getPreference(TeamPreference.Commenting);

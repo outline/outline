@@ -75,7 +75,7 @@ View Document: ${teamUrl}${collection.path}
     const permission =
       membership.permission === CollectionPermission.ReadWrite
         ? "view and edit"
-        : CollectionPermission.Admin
+        : membership.permission === CollectionPermission.Admin
         ? "manage"
         : "view";
 

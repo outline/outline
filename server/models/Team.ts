@@ -34,6 +34,7 @@ import {
   CollectionPermission,
   TeamPreference,
   TeamPreferences,
+  UserRole,
 } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
@@ -151,10 +152,10 @@ class Team extends ParanoidModel<
   @Column
   memberCollectionCreate: boolean;
 
-  @Default("member")
-  @IsIn([["viewer", "member"]])
-  @Column
-  defaultUserRole: string;
+  @Default(UserRole.Member)
+  @IsIn([[UserRole.Viewer, UserRole.Member]])
+  @Column(DataType.STRING)
+  defaultUserRole: UserRole;
 
   @AllowNull
   @Column(DataType.JSONB)

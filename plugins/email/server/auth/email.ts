@@ -112,6 +112,7 @@ router.get(
     if (user.isInvited) {
       await new WelcomeEmail({
         to: user.email,
+        role: user.role,
         teamUrl: user.team.url,
       }).schedule();
 

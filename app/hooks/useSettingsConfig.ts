@@ -25,6 +25,7 @@ import isCloudHosted from "~/utils/isCloudHosted";
 import lazy from "~/utils/lazyWithRetry";
 import { settingsPath } from "~/utils/routeHelpers";
 import useCurrentTeam from "./useCurrentTeam";
+import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
 
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
@@ -54,6 +55,7 @@ export type ConfigItem = {
 };
 
 const useSettingsConfig = () => {
+  const user = useCurrentUser();
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const { t } = useTranslation();
@@ -122,7 +124,7 @@ const useSettingsConfig = () => {
         name: t("Members"),
         path: settingsPath("members"),
         component: Members,
-        enabled: true,
+        enabled: can.listUsers,
         group: t("Workspace"),
         icon: UserIcon,
       },
@@ -130,7 +132,7 @@ const useSettingsConfig = () => {
         name: t("Groups"),
         path: settingsPath("groups"),
         component: Groups,
-        enabled: true,
+        enabled: can.listGroups,
         group: t("Workspace"),
         icon: GroupIcon,
       },
@@ -138,7 +140,7 @@ const useSettingsConfig = () => {
         name: t("Templates"),
         path: settingsPath("templates"),
         component: Templates,
-        enabled: true,
+        enabled: can.update,
         group: t("Workspace"),
         icon: ShapesIcon,
       },
@@ -146,7 +148,7 @@ const useSettingsConfig = () => {
         name: t("Shared Links"),
         path: settingsPath("shares"),
         component: Shares,
-        enabled: true,
+        enabled: can.listShares,
         group: t("Workspace"),
         icon: GlobeIcon,
       },
@@ -211,7 +213,7 @@ const useSettingsConfig = () => {
         enabled:
           enabledInDeployment &&
           hasSettings &&
-          (plugin.config.adminOnly === false || can.update),
+          (plugin.config.roles?.includes(user.role) || can.update),
         icon: plugin.icon,
       } as ConfigItem;
 

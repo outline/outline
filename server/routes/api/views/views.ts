@@ -23,7 +23,7 @@ router.post(
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });
-    authorize(user, "read", document);
+    authorize(user, "listViews", document);
 
     if (!document.insightsEnabled) {
       throw ValidationError("Insights are not enabled for this document");
