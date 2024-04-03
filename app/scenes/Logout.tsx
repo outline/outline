@@ -5,11 +5,13 @@ import useStores from "~/hooks/useStores";
 
 const Logout = () => {
   const { auth } = useStores();
-  void auth.logout();
-  if (env.OIDC_LOGOUT_URI) {
-    window.location.replace(env.OIDC_LOGOUT_URI);
-    return null;
-  }
+
+  void auth.logout().then(() => {
+    if (env.OIDC_LOGOUT_URI) {
+      window.location.replace(env.OIDC_LOGOUT_URI);
+    }
+  });
+
   return <Redirect to="/" />;
 };
 
