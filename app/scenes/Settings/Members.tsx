@@ -22,6 +22,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import PeopleTable from "./components/PeopleTable";
+import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
 
 function Members() {
@@ -39,6 +40,7 @@ function Members() {
   const can = usePolicy(team);
   const query = params.get("query") || undefined;
   const filter = params.get("filter") || undefined;
+  const role = params.get("role") || undefined;
   const sort = params.get("sort") || "name";
   const direction = (params.get("direction") || "asc").toUpperCase() as
     | "ASC"
@@ -58,6 +60,7 @@ function Members() {
           direction,
           query,
           filter,
+          role,
         });
         setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
         setUserIds(response.map((u: User) => u.id));
@@ -67,7 +70,7 @@ function Members() {
     };
 
     void fetchData();
-  }, [query, sort, filter, page, direction, users, users.counts.all]);
+  }, [query, sort, filter, role, page, direction, users, users.counts.all]);
 
   React.useEffect(() => {
     let filtered = users.orderedData;
@@ -76,39 +79,52 @@ function Members() {
       filtered = users.active.filter((u) => userIds.includes(u.id));
     } else if (filter === "all") {
       filtered = users.orderedData.filter((u) => userIds.includes(u.id));
-    } else if (filter === "admins") {
-      filtered = users.admins.filter((u) => userIds.includes(u.id));
-    } else if (filter === "members") {
-      filtered = users.members.filter((u) => userIds.includes(u.id));
     } else if (filter === "suspended") {
       filtered = users.suspended.filter((u) => userIds.includes(u.id));
     } else if (filter === "invited") {
       filtered = users.invited.filter((u) => userIds.includes(u.id));
-    } else if (filter === "viewers") {
-      filtered = users.viewers.filter((u) => userIds.includes(u.id));
+    }
+
+    if (role) {
+      filtered = filtered.filter((u) => u.role === role);
     }
 
     // sort the resulting data by the original order from the server
     setData(sortBy(filtered, (item) => userIds.indexOf(item.id)));
   }, [
     filter,
+    role,
     users.active,
-    users.admins,
-    users.members,
     users.orderedData,
     users.suspended,
     users.invited,
-    users.viewers,
     userIds,
   ]);
 
-  const handleFilter = React.useCallback(
-    (filter) => {
-      if (filter) {
-        params.set("filter", filter);
+  const handleStatusFilter = React.useCallback(
+    (f) => {
+      if (f) {
+        params.set("filter", f);
         params.delete("page");
       } else {
         params.delete("filter");
+      }
+
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+    },
+    [params, history, location.pathname]
+  );
+
+  const handleRoleFilter = React.useCallback(
+    (r) => {
+      if (r) {
+        params.set("role", r);
+        params.delete("page");
+      } else {
+        params.delete("role");
       }
 
       history.replace({
@@ -182,7 +198,11 @@ function Members() {
         />
         <LargeUserStatusFilter
           activeKey={filter ?? ""}
-          onSelect={handleFilter}
+          onSelect={handleStatusFilter}
+        />
+        <LargeUserRoleFilter
+          activeKey={role ?? ""}
+          onSelect={handleRoleFilter}
         />
       </Flex>
       <PeopleTable
@@ -199,6 +219,10 @@ function Members() {
 }
 
 const LargeUserStatusFilter = styled(UserStatusFilter)`
+  height: 32px;
+`;
+
+const LargeUserRoleFilter = styled(UserRoleFilter)`
   height: 32px;
 `;
 
