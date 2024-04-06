@@ -47,7 +47,6 @@ import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
 import Model from "@server/models/base/Model";
-import CleanupDemotedUserTask from "@server/queues/tasks/CleanupDemotedUserTask";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
@@ -672,8 +671,6 @@ class User extends ParanoidModel<
           },
         }
       );
-
-      await CleanupDemotedUserTask.schedule({ userId: model.id });
     }
   }
 
