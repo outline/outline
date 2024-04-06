@@ -1,8 +1,8 @@
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import { UserPreference, UserRole } from "@shared/types";
+import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { UserValidation } from "@shared/validations";
-import userDemoter from "@server/commands/userDemoter";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
@@ -255,91 +255,123 @@ router.post(
 );
 
 // Admin specific
+
+/**
+ * Promote a user to an admin.
+ *
+ * @deprecated Use `users.updateRole` instead.
+ */
 router.post(
   "users.promote",
-  auth(),
+  auth({ admin: true }),
   validate(T.UsersPromoteSchema),
   transaction(),
-  async (ctx: APIContext<T.UsersPromoteReq>) => {
-    const { transaction } = ctx.state;
-    const userId = ctx.input.body.id;
-    const actor = ctx.state.auth.user;
-    const teamId = actor.teamId;
-    const user = await User.findByPk(userId, {
-      rejectOnEmpty: true,
-      transaction,
-      lock: transaction.LOCK.UPDATE,
-    });
-    authorize(actor, "promote", user);
-
-    await user.promote({
-      transaction,
-    });
-    await Event.create(
-      {
-        name: "users.promote",
-        actorId: actor.id,
-        userId,
-        teamId,
-        data: {
-          name: user.name,
-        },
-        ip: ctx.request.ip,
+  (ctx: APIContext<T.UsersPromoteReq>) => {
+    const forward = ctx as unknown as APIContext<T.UsersChangeRoleReq>;
+    forward.input = {
+      body: {
+        id: ctx.input.body.id,
+        role: UserRole.Admin,
       },
-      {
-        transaction,
-      }
-    );
-    const includeDetails = can(actor, "readDetails", user);
-
-    ctx.body = {
-      data: presentUser(user, {
-        includeDetails,
-      }),
-      policies: presentPolicies(actor, [user]),
     };
+
+    return updateRole(forward);
+  }
+);
+
+/**
+ * Demote a user to another role.
+ *
+ * @deprecated Use `users.updateRole` instead.
+ */
+router.post(
+  "users.demote",
+  auth({ admin: true }),
+  validate(T.UsersDemoteSchema),
+  transaction(),
+  (ctx: APIContext<T.UsersDemoteReq>) => {
+    const forward = ctx as unknown as APIContext<T.UsersChangeRoleReq>;
+    forward.input = {
+      body: {
+        id: ctx.input.body.id,
+        role: ctx.input.body.to,
+      },
+    };
+
+    return updateRole(forward);
   }
 );
 
 router.post(
-  "users.demote",
-  auth(),
-  validate(T.UsersDemoteSchema),
+  "users.updateRole",
+  auth({ admin: true }),
+  validate(T.UsersChangeRoleSchema),
   transaction(),
-  async (ctx: APIContext<T.UsersDemoteReq>) => {
-    const { transaction } = ctx.state;
-    const { to, id: userId } = ctx.input.body;
-    const actor = ctx.state.auth.user;
-
-    const user = await User.findByPk(userId, {
-      rejectOnEmpty: true,
-      transaction,
-      lock: transaction.LOCK.UPDATE,
-    });
-    authorize(actor, "demote", user);
-
-    await Team.findByPk(user.teamId, {
-      transaction,
-      lock: transaction.LOCK.UPDATE,
-    });
-
-    await userDemoter({
-      to,
-      user,
-      actorId: actor.id,
-      transaction,
-      ip: ctx.request.ip,
-    });
-    const includeDetails = can(actor, "readDetails", user);
-
-    ctx.body = {
-      data: presentUser(user, {
-        includeDetails,
-      }),
-      policies: presentPolicies(actor, [user]),
-    };
-  }
+  updateRole
 );
+
+async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
+  const { transaction } = ctx.state;
+  const userId = ctx.input.body.id;
+  const role = ctx.input.body.role;
+  const actor = ctx.state.auth.user;
+
+  const user = await User.findByPk(userId, {
+    rejectOnEmpty: true,
+    transaction,
+    lock: transaction.LOCK.UPDATE,
+  });
+  await Team.findByPk(user.teamId, {
+    transaction,
+    lock: transaction.LOCK.UPDATE,
+  });
+
+  let name;
+
+  if (user.role === role) {
+    throw ValidationError("User is already in that role");
+  }
+  if (user.id === actor.id) {
+    throw ValidationError("You cannot change your own role");
+  }
+
+  if (UserRoleHelper.canDemote(user, role)) {
+    name = "users.demote";
+    authorize(actor, "demote", user);
+  }
+  if (UserRoleHelper.canPromote(user, role)) {
+    name = "users.promote";
+    authorize(actor, "promote", user);
+  }
+
+  await user.update({ role }, { transaction });
+
+  await Event.create(
+    {
+      name,
+      userId,
+      actorId: actor.id,
+      teamId: actor.teamId,
+      data: {
+        name: user.name,
+        role,
+      },
+      ip: ctx.request.ip,
+    },
+    {
+      transaction,
+    }
+  );
+
+  const includeDetails = can(actor, "readDetails", user);
+
+  ctx.body = {
+    data: presentUser(user, {
+      includeDetails,
+    }),
+    policies: presentPolicies(actor, [user]),
+  };
+}
 
 router.post(
   "users.suspend",
