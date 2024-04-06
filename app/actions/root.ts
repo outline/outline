@@ -6,6 +6,7 @@ import { rootNotificationActions } from "./definitions/notifications";
 import { rootRevisionActions } from "./definitions/revisions";
 import { rootSettingsActions } from "./definitions/settings";
 import { rootTeamActions } from "./definitions/teams";
+import { rootTrashActions } from "./definitions/trash";
 import { rootUserActions } from "./definitions/users";
 
 export default [
@@ -18,4 +19,5 @@ export default [
   ...rootSettingsActions,
   ...rootDeveloperActions,
   ...rootTeamActions,
+  ...rootTrashActions,
 ];

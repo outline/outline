@@ -4345,3 +4345,77 @@ describe("#documents.memberships", () => {
     expect(body.data.users[0].id).toEqual(members[1].id);
   });
 });
+
+describe("#documents.empty_trash", () => {
+  it("should require authentication", async () => {
+    const document = await buildDocument();
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+  it("should allow admin users", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: user.getJwtToken(),
+        ids: [],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+  });
+  it("should not allow non-admin users", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: user.getJwtToken(),
+        ids: [],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+  it("should require ids", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("ids: Required");
+  });
+  it("should permanently delete documents", async () => {
+    const user = await buildAdmin();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await document.delete(user.id);
+
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: user.getJwtToken(),
+        ids: [document.id],
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const deletedDoc = await Document.findByPk(document.id, {
+      userId: user.id,
+      paranoid: false,
+    });
+    expect(deletedDoc).toBeNull();
+  });
+});

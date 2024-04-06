@@ -409,3 +409,11 @@ export const DocumentsMembershipsSchema = BaseSchema.extend({
 export type DocumentsMembershipsReq = z.infer<
   typeof DocumentsMembershipsSchema
 >;
+
+export const DocumentsEmptyTrashSchema = BaseSchema.extend({
+  body: z.object({
+    ids: z.array(z.string()),
+  }),
+});
+
+export type DocumentsEmptyTrashReq = z.infer<typeof DocumentsEmptyTrashSchema>;

@@ -2,19 +2,35 @@ import { observer } from "mobx-react";
 import { TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import Button from "~/components/Button";
 import Empty from "~/components/Empty";
+import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
+import { permanentlyDeleteDocumentsInTrash } from "~/actions/definitions/trash";
+import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
 
 function Trash() {
   const { t } = useTranslation();
   const { documents } = useStores();
+  const context = useActionContext();
   return (
     <Scene icon={<TrashIcon />} title={t("Trash")}>
-      <Heading>{t("Trash")}</Heading>
+      <Flex align="baseline" justify="space-between">
+        <Heading>{t("Trash")}</Heading>
+        {documents.deleted.length > 0 && (
+          <Button
+            neutral
+            action={permanentlyDeleteDocumentsInTrash}
+            context={context}
+          >
+            Empty
+          </Button>
+        )}
+      </Flex>
       <PaginatedDocumentList
         documents={documents.deleted}
         fetch={documents.fetchDeleted}

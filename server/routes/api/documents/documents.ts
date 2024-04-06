@@ -1701,4 +1701,48 @@ router.post(
   }
 );
 
+router.post(
+  "documents.empty_trash",
+  auth({ admin: true }),
+  validate(T.DocumentsEmptyTrashSchema),
+  async (ctx: APIContext<T.DocumentsEmptyTrashReq>) => {
+    const { user } = ctx.state.auth;
+    const { ids } = ctx.input.body;
+    const documents = await Document.scope(["withDrafts"]).findAll({
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+      paranoid: false,
+    });
+
+    const documentIds = documents.map((document) => document.id);
+    await Document.update(
+      {
+        parentDocumentId: null,
+      },
+      {
+        where: {
+          parentDocumentId: {
+            [Op.in]: documentIds,
+          },
+        },
+        paranoid: false,
+      }
+    );
+    await documentPermanentDeleter(documents);
+    await Event.create({
+      name: "documents.empty_trash",
+      teamId: user.teamId,
+      actorId: user.id,
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
 export default router;

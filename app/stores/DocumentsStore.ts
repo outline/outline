@@ -764,6 +764,17 @@ export default class DocumentsStore extends Store<Document> {
     });
   };
 
+  @action
+  emptyTrash = async () => {
+    const documentIds = this.deleted.map((doc) => doc.id);
+    await client.post("/documents.empty_trash", {
+      ids: documentIds,
+    });
+
+    const documentIdsSet = new Set(documentIds);
+    this.removeAll((doc: Document) => documentIdsSet.has(doc.id));
+  };
+
   star = (document: Document, index?: string) =>
     this.rootStore.stars.create({
       documentId: document.id,
