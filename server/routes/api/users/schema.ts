@@ -110,6 +110,14 @@ export const UsersActivateSchema = BaseSchema.extend({
 
 export type UsersActivateReq = z.infer<typeof UsersActivateSchema>;
 
+export const UsersChangeRoleSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    role: z.nativeEnum(UserRole),
+  }),
+});
+
+export type UsersChangeRoleReq = z.infer<typeof UsersChangeRoleSchema>;
+
 export const UsersPromoteSchema = BaseSchema.extend({
   body: BaseIdSchema,
 });
@@ -117,8 +125,7 @@ export const UsersPromoteSchema = BaseSchema.extend({
 export type UsersPromoteReq = z.infer<typeof UsersPromoteSchema>;
 
 export const UsersDemoteSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     to: z.nativeEnum(UserRole).default(UserRole.Member),
   }),
 });

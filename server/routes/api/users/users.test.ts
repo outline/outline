@@ -555,6 +555,55 @@ describe("#users.update", () => {
   });
 });
 
+describe("#users.updateRole", () => {
+  it("should promote", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/users.updateRole", {
+      body: {
+        token: admin.getJwtToken(),
+        id: user.id,
+        role: UserRole.Admin,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect((await user.reload()).role).toEqual(UserRole.Admin);
+  });
+
+  it("should demote", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/users.updateRole", {
+      body: {
+        token: admin.getJwtToken(),
+        id: user.id,
+        role: UserRole.Viewer,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect((await user.reload()).role).toEqual(UserRole.Viewer);
+  });
+
+  it("should error on same role", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/users.updateRole", {
+      body: {
+        token: admin.getJwtToken(),
+        id: user.id,
+        role: UserRole.Admin,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+});
+
 describe("#users.promote", () => {
   it("should promote a new admin", async () => {
     const team = await buildTeam();
@@ -631,6 +680,7 @@ describe("#users.demote", () => {
 
   it("should not allow demoting self", async () => {
     const admin = await buildAdmin();
+    await buildAdmin({ teamId: admin.teamId });
     const res = await server.post("/api/users.demote", {
       body: {
         token: admin.getJwtToken(),
