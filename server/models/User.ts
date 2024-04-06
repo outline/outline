@@ -46,7 +46,6 @@ import {
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
-import Model from "@server/models/base/Model";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
@@ -568,29 +567,6 @@ class User extends ParanoidModel<
         },
       ],
     });
-
-  /**
-   * Downgrades the user to a lower role.
-   *
-   * @param to The role to demote the user to
-   * @param options Save options
-   * @deprecated Set `role` on the model instead
-   */
-  demote: (
-    to: UserRole,
-    options?: InstanceUpdateOptions<InferAttributes<Model>>
-  ) => Promise<User> = (to, options) => this.update({ role: to }, options);
-
-  /**
-   * Promotes the user to an admin
-   *
-   * @param options Save options
-   * @deprecated Set `role` on the model instead
-   */
-  promote: (
-    options?: InstanceUpdateOptions<InferAttributes<User>>
-  ) => Promise<User> = (options) =>
-    this.update({ role: UserRole.Admin }, options);
 
   // hooks
 
