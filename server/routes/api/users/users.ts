@@ -259,7 +259,7 @@ router.post(
 /**
  * Promote a user to an admin.
  *
- * @deprecated Use `users.updateRole` instead.
+ * @deprecated Use `users.update_role` instead.
  */
 router.post(
   "users.promote",
@@ -282,7 +282,7 @@ router.post(
 /**
  * Demote a user to another role.
  *
- * @deprecated Use `users.updateRole` instead.
+ * @deprecated Use `users.update_role` instead.
  */
 router.post(
   "users.demote",
@@ -303,7 +303,7 @@ router.post(
 );
 
 router.post(
-  "users.updateRole",
+  "users.update_role",
   auth({ admin: true }),
   validate(T.UsersChangeRoleSchema),
   transaction(),

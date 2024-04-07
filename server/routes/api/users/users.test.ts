@@ -555,13 +555,13 @@ describe("#users.update", () => {
   });
 });
 
-describe("#users.updateRole", () => {
+describe("#users.update_role", () => {
   it("should promote", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const user = await buildUser({ teamId: team.id });
 
-    const res = await server.post("/api/users.updateRole", {
+    const res = await server.post("/api/users.update_role", {
       body: {
         token: admin.getJwtToken(),
         id: user.id,
@@ -577,7 +577,7 @@ describe("#users.updateRole", () => {
     const admin = await buildAdmin({ teamId: team.id });
     const user = await buildAdmin({ teamId: team.id });
 
-    const res = await server.post("/api/users.updateRole", {
+    const res = await server.post("/api/users.update_role", {
       body: {
         token: admin.getJwtToken(),
         id: user.id,
@@ -593,7 +593,7 @@ describe("#users.updateRole", () => {
     const admin = await buildAdmin({ teamId: team.id });
     const user = await buildAdmin({ teamId: team.id });
 
-    const res = await server.post("/api/users.updateRole", {
+    const res = await server.post("/api/users.update_role", {
       body: {
         token: admin.getJwtToken(),
         id: user.id,
