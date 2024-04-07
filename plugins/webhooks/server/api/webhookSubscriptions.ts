@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import compact from "lodash/compact";
 import isEmpty from "lodash/isEmpty";
+import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { WebhookSubscription, Event } from "@server/models";
@@ -14,7 +15,7 @@ const router = new Router();
 
 router.post(
   "webhookSubscriptions.list",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   pagination(),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
@@ -37,7 +38,7 @@ router.post(
 
 router.post(
   "webhookSubscriptions.create",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.WebhookSubscriptionsCreateSchema),
   async (ctx: APIContext<T.WebhookSubscriptionsCreateReq>) => {
     const { user } = ctx.state.auth;
@@ -78,7 +79,7 @@ router.post(
 
 router.post(
   "webhookSubscriptions.delete",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.WebhookSubscriptionsDeleteSchema),
   async (ctx: APIContext<T.WebhookSubscriptionsDeleteReq>) => {
     const { id } = ctx.input.body;
@@ -111,7 +112,7 @@ router.post(
 
 router.post(
   "webhookSubscriptions.update",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.WebhookSubscriptionsUpdateSchema),
   async (ctx: APIContext<T.WebhookSubscriptionsUpdateReq>) => {
     const { id, name, url, secret } = ctx.input.body;

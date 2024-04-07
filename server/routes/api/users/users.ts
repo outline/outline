@@ -263,7 +263,7 @@ router.post(
  */
 router.post(
   "users.promote",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.UsersPromoteSchema),
   transaction(),
   (ctx: APIContext<T.UsersPromoteReq>) => {
@@ -286,7 +286,7 @@ router.post(
  */
 router.post(
   "users.demote",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.UsersDemoteSchema),
   transaction(),
   (ctx: APIContext<T.UsersDemoteReq>) => {
@@ -304,7 +304,7 @@ router.post(
 
 router.post(
   "users.update_role",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.UsersChangeRoleSchema),
   transaction(),
   updateRole
