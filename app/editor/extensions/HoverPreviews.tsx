@@ -54,7 +54,9 @@ export default class HoverPreviews extends Extension {
 
                     const url =
                       element?.getAttribute("href") || element?.dataset.url;
-                    const documentId = window.location.pathname.split("/")[2];
+                    const documentId = window.location.pathname
+                      .split("/")
+                      .pop();
 
                     if (url) {
                       try {
