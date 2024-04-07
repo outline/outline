@@ -4,21 +4,12 @@ import deburr from "lodash/deburr";
 import differenceWith from "lodash/differenceWith";
 import filter from "lodash/filter";
 import orderBy from "lodash/orderBy";
-import { observable, computed, action, runInAction } from "mobx";
-import { type JSONObject, UserRole } from "@shared/types";
+import { computed, action, runInAction } from "mobx";
+import { UserRole } from "@shared/types";
 import User from "~/models/User";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
-
-type UserCounts = {
-  active: number;
-  admins: number;
-  all: number;
-  invited: number;
-  suspended: number;
-  viewers: number;
-};
 
 export default class UsersStore extends Store<User> {
   actions = [
@@ -29,16 +20,6 @@ export default class UsersStore extends Store<User> {
     RPCAction.Delete,
     RPCAction.Count,
   ];
-
-  @observable
-  counts: UserCounts = {
-    active: 0,
-    admins: 0,
-    all: 0,
-    invited: 0,
-    suspended: 0,
-    viewers: 0,
-  };
 
   constructor(rootStore: RootStore) {
     super(rootStore, User);
@@ -98,47 +79,18 @@ export default class UsersStore extends Store<User> {
   }
 
   @action
-  promote = async (user: User) => {
-    try {
-      this.updateCounts(UserRole.Admin, user.role);
-      await this.actionOnUser("promote", user);
-    } catch (_e) {
-      this.updateCounts(user.role, UserRole.Admin);
-    }
-  };
-
-  @action
-  demote = async (user: User, to: UserRole) => {
-    try {
-      this.updateCounts(to, user.role);
-      await this.actionOnUser("demote", user, to);
-    } catch (_e) {
-      this.updateCounts(user.role, to);
-    }
+  updateRole = async (user: User, role: UserRole) => {
+    await this.actionOnUser("update_role", user, role);
   };
 
   @action
   suspend = async (user: User) => {
-    try {
-      this.counts.suspended += 1;
-      this.counts.active -= 1;
-      await this.actionOnUser("suspend", user);
-    } catch (_e) {
-      this.counts.suspended -= 1;
-      this.counts.active += 1;
-    }
+    await this.actionOnUser("suspend", user);
   };
 
   @action
   activate = async (user: User) => {
-    try {
-      this.counts.suspended -= 1;
-      this.counts.active += 1;
-      await this.actionOnUser("activate", user);
-    } catch (_e) {
-      this.counts.suspended += 1;
-      this.counts.active -= 1;
-    }
+    await this.actionOnUser("activate", user);
   };
 
   @action
@@ -155,8 +107,6 @@ export default class UsersStore extends Store<User> {
     invariant(res?.data, "Data should be available");
     runInAction(`invite`, () => {
       res.data.users.forEach(this.add);
-      this.counts.invited += res.data.sent.length;
-      this.counts.all += res.data.sent.length;
     });
     return res.data;
   };
@@ -166,20 +116,6 @@ export default class UsersStore extends Store<User> {
     client.post(`/users.resendInvite`, {
       id: user.id,
     });
-
-  @action
-  fetchCounts = async (
-    teamId: string
-  ): Promise<{
-    counts: UserCounts;
-  }> => {
-    const res = await client.post(`/≈`, {
-      teamId,
-    });
-    invariant(res?.data, "Data should be available");
-    this.counts = res.data.counts;
-    return res.data;
-  };
 
   @action
   fetchDocumentUsers = async (params: {
@@ -197,62 +133,6 @@ export default class UsersStore extends Store<User> {
       return response;
     } catch (err) {
       return Promise.resolve([]);
-    }
-  };
-
-  @action
-  async delete(user: User, options: JSONObject = {}) {
-    await super.delete(user, options);
-
-    if (!user.isSuspended && user.lastActiveAt) {
-      this.counts.active -= 1;
-    }
-
-    if (user.isInvited) {
-      this.counts.invited -= 1;
-    }
-
-    if (user.isAdmin) {
-      this.counts.admins -= 1;
-    }
-
-    if (user.isSuspended) {
-      this.counts.suspended -= 1;
-    }
-
-    if (user.isViewer) {
-      this.counts.viewers -= 1;
-    }
-
-    this.counts.all -= 1;
-  }
-
-  @action
-  updateCounts = (to: UserRole, from: UserRole) => {
-    if (to === UserRole.Admin) {
-      this.counts.admins += 1;
-
-      if (from === UserRole.Viewer) {
-        this.counts.viewers -= 1;
-      }
-    }
-
-    if (to === UserRole.Viewer) {
-      this.counts.viewers += 1;
-
-      if (from === UserRole.Admin) {
-        this.counts.admins -= 1;
-      }
-    }
-
-    if (to === UserRole.Member) {
-      if (from === UserRole.Viewer) {
-        this.counts.viewers -= 1;
-      }
-
-      if (from === UserRole.Admin) {
-        this.counts.admins -= 1;
-      }
     }
   };
 
@@ -318,10 +198,10 @@ export default class UsersStore extends Store<User> {
     return queriedUsers(users, query);
   };
 
-  actionOnUser = async (action: string, user: User, to?: UserRole) => {
+  actionOnUser = async (action: string, user: User, role?: UserRole) => {
     const res = await client.post(`/users.${action}`, {
       id: user.id,
-      to,
+      role,
     });
     invariant(res?.data, "Data should be available");
     runInAction(`UsersStore#${action}`, () => {

@@ -168,17 +168,6 @@ router.post(
   }
 );
 
-router.post("users.count", auth(), async (ctx: APIContext) => {
-  const { user } = ctx.state.auth;
-  const counts = await User.getCounts(user.teamId);
-
-  ctx.body = {
-    data: {
-      counts,
-    },
-  };
-});
-
 router.post(
   "users.info",
   auth(),

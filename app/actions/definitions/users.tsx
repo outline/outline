@@ -1,8 +1,13 @@
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { UserRole } from "@shared/types";
+import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import stores from "~/stores";
 import Invite from "~/scenes/Invite";
-import { UserDeleteDialog } from "~/components/UserDialogs";
+import {
+  UserChangeRoleDialog,
+  UserDeleteDialog,
+} from "~/components/UserDialogs";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
 
@@ -21,6 +26,48 @@ export const inviteUser = createAction({
     });
   },
 });
+
+export const updateUserRoleActionFactory = (userId: string, role: UserRole) =>
+  createAction({
+    name: ({ t }) => {
+      const user = stores.users.get(userId);
+
+      return UserRoleHelper.isRoleHigher(role, user!.role)
+        ? `${t("Promote to {{ role }}", { role })}…`
+        : `${t("Demote to {{ role }}", { role })}…`;
+    },
+    analyticsName: "Update user role",
+    section: UserSection,
+    visible: ({ stores }) => {
+      const can = stores.policies.abilities(userId);
+      const user = stores.users.get(userId);
+      if (!user) {
+        return false;
+      }
+      return UserRoleHelper.isRoleHigher(role, user.role)
+        ? can.promote
+        : UserRoleHelper.isRoleLower(role, user.role)
+        ? can.demote
+        : false;
+    },
+    perform: ({ t }) => {
+      const user = stores.users.get(userId);
+      if (!user) {
+        return;
+      }
+
+      stores.dialogs.openModal({
+        title: t("Update role"),
+        content: (
+          <UserChangeRoleDialog
+            user={user}
+            role={role}
+            onSubmit={stores.dialogs.closeAllModals}
+          />
+        ),
+      });
+    },
+  });
 
 export const deleteUserActionFactory = (userId: string) =>
   createAction({
