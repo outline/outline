@@ -62,12 +62,12 @@ function HoverPreviewDesktop({ element, data, onClose }: Props) {
 
   // Open and close the preview when the element changes.
   React.useEffect(() => {
-    if (element) {
+    if (element && data) {
       setVisible(true);
     } else {
       startCloseTimer();
     }
-  }, [startCloseTimer, element]);
+  }, [startCloseTimer, element, data]);
 
   // Close the preview on Escape, scroll, or click outside.
   useOnClickOutside(cardRef, closePreview);
