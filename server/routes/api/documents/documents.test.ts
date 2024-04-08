@@ -4348,12 +4348,7 @@ describe("#documents.memberships", () => {
 
 describe("#documents.empty_trash", () => {
   it("should require authentication", async () => {
-    const document = await buildDocument();
-    const res = await server.post("/api/documents.empty_trash", {
-      body: {
-        id: document.id,
-      },
-    });
+    const res = await server.post("/api/documents.empty_trash");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
@@ -4363,7 +4358,6 @@ describe("#documents.empty_trash", () => {
     const res = await server.post("/api/documents.empty_trash", {
       body: {
         token: user.getJwtToken(),
-        ids: [],
       },
     });
     const body = await res.json();
@@ -4375,23 +4369,11 @@ describe("#documents.empty_trash", () => {
     const res = await server.post("/api/documents.empty_trash", {
       body: {
         token: user.getJwtToken(),
-        ids: [],
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
-  });
-  it("should require ids", async () => {
-    const user = await buildAdmin();
-    const res = await server.post("/api/documents.empty_trash", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(400);
-    expect(body.message).toEqual("ids: Required");
   });
   it("should permanently delete documents", async () => {
     const user = await buildAdmin();
@@ -4404,7 +4386,6 @@ describe("#documents.empty_trash", () => {
     const res = await server.post("/api/documents.empty_trash", {
       body: {
         token: user.getJwtToken(),
-        ids: [document.id],
       },
     });
 

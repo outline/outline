@@ -1213,17 +1213,6 @@ router.post(
       });
       authorize(user, "permanentDelete", document);
 
-      await Document.update(
-        {
-          parentDocumentId: null,
-        },
-        {
-          where: {
-            parentDocumentId: document.id,
-          },
-          paranoid: false,
-        }
-      );
       await documentPermanentDeleter([document]);
       await Event.create({
         name: "documents.permanent_delete",
@@ -1703,34 +1692,45 @@ router.post(
 
 router.post(
   "documents.empty_trash",
-  auth({ admin: true }),
-  validate(T.DocumentsEmptyTrashSchema),
-  async (ctx: APIContext<T.DocumentsEmptyTrashReq>) => {
+  auth({ role: UserRole.Admin }),
+  async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
-    const { ids } = ctx.input.body;
-    const documents = await Document.scope(["withDrafts"]).findAll({
+
+    const collectionIds = await user.collectionIds({
+      paranoid: false,
+    });
+    const collectionScope: Readonly<ScopeOptions> = {
+      method: ["withCollectionPermissions", user.id],
+    };
+    const viewScope: Readonly<ScopeOptions> = {
+      method: ["withViews", user.id],
+    };
+    const documents = await Document.scope([
+      collectionScope,
+      viewScope,
+      "withDrafts",
+    ]).findAll({
       where: {
-        id: {
-          [Op.in]: ids,
+        deletedAt: {
+          [Op.ne]: null,
         },
+        [Op.or]: [
+          {
+            collectionId: {
+              [Op.in]: collectionIds,
+            },
+          },
+          {
+            createdById: user.id,
+            collectionId: {
+              [Op.is]: null,
+            },
+          },
+        ],
       },
       paranoid: false,
     });
 
-    const documentIds = documents.map((document) => document.id);
-    await Document.update(
-      {
-        parentDocumentId: null,
-      },
-      {
-        where: {
-          parentDocumentId: {
-            [Op.in]: documentIds,
-          },
-        },
-        paranoid: false,
-      }
-    );
     await documentPermanentDeleter(documents);
     await Event.create({
       name: "documents.empty_trash",

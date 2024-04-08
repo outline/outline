@@ -7,7 +7,7 @@ import { trashPath } from "~/utils/routeHelpers";
 
 export const permanentlyDeleteDocumentsInTrash = createAction({
   name: ({ t }) => t("Empty"),
-  analyticsName: "Permanently delete all documents in Trash",
+  analyticsName: "Empty Trash",
   section: TrashSection,
   icon: <TrashIcon />,
   dangerous: true,

@@ -766,12 +766,9 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   emptyTrash = async () => {
-    const documentIds = this.deleted.map((doc) => doc.id);
-    await client.post("/documents.empty_trash", {
-      ids: documentIds,
-    });
+    await client.post("/documents.empty_trash");
 
-    const documentIdsSet = new Set(documentIds);
+    const documentIdsSet = new Set(this.deleted.map((doc) => doc.id));
     this.removeAll((doc: Document) => documentIdsSet.has(doc.id));
   };
 
