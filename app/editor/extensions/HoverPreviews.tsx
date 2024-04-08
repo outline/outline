@@ -16,14 +16,16 @@ export default class HoverPreviews extends Extension {
   state: {
     activeLinkElement: HTMLElement | null;
     data: Record<string, any> | null;
+    dataLoading: boolean;
   } = observable({
     activeLinkElement: null,
     data: null,
+    dataLoading: false,
   });
 
   get defaultOptions(): HoverPreviewsOptions {
     return {
-      delay: 500,
+      delay: 600,
     };
   }
 
@@ -59,6 +61,7 @@ export default class HoverPreviews extends Extension {
                       .pop();
 
                     if (url) {
+                      this.state.dataLoading = true;
                       try {
                         const data = await client.post("/urls.unfurl", {
                           url: url.startsWith("/") ? env.URL + url : url,
@@ -68,6 +71,8 @@ export default class HoverPreviews extends Extension {
                         this.state.data = data;
                       } catch (err) {
                         this.state.activeLinkElement = null;
+                      } finally {
+                        this.state.dataLoading = false;
                       }
                     }
                   }),
@@ -96,6 +101,7 @@ export default class HoverPreviews extends Extension {
     <HoverPreview
       element={this.state.activeLinkElement}
       data={this.state.data}
+      dataLoading={this.state.dataLoading}
       onClose={action(() => {
         this.state.activeLinkElement = null;
       })}

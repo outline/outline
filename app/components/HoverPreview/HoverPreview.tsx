@@ -8,6 +8,7 @@ import useEventListener from "~/hooks/useEventListener";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
+import LoadingIndicator from "../LoadingIndicator";
 import { CARD_MARGIN } from "./Components";
 import HoverPreviewDocument from "./HoverPreviewDocument";
 import HoverPreviewIssue from "./HoverPreviewIssue";
@@ -24,6 +25,8 @@ type Props = {
   element: HTMLElement | null;
   /** Data to be previewed */
   data: Record<string, any> | null;
+  /** Whether the preview data is being loaded */
+  dataLoading: boolean;
   /** A callback on close of the hover preview. */
   onClose: () => void;
 };
@@ -33,10 +36,10 @@ enum Direction {
   DOWN,
 }
 
-function HoverPreviewDesktop({ element, data, onClose }: Props) {
+function HoverPreviewDesktop({ element, data, dataLoading, onClose }: Props) {
   const [isVisible, setVisible] = React.useState(false);
   const timerClose = React.useRef<ReturnType<typeof setTimeout>>();
-  const cardRef = React.useRef<HTMLDivElement>(null);
+  const cardRef = React.useRef<HTMLDivElement | null>(null);
   const { cardLeft, cardTop, pointerLeft, pointerTop, pointerDir } =
     useHoverPosition({
       cardRef,
@@ -62,12 +65,12 @@ function HoverPreviewDesktop({ element, data, onClose }: Props) {
 
   // Open and close the preview when the element changes.
   React.useEffect(() => {
-    if (element && data) {
+    if (element && data && !dataLoading) {
       setVisible(true);
     } else {
       startCloseTimer();
     }
-  }, [startCloseTimer, element, data]);
+  }, [startCloseTimer, element, data, dataLoading]);
 
   // Close the preview on Escape, scroll, or click outside.
   useOnClickOutside(cardRef, closePreview);
@@ -94,6 +97,10 @@ function HoverPreviewDesktop({ element, data, onClose }: Props) {
       stopCloseTimer();
     };
   }, [element, startCloseTimer, isVisible, stopCloseTimer]);
+
+  if (dataLoading) {
+    return <LoadingIndicator />;
+  }
 
   if (!data) {
     return null;
@@ -172,13 +179,20 @@ function HoverPreviewDesktop({ element, data, onClose }: Props) {
   );
 }
 
-function HoverPreview({ element, data, ...rest }: Props) {
+function HoverPreview({ element, data, dataLoading, ...rest }: Props) {
   const isMobile = useMobile();
   if (isMobile) {
     return null;
   }
 
-  return <HoverPreviewDesktop {...rest} element={element} data={data} />;
+  return (
+    <HoverPreviewDesktop
+      {...rest}
+      element={element}
+      data={data}
+      dataLoading={dataLoading}
+    />
+  );
 }
 
 function useHoverPosition({
