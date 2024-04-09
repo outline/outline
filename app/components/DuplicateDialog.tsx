@@ -19,8 +19,16 @@ function DuplicateDialog({ document, onSubmit }: Props) {
   const defaultTitle = t(`Copy of {{ documentName }}`, {
     documentName: document.title,
   });
+  const [draft, setDraft] = React.useState<boolean>(false);
   const [recursive, setRecursive] = React.useState<boolean>(true);
   const [title, setTitle] = React.useState<string>(defaultTitle);
+
+  const handleDraftChange = React.useCallback(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      setDraft(ev.target.checked);
+    },
+    []
+  );
 
   const handleRecursiveChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,6 +46,7 @@ function DuplicateDialog({ document, onSubmit }: Props) {
 
   const handleSubmit = async () => {
     const result = await document.duplicate({
+      publish: !draft,
       recursive,
       title,
     });
@@ -56,15 +65,26 @@ function DuplicateDialog({ document, onSubmit }: Props) {
         defaultValue={defaultTitle}
       />
       {document.publishedAt && !document.isTemplate && (
-        <Text size="small">
-          <Switch
-            name="recursive"
-            label={t("Include nested documents")}
-            labelPosition="right"
-            checked={recursive}
-            onChange={handleRecursiveChange}
-          />
-        </Text>
+        <>
+          <Text size="small">
+            <Switch
+              name="draft"
+              label={t("As draft")}
+              labelPosition="right"
+              checked={draft}
+              onChange={handleDraftChange}
+            />
+          </Text>
+          <Text size="small">
+            <Switch
+              name="recursive"
+              label={t("Include nested documents")}
+              labelPosition="right"
+              checked={recursive}
+              onChange={handleRecursiveChange}
+            />
+          </Text>
+        </>
       )}
     </ConfirmationDialog>
   );
