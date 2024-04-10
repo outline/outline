@@ -858,7 +858,7 @@
   "Import pages from a Confluence instance": "Importujte stránky z aplikace Confluence",
   "Enterprise": "Podnik",
   "Recent imports": "Nedávné importy",
-  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "Zde je uveden každý, kdo se přihlásil do {{appName}}. Je možné, že existují další uživatelé, kteří mají přístup přes {team.signinMethods}, ale ještě se nepřihlásili.",
+  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.",
   "Filter": "Filtr",
   "Receive a notification whenever a new document is published": "Přijímat oznámení, když bude publikován nový obsah",
   "Document updated": "Dokument aktualizován",
