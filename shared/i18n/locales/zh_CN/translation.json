@@ -858,7 +858,7 @@
   "Import pages from a Confluence instance": "从 Confluence 实例导入页面",
   "Enterprise": "企业服务",
   "Recent imports": "最近导入",
-  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "每个登录到 {{appName}} 的用户都会出现在这里。可能还有其他用户可以通过 {team.signinMethods} 访问，但还尚未登录。",
+  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.",
   "Filter": "筛选",
   "Receive a notification whenever a new document is published": "每当发布新文档时收到通知",
   "Document updated": "文档已更新",
