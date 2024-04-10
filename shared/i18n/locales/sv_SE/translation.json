@@ -858,7 +858,7 @@
   "Import pages from a Confluence instance": "Importera sidor från en Confluence instans",
   "Enterprise": "Enterprise",
   "Recent imports": "Senaste importer",
-  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "Alla som har skrivit in sig på {{appName}} listas här. Det är möjligt att det finns andra användare som har åtkomst genom {team.signinMethods} men inte har loggat in ännu.",
+  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.",
   "Filter": "Filter",
   "Receive a notification whenever a new document is published": "Få en avisering när ett nytt dokument publiceras",
   "Document updated": "Dokument uppdaterat",
