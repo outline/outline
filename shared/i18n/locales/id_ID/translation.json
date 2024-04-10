@@ -858,7 +858,7 @@
   "Import pages from a Confluence instance": "Impor halaman dari instansi Confluence",
   "Enterprise": "Enterprise",
   "Recent imports": "Impor terbaru",
-  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "Setiap orang yang masuk ke {{appName}} terdaftar di sini. Mungkin ada pengguna lain yang memiliki akses melalui {team.signinMethods} tetapi belum masuk.",
+  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.",
   "Filter": "Filter",
   "Receive a notification whenever a new document is published": "Terima pemberitahuan setiap kali dokumen baru diterbitkan",
   "Document updated": "Dokumen diperbarui",
