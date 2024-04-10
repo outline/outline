@@ -70,7 +70,7 @@ function Members() {
     };
 
     void fetchData();
-  }, [query, sort, filter, role, page, direction, users, users.counts.all]);
+  }, [query, sort, filter, role, page, direction, users]);
 
   React.useEffect(() => {
     let filtered = users.orderedData;
