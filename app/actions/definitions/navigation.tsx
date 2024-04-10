@@ -127,6 +127,15 @@ export const navigateToAccountPreferences = createAction({
   perform: () => history.push(settingsPath("preferences")),
 });
 
+export const openDocumentation = createAction({
+  name: ({ t }) => t("Documentation"),
+  analyticsName: "Open documentation",
+  section: NavigationSection,
+  iconInContextMenu: false,
+  icon: <OpenIcon />,
+  perform: () => window.open(UrlHelper.guide),
+});
+
 export const openAPIDocumentation = createAction({
   name: ({ t }) => t("API documentation"),
   analyticsName: "Open API documentation",
@@ -218,6 +227,7 @@ export const rootNavigationActions = [
   navigateToArchive,
   navigateToTrash,
   downloadApp,
+  openDocumentation,
   openAPIDocumentation,
   openFeedbackUrl,
   openBugReportUrl,
