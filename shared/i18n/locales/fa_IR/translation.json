@@ -858,7 +858,7 @@
   "Import pages from a Confluence instance": "وارد کردن صفحات از یک نمونه Confluence",
   "Enterprise": "Enterprise",
   "Recent imports": "وارد شده‌های اخیر",
-  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.",
+  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.",
   "Filter": "فیلتر",
   "Receive a notification whenever a new document is published": "هر زمان سند جدیدی منتشر شد، اعلانی دریافت کنید",
   "Document updated": "به‌روزرسانی سند",
