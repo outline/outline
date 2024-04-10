@@ -858,7 +858,7 @@
   "Import pages from a Confluence instance": "Імпортувати сторінки з Confluence",
   "Enterprise": "Enterprise",
   "Recent imports": "Останні імпорти",
-  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "Усі, хто увійшов у {{appName}}, перераховані тут. Можливо, є інші користувачі, які мають доступ через {team.signinMethods}, але ще не увійшли.",
+  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.",
   "Filter": "Фільтр",
   "Receive a notification whenever a new document is published": "Отримувати сповіщення щоразу, коли публікується новий документ",
   "Document updated": "Документ оновлено",
