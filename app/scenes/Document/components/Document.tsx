@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
-import { NavigationNode } from "@shared/types";
+import { NavigationNode, TOCPosition, TeamPreference } from "@shared/types";
 import { Heading } from "@shared/utils/ProsemirrorHelper";
 import { parseDomain } from "@shared/utils/domains";
 import getTasks from "@shared/utils/getTasks";
@@ -401,6 +401,8 @@ class DocumentScene extends React.Component<Props> {
     const hasHeadings = this.headings.length > 0;
     const showContents =
       ui.tocVisible && ((readOnly && hasHeadings) || !readOnly);
+    const tocOnLeftSide =
+      team?.getPreference(TeamPreference.TocPosition) === TOCPosition.Left;
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -480,7 +482,7 @@ class DocumentScene extends React.Component<Props> {
             >
               <Notices document={document} readOnly={readOnly} />
               <React.Suspense fallback={<PlaceholderDocument />}>
-                <Flex auto={!readOnly} reverse>
+                <Flex auto={!readOnly} reverse={tocOnLeftSide}>
                   {revision ? (
                     <RevisionViewer
                       document={document}
@@ -540,6 +542,7 @@ class DocumentScene extends React.Component<Props> {
                         <Contents
                           headings={this.headings}
                           isFullWidth={document.fullWidth}
+                          onLeftSide={tocOnLeftSide}
                         />
                       )}
                     </>
