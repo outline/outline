@@ -858,7 +858,7 @@
   "Import pages from a Confluence instance": "Nhập các trang từ Confluence",
   "Enterprise": "Doanh nghiệp",
   "Recent imports": "Kết xuất gần đây",
-  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "Mọi người đã đăng nhập vào {{appName}} được liệt kê ở đây. Có thể có những người dùng khác có quyền truy cập thông qua {team.signinMethods} nhưng chưa đăng nhập.",
+  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.",
   "Filter": "Bộ Lọc",
   "Receive a notification whenever a new document is published": "Nhận thông báo bất cứ khi nào một tài liệu mới được xuất bản",
   "Document updated": "Tài liệu được cập nhật",
