@@ -858,7 +858,7 @@
   "Import pages from a Confluence instance": "Confluence'daki sayfaları içe aktarma",
   "Enterprise": "Enterprise",
   "Recent imports": "Son içe aktarmalar",
-  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.",
+  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.",
   "Filter": "Filtre",
   "Receive a notification whenever a new document is published": "Yeni bir belge yayınlandığında bildirim alın",
   "Document updated": "Belge güncellendi",
