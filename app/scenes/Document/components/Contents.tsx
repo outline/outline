@@ -18,9 +18,10 @@ type Props = {
     level: number;
     id: string;
   }[];
+  onLeftSide: boolean;
 };
 
-export default function Contents({ headings, isFullWidth }: Props) {
+export default function Contents({ headings, isFullWidth, onLeftSide }: Props) {
   const [activeSlug, setActiveSlug] = React.useState<string>();
   const position = useWindowScrollPosition({
     throttle: 100,
@@ -56,7 +57,7 @@ export default function Contents({ headings, isFullWidth }: Props) {
   const { t } = useTranslation();
 
   return (
-    <Wrapper isFullWidth={isFullWidth}>
+    <Wrapper isFullWidth={isFullWidth} onLeftSide={onLeftSide}>
       <Sticky>
         <Heading>{t("Contents")}</Heading>
         {headings.length ? (
@@ -83,7 +84,7 @@ export default function Contents({ headings, isFullWidth }: Props) {
   );
 }
 
-const Wrapper = styled.div<{ isFullWidth: boolean }>`
+const Wrapper = styled.div<{ isFullWidth: boolean; onLeftSide: boolean }>`
   width: 256px;
   display: none;
 
@@ -94,7 +95,7 @@ const Wrapper = styled.div<{ isFullWidth: boolean }>`
   ${(props) =>
     !props.isFullWidth &&
     breakpoint("desktopLarge")`
-    transform: translateX(-256px);
+    transform: ${props.onLeftSide && "translateX(-256px)"};
     width: 0;
     `}
 `;

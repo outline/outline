@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
-import { NavigationNode } from "@shared/types";
+import { NavigationNode, TOCPosition, TeamPreference } from "@shared/types";
 import { ProsemirrorHelper, Heading } from "@shared/utils/ProsemirrorHelper";
 import { parseDomain } from "@shared/utils/domains";
 import RootStore from "~/stores/RootStore";
@@ -366,7 +366,7 @@ class DocumentScene extends React.Component<Props> {
     // Keep derived task list in sync
     const tasks = this.editor.current?.getTasks();
     const total = tasks?.length ?? 0;
-    const completed = tasks?.filter((t) => t.completed).length ?? 0;
+    const completed = tasks?.filter(t => t.completed).length ?? 0;
     document.updateTasks(total, completed);
   };
 
@@ -403,6 +403,8 @@ class DocumentScene extends React.Component<Props> {
     const hasHeadings = this.headings.length > 0;
     const showContents =
       ui.tocVisible && ((readOnly && hasHeadings) || !readOnly);
+    const tocOnLeftSide =
+      team?.getPreference(TeamPreference.TocPosition) === TOCPosition.Left;
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -421,17 +423,32 @@ class DocumentScene extends React.Component<Props> {
             }}
           />
         )}
-        <RegisterKeyDown trigger="m" handler={this.onMove} />
-        <RegisterKeyDown trigger="z" handler={this.onUndoRedo} />
-        <RegisterKeyDown trigger="e" handler={this.goToEdit} />
-        <RegisterKeyDown trigger="Escape" handler={this.goBack} />
-        <RegisterKeyDown trigger="h" handler={this.goToHistory} />
+        <RegisterKeyDown
+          trigger="m"
+          handler={this.onMove}
+        />
+        <RegisterKeyDown
+          trigger="z"
+          handler={this.onUndoRedo}
+        />
+        <RegisterKeyDown
+          trigger="e"
+          handler={this.goToEdit}
+        />
+        <RegisterKeyDown
+          trigger="Escape"
+          handler={this.goBack}
+        />
+        <RegisterKeyDown
+          trigger="h"
+          handler={this.goToHistory}
+        />
         <RegisterKeyDown
           trigger="p"
           options={{
             allowInInput: true,
           }}
-          handler={(event) => {
+          handler={event => {
             if (isModKey(event) && event.shiftKey) {
               this.onPublish(event);
             }
@@ -449,7 +466,11 @@ class DocumentScene extends React.Component<Props> {
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
           />
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
-          <Container justify="center" column auto>
+          <Container
+            justify="center"
+            column
+            auto
+          >
             {!readOnly && (
               <Prompt
                 when={this.isUploading && !this.isEditorDirty}
@@ -486,9 +507,15 @@ class DocumentScene extends React.Component<Props> {
               column
               auto
             >
-              <Notices document={document} readOnly={readOnly} />
+              <Notices
+                document={document}
+                readOnly={readOnly}
+              />
               <React.Suspense fallback={<PlaceholderDocument />}>
-                <Flex auto={!readOnly} reverse>
+                <Flex
+                  auto={!readOnly}
+                  reverse={tocOnLeftSide}
+                >
                   {revision ? (
                     <RevisionViewer
                       document={document}
@@ -548,6 +575,7 @@ class DocumentScene extends React.Component<Props> {
                         <Contents
                           headings={this.headings}
                           isFullWidth={document.fullWidth}
+                          onLeftSide={tocOnLeftSide}
                         />
                       )}
                     </>

@@ -8,7 +8,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { ThemeProvider, useTheme } from "styled-components";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
-import { CustomTheme, TeamPreference } from "@shared/types";
+import { CustomTheme, TOCPosition, TeamPreference } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import Button from "~/components/Button";
 import ButtonLink from "~/components/ButtonLink";
@@ -16,6 +16,7 @@ import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSel
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import InputColor from "~/components/InputColor";
+import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -58,6 +59,10 @@ function Details() {
     isHexColor
   );
 
+  const [tocPosition, setTocPosition] = useState(
+    team.getPreference(TeamPreference.TocPosition) as TOCPosition
+  );
+
   const handleSubmit = React.useCallback(
     async (event?: React.SyntheticEvent) => {
       if (event) {
@@ -73,6 +78,7 @@ function Details() {
             ...team.preferences,
             publicBranding,
             customTheme,
+            tocPosition,
           },
         });
         toast.success(t("Settings saved"));
@@ -272,6 +278,31 @@ function Details() {
               id="defaultCollectionId"
               onSelectCollection={onSelectCollection}
               defaultCollectionId={defaultCollectionId}
+            />
+          </SettingRow>
+
+          <SettingRow
+            border={false}
+            label={t("Table of Contents Position")}
+            name="tocPosition"
+            description={t(
+              "The side to display the table of contents in relation to the main content."
+            )}
+          >
+            <InputSelect
+              ariaLabel={t("TOC position")}
+              options={[
+                {
+                  label: "Left",
+                  value: TOCPosition.Left,
+                },
+                {
+                  label: "Right",
+                  value: TOCPosition.Right,
+                },
+              ]}
+              value={tocPosition}
+              onChange={(p: TOCPosition) => setTocPosition(p)}
             />
           </SettingRow>
 
