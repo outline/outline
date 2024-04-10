@@ -858,7 +858,7 @@
   "Import pages from a Confluence instance": "Confluence 인스턴스에서 페이지 가져오기",
   "Enterprise": "엔터프라이즈",
   "Recent imports": "최근에 가져온",
-  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "{{appName}} 에 로그인한 모든 사람이 여기에 나열됩니다. {team.signinMethods} 을 통해서도 접근할 수 있지만, 아직 로그인하지 않은 다른 사용자가 있을 수도 있습니다.",
+  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.",
   "Filter": "필터",
   "Receive a notification whenever a new document is published": "새 문서가 게시될 때마다 알림을 받습니다",
   "Document updated": "문서 업데이트됨",
