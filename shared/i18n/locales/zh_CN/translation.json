@@ -846,7 +846,7 @@
   "When enabled team members can add comments to documents.": "启用后，团队成员可以向文档添加评论。",
   "Add a Google Analytics 4 measurement ID to send document views and analytics from the workspace to your own Google Analytics account.": "添加 Google Analytics 4 Measurement ID 后会将文档访问量和分析从工作区发送到你自己的 Google Analytics 帐户。",
   "Measurement ID": "Measurement ID",
-  "Create a \"Web\" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.": "在你的 Google Analytics 管理仪表板中创建一个“Web”流，从生成的代码片段中可以找到评估 ID。",
+  "Create a \"Web\" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.": "在你的 Google Analytics 管理仪表板中创建一个“Web”流，从生成的代码片段中可以找到 Measurement ID。",
   "New group": "新建群组",
   "Groups can be used to organize and manage the people on your team.": "可以使用群组来组织和管理你的团队成员。",
   "No groups have been created yet": "没有群组可供加入",
