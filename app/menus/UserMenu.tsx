@@ -108,7 +108,7 @@ function UserMenu({ user }: Props) {
               items: [UserRole.Admin, UserRole.Member, UserRole.Viewer].map(
                 (role) =>
                   actionToMenuItem(
-                    updateUserRoleActionFactory(user.id, role),
+                    updateUserRoleActionFactory(user, role),
                     context
                   )
               ),

@@ -1,3 +1,4 @@
+import { type TFunction } from "i18next";
 import { UserRole } from "../types";
 
 interface User {
@@ -5,6 +6,26 @@ interface User {
 }
 
 export class UserRoleHelper {
+  /**
+   * Get the display name for a role.
+   *
+   * @param role The role to get the display name for
+   * @param t The translation function
+   * @returns The display name for the role
+   */
+  static displayName(role: UserRole, t: TFunction): string {
+    switch (role) {
+      case UserRole.Guest:
+        return t("Guest");
+      case UserRole.Viewer:
+        return t("Viewer");
+      case UserRole.Member:
+        return t("Editor");
+      case UserRole.Admin:
+        return t("Admin");
+    }
+  }
+
   /**
    * Check if the first role is higher than the second role.
    *
