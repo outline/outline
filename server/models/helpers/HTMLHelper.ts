@@ -1,5 +1,5 @@
-import fs from "fs-extra";
 import { initWasm, inline } from "@css-inline/css-inline-wasm";
+import fs from "fs-extra";
 import env from "@server/env";
 
 let initialized = false;
