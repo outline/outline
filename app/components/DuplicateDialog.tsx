@@ -19,7 +19,7 @@ function DuplicateDialog({ document, onSubmit }: Props) {
   const defaultTitle = t(`Copy of {{ documentName }}`, {
     documentName: document.title,
   });
-  const [publish, setPublish] = React.useState<boolean>(true);
+  const [publish, setPublish] = React.useState<boolean>(!!document.publishedAt);
   const [recursive, setRecursive] = React.useState<boolean>(true);
   const [title, setTitle] = React.useState<string>(defaultTitle);
 
