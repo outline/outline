@@ -71,12 +71,11 @@ const MenuItem = (
           ])}
         >
           {selected !== undefined && (
-            <>
+            <MenuIconWrapper aria-hidden>
               {selected ? <CheckmarkIcon /> : <Spacer />}
-              &nbsp;
-            </>
+            </MenuIconWrapper>
           )}
-          {icon && <MenuIconWrapper>{icon}</MenuIconWrapper>}
+          {icon && <MenuIconWrapper aria-hidden>{icon}</MenuIconWrapper>}
           {children}
         </MenuAnchor>
       );

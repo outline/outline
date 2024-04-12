@@ -171,7 +171,13 @@ const DocumentMeta: React.FC<Props> = ({
   };
 
   return (
-    <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
+    <Container
+      align="center"
+      rtl={document.dir === "rtl"}
+      {...rest}
+      dir="ltr"
+      lang=""
+    >
       {to ? (
         <Link to={to} replace={replace}>
           {content}

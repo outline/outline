@@ -11,42 +11,41 @@ type Props = {
   onSubmit: () => void;
 };
 
-export function UserChangeToViewerDialog({ user, onSubmit }: Props) {
+export function UserChangeRoleDialog({
+  user,
+  role,
+  onSubmit,
+}: Props & {
+  role: UserRole;
+}) {
   const { t } = useTranslation();
   const { users } = useStores();
 
   const handleSubmit = async () => {
-    await users.demote(user, UserRole.Viewer);
+    await users.updateRole(user, role);
     onSubmit();
   };
 
-  return (
-    <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
-      {t(
-        "Are you sure you want to make {{ userName }} a read-only viewer? They will not be able to edit any content",
-        {
-          userName: user.name,
-        }
-      )}
-      .
-    </ConfirmationDialog>
-  );
-}
-
-export function UserChangeToMemberDialog({ user, onSubmit }: Props) {
-  const { t } = useTranslation();
-  const { users } = useStores();
-
-  const handleSubmit = async () => {
-    await users.demote(user, UserRole.Member);
-    onSubmit();
-  };
+  let accessNote;
+  switch (role) {
+    case UserRole.Admin:
+      accessNote = t("Admins can manage the workspace and access billing.");
+      break;
+    case UserRole.Member:
+      accessNote = t("Editors can create, edit, and comment on documents.");
+      break;
+    case UserRole.Viewer:
+      accessNote = t("Viewers can only view and comment on documents.");
+      break;
+  }
 
   return (
     <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
-      {t("Are you sure you want to make {{ userName }} a member?", {
+      {t("Are you sure you want to make {{ userName }} a {{ role }}?", {
+        role,
         userName: user.name,
-      })}
+      })}{" "}
+      {accessNote}
     </ConfirmationDialog>
   );
 }
@@ -68,27 +67,6 @@ export function UserDeleteDialog({ user, onSubmit }: Props) {
     >
       {t(
         "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.",
-        {
-          userName: user.name,
-        }
-      )}
-    </ConfirmationDialog>
-  );
-}
-
-export function UserChangeToAdminDialog({ user, onSubmit }: Props) {
-  const { t } = useTranslation();
-  const { users } = useStores();
-
-  const handleSubmit = async () => {
-    await users.promote(user);
-    onSubmit();
-  };
-
-  return (
-    <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
-      {t(
-        "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.",
         {
           userName: user.name,
         }

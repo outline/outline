@@ -9,11 +9,11 @@ import {
   navigateToAccountPreferences,
   openKeyboardShortcuts,
   openChangelog,
+  openDocumentation,
   openAPIDocumentation,
   openBugReportUrl,
   openFeedbackUrl,
   logout,
-  downloadApp,
 } from "~/actions/definitions/navigation";
 import { changeTheme } from "~/actions/definitions/settings";
 import usePrevious from "~/hooks/usePrevious";
@@ -43,7 +43,7 @@ const AccountMenu: React.FC = ({ children }: Props) => {
   const actions = React.useMemo(
     () => [
       openKeyboardShortcuts,
-      downloadApp,
+      openDocumentation,
       openAPIDocumentation,
       separator(),
       openChangelog,
