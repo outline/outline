@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
+import { TOCPosition } from "@shared/types";
 import Text from "~/components/Text";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 
@@ -18,12 +19,13 @@ type Props = {
     level: number;
     id: string;
   }[];
-  onLeftSide: boolean;
+  /** Side to display the document's table of contents in relation to the main content. */
+  position: TOCPosition;
 };
 
-export default function Contents({ headings, isFullWidth, onLeftSide }: Props) {
+export default function Contents({ headings, isFullWidth, position }: Props) {
   const [activeSlug, setActiveSlug] = React.useState<string>();
-  const position = useWindowScrollPosition({
+  const scrollPosition = useWindowScrollPosition({
     throttle: 100,
   });
 
@@ -44,7 +46,7 @@ export default function Contents({ headings, isFullWidth, onLeftSide }: Props) {
         }
       }
     }
-  }, [position, headings]);
+  }, [scrollPosition, headings]);
 
   // calculate the minimum heading level and adjust all the headings to make
   // that the top-most. This prevents the contents from being weirdly indented
@@ -57,7 +59,7 @@ export default function Contents({ headings, isFullWidth, onLeftSide }: Props) {
   const { t } = useTranslation();
 
   return (
-    <Wrapper isFullWidth={isFullWidth} onLeftSide={onLeftSide}>
+    <Wrapper isFullWidth={isFullWidth} position={position}>
       <Sticky>
         <Heading>{t("Contents")}</Heading>
         {headings.length ? (
@@ -84,7 +86,7 @@ export default function Contents({ headings, isFullWidth, onLeftSide }: Props) {
   );
 }
 
-const Wrapper = styled.div<{ isFullWidth: boolean; onLeftSide: boolean }>`
+const Wrapper = styled.div<{ isFullWidth: boolean; position: TOCPosition }>`
   width: 256px;
   display: none;
 
@@ -95,7 +97,7 @@ const Wrapper = styled.div<{ isFullWidth: boolean; onLeftSide: boolean }>`
   ${(props) =>
     !props.isFullWidth &&
     breakpoint("desktopLarge")`
-    transform: ${props.onLeftSide && "translateX(-256px)"};
+    transform: ${props.position === TOCPosition.Left && "translateX(-256px)"};
     width: 0;
     `}
 `;

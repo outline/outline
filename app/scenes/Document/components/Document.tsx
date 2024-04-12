@@ -403,8 +403,9 @@ class DocumentScene extends React.Component<Props> {
     const hasHeadings = this.headings.length > 0;
     const showContents =
       ui.tocVisible && ((readOnly && hasHeadings) || !readOnly);
-    const tocOnLeftSide =
-      team?.getPreference(TeamPreference.TocPosition) === TOCPosition.Left;
+    const tocPosition = team?.getPreference(
+      TeamPreference.TocPosition
+    ) as TOCPosition;
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -514,7 +515,7 @@ class DocumentScene extends React.Component<Props> {
               <React.Suspense fallback={<PlaceholderDocument />}>
                 <Flex
                   auto={!readOnly}
-                  reverse={tocOnLeftSide}
+                  reverse={tocPosition === TOCPosition.Left}
                 >
                   {revision ? (
                     <RevisionViewer
@@ -575,7 +576,7 @@ class DocumentScene extends React.Component<Props> {
                         <Contents
                           headings={this.headings}
                           isFullWidth={document.fullWidth}
-                          onLeftSide={tocOnLeftSide}
+                          position={tocPosition}
                         />
                       )}
                     </>

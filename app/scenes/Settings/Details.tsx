@@ -180,7 +180,6 @@ function Details() {
             />
           </SettingRow>
           <SettingRow
-            border={false}
             label={t("Theme")}
             name="accent"
             description={
@@ -218,7 +217,6 @@ function Details() {
           </SettingRow>
           {team.avatarUrl && (
             <SettingRow
-              border={false}
               name={TeamPreference.PublicBranding}
               label={t("Public branding")}
               description={t(
@@ -235,6 +233,30 @@ function Details() {
               />
             </SettingRow>
           )}
+          <SettingRow
+            border={false}
+            label={t("Table of Contents position")}
+            name="tocPosition"
+            description={t(
+              "The side to display the table of contents in relation to the main content."
+            )}
+          >
+            <InputSelect
+              ariaLabel={t("Table of Contents position")}
+              options={[
+                {
+                  label: t("Left"),
+                  value: TOCPosition.Left,
+                },
+                {
+                  label: t("Right"),
+                  value: TOCPosition.Right,
+                },
+              ]}
+              value={tocPosition}
+              onChange={(p: TOCPosition) => setTocPosition(p)}
+            />
+          </SettingRow>
 
           <Heading as="h2">{t("Behavior")}</Heading>
 
@@ -278,31 +300,6 @@ function Details() {
               id="defaultCollectionId"
               onSelectCollection={onSelectCollection}
               defaultCollectionId={defaultCollectionId}
-            />
-          </SettingRow>
-
-          <SettingRow
-            border={false}
-            label={t("Table of Contents Position")}
-            name="tocPosition"
-            description={t(
-              "The side to display the table of contents in relation to the main content."
-            )}
-          >
-            <InputSelect
-              ariaLabel={t("TOC position")}
-              options={[
-                {
-                  label: "Left",
-                  value: TOCPosition.Left,
-                },
-                {
-                  label: "Right",
-                  value: TOCPosition.Right,
-                },
-              ]}
-              value={tocPosition}
-              onChange={(p: TOCPosition) => setTocPosition(p)}
             />
           </SettingRow>
 
