@@ -19,13 +19,13 @@ function DuplicateDialog({ document, onSubmit }: Props) {
   const defaultTitle = t(`Copy of {{ documentName }}`, {
     documentName: document.title,
   });
-  const [draft, setDraft] = React.useState<boolean>(false);
+  const [publish, setPublish] = React.useState<boolean>(true);
   const [recursive, setRecursive] = React.useState<boolean>(true);
   const [title, setTitle] = React.useState<string>(defaultTitle);
 
-  const handleDraftChange = React.useCallback(
+  const handlePublishChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setDraft(ev.target.checked);
+      setPublish(ev.target.checked);
     },
     []
   );
@@ -46,7 +46,7 @@ function DuplicateDialog({ document, onSubmit }: Props) {
 
   const handleSubmit = async () => {
     const result = await document.duplicate({
-      publish: !draft,
+      publish,
       recursive,
       title,
     });
@@ -68,11 +68,11 @@ function DuplicateDialog({ document, onSubmit }: Props) {
         <>
           <Text size="small">
             <Switch
-              name="draft"
-              label={t("As draft")}
+              name="publish"
+              label={t("Published")}
               labelPosition="right"
-              checked={draft}
-              onChange={handleDraftChange}
+              checked={publish}
+              onChange={handlePublishChange}
             />
           </Text>
           <Text size="small">
