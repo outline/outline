@@ -1,7 +1,6 @@
 import HTMLHelper from "./HTMLHelper";
 
 describe("HTMLHelper", () => {
-
   const document = `<html>
   <head>
     <style>h1 { color:blue; }</style>
