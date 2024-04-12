@@ -755,6 +755,7 @@ export class Editor extends React.PureComponent<
               focusedCommentId={this.props.focusedCommentId}
               editorStyle={this.props.editorStyle}
               ref={this.elementRef}
+              lang=""
             />
             {this.view && (
               <SelectionToolbar
