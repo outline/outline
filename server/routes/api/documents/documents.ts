@@ -1702,12 +1702,8 @@ router.post(
     const collectionScope: Readonly<ScopeOptions> = {
       method: ["withCollectionPermissions", user.id],
     };
-    const viewScope: Readonly<ScopeOptions> = {
-      method: ["withViews", user.id],
-    };
     const documents = await Document.scope([
       collectionScope,
-      viewScope,
       "withDrafts",
     ]).findAll({
       where: {

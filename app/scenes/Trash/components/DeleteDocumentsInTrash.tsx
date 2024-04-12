@@ -19,7 +19,7 @@ function DeleteDocumentsInTrash({ onSubmit, shouldRedirect }: Props) {
 
   const handleSubmit = async () => {
     await documents.emptyTrash();
-    toast.success(t("Deleted all the documents in Trash"));
+    toast.success(t("Trash emptied"));
     onSubmit();
     if (shouldRedirect) {
       history.push("/home");
