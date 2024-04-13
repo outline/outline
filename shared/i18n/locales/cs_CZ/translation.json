@@ -930,6 +930,8 @@
   "Links to supported services are shown as rich embeds within your documents": "Odkazy na podporované služby se ve vašich dokumentech zobrazují jako rozšířené vložení",
   "Collection creation": "Vytvoření sbírky",
   "Allow editors to create new collections within the workspace": "Umožnit členům vytvářet v rámci pracoviště nové kolekce",
+  "Workspace creation": "Workspace creation",
+  "Allow editors to create new workspaces": "Allow editors to create new workspaces",
   "Draw.io deployment": "Využití aplikace Draw.io",
   "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.": "Přidejte sem svou vlastní instalační adresu draw.io, abyste povolili automatické vkládání diagramů do dokumentů.",
   "Grist deployment": "Grist nasazení",
