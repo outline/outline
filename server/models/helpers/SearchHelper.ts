@@ -411,9 +411,18 @@ export default class SearchHelper {
 
       for (const match of quotedQueries) {
         where[Op.and].push({
-          text: {
-            [Op.iLike]: `%${match[1]}%`,
-          },
+          [Op.or]: [
+            {
+              title: {
+                [Op.iLike]: `%${match[1]}%`,
+              },
+            },
+            {
+              text: {
+                [Op.iLike]: `%${match[1]}%`,
+              },
+            },
+          ],
         });
       }
 
