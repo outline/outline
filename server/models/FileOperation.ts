@@ -73,14 +73,6 @@ class FileOperation extends ParanoidModel<
   size: number;
 
   /**
-   * Whether to include attachments in the export.
-   *
-   * @deprecated Use options.includeAttachments instead.
-   */
-  @Column(DataType.BOOLEAN)
-  includeAttachments: boolean;
-
-  /**
    * Additional configuration options for the file operation.
    */
   @Column(DataType.JSON)
