@@ -930,6 +930,8 @@
   "Links to supported services are shown as rich embeds within your documents": "I link ai servizi supportati vengono incorporati all'interno dei tuoi documenti",
   "Collection creation": "Creazione delle raccolte",
   "Allow editors to create new collections within the workspace": "Allow editors to create new collections within the workspace",
+  "Workspace creation": "Workspace creation",
+  "Allow editors to create new workspaces": "Allow editors to create new workspaces",
   "Draw.io deployment": "Distribuzione Draw.io",
   "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.": "Aggiungi l'URL d'installazione di draw.io per abilitare l'incorporazione automatica dei diagrammi all'interno dei documenti.",
   "Grist deployment": "Grist deployment",
