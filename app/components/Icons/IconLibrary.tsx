@@ -5,7 +5,6 @@ import {
   faMugHot,
   faBook,
   faDroplet,
-  faPlane,
   faBrush,
   faSnowflake,
   faShop,
@@ -80,6 +79,12 @@ import {
   faPesoSign,
   faRainbow,
   faPenRuler,
+  faSwatchbook,
+  faStarAndCrescent,
+  faSolarPanel,
+  faUmbrellaBeach,
+  faGem,
+  faDna,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import intersection from "lodash/intersection";
@@ -428,7 +433,6 @@ export class IconLibrary {
         faMugHot,
         faBook,
         faDroplet,
-        faPlane,
         faBrush,
         faSnowflake,
         faShop,
@@ -503,6 +507,12 @@ export class IconLibrary {
         faPesoSign,
         faRainbow,
         faPenRuler,
+        faSwatchbook,
+        faStarAndCrescent,
+        faSolarPanel,
+        faUmbrellaBeach,
+        faGem,
+        faDna,
       ].map((icon) => [
         icon.iconName,
         {

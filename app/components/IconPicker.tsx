@@ -100,6 +100,9 @@ function IconPicker({
     { capture: true }
   );
 
+  const iconNames = Object.keys(icons);
+  const delayPerIcon = 250 / iconNames.length;
+
   return (
     <>
       <PopoverDisclosure {...popover}>
@@ -132,7 +135,7 @@ function IconPicker({
             autoFocus
           />
           <div>
-            {Object.keys(icons).map((name, index) => (
+            {iconNames.map((name, index) => (
               <MenuItem key={name} onClick={() => onChange(color, name)}>
                 {(props) => (
                   <IconButton
@@ -143,7 +146,7 @@ function IconPicker({
                             ? 1
                             : 0.3
                           : undefined,
-                        "--delay": `${index * 4}ms`,
+                        "--delay": `${Math.round(index * delayPerIcon)}ms`,
                       } as React.CSSProperties
                     }
                     {...props}
@@ -184,7 +187,7 @@ function IconPicker({
 }
 
 const Icon = styled.svg`
-  transition: fill 150ms ease-in-out;
+  transition: color 150ms ease-in-out, fill 150ms ease-in-out;
   transition-delay: var(--delay);
 `;
 
