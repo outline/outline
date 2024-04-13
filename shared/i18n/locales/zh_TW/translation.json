@@ -930,6 +930,8 @@
   "Links to supported services are shown as rich embeds within your documents": "支援的外部服務連結將會被嵌入顯示於您的文件中",
   "Collection creation": "文件集已建立",
   "Allow editors to create new collections within the workspace": "Allow editors to create new collections within the workspace",
+  "Workspace creation": "Workspace creation",
+  "Allow editors to create new workspaces": "Allow editors to create new workspaces",
   "Draw.io deployment": "Draw.io 部署",
   "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.": "在此處添加您的自我託管 draw.io 安裝網址，以啟用在文件中自動嵌入圖表。",
   "Grist deployment": "部署Grist",
