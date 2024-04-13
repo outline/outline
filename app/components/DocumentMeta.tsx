@@ -95,17 +95,23 @@ const DocumentMeta: React.FC<Props> = ({
         <Time dateTime={archivedAt} addSuffix />
       </span>
     );
-  } else if (createdAt === updatedAt) {
-    content = document.sourceMetadata ? (
+  } else if (
+    document.sourceMetadata &&
+    document.sourceMetadata?.importedAt &&
+    document.sourceMetadata.importedAt >= updatedAt
+  ) {
+    content = (
       <span>
         {document.sourceMetadata.createdByName
-          ? t("{{ userName }} created", {
+          ? t("{{ userName }} updated", {
               userName: document.sourceMetadata.createdByName,
             })
           : t("Imported")}{" "}
         <Time dateTime={createdAt} addSuffix />
       </span>
-    ) : (
+    );
+  } else if (createdAt === updatedAt) {
+    content = (
       <span>
         {lastUpdatedByCurrentUser
           ? t("You created")
