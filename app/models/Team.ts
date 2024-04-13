@@ -46,6 +46,10 @@ class Team extends Model {
 
   @Field
   @observable
+  memberTeamCreate: boolean;
+
+  @Field
+  @observable
   guestSignin: boolean;
 
   @Field
