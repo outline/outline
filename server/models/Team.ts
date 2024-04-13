@@ -152,6 +152,10 @@ class Team extends ParanoidModel<
   @Column
   memberCollectionCreate: boolean;
 
+  @Default(true)
+  @Column
+  memberTeamCreate: boolean;
+
   @Default(UserRole.Member)
   @IsIn([[UserRole.Viewer, UserRole.Member]])
   @Column(DataType.STRING)
