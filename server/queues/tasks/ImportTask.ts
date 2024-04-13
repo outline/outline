@@ -391,7 +391,11 @@ export default abstract class ImportTask extends BaseTask<Props> {
                 teamId: fileOperation.teamId,
                 createdById: fileOperation.userId,
                 name,
-                permission: item.permission ?? CollectionPermission.ReadWrite,
+                permission:
+                  item.permission ??
+                  fileOperation.options?.permission !== undefined
+                    ? fileOperation.options?.permission
+                    : CollectionPermission.ReadWrite,
                 importId: fileOperation.id,
               },
               { transaction }

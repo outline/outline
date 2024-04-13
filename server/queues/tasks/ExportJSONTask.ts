@@ -28,7 +28,7 @@ export default class ExportJSONTask extends ExportTask {
       await this.addCollectionToArchive(
         zip,
         collection,
-        fileOperation.includeAttachments
+        fileOperation.options?.includeAttachments ?? true
       );
     }
 
