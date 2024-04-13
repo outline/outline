@@ -147,6 +147,18 @@ import * as React from "react";
 import styled from "styled-components";
 import LetterIcon from "./LetterIcon";
 
+type IconMapping = {
+  component: React.ComponentType<FAProps>;
+  keywords?: string;
+};
+
+type FAProps = {
+  color?: string;
+  size?: number;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
 export class IconLibrary {
   /**
    * Get the component for a given icon name
@@ -205,7 +217,7 @@ export class IconLibrary {
    * A map of all icons available to end users in the app. This does not include icons that are used
    * internally only, which can be imported from `outline-icons` directly.
    */
-  public static mapping = {
+  public static mapping: Record<string, IconMapping> = {
     // Internal icons
     academicCap: {
       component: AcademicCapIcon,
@@ -533,15 +545,8 @@ export class IconLibrary {
         },
       ])
     ),
-  };
+  } as const;
 }
-
-type FAProps = {
-  color?: string;
-  size?: number;
-  className?: string;
-  style?: React.CSSProperties;
-};
 
 const FontAwesomeWrapper = styled.span<{ size: number }>`
   display: flex;
