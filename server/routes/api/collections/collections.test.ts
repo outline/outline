@@ -174,11 +174,26 @@ describe("#collections.move", () => {
         token: admin.getJwtToken(),
         id: collection.id,
         index: "P",
+        icon: "flame",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.success).toBe(true);
+  });
+
+  it("should return error when icon is not valid", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const res = await server.post("/api/collections.move", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+        icon: "nonsRence",
+      },
+    });
+    expect(res.status).toEqual(400);
   });
 
   it("should return error when index is not valid", async () => {
