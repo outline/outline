@@ -509,8 +509,11 @@ export default class Document extends ParanoidModel {
   move = (collectionId: string, parentDocumentId?: string | undefined) =>
     this.store.move(this.id, collectionId, parentDocumentId);
 
-  duplicate = (options?: { title?: string; recursive?: boolean }) =>
-    this.store.duplicate(this, options);
+  duplicate = (options?: {
+    title?: string;
+    publish?: boolean;
+    recursive?: boolean;
+  }) => this.store.duplicate(this, options);
 
   @computed
   get pinned(): boolean {

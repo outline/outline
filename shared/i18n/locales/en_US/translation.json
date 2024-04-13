@@ -197,6 +197,7 @@
   "Viewed {{ timeAgo }}": "Viewed {{ timeAgo }}",
   "Copy of {{ documentName }}": "Copy of {{ documentName }}",
   "Title": "Title",
+  "Published": "Published",
   "Include nested documents": "Include nested documents",
   "Emoji Picker": "Emoji Picker",
   "Remove": "Remove",
