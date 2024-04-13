@@ -930,6 +930,8 @@
   "Links to supported services are shown as rich embeds within your documents": "지원되는 서비스에 대한 링크는 문서 내에서 확장 임베딩으로 표시됩니다",
   "Collection creation": "컬렉션 생성됨",
   "Allow editors to create new collections within the workspace": "Allow editors to create new collections within the workspace",
+  "Workspace creation": "Workspace creation",
+  "Allow editors to create new workspaces": "Allow editors to create new workspaces",
   "Draw.io deployment": "Draw.io 설치",
   "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.": "여기에 자체 호스팅된 draw.io의 URL을 추가하여 문서 내에 다이어그램을 자동으로 삽입할 수 있습니다.",
   "Grist deployment": "Grist deployment",
