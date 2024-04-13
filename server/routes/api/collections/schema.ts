@@ -2,10 +2,10 @@ import isUndefined from "lodash/isUndefined";
 import { z } from "zod";
 import { randomElement } from "@shared/random";
 import { CollectionPermission, FileOperationFormat } from "@shared/types";
+import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import { Collection } from "@server/models";
 import { ValidateColor, ValidateIndex } from "@server/validation";
-import { IconLibrary } from "~/components/Icons/IconLibrary";
 import { BaseSchema } from "../schema";
 
 function zodEnumFromObjectKeys<

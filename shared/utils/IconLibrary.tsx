@@ -145,7 +145,7 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import LetterIcon from "./LetterIcon";
+import LetterIcon from "../components/LetterIcon";
 
 type IconMapping = {
   component: React.ComponentType<FAProps>;

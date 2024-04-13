@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { PopoverDisclosure, usePopoverState } from "reakit";
 import { MenuItem } from "reakit/Menu";
 import styled, { useTheme } from "styled-components";
+import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
@@ -10,7 +11,6 @@ import Text from "~/components/Text";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import DelayedMount from "./DelayedMount";
-import { IconLibrary } from "./Icons/IconLibrary";
 import InputSearch from "./InputSearch";
 import Popover from "./Popover";
 
@@ -124,10 +124,13 @@ function IconPicker({
       <Popover
         {...popover}
         width={552}
-        aria-label={t("Choose icon")}
+        aria-label={t("Choose an icon")}
         hideOnClickOutside={false}
       >
         <Flex column gap={12}>
+          <Text size="large" weight="xbold">
+            {t("Choose an icon")}
+          </Text>
           <InputSearch
             value={query}
             placeholder={`${t("Filter")}…`}
