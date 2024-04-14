@@ -3,6 +3,7 @@ import { Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import Extension from "@shared/editor/lib/Extension";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import HoverPreview from "~/components/HoverPreview";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
@@ -56,9 +57,9 @@ export default class HoverPreviews extends Extension {
 
                     const url =
                       element?.getAttribute("href") || element?.dataset.url;
-                    const documentId = window.location.pathname
-                      .split("/")
-                      .pop();
+                    const documentId = parseDocumentSlug(
+                      window.location.pathname
+                    );
 
                     if (url) {
                       this.state.dataLoading = true;
