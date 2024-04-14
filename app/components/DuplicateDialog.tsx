@@ -64,26 +64,30 @@ function DuplicateDialog({ document, onSubmit }: Props) {
         maxLength={DocumentValidation.maxTitleLength}
         defaultValue={defaultTitle}
       />
-      {document.publishedAt && !document.isTemplate && (
+      {!document.isTemplate && (
         <>
-          <Text size="small">
-            <Switch
-              name="publish"
-              label={t("Published")}
-              labelPosition="right"
-              checked={publish}
-              onChange={handlePublishChange}
-            />
-          </Text>
-          <Text size="small">
-            <Switch
-              name="recursive"
-              label={t("Include nested documents")}
-              labelPosition="right"
-              checked={recursive}
-              onChange={handleRecursiveChange}
-            />
-          </Text>
+          {document.collectionId && (
+            <Text size="small">
+              <Switch
+                name="publish"
+                label={t("Published")}
+                labelPosition="right"
+                checked={publish}
+                onChange={handlePublishChange}
+              />
+            </Text>
+          )}
+          {document.publishedAt && (
+            <Text size="small">
+              <Switch
+                name="recursive"
+                label={t("Include nested documents")}
+                labelPosition="right"
+                checked={recursive}
+                onChange={handleRecursiveChange}
+              />
+            </Text>
+          )}
         </>
       )}
     </ConfirmationDialog>
