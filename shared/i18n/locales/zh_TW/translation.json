@@ -89,6 +89,7 @@
   "Download {{ platform }} app": "下載 {{ platform }} 應用程式",
   "Log out": "登出",
   "Mark notifications as read": "標記所有通知為已讀",
+  "Notification settings": "Notification settings",
   "Archive all notifications": "Archive all notifications",
   "Restore revision": "還原舊版",
   "Link copied": "已複製連結",
