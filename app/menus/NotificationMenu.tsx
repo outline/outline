@@ -24,7 +24,7 @@ const NotificationMenu: React.FC = () => {
       actionToMenuItem(markNotificationsAsArchived, context),
       {
         type: "button",
-        title: "Notification settings",
+        title: t("Notification settings"),
         visible: true,
         onClick: () => performAction(navigateToNotificationSettings, context),
       },
