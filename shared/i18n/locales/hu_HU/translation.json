@@ -89,6 +89,7 @@
   "Download {{ platform }} app": "{{ platform }} app letöltése",
   "Log out": "Kijelentkezés",
   "Mark notifications as read": "Értesítések olvasottnak jelölése",
+  "Notification settings": "Notification settings",
   "Archive all notifications": "Archive all notifications",
   "Restore revision": "Revízió visszaállítása",
   "Link copied": "Hivatkozás másolva",
