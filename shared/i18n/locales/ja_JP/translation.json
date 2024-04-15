@@ -89,6 +89,7 @@
   "Download {{ platform }} app": "{{ platform }} アプリをダウンロード",
   "Log out": "ログアウト",
   "Mark notifications as read": "通知を既読にする",
+  "Notification settings": "Notification settings",
   "Archive all notifications": "Archive all notifications",
   "Restore revision": "版を復元",
   "Link copied": "リンクをコピーしました",
