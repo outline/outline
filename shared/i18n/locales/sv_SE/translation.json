@@ -89,6 +89,7 @@
   "Download {{ platform }} app": "Ladda ned {{ platform }} appen",
   "Log out": "Logga ut",
   "Mark notifications as read": "Markera alla aviseringar som lästa",
+  "Notification settings": "Notification settings",
   "Archive all notifications": "Archive all notifications",
   "Restore revision": "Återställ version",
   "Link copied": "Länk kopierad",
