@@ -89,6 +89,7 @@
   "Download {{ platform }} app": "Descargar aplicación de {{ platform }}",
   "Log out": "Salir",
   "Mark notifications as read": "Marcar notificaciones como leídas",
+  "Notification settings": "Notification settings",
   "Archive all notifications": "Archive all notifications",
   "Restore revision": "Restaurar revisión",
   "Link copied": "Enlace copiado",
