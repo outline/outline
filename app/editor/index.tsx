@@ -132,6 +132,7 @@ export type Props = {
   style?: React.CSSProperties;
   /** Optional style overrides for the contenteeditable */
   editorStyle?: React.CSSProperties;
+  isCommentEditor?: boolean;
 };
 
 type State = {
@@ -730,8 +731,16 @@ export class Editor extends React.PureComponent<
   };
 
   public render() {
-    const { dir, readOnly, canUpdate, grow, style, className, onKeyDown } =
-      this.props;
+    const {
+      dir,
+      readOnly,
+      canUpdate,
+      grow,
+      style,
+      className,
+      onKeyDown,
+      isCommentEditor,
+    } = this.props;
     const { isRTL } = this.state;
 
     return (
@@ -759,6 +768,7 @@ export class Editor extends React.PureComponent<
             {this.view && (
               <SelectionToolbar
                 rtl={isRTL}
+                isCommentEditor={isCommentEditor}
                 readOnly={readOnly}
                 canUpdate={this.props.canUpdate}
                 canComment={this.props.canComment}

@@ -5,7 +5,7 @@ import { Portal as ReactPortal } from "react-portal";
 import styled, { css } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
-import { depths, s } from "@shared/styles";
+import { depths, hideScrollbars, s } from "@shared/styles";
 import { Portal } from "~/components/Portal";
 import useComponentSize from "~/hooks/useComponentSize";
 import useEventListener from "~/hooks/useEventListener";
@@ -325,6 +325,8 @@ const Wrapper = styled.div<WrapperProps>`
   box-sizing: border-box;
   pointer-events: none;
   white-space: nowrap;
+  overflow: auto hidden;
+  ${hideScrollbars()}
 
   ${arrow}
 

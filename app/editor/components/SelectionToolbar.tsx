@@ -33,6 +33,7 @@ type Props = {
   rtl: boolean;
   isTemplate: boolean;
   readOnly?: boolean;
+  isCommentEditor?: boolean;
   canComment?: boolean;
   canUpdate?: boolean;
   onOpen: () => void;
@@ -104,6 +105,7 @@ export default function SelectionToolbar(props: Props) {
   const isDragging = useIsDragging();
   const previousIsActive = usePrevious(isActive);
   const isMobile = useMobile();
+  const { isCommentEditor } = props;
 
   React.useEffect(() => {
     // Trigger callbacks when the toolbar is opened or closed
@@ -244,7 +246,13 @@ export default function SelectionToolbar(props: Props) {
   } else if (readOnly) {
     items = getReadOnlyMenuItems(state, !!canUpdate, dictionary);
   } else {
-    items = getFormattingMenuItems(state, isTemplate, isMobile, dictionary);
+    items = getFormattingMenuItems(
+      state,
+      isTemplate,
+      isMobile,
+      dictionary,
+      isCommentEditor
+    );
   }
 
   // Some extensions may be disabled, remove corresponding items

@@ -38,7 +38,8 @@ export default function formattingMenuItems(
   state: EditorState,
   isTemplate: boolean,
   isMobile: boolean,
-  dictionary: Dictionary
+  dictionary: Dictionary,
+  isCommentEditor?: boolean
 ): MenuItem[] {
   const { schema } = state;
   const isTable = isInTable(state);
@@ -139,11 +140,13 @@ export default function formattingMenuItems(
     },
     {
       name: "separator",
+      visible: !isCommentEditor,
     },
     {
       name: "align_left",
       tooltip: dictionary.alignLeft,
       icon: <AlignLeftIcon />,
+      visible: !isCommentEditor,
       active: isAttrActiveOnSelection({
         attr: TextAlign.Left,
         attrKey: "textAlign",
@@ -153,6 +156,7 @@ export default function formattingMenuItems(
       name: "align_center",
       tooltip: dictionary.alignCenter,
       icon: <AlignCenterIcon />,
+      visible: !isCommentEditor,
       active: isAttrActiveOnSelection({
         attr: TextAlign.Center,
         attrKey: "textAlign",
@@ -162,6 +166,7 @@ export default function formattingMenuItems(
       name: "align_right",
       tooltip: dictionary.alignRight,
       icon: <AlignRightIcon />,
+      visible: !isCommentEditor,
       active: isAttrActiveOnSelection({
         attr: TextAlign.Right,
         attrKey: "textAlign",

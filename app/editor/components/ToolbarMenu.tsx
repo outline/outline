@@ -6,7 +6,6 @@ import { MenuItem } from "@shared/editor/types";
 import { s } from "@shared/styles";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
-import useMobile from "~/hooks/useMobile";
 import { MenuItem as TMenuItem } from "~/types";
 import { useEditor } from "./EditorContext";
 import ToolbarButton from "./ToolbarButton";
@@ -73,7 +72,6 @@ function ToolbarDropdown(props: { item: MenuItem }) {
 function ToolbarMenu(props: Props) {
   const { commands, view } = useEditor();
   const { items } = props;
-  const isMobile = useMobile();
   const { state } = view;
 
   const handleClick = (item: MenuItem) => () => {
@@ -87,7 +85,7 @@ function ToolbarMenu(props: Props) {
   };
 
   return (
-    <FlexibleWrapper scrollable={isMobile}>
+    <FlexibleWrapper>
       {items.map((item, index) => {
         if (item.name === "separator" && item.visible !== false) {
           return <ToolbarSeparator key={index} />;
@@ -120,9 +118,9 @@ function ToolbarMenu(props: Props) {
   );
 }
 
-const FlexibleWrapper = styled.div<{ scrollable: boolean }>`
+const FlexibleWrapper = styled.div`
   color: ${s("textSecondary")};
-  overflow: ${(props) => (props.scrollable ? "visible" : "hidden")};
+  overflow: visible;
   display: flex;
   gap: 6px;
 `;

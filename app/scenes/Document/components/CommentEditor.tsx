@@ -25,6 +25,6 @@ const extensions = [
 const CommentEditor = (
   props: EditorProps,
   ref: React.RefObject<SharedEditor>
-) => <Editor extensions={extensions} {...props} ref={ref} />;
+) => <Editor extensions={extensions} {...props} ref={ref} isCommentEditor />;
 
 export default React.forwardRef(CommentEditor);

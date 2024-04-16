@@ -1,7 +1,7 @@
 const depths = {
   header: 800,
   sidebar: 900,
-  editorToolbar: 925,
+  editorToolbar: 935,
   mobileSidebar: 930,
   hoverPreview: 950,
   // Note: editor lightbox is z-index 999
