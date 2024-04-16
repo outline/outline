@@ -1,7 +1,9 @@
 import DateTime from "../extensions/DateTime";
+import Direction from "../extensions/Direction";
 import History from "../extensions/History";
 import MaxLength from "../extensions/MaxLength";
 import Placeholder from "../extensions/Placeholder";
+import TextAlign from "../extensions/TextAlign";
 import TrailingNode from "../extensions/TrailingNode";
 import Extension from "../lib/Extension";
 import Bold from "../marks/Bold";
@@ -67,6 +69,8 @@ export const basicExtensions: Nodes = [
   Placeholder,
   MaxLength,
   DateTime,
+  Direction,
+  TextAlign,
 ];
 
 export const listExtensions: Nodes = [

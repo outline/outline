@@ -5,6 +5,8 @@ import { Command, NodeSelection } from "prosemirror-state";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { Primitive } from "utility-types";
+
+import { propertiesToInlineStyle } from "../../utils/dom";
 import { bytesToHumanReadable, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import insertFiles from "../commands/insertFiles";
@@ -38,6 +40,12 @@ export default class Attachment extends Node {
         size: {
           default: 0,
         },
+        dir: {
+          default: undefined,
+        },
+        textAlign: {
+          default: undefined,
+        },
       },
       group: "block",
       defining: true,
@@ -51,6 +59,8 @@ export default class Attachment extends Node {
             title: dom.innerText,
             href: dom.getAttribute("href"),
             size: parseInt(dom.dataset.size || "0", 10),
+            dir: dom.getAttribute("dir"),
+            textAlign: dom.style.textAlign,
           }),
         },
       ],
@@ -62,6 +72,10 @@ export default class Attachment extends Node {
           href: sanitizeUrl(node.attrs.href),
           download: node.attrs.title,
           "data-size": node.attrs.size,
+          dir: node.attrs.dir,
+          style: propertiesToInlineStyle({
+            "text-align": node.attrs.textAlign,
+          }),
         },
         node.attrs.title,
       ],

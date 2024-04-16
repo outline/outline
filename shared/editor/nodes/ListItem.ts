@@ -12,6 +12,8 @@ import {
   Command,
 } from "prosemirror-state";
 import { DecorationSet, Decoration } from "prosemirror-view";
+
+import { propertiesToInlineStyle } from "../../utils/dom";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import getParentListItem from "../queries/getParentListItem";
@@ -29,8 +31,33 @@ export default class ListItem extends Node {
       content: "paragraph block*",
       defining: true,
       draggable: true,
-      parseDOM: [{ tag: "li" }],
-      toDOM: () => ["li", 0],
+      attrs: {
+        dir: {
+          default: undefined,
+        },
+        textAlign: {
+          default: undefined,
+        },
+      },
+      parseDOM: [
+        {
+          tag: "li",
+          getAttrs: (dom: HTMLLIElement) => ({
+            dir: dom.getAttribute("dir"),
+            textAlign: dom.style.textAlign,
+          }),
+        },
+      ],
+      toDOM: (node) => [
+        "li",
+        {
+          dir: node.attrs.dir,
+          style: propertiesToInlineStyle({
+            "text-align": node.attrs.textAlign,
+          }),
+        },
+        0,
+      ],
     };
   }
 

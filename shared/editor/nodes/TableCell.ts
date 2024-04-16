@@ -2,6 +2,8 @@ import Token from "markdown-it/lib/token";
 import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { DecorationSet, Decoration } from "prosemirror-view";
+
+import { propertiesToInlineStyle } from "../../utils/dom";
 import { selectRow, selectTable } from "../commands/table";
 import {
   getCellsInColumn,
@@ -20,13 +22,24 @@ export default class TableCell extends Node {
       content: "(paragraph | embed)+",
       tableRole: "cell",
       isolating: true,
-      parseDOM: [{ tag: "td" }],
+      parseDOM: [
+        {
+          tag: "td",
+          getAttrs: (dom: HTMLLIElement) => ({
+            dir: dom.getAttribute("dir"),
+            textAlign: dom.style.textAlign,
+          }),
+        },
+      ],
       toDOM(node) {
         return [
           "td",
-          node.attrs.alignment
-            ? { style: `text-align: ${node.attrs.alignment}` }
-            : {},
+          {
+            dir: node.attrs.dir,
+            style: propertiesToInlineStyle({
+              "text-align": node.attrs.textAlign || node.attrs.alignment,
+            }),
+          },
           0,
         ];
       },
@@ -34,6 +47,12 @@ export default class TableCell extends Node {
         colspan: { default: 1 },
         rowspan: { default: 1 },
         alignment: { default: null },
+        dir: {
+          default: undefined,
+        },
+        textAlign: {
+          default: undefined,
+        },
       },
     };
   }

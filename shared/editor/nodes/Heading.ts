@@ -10,7 +10,9 @@ import { Command, Plugin, Selection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import { Primitive } from "utility-types";
+
 import Storage from "../../utils/Storage";
+import { propertiesToInlineStyle } from "../../utils/dom";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
@@ -30,6 +32,8 @@ export default class Heading extends Node {
     return {
       levels: [1, 2, 3, 4],
       collapsed: undefined,
+      dir: undefined,
+      textAlign: undefined,
     };
   }
 
@@ -42,6 +46,12 @@ export default class Heading extends Node {
         collapsed: {
           default: undefined,
         },
+        dir: {
+          default: undefined,
+        },
+        textAlign: {
+          default: undefined,
+        },
       },
       content: "inline*",
       group: "block",
@@ -49,7 +59,11 @@ export default class Heading extends Node {
       draggable: false,
       parseDOM: this.options.levels.map((level: number) => ({
         tag: `h${level}`,
-        attrs: { level },
+        getAttrs: (dom: HTMLLIElement) => ({
+          level,
+          dir: dom.getAttribute("dir"),
+          textAlign: dom.style.textAlign,
+        }),
         contentElement: (node: HTMLHeadingElement) =>
           node.querySelector(".heading-content") || node,
       })),
@@ -77,6 +91,12 @@ export default class Heading extends Node {
 
         return [
           `h${node.attrs.level + (this.options.offset || 0)}`,
+          {
+            dir: node.attrs.dir,
+            style: propertiesToInlineStyle({
+              "text-align": node.attrs.textAlign,
+            }),
+          },
           [
             "span",
             {

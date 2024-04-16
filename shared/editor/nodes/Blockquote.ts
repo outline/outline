@@ -1,6 +1,8 @@
 import { wrappingInputRule } from "prosemirror-inputrules";
 import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import { Command } from "prosemirror-state";
+
+import { propertiesToInlineStyle } from "../../utils/dom";
 import toggleWrap from "../commands/toggleWrap";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import isNodeActive from "../queries/isNodeActive";
@@ -16,12 +18,35 @@ export default class Blockquote extends Node {
       content: "block+",
       group: "block",
       defining: true,
+      attrs: {
+        dir: {
+          default: undefined,
+        },
+        textAlign: {
+          default: undefined,
+        },
+      },
       parseDOM: [
-        { tag: "blockquote" },
+        {
+          tag: "blockquote",
+          getAttrs: (dom: HTMLLIElement) => ({
+            dir: dom.getAttribute("dir"),
+            textAlign: dom.style.textAlign,
+          }),
+        },
         // Dropbox Paper parsing, yes their quotes are actually lists
         { tag: "ul.listtype-quote", contentElement: "li" },
       ],
-      toDOM: () => ["blockquote", 0],
+      toDOM: (node) => [
+        "blockquote",
+        {
+          dir: node.attrs.dir,
+          style: propertiesToInlineStyle({
+            "text-align": node.attrs.textAlign,
+          }),
+        },
+        0,
+      ],
     };
   }
 

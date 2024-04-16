@@ -5,6 +5,8 @@ import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import { Primitive } from "utility-types";
+
+import { propertiesToInlineStyle } from "../../utils/dom";
 import toggleWrap from "../commands/toggleWrap";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import noticesRule from "../rules/notices";
@@ -25,6 +27,12 @@ export default class Notice extends Node {
         style: {
           default: "info",
         },
+        dir: {
+          default: undefined,
+        },
+        textAlign: {
+          default: undefined,
+        },
       },
       content:
         "(list | blockquote | hr | paragraph | heading | code_block | code_fence | attachment)+",
@@ -38,6 +46,8 @@ export default class Notice extends Node {
           contentElement: (node: HTMLDivElement) =>
             node.querySelector("div.content") || node,
           getAttrs: (dom: HTMLDivElement) => ({
+            dir: dom.getAttribute("dir"),
+            textAlign: dom.style.textAlign,
             style: dom.className.includes("tip")
               ? "tip"
               : dom.className.includes("warning")
@@ -54,6 +64,7 @@ export default class Notice extends Node {
           getAttrs: (dom: HTMLDivElement) => ({
             style: dom.dataset.hint,
           }),
+          // TODO: support direction & alignment for other editors
         },
         // GitBook parsing
         {
@@ -104,7 +115,13 @@ export default class Notice extends Node {
 
         return [
           "div",
-          { class: `notice-block ${node.attrs.style}` },
+          {
+            class: `notice-block ${node.attrs.style}`,
+            dir: node.attrs.dir,
+            style: propertiesToInlineStyle({
+              "text-align": node.attrs.textAlign,
+            }),
+          },
           ...(icon ? [icon] : []),
           ["div", { class: "content" }, 0],
         ];

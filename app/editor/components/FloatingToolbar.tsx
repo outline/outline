@@ -294,6 +294,9 @@ const MobileWrapper = styled.div`
   box-sizing: border-box;
   z-index: ${depths.editorToolbar};
 
+  overflow-x: auto;
+  overflow-y: hidden;
+
   &:after {
     content: "";
     position: absolute;

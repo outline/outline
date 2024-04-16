@@ -375,3 +375,14 @@ export type JSONValue =
 export type JSONObject = { [x: string]: JSONValue };
 
 export type ProsemirrorData = JSONObject;
+
+export enum Direction {
+  LTR = "ltr",
+  RTL = "rtl",
+}
+
+export enum TextAlign {
+  Center = "center",
+  Left = "left",
+  Right = "right",
+}

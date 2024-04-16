@@ -5,6 +5,8 @@ import {
   sinkListItem,
   liftListItem,
 } from "prosemirror-schema-list";
+
+import { propertiesToInlineStyle } from "../../utils/dom";
 import toggleCheckboxItem from "../commands/toggleCheckboxItem";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import checkboxRule from "../rules/checkboxes";
@@ -21,6 +23,12 @@ export default class CheckboxItem extends Node {
         checked: {
           default: false,
         },
+        dir: {
+          default: undefined,
+        },
+        textAlign: {
+          default: undefined,
+        },
       },
       content: "paragraph block*",
       defining: true,
@@ -30,6 +38,8 @@ export default class CheckboxItem extends Node {
           tag: `li[data-type="${this.name}"]`,
           getAttrs: (dom: HTMLLIElement) => ({
             checked: dom.className.includes("checked"),
+            dir: dom.getAttribute("dir"),
+            textAlign: dom.style.textAlign,
           }),
         },
       ],
@@ -49,7 +59,11 @@ export default class CheckboxItem extends Node {
           "li",
           {
             "data-type": this.name,
+            dir: node.attrs.dir,
             class: node.attrs.checked ? "checked" : undefined,
+            style: propertiesToInlineStyle({
+              "text-align": node.attrs.textAlign,
+            }),
           },
           [
             "span",

@@ -6,6 +6,8 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
+
+import { propertiesToInlineStyle } from "../../utils/dom";
 import toggleList from "../commands/toggleList";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
@@ -21,6 +23,12 @@ export default class OrderedList extends Node {
         order: {
           default: 1,
         },
+        dir: {
+          default: undefined,
+        },
+        textAlign: {
+          default: undefined,
+        },
       },
       content: "list_item+",
       group: "block list",
@@ -28,16 +36,26 @@ export default class OrderedList extends Node {
         {
           tag: "ol",
           getAttrs: (dom: HTMLOListElement) => ({
+            dir: dom.getAttribute("dir"),
+            textAlign: dom.style.textAlign,
             order: dom.hasAttribute("start")
               ? parseInt(dom.getAttribute("start") || "1", 10)
               : 1,
           }),
         },
       ],
-      toDOM: (node) =>
-        node.attrs.order === 1
-          ? ["ol", 0]
-          : ["ol", { start: node.attrs.order }, 0],
+      toDOM: (node) => {
+        const textAttrs = {
+          dir: node.attrs.dir,
+          style: propertiesToInlineStyle({
+            "text-align": node.attrs.textAlign,
+          }),
+        };
+
+        return node.attrs.order === 1
+          ? ["ol", textAttrs, 0]
+          : ["ol", { start: node.attrs.order, ...textAttrs }, 0];
+      },
     };
   }
 

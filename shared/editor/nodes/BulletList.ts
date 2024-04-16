@@ -5,6 +5,7 @@ import {
   NodeSpec,
   Node as ProsemirrorModel,
 } from "prosemirror-model";
+import { propertiesToInlineStyle } from "../../utils/dom";
 import toggleList from "../commands/toggleList";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
@@ -16,10 +17,35 @@ export default class BulletList extends Node {
 
   get schema(): NodeSpec {
     return {
+      attrs: {
+        dir: {
+          default: undefined,
+        },
+        textAlign: {
+          default: undefined,
+        },
+      },
       content: "list_item+",
       group: "block list",
-      parseDOM: [{ tag: "ul" }],
-      toDOM: () => ["ul", 0],
+      parseDOM: [
+        {
+          tag: "ul",
+          getAttrs: (dom: HTMLLIElement) => ({
+            dir: dom.getAttribute("dir"),
+            textAlign: dom.style.textAlign,
+          }),
+        },
+      ],
+      toDOM: (node) => [
+        "ul",
+        {
+          dir: node.attrs.dir,
+          style: propertiesToInlineStyle({
+            "text-align": node.attrs.textAlign,
+          }),
+        },
+        0,
+      ],
     };
   }
 

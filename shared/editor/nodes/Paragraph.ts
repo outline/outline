@@ -1,5 +1,7 @@
 import { setBlockType } from "prosemirror-commands";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
+
+import { propertiesToInlineStyle } from "../../utils/dom";
 import deleteEmptyFirstParagraph from "../commands/deleteEmptyFirstParagraph";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
@@ -13,8 +15,33 @@ export default class Paragraph extends Node {
     return {
       content: "inline*",
       group: "block",
-      parseDOM: [{ tag: "p" }],
-      toDOM: () => ["p", 0],
+      parseDOM: [
+        {
+          tag: "p",
+          getAttrs: (dom: HTMLLIElement) => ({
+            dir: dom.getAttribute("dir"),
+            textAlign: dom.style.textAlign,
+          }),
+        },
+      ],
+      attrs: {
+        dir: {
+          default: undefined,
+        },
+        textAlign: {
+          default: undefined,
+        },
+      },
+      toDOM: (node) => [
+        "p",
+        {
+          dir: node.attrs.dir,
+          style: propertiesToInlineStyle({
+            "text-align": node.attrs.textAlign,
+          }),
+        },
+        0,
+      ],
     };
   }
 
