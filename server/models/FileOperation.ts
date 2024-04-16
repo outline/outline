@@ -14,6 +14,7 @@ import {
   DataType,
 } from "sequelize-typescript";
 import {
+  CollectionPermission,
   FileOperationFormat,
   FileOperationState,
   FileOperationType,
@@ -24,6 +25,11 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+
+export type FileOperationOptions = {
+  includeAttachments?: boolean;
+  permission?: CollectionPermission | null;
+};
 
 @DefaultScope(() => ({
   include: [
@@ -66,8 +72,11 @@ class FileOperation extends ParanoidModel<
   @Column(DataType.BIGINT)
   size: number;
 
-  @Column(DataType.BOOLEAN)
-  includeAttachments: boolean;
+  /**
+   * Additional configuration options for the file operation.
+   */
+  @Column(DataType.JSON)
+  options: FileOperationOptions | null;
 
   /**
    * Mark the current file operation as expired and remove the file from storage.

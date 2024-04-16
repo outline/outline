@@ -68,6 +68,10 @@ export type CollectionsDocumentsReq = z.infer<
 
 export const CollectionsImportSchema = BaseSchema.extend({
   body: z.object({
+    permission: z
+      .nativeEnum(CollectionPermission)
+      .nullish()
+      .transform((val) => (isUndefined(val) ? null : val)),
     attachmentId: z.string().uuid(),
     format: z
       .nativeEnum(FileOperationFormat)
