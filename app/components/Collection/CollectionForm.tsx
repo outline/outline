@@ -61,7 +61,7 @@ export const CollectionForm = observer(function CollectionForm_({
   React.useEffect(() => {
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
     // the name of the collection. It's the little things sometimes.
-    if (!hasOpenedIconPicker) {
+    if (!hasOpenedIconPicker && !collection) {
       setValue(
         "icon",
         IconLibrary.findIconByKeyword(values.name) ??
@@ -69,7 +69,7 @@ export const CollectionForm = observer(function CollectionForm_({
           "collection"
       );
     }
-  }, [values.name]);
+  }, [values.name, collection]);
 
   const handleIconPickerChange = React.useCallback(
     (color: string, icon: string) => {
