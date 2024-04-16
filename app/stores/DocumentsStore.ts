@@ -567,6 +567,7 @@ export default class DocumentsStore extends Store<Document> {
     document: Document,
     options?: {
       title?: string;
+      publish?: boolean;
       recursive?: boolean;
     }
   ): Promise<Document[]> => {

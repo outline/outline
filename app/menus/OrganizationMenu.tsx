@@ -5,7 +5,11 @@ import { MenuButton, useMenuState } from "reakit/Menu";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
 import { navigateToSettings, logout } from "~/actions/definitions/navigation";
-import { createTeam, createTeamsList } from "~/actions/definitions/teams";
+import {
+  createTeam,
+  createTeamsList,
+  desktopLoginTeam,
+} from "~/actions/definitions/teams";
 import useActionContext from "~/hooks/useActionContext";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
@@ -39,6 +43,7 @@ const OrganizationMenu: React.FC = ({ children }: Props) => {
     () => [
       ...createTeamsList(context),
       createTeam,
+      desktopLoginTeam,
       separator(),
       navigateToSettings,
       logout,

@@ -2,10 +2,10 @@ import { observer } from "mobx-react";
 import { CollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
 import * as React from "react";
+import { IconLibrary } from "@shared/utils/IconLibrary";
 import Collection from "~/models/Collection";
 import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
-import { IconLibrary } from "./IconLibrary";
 
 type Props = {
   /** The collection to show an icon for */

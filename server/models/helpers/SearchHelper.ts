@@ -1,5 +1,6 @@
 import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
+import escapeRegExp from "lodash/escapeRegExp";
 import find from "lodash/find";
 import map from "lodash/map";
 import queryParser from "pg-tsquery";
@@ -72,7 +73,7 @@ export default class SearchHelper {
       offset = 0,
     } = options;
 
-    const where = await this.buildWhere(team, {
+    const where = await this.buildWhere(team, query, {
       ...options,
       statusFilter: [...(options.statusFilter || []), StatusFilter.Published],
     });
@@ -91,14 +92,6 @@ export default class SearchHelper {
         id: [sharedDocument.id, ...childDocumentIds],
       });
     }
-
-    where[Op.and].push(
-      Sequelize.fn(
-        `"searchVector" @@ to_tsquery`,
-        "english",
-        Sequelize.literal(":query")
-      )
-    );
 
     const queryReplacements = {
       query: this.webSearchQuery(query),
@@ -152,7 +145,7 @@ export default class SearchHelper {
       ],
     });
 
-    return this.buildResponse(results, documents, count);
+    return this.buildResponse(query, results, documents, count);
   }
 
   public static async searchTitlesForUser(
@@ -161,7 +154,7 @@ export default class SearchHelper {
     options: SearchOptions = {}
   ): Promise<Document[]> {
     const { limit = 15, offset = 0 } = options;
-    const where = await this.buildWhere(user, options);
+    const where = await this.buildWhere(user, undefined, options);
 
     where[Op.and].push({
       title: {
@@ -224,15 +217,7 @@ export default class SearchHelper {
       offset = 0,
     } = options;
 
-    const where = await this.buildWhere(user, options);
-
-    where[Op.and].push(
-      Sequelize.fn(
-        `"searchVector" @@ to_tsquery`,
-        "english",
-        Sequelize.literal(":query")
-      )
-    );
+    const where = await this.buildWhere(user, query, options);
 
     const queryReplacements = {
       query: this.webSearchQuery(query),
@@ -307,10 +292,14 @@ export default class SearchHelper {
       },
     });
 
-    return this.buildResponse(results, documents, count);
+    return this.buildResponse(query, results, documents, count);
   }
 
-  private static async buildWhere(model: User | Team, options: SearchOptions) {
+  private static async buildWhere(
+    model: User | Team,
+    query: string | undefined,
+    options: SearchOptions
+  ) {
     const teamId = model instanceof Team ? model.id : model.teamId;
     const where: WhereOptions<Document> = {
       teamId,
@@ -410,24 +399,80 @@ export default class SearchHelper {
       });
     }
 
+    if (query) {
+      const limitedQuery = this.escapeQuery(
+        query.slice(0, this.maxQueryLength)
+      );
+
+      // Extract quoted queries and add them to the where clause, up to a maximum of 3 total.
+      const quotedQueries = Array.from(
+        limitedQuery.matchAll(/"([^"]*)"/g)
+      ).slice(0, 3);
+
+      for (const match of quotedQueries) {
+        where[Op.and].push({
+          [Op.or]: [
+            {
+              title: {
+                [Op.iLike]: `%${match[1]}%`,
+              },
+            },
+            {
+              text: {
+                [Op.iLike]: `%${match[1]}%`,
+              },
+            },
+          ],
+        });
+      }
+
+      where[Op.and].push(
+        Sequelize.fn(
+          `"searchVector" @@ to_tsquery`,
+          "english",
+          Sequelize.literal(":query")
+        )
+      );
+    }
+
     return where;
   }
 
   private static buildResponse(
+    query: string,
     results: RankedDocument[],
     documents: Document[],
     count: number
   ): SearchResponse {
+    const quotedQueries = Array.from(query.matchAll(/"([^"]*)"/g)).slice(0, 3);
+
+    // Regex to highlight quoted queries as ts_headline will not do this by default due to stemming.
+    const quotedRegex = new RegExp(
+      quotedQueries.map((match) => escapeRegExp(match[1])).join("|"),
+      "gi"
+    );
+
     return {
-      results: map(results, (result) => ({
-        ranking: result.dataValues.searchRanking,
-        context: removeMarkdown(result.dataValues.searchContext, {
+      results: map(results, (result) => {
+        let context = removeMarkdown(result.dataValues.searchContext, {
           stripHTML: false,
-        }),
-        document: find(documents, {
-          id: result.id,
-        }) as Document,
-      })),
+        });
+
+        // If there are any quoted queries, highlighting these takes precedence over the default
+        if (quotedQueries.length) {
+          context = context
+            .replace(/<\/?b>/g, "")
+            .replace(quotedRegex, "<b>$&</b>");
+        }
+
+        return {
+          ranking: result.dataValues.searchRanking,
+          context,
+          document: find(documents, {
+            id: result.id,
+          }) as Document,
+        };
+      }),
       totalCount: count,
     };
   }

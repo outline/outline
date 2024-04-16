@@ -14,15 +14,15 @@ const DocumentTypeFilter = ({ statusFilter, onSelect }: Props) => {
     () => [
       {
         key: TStatusFilter.Published,
-        label: t("Published documents"),
+        label: t("Published"),
       },
       {
         key: TStatusFilter.Archived,
-        label: t("Archived documents"),
+        label: t("Archived"),
       },
       {
         key: TStatusFilter.Draft,
-        label: t("Draft documents"),
+        label: t("Drafts"),
       },
     ],
     [t]

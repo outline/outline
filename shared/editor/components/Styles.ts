@@ -282,6 +282,10 @@ width: 100%;
   font-weight: 500;
   font-size: 0.9em;
   cursor: default;
+
+  &:before {
+    content: "@";
+  }
 }
 
 > div {

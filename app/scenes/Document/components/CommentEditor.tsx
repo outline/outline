@@ -9,6 +9,7 @@ import MentionMenuExtension from "~/editor/extensions/MentionMenu";
 import PasteHandler from "~/editor/extensions/PasteHandler";
 import PreventTab from "~/editor/extensions/PreventTab";
 import SmartText from "~/editor/extensions/SmartText";
+import useCurrentUser from "~/hooks/useCurrentUser";
 
 const extensions = [
   ...withComments(basicExtensions),
@@ -25,6 +26,12 @@ const extensions = [
 const CommentEditor = (
   props: EditorProps,
   ref: React.RefObject<SharedEditor>
-) => <Editor extensions={extensions} {...props} ref={ref} />;
+) => {
+  const user = useCurrentUser({ rejectOnEmpty: false });
+
+  return (
+    <Editor extensions={extensions} userId={user?.id} {...props} ref={ref} />
+  );
+};
 
 export default React.forwardRef(CommentEditor);
