@@ -836,7 +836,8 @@ export const permanentlyDeleteDocumentsInTrash = createAction({
   section: TrashSection,
   icon: <TrashIcon />,
   dangerous: true,
-  visible: ({ stores }) => stores.documents.deleted.length > 0,
+  visible: ({ stores }) =>
+    stores.documents.deleted.length > 0 && !!stores.auth.user?.isAdmin,
   perform: ({ stores, t, location }) => {
     stores.dialogs.openModal({
       title: t("Permanently delete documents in trash"),
