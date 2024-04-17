@@ -898,6 +898,7 @@
   "Manage settings that affect your personal experience.": "Gérer les paramètres qui affectent votre expérience utilisateur.",
   "Language": "Langue",
   "Choose the interface language. Community translations are accepted though our <2>translation portal</2>.": "Choisissez la langue de l'interface. Les traductions de la communauté sont acceptées via notre <2>plateforme de traduction</2>.",
+  "Choose your preferred interface color scheme.": "Choose your preferred interface color scheme.",
   "Use pointer cursor": "Utiliser le curseur pointeur",
   "Show a hand cursor when hovering over interactive elements.": "Afficher un curseur en forme de main lors du survol d'éléments interactifs.",
   "Show line numbers": "Afficher les numéros de ligne",
