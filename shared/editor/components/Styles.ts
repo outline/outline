@@ -4,7 +4,6 @@ import styled, { DefaultTheme, css, keyframes } from "styled-components";
 import { videoStyle } from "./Video";
 
 export type Props = {
-  rtl: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
   staticHTML?: boolean;
@@ -544,7 +543,7 @@ iframe.embed {
   max-width: 100vw;
   clear: both;
   position: initial;
-  ${props.rtl ? `margin-right: var(--offset)` : `margin-left: var(--offset)`};
+  margin-inline-start: var(--offset);
 
   img {
     max-width: 100vw;
@@ -582,8 +581,8 @@ li.ProseMirror-selectednode {
 li.ProseMirror-selectednode:after {
   content: "";
   position: absolute;
-  left: ${props.rtl ? "-2px" : "-32px"};
-  right: ${props.rtl ? "-32px" : "-2px"};
+  inset-inline-start: -32px;
+  inset-inline-end: -2px;
   top: -2px;
   bottom: -2px;
   border: 2px solid ${props.theme.selected};
@@ -687,7 +686,7 @@ h6:not(.placeholder):before {
 }
 
 .with-emoji {
-  margin-${props.rtl ? "right" : "left"}: -1em;
+  margin-inline-start: -1em;
 }
 
 .heading-anchor,
@@ -724,7 +723,7 @@ h6:not(.placeholder):before {
   user-select: none;
   background: ${props.theme.background};
   margin-inline-start: -26px;
-  flex-direction: ${props.rtl ? "row-reverse" : "row"};
+  flex-direction: row;
   display: inline-flex;
   position: relative;
   top: -2px;
@@ -767,8 +766,12 @@ h6 {
 
   &.collapsed {
     svg {
-      transform: rotate(${props.rtl ? "90deg" : "-90deg"});
+      transform: rotate(-90deg);
       pointer-events: none;
+
+      &:dir(rtl) {
+        transform: rotate(90deg);
+      }
     }
     transition-delay: 0.1s;
     opacity: 1;
@@ -1029,7 +1032,7 @@ ol li[draggable=true]::before {
 
 ul > li.counter-2::before,
 ol li.counter-2::before {
-  ${props.rtl ? "right" : "left"}: -50px;
+  inset-inline-start: -50px;
 }
 
 ul > li.hovering::before,
@@ -1043,7 +1046,7 @@ ol li.ProseMirror-selectednode::after {
 }
 
 ul.checkbox_list > li::before {
-  ${props.rtl ? "right" : "left"}: 0;
+  inset-inline-start: 0;
 }
 
 ul.checkbox_list li .checkbox {
@@ -1294,7 +1297,7 @@ table {
     border: 1px solid ${props.theme.tableDivider};
     position: relative;
     padding: 4px 8px;
-    text-align: ${props.rtl ? "right" : "left"};
+    text-align: start;
     min-width: 100px;
   }
 
@@ -1322,7 +1325,7 @@ table {
       cursor: var(--pointer);
       position: absolute;
       top: -16px;
-      ${props.rtl ? "right" : "left"}: 0;
+      inset-inline-start: 0;
       width: 100%;
       height: 12px;
       background: ${props.theme.tableDivider};
@@ -1334,10 +1337,10 @@ table {
       background: ${props.theme.text};
     }
     &.first::after {
-      border-top-${props.rtl ? "right" : "left"}-radius: 3px;
+      border-start-start-radius: 3px;
     }
     &.last::after {
-      border-top-${props.rtl ? "left" : "right"}-radius: 3px;
+      border-start-end-radius: 3px;
     }
     &.selected::after {
       background: ${props.theme.tableSelected};
@@ -1349,12 +1352,12 @@ table {
       content: "";
       cursor: var(--pointer);
       position: absolute;
-      ${props.rtl ? "right" : "left"}: -16px;
+      inset-inline-start: -16px;
       top: 0;
       height: 100%;
       width: 12px;
       background: ${props.theme.tableDivider};
-      border-${props.rtl ? "left" : "right"}: 3px solid;
+      border-inline-end: 3px solid;
       border-color: ${props.theme.background};
       display: ${props.readOnly ? "none" : "block"};
     }
@@ -1363,10 +1366,10 @@ table {
       background: ${props.theme.text};
     }
     &.first::after {
-      border-top-${props.rtl ? "right" : "left"}-radius: 3px;
+      border-start-start-radius: 3px;
     }
     &.last::after {
-      border-bottom-${props.rtl ? "right" : "left"}-radius: 3px;
+      border-end-start-radius: 3px;
     }
     &.selected::after {
       background: ${props.theme.tableSelected};
@@ -1384,7 +1387,7 @@ table {
       border: 2px solid ${props.theme.background};
       position: absolute;
       top: -18px;
-      ${props.rtl ? "right" : "left"}: -18px;
+      inset-inline-start: -18px;
       display: ${props.readOnly ? "none" : "block"};
     }
 
@@ -1433,8 +1436,8 @@ table {
 .scrollable {
   overflow-y: hidden;
   overflow-x: auto;
-  padding-${props.rtl ? "right" : "left"}: 1em;
-  margin-${props.rtl ? "right" : "left"}: -1em;
+  padding-inline-start: 1em;
+  margin-inline-start: -1em;
   transition: border 250ms ease-in-out 0s;
 }
 
@@ -1442,7 +1445,7 @@ table {
   position: absolute;
   top: 16px;
   bottom: 0;
-  ${props.rtl ? "right" : "left"}: -1em;
+  inset-inline-start: -1em;
   width: 32px;
   z-index: 1;
   transition: box-shadow 250ms ease-in-out;
@@ -1480,7 +1483,7 @@ table {
   border: 0;
   padding: 0;
   margin-top: 1px;
-  margin-${props.rtl ? "right" : "left"}: -28px;
+  margin-inline-start: -28px;
   border-radius: 4px;
 
   &:hover,

@@ -59,6 +59,7 @@ export default class Table extends Node {
           "div",
           {
             class: "scrollable-wrapper table-wrapper",
+            dir: node.attrs.dir,
           },
           [
             "div",

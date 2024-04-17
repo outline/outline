@@ -5,6 +5,8 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
+
+import { propertiesToInlineStyle } from "../../utils/dom";
 import toggleList from "../commands/toggleList";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
@@ -18,10 +20,32 @@ export default class CheckboxList extends Node {
     return {
       group: "block list",
       content: "checkbox_item+",
-      toDOM: () => ["ul", { class: this.name }, 0],
+      toDOM: (node) => [
+        "ul",
+        {
+          class: this.name,
+          dir: node.attrs.dir,
+          style: propertiesToInlineStyle({
+            "text-align": node.attrs.textAlign,
+          }),
+        },
+        0,
+      ],
+      attrs: {
+        dir: {
+          default: undefined,
+        },
+        textAlign: {
+          default: undefined,
+        },
+      },
       parseDOM: [
         {
           tag: `[class="${this.name}"]`,
+          getAttrs: (dom: HTMLLIElement) => ({
+            dir: dom.getAttribute("dir"),
+            textAlign: dom.style.textAlign,
+          }),
         },
       ],
     };

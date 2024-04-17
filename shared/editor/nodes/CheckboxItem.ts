@@ -95,7 +95,9 @@ export default class CheckboxItem extends Node {
     const result = view.posAtCoords({ top, left });
 
     if (result) {
+      const checkboxNode = view.state.doc.nodeAt(result.inside);
       const transaction = tr.setNodeMarkup(result.inside, undefined, {
+        ...checkboxNode?.attrs,
         checked: event.target.getAttribute("aria-checked") !== "true",
       });
       view.dispatch(transaction);

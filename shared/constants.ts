@@ -39,6 +39,7 @@ export const NodesWithTextDirAlignSupport = [
   "list_item",
   "heading",
   "checkbox_item",
+  "checkbox_list",
   "bullet_list",
   "blockquote",
   "attachment",
