@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { ApiKey, Event } from "@server/models";
@@ -12,7 +13,7 @@ const router = new Router();
 
 router.post(
   "apiKeys.create",
-  auth({ member: true }),
+  auth({ role: UserRole.Member }),
   validate(T.APIKeysCreateSchema),
   async (ctx: APIContext<T.APIKeysCreateReq>) => {
     const { name } = ctx.input.body;
@@ -43,7 +44,7 @@ router.post(
 
 router.post(
   "apiKeys.list",
-  auth({ member: true }),
+  auth({ role: UserRole.Member }),
   pagination(),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
@@ -65,7 +66,7 @@ router.post(
 
 router.post(
   "apiKeys.delete",
-  auth({ member: true }),
+  auth({ role: UserRole.Member }),
   validate(T.APIKeysDeleteSchema),
   async (ctx: APIContext<T.APIKeysDeleteReq>) => {
     const { id } = ctx.input.body;

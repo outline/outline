@@ -281,6 +281,10 @@ width: 100%;
   font-weight: 500;
   font-size: 0.9em;
   cursor: default;
+
+  &:before {
+    content: "@";
+  }
 }
 
 > div {
@@ -1160,11 +1164,16 @@ mark {
 .code-block[data-language=mermaidjs] {
   margin: 0.75em 0;
 
-  pre {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    margin-bottom: -20px;
-    overflow: hidden;
+  ${
+    !props.staticHTML &&
+    css`
+      pre {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        margin-bottom: -20px;
+        overflow: hidden;
+      }
+    `
   }
 
   // Hide code without display none so toolbar can still be positioned against it
@@ -1174,7 +1183,7 @@ mark {
     overflow: hidden;
 
     // Allows the margin to collapse correctly by moving div out of the flow
-    position: absolute;
+    position: ${props.staticHTML ? "relative" : "absolute"};
   }
 }
 

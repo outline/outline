@@ -10,8 +10,8 @@ import {
   FindOptions,
   InferAttributes,
   InferCreationAttributes,
-  InstanceUpdateOptions,
 } from "sequelize";
+import { type InstanceUpdateOptions } from "sequelize";
 import {
   Table,
   Column,
@@ -29,6 +29,7 @@ import {
   IsDate,
   AllowNull,
   AfterUpdate,
+  BeforeUpdate,
 } from "sequelize-typescript";
 import { UserPreferenceDefaults } from "@shared/constants";
 import { languages } from "@shared/i18n";
@@ -42,9 +43,9 @@ import {
   UserRole,
   DocumentPermission,
 } from "@shared/types";
+import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
-import Model from "@server/models/base/Model";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
@@ -567,51 +568,6 @@ class User extends ParanoidModel<
       ],
     });
 
-  demote: (
-    to: UserRole,
-    options?: InstanceUpdateOptions<InferAttributes<Model>>
-  ) => Promise<void> = async (to, options) => {
-    const res = await (this.constructor as typeof User).findAndCountAll({
-      where: {
-        teamId: this.teamId,
-        role: UserRole.Admin,
-        id: {
-          [Op.ne]: this.id,
-        },
-      },
-      limit: 1,
-      ...options,
-    });
-
-    if (res.count >= 1) {
-      if (to === UserRole.Member) {
-        await this.update({ role: to }, options);
-      } else if (to === UserRole.Viewer) {
-        await this.update({ role: to }, options);
-        await UserMembership.update(
-          {
-            permission: CollectionPermission.Read,
-          },
-          {
-            ...options,
-            where: {
-              userId: this.id,
-            },
-          }
-        );
-      }
-
-      return undefined;
-    } else {
-      throw ValidationError("At least one admin is required");
-    }
-  };
-
-  promote: (
-    options?: InstanceUpdateOptions<InferAttributes<User>>
-  ) => Promise<User> = (options) =>
-    this.update({ role: UserRole.Admin }, options);
-
   // hooks
 
   @BeforeDestroy
@@ -637,6 +593,62 @@ class User extends ParanoidModel<
   static setRandomJwtSecret = (model: User) => {
     model.jwtSecret = crypto.randomBytes(64).toString("hex");
   };
+
+  @BeforeUpdate
+  static async checkRoleChange(
+    model: User,
+    options: InstanceUpdateOptions<InferAttributes<User>>
+  ) {
+    const previousRole = model.previous("role");
+
+    if (
+      model.changed("role") &&
+      previousRole === UserRole.Admin &&
+      UserRoleHelper.isRoleLower(model.role, UserRole.Admin)
+    ) {
+      const { count } = await this.findAndCountAll({
+        where: {
+          teamId: model.teamId,
+          role: UserRole.Admin,
+          id: {
+            [Op.ne]: model.id,
+          },
+        },
+        limit: 1,
+        transaction: options.transaction,
+      });
+      if (count === 0) {
+        throw ValidationError("At least one admin is required");
+      }
+    }
+  }
+
+  @AfterUpdate
+  static async updateMembershipPermissions(
+    model: User,
+    options: InstanceUpdateOptions<InferAttributes<User>>
+  ) {
+    const previousRole = model.previous("role");
+
+    if (
+      previousRole &&
+      model.changed("role") &&
+      UserRoleHelper.isRoleLower(model.role, UserRole.Member) &&
+      UserRoleHelper.isRoleHigher(previousRole, UserRole.Viewer)
+    ) {
+      await UserMembership.update(
+        {
+          permission: CollectionPermission.Read,
+        },
+        {
+          transaction: options.transaction,
+          where: {
+            userId: model.id,
+          },
+        }
+      );
+    }
+  }
 
   @AfterUpdate
   static deletePreviousAvatar = async (model: User) => {

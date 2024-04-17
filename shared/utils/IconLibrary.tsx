@@ -1,3 +1,92 @@
+import {
+  faHeart,
+  faWandSparkles,
+  faUmbrella,
+  faMugHot,
+  faBook,
+  faDroplet,
+  faBrush,
+  faSnowflake,
+  faShop,
+  faShirt,
+  faBagShopping,
+  faGauge,
+  faMountainSun,
+  faPassport,
+  faPhoneVolume,
+  faNewspaper,
+  faNetworkWired,
+  faRocket,
+  faStarOfLife,
+  faSeedling,
+  faTrain,
+  faMicrochip,
+  faRecordVinyl,
+  faTrophy,
+  faHammer,
+  faRobot,
+  faCrown,
+  faCube,
+  faRoad,
+  faPuzzlePiece,
+  faIndustry,
+  faWorm,
+  faVault,
+  faUtensils,
+  faUserGraduate,
+  faUniversalAccess,
+  faTractor,
+  faTent,
+  faSpa,
+  faSocks,
+  faScissors,
+  faSailboat,
+  faPizzaSlice,
+  faPaw,
+  faMap,
+  faLaptopCode,
+  faKitMedical,
+  faFaceSurprise,
+  faFaceSmileWink,
+  faFaceSmileBeam,
+  faFaceMeh,
+  faFaceLaugh,
+  faFaceGrinStars,
+  faFaceDizzy,
+  faDog,
+  faCrow,
+  faCompactDisc,
+  faClapperboard,
+  faFeather,
+  faFish,
+  faCat,
+  faTree,
+  faShield,
+  faLaptop,
+  faDisplay,
+  faPrescription,
+  faWheelchairMove,
+  faGift,
+  faMagnet,
+  faPaintRoller,
+  faGamepad,
+  faCookieBite,
+  faTowerCell,
+  faTooth,
+  faDollarSign,
+  faSterlingSign,
+  faYenSign,
+  faPesoSign,
+  faRainbow,
+  faPenRuler,
+  faSwatchbook,
+  faStarAndCrescent,
+  faSolarPanel,
+  faUmbrellaBeach,
+  faGem,
+  faDna,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import intersection from "lodash/intersection";
 import {
   BookmarkedIcon,
@@ -54,7 +143,21 @@ import {
   ThumbsUpIcon,
   TruckIcon,
 } from "outline-icons";
-import LetterIcon from "./LetterIcon";
+import * as React from "react";
+import styled from "styled-components";
+import LetterIcon from "../components/LetterIcon";
+
+type IconMapping = {
+  component: React.ComponentType<FAProps>;
+  keywords?: string;
+};
+
+type FAProps = {
+  color?: string;
+  size?: number;
+  className?: string;
+  style?: React.CSSProperties;
+};
 
 export class IconLibrary {
   /**
@@ -78,7 +181,7 @@ export class IconLibrary {
 
     for (const key of keys) {
       const icon = this.mapping[key];
-      const keywords = icon.keywords.split(" ");
+      const keywords = icon.keywords?.split(" ");
       const namewords = keyword.toLocaleLowerCase().split(" ");
       const matches = intersection(namewords, keywords);
 
@@ -91,10 +194,31 @@ export class IconLibrary {
   }
 
   /**
+   * Find icons.
+   *
+   * @param query The query to search for
+   * @returns The icon results.
+   */
+  public static findIcons(query: string) {
+    return Object.keys(this.mapping)
+      .map((key) => {
+        const icon = this.mapping[key];
+        const keywords = `${icon.keywords ?? ""} ${key}`;
+
+        if (keywords.includes(query.toLocaleLowerCase())) {
+          return key;
+        }
+        return undefined;
+      })
+      .filter(Boolean);
+  }
+
+  /**
    * A map of all icons available to end users in the app. This does not include icons that are used
    * internally only, which can be imported from `outline-icons` directly.
    */
-  public static mapping = {
+  public static mapping: Record<string, IconMapping> = {
+    // Internal icons
     academicCap: {
       component: AcademicCapIcon,
       keywords: "learn teach lesson guide tutorial onboarding training",
@@ -311,5 +435,123 @@ export class IconLibrary {
       component: WarningIcon,
       keywords: "warning alert error",
     },
-  };
+
+    // Font awesome
+    ...Object.fromEntries(
+      [
+        faHeart,
+        faWandSparkles,
+        faUmbrella,
+        faMugHot,
+        faBook,
+        faDroplet,
+        faBrush,
+        faSnowflake,
+        faShop,
+        faShirt,
+        faBagShopping,
+        faGauge,
+        faMountainSun,
+        faPassport,
+        faPhoneVolume,
+        faNewspaper,
+        faNetworkWired,
+        faRocket,
+        faStarOfLife,
+        faSeedling,
+        faTrain,
+        faMicrochip,
+        faRecordVinyl,
+        faTrophy,
+        faHammer,
+        faRobot,
+        faCrown,
+        faCube,
+        faRoad,
+        faPuzzlePiece,
+        faIndustry,
+        faWorm,
+        faVault,
+        faUtensils,
+        faUserGraduate,
+        faUniversalAccess,
+        faTractor,
+        faTent,
+        faSpa,
+        faSocks,
+        faScissors,
+        faSailboat,
+        faPizzaSlice,
+        faPaw,
+        faMap,
+        faLaptopCode,
+        faKitMedical,
+        faFaceSurprise,
+        faFaceSmileWink,
+        faFaceSmileBeam,
+        faFaceMeh,
+        faFaceLaugh,
+        faFaceGrinStars,
+        faFaceDizzy,
+        faDog,
+        faCrow,
+        faCompactDisc,
+        faClapperboard,
+        faFeather,
+        faFish,
+        faCat,
+        faTree,
+        faShield,
+        faLaptop,
+        faDisplay,
+        faPrescription,
+        faWheelchairMove,
+        faGift,
+        faMagnet,
+        faPaintRoller,
+        faGamepad,
+        faCookieBite,
+        faTowerCell,
+        faTooth,
+        faDollarSign,
+        faSterlingSign,
+        faYenSign,
+        faPesoSign,
+        faRainbow,
+        faPenRuler,
+        faSwatchbook,
+        faStarAndCrescent,
+        faSolarPanel,
+        faUmbrellaBeach,
+        faGem,
+        faDna,
+      ].map((icon) => [
+        icon.iconName,
+        {
+          component: ({ color, size = 24, className, style }: FAProps) => (
+            <FontAwesomeWrapper size={size}>
+              <FontAwesomeIcon
+                style={{
+                  width: 0.6666666667 * size,
+                  height: 0.6666666667 * size,
+                  ...style,
+                }}
+                color={color}
+                icon={icon}
+                className={className}
+              />
+            </FontAwesomeWrapper>
+          ),
+        },
+      ])
+    ),
+  } as const;
 }
+
+const FontAwesomeWrapper = styled.span<{ size: number }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: ${(props) => props.size}px;
+  height: ${(props) => props.size}px;
+`;

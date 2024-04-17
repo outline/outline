@@ -8,7 +8,7 @@ import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { StatusFilter, TeamPreference } from "@shared/types";
+import { StatusFilter, TeamPreference, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -203,7 +203,7 @@ router.post(
 
 router.post(
   "documents.archived",
-  auth({ member: true }),
+  auth({ role: UserRole.Member }),
   pagination(),
   validate(T.DocumentsArchivedSchema),
   async (ctx: APIContext<T.DocumentsArchivedReq>) => {
@@ -247,7 +247,7 @@ router.post(
 
 router.post(
   "documents.deleted",
-  auth({ member: true }),
+  auth({ role: UserRole.Member }),
   pagination(),
   validate(T.DocumentsDeletedSchema),
   async (ctx: APIContext<T.DocumentsDeletedReq>) => {
@@ -629,7 +629,7 @@ router.post(
 
 router.post(
   "documents.restore",
-  auth({ member: true }),
+  auth({ role: UserRole.Member }),
   validate(T.DocumentsRestoreSchema),
   async (ctx: APIContext<T.DocumentsRestoreReq>) => {
     const { id, collectionId, revisionId } = ctx.input.body;
@@ -904,7 +904,7 @@ router.post(
 
 router.post(
   "documents.templatize",
-  auth({ member: true }),
+  auth({ role: UserRole.Member }),
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsTemplatizeSchema),
   transaction(),
@@ -1213,17 +1213,6 @@ router.post(
       });
       authorize(user, "permanentDelete", document);
 
-      await Document.update(
-        {
-          parentDocumentId: null,
-        },
-        {
-          where: {
-            parentDocumentId: document.id,
-          },
-          paranoid: false,
-        }
-      );
       await documentPermanentDeleter([document]);
       await Event.create({
         name: "documents.permanent_delete",
@@ -1697,6 +1686,57 @@ router.post(
         memberships: memberships.map(presentMembership),
         users: memberships.map((membership) => presentUser(membership.user)),
       },
+    };
+  }
+);
+
+router.post(
+  "documents.empty_trash",
+  auth({ role: UserRole.Admin }),
+  async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
+
+    const collectionIds = await user.collectionIds({
+      paranoid: false,
+    });
+    const collectionScope: Readonly<ScopeOptions> = {
+      method: ["withCollectionPermissions", user.id],
+    };
+    const documents = await Document.scope([
+      collectionScope,
+      "withDrafts",
+    ]).findAll({
+      where: {
+        deletedAt: {
+          [Op.ne]: null,
+        },
+        [Op.or]: [
+          {
+            collectionId: {
+              [Op.in]: collectionIds,
+            },
+          },
+          {
+            createdById: user.id,
+            collectionId: {
+              [Op.is]: null,
+            },
+          },
+        ],
+      },
+      paranoid: false,
+    });
+
+    await documentPermanentDeleter(documents);
+    await Event.create({
+      name: "documents.empty_trash",
+      teamId: user.teamId,
+      actorId: user.id,
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      success: true,
     };
   }
 );

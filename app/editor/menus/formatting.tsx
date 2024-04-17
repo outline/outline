@@ -19,6 +19,7 @@ import {
   AlignLeftIcon,
   AlignCenterIcon,
   AlignRightIcon,
+  Heading3Icon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
@@ -113,6 +114,14 @@ export default function formattingMenuItems(
       icon: <Heading2Icon />,
       active: isNodeActive(schema.nodes.heading, { level: 2 }),
       attrs: { level: 2 },
+      visible: allowBlocks && !isCode,
+    },
+    {
+      name: "heading",
+      tooltip: dictionary.subheading,
+      icon: <Heading3Icon />,
+      active: isNodeActive(schema.nodes.heading, { level: 3 }),
+      attrs: { level: 3 },
       visible: allowBlocks && !isCode,
     },
     {

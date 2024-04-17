@@ -70,7 +70,7 @@ function Members() {
     };
 
     void fetchData();
-  }, [query, sort, filter, role, page, direction, users, users.counts.all]);
+  }, [query, sort, filter, role, page, direction, users]);
 
   React.useEffect(() => {
     let filtered = users.orderedData;
@@ -186,7 +186,7 @@ function Members() {
         <Trans>
           Everyone that has signed into {{ appName }} is listed here. It’s
           possible that there are other users who have access through{" "}
-          {team.signinMethods} but haven’t signed in yet.
+          {{ signinMethods: team.signinMethods }} but haven’t signed in yet.
         </Trans>
       </Text>
       <Flex gap={8}>

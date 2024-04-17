@@ -10,7 +10,7 @@ import { sequelize } from "@server/storage/database";
 import { Event as TEvent, UserEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
-export default class UsersDeletedProcessor extends BaseProcessor {
+export default class UserDeletedProcessor extends BaseProcessor {
   static applicableEvents: TEvent["name"][] = ["users.delete"];
 
   async perform(event: UserEvent) {

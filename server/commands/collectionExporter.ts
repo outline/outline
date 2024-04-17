@@ -53,9 +53,11 @@ async function collectionExporter({
       url: null,
       size: 0,
       collectionId,
-      includeAttachments,
       userId: user.id,
       teamId: user.teamId,
+      options: {
+        includeAttachments,
+      },
     },
     {
       transaction,

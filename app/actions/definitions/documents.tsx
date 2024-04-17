@@ -37,11 +37,12 @@ import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
+import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import DuplicateDialog from "~/components/DuplicateDialog";
 import SharePopover from "~/components/Sharing";
 import { createAction } from "~/actions";
-import { DocumentSection } from "~/actions/sections";
+import { DocumentSection, TrashSection } from "~/actions/sections";
 import env from "~/env";
 import history from "~/utils/history";
 import {
@@ -52,6 +53,7 @@ import {
   searchPath,
   documentPath,
   urlify,
+  trashPath,
 } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
@@ -828,6 +830,27 @@ export const permanentlyDeleteDocument = createAction({
   },
 });
 
+export const permanentlyDeleteDocumentsInTrash = createAction({
+  name: ({ t }) => t("Empty"),
+  analyticsName: "Empty trash",
+  section: TrashSection,
+  icon: <TrashIcon />,
+  dangerous: true,
+  visible: ({ stores }) =>
+    stores.documents.deleted.length > 0 && !!stores.auth.user?.isAdmin,
+  perform: ({ stores, t, location }) => {
+    stores.dialogs.openModal({
+      title: t("Permanently delete documents in trash"),
+      content: (
+        <DeleteDocumentsInTrash
+          onSubmit={stores.dialogs.closeAllModals}
+          shouldRedirect={location.pathname === trashPath()}
+        />
+      ),
+    });
+  },
+});
+
 export const openDocumentComments = createAction({
   name: ({ t }) => t("Comments"),
   analyticsName: "Open comments",
@@ -952,6 +975,7 @@ export const rootDocumentActions = [
   moveDocument,
   openRandomDocument,
   permanentlyDeleteDocument,
+  permanentlyDeleteDocumentsInTrash,
   printDocument,
   pinDocumentToCollection,
   pinDocumentToHome,

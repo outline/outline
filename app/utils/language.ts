@@ -3,6 +3,21 @@ import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Desktop from "./Desktop";
 
 /**
+ * Formats a number using the user's locale where possible.
+ *
+ * @param number The number to format
+ * @param locale The locale to use for formatting (BCP47 format)
+ * @returns The formatted number as a string
+ */
+export function formatNumber(number: number, locale: string) {
+  try {
+    return new Intl.NumberFormat(locale).format(number);
+  } catch (e) {
+    return number.toString();
+  }
+}
+
+/**
  * Detects the user's language based on the browser's language settings.
  *
  * @returns The user's language in CLDR format (en_US)

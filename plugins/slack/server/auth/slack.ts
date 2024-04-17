@@ -171,7 +171,9 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
 
       switch (type) {
         case IntegrationType.Post: {
-          const collection = await Collection.findByPk(collectionId, {
+          const collection = await Collection.scope({
+            method: ["withMembership", user.id],
+          }).findByPk(collectionId, {
             rejectOnEmpty: true,
           });
           authorize(user, "read", collection);
