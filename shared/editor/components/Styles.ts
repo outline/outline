@@ -894,6 +894,7 @@ h6 {
 blockquote {
   margin: 0;
   padding-bottom: 8px;
+  padding-top: 8px;
   padding-inline-start: 1.5rem;
   padding-inline-end: 10px;
   font-style: italic;
@@ -968,9 +969,14 @@ a:hover {
 
 ul,
 ol {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
   margin-inline-start: -26px;
   margin-inline-end: 0.1rem;
   padding-inline-start: 48px;
+  padding-inline-end: 0;
 }
 
 ol ol {
@@ -984,6 +990,7 @@ ol ol ol {
 ul.checkbox_list {
   padding: 0;
   margin-inline-start: -24px;
+  margin-inline-end: 0;
 }
 
 ul li,
@@ -1056,7 +1063,10 @@ ul.checkbox_list li .checkbox {
     props.readOnly && !props.readOnlyWriteCheckboxes ? "none" : "initial"
   };
   opacity: ${props.readOnly && !props.readOnlyWriteCheckboxes ? 0.75 : 1};
+  margin-bottom: 0;
+  margin-top: 0;
   margin-inline-end: 0.5em;
+  margin-inline-start: 0;
   width: 14px;
   height: 14px;
   position: relative;
