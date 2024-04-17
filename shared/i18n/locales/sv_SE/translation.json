@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "Flytta {{ documentType }}",
   "Archive": "Arkiv",
   "Document archived": "Dokumentet arkiverat",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "Ta bort {{ documentName }}",
   "Permanently delete": "Radera permanent",
   "Permanently delete {{ documentName }}": "Radera {{ documentName }} permanent",
