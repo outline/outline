@@ -898,6 +898,7 @@
   "Manage settings that affect your personal experience.": "個人的な体験を設定します。",
   "Language": "言語",
   "Choose the interface language. Community translations are accepted though our <2>translation portal</2>.": "表示言語を選択します。 <2>翻訳ポータル</2>を通じて翻訳コミュニティに参加できます。",
+  "Choose your preferred interface color scheme.": "Choose your preferred interface color scheme.",
   "Use pointer cursor": "ポインター カーソルを使用する",
   "Show a hand cursor when hovering over interactive elements.": "インタラクティブな要素にカーソルを合わせると、ハンドカーソルが表示されます。",
   "Show line numbers": "行番号を表示",
