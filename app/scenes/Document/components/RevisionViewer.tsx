@@ -43,7 +43,6 @@ function RevisionViewer(props: Props) {
       <EditorContainer
         dangerouslySetInnerHTML={{ __html: revision.html }}
         dir={revision.dir}
-        rtl={revision.rtl}
       />
       {children}
     </Flex>

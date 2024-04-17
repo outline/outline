@@ -757,7 +757,6 @@ export class Editor extends React.PureComponent<
           >
             <EditorContainer
               dir={dir}
-              rtl={isRTL}
               grow={grow}
               readOnly={readOnly}
               readOnlyWriteCheckboxes={canUpdate}
