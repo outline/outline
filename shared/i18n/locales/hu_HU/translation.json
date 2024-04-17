@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "{{ documentType }} áthelyezése",
   "Archive": "Archiválás",
   "Document archived": "Dokumentum archiválva",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "{{ documentName }} törlése",
   "Permanently delete": "Végleges törlés",
   "Permanently delete {{ documentName }}": "{{ documentName }} végleges törlése",
