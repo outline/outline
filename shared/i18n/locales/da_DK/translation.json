@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "Flyt {{ documentType }}",
   "Archive": "Arkiv",
   "Document archived": "Dokument arkiveret",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "Slet {{ documentName }}",
   "Permanently delete": "Slet helt",
   "Permanently delete {{ documentName }}": "Slet {{ documentName }} helt",
