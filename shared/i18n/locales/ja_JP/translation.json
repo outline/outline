@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "{{ documentType }} を移動",
   "Archive": "アーカイブ",
   "Document archived": "ドキュメントをアーカイブしました",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "{{ documentName }}を削除します。",
   "Permanently delete": "完全に削除します。",
   "Permanently delete {{ documentName }}": "{{ documentName }} を完全に削除します。",
