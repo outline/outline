@@ -27,7 +27,7 @@ function Trash() {
             action={permanentlyDeleteDocumentsInTrash}
             context={context}
           >
-            Empty
+            {t("Empty trash")}
           </Button>
         )
       }

@@ -831,7 +831,7 @@ export const permanentlyDeleteDocument = createAction({
 });
 
 export const permanentlyDeleteDocumentsInTrash = createAction({
-  name: ({ t }) => t("Empty"),
+  name: ({ t }) => t("Empty trash"),
   analyticsName: "Empty trash",
   section: TrashSection,
   icon: <TrashIcon />,
