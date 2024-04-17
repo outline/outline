@@ -1,13 +1,15 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
+import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Share from "~/models/Share";
 import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import TableFromParams from "~/components/TableFromParams";
 import Time from "~/components/Time";
+import useUserLocale from "~/hooks/useUserLocale";
 import ShareMenu from "~/menus/ShareMenu";
+import { formatNumber } from "~/utils/language";
 
 type Props = Omit<React.ComponentProps<typeof TableFromParams>, "columns"> & {
   data: Share[];
@@ -16,7 +18,7 @@ type Props = Omit<React.ComponentProps<typeof TableFromParams>, "columns"> & {
 
 function SharesTable({ canManage, data, ...rest }: Props) {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const language = useUserLocale();
   const hasDomain = data.some((share) => share.domain);
 
   const columns = React.useMemo(
@@ -73,6 +75,13 @@ function SharesTable({ canManage, data, ...rest }: Props) {
           id: "views",
           Header: t("Views"),
           accessor: "views",
+          Cell: observer(({ value }: { value: number }) => (
+            <>
+              {language
+                ? formatNumber(value, unicodeCLDRtoBCP47(language))
+                : value}
+            </>
+          )),
         },
         canManage
           ? {
@@ -90,7 +99,7 @@ function SharesTable({ canManage, data, ...rest }: Props) {
             }
           : undefined,
       ].filter((i) => i),
-    [t, theme.accent, hasDomain, canManage]
+    [t, hasDomain, canManage]
   );
 
   return <TableFromParams columns={columns} data={data} {...rest} />;
