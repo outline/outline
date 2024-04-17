@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "העבר {{ documentType }}",
   "Archive": "ארכיון",
   "Document archived": "המסמך הועבר לארכיון",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "מחק {{ documentName }}",
   "Permanently delete": "Permanently delete",
   "Permanently delete {{ documentName }}": "Permanently delete {{ documentName }}",
