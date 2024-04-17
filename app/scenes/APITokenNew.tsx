@@ -60,7 +60,7 @@ function APITokenNew({ onSubmit }: Props) {
         />
       </Flex>
       <Button type="submit" disabled={isSaving || !name}>
-        {isSaving ? t("Creating") : t("Create")}
+        {isSaving ? `${t("Creating")}…` : t("Create")}
       </Button>
     </form>
   );
