@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "Pindahkan {{ documentType }}",
   "Archive": "Arsipkan",
   "Document archived": "Dokumen diarsip",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "Hapus {{ documentName }}",
   "Permanently delete": "Hapus secara permanen",
   "Permanently delete {{ documentName }}": "Hapus {{ documentName }} secara permanen",
