@@ -71,6 +71,10 @@ export const CollectionForm = observer(function CollectionForm_({
     }
   }, [values.name, collection]);
 
+  React.useEffect(() => {
+    setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
+  }, [setFocus]);
+
   const handleIconPickerChange = React.useCallback(
     (color: string, icon: string) => {
       if (icon !== values.icon) {
@@ -108,6 +112,7 @@ export const CollectionForm = observer(function CollectionForm_({
               icon={values.icon}
             />
           }
+          autoComplete="off"
           autoFocus
           flex
         />
