@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "Di chuyển {{ documentType }}",
   "Archive": "Lưu trữ",
   "Document archived": "Đã lưu trữ tài liệu",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "Xóa {{ documentName }}",
   "Permanently delete": "Xoá vĩnh viễn",
   "Permanently delete {{ documentName }}": "Xóa vĩnh viễn {{ documentName }}",
