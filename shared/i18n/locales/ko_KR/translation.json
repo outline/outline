@@ -898,6 +898,7 @@
   "Manage settings that affect your personal experience.": "개인 경험에 영향을 미치는 설정을 관리합니다.",
   "Language": "언어",
   "Choose the interface language. Community translations are accepted though our <2>translation portal</2>.": "인터페이스 언어를 선택하십시오. 커뮤니티 번역은 <2>번역 포털</2> 을 통해 허용됩니다.",
+  "Choose your preferred interface color scheme.": "Choose your preferred interface color scheme.",
   "Use pointer cursor": "포인터 커서 사용",
   "Show a hand cursor when hovering over interactive elements.": "상호작용 요소 위로 마우스를 가져가면 손 모양의 커서를 표시합니다.",
   "Show line numbers": "줄 번호 표시",
