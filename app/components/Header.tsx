@@ -5,7 +5,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths, s } from "@shared/styles";
+import { depths, hideScrollbars, s } from "@shared/styles";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
@@ -115,6 +115,8 @@ const Wrapper = styled(Flex)<WrapperProps>`
   z-index: ${depths.header};
   position: sticky;
   background: ${s("background")};
+  overflow-y: auto;
+  ${hideScrollbars()}
 
   ${(props) =>
     props.$passThrough
