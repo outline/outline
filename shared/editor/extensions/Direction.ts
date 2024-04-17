@@ -9,7 +9,7 @@ import Extension from "../lib/Extension";
 import chainTransactions from "../lib/chainTransactions";
 
 /**
- * An editor extension that adds commands to change direction of nodes & marks
+ * An editor extension that adds commands to change direction of nodes
  */
 export default class Direction extends Extension {
   get name() {

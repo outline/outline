@@ -7,7 +7,7 @@ import { setAttrOnSelection } from "../commands/setAttrOnSelection";
 import Extension from "../lib/Extension";
 
 /**
- * An editor extension that adds commands to change alignment of nodes & marks
+ * An editor extension that adds commands to change alignment of nodes
  */
 export default class TextAlign extends Extension {
   get name() {
