@@ -27,8 +27,8 @@ describe("#ProsemirrorHelper", () => {
           {
             type: "paragraph",
             attrs: {
-              dir: undefined,
-              textAlign: undefined,
+              dir: null,
+              textAlign: null,
             },
             content: [
               {
@@ -72,8 +72,8 @@ describe("#ProsemirrorHelper", () => {
           {
             type: "paragraph",
             attrs: {
-              dir: undefined,
-              textAlign: undefined,
+              dir: null,
+              textAlign: null,
             },
             content: [
               {
@@ -117,8 +117,8 @@ describe("#ProsemirrorHelper", () => {
           {
             type: "paragraph",
             attrs: {
-              dir: undefined,
-              textAlign: undefined,
+              dir: null,
+              textAlign: null,
             },
             content: [
               {
@@ -183,8 +183,8 @@ describe("#ProsemirrorHelper", () => {
           {
             type: "paragraph",
             attrs: {
-              dir: undefined,
-              textAlign: undefined,
+              dir: null,
+              textAlign: null,
             },
             content: [
               {

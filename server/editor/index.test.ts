@@ -8,8 +8,8 @@ test("renders an empty doc", () => {
       {
         type: "paragraph",
         attrs: {
-          dir: undefined,
-          textAlign: undefined,
+          dir: null,
+          textAlign: null,
         },
       },
     ],
