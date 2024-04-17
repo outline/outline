@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "Move {{ documentType }}",
   "Archive": "آرشیو",
   "Document archived": "سند آرشیو شد",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "حذف {{ documentName }}",
   "Permanently delete": "حذف برای همیشه",
   "Permanently delete {{ documentName }}": "حذف همیشگی {{ documentName }}",
