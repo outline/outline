@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "Move {{ documentType }}",
   "Archive": "คลังเก็บข้อมูล",
   "Document archived": "เอกสารที่เก็บถาวร",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "ลบ {{ documentName }}",
   "Permanently delete": "ลบอย่างถาวร",
   "Permanently delete {{ documentName }}": "ลบ {{ documentName }}. อย่างถาวร",
