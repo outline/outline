@@ -33,10 +33,10 @@ export default class CheckboxList extends Node {
       ],
       attrs: {
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
       parseDOM: [

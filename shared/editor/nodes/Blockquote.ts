@@ -20,10 +20,10 @@ export default class Blockquote extends Node {
       defining: true,
       attrs: {
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
       parseDOM: [

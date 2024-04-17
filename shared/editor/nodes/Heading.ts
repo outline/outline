@@ -32,8 +32,8 @@ export default class Heading extends Node {
     return {
       levels: [1, 2, 3, 4],
       collapsed: undefined,
-      dir: undefined,
-      textAlign: undefined,
+      dir: null,
+      textAlign: null,
     };
   }
 
@@ -47,10 +47,10 @@ export default class Heading extends Node {
           default: undefined,
         },
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
       content: "inline*",

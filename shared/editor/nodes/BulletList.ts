@@ -19,10 +19,10 @@ export default class BulletList extends Node {
     return {
       attrs: {
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
       content: "list_item+",

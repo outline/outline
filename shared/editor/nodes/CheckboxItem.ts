@@ -24,10 +24,10 @@ export default class CheckboxItem extends Node {
           default: false,
         },
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
       content: "paragraph block*",

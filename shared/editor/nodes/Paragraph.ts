@@ -26,10 +26,10 @@ export default class Paragraph extends Node {
       ],
       attrs: {
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
       toDOM: (node) => [

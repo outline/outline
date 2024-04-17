@@ -28,10 +28,10 @@ export default class Notice extends Node {
           default: "info",
         },
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
       content:

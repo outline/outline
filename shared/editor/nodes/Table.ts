@@ -39,10 +39,10 @@ export default class Table extends Node {
       group: "block",
       attrs: {
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
       parseDOM: [

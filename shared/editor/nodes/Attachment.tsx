@@ -41,10 +41,10 @@ export default class Attachment extends Node {
           default: 0,
         },
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
       group: "block",

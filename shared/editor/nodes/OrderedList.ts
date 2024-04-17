@@ -24,10 +24,10 @@ export default class OrderedList extends Node {
           default: 1,
         },
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
       content: "list_item+",

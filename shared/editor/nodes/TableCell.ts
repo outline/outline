@@ -48,10 +48,10 @@ export default class TableCell extends Node {
         rowspan: { default: 1 },
         alignment: { default: null },
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
     };

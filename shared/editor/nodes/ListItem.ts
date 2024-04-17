@@ -33,10 +33,10 @@ export default class ListItem extends Node {
       draggable: true,
       attrs: {
         dir: {
-          default: undefined,
+          default: null,
         },
         textAlign: {
-          default: undefined,
+          default: null,
         },
       },
       parseDOM: [
