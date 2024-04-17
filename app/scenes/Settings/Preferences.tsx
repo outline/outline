@@ -5,6 +5,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { languageOptions } from "@shared/i18n";
 import { TeamPreference, UserPreference } from "@shared/types";
+import { Theme } from "~/stores/UiStore";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import InputSelect from "~/components/InputSelect";
@@ -19,7 +20,7 @@ import SettingRow from "./components/SettingRow";
 
 function Preferences() {
   const { t } = useTranslation();
-  const { dialogs } = useStores();
+  const { ui, dialogs } = useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
 
@@ -80,6 +81,25 @@ function Preferences() {
           value={user.language}
           onChange={handleLanguageChange}
           ariaLabel={t("Language")}
+        />
+      </SettingRow>
+      <SettingRow
+        name="theme"
+        label={t("Appearance")}
+        description={t("Choose your preferred interface color scheme.")}
+      >
+        <InputSelect
+          ariaLabel={t("Appearance")}
+          options={[
+            { label: t("Light"), value: Theme.Light },
+            { label: t("Dark"), value: Theme.Dark },
+            { label: t("System"), value: Theme.System },
+          ]}
+          value={ui.resolvedTheme}
+          onChange={(theme) => {
+            ui.setTheme(theme as Theme);
+            toast.success(t("Preferences saved"));
+          }}
         />
       </SettingRow>
       <SettingRow
