@@ -898,6 +898,7 @@
   "Manage settings that affect your personal experience.": "Керувати налаштуваннями, які впливають на ваш особистий досвід.",
   "Language": "Мова",
   "Choose the interface language. Community translations are accepted though our <2>translation portal</2>.": "Вибрати мову інтерфейсу. Переклади спільноти приймаються через наш <2>портал перекладів</2>.",
+  "Choose your preferred interface color scheme.": "Choose your preferred interface color scheme.",
   "Use pointer cursor": "Використати курсор-вказівник",
   "Show a hand cursor when hovering over interactive elements.": "Під час наведення вказівника на інтерактивні елементи показувати курсор у вигляді руки.",
   "Show line numbers": "Показувати номери рядків",
