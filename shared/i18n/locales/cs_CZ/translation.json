@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "Přesunout {{ documentType }}",
   "Archive": "Archiv",
   "Document archived": "Dokument archivován",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "Odstranit {{ documentName }}",
   "Permanently delete": "Trvale odstranit",
   "Permanently delete {{ documentName }}": "Trvale odstranit {{ documentName }}",
