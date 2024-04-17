@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "{{ documentType }} 문서 이동",
   "Archive": "보관",
   "Document archived": "문서가 보관되었습니다",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "{{ documentName }} 삭제",
   "Permanently delete": "영구 삭제",
   "Permanently delete {{ documentName }}": "{{ documentName }} 를 영구 삭제",
