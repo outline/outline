@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "移動 {{ documentType }}",
   "Archive": "封存",
   "Document archived": "文件已被封存",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "刪除 {{ documentName }}",
   "Permanently delete": "永久刪除",
   "Permanently delete {{ documentName }}": "永久刪除 {{ documentName }}",
