@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "Verplaats {{ documentType }}",
   "Archive": "Archiveren",
   "Document archived": "Document gearchiveerd",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "Verwijder {{ documentName }}",
   "Permanently delete": "Definitief verwijderen",
   "Permanently delete {{ documentName }}": "{{ documentName }} definitief verwijderen",
