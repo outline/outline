@@ -63,6 +63,7 @@
   "Move {{ documentType }}": "{{ documentType }} taşı",
   "Archive": "Arşivle",
   "Document archived": "Belge arşivlendi",
+  "Empty trash": "Empty trash",
   "Delete {{ documentName }}": "{{ documentName }} sil",
   "Permanently delete": "Kalıcı olarak sil",
   "Permanently delete {{ documentName }}": "{{ documentName }} kalıcı olarak sil",
