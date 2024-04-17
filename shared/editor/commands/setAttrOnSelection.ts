@@ -54,7 +54,7 @@ export function setAttrOnSelection({
     const grandParent = $from.node($from.depth - 1);
     const grandParentChildren = [];
 
-    for (let i = 0; i < grandParent.childCount; i++) {
+    for (let i = 0; i < grandParent?.childCount; i++) {
       grandParentChildren.push(grandParent.child(i));
     }
 
