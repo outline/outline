@@ -26,6 +26,7 @@ export default function toggleCheckboxItem(): Command {
 
     dispatch?.(
       state.tr.setNodeMarkup(listItem.pos, undefined, {
+        ...listItem.node.attrs,
         checked: !listItem.node.attrs.checked,
       })
     );
