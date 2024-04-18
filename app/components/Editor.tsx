@@ -218,8 +218,8 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   }, [localRef, onHeadingsChange]);
 
   const updateComments = React.useCallback(() => {
-    if (onCreateCommentMark && onDeleteCommentMark) {
-      const commentMarks = localRef.current?.getComments();
+    if (onCreateCommentMark && onDeleteCommentMark && localRef.current) {
+      const commentMarks = localRef.current.getComments();
       const commentIds = comments.orderedData.map((c) => c.id);
       const commentMarkIds = commentMarks?.map((c) => c.id);
       const newCommentIds = difference(
@@ -229,7 +229,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       );
 
       newCommentIds.forEach((commentId) => {
-        const mark = commentMarks?.find((c) => c.id === commentId);
+        const mark = commentMarks.find((c) => c.id === commentId);
         if (mark) {
           onCreateCommentMark(mark.id, mark.userId);
         }
