@@ -116,7 +116,7 @@ function Table({
   const showPlaceholder = isLoading && data.length === 0;
 
   return (
-    <div style={{ overflowX: "auto" }}>
+    <div style={{ overflowX: "scroll" }}>
       <Anchor ref={topRef} />
       <InnerTable {...getTableProps()}>
         <thead>
