@@ -145,6 +145,10 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
 
   React.useEffect(() => {
     previousValue.current = value;
+
+    // Update the selected value if it changes from the outside – both of these lines are needed
+    // for correct functioning
+    select.selectedValue = value;
     select.setSelectedValue(value);
   }, [value]);
 
