@@ -154,3 +154,13 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
 
   return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
 }
+
+/**
+ * Extracts LIKELY urls from the given text, note this does not validate the urls.
+ *
+ * @param text The text to extract urls from.
+ * @returns An array of likely urls.
+ */
+export function getUrls(text: string) {
+  return Array.from(text.match(/(?:https?):\/\/[^\s]+/gi) || []);
+}
