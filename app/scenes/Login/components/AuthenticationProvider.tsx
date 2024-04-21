@@ -7,7 +7,7 @@ import InputLarge from "~/components/InputLarge";
 import PluginIcon from "~/components/PluginIcon";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
-import { getRedirectUrl } from "../getRedirectUrl";
+import { getRedirectUrl } from "../urls";
 
 type Props = {
   id: string;

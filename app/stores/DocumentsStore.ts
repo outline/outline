@@ -567,6 +567,7 @@ export default class DocumentsStore extends Store<Document> {
     document: Document,
     options?: {
       title?: string;
+      publish?: boolean;
       recursive?: boolean;
     }
   ): Promise<Document[]> => {
@@ -762,6 +763,14 @@ export default class DocumentsStore extends Store<Document> {
       const collection = this.getCollectionForDocument(document);
       void collection?.fetchDocuments({ force: true });
     });
+  };
+
+  @action
+  emptyTrash = async () => {
+    await client.post("/documents.empty_trash");
+
+    const documentIdsSet = new Set(this.deleted.map((doc) => doc.id));
+    this.removeAll((doc: Document) => documentIdsSet.has(doc.id));
   };
 
   star = (document: Document, index?: string) =>

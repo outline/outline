@@ -25,8 +25,7 @@ export const Preview = styled(Link)`
     0 0 1px 1px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   position: absolute;
-  min-width: 350px;
-  max-width: 375px;
+  width: 375px;
 `;
 
 export const Title = styled(Text).attrs({ as: "h2", size: "large" })`

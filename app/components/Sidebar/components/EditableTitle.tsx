@@ -96,6 +96,7 @@ function EditableTitle(
           <Input
             dir="auto"
             type="text"
+            lang=""
             value={value}
             onClick={stopPropagation}
             onKeyDown={handleKeyDown}

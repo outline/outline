@@ -204,7 +204,7 @@ function Invite({ onSubmit }: Props) {
                   labelHidden={index !== 0}
                   onKeyDown={handleKeyDown}
                   onChange={(ev) => handleChange(ev, index)}
-                  placeholder={`example@${predictedDomain}`}
+                  placeholder={`name@${predictedDomain}`}
                   value={invite.email}
                   required={index === 0}
                   autoFocus
@@ -254,6 +254,8 @@ function Invite({ onSubmit }: Props) {
 
 const StyledInput = styled(Input)`
   margin-bottom: -4px;
+  min-width: 0;
+  flex-shrink: 1;
 `;
 
 export default observer(Invite);

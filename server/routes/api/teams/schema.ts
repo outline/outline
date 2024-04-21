@@ -18,6 +18,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     documentEmbeds: z.boolean().optional(),
     /** Whether team members are able to create new collections */
     memberCollectionCreate: z.boolean().optional(),
+    /** Whether team members are able to create new workspaces */
+    memberTeamCreate: z.boolean().optional(),
     /** The default landing collection for the team */
     defaultCollectionId: z.string().uuid().nullish(),
     /** The default user role */

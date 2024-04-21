@@ -3,6 +3,7 @@ import { MoreIcon, QuestionMarkIcon, UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+import Squircle from "@shared/components/Squircle";
 import { CollectionPermission } from "@shared/types";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
@@ -14,7 +15,6 @@ import useStores from "~/hooks/useStores";
 import Avatar from "../Avatar";
 import { AvatarSize } from "../Avatar/Avatar";
 import CollectionIcon from "../Icons/CollectionIcon";
-import Squircle from "../Squircle";
 import Tooltip from "../Tooltip";
 import { StyledListItem } from "./MemberListItem";
 

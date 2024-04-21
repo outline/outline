@@ -106,10 +106,12 @@ export default createGlobalStyle<Props>`
 
   .js-focus-visible :focus:not(.focus-visible) {
     outline: none;
+    outline-width: 0;
   }
 
   .js-focus-visible .focus-visible {
     outline-color: ${s("accent")};
     outline-offset: -1px;
+    outline-width: initial;
   }
 `;

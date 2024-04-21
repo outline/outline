@@ -18,6 +18,24 @@ exports[`#documents.delete should require authentication 1`] = `
 }
 `;
 
+exports[`#documents.empty_trash should not allow non-admin users 1`] = `
+{
+  "error": "authorization_error",
+  "message": "Admin role required",
+  "ok": false,
+  "status": 403,
+}
+`;
+
+exports[`#documents.empty_trash should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#documents.list should require authentication 1`] = `
 {
   "error": "authentication_required",
