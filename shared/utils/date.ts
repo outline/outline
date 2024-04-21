@@ -107,12 +107,22 @@ export function unicodeBCP47toCLDR(locale: string) {
 }
 
 /**
+ * Converts a locale string from Unicode CLDR format to ISO 639 format.
+ *
+ * @param locale The locale string to convert
+ * @returns The converted locale string
+ */
+export function unicodeCLDRtoISO639(locale: string) {
+  return locale.split("_")[0];
+}
+
+/**
  * Returns the current date as a string formatted depending on current locale.
  *
  * @returns The current date
  */
-export function getCurrentDateAsString(locales?: Intl.LocalesArgument) {
-  return new Date().toLocaleDateString(locales, {
+export function getCurrentDateAsString(locale?: Intl.LocalesArgument) {
+  return new Date().toLocaleDateString(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -124,8 +134,8 @@ export function getCurrentDateAsString(locales?: Intl.LocalesArgument) {
  *
  * @returns The current time
  */
-export function getCurrentTimeAsString(locales?: Intl.LocalesArgument) {
-  return new Date().toLocaleTimeString(locales, {
+export function getCurrentTimeAsString(locale?: Intl.LocalesArgument) {
+  return new Date().toLocaleTimeString(locale, {
     hour: "numeric",
     minute: "numeric",
   });
@@ -137,8 +147,8 @@ export function getCurrentTimeAsString(locales?: Intl.LocalesArgument) {
  *
  * @returns The current date and time
  */
-export function getCurrentDateTimeAsString(locales?: Intl.LocalesArgument) {
-  return new Date().toLocaleString(locales, {
+export function getCurrentDateTimeAsString(locale?: Intl.LocalesArgument) {
+  return new Date().toLocaleString(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",

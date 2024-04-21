@@ -23,11 +23,6 @@ export class DocumentConverter {
     switch (mimeType) {
       case "application/msword":
         return this.confluenceToMarkdown(content);
-      case "application/octet-stream":
-        if (fileName.endsWith(".docx")) {
-          return this.docXToMarkdown(content);
-        }
-        throw FileImportError(`File type ${mimeType} not supported`);
       case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
         return this.docXToMarkdown(content);
       case "text/html":

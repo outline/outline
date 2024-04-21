@@ -4,9 +4,9 @@ import Router from "koa-router";
 import capitalize from "lodash/capitalize";
 import { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
+import { languages } from "@shared/i18n";
 import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import env from "@server/env";
 import {
   GmailAccountCreationError,
   TeamDomainRequiredError,
@@ -19,9 +19,10 @@ import {
   getTeamFromContext,
   getClientFromContext,
 } from "@server/utils/passport";
+import config from "../../plugin.json";
+import env from "../env";
 
 const router = new Router();
-const providerName = "google";
 
 const scopes = [
   "https://www.googleapis.com/auth/userinfo.profile",
@@ -33,6 +34,7 @@ type GoogleProfile = Profile & {
   picture: string;
   _json: {
     hd?: string;
+    locale?: string;
   };
 };
 
@@ -42,7 +44,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
       {
         clientID: env.GOOGLE_CLIENT_ID,
         clientSecret: env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `${env.URL}/auth/google.callback`,
+        callbackURL: `${env.URL}/auth/${config.id}.callback`,
         passReqToCallback: true,
         // @ts-expect-error StateStore
         store: new StateStore(),
@@ -92,6 +94,10 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           // Request a larger size profile picture than the default by tweaking
           // the query parameter.
           const avatarUrl = profile.picture.replace("=s96-c", "=s128-c");
+          const locale = profile._json.locale;
+          const language = locale
+            ? languages.find((l) => l.startsWith(locale))
+            : undefined;
 
           // if a team can be inferred, we assume the user is only interested in signing into
           // that team in particular; otherwise, we will do a best effort at finding their account
@@ -107,10 +113,11 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             user: {
               email: profile.email,
               name: profile.displayName,
+              language,
               avatarUrl,
             },
             authenticationProvider: {
-              name: providerName,
+              name: config.id,
               providerId: domain ?? "",
             },
             authentication: {
@@ -131,14 +138,13 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
   );
 
   router.get(
-    "google",
-    passport.authenticate(providerName, {
+    config.id,
+    passport.authenticate(config.id, {
       accessType: "offline",
       prompt: "select_account consent",
     })
   );
-
-  router.get("google.callback", passportMiddleware(providerName));
+  router.get(`${config.id}.callback`, passportMiddleware(config.id));
 }
 
 export default router;

@@ -6,11 +6,10 @@ exports[`presents a user 1`] = `
   "color": "#FF5C80",
   "createdAt": undefined,
   "id": "123",
-  "isAdmin": false,
   "isSuspended": false,
-  "isViewer": false,
   "lastActiveAt": undefined,
   "name": "Test User",
+  "role": "member",
   "updatedAt": undefined,
 }
 `;
@@ -21,11 +20,10 @@ exports[`presents a user without slack data 1`] = `
   "color": "#FF5C80",
   "createdAt": undefined,
   "id": "123",
-  "isAdmin": false,
   "isSuspended": false,
-  "isViewer": false,
   "lastActiveAt": undefined,
   "name": "Test User",
+  "role": "member",
   "updatedAt": undefined,
 }
 `;

@@ -7,446 +7,204 @@ import {
 } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, _cannot as cannot, _can as can } from "./cancan";
-
-allow(User, "createDocument", Team, (user, team) => {
-  if (!team || user.isViewer || user.teamId !== team.id) {
-    return false;
-  }
-  return true;
-});
-
-allow(User, "read", Document, (user, document) => {
-  if (!document) {
-    return false;
-  }
-
-  if (
-    includesMembership(document, [
-      DocumentPermission.Read,
-      DocumentPermission.ReadWrite,
-    ])
-  ) {
-    return true;
-  }
-
-  // existence of collection option is not required here to account for share tokens
-  if (
-    document.collection &&
-    cannot(user, "readDocument", document.collection)
-  ) {
-    return false;
-  }
-
-  if (document.isDraft) {
-    return user.id === document.createdById;
-  }
-
-  return user.teamId === document.teamId;
-});
-
-allow(User, "download", Document, (user, document) => {
-  if (!document) {
-    return false;
-  }
-
-  if (
-    user.isViewer &&
-    !user.team.getPreference(TeamPreference.ViewersCanExport)
-  ) {
-    return false;
-  }
-
-  if (
-    includesMembership(document, [
-      DocumentPermission.Read,
-      DocumentPermission.ReadWrite,
-    ])
-  ) {
-    return true;
-  }
-
-  // existence of collection option is not required here to account for share tokens
-  if (
-    document.collection &&
-    cannot(user, "readDocument", document.collection)
-  ) {
-    return false;
-  }
-
-  if (document.isDraft) {
-    return user.id === document.createdById;
-  }
-
-  return user.teamId === document.teamId;
-});
-
-allow(User, "comment", Document, (user, document) => {
-  if (!document || !document.isActive || document.template) {
-    return false;
-  }
-
-  if (
-    includesMembership(document, [
-      DocumentPermission.Read,
-      DocumentPermission.ReadWrite,
-    ])
-  ) {
-    return true;
-  }
-
-  if (document.collectionId) {
-    invariant(
-      document.collection,
-      "collection is missing, did you forget to include in the query scope?"
-    );
-    if (can(user, "readDocument", document.collection)) {
-      return true;
-    }
-  }
-
-  return user.id === document.createdById;
-});
-
-allow(User, ["star", "unstar"], Document, (user, document) => {
-  if (!document || !document.isActive || document.template) {
-    return false;
-  }
-
-  if (
-    includesMembership(document, [
-      DocumentPermission.Read,
-      DocumentPermission.ReadWrite,
-    ])
-  ) {
-    return true;
-  }
-
-  if (document.collectionId) {
-    invariant(
-      document.collection,
-      "collection is missing, did you forget to include in the query scope?"
-    );
-    if (cannot(user, "readDocument", document.collection)) {
-      return false;
-    }
-  }
-
-  return user.teamId === document.teamId;
-});
-
-allow(User, "share", Document, (user, document) => {
-  if (
-    !document ||
-    document.archivedAt ||
-    document.deletedAt ||
-    document.template
-  ) {
-    return false;
-  }
-
-  if (document.collectionId) {
-    invariant(
-      document.collection,
-      "collection is missing, did you forget to include in the query scope?"
-    );
-    if (cannot(user, "share", document.collection)) {
-      return false;
-    }
-  }
-
-  if (document.isDraft) {
-    return user.id === document.createdById;
-  }
-
-  return user.teamId === document.teamId;
-});
-
-allow(User, "update", Document, (user, document) => {
-  if (!document || !document.isActive) {
-    return false;
-  }
-
-  if (includesMembership(document, [DocumentPermission.ReadWrite])) {
-    return true;
-  }
-
-  if (document.collectionId) {
-    invariant(
-      document.collection,
-      "collection is missing, did you forget to include in the query scope?"
-    );
-    if (cannot(user, "updateDocument", document.collection)) {
-      return false;
-    }
-  }
-
-  if (document.isDraft) {
-    return user.id === document.createdById;
-  }
-
-  return user.teamId === document.teamId;
-});
-
-allow(User, "publish", Document, (user, document) => {
-  if (!document || !document.isActive || !document.isDraft) {
-    return false;
-  }
-
-  if (document.collectionId) {
-    invariant(
-      document.collection,
-      "collection is missing, did you forget to include in the query scope?"
-    );
-    if (can(user, "updateDocument", document.collection)) {
-      return true;
-    }
-  }
-
-  return user.id === document.createdById;
-});
-
-allow(User, ["manageUsers", "duplicate"], Document, (user, document) => {
-  if (!document || !document.isActive) {
-    return false;
-  }
-
-  if (document.collectionId) {
-    invariant(
-      document.collection,
-      "collection is missing, did you forget to include in the query scope?"
-    );
-    if (can(user, "updateDocument", document.collection)) {
-      return true;
-    }
-  }
-
-  return user.id === document.createdById;
-});
-
-allow(User, "updateInsights", Document, (user, document) => {
-  if (!document || !document.isActive) {
-    return false;
-  }
-
-  if (document.collectionId) {
-    invariant(
-      document.collection,
-      "collection is missing, did you forget to include in the query scope?"
-    );
-    if (can(user, "update", document.collection)) {
-      return true;
-    }
-  }
-
-  return user.id === document.createdById;
-});
-
-allow(User, "createChildDocument", Document, (user, document) => {
-  if (
-    !document ||
-    !document.isActive ||
-    document.isDraft ||
-    document.template
-  ) {
-    return false;
-  }
-
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (can(user, "updateDocument", document.collection)) {
-    return true;
-  }
-  return user.id === document.createdById;
-});
-
-allow(User, "move", Document, (user, document) => {
-  if (!document || !document.isActive) {
-    return false;
-  }
-  if (document.collection && can(user, "updateDocument", document.collection)) {
-    return true;
-  }
-  return user.id === document.createdById;
-});
-
-allow(User, "pin", Document, (user, document) => {
-  if (
-    !document ||
-    !document.isActive ||
-    document.isDraft ||
-    document.template
-  ) {
-    return false;
-  }
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (can(user, "update", document.collection)) {
-    return true;
-  }
-  return user.id === document.createdById;
-});
-
-allow(User, "unpin", Document, (user, document) => {
-  if (!document || document.isDraft || document.template) {
-    return false;
-  }
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (can(user, "update", document.collection)) {
-    return true;
-  }
-  return user.id === document.createdById;
-});
-
-allow(User, ["subscribe", "unsubscribe"], Document, (user, document) => {
-  if (
-    !document ||
-    !document.isActive ||
-    document.isDraft ||
-    document.template
-  ) {
-    return false;
-  }
-
-  if (
-    includesMembership(document, [
-      DocumentPermission.Read,
-      DocumentPermission.ReadWrite,
-    ])
-  ) {
-    return true;
-  }
-
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (can(user, "readDocument", document.collection)) {
-    return true;
-  }
-
-  return user.id === document.createdById;
-});
-
-allow(User, "pinToHome", Document, (user, document) => {
-  if (
-    !document ||
-    !document.isActive ||
-    document.isDraft ||
-    document.template
-  ) {
-    return false;
-  }
-
-  return user.teamId === document.teamId && user.isAdmin;
-});
-
-allow(User, "delete", Document, (user, document) => {
-  if (!document || document.deletedAt || user.isViewer) {
-    return false;
-  }
-
-  // allow deleting document without a collection
-  if (
-    document.collection &&
-    cannot(user, "deleteDocument", document.collection)
-  ) {
-    return false;
-  }
-
-  // unpublished drafts can always be deleted by their owner
-  if (document.isDraft) {
-    return user.id === document.createdById;
-  }
-
-  return user.teamId === document.teamId;
-});
-
-allow(User, "permanentDelete", Document, (user, document) => {
-  if (!document || !document.deletedAt || user.isViewer) {
-    return false;
-  }
-
-  // allow deleting document without a collection
-  if (
-    document.collection &&
-    cannot(user, "updateDocument", document.collection)
-  ) {
-    return false;
-  }
-
-  // unpublished drafts can always be deleted by their owner
-  if (document.isDraft && user.id === document.createdById) {
-    return true;
-  }
-
-  return user.teamId === document.teamId && user.isAdmin;
-});
-
-allow(User, "restore", Document, (user, document) => {
-  if (!document || !document.deletedAt) {
-    return false;
-  }
-
-  if (
-    document.collection &&
-    cannot(user, "updateDocument", document.collection)
-  ) {
-    return false;
-  }
-
-  // unpublished drafts can always be restored by their owner
-  if (document.isDraft && user.id === document.createdById) {
-    return true;
-  }
-
-  return user.teamId === document.teamId;
-});
-
-allow(User, "archive", Document, (user, document) => {
-  if (
-    !document ||
-    !document.isActive ||
-    document.isDraft ||
-    document.template
-  ) {
-    return false;
-  }
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (cannot(user, "updateDocument", document.collection)) {
-    return false;
-  }
-  return user.teamId === document.teamId;
-});
-
-allow(User, "unarchive", Document, (user, document) => {
-  if (!document || !document.archivedAt || document.deletedAt) {
-    return false;
-  }
-
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (cannot(user, "updateDocument", document.collection)) {
-    return false;
-  }
-
-  if (document.isDraft) {
-    return user.id === document.createdById;
-  }
-
-  return user.teamId === document.teamId;
-});
+import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
+
+allow(User, "createDocument", Team, (actor, document) =>
+  and(
+    //
+    !actor.isGuest,
+    !actor.isViewer,
+    isTeamModel(actor, document),
+    isTeamMutable(actor)
+  )
+);
+
+allow(User, "read", Document, (actor, document) =>
+  and(
+    isTeamModel(actor, document),
+    or(
+      includesMembership(document, [
+        DocumentPermission.Read,
+        DocumentPermission.ReadWrite,
+      ]),
+      and(!!document?.isDraft, actor.id === document?.createdById),
+      can(actor, "readDocument", document?.collection)
+    )
+  )
+);
+
+allow(User, ["listRevisions", "listViews"], Document, (actor, document) =>
+  and(
+    //
+    can(actor, "read", document),
+    !actor.isGuest
+  )
+);
+
+allow(User, "download", Document, (actor, document) =>
+  and(
+    can(actor, "read", document),
+    or(
+      and(!actor.isGuest, !actor.isViewer),
+      !!actor.team.getPreference(TeamPreference.ViewersCanExport)
+    )
+  )
+);
+
+allow(User, "comment", Document, (actor, document) =>
+  and(
+    // TODO: We'll introduce a separate permission for commenting
+    or(
+      and(can(actor, "read", document), !actor.isGuest),
+      and(can(actor, "update", document), actor.isGuest)
+    ),
+    isTeamMutable(actor),
+    !!document?.isActive,
+    !document?.template
+  )
+);
+
+allow(
+  User,
+  ["star", "unstar", "subscribe", "unsubscribe"],
+  Document,
+  (actor, document) =>
+    and(
+      //
+      can(actor, "read", document),
+      !document?.template
+    )
+);
+
+allow(User, "share", Document, (actor, document) =>
+  and(
+    can(actor, "read", document),
+    isTeamMutable(actor),
+    !!document?.isActive,
+    !document?.template,
+    !actor.isGuest,
+    or(!document?.collection, can(actor, "share", document?.collection))
+  )
+);
+
+allow(User, "update", Document, (actor, document) =>
+  and(
+    can(actor, "read", document),
+    isTeamMutable(actor),
+    !!document?.isActive,
+    or(
+      includesMembership(document, [DocumentPermission.ReadWrite]),
+      or(
+        can(actor, "updateDocument", document?.collection),
+        and(!!document?.isDraft && actor.id === document?.createdById)
+      )
+    )
+  )
+);
+
+allow(User, "publish", Document, (actor, document) =>
+  and(
+    //
+    can(actor, "update", document),
+    !!document?.isDraft
+  )
+);
+
+allow(User, ["move", "duplicate", "manageUsers"], Document, (actor, document) =>
+  and(
+    !actor.isGuest,
+    can(actor, "update", document),
+    or(
+      can(actor, "updateDocument", document?.collection),
+      and(!!document?.isDraft && actor.id === document?.createdById)
+    )
+  )
+);
+
+allow(User, "createChildDocument", Document, (actor, document) =>
+  and(
+    can(actor, "update", document),
+    !document?.isDraft,
+    !document?.template,
+    !actor.isGuest
+  )
+);
+
+allow(User, ["pin", "unpin"], Document, (actor, document) =>
+  and(
+    can(actor, "update", document),
+    can(actor, "update", document?.collection),
+    !document?.isDraft,
+    !document?.template,
+    !actor.isGuest
+  )
+);
+
+allow(User, "pinToHome", Document, (actor, document) =>
+  and(
+    //
+    isTeamAdmin(actor, document),
+    isTeamMutable(actor)
+  )
+);
+
+allow(User, "delete", Document, (actor, document) =>
+  and(
+    isTeamModel(actor, document),
+    isTeamMutable(actor),
+    !actor.isGuest,
+    !document?.isDeleted,
+    or(can(actor, "update", document), !document?.collection)
+  )
+);
+
+allow(User, ["restore", "permanentDelete"], Document, (actor, document) =>
+  and(
+    isTeamModel(actor, document),
+    !actor.isGuest,
+    !!document?.isDeleted,
+    or(
+      includesMembership(document, [DocumentPermission.ReadWrite]),
+      or(
+        can(actor, "updateDocument", document?.collection),
+        and(!!document?.isDraft && actor.id === document?.createdById)
+      ),
+      !document?.collection
+    )
+  )
+);
+
+allow(User, "archive", Document, (actor, document) =>
+  and(
+    !actor.isGuest,
+    !document?.template,
+    !document?.isDraft,
+    !!document?.isActive,
+    can(actor, "update", document),
+    can(actor, "updateDocument", document?.collection)
+  )
+);
+
+allow(User, "unarchive", Document, (actor, document) =>
+  and(
+    !actor.isGuest,
+    !document?.template,
+    !document?.isDraft,
+    !document?.isDeleted,
+    !!document?.archivedAt,
+    and(
+      can(actor, "read", document),
+      or(
+        includesMembership(document, [DocumentPermission.ReadWrite]),
+        or(
+          can(actor, "updateDocument", document?.collection),
+          and(!!document?.isDraft && actor.id === document?.createdById)
+        )
+      )
+    ),
+    can(actor, "updateDocument", document?.collection)
+  )
+);
 
 allow(
   Document,
@@ -456,7 +214,13 @@ allow(
 );
 
 allow(User, "unpublish", Document, (user, document) => {
-  if (!document || !document.isActive || document.isDraft || user.isViewer) {
+  if (
+    !document ||
+    user.isGuest ||
+    user.isViewer ||
+    !document.isActive ||
+    document.isDraft
+  ) {
     return false;
   }
   invariant(
@@ -470,9 +234,13 @@ allow(User, "unpublish", Document, (user, document) => {
 });
 
 function includesMembership(
-  document: Document,
+  document: Document | null,
   permissions: (DocumentPermission | CollectionPermission)[]
 ) {
+  if (!document) {
+    return false;
+  }
+
   invariant(
     document.memberships,
     "document memberships should be preloaded, did you forget withMembership scope?"

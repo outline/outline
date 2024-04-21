@@ -218,7 +218,10 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
               // If the heading is different to any previous heading then we
               // should render it, otherwise the item can go under the previous
               // heading
-              if (!previousHeading || currentHeading !== previousHeading) {
+              if (
+                children &&
+                (!previousHeading || currentHeading !== previousHeading)
+              ) {
                 previousHeading = currentHeading;
                 return (
                   <React.Fragment key={item.id}>

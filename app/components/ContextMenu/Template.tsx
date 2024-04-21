@@ -126,7 +126,7 @@ function Template({ items, actions, context, ...menu }: Props) {
           item.type !== "separator" &&
           item.type !== "heading"
         ) {
-          item.icon = item.icon || <MenuIconWrapper />;
+          item.icon = item.icon || <MenuIconWrapper aria-hidden />;
         }
 
         if (item.type === "route") {
@@ -220,7 +220,7 @@ function Title({
 }) {
   return (
     <Flex align="center">
-      {icon && <MenuIconWrapper>{icon}</MenuIconWrapper>}
+      {icon && <MenuIconWrapper aria-hidden>{icon}</MenuIconWrapper>}
       {title}
     </Flex>
   );

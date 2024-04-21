@@ -138,5 +138,12 @@ describe("#urlRegex", () => {
   it("should return corresponding regex otherwise", () => {
     const regex = urlRegex("https://docs.google.com");
     expect(regex?.source).toBe(/https:\/\/docs\.google\.com/.source);
+    expect(regex?.test("https://docs.google.com")).toBe(true);
+    expect(regex?.test("https://docs.google.com/")).toBe(true);
+    expect(regex?.test("https://docs.google.com/d/123")).toBe(true);
+    expect(regex?.test("http://google.com")).toBe(false);
+    expect(regex?.test("http://docs.google.com")).toBe(false);
+    expect(regex?.test("http://docs.google.com/")).toBe(false);
+    expect(regex?.test("http://docs.google.com/d/123")).toBe(false);
   });
 });

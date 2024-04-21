@@ -11,6 +11,7 @@ import {
   IntegrationService,
   IntegrationType,
   NotificationEventType,
+  UserRole,
 } from "@shared/types";
 import {
   Share,
@@ -213,11 +214,11 @@ export async function buildUser(overrides: Partial<User> = {}) {
 }
 
 export async function buildAdmin(overrides: Partial<User> = {}) {
-  return buildUser({ ...overrides, isAdmin: true });
+  return buildUser({ ...overrides, role: UserRole.Admin });
 }
 
 export async function buildViewer(overrides: Partial<User> = {}) {
-  return buildUser({ ...overrides, isViewer: true });
+  return buildUser({ ...overrides, role: UserRole.Viewer });
 }
 
 export async function buildInvite(overrides: Partial<User> = {}) {

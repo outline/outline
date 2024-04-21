@@ -34,9 +34,9 @@ import {
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort } from "@shared/types";
 import { CollectionPermission, NavigationNode } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
-import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import Document from "./Document";
@@ -394,7 +394,7 @@ class Collection extends ParanoidModel<
       });
     }
 
-    const match = id.match(SLUG_URL_REGEX);
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
       return this.findOne({
         where: {

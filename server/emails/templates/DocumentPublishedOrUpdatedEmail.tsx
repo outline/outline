@@ -73,7 +73,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
         });
 
         // inline all css so that it works in as many email providers as possible.
-        body = content ? HTMLHelper.inlineCSS(content) : undefined;
+        body = content ? await HTMLHelper.inlineCSS(content) : undefined;
       }
     }
 

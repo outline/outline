@@ -15,18 +15,34 @@ import {
   Table,
   IsUUID,
   PrimaryKey,
+  Scopes,
 } from "sequelize-typescript";
-import env from "@server/env";
 import Model from "@server/models/base/Model";
-import AzureClient from "@server/utils/azure";
-import GoogleClient from "@server/utils/google";
-import OIDCClient from "@server/utils/oidc";
 import { ValidationError } from "../errors";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
+// TODO: Avoid this hardcoding of plugins
+import AzureClient from "plugins/azure/server/azure";
+import GoogleClient from "plugins/google/server/google";
+import OIDCClient from "plugins/oidc/server/oidc";
+
+@Scopes(() => ({
+  withUserAuthentication: (userId: string) => ({
+    include: [
+      {
+        model: UserAuthentication,
+        as: "userAuthentications",
+        required: true,
+        where: {
+          userId,
+        },
+      },
+    ],
+  }),
+}))
 @Table({
   tableName: "authentication_providers",
   modelName: "authentication_provider",
@@ -73,7 +89,7 @@ class AuthenticationProvider extends Model<
   @Column(DataType.UUID)
   teamId: string;
 
-  @HasMany(() => UserAuthentication, "providerId")
+  @HasMany(() => UserAuthentication, "authenticationProviderId")
   userAuthentications: UserAuthentication[];
 
   // instance methods
@@ -86,20 +102,11 @@ class AuthenticationProvider extends Model<
   get oauthClient() {
     switch (this.name) {
       case "google":
-        return new GoogleClient(
-          env.GOOGLE_CLIENT_ID || "",
-          env.GOOGLE_CLIENT_SECRET || ""
-        );
+        return new GoogleClient();
       case "azure":
-        return new AzureClient(
-          env.AZURE_CLIENT_ID || "",
-          env.AZURE_CLIENT_SECRET || ""
-        );
+        return new AzureClient();
       case "oidc":
-        return new OIDCClient(
-          env.OIDC_CLIENT_ID || "",
-          env.OIDC_CLIENT_SECRET || ""
-        );
+        return new OIDCClient();
       default:
         return undefined;
     }

@@ -10,12 +10,11 @@ import {
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
 import { Command, EditorState, Plugin, TextSelection } from "prosemirror-state";
-import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
+import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import { toast } from "sonner";
-import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
-import findLinkNodes from "../queries/findLinkNodes";
+import { sanitizeUrl } from "../../utils/urls";
 import getMarkRange from "../queries/getMarkRange";
 import isMarkActive from "../queries/isMarkActive";
 import { EventType } from "../types";
@@ -150,50 +149,6 @@ export default class Link extends Mark {
   }
 
   get plugins() {
-    const getLinkDecorations = (state: EditorState) => {
-      const decorations: Decoration[] = [];
-      const links = findLinkNodes(state.doc);
-
-      links.forEach((nodeWithPos) => {
-        const linkMark = nodeWithPos.node.marks.find(
-          (mark) => mark.type.name === "link"
-        );
-        if (linkMark && isExternalUrl(linkMark.attrs.href)) {
-          decorations.push(
-            Decoration.widget(
-              // place the decoration at the end of the link
-              nodeWithPos.pos + nodeWithPos.node.nodeSize,
-              () => {
-                const cloned = icon.cloneNode(true);
-                cloned.addEventListener("click", (event) => {
-                  try {
-                    if (this.options.onClickLink) {
-                      event.stopPropagation();
-                      event.preventDefault();
-                      this.options.onClickLink(
-                        sanitizeUrl(linkMark.attrs.href),
-                        event
-                      );
-                    }
-                  } catch (err) {
-                    toast.error(this.options.dictionary.openLinkError);
-                  }
-                });
-                return cloned;
-              },
-              {
-                // position on the right side of the position
-                side: 1,
-                key: "external-link",
-              }
-            )
-          );
-        }
-      });
-
-      return DecorationSet.create(state.doc, decorations);
-    };
-
     const handleClick = (view: EditorView, pos: number) => {
       const { doc, tr } = view.state;
       const range = getMarkRange(
@@ -219,11 +174,6 @@ export default class Link extends Mark {
     };
 
     const plugin: Plugin = new Plugin({
-      state: {
-        init: (_config, state) => getLinkDecorations(state),
-        apply: (tr, decorationSet, _oldState, newState) =>
-          tr.docChanged ? getLinkDecorations(newState) : decorationSet,
-      },
       props: {
         decorations: (state: EditorState) => plugin.getState(state),
         handleDOMEvents: {

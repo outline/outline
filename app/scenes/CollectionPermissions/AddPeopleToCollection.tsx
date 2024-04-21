@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { CollectionPermission, UserRole } from "@shared/types";
 import Collection from "~/models/Collection";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -51,6 +52,10 @@ function AddPeopleToCollection({ collection }: Props) {
   const handleAddUser = async (user: User) => {
     try {
       await memberships.create({
+        permission:
+          user.role === UserRole.Viewer || user.role === UserRole.Guest
+            ? CollectionPermission.Read
+            : CollectionPermission.ReadWrite,
         collectionId: collection.id,
         userId: user.id,
       });

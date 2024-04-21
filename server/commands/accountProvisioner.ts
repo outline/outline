@@ -1,4 +1,5 @@
 import invariant from "invariant";
+import { UserRole } from "@shared/types";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import {
   InvalidAuthenticationError,
@@ -20,6 +21,8 @@ type Props = {
     email: string;
     /** The public url of an image representing the user */
     avatarUrl?: string | null;
+    /** The language of the user, if known */
+    language?: string;
   };
   /** Details of the team the user is logging into */
   team: {
@@ -129,7 +132,8 @@ async function accountProvisioner({
   result = await userProvisioner({
     name: userParams.name,
     email: userParams.email,
-    isAdmin: isNewTeam || undefined,
+    language: userParams.language,
+    role: isNewTeam ? UserRole.Admin : undefined,
     avatarUrl: userParams.avatarUrl,
     teamId: team.id,
     ip,
@@ -149,6 +153,7 @@ async function accountProvisioner({
   if (isNewUser) {
     await new WelcomeEmail({
       to: user.email,
+      role: user.role,
       teamUrl: team.url,
     }).schedule();
   }

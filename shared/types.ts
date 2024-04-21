@@ -2,9 +2,16 @@ export enum UserRole {
   Admin = "admin",
   Member = "member",
   Viewer = "viewer",
+  Guest = "guest",
 }
 
 export type DateFilter = "day" | "week" | "month" | "year";
+
+export enum StatusFilter {
+  Published = "published",
+  Archived = "archived",
+  Draft = "draft",
+}
 
 export enum Client {
   Web = "web",
@@ -43,41 +50,31 @@ export enum MentionType {
 }
 
 export type PublicEnv = {
-  URL: string;
-  CDN_URL: string;
-  COLLABORATION_URL: string;
-  AWS_S3_UPLOAD_BUCKET_URL: string;
-  AWS_S3_ACCELERATE_URL: string;
-  ENVIRONMENT: string;
-  SENTRY_DSN: string | undefined;
-  SENTRY_TUNNEL: string | undefined;
-  SLACK_CLIENT_ID: string | undefined;
-  SLACK_APP_ID: string | undefined;
-  MAXIMUM_IMPORT_SIZE: number;
-  EMAIL_ENABLED: boolean;
-  PDF_EXPORT_ENABLED: boolean;
-  DEFAULT_LANGUAGE: string;
-  GOOGLE_ANALYTICS_ID: string | undefined;
-  RELEASE: string | undefined;
-  APP_NAME: string;
   ROOT_SHARE_ID?: string;
   analytics: {
-    service?: IntegrationService | UserCreatableIntegrationService;
+    service?: IntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;
   };
 };
 
 export enum AttachmentPreset {
   DocumentAttachment = "documentAttachment",
+  WorkspaceImport = "workspaceImport",
   Import = "import",
   Avatar = "avatar",
 }
 
 export enum IntegrationType {
+  /** An integration that posts updates to an external system. */
   Post = "post",
+  /** An integration that listens for commands from an external system. */
   Command = "command",
+  /** An integration that embeds content from an external system. */
   Embed = "embed",
+  /** An integration that captures analytics data. */
   Analytics = "analytics",
+  /** An integration that maps an Outline user to an external service. */
+  LinkedAccount = "linkedAccount",
 }
 
 export enum IntegrationService {
@@ -85,13 +82,21 @@ export enum IntegrationService {
   Grist = "grist",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
+  GitHub = "github",
 }
 
-export enum UserCreatableIntegrationService {
-  Diagrams = "diagrams",
-  Grist = "grist",
-  GoogleAnalytics = "google-analytics",
-}
+export type UserCreatableIntegrationService = Extract<
+  IntegrationService,
+  | IntegrationService.Diagrams
+  | IntegrationService.Grist
+  | IntegrationService.GoogleAnalytics
+>;
+
+export const UserCreatableIntegrationService = {
+  Diagrams: IntegrationService.Diagrams,
+  Grist: IntegrationService.Grist,
+  GoogleAnalytics: IntegrationService.GoogleAnalytics,
+} as const;
 
 export enum CollectionPermission {
   Read = "read",
@@ -105,7 +110,15 @@ export enum DocumentPermission {
 }
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
-  ? { url: string }
+  ? {
+      url: string;
+      github?: {
+        installation: {
+          id: number;
+          account: { id: number; name: string; avatarUrl: string };
+        };
+      };
+    }
   : T extends IntegrationType.Analytics
   ? { measurementId: string }
   : T extends IntegrationType.Post
@@ -114,9 +127,18 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { serviceTeamId: string }
   :
       | { url: string }
+      | {
+          github?: {
+            installation: {
+              id: number;
+              account: { id?: number; name: string; avatarUrl?: string };
+            };
+          };
+        }
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string }
       | { measurementId: string }
+      | { slack: { serviceTeamId: string; serviceUserId: string } }
       | undefined;
 
 export enum UserPreference {
@@ -139,6 +161,8 @@ export type SourceMetadata = {
   fileName?: string;
   /** The original source mime type. */
   mimeType?: string;
+  /** The creator of the original external source. */
+  createdByName?: string;
   /** An ID in the external source. */
   externalId?: string;
   /** Whether the item was created through a trial license. */
@@ -226,9 +250,9 @@ export enum NotificationChannelType {
 }
 
 export type NotificationSettings = {
-  [key in NotificationEventType]?:
+  [event in NotificationEventType]?:
     | {
-        [key in NotificationChannelType]?: boolean;
+        [type in NotificationChannelType]?: boolean;
       }
     | boolean;
 };
@@ -248,25 +272,96 @@ export const NotificationEventDefaults = {
   [NotificationEventType.AddUserToCollection]: true,
 };
 
-export enum UnfurlType {
+export enum UnfurlResourceType {
+  OEmbed = "oembed",
   Mention = "mention",
   Document = "document",
+  Issue = "issue",
+  PR = "pull",
 }
+
+export type UnfurlResponse = {
+  [UnfurlResourceType.OEmbed]: {
+    /** The resource type */
+    type: UnfurlResourceType.OEmbed;
+    /** URL pointing to the resource */
+    url: string;
+    /** A text title, describing the resource */
+    title: string;
+    /** A brief description about the resource */
+    description: string;
+    /** A URL to a thumbnail image representing the resource */
+    thumbnailUrl: string;
+  };
+  [UnfurlResourceType.Mention]: {
+    /** The resource type */
+    type: UnfurlResourceType.Mention;
+    /** Mentioned user's name */
+    name: string;
+    /** Mentioned user's avatar URL */
+    avatarUrl: string | null;
+    /** Used to create mentioned user's avatar if no avatar URL provided */
+    color: string;
+    /** Mentiond user's recent activity */
+    lastActive: string;
+  };
+  [UnfurlResourceType.Document]: {
+    /** The resource type */
+    type: UnfurlResourceType.Document;
+    /** URL pointing to the resource */
+    url: string;
+    /** Document id */
+    id: string;
+    /** Document title */
+    title: string;
+    /** Document summary */
+    summary: string;
+    /** Viewer's last activity on this document */
+    lastActivityByViewer: string;
+  };
+  [UnfurlResourceType.Issue]: {
+    /** The resource type */
+    type: UnfurlResourceType.Issue;
+    /** Issue link */
+    url: string;
+    /** Issue identifier */
+    id: string;
+    /** Issue title */
+    title: string;
+    /** Issue description */
+    description: string;
+    /** Issue's author */
+    author: { name: string; avatarUrl: string };
+    /** Issue's labels */
+    labels: Array<{ name: string; color: string }>;
+    /** Issue's status */
+    state: { name: string; color: string };
+    /** Issue's creation time */
+    createdAt: string;
+  };
+  [UnfurlResourceType.PR]: {
+    /** The resource type */
+    type: UnfurlResourceType.PR;
+    /** Pull Request link */
+    url: string;
+    /** Pull Request identifier */
+    id: string;
+    /** Pull Request title */
+    title: string;
+    /** Pull Request description */
+    description: string;
+    /** Pull Request author */
+    author: { name: string; avatarUrl: string };
+    /** Pull Request status */
+    state: { name: string; color: string };
+    /** Pull Request creation time */
+    createdAt: string;
+  };
+};
 
 export enum QueryNotices {
   UnsubscribeDocument = "unsubscribe-document",
 }
-
-export type OEmbedType = "photo" | "video" | "rich";
-
-export type Unfurl<T = OEmbedType> = {
-  url?: string;
-  type: T;
-  title: string;
-  description?: string;
-  thumbnailUrl?: string | null;
-  meta?: Record<string, string>;
-};
 
 export type JSONValue =
   | string

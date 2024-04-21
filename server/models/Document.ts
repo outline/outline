@@ -47,9 +47,9 @@ import type {
   ProsemirrorData,
   SourceMetadata,
 } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import getTasks from "@shared/utils/getTasks";
 import slugify from "@shared/utils/slugify";
-import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import Backlink from "./Backlink";
@@ -216,6 +216,13 @@ class Document extends ParanoidModel<
   })
   @Column
   title: string;
+
+  @Length({
+    max: DocumentValidation.maxSummaryLength,
+    msg: `Document summary must be ${DocumentValidation.maxSummaryLength} characters or less`,
+  })
+  @Column
+  summary: string;
 
   @Column(DataType.ARRAY(DataType.STRING))
   previousTitles: string[] = [];
@@ -604,7 +611,7 @@ class Document extends ParanoidModel<
       return document;
     }
 
-    const match = id.match(SLUG_URL_REGEX);
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
       const document = await scope.findOne({
         where: {
@@ -985,6 +992,10 @@ class Document extends ParanoidModel<
   getTimestamp = () => Math.round(new Date(this.updatedAt).getTime() / 1000);
 
   getSummary = () => {
+    if (this.summary) {
+      return this.summary;
+    }
+
     const plainText = DocumentHelper.toPlainText(this);
     const lines = compact(plainText.split("\n"));
     const notEmpty = lines.length >= 1;
@@ -1006,22 +1017,25 @@ class Document extends ParanoidModel<
   toNavigationNode = async (
     options?: FindOptions<Document>
   ): Promise<NavigationNode> => {
-    const childDocuments = await (this.constructor as typeof Document)
-      .unscoped()
-      .scope("withoutState")
-      .findAll({
-        where: {
-          teamId: this.teamId,
-          parentDocumentId: this.id,
-          archivedAt: {
-            [Op.is]: null,
-          },
-          publishedAt: {
-            [Op.ne]: null,
-          },
-        },
-        transaction: options?.transaction,
-      });
+    // Checking if the record is new is a performance optimization – new docs cannot have children
+    const childDocuments = this.isNewRecord
+      ? []
+      : await (this.constructor as typeof Document)
+          .unscoped()
+          .scope("withoutState")
+          .findAll({
+            where: {
+              teamId: this.teamId,
+              parentDocumentId: this.id,
+              archivedAt: {
+                [Op.is]: null,
+              },
+              publishedAt: {
+                [Op.ne]: null,
+              },
+            },
+            transaction: options?.transaction,
+          });
 
     const children = await Promise.all(
       childDocuments.map((child) => child.toNavigationNode(options))

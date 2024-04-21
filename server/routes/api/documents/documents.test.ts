@@ -1,6 +1,10 @@
 import { faker } from "@faker-js/faker";
 import { addMinutes, subDays } from "date-fns";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import {
+  CollectionPermission,
+  DocumentPermission,
+  StatusFilter,
+} from "@shared/types";
 import {
   Document,
   View,
@@ -1104,7 +1108,7 @@ describe("#documents.search_titles", () => {
       body: {
         token: member.getJwtToken(),
         query: "title",
-        includeDrafts: true,
+        statusFilter: [StatusFilter.Draft],
       },
     });
     const body = await res.json();
@@ -1215,7 +1219,7 @@ describe("#documents.search_titles", () => {
       body: {
         token: user.getJwtToken(),
         query: "SECRET",
-        includeArchived: true,
+        statusFilter: [StatusFilter.Archived],
       },
     });
     const body = await res.json();
@@ -1235,7 +1239,7 @@ describe("#documents.search_titles", () => {
       body: {
         token: user.getJwtToken(),
         query: "SECRET",
-        includeDrafts: true,
+        statusFilter: [StatusFilter.Draft],
       },
     });
     const body = await res.json();
@@ -1282,6 +1286,7 @@ describe("#documents.search_titles", () => {
       body: {
         token: user.getJwtToken(),
         query: "SECRET",
+        statusFilter: [StatusFilter.Published, StatusFilter.Draft],
       },
     });
     const body = await res.json();
@@ -1371,7 +1376,7 @@ describe("#documents.search", () => {
       body: {
         token: user.getJwtToken(),
         shareId: share.id,
-        includeDrafts: true,
+        statusFilter: [StatusFilter.Draft],
         query: "test",
       },
     });
@@ -1540,6 +1545,7 @@ describe("#documents.search", () => {
       body: {
         token: user.getJwtToken(),
         query: "search term",
+        statusFilter: [StatusFilter.Published, StatusFilter.Archived],
       },
     });
     const body = await res.json();
@@ -1574,7 +1580,7 @@ describe("#documents.search", () => {
       body: {
         token: user.getJwtToken(),
         query: "search term",
-        includeDrafts: true,
+        statusFilter: [StatusFilter.Draft],
       },
     });
     const body = await res.json();
@@ -1595,7 +1601,7 @@ describe("#documents.search", () => {
     const res = await server.post("/api/documents.search", {
       body: {
         token: user.getJwtToken(),
-        includeDrafts: true,
+        statusFilter: [StatusFilter.Draft],
         query: "text",
       },
     });
@@ -1616,7 +1622,7 @@ describe("#documents.search", () => {
       body: {
         token: user.getJwtToken(),
         query: "search term",
-        includeDrafts: true,
+        statusFilter: [StatusFilter.Draft],
       },
     });
     const body = await res.json();
@@ -1636,6 +1642,7 @@ describe("#documents.search", () => {
       body: {
         token: user.getJwtToken(),
         query: "search term",
+        statusFilter: [StatusFilter.Published, StatusFilter.Draft],
       },
     });
     const body = await res.json();
@@ -1655,7 +1662,7 @@ describe("#documents.search", () => {
       body: {
         token: user.getJwtToken(),
         query: "search term",
-        includeArchived: true,
+        statusFilter: [StatusFilter.Archived],
       },
     });
     const body = await res.json();
@@ -1899,7 +1906,7 @@ describe("#documents.search", () => {
       body: {
         token: member.getJwtToken(),
         query: "title",
-        includeDrafts: true,
+        statusFilter: [StatusFilter.Draft],
       },
     });
     const body = await res.json();
@@ -2557,30 +2564,6 @@ describe("#documents.restore", () => {
     expect(body.data.archivedAt).toEqual(null);
   });
 
-  it("should not add restored templates to collection structure", async () => {
-    const user = await buildUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-    });
-    const template = await buildDocument({
-      teamId: user.teamId,
-      collectionId: collection.id,
-      template: true,
-    });
-    await template.archive(user.id);
-    const res = await server.post("/api/documents.restore", {
-      body: {
-        token: user.getJwtToken(),
-        id: template.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.archivedAt).toEqual(null);
-    await collection.reload();
-    expect(collection.documentStructure).toEqual(null);
-  });
-
   it("should restore archived when previous parent is archived", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -3032,6 +3015,7 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
+        publish: true,
       },
     });
     const body = await res.json();
@@ -4359,5 +4343,60 @@ describe("#documents.memberships", () => {
     expect(res.status).toEqual(200);
     expect(body.data.users.length).toEqual(1);
     expect(body.data.users[0].id).toEqual(members[1].id);
+  });
+});
+
+describe("#documents.empty_trash", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/documents.empty_trash");
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+  it("should allow admin users", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+  });
+  it("should not allow non-admin users", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+  it("should permanently delete documents", async () => {
+    const user = await buildAdmin();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await document.delete(user.id);
+
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const deletedDoc = await Document.findByPk(document.id, {
+      userId: user.id,
+      paranoid: false,
+    });
+    expect(deletedDoc).toBeNull();
   });
 });

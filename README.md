@@ -32,7 +32,7 @@ There is a short guide for [setting up a development environment](https://docs.g
 
 Outline is built and maintained by a small team – we'd love your help to fix bugs and add features!
 
-Before submitting a pull request _please_ discuss with the core team by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues) – we'd also love to hear from you in the [discussions](https://www.github.com/outline/outline/discussions). This way we can ensure that an approach is agreed on before code is written. This will result in a much higher liklihood of your code being accepted.
+Before submitting a pull request _please_ discuss with the core team by creating or commenting in an issue on [GitHub](https://www.github.com/outline/outline/issues) – we'd also love to hear from you in the [discussions](https://www.github.com/outline/outline/discussions). This way we can ensure that an approach is agreed on before code is written. This will result in a much higher likelihood of your code being accepted.
 
 If you’re looking for ways to get started, here's a list of ways to help us improve Outline:
 

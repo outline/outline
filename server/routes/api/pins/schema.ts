@@ -1,6 +1,6 @@
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
-import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { BaseSchema } from "../schema";
 
 export const PinsCreateSchema = BaseSchema.extend({
@@ -9,7 +9,7 @@ export const PinsCreateSchema = BaseSchema.extend({
       .string({
         required_error: "required",
       })
-      .refine((val) => isUUID(val) || SLUG_URL_REGEX.test(val), {
+      .refine((val) => isUUID(val) || UrlHelper.SLUG_URL_REGEX.test(val), {
         message: "must be uuid or url slug",
       }),
     collectionId: z.string().uuid().nullish(),

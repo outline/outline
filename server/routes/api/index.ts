@@ -1,14 +1,12 @@
-import path from "path";
-import glob from "glob";
 import Koa, { BaseContext } from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
-import Logger from "@server/logging/Logger";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import { AppState, AppContext } from "@server/types";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
@@ -48,7 +46,7 @@ api.use(
     formidable: {
       maxFileSize: Math.max(
         env.FILE_STORAGE_UPLOAD_MAX_SIZE,
-        env.MAXIMUM_IMPORT_SIZE
+        env.FILE_STORAGE_IMPORT_MAX_SIZE
       ),
       maxFieldsSize: 10 * 1024 * 1024,
     },
@@ -60,19 +58,10 @@ api.use(apiTracer());
 api.use(apiResponse());
 api.use(editor());
 
-// register package API routes before others to allow for overrides
-const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
-glob
-  .sync(path.join(rootDir, "plugins/*/server/api/!(*.test).[jt]s"))
-  .forEach((filePath: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const pkg: Router = require(path.join(process.cwd(), filePath)).default;
-
-    if (pkg && "routes" in pkg) {
-      router.use("/", pkg.routes());
-      Logger.debug("lifecycle", `Registered API routes for ${filePath}`);
-    }
-  });
+// Register plugin API routes before others to allow for overrides
+PluginManager.getHooks(Hook.API).forEach((hook) =>
+  router.use("/", hook.value.routes())
+);
 
 // routes
 router.use("/", auth.routes());

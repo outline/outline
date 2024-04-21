@@ -103,7 +103,7 @@ class Attachment extends IdModel<
    * Get a url that can be used to download a private attachment if the user has a valid session.
    */
   get redirectUrl() {
-    return `/api/attachments.redirect?id=${this.id}`;
+    return Attachment.getRedirectUrl(this.id);
   }
 
   /**
@@ -173,6 +173,17 @@ class Attachment extends IdModel<
     );
 
     return parseInt(result?.[0]?.total ?? "0", 10);
+  }
+
+  /**
+   * Get the redirect URL for a private attachment. Use `attachment.redirectUrl` if you already have
+   * an instance of the attachment.
+   *
+   * @param id The ID of the attachment to get the redirect URL for.
+   * @returns The redirect URL for the attachment.
+   */
+  static getRedirectUrl(id: string) {
+    return `/api/attachments.redirect?id=${id}`;
   }
 
   // associations

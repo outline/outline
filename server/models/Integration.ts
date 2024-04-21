@@ -1,4 +1,8 @@
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  type InstanceDestroyOptions,
+} from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -7,18 +11,16 @@ import {
   DataType,
   Scopes,
   IsIn,
+  AfterDestroy,
 } from "sequelize-typescript";
 import { IntegrationType, IntegrationService } from "@shared/types";
-import type {
-  IntegrationSettings,
-  UserCreatableIntegrationService,
-} from "@shared/types";
-import Collection from "./Collection";
-import IntegrationAuthentication from "./IntegrationAuthentication";
-import Team from "./Team";
-import User from "./User";
-import IdModel from "./base/IdModel";
-import Fix from "./decorators/Fix";
+import type { IntegrationSettings } from "@shared/types";
+import Collection from "@server/models/Collection";
+import IntegrationAuthentication from "@server/models/IntegrationAuthentication";
+import Team from "@server/models/Team";
+import User from "@server/models/User";
+import ParanoidModel from "@server/models/base/ParanoidModel";
+import Fix from "@server/models/decorators/Fix";
 
 @Scopes(() => ({
   withAuthentication: {
@@ -33,7 +35,7 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "integrations", modelName: "integration" })
 @Fix
-class Integration<T = unknown> extends IdModel<
+class Integration<T = unknown> extends ParanoidModel<
   InferAttributes<Integration<T>>,
   Partial<InferCreationAttributes<Integration<T>>>
 > {
@@ -43,7 +45,7 @@ class Integration<T = unknown> extends IdModel<
 
   @IsIn([Object.values(IntegrationService)])
   @Column(DataType.STRING)
-  service: IntegrationService | UserCreatableIntegrationService;
+  service: IntegrationService;
 
   @Column(DataType.JSONB)
   settings: IntegrationSettings<T>;
@@ -80,6 +82,23 @@ class Integration<T = unknown> extends IdModel<
   @ForeignKey(() => IntegrationAuthentication)
   @Column(DataType.UUID)
   authenticationId: string;
+
+  // hooks
+
+  @AfterDestroy
+  static async destoryIntegrationAuthentications(
+    model: Integration,
+    options?: InstanceDestroyOptions
+  ) {
+    if (options?.force && model.authenticationId) {
+      await IntegrationAuthentication.destroy({
+        where: {
+          id: model.authenticationId,
+        },
+        ...options,
+      });
+    }
+  }
 }
 
 export default Integration;

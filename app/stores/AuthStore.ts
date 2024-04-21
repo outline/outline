@@ -108,22 +108,21 @@ export default class AuthStore extends Store<Team> {
     // signin/signout events in other tabs and follow suite.
     window.addEventListener("storage", (event) => {
       if (event.key === AUTH_STORE && event.newValue) {
-        const data: PersistedData | null | undefined = JSON.parse(
-          event.newValue
-        );
+        const newData: PersistedData | null = JSON.parse(event.newValue);
+
         // data may be null if key is deleted in localStorage
-        if (!data) {
+        if (!newData) {
           return;
         }
 
         // If we're not signed in then hydrate from the received data, otherwise if
         // we are signed in and the received data contains no user then sign out
         if (this.authenticated) {
-          if (data.user === null) {
+          if (newData.user === null) {
             void this.logout(false, false);
           }
         } else {
-          this.rehydrate(data);
+          this.rehydrate(newData);
         }
       }
     });
@@ -304,16 +303,15 @@ export default class AuthStore extends Store<Team> {
     }
   };
 
+  /**
+   * Logs the user out and optionally revokes the authentication token.
+   *
+   * @param savePath Whether the current path should be saved and returned to after login.
+   * @param tryRevokingToken Whether the auth token should attempt to be revoked, this should be
+   * disabled with requests from ApiClient to prevent infinite loops.
+   */
   @action
-  logout = async (
-    /** Whether the current path should be saved and returned to after login */
-    savePath = false,
-    /**
-     * Whether the auth token should attempt to be revoked, this should be disabled
-     * with requests from ApiClient to prevent infinite loops.
-     */
-    tryRevokingToken = true
-  ) => {
+  logout = async (savePath = false, tryRevokingToken = true) => {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
@@ -348,9 +346,11 @@ export default class AuthStore extends Store<Team> {
     this.currentUserId = null;
     this.currentTeamId = null;
     this.collaborationToken = null;
+    this.rootStore.clear();
 
     // Tell the host application we logged out, if any – allows window cleanup.
-    void Desktop.bridge?.onLogout?.();
-    this.rootStore.clear();
+    if (Desktop.isElectron()) {
+      void Desktop.bridge?.onLogout?.();
+    }
   };
 }

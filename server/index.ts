@@ -4,6 +4,7 @@ import env from "./env";
 
 import "./logging/tracer"; // must come before importing any instrumented module
 
+import maintenance from "aws-sdk/lib/maintenance_mode_message";
 import http from "http";
 import https from "https";
 import Koa from "koa";
@@ -18,13 +19,17 @@ import services from "./services";
 import { getArg } from "./utils/args";
 import { getSSLOptions } from "./utils/ssl";
 import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
-import { checkEnv, checkPendingMigrations } from "./utils/startup";
+import { printEnv, checkPendingMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 import onerror from "./onerror";
 import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
 import { checkConnection, sequelize } from "./storage/database";
 import RedisAdapter from "./storage/redis";
 import Metrics from "./logging/Metrics";
+import { PluginManager } from "./utils/PluginManager";
+
+// Suppress the AWS maintenance message until upgrade to v3.
+maintenance.suppress = true;
 
 // The number of processes to run, defaults to the number of CPU's available
 // for the web service, and 1 for collaboration during the beta period.
@@ -44,8 +49,8 @@ if (env.SERVICES.includes("collaboration")) {
 // This function will only be called once in the original process
 async function master() {
   await checkConnection(sequelize);
-  await checkEnv();
   await checkPendingMigrations();
+  await printEnv();
 
   if (env.TELEMETRY && env.isProduction) {
     void checkUpdates();
@@ -55,12 +60,15 @@ async function master() {
 
 // This function will only be called in each forked process
 async function start(id: number, disconnect: () => void) {
+  // Ensure plugins are loaded
+  PluginManager.loadPlugins();
+
   // Find if SSL certs are available
   const ssl = getSSLOptions();
   const useHTTPS = !!ssl.key && !!ssl.cert;
 
   // If a --port flag is passed then it takes priority over the env variable
-  const normalizedPortFlag = getArg("port", "p");
+  const normalizedPort = getArg("port", "p") || env.PORT;
   const app = new Koa();
   const server = stoppable(
     useHTTPS
@@ -82,6 +90,16 @@ async function start(id: number, disconnect: () => void) {
 
   // Apply default rate limit to all routes
   app.use(defaultRateLimiter());
+
+  /** Perform a redirect on the browser so that the user's auth cookies are included in the request. */
+  app.context.redirectOnClient = function (url: string) {
+    this.type = "text/html";
+    this.body = `
+<html>
+<head>
+<meta http-equiv="refresh" content="0;URL='${url}'"/>
+</head>`;
+  };
 
   // Add a health check endpoint to all services
   router.get("/_health", async (ctx) => {
@@ -118,6 +136,19 @@ async function start(id: number, disconnect: () => void) {
   }
 
   server.on("error", (err) => {
+    if ("code" in err && err.code === "EADDRINUSE") {
+      Logger.error(`Port ${normalizedPort}  is already in use. Exiting…`, err);
+      process.exit(0);
+    }
+
+    if ("code" in err && err.code === "EACCES") {
+      Logger.error(
+        `Port ${normalizedPort} requires elevated privileges. Exiting…`,
+        err
+      );
+      process.exit(0);
+    }
+
     throw err;
   });
   server.on("listening", () => {
@@ -132,7 +163,7 @@ async function start(id: number, disconnect: () => void) {
     );
   });
 
-  server.listen(normalizedPortFlag || env.PORT);
+  server.listen(normalizedPort);
   server.setTimeout(env.REQUEST_TIMEOUT);
 
   ShutdownHelper.add(

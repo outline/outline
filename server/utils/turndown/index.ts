@@ -1,4 +1,4 @@
-import { gfm } from "@joplin/turndown-plugin-gfm";
+import { taskListItems, strikethrough } from "@joplin/turndown-plugin-gfm";
 import TurndownService from "turndown";
 import breaks from "./breaks";
 import emptyLists from "./emptyLists";
@@ -8,7 +8,9 @@ import images from "./images";
 import inlineLink from "./inlineLink";
 import sanitizeLists from "./sanitizeLists";
 import sanitizeTables from "./sanitizeTables";
+import tables from "./tables";
 import underlines from "./underlines";
+import { inHtmlContext } from "./utils";
 
 /**
  * Turndown converts HTML to Markdown and is used in the importer code.
@@ -20,11 +22,15 @@ const service = new TurndownService({
   bulletListMarker: "-",
   headingStyle: "atx",
   codeBlockStyle: "fenced",
-  blankReplacement: (content, node) =>
-    node.nodeName === "P" ? "\n\n\\\n" : "",
+  blankReplacement: (_, node) =>
+    node.nodeName === "P" && !inHtmlContext(node as HTMLElement, "td, th")
+      ? "\n\n\\\n"
+      : "",
 })
   .remove(["script", "style", "title", "head"])
-  .use(gfm)
+  .use(taskListItems)
+  .use(strikethrough)
+  .use(tables)
   .use(inlineLink)
   .use(emptyParagraph)
   .use(sanitizeTables)
@@ -51,6 +57,7 @@ const escapes: [RegExp, string][] = [
   [/^>/g, "\\>"],
   [/_/g, "\\_"],
   [/^(\d+)\. /g, "$1\\. "],
+  [/\$/g, "\\$"],
 ];
 
 /**

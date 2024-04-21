@@ -1,34 +1,35 @@
 import { Group, User, Team } from "@server/models";
-import { AdminRequiredError } from "../errors";
 import { allow } from "./cancan";
+import { and, isTeamAdmin, isTeamModel, isTeamMutable } from "./utils";
 
-allow(User, "createGroup", Team, (actor, team) => {
-  if (!team || actor.isViewer || actor.teamId !== team.id) {
-    return false;
-  }
-  if (actor.isAdmin) {
-    return true;
-  }
+allow(User, "createGroup", Team, (actor, team) =>
+  and(
+    //
+    isTeamAdmin(actor, team),
+    isTeamMutable(actor)
+  )
+);
 
-  throw AdminRequiredError();
-});
+allow(User, "listGroups", Team, (actor, team) =>
+  and(
+    //
+    isTeamModel(actor, team),
+    !actor.isGuest
+  )
+);
 
-allow(User, "read", Group, (actor, group) => {
-  // for the time being, we're going to let everyone on the team see every group
-  // we may need to make this more granular in the future
-  if (!group || actor.teamId !== group.teamId) {
-    return false;
-  }
-  return true;
-});
+allow(User, "read", Group, (actor, team) =>
+  and(
+    //
+    isTeamModel(actor, team),
+    !actor.isGuest
+  )
+);
 
-allow(User, ["update", "delete"], Group, (actor, group) => {
-  if (!group || actor.isViewer || actor.teamId !== group.teamId) {
-    return false;
-  }
-  if (actor.isAdmin) {
-    return true;
-  }
-
-  throw AdminRequiredError();
-});
+allow(User, ["update", "delete"], Group, (actor, team) =>
+  and(
+    //
+    isTeamAdmin(actor, team),
+    isTeamMutable(actor)
+  )
+);

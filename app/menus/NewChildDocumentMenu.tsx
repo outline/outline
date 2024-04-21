@@ -50,7 +50,19 @@ function NewChildDocumentMenu({ document, label }: Props) {
             },
             {
               type: "route",
-              title: t("New nested document"),
+              title: (
+                <span>
+                  <Trans
+                    defaults="New document in <em>{{ collectionName }}</em>"
+                    values={{
+                      collectionName: document.title,
+                    }}
+                    components={{
+                      em: <strong />,
+                    }}
+                  />
+                </span>
+              ),
               to: newDocumentPath(document.collectionId, {
                 parentDocumentId: document.id,
               }),

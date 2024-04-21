@@ -39,7 +39,7 @@ const DateFilter = ({ dateFilter, onSelect }: Props) => {
   return (
     <FilterOptions
       options={options}
-      activeKey={dateFilter}
+      selectedKeys={[dateFilter]}
       onSelect={onSelect}
       defaultLabel={t("Any time")}
     />

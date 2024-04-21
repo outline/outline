@@ -1,9 +1,10 @@
 /* global File Promise */
 import { PluginSimple } from "markdown-it";
-import { transparentize } from "polished";
+import { darken, transparentize } from "polished";
 import { baseKeymap } from "prosemirror-commands";
 import { dropCursor } from "prosemirror-dropcursor";
 import { gapCursor } from "prosemirror-gapcursor";
+import { redo, undo } from "prosemirror-history";
 import { inputRules, InputRule } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
@@ -55,7 +56,7 @@ import WithTheme from "./components/WithTheme";
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
   id?: string;
-  /** The current userId, if any */
+  /** The user id of the current user */
   userId?: string;
   /** The editor content, should only be changed if you wish to reset the content */
   value?: string;
@@ -389,7 +390,7 @@ export class Editor extends React.PureComponent<
   private createPasteParser() {
     return this.extensions.parser({
       schema: this.schema,
-      rules: { linkify: true, emoji: false },
+      rules: { linkify: true },
       plugins: this.rulePlugins,
     });
   }
@@ -456,11 +457,14 @@ export class Editor extends React.PureComponent<
       state: this.createState(this.props.value),
       editable: () => !this.props.readOnly,
       nodeViews: this.nodeViews,
-      dispatchTransaction(transaction) {
+      dispatchTransaction(this: EditorView, transaction) {
+        if (this.isDestroyed) {
+          return;
+        }
+
         // callback is bound to have the view instance as its this binding
-        const { state, transactions } = (
-          this.state as EditorState
-        ).applyTransaction(transaction);
+        const { state, transactions } =
+          this.state.applyTransaction(transaction);
 
         this.updateState(state);
 
@@ -585,6 +589,20 @@ export class Editor extends React.PureComponent<
       files,
       this.props
     );
+
+  /**
+   * Undo the last change in the editor.
+   *
+   * @returns True if the undo was successful
+   */
+  public undo = () => undo(this.view.state, this.view.dispatch, this.view);
+
+  /**
+   * Redo the last change in the editor.
+   *
+   * @returns True if the change was successful
+   */
+  public redo = () => redo(this.view.state, this.view.dispatch, this.view);
 
   /**
    * Returns true if the trimmed content of the editor is an empty string.
@@ -735,8 +753,10 @@ export class Editor extends React.PureComponent<
               readOnly={readOnly}
               readOnlyWriteCheckboxes={canUpdate}
               focusedCommentId={this.props.focusedCommentId}
+              userId={this.props.userId}
               editorStyle={this.props.editorStyle}
               ref={this.elementRef}
+              lang=""
             />
             {this.view && (
               <SelectionToolbar
@@ -772,12 +792,30 @@ export class Editor extends React.PureComponent<
   }
 }
 
-const EditorContainer = styled(Styles)<{ focusedCommentId?: string }>`
+const EditorContainer = styled(Styles)<{
+  userId?: string;
+  focusedCommentId?: string;
+}>`
   ${(props) =>
     props.focusedCommentId &&
     css`
       #comment-${props.focusedCommentId} {
         background: ${transparentize(0.5, props.theme.brand.marine)};
+      }
+    `}
+
+  ${(props) =>
+    props.userId &&
+    css`
+      .mention[data-id=${props.userId}] {
+        color: ${props.theme.textHighlightForeground};
+        background: ${props.theme.textHighlight};
+
+        &.ProseMirror-selectednode {
+          outline-color: ${props.readOnly
+            ? "transparent"
+            : darken(0.2, props.theme.textHighlight)};
+        }
       }
     `}
 `;

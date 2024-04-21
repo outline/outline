@@ -1,4 +1,4 @@
-import { TeamPreference } from "@shared/types";
+import { TeamPreference, UserRole } from "@shared/types";
 import {
   buildTeam,
   buildAdmin,
@@ -38,6 +38,26 @@ describe("#users.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(user.id);
+  });
+
+  it("should allow filtering by role", async () => {
+    const user = await buildUser({
+      name: "Tester",
+    });
+    const admin = await buildAdmin({
+      name: "Admin",
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/users.list", {
+      body: {
+        role: UserRole.Admin,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(admin.id);
   });
 
   it("should allow filtering to suspended users", async () => {
@@ -182,7 +202,7 @@ describe("#users.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
     expect(body.data[0].email).toEqual(undefined);
-    expect(body.data[1].email).toEqual(undefined);
+    expect(body.data[1].email).toEqual(user.email);
   });
 });
 
@@ -347,8 +367,7 @@ describe("#users.invite", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.sent.length).toEqual(1);
-    expect(body.data.users[0].isAdmin).toBeTruthy();
-    expect(body.data.users[0].isViewer).toBeFalsy();
+    expect(body.data.users[0].role).toEqual(UserRole.Admin);
   });
 
   it("should invite user as a viewer", async () => {
@@ -368,8 +387,7 @@ describe("#users.invite", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.sent.length).toEqual(1);
-    expect(body.data.users[0].isViewer).toBeTruthy();
-    expect(body.data.users[0].isAdmin).toBeFalsy();
+    expect(body.data.users[0].role).toEqual(UserRole.Viewer);
   });
 
   it("should require authentication", async () => {
@@ -383,7 +401,6 @@ describe("#users.delete", () => {
     const user = await buildAdmin();
     await buildUser({
       teamId: user.teamId,
-      isAdmin: false,
     });
     const res = await server.post("/api/users.delete", {
       body: {
@@ -397,7 +414,6 @@ describe("#users.delete", () => {
     const user = await buildAdmin();
     await buildUser({
       teamId: user.teamId,
-      isAdmin: false,
     });
     const res = await server.post("/api/users.delete", {
       body: {
@@ -539,6 +555,55 @@ describe("#users.update", () => {
   });
 });
 
+describe("#users.update_role", () => {
+  it("should promote", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
+    const res = await server.post("/api/users.update_role", {
+      body: {
+        token: admin.getJwtToken(),
+        id: user.id,
+        role: UserRole.Admin,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect((await user.reload()).role).toEqual(UserRole.Admin);
+  });
+
+  it("should demote", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/users.update_role", {
+      body: {
+        token: admin.getJwtToken(),
+        id: user.id,
+        role: UserRole.Viewer,
+      },
+    });
+    expect(res.status).toEqual(200);
+    expect((await user.reload()).role).toEqual(UserRole.Viewer);
+  });
+
+  it("should error on same role", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/users.update_role", {
+      body: {
+        token: admin.getJwtToken(),
+        id: user.id,
+        role: UserRole.Admin,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+});
+
 describe("#users.promote", () => {
   it("should promote a new admin", async () => {
     const team = await buildTeam();
@@ -572,11 +637,7 @@ describe("#users.demote", () => {
   it("should demote an admin", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
-    const user = await buildUser({ teamId: team.id });
-
-    await user.update({
-      isAdmin: true,
-    }); // Make another admin
+    const user = await buildAdmin({ teamId: team.id });
 
     const res = await server.post("/api/users.demote", {
       body: {
@@ -590,11 +651,7 @@ describe("#users.demote", () => {
   it("should demote an admin to viewer", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
-    const user = await buildUser({ teamId: team.id });
-
-    await user.update({
-      isAdmin: true,
-    }); // Make another admin
+    const user = await buildAdmin({ teamId: team.id });
 
     const res = await server.post("/api/users.demote", {
       body: {
@@ -609,11 +666,7 @@ describe("#users.demote", () => {
   it("should demote an admin to member", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
-    const user = await buildUser({ teamId: team.id });
-
-    await user.update({
-      isAdmin: true,
-    }); // Make another admin
+    const user = await buildAdmin({ teamId: team.id });
 
     const res = await server.post("/api/users.demote", {
       body: {
@@ -627,6 +680,7 @@ describe("#users.demote", () => {
 
   it("should not allow demoting self", async () => {
     const admin = await buildAdmin();
+    await buildAdmin({ teamId: admin.teamId });
     const res = await server.post("/api/users.demote", {
       body: {
         token: admin.getJwtToken(),
@@ -725,90 +779,5 @@ describe("#users.activate", () => {
     const body = await res.json();
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
-  });
-});
-
-describe("#users.count", () => {
-  it("should count active users", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const res = await server.post("/api/users.count", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.counts.all).toEqual(1);
-    expect(body.data.counts.admins).toEqual(0);
-    expect(body.data.counts.invited).toEqual(0);
-    expect(body.data.counts.suspended).toEqual(0);
-    expect(body.data.counts.active).toEqual(1);
-  });
-
-  it("should count admin users", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-      isAdmin: true,
-    });
-    const res = await server.post("/api/users.count", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.counts.all).toEqual(1);
-    expect(body.data.counts.admins).toEqual(1);
-    expect(body.data.counts.invited).toEqual(0);
-    expect(body.data.counts.suspended).toEqual(0);
-    expect(body.data.counts.active).toEqual(1);
-  });
-
-  it("should count suspended users", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    await buildUser({
-      teamId: team.id,
-      suspendedAt: new Date(),
-    });
-    const res = await server.post("/api/users.count", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.counts.all).toEqual(2);
-    expect(body.data.counts.admins).toEqual(0);
-    expect(body.data.counts.invited).toEqual(0);
-    expect(body.data.counts.suspended).toEqual(1);
-    expect(body.data.counts.active).toEqual(1);
-  });
-
-  it("should count invited users", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({
-      teamId: team.id,
-      lastActiveAt: null,
-    });
-    const res = await server.post("/api/users.count", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.counts.all).toEqual(1);
-    expect(body.data.counts.admins).toEqual(0);
-    expect(body.data.counts.invited).toEqual(1);
-    expect(body.data.counts.suspended).toEqual(0);
-    expect(body.data.counts.active).toEqual(0);
-  });
-
-  it("should require authentication", async () => {
-    const res = await server.post("/api/users.count");
-    expect(res.status).toEqual(401);
   });
 });

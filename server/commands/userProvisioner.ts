@@ -1,4 +1,5 @@
 import { InferCreationAttributes } from "sequelize";
+import { UserRole } from "@shared/types";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import {
   DomainNotAllowedError,
@@ -20,8 +21,10 @@ type Props = {
   name: string;
   /** The email address of the user */
   email: string;
-  /** Provision the new user as an administrator */
-  isAdmin?: boolean;
+  /** The language of the user, if known */
+  language?: string;
+  /** The role for new user, Member if none is provided */
+  role?: UserRole;
   /** The public url of an image representing the user */
   avatarUrl?: string | null;
   /**
@@ -50,7 +53,8 @@ type Props = {
 export default async function userProvisioner({
   name,
   email,
-  isAdmin,
+  role,
+  language,
   avatarUrl,
   teamId,
   authentication,
@@ -227,14 +231,12 @@ export default async function userProvisioner({
       throw DomainNotAllowedError();
     }
 
-    const defaultUserRole = team?.defaultUserRole;
-
     const user = await User.create(
       {
         name,
         email,
-        isAdmin: typeof isAdmin === "boolean" && isAdmin,
-        isViewer: isAdmin === true ? false : defaultUserRole === "viewer",
+        language,
+        role: role ?? team?.defaultUserRole,
         teamId,
         avatarUrl,
         authentications: authentication ? [authentication] : [],

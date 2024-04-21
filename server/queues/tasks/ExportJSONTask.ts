@@ -28,7 +28,7 @@ export default class ExportJSONTask extends ExportTask {
       await this.addCollectionToArchive(
         zip,
         collection,
-        fileOperation.includeAttachments
+        fileOperation.options?.includeAttachments ?? true
       );
     }
 
@@ -123,8 +123,10 @@ export default class ExportJSONTask extends ExportTask {
           id: document.id,
           urlId: document.urlId,
           title: document.title,
+          emoji: document.emoji,
           data: DocumentHelper.toProsemirror(document),
           createdById: document.createdById,
+          createdByName: document.createdBy.name,
           createdByEmail: document.createdBy.email,
           createdAt: document.createdAt.toISOString(),
           updatedAt: document.updatedAt.toISOString(),

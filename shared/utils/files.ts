@@ -44,8 +44,8 @@ export function getDataTransferFiles(
       return dt.items
         ? Array.prototype.slice
             .call(dt.items)
-            .filter((dt: DataTransferItem) => dt.kind !== "string")
-            .map((dt: DataTransferItem) => dt.getAsFile())
+            .filter((dti: DataTransferItem) => dti.kind !== "string")
+            .map((dti: DataTransferItem) => dti.getAsFile())
             .filter(Boolean)
         : [];
     }

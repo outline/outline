@@ -5,7 +5,7 @@ import {
   CodeIcon,
   UserIcon,
   GroupIcon,
-  LinkIcon,
+  GlobeIcon,
   TeamIcon,
   BeakerIcon,
   BuildingBlocksIcon,
@@ -25,6 +25,7 @@ import isCloudHosted from "~/utils/isCloudHosted";
 import lazy from "~/utils/lazyWithRetry";
 import { settingsPath } from "~/utils/routeHelpers";
 import useCurrentTeam from "./useCurrentTeam";
+import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
 
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
@@ -54,6 +55,7 @@ export type ConfigItem = {
 };
 
 const useSettingsConfig = () => {
+  const user = useCurrentUser();
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const { t } = useTranslation();
@@ -122,7 +124,7 @@ const useSettingsConfig = () => {
         name: t("Members"),
         path: settingsPath("members"),
         component: Members,
-        enabled: true,
+        enabled: can.listUsers,
         group: t("Workspace"),
         icon: UserIcon,
       },
@@ -130,7 +132,7 @@ const useSettingsConfig = () => {
         name: t("Groups"),
         path: settingsPath("groups"),
         component: Groups,
-        enabled: true,
+        enabled: can.listGroups,
         group: t("Workspace"),
         icon: GroupIcon,
       },
@@ -138,7 +140,7 @@ const useSettingsConfig = () => {
         name: t("Templates"),
         path: settingsPath("templates"),
         component: Templates,
-        enabled: true,
+        enabled: can.update,
         group: t("Workspace"),
         icon: ShapesIcon,
       },
@@ -146,9 +148,9 @@ const useSettingsConfig = () => {
         name: t("Shared Links"),
         path: settingsPath("shares"),
         component: Shares,
-        enabled: true,
+        enabled: can.listShares,
         group: t("Workspace"),
-        icon: LinkIcon,
+        icon: GlobeIcon,
       },
       {
         name: t("Import"),
@@ -197,7 +199,7 @@ const useSettingsConfig = () => {
     Object.values(PluginLoader.plugins).map((plugin) => {
       const hasSettings = !!plugin.settings;
       const enabledInDeployment =
-        !plugin.config.deployments ||
+        !plugin.config?.deployments ||
         plugin.config.deployments.length === 0 ||
         (plugin.config.deployments.includes("cloud") && isCloudHosted) ||
         (plugin.config.deployments.includes("enterprise") && !isCloudHosted);
@@ -208,7 +210,10 @@ const useSettingsConfig = () => {
         // TODO: Remove hardcoding of plugin id here
         group: plugin.id === "collections" ? t("Workspace") : t("Integrations"),
         component: plugin.settings,
-        enabled: enabledInDeployment && hasSettings && can.update,
+        enabled:
+          enabledInDeployment &&
+          hasSettings &&
+          (plugin.config.roles?.includes(user.role) || can.update),
         icon: plugin.icon,
       } as ConfigItem;
 

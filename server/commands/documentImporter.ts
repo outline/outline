@@ -63,10 +63,6 @@ async function documentImporter({
   // to match our hardbreak parser.
   text = text.trim().replace(/<br>/gi, "\\n");
 
-  // Escape any dollar signs in the text to prevent them being interpreted as
-  // math blocks
-  text = text.replace(/\$/g, "\\$");
-
   // Remove any closed and immediately reopened formatting marks
   text = text.replace(/\*\*\*\*/gi, "").replace(/____/gi, "");
 
@@ -76,6 +72,13 @@ async function documentImporter({
     ip,
     transaction
   );
+
+  // Sanity check – text cannot possibly be longer than state so if it is, we can short-circuit here
+  if (text.length > DocumentValidation.maxStateLength) {
+    throw InvalidRequestError(
+      `The document "${title}" is too large to import, please reduce the length and try again`
+    );
+  }
 
   // It's better to truncate particularly long titles than fail the import
   title = truncate(title, { length: DocumentValidation.maxTitleLength });

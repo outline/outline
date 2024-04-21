@@ -262,7 +262,7 @@ export default abstract class Store<T extends Model> {
   }
 
   @action
-  fetchPage = async (params: FetchPageParams | undefined): Promise<T[]> => {
+  fetchPage = async (params?: FetchPageParams | undefined): Promise<T[]> => {
     if (!this.actions.includes(RPCAction.List)) {
       throw new Error(`Cannot list ${this.modelName}`);
     }
@@ -289,17 +289,28 @@ export default abstract class Store<T extends Model> {
   };
 
   @action
-  fetchAll = async (): Promise<T[]> => {
+  fetchAll = async (params?: Record<string, any>): Promise<T[]> => {
     const limit = Pagination.defaultLimit;
-    const response = await this.fetchPage({ limit });
+    const response = await this.fetchPage({ ...params, limit });
     const pages = Math.ceil(response[PAGINATION_SYMBOL].total / limit);
     const fetchPages = [];
     for (let page = 1; page < pages; page++) {
-      fetchPages.push(this.fetchPage({ offset: page * limit, limit }));
+      fetchPages.push(
+        this.fetchPage({ ...params, offset: page * limit, limit })
+      );
     }
 
-    const results = await Promise.all(fetchPages);
-    return flatten(results);
+    const results = flatten(
+      fetchPages.length ? await Promise.all(fetchPages) : [response]
+    );
+
+    if (params?.withRelations) {
+      await Promise.all(
+        this.orderedData.map((integration) => integration.loadRelations())
+      );
+    }
+
+    return results;
   };
 
   @computed

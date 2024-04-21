@@ -3,8 +3,8 @@ import formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
-import { DocumentPermission } from "@shared/types";
-import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
+import { DocumentPermission, StatusFilter } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { BaseSchema } from "@server/routes/api/schema";
 
 const DocumentsSortParamsSchema = z.object({
@@ -115,7 +115,7 @@ export const DocumentsInfoSchema = BaseSchema.extend({
     /** Share Id, if available */
     shareId: z
       .string()
-      .refine((val) => isUUID(val) || SHARE_URL_SLUG_REGEX.test(val))
+      .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
       .optional(),
 
     /** Version of the API to be used */
@@ -147,22 +147,33 @@ export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreSchema>;
 
 export const DocumentsSearchSchema = BaseSchema.extend({
   body: SearchQuerySchema.merge(DateFilterSchema).extend({
-    /** Whether to include archived docs in results */
-    includeArchived: z.boolean().optional(),
-
-    /** Whether to include drafts in results */
-    includeDrafts: z.boolean().optional(),
-
     /** Filter results for team based on the collection */
     collectionId: z.string().uuid().optional(),
 
     /** Filter results based on user */
     userId: z.string().uuid().optional(),
 
+    /**
+     * Whether to include archived documents in results
+     *
+     * @deprecated Use `statusFilter` instead
+     */
+    includeArchived: z.boolean().optional(),
+
+    /**
+     * Whether to include draft documents in results
+     *
+     * @deprecated Use `statusFilter` instead
+     */
+    includeDrafts: z.boolean().optional(),
+
+    /** Document statuses to include in results */
+    statusFilter: z.nativeEnum(StatusFilter).array().optional(),
+
     /** Filter results for the team derived from shareId */
     shareId: z
       .string()
-      .refine((val) => isUUID(val) || SHARE_URL_SLUG_REGEX.test(val))
+      .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
       .optional(),
 
     /** Min words to be shown in the results snippets */

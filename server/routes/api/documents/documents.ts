@@ -7,12 +7,12 @@ import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
-import { TeamPreference } from "@shared/types";
+import { v4 as uuidv4 } from "uuid";
+import { StatusFilter, TeamPreference, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
 import documentDuplicator from "@server/commands/documentDuplicator";
-import documentImporter from "@server/commands/documentImporter";
 import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
@@ -43,6 +43,7 @@ import {
   View,
   UserMembership,
 } from "@server/models";
+import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize, cannot } from "@server/policies";
@@ -54,6 +55,10 @@ import {
   presentPublicTeam,
   presentUser,
 } from "@server/presenters";
+import DocumentImportTask, {
+  DocumentImportTaskResponse,
+} from "@server/queues/tasks/DocumentImportTask";
+import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
@@ -198,7 +203,7 @@ router.post(
 
 router.post(
   "documents.archived",
-  auth({ member: true }),
+  auth({ role: UserRole.Member }),
   pagination(),
   validate(T.DocumentsArchivedSchema),
   async (ctx: APIContext<T.DocumentsArchivedReq>) => {
@@ -242,7 +247,7 @@ router.post(
 
 router.post(
   "documents.deleted",
-  auth({ member: true }),
+  auth({ role: UserRole.Member }),
   pagination(),
   validate(T.DocumentsDeletedSchema),
   async (ctx: APIContext<T.DocumentsDeletedReq>) => {
@@ -624,7 +629,7 @@ router.post(
 
 router.post(
   "documents.restore",
-  auth({ member: true }),
+  auth({ role: UserRole.Member }),
   validate(T.DocumentsRestoreSchema),
   async (ctx: APIContext<T.DocumentsRestoreReq>) => {
     const { id, collectionId, revisionId } = ctx.input.body;
@@ -732,14 +737,8 @@ router.post(
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
   validate(T.DocumentsSearchSchema),
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
-    const {
-      query,
-      includeArchived,
-      includeDrafts,
-      dateFilter,
-      collectionId,
-      userId,
-    } = ctx.input.body;
+    const { query, statusFilter, dateFilter, collectionId, userId } =
+      ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
     let collaboratorIds = undefined;
@@ -756,9 +755,8 @@ router.post(
     }
 
     const documents = await SearchHelper.searchTitlesForUser(user, query, {
-      includeArchived,
-      includeDrafts,
       dateFilter,
+      statusFilter,
       collectionId,
       collaboratorIds,
       offset,
@@ -786,11 +784,12 @@ router.post(
   async (ctx: APIContext<T.DocumentsSearchReq>) => {
     const {
       query,
-      includeArchived,
-      includeDrafts,
       collectionId,
       userId,
       dateFilter,
+      statusFilter = [],
+      includeArchived,
+      includeDrafts,
       shareId,
       snippetMinWords,
       snippetMaxWords,
@@ -799,6 +798,14 @@ router.post(
 
     // Unfortunately, this still doesn't adequately handle cases when auth is optional
     const { user } = ctx.state.auth;
+
+    // TODO: Deprecated filter options, remove in a few versions
+    if (includeArchived && !statusFilter.includes(StatusFilter.Archived)) {
+      statusFilter.push(StatusFilter.Archived);
+    }
+    if (includeDrafts && !statusFilter.includes(StatusFilter.Draft)) {
+      statusFilter.push(StatusFilter.Draft);
+    }
 
     let teamId;
     let response;
@@ -823,11 +830,10 @@ router.post(
       invariant(team, "Share must belong to a team");
 
       response = await SearchHelper.searchForTeam(team, query, {
-        includeArchived,
-        includeDrafts,
         collectionId: document.collectionId,
         share,
         dateFilter,
+        statusFilter,
         offset,
         limit,
         snippetMinWords,
@@ -854,11 +860,10 @@ router.post(
       }
 
       response = await SearchHelper.searchForUser(user, query, {
-        includeArchived,
-        includeDrafts,
         collaboratorIds,
         collectionId,
         dateFilter,
+        statusFilter,
         offset,
         limit,
         snippetMinWords,
@@ -899,7 +904,7 @@ router.post(
 
 router.post(
   "documents.templatize",
-  auth({ member: true }),
+  auth({ role: UserRole.Member }),
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsTemplatizeSchema),
   transaction(),
@@ -990,7 +995,10 @@ router.post(
     }
 
     if (publish) {
-      authorize(user, "publish", document);
+      if (document.isDraft) {
+        authorize(user, "publish", document);
+      }
+
       if (!document.collectionId) {
         assertPresent(
           collectionId,
@@ -1205,17 +1213,6 @@ router.post(
       });
       authorize(user, "permanentDelete", document);
 
-      await Document.update(
-        {
-          parentDocumentId: null,
-        },
-        {
-          where: {
-            parentDocumentId: document.id,
-          },
-          paranoid: false,
-        }
-      );
       await documentPermanentDeleter([document]);
       await Event.create({
         name: "documents.permanent_delete",
@@ -1312,13 +1309,10 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsImportSchema),
-  multipart({ maximumFileSize: env.MAXIMUM_IMPORT_SIZE }),
-  transaction(),
+  multipart({ maximumFileSize: env.FILE_STORAGE_IMPORT_MAX_SIZE }),
   async (ctx: APIContext<T.DocumentsImportReq>) => {
     const { collectionId, parentDocumentId, publish } = ctx.input.body;
     const file = ctx.input.file;
-
-    const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
 
     const collection = await Collection.scope({
@@ -1328,7 +1322,6 @@ router.post(
         id: collectionId,
         teamId: user.teamId,
       },
-      transaction,
     });
     authorize(user, "createDocument", collection);
     let parentDocument;
@@ -1336,42 +1329,51 @@ router.post(
     if (parentDocumentId) {
       parentDocument = await Document.findByPk(parentDocumentId, {
         userId: user.id,
-        transaction,
       });
       authorize(user, "read", parentDocument);
     }
 
-    const content = await fs.readFile(file.filepath);
+    const buffer = await fs.readFile(file.filepath);
     const fileName = file.originalFilename ?? file.newFilename;
     const mimeType = file.mimetype ?? "";
+    const acl = "private";
 
-    const { text, state, title, emoji } = await documentImporter({
-      user,
-      fileName,
-      mimeType,
-      content,
-      ip: ctx.request.ip,
-      transaction,
+    const key = AttachmentHelper.getKey({
+      acl,
+      id: uuidv4(),
+      name: fileName,
+      userId: user.id,
     });
 
-    const document = await documentCreator({
+    await FileStorage.store({
+      body: buffer,
+      contentType: mimeType,
+      contentLength: buffer.length,
+      key,
+      acl,
+    });
+
+    const job = await DocumentImportTask.schedule({
+      key,
       sourceMetadata: {
         fileName,
         mimeType,
       },
-      title,
-      emoji,
-      text,
-      state,
-      publish,
+      userId: user.id,
       collectionId,
       parentDocumentId,
-      user,
+      publish,
       ip: ctx.request.ip,
-      transaction,
     });
+    const response: DocumentImportTaskResponse = await job.finished();
+    if ("error" in response) {
+      throw InvalidRequestError(response.error);
+    }
 
-    document.collection = collection;
+    const document = await Document.findByPk(response.documentId, {
+      userId: user.id,
+      rejectOnEmpty: true,
+    });
 
     ctx.body = {
       data: await presentDocument(document),
@@ -1684,6 +1686,57 @@ router.post(
         memberships: memberships.map(presentMembership),
         users: memberships.map((membership) => presentUser(membership.user)),
       },
+    };
+  }
+);
+
+router.post(
+  "documents.empty_trash",
+  auth({ role: UserRole.Admin }),
+  async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
+
+    const collectionIds = await user.collectionIds({
+      paranoid: false,
+    });
+    const collectionScope: Readonly<ScopeOptions> = {
+      method: ["withCollectionPermissions", user.id],
+    };
+    const documents = await Document.scope([
+      collectionScope,
+      "withDrafts",
+    ]).findAll({
+      where: {
+        deletedAt: {
+          [Op.ne]: null,
+        },
+        [Op.or]: [
+          {
+            collectionId: {
+              [Op.in]: collectionIds,
+            },
+          },
+          {
+            createdById: user.id,
+            collectionId: {
+              [Op.is]: null,
+            },
+          },
+        ],
+      },
+      paranoid: false,
+    });
+
+    await documentPermanentDeleter(documents);
+    await Event.create({
+      name: "documents.empty_trash",
+      teamId: user.teamId,
+      actorId: user.id,
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      success: true,
     };
   }
 );

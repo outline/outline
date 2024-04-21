@@ -27,6 +27,7 @@ router.post(
   async (ctx: APIContext<T.GroupsListReq>) => {
     const { direction, sort, userId, name } = ctx.input.body;
     const { user } = ctx.state.auth;
+    authorize(user, "listGroups", user.team);
 
     let where: WhereOptions<Group> = {
       teamId: user.teamId,

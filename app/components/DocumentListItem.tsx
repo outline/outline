@@ -37,9 +37,8 @@ type Props = {
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 function replaceResultMarks(tag: string) {
-  // don't use SEARCH_RESULT_REGEX here as it causes
-  // an infinite loop to trigger a regex inside it's own callback
-  return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
+  // don't use SEARCH_RESULT_REGEX directly here as it causes an infinite loop
+  return tag.replace(new RegExp(SEARCH_RESULT_REGEX.source), "$1");
 }
 
 function DocumentListItem(
@@ -97,7 +96,7 @@ function DocumentListItem(
             highlight={highlight}
             dir={document.dir}
           />
-          {document.isBadgedNew && document.createdBy.id !== user.id && (
+          {document.isBadgedNew && document.createdBy?.id !== user.id && (
             <Badge yellow>{t("New")}</Badge>
           )}
           {canStar && (

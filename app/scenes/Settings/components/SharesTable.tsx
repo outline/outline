@@ -1,15 +1,15 @@
 import { observer } from "mobx-react";
-import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
+import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Share from "~/models/Share";
 import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import TableFromParams from "~/components/TableFromParams";
 import Time from "~/components/Time";
-import Tooltip from "~/components/Tooltip";
+import useUserLocale from "~/hooks/useUserLocale";
 import ShareMenu from "~/menus/ShareMenu";
+import { formatNumber } from "~/utils/language";
 
 type Props = Omit<React.ComponentProps<typeof TableFromParams>, "columns"> & {
   data: Share[];
@@ -18,7 +18,7 @@ type Props = Omit<React.ComponentProps<typeof TableFromParams>, "columns"> & {
 
 function SharesTable({ canManage, data, ...rest }: Props) {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const language = useUserLocale();
   const hasDomain = data.some((share) => share.domain);
 
   const columns = React.useMemo(
@@ -63,20 +63,6 @@ function SharesTable({ canManage, data, ...rest }: Props) {
             value ? <Time dateTime={value} addSuffix /> : null
           ),
         },
-        {
-          id: "includeChildDocuments",
-          Header: t("Shared nested"),
-          accessor: "includeChildDocuments",
-          Cell: observer(({ value }: { value: string }) =>
-            value ? (
-              <Flex align="center">
-                <Tooltip content={t("Nested documents are publicly available")}>
-                  <CheckmarkIcon color={theme.accent} />
-                </Tooltip>
-              </Flex>
-            ) : null
-          ),
-        },
         hasDomain
           ? {
               id: "domain",
@@ -89,6 +75,13 @@ function SharesTable({ canManage, data, ...rest }: Props) {
           id: "views",
           Header: t("Views"),
           accessor: "views",
+          Cell: observer(({ value }: { value: number }) => (
+            <>
+              {language
+                ? formatNumber(value, unicodeCLDRtoBCP47(language))
+                : value}
+            </>
+          )),
         },
         canManage
           ? {
@@ -106,7 +99,7 @@ function SharesTable({ canManage, data, ...rest }: Props) {
             }
           : undefined,
       ].filter((i) => i),
-    [t, theme.accent, hasDomain, canManage]
+    [t, hasDomain, canManage]
   );
 
   return <TableFromParams columns={columns} data={data} {...rest} />;
