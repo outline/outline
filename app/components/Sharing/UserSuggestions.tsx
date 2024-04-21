@@ -1,9 +1,11 @@
+import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
 import { CheckmarkIcon, CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import { stringToColor } from "@shared/utils/color";
 import Document from "~/models/Document";
 import User from "~/models/User";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -11,9 +13,13 @@ import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
 import { hover } from "~/styles";
 import Avatar from "../Avatar";
-import { AvatarSize } from "../Avatar/Avatar";
+import { AvatarSize, IAvatar } from "../Avatar/Avatar";
 import Empty from "../Empty";
 import { InviteIcon, StyledListItem } from "./MemberListItem";
+
+type Suggestion = IAvatar & {
+  id: string;
+};
 
 type Props = {
   /** The document being shared. */
@@ -35,21 +41,51 @@ export const UserSuggestions = observer(
     const user = useCurrentUser();
 
     const fetchUsersByQuery = useThrottledCallback(
-      (query) => users.fetchPage({ query }),
+      (params) => users.fetchPage({ query: params.query }),
       250
     );
 
-    const suggestions = React.useMemo(
-      () =>
-        users
-          .notInDocument(document.id, query)
-          .filter((u) => u.id !== user.id && !u.isSuspended),
-      [users, users.orderedData, document.id, document.members, user.id, query]
+    const getSuggestionForEmail = React.useCallback(
+      (email: string) => ({
+        id: email,
+        name: email,
+        avatarUrl: "",
+        color: stringToColor(email),
+        initial: email[0].toUpperCase(),
+        email: t("Invite to workspace"),
+      }),
+      [t]
     );
 
+    const suggestions = React.useMemo(() => {
+      const filtered: Suggestion[] = users
+        .notInDocument(document.id, query)
+        .filter((u) => u.id !== user.id && !u.isSuspended);
+
+      if (isEmail(query)) {
+        filtered.push(getSuggestionForEmail(query));
+      }
+
+      return filtered;
+    }, [
+      getSuggestionForEmail,
+      users,
+      users.orderedData,
+      document.id,
+      document.members,
+      user.id,
+      query,
+      t,
+    ]);
+
     const pending = React.useMemo(
-      () => pendingIds.map((id) => users.get(id)).filter(Boolean) as User[],
-      [users, pendingIds]
+      () =>
+        pendingIds
+          .map((id) =>
+            isEmail(id) ? getSuggestionForEmail(id) : users.get(id)
+          )
+          .filter(Boolean) as User[],
+      [users, getSuggestionForEmail, pendingIds]
     );
 
     React.useEffect(() => {
@@ -100,7 +136,7 @@ export const UserSuggestions = observer(
           (suggestionsWithPending.length > 0 || isEmpty) && <Separator />}
         {suggestionsWithPending.map((suggestion) => (
           <StyledListItem
-            {...getListItemProps(suggestion)}
+            {...getListItemProps(suggestion as User)}
             key={suggestion.id}
             onClick={() => addPendingId(suggestion.id)}
             actions={<InviteIcon />}
