@@ -74,7 +74,7 @@ export default class CommentMentionedEmail extends BaseEmail<
 
     if (content) {
       // inline all css so that it works in as many email providers as possible.
-      body = HTMLHelper.inlineCSS(content);
+      body = await HTMLHelper.inlineCSS(content);
     }
 
     return {

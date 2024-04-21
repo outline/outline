@@ -233,7 +233,7 @@
     "@babel/helper-wrap-function" "^7.18.9"
     "@babel/types" "^7.18.9"
 
-"@babel/helper-replace-supers@^7.18.6", "@babel/helper-replace-supers@^7.20.7", "@babel/helper-replace-supers@^7.22.20", "@babel/helper-replace-supers@^7.24.1":
+"@babel/helper-replace-supers@^7.18.6", "@babel/helper-replace-supers@^7.20.7", "@babel/helper-replace-supers@^7.22.20", "@babel/helper-replace-supers@^7.22.9", "@babel/helper-replace-supers@^7.24.1":
   version "7.24.1"
   resolved "https://registry.yarnpkg.com/@babel/helper-replace-supers/-/helper-replace-supers-7.24.1.tgz#7085bd19d4a0b7ed8f405c1ed73ccb70f323abc1"
   integrity sha512-QCR1UqC9BzG5vZl8BMicmZ28RuUBnHhAMddD8yHFHDRH9lLTZ9uUPehX8ctVPT8l0TKblJidqcgUUKGVrePleQ==
@@ -1183,6 +1183,11 @@
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity "sha1-u1BFecHK6SPmV2pPXaQ9Jfl729k= sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ=="
+
+"@css-inline/css-inline-wasm@^0.14.0":
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/@css-inline/css-inline-wasm/-/css-inline-wasm-0.14.0.tgz#8ea69759a280315615d18f6a0bcd477c79237b09"
+  integrity sha512-C8bZ4HZl5LerGzUFR9IsOfPg8iBHWsfG8jbYILKGvs1Ny5R9+j8NJnDdTwGgi+INFEzYlhhhXt7GknaNclRYiw==
 
 "@dabh/diagnostics@^2.0.2":
   version "2.0.2"
@@ -5531,11 +5536,6 @@ css-color-keywords@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/css-color-keywords/-/css-color-keywords-1.0.0.tgz#fea2616dc676b2962686b3af8dbdbe180b244e05"
   integrity "sha1-/qJhbcZ2spYmhrOvjb2+GAskTgU= sha512-FyyrDHZKEjXDpNJYvVsV960FiqQyXc/LlYmsxl2BcdMb2WPx0OGRVgTg55rPSyLSNMqP52R9r8geSp7apN3Ofg=="
-
-css-inline@^0.11.2:
-  version "0.11.2"
-  resolved "https://registry.yarnpkg.com/css-inline/-/css-inline-0.11.2.tgz#02cb4e0d4ca04d731a21e438c02b3ff11b0a1034"
-  integrity "sha1-AstODUygTXMaIeQ4wCs/8RsKEDQ= sha512-c/oie5Yqa2lVRwUO7A8nd3c3r0x7yE6MQH2PPB/R1LaUb6ohZD7vNXj23fod5y4QNsNhsQi98/AWfUwo1K6R7g=="
 
 css-select@^5.1.0:
   version "5.1.0"

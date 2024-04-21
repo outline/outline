@@ -1,5 +1,8 @@
-import { inline } from "css-inline";
+import { initWasm, inline } from "@css-inline/css-inline-wasm";
+import fs from "fs-extra";
 import env from "@server/env";
+
+let initialized = false;
 
 export default class HTMLHelper {
   /**
@@ -8,13 +11,18 @@ export default class HTMLHelper {
    * @param html The HTML to inline CSS styles for.
    * @returns The HTML with CSS styles inlined.
    */
-  public static inlineCSS(html: string): string {
+  public static async inlineCSS(html: string): Promise<string> {
+    if (!initialized) {
+      const path = require.resolve("@css-inline/css-inline-wasm/index_bg.wasm");
+      await initWasm(fs.readFileSync(path));
+      initialized = true;
+    }
     return inline(html, {
-      base_url: env.URL,
-      inline_style_tags: true,
-      keep_link_tags: false,
-      keep_style_tags: false,
-      load_remote_stylesheets: false,
+      baseUrl: env.URL,
+      inlineStyleTags: true,
+      keepLinkTags: false,
+      keepStyleTags: false,
+      loadRemoteStylesheets: false,
     });
   }
 }
