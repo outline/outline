@@ -290,14 +290,15 @@ export default class SearchHelper {
     // Regex to highlight quoted queries as ts_headline will not do this by default due to stemming.
     const fullMatchRegex = new RegExp(escapeRegExp(query), "i");
     const highlightRegex = new RegExp(
-      `\\b(${[
+      [
         fullMatchRegex.source,
-        quotedQueries.length
+        ...(quotedQueries.length
           ? quotedQueries.map((match) => escapeRegExp(match[1]))
           : this.removeStopWords(query)
+              .trim()
               .split(" ")
-              .map((match) => escapeRegExp(match)),
-      ].join("|")})\\b`,
+              .map((match) => `\\b${escapeRegExp(match)}\\b`)),
+      ].join("|"),
       "gi"
     );
 
