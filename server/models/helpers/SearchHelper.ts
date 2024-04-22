@@ -1,4 +1,3 @@
-import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
 import escapeRegExp from "lodash/escapeRegExp";
 import find from "lodash/find";
@@ -13,6 +12,7 @@ import Share from "@server/models/Share";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import { sequelize } from "@server/storage/database";
+import DocumentHelper from "./DocumentHelper";
 
 type SearchResponse = {
   results: {
@@ -52,7 +52,6 @@ type RankedDocument = Document & {
   id: string;
   dataValues: Partial<Document> & {
     searchRanking: number;
-    searchContext: string;
   };
 };
 
@@ -107,12 +106,6 @@ export default class SearchHelper {
             `ts_rank("searchVector", to_tsquery('english', :query))`
           ),
           "searchRanking",
-        ],
-        [
-          Sequelize.literal(
-            `ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions)`
-          ),
-          "searchContext",
         ],
       ],
       replacements: queryReplacements,
@@ -245,12 +238,6 @@ export default class SearchHelper {
           ),
           "searchRanking",
         ],
-        [
-          Sequelize.literal(
-            `ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions)`
-          ),
-          "searchContext",
-        ],
       ],
       subQuery: false,
       include,
@@ -275,7 +262,7 @@ export default class SearchHelper {
 
     // Final query to get associated document data
     const documents = await Document.scope([
-      "withoutState",
+      "withState",
       "withDrafts",
       {
         method: ["withViews", user.id],
@@ -294,6 +281,28 @@ export default class SearchHelper {
     });
 
     return this.buildResponse(query, results, documents, count);
+  }
+
+  private static buildSearchContext(document: Document, query: string) {
+    const quotedQueries = Array.from(query.matchAll(/"([^"]*)"/g));
+    const text = DocumentHelper.toPlainText(document);
+
+    // Regex to highlight quoted queries as ts_headline will not do this by default due to stemming.
+    const highlightRegex = new RegExp(
+      (quotedQueries.length
+        ? quotedQueries.map((match) => escapeRegExp(match[1]))
+        : query.split(" ").map((match) => escapeRegExp(match))
+      ).join("|"),
+      "gi"
+    );
+
+    const startIndex = Math.max(0, text.search(highlightRegex) - 75);
+    const context = text.replace(highlightRegex, "<b>$&</b>");
+
+    // chop text around the first match
+    const endIndex = context.lastIndexOf(" ", startIndex + 200);
+
+    return context.slice(startIndex, endIndex);
   }
 
   private static async buildWhere(
@@ -457,33 +466,16 @@ export default class SearchHelper {
     documents: Document[],
     count: number
   ): SearchResponse {
-    const quotedQueries = Array.from(query.matchAll(/"([^"]*)"/g)).slice(0, 3);
-
-    // Regex to highlight quoted queries as ts_headline will not do this by default due to stemming.
-    const quotedRegex = new RegExp(
-      quotedQueries.map((match) => escapeRegExp(match[1])).join("|"),
-      "gi"
-    );
-
     return {
       results: map(results, (result) => {
-        let context = removeMarkdown(result.dataValues.searchContext, {
-          stripHTML: false,
-        });
-
-        // If there are any quoted queries, highlighting these takes precedence over the default
-        if (quotedQueries.length) {
-          context = context
-            .replace(/<\/?b>/g, "")
-            .replace(quotedRegex, "<b>$&</b>");
-        }
+        const document = find(documents, {
+          id: result.id,
+        }) as Document;
 
         return {
           ranking: result.dataValues.searchRanking,
-          context,
-          document: find(documents, {
-            id: result.id,
-          }) as Document,
+          context: this.buildSearchContext(document, query),
+          document,
         };
       }),
       totalCount: count,
