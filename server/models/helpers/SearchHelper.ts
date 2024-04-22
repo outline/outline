@@ -283,24 +283,34 @@ export default class SearchHelper {
     return this.buildResponse(query, results, documents, count);
   }
 
-  private static buildSearchContext(document: Document, query: string) {
+  private static buildResultContext(document: Document, query: string) {
     const quotedQueries = Array.from(query.matchAll(/"([^"]*)"/g));
     const text = DocumentHelper.toPlainText(document);
 
     // Regex to highlight quoted queries as ts_headline will not do this by default due to stemming.
+    const fullMatchRegex = new RegExp(escapeRegExp(query), "i");
     const highlightRegex = new RegExp(
-      (quotedQueries.length
-        ? quotedQueries.map((match) => escapeRegExp(match[1]))
-        : query.split(" ").map((match) => escapeRegExp(match))
-      ).join("|"),
+      `\\b(${[
+        fullMatchRegex.source,
+        quotedQueries.length
+          ? quotedQueries.map((match) => escapeRegExp(match[1]))
+          : this.removeStopWords(query)
+              .split(" ")
+              .map((match) => escapeRegExp(match)),
+      ].join("|")})\\b`,
       "gi"
     );
 
-    const startIndex = Math.max(0, text.search(highlightRegex) - 75);
+    // chop text around the first match, prefer the first full match if possible.
+    const fullMatchIndex = text.search(fullMatchRegex);
+    const offsetStartIndex =
+      (fullMatchIndex >= 0 ? fullMatchIndex : text.search(highlightRegex)) - 65;
+    const startIndex = Math.max(
+      0,
+      offsetStartIndex <= 0 ? 0 : text.indexOf(" ", offsetStartIndex)
+    );
     const context = text.replace(highlightRegex, "<b>$&</b>");
-
-    // chop text around the first match
-    const endIndex = context.lastIndexOf(" ", startIndex + 200);
+    const endIndex = context.lastIndexOf(" ", startIndex + 250);
 
     return context.slice(startIndex, endIndex);
   }
@@ -474,7 +484,7 @@ export default class SearchHelper {
 
         return {
           ranking: result.dataValues.searchRanking,
-          context: this.buildSearchContext(document, query),
+          context: this.buildResultContext(document, query),
           document,
         };
       }),
@@ -528,5 +538,141 @@ export default class SearchHelper {
         // see: https://github.com/outline/outline/issues/6542
         .replace(/:/g, "\\:")
     );
+  }
+
+  private static removeStopWords(query: string): string {
+    const stopwords = [
+      "i",
+      "me",
+      "my",
+      "myself",
+      "we",
+      "our",
+      "ours",
+      "ourselves",
+      "you",
+      "your",
+      "yours",
+      "yourself",
+      "yourselves",
+      "he",
+      "him",
+      "his",
+      "himself",
+      "she",
+      "her",
+      "hers",
+      "herself",
+      "it",
+      "its",
+      "itself",
+      "they",
+      "them",
+      "their",
+      "theirs",
+      "themselves",
+      "what",
+      "which",
+      "who",
+      "whom",
+      "this",
+      "that",
+      "these",
+      "those",
+      "am",
+      "is",
+      "are",
+      "was",
+      "were",
+      "be",
+      "been",
+      "being",
+      "have",
+      "has",
+      "had",
+      "having",
+      "do",
+      "does",
+      "did",
+      "doing",
+      "a",
+      "an",
+      "the",
+      "and",
+      "but",
+      "if",
+      "or",
+      "because",
+      "as",
+      "until",
+      "while",
+      "of",
+      "at",
+      "by",
+      "for",
+      "with",
+      "about",
+      "against",
+      "between",
+      "into",
+      "through",
+      "during",
+      "before",
+      "after",
+      "above",
+      "below",
+      "to",
+      "from",
+      "up",
+      "down",
+      "in",
+      "out",
+      "on",
+      "off",
+      "over",
+      "under",
+      "again",
+      "further",
+      "then",
+      "once",
+      "here",
+      "there",
+      "when",
+      "where",
+      "why",
+      "how",
+      "all",
+      "any",
+      "both",
+      "each",
+      "few",
+      "more",
+      "most",
+      "other",
+      "some",
+      "such",
+      "no",
+      "nor",
+      "not",
+      "only",
+      "own",
+      "same",
+      "so",
+      "than",
+      "too",
+      "very",
+      "s",
+      "t",
+      "can",
+      "will",
+      "just",
+      "don",
+      "should",
+      "now",
+    ];
+    return query
+      .split(" ")
+      .filter((word) => !stopwords.includes(word))
+      .join(" ");
   }
 }
