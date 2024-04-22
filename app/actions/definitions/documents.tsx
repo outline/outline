@@ -90,8 +90,18 @@ export const createDocument = createAction({
   section: DocumentSection,
   icon: <NewDocumentIcon />,
   keywords: "create",
-  visible: ({ currentTeamId, stores }) =>
-    !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument,
+  visible: ({ currentTeamId, activeCollectionId, stores }) => {
+    if (
+      activeCollectionId &&
+      !stores.policies.abilities(activeCollectionId).createDocument
+    ) {
+      return false;
+    }
+
+    return (
+      !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument
+    );
+  },
   perform: ({ activeCollectionId, inStarredSection }) =>
     history.push(newDocumentPath(activeCollectionId), {
       starred: inStarredSection,

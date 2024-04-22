@@ -529,7 +529,6 @@ iframe.embed {
 
 .image-right-50 {
   float: right;
-  width: 33.3%;
   margin-left: 2em;
   margin-bottom: 1em;
   clear: initial;
@@ -537,7 +536,6 @@ iframe.embed {
 
 .image-left-50 {
   float: left;
-  width: 33.3%;
   margin-right: 2em;
   margin-bottom: 1em;
   clear: initial;

@@ -21,7 +21,7 @@ function Actions({ collection }: Props) {
 
   return (
     <>
-      {can.update && (
+      {can.createDocument && (
         <>
           <Action>
             <Tooltip

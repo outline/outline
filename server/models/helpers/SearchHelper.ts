@@ -6,6 +6,7 @@ import map from "lodash/map";
 import queryParser from "pg-tsquery";
 import { Op, Sequelize, WhereOptions } from "sequelize";
 import { DateFilter, StatusFilter } from "@shared/types";
+import { getUrls } from "@shared/utils/urls";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
 import Share from "@server/models/Share";
@@ -400,39 +401,51 @@ export default class SearchHelper {
     }
 
     if (query) {
+      // find words that look like urls, these should be treated separately as the postgres full-text
+      // index will generally not match them.
+      const likelyUrls = getUrls(query);
+
+      // remove likely urls, and escape the rest of the query.
       const limitedQuery = this.escapeQuery(
-        query.slice(0, this.maxQueryLength)
+        likelyUrls
+          .reduce((q, url) => q.replace(url, ""), query)
+          .slice(0, this.maxQueryLength)
+          .trim()
       );
 
       // Extract quoted queries and add them to the where clause, up to a maximum of 3 total.
-      const quotedQueries = Array.from(
-        limitedQuery.matchAll(/"([^"]*)"/g)
-      ).slice(0, 3);
+      const quotedQueries = Array.from(limitedQuery.matchAll(/"([^"]*)"/g)).map(
+        (match) => match[1]
+      );
 
-      for (const match of quotedQueries) {
+      const iLikeQueries = [...quotedQueries, ...likelyUrls].slice(0, 3);
+
+      for (const match of iLikeQueries) {
         where[Op.and].push({
           [Op.or]: [
             {
               title: {
-                [Op.iLike]: `%${match[1]}%`,
+                [Op.iLike]: `%${match}%`,
               },
             },
             {
               text: {
-                [Op.iLike]: `%${match[1]}%`,
+                [Op.iLike]: `%${match}%`,
               },
             },
           ],
         });
       }
 
-      where[Op.and].push(
-        Sequelize.fn(
-          `"searchVector" @@ to_tsquery`,
-          "english",
-          Sequelize.literal(":query")
-        )
-      );
+      if (limitedQuery || iLikeQueries.length === 0) {
+        where[Op.and].push(
+          Sequelize.fn(
+            `"searchVector" @@ to_tsquery`,
+            "english",
+            Sequelize.literal(":query")
+          )
+        );
+      }
     }
 
     return where;
