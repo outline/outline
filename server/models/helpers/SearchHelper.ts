@@ -1,4 +1,3 @@
-import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
 import escapeRegExp from "lodash/escapeRegExp";
 import find from "lodash/find";
@@ -13,6 +12,7 @@ import Share from "@server/models/Share";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import { sequelize } from "@server/storage/database";
+import DocumentHelper from "./DocumentHelper";
 
 type SearchResponse = {
   results: {
@@ -52,7 +52,6 @@ type RankedDocument = Document & {
   id: string;
   dataValues: Partial<Document> & {
     searchRanking: number;
-    searchContext: string;
   };
 };
 
@@ -107,12 +106,6 @@ export default class SearchHelper {
             `ts_rank("searchVector", to_tsquery('english', :query))`
           ),
           "searchRanking",
-        ],
-        [
-          Sequelize.literal(
-            `ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions)`
-          ),
-          "searchContext",
         ],
       ],
       replacements: queryReplacements,
@@ -245,12 +238,6 @@ export default class SearchHelper {
           ),
           "searchRanking",
         ],
-        [
-          Sequelize.literal(
-            `ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions)`
-          ),
-          "searchContext",
-        ],
       ],
       subQuery: false,
       include,
@@ -275,7 +262,7 @@ export default class SearchHelper {
 
     // Final query to get associated document data
     const documents = await Document.scope([
-      "withoutState",
+      "withState",
       "withDrafts",
       {
         method: ["withViews", user.id],
@@ -294,6 +281,39 @@ export default class SearchHelper {
     });
 
     return this.buildResponse(query, results, documents, count);
+  }
+
+  private static buildResultContext(document: Document, query: string) {
+    const quotedQueries = Array.from(query.matchAll(/"([^"]*)"/g));
+    const text = DocumentHelper.toPlainText(document);
+
+    // Regex to highlight quoted queries as ts_headline will not do this by default due to stemming.
+    const fullMatchRegex = new RegExp(escapeRegExp(query), "i");
+    const highlightRegex = new RegExp(
+      [
+        fullMatchRegex.source,
+        ...(quotedQueries.length
+          ? quotedQueries.map((match) => escapeRegExp(match[1]))
+          : this.removeStopWords(query)
+              .trim()
+              .split(" ")
+              .map((match) => `\\b${escapeRegExp(match)}\\b`)),
+      ].join("|"),
+      "gi"
+    );
+
+    // chop text around the first match, prefer the first full match if possible.
+    const fullMatchIndex = text.search(fullMatchRegex);
+    const offsetStartIndex =
+      (fullMatchIndex >= 0 ? fullMatchIndex : text.search(highlightRegex)) - 65;
+    const startIndex = Math.max(
+      0,
+      offsetStartIndex <= 0 ? 0 : text.indexOf(" ", offsetStartIndex)
+    );
+    const context = text.replace(highlightRegex, "<b>$&</b>");
+    const endIndex = context.lastIndexOf(" ", startIndex + 250);
+
+    return context.slice(startIndex, endIndex);
   }
 
   private static async buildWhere(
@@ -457,33 +477,16 @@ export default class SearchHelper {
     documents: Document[],
     count: number
   ): SearchResponse {
-    const quotedQueries = Array.from(query.matchAll(/"([^"]*)"/g)).slice(0, 3);
-
-    // Regex to highlight quoted queries as ts_headline will not do this by default due to stemming.
-    const quotedRegex = new RegExp(
-      quotedQueries.map((match) => escapeRegExp(match[1])).join("|"),
-      "gi"
-    );
-
     return {
       results: map(results, (result) => {
-        let context = removeMarkdown(result.dataValues.searchContext, {
-          stripHTML: false,
-        });
-
-        // If there are any quoted queries, highlighting these takes precedence over the default
-        if (quotedQueries.length) {
-          context = context
-            .replace(/<\/?b>/g, "")
-            .replace(quotedRegex, "<b>$&</b>");
-        }
+        const document = find(documents, {
+          id: result.id,
+        }) as Document;
 
         return {
           ranking: result.dataValues.searchRanking,
-          context,
-          document: find(documents, {
-            id: result.id,
-          }) as Document,
+          context: this.buildResultContext(document, query),
+          document,
         };
       }),
       totalCount: count,
@@ -536,5 +539,141 @@ export default class SearchHelper {
         // see: https://github.com/outline/outline/issues/6542
         .replace(/:/g, "\\:")
     );
+  }
+
+  private static removeStopWords(query: string): string {
+    const stopwords = [
+      "i",
+      "me",
+      "my",
+      "myself",
+      "we",
+      "our",
+      "ours",
+      "ourselves",
+      "you",
+      "your",
+      "yours",
+      "yourself",
+      "yourselves",
+      "he",
+      "him",
+      "his",
+      "himself",
+      "she",
+      "her",
+      "hers",
+      "herself",
+      "it",
+      "its",
+      "itself",
+      "they",
+      "them",
+      "their",
+      "theirs",
+      "themselves",
+      "what",
+      "which",
+      "who",
+      "whom",
+      "this",
+      "that",
+      "these",
+      "those",
+      "am",
+      "is",
+      "are",
+      "was",
+      "were",
+      "be",
+      "been",
+      "being",
+      "have",
+      "has",
+      "had",
+      "having",
+      "do",
+      "does",
+      "did",
+      "doing",
+      "a",
+      "an",
+      "the",
+      "and",
+      "but",
+      "if",
+      "or",
+      "because",
+      "as",
+      "until",
+      "while",
+      "of",
+      "at",
+      "by",
+      "for",
+      "with",
+      "about",
+      "against",
+      "between",
+      "into",
+      "through",
+      "during",
+      "before",
+      "after",
+      "above",
+      "below",
+      "to",
+      "from",
+      "up",
+      "down",
+      "in",
+      "out",
+      "on",
+      "off",
+      "over",
+      "under",
+      "again",
+      "further",
+      "then",
+      "once",
+      "here",
+      "there",
+      "when",
+      "where",
+      "why",
+      "how",
+      "all",
+      "any",
+      "both",
+      "each",
+      "few",
+      "more",
+      "most",
+      "other",
+      "some",
+      "such",
+      "no",
+      "nor",
+      "not",
+      "only",
+      "own",
+      "same",
+      "so",
+      "than",
+      "too",
+      "very",
+      "s",
+      "t",
+      "can",
+      "will",
+      "just",
+      "don",
+      "should",
+      "now",
+    ];
+    return query
+      .split(" ")
+      .filter((word) => !stopwords.includes(word))
+      .join(" ");
   }
 }

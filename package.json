@@ -78,7 +78,6 @@
     "@sentry/node": "^7.99.0",
     "@sentry/react": "^7.99.0",
     "@tippyjs/react": "^4.2.6",
-    "@tommoor/remove-markdown": "^0.3.2",
     "@types/form-data": "^2.5.0",
     "@types/mailparser": "^3.4.4",
     "@types/sanitize-filename": "^1.6.3",

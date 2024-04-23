@@ -2958,11 +2958,6 @@
   dependencies:
     tippy.js "^6.3.1"
 
-"@tommoor/remove-markdown@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@tommoor/remove-markdown/-/remove-markdown-0.3.2.tgz#5288ddd0e26b6b173e76ebb31c94653b0dcff45d"
-  integrity "sha1-Uojd0OJraxc+duuzHJRlOw3P9F0= sha512-awcc9hfLZqyyZHOGzAHbnjgZJpQGS1W1oZZ5GXOTTnbKVdKQ4OWYbrRWPUvXI2YAKJazrcS8rxPh67PX3rpGkQ=="
-
 "@tootallnate/once@2":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-2.0.0.tgz#f544a148d3ab35801c1f633a7441fd87c2e484bf"
