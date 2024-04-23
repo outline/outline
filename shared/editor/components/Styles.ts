@@ -339,7 +339,9 @@ width: 100%;
     font-weight: 600;
     cursor: text;
 
-    & + p {
+    & + p,
+    // accounts for block insert trigger and other widgets between heading and paragraph
+    & + .ProseMirror-widget + p {
       margin-top: 0.25em;
     }
 
