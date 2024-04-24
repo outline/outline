@@ -260,6 +260,11 @@ const emailStyle = (props: Props) => css`
     border-radius: 8px;
     padding: 6px 8px;
   }
+
+  .image > img {
+    width: auto;
+    height: auto;
+  }
 `;
 
 const style = (props: Props) => `
