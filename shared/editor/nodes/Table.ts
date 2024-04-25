@@ -75,7 +75,7 @@ export default class Table extends Node {
     return {
       Tab: chainCommands(goToNextCell(1), addRowAndMoveSelection()),
       "Shift-Tab": goToNextCell(-1),
-      Enter: addRowAndMoveSelection(),
+      "Mod-Enter": addRowAndMoveSelection(),
     };
   }
 

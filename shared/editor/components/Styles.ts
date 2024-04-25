@@ -260,6 +260,11 @@ const emailStyle = (props: Props) => css`
     border-radius: 8px;
     padding: 6px 8px;
   }
+
+  .image > img {
+    width: auto;
+    height: auto;
+  }
 `;
 
 const style = (props: Props) => `
@@ -339,7 +344,9 @@ width: 100%;
     font-weight: 600;
     cursor: text;
 
-    & + p {
+    & + p,
+    // accounts for block insert trigger and other widgets between heading and paragraph
+    & + .ProseMirror-widget + p {
       margin-top: 0.25em;
     }
 
