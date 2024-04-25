@@ -1,5 +1,6 @@
-import { ellipsis, smartQuotes, InputRule } from "prosemirror-inputrules";
+import { ellipsis, smartQuotes } from "prosemirror-inputrules";
 import Extension from "@shared/editor/lib/Extension";
+import { InputRule } from "@shared/editor/lib/InputRule";
 
 const rightArrow = new InputRule(/->$/, "→");
 const emdash = new InputRule(/--$/, "—");

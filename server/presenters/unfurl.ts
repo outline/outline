@@ -101,7 +101,9 @@ const presentIssue = (
   })),
   state: {
     name: data.state,
-    color: GitHubUtils.getColorForStatus(data.state),
+    color: GitHubUtils.getColorForStatus(
+      data.state === "closed" ? "done" : data.state
+    ),
   },
   createdAt: data.created_at,
 });

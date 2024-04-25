@@ -1,6 +1,6 @@
 import { computed, observable } from "mobx";
 import { TeamPreferenceDefaults } from "@shared/constants";
-import { TeamPreference, TeamPreferences } from "@shared/types";
+import { TeamPreference, TeamPreferences, UserRole } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
@@ -58,7 +58,7 @@ class Team extends Model {
 
   @Field
   @observable
-  defaultUserRole: string;
+  defaultUserRole: UserRole;
 
   @Field
   @observable
