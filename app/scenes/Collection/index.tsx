@@ -15,6 +15,7 @@ import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import Collection from "~/models/Collection";
 import Search from "~/scenes/Search";
+import { Action } from "~/components/Actions";
 import Badge from "~/components/Badge";
 import CenteredContent from "~/components/CenteredContent";
 import CollectionDescription from "~/components/CollectionDescription";
@@ -34,6 +35,7 @@ import useCommandBarActions from "~/hooks/useCommandBarActions";
 import useLastVisitedPath from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import { collectionPath, updateCollectionPath } from "~/utils/routeHelpers";
 import Actions from "./components/Actions";
 import DropToImport from "./components/DropToImport";
@@ -143,7 +145,11 @@ function CollectionScene() {
       actions={
         <>
           <MembershipPreview collection={collection} />
-          <ShareButton collection={collection} />
+          <Action>
+            {FeatureFlags.isEnabled(Feature.newCollectionSharing) && (
+              <ShareButton collection={collection} />
+            )}
+          </Action>
           <Actions collection={collection} />
         </>
       }

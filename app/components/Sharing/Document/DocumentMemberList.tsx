@@ -13,7 +13,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { homePath } from "~/utils/routeHelpers";
-import MemberListItem from "./MemberListItem";
+import MemberListItem from "./DocumentMemberListItem";
 
 type Props = {
   /** Document to which team members are supposed to be invited */

@@ -1,20 +1,15 @@
 import { observer } from "mobx-react";
-import { QuestionMarkIcon, UserIcon } from "outline-icons";
+import { UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Tooltip } from "reakit";
 import { useTheme } from "styled-components";
-import { CollectionPermission } from "@shared/types";
+import Squircle from "@shared/components/Squircle";
 import Collection from "~/models/Collection";
 import Share from "~/models/Share";
 import { AvatarSize } from "~/components/Avatar/Avatar";
-import Flex from "~/components/Flex";
 import InputSelectPermission from "~/components/InputSelectPermission";
-import { StyledListItem } from "~/components/Sharing/MemberListItem";
-import Squircle from "~/components/Squircle";
-import Text from "~/components/Text";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
+import { ListItem } from "../components/ListItem";
 
 type Props = {
   collection: Collection;
@@ -27,7 +22,6 @@ type Props = {
 };
 
 function SharePopover({ collection }: Props) {
-  const team = useCurrentTeam();
   const theme = useTheme();
   const { t } = useTranslation();
   const can = usePolicy(collection);
@@ -35,7 +29,7 @@ function SharePopover({ collection }: Props) {
 
   return (
     <div>
-      <StyledListItem
+      <ListItem
         image={
           <Squircle color={theme.accent} size={AvatarSize.Medium}>
             <UserIcon color={theme.accentText} size={16} />
@@ -45,6 +39,11 @@ function SharePopover({ collection }: Props) {
         subtitle={t("Everyone in the workspace")}
         actions={
           <InputSelectPermission
+            style={{ margin: 0 }}
+            onChange={(permission) => {
+              void collection.save({ permission });
+            }}
+            disabled={!can.update}
             value={collection?.permission}
             labelHidden
             nude

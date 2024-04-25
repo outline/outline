@@ -8,14 +8,14 @@ import { s } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
 import Document from "~/models/Document";
 import User from "~/models/User";
+import Avatar from "~/components/Avatar";
+import { AvatarSize, IAvatar } from "~/components/Avatar/Avatar";
+import Empty from "~/components/Empty";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
 import { hover } from "~/styles";
-import Avatar from "../Avatar";
-import { AvatarSize, IAvatar } from "../Avatar/Avatar";
-import Empty from "../Empty";
-import { InviteIcon, StyledListItem } from "./MemberListItem";
+import { InviteIcon, ListItem } from "../components/ListItem";
 
 type Suggestion = IAvatar & {
   id: string;
@@ -135,7 +135,7 @@ export const UserSuggestions = observer(
         {pending.length > 0 &&
           (suggestionsWithPending.length > 0 || isEmpty) && <Separator />}
         {suggestionsWithPending.map((suggestion) => (
-          <StyledListItem
+          <ListItem
             {...getListItemProps(suggestion as User)}
             key={suggestion.id}
             onClick={() => addPendingId(suggestion.id)}
@@ -156,7 +156,7 @@ const RemoveIcon = styled(CloseIcon)`
   display: none;
 `;
 
-const PendingListItem = styled(StyledListItem)`
+const PendingListItem = styled(ListItem)`
   &: ${hover} {
     ${InvitedIcon} {
       display: none;

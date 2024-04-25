@@ -40,7 +40,7 @@ import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import DuplicateDialog from "~/components/DuplicateDialog";
-import SharePopover from "~/components/Sharing";
+import SharePopover from "~/components/Sharing/Document";
 import { createAction } from "~/actions";
 import { DocumentSection, TrashSection } from "~/actions/sections";
 import env from "~/env";

@@ -17,6 +17,7 @@ import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
+import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import history from "~/utils/history";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
@@ -95,7 +96,8 @@ export const editCollectionPermissions = createAction({
   icon: <PadlockIcon />,
   visible: ({ stores, activeCollectionId }) =>
     !!activeCollectionId &&
-    stores.policies.abilities(activeCollectionId).update,
+    stores.policies.abilities(activeCollectionId).update &&
+    !FeatureFlags.isEnabled(Feature.newCollectionSharing),
   perform: ({ t, activeCollectionId }) => {
     if (!activeCollectionId) {
       return;

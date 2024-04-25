@@ -24,10 +24,10 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { hover } from "~/styles";
 import { documentPath, urlify } from "~/utils/routeHelpers";
-import ButtonSmall from "../ButtonSmall";
-import Input, { NativeInput } from "../Input";
-import NudeButton from "../NudeButton";
-import Tooltip from "../Tooltip";
+import ButtonSmall from "../../ButtonSmall";
+import Input, { NativeInput } from "../../Input";
+import NudeButton from "../../NudeButton";
+import Tooltip from "../../Tooltip";
 import DocumentMembersList from "./DocumentMemberList";
 import { OtherAccess } from "./OtherAccess";
 import PublicAccess from "./PublicAccess";
@@ -288,7 +288,7 @@ function SharePopover({
             {backButton}
             <Input
               key="input"
-              placeholder={`${t("Invite by name")}…`}
+              placeholder={`${t("Invite")}…`}
               value={query}
               onChange={handleQuery}
               onClick={showPicker}
@@ -306,7 +306,7 @@ function SharePopover({
               <NativeInput
                 key="input"
                 ref={inputRef}
-                placeholder={`${t("Invite by name")}…`}
+                placeholder={`${t("Invite")}…`}
                 value={query}
                 onChange={handleQuery}
                 onClick={showPicker}

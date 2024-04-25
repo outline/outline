@@ -47,6 +47,7 @@ export type Props = {
   /** @deprecated Removing soon, do not use. */
   note?: React.ReactNode;
   onChange?: (value: string | null) => void;
+  style?: React.CSSProperties;
 };
 
 export interface InputSelectRef {

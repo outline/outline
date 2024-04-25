@@ -6,7 +6,7 @@ import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
-import SharePopover from "~/components/Sharing";
+import SharePopover from "~/components/Sharing/Document";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 

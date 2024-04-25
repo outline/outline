@@ -6,9 +6,9 @@ import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
+import SharePopover from "~/components/Sharing/Collection/SharePopover";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
-import SharePopover from "./SharePopover";
 
 type Props = {
   collection: Collection;
