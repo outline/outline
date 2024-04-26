@@ -785,7 +785,7 @@ router.post(
     const {
       query,
       collectionId,
-      parentDocumentId,
+      documentId,
       userId,
       dateFilter,
       statusFilter = [],
@@ -855,12 +855,15 @@ router.post(
       }
 
       let documentIds = undefined;
-      if (parentDocumentId) {
-        const parentDocument = await Document.findByPk(parentDocumentId, {
+      if (documentId) {
+        const document = await Document.findByPk(documentId, {
           userId: user.id,
         });
-        authorize(user, "read", parentDocument);
-        documentIds = await parentDocument.findAllChildDocumentIds();
+        authorize(user, "read", document);
+        documentIds = [
+          documentId,
+          ...(await document.findAllChildDocumentIds()),
+        ];
       }
 
       let collaboratorIds = undefined;

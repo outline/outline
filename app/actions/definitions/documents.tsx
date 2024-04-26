@@ -606,6 +606,17 @@ export const pinDocument = createAction({
   children: [pinDocumentToCollection, pinDocumentToHome],
 });
 
+export const searchInDocument = createAction({
+  name: ({ t }) => t("Search in document"),
+  analyticsName: "Search document",
+  section: DocumentSection,
+  icon: <SearchIcon />,
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ activeDocumentId }) => {
+    history.push(searchPath(undefined, { documentId: activeDocumentId }));
+  },
+});
+
 export const printDocument = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? t("Print") : t("Print document"),
@@ -613,7 +624,7 @@ export const printDocument = createAction({
   section: DocumentSection,
   icon: <PrintIcon />,
   visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
-  perform: async () => {
+  perform: () => {
     queueMicrotask(window.print);
   },
 });
