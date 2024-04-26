@@ -10,6 +10,23 @@ type Options = {
 };
 
 /**
+ * Set a value in local storage and emit storage event to trigger render of any
+ * listening mounted components.
+ *
+ * @param key Key to store value under
+ * @param value Value to store
+ */
+export function setPersistedState<T extends Primitive | object>(
+  key: string,
+  value: T
+) {
+  Storage.set(key, value);
+  window.dispatchEvent(
+    new StorageEvent("storage", { key, newValue: JSON.stringify(value) })
+  );
+}
+
+/**
  * A hook with the same API as `useState` that persists its value locally and
  * syncs the value between browser tabs.
  *
@@ -49,7 +66,7 @@ export default function usePersistedState<T extends Primitive | object>(
 
   // Listen to the key changing in other tabs so we can keep UI in sync
   useEventListener("storage", (event: StorageEvent) => {
-    if (options?.listen && event.key === key && event.newValue) {
+    if (options?.listen !== false && event.key === key && event.newValue) {
       setStoredValue(JSON.parse(event.newValue));
     }
   });

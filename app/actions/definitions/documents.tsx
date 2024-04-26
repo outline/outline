@@ -41,9 +41,11 @@ import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInT
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import DuplicateDialog from "~/components/DuplicateDialog";
 import SharePopover from "~/components/Sharing";
+import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import { createAction } from "~/actions";
 import { DocumentSection, TrashSection } from "~/actions/sections";
 import env from "~/env";
+import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
 import {
   documentInsightsPath,
@@ -172,6 +174,7 @@ export const starDocument = createAction({
 
     const document = stores.documents.get(activeDocumentId);
     await document?.star();
+    setPersistedState(getHeaderExpandedKey("starred"), true);
   },
 });
 

@@ -15,8 +15,10 @@ import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
+import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
+import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
@@ -132,6 +134,7 @@ export const starCollection = createAction({
 
     const collection = stores.collections.get(activeCollectionId);
     await collection?.star();
+    setPersistedState(getHeaderExpandedKey("starred"), true);
   },
 });
 
