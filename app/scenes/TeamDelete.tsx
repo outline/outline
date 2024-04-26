@@ -22,7 +22,7 @@ type Props = {
 function TeamDelete({ onSubmit }: Props) {
   const [isWaitingCode, setWaitingCode] = React.useState(false);
   const { auth } = useStores();
-  const team = useCurrentTeam();
+  const team = useCurrentTeam({ rejectOnEmpty: false });
   const { t } = useTranslation();
   const {
     register,
@@ -61,7 +61,7 @@ function TeamDelete({ onSubmit }: Props) {
     required: env.EMAIL_ENABLED,
   });
   const appName = env.APP_NAME;
-  const workspaceName = team.name;
+  const workspaceName = team?.name;
 
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>

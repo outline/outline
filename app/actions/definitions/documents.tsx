@@ -41,9 +41,11 @@ import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInT
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import DuplicateDialog from "~/components/DuplicateDialog";
 import SharePopover from "~/components/Sharing";
+import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import { createAction } from "~/actions";
 import { DocumentSection, TrashSection } from "~/actions/sections";
 import env from "~/env";
+import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
 import {
   documentInsightsPath,
@@ -172,6 +174,7 @@ export const starDocument = createAction({
 
     const document = stores.documents.get(activeDocumentId);
     await document?.star();
+    setPersistedState(getHeaderExpandedKey("starred"), true);
   },
 });
 
@@ -603,6 +606,17 @@ export const pinDocument = createAction({
   children: [pinDocumentToCollection, pinDocumentToHome],
 });
 
+export const searchInDocument = createAction({
+  name: ({ t }) => t("Search in document"),
+  analyticsName: "Search document",
+  section: DocumentSection,
+  icon: <SearchIcon />,
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ activeDocumentId }) => {
+    history.push(searchPath(undefined, { documentId: activeDocumentId }));
+  },
+});
+
 export const printDocument = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? t("Print") : t("Print document"),
@@ -610,7 +624,7 @@ export const printDocument = createAction({
   section: DocumentSection,
   icon: <PrintIcon />,
   visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
-  perform: async () => {
+  perform: () => {
     queueMicrotask(window.print);
   },
 });

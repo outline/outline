@@ -40,6 +40,8 @@ type SearchOptions = {
   dateFilter?: DateFilter;
   /** Status of the documents to return */
   statusFilter?: StatusFilter[];
+  /** Limit results to a list of documents. */
+  documentIds?: string[];
   /** Limit results to a list of users that collaborated on the document. */
   collaboratorIds?: string[];
   /** The minimum number of words to be returned in the contextual snippet */
@@ -364,6 +366,12 @@ export default class SearchHelper {
         collaboratorIds: {
           [Op.contains]: options.collaboratorIds,
         },
+      });
+    }
+
+    if (options.documentIds) {
+      where[Op.and].push({
+        id: options.documentIds,
       });
     }
 
