@@ -27,7 +27,7 @@ const supportedLocales = [
   "hi",
   "it",
   "ja",
-  "kr",
+  "ko",
   "nl",
   "pl",
   "pt",
@@ -197,14 +197,7 @@ function EmojiPicker({
             )}
             <PickerStyles ref={pickerRef}>
               <Picker
-                // https://github.com/missive/emoji-mart/issues/800
-                locale={
-                  locale === "ko"
-                    ? "kr"
-                    : supportedLocales.includes(locale)
-                    ? locale
-                    : "en"
-                }
+                locale={supportedLocales.includes(locale) ? locale : "en"}
                 data={data}
                 onEmojiSelect={handleEmojiChange}
                 theme={pickerTheme}

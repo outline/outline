@@ -76,6 +76,7 @@ function Right({ children, border, className }: Props) {
   const animationProps = {
     initial: {
       width: 0,
+      opacity: 0.9,
     },
     animate: {
       transition: isResizing
@@ -86,9 +87,11 @@ function Right({ children, border, className }: Props) {
             duration: sidebarAppearDuration / 1000,
           },
       width: ui.sidebarRightWidth,
+      opacity: 1,
     },
     exit: {
       width: 0,
+      opacity: 0,
     },
   };
 

@@ -83,7 +83,7 @@ export type ActionContext = {
   isCommandBar: boolean;
   isButton: boolean;
   inStarredSection?: boolean;
-  activeCollectionId?: string | null;
+  activeCollectionId?: string | undefined;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;
   currentTeamId: string | undefined;
