@@ -295,7 +295,6 @@
   "{{ userName }} was invited to the document": "{{ userName }} was invited to the document",
   "{{ count }} people invited to the document": "{{ count }} people invited to the document",
   "{{ count }} people invited to the document_plural": "{{ count }} people invited to the document",
-  "Invite by name": "Invite by name",
   "No matches": "No matches",
   "Logo": "Logo",
   "Move document": "Move document",

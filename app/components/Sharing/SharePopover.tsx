@@ -288,7 +288,7 @@ function SharePopover({
             {backButton}
             <Input
               key="input"
-              placeholder={`${t("Invite by name")}…`}
+              placeholder={`${t("Invite")}…`}
               value={query}
               onChange={handleQuery}
               onClick={showPicker}
@@ -306,7 +306,7 @@ function SharePopover({
               <NativeInput
                 key="input"
                 ref={inputRef}
-                placeholder={`${t("Invite by name")}…`}
+                placeholder={`${t("Invite")}…`}
                 value={query}
                 onChange={handleQuery}
                 onClick={showPicker}
