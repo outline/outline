@@ -59,6 +59,7 @@ function Search(props: Props) {
   const query = decodeURIComponentSafe(routeMatch.params.term ?? "");
   const collectionId = params.get("collectionId") ?? undefined;
   const userId = params.get("userId") ?? undefined;
+  const parentDocumentId = params.get("parentDocumentId") ?? undefined;
   const dateFilter = (params.get("dateFilter") as TDateFilter) ?? undefined;
   const statusFilter = params.getAll("statusFilter")?.length
     ? (params.getAll("statusFilter") as TStatusFilter[])
@@ -73,6 +74,7 @@ function Search(props: Props) {
       userId,
       dateFilter,
       titleFilter,
+      parentDocumentId,
     }),
     [
       query,
@@ -81,6 +83,7 @@ function Search(props: Props) {
       userId,
       dateFilter,
       titleFilter,
+      parentDocumentId,
     ]
   );
 

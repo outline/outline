@@ -785,6 +785,7 @@ router.post(
     const {
       query,
       collectionId,
+      parentDocumentId,
       userId,
       dateFilter,
       statusFilter = [],
@@ -853,6 +854,15 @@ router.post(
         authorize(user, "readDocument", collection);
       }
 
+      let documentIds = undefined;
+      if (parentDocumentId) {
+        const parentDocument = await Document.findByPk(parentDocumentId, {
+          userId: user.id,
+        });
+        authorize(user, "read", parentDocument);
+        documentIds = await parentDocument.findAllChildDocumentIds();
+      }
+
       let collaboratorIds = undefined;
 
       if (userId) {
@@ -862,6 +872,7 @@ router.post(
       response = await SearchHelper.searchForUser(user, query, {
         collaboratorIds,
         collectionId,
+        documentIds,
         dateFilter,
         statusFilter,
         offset,

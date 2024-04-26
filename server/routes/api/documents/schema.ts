@@ -153,6 +153,9 @@ export const DocumentsSearchSchema = BaseSchema.extend({
     /** Filter results based on user */
     userId: z.string().uuid().optional(),
 
+    /** Filter results based on parent document */
+    parentDocumentId: z.string().uuid().optional(),
+
     /**
      * Whether to include archived documents in results
      *
