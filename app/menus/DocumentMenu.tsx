@@ -44,6 +44,7 @@ import {
   createNestedDocument,
   shareDocument,
   copyDocument,
+  searchInDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -94,7 +95,7 @@ function DocumentMenu({
   const context = useActionContext({
     isContextMenu: true,
     activeDocumentId: document.id,
-    activeCollectionId: document.collectionId,
+    activeCollectionId: document.collectionId ?? undefined,
   });
   const { t } = useTranslation();
   const isMobile = useMobile();
@@ -305,6 +306,7 @@ function DocumentMenu({
             actionToMenuItem(downloadDocument, context),
             actionToMenuItem(copyDocument, context),
             actionToMenuItem(printDocument, context),
+            actionToMenuItem(searchInDocument, context),
             {
               type: "separator",
             },

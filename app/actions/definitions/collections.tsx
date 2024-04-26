@@ -3,6 +3,7 @@ import {
   EditIcon,
   PadlockIcon,
   PlusIcon,
+  SearchIcon,
   StarredIcon,
   TrashIcon,
   UnstarredIcon,
@@ -20,6 +21,7 @@ import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
+import { searchPath } from "~/utils/routeHelpers";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
   <DynamicCollectionIcon collection={collection} />
@@ -108,6 +110,17 @@ export const editCollectionPermissions = createAction({
       fullscreen: true,
       content: <CollectionPermissions collectionId={activeCollectionId} />,
     });
+  },
+});
+
+export const searchInCollection = createAction({
+  name: ({ t }) => t("Search in collection"),
+  analyticsName: "Search collection",
+  section: CollectionSection,
+  icon: <SearchIcon />,
+  visible: ({ activeCollectionId }) => !!activeCollectionId,
+  perform: ({ activeCollectionId }) => {
+    history.push(searchPath(undefined, { collectionId: activeCollectionId }));
   },
 });
 
