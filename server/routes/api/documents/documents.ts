@@ -256,6 +256,9 @@ router.post(
     const collectionIds = await user.collectionIds({
       paranoid: false,
     });
+    const membershipScope: Readonly<ScopeOptions> = {
+      method: ["withMembership", user.id],
+    };
     const collectionScope: Readonly<ScopeOptions> = {
       method: ["withCollectionPermissions", user.id],
     };
@@ -263,6 +266,7 @@ router.post(
       method: ["withViews", user.id],
     };
     const documents = await Document.scope([
+      membershipScope,
       collectionScope,
       viewScope,
       "withDrafts",
