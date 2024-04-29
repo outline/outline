@@ -167,16 +167,17 @@ function CollectionScene() {
               <HeadingWithIcon>
                 <HeadingIcon collection={collection} size={40} expanded />
                 {collection.name}
-                {collection.isPrivate && (
-                  <Tooltip
-                    content={t(
-                      "This collection is only visible to those given access"
-                    )}
-                    placement="bottom"
-                  >
-                    <Badge>{t("Private")}</Badge>
-                  </Tooltip>
-                )}
+                {collection.isPrivate &&
+                  !FeatureFlags.isEnabled(Feature.newCollectionSharing) && (
+                    <Tooltip
+                      content={t(
+                        "This collection is only visible to those given access"
+                      )}
+                      placement="bottom"
+                    >
+                      <Badge>{t("Private")}</Badge>
+                    </Tooltip>
+                  )}
               </HeadingWithIcon>
 
               <PinnedDocuments

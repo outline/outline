@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { GlobeIcon } from "outline-icons";
+import { GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
@@ -19,7 +19,6 @@ function ShareButton({ collection }: Props) {
   const { shares } = useStores();
   const team = useCurrentTeam();
   const share = shares.getByCollectionId(collection.id);
-  const domain = share?.domain;
   const isPubliclyShared =
     team.sharing !== false && collection?.sharing !== false && share?.published;
 
@@ -34,11 +33,17 @@ function ShareButton({ collection }: Props) {
       <PopoverDisclosure {...popover}>
         {(props) => (
           <Button
-            icon={isPubliclyShared ? <GlobeIcon /> : undefined}
+            icon={
+              isPubliclyShared ? (
+                <GlobeIcon />
+              ) : collection.permission ? undefined : (
+                <PadlockIcon />
+              )
+            }
             neutral
             {...props}
           >
-            {t("Share")} {domain && <>&middot; {domain}</>}
+            {t("Share")}
           </Button>
         )}
       </PopoverDisclosure>
