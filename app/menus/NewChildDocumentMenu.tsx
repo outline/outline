@@ -34,34 +34,30 @@ function NewChildDocumentMenu({ document, label }: Props) {
             {
               type: "route",
               title: (
-                <span>
-                  <Trans
-                    defaults="New document in <em>{{ collectionName }}</em>"
-                    values={{
-                      collectionName,
-                    }}
-                    components={{
-                      em: <strong />,
-                    }}
-                  />
-                </span>
+                <Trans
+                  defaults="New document in <em>{{ collectionName }}</em>"
+                  values={{
+                    collectionName,
+                  }}
+                  components={{
+                    em: <strong />,
+                  }}
+                />
               ),
               to: newDocumentPath(document.collectionId),
             },
             {
               type: "route",
               title: (
-                <span>
-                  <Trans
-                    defaults="New document in <em>{{ collectionName }}</em>"
-                    values={{
-                      collectionName: document.title,
-                    }}
-                    components={{
-                      em: <strong />,
-                    }}
-                  />
-                </span>
+                <Trans
+                  defaults="New document in <em>{{ collectionName }}</em>"
+                  values={{
+                    collectionName: document.title,
+                  }}
+                  components={{
+                    em: <strong />,
+                  }}
+                />
               ),
               to: newDocumentPath(document.collectionId, {
                 parentDocumentId: document.id,
