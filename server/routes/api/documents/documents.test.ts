@@ -2017,6 +2017,9 @@ describe("#documents.deleted", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
+    expect(body.policies[0].abilities.delete).toEqual(false);
+    expect(body.policies[0].abilities.restore).toEqual(true);
+    expect(body.policies[0].abilities.permanentDelete).toEqual(true);
   });
 
   it("should return deleted documents, including users drafts without collection", async () => {
@@ -2049,6 +2052,9 @@ describe("#documents.deleted", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
+    expect(body.policies[0].abilities.delete).toEqual(false);
+    expect(body.policies[0].abilities.restore).toEqual(true);
+    expect(body.policies[0].abilities.permanentDelete).toEqual(true);
   });
 
   it("should not return documents in private collections not a member of", async () => {

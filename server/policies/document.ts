@@ -144,7 +144,10 @@ allow(User, "pinToHome", Document, (actor, document) =>
   and(
     //
     isTeamAdmin(actor, document),
-    isTeamMutable(actor)
+    isTeamMutable(actor),
+    !document?.isDraft,
+    !document?.template,
+    !document?.isDeleted
   )
 );
 
