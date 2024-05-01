@@ -616,7 +616,7 @@ export const searchInDocument = createAction({
       return false;
     }
     const document = stores.documents.get(activeDocumentId);
-    return !document?.isDeleted;
+    return !!document?.isActive;
   },
   perform: ({ activeDocumentId }) => {
     history.push(searchPath(undefined, { documentId: activeDocumentId }));
@@ -692,7 +692,7 @@ export const createTemplate = createAction({
       !!activeCollectionId &&
       stores.policies.abilities(activeCollectionId).update &&
       !document?.isTemplate &&
-      !document?.isDeleted
+      !!document?.isActive
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {

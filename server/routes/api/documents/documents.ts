@@ -210,17 +210,7 @@ router.post(
     const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
     const collectionIds = await user.collectionIds();
-    const collectionScope: Readonly<ScopeOptions> = {
-      method: ["withCollectionPermissions", user.id],
-    };
-    const viewScope: Readonly<ScopeOptions> = {
-      method: ["withViews", user.id],
-    };
-    const documents = await Document.scope([
-      "defaultScope",
-      collectionScope,
-      viewScope,
-    ]).findAll({
+    const documents = await Document.defaultScopeWithUser(user.id).findAll({
       where: {
         teamId: user.teamId,
         collectionId: collectionIds,
