@@ -611,7 +611,13 @@ export const searchInDocument = createAction({
   analyticsName: "Search document",
   section: DocumentSection,
   icon: <SearchIcon />,
-  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  visible: ({ stores, activeDocumentId }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    return !document?.isDeleted;
+  },
   perform: ({ activeDocumentId }) => {
     history.push(searchPath(undefined, { documentId: activeDocumentId }));
   },

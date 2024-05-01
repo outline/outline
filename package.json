@@ -96,10 +96,10 @@
     "compressorjs": "^1.2.1",
     "cookie": "^0.6.0",
     "copy-to-clipboard": "^3.3.3",
-    "core-js": "^3.36.0",
+    "core-js": "^3.37.0",
     "crypto-js": "^4.2.0",
     "datadog-metrics": "^0.11.1",
-    "date-fns": "^2.30.0",
+    "date-fns": "^3.6.0",
     "dd-trace": "^3.51.0",
     "diff": "^5.2.0",
     "dotenv": "^16.4.5",
@@ -207,7 +207,7 @@
     "rfc6902": "^5.1.1",
     "sanitize-filename": "^1.6.3",
     "semver": "^7.5.2",
-    "sequelize": "^6.35.2",
+    "sequelize": "^6.37.3",
     "sequelize-cli": "^6.6.1",
     "sequelize-encrypted": "^1.0.0",
     "sequelize-typescript": "^2.1.6",
@@ -319,7 +319,7 @@
     "babel-plugin-transform-typescript-metadata": "^0.3.2",
     "babel-plugin-tsconfig-paths-module-resolver": "^1.0.4",
     "browserslist-to-esbuild": "^1.2.0",
-    "concurrently": "^7.6.0",
+    "concurrently": "^8.2.2",
     "eslint": "^8.47.0",
     "eslint-config-prettier": "^8.10.0",
     "eslint-import-resolver-typescript": "^3.6.1",
@@ -359,5 +359,5 @@
     "qs": "6.9.7",
     "rollup": "^4.5.1"
   },
-  "version": "0.76.0-2"
+  "version": "0.76.0"
 }
