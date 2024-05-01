@@ -220,7 +220,16 @@ function SharePopover({
   const backButton = (
     <>
       {picker && (
-        <NudeButton key="back" as={m.button} {...presence} onClick={hidePicker}>
+        <NudeButton
+          key="back"
+          as={m.button}
+          {...presence}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            hidePicker();
+          }}
+        >
           <BackIcon />
         </NudeButton>
       )}

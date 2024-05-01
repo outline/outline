@@ -1,5 +1,6 @@
 import { darken } from "polished";
 import styled from "styled-components";
+import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
 import { hover } from "~/styles";
@@ -15,4 +16,29 @@ export const Wrapper = styled.div`
 export const Separator = styled.div`
   border-top: 1px dashed ${s("divider")};
   margin: 12px 0;
+`;
+
+export const HeaderInput = styled(Flex)`
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  background: ${s("menuBackground")};
+  color: ${s("textTertiary")};
+  border-bottom: 1px solid ${s("inputBorder")};
+  padding: 0 24px 12px;
+  margin-top: 0;
+  margin-left: -24px;
+  margin-right: -24px;
+  margin-bottom: 12px;
+  cursor: text;
+
+  &:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -20px;
+    height: 20px;
+    background: ${s("menuBackground")};
+  }
 `;

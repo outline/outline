@@ -21,10 +21,8 @@ export function SearchInput({ onChange, onClick, query, back, action }: Props) {
 
   const focusInput = React.useCallback(
     (event) => {
-      // if (!picker) {
       inputRef.current?.focus();
       onClick(event);
-      // }
     },
     [onClick]
   );
@@ -34,7 +32,7 @@ export function SearchInput({ onChange, onClick, query, back, action }: Props) {
       {back}
       <Input
         key="input"
-        placeholder={`${t("Invite")}…`}
+        placeholder={`${t("Add or invite")}…`}
         value={query}
         onChange={onChange}
         onClick={onClick}
@@ -52,7 +50,7 @@ export function SearchInput({ onChange, onClick, query, back, action }: Props) {
         <NativeInput
           key="input"
           ref={inputRef}
-          placeholder={`${t("Invite")}…`}
+          placeholder={`${t("Add or invite")}…`}
           value={query}
           onChange={onChange}
           onClick={onClick}
@@ -63,28 +61,3 @@ export function SearchInput({ onChange, onClick, query, back, action }: Props) {
     </HeaderInput>
   );
 }
-
-export const HeaderInput = styled(Flex)`
-  position: sticky;
-  z-index: 1;
-  top: 0;
-  background: ${s("menuBackground")};
-  color: ${s("textTertiary")};
-  border-bottom: 1px solid ${s("inputBorder")};
-  padding: 0 24px 12px;
-  margin-top: 0;
-  margin-left: -24px;
-  margin-right: -24px;
-  margin-bottom: 12px;
-  cursor: text;
-
-  &:before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: -20px;
-    height: 20px;
-    background: ${s("menuBackground")};
-  }
-`;
