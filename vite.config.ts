@@ -3,7 +3,7 @@ import path from "path";
 import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import { webpackStats } from "rollup-plugin-webpack-stats";
-import { CommonServerOptions, defineConfig } from "vite";
+import { CommonServerOptions, defineConfig, loadEnv } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import environment from "./server/utils/environment";
@@ -22,8 +22,12 @@ if (environment.NODE_ENV === "development") {
   }
 }
 
-export default () =>
-  defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  return {
+    define: {
+      "process.env": env,
+    },
     root: "./",
     publicDir: "./server/static",
     base: (environment.CDN_URL ?? "") + "/static/",
@@ -173,10 +177,11 @@ export default () =>
           index: "./app/index.tsx",
         },
         output: {
-          assetFileNames: 'assets/[name].[hash][extname]',
-          chunkFileNames: 'assets/[name].[hash].js',
-          entryFileNames: 'assets/[name].[hash].js',
-        }
+          assetFileNames: "assets/[name].[hash][extname]",
+          chunkFileNames: "assets/[name].[hash].js",
+          entryFileNames: "assets/[name].[hash].js",
+        },
       },
     },
-  });
+  };
+});
