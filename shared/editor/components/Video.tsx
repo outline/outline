@@ -18,6 +18,7 @@ export default function Video(props: Props) {
   const [naturalHeight] = React.useState(node.attrs.height);
   const documentBounds = useComponentSize(props.view.dom);
   const isResizable = !!onChangeSize;
+  const [VideoPlayer, setVideoPlayer] = React.useState(null);
 
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
     {
@@ -47,18 +48,25 @@ export default function Video(props: Props) {
     pointerEvents: dragging ? "none" : "all",
   };
 
+  React.useEffect(() => {
+    void import("next-video").then((videoPlayer) => {
+      const NextVideoPlayer = videoPlayer.default;
+      setVideoPlayer(NextVideoPlayer);
+    });
+  }, []);
+
   return (
     <div contentEditable={false}>
       <VideoWrapper
         className={isSelected ? "ProseMirror-selectednode" : ""}
         style={style}
       >
-        <StyledVideo
-          src={sanitizeUrl(node.attrs.src)}
-          title={node.attrs.title}
-          style={style}
-          controls={!dragging}
-        />
+        {VideoPlayer && (
+          <VideoPlayer
+            src={sanitizeUrl(node.attrs.src)}
+            title={node.attrs.title}
+          />
+        )}
         {isEditable && isResizable && (
           <>
             <ResizeLeft
@@ -86,10 +94,6 @@ export const videoStyle = css`
   padding: 2px;
   border-radius: 8px;
   box-shadow: 0 0 0 1px ${(props) => props.theme.divider};
-`;
-
-const StyledVideo = styled.video`
-  ${videoStyle}
 `;
 
 const VideoWrapper = styled.div`
