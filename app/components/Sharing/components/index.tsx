@@ -42,3 +42,26 @@ export const HeaderInput = styled(Flex)`
     background: ${s("menuBackground")};
   }
 `;
+
+export const presence = {
+  initial: {
+    opacity: 0,
+    width: 0,
+    marginRight: 0,
+  },
+  animate: {
+    opacity: 1,
+    width: "auto",
+    marginRight: 8,
+    transition: {
+      type: "spring",
+      duration: 0.2,
+      bounce: 0,
+    },
+  },
+  exit: {
+    opacity: 0,
+    width: 0,
+    marginRight: 0,
+  },
+};

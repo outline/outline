@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
+import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
@@ -23,7 +24,9 @@ type Suggestion = IAvatar & {
 
 type Props = {
   /** The document being shared. */
-  document: Document;
+  document?: Document;
+  /** The collection being shared. */
+  collection?: Collection;
   /** The search query to filter users by. */
   query: string;
   /** A list of pending user ids that have not yet been invited. */
@@ -34,8 +37,15 @@ type Props = {
   removePendingId: (id: string) => void;
 };
 
-export const UserSuggestions = observer(
-  ({ document, query, pendingIds, addPendingId, removePendingId }: Props) => {
+export const Suggestions = observer(
+  ({
+    document,
+    collection,
+    query,
+    pendingIds,
+    addPendingId,
+    removePendingId,
+  }: Props) => {
     const { users } = useStores();
     const { t } = useTranslation();
     const user = useCurrentUser();
@@ -58,9 +68,13 @@ export const UserSuggestions = observer(
     );
 
     const suggestions = React.useMemo(() => {
-      const filtered: Suggestion[] = users
-        .notInDocument(document.id, query)
-        .filter((u) => u.id !== user.id && !u.isSuspended);
+      const filtered: Suggestion[] = (
+        document
+          ? users.notInDocument(document.id, query)
+          : collection
+          ? users.notInCollection(collection.id, query)
+          : users.orderedData
+      ).filter((u) => u.id !== user.id && !u.isSuspended);
 
       if (isEmail(query)) {
         filtered.push(getSuggestionForEmail(query));
@@ -71,8 +85,9 @@ export const UserSuggestions = observer(
       getSuggestionForEmail,
       users,
       users.orderedData,
-      document.id,
-      document.members,
+      document?.id,
+      document?.members,
+      collection?.id,
       user.id,
       query,
       t,

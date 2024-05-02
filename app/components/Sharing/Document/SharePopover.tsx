@@ -21,12 +21,12 @@ import { documentPath, urlify } from "~/utils/routeHelpers";
 import ButtonSmall from "../../ButtonSmall";
 import NudeButton from "../../NudeButton";
 import Tooltip from "../../Tooltip";
-import { Separator, Wrapper } from "../components";
+import { Separator, Wrapper, presence } from "../components";
 import { SearchInput } from "../components/SearchInput";
 import DocumentMembersList from "./DocumentMemberList";
 import { OtherAccess } from "./OtherAccess";
 import PublicAccess from "./PublicAccess";
-import { UserSuggestions } from "./UserSuggestions";
+import { Suggestions } from "./Suggestions";
 
 type Props = {
   /** The document to share. */
@@ -39,29 +39,6 @@ type Props = {
   onRequestClose: () => void;
   /** Whether the popover is visible. */
   visible: boolean;
-};
-
-const presence = {
-  initial: {
-    opacity: 0,
-    width: 0,
-    marginRight: 0,
-  },
-  animate: {
-    opacity: 1,
-    width: "auto",
-    marginRight: 8,
-    transition: {
-      type: "spring",
-      duration: 0.2,
-      bounce: 0,
-    },
-  },
-  exit: {
-    opacity: 0,
-    width: 0,
-    marginRight: 0,
-  },
 };
 
 function SharePopover({
@@ -288,7 +265,7 @@ function SharePopover({
 
       {picker && (
         <div>
-          <UserSuggestions
+          <Suggestions
             document={document}
             query={query}
             pendingIds={pendingIds}
