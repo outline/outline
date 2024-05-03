@@ -59,7 +59,7 @@ async function master() {
 }
 
 // This function will only be called in each forked process
-async function start(id: number, disconnect: () => void) {
+async function start(_id: number, disconnect: () => void) {
   // Ensure plugins are loaded
   PluginManager.loadPlugins();
 
