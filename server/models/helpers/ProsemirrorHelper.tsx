@@ -253,7 +253,7 @@ export default class ProsemirrorHelper {
       // Inject Mermaid script
       if (mermaidElements.length) {
         element.innerHTML = `
-          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.esm.min.mjs';
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
           mermaid.initialize({
             startOnLoad: true,
             fontFamily: "inherit",
