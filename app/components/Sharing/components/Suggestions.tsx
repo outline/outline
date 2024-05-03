@@ -1,13 +1,15 @@
 import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
-import { CheckmarkIcon, CloseIcon } from "outline-icons";
+import { CheckmarkIcon, CloseIcon, GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
+import Squircle from "@shared/components/Squircle";
 import { s } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import Group from "~/models/Group";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import { AvatarSize, IAvatar } from "~/components/Avatar/Avatar";
@@ -16,7 +18,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
 import { hover } from "~/styles";
-import { InviteIcon, ListItem } from "../components/ListItem";
+import { InviteIcon, ListItem } from "./ListItem";
 
 type Suggestion = IAvatar & {
   id: string;
@@ -35,6 +37,8 @@ type Props = {
   addPendingId: (id: string) => void;
   /** Callback to remove a user from the pending list. */
   removePendingId: (id: string) => void;
+  /** Show group suggestions. */
+  showGroups?: boolean;
 };
 
 export const Suggestions = observer(
@@ -45,15 +49,20 @@ export const Suggestions = observer(
     pendingIds,
     addPendingId,
     removePendingId,
+    showGroups,
   }: Props) => {
-    const { users } = useStores();
+    const { users, groups } = useStores();
     const { t } = useTranslation();
     const user = useCurrentUser();
+    const theme = useTheme();
 
-    const fetchUsersByQuery = useThrottledCallback(
-      (params) => users.fetchPage({ query: params.query }),
-      250
-    );
+    const fetchUsersByQuery = useThrottledCallback((params) => {
+      void users.fetchPage({ query: params.query });
+
+      if (showGroups) {
+        void groups.fetchPage({ query: params.query });
+      }
+    }, 250);
 
     const getSuggestionForEmail = React.useCallback(
       (email: string) => ({
@@ -80,6 +89,10 @@ export const Suggestions = observer(
         filtered.push(getSuggestionForEmail(query));
       }
 
+      if (collection?.id) {
+        return [...groups.notInCollection(collection.id, query), ...filtered];
+      }
+
       return filtered;
     }, [
       getSuggestionForEmail,
@@ -97,7 +110,9 @@ export const Suggestions = observer(
       () =>
         pendingIds
           .map((id) =>
-            isEmail(id) ? getSuggestionForEmail(id) : users.get(id)
+            isEmail(id)
+              ? getSuggestionForEmail(id)
+              : users.get(id) ?? groups.get(id)
           )
           .filter(Boolean) as User[],
       [users, getSuggestionForEmail, pendingIds]
@@ -109,7 +124,20 @@ export const Suggestions = observer(
       }
     }, [query, fetchUsersByQuery]);
 
-    function getListItemProps(suggestion: User) {
+    function getListItemProps(suggestion: User | Group) {
+      if (suggestion instanceof Group) {
+        return {
+          title: suggestion.name,
+          subtitle: t("{{ count }} member", {
+            count: suggestion.memberCount,
+          }),
+          image: (
+            <Squircle color={theme.text} size={AvatarSize.Medium}>
+              <GroupIcon color={theme.background} size={16} />
+            </Squircle>
+          ),
+        };
+      }
       return {
         title: suggestion.name,
         subtitle: suggestion.email

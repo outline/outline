@@ -27,10 +27,10 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 import { collectionPath, urlify } from "~/utils/routeHelpers";
-import { Suggestions } from "../Document/Suggestions";
 import { presence } from "../components";
 import { ListItem } from "../components/ListItem";
 import { SearchInput } from "../components/SearchInput";
+import { Suggestions } from "../components/Suggestions";
 
 type Props = {
   collection: Collection;
@@ -42,7 +42,7 @@ type Props = {
   visible: boolean;
 };
 
-function SharePopover({ collection, onRequestClose }: Props) {
+function SharePopover({ collection, visible, onRequestClose }: Props) {
   const theme = useTheme();
   const team = useCurrentTeam();
   const { collectionGroupMemberships, users, memberships } = useStores();
@@ -53,6 +53,14 @@ function SharePopover({ collection, onRequestClose }: Props) {
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const context = useActionContext();
+  const collectionId = collection.id;
+
+  React.useEffect(() => {
+    if (visible) {
+      void memberships.fetchAll({ id: collectionId });
+      void collectionGroupMemberships.fetchAll({ id: collectionId });
+    }
+  }, [memberships, collectionGroupMemberships, collectionId, visible]);
 
   useKeyDown(
     "Escape",
@@ -212,7 +220,7 @@ function SharePopover({ collection, onRequestClose }: Props) {
   const rightButton = picker ? (
     pendingIds.length ? (
       <ButtonSmall action={inviteAction} context={context} key="invite">
-        {t("Invite")}
+        {t("Add")}
       </ButtonSmall>
     ) : null
   ) : (

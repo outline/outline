@@ -25,10 +25,10 @@ import NudeButton from "../../NudeButton";
 import Tooltip from "../../Tooltip";
 import { Separator, Wrapper, presence } from "../components";
 import { SearchInput } from "../components/SearchInput";
+import { Suggestions } from "../components/Suggestions";
 import DocumentMembersList from "./DocumentMemberList";
 import { OtherAccess } from "./OtherAccess";
 import PublicAccess from "./PublicAccess";
-import { Suggestions } from "./Suggestions";
 
 type Props = {
   /** The document to share. */
