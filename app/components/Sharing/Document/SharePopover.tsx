@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { DocumentPermission, UserRole } from "@shared/types";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
+import Avatar from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar/Avatar";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
@@ -157,13 +159,17 @@ function SharePopover({
           );
 
           if (usersInvited.length === 1) {
+            const user = usersInvited[0];
             toast.message(
               t("{{ userName }} was invited to the document", {
-                userName: usersInvited[0].name,
-              })
+                userName: user.name,
+              }),
+              {
+                icon: <Avatar model={user} size={AvatarSize.Toast} />,
+              }
             );
           } else {
-            toast.message(
+            toast.success(
               t("{{ count }} people invited to the document", {
                 count: pendingIds.length,
               })

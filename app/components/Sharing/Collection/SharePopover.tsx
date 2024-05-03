@@ -1,3 +1,4 @@
+import { isEmail } from "class-validator";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import { BackIcon, GroupIcon, LinkIcon, UserIcon } from "outline-icons";
@@ -6,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, UserRole } from "@shared/types";
 import Collection from "~/models/Collection";
 import Share from "~/models/Share";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
@@ -20,6 +21,7 @@ import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
 import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -42,7 +44,8 @@ type Props = {
 
 function SharePopover({ collection, onRequestClose }: Props) {
   const theme = useTheme();
-  const { collectionGroupMemberships, memberships } = useStores();
+  const team = useCurrentTeam();
+  const { collectionGroupMemberships, users, memberships } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(collection);
   const [query, setQuery] = React.useState("");
@@ -117,17 +120,74 @@ function SharePopover({ collection, onRequestClose }: Props) {
         name: t("Invite"),
         section: UserSection,
         perform: async () => {
-          try {
-            // TODO
-            setPendingIds([]);
-            hidePicker();
-            toast.success(t("Invitations sent"));
-          } catch (err) {
-            toast.error(t("Could not send invitations"));
+          const usersInvited = await Promise.all(
+            pendingIds.map(async (idOrEmail) => {
+              let user;
+
+              // convert email to user
+              if (isEmail(idOrEmail)) {
+                const response = await users.invite([
+                  {
+                    email: idOrEmail,
+                    name: idOrEmail,
+                    role: team.defaultUserRole,
+                  },
+                ]);
+                user = response.users[0];
+              } else {
+                user = users.get(idOrEmail);
+              }
+
+              if (!user) {
+                return;
+              }
+
+              await memberships.create({
+                collectionId: collection.id,
+                userId: user.id,
+                permission:
+                  user?.role === UserRole.Viewer ||
+                  user?.role === UserRole.Guest
+                    ? CollectionPermission.Read
+                    : CollectionPermission.ReadWrite,
+              });
+
+              return user;
+            })
+          );
+
+          if (usersInvited.length === 1) {
+            const user = usersInvited[0];
+            toast.message(
+              t("{{ userName }} was added to the collection", {
+                userName: user.name,
+              }),
+              {
+                icon: <Avatar model={user} size={AvatarSize.Toast} />,
+              }
+            );
+          } else {
+            toast.success(
+              t("{{ count }} people added to the collection", {
+                count: pendingIds.length,
+              })
+            );
           }
+
+          // setInvitedInSession((prev) => [...prev, ...pendingIds]);
+          setPendingIds([]);
+          hidePicker();
         },
       }),
-    [collection, hidePicker, pendingIds, t]
+    [
+      collection.id,
+      hidePicker,
+      memberships,
+      pendingIds,
+      t,
+      team.defaultUserRole,
+      users,
+    ]
   );
 
   const backButton = (
