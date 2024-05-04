@@ -40,7 +40,6 @@ function InputSelectPermission(
         {
           label: t("No access"),
           value: EmptySelectValue,
-          divider: true,
         },
       ]}
       ariaLabel={t("Default access")}

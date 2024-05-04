@@ -52,7 +52,7 @@ const DocumentMemberListItem = ({
       value: DocumentPermission.ReadWrite,
     },
     {
-      label: t("No access"),
+      label: t("Remove"),
       value: EmptySelectValue,
     },
   ];

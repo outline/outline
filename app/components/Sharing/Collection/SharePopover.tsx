@@ -1,7 +1,7 @@
 import { isEmail } from "class-validator";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { BackIcon, GroupIcon, LinkIcon, UserIcon } from "outline-icons";
+import { BackIcon, LinkIcon, UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -15,9 +15,7 @@ import User from "~/models/User";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import CopyToClipboard from "~/components/CopyToClipboard";
-import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import InputSelectPermission from "~/components/InputSelectPermission";
-import LoadingIndicator from "~/components/LoadingIndicator";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import { createAction } from "~/actions";
@@ -27,14 +25,13 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
-import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import { EmptySelectValue } from "~/types";
 import { collectionPath, urlify } from "~/utils/routeHelpers";
 import { presence } from "../components";
 import { ListItem } from "../components/ListItem";
 import { SearchInput } from "../components/SearchInput";
 import { Suggestions } from "../components/Suggestions";
+import CollectionMemberList from "./CollectionMemberList";
 
 type Props = {
   collection: Collection;
@@ -55,32 +52,11 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
   const can = usePolicy(collection);
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
+  const [hasRendered, setHasRendered] = React.useState(visible);
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
+  const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const context = useActionContext();
-  const collectionId = collection.id;
-
-  const { loading: loadingMemberships, request: fetchMemberships } = useRequest(
-    React.useCallback(
-      () => memberships.fetchAll({ id: collectionId }),
-      [memberships, collectionId]
-    )
-  );
-
-  const { loading: loadingGroupMemberships, request: fetchGroupMemberships } =
-    useRequest(
-      React.useCallback(
-        () => collectionGroupMemberships.fetchAll({ id: collectionId }),
-        [memberships, collectionId]
-      )
-    );
-
-  React.useEffect(() => {
-    if (visible) {
-      void fetchMemberships();
-      void fetchGroupMemberships();
-    }
-  }, [visible, fetchMemberships, fetchGroupMemberships]);
 
   useKeyDown(
     "Escape",
@@ -105,6 +81,12 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       setQuery("");
     }
   }, [picker]);
+
+  React.useEffect(() => {
+    if (visible) {
+      setHasRendered(true);
+    }
+  }, [visible]);
 
   const handleCopied = React.useCallback(() => {
     onRequestClose();
@@ -234,7 +216,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
             );
           }
 
-          // setInvitedInSession((prev) => [...prev, ...pendingIds]);
+          setInvitedInSession((prev) => [...prev, ...pendingIds]);
           setPendingIds([]);
           hidePicker();
         },
@@ -250,8 +232,8 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
     ]
   );
 
-  if (loadingMemberships || loadingGroupMemberships) {
-    return <LoadingIndicator />;
+  if (!hasRendered) {
+    return null;
   }
 
   const backButton = (
@@ -343,101 +325,11 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
             />
           }
         />
-        {collectionGroupMemberships
-          .inCollection(collection.id)
-          .map((membership) => (
-            <ListItem
-              key={membership.id}
-              image={
-                <Squircle color={theme.text} size={AvatarSize.Medium}>
-                  <GroupIcon color={theme.background} size={16} />
-                </Squircle>
-              }
-              title={membership.group.name}
-              subtitle={t("{{ count }} member", {
-                count: membership.group.memberCount,
-              })}
-              actions={
-                <InputSelectPermission
-                  style={{ margin: 0 }}
-                  onChange={async (permission: CollectionPermission) => {
-                    if (permission) {
-                      await collectionGroupMemberships.create({
-                        collectionId: collection.id,
-                        groupId: membership.groupId,
-                        permission,
-                      });
-                    } else {
-                      await collectionGroupMemberships.delete({
-                        collectionId: collection.id,
-                        groupId: membership.groupId,
-                      });
-                    }
-                  }}
-                  disabled={!can.update}
-                  value={membership.permission}
-                  labelHidden
-                  nude
-                />
-              }
-            />
-          ))}
-        {memberships.inCollection(collection.id).map((membership) => (
-          <ListItem
-            key={membership.id}
-            image={
-              <Avatar
-                model={membership.user}
-                size={AvatarSize.Medium}
-                showBorder={false}
-              />
-            }
-            title={membership.user.name}
-            subtitle={membership.user.email}
-            actions={
-              <InputMemberPermissionSelect
-                style={{ margin: 0 }}
-                permissions={[
-                  {
-                    label: t("Admin"),
-                    value: CollectionPermission.Admin,
-                  },
-                  {
-                    label: t("Can edit"),
-                    value: CollectionPermission.ReadWrite,
-                  },
-                  {
-                    label: t("View only"),
-                    value: CollectionPermission.Read,
-                  },
-                  {
-                    divider: true,
-                    label: t("No access"),
-                    value: EmptySelectValue,
-                  },
-                ]}
-                onChange={async (permission: CollectionPermission) => {
-                  if (permission) {
-                    await memberships.create({
-                      collectionId: collection.id,
-                      userId: membership.userId,
-                      permission,
-                    });
-                  } else {
-                    await memberships.delete({
-                      collectionId: collection.id,
-                      userId: membership.userId,
-                    });
-                  }
-                }}
-                disabled={!can.update}
-                value={membership.permission}
-                labelHidden
-                nude
-              />
-            }
-          />
-        ))}
+
+        <CollectionMemberList
+          collection={collection}
+          invitedInSession={invitedInSession}
+        />
       </div>
     </div>
   );

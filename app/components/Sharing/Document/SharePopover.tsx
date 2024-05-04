@@ -55,6 +55,7 @@ function SharePopover({
   const can = usePolicy(document);
   const linkButtonRef = React.useRef<HTMLButtonElement>(null);
   const context = useActionContext();
+  const [hasRendered, setHasRendered] = React.useState(visible);
   const { users, userMemberships } = useStores();
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
@@ -84,6 +85,7 @@ function SharePopover({
   React.useEffect(() => {
     if (visible) {
       void document.share();
+      setHasRendered(true);
     }
   }, [document, hidePicker, visible]);
 
@@ -200,6 +202,24 @@ function SharePopover({
     [showPicker, setQuery]
   );
 
+  const handleAddPendingId = React.useCallback(
+    (id: string) => {
+      setPendingIds((prev) => [...prev, id]);
+    },
+    [setPendingIds]
+  );
+
+  const handleRemovePendingId = React.useCallback(
+    (id: string) => {
+      setPendingIds((prev) => prev.filter((i) => i !== id));
+    },
+    [setPendingIds]
+  );
+
+  if (!hasRendered) {
+    return null;
+  }
+
   const backButton = (
     <>
       {picker && (
@@ -241,20 +261,6 @@ function SharePopover({
         </NudeButton>
       </CopyToClipboard>
     </Tooltip>
-  );
-
-  const handleAddPendingId = React.useCallback(
-    (id: string) => {
-      setPendingIds((prev) => [...prev, id]);
-    },
-    [setPendingIds]
-  );
-
-  const handleRemovePendingId = React.useCallback(
-    (id: string) => {
-      setPendingIds((prev) => prev.filter((i) => i !== id));
-    },
-    [setPendingIds]
   );
 
   return (
