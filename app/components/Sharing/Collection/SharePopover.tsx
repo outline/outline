@@ -9,7 +9,9 @@ import { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
 import { CollectionPermission, UserRole } from "@shared/types";
 import Collection from "~/models/Collection";
+import Group from "~/models/Group";
 import Share from "~/models/Share";
+import User from "~/models/User";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import CopyToClipboard from "~/components/CopyToClipboard";
@@ -45,7 +47,8 @@ type Props = {
 function SharePopover({ collection, visible, onRequestClose }: Props) {
   const theme = useTheme();
   const team = useCurrentTeam();
-  const { collectionGroupMemberships, users, memberships } = useStores();
+  const { collectionGroupMemberships, users, groups, memberships } =
+    useStores();
   const { t } = useTranslation();
   const can = usePolicy(collection);
   const [query, setQuery] = React.useState("");
@@ -128,9 +131,9 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
         name: t("Invite"),
         section: UserSection,
         perform: async () => {
-          const usersInvited = await Promise.all(
+          const invited = await Promise.all(
             pendingIds.map(async (idOrEmail) => {
-              let user;
+              let user, group;
 
               // convert email to user
               if (isEmail(idOrEmail)) {
@@ -144,28 +147,43 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
                 user = response.users[0];
               } else {
                 user = users.get(idOrEmail);
+                group = groups.get(idOrEmail);
               }
 
-              if (!user) {
-                return;
+              if (user) {
+                await memberships.create({
+                  collectionId: collection.id,
+                  userId: user.id,
+                  permission:
+                    user?.role === UserRole.Viewer ||
+                    user?.role === UserRole.Guest
+                      ? CollectionPermission.Read
+                      : CollectionPermission.ReadWrite,
+                });
+                return user;
               }
 
-              await memberships.create({
-                collectionId: collection.id,
-                userId: user.id,
-                permission:
-                  user?.role === UserRole.Viewer ||
-                  user?.role === UserRole.Guest
-                    ? CollectionPermission.Read
-                    : CollectionPermission.ReadWrite,
-              });
-
-              return user;
+              if (group) {
+                await collectionGroupMemberships.create({
+                  collectionId: collection.id,
+                  groupId: group.id,
+                  permission:
+                    user?.role === UserRole.Viewer ||
+                    user?.role === UserRole.Guest
+                      ? CollectionPermission.Read
+                      : CollectionPermission.ReadWrite,
+                });
+                return group;
+              }
             })
           );
 
-          if (usersInvited.length === 1) {
-            const user = usersInvited[0];
+          const invitedUsers = invited.filter((item) => item instanceof User);
+          const invitedGroups = invited.filter((item) => item instanceof Group);
+
+          // Special case for the common action of adding a single user.
+          if (invitedUsers.length === 1 && invited.length === 1) {
+            const user = invitedUsers[0];
             toast.message(
               t("{{ userName }} was added to the collection", {
                 userName: user.name,
@@ -174,11 +192,28 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
                 icon: <Avatar model={user} size={AvatarSize.Toast} />,
               }
             );
-          } else {
+          } else if (invitedGroups.length === 1 && invited.length === 1) {
+            const group = invitedGroups[0];
+            toast.success(
+              t("{{ userName }} was added to the collection", {
+                userName: group.name,
+              })
+            );
+          } else if (invitedGroups.length === 0) {
             toast.success(
               t("{{ count }} people added to the collection", {
-                count: pendingIds.length,
+                count: invitedUsers.length,
               })
+            );
+          } else {
+            toast.success(
+              t(
+                "{{ count }} people and {{ count2 }} groups added to the collection",
+                {
+                  count: invitedUsers.length,
+                  count2: invitedGroups.length,
+                }
+              )
             );
           }
 
@@ -359,17 +394,19 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
                     value: EmptySelectValue,
                   },
                 ]}
-                onChange={async (permission: CollectionPermission) => {
-                  if (permission) {
+                onChange={async (
+                  permission: CollectionPermission | typeof EmptySelectValue
+                ) => {
+                  if (permission === EmptySelectValue) {
+                    await memberships.delete({
+                      collectionId: collection.id,
+                      userId: membership.userId,
+                    });
+                  } else {
                     await memberships.create({
                       collectionId: collection.id,
                       userId: membership.userId,
                       permission,
-                    });
-                  } else {
-                    await memberships.delete({
-                      collectionId: collection.id,
-                      userId: membership.userId,
                     });
                   }
                 }}

@@ -268,6 +268,8 @@
   "{{ userName }} was added to the collection": "{{ userName }} was added to the collection",
   "{{ count }} people added to the collection": "{{ count }} people added to the collection",
   "{{ count }} people added to the collection_plural": "{{ count }} people added to the collection",
+  "{{ count }} people and {{ count2 }} groups added to the collection": "{{ count }} people and {{ count2 }} groups added to the collection",
+  "{{ count }} people and {{ count2 }} groups added to the collection_plural": "{{ count }} people and {{ count2 }} groups added to the collection",
   "Add": "Add",
   "All members": "All members",
   "Everyone in the workspace": "Everyone in the workspace",
