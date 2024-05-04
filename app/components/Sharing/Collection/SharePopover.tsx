@@ -390,23 +390,22 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
                     value: CollectionPermission.Read,
                   },
                   {
+                    divider: true,
                     label: t("No access"),
                     value: EmptySelectValue,
                   },
                 ]}
-                onChange={async (
-                  permission: CollectionPermission | typeof EmptySelectValue
-                ) => {
-                  if (permission === EmptySelectValue) {
-                    await memberships.delete({
-                      collectionId: collection.id,
-                      userId: membership.userId,
-                    });
-                  } else {
+                onChange={async (permission: CollectionPermission) => {
+                  if (permission) {
                     await memberships.create({
                       collectionId: collection.id,
                       userId: membership.userId,
                       permission,
+                    });
+                  } else {
+                    await memberships.delete({
+                      collectionId: collection.id,
+                      userId: membership.userId,
                     });
                   }
                 }}

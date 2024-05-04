@@ -3,21 +3,30 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import InputSelect, { Props as SelectProps } from "~/components/InputSelect";
-import { Permission } from "~/types";
+import { EmptySelectValue, Permission } from "~/types";
 
 export default function InputMemberPermissionSelect(
   props: Partial<SelectProps> & { permissions: Permission[] }
 ) {
+  const { value, onChange, ...rest } = props;
   const { t } = useTranslation();
+  const handleChange = React.useCallback(
+    (value) => {
+      onChange?.(value === EmptySelectValue ? null : value);
+    },
+    [onChange]
+  );
 
   return (
     <Select
       label={t("Permissions")}
       options={props.permissions}
       ariaLabel={t("Permissions")}
+      onChange={handleChange}
+      value={value || EmptySelectValue}
       labelHidden
       nude
-      {...props}
+      {...rest}
     />
   );
 }

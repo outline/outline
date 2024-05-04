@@ -23,12 +23,14 @@ import {
   Placement,
 } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
+import Separator from "./ContextMenu/Separator";
 import { LabelText } from "./Input";
 
 export type Option = {
   label: string | JSX.Element;
   value: string;
   description?: string;
+  divider?: boolean;
 };
 
 export type Props = {
@@ -248,16 +250,19 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
                         const isSelected = select.selectedValue === opt.value;
                         const Icon = isSelected ? CheckmarkIcon : Spacer;
                         return (
-                          <StyledSelectOption
-                            {...select}
-                            value={opt.value}
-                            key={opt.value}
-                            ref={isSelected ? selectedRef : undefined}
-                          >
-                            <Icon />
-                            &nbsp;
-                            {labelForOption(opt)}
-                          </StyledSelectOption>
+                          <>
+                            {opt.divider && <Separator />}
+                            <StyledSelectOption
+                              {...select}
+                              value={opt.value}
+                              key={opt.value}
+                              ref={isSelected ? selectedRef : undefined}
+                            >
+                              <Icon />
+                              &nbsp;
+                              {labelForOption(opt)}
+                            </StyledSelectOption>
+                          </>
                         );
                       })
                     : null}
