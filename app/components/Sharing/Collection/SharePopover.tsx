@@ -17,6 +17,7 @@ import ButtonSmall from "~/components/ButtonSmall";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import InputSelectPermission from "~/components/InputSelectPermission";
+import LoadingIndicator from "~/components/LoadingIndicator";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import { createAction } from "~/actions";
@@ -26,6 +27,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
+import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 import { collectionPath, urlify } from "~/utils/routeHelpers";
@@ -58,12 +60,27 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
   const context = useActionContext();
   const collectionId = collection.id;
 
+  const { loading: loadingMemberships, request: fetchMemberships } = useRequest(
+    React.useCallback(
+      () => memberships.fetchAll({ id: collectionId }),
+      [memberships, collectionId]
+    )
+  );
+
+  const { loading: loadingGroupMemberships, request: fetchGroupMemberships } =
+    useRequest(
+      React.useCallback(
+        () => collectionGroupMemberships.fetchAll({ id: collectionId }),
+        [memberships, collectionId]
+      )
+    );
+
   React.useEffect(() => {
     if (visible) {
-      void memberships.fetchAll({ id: collectionId });
-      void collectionGroupMemberships.fetchAll({ id: collectionId });
+      void fetchMemberships();
+      void fetchGroupMemberships();
     }
-  }, [memberships, collectionGroupMemberships, collectionId, visible]);
+  }, [visible, fetchMemberships, fetchGroupMemberships]);
 
   useKeyDown(
     "Escape",
@@ -232,6 +249,10 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       users,
     ]
   );
+
+  if (loadingMemberships || loadingGroupMemberships) {
+    return <LoadingIndicator />;
+  }
 
   const backButton = (
     <>
