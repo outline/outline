@@ -25,8 +25,8 @@ export default function createMiddleware(providerName: string) {
 
           if (err.id) {
             const notice = err.id.replace(/_/g, "-");
-            const redirectUrl = err.redirectUrl ?? "/";
-            const hasQueryString = redirectUrl?.includes("?");
+            const redirectPath = err.redirectPath ?? "/";
+            const hasQueryString = redirectPath?.includes("?");
 
             // Every authentication action is routed through the apex domain.
             // But when there is an error, we want to redirect the user on the
@@ -35,17 +35,16 @@ export default function createMiddleware(providerName: string) {
             // get original host
             const stateString = ctx.cookies.get("state");
             const state = stateString ? parseState(stateString) : undefined;
-            const host = state?.host ?? ctx.hostname;
 
-            // form a URL object with the err.redirectUrl and replace the host
+            // form a URL object with the err.redirectPath and replace the host
             const reqProtocol =
               state?.client === Client.Desktop ? "outline" : ctx.protocol;
-            const requestHost = ctx.get("host");
+            const requestHost = state?.host ?? ctx.hostname;
             const url = new URL(
-              `${reqProtocol}://${requestHost}${redirectUrl}`
+              env.isCloudHosted
+                ? `${reqProtocol}://${requestHost}${redirectPath}`
+                : `${env.URL}${redirectPath}`
             );
-
-            url.host = host;
 
             return ctx.redirect(
               `${url.toString()}${hasQueryString ? "&" : "?"}notice=${notice}`
