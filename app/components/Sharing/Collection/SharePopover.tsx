@@ -313,16 +313,18 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
           title={t("All members")}
           subtitle={t("Everyone in the workspace")}
           actions={
-            <InputSelectPermission
-              style={{ margin: 0 }}
-              onChange={(permission) => {
-                void collection.save({ permission });
-              }}
-              disabled={!can.update}
-              value={collection?.permission}
-              labelHidden
-              nude
-            />
+            <div style={{ marginRight: -8 }}>
+              <InputSelectPermission
+                style={{ margin: 0 }}
+                onChange={(permission) => {
+                  void collection.save({ permission });
+                }}
+                disabled={!can.update}
+                value={collection?.permission}
+                labelHidden
+                nude
+              />
+            </div>
           }
         />
 

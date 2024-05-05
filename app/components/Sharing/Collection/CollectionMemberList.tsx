@@ -8,11 +8,10 @@ import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
-import InputSelectPermission from "~/components/InputSelectPermission";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import { EmptySelectValue } from "~/types";
+import { EmptySelectValue, Permission } from "~/types";
 import { ListItem } from "../components/ListItem";
 
 type Props = {
@@ -50,6 +49,30 @@ function CollectionMemberList({ collection, invitedInSession }: Props) {
     void fetchGroupMemberships();
   }, [fetchMemberships, fetchGroupMemberships]);
 
+  const permissions = React.useMemo(
+    () =>
+      [
+        {
+          label: t("Admin"),
+          value: CollectionPermission.Admin,
+        },
+        {
+          label: t("Can edit"),
+          value: CollectionPermission.ReadWrite,
+        },
+        {
+          label: t("View only"),
+          value: CollectionPermission.Read,
+        },
+        {
+          divider: true,
+          label: t("Remove"),
+          value: EmptySelectValue,
+        },
+      ] as Permission[],
+    [t]
+  );
+
   return (
     <>
       {collectionGroupMemberships
@@ -72,27 +95,30 @@ function CollectionMemberList({ collection, invitedInSession }: Props) {
               count: membership.group.memberCount,
             })}
             actions={
-              <InputSelectPermission
-                style={{ margin: 0 }}
-                onChange={async (permission: CollectionPermission) => {
-                  if (permission) {
-                    await collectionGroupMemberships.create({
-                      collectionId: collection.id,
-                      groupId: membership.groupId,
-                      permission,
-                    });
-                  } else {
-                    await collectionGroupMemberships.delete({
-                      collectionId: collection.id,
-                      groupId: membership.groupId,
-                    });
-                  }
-                }}
-                disabled={!can.update}
-                value={membership.permission}
-                labelHidden
-                nude
-              />
+              <div style={{ marginRight: -8 }}>
+                <InputMemberPermissionSelect
+                  style={{ margin: 0 }}
+                  permissions={permissions}
+                  onChange={async (permission: CollectionPermission) => {
+                    if (permission) {
+                      await collectionGroupMemberships.create({
+                        collectionId: collection.id,
+                        groupId: membership.groupId,
+                        permission,
+                      });
+                    } else {
+                      await collectionGroupMemberships.delete({
+                        collectionId: collection.id,
+                        groupId: membership.groupId,
+                      });
+                    }
+                  }}
+                  disabled={!can.update}
+                  value={membership.permission}
+                  labelHidden
+                  nude
+                />
+              </div>
             }
           />
         ))}
@@ -116,46 +142,30 @@ function CollectionMemberList({ collection, invitedInSession }: Props) {
             title={membership.user.name}
             subtitle={membership.user.email}
             actions={
-              <InputMemberPermissionSelect
-                style={{ margin: 0 }}
-                permissions={[
-                  {
-                    label: t("Admin"),
-                    value: CollectionPermission.Admin,
-                  },
-                  {
-                    label: t("Can edit"),
-                    value: CollectionPermission.ReadWrite,
-                  },
-                  {
-                    label: t("View only"),
-                    value: CollectionPermission.Read,
-                  },
-                  {
-                    divider: true,
-                    label: t("Remove"),
-                    value: EmptySelectValue,
-                  },
-                ]}
-                onChange={async (permission: CollectionPermission) => {
-                  if (permission) {
-                    await memberships.create({
-                      collectionId: collection.id,
-                      userId: membership.userId,
-                      permission,
-                    });
-                  } else {
-                    await memberships.delete({
-                      collectionId: collection.id,
-                      userId: membership.userId,
-                    });
-                  }
-                }}
-                disabled={!can.update}
-                value={membership.permission}
-                labelHidden
-                nude
-              />
+              <div style={{ marginRight: -8 }}>
+                <InputMemberPermissionSelect
+                  style={{ margin: 0 }}
+                  permissions={permissions}
+                  onChange={async (permission: CollectionPermission) => {
+                    if (permission) {
+                      await memberships.create({
+                        collectionId: collection.id,
+                        userId: membership.userId,
+                        permission,
+                      });
+                    } else {
+                      await memberships.delete({
+                        collectionId: collection.id,
+                        userId: membership.userId,
+                      });
+                    }
+                  }}
+                  disabled={!can.update}
+                  value={membership.permission}
+                  labelHidden
+                  nude
+                />
+              </div>
             }
           />
         ))}

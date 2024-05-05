@@ -11,6 +11,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 
 type Props = {
+  /** Collection being shared */
   collection: Collection;
 };
 
@@ -28,21 +29,17 @@ function ShareButton({ collection }: Props) {
     unstable_fixed: true,
   });
 
+  const icon = isPubliclyShared ? (
+    <GlobeIcon />
+  ) : collection.permission ? undefined : (
+    <PadlockIcon />
+  );
+
   return (
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          <Button
-            icon={
-              isPubliclyShared ? (
-                <GlobeIcon />
-              ) : collection.permission ? undefined : (
-                <PadlockIcon />
-              )
-            }
-            neutral
-            {...props}
-          >
+          <Button icon={icon} neutral {...props}>
             {t("Share")}
           </Button>
         )}

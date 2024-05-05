@@ -11,6 +11,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 
 type Props = {
+  /** Document being shared */
   document: Document;
 };
 
@@ -32,15 +33,13 @@ function ShareButton({ document }: Props) {
     unstable_fixed: true,
   });
 
+  const icon = isPubliclyShared ? <GlobeIcon /> : undefined;
+
   return (
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          <Button
-            icon={isPubliclyShared ? <GlobeIcon /> : undefined}
-            neutral
-            {...props}
-          >
+          <Button icon={icon} neutral {...props}>
             {t("Share")} {domain && <>&middot; {domain}</>}
           </Button>
         )}

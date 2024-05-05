@@ -146,9 +146,8 @@ function CollectionScene() {
         <>
           <MembershipPreview collection={collection} />
           <Action>
-            {FeatureFlags.isEnabled(Feature.newCollectionSharing) && (
-              <ShareButton collection={collection} />
-            )}
+            {FeatureFlags.isEnabled(Feature.newCollectionSharing) &&
+              can.update && <ShareButton collection={collection} />}
           </Action>
           <Actions collection={collection} />
         </>
