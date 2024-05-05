@@ -1,3 +1,4 @@
+import matchPairs from "markdown-match-pairs";
 import { toggleMark } from "prosemirror-commands";
 import { InputRule } from "prosemirror-inputrules";
 import { MarkSpec, MarkType } from "prosemirror-model";
@@ -30,6 +31,10 @@ export default class Bold extends Mark {
       ],
       toDOM: () => ["strong"],
     };
+  }
+
+  get rulePlugins() {
+    return [matchPairs];
   }
 
   inputRules({ type }: { type: MarkType }): InputRule[] {

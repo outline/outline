@@ -9892,6 +9892,11 @@ markdown-it@^14.0.0:
     punycode.js "^2.3.1"
     uc.micro "^2.0.0"
 
+markdown-match-pairs@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/markdown-match-pairs/-/markdown-match-pairs-1.0.2.tgz#74d8816501028e4392fa5be782f3d7cac36cbda7"
+  integrity sha512-poLuBPzw9TB4aiHQMZXV1R7OQawU/dKXFF5OVumrR87ezsn6u6poHyd+QkKlmpiqTL3nBQ8Y5IRievE4fDkE3A==
+
 matcher-collection@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/matcher-collection/-/matcher-collection-2.0.1.tgz#90be1a4cf58d6f2949864f65bb3b0f3e41303b29"
