@@ -623,6 +623,22 @@ export const searchInDocument = createAction({
   },
 });
 
+export const copyDocumentId = createAction({
+  name: ({ t, isContextMenu }) =>
+    isContextMenu ? `${t("Copy ID")}` : t("Copy document ID"),
+  analyticsName: "Copy document ID",
+  section: DocumentSection,
+  icon: <CopyIcon />,
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ activeDocumentId }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    copy(activeDocumentId);
+  },
+});
+
 export const printDocument = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? t("Print") : t("Print document"),

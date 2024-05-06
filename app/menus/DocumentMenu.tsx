@@ -44,6 +44,7 @@ import {
   shareDocument,
   copyDocument,
   searchInDocument,
+  copyDocumentId,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -302,6 +303,7 @@ function DocumentMenu({
             actionToMenuItem(copyDocument, context),
             actionToMenuItem(printDocument, context),
             actionToMenuItem(searchInDocument, context),
+            actionToMenuItem(copyDocumentId, context),
             {
               type: "separator",
             },

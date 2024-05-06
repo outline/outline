@@ -1,5 +1,7 @@
+import copy from "copy-to-clipboard";
 import {
   CollectionIcon,
+  CopyIcon,
   EditIcon,
   PadlockIcon,
   PlusIcon,
@@ -121,6 +123,22 @@ export const searchInCollection = createAction({
   visible: ({ activeCollectionId }) => !!activeCollectionId,
   perform: ({ activeCollectionId }) => {
     history.push(searchPath(undefined, { collectionId: activeCollectionId }));
+  },
+});
+
+export const copyCollectionId = createAction({
+  name: ({ t, isContextMenu }) =>
+    isContextMenu ? `${t("Copy ID")}` : t("Copy Collection ID"),
+  analyticsName: "Copy collection ID",
+  section: CollectionSection,
+  icon: <CopyIcon />,
+  visible: ({ activeCollectionId }) => !!activeCollectionId,
+  perform: ({ activeCollectionId }) => {
+    if (!activeCollectionId) {
+      return;
+    }
+
+    copy(activeCollectionId);
   },
 });
 

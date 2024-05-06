@@ -27,6 +27,7 @@ import {
   starCollection,
   unstarCollection,
   searchInCollection,
+  copyCollectionId,
 } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -207,6 +208,7 @@ function CollectionMenu({
         icon: <ExportIcon />,
       },
       actionToMenuItem(searchInCollection, context),
+      actionToMenuItem(copyCollectionId, context),
       {
         type: "separator",
       },
