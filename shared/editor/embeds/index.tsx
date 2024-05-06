@@ -285,6 +285,14 @@ const embeds: EmbedDescriptor[] = [
     visible: true,
   }),
   new EmbedDescriptor({
+    title: "Yandex Maps",
+    keywords: "maps",
+    regexMatch: [new RegExp("^https?://yandex\.ru/map-widget/v1/\?.+$")],
+    transformMatch: (matches: RegExpMatchArray) => matches[0],
+    icon: <Img src="/images/yandex-maps.png" alt="Yandex Maps" />,
+    visible: true,
+  }),
+  new EmbedDescriptor({
     title: "Google Drawings",
     keywords: "drawings",
     transformMatch: (matches: RegExpMatchArray) =>
