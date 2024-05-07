@@ -8,20 +8,20 @@ export function InternalError(message = "Internal error") {
 
 export function AuthenticationError(
   message = "Authentication required",
-  redirectUrl = "/"
+  redirectPath = "/"
 ) {
   return httpErrors(401, message, {
-    redirectUrl,
+    redirectPath,
     id: "authentication_required",
   });
 }
 
 export function InvalidAuthenticationError(
   message = "Invalid authentication",
-  redirectUrl = "/"
+  redirectPath = "/"
 ) {
   return httpErrors(401, message, {
-    redirectUrl,
+    redirectPath,
     id: "invalid_authentication",
   });
 }
@@ -159,10 +159,10 @@ export function TeamPendingDeletionError(
 
 export function EmailAuthenticationRequiredError(
   message = "User must authenticate with email",
-  redirectUrl = "/"
+  redirectPath = "/"
 ) {
   return httpErrors(400, message, {
-    redirectUrl,
+    redirectPath,
     id: "email_auth_required",
   });
 }
@@ -201,10 +201,10 @@ export function OIDCMalformedUserInfoError(
 
 export function AuthenticationProviderDisabledError(
   message = "Authentication method has been disabled by an admin",
-  redirectUrl = "/"
+  redirectPath = "/"
 ) {
   return httpErrors(400, message, {
-    redirectUrl,
+    redirectPath,
     id: "authentication_provider_disabled",
   });
 }
