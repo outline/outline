@@ -27,7 +27,7 @@ import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { collectionPath, urlify } from "~/utils/routeHelpers";
-import { presence } from "../components";
+import { Wrapper, presence } from "../components";
 import { ListItem } from "../components/ListItem";
 import { SearchInput } from "../components/SearchInput";
 import { Suggestions } from "../components/Suggestions";
@@ -280,7 +280,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
   );
 
   return (
-    <div>
+    <Wrapper>
       {can.update && (
         <SearchInput
           onChange={handleQuery}
@@ -333,7 +333,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
           invitedInSession={invitedInSession}
         />
       </div>
-    </div>
+    </Wrapper>
   );
 }
 
