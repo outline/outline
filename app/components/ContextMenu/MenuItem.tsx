@@ -104,6 +104,8 @@ const Spacer = styled.svg`
 
 const Title = styled.div`
   ${ellipsis()}
+  flex-grow: 1;
+  display: flex;
 `;
 
 type MenuAnchorProps = {
