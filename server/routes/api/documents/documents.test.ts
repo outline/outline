@@ -3930,7 +3930,6 @@ describe("#documents.users", () => {
         name: "Alan Kay",
         teamId: user.teamId,
       }),
-
       buildUser({
         name: "Ken",
         teamId: user.teamId,
@@ -3952,7 +3951,7 @@ describe("#documents.users", () => {
       createdById: ken.id,
       documentId: document.id,
       userId: ken.id,
-      permission: CollectionPermission.ReadWrite,
+      permission: DocumentPermission.ReadWrite,
     });
 
     const res = await server.post("/api/documents.users", {
@@ -3964,9 +3963,10 @@ describe("#documents.users", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.data.length).toBe(2);
+    expect(body.data.length).toBe(3);
 
     const memberIds = body.data.map((u: User) => u.id);
+    expect(memberIds).toContain(user.id);
     expect(memberIds).toContain(alan.id);
     expect(memberIds).toContain(ken.id);
   });
