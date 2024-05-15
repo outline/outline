@@ -6,7 +6,7 @@ import { version } from "../../../../package.json";
 import SidebarLink from "./SidebarLink";
 
 export default function Version() {
-  const [releasesBehind, setReleasesBehind] = React.useState(0);
+  const [releasesBehind, setReleasesBehind] = React.useState(-1);
   const { t } = useTranslation();
 
   React.useEffect(() => {
@@ -46,15 +46,19 @@ export default function Version() {
       label={
         <>
           v{version}
-          <br />
-          <LilBadge>
-            {releasesBehind === 0
-              ? t("Up to date")
-              : t(`{{ releasesBehind }} versions behind`, {
-                  releasesBehind,
-                  count: releasesBehind,
-                })}
-          </LilBadge>
+          {releasesBehind >= 0 && (
+            <>
+              <br />
+              <LilBadge>
+                {releasesBehind === 0
+                  ? t("Up to date")
+                  : t(`{{ releasesBehind }} versions behind`, {
+                      releasesBehind,
+                      count: releasesBehind,
+                    })}
+              </LilBadge>
+            </>
+          )}
         </>
       }
     />
