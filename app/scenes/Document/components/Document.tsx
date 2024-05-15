@@ -258,6 +258,8 @@ class DocumentScene extends React.Component<Props> {
 
   onPublish = (ev: React.MouseEvent | KeyboardEvent) => {
     ev.preventDefault();
+    ev.stopPropagation();
+
     const { document, dialogs, t } = this.props;
     if (document.publishedAt) {
       return;
@@ -426,6 +428,9 @@ class DocumentScene extends React.Component<Props> {
         <RegisterKeyDown trigger="h" handler={this.goToHistory} />
         <RegisterKeyDown
           trigger="p"
+          options={{
+            allowInInput: true,
+          }}
           handler={(event) => {
             if (isModKey(event) && event.shiftKey) {
               this.onPublish(event);
