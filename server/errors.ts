@@ -141,14 +141,6 @@ export function OAuthStateMismatchError(
   });
 }
 
-export function MaximumTeamsError(
-  message = "The maximum number of workspaces has been reached"
-) {
-  return httpErrors(400, message, {
-    id: "maximum_reached",
-  });
-}
-
 export function TeamPendingDeletionError(
   message = "The workspace is pending deletion"
 ) {

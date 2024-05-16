@@ -3,7 +3,6 @@ import env from "@server/env";
 import {
   DomainNotAllowedError,
   InvalidAuthenticationError,
-  MaximumTeamsError,
   TeamPendingDeletionError,
 } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
@@ -107,7 +106,7 @@ async function teamProvisioner({
     }
 
     if (team) {
-      throw MaximumTeamsError();
+      throw InvalidAuthenticationError();
     }
   }
 
