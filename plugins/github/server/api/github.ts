@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import find from "lodash/find";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { parseDomain } from "@shared/utils/domains";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -51,12 +52,14 @@ router.get(
             rejectOnEmpty: true,
             transaction,
           });
-          return ctx.redirectOnClient(
-            GitHubUtils.callbackUrl({
-              baseUrl: team.url,
-              params: ctx.request.querystring,
-            })
-          );
+          return parseDomain(ctx.host).teamSubdomain === team.subdomain
+            ? ctx.redirect("/")
+            : ctx.redirectOnClient(
+                GitHubUtils.callbackUrl({
+                  baseUrl: team.url,
+                  params: ctx.request.querystring,
+                })
+              );
         } catch (err) {
           Logger.error(`Error fetching team for teamId: ${teamId}!`, err);
           return ctx.redirect(GitHubUtils.errorUrl("unauthenticated"));

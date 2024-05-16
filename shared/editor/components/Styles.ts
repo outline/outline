@@ -897,7 +897,6 @@ h6 {
 blockquote {
   margin: 0;
   padding: 8px 10px 8px 1.5em;
-  font-style: italic;
   overflow: hidden;
   position: relative;
 

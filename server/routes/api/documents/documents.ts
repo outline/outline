@@ -5,6 +5,7 @@ import invariant from "invariant";
 import JSZip from "jszip";
 import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
+import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
@@ -476,35 +477,45 @@ router.post(
       },
     };
 
-    if (document.collectionId) {
-      const collection = await document.$get("collection");
+    const [collection, memberIds, collectionMemberIds] = await Promise.all([
+      document.$get("collection"),
+      Document.membershipUserIds(document.id),
+      document.collectionId
+        ? Collection.membershipUserIds(document.collectionId)
+        : [],
+    ]);
 
-      if (!collection?.permission) {
-        const memberIds = await Collection.membershipUserIds(
-          document.collectionId
-        );
-        where = {
-          ...where,
+    where = {
+      ...where,
+      [Op.or]: [
+        {
           id: {
-            [Op.in]: memberIds,
+            [Op.in]: uniq([...memberIds, ...collectionMemberIds]),
           },
-        };
-      }
+        },
+        collection?.permission
+          ? {
+              role: {
+                [Op.ne]: UserRole.Guest,
+              },
+            }
+          : {},
+      ],
+    };
 
-      if (query) {
-        where = {
-          ...where,
-          name: {
-            [Op.iLike]: `%${query}%`,
-          },
-        };
-      }
-
-      [users, total] = await Promise.all([
-        User.findAll({ where, offset, limit }),
-        User.count({ where }),
-      ]);
+    if (query) {
+      where = {
+        ...where,
+        name: {
+          [Op.iLike]: `%${query}%`,
+        },
+      };
     }
+
+    [users, total] = await Promise.all([
+      User.findAll({ where, offset, limit }),
+      User.count({ where }),
+    ]);
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
