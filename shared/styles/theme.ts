@@ -182,7 +182,7 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     textDiffInsertedBackground: "rgba(63,185,80,0.3)",
     textDiffDeleted: darken(0.1, colors.almostWhite),
     textDiffDeletedBackground: "rgba(248,81,73,0.15)",
-    placeholder: colors.slateDark,
+    placeholder: "#596673",
     sidebarBackground: colors.veryDarkBlue,
     sidebarActiveBackground: lighten(0.02, colors.almostBlack),
     sidebarControlHoverBackground: colors.white10,

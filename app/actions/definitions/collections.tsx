@@ -20,6 +20,7 @@ import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
+import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import history from "~/utils/history";
 import { searchPath } from "~/utils/routeHelpers";
 
@@ -99,7 +100,8 @@ export const editCollectionPermissions = createAction({
   icon: <PadlockIcon />,
   visible: ({ stores, activeCollectionId }) =>
     !!activeCollectionId &&
-    stores.policies.abilities(activeCollectionId).update,
+    stores.policies.abilities(activeCollectionId).update &&
+    !FeatureFlags.isEnabled(Feature.newCollectionSharing),
   perform: ({ t, activeCollectionId }) => {
     if (!activeCollectionId) {
       return;

@@ -1,4 +1,5 @@
 import { observable } from "mobx";
+import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
@@ -24,6 +25,15 @@ class Share extends Model {
   /** The document that is shared. */
   @Relation(() => Document, { onDelete: "cascade" })
   document: Document;
+
+  /** The collection ID that is shared. */
+  @Field
+  @observable
+  collectionId: string;
+
+  /** The collection that is shared. */
+  @Relation(() => Collection, { onDelete: "cascade" })
+  collection: Collection;
 
   @Field
   @observable

@@ -104,6 +104,9 @@ export default class SharesStore extends Store<Share> {
     return undefined;
   };
 
+  getByCollectionId = (collectionId: string): Share | null | undefined =>
+    find(this.orderedData, (share) => share.collectionId === collectionId);
+
   getByDocumentId = (documentId: string): Share | null | undefined =>
     find(this.orderedData, (share) => share.documentId === documentId);
 }

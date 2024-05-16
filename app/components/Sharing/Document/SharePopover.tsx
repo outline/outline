@@ -1,37 +1,34 @@
 import { isEmail } from "class-validator";
-import { AnimatePresence, m } from "framer-motion";
+import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import { BackIcon, LinkIcon } from "outline-icons";
-import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import styled from "styled-components";
-import { s } from "@shared/styles";
 import { DocumentPermission, UserRole } from "@shared/types";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
+import Avatar from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar/Avatar";
+import ButtonSmall from "~/components/ButtonSmall";
 import CopyToClipboard from "~/components/CopyToClipboard";
-import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
 import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
-import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { hover } from "~/styles";
 import { documentPath, urlify } from "~/utils/routeHelpers";
-import ButtonSmall from "../ButtonSmall";
-import Input, { NativeInput } from "../Input";
-import NudeButton from "../NudeButton";
-import Tooltip from "../Tooltip";
+import { Separator, Wrapper, presence } from "../components";
+import { SearchInput } from "../components/SearchInput";
+import { Suggestions } from "../components/Suggestions";
 import DocumentMembersList from "./DocumentMemberList";
 import { OtherAccess } from "./OtherAccess";
 import PublicAccess from "./PublicAccess";
-import { UserSuggestions } from "./UserSuggestions";
 
 type Props = {
   /** The document to share. */
@@ -46,29 +43,6 @@ type Props = {
   visible: boolean;
 };
 
-const presence = {
-  initial: {
-    opacity: 0,
-    width: 0,
-    marginRight: 0,
-  },
-  animate: {
-    opacity: 1,
-    width: "auto",
-    marginRight: 8,
-    transition: {
-      type: "spring",
-      duration: 0.2,
-      bounce: 0,
-    },
-  },
-  exit: {
-    opacity: 0,
-    width: 0,
-    marginRight: 0,
-  },
-};
-
 function SharePopover({
   document,
   share,
@@ -79,13 +53,13 @@ function SharePopover({
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const can = usePolicy(document);
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const linkButtonRef = React.useRef<HTMLButtonElement>(null);
+  const context = useActionContext();
+  const [hasRendered, setHasRendered] = React.useState(visible);
   const { users, userMemberships } = useStores();
-  const isMobile = useMobile();
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
-  const linkButtonRef = React.useRef<HTMLButtonElement>(null);
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
   const collectionSharingDisabled = document.collection?.sharing === false;
@@ -111,6 +85,7 @@ function SharePopover({
   React.useEffect(() => {
     if (visible) {
       void document.share();
+      setHasRendered(true);
     }
   }, [document, hidePicker, visible]);
 
@@ -142,8 +117,6 @@ function SharePopover({
       }
     };
   }, [onRequestClose, t]);
-
-  const context = useActionContext();
 
   const inviteAction = React.useMemo(
     () =>
@@ -188,13 +161,17 @@ function SharePopover({
           );
 
           if (usersInvited.length === 1) {
+            const user = usersInvited[0];
             toast.message(
               t("{{ userName }} was invited to the document", {
-                userName: usersInvited[0].name,
-              })
+                userName: user.name,
+              }),
+              {
+                icon: <Avatar model={user} size={AvatarSize.Toast} />,
+              }
             );
           } else {
-            toast.message(
+            toast.success(
               t("{{ count }} people invited to the document", {
                 count: pendingIds.length,
               })
@@ -225,13 +202,6 @@ function SharePopover({
     [showPicker, setQuery]
   );
 
-  const focusInput = React.useCallback(() => {
-    if (!picker) {
-      inputRef.current?.focus();
-      showPicker();
-    }
-  }, [picker, showPicker]);
-
   const handleAddPendingId = React.useCallback(
     (id: string) => {
       setPendingIds((prev) => [...prev, id]);
@@ -246,10 +216,23 @@ function SharePopover({
     [setPendingIds]
   );
 
+  if (!hasRendered) {
+    return null;
+  }
+
   const backButton = (
     <>
       {picker && (
-        <NudeButton key="back" as={m.button} {...presence} onClick={hidePicker}>
+        <NudeButton
+          key="back"
+          as={m.button}
+          {...presence}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            hidePicker();
+          }}
+        >
           <BackIcon />
         </NudeButton>
       )}
@@ -282,44 +265,19 @@ function SharePopover({
 
   return (
     <Wrapper>
-      {can.manageUsers &&
-        (isMobile ? (
-          <Flex align="center" style={{ marginBottom: 12 }} auto>
-            {backButton}
-            <Input
-              key="input"
-              placeholder={`${t("Invite")}…`}
-              value={query}
-              onChange={handleQuery}
-              onClick={showPicker}
-              autoFocus
-              margin={0}
-              flex
-            >
-              {rightButton}
-            </Input>
-          </Flex>
-        ) : (
-          <HeaderInput align="center" onClick={focusInput}>
-            <AnimatePresence initial={false}>
-              {backButton}
-              <NativeInput
-                key="input"
-                ref={inputRef}
-                placeholder={`${t("Invite")}…`}
-                value={query}
-                onChange={handleQuery}
-                onClick={showPicker}
-                style={{ padding: "6px 0" }}
-              />
-              {rightButton}
-            </AnimatePresence>
-          </HeaderInput>
-        ))}
+      {can.manageUsers && (
+        <SearchInput
+          onChange={handleQuery}
+          onClick={showPicker}
+          query={query}
+          back={backButton}
+          action={rightButton}
+        />
+      )}
 
       {picker && (
         <div>
-          <UserSuggestions
+          <Suggestions
             document={document}
             query={query}
             pendingIds={pendingIds}
@@ -352,43 +310,5 @@ function SharePopover({
     </Wrapper>
   );
 }
-
-// TODO: Temp until Button/NudeButton styles are normalized
-const Wrapper = styled.div`
-  ${NudeButton}:${hover},
-  ${NudeButton}[aria-expanded="true"] {
-    background: ${(props) => darken(0.05, props.theme.buttonNeutralBackground)};
-  }
-`;
-
-const Separator = styled.div`
-  border-top: 1px dashed ${s("divider")};
-  margin: 12px 0;
-`;
-
-const HeaderInput = styled(Flex)`
-  position: sticky;
-  z-index: 1;
-  top: 0;
-  background: ${s("menuBackground")};
-  color: ${s("textTertiary")};
-  border-bottom: 1px solid ${s("inputBorder")};
-  padding: 0 24px 12px;
-  margin-top: 0;
-  margin-left: -24px;
-  margin-right: -24px;
-  margin-bottom: 12px;
-  cursor: text;
-
-  &:before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: -20px;
-    height: 20px;
-    background: ${s("menuBackground")};
-  }
-`;
 
 export default observer(SharePopover);
