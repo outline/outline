@@ -221,6 +221,7 @@ export const EmptySelectValue = "__empty__";
 export type Permission = {
   label: string;
   value: CollectionPermission | DocumentPermission | typeof EmptySelectValue;
+  divider?: boolean;
 };
 
 // TODO: Can we make this type driven by the @Field decorator

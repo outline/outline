@@ -140,8 +140,8 @@
     "koa-useragent": "^4.1.0",
     "lodash": "^4.17.21",
     "mailparser": "^3.6.7",
-    "mammoth": "^1.6.0",
-    "markdown-it": "^13.0.1",
+    "mammoth": "^1.7.2",
+    "markdown-it": "^13.0.2",
     "markdown-it-container": "^3.0.0",
     "markdown-it-emoji": "^2.0.0",
     "mermaid": "9.3.0",
@@ -359,5 +359,5 @@
     "qs": "6.9.7",
     "rollup": "^4.5.1"
   },
-  "version": "0.76.1"
+  "version": "0.76.2-0"
 }

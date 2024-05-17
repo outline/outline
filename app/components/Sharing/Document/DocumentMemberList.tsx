@@ -1,7 +1,7 @@
-import { t } from "i18next";
 import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { Pagination } from "@shared/constants";
@@ -13,29 +13,23 @@ import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { homePath } from "~/utils/routeHelpers";
-import MemberListItem from "./MemberListItem";
+import MemberListItem from "./DocumentMemberListItem";
 
 type Props = {
   /** Document to which team members are supposed to be invited */
   document: Document;
   /** Children to be rendered before the list of members */
   children?: React.ReactNode;
-  /** List of users that have been invited to the document during the current editing session */
+  /** List of users that have been invited during the current editing session */
   invitedInSession: string[];
 };
 
 function DocumentMembersList({ document, invitedInSession }: Props) {
-  const { users, userMemberships } = useStores();
+  const { userMemberships } = useStores();
   const user = useCurrentUser();
   const history = useHistory();
   const can = usePolicy(document);
-
-  const { loading: loadingTeamMembers, request: fetchTeamMembers } = useRequest(
-    React.useCallback(
-      () => users.fetchPage({ limit: Pagination.defaultLimit }),
-      [users]
-    )
-  );
+  const { t } = useTranslation();
 
   const { loading: loadingDocumentMembers, request: fetchDocumentMembers } =
     useRequest(
@@ -50,9 +44,8 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
     );
 
   React.useEffect(() => {
-    void fetchTeamMembers();
     void fetchDocumentMembers();
-  }, [fetchTeamMembers, fetchDocumentMembers]);
+  }, [fetchDocumentMembers]);
 
   const handleRemoveUser = React.useCallback(
     async (item) => {
@@ -112,7 +105,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
     [document.members, invitedInSession]
   );
 
-  if (loadingTeamMembers || loadingDocumentMembers) {
+  if (loadingDocumentMembers) {
     return <LoadingIndicator />;
   }
 

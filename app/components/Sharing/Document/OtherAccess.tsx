@@ -12,11 +12,11 @@ import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import Avatar from "../Avatar";
-import { AvatarSize } from "../Avatar/Avatar";
-import CollectionIcon from "../Icons/CollectionIcon";
-import Tooltip from "../Tooltip";
-import { StyledListItem } from "./MemberListItem";
+import Avatar from "../../Avatar";
+import { AvatarSize } from "../../Avatar/Avatar";
+import CollectionIcon from "../../Icons/CollectionIcon";
+import Tooltip from "../../Tooltip";
+import { ListItem } from "../components/ListItem";
 
 type Props = {
   /** The document being shared. */
@@ -36,7 +36,7 @@ export const OtherAccess = observer(({ document, children }: Props) => {
       {collection ? (
         <>
           {collection.permission ? (
-            <StyledListItem
+            <ListItem
               image={
                 <Squircle color={theme.accent} size={AvatarSize.Medium}>
                   <UserIcon color={theme.accentText} size={16} />
@@ -53,7 +53,7 @@ export const OtherAccess = observer(({ document, children }: Props) => {
               }
             />
           ) : usersInCollection ? (
-            <StyledListItem
+            <ListItem
               image={
                 <Squircle color={collection.color} size={AvatarSize.Medium}>
                   <CollectionIcon
@@ -68,7 +68,7 @@ export const OtherAccess = observer(({ document, children }: Props) => {
               actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
             />
           ) : (
-            <StyledListItem
+            <ListItem
               image={<Avatar model={user} showBorder={false} />}
               title={user.name}
               subtitle={t("You have full access")}
@@ -79,7 +79,7 @@ export const OtherAccess = observer(({ document, children }: Props) => {
         </>
       ) : document.isDraft ? (
         <>
-          <StyledListItem
+          <ListItem
             image={<Avatar model={document.createdBy} showBorder={false} />}
             title={document.createdBy?.name}
             actions={
@@ -93,7 +93,7 @@ export const OtherAccess = observer(({ document, children }: Props) => {
       ) : (
         <>
           {children}
-          <StyledListItem
+          <ListItem
             image={
               <Squircle color={theme.accent} size={AvatarSize.Medium}>
                 <MoreIcon color={theme.accentText} size={16} />

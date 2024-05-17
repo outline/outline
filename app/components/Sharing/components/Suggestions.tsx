@@ -1,21 +1,25 @@
 import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
-import { CheckmarkIcon, CloseIcon } from "outline-icons";
+import { CheckmarkIcon, CloseIcon, GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
+import Squircle from "@shared/components/Squircle";
 import { s } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
+import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import Group from "~/models/Group";
 import User from "~/models/User";
+import Avatar from "~/components/Avatar";
+import { AvatarSize, IAvatar } from "~/components/Avatar/Avatar";
+import Empty from "~/components/Empty";
+import Placeholder from "~/components/List/Placeholder";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
 import { hover } from "~/styles";
-import Avatar from "../Avatar";
-import { AvatarSize, IAvatar } from "../Avatar/Avatar";
-import Empty from "../Empty";
-import { InviteIcon, StyledListItem } from "./MemberListItem";
+import { InviteIcon, ListItem } from "./ListItem";
 
 type Suggestion = IAvatar & {
   id: string;
@@ -23,7 +27,9 @@ type Suggestion = IAvatar & {
 
 type Props = {
   /** The document being shared. */
-  document: Document;
+  document?: Document;
+  /** The collection being shared. */
+  collection?: Collection;
   /** The search query to filter users by. */
   query: string;
   /** A list of pending user ids that have not yet been invited. */
@@ -32,17 +38,39 @@ type Props = {
   addPendingId: (id: string) => void;
   /** Callback to remove a user from the pending list. */
   removePendingId: (id: string) => void;
+  /** Show group suggestions. */
+  showGroups?: boolean;
 };
 
-export const UserSuggestions = observer(
-  ({ document, query, pendingIds, addPendingId, removePendingId }: Props) => {
-    const { users } = useStores();
+export const Suggestions = observer(
+  ({
+    document,
+    collection,
+    query,
+    pendingIds,
+    addPendingId,
+    removePendingId,
+    showGroups,
+  }: Props) => {
+    const neverRenderedList = React.useRef(false);
+    const { users, groups } = useStores();
     const { t } = useTranslation();
     const user = useCurrentUser();
+    const theme = useTheme();
 
     const fetchUsersByQuery = useThrottledCallback(
-      (params) => users.fetchPage({ query: params.query }),
-      250
+      (params) => {
+        void users.fetchPage({ query: params.query });
+
+        if (showGroups) {
+          void groups.fetchPage({ query: params.query });
+        }
+      },
+      250,
+      undefined,
+      {
+        leading: true,
+      }
     );
 
     const getSuggestionForEmail = React.useCallback(
@@ -58,12 +86,20 @@ export const UserSuggestions = observer(
     );
 
     const suggestions = React.useMemo(() => {
-      const filtered: Suggestion[] = users
-        .notInDocument(document.id, query)
-        .filter((u) => u.id !== user.id && !u.isSuspended);
+      const filtered: Suggestion[] = (
+        document
+          ? users.notInDocument(document.id, query)
+          : collection
+          ? users.notInCollection(collection.id, query)
+          : users.orderedData
+      ).filter((u) => u.id !== user.id && !u.isSuspended);
 
       if (isEmail(query)) {
         filtered.push(getSuggestionForEmail(query));
+      }
+
+      if (collection?.id) {
+        return [...groups.notInCollection(collection.id, query), ...filtered];
       }
 
       return filtered;
@@ -71,8 +107,9 @@ export const UserSuggestions = observer(
       getSuggestionForEmail,
       users,
       users.orderedData,
-      document.id,
-      document.members,
+      document?.id,
+      document?.members,
+      collection?.id,
       user.id,
       query,
       t,
@@ -82,19 +119,32 @@ export const UserSuggestions = observer(
       () =>
         pendingIds
           .map((id) =>
-            isEmail(id) ? getSuggestionForEmail(id) : users.get(id)
+            isEmail(id)
+              ? getSuggestionForEmail(id)
+              : users.get(id) ?? groups.get(id)
           )
           .filter(Boolean) as User[],
       [users, getSuggestionForEmail, pendingIds]
     );
 
     React.useEffect(() => {
-      if (query) {
-        void fetchUsersByQuery(query);
-      }
+      void fetchUsersByQuery(query);
     }, [query, fetchUsersByQuery]);
 
-    function getListItemProps(suggestion: User) {
+    function getListItemProps(suggestion: User | Group) {
+      if (suggestion instanceof Group) {
+        return {
+          title: suggestion.name,
+          subtitle: t("{{ count }} member", {
+            count: suggestion.memberCount,
+          }),
+          image: (
+            <Squircle color={theme.text} size={AvatarSize.Medium}>
+              <GroupIcon color={theme.background} size={16} />
+            </Squircle>
+          ),
+        };
+      }
       return {
         title: suggestion.name,
         subtitle: suggestion.email
@@ -117,6 +167,12 @@ export const UserSuggestions = observer(
       (u) => !pendingIds.includes(u.id)
     );
 
+    if (users.isFetching && isEmpty && neverRenderedList.current) {
+      return <Placeholder />;
+    }
+
+    neverRenderedList.current = false;
+
     return (
       <>
         {pending.map((suggestion) => (
@@ -135,7 +191,7 @@ export const UserSuggestions = observer(
         {pending.length > 0 &&
           (suggestionsWithPending.length > 0 || isEmpty) && <Separator />}
         {suggestionsWithPending.map((suggestion) => (
-          <StyledListItem
+          <ListItem
             {...getListItemProps(suggestion as User)}
             key={suggestion.id}
             onClick={() => addPendingId(suggestion.id)}
@@ -156,7 +212,7 @@ const RemoveIcon = styled(CloseIcon)`
   display: none;
 `;
 
-const PendingListItem = styled(StyledListItem)`
+const PendingListItem = styled(ListItem)`
   &: ${hover} {
     ${InvitedIcon} {
       display: none;

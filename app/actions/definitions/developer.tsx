@@ -1,11 +1,18 @@
 import copy from "copy-to-clipboard";
-import { CopyIcon, ToolsIcon, TrashIcon, UserIcon } from "outline-icons";
+import {
+  BeakerIcon,
+  CopyIcon,
+  ToolsIcon,
+  TrashIcon,
+  UserIcon,
+} from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
 import { createAction } from "~/actions";
 import { DeveloperSection } from "~/actions/sections";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
+import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import Logger from "~/utils/Logger";
 import { deleteAllDatabases } from "~/utils/developer";
 import history from "~/utils/history";
@@ -104,7 +111,7 @@ export const createToast = createAction({
   name: "Create toast",
   section: DeveloperSection,
   visible: () => env.ENVIRONMENT === "development",
-  perform: async () => {
+  perform: () => {
     toast.message("Hello world", {
       duration: 30000,
     });
@@ -115,7 +122,7 @@ export const toggleDebugLogging = createAction({
   name: ({ t }) => t("Toggle debug logging"),
   icon: <ToolsIcon />,
   section: DeveloperSection,
-  perform: async ({ t }) => {
+  perform: ({ t }) => {
     Logger.debugLoggingEnabled = !Logger.debugLoggingEnabled;
     toast.message(
       Logger.debugLoggingEnabled
@@ -123,6 +130,30 @@ export const toggleDebugLogging = createAction({
         : t("Debug logging disabled")
     );
   },
+});
+
+export const toggleFeatureFlag = createAction({
+  name: "Toggle feature flag",
+  icon: <BeakerIcon />,
+  section: DeveloperSection,
+  visible: () => env.ENVIRONMENT === "development",
+  children: Object.values(Feature).map((flag) =>
+    createAction({
+      id: `flag-${flag}`,
+      name: flag,
+      selected: () => FeatureFlags.isEnabled(flag),
+      section: DeveloperSection,
+      perform: () => {
+        if (FeatureFlags.isEnabled(flag)) {
+          FeatureFlags.disable(flag);
+          toast.success(`Disabled feature flag: ${flag}`);
+        } else {
+          FeatureFlags.enable(flag);
+          toast.success(`Enabled feature flag: ${flag}`);
+        }
+      },
+    })
+  ),
 });
 
 export const developer = createAction({
@@ -133,10 +164,11 @@ export const developer = createAction({
   section: DeveloperSection,
   children: [
     copyId,
-    clearIndexedDB,
     toggleDebugLogging,
+    toggleFeatureFlag,
     createToast,
     createTestUsers,
+    clearIndexedDB,
   ],
 });
 
