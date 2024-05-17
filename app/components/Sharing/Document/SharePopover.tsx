@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { DocumentPermission, UserRole } from "@shared/types";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
+import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
@@ -161,7 +162,7 @@ function SharePopover({
           );
 
           if (usersInvited.length === 1) {
-            const user = usersInvited[0];
+            const user = usersInvited[0] as User;
             toast.message(
               t("{{ userName }} was invited to the document", {
                 userName: user.name,

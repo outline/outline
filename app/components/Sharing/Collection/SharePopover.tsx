@@ -154,8 +154,8 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
                   collectionId: collection.id,
                   userId: user.id,
                   permission:
-                    user?.role === UserRole.Viewer ||
-                    user?.role === UserRole.Guest
+                    user.role === UserRole.Viewer ||
+                    user.role === UserRole.Guest
                       ? CollectionPermission.Read
                       : CollectionPermission.ReadWrite,
                 });
@@ -166,19 +166,19 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
                 await collectionGroupMemberships.create({
                   collectionId: collection.id,
                   groupId: group.id,
-                  permission:
-                    user?.role === UserRole.Viewer ||
-                    user?.role === UserRole.Guest
-                      ? CollectionPermission.Read
-                      : CollectionPermission.ReadWrite,
+                  permission: CollectionPermission.Read,
                 });
                 return group;
               }
             })
           );
 
-          const invitedUsers = invited.filter((item) => item instanceof User);
-          const invitedGroups = invited.filter((item) => item instanceof Group);
+          const invitedUsers = invited.filter(
+            (item) => item instanceof User
+          ) as User[];
+          const invitedGroups = invited.filter(
+            (item) => item instanceof Group
+          ) as Group[];
 
           // Special case for the common action of adding a single user.
           if (invitedUsers.length === 1 && invited.length === 1) {
