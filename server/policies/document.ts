@@ -130,7 +130,7 @@ allow(User, "createChildDocument", Document, (actor, document) =>
   )
 );
 
-allow(User, ["pin", "unpin"], Document, (actor, document) =>
+allow(User, ["updateInsights", "pin", "unpin"], Document, (actor, document) =>
   and(
     can(actor, "update", document),
     can(actor, "update", document?.collection),
