@@ -170,6 +170,8 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
                 });
                 return group;
               }
+
+              return;
             })
           );
 
