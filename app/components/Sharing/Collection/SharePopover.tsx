@@ -143,7 +143,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
                     role: team.defaultUserRole,
                   },
                 ]);
-                user = response.users[0];
+                user = response[0];
               } else {
                 user = users.get(idOrEmail);
                 group = groups.get(idOrEmail);

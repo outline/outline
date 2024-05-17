@@ -100,15 +100,17 @@ export default class UsersStore extends Store<User> {
       name: string;
       role: UserRole;
     }[]
-  ) => {
+  ): Promise<User[]> => {
     const res = await client.post(`/users.invite`, {
       invites,
     });
     invariant(res?.data, "Data should be available");
+
+    let response: User[] = [];
     runInAction(`invite`, () => {
-      res.data.users.forEach(this.add);
+      response = res.data.users.map(this.add);
     });
-    return res.data;
+    return response;
   };
 
   @action

@@ -137,7 +137,7 @@ function SharePopover({
                     role: team.defaultUserRole,
                   },
                 ]);
-                user = response.users[0];
+                user = response[0];
               } else {
                 user = users.get(idOrEmail);
               }
@@ -242,7 +242,7 @@ function SharePopover({
   const rightButton = picker ? (
     pendingIds.length ? (
       <ButtonSmall action={inviteAction} context={context} key="invite">
-        {t("Invite")}
+        {t("Add")}
       </ButtonSmall>
     ) : null
   ) : (

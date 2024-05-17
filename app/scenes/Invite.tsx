@@ -51,12 +51,12 @@ function Invite({ onSubmit }: Props) {
       setIsSaving(true);
 
       try {
-        const data = await users.invite(
+        const response = await users.invite(
           invites.filter((i) => i.email).map((memo) => ({ ...memo, role }))
         );
         onSubmit();
 
-        if (data.sent.length > 0) {
+        if (response.length > 0) {
           toast.success(t("We sent out your invites!"));
         } else {
           toast.message(t("Those email addresses are already invited"));

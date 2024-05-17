@@ -14,6 +14,7 @@ import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import { AvatarSize, IAvatar } from "~/components/Avatar/Avatar";
 import Empty from "~/components/Empty";
+import Placeholder from "~/components/List/Placeholder";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
@@ -51,18 +52,26 @@ export const Suggestions = observer(
     removePendingId,
     showGroups,
   }: Props) => {
+    const neverRenderedList = React.useRef(false);
     const { users, groups } = useStores();
     const { t } = useTranslation();
     const user = useCurrentUser();
     const theme = useTheme();
 
-    const fetchUsersByQuery = useThrottledCallback((params) => {
-      void users.fetchPage({ query: params.query });
+    const fetchUsersByQuery = useThrottledCallback(
+      (params) => {
+        void users.fetchPage({ query: params.query });
 
-      if (showGroups) {
-        void groups.fetchPage({ query: params.query });
+        if (showGroups) {
+          void groups.fetchPage({ query: params.query });
+        }
+      },
+      250,
+      undefined,
+      {
+        leading: true,
       }
-    }, 250);
+    );
 
     const getSuggestionForEmail = React.useCallback(
       (email: string) => ({
@@ -157,6 +166,12 @@ export const Suggestions = observer(
     const suggestionsWithPending = suggestions.filter(
       (u) => !pendingIds.includes(u.id)
     );
+
+    if (users.isFetching && isEmpty && neverRenderedList.current) {
+      return <Placeholder />;
+    }
+
+    neverRenderedList.current = false;
 
     return (
       <>

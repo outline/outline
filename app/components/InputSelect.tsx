@@ -250,7 +250,7 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
                         const isSelected = select.selectedValue === opt.value;
                         const Icon = isSelected ? CheckmarkIcon : Spacer;
                         return (
-                          <>
+                          <React.Fragment key={opt.value}>
                             {opt.divider && <Separator />}
                             <StyledSelectOption
                               {...select}
@@ -262,7 +262,7 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
                               &nbsp;
                               {labelForOption(opt)}
                             </StyledSelectOption>
-                          </>
+                          </React.Fragment>
                         );
                       })
                     : null}
