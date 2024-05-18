@@ -86,6 +86,9 @@ export default class Attachment extends Node {
         href={node.attrs.href}
         title={node.attrs.title}
         onMouseDown={this.handleSelect(props)}
+        onDoubleClick={() => {
+          this.editor.commands.downloadAttachment();
+        }}
         onClick={(event) => {
           if (isEditable) {
             event.preventDefault();
