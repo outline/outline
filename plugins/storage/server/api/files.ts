@@ -94,7 +94,9 @@ router.get(
 
       ctx.set("Cache-Control", cacheHeader);
       ctx.set("Content-Type", attachment.contentType);
-      ctx.attachment(attachment.name);
+      ctx.attachment(attachment.name, {
+        type: FileStorage.getContentDisposition(attachment.contentType),
+      });
       ctx.body = attachment.stream;
     }
   }

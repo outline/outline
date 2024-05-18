@@ -38,7 +38,7 @@ export default class S3Storage extends BaseStorage {
         ["starts-with", "$Cache-Control", ""],
       ]),
       Fields: {
-        "Content-Disposition": "attachment",
+        "Content-Disposition": this.getContentDisposition(contentType),
         key,
         acl,
       },
@@ -114,7 +114,7 @@ export default class S3Storage extends BaseStorage {
         Key: key,
         ContentType: contentType,
         ContentLength: contentLength,
-        ContentDisposition: "attachment",
+        ContentDisposition: this.getContentDisposition(contentType),
         Body: body,
       })
       .promise();
@@ -145,7 +145,6 @@ export default class S3Storage extends BaseStorage {
       Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,
       Key: key,
       Expires: expiresIn,
-      ResponseContentDisposition: "attachment",
     };
 
     const url = isDocker
