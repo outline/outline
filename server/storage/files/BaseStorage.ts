@@ -214,4 +214,29 @@ export default abstract class BaseStorage {
    * @returns A promise that resolves when the file is deleted
    */
   public abstract deleteFile(key: string): Promise<void>;
+
+  /**
+   * Returns the content disposition for a given content type.
+   *
+   * @param contentType The content type
+   * @returns The content disposition
+   */
+  public getContentDisposition(contentType?: string) {
+    if (contentType && this.safeInlineContentTypes.includes(contentType)) {
+      return "inline";
+    }
+
+    return "attachment";
+  }
+
+  /**
+   * A list of content types considered safe to display inline in the browser.
+   */
+  protected safeInlineContentTypes = [
+    "application/pdf",
+    "image/png",
+    "image/jpeg",
+    "image/gif",
+    "image/webp",
+  ];
 }

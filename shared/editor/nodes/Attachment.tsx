@@ -159,6 +159,7 @@ export default class Attachment extends Node {
         // create a temporary link node and click it
         const link = document.createElement("a");
         link.href = node.attrs.href;
+        link.target = "_blank";
         document.body.appendChild(link);
         link.click();
 
