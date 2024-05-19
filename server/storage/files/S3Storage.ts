@@ -26,6 +26,7 @@ export default class S3Storage extends BaseStorage {
     super();
 
     this.client = new S3Client({
+      bucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : false,
       forcePathStyle: env.AWS_S3_FORCE_PATH_STYLE,
       credentials: {
         accessKeyId: env.AWS_ACCESS_KEY_ID || "",
@@ -113,16 +114,11 @@ export default class S3Storage extends BaseStorage {
     key: string;
     acl?: string;
   }) => {
-    invariant(
-      env.AWS_S3_UPLOAD_BUCKET_NAME,
-      "AWS_S3_UPLOAD_BUCKET_NAME is required"
-    );
-
     const upload = new Upload({
       client: this.client,
       params: {
         ACL: acl as ObjectCannedACL,
-        Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,
+        Bucket: this.getBucket(),
         Key: key,
         ContentType: contentType,
         ContentLength: contentLength,
@@ -137,14 +133,9 @@ export default class S3Storage extends BaseStorage {
   };
 
   public async deleteFile(key: string) {
-    invariant(
-      env.AWS_S3_UPLOAD_BUCKET_NAME,
-      "AWS_S3_UPLOAD_BUCKET_NAME is required"
-    );
-
     await this.client.send(
       new DeleteObjectCommand({
-        Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,
+        Bucket: this.getBucket(),
         Key: key,
       })
     );
@@ -156,7 +147,7 @@ export default class S3Storage extends BaseStorage {
   ) => {
     const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
     const params = {
-      Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,
+      Bucket: this.getBucket(),
       Key: key,
       Expires: expiresIn,
     };
@@ -211,15 +202,10 @@ export default class S3Storage extends BaseStorage {
   }
 
   public getFileStream(key: string): Promise<NodeJS.ReadableStream | null> {
-    invariant(
-      env.AWS_S3_UPLOAD_BUCKET_NAME,
-      "AWS_S3_UPLOAD_BUCKET_NAME is required"
-    );
-
     return this.client
       .send(
         new GetObjectCommand({
-          Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,
+          Bucket: this.getBucket(),
           Key: key,
         })
       )
@@ -250,5 +236,9 @@ export default class S3Storage extends BaseStorage {
     }
 
     return env.AWS_S3_UPLOAD_BUCKET_URL;
+  }
+
+  private getBucket() {
+    return env.AWS_S3_ACCELERATE_URL || env.AWS_S3_UPLOAD_BUCKET_NAME || "";
   }
 }
