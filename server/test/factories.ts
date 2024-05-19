@@ -13,6 +13,7 @@ import {
   NotificationEventType,
   UserRole,
 } from "@shared/types";
+import { parser } from "@server/editor";
 import {
   Share,
   Team,
@@ -371,25 +372,12 @@ export async function buildDocument(
     overrides.collectionId = collection.id;
   }
 
+  const text = overrides.text ?? "This is the text in an example document";
   const document = await Document.create(
     {
       title: faker.lorem.words(4),
-      content: {
-        type: "doc",
-        content: [
-          {
-            type: "paragraph",
-            content: [
-              {
-                content: [],
-                type: "text",
-                text: "This is the text in an example document",
-              },
-            ],
-          },
-        ],
-      },
-      text: "This is the text in an example document",
+      content: overrides.content ?? parser.parse(text)?.toJSON(),
+      text,
       publishedAt: isNull(overrides.collectionId) ? null : new Date(),
       lastModifiedById: overrides.userId,
       createdById: overrides.userId,
