@@ -1,4 +1,5 @@
 import TurndownService from "turndown";
+import { inHtmlContext } from "./utils";
 
 /**
  * A turndown plugin for removing incompatible nodes from tables.
@@ -6,20 +7,6 @@ import TurndownService from "turndown";
  * @param turndownService The TurndownService instance.
  */
 export default function sanitizeTables(turndownService: TurndownService) {
-  function inHtmlContext(node: HTMLElement, selector: string) {
-    let currentNode = node;
-    // start at the closest element
-    while (currentNode !== null && currentNode.nodeType !== 1) {
-      currentNode = (currentNode.parentElement ||
-        currentNode.parentNode) as HTMLElement;
-    }
-    return (
-      currentNode !== null &&
-      currentNode.nodeType === 1 &&
-      currentNode.closest(selector) !== null
-    );
-  }
-
   turndownService.addRule("headingsInTables", {
     filter(node) {
       return (
@@ -36,8 +23,8 @@ export default function sanitizeTables(turndownService: TurndownService) {
     filter(node) {
       return node.nodeName === "P" && inHtmlContext(node, "table");
     },
-    replacement(content) {
-      return content.trim();
+    replacement(content, node) {
+      return content.trim() + (node.nextSibling ? "\\n" : "");
     },
   });
 }

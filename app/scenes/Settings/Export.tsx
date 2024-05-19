@@ -24,7 +24,6 @@ function Export() {
 
       dialogs.openModal({
         title: t("Export data"),
-        isCentered: true,
         content: <ExportDialog onSubmit={dialogs.closeAllModals} />,
       });
     },
@@ -34,7 +33,7 @@ function Export() {
   return (
     <Scene title={t("Export")} icon={<DownloadIcon />}>
       <Heading>{t("Export")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans
           defaults="A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – if you have notifications enabled, we will email a link to <em>{{ userEmail }}</em> when it’s complete."
           values={{

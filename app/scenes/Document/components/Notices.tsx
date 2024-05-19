@@ -1,8 +1,10 @@
+import { differenceInDays } from "date-fns";
 import { TrashIcon, ArchiveIcon, ShapesIcon, InputIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Document from "~/models/Document";
+import ErrorBoundary from "~/components/ErrorBoundary";
 import Notice from "~/components/Notice";
 import Time from "~/components/Time";
 
@@ -10,6 +12,19 @@ type Props = {
   document: Document;
   readOnly: boolean;
 };
+
+function Days(props: { dateTime: string }) {
+  const { t } = useTranslation();
+  const days = differenceInDays(new Date(props.dateTime), new Date());
+
+  return (
+    <>
+      {t(`{{ count }} days`, {
+        count: days,
+      })}
+    </>
+  );
+}
 
 export default function Notices({ document, readOnly }: Props) {
   const { t } = useTranslation();
@@ -22,18 +37,18 @@ export default function Notices({ document, readOnly }: Props) {
     return document.template ? (
       <Trans>
         This template will be permanently deleted in{" "}
-        <Time dateTime={document.permanentlyDeletedAt} /> unless restored.
+        <Days dateTime={document.permanentlyDeletedAt} /> unless restored.
       </Trans>
     ) : (
       <Trans>
         This document will be permanently deleted in{" "}
-        <Time dateTime={document.permanentlyDeletedAt} /> unless restored.
+        <Days dateTime={document.permanentlyDeletedAt} /> unless restored.
       </Trans>
     );
   }
 
   return (
-    <>
+    <ErrorBoundary>
       {document.isTemplate && !readOnly && (
         <Notice
           icon={<ShapesIcon />}
@@ -50,7 +65,7 @@ export default function Notices({ document, readOnly }: Props) {
       {document.archivedAt && !document.deletedAt && (
         <Notice icon={<ArchiveIcon />}>
           {t("Archived by {{userName}}", {
-            userName: document.updatedBy.name,
+            userName: document.updatedBy?.name ?? t("Unknown"),
           })}
           &nbsp;
           <Time dateTime={document.updatedAt} addSuffix />
@@ -62,13 +77,13 @@ export default function Notices({ document, readOnly }: Props) {
           description={permanentlyDeletedDescription()}
         >
           {t("Deleted by {{userName}}", {
-            userName: document.updatedBy.name,
+            userName: document.updatedBy?.name ?? t("Unknown"),
           })}
           &nbsp;
           <Time dateTime={document.deletedAt} addSuffix />
         </Notice>
       )}
-    </>
+    </ErrorBoundary>
   );
 }
 

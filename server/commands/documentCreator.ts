@@ -79,7 +79,6 @@ export default async function documentCreator({
       editorVersion,
       collectionId,
       teamId: user.teamId,
-      userId: user.id,
       createdAt,
       updatedAt: updatedAt ?? createdAt,
       lastModifiedById: user.id,
@@ -158,7 +157,10 @@ export default async function documentCreator({
   // reload to get all of the data needed to present (user, collection etc)
   // we need to specify publishedAt to bypass default scope that only returns
   // published documents
-  return await Document.findOne({
+  return await Document.scope([
+    "withDrafts",
+    { method: ["withMembership", user.id] },
+  ]).findOne({
     where: {
       id: document.id,
       publishedAt: document.publishedAt,

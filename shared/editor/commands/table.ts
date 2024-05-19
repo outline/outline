@@ -14,7 +14,27 @@ import {
 } from "prosemirror-tables";
 import { getCellsInColumn } from "../queries/table";
 
-export function createTable(
+export function createTable({
+  rowsCount,
+  colsCount,
+}: {
+  rowsCount: number;
+  colsCount: number;
+}): Command {
+  return (state, dispatch) => {
+    if (dispatch) {
+      const offset = state.tr.selection.anchor + 1;
+      const nodes = createTableInner(state, rowsCount, colsCount);
+      const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
+      const resolvedPos = tr.doc.resolve(offset);
+      tr.setSelection(TextSelection.near(resolvedPos));
+      dispatch(tr);
+    }
+    return true;
+  };
+}
+
+export function createTableInner(
   state: EditorState,
   rowsCount: number,
   colsCount: number,
@@ -60,6 +80,107 @@ export function createTable(
   }
 
   return types.table.createChecked(null, rows);
+}
+
+export function sortTable({
+  index,
+  direction,
+}: {
+  index: number;
+  direction: "asc" | "desc";
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+    if (dispatch) {
+      const rect = selectedRect(state);
+      const table: Node[][] = [];
+
+      for (let r = 0; r < rect.map.height; r++) {
+        const cells = [];
+        for (let c = 0; c < rect.map.width; c++) {
+          const cell = state.doc.nodeAt(
+            rect.tableStart + rect.map.map[r * rect.map.width + c]
+          );
+          if (cell) {
+            cells.push(cell);
+          }
+        }
+        table.push(cells);
+      }
+
+      // check if all the cells in the column are a number
+      const compareAsText = table.some((row) => {
+        const cell = row[index]?.textContent;
+        return cell === "" ? false : isNaN(parseFloat(cell));
+      });
+
+      // remove the header row
+      const header = table.shift();
+
+      // column data before sort
+      const columnData = table.map((row) => row[index]?.textContent ?? "");
+
+      // sort table data based on column at index
+      table.sort((a, b) => {
+        if (compareAsText) {
+          return (a[index]?.textContent ?? "").localeCompare(
+            b[index]?.textContent ?? ""
+          );
+        } else {
+          return (
+            parseFloat(a[index]?.textContent ?? "") -
+            parseFloat(b[index]?.textContent ?? "")
+          );
+        }
+      });
+
+      if (direction === "desc") {
+        table.reverse();
+      }
+
+      // check if column data changed, if not then do not replace table
+      if (
+        columnData.join() === table.map((row) => row[index]?.textContent).join()
+      ) {
+        return true;
+      }
+
+      // add the header row back
+      if (header) {
+        table.unshift(header);
+      }
+
+      // create the new table
+      const rows = [];
+      for (let i = 0; i < table.length; i += 1) {
+        rows.push(state.schema.nodes.tr.createChecked(null, table[i]));
+      }
+
+      // replace the original table with this sorted one
+      const nodes = state.schema.nodes.table.createChecked(null, rows);
+      const { tr } = state;
+
+      tr.replaceRangeWith(
+        rect.tableStart - 1,
+        rect.tableStart - 1 + rect.table.nodeSize,
+        nodes
+      );
+
+      dispatch(
+        tr
+          // .setSelection(
+          //   CellSelection.create(
+          //     tr.doc,
+          //     rect.map.positionAt(0, index, rect.table)
+          //   )
+          // )
+          .scrollIntoView()
+      );
+    }
+    return true;
+  };
 }
 
 export function addRowAndMoveSelection({

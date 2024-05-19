@@ -32,14 +32,14 @@ router.post(
       const document = await Document.findByPk(revision.documentId, {
         userId: user.id,
       });
-      authorize(user, "read", document);
+      authorize(user, "listRevisions", document);
       after = revision;
       before = await revision.before();
     } else if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
       });
-      authorize(user, "read", document);
+      authorize(user, "listRevisions", document);
       after = Revision.buildFromDocument(document);
       after.id = RevisionHelper.latestId(document.id);
       after.user = document.updatedBy;
@@ -75,7 +75,7 @@ router.post(
     const document = await Document.findByPk(revision.documentId, {
       userId: user.id,
     });
-    authorize(user, "read", document);
+    authorize(user, "listRevisions", document);
 
     let before;
     if (compareToId) {
@@ -126,7 +126,7 @@ router.post(
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });
-    authorize(user, "read", document);
+    authorize(user, "listRevisions", document);
 
     const revisions = await Revision.findAll({
       where: {

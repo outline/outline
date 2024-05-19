@@ -6,13 +6,23 @@ import Flex from "~/components/Flex";
 import NavLink from "~/components/NavLink";
 
 export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
+  /** An icon or image to display to the left of the list item */
   image?: React.ReactNode;
+  /** An internal location to navigate to on click, if provided the list item will have hover styles */
   to?: LocationDescriptor;
+  /** An optional click handler, if provided the list item will have hover styles */
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  /** Whether to match the location exactly */
   exact?: boolean;
+  /** The title of the list item */
   title: React.ReactNode;
+  /** The subtitle of the list item, displayed below the title */
   subtitle?: React.ReactNode;
+  /** Actions to display to the right of the list item */
   actions?: React.ReactNode;
+  /** Whether to display a border below the list item */
   border?: boolean;
+  /** Whether to display the list item in a compact style */
   small?: boolean;
 };
 
@@ -74,10 +84,12 @@ const ListItem = (
 const Wrapper = styled.a<{
   $small?: boolean;
   $border?: boolean;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   to?: LocationDescriptor;
 }>`
   display: flex;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
+  min-height: 32px;
   margin: ${(props) =>
     props.$border === false ? (props.$small ? "8px 0" : "16px 0") : 0};
   border-bottom: 1px solid
@@ -88,7 +100,13 @@ const Wrapper = styled.a<{
     border-bottom: 0;
   }
 
-  cursor: ${({ to }) => (to ? "var(--pointer)" : "default")};
+  &:hover {
+    background: ${(props) =>
+      props.onClick ? props.theme.secondaryBackground : "inherit"};
+  }
+
+  cursor: ${(props) =>
+    props.to || props.onClick ? "var(--pointer)" : "default"};
 `;
 
 const Image = styled(Flex)`

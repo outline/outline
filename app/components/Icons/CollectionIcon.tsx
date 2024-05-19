@@ -2,8 +2,8 @@ import { observer } from "mobx-react";
 import { CollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
 import * as React from "react";
+import { IconLibrary } from "@shared/utils/IconLibrary";
 import Collection from "~/models/Collection";
-import { icons } from "~/components/IconPicker";
 import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
 
@@ -38,7 +38,7 @@ function ResolvedCollectionIcon({
 
   if (collection.icon && collection.icon !== "collection") {
     try {
-      const Component = icons[collection.icon].component;
+      const Component = IconLibrary.getComponent(collection.icon);
       return (
         <Component color={color} size={size}>
           {collection.initial}

@@ -2,36 +2,35 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { $Diff } from "utility-types";
 import { CollectionPermission } from "@shared/types";
-import InputSelect, { Props, Option } from "./InputSelect";
+import { EmptySelectValue } from "~/types";
+import InputSelect, { Props, Option, InputSelectRef } from "./InputSelect";
 
-export default function InputSelectPermission(
+function InputSelectPermission(
   props: $Diff<
     Props,
     {
       options: Array<Option>;
       ariaLabel: string;
     }
-  >
+  >,
+  ref: React.RefObject<InputSelectRef>
 ) {
   const { value, onChange, ...rest } = props;
   const { t } = useTranslation();
   const handleChange = React.useCallback(
     (value) => {
-      if (value === "no_access") {
-        value = null;
-      }
-
-      onChange?.(value);
+      onChange?.(value === EmptySelectValue ? null : value);
     },
     [onChange]
   );
 
   return (
     <InputSelect
-      label={t("Default access")}
+      ref={ref}
+      label={t("Permission")}
       options={[
         {
-          label: t("View and edit"),
+          label: t("Can edit"),
           value: CollectionPermission.ReadWrite,
         },
         {
@@ -40,13 +39,15 @@ export default function InputSelectPermission(
         },
         {
           label: t("No access"),
-          value: "no_access",
+          value: EmptySelectValue,
         },
       ]}
       ariaLabel={t("Default access")}
-      value={value || "no_access"}
+      value={value || EmptySelectValue}
       onChange={handleChange}
       {...rest}
     />
   );
 }
+
+export default React.forwardRef(InputSelectPermission);

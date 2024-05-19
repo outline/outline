@@ -43,7 +43,7 @@ function APITokenNew({ onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         {t(
           `Name your token something that will help you to remember it's use in the future, for example "local development", "production", or "continuous integration".`
         )}
@@ -51,7 +51,7 @@ function APITokenNew({ onSubmit }: Props) {
       <Flex>
         <Input
           type="text"
-          label="Name"
+          label={t("Name")}
           onChange={handleNameChange}
           value={name}
           required
@@ -60,7 +60,7 @@ function APITokenNew({ onSubmit }: Props) {
         />
       </Flex>
       <Button type="submit" disabled={isSaving || !name}>
-        {isSaving ? "Creating…" : "Create"}
+        {isSaving ? `${t("Creating")}…` : t("Create")}
       </Button>
     </form>
   );

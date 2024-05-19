@@ -1,6 +1,6 @@
 import { chainCommands } from "prosemirror-commands";
 import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
-import { Command, Plugin, TextSelection } from "prosemirror-state";
+import { Plugin } from "prosemirror-state";
 import {
   addColumnAfter,
   addColumnBefore,
@@ -18,6 +18,7 @@ import {
   addRowAndMoveSelection,
   setColumnAttr,
   createTable,
+  sortTable,
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import tablesRule from "../rules/tables";
@@ -55,26 +56,9 @@ export default class Table extends Node {
 
   commands() {
     return {
-      createTable:
-        ({
-          rowsCount,
-          colsCount,
-        }: {
-          rowsCount: number;
-          colsCount: number;
-        }): Command =>
-        (state, dispatch) => {
-          if (dispatch) {
-            const offset = state.tr.selection.anchor + 1;
-            const nodes = createTable(state, rowsCount, colsCount);
-            const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
-            const resolvedPos = tr.doc.resolve(offset);
-            tr.setSelection(TextSelection.near(resolvedPos));
-            dispatch(tr);
-          }
-          return true;
-        },
+      createTable,
       setColumnAttr,
+      sortTable,
       addColumnBefore: () => addColumnBefore,
       addColumnAfter: () => addColumnAfter,
       deleteColumn: () => deleteColumn,
@@ -91,7 +75,7 @@ export default class Table extends Node {
     return {
       Tab: chainCommands(goToNextCell(1), addRowAndMoveSelection()),
       "Shift-Tab": goToNextCell(-1),
-      Enter: addRowAndMoveSelection(),
+      "Mod-Enter": addRowAndMoveSelection(),
     };
   }
 

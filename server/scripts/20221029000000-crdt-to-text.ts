@@ -37,7 +37,8 @@ export default async function main(exit = false) {
 
     for (const document of documents) {
       const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, document.state);
+      // The where clause above ensures that state is non-null
+      Y.applyUpdate(ydoc, document.state!);
       const node = Node.fromJSON(
         schema,
         yDocToProsemirrorJSON(ydoc, "default")

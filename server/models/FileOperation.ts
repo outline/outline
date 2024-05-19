@@ -1,4 +1,9 @@
-import { Op, WhereOptions } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  Op,
+  WhereOptions,
+} from "sequelize";
 import {
   ForeignKey,
   DefaultScope,
@@ -9,6 +14,7 @@ import {
   DataType,
 } from "sequelize-typescript";
 import {
+  CollectionPermission,
   FileOperationFormat,
   FileOperationState,
   FileOperationType,
@@ -19,6 +25,11 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+
+export type FileOperationOptions = {
+  includeAttachments?: boolean;
+  permission?: CollectionPermission | null;
+};
 
 @DefaultScope(() => ({
   include: [
@@ -36,7 +47,10 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "file_operations", modelName: "file_operation" })
 @Fix
-class FileOperation extends ParanoidModel {
+class FileOperation extends ParanoidModel<
+  InferAttributes<FileOperation>,
+  Partial<InferCreationAttributes<FileOperation>>
+> {
   @Column(DataType.ENUM(...Object.values(FileOperationType)))
   type: FileOperationType;
 
@@ -50,7 +64,7 @@ class FileOperation extends ParanoidModel {
   key: string;
 
   @Column
-  url: string;
+  url?: string | null;
 
   @Column
   error: string | null;
@@ -58,8 +72,11 @@ class FileOperation extends ParanoidModel {
   @Column(DataType.BIGINT)
   size: number;
 
-  @Column(DataType.BOOLEAN)
-  includeAttachments: boolean;
+  /**
+   * Additional configuration options for the file operation.
+   */
+  @Column(DataType.JSON)
+  options: FileOperationOptions | null;
 
   /**
    * Mark the current file operation as expired and remove the file from storage.
@@ -118,7 +135,7 @@ class FileOperation extends ParanoidModel {
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string;
+  collectionId?: string | null;
 
   /**
    * Count the number of export file operations for a given team after a point

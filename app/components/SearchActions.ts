@@ -11,7 +11,9 @@ export default function SearchActions() {
 
   React.useEffect(() => {
     if (!searches.isLoaded) {
-      void searches.fetchPage({});
+      void searches.fetchPage({
+        source: "app",
+      });
     }
   }, [searches]);
 

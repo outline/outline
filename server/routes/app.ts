@@ -6,6 +6,7 @@ import escape from "lodash/escape";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import { IntegrationType, TeamPreference } from "@shared/types";
+import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import { Integration } from "@server/models";
@@ -91,12 +92,13 @@ export const renderApp = async (
   ctx.body = page
     .toString()
     .replace(/\{env\}/g, environment)
+    .replace(/\{lang\}/g, unicodeCLDRtoISO639(env.DEFAULT_LANGUAGE))
     .replace(/\{title\}/g, escape(title))
     .replace(/\{description\}/g, escape(description))
     .replace(/\{canonical-url\}/g, canonical)
     .replace(/\{shortcut-icon\}/g, shortcutIcon)
     .replace(/\{prefetch\}/g, shareId ? "" : prefetchTags)
-    .replace(/\{slack-app-id\}/g, env.SLACK_APP_ID || "")
+    .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{cdn-url\}/g, env.CDN_URL || "")
     .replace(/\{script-tags\}/g, scriptTags)
     .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);

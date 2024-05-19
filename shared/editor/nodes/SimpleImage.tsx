@@ -142,7 +142,7 @@ export default class SimpleImage extends Node {
         inputElement.accept = AttachmentValidation.imageContentTypes.join(", ");
         inputElement.onchange = (event) => {
           const files = getEventFiles(event);
-          insertFiles(view, event, state.selection.from, files, {
+          void insertFiles(view, event, state.selection.from, files, {
             uploadFile,
             onFileUploadStart,
             onFileUploadStop,

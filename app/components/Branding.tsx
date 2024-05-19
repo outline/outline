@@ -34,16 +34,17 @@ const Link = styled.a`
     fill: ${s("text")};
   }
 
-  &:hover {
-    background: ${s("sidebarBackground")};
-  }
-
   ${breakpoint("tablet")`
     z-index: ${depths.sidebar + 1};
+    background: ${s("sidebarBackground")};
     position: fixed;
     bottom: 0;
-    left: 0;
+    right: 0;
     padding: 16px;
+
+    &:hover {
+      background: ${s("sidebarControlHoverBackground")};
+    }
   `};
 `;
 

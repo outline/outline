@@ -4,18 +4,19 @@ import { Trans, useTranslation } from "react-i18next";
 import { CollectionPermission } from "@shared/types";
 import Membership from "~/models/Membership";
 import User from "~/models/User";
+import UserMembership from "~/models/UserMembership";
 import Avatar from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
+import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import ListItem from "~/components/List/Item";
 import Time from "~/components/Time";
 import MemberMenu from "~/menus/MemberMenu";
-import InputMemberPermissionSelect from "./InputMemberPermissionSelect";
 
 type Props = {
   user: User;
-  membership?: Membership | undefined;
+  membership?: Membership | UserMembership | undefined;
   canEdit: boolean;
   onAdd?: () => void;
   onRemove?: () => void;
@@ -53,7 +54,21 @@ const MemberListItem = ({
         <Flex align="center" gap={8}>
           {onUpdate && (
             <InputMemberPermissionSelect
-              value={membership ? membership.permission : undefined}
+              permissions={[
+                {
+                  label: t("View only"),
+                  value: CollectionPermission.Read,
+                },
+                {
+                  label: t("Can edit"),
+                  value: CollectionPermission.ReadWrite,
+                },
+                {
+                  label: t("Admin"),
+                  value: CollectionPermission.Admin,
+                },
+              ]}
+              value={membership?.permission}
               onChange={onUpdate}
               disabled={!canEdit}
             />

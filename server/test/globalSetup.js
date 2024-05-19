@@ -1,4 +1,3 @@
-import "./env";
 import { sequelize } from "@server/storage/database";
 
 module.exports = async function () {

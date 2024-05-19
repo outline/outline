@@ -3,7 +3,13 @@ import compact from "lodash/compact";
 import isNil from "lodash/isNil";
 import uniq from "lodash/uniq";
 import randomstring from "randomstring";
-import type { Identifier, NonNullFindOptions, SaveOptions } from "sequelize";
+import type {
+  Identifier,
+  InferAttributes,
+  InferCreationAttributes,
+  NonNullFindOptions,
+  SaveOptions,
+} from "sequelize";
 import {
   Sequelize,
   Transaction,
@@ -33,6 +39,7 @@ import {
   IsNumeric,
   IsDate,
   AllowNull,
+  BelongsToMany,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type {
@@ -40,9 +47,9 @@ import type {
   ProsemirrorData,
   SourceMetadata,
 } from "@shared/types";
-import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
-import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import Backlink from "./Backlink";
@@ -52,6 +59,7 @@ import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
+import UserMembership from "./UserMembership";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -91,33 +99,20 @@ type AdditionalFindOptions = {
   },
 }))
 @Scopes(() => ({
-  withCollectionPermissions: (userId: string, paranoid = true) => {
-    if (userId) {
-      return {
-        include: [
-          {
-            attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
-            model: Collection.scope({
+  withCollectionPermissions: (userId: string, paranoid = true) => ({
+    include: [
+      {
+        attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
+        model: userId
+          ? Collection.scope({
               method: ["withMembership", userId],
-            }),
-            as: "collection",
-            paranoid,
-          },
-        ],
-      };
-    }
-
-    return {
-      include: [
-        {
-          attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
-          model: Collection,
-          as: "collection",
-          paranoid,
-        },
-      ],
-    };
-  },
+            })
+          : Collection,
+        as: "collection",
+        paranoid,
+      },
+    ],
+  }),
   withoutState: {
     attributes: {
       exclude: ["state"],
@@ -180,10 +175,36 @@ type AdditionalFindOptions = {
       ],
     };
   },
+  withMembership: (userId: string) => {
+    if (!userId) {
+      return {};
+    }
+    return {
+      include: [
+        {
+          association: "memberships",
+          where: {
+            userId,
+          },
+          required: false,
+        },
+      ],
+    };
+  },
+  withAllMemberships: {
+    include: [
+      {
+        association: "memberships",
+      },
+    ],
+  },
 }))
 @Table({ tableName: "documents", modelName: "document" })
 @Fix
-class Document extends ParanoidModel {
+class Document extends ParanoidModel<
+  InferAttributes<Document>,
+  Partial<InferCreationAttributes<Document>>
+> {
   @SimpleLength({
     min: 10,
     max: 10,
@@ -200,12 +221,19 @@ class Document extends ParanoidModel {
   @Column
   title: string;
 
+  @Length({
+    max: DocumentValidation.maxSummaryLength,
+    msg: `Document summary must be ${DocumentValidation.maxSummaryLength} characters or less`,
+  })
+  @Column
+  summary: string;
+
   @Column(DataType.ARRAY(DataType.STRING))
   previousTitles: string[] = [];
 
   @IsNumeric
   @Column(DataType.SMALLINT)
-  version: number;
+  version?: number | null;
 
   @Default(false)
   @Column
@@ -258,7 +286,7 @@ class Document extends ParanoidModel {
     msg: `Document collaborative state is too large, you must create a new document`,
   })
   @Column(DataType.BLOB)
-  state: Uint8Array;
+  state?: Uint8Array | null;
 
   /** Whether this document is part of onboarding. */
   @Default(false)
@@ -293,16 +321,16 @@ class Document extends ParanoidModel {
    * @deprecated Use `path` instead.
    */
   get url() {
+    return this.path;
+  }
+
+  /** The frontend path to this document. */
+  get path() {
     if (!this.title) {
       return `/doc/untitled-${this.urlId}`;
     }
     const slugifiedTitle = slugify(this.title);
     return `/doc/${slugifiedTitle}-${this.urlId}`;
-  }
-
-  /** The frontend path to this document. */
-  get path() {
-    return this.url;
   }
 
   get tasks() {
@@ -382,18 +410,17 @@ class Document extends ParanoidModel {
   }
 
   @BeforeUpdate
-  static processUpdate(model: Document) {
+  static async processUpdate(model: Document) {
     // ensure documents have a title
     model.title = model.title || "";
 
-    if (model.previous("title") && model.previous("title") !== model.title) {
+    const previousTitle = model.previous("title");
+    if (previousTitle && previousTitle !== model.title) {
       if (!model.previousTitles) {
         model.previousTitles = [];
       }
 
-      model.previousTitles = uniq(
-        model.previousTitles.concat(model.previous("title"))
-      );
+      model.previousTitles = uniq(model.previousTitles.concat(previousTitle));
     }
 
     // add the current user as a collaborator on this doc
@@ -403,7 +430,7 @@ class Document extends ParanoidModel {
 
     // backfill content if it's missing
     if (!model.content) {
-      model.content = DocumentHelper.toJSON(model);
+      model.content = await DocumentHelper.toJSON(model);
     }
 
     // ensure the last modifying user is a collaborator
@@ -492,9 +519,15 @@ class Document extends ParanoidModel {
   @BelongsTo(() => Collection, "collectionId")
   collection: Collection | null | undefined;
 
+  @BelongsToMany(() => User, () => UserMembership)
+  users: User[];
+
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
+
+  @HasMany(() => UserMembership)
+  memberships: UserMembership[];
 
   @HasMany(() => Revision)
   revisions: Revision[];
@@ -508,6 +541,25 @@ class Document extends ParanoidModel {
   @HasMany(() => View)
   views: View[];
 
+  /**
+   * Returns an array of unique userIds that are members of a document via direct membership
+   *
+   * @param documentId
+   * @returns userIds
+   */
+  static async membershipUserIds(documentId: string) {
+    const document = await this.scope("withAllMemberships").findOne({
+      where: {
+        id: documentId,
+      },
+    });
+    if (!document) {
+      return [];
+    }
+
+    return document.memberships.map((membership) => membership.userId);
+  }
+
   static defaultScopeWithUser(userId: string) {
     const collectionScope: Readonly<ScopeOptions> = {
       method: ["withCollectionPermissions", userId],
@@ -515,7 +567,15 @@ class Document extends ParanoidModel {
     const viewScope: Readonly<ScopeOptions> = {
       method: ["withViews", userId],
     };
-    return this.scope(["defaultScope", collectionScope, viewScope]);
+    const membershipScope: Readonly<ScopeOptions> = {
+      method: ["withMembership", userId],
+    };
+    return this.scope([
+      "defaultScope",
+      collectionScope,
+      viewScope,
+      membershipScope,
+    ]);
   }
 
   /**
@@ -554,6 +614,9 @@ class Document extends ParanoidModel {
       {
         method: ["withViews", userId],
       },
+      {
+        method: ["withMembership", userId],
+      },
     ]);
 
     if (isUUID(id)) {
@@ -572,7 +635,7 @@ class Document extends ParanoidModel {
       return document;
     }
 
-    const match = id.match(SLUG_URL_REGEX);
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
       const document = await scope.findOne({
         where: {
@@ -778,9 +841,51 @@ class Document extends ParanoidModel {
       }
     }
 
+    const parentDocumentPermissions = this.parentDocumentId
+      ? await UserMembership.findAll({
+          where: {
+            documentId: this.parentDocumentId,
+          },
+          transaction,
+        })
+      : [];
+
+    await Promise.all(
+      parentDocumentPermissions.map((permission) =>
+        UserMembership.create(
+          {
+            documentId: this.id,
+            userId: permission.userId,
+            sourceId: permission.sourceId ?? permission.id,
+            permission: permission.permission,
+            createdById: permission.createdById,
+          },
+          {
+            transaction,
+          }
+        )
+      )
+    );
+
     this.lastModifiedById = userId;
     this.publishedAt = new Date();
     return this.save({ transaction });
+  };
+
+  isCollectionDeleted = async () => {
+    if (this.deletedAt || this.archivedAt) {
+      if (this.collectionId) {
+        const collection =
+          this.collection ??
+          (await Collection.findByPk(this.collectionId, {
+            attributes: ["deletedAt"],
+            paranoid: false,
+          }));
+
+        return !!collection?.deletedAt;
+      }
+    }
+    return false;
   };
 
   unpublish = async (userId: string) => {
@@ -849,12 +954,9 @@ class Document extends ParanoidModel {
         const parent = await (this.constructor as typeof Document).findOne({
           where: {
             id: this.parentDocumentId,
-            archivedAt: {
-              [Op.is]: null,
-            },
           },
         });
-        if (!parent) {
+        if (parent?.isDraft || !parent?.isActive) {
           this.parentDocumentId = null;
         }
       }
@@ -914,6 +1016,10 @@ class Document extends ParanoidModel {
   getTimestamp = () => Math.round(new Date(this.updatedAt).getTime() / 1000);
 
   getSummary = () => {
+    if (this.summary) {
+      return this.summary;
+    }
+
     const plainText = DocumentHelper.toPlainText(this);
     const lines = compact(plainText.split("\n"));
     const notEmpty = lines.length >= 1;
@@ -935,22 +1041,25 @@ class Document extends ParanoidModel {
   toNavigationNode = async (
     options?: FindOptions<Document>
   ): Promise<NavigationNode> => {
-    const childDocuments = await (this.constructor as typeof Document)
-      .unscoped()
-      .scope("withoutState")
-      .findAll({
-        where: {
-          teamId: this.teamId,
-          parentDocumentId: this.id,
-          archivedAt: {
-            [Op.is]: null,
-          },
-          publishedAt: {
-            [Op.ne]: null,
-          },
-        },
-        transaction: options?.transaction,
-      });
+    // Checking if the record is new is a performance optimization – new docs cannot have children
+    const childDocuments = this.isNewRecord
+      ? []
+      : await (this.constructor as typeof Document)
+          .unscoped()
+          .scope("withoutState")
+          .findAll({
+            where: {
+              teamId: this.teamId,
+              parentDocumentId: this.id,
+              archivedAt: {
+                [Op.is]: null,
+              },
+              publishedAt: {
+                [Op.ne]: null,
+              },
+            },
+            transaction: options?.transaction,
+          });
 
     const children = await Promise.all(
       childDocuments.map((child) => child.toNavigationNode(options))

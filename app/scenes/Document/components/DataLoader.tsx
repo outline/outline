@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
 import { NavigationNode, TeamPreference } from "@shared/types";
-import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -44,7 +44,7 @@ type Children = (options: {
   revision: Revision | undefined;
   abilities: Record<string, boolean>;
   readOnly: boolean;
-  onCreateLink: (title: string) => Promise<string>;
+  onCreateLink: (title: string, nested?: boolean) => Promise<string>;
   sharedTree: NavigationNode | undefined;
 }) => React.ReactNode;
 
@@ -79,7 +79,7 @@ function DataLoader({ match, children }: Props) {
   const isEditRoute =
     match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
   const isEditing = isEditRoute || !user?.separateEditMode;
-  const can = usePolicy(document?.id);
+  const can = usePolicy(document);
   const location = useLocation<LocationState>();
 
   React.useEffect(() => {
@@ -123,7 +123,7 @@ function DataLoader({ match, children }: Props) {
 
   React.useEffect(() => {
     async function fetchSubscription() {
-      if (document?.id && !revisionId) {
+      if (document?.id && !document?.isDeleted && !revisionId) {
         try {
           await subscriptions.fetchPage({
             documentId: document.id,
@@ -135,7 +135,7 @@ function DataLoader({ match, children }: Props) {
       }
     }
     void fetchSubscription();
-  }, [document?.id, subscriptions, revisionId]);
+  }, [document?.id, document?.isDeleted, subscriptions, revisionId]);
 
   React.useEffect(() => {
     async function fetchViews() {
@@ -153,14 +153,14 @@ function DataLoader({ match, children }: Props) {
   }, [document?.id, document?.isDeleted, revisionId, views]);
 
   const onCreateLink = React.useCallback(
-    async (title: string) => {
+    async (title: string, nested?: boolean) => {
       if (!document) {
         throw new Error("Document not loaded yet");
       }
 
       const newDocument = await documents.create({
         collectionId: document.collectionId,
-        parentDocumentId: document.parentDocumentId,
+        parentDocumentId: nested ? document.id : document.parentDocumentId,
         title,
         data: ProsemirrorHelper.getEmptyDocument(),
       });
@@ -184,9 +184,10 @@ function DataLoader({ match, children }: Props) {
 
       // Prevents unauthorized request to load share information for the document
       // when viewing a public share link
-      if (can.read) {
+      if (can.read && !document.isDeleted) {
         if (team.getPreference(TeamPreference.Commenting)) {
-          void comments.fetchDocumentComments(document.id, {
+          void comments.fetchPage({
+            documentId: document.id,
             limit: 100,
           });
         }

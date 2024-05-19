@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import useMediaQuery from "~/hooks/useMediaQuery";
 import useMobile from "~/hooks/useMobile";
 
 type Props = {
@@ -15,7 +16,13 @@ const MobileWrapper = styled.div`
 
 const MobileScrollWrapper = ({ children }: Props) => {
   const isMobile = useMobile();
-  return isMobile ? <MobileWrapper>{children}</MobileWrapper> : <>{children}</>;
+  const isPrinting = useMediaQuery("print");
+
+  return isMobile && !isPrinting ? (
+    <MobileWrapper>{children}</MobileWrapper>
+  ) : (
+    <>{children}</>
+  );
 };
 
 export default MobileScrollWrapper;

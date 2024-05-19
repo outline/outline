@@ -8,6 +8,7 @@ import { VisuallyHidden } from "reakit";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
+import { ProsemirrorData } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation, CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
@@ -20,12 +21,15 @@ import Tooltip from "~/components/Tooltip";
 import type { Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
-import usePersistedState from "~/hooks/usePersistedState";
 import useStores from "~/hooks/useStores";
 import CommentEditor from "./CommentEditor";
 import { Bubble } from "./CommentThreadItem";
 
 type Props = {
+  /** Callback when the draft should be saved. */
+  onSaveDraft: (data: ProsemirrorData | undefined) => void;
+  /** A draft comment for this thread. */
+  draft?: ProsemirrorData;
   /** The document that the comment will be associated with */
   documentId: string;
   /** The comment thread that the comment will be associated with */
@@ -51,6 +55,8 @@ type Props = {
 function CommentForm({
   documentId,
   thread,
+  draft,
+  onSaveDraft,
   onTyping,
   onFocus,
   onBlur,
@@ -62,10 +68,6 @@ function CommentForm({
   ...rest
 }: Props) {
   const { editor } = useDocumentContext();
-  const [data, setData] = usePersistedState<Record<string, any> | undefined>(
-    `draft-${documentId}-${!thread ? "new" : thread?.id}`,
-    undefined
-  );
   const formRef = React.useRef<HTMLFormElement>(null);
   const editorRef = React.useRef<SharedEditor>(null);
   const [forceRender, setForceRender] = React.useState(0);
@@ -92,7 +94,7 @@ function CommentForm({
   const handleCreateComment = action(async (event: React.FormEvent) => {
     event.preventDefault();
 
-    setData(undefined);
+    onSaveDraft(undefined);
     setForceRender((s) => ++s);
     setInputFocused(false);
 
@@ -101,7 +103,7 @@ function CommentForm({
       new Comment(
         {
           documentId,
-          data,
+          data: draft,
         },
         comments
       );
@@ -109,7 +111,7 @@ function CommentForm({
     comment
       .save({
         documentId,
-        data,
+        data: draft,
       })
       .catch(() => {
         comment.isNew = true;
@@ -124,18 +126,18 @@ function CommentForm({
 
   const handleCreateReply = action(async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!data) {
+    if (!draft) {
       return;
     }
 
-    setData(undefined);
+    onSaveDraft(undefined);
     setForceRender((s) => ++s);
 
     const comment = new Comment(
       {
         parentCommentId: thread?.id,
         documentId,
-        data,
+        data: draft,
       },
       comments
     );
@@ -161,10 +163,10 @@ function CommentForm({
   });
 
   const handleChange = (
-    value: (asString: boolean, trim: boolean) => Record<string, any>
+    value: (asString: boolean, trim: boolean) => ProsemirrorData
   ) => {
     const text = value(true, true);
-    setData(text ? value(false, true) : undefined);
+    onSaveDraft(text ? value(false, true) : undefined);
     onTyping?.();
   };
 
@@ -181,7 +183,7 @@ function CommentForm({
   };
 
   const handleCancel = async () => {
-    setData(undefined);
+    onSaveDraft(undefined);
     setForceRender((s) => ++s);
     setInputFocused(false);
     await reset();
@@ -204,7 +206,8 @@ function CommentForm({
     if (!files.length) {
       return;
     }
-    editorRef.current?.insertFiles(event, files);
+
+    return editorRef.current?.insertFiles(event, files);
   };
 
   const handleImageUpload = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -274,7 +277,7 @@ function CommentForm({
           <CommentEditor
             key={`${forceRender}`}
             ref={editorRef}
-            defaultValue={data}
+            defaultValue={draft}
             onChange={handleChange}
             onSave={handleSave}
             onFocus={handleFocus}
@@ -289,7 +292,7 @@ function CommentForm({
                 : `${t("Add a reply")}…`)
             }
           />
-          {(inputFocused || data) && (
+          {(inputFocused || draft) && (
             <Flex justify="space-between" reverse={dir === "rtl"} gap={8}>
               <Flex gap={8}>
                 <ButtonSmall type="submit" borderOnHover>
@@ -299,7 +302,7 @@ function CommentForm({
                   {t("Cancel")}
                 </ButtonSmall>
               </Flex>
-              <Tooltip delay={500} tooltip={t("Upload image")} placement="top">
+              <Tooltip delay={500} content={t("Upload image")} placement="top">
                 <NudeButton onClick={handleImageUpload}>
                   <ImageIcon color={theme.textTertiary} />
                 </NudeButton>

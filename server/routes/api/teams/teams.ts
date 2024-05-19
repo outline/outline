@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import Router from "koa-router";
+import { UserRole } from "@shared/types";
 import teamCreator from "@server/commands/teamCreator";
 import teamDestroyer from "@server/commands/teamDestroyer";
 import teamUpdater from "@server/commands/teamUpdater";
@@ -47,7 +48,7 @@ const handleTeamUpdate = async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
 
 router.post(
   "team.update",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
   validate(T.TeamsUpdateSchema),
   transaction(),
@@ -56,7 +57,7 @@ router.post(
 
 router.post(
   "teams.update",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
   validate(T.TeamsUpdateSchema),
   transaction(),
@@ -164,7 +165,7 @@ router.post(
         teamId: team.id,
         name: user.name,
         email: user.email,
-        isAdmin: true,
+        role: UserRole.Admin,
       },
       { transaction }
     );

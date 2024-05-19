@@ -16,7 +16,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import {
   Collection,
-  UserPermission,
+  UserMembership,
   GroupPermission,
   Team,
   Event,
@@ -160,7 +160,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsImportReq>) => {
     const { transaction } = ctx.state;
-    const { attachmentId, format } = ctx.input.body;
+    const { attachmentId, permission, format } = ctx.input.body;
 
     const { user } = ctx.state.auth;
     authorize(user, "importCollection", user.team);
@@ -179,6 +179,9 @@ router.post(
         key: attachment.key,
         userId: user.id,
         teamId: user.teamId,
+        options: {
+          permission,
+        },
       },
       {
         transaction,
@@ -249,6 +252,7 @@ router.post(
       modelId: groupId,
       data: {
         name: group.name,
+        membershipId: membership.id,
       },
       ip: ctx.request.ip,
     });
@@ -267,30 +271,45 @@ router.post(
   "collections.remove_group",
   auth(),
   validate(T.CollectionsRemoveGroupSchema),
+  transaction(),
   async (ctx: APIContext<T.CollectionsRemoveGroupReq>) => {
     const { id, groupId } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
-    }).findByPk(id);
+    }).findByPk(id, { transaction });
     authorize(user, "update", collection);
 
-    const group = await Group.findByPk(groupId);
+    const group = await Group.findByPk(groupId, { transaction });
     authorize(user, "read", group);
 
-    await collection.$remove("group", group);
-    await Event.create({
-      name: "collections.remove_group",
-      collectionId: collection.id,
-      teamId: collection.teamId,
-      actorId: user.id,
-      modelId: groupId,
-      data: {
-        name: group.name,
-      },
-      ip: ctx.request.ip,
+    const [membership] = await collection.$get("collectionGroupMemberships", {
+      where: { groupId },
+      transaction,
     });
+
+    if (!membership) {
+      ctx.throw(400, "This Group is not a part of the collection");
+    }
+
+    await collection.$remove("group", group);
+    await Event.create(
+      {
+        name: "collections.remove_group",
+        collectionId: collection.id,
+        teamId: collection.teamId,
+        actorId: user.id,
+        modelId: groupId,
+        data: {
+          name: group.name,
+          membershipId: membership.id,
+        },
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
 
     ctx.body = {
       success: true,
@@ -366,6 +385,7 @@ router.post(
 router.post(
   "collections.add_user",
   auth(),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   transaction(),
   validate(T.CollectionsAddUserSchema),
   async (ctx: APIContext<T.CollectionsAddUserReq>) => {
@@ -381,28 +401,20 @@ router.post(
     const user = await User.findByPk(userId);
     authorize(actor, "read", user);
 
-    let membership = await UserPermission.findOne({
+    const [membership, isNew] = await UserMembership.findOrCreate({
       where: {
         collectionId: id,
         userId,
+      },
+      defaults: {
+        permission: permission || user.defaultCollectionPermission,
+        createdById: actor.id,
       },
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
 
-    if (!membership) {
-      membership = await UserPermission.create(
-        {
-          collectionId: id,
-          userId,
-          permission: permission || user.defaultCollectionPermission,
-          createdById: actor.id,
-        },
-        {
-          transaction,
-        }
-      );
-    } else if (permission) {
+    if (permission) {
       membership.permission = permission;
       await membership.save({ transaction });
     }
@@ -411,11 +423,13 @@ router.post(
       {
         name: "collections.add_user",
         userId,
+        modelId: membership.id,
         collectionId: collection.id,
         teamId: collection.teamId,
         actorId: actor.id,
         data: {
-          name: user.name,
+          isNew,
+          permission: membership.permission,
         },
         ip: ctx.request.ip,
       },
@@ -436,8 +450,8 @@ router.post(
 router.post(
   "collections.remove_user",
   auth(),
-  transaction(),
   validate(T.CollectionsRemoveUserSchema),
+  transaction(),
   async (ctx: APIContext<T.CollectionsRemoveUserReq>) => {
     const { auth, transaction } = ctx.state;
     const actor = auth.user;
@@ -451,11 +465,21 @@ router.post(
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
 
+    const [membership] = await collection.$get("memberships", {
+      where: { userId },
+      transaction,
+    });
+    if (!membership) {
+      ctx.throw(400, "User is not a collection member");
+    }
+
     await collection.$remove("user", user, { transaction });
+
     await Event.create(
       {
         name: "collections.remove_user",
         userId,
+        modelId: membership.id,
         collectionId: collection.id,
         teamId: collection.teamId,
         actorId: actor.id,
@@ -487,7 +511,7 @@ router.post(
     }).findByPk(id);
     authorize(user, "read", collection);
 
-    let where: WhereOptions<UserPermission> = {
+    let where: WhereOptions<UserMembership> = {
       collectionId: id,
     };
     let userWhere;
@@ -517,8 +541,8 @@ router.post(
     };
 
     const [total, memberships] = await Promise.all([
-      UserPermission.count(options),
-      UserPermission.findAll({
+      UserMembership.count(options),
+      UserMembership.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
@@ -629,7 +653,7 @@ router.post(
       permission !== CollectionPermission.ReadWrite &&
       collection.permission === CollectionPermission.ReadWrite
     ) {
-      await UserPermission.findOrCreate({
+      await UserMembership.findOrCreate({
         where: {
           collectionId: collection.id,
           userId: user.id,
@@ -759,17 +783,20 @@ router.post(
             teamId: user.teamId,
             id: collectionIds,
           };
-    const collections = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findAll({
-      where,
-      order: [
-        Sequelize.literal('"collection"."index" collate "C"'),
-        ["updatedAt", "DESC"],
-      ],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    const [collections, total] = await Promise.all([
+      Collection.scope({
+        method: ["withMembership", user.id],
+      }).findAll({
+        where,
+        order: [
+          Sequelize.literal('"collection"."index" collate "C"'),
+          ["updatedAt", "DESC"],
+        ],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Collection.count({ where }),
+    ]);
 
     const nullIndex = collections.findIndex(
       (collection) => collection.index === null
@@ -783,7 +810,7 @@ router.post(
     }
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: collections.map(presentCollection),
       policies: presentPolicies(user, collections),
     };

@@ -3,7 +3,7 @@ import { InputRule } from "prosemirror-inputrules";
 import { NodeType, MarkType, Schema } from "prosemirror-model";
 import { Command, Plugin } from "prosemirror-state";
 import { Primitive } from "utility-types";
-import { Editor } from "../../../app/editor";
+import type { Editor } from "../../../app/editor";
 
 export type CommandFactory = (attrs?: Record<string, Primitive>) => Command;
 

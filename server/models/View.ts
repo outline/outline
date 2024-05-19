@@ -1,4 +1,9 @@
-import { FindOrCreateOptions, Op } from "sequelize";
+import {
+  FindOrCreateOptions,
+  InferAttributes,
+  InferCreationAttributes,
+  Op,
+} from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -26,7 +31,10 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "views", modelName: "view" })
 @Fix
-class View extends IdModel {
+class View extends IdModel<
+  InferAttributes<View>,
+  Partial<InferCreationAttributes<View>>
+> {
   @Column
   lastEditingAt: Date | null;
 
@@ -55,7 +63,7 @@ class View extends IdModel {
       userId: string;
       documentId: string;
     },
-    options?: FindOrCreateOptions
+    options?: FindOrCreateOptions<InferAttributes<View>>
   ) {
     const [model, created] = await this.findOrCreate({
       ...options,

@@ -1,4 +1,10 @@
-import type { SaveOptions, WhereOptions } from "sequelize";
+import type {
+  CreateOptions,
+  InferAttributes,
+  InferCreationAttributes,
+  SaveOptions,
+  WhereOptions,
+} from "sequelize";
 import {
   ForeignKey,
   AfterSave,
@@ -12,7 +18,7 @@ import {
   Length,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
-import { Event as TEvent } from "../types";
+import { APIContext } from "../types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -22,24 +28,43 @@ import Fix from "./decorators/Fix";
 
 @Table({ tableName: "events", modelName: "event", updatedAt: false })
 @Fix
-class Event extends IdModel {
+class Event extends IdModel<
+  InferAttributes<Event>,
+  Partial<InferCreationAttributes<Event>>
+> {
   @IsUUID(4)
   @Column(DataType.UUID)
   modelId: string | null;
 
+  /**
+   * The name of the event.
+   */
   @Length({
     max: 255,
     msg: "name must be 255 characters or less",
   })
-  @Column
+  @Column(DataType.STRING)
   name: string;
 
+  /**
+   * The originating IP address of the event.
+   */
   @IsIP
   @Column
   ip: string | null;
 
+  /**
+   * Metadata associated with the event, previously used for storing some changed attributes.
+   */
   @Column(DataType.JSONB)
   data: Record<string, any> | null;
+
+  /**
+   * The changes made to the model – gradually moving to this column away from `data` which can be
+   * used for arbitrary data associated with the event.
+   */
+  @Column(DataType.JSONB)
+  changes?: Record<string, any> | null;
 
   // hooks
 
@@ -124,71 +149,29 @@ class Event extends IdModel {
     });
   }
 
-  static ACTIVITY_EVENTS: TEvent["name"][] = [
-    "collections.create",
-    "collections.delete",
-    "collections.move",
-    "collections.permission_changed",
-    "documents.publish",
-    "documents.unpublish",
-    "documents.archive",
-    "documents.unarchive",
-    "documents.move",
-    "documents.delete",
-    "documents.permanent_delete",
-    "documents.restore",
-    "revisions.create",
-    "users.create",
-  ];
-
-  static AUDIT_EVENTS: TEvent["name"][] = [
-    "api_keys.create",
-    "api_keys.delete",
-    "authenticationProviders.update",
-    "collections.create",
-    "collections.update",
-    "collections.permission_changed",
-    "collections.move",
-    "collections.add_user",
-    "collections.remove_user",
-    "collections.add_group",
-    "collections.remove_group",
-    "collections.delete",
-    "documents.create",
-    "documents.publish",
-    "documents.update",
-    "documents.archive",
-    "documents.unarchive",
-    "documents.move",
-    "documents.delete",
-    "documents.permanent_delete",
-    "documents.restore",
-    "groups.create",
-    "groups.update",
-    "groups.delete",
-    "pins.create",
-    "pins.update",
-    "pins.delete",
-    "revisions.create",
-    "shares.create",
-    "shares.update",
-    "shares.revoke",
-    "teams.update",
-    "users.create",
-    "users.update",
-    "users.signin",
-    "users.signout",
-    "users.promote",
-    "users.demote",
-    "users.invite",
-    "users.suspend",
-    "users.activate",
-    "users.delete",
-    "fileOperations.create",
-    "fileOperations.delete",
-    "webhookSubscriptions.create",
-    "webhookSubscriptions.delete",
-  ];
+  /**
+   * Create and persist new event from request context
+   *
+   * @param ctx The request context to use
+   * @param attributes The event attributes
+   * @returns A promise resolving to the new event
+   */
+  static createFromContext(
+    ctx: APIContext,
+    attributes: Omit<Partial<Event>, "ip" | "teamId" | "actorId"> = {},
+    options?: CreateOptions<InferAttributes<Event>>
+  ) {
+    const { user } = ctx.state.auth;
+    return this.create(
+      {
+        ...attributes,
+        actorId: user.id,
+        teamId: user.teamId,
+        ip: ctx.request.ip,
+      },
+      options
+    );
+  }
 }
 
 export default Event;

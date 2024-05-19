@@ -6,7 +6,7 @@ import { UserFlag } from "@server/models/User";
 import { sequelize } from "@server/storage/database";
 import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
 
-type Props = undefined;
+type Props = Record<string, never>;
 
 export default class InviteReminderTask extends BaseTask<Props> {
   static cron = TaskSchedule.Daily;

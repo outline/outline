@@ -9,7 +9,8 @@ import useEventListener from "./useEventListener";
  */
 export default function useOnClickOutside(
   ref: React.RefObject<HTMLElement | null>,
-  callback?: (event: MouseEvent | TouchEvent) => void
+  callback?: (event: MouseEvent | TouchEvent) => void,
+  options: AddEventListenerOptions = {}
 ) {
   const listener = React.useCallback(
     (event: MouseEvent | TouchEvent) => {
@@ -22,6 +23,6 @@ export default function useOnClickOutside(
     [ref, callback]
   );
 
-  useEventListener("mousedown", listener);
-  useEventListener("touchstart", listener);
+  useEventListener("mousedown", listener, window, options);
+  useEventListener("touchstart", listener, window, options);
 }

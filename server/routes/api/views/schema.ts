@@ -1,5 +1,5 @@
 import z from "zod";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 export const ViewsListSchema = BaseSchema.extend({
   body: z.object({

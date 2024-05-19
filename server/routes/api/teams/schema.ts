@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { UserRole } from "@shared/types";
-import BaseSchema from "@server/routes/api/BaseSchema";
+import { BaseSchema } from "@server/routes/api/schema";
 
 export const TeamsUpdateSchema = BaseSchema.extend({
   body: z.object({
@@ -18,6 +18,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     documentEmbeds: z.boolean().optional(),
     /** Whether team members are able to create new collections */
     memberCollectionCreate: z.boolean().optional(),
+    /** Whether team members are able to create new workspaces */
+    memberTeamCreate: z.boolean().optional(),
     /** The default landing collection for the team */
     defaultCollectionId: z.string().uuid().nullish(),
     /** The default user role */
@@ -35,6 +37,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         publicBranding: z.boolean().optional(),
         /** Whether viewers should see download options. */
         viewersCanExport: z.boolean().optional(),
+        /** Whether members can invite new people to the team. */
+        membersCanInvite: z.boolean().optional(),
         /** Whether commenting is enabled */
         commenting: z.boolean().optional(),
         /** The custom theme for the team. */

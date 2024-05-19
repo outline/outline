@@ -14,7 +14,12 @@ type FormData = {
   code: string;
 };
 
-function UserDelete() {
+type Props = {
+  /** Callback to close the dialog when user deletion completes. */
+  onSubmit: () => void;
+};
+
+function UserDelete({ onSubmit }: Props) {
   const [isWaitingCode, setWaitingCode] = React.useState(false);
   const { auth } = useStores();
   const { t } = useTranslation();
@@ -43,50 +48,51 @@ function UserDelete() {
       try {
         await auth.deleteUser(data);
         await auth.logout();
+        onSubmit();
       } catch (err) {
         toast.error(err.message);
       }
     },
-    [auth]
+    [auth, onSubmit]
   );
 
   const inputProps = register("code", {
-    required: true,
+    required: env.EMAIL_ENABLED,
   });
   const appName = env.APP_NAME;
 
   return (
-    <Flex column>
-      <form onSubmit={formHandleSubmit(handleSubmit)}>
-        {isWaitingCode ? (
-          <>
-            <Text type="secondary">
-              <Trans>
-                A confirmation code has been sent to your email address, please
-                enter the code below to permanently destroy your account.
-              </Trans>
-            </Text>
-            <Input
-              placeholder={t("Confirmation code")}
-              autoComplete="off"
-              autoFocus
-              maxLength={8}
-              required
-              {...inputProps}
-            />
-          </>
-        ) : (
-          <>
-            <Text type="secondary">
-              <Trans>
-                Are you sure? Deleting your account will destroy identifying
-                data associated with your user and cannot be undone. You will be
-                immediately logged out of {{ appName }} and all your API tokens
-                will be revoked.
-              </Trans>
-            </Text>
-          </>
-        )}
+    <form onSubmit={formHandleSubmit(handleSubmit)}>
+      {isWaitingCode ? (
+        <>
+          <Text as="p" type="secondary">
+            <Trans>
+              A confirmation code has been sent to your email address, please
+              enter the code below to permanently destroy your account.
+            </Trans>
+          </Text>
+          <Input
+            placeholder={t("Confirmation code")}
+            autoComplete="off"
+            autoFocus
+            maxLength={8}
+            required
+            {...inputProps}
+          />
+        </>
+      ) : (
+        <>
+          <Text as="p" type="secondary">
+            <Trans>
+              Are you sure? Deleting your account will destroy identifying data
+              associated with your user and cannot be undone. You will be
+              immediately logged out of {{ appName }} and all your API tokens
+              will be revoked.
+            </Trans>
+          </Text>
+        </>
+      )}
+      <Flex justify="flex-end">
         {env.EMAIL_ENABLED && !isWaitingCode ? (
           <Button type="submit" onClick={handleRequestDelete} neutral>
             {t("Continue")}…
@@ -102,8 +108,8 @@ function UserDelete() {
               : t("Delete my account")}
           </Button>
         )}
-      </form>
-    </Flex>
+      </Flex>
+    </form>
   );
 }
 

@@ -1,16 +1,21 @@
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { requireDirectory } from "@server/utils/fs";
+import BaseEmail from "./BaseEmail";
 
 const emails = {};
 
-requireDirectory(__dirname).forEach(([module, id]) => {
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'default' does not exist on type 'unknown'
-  const { default: Email } = module;
+requireDirectory<{ default: BaseEmail<any> }>(__dirname).forEach(
+  ([module, id]) => {
+    if (id === "index") {
+      return;
+    }
 
-  if (id === "index") {
-    return;
+    emails[id] = module.default;
   }
+);
 
-  emails[id] = Email;
+PluginManager.getHooks(Hook.EmailTemplate).forEach((hook) => {
+  emails[hook.value.name] = hook.value;
 });
 
 export default emails;

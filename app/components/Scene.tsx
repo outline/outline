@@ -33,7 +33,7 @@ const Scene: React.FC<Props> = ({
   centered,
   wide,
 }: Props) => (
-  <FillWidth $wide={wide}>
+  <FillWidth>
     <PageTitle title={textTitle || title} />
     <Header
       hasSidebar
@@ -49,17 +49,18 @@ const Scene: React.FC<Props> = ({
       actions={actions}
       left={left}
     />
-    {centered !== false && wide !== true ? (
-      <CenteredContent withStickyHeader>{children}</CenteredContent>
+    {centered !== false ? (
+      <CenteredContent maxWidth={wide ? "100vw" : undefined} withStickyHeader>
+        {children}
+      </CenteredContent>
     ) : (
       children
     )}
   </FillWidth>
 );
 
-const FillWidth = styled.div<{ $wide?: boolean }>`
+const FillWidth = styled.div`
   width: 100%;
-  ${(props) => props.$wide && `padding: 0px 32px 16px;`}
 `;
 
 export default Scene;

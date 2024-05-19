@@ -32,13 +32,12 @@ function CommentMenu({ comment, onEdit, onDelete, className }: Props) {
   });
   const { documents, dialogs } = useStores();
   const { t } = useTranslation();
-  const can = usePolicy(comment.id);
+  const can = usePolicy(comment);
   const document = documents.get(comment.documentId);
 
   const handleDelete = React.useCallback(() => {
     dialogs.openModal({
       title: t("Delete comment"),
-      isCentered: true,
       content: <CommentDeleteDialog comment={comment} onSubmit={onDelete} />,
     });
   }, [dialogs, comment, onDelete, t]);

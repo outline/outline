@@ -1,5 +1,6 @@
 import dns from "dns";
 import Router from "koa-router";
+import { UnfurlResourceType } from "@shared/types";
 import { getBaseDomain, parseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
@@ -10,14 +11,15 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { Document, Share, Team, User } from "@server/models";
 import { authorize } from "@server/policies";
-import { presentDocument, presentMention } from "@server/presenters/unfurls";
-import presentUnfurl from "@server/presenters/unfurls/unfurl";
+import presentUnfurl from "@server/presenters/unfurl";
 import { APIContext } from "@server/types";
+import { CacheHelper } from "@server/utils/CacheHelper";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import resolvers from "@server/utils/unfurl";
 import * as T from "./schema";
 
 const router = new Router();
+const plugins = PluginManager.getHooks(Hook.UnfurlProvider);
 
 router.post(
   "urls.unfurl",
@@ -51,7 +53,11 @@ router.post(
       authorize(actor, "read", user);
       authorize(actor, "read", document);
 
-      ctx.body = await presentMention(user, document);
+      ctx.body = await presentUnfurl({
+        type: UnfurlResourceType.Mention,
+        user,
+        document,
+      });
       return;
     }
 
@@ -67,18 +73,38 @@ router.post(
         }
         authorize(actor, "read", document);
 
-        ctx.body = presentDocument(document, actor);
+        ctx.body = await presentUnfurl({
+          type: UnfurlResourceType.Document,
+          document,
+          viewer: actor,
+        });
         return;
       }
       return (ctx.response.status = 204);
     }
 
     // External resources
-    if (resolvers.Iframely) {
-      const data = await resolvers.Iframely.unfurl(url);
-      return data.error
-        ? (ctx.response.status = 204)
-        : (ctx.body = presentUnfurl(data));
+    const cachedData = await CacheHelper.getData(
+      CacheHelper.getUnfurlKey(actor.teamId, url)
+    );
+    if (cachedData) {
+      return (ctx.body = await presentUnfurl(cachedData));
+    }
+
+    for (const plugin of plugins) {
+      const data = await plugin.value.unfurl(url, actor);
+      if (data) {
+        if ("error" in data) {
+          return (ctx.response.status = 204);
+        } else {
+          await CacheHelper.setData(
+            CacheHelper.getUnfurlKey(actor.teamId, url),
+            data,
+            plugin.value.cacheExpiry
+          );
+          return (ctx.body = await presentUnfurl(data));
+        }
+      }
     }
 
     return (ctx.response.status = 204);

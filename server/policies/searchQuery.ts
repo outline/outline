@@ -1,9 +1,5 @@
 import { SearchQuery, User } from "@server/models";
 import { allow } from "./cancan";
+import { isOwner } from "./utils";
 
-allow(
-  User,
-  ["read", "delete"],
-  SearchQuery,
-  (user, searchQuery) => user && user.id === searchQuery?.userId
-);
+allow(User, ["read", "delete"], SearchQuery, isOwner);

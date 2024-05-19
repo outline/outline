@@ -1,22 +1,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import path from "path";
-import { glob } from "glob";
-import Router from "koa-router";
 import find from "lodash/find";
-import sortBy from "lodash/sortBy";
 import env from "@server/env";
 import Team from "@server/models/Team";
-
-export type AuthenticationProviderConfig = {
-  id: string;
-  name: string;
-  enabled: boolean;
-  router: Router;
-};
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 export default class AuthenticationHelper {
-  private static providersCache: AuthenticationProviderConfig[];
-
   /**
    * Returns the enabled authentication provider configurations for the current
    * installation.
@@ -24,46 +12,7 @@ export default class AuthenticationHelper {
    * @returns A list of authentication providers
    */
   public static get providers() {
-    if (this.providersCache) {
-      return this.providersCache;
-    }
-
-    const authenticationProviderConfigs: AuthenticationProviderConfig[] = [];
-    const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
-
-    glob
-      .sync(path.join(rootDir, "plugins/*/server/auth/!(*.test).[jt]s"))
-      .forEach((filePath: string) => {
-        const { default: authProvider, name } = require(path.join(
-          process.cwd(),
-          filePath
-        ));
-        const id = filePath.replace("build/", "").split("/")[1];
-        const config = require(path.join(
-          process.cwd(),
-          rootDir,
-          "plugins",
-          id,
-          "plugin.json"
-        ));
-
-        // Test the all required env vars are set for the auth provider
-        const enabled = (config.requiredEnvVars ?? []).every(
-          (name: string) => !!env[name]
-        );
-
-        if (enabled) {
-          authenticationProviderConfigs.push({
-            id,
-            name: name ?? config.name,
-            enabled,
-            router: authProvider,
-          });
-        }
-      });
-
-    this.providersCache = sortBy(authenticationProviderConfigs, "id");
-    return this.providersCache;
+    return PluginManager.getHooks(Hook.AuthProvider);
   }
 
   /**
@@ -77,11 +26,11 @@ export default class AuthenticationHelper {
     const isCloudHosted = env.isCloudHosted;
 
     return AuthenticationHelper.providers
-      .sort((config) => (config.id === "email" ? 1 : -1))
-      .filter((config) => {
-        // Guest sign-in is an exception as it does not have an authentication
+      .sort((hook) => (hook.value.id === "email" ? 1 : -1))
+      .filter((hook) => {
+        // Email sign-in is an exception as it does not have an authentication
         // provider using passport, instead it exists as a boolean option.
-        if (config.id === "email") {
+        if (hook.value.id === "email") {
           return team?.emailSigninEnabled;
         }
 
@@ -91,7 +40,7 @@ export default class AuthenticationHelper {
         }
 
         const authProvider = find(team.authenticationProviders, {
-          name: config.id,
+          name: hook.value.id,
         });
 
         // If cloud hosted then the auth provider must be enabled for the team,

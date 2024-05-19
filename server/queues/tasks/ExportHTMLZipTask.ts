@@ -11,7 +11,7 @@ export default class ExportHTMLZipTask extends ExportDocumentTreeTask {
       zip,
       collections,
       FileOperationFormat.HTMLZip,
-      fileOperation.includeAttachments
+      fileOperation.options?.includeAttachments ?? true
     );
   }
 }

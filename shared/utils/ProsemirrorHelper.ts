@@ -1,6 +1,7 @@
 import { Node, Schema } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
+import { ProsemirrorData } from "../types";
 
 export type Heading = {
   /* The heading in plain text */
@@ -16,6 +17,8 @@ export type CommentMark = {
   id: string;
   /* The id of the user who created the comment */
   userId: string;
+  /* The text of the comment */
+  text: string;
 };
 
 export type Task = {
@@ -31,17 +34,18 @@ export const attachmentRedirectRegex =
 export const attachmentPublicRegex =
   /public\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
 
-export default class ProsemirrorHelper {
+export class ProsemirrorHelper {
   /**
    * Get a new empty document.
    *
    * @returns A new empty document as JSON.
    */
-  static getEmptyDocument() {
+  static getEmptyDocument(): ProsemirrorData {
     return {
       type: "doc",
       content: [
         {
+          content: [],
           type: "paragraph",
         },
       ],
@@ -55,14 +59,14 @@ export default class ProsemirrorHelper {
    * @param schema The schema to use.
    * @returns The document content as plain text without formatting.
    */
-  static toPlainText(node: Node, schema: Schema) {
+  static toPlainText(root: Node, schema: Schema) {
     const textSerializers = Object.fromEntries(
       Object.entries(schema.nodes)
         .filter(([, node]) => node.spec.toPlainText)
         .map(([name, node]) => [name, node.spec.toPlainText])
     );
 
-    return textBetween(node, 0, node.content.size, textSerializers);
+    return textBetween(root, 0, root.content.size, textSerializers);
   }
 
   /**
@@ -110,8 +114,7 @@ export default class ProsemirrorHelper {
   }
 
   /**
-   * Returns true if the trimmed content of the passed document is an empty
-   * string.
+   * Returns true if the trimmed content of the passed document is an empty string.
    *
    * @returns True if the editor is empty
    */
@@ -120,8 +123,7 @@ export default class ProsemirrorHelper {
   }
 
   /**
-   * Iterates through the document to find all of the comments that exist as
-   * marks.
+   * Iterates through the document to find all of the comments that exist as marks.
    *
    * @param doc Prosemirror document node
    * @returns Array<CommentMark>
@@ -132,7 +134,10 @@ export default class ProsemirrorHelper {
     doc.descendants((node) => {
       node.marks.forEach((mark) => {
         if (mark.type.name === "comment") {
-          comments.push(mark.attrs as CommentMark);
+          comments.push({
+            ...mark.attrs,
+            text: node.textContent,
+          } as CommentMark);
         }
       });
 
@@ -143,8 +148,7 @@ export default class ProsemirrorHelper {
   }
 
   /**
-   * Iterates through the document to find all of the tasks and their completion
-   * state.
+   * Iterates through the document to find all of the tasks and their completion state.
    *
    * @param doc Prosemirror document node
    * @returns Array<Task>

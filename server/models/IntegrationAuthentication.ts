@@ -1,3 +1,4 @@
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DataType,
   Table,
@@ -17,7 +18,10 @@ import Fix from "./decorators/Fix";
 
 @Table({ tableName: "authentications", modelName: "authentication" })
 @Fix
-class IntegrationAuthentication extends IdModel {
+class IntegrationAuthentication extends IdModel<
+  InferAttributes<IntegrationAuthentication>,
+  Partial<InferCreationAttributes<IntegrationAuthentication>>
+> {
   @Column(DataType.STRING)
   service: IntegrationService;
 
@@ -32,6 +36,16 @@ class IntegrationAuthentication extends IdModel {
 
   set token(value: string) {
     setEncryptedColumn(this, "token", value);
+  }
+
+  @Column(DataType.BLOB)
+  @Encrypted
+  get refreshToken() {
+    return getEncryptedColumn(this, "refreshToken");
+  }
+
+  set refreshToken(value: string) {
+    setEncryptedColumn(this, "refreshToken", value);
   }
 
   // associations

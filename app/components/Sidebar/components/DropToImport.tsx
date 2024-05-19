@@ -76,8 +76,9 @@ const DropzoneContainer = styled.div<{ $isDragActive: boolean }>`
   ${({ $isDragActive, theme }) =>
     $isDragActive &&
     css`
-      background: ${theme.slateDark};
-      a {
+      a,
+      a + * {
+        background: ${theme.slateDark} !important;
         color: ${theme.white} !important;
       }
       svg {

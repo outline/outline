@@ -44,7 +44,7 @@ function Star({ size, document, collection, color, ...rest }: Props) {
       context={context}
       hideOnActionDisabled
       tooltip={{
-        tooltip: target.isStarred ? t("Unstar document") : t("Star document"),
+        content: target.isStarred ? t("Unstar document") : t("Star document"),
         delay: 500,
       }}
       action={

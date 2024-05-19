@@ -5,6 +5,7 @@ import { DocumentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Input from "./Input";
+import Switch from "./Switch";
 import Text from "./Text";
 
 type Props = {
@@ -18,8 +19,16 @@ function DuplicateDialog({ document, onSubmit }: Props) {
   const defaultTitle = t(`Copy of {{ documentName }}`, {
     documentName: document.title,
   });
+  const [publish, setPublish] = React.useState<boolean>(!!document.publishedAt);
   const [recursive, setRecursive] = React.useState<boolean>(true);
   const [title, setTitle] = React.useState<string>(defaultTitle);
+
+  const handlePublishChange = React.useCallback(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      setPublish(ev.target.checked);
+    },
+    []
+  );
 
   const handleRecursiveChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,6 +46,7 @@ function DuplicateDialog({ document, onSubmit }: Props) {
 
   const handleSubmit = async () => {
     const result = await document.duplicate({
+      publish,
       recursive,
       title,
     });
@@ -54,18 +64,31 @@ function DuplicateDialog({ document, onSubmit }: Props) {
         maxLength={DocumentValidation.maxTitleLength}
         defaultValue={defaultTitle}
       />
-      {document.publishedAt && !document.isTemplate && (
-        <label>
-          <Text size="small">
-            <input
-              type="checkbox"
-              name="recursive"
-              checked={recursive}
-              onChange={handleRecursiveChange}
-            />{" "}
-            {t("Include nested documents")}
-          </Text>
-        </label>
+      {!document.isTemplate && (
+        <>
+          {document.collectionId && (
+            <Text size="small">
+              <Switch
+                name="publish"
+                label={t("Published")}
+                labelPosition="right"
+                checked={publish}
+                onChange={handlePublishChange}
+              />
+            </Text>
+          )}
+          {document.publishedAt && (
+            <Text size="small">
+              <Switch
+                name="recursive"
+                label={t("Include nested documents")}
+                labelPosition="right"
+                checked={recursive}
+                onChange={handleRecursiveChange}
+              />
+            </Text>
+          )}
+        </>
       )}
     </ConfirmationDialog>
   );

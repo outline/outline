@@ -1,10 +1,10 @@
 import markdownit, { PluginSimple } from "markdown-it";
 
-export default function rules({
+export default function makeRules({
   rules = {},
   plugins = [],
 }: {
-  rules?: Record<string, any>;
+  rules?: markdownit.Options;
   plugins?: PluginSimple[];
 }) {
   const markdownIt = markdownit("default", {

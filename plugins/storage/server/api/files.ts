@@ -18,10 +18,7 @@ import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
-import { createRootDirForLocalStorage } from "../utils";
 import * as T from "./schema";
-
-createRootDirForLocalStorage();
 
 const router = new Router();
 
@@ -33,7 +30,7 @@ router.post(
   multipart({
     maximumFileSize: Math.max(
       env.FILE_STORAGE_UPLOAD_MAX_SIZE,
-      env.MAXIMUM_IMPORT_SIZE
+      env.FILE_STORAGE_IMPORT_MAX_SIZE
     ),
   }),
   async (ctx: APIContext<T.FilesCreateReq>) => {
@@ -50,7 +47,16 @@ router.post(
       throw AuthorizationError("Invalid key");
     }
 
-    await attachment.writeFile(file);
+    try {
+      await attachment.writeFile(file);
+    } catch (err) {
+      if (err.message.includes("permission denied")) {
+        throw Error(
+          `Permission denied writing to "${key}". Check the host machine file system permissions.`
+        );
+      }
+      throw err;
+    }
 
     ctx.body = {
       success: true,
@@ -78,7 +84,7 @@ router.get(
           "application/octet-stream"
       );
       ctx.attachment(fileName);
-      ctx.body = FileStorage.getFileStream(key);
+      ctx.body = await FileStorage.getFileStream(key);
     } else {
       const attachment = await Attachment.findOne({
         where: { key },
@@ -88,7 +94,9 @@ router.get(
 
       ctx.set("Cache-Control", cacheHeader);
       ctx.set("Content-Type", attachment.contentType);
-      ctx.attachment(attachment.name);
+      ctx.attachment(attachment.name, {
+        type: FileStorage.getContentDisposition(attachment.contentType),
+      });
       ctx.body = attachment.stream;
     }
   }

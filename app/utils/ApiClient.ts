@@ -2,6 +2,7 @@ import retry from "fetch-retry";
 import trim from "lodash/trim";
 import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
+import { JSONObject } from "@shared/types";
 import stores from "~/stores";
 import Logger from "./Logger";
 import download from "./download";
@@ -23,11 +24,12 @@ type Options = {
   baseUrl?: string;
 };
 
-type FetchOptions = {
+interface FetchOptions {
   download?: boolean;
+  retry?: boolean;
   credentials?: "omit" | "same-origin" | "include";
   headers?: Record<string, string>;
-};
+}
 
 const fetchWithRetry = retry(fetch);
 
@@ -38,12 +40,12 @@ class ApiClient {
     this.baseUrl = options.baseUrl || "/api";
   }
 
-  fetch = async (
+  fetch = async <T = any>(
     path: string,
     method: string,
-    data: Record<string, any> | FormData | undefined,
+    data: JSONObject | FormData | undefined,
     options: FetchOptions = {}
-  ) => {
+  ): Promise<T> => {
     let body: string | FormData | undefined;
     let modifiedPath;
     let urlToFetch;
@@ -99,14 +101,17 @@ class ApiClient {
     let response;
 
     try {
-      response = await fetchWithRetry(urlToFetch, {
-        method,
-        body,
-        headers,
-        redirect: "follow",
-        credentials: "same-origin",
-        cache: "no-cache",
-      });
+      response = await (options?.retry === false ? fetch : fetchWithRetry)(
+        urlToFetch,
+        {
+          method,
+          body,
+          headers,
+          redirect: "follow",
+          credentials: "same-origin",
+          cache: "no-cache",
+        }
+      );
     } catch (err) {
       if (window.navigator.onLine) {
         throw new NetworkError("A network error occurred, try again?");
@@ -124,9 +129,9 @@ class ApiClient {
         response.headers.get("content-disposition") || ""
       ).split("filename=")[1];
       download(blob, trim(fileName, '"'));
-      return;
+      return undefined as T;
     } else if (success && response.status === 204) {
-      return;
+      return undefined as T;
     } else if (success) {
       return response.json();
     }
@@ -134,7 +139,7 @@ class ApiClient {
     // Handle 401, log out user
     if (response.status === 401) {
       await stores.auth.logout(true, false);
-      return;
+      throw new AuthorizationError();
     }
 
     // Handle failed responses
@@ -169,7 +174,6 @@ class ApiClient {
     if (response.status === 403) {
       if (error.error === "user_suspended") {
         await stores.auth.logout(false, false);
-        return;
       }
 
       throw new AuthorizationError(error.message);
@@ -205,17 +209,17 @@ class ApiClient {
     throw err;
   };
 
-  get = (
+  get = <T = any>(
     path: string,
-    data: Record<string, any> | undefined,
+    data: JSONObject | undefined,
     options?: FetchOptions
-  ) => this.fetch(path, "GET", data, options);
+  ) => this.fetch<T>(path, "GET", data, options);
 
-  post = (
+  post = <T = any>(
     path: string,
-    data?: Record<string, any> | undefined,
+    data?: JSONObject | FormData | undefined,
     options?: FetchOptions
-  ) => this.fetch(path, "POST", data, options);
+  ) => this.fetch<T>(path, "POST", data, options);
 }
 
 export const client = new ApiClient();

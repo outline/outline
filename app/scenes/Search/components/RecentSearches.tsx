@@ -28,7 +28,9 @@ function RecentSearches(
   const [isPreloaded] = React.useState(searches.recent.length > 0);
 
   React.useEffect(() => {
-    void searches.fetchPage({});
+    void searches.fetchPage({
+      source: "app",
+    });
   }, [searches]);
 
   const content = searches.recent.length ? (
@@ -50,7 +52,7 @@ function RecentSearches(
                   {...compositeProps}
                 >
                   {searchQuery.query}
-                  <Tooltip tooltip={t("Remove search")} delay={150}>
+                  <Tooltip content={t("Remove search")} delay={150}>
                     <RemoveButton
                       aria-label={t("Remove search")}
                       onClick={async (ev) => {

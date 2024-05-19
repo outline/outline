@@ -7,9 +7,10 @@ import randomstring from "randomstring";
 import {
   Identifier,
   Transaction,
-  Op,
   FindOptions,
   NonNullFindOptions,
+  InferAttributes,
+  InferCreationAttributes,
 } from "sequelize";
 import {
   Sequelize,
@@ -33,9 +34,9 @@ import {
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort } from "@shared/types";
 import { CollectionPermission, NavigationNode } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
-import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import Document from "./Document";
@@ -45,7 +46,7 @@ import GroupPermission from "./GroupPermission";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
-import UserPermission from "./UserPermission";
+import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
@@ -56,23 +57,13 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withAllMemberships: {
     include: [
       {
-        model: UserPermission,
+        model: UserMembership,
         as: "memberships",
-        where: {
-          collectionId: {
-            [Op.ne]: null,
-          },
-        },
         required: false,
       },
       {
         model: GroupPermission,
         as: "collectionGroupMemberships",
-        where: {
-          collectionId: {
-            [Op.ne]: null,
-          },
-        },
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -110,24 +101,16 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withMembership: (userId: string) => ({
     include: [
       {
-        model: UserPermission,
+        model: UserMembership,
         as: "memberships",
         where: {
           userId,
-          collectionId: {
-            [Op.ne]: null,
-          },
         },
         required: false,
       },
       {
         model: GroupPermission,
         as: "collectionGroupMemberships",
-        where: {
-          collectionId: {
-            [Op.ne]: null,
-          },
-        },
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -159,7 +142,10 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 }))
 @Table({ tableName: "collections", modelName: "collection" })
 @Fix
-class Collection extends ParanoidModel {
+class Collection extends ParanoidModel<
+  InferAttributes<Collection>,
+  Partial<InferCreationAttributes<Collection>>
+> {
   @SimpleLength({
     min: 10,
     max: 10,
@@ -245,7 +231,17 @@ class Collection extends ParanoidModel {
 
   // getters
 
+  /**
+   * The frontend path to this collection.
+   *
+   * @deprecated Use `path` instead.
+   */
   get url(): string {
+    return this.path;
+  }
+
+  /** The frontend path to this collection. */
+  get path(): string {
     if (!this.name) {
       return `/collection/untitled-${this.urlId}`;
     }
@@ -283,7 +279,7 @@ class Collection extends ParanoidModel {
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    return UserPermission.findOrCreate({
+    return UserMembership.findOrCreate({
       where: {
         collectionId: model.id,
         userId: model.createdById,
@@ -308,13 +304,13 @@ class Collection extends ParanoidModel {
   @HasMany(() => Document, "collectionId")
   documents: Document[];
 
-  @HasMany(() => UserPermission, "collectionId")
-  memberships: UserPermission[];
+  @HasMany(() => UserMembership, "collectionId")
+  memberships: UserMembership[];
 
   @HasMany(() => GroupPermission, "collectionId")
   collectionGroupMemberships: GroupPermission[];
 
-  @BelongsToMany(() => User, () => UserPermission)
+  @BelongsToMany(() => User, () => UserMembership)
   users: User[];
 
   @BelongsToMany(() => Group, () => GroupPermission)
@@ -398,7 +394,7 @@ class Collection extends ParanoidModel {
       });
     }
 
-    const match = id.match(SLUG_URL_REGEX);
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
       return this.findOne({
         where: {
@@ -645,6 +641,10 @@ class Collection extends ParanoidModel {
   ) {
     if (!this.documentStructure) {
       this.documentStructure = [];
+    }
+
+    if (this.getDocumentTree(document.id)) {
+      return this;
     }
 
     // If moving existing document with children, use existing structure

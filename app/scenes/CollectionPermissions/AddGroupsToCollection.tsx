@@ -69,7 +69,7 @@ function AddGroupsToCollection(props: Props) {
   return (
     <Flex column>
       {can.createGroup ? (
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           {t("Can’t find the group you’re looking for?")}{" "}
           <ButtonLink onClick={handleNewGroupModalOpen}>
             {t("Create a group")}

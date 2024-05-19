@@ -32,7 +32,7 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
     <>
       <Header>
         <Title>{title}</Title>
-        <Tooltip tooltip={t("Close")} shortcut="Esc" delay={500}>
+        <Tooltip content={t("Close")} shortcut="Esc" delay={500}>
           <Button
             icon={<ForwardIcon />}
             onClick={onClose}

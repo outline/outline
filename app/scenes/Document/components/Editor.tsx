@@ -12,10 +12,15 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
 import BlockMenuExtension from "~/editor/extensions/BlockMenu";
+import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
 import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
 import FindAndReplaceExtension from "~/editor/extensions/FindAndReplace";
 import HoverPreviewsExtension from "~/editor/extensions/HoverPreviews";
+import Keys from "~/editor/extensions/Keys";
 import MentionMenuExtension from "~/editor/extensions/MentionMenu";
+import PasteHandler from "~/editor/extensions/PasteHandler";
+import PreventTab from "~/editor/extensions/PreventTab";
+import SmartText from "~/editor/extensions/SmartText";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
@@ -32,11 +37,17 @@ import DocumentTitle from "./DocumentTitle";
 
 const extensions = [
   ...withComments(richExtensions),
+  SmartText,
+  PasteHandler,
+  ClipboardTextSerializer,
   BlockMenuExtension,
   EmojiMenuExtension,
   MentionMenuExtension,
   FindAndReplaceExtension,
   HoverPreviewsExtension,
+  // Order these default key handlers last
+  PreventTab,
+  Keys,
 ];
 
 type Props = Omit<EditorProps, "editorStyle"> & {
@@ -78,7 +89,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     multiplayer,
     ...rest
   } = props;
-  const can = usePolicy(document.id);
+  const can = usePolicy(document);
 
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {

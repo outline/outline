@@ -69,10 +69,11 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
           includeTitle: false,
           centered: false,
           signedUrls: (4 * Day) / 1000,
+          baseUrl: props.teamUrl,
         });
 
         // inline all css so that it works in as many email providers as possible.
-        body = content ? HTMLHelper.inlineCSS(content) : undefined;
+        body = content ? await HTMLHelper.inlineCSS(content) : undefined;
       }
     }
 

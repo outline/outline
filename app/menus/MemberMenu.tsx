@@ -16,7 +16,7 @@ function MemberMenu({ user, onRemove }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const menu = useMenuState({
-    modal: true,
+    modal: false,
   });
 
   return (

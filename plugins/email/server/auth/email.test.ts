@@ -8,6 +8,15 @@ import { getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("email", () => {
+  it("should fail with status 400 bad request if email is invalid", async () => {
+    const res = await server.post("/auth/email", {
+      body: { email: "invalid" },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("email: Invalid email");
+  });
+
   it("should require email param", async () => {
     const res = await server.post("/auth/email", {
       body: {},

@@ -1,8 +1,13 @@
 import { z } from "zod";
-import BaseSchema from "@server/routes/api/BaseSchema";
+import { BaseSchema, ProsemirrorSchema } from "@server/routes/api/schema";
 
-const CollectionsSortParamsSchema = z.object({
-  /** Specifies the attributes by which documents will be sorted in the list */
+const BaseIdSchema = z.object({
+  /** Comment Id */
+  id: z.string().uuid(),
+});
+
+const CommentsSortParamsSchema = z.object({
+  /** Specifies the attributes by which comments will be sorted in the list */
   sort: z
     .string()
     .refine((val) => ["createdAt", "updatedAt"].includes(val))
@@ -27,39 +32,39 @@ export const CommentsCreateSchema = BaseSchema.extend({
     parentCommentId: z.string().uuid().optional(),
 
     /** Create comment with this data */
-    data: z.any(),
+    data: ProsemirrorSchema,
   }),
 });
 
 export type CommentsCreateReq = z.infer<typeof CommentsCreateSchema>;
 
 export const CommentsUpdateSchema = BaseSchema.extend({
-  body: z.object({
-    /** Which comment to update */
-    id: z.string().uuid(),
-
+  body: BaseIdSchema.extend({
     /** Update comment with this data */
-    data: z.any(),
+    data: ProsemirrorSchema,
   }),
 });
 
 export type CommentsUpdateReq = z.infer<typeof CommentsUpdateSchema>;
 
 export const CommentsDeleteSchema = BaseSchema.extend({
-  body: z.object({
-    /** Which comment to delete */
-    id: z.string().uuid(),
-  }),
+  body: BaseIdSchema,
 });
 
 export type CommentsDeleteReq = z.infer<typeof CommentsDeleteSchema>;
 
-export const CollectionsListSchema = BaseSchema.extend({
-  body: CollectionsSortParamsSchema.extend({
+export const CommentsListSchema = BaseSchema.extend({
+  body: CommentsSortParamsSchema.extend({
     /** Id of a document to list comments for */
     documentId: z.string().optional(),
     collectionId: z.string().uuid().optional(),
   }),
 });
 
-export type CollectionsListReq = z.infer<typeof CollectionsListSchema>;
+export type CommentsListReq = z.infer<typeof CommentsListSchema>;
+
+export const CommentsInfoSchema = z.object({
+  body: BaseIdSchema,
+});
+
+export type CommentsInfoReq = z.infer<typeof CommentsInfoSchema>;

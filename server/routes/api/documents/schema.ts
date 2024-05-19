@@ -3,8 +3,9 @@ import formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
-import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
-import BaseSchema from "@server/routes/api/BaseSchema";
+import { DocumentPermission, StatusFilter } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
+import { BaseSchema } from "@server/routes/api/schema";
 
 const DocumentsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */
@@ -114,7 +115,7 @@ export const DocumentsInfoSchema = BaseSchema.extend({
     /** Share Id, if available */
     shareId: z
       .string()
-      .refine((val) => isUUID(val) || SHARE_URL_SLUG_REGEX.test(val))
+      .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
       .optional(),
 
     /** @deprecated Version of the API to be used, remove in release v0.75.0 */
@@ -146,22 +147,36 @@ export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreSchema>;
 
 export const DocumentsSearchSchema = BaseSchema.extend({
   body: SearchQuerySchema.merge(DateFilterSchema).extend({
-    /** Whether to include archived docs in results */
-    includeArchived: z.boolean().optional(),
-
-    /** Whether to include drafts in results */
-    includeDrafts: z.boolean().optional(),
-
     /** Filter results for team based on the collection */
     collectionId: z.string().uuid().optional(),
 
     /** Filter results based on user */
     userId: z.string().uuid().optional(),
 
+    /** Filter results based on content within a document and it's children */
+    documentId: z.string().uuid().optional(),
+
+    /**
+     * Whether to include archived documents in results
+     *
+     * @deprecated Use `statusFilter` instead
+     */
+    includeArchived: z.boolean().optional(),
+
+    /**
+     * Whether to include draft documents in results
+     *
+     * @deprecated Use `statusFilter` instead
+     */
+    includeDrafts: z.boolean().optional(),
+
+    /** Document statuses to include in results */
+    statusFilter: z.nativeEnum(StatusFilter).array().optional(),
+
     /** Filter results for the team derived from shareId */
     shareId: z
       .string()
-      .refine((val) => isUUID(val) || SHARE_URL_SLUG_REGEX.test(val))
+      .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
       .optional(),
 
     /** Min words to be shown in the results snippets */
@@ -353,3 +368,47 @@ export const DocumentsUsersSchema = BaseSchema.extend({
 });
 
 export type DocumentsUsersReq = z.infer<typeof DocumentsUsersSchema>;
+
+export const DocumentsAddUserSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the document to which the user is supposed to be added */
+    id: z.string().uuid(),
+    /** Id of the user who is to be added*/
+    userId: z.string().uuid(),
+    /** Permission to be granted to the added user  */
+    permission: z.nativeEnum(DocumentPermission).optional(),
+  }),
+});
+
+export type DocumentsAddUserReq = z.infer<typeof DocumentsAddUserSchema>;
+
+export const DocumentsRemoveUserSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the document from which to remove the user */
+    id: z.string().uuid(),
+    /** Id of the user who is to be removed */
+    userId: z.string().uuid(),
+  }),
+});
+
+export type DocumentsRemoveUserReq = z.infer<typeof DocumentsRemoveUserSchema>;
+
+export const DocumentsSharedWithUserSchema = BaseSchema.extend({
+  body: DocumentsSortParamsSchema,
+});
+
+export type DocumentsSharedWithUserReq = z.infer<
+  typeof DocumentsSharedWithUserSchema
+>;
+
+export const DocumentsMembershipsSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    query: z.string().optional(),
+    permission: z.nativeEnum(DocumentPermission).optional(),
+  }),
+});
+
+export type DocumentsMembershipsReq = z.infer<
+  typeof DocumentsMembershipsSchema
+>;

@@ -70,6 +70,7 @@ const SearchInput = styled(KBarSearch)`
   &:disabled,
   &::placeholder {
     color: ${s("placeholder")};
+    opacity: 1;
   }
 `;
 

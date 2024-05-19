@@ -2,6 +2,7 @@ import { faker } from "@faker-js/faker";
 import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
 import randomstring from "randomstring";
+import { InferCreationAttributes } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import {
   CollectionPermission,
@@ -10,6 +11,7 @@ import {
   IntegrationService,
   IntegrationType,
   NotificationEventType,
+  UserRole,
 } from "@shared/types";
 import {
   Share,
@@ -122,7 +124,6 @@ export async function buildSubscription(overrides: Partial<Subscription> = {}) {
   }
 
   return Subscription.create({
-    enabled: true,
     event: "documents.update",
     ...overrides,
   });
@@ -139,7 +140,7 @@ export function buildTeam(overrides: Record<string, any> = {}) {
         },
       ],
       ...overrides,
-    },
+    } as Partial<InferCreationAttributes<Team>>,
     {
       include: "authenticationProviders",
     }
@@ -200,7 +201,7 @@ export async function buildUser(overrides: Partial<User> = {}) {
           ]
         : [],
       ...overrides,
-    },
+    } as Partial<InferCreationAttributes<User>>,
     {
       include: "authentications",
     }
@@ -213,11 +214,11 @@ export async function buildUser(overrides: Partial<User> = {}) {
 }
 
 export async function buildAdmin(overrides: Partial<User> = {}) {
-  return buildUser({ ...overrides, isAdmin: true });
+  return buildUser({ ...overrides, role: UserRole.Admin });
 }
 
 export async function buildViewer(overrides: Partial<User> = {}) {
-  return buildUser({ ...overrides, isViewer: true });
+  return buildUser({ ...overrides, role: UserRole.Viewer });
 }
 
 export async function buildInvite(overrides: Partial<User> = {}) {
@@ -380,6 +381,7 @@ export async function buildDocument(
             type: "paragraph",
             content: [
               {
+                content: [],
                 type: "text",
                 text: "This is the text in an example document",
               },
@@ -387,10 +389,11 @@ export async function buildDocument(
           },
         ],
       },
+      text: "This is the text in an example document",
       publishedAt: isNull(overrides.collectionId) ? null : new Date(),
       lastModifiedById: overrides.userId,
       createdById: overrides.userId,
-      editorVersion: 2,
+      editorVersion: "12.0.0",
       ...overrides,
     },
     {
@@ -411,11 +414,9 @@ export async function buildDocument(
 
 export async function buildComment(overrides: {
   userId: string;
-  teamId: string;
   documentId: string;
 }) {
   const comment = await Comment.create({
-    teamId: overrides.teamId,
     documentId: overrides.documentId,
     data: {
       type: "doc",
@@ -424,6 +425,7 @@ export async function buildComment(overrides: {
           type: "paragraph",
           content: [
             {
+              content: [],
               type: "text",
               text: "test",
             },

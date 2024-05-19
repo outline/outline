@@ -1,3 +1,4 @@
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DefaultScope,
   BelongsTo,
@@ -37,7 +38,10 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "group_users", modelName: "group_user", paranoid: true })
 @Fix
-class GroupUser extends Model {
+class GroupUser extends Model<
+  InferAttributes<GroupUser>,
+  Partial<InferCreationAttributes<GroupUser>>
+> {
   @BelongsTo(() => User, "userId")
   user: User;
 

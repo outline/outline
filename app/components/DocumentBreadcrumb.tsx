@@ -79,14 +79,14 @@ const DocumentBreadcrumb: React.FC<Props> = ({
       type: "route",
       title: collection.name,
       icon: <CollectionIcon collection={collection} expanded />,
-      to: collectionPath(collection.url),
+      to: collectionPath(collection.path),
     };
-  } else if (document.collectionId && !collection) {
+  } else if (document.isCollectionDeleted) {
     collectionNode = {
       type: "route",
       title: t("Deleted Collection"),
       icon: undefined,
-      to: collectionPath("deleted-collection"),
+      to: "",
     };
   }
 
@@ -127,7 +127,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     return (
       <>
         {collection?.name}
-        {path.map((node: NavigationNode) => (
+        {path.slice(0, -1).map((node: NavigationNode) => (
           <React.Fragment key={node.id}>
             <SmallSlash />
             {node.title}

@@ -27,7 +27,7 @@ const defaultColors: Colors = {
   accent: "#0366d6",
   yellow: "#EDBA07",
   warmGrey: "#EDF2F7",
-  danger: "#f4345d",
+  danger: "#ed2651",
   warning: "#f08a24",
   success: "#2f3336",
   info: "#a0d3e8",
@@ -69,6 +69,7 @@ const buildBaseTheme = (input: Partial<Colors>) => {
     selected: colors.accent,
     textHighlight: "#FDEA9B",
     textHighlightForeground: colors.almostBlack,
+    commentMarkBackground: transparentize(0.5, "#2BC2FF"),
     code: colors.lightBlack,
     codeComment: "#6a737d",
     codePunctuation: "#5e6687",
@@ -129,7 +130,7 @@ export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
 
     commentBackground: colors.warmGrey,
 
-    modalBackdrop: colors.black10,
+    modalBackdrop: "rgba(0, 0, 0, 0.15)",
     modalBackground: colors.white,
     modalShadow:
       "0 4px 8px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 0%), 0 30px 40px rgb(0 0 0 / 8%)",
@@ -181,7 +182,7 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     textDiffInsertedBackground: "rgba(63,185,80,0.3)",
     textDiffDeleted: darken(0.1, colors.almostWhite),
     textDiffDeletedBackground: "rgba(248,81,73,0.15)",
-    placeholder: colors.slateDark,
+    placeholder: "#596673",
     sidebarBackground: colors.veryDarkBlue,
     sidebarActiveBackground: lighten(0.02, colors.almostBlack),
     sidebarControlHoverBackground: colors.white10,
@@ -218,7 +219,7 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     toastText: colors.almostWhite,
     quote: colors.almostWhite,
     code: colors.almostWhite,
-    codeBackground: colors.black75,
+    codeBackground: "#1d202a",
     codeBorder: colors.white10,
     codeTag: "#b5cea8",
     codeString: "#ce9178",

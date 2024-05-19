@@ -341,7 +341,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     setInsertItem(item);
   };
 
-  const handleFilesPicked = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilesPicked = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { uploadFile, onFileUploadStart, onFileUploadStop } = props;
     const files = getEventFiles(event);
     const parent = findParentNode((node) => !!node)(view.state.selection);
@@ -353,7 +355,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     }
 
     if (parent) {
-      insertFiles(view, event, parent.pos, files, {
+      await insertFiles(view, event, parent.pos, files, {
         uploadFile,
         onFileUploadStart,
         onFileUploadStop,
@@ -424,15 +426,22 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       }
 
       return (
-        (item.title || "").toLowerCase().includes(searchInput) ||
-        (item.keywords || "").toLowerCase().includes(searchInput)
+        (item.title || "").toLocaleLowerCase().includes(searchInput) ||
+        (item.keywords || "").toLocaleLowerCase().includes(searchInput)
       );
     });
 
     return filterExcessSeparators(
-      filtered.sort((item) =>
-        searchInput && item.title ? commandScore(item.title, searchInput) : 0
-      )
+      filtered
+        .map((item) => ({
+          item,
+          score:
+            searchInput && item.title
+              ? commandScore(item.title, searchInput)
+              : 0,
+        }))
+        .sort((a, b) => b.score - a.score)
+        .map(({ item }) => item)
     );
   }, [commands, props]);
 
@@ -458,7 +467,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
       if (event.key === "Enter") {
         event.preventDefault();
-        event.stopPropagation();
 
         const item = filtered[selectedIndex];
 

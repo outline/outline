@@ -30,6 +30,8 @@ export type HTMLOptions = {
   includeMermaid?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
+  /** The base URL to use for relative links */
+  baseUrl?: string;
 };
 
 type MentionAttrs = {
@@ -183,13 +185,14 @@ export default class ProsemirrorHelper {
 
     function replaceAttachmentUrls(node: ProsemirrorData) {
       if (node.attrs?.src) {
-        node.attrs.src = mapping[node.attrs.src] || node.attrs.src;
+        node.attrs.src = mapping[node.attrs.src as string] || node.attrs.src;
       } else if (node.attrs?.href) {
-        node.attrs.href = mapping[node.attrs.href] || node.attrs.href;
+        node.attrs.href = mapping[node.attrs.href as string] || node.attrs.href;
       } else if (node.marks) {
         node.marks.forEach((mark: ProsemirrorData) => {
           if (mark.attrs?.href) {
-            mark.attrs.href = mapping[mark.attrs.href] || mark.attrs.href;
+            mark.attrs.href =
+              mapping[mark.attrs.href as string] || mark.attrs.href;
           }
         });
       }
@@ -320,6 +323,16 @@ export default class ProsemirrorHelper {
       // @ts-expect-error incorrect library type, third argument is target node
       target
     );
+
+    // Convert relative urls to absolute
+    if (options?.baseUrl) {
+      const elements = doc.querySelectorAll("a[href]");
+      for (const el of elements) {
+        if ("href" in el && (el.href as string).startsWith("/")) {
+          el.href = new URL(el.href as string, options.baseUrl).toString();
+        }
+      }
+    }
 
     // Inject mermaidjs scripts if the document contains mermaid diagrams
     if (options?.includeMermaid) {

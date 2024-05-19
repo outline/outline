@@ -7,6 +7,7 @@ import { NavigationNode } from "@shared/types";
 import EventBoundary from "~/components/EventBoundary";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
 import NudeButton from "~/components/NudeButton";
+import { UnreadBadge } from "~/components/UnreadBadge";
 import useUnmount from "~/hooks/useUnmount";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
@@ -29,6 +30,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   emoji?: string | null;
   label?: React.ReactNode;
   menu?: React.ReactNode;
+  unreadBadge?: boolean;
   showActions?: boolean;
   disabled?: boolean;
   active?: boolean;
@@ -64,6 +66,7 @@ function SidebarLink(
     expanded,
     onDisclosureClick,
     disabled,
+    unreadBadge,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -141,6 +144,7 @@ function SidebarLink(
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {emoji && <EmojiIcon emoji={emoji} />}
           <Label>{label}</Label>
+          {unreadBadge && <UnreadBadge />}
         </Content>
       </Link>
       {menu && <Actions showActions={showActions}>{menu}</Actions>}

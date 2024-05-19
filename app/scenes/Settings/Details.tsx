@@ -113,7 +113,6 @@ function Details() {
     dialogs.openModal({
       title: t("Delete workspace"),
       content: <TeamDelete onSubmit={dialogs.closeAllModals} />,
-      isCentered: true,
     });
   };
 
@@ -136,7 +135,7 @@ function Details() {
     <ThemeProvider theme={newTheme}>
       <Scene title={t("Details")} icon={<TeamIcon />}>
         <Heading>{t("Details")}</Heading>
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <Trans>
             These settings affect the way that your workspace appears to
             everyone on the team.
@@ -191,7 +190,6 @@ function Details() {
                     >
                       {t("Reset theme")}
                     </ButtonLink>
-                    .
                   </>
                 )}
               </>

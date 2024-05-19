@@ -18,7 +18,7 @@ import {
   Revision,
   View,
   Share,
-  UserPermission,
+  UserMembership,
   GroupPermission,
   GroupUser,
   Comment,
@@ -48,6 +48,7 @@ import {
   CollectionUserEvent,
   CommentEvent,
   DocumentEvent,
+  DocumentUserEvent,
   Event,
   FileOperationEvent,
   GroupEvent,
@@ -60,6 +61,7 @@ import {
   TeamEvent,
   UserEvent,
   ViewEvent,
+  WebhookDeliveryStatus,
   WebhookSubscriptionEvent,
 } from "@server/types";
 import fetch from "@server/utils/fetch";
@@ -131,6 +133,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "documents.title_change":
         await this.handleDocumentEvent(subscription, event);
         return;
+      case "documents.add_user":
+      case "documents.remove_user":
+        await this.handleDocumentUserEvent(subscription, event);
+        return;
       case "documents.update.delayed":
       case "documents.update.debounced":
         // Ignored
@@ -178,6 +184,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         await this.handleIntegrationEvent(subscription, event);
         return;
       case "teams.create":
+      case "teams.delete":
+      case "teams.destroy":
         // Ignored
         return;
       case "teams.update":
@@ -205,6 +213,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         return;
       case "views.create":
         await this.handleViewEvent(subscription, event);
+        return;
+      case "userMemberships.update":
+        // Ignored
         return;
       default:
         assertUnreachable(event);
@@ -426,7 +437,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CollectionUserEvent
   ): Promise<void> {
-    const model = await UserPermission.scope([
+    const model = await UserMembership.scope([
       "withUser",
       "withCollection",
     ]).findOne({
@@ -441,7 +452,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       event,
       subscription,
       payload: {
-        id: `${event.userId}-${event.collectionId}`,
+        id: event.modelId,
         model: model && presentMembership(model),
         collection: model && presentCollection(model.collection!),
         user: model && presentUser(model.user),
@@ -468,7 +479,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       event,
       subscription,
       payload: {
-        id: `${event.modelId}-${event.collectionId}`,
+        id: event.modelId,
         model: model && presentCollectionGroupMembership(model),
         collection: model && presentCollection(model.collection!),
         group: model && presentGroup(model.group),
@@ -508,6 +519,33 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: event.documentId,
         model: model && (await presentDocument(undefined, model)),
+      },
+    });
+  }
+
+  private async handleDocumentUserEvent(
+    subscription: WebhookSubscription,
+    event: DocumentUserEvent
+  ): Promise<void> {
+    const model = await UserMembership.scope([
+      "withUser",
+      "withDocument",
+    ]).findOne({
+      where: {
+        documentId: event.documentId,
+        userId: event.userId,
+      },
+      paranoid: false,
+    });
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: event.modelId,
+        model: model && presentMembership(model),
+        document: model && (await presentDocument(undefined, model.document!)),
+        user: model && presentUser(model.user),
       },
     });
   }
@@ -572,7 +610,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       status: "pending",
     });
 
-    let response, requestBody, requestHeaders, status;
+    let response, requestBody, requestHeaders;
+    let status: WebhookDeliveryStatus;
     try {
       requestBody = presentWebhook({
         event,

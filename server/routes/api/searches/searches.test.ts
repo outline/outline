@@ -24,6 +24,7 @@ describe("#searches.list", () => {
         userId: user.id,
         teamId: user.teamId,
         query: "bar",
+        source: "api",
       }),
     ]);
   });
@@ -41,6 +42,18 @@ describe("#searches.list", () => {
     expect(queries).toContain("query");
     expect(queries).toContain("foo");
     expect(queries).toContain("bar");
+  });
+
+  it("should allow filtering by source", async () => {
+    const res = await server.post("/api/searches.list", {
+      body: {
+        token: user.getJwtToken(),
+        source: "api",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
   });
 });
 

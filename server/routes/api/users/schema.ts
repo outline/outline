@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { NotificationEventType, UserPreference, UserRole } from "@shared/types";
 import User from "@server/models/User";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 const BaseIdSchema = z.object({
   id: z.string().uuid(),
@@ -29,6 +29,16 @@ export const UsersListSchema = z.object({
 
     query: z.string().optional(),
 
+    /** The user's role */
+    role: z.nativeEnum(UserRole).optional(),
+
+    /**
+     * Filter the users by their status – passing a user role is deprecated here, instead use the
+     * `role` parameter, which will allow filtering by role and status, eg invited members, or
+     * suspended admins.
+     *
+     * @deprecated
+     */
     filter: z
       .enum([
         "invited",
@@ -69,7 +79,7 @@ export const UsersUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid().optional(),
     name: z.string().optional(),
-    avatarUrl: z.string().optional(),
+    avatarUrl: z.string().nullish(),
     language: z.string().optional(),
     preferences: z.record(z.nativeEnum(UserPreference), z.boolean()).optional(),
   }),
@@ -100,6 +110,14 @@ export const UsersActivateSchema = BaseSchema.extend({
 
 export type UsersActivateReq = z.infer<typeof UsersActivateSchema>;
 
+export const UsersChangeRoleSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    role: z.nativeEnum(UserRole),
+  }),
+});
+
+export type UsersChangeRoleReq = z.infer<typeof UsersChangeRoleSchema>;
+
 export const UsersPromoteSchema = BaseSchema.extend({
   body: BaseIdSchema,
 });
@@ -107,8 +125,7 @@ export const UsersPromoteSchema = BaseSchema.extend({
 export type UsersPromoteReq = z.infer<typeof UsersPromoteSchema>;
 
 export const UsersDemoteSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     to: z.nativeEnum(UserRole).default(UserRole.Member),
   }),
 });

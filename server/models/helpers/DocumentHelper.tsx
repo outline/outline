@@ -7,6 +7,7 @@ import { JSDOM } from "jsdom";
 import { Node } from "prosemirror-model";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
+import { ProsemirrorData } from "@shared/types";
 import { parser, serializer, schema } from "@server/editor";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
@@ -29,6 +30,8 @@ type HTMLOptions = {
    * number then the urls will be signed for that many seconds. (defaults to false)
    */
   signedUrls?: boolean | number;
+  /** The base URL to use for relative links */
+  baseUrl?: string;
 };
 
 @trace()
@@ -60,7 +63,7 @@ export default class DocumentHelper {
    * @param options Options for the conversion
    * @returns The document content as a plain JSON object
    */
-  static async toJSON(
+  static toJSON(
     document: Document | Revision,
     options?: {
       /** The team context */
@@ -68,7 +71,7 @@ export default class DocumentHelper {
       /** Whether to sign attachment urls, and if so for how many seconds is the signature valid */
       signedUrls: number;
     }
-  ) {
+  ): Promise<ProsemirrorData> {
     let doc: Node | null;
 
     if ("state" in document && document.state) {
@@ -120,7 +123,7 @@ export default class DocumentHelper {
   static toMarkdown(document: Document | Revision) {
     const text = serializer
       .serialize(DocumentHelper.toProsemirror(document))
-      .replace(/\n\\\n/g, "\n\n")
+      .replace(/\n\\(\n|$)/g, "\n\n")
       .replace(/“/g, '"')
       .replace(/”/g, '"')
       .replace(/‘/g, "'")
@@ -149,6 +152,7 @@ export default class DocumentHelper {
       includeStyles: options?.includeStyles,
       includeMermaid: options?.includeMermaid,
       centered: options?.centered,
+      baseUrl: options?.baseUrl,
     });
 
     addTags({

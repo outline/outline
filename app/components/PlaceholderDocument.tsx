@@ -51,5 +51,6 @@ export default function PlaceholderDocument({
 
 const Wrapper = styled(Fade)`
   display: block;
-  margin: 40px 0;
+  margin: 6vh 0;
+  padding: 12px 0;
 `;

@@ -1,5 +1,5 @@
 import uniq from "lodash/uniq";
-import { QueryTypes } from "sequelize";
+import { Op, QueryTypes } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Document, Attachment } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
@@ -75,6 +75,21 @@ export default async function documentPermanentDeleter(documents: Document[]) {
       })
     );
   }
+
+  const documentIds = documents.map((document) => document.id);
+  await Document.update(
+    {
+      parentDocumentId: null,
+    },
+    {
+      where: {
+        parentDocumentId: {
+          [Op.in]: documentIds,
+        },
+      },
+      paranoid: false,
+    }
+  );
 
   return Document.scope("withDrafts").destroy({
     where: {

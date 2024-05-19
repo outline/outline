@@ -1,7 +1,5 @@
-import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import Star from "~/models/Star";
@@ -16,6 +14,7 @@ import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import StarredContext from "./StarredContext";
 import StarredLink from "./StarredLink";
+import { useDropToCreateStar, useDropToReorderStar } from "./useDragAndDrop";
 
 const STARRED_PAGINATION_LIMIT = 10;
 
@@ -24,29 +23,16 @@ function Starred() {
   const { t } = useTranslation();
 
   const { loading, next, end, error, page } = usePaginatedRequest<Star>(
-    stars.fetchPage,
-    {
-      limit: STARRED_PAGINATION_LIMIT,
-    }
+    stars.fetchPage
   );
+  const [reorderStarMonitor, dropToReorder] = useDropToReorderStar();
+  const [createStarMonitor, dropToStarRef] = useDropToCreateStar();
 
-  // Drop to reorder document
-  const [{ isOverReorder, isDraggingAnyStar }, dropToReorder] = useDrop({
-    accept: "star",
-    drop: async (item: { star: Star }) => {
-      void item.star.save({
-        index: fractionalIndex(null, stars.orderedData[0].index),
-      });
-    },
-    collect: (monitor) => ({
-      isOverReorder: !!monitor.isOver(),
-      isDraggingAnyStar: monitor.getItemType() === "star",
-    }),
-  });
-
-  if (error) {
-    toast.error(t("Could not load starred documents"));
-  }
+  React.useEffect(() => {
+    if (error) {
+      toast.error(t("Could not load starred documents"));
+    }
+  }, [t, error]);
 
   if (!stars.orderedData.length) {
     return null;
@@ -57,10 +43,17 @@ function Starred() {
       <Flex column>
         <Header id="starred" title={t("Starred")}>
           <Relative>
-            {isDraggingAnyStar && (
+            {reorderStarMonitor.isDragging && (
               <DropCursor
-                isActiveDrop={isOverReorder}
+                isActiveDrop={reorderStarMonitor.isOverCursor}
                 innerRef={dropToReorder}
+                position="top"
+              />
+            )}
+            {createStarMonitor.isDragging && (
+              <DropCursor
+                isActiveDrop={createStarMonitor.isOverCursor}
+                innerRef={dropToStarRef}
                 position="top"
               />
             )}

@@ -18,13 +18,13 @@ async function presentDocument(
     ...options,
   };
 
-  const asJSON = !ctx || Number(ctx?.headers["x-api-version"] ?? 0) >= 3;
+  const asData = !ctx || Number(ctx?.headers["x-api-version"] ?? 0) >= 3;
   const data: Record<string, any> = {
     id: document.id,
     url: document.url,
     urlId: document.urlId,
     title: document.title,
-    data: asJSON
+    data: asData
       ? await DocumentHelper.toJSON(
           document,
           options.isPublic
@@ -32,7 +32,7 @@ async function presentDocument(
             : undefined
         )
       : undefined,
-    text: asJSON ? undefined : document.text,
+    text: asData ? undefined : document.text,
     emoji: document.emoji,
     tasks: document.tasks,
     createdAt: document.createdAt,
@@ -49,6 +49,7 @@ async function presentDocument(
     collectionId: undefined,
     parentDocumentId: undefined,
     lastViewedAt: undefined,
+    isCollectionDeleted: await document.isCollectionDeleted(),
   };
 
   if (!!document.views && document.views.length > 0) {
@@ -56,6 +57,8 @@ async function presentDocument(
   }
 
   if (!options.isPublic) {
+    const source = await document.$get("import");
+
     data.collectionId = document.collectionId;
     data.parentDocumentId = document.parentDocumentId;
     data.createdBy = presentUser(document.createdBy);
@@ -64,6 +67,14 @@ async function presentDocument(
     data.templateId = document.templateId;
     data.template = document.template;
     data.insightsEnabled = document.insightsEnabled;
+    data.sourceMetadata = document.sourceMetadata
+      ? {
+          importedAt: source?.createdAt ?? document.createdAt,
+          importType: source?.format,
+          createdByName: document.sourceMetadata.createdByName,
+          fileName: document.sourceMetadata?.fileName,
+        }
+      : undefined;
   }
 
   return data;

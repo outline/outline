@@ -1,4 +1,5 @@
 import * as React from "react";
+import { UserRole } from "@shared/types";
 import env from "@server/env";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
@@ -10,16 +11,26 @@ import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 type Props = EmailProps & {
+  role: UserRole;
   teamUrl: string;
 };
+
+type BeforeSend = Record<string, never>;
 
 /**
  * Email sent to a user when their account has just been created, or they signed
  * in for the first time from an invite.
  */
-export default class WelcomeEmail extends BaseEmail<Props> {
+export default class WelcomeEmail extends BaseEmail<Props, BeforeSend> {
   protected subject() {
     return `Welcome to ${env.APP_NAME}`;
+  }
+
+  protected async beforeSend(props: Props) {
+    if (props.role === UserRole.Guest) {
+      return false;
+    }
+    return {};
   }
 
   protected preview() {

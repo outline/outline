@@ -1,4 +1,5 @@
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, UserRole } from "@shared/types";
+import { Document } from "@server/models";
 import {
   buildUser,
   buildTeam,
@@ -16,10 +17,12 @@ describe("read_write collection", () => {
       teamId: team.id,
       permission: CollectionPermission.ReadWrite,
     });
-    const document = await buildDocument({
+    const doc = await buildDocument({
       teamId: team.id,
       collectionId: collection.id,
     });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
     const abilities = serialize(user, document);
     expect(abilities.read).toEqual(true);
     expect(abilities.download).toEqual(true);
@@ -36,16 +39,18 @@ describe("read_write collection", () => {
     const team = await buildTeam();
     const user = await buildUser({
       teamId: team.id,
-      isViewer: true,
+      role: UserRole.Viewer,
     });
     const collection = await buildCollection({
       teamId: team.id,
       permission: CollectionPermission.ReadWrite,
     });
-    const document = await buildDocument({
+    const doc = await buildDocument({
       teamId: team.id,
       collectionId: collection.id,
     });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
     const abilities = serialize(user, document);
     expect(abilities.read).toEqual(true);
     expect(abilities.download).toEqual(true);
@@ -59,6 +64,36 @@ describe("read_write collection", () => {
     expect(abilities.unsubscribe).toEqual(true);
     expect(abilities.comment).toEqual(true);
   });
+
+  it("should allow no permissions for guest", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+      role: UserRole.Guest,
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual(false);
+    expect(abilities.download).toEqual(false);
+    expect(abilities.update).toEqual(false);
+    expect(abilities.createChildDocument).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.delete).toEqual(false);
+    expect(abilities.share).toEqual(false);
+    expect(abilities.move).toEqual(false);
+    expect(abilities.subscribe).toEqual(false);
+    expect(abilities.unsubscribe).toEqual(false);
+    expect(abilities.comment).toEqual(false);
+  });
 });
 
 describe("read collection", () => {
@@ -69,10 +104,12 @@ describe("read collection", () => {
       teamId: team.id,
       permission: CollectionPermission.Read,
     });
-    const document = await buildDocument({
+    const doc = await buildDocument({
       teamId: team.id,
       collectionId: collection.id,
     });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
     const abilities = serialize(user, document);
     expect(abilities.read).toEqual(true);
     expect(abilities.download).toEqual(true);
@@ -85,6 +122,36 @@ describe("read collection", () => {
     expect(abilities.subscribe).toEqual(true);
     expect(abilities.unsubscribe).toEqual(true);
     expect(abilities.comment).toEqual(true);
+  });
+
+  it("should allow no permissions for guest", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+      role: UserRole.Guest,
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.Read,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual(false);
+    expect(abilities.download).toEqual(false);
+    expect(abilities.update).toEqual(false);
+    expect(abilities.createChildDocument).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.delete).toEqual(false);
+    expect(abilities.share).toEqual(false);
+    expect(abilities.move).toEqual(false);
+    expect(abilities.subscribe).toEqual(false);
+    expect(abilities.unsubscribe).toEqual(false);
+    expect(abilities.comment).toEqual(false);
   });
 });
 
@@ -113,36 +180,126 @@ describe("private collection", () => {
     expect(abilities.unsubscribe).toEqual(false);
     expect(abilities.comment).toEqual(false);
   });
+
+  it("should allow no permissions for guest", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+      role: UserRole.Guest,
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual(false);
+    expect(abilities.download).toEqual(false);
+    expect(abilities.update).toEqual(false);
+    expect(abilities.createChildDocument).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.delete).toEqual(false);
+    expect(abilities.share).toEqual(false);
+    expect(abilities.move).toEqual(false);
+    expect(abilities.subscribe).toEqual(false);
+    expect(abilities.unsubscribe).toEqual(false);
+    expect(abilities.comment).toEqual(false);
+  });
 });
 
 describe("no collection", () => {
-  it("should grant same permissions as that on a draft document except the share permission", async () => {
+  it("should allow no permissions for team member", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const document = await buildDraftDocument({
       teamId: team.id,
-      collectionId: null,
     });
     const abilities = serialize(user, document);
-    expect(abilities.archive).toEqual(false);
+    expect(abilities.read).toEqual(false);
+    expect(abilities.download).toEqual(false);
+    expect(abilities.update).toEqual(false);
     expect(abilities.createChildDocument).toEqual(false);
-    expect(abilities.delete).toEqual(true);
-    expect(abilities.download).toEqual(true);
-    expect(abilities.move).toEqual(true);
-    expect(abilities.permanentDelete).toEqual(false);
-    expect(abilities.pin).toEqual(false);
-    expect(abilities.pinToHome).toEqual(false);
-    expect(abilities.read).toEqual(true);
-    expect(abilities.restore).toEqual(false);
-    expect(abilities.share).toEqual(true);
-    expect(abilities.star).toEqual(true);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.delete).toEqual(false);
+    expect(abilities.share).toEqual(false);
+    expect(abilities.move).toEqual(false);
     expect(abilities.subscribe).toEqual(false);
-    expect(abilities.unarchive).toEqual(false);
-    expect(abilities.unpin).toEqual(false);
-    expect(abilities.unpublish).toEqual(false);
-    expect(abilities.unstar).toEqual(true);
     expect(abilities.unsubscribe).toEqual(false);
+    expect(abilities.comment).toEqual(false);
+  });
+
+  it("should allow no permissions for guest", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+      role: UserRole.Guest,
+    });
+    const document = await buildDraftDocument({
+      teamId: team.id,
+    });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual(false);
+    expect(abilities.download).toEqual(false);
+    expect(abilities.update).toEqual(false);
+    expect(abilities.createChildDocument).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.delete).toEqual(false);
+    expect(abilities.share).toEqual(false);
+    expect(abilities.move).toEqual(false);
+    expect(abilities.subscribe).toEqual(false);
+    expect(abilities.unsubscribe).toEqual(false);
+    expect(abilities.comment).toEqual(false);
+  });
+
+  it("should allow edit permissions for creator", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const doc = await buildDraftDocument({
+      teamId: team.id,
+      userId: user.id,
+    });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual(true);
+    expect(abilities.download).toEqual(true);
     expect(abilities.update).toEqual(true);
+    expect(abilities.createChildDocument).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.delete).toEqual(true);
+    expect(abilities.share).toEqual(true);
+    expect(abilities.move).toEqual(true);
+    expect(abilities.subscribe).toEqual(true);
+    expect(abilities.unsubscribe).toEqual(true);
     expect(abilities.comment).toEqual(true);
+  });
+});
+
+describe("archived document", () => {
+  it("should have correct permissions", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const doc = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      archivedAt: new Date(),
+    });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual(true);
+    expect(abilities.download).toEqual(true);
+    expect(abilities.delete).toEqual(true);
+    expect(abilities.unsubscribe).toEqual(true);
+    expect(abilities.unarchive).toEqual(true);
+    expect(abilities.update).toEqual(false);
+    expect(abilities.createChildDocument).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.share).toEqual(false);
+    expect(abilities.move).toEqual(false);
+    expect(abilities.comment).toEqual(false);
   });
 });

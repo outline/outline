@@ -73,7 +73,6 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   const ref = React.useRef<RefHandle>(null);
   const [emojiPickerIsOpen, handleOpen, handleClose] = useBoolean();
   const { editor } = useDocumentContext();
-
   const can = usePolicy(documentId);
 
   const handleClick = React.useCallback(() => {
@@ -125,15 +124,6 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       if (event.key === "Tab" || event.key === "ArrowDown") {
         event.preventDefault();
         onGoToNextInput?.();
-        return;
-      }
-
-      if (event.key === "p" && isModKey(event) && event.shiftKey) {
-        event.preventDefault();
-        onSave?.({
-          publish: true,
-          done: true,
-        });
         return;
       }
 
@@ -296,6 +286,9 @@ const EmojiWrapper = styled(Flex)<{ $position: "top" | "side"; dir?: string }>`
   height: 32px;
   width: 32px;
 
+  // Always move above TOC
+  z-index: 1;
+
   ${(props) =>
     props.$position === "top"
       ? css`
@@ -318,12 +311,12 @@ type TitleProps = {
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
   line-height: ${lineHeight};
-  margin-top: 1em;
+  margin-top: 6vh;
   margin-bottom: 0.5em;
   margin-left: ${(props) =>
     props.$containsEmoji || props.$emojiPickerIsOpen ? "40px" : "0px"};
   font-size: ${fontSize};
-  font-weight: 500;
+  font-weight: 600;
   border: 0;
   padding: 0;
   cursor: ${(props) => (props.readOnly ? "default" : "text")};
@@ -335,6 +328,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   &::placeholder {
     color: ${s("placeholder")};
     -webkit-text-fill-color: ${s("placeholder")};
+    opacity: 1;
   }
 
   &:focus-within,

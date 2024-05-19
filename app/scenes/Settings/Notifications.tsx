@@ -5,6 +5,7 @@ import {
   CheckboxIcon,
   CollectionIcon,
   CommentIcon,
+  DocumentIcon,
   EditIcon,
   EmailIcon,
   PublishIcon,
@@ -81,6 +82,22 @@ function Notifications() {
       ),
     },
     {
+      event: NotificationEventType.AddUserToDocument,
+      icon: <DocumentIcon />,
+      title: t("Invited to document"),
+      description: t(
+        "Receive a notification when a document is shared with you"
+      ),
+    },
+    {
+      event: NotificationEventType.AddUserToCollection,
+      icon: <CollectionIcon />,
+      title: t("Invited to collection"),
+      description: t(
+        "Receive a notification when you are given access to a collection"
+      ),
+    },
+    {
       event: NotificationEventType.ExportCompleted,
       icon: <CheckboxIcon checked />,
       title: t("Export completed"),
@@ -131,7 +148,7 @@ function Notifications() {
           </Trans>
         </Notice>
       )}
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>Manage when and where you receive email notifications.</Trans>
       </Text>
 

@@ -3,19 +3,20 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
 import { toast } from "sonner";
+import { UserRole } from "@shared/types";
 import User from "~/models/User";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
 import {
-  UserChangeToAdminDialog,
-  UserChangeToMemberDialog,
-  UserChangeToViewerDialog,
   UserSuspendDialog,
   UserChangeNameDialog,
 } from "~/components/UserDialogs";
 import { actionToMenuItem } from "~/actions";
-import { deleteUserActionFactory } from "~/actions/definitions/users";
+import {
+  deleteUserActionFactory,
+  updateUserRoleActionFactory,
+} from "~/actions/definitions/users";
 import useActionContext from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -30,68 +31,16 @@ function UserMenu({ user }: Props) {
   const menu = useMenuState({
     modal: true,
   });
-  const can = usePolicy(user.id);
+  const can = usePolicy(user);
   const context = useActionContext({
     isContextMenu: true,
   });
-
-  const handlePromote = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      dialogs.openModal({
-        title: t("Change role to admin"),
-        isCentered: true,
-        content: (
-          <UserChangeToAdminDialog
-            user={user}
-            onSubmit={dialogs.closeAllModals}
-          />
-        ),
-      });
-    },
-    [dialogs, t, user]
-  );
-
-  const handleMember = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      dialogs.openModal({
-        title: t("Change role to member"),
-        isCentered: true,
-        content: (
-          <UserChangeToMemberDialog
-            user={user}
-            onSubmit={dialogs.closeAllModals}
-          />
-        ),
-      });
-    },
-    [dialogs, t, user]
-  );
-
-  const handleViewer = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      dialogs.openModal({
-        title: t("Change role to viewer"),
-        isCentered: true,
-        content: (
-          <UserChangeToViewerDialog
-            user={user}
-            onSubmit={dialogs.closeAllModals}
-          />
-        ),
-      });
-    },
-    [dialogs, t, user]
-  );
 
   const handleChangeName = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
       dialogs.openModal({
         title: t("Change name"),
-        isCentered: true,
         content: (
           <UserChangeNameDialog user={user} onSubmit={dialogs.closeAllModals} />
         ),
@@ -105,7 +54,6 @@ function UserMenu({ user }: Props) {
       ev.preventDefault();
       dialogs.openModal({
         title: t("Suspend user"),
-        isCentered: true,
         content: (
           <UserSuspendDialog user={user} onSubmit={dialogs.closeAllModals} />
         ),
@@ -154,22 +102,16 @@ function UserMenu({ user }: Props) {
           {...menu}
           items={[
             {
-              type: "button",
-              title: `${t("Change role to member")}…`,
-              onClick: handleMember,
-              visible: can.demote && user.role !== "member",
-            },
-            {
-              type: "button",
-              title: `${t("Change role to viewer")}…`,
-              onClick: handleViewer,
-              visible: can.demote && user.role !== "viewer",
-            },
-            {
-              type: "button",
-              title: `${t("Change role to admin")}…`,
-              onClick: handlePromote,
-              visible: can.promote && user.role !== "admin",
+              type: "submenu",
+              title: t("Change role"),
+              visible: can.demote || can.promote,
+              items: [UserRole.Admin, UserRole.Member, UserRole.Viewer].map(
+                (role) =>
+                  actionToMenuItem(
+                    updateUserRoleActionFactory(user, role),
+                    context
+                  )
+              ),
             },
             {
               type: "button",
@@ -195,7 +137,7 @@ function UserMenu({ user }: Props) {
             },
             {
               type: "button",
-              title: t("Activate account"),
+              title: t("Activate user"),
               onClick: handleActivate,
               visible: !user.isInvited && user.isSuspended,
             },

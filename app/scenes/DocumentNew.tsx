@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { toast } from "sonner";
 import { UserPreference } from "@shared/types";
-import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import CenteredContent from "~/components/CenteredContent";
 import Flex from "~/components/Flex";
 import PlaceholderDocument from "~/components/PlaceholderDocument";

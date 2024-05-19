@@ -15,6 +15,7 @@ import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
+import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
 import getFormattingMenuItems from "../menus/formatting";
@@ -66,7 +67,7 @@ function useIsActive(state: EditorState) {
   }
   if (
     selection instanceof NodeSelection &&
-    selection.node.type.name === "image"
+    ["image", "attachment"].includes(selection.node.type.name)
   ) {
     return true;
   }
@@ -148,7 +149,10 @@ export default function SelectionToolbar(props: Props) {
     };
   }, [isActive, previousIsActive, readOnly, view]);
 
-  const handleOnCreateLink = async (title: string): Promise<void> => {
+  const handleOnCreateLink = async (
+    title: string,
+    nested?: boolean
+  ): Promise<void> => {
     const { onCreateLink } = props;
 
     if (!onCreateLink) {
@@ -173,6 +177,7 @@ export default function SelectionToolbar(props: Props) {
     );
 
     return createAndInsertLink(view, title, href, {
+      nested,
       onCreateLink,
       dictionary,
     });
@@ -215,6 +220,9 @@ export default function SelectionToolbar(props: Props) {
   const range = getMarkRange(selection.$from, state.schema.marks.link);
   const isImageSelection =
     selection instanceof NodeSelection && selection.node.type.name === "image";
+  const isAttachmentSelection =
+    selection instanceof NodeSelection &&
+    selection.node.type.name === "attachment";
   const isCodeSelection = isInCode(state, { onlyBlock: true });
 
   let items: MenuItem[] = [];
@@ -229,6 +237,8 @@ export default function SelectionToolbar(props: Props) {
     items = getTableRowMenuItems(state, rowIndex, dictionary);
   } else if (isImageSelection) {
     items = readOnly ? [] : getImageMenuItems(state, dictionary);
+  } else if (isAttachmentSelection) {
+    items = readOnly ? [] : getAttachmentMenuItems(state, dictionary);
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, dictionary);
   } else if (readOnly) {

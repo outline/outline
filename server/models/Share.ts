@@ -1,4 +1,8 @@
-import { type SaveOptions } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  type SaveOptions,
+} from "sequelize";
 import {
   ForeignKey,
   BelongsTo,
@@ -13,7 +17,7 @@ import {
   Unique,
   BeforeUpdate,
 } from "sequelize-typescript";
-import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import Collection from "./Collection";
@@ -55,6 +59,13 @@ import Length from "./validators/Length";
             }),
             as: "collection",
           },
+          {
+            association: "memberships",
+            where: {
+              userId,
+            },
+            required: false,
+          },
         ],
       },
       {
@@ -69,7 +80,10 @@ import Length from "./validators/Length";
 }))
 @Table({ tableName: "shares", modelName: "share" })
 @Fix
-class Share extends IdModel {
+class Share extends IdModel<
+  InferAttributes<Share>,
+  Partial<InferCreationAttributes<Share>>
+> {
   @Column
   published: boolean;
 
@@ -89,7 +103,7 @@ class Share extends IdModel {
 
   @AllowNull
   @Is({
-    args: SHARE_URL_SLUG_REGEX,
+    args: UrlHelper.SHARE_URL_SLUG_REGEX,
     msg: "Must be only alphanumeric and dashes",
   })
   @Column

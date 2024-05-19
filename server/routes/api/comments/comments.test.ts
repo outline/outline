@@ -1,4 +1,5 @@
 import {
+  buildAdmin,
   buildCollection,
   buildComment,
   buildDocument,
@@ -16,6 +17,7 @@ describe("#comments.list", () => {
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
+
   it("should return all comments for a document", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -25,7 +27,6 @@ describe("#comments.list", () => {
     });
     const comment = await buildComment({
       userId: user.id,
-      teamId: team.id,
       documentId: document.id,
     });
     const res = await server.post("/api/comments.list", {
@@ -42,6 +43,7 @@ describe("#comments.list", () => {
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
   });
+
   it("should return all comments for a collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -56,7 +58,6 @@ describe("#comments.list", () => {
     });
     const comment = await buildComment({
       userId: user.id,
-      teamId: team.id,
       documentId: document.id,
     });
     const res = await server.post("/api/comments.list", {
@@ -73,6 +74,7 @@ describe("#comments.list", () => {
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
   });
+
   it("should return all comments", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -96,12 +98,10 @@ describe("#comments.list", () => {
     });
     const comment1 = await buildComment({
       userId: user.id,
-      teamId: team.id,
       documentId: document1.id,
     });
     const comment2 = await buildComment({
       userId: user.id,
-      teamId: team.id,
       documentId: document2.id,
     });
     const res = await server.post("/api/comments.list", {
@@ -119,5 +119,151 @@ describe("#comments.list", () => {
     expect(body.policies.length).toEqual(2);
     expect(body.policies[0].abilities.read).toEqual(true);
     expect(body.policies[1].abilities.read).toEqual(true);
+  });
+});
+
+describe("#comments.create", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/comments.create");
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should create a comment", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: comment.data,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.data).toEqual(comment.data);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.update).toEqual(true);
+    expect(body.policies[0].abilities.delete).toEqual(true);
+  });
+
+  it("should not allow empty comment data", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: null,
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow invalid comment data", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: {
+          type: "nonsense",
+        },
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+});
+
+describe("#comments.info", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/comments.info");
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should return comment info", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user2.id,
+      documentId: document.id,
+    });
+    const res = await server.post("/api/comments.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(comment.id);
+    expect(body.data.data).toEqual(comment.data);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.update).toEqual(false);
+    expect(body.policies[0].abilities.delete).toEqual(false);
+  });
+
+  it("should return comment info for admin", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user2.id,
+      documentId: document.id,
+    });
+    const res = await server.post("/api/comments.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(comment.id);
+    expect(body.data.data).toEqual(comment.data);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.update).toEqual(true);
+    expect(body.policies[0].abilities.delete).toEqual(true);
   });
 });

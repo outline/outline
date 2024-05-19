@@ -1,14 +1,14 @@
 import { observer } from "mobx-react";
-import { MarkAsReadIcon, SettingsIcon } from "outline-icons";
+import { MarkAsReadIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import Notification from "~/models/Notification";
-import { navigateToNotificationSettings } from "~/actions/definitions/navigation";
 import { markNotificationsAsRead } from "~/actions/definitions/notifications";
 import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
+import NotificationMenu from "~/menus/NotificationMenu";
 import { hover } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import Empty from "../Empty";
@@ -56,25 +56,22 @@ function Notifications(
           <Text weight="bold" as="span">
             {t("Notifications")}
           </Text>
-          <Text color="textSecondary" as={Flex} gap={8}>
+          <Flex gap={8}>
             {notifications.approximateUnreadCount > 0 && (
-              <Tooltip delay={500} tooltip={t("Mark all as read")}>
+              <Tooltip delay={500} content={t("Mark all as read")}>
                 <Button action={markNotificationsAsRead} context={context}>
                   <MarkAsReadIcon />
                 </Button>
               </Tooltip>
             )}
-            <Tooltip delay={500} tooltip={t("Settings")}>
-              <Button action={navigateToNotificationSettings} context={context}>
-                <SettingsIcon />
-              </Button>
-            </Tooltip>
-          </Text>
+            <NotificationMenu />
+          </Flex>
         </Header>
         <React.Suspense fallback={null}>
           <Scrollable ref={ref} flex topShadow>
             <PaginatedList
               fetch={notifications.fetchPage}
+              options={{ archived: false }}
               items={notifications.orderedData}
               renderItem={(item: Notification) => (
                 <NotificationListItem
@@ -113,7 +110,7 @@ const Button = styled(NudeButton)`
 
 const Header = styled(Flex)`
   padding: 8px 12px 12px;
-  height: 44px;
+  min-height: 44px;
 
   ${Button} {
     opacity: 0.75;

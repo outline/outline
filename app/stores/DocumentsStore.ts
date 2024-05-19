@@ -5,7 +5,13 @@ import find from "lodash/find";
 import omitBy from "lodash/omitBy";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
-import { DateFilter, NavigationNode, PublicTeam } from "@shared/types";
+import type {
+  DateFilter,
+  JSONObject,
+  NavigationNode,
+  PublicTeam,
+  StatusFilter,
+} from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
@@ -13,7 +19,12 @@ import RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Document from "~/models/Document";
 import env from "~/env";
-import { FetchOptions, PaginationParams, SearchResult } from "~/types";
+import type {
+  FetchOptions,
+  PaginationParams,
+  Properties,
+  SearchResult,
+} from "~/types";
 import { client } from "~/utils/ApiClient";
 import { extname } from "~/utils/files";
 
@@ -26,8 +37,7 @@ export type SearchParams = {
   offset?: number;
   limit?: number;
   dateFilter?: DateFilter;
-  includeArchived?: boolean;
-  includeDrafts?: boolean;
+  statusFilter?: StatusFilter[];
   collectionId?: string;
   userId?: string;
   shareId?: string;
@@ -99,7 +109,7 @@ export default class DocumentsStore extends Store<Document> {
 
   createdByUser(userId: string): Document[] {
     return orderBy(
-      filter(this.all, (d) => d.createdBy.id === userId),
+      filter(this.all, (d) => d.createdBy?.id === userId),
       "updatedAt",
       "desc"
     );
@@ -168,6 +178,13 @@ export default class DocumentsStore extends Store<Document> {
 
   alphabeticalInCollection(collectionId: string): Document[] {
     return naturalSort(this.inCollection(collectionId), "title");
+  }
+
+  get(id: string): Document | undefined {
+    return (
+      this.data.get(id) ??
+      this.orderedData.find((doc) => id.endsWith(doc.urlId))
+    );
   }
 
   @computed
@@ -549,6 +566,7 @@ export default class DocumentsStore extends Store<Document> {
     document: Document,
     options?: {
       title?: string;
+      publish?: boolean;
       recursive?: boolean;
     }
   ): Promise<Document[]> => {
@@ -578,10 +596,10 @@ export default class DocumentsStore extends Store<Document> {
       throw new Error(`The selected file type is not supported (${file.type})`);
     }
 
-    if (file.size > env.MAXIMUM_IMPORT_SIZE) {
+    if (file.size > env.FILE_STORAGE_IMPORT_MAX_SIZE) {
       throw new Error(
         `The selected file was larger than the ${bytesToHumanReadable(
-          env.MAXIMUM_IMPORT_SIZE
+          env.FILE_STORAGE_IMPORT_MAX_SIZE
         )} maximum size`
       );
     }
@@ -622,7 +640,9 @@ export default class DocumentsStore extends Store<Document> {
         formData.append(info.key, info.value);
       }
     });
-    const res = await client.post("/documents.import", formData);
+    const res = await client.post("/documents.import", formData, {
+      retry: false,
+    });
     invariant(res?.data, "Data should be available");
     this.addPolicies(res.policies);
     return this.add(res.data);
@@ -703,13 +723,30 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   async update(
-    params: Partial<Document>,
-    options?: Record<string, string | boolean | number | undefined>
+    params: Properties<Document>,
+    options?: JSONObject
   ): Promise<Document> {
-    const document = await super.update(params, options);
-    const collection = this.getCollectionForDocument(document);
-    void collection?.fetchDocuments({ force: true });
-    return document;
+    this.isSaving = true;
+
+    try {
+      const res = await client.post(`/${this.apiEndpoint}.update`, {
+        ...params,
+        ...options,
+      });
+
+      invariant(res?.data, "Data should be available");
+
+      const collection = this.getCollectionForDocument(res.data);
+      await collection?.fetchDocuments({ force: true });
+
+      return runInAction("Document#update", () => {
+        const document = this.add(res.data);
+        this.addPolicies(res.policies);
+        return document;
+      });
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   @action
@@ -727,9 +764,18 @@ export default class DocumentsStore extends Store<Document> {
     });
   };
 
-  star = (document: Document) =>
+  @action
+  emptyTrash = async () => {
+    await client.post("/documents.empty_trash");
+
+    const documentIdsSet = new Set(this.deleted.map((doc) => doc.id));
+    this.removeAll((doc: Document) => documentIdsSet.has(doc.id));
+  };
+
+  star = (document: Document, index?: string) =>
     this.rootStore.stars.create({
       documentId: document.id,
+      index,
     });
 
   unstar = (document: Document) => {

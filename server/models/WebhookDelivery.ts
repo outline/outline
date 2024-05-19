@@ -1,3 +1,4 @@
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
   Table,
@@ -7,6 +8,7 @@ import {
   DataType,
   IsIn,
 } from "sequelize-typescript";
+import { type WebhookDeliveryStatus } from "@server/types";
 import WebhookSubscription from "./WebhookSubscription";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
@@ -16,14 +18,17 @@ import Fix from "./decorators/Fix";
   modelName: "webhook_delivery",
 })
 @Fix
-class WebhookDelivery extends IdModel {
+class WebhookDelivery extends IdModel<
+  InferAttributes<WebhookDelivery>,
+  Partial<InferCreationAttributes<WebhookDelivery>>
+> {
   @NotEmpty
   @IsIn([["pending", "success", "failed"]])
   @Column(DataType.STRING)
-  status: "pending" | "success" | "failed";
+  status: WebhookDeliveryStatus;
 
   @Column(DataType.INTEGER)
-  statusCode: number;
+  statusCode?: number | null;
 
   @Column(DataType.JSONB)
   requestBody: unknown;

@@ -100,12 +100,16 @@ export default class Image extends SimpleImage {
       marks: "",
       group: "inline",
       selectable: true,
-      draggable: true,
+      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1289000
+      draggable: false,
+      atom: true,
       parseDOM: [
         {
           tag: "div[class~=image]",
           getAttrs: (dom: HTMLDivElement) => {
-            const img = dom.getElementsByTagName("img")[0];
+            const img = dom.getElementsByTagName("img")[0] as
+              | HTMLImageElement
+              | undefined;
             const className = dom.className;
             const layoutClassMatched =
               className && className.match(/image-(.*)$/);
@@ -113,8 +117,8 @@ export default class Image extends SimpleImage {
               ? layoutClassMatched[1]
               : null;
 
-            const width = img.getAttribute("width");
-            const height = img.getAttribute("height");
+            const width = img?.getAttribute("width");
+            const height = img?.getAttribute("height");
             return {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
@@ -293,8 +297,12 @@ export default class Image extends SimpleImage {
   );
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    let markdown =
-      " ![" +
+    // Skip the preceding space for images at the start of a list item or Markdown parsers may
+    // render them as code blocks
+    let markdown = state.inList ? "" : " ";
+
+    markdown +=
+      "![" +
       state.esc((node.attrs.alt || "").replace("\n", "") || "", false) +
       "](" +
       state.esc(node.attrs.src || "", false);

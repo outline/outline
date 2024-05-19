@@ -26,6 +26,7 @@ import DropToImport from "./DropToImport";
 import EditableTitle, { RefHandle } from "./EditableTitle";
 import Folder from "./Folder";
 import Relative from "./Relative";
+import { useSharedContext } from "./SharedContext";
 import SidebarLink, { DragObject } from "./SidebarLink";
 import { useStarredContext } from "./StarredContext";
 
@@ -64,12 +65,19 @@ function InnerDocumentLink(
   const [isEditing, setIsEditing] = React.useState(false);
   const editableTitleRef = React.useRef<RefHandle>(null);
   const inStarredSection = useStarredContext();
+  const inSharedSection = useSharedContext();
 
   React.useEffect(() => {
-    if (isActiveDocument && hasChildDocuments) {
+    if (isActiveDocument && (hasChildDocuments || inSharedSection)) {
       void fetchChildDocuments(node.id);
     }
-  }, [fetchChildDocuments, node.id, hasChildDocuments, isActiveDocument]);
+  }, [
+    fetchChildDocuments,
+    node.id,
+    hasChildDocuments,
+    inSharedSection,
+    isActiveDocument,
+  ]);
 
   const pathToNode = React.useMemo(
     () => collection?.pathToDocument(node.id).map((entry) => entry.id),
@@ -346,7 +354,7 @@ function InnerDocumentLink(
                   !isDraggingAnyDocument ? (
                     <Fade>
                       {can.createChildDocument && (
-                        <Tooltip tooltip={t("New doc")} delay={500}>
+                        <Tooltip content={t("New doc")} delay={500}>
                           <NudeButton
                             type={undefined}
                             aria-label={t("New nested document")}

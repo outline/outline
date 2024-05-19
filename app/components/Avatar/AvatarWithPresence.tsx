@@ -34,7 +34,7 @@ function AvatarWithPresence({
   return (
     <>
       <Tooltip
-        tooltip={
+        content={
           <Centered>
             <strong>{user.name}</strong> {isCurrentUser && `(${t("You")})`}
             {status && (

@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
-import { RouteComponentProps, useLocation, Redirect } from "react-router-dom";
+import { RouteComponentProps, useLocation } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { setCookie } from "tiny-cookie";
 import { s } from "@shared/styles";
@@ -19,7 +19,6 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useBuildTheme from "~/hooks/useBuildTheme";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { AuthorizationError, OfflineError } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
@@ -102,7 +101,6 @@ function SharedDocumentScene(props: Props) {
   )
     ? (searchParams.get("theme") as Theme)
     : undefined;
-  const can = usePolicy(response?.document.id ?? "");
   const theme = useBuildTheme(response?.team?.customTheme, themeOverride);
 
   React.useEffect(() => {
@@ -165,10 +163,6 @@ function SharedDocumentScene(props: Props) {
 
   if (!response) {
     return <Loading location={props.location} />;
-  }
-
-  if (response && searchParams.get("edit") === "true" && can.update) {
-    return <Redirect to={response.document.url} />;
   }
 
   return (

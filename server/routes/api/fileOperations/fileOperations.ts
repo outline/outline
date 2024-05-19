@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { WhereOptions } from "sequelize";
+import { UserRole } from "@shared/types";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -17,7 +18,7 @@ const router = new Router();
 
 router.post(
   "fileOperations.info",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.FileOperationsInfoSchema),
   async (ctx: APIContext<T.FileOperationsInfoReq>) => {
     const { id } = ctx.input.body;
@@ -37,7 +38,7 @@ router.post(
 
 router.post(
   "fileOperations.list",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   pagination(),
   validate(T.FileOperationsListSchema),
   async (ctx: APIContext<T.FileOperationsListReq>) => {
@@ -91,20 +92,20 @@ const handleFileOperationsRedirect = async (
 
 router.get(
   "fileOperations.redirect",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.FileOperationsRedirectSchema),
   handleFileOperationsRedirect
 );
 router.post(
   "fileOperations.redirect",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.FileOperationsRedirectSchema),
   handleFileOperationsRedirect
 );
 
 router.post(
   "fileOperations.delete",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.FileOperationsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.FileOperationsDeleteReq>) => {

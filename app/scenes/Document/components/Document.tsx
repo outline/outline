@@ -19,7 +19,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
-import ProsemirrorHelper, { Heading } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper, Heading } from "@shared/utils/ProsemirrorHelper";
 import { parseDomain } from "@shared/utils/domains";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
@@ -81,7 +81,7 @@ type Props = WithTranslation &
     revision?: Revision;
     readOnly: boolean;
     shareId?: string;
-    onCreateLink?: (title: string) => Promise<string>;
+    onCreateLink?: (title: string, nested?: boolean) => Promise<string>;
     onSearchLink?: (term: string) => Promise<SearchResult[]>;
   };
 
@@ -124,7 +124,7 @@ class DocumentScene extends React.Component<Props> {
   componentWillUnmount() {
     if (
       this.isEmpty &&
-      this.props.document.createdBy.id === this.props.auth.user?.id &&
+      this.props.document.createdBy?.id === this.props.auth.user?.id &&
       this.props.document.isDraft &&
       this.props.document.isActive &&
       this.props.document.hasEmptyTitle &&
@@ -201,13 +201,26 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
+  onUndoRedo = (event: KeyboardEvent) => {
+    if (isModKey(event)) {
+      if (event.shiftKey) {
+        if (this.editor.current?.redo()) {
+          event.preventDefault();
+        }
+      } else {
+        if (this.editor.current?.undo()) {
+          event.preventDefault();
+        }
+      }
+    }
+  };
+
   onMove = (ev: React.MouseEvent | KeyboardEvent) => {
     ev.preventDefault();
     const { document, dialogs, t, abilities } = this.props;
     if (abilities.move) {
       dialogs.openModal({
         title: t("Move document"),
-        isCentered: true,
         content: <DocumentMove document={document} />,
       });
     }
@@ -244,6 +257,8 @@ class DocumentScene extends React.Component<Props> {
 
   onPublish = (ev: React.MouseEvent | KeyboardEvent) => {
     ev.preventDefault();
+    ev.stopPropagation();
+
     const { document, dialogs, t } = this.props;
     if (document.publishedAt) {
       return;
@@ -257,23 +272,8 @@ class DocumentScene extends React.Component<Props> {
     } else {
       dialogs.openModal({
         title: t("Publish document"),
-        isCentered: true,
         content: <DocumentPublish document={document} />,
       });
-    }
-  };
-
-  onToggleTableOfContents = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) {
-      return;
-    }
-    ev.preventDefault();
-    const { ui } = this.props;
-
-    if (ui.tocVisible) {
-      ui.hideTableOfContents();
-    } else {
-      ui.showTableOfContents();
     }
   };
 
@@ -422,22 +422,18 @@ class DocumentScene extends React.Component<Props> {
           />
         )}
         <RegisterKeyDown trigger="m" handler={this.onMove} />
+        <RegisterKeyDown trigger="z" handler={this.onUndoRedo} />
         <RegisterKeyDown trigger="e" handler={this.goToEdit} />
         <RegisterKeyDown trigger="Escape" handler={this.goBack} />
         <RegisterKeyDown trigger="h" handler={this.goToHistory} />
         <RegisterKeyDown
           trigger="p"
+          options={{
+            allowInInput: true,
+          }}
           handler={(event) => {
             if (isModKey(event) && event.shiftKey) {
               this.onPublish(event);
-            }
-          }}
-        />
-        <RegisterKeyDown
-          trigger="h"
-          handler={(event) => {
-            if (event.ctrlKey && event.altKey) {
-              this.onToggleTableOfContents(event);
             }
           }}
         />

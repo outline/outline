@@ -1,5 +1,5 @@
 import { Node } from "prosemirror-model";
-import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { schema } from "@server/editor";
 
 // Note: The test is here rather than shared to access the schema

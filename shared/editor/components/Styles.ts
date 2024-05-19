@@ -107,7 +107,7 @@ const mathStyle = (props: Props) => css`
     background: ${props.theme.codeBackground};
     padding: 0.75em 1em;
     font-family: ${props.theme.fontFamilyMono};
-    font-size: 90%;
+    font-size: 80%;
   }
 
   math-block.empty-math {
@@ -260,6 +260,11 @@ const emailStyle = (props: Props) => css`
     border-radius: 8px;
     padding: 6px 8px;
   }
+
+  .image > img {
+    width: auto;
+    height: auto;
+  }
 `;
 
 const style = (props: Props) => `
@@ -282,6 +287,10 @@ width: 100%;
   font-weight: 500;
   font-size: 0.9em;
   cursor: default;
+
+  &:before {
+    content: "@";
+  }
 }
 
 > div {
@@ -324,17 +333,42 @@ width: 100%;
     margin-top: 0;
   }
 
+  h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
     margin-top: 1em;
-  }
-
-  h1 {
-    margin-top: .75em;
     margin-bottom: 0.25em;
+    font-weight: 600;
+    cursor: text;
+
+    & + p,
+    // accounts for block insert trigger and other widgets between heading and paragraph
+    & + .ProseMirror-widget + p {
+      margin-top: 0.25em;
+    }
+
+    &:not(.placeholder):before {
+      display: ${props.readOnly ? "none" : "inline-block"};
+      font-family: ${props.theme.fontFamilyMono};
+      color: ${props.theme.textSecondary};
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 0;
+      margin-${props.rtl ? "right" : "left"}: -24px;
+      transition: opacity 150ms ease-in-out;
+      opacity: 0;
+      width: 24px;
+    }
+
+    &:hover,
+    &:focus-within {
+      .heading-actions {
+        opacity: 1;
+      }
+    }
   }
 
   // all of heading sizes are stepped down one from global styles, except h1
@@ -488,6 +522,12 @@ iframe.embed {
   }
 }
 
+.attachment-replacement-uploading {
+  .widget {
+    opacity: 0.5;
+  }
+}
+
 .image-replacement-uploading {
   img {
     opacity: 0.5;
@@ -496,7 +536,6 @@ iframe.embed {
 
 .image-right-50 {
   float: right;
-  width: 33.3%;
   margin-left: 2em;
   margin-bottom: 1em;
   clear: initial;
@@ -504,7 +543,6 @@ iframe.embed {
 
 .image-left-50 {
   float: left;
-  width: 33.3%;
   margin-right: 2em;
   margin-bottom: 1em;
   clear: initial;
@@ -538,6 +576,10 @@ iframe.embed {
 .ProseMirror-selectednode {
   outline: 2px solid
     ${props.readOnly ? "transparent" : props.theme.selected};
+
+  @media print {
+    outline: none;
+  }
 }
 
 /* Make sure li selections wrap around markers */
@@ -576,35 +618,6 @@ img.ProseMirror-separator {
   }
   .caption:empty {
     visibility: hidden;
-  }
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: 500;
-  cursor: text;
-
-  &:not(.placeholder):before {
-    display: ${props.readOnly ? "none" : "inline-block"};
-    font-family: ${props.theme.fontFamilyMono};
-    color: ${props.theme.textSecondary};
-    font-size: 13px;
-    line-height: 0;
-    margin-${props.rtl ? "right" : "left"}: -24px;
-    transition: opacity 150ms ease-in-out;
-    opacity: 0;
-    width: 24px;
-  }
-
-  &:hover,
-  &:focus-within {
-    .heading-actions {
-      opacity: 1;
-    }
   }
 }
 
@@ -698,6 +711,7 @@ h6:not(.placeholder):before {
   margin: 0;
   padding: 0;
   text-align: left;
+  font-weight: 500;
   font-family: ${props.theme.fontFamilyMono};
   font-size: 14px;
   line-height: 0;
@@ -788,13 +802,13 @@ h6 {
 }
 
 .comment-marker {
-  border-bottom: 2px solid ${transparentize(0.5, props.theme.brand.marine)};
+  border-bottom: 2px solid ${props.theme.commentMarkBackground};
   transition: background 100ms ease-in-out;
   border-radius: 2px;
 
   &:hover {
     ${props.readOnly ? "cursor: var(--pointer);" : ""}
-    background: ${transparentize(0.5, props.theme.brand.marine)};
+    background: ${props.theme.commentMarkBackground};
   }
 }
 
@@ -883,7 +897,6 @@ h6 {
 blockquote {
   margin: 0;
   padding: 8px 10px 8px 1.5em;
-  font-style: italic;
   overflow: hidden;
   position: relative;
 
@@ -1106,8 +1119,9 @@ code {
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
   padding: 3px 4px;
+  color: ${props.theme.codeString};
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 90%;
+  font-size: 80%;
 }
 
 mark {
@@ -1134,18 +1148,28 @@ mark {
 }
 
 .code-block[data-language=mermaidjs] {
-  pre {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    margin-bottom: -12px;
-    overflow: hidden;
+  margin: 0.75em 0;
+
+  ${
+    !props.staticHTML &&
+    css`
+      pre {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        margin-bottom: -20px;
+        overflow: hidden;
+      }
+    `
   }
 
-  /* Hide code without display none so toolbar can still be positioned against it */
+  // Hide code without display none so toolbar can still be positioned against it
   &:not(.code-active) {
     height: ${props.staticHTML ? "auto" : "0"};
-    margin: -0.5em 0;
+    margin: -0.75em 0;
     overflow: hidden;
+
+    // Allows the margin to collapse correctly by moving div out of the flow
+    position: ${props.staticHTML ? "relative" : "absolute"};
   }
 }
 
@@ -1185,6 +1209,7 @@ mark {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0.75em 0;
   min-height: 1.6em;
   background: ${props.theme.codeBackground};
   border-radius: 6px;
@@ -1260,6 +1285,10 @@ table {
   tr {
     position: relative;
     border-bottom: 1px solid ${props.theme.tableDivider};
+  }
+
+  tr:first-of-type {
+    background: ${props.theme.secondaryBackground};
   }
 
   th {
@@ -1414,31 +1443,33 @@ table {
   overflow-x: auto;
   padding-${props.rtl ? "right" : "left"}: 1em;
   margin-${props.rtl ? "right" : "left"}: -1em;
-  border-${props.rtl ? "right" : "left"}: 1px solid transparent;
-  border-${props.rtl ? "left" : "right"}: 1px solid transparent;
   transition: border 250ms ease-in-out 0s;
 }
 
 .scrollable-shadow {
   position: absolute;
-  top: 0;
+  top: 16px;
   bottom: 0;
   ${props.rtl ? "right" : "left"}: -1em;
-  width: 16px;
+  width: 32px;
+  z-index: 1;
   transition: box-shadow 250ms ease-in-out;
   border: 0px solid transparent;
-  border-${props.rtl ? "right" : "left"}-width: 1em;
   pointer-events: none;
 
   &.left {
-    box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, 0.25);
+    box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
+      props.theme.isDark ? 1 : 0.25
+    });
     border-left: 1em solid ${props.theme.background};
   }
 
   &.right {
     right: 0;
     left: auto;
-    box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, 0.25);
+    box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, ${
+      props.theme.isDark ? 1 : 0.25
+    });
   }
 }
 

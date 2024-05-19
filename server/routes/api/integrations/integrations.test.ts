@@ -1,8 +1,6 @@
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { IntegrationAuthentication, User } from "@server/models";
-import Integration, {
-  UserCreatableIntegrationService,
-} from "@server/models/Integration";
+import { User } from "@server/models";
+import Integration from "@server/models/Integration";
 import {
   buildAdmin,
   buildTeam,
@@ -106,7 +104,7 @@ describe("#integrations.create", () => {
       body: {
         token: admin.getJwtToken(),
         type: IntegrationType.Embed,
-        service: UserCreatableIntegrationService.Diagrams,
+        service: IntegrationService.Diagrams,
         settings: { url: "not a url" },
       },
     });
@@ -122,16 +120,14 @@ describe("#integrations.create", () => {
       body: {
         token: admin.getJwtToken(),
         type: IntegrationType.Analytics,
-        service: UserCreatableIntegrationService.GoogleAnalytics,
+        service: IntegrationService.GoogleAnalytics,
         settings: { measurementId: "123" },
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.type).toEqual(IntegrationType.Analytics);
-    expect(body.data.service).toEqual(
-      UserCreatableIntegrationService.GoogleAnalytics
-    );
+    expect(body.data.service).toEqual(IntegrationService.GoogleAnalytics);
     expect(body.data.settings).not.toBeFalsy();
     expect(body.data.settings.measurementId).toEqual("123");
   });
@@ -143,14 +139,14 @@ describe("#integrations.create", () => {
       body: {
         token: admin.getJwtToken(),
         type: IntegrationType.Embed,
-        service: UserCreatableIntegrationService.Grist,
+        service: IntegrationService.Grist,
         settings: { url: "https://grist.example.com" },
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.type).toEqual(IntegrationType.Embed);
-    expect(body.data.service).toEqual(UserCreatableIntegrationService.Grist);
+    expect(body.data.service).toEqual(IntegrationService.Grist);
     expect(body.data.settings).not.toBeFalsy();
     expect(body.data.settings.url).toEqual("https://grist.example.com");
   });
@@ -181,9 +177,7 @@ describe("#integrations.delete", () => {
         id: integration.id,
       },
     });
-    const body = await res.json();
     expect(res.status).toEqual(403);
-    expect(body.message).toEqual("Admin role required");
   });
 
   it("should fail with status 400 bad request when id is not sent", async () => {
@@ -198,6 +192,23 @@ describe("#integrations.delete", () => {
     expect(body.message).toEqual("id: Required");
   });
 
+  it("should succeed as user deleting own linked account integration", async () => {
+    const user = await buildUser();
+    const linkedAccount = await buildIntegration({
+      userId: user.id,
+      teamId: user.teamId,
+      service: IntegrationService.Slack,
+      type: IntegrationType.LinkedAccount,
+    });
+    const res = await server.post("/api/integrations.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: linkedAccount.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+  });
+
   it("should succeed with status 200 ok when integration is deleted", async () => {
     const res = await server.post("/api/integrations.delete", {
       body: {
@@ -209,11 +220,6 @@ describe("#integrations.delete", () => {
     expect(res.status).toEqual(200);
 
     const intg = await Integration.findByPk(integration.id);
-    expect(intg).toBeNull();
-
-    const auth = await IntegrationAuthentication.findByPk(
-      integration.authenticationId
-    );
-    expect(auth).toBeNull();
+    expect(intg?.deletedAt).not.toBeNull();
   });
 });

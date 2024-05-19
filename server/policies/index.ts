@@ -8,6 +8,7 @@ import {
   Document,
   Group,
   Notification,
+  UserMembership,
 } from "@server/models";
 import { _abilities, _can, _cannot, _authorize } from "./cancan";
 import "./apiKey";
@@ -28,6 +29,7 @@ import "./team";
 import "./group";
 import "./webhookSubscription";
 import "./notification";
+import "./userMembership";
 
 type Policy = Record<string, boolean>;
 
@@ -58,6 +60,7 @@ export function serialize(
     | User
     | Group
     | Notification
+    | UserMembership
     | null
 ): Policy {
   const output = {};

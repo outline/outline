@@ -14,6 +14,7 @@ import { AvatarSize } from "../Avatar/Avatar";
 import Flex from "../Flex";
 import Text from "../Text";
 import Time from "../Time";
+import { UnreadBadge } from "../UnreadBadge";
 
 type Props = {
   notification: Notification;
@@ -40,20 +41,18 @@ function NotificationListItem({ notification, onNavigate }: Props) {
   };
 
   return (
-    <Link to={notification.path ?? ""} onClick={handleClick}>
+    <StyledLink to={notification.path ?? ""} onClick={handleClick}>
       <Container gap={8} $unread={!notification.viewedAt}>
         <StyledAvatar model={notification.actor} size={AvatarSize.Large} />
         <Flex column>
           <Text as="div" size="small">
-            <Text as="span" weight="bold">
+            <Text weight="bold">
               {notification.actor?.name ?? t("Unknown")}
             </Text>{" "}
             {notification.eventText(t)}{" "}
-            <Text as="span" weight="bold">
-              {notification.subject}
-            </Text>
+            <Text weight="bold">{notification.subject}</Text>
           </Text>
-          <Text as="span" type="tertiary" size="xsmall">
+          <Text type="tertiary" size="xsmall">
             <Time
               dateTime={notification.createdAt}
               tooltipDelay={1000}
@@ -67,11 +66,17 @@ function NotificationListItem({ notification, onNavigate }: Props) {
             />
           )}
         </Flex>
-        {notification.viewedAt ? null : <Unread />}
+        {notification.viewedAt ? null : <UnreadBadge style={{ right: 20 }} />}
       </Container>
-    </Link>
+    </StyledLink>
   );
 }
+
+const StyledLink = styled(Link)`
+  display: block;
+  margin: 0 8px;
+  cursor: var(--pointer);
+`;
 
 const StyledCommentEditor = styled(CommentEditor)`
   font-size: 0.9em;
@@ -88,24 +93,12 @@ const Container = styled(Flex)<{ $unread: boolean }>`
   position: relative;
   padding: 8px 12px;
   padding-right: 40px;
-  margin: 0 8px;
   border-radius: 4px;
 
   &:${hover},
   &:active {
     background: ${s("listItemHoverBackground")};
-    cursor: var(--pointer);
   }
-`;
-
-const Unread = styled.div`
-  width: 8px;
-  height: 8px;
-  background: ${s("accent")};
-  border-radius: 8px;
-  align-self: center;
-  position: absolute;
-  right: 20px;
 `;
 
 export default observer(NotificationListItem);

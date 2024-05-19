@@ -43,7 +43,7 @@ export default class NotificationsStore extends Store<Notification> {
   @action
   markAllAsRead = async () => {
     await client.post("/notifications.update_all", {
-      viewedAt: new Date(),
+      viewedAt: new Date().toISOString(),
     });
 
     runInAction("NotificationsStore#markAllAsRead", () => {
@@ -51,6 +51,20 @@ export default class NotificationsStore extends Store<Notification> {
       this.data.forEach((notification) => {
         notification.viewedAt = viewedAt;
       });
+    });
+  };
+
+  /**
+   * Mark all notifications as archived.
+   */
+  @action
+  markAllAsArchived = async () => {
+    await client.post("/notifications.update_all", {
+      archivedAt: new Date().toISOString(),
+    });
+
+    runInAction("NotificationsStore#markAllAsArchived", () => {
+      this.clear();
     });
   };
 

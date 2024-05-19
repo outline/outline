@@ -13,10 +13,8 @@ describe("starDestroyer", () => {
     });
 
     const star = await Star.create({
-      teamId: document.teamId,
       documentId: document.id,
       userId: user.id,
-      createdById: user.id,
       index: "P",
     });
 

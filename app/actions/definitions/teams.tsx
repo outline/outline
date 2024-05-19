@@ -1,12 +1,14 @@
-import { PlusIcon } from "outline-icons";
+import { ArrowIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import { stringToColor } from "@shared/utils/color";
 import RootStore from "~/stores/RootStore";
+import { LoginDialog } from "~/scenes/Login/components/LoginDialog";
 import TeamNew from "~/scenes/TeamNew";
 import TeamLogo from "~/components/TeamLogo";
 import { createAction } from "~/actions";
 import { ActionContext } from "~/types";
+import Desktop from "~/utils/Desktop";
 import { TeamSection } from "../sections";
 
 export const createTeamsList = ({ stores }: { stores: RootStore }) =>
@@ -60,8 +62,27 @@ export const createTeam = createAction({
     user &&
       stores.dialogs.openModal({
         title: t("Create a workspace"),
+        fullscreen: true,
         content: <TeamNew user={user} />,
       });
+  },
+});
+
+export const desktopLoginTeam = createAction({
+  name: ({ t }) => t("Login to workspace"),
+  analyticsName: "Login to workspace",
+  keywords: "change switch workspace organization team",
+  section: TeamSection,
+  icon: <ArrowIcon />,
+  visible: () => Desktop.isElectron(),
+  perform: ({ t, event, stores }) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    stores.dialogs.openModal({
+      title: t("Login to workspace"),
+      content: <LoginDialog />,
+    });
   },
 });
 
@@ -70,4 +91,4 @@ const StyledTeamLogo = styled(TeamLogo)`
   border: 0;
 `;
 
-export const rootTeamActions = [switchTeam, createTeam];
+export const rootTeamActions = [switchTeam, createTeam, desktopLoginTeam];

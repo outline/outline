@@ -2,6 +2,7 @@ import "./bootstrap";
 import { yDocToProsemirrorJSON } from "@getoutline/y-prosemirror";
 import { Node } from "prosemirror-model";
 import * as Y from "yjs";
+import { ProsemirrorData } from "@shared/types";
 import { parser, schema } from "@server/editor";
 import { Document } from "@server/models";
 
@@ -31,7 +32,10 @@ export default async function main(exit = false) {
       if ("state" in document && document.state) {
         const ydoc = new Y.Doc();
         Y.applyUpdate(ydoc, document.state);
-        document.content = yDocToProsemirrorJSON(ydoc, "default");
+        document.content = yDocToProsemirrorJSON(
+          ydoc,
+          "default"
+        ) as ProsemirrorData;
       } else {
         const node = parser.parse(document.text) || Node.fromJSON(schema, {});
         document.content = node.toJSON();

@@ -39,6 +39,8 @@ const WEBHOOK_EVENTS = {
     "documents.move",
     "documents.update",
     "documents.title_change",
+    "documents.add_user",
+    "documents.remove_user",
   ],
   collections: [
     "collections.create",
@@ -229,7 +231,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
 
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Provide a descriptive name for this webhook and the URL we should send
           a POST request to when matching events are created.
@@ -264,7 +266,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           })}
         />
       </TextFields>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Subscribe to all events, groups, or individual events. We recommend
           only subscribing to the minimum amount of events that your application

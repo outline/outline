@@ -33,11 +33,14 @@ class Cache {
     }
   }
 
-  private static maxSize = 10;
+  private static maxSize = 20;
   private static data: Map<string, string> = new Map();
 }
 
-type RendererFunc = (block: { node: Node; pos: number }) => void;
+type RendererFunc = (
+  block: { node: Node; pos: number },
+  isDark: boolean
+) => void;
 
 class MermaidRenderer {
   readonly diagramId: string;
@@ -53,11 +56,15 @@ class MermaidRenderer {
     this.element.classList.add("mermaid-diagram-wrapper");
   }
 
-  renderImmediately = async (block: { node: Node; pos: number }) => {
+  renderImmediately = async (
+    block: { node: Node; pos: number },
+    isDark: boolean
+  ) => {
     const element = this.element;
     const text = block.node.textContent;
 
-    const cache = Cache.get(text);
+    const cacheKey = `${isDark ? "dark" : "light"}-${text}`;
+    const cache = Cache.get(cacheKey);
     if (cache) {
       element.classList.remove("parse-error", "empty");
       element.innerHTML = cache;
@@ -66,13 +73,16 @@ class MermaidRenderer {
 
     try {
       const { default: mermaid } = await import("mermaid");
+      mermaid.mermaidAPI.setConfig({
+        theme: isDark ? "dark" : "default",
+      });
       mermaid.render(
         `mermaid-diagram-${this.diagramId}`,
         text,
         (svgCode, bindFunctions) => {
           this.currentTextContent = text;
           if (text) {
-            Cache.set(text, svgCode);
+            Cache.set(cacheKey, svgCode);
           }
           element.classList.remove("parse-error", "empty");
           element.innerHTML = svgCode;
@@ -190,12 +200,13 @@ function getNewState({
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
       () => {
-        void renderer.render(block);
+        void renderer.render(block, pluginState.isDark);
         return renderer.element;
       },
       {
         diagramId: renderer.diagramId,
         renderer,
+        side: -10,
       }
     );
 

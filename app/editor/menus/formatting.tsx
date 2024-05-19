@@ -15,6 +15,8 @@ import {
   ItalicIcon,
   OutdentIcon,
   IndentIcon,
+  CopyIcon,
+  Heading3Icon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
@@ -107,6 +109,14 @@ export default function formattingMenuItems(
       visible: allowBlocks && !isCode,
     },
     {
+      name: "heading",
+      tooltip: dictionary.subheading,
+      icon: <Heading3Icon />,
+      active: isNodeActive(schema.nodes.heading, { level: 3 }),
+      attrs: { level: 3 },
+      visible: allowBlocks && !isCode,
+    },
+    {
       name: "blockquote",
       tooltip: dictionary.quote,
       icon: <BlockQuoteIcon />,
@@ -170,6 +180,16 @@ export default function formattingMenuItems(
       icon: <CommentIcon />,
       label: isCodeBlock ? dictionary.comment : undefined,
       active: isMarkActive(schema.marks.comment),
+    },
+    {
+      name: "separator",
+      visible: isCode && !isCodeBlock,
+    },
+    {
+      name: "copyToClipboard",
+      icon: <CopyIcon />,
+      tooltip: dictionary.copy,
+      visible: isCode && !isCodeBlock,
     },
   ];
 }

@@ -25,7 +25,6 @@ const WebhookSubscriptionListItem = ({ webhook }: Props) => {
   const showDeletionConfirmation = React.useCallback(() => {
     dialogs.openModal({
       title: t("Delete webhook"),
-      isCentered: true,
       content: (
         <WebhookSubscriptionRevokeDialog
           onSubmit={dialogs.closeAllModals}

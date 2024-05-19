@@ -35,7 +35,7 @@ type Props = {
   to: number;
   dictionary: Dictionary;
   onRemoveLink?: () => void;
-  onCreateLink?: (title: string) => Promise<void>;
+  onCreateLink?: (title: string, nested?: boolean) => Promise<void>;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
   onSelectLink: (options: {
     href: string;
@@ -186,7 +186,7 @@ class LinkEditor extends React.Component<Props, State> {
         event.preventDefault();
         event.stopPropagation();
         const { selectedIndex } = this.state;
-        const total = results.length;
+        const total = results.length + 1;
         const nextIndex = selectedIndex + 1;
 
         this.setState({
@@ -243,17 +243,17 @@ class LinkEditor extends React.Component<Props, State> {
     }
   };
 
-  handleCreateLink = async (value: string) => {
+  handleCreateLink = async (title: string, nested?: boolean) => {
     this.discardInputValue = true;
     const { onCreateLink } = this.props;
 
-    value = value.trim();
-    if (value.length === 0) {
+    title = title.trim();
+    if (title.length === 0) {
       return;
     }
 
     if (onCreateLink) {
-      return onCreateLink(value);
+      return onCreateLink(title, nested);
     }
   };
 
@@ -334,13 +334,13 @@ class LinkEditor extends React.Component<Props, State> {
         />
 
         <Tooltip
-          tooltip={isInternal ? dictionary.goToLink : dictionary.openLink}
+          content={isInternal ? dictionary.goToLink : dictionary.openLink}
         >
           <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
             {isInternal ? <ArrowIcon /> : <OpenIcon />}
           </ToolbarButton>
         </Tooltip>
-        <Tooltip tooltip={dictionary.removeLink}>
+        <Tooltip content={dictionary.removeLink}>
           <ToolbarButton onClick={this.handleRemoveLink}>
             <CloseIcon />
           </ToolbarButton>
@@ -368,22 +368,42 @@ class LinkEditor extends React.Component<Props, State> {
                 ))}
 
                 {showCreateLink && (
-                  <LinkSearchResult
-                    key="create"
-                    containerRef={this.resultsRef}
-                    title={suggestedLinkTitle}
-                    subtitle={dictionary.createNewDoc}
-                    icon={<PlusIcon />}
-                    onPointerMove={() => this.handleFocusLink(results.length)}
-                    onClick={async () => {
-                      await this.handleCreateLink(suggestedLinkTitle);
+                  <>
+                    <LinkSearchResult
+                      key="create"
+                      containerRef={this.resultsRef}
+                      title={suggestedLinkTitle}
+                      subtitle={dictionary.createNewDoc}
+                      icon={<PlusIcon />}
+                      onPointerMove={() => this.handleFocusLink(results.length)}
+                      onClick={async () => {
+                        await this.handleCreateLink(suggestedLinkTitle);
 
-                      if (this.initialSelectionLength) {
-                        this.moveSelectionToEnd();
+                        if (this.initialSelectionLength) {
+                          this.moveSelectionToEnd();
+                        }
+                      }}
+                      selected={results.length === selectedIndex}
+                    />
+                    <LinkSearchResult
+                      key="create-nested"
+                      containerRef={this.resultsRef}
+                      title={suggestedLinkTitle}
+                      subtitle={dictionary.createNewChildDoc}
+                      icon={<PlusIcon />}
+                      onPointerMove={() =>
+                        this.handleFocusLink(results.length + 1)
                       }
-                    }}
-                    selected={results.length === selectedIndex}
-                  />
+                      onClick={async () => {
+                        await this.handleCreateLink(suggestedLinkTitle, true);
+
+                        if (this.initialSelectionLength) {
+                          this.moveSelectionToEnd();
+                        }
+                      }}
+                      selected={results.length + 1 === selectedIndex}
+                    />
+                  </>
                 )}
               </>
             )}

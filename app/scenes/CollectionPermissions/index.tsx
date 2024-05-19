@@ -267,9 +267,10 @@ function CollectionPermissions({ collectionId }: Props) {
           <CollectionGroupMemberListItem
             key={group.id}
             group={group}
-            collectionGroupMembership={collectionGroupMemberships.get(
-              `${group.id}-${collection.id}`
-            )}
+            collectionGroupMembership={collectionGroupMemberships.find({
+              collectionId: collection.id,
+              groupId: group.id,
+            })}
             onRemove={() => handleRemoveGroup(group)}
             onUpdate={(permission) => handleUpdateGroup(group, permission)}
           />
@@ -285,7 +286,10 @@ function CollectionPermissions({ collectionId }: Props) {
           <MemberListItem
             key={item.id}
             user={item}
-            membership={memberships.get(`${item.id}-${collection.id}`)}
+            membership={memberships.find({
+              collectionId: collection.id,
+              userId: item.id,
+            })}
             canEdit={item.id !== user.id || user.isAdmin}
             onRemove={() => handleRemoveUser(item)}
             onUpdate={(permission) => handleUpdateUser(item, permission)}

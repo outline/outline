@@ -26,3 +26,7 @@ export function decodeURIComponentSafe(text: string) {
     ? decodeURIComponent(text.replace(/%(?![0-9][0-9a-fA-F]+)/g, "%25"))
     : text;
 }
+
+export function redirectTo(url: string) {
+  window.location.href = url;
+}

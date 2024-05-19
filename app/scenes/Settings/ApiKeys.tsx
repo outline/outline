@@ -43,7 +43,7 @@ function ApiKeys() {
       }
     >
       <Heading>{t("API Tokens")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans
           defaults="You can create an unlimited amount of personal tokens to authenticate
           with the API. Tokens have the same permissions as your user account.
@@ -71,7 +71,6 @@ function ApiKeys() {
         title={t("Create a token")}
         onRequestClose={handleNewModalClose}
         isOpen={newModalOpen}
-        isCentered
       >
         <APITokenNew onSubmit={handleNewModalClose} />
       </Modal>

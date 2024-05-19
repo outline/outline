@@ -248,7 +248,6 @@ class ControlledBase extends Component<
               data-rmiz-modal=""
               id={idModal}
               onClick={handleDialogClick}
-              // @ts-expect-error does not exist
               onClose={handleUnzoom}
               onCancel={handleDialogCancel}
               onKeyDown={handleDialogKeyDown}

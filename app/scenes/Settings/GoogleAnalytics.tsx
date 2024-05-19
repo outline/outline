@@ -78,7 +78,7 @@ function GoogleAnalytics() {
     <Scene title={t("Google Analytics")} icon={<GoogleIcon />}>
       <Heading>{t("Google Analytics")}</Heading>
 
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Add a Google Analytics 4 measurement ID to send document views and
           analytics from the workspace to your own Google Analytics account.

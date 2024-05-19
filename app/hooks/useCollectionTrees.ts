@@ -65,7 +65,7 @@ export default function useCollectionTrees(): NavigationNode[] {
     const collectionNode: NavigationNode = {
       id: collection.id,
       title: collection.name,
-      url: collection.url,
+      url: collection.path,
       type: NavigationNodeType.Collection,
       children: collection.documents
         ? sortNavigationNodes(collection.documents, collection.sort, true)

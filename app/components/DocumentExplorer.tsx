@@ -389,7 +389,9 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
           </AutoSizer>
         ) : (
           <FlexContainer>
-            <Text type="secondary">{t("No results found")}.</Text>
+            <Text as="p" type="secondary">
+              {t("No results found")}.
+            </Text>
           </FlexContainer>
         )}
       </ListContainer>

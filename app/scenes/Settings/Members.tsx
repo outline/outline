@@ -7,30 +7,29 @@ import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import User from "~/models/User";
-import Invite from "~/scenes/Invite";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
-import Modal from "~/components/Modal";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import { inviteUser } from "~/actions/definitions/users";
 import env from "~/env";
-import useBoolean from "~/hooks/useBoolean";
+import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import PeopleTable from "./components/PeopleTable";
+import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
 
 function Members() {
   const location = useLocation();
   const history = useHistory();
-  const [inviteModalOpen, handleInviteModalOpen, handleInviteModalClose] =
-    useBoolean();
   const team = useCurrentTeam();
+  const context = useActionContext();
   const { users } = useStores();
   const { t } = useTranslation();
   const params = useQuery();
@@ -41,6 +40,7 @@ function Members() {
   const can = usePolicy(team);
   const query = params.get("query") || undefined;
   const filter = params.get("filter") || undefined;
+  const role = params.get("role") || undefined;
   const sort = params.get("sort") || "name";
   const direction = (params.get("direction") || "asc").toUpperCase() as
     | "ASC"
@@ -60,6 +60,7 @@ function Members() {
           direction,
           query,
           filter,
+          role,
         });
         setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
         setUserIds(response.map((u: User) => u.id));
@@ -69,7 +70,7 @@ function Members() {
     };
 
     void fetchData();
-  }, [query, sort, filter, page, direction, users, users.counts.all]);
+  }, [query, sort, filter, role, page, direction, users]);
 
   React.useEffect(() => {
     let filtered = users.orderedData;
@@ -78,39 +79,52 @@ function Members() {
       filtered = users.active.filter((u) => userIds.includes(u.id));
     } else if (filter === "all") {
       filtered = users.orderedData.filter((u) => userIds.includes(u.id));
-    } else if (filter === "admins") {
-      filtered = users.admins.filter((u) => userIds.includes(u.id));
-    } else if (filter === "members") {
-      filtered = users.members.filter((u) => userIds.includes(u.id));
     } else if (filter === "suspended") {
       filtered = users.suspended.filter((u) => userIds.includes(u.id));
     } else if (filter === "invited") {
       filtered = users.invited.filter((u) => userIds.includes(u.id));
-    } else if (filter === "viewers") {
-      filtered = users.viewers.filter((u) => userIds.includes(u.id));
+    }
+
+    if (role) {
+      filtered = filtered.filter((u) => u.role === role);
     }
 
     // sort the resulting data by the original order from the server
     setData(sortBy(filtered, (item) => userIds.indexOf(item.id)));
   }, [
     filter,
+    role,
     users.active,
-    users.admins,
-    users.members,
     users.orderedData,
     users.suspended,
     users.invited,
-    users.viewers,
     userIds,
   ]);
 
-  const handleFilter = React.useCallback(
-    (filter) => {
-      if (filter) {
-        params.set("filter", filter);
+  const handleStatusFilter = React.useCallback(
+    (f) => {
+      if (f) {
+        params.set("filter", f);
         params.delete("page");
       } else {
         params.delete("filter");
+      }
+
+      history.replace({
+        pathname: location.pathname,
+        search: params.toString(),
+      });
+    },
+    [params, history, location.pathname]
+  );
+
+  const handleRoleFilter = React.useCallback(
+    (r) => {
+      if (r) {
+        params.set("role", r);
+        params.delete("page");
+      } else {
+        params.delete("role");
       }
 
       history.replace({
@@ -155,7 +169,8 @@ function Members() {
                 data-on="click"
                 data-event-category="invite"
                 data-event-action="peoplePage"
-                onClick={handleInviteModalOpen}
+                action={inviteUser}
+                context={context}
                 icon={<PlusIcon />}
               >
                 {t("Invite people")}…
@@ -164,13 +179,14 @@ function Members() {
           )}
         </>
       }
+      wide
     >
       <Heading>{t("Members")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Everyone that has signed into {{ appName }} is listed here. It’s
           possible that there are other users who have access through{" "}
-          {team.signinMethods} but haven’t signed in yet.
+          {{ signinMethods: team.signinMethods }} but haven’t signed in yet.
         </Trans>
       </Text>
       <Flex gap={8}>
@@ -182,7 +198,11 @@ function Members() {
         />
         <LargeUserStatusFilter
           activeKey={filter ?? ""}
-          onSelect={handleFilter}
+          onSelect={handleStatusFilter}
+        />
+        <LargeUserRoleFilter
+          activeKey={role ?? ""}
+          onSelect={handleRoleFilter}
         />
       </Flex>
       <PeopleTable
@@ -194,20 +214,15 @@ function Members() {
         totalPages={totalPages}
         defaultSortDirection="ASC"
       />
-      {can.inviteUser && (
-        <Modal
-          title={t("Invite people")}
-          onRequestClose={handleInviteModalClose}
-          isOpen={inviteModalOpen}
-        >
-          <Invite onSubmit={handleInviteModalClose} />
-        </Modal>
-      )}
     </Scene>
   );
 }
 
 const LargeUserStatusFilter = styled(UserStatusFilter)`
+  height: 32px;
+`;
+
+const LargeUserRoleFilter = styled(UserRoleFilter)`
   height: 32px;
 `;
 

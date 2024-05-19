@@ -1,10 +1,11 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { CollectionPermission } from "@shared/types";
 import CollectionGroupMembership from "~/models/CollectionGroupMembership";
 import Group from "~/models/Group";
 import GroupListItem from "~/components/GroupListItem";
+import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import CollectionGroupMemberMenu from "~/menus/CollectionGroupMemberMenu";
-import InputMemberPermissionSelect from "./InputMemberPermissionSelect";
 
 type Props = {
   group: Group;
@@ -18,27 +19,41 @@ const CollectionGroupMemberListItem = ({
   collectionGroupMembership,
   onUpdate,
   onRemove,
-}: Props) => (
-  <GroupListItem
-    group={group}
-    showAvatar
-    renderActions={({ openMembersModal }) => (
-      <>
-        <InputMemberPermissionSelect
-          value={
-            collectionGroupMembership
-              ? collectionGroupMembership.permission
-              : undefined
-          }
-          onChange={onUpdate}
-        />
-        <CollectionGroupMemberMenu
-          onMembers={openMembersModal}
-          onRemove={onRemove}
-        />
-      </>
-    )}
-  />
-);
+}: Props) => {
+  const { t } = useTranslation();
+
+  return (
+    <GroupListItem
+      group={group}
+      showAvatar
+      renderActions={({ openMembersModal }) => (
+        <>
+          <InputMemberPermissionSelect
+            value={collectionGroupMembership?.permission}
+            onChange={onUpdate}
+            permissions={[
+              {
+                label: t("View only"),
+                value: CollectionPermission.Read,
+              },
+              {
+                label: t("Can edit"),
+                value: CollectionPermission.ReadWrite,
+              },
+              {
+                label: t("Admin"),
+                value: CollectionPermission.Admin,
+              },
+            ]}
+          />
+          <CollectionGroupMemberMenu
+            onMembers={openMembersModal}
+            onRemove={onRemove}
+          />
+        </>
+      )}
+    />
+  );
+};
 
 export default CollectionGroupMemberListItem;
