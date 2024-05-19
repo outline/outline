@@ -8,7 +8,7 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s, ellipsis } from "@shared/styles";
+import { s } from "@shared/styles";
 import { UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
@@ -16,7 +16,6 @@ import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Separator from "~/components/ContextMenu/Separator";
 import Template from "~/components/ContextMenu/Template";
-import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Switch from "~/components/Switch";
 import { actionToMenuItem } from "~/actions";
@@ -44,6 +43,7 @@ import {
   createNestedDocument,
   shareDocument,
   copyDocument,
+  searchInDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -94,7 +94,7 @@ function DocumentMenu({
   const context = useActionContext({
     isContextMenu: true,
     activeDocumentId: document.id,
-    activeCollectionId: document.collectionId,
+    activeCollectionId: document.collectionId ?? undefined,
   });
   const { t } = useTranslation();
   const isMobile = useMobile();
@@ -145,12 +145,8 @@ function DocumentMenu({
               handleRestore(ev, {
                 collectionId: collection.id,
               }),
-            title: (
-              <Flex align="center">
-                <CollectionIcon collection={collection} />
-                <CollectionName>{collection.name}</CollectionName>
-              </Flex>
-            ),
+            icon: <CollectionIcon collection={collection} />,
+            title: collection.name,
           });
         }
 
@@ -305,6 +301,7 @@ function DocumentMenu({
             actionToMenuItem(downloadDocument, context),
             actionToMenuItem(copyDocument, context),
             actionToMenuItem(printDocument, context),
+            actionToMenuItem(searchInDocument, context),
             {
               type: "separator",
             },
@@ -379,10 +376,6 @@ const Style = styled.div`
     padding: 4px 12px;
     font-size: 14px;
   `};
-`;
-
-const CollectionName = styled.div`
-  ${ellipsis()}
 `;
 
 export default observer(DocumentMenu);

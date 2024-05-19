@@ -51,12 +51,12 @@ function Invite({ onSubmit }: Props) {
       setIsSaving(true);
 
       try {
-        const data = await users.invite(
+        const response = await users.invite(
           invites.filter((i) => i.email).map((memo) => ({ ...memo, role }))
         );
         onSubmit();
 
-        if (data.sent.length > 0) {
+        if (response.length > 0) {
           toast.success(t("We sent out your invites!"));
         } else {
           toast.message(t("Those email addresses are already invited"));
@@ -204,7 +204,7 @@ function Invite({ onSubmit }: Props) {
                   labelHidden={index !== 0}
                   onKeyDown={handleKeyDown}
                   onChange={(ev) => handleChange(ev, index)}
-                  placeholder={`example@${predictedDomain}`}
+                  placeholder={`name@${predictedDomain}`}
                   value={invite.email}
                   required={index === 0}
                   autoFocus
@@ -254,6 +254,8 @@ function Invite({ onSubmit }: Props) {
 
 const StyledInput = styled(Input)`
   margin-bottom: -4px;
+  min-width: 0;
+  flex-shrink: 1;
 `;
 
 export default observer(Invite);

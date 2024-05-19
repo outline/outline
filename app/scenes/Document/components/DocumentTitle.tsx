@@ -127,15 +127,6 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
         return;
       }
 
-      if (event.key === "p" && isModKey(event) && event.shiftKey) {
-        event.preventDefault();
-        onSave?.({
-          publish: true,
-          done: true,
-        });
-        return;
-      }
-
       if (event.key === "s" && isModKey(event)) {
         event.preventDefault();
         onSave?.({});

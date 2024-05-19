@@ -6,7 +6,8 @@ allow(User, "createWebhookSubscription", Team, (actor, team) =>
   and(
     //
     isTeamAdmin(actor, team),
-    isTeamMutable(actor)
+    isTeamMutable(actor),
+    !actor.isSuspended
   )
 );
 

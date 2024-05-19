@@ -11,6 +11,7 @@ import Text from "~/components/Text";
 import { editCollectionPermissions } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
+import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -48,14 +49,16 @@ function EmptyCollection({ collection }: Props) {
               {t("Create a document")}
             </Button>
           </Link>
-          <Button
-            action={editCollectionPermissions}
-            context={context}
-            hideOnActionDisabled
-            neutral
-          >
-            {t("Manage permissions")}…
-          </Button>
+          {FeatureFlags.isEnabled(Feature.newCollectionSharing) ? null : (
+            <Button
+              action={editCollectionPermissions}
+              context={context}
+              hideOnActionDisabled
+              neutral
+            >
+              {t("Manage permissions")}…
+            </Button>
+          )}
         </Empty>
       )}
     </Centered>

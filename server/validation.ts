@@ -246,7 +246,3 @@ export class ValidateColor {
   public static regex = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i;
   public static message = "Must be a hex value (please use format #FFFFFF)";
 }
-
-export class ValidateIcon {
-  public static maxLength = 50;
-}

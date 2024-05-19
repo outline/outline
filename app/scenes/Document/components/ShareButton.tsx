@@ -6,11 +6,12 @@ import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
-import SharePopover from "~/components/Sharing";
+import SharePopover from "~/components/Sharing/Document";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 
 type Props = {
+  /** Document being shared */
   document: Document;
 };
 
@@ -32,15 +33,13 @@ function ShareButton({ document }: Props) {
     unstable_fixed: true,
   });
 
+  const icon = isPubliclyShared ? <GlobeIcon /> : undefined;
+
   return (
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          <Button
-            icon={isPubliclyShared ? <GlobeIcon /> : undefined}
-            neutral
-            {...props}
-          >
+          <Button icon={icon} neutral {...props}>
             {t("Share")} {domain && <>&middot; {domain}</>}
           </Button>
         )}

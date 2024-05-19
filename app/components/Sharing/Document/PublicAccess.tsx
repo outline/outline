@@ -8,6 +8,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
+import Squircle from "@shared/components/Squircle";
 import { s } from "@shared/styles";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import Document from "~/models/Document";
@@ -17,14 +18,13 @@ import Switch from "~/components/Switch";
 import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { AvatarSize } from "../Avatar/Avatar";
-import CopyToClipboard from "../CopyToClipboard";
-import NudeButton from "../NudeButton";
-import { ResizingHeightContainer } from "../ResizingHeightContainer";
-import Squircle from "../Squircle";
-import Text from "../Text";
-import Tooltip from "../Tooltip";
-import { StyledListItem } from "./MemberListItem";
+import { AvatarSize } from "../../Avatar/Avatar";
+import CopyToClipboard from "../../CopyToClipboard";
+import NudeButton from "../../NudeButton";
+import { ResizingHeightContainer } from "../../ResizingHeightContainer";
+import Text from "../../Text";
+import Tooltip from "../../Tooltip";
+import { ListItem } from "../components/ListItem";
 
 type Props = {
   /** The document to share. */
@@ -122,7 +122,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
 
   return (
     <Wrapper>
-      <StyledListItem
+      <ListItem
         title={t("Web")}
         subtitle={
           <>

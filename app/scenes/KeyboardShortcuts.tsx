@@ -82,7 +82,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key symbol>{metaDisplay}</Key> + <Key>Enter</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>{t("Enter")}</Key>
               </>
             ),
             label: t("Go to link"),
@@ -244,13 +244,13 @@ function KeyboardShortcuts() {
             label: t("Ordered list"),
           },
           {
-            shortcut: <Key>Tab</Key>,
+            shortcut: <Key>{t("Tab")}</Key>,
             label: t("Indent list item"),
           },
           {
             shortcut: (
               <>
-                <Key symbol>⇧</Key> + <Key>Tab</Key>
+                <Key symbol>⇧</Key> + <Key>{t("Tab")}</Key>
               </>
             ),
             label: t("Outdent list item"),
@@ -274,12 +274,37 @@ function KeyboardShortcuts() {
         ],
       },
       {
-        title: "Markdown",
+        title: t("Tables"),
         items: [
           {
             shortcut: (
               <>
-                <Key>#</Key> <Key>Space</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>{t("Enter")}</Key>
+              </>
+            ),
+            label: t("Insert row"),
+          },
+          {
+            shortcut: <Key>{t("Tab")}</Key>,
+            label: t("Next cell"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key symbol>⇧</Key> + <Key>{t("Tab")}</Key>
+              </>
+            ),
+            label: t("Previous cell"),
+          },
+        ],
+      },
+      {
+        title: t("Markdown"),
+        items: [
+          {
+            shortcut: (
+              <>
+                <Key>#</Key> <Key>{t("Space")}</Key>
               </>
             ),
             label: t("Large header"),
@@ -287,7 +312,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>##</Key> <Key>Space</Key>
+                <Key>##</Key> <Key>{t("Space")}</Key>
               </>
             ),
             label: t("Medium header"),
@@ -295,7 +320,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>###</Key> <Key>Space</Key>
+                <Key>###</Key> <Key>{t("Space")}</Key>
               </>
             ),
             label: t("Small header"),
@@ -303,7 +328,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>1.</Key> <Key>Space</Key>
+                <Key>1.</Key> <Key>{t("Space")}</Key>
               </>
             ),
             label: t("Numbered list"),
@@ -311,7 +336,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>-</Key> <Key>Space</Key>
+                <Key>-</Key> <Key>{t("Space")}</Key>
               </>
             ),
             label: t("Bulleted list"),
@@ -319,7 +344,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>[ ]</Key> <Key>Space</Key>
+                <Key>[ ]</Key> <Key>{t("Space")}</Key>
               </>
             ),
             label: t("Todo list"),
@@ -327,7 +352,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>&gt;</Key> <Key>Space</Key>
+                <Key>&gt;</Key> <Key>{t("Space")}</Key>
               </>
             ),
             label: t("Blockquote"),
@@ -343,7 +368,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>$$$</Key> <Key>Space</Key>
+                <Key>$$$</Key> <Key>{t("Space")}</Key>
               </>
             ),
             label: t("LaTeX block"),

@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import path from "path";
-import formatRFC7231 from "date-fns/formatRFC7231";
+import { formatRFC7231 } from "date-fns";
 import Koa, { BaseContext } from "koa";
 import compress from "koa-compress";
 import Router from "koa-router";

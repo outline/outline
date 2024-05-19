@@ -33,9 +33,7 @@ const Image = (props: Props) => {
     document.body.querySelector("#full-width-container")
   );
   const documentBounds = props.view.dom.getBoundingClientRect();
-  const maxWidth = layoutClass
-    ? documentBounds.width / 3
-    : documentBounds.width;
+  const maxWidth = documentBounds.width;
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
     {
       width: node.attrs.width ?? naturalWidth,

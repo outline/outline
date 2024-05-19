@@ -51,7 +51,7 @@ export default class S3Storage extends BaseStorage {
         ["starts-with", "$Cache-Control", ""],
       ]),
       Fields: {
-        "Content-Disposition": "attachment",
+        "Content-Disposition": this.getContentDisposition(contentType),
         key,
         acl,
       },
@@ -126,7 +126,7 @@ export default class S3Storage extends BaseStorage {
         Key: key,
         ContentType: contentType,
         ContentLength: contentLength,
-        ContentDisposition: "attachment",
+        ContentDisposition: this.getContentDisposition(contentType),
         Body: body,
       },
     });
@@ -159,7 +159,6 @@ export default class S3Storage extends BaseStorage {
       Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,
       Key: key,
       Expires: expiresIn,
-      ResponseContentDisposition: "attachment",
     };
 
     if (isDocker) {
@@ -195,28 +194,29 @@ export default class S3Storage extends BaseStorage {
           resolve({ path: tmpFile, cleanup: () => fs.rm(tmpFile) })
         );
 
-        const stream = this.getFileStream(key);
-        if (!stream) {
-          return reject(new Error("No stream available"));
-        }
+        void this.getFileStream(key).then((stream) => {
+          if (!stream) {
+            return reject(new Error("No stream available"));
+          }
 
-        stream
-          .on("error", (err) => {
-            dest.end();
-            reject(err);
-          })
-          .pipe(dest);
+          stream
+            .on("error", (err) => {
+              dest.end();
+              reject(err);
+            })
+            .pipe(dest);
+        });
       });
     });
   }
 
-  public getFileStream(key: string): NodeJS.ReadableStream | null {
+  public getFileStream(key: string): Promise<NodeJS.ReadableStream | null> {
     invariant(
       env.AWS_S3_UPLOAD_BUCKET_NAME,
       "AWS_S3_UPLOAD_BUCKET_NAME is required"
     );
 
-    this.client
+    return this.client
       .send(
         new GetObjectCommand({
           Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME,
@@ -228,8 +228,9 @@ export default class S3Storage extends BaseStorage {
         Logger.error("Error getting file stream from S3 ", err, {
           key,
         });
+
+        return null;
       });
-    return null;
   }
 
   private client: S3Client;

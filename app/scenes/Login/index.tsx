@@ -33,7 +33,7 @@ import { detectLanguage } from "~/utils/language";
 import AuthenticationProvider from "./components/AuthenticationProvider";
 import BackButton from "./components/BackButton";
 import Notices from "./components/Notices";
-import { getRedirectUrl } from "./getRedirectUrl";
+import { getRedirectUrl, navigateToSubdomain } from "./urls";
 
 type Props = {
   children?: (config?: Config) => React.ReactNode;
@@ -66,17 +66,7 @@ function Login({ children }: Props) {
   const handleGoSubdomain = React.useCallback(async (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target));
-    const normalizedSubdomain = data.subdomain
-      .toString()
-      .toLowerCase()
-      .trim()
-      .replace(/^https?:\/\//, "");
-    const host = `https://${normalizedSubdomain}.getoutline.com`;
-    await Desktop.bridge.addCustomHost(host);
-
-    setTimeout(() => {
-      window.location.href = host;
-    }, 500);
+    await navigateToSubdomain(data.subdomain.toString());
   }, []);
 
   React.useEffect(() => {
@@ -186,6 +176,8 @@ function Login({ children }: Props) {
               name="subdomain"
               style={{ textAlign: "right" }}
               placeholder={t("subdomain")}
+              pattern="^[a-z\d-]+$"
+              required
             >
               <Domain>.getoutline.com</Domain>
             </Input>

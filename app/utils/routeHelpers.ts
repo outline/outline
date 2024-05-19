@@ -101,6 +101,7 @@ export function searchPath(
   query?: string,
   params: {
     collectionId?: string;
+    documentId?: string;
     ref?: string;
   } = {}
 ): string {

@@ -31,7 +31,9 @@ export default abstract class BaseStorage {
    *
    * @param key The path to the file
    */
-  public abstract getFileStream(key: string): NodeJS.ReadableStream | null;
+  public abstract getFileStream(
+    key: string
+  ): Promise<NodeJS.ReadableStream | null>;
 
   /**
    * Returns the upload URL for the storage provider.
@@ -101,7 +103,7 @@ export default abstract class BaseStorage {
    * @param key The path to the file
    */
   public async getFileBuffer(key: string) {
-    const stream = this.getFileStream(key);
+    const stream = await this.getFileStream(key);
     return new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
       if (!stream) {
@@ -214,4 +216,29 @@ export default abstract class BaseStorage {
    * @returns A promise that resolves when the file is deleted
    */
   public abstract deleteFile(key: string): Promise<void>;
+
+  /**
+   * Returns the content disposition for a given content type.
+   *
+   * @param contentType The content type
+   * @returns The content disposition
+   */
+  public getContentDisposition(contentType?: string) {
+    if (contentType && this.safeInlineContentTypes.includes(contentType)) {
+      return "inline";
+    }
+
+    return "attachment";
+  }
+
+  /**
+   * A list of content types considered safe to display inline in the browser.
+   */
+  protected safeInlineContentTypes = [
+    "application/pdf",
+    "image/png",
+    "image/jpeg",
+    "image/gif",
+    "image/webp",
+  ];
 }

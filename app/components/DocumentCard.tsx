@@ -7,6 +7,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
+import Squircle from "@shared/components/Squircle";
 import { s, ellipsis } from "@shared/styles";
 import Document from "~/models/Document";
 import Pin from "~/models/Pin";
@@ -17,7 +18,6 @@ import useStores from "~/hooks/useStores";
 import { hover } from "~/styles";
 import CollectionIcon from "./Icons/CollectionIcon";
 import EmojiIcon from "./Icons/EmojiIcon";
-import Squircle from "./Squircle";
 import Text from "./Text";
 import Tooltip from "./Tooltip";
 

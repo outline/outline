@@ -194,6 +194,13 @@ type AdditionalFindOptions = {
       ],
     };
   },
+  withAllMemberships: {
+    include: [
+      {
+        association: "memberships",
+      },
+    ],
+  },
 }))
 @Table({ tableName: "documents", modelName: "document" })
 @Fix
@@ -534,6 +541,25 @@ class Document extends ParanoidModel<
 
   @HasMany(() => View)
   views: View[];
+
+  /**
+   * Returns an array of unique userIds that are members of a document via direct membership
+   *
+   * @param documentId
+   * @returns userIds
+   */
+  static async membershipUserIds(documentId: string) {
+    const document = await this.scope("withAllMemberships").findOne({
+      where: {
+        id: documentId,
+      },
+    });
+    if (!document) {
+      return [];
+    }
+
+    return document.memberships.map((membership) => membership.userId);
+  }
 
   static defaultScopeWithUser(userId: string) {
     const collectionScope: Readonly<ScopeOptions> = {

@@ -76,4 +76,7 @@ export default class CollectionGroupMembershipsStore extends Store<CollectionGro
       groupId,
     });
   }
+
+  inCollection = (collectionId: string) =>
+    this.orderedData.filter((cgm) => cgm.collectionId === collectionId);
 }

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { PopoverDisclosure, usePopoverState } from "reakit";
 import { MenuItem } from "reakit/Menu";
 import styled, { useTheme } from "styled-components";
+import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
@@ -10,7 +11,7 @@ import Text from "~/components/Text";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import DelayedMount from "./DelayedMount";
-import { IconLibrary } from "./Icons/IconLibrary";
+import InputSearch from "./InputSearch";
 import Popover from "./Popover";
 
 const icons = IconLibrary.mapping;
@@ -38,11 +39,12 @@ function IconPicker({
   onChange,
   className,
 }: Props) {
+  const [query, setQuery] = React.useState("");
   const { t } = useTranslation();
   const theme = useTheme();
   const popover = usePopoverState({
     gutter: 0,
-    placement: "bottom",
+    placement: "right",
     modal: true,
   });
 
@@ -51,8 +53,14 @@ function IconPicker({
       onOpen?.();
     } else {
       onClose?.();
+      setQuery("");
     }
   }, [onOpen, onClose, popover.visible]);
+
+  const filteredIcons = IconLibrary.findIcons(query);
+  const handleFilter = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(event.target.value.toLowerCase());
+  };
 
   const styles = React.useMemo(
     () => ({
@@ -92,6 +100,9 @@ function IconPicker({
     { capture: true }
   );
 
+  const iconNames = Object.keys(icons);
+  const delayPerIcon = 250 / iconNames.length;
+
   return (
     <>
       <PopoverDisclosure {...popover}>
@@ -112,67 +123,75 @@ function IconPicker({
       </PopoverDisclosure>
       <Popover
         {...popover}
-        width={388}
-        aria-label={t("Choose icon")}
+        width={552}
+        aria-label={t("Choose an icon")}
         hideOnClickOutside={false}
       >
-        <Icons>
-          {Object.keys(icons).map((name, index) => (
-            <MenuItem key={name} onClick={() => onChange(color, name)}>
-              {(props) => (
-                <IconButton
-                  style={
-                    {
-                      "--delay": `${index * 8}ms`,
-                    } as React.CSSProperties
-                  }
-                  {...props}
-                >
-                  <Icon
-                    as={IconLibrary.getComponent(name)}
-                    color={color}
-                    size={30}
+        <Flex column gap={12}>
+          <Text size="large" weight="xbold">
+            {t("Choose an icon")}
+          </Text>
+          <InputSearch
+            value={query}
+            placeholder={`${t("Filter")}…`}
+            onChange={handleFilter}
+            autoFocus
+          />
+          <div>
+            {iconNames.map((name, index) => (
+              <MenuItem key={name} onClick={() => onChange(color, name)}>
+                {(props) => (
+                  <IconButton
+                    style={
+                      {
+                        opacity: query
+                          ? filteredIcons.includes(name)
+                            ? 1
+                            : 0.3
+                          : undefined,
+                        "--delay": `${Math.round(index * delayPerIcon)}ms`,
+                      } as React.CSSProperties
+                    }
+                    {...props}
                   >
-                    {initial}
-                  </Icon>
-                </IconButton>
-              )}
-            </MenuItem>
-          ))}
-        </Icons>
-        <Colors>
-          <React.Suspense
-            fallback={
-              <DelayedMount>
-                <Text>{t("Loading")}…</Text>
-              </DelayedMount>
-            }
-          >
-            <ColorPicker
-              color={color}
-              onChange={(color) => onChange(color.hex, icon)}
-              colors={colorPalette}
-              triangle="hide"
-              styles={styles}
-            />
-          </React.Suspense>
-        </Colors>
+                    <Icon
+                      as={IconLibrary.getComponent(name)}
+                      color={color}
+                      size={30}
+                    >
+                      {initial}
+                    </Icon>
+                  </IconButton>
+                )}
+              </MenuItem>
+            ))}
+          </div>
+          <Flex>
+            <React.Suspense
+              fallback={
+                <DelayedMount>
+                  <Text>{t("Loading")}…</Text>
+                </DelayedMount>
+              }
+            >
+              <ColorPicker
+                color={color}
+                onChange={(color) => onChange(color.hex, icon)}
+                colors={colorPalette}
+                triangle="hide"
+                styles={styles}
+              />
+            </React.Suspense>
+          </Flex>
+        </Flex>
       </Popover>
     </>
   );
 }
 
 const Icon = styled.svg`
-  transition: fill 150ms ease-in-out;
+  transition: color 150ms ease-in-out, fill 150ms ease-in-out;
   transition-delay: var(--delay);
-`;
-
-const Colors = styled(Flex)`
-  padding: 8px;
-`;
-
-const Icons = styled.div`
-  padding: 8px;
 `;
 
 const IconButton = styled(NudeButton)`

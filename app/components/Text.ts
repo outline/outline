@@ -11,7 +11,7 @@ type Props = {
   /** Whether the text should be selectable (defaults to false) */
   selectable?: boolean;
   /** The font weight of the text */
-  weight?: "bold" | "normal";
+  weight?: "xbold" | "bold" | "normal";
   /** Whether the text should be truncated with an ellipsis */
   ellipsis?: boolean;
 };
@@ -47,7 +47,9 @@ const Text = styled.span<Props>`
   ${(props) =>
     props.weight &&
     css`
-      font-weight: ${props.weight === "bold"
+      font-weight: ${props.weight === "xbold"
+        ? 600
+        : props.weight === "bold"
         ? 500
         : props.weight === "normal"
         ? 400

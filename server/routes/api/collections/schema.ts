@@ -2,10 +2,19 @@ import isUndefined from "lodash/isUndefined";
 import { z } from "zod";
 import { randomElement } from "@shared/random";
 import { CollectionPermission, FileOperationFormat } from "@shared/types";
+import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import { Collection } from "@server/models";
-import { ValidateColor, ValidateIcon, ValidateIndex } from "@server/validation";
+import { ValidateColor, ValidateIndex } from "@server/validation";
 import { BaseSchema } from "../schema";
+
+function zodEnumFromObjectKeys<
+  TI extends Record<string, any>,
+  R extends string = TI extends Record<infer R, any> ? R : never
+>(input: TI): z.ZodEnum<[R, ...R[]]> {
+  const [firstKey, ...otherKeys] = Object.keys(input) as [R, ...R[]];
+  return z.enum([firstKey, ...otherKeys]);
+}
 
 export const CollectionsCreateSchema = BaseSchema.extend({
   body: z.object({
@@ -20,12 +29,7 @@ export const CollectionsCreateSchema = BaseSchema.extend({
       .nullish()
       .transform((val) => (isUndefined(val) ? null : val)),
     sharing: z.boolean().default(true),
-    icon: z
-      .string()
-      .max(ValidateIcon.maxLength, {
-        message: `Must be ${ValidateIcon.maxLength} or fewer characters long`,
-      })
-      .optional(),
+    icon: zodEnumFromObjectKeys(IconLibrary.mapping).optional(),
     sort: z
       .object({
         field: z.union([z.literal("title"), z.literal("index")]),
@@ -64,6 +68,10 @@ export type CollectionsDocumentsReq = z.infer<
 
 export const CollectionsImportSchema = BaseSchema.extend({
   body: z.object({
+    permission: z
+      .nativeEnum(CollectionPermission)
+      .nullish()
+      .transform((val) => (isUndefined(val) ? null : val)),
     attachmentId: z.string().uuid(),
     format: z
       .nativeEnum(FileOperationFormat)
@@ -171,12 +179,7 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
     id: z.string().uuid(),
     name: z.string().optional(),
     description: z.string().nullish(),
-    icon: z
-      .string()
-      .max(ValidateIcon.maxLength, {
-        message: `Must be ${ValidateIcon.maxLength} or fewer characters long`,
-      })
-      .nullish(),
+    icon: zodEnumFromObjectKeys(IconLibrary.mapping).nullish(),
     permission: z.nativeEnum(CollectionPermission).nullish(),
     color: z
       .string()

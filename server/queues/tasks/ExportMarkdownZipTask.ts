@@ -11,7 +11,7 @@ export default class ExportMarkdownZipTask extends ExportDocumentTreeTask {
       zip,
       collections,
       FileOperationFormat.MarkdownZip,
-      fileOperation.includeAttachments
+      fileOperation.options?.includeAttachments
     );
   }
 }

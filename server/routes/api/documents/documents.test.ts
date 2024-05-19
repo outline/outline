@@ -4,6 +4,7 @@ import {
   CollectionPermission,
   DocumentPermission,
   StatusFilter,
+  UserRole,
 } from "@shared/types";
 import {
   Document,
@@ -2017,6 +2018,9 @@ describe("#documents.deleted", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
+    expect(body.policies[0].abilities.delete).toEqual(false);
+    expect(body.policies[0].abilities.restore).toEqual(true);
+    expect(body.policies[0].abilities.permanentDelete).toEqual(true);
   });
 
   it("should return deleted documents, including users drafts without collection", async () => {
@@ -2049,6 +2053,9 @@ describe("#documents.deleted", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
+    expect(body.policies[0].abilities.delete).toEqual(false);
+    expect(body.policies[0].abilities.restore).toEqual(true);
+    expect(body.policies[0].abilities.permanentDelete).toEqual(true);
   });
 
   it("should not return documents in private collections not a member of", async () => {
@@ -3906,6 +3913,64 @@ describe("#documents.users", () => {
     expect(memberIds).toContain(user.id);
   });
 
+  it("should return collection users when collection is private", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const [alan, ken] = await Promise.all([
+      buildUser({
+        name: "Alan Kay",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Ken",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Bret Victor",
+        teamId: user.teamId,
+      }),
+    ]);
+
+    await UserMembership.create({
+      createdById: alan.id,
+      collectionId: collection.id,
+      userId: alan.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+
+    await UserMembership.create({
+      createdById: ken.id,
+      documentId: document.id,
+      userId: ken.id,
+      permission: DocumentPermission.ReadWrite,
+    });
+
+    const res = await server.post("/api/documents.users", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.length).toBe(3);
+
+    const memberIds = body.data.map((u: User) => u.id);
+    expect(memberIds).toContain(user.id);
+    expect(memberIds).toContain(alan.id);
+    expect(memberIds).toContain(ken.id);
+  });
+
   it("should return document users with names matching the search query", async () => {
     const user = await buildUser({
       // Ensure the generated name doesn't match
@@ -4022,7 +4087,7 @@ describe("#documents.users", () => {
     expect(memberNames).toContain(jamie.name);
   });
 
-  it("should not return suspended users", async () => {
+  it("should not return suspended or guest users", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
@@ -4046,6 +4111,11 @@ describe("#documents.users", () => {
       buildUser({
         name: "Ken Thompson",
         teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Guest",
+        teamId: user.teamId,
+        role: UserRole.Guest,
       }),
     ]);
 
@@ -4343,5 +4413,60 @@ describe("#documents.memberships", () => {
     expect(res.status).toEqual(200);
     expect(body.data.users.length).toEqual(1);
     expect(body.data.users[0].id).toEqual(members[1].id);
+  });
+});
+
+describe("#documents.empty_trash", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/documents.empty_trash");
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+  it("should allow admin users", async () => {
+    const user = await buildAdmin();
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+  });
+  it("should not allow non-admin users", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+  it("should permanently delete documents", async () => {
+    const user = await buildAdmin();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await document.delete(user.id);
+
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const deletedDoc = await Document.findByPk(document.id, {
+      userId: user.id,
+      paranoid: false,
+    });
+    expect(deletedDoc).toBeNull();
   });
 });

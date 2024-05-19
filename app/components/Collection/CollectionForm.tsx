@@ -5,19 +5,20 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { randomElement } from "@shared/random";
 import { CollectionPermission } from "@shared/types";
+import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import IconPicker from "~/components/IconPicker";
-import { IconLibrary } from "~/components/Icons/IconLibrary";
 import Input from "~/components/Input";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 
 export interface FormData {
   name: string;
@@ -61,7 +62,7 @@ export const CollectionForm = observer(function CollectionForm_({
   React.useEffect(() => {
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
     // the name of the collection. It's the little things sometimes.
-    if (!hasOpenedIconPicker) {
+    if (!hasOpenedIconPicker && !collection) {
       setValue(
         "icon",
         IconLibrary.findIconByKeyword(values.name) ??
@@ -69,7 +70,11 @@ export const CollectionForm = observer(function CollectionForm_({
           "collection"
       );
     }
-  }, [values.name]);
+  }, [values.name, collection]);
+
+  React.useEffect(() => {
+    setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
+  }, [setFocus]);
 
   const handleIconPickerChange = React.useCallback(
     (color: string, icon: string) => {
@@ -108,6 +113,7 @@ export const CollectionForm = observer(function CollectionForm_({
               icon={values.icon}
             />
           }
+          autoComplete="off"
           autoFocus
           flex
         />
@@ -133,16 +139,18 @@ export const CollectionForm = observer(function CollectionForm_({
         />
       )}
 
-      {team.sharing && !collection && (
-        <Switch
-          id="sharing"
-          label={t("Public document sharing")}
-          note={t(
-            "Allow documents within this collection to be shared publicly on the internet."
-          )}
-          {...register("sharing")}
-        />
-      )}
+      {team.sharing &&
+        (!collection ||
+          FeatureFlags.isEnabled(Feature.newCollectionSharing)) && (
+          <Switch
+            id="sharing"
+            label={t("Public document sharing")}
+            note={t(
+              "Allow documents within this collection to be shared publicly on the internet."
+            )}
+            {...register("sharing")}
+          />
+        )}
 
       <Flex justify="flex-end">
         <Button

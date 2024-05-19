@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { WhereOptions, Op } from "sequelize";
-import { IntegrationType } from "@shared/types";
+import { IntegrationType, UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -68,7 +68,7 @@ router.post(
 
 router.post(
   "integrations.create",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.IntegrationsCreateSchema),
   async (ctx: APIContext<T.IntegrationsCreateReq>) => {
     const { type, service, settings } = ctx.input.body;
@@ -113,7 +113,7 @@ router.post(
 
 router.post(
   "integrations.update",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.IntegrationsUpdateSchema),
   async (ctx: APIContext<T.IntegrationsUpdateReq>) => {
     const { id, events, settings } = ctx.input.body;

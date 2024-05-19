@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
-import Squircle from "../Squircle";
+import { s } from "../styles";
+import Squircle from "./Squircle";
 
 type Props = {
   /** The width and height of the icon, including standard padding. */
