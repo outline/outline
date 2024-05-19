@@ -84,7 +84,7 @@ router.get(
           "application/octet-stream"
       );
       ctx.attachment(fileName);
-      ctx.body = FileStorage.getFileStream(key);
+      ctx.body = await FileStorage.getFileStream(key);
     } else {
       const attachment = await Attachment.findOne({
         where: { key },

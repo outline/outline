@@ -1,6 +1,6 @@
 import { Blob } from "buffer";
 import { Readable } from "stream";
-import { PresignedPost } from "aws-sdk/clients/s3";
+import { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import { isBase64Url } from "@shared/utils/urls";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -27,11 +27,13 @@ export default abstract class BaseStorage {
   ): Promise<Partial<PresignedPost>>;
 
   /**
-   * Returns a stream for reading a file from the storage provider.
+   * Returns a promise that resolves with a stream for reading a file from the storage provider.
    *
    * @param key The path to the file
    */
-  public abstract getFileStream(key: string): NodeJS.ReadableStream | null;
+  public abstract getFileStream(
+    key: string
+  ): Promise<NodeJS.ReadableStream | null>;
 
   /**
    * Returns the upload URL for the storage provider.
@@ -96,12 +98,13 @@ export default abstract class BaseStorage {
   }>;
 
   /**
-   * Returns a buffer of a file from the storage provider.
+   * Returns a promise that resolves to a buffer of a file from the storage provider.
    *
    * @param key The path to the file
+   * @returns A promise that resolves with the file buffer
    */
   public async getFileBuffer(key: string) {
-    const stream = this.getFileStream(key);
+    const stream = await this.getFileStream(key);
     return new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
       if (!stream) {

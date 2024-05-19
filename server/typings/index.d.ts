@@ -19,10 +19,3 @@ declare module "@joplin/turndown-plugin-gfm" {
   export const taskListItems: Plugin;
   export const gfm: Plugin;
 }
-
-declare module "aws-sdk/lib/maintenance_mode_message" {
-  const maintenance: {
-    suppress: boolean;
-  };
-  export default maintenance;
-}

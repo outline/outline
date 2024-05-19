@@ -47,6 +47,11 @@
     "> 0.25%, not dead"
   ],
   "dependencies": {
+    "@aws-sdk/client-s3": "3.577.0",
+    "@aws-sdk/lib-storage": "3.577.0",
+    "@aws-sdk/s3-presigned-post": "3.577.0",
+    "@aws-sdk/s3-request-presigner": "3.577.0",
+    "@aws-sdk/signature-v4-crt": "^3.577.0",
     "@babel/core": "^7.23.7",
     "@babel/plugin-proposal-decorators": "^7.23.2",
     "@babel/plugin-transform-destructuring": "^7.23.3",
@@ -84,7 +89,6 @@
     "@vitejs/plugin-react": "^3.1.0",
     "addressparser": "^1.0.1",
     "autotrack": "^2.4.1",
-    "aws-sdk": "^2.1550.0",
     "babel-plugin-styled-components": "^2.1.4",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "body-scroll-lock": "^4.0.0-beta.0",

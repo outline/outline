@@ -4,7 +4,6 @@ import env from "./env";
 
 import "./logging/tracer"; // must come before importing any instrumented module
 
-import maintenance from "aws-sdk/lib/maintenance_mode_message";
 import http from "http";
 import https from "https";
 import Koa from "koa";
@@ -27,9 +26,6 @@ import { checkConnection, sequelize } from "./storage/database";
 import RedisAdapter from "./storage/redis";
 import Metrics from "./logging/Metrics";
 import { PluginManager } from "./utils/PluginManager";
-
-// Suppress the AWS maintenance message until upgrade to v3.
-maintenance.suppress = true;
 
 // The number of processes to run, defaults to the number of CPU's available
 // for the web service, and 1 for collaboration during the beta period.
