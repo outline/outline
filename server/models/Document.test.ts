@@ -1,5 +1,6 @@
 import { EmptyResultError } from "sequelize";
 import slugify from "@shared/utils/slugify";
+import { parser } from "@server/editor";
 import Document from "@server/models/Document";
 import {
   buildDocument,
@@ -249,10 +250,14 @@ describe("tasks", () => {
     const tasks = document.tasks;
     expect(tasks.completed).toBe(1);
     expect(tasks.total).toBe(2);
-    document.text = `
+    document.content = parser
+      .parse(
+        `
 - [x] list item
 - [ ] list item
-- [ ] list item`;
+- [ ] list item`
+      )
+      ?.toJSON();
     await document.save();
     const newTasks = document.tasks;
     expect(newTasks.completed).toBe(1);
