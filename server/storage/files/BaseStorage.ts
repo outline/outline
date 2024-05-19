@@ -27,7 +27,7 @@ export default abstract class BaseStorage {
   ): Promise<Partial<PresignedPost>>;
 
   /**
-   * Returns a stream for reading a file from the storage provider.
+   * Returns a promise that resolves with a stream for reading a file from the storage provider.
    *
    * @param key The path to the file
    */
@@ -98,9 +98,10 @@ export default abstract class BaseStorage {
   }>;
 
   /**
-   * Returns a buffer of a file from the storage provider.
+   * Returns a promise that resolves to a buffer of a file from the storage provider.
    *
    * @param key The path to the file
+   * @returns A promise that resolves with the file buffer
    */
   public async getFileBuffer(key: string) {
     const stream = await this.getFileStream(key);
