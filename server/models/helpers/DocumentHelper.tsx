@@ -38,7 +38,7 @@ type HTMLOptions = {
 export default class DocumentHelper {
   /**
    * Returns the document as a Prosemirror Node. This method uses the collaborative state if
-   * available, otherwise it falls back to Markdown.
+   * available, then the derived content, otherwise it falls back to Markdown.
    *
    * @param document The document or revision to convert
    * @returns The document content as a Prosemirror Node
@@ -57,7 +57,7 @@ export default class DocumentHelper {
 
   /**
    * Returns the document as a plain JSON object. This method uses the
-   * collaborative state if available, otherwise it falls back to Markdown.
+   * collaborative state if available, then the derived content, otherwise it falls back to Markdown.
    *
    * @param document The document or revision to convert
    * @param options Options for the conversion
@@ -74,12 +74,12 @@ export default class DocumentHelper {
   ): Promise<ProsemirrorData> {
     let doc: Node | null;
 
-    if ("state" in document && document.state) {
+    if ("content" in document && document.content) {
+      doc = Node.fromJSON(schema, document.content);
+    } else if ("state" in document && document.state) {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, document.state);
-      doc = yDocToProsemirror(schema, ydoc);
-    } else if ("content" in document && document.content) {
-      doc = Node.fromJSON(schema, document.content);
+      doc = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     } else {
       doc = parser.parse(document.text);
     }
