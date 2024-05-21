@@ -103,7 +103,6 @@ export default class S3Storage extends BaseStorage {
 
   public store = async ({
     body,
-    contentLength,
     contentType,
     key,
     acl,
@@ -121,7 +120,8 @@ export default class S3Storage extends BaseStorage {
         Bucket: this.getBucket(),
         Key: key,
         ContentType: contentType,
-        ContentLength: contentLength,
+        // See bug, if used causes large files to hang: https://github.com/aws/aws-sdk-js-v3/issues/3915
+        // ContentLength: contentLength,
         ContentDisposition: this.getContentDisposition(contentType),
         Body: body,
       },
