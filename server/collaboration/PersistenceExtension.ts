@@ -8,7 +8,7 @@ import * as Y from "yjs";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
-import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import documentCollaborativeUpdater from "../commands/documentCollaborativeUpdater";
 import { withContext } from "./types";

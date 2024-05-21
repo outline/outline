@@ -43,7 +43,7 @@ type MentionAttrs = {
 };
 
 @trace()
-export default class ProsemirrorHelper {
+export class ProsemirrorHelper {
   /**
    * Returns the input text as a Y.Doc.
    *

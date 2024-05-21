@@ -6,8 +6,8 @@ import parseTitle from "@shared/utils/parseTitle";
 import { DocumentValidation } from "@shared/validations";
 import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
-import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
-import TextHelper from "@server/models/helpers/TextHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import { DocumentConverter } from "@server/utils/DocumentConverter";
 import { InvalidRequestError } from "../errors";
 

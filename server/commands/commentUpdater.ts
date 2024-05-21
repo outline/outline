@@ -1,7 +1,7 @@
 import { Transaction } from "sequelize";
 import { ProsemirrorData } from "@shared/types";
 import { Event, Comment, User } from "@server/models";
-import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 
 type Props = {
   /** The user updating the comment */

@@ -11,7 +11,7 @@ import {
   FileOperation,
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { presentAttachment, presentCollection } from "@server/presenters";
 import { CollectionJSONExport, JSONExportMetadata } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";

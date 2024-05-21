@@ -13,8 +13,8 @@ import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
 import { Document, Revision } from "@server/models";
 import diff from "@server/utils/diff";
-import ProsemirrorHelper from "./ProsemirrorHelper";
-import TextHelper from "./TextHelper";
+import { ProsemirrorHelper } from "./ProsemirrorHelper";
+import { TextHelper } from "./TextHelper";
 
 type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */

@@ -1,7 +1,7 @@
 import { traceFunction } from "@server/logging/tracing";
 import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import TextHelper from "@server/models/helpers/TextHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import { APIContext } from "@server/types";
 import presentUser from "./user";
 
