@@ -2,7 +2,7 @@ import uniq from "lodash/uniq";
 import { Op, QueryTypes } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Document, Attachment } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { sequelize } from "@server/storage/database";

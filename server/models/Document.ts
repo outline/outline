@@ -63,7 +63,7 @@ import UserMembership from "./UserMembership";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
-import DocumentHelper from "./helpers/DocumentHelper";
+import { DocumentHelper } from "./helpers/DocumentHelper";
 import Length from "./validators/Length";
 
 export const DOCUMENT_VERSION = 2;

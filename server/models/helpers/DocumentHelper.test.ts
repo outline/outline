@@ -1,6 +1,6 @@
 import Revision from "@server/models/Revision";
 import { buildDocument } from "@server/test/factories";
-import DocumentHelper from "./DocumentHelper";
+import { DocumentHelper } from "./DocumentHelper";
 
 describe("DocumentHelper", () => {
   beforeAll(() => {

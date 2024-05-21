@@ -35,29 +35,29 @@ type HTMLOptions = {
 };
 
 @trace()
-export default class DocumentHelper {
+export class DocumentHelper {
   /**
-   * Returns the document as a Prosemirror Node. This method uses the collaborative state if
-   * available, then the derived content, otherwise it falls back to Markdown.
+   * Returns the document as a Prosemirror Node. This method uses the derived content if available
+   * then the collaborative state, otherwise it falls back to Markdown.
    *
    * @param document The document or revision to convert
    * @returns The document content as a Prosemirror Node
    */
   static toProsemirror(document: Document | Revision) {
+    if ("content" in document && document.content) {
+      return Node.fromJSON(schema, document.content);
+    }
     if ("state" in document && document.state) {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, document.state);
       return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     }
-    if ("content" in document && document.content) {
-      return Node.fromJSON(schema, document.content);
-    }
     return parser.parse(document.text) || Node.fromJSON(schema, {});
   }
 
   /**
-   * Returns the document as a plain JSON object. This method uses the
-   * collaborative state if available, then the derived content, otherwise it falls back to Markdown.
+   * Returns the document as a plain JSON object. This method uses the derived content if available
+   * then the collaborative state, otherwise it falls back to Markdown.
    *
    * @param document The document or revision to convert
    * @param options Options for the conversion
@@ -114,8 +114,7 @@ export default class DocumentHelper {
   }
 
   /**
-   * Returns the document as Markdown. This is a lossy conversion and should
-   * only be used for export.
+   * Returns the document as Markdown. This is a lossy conversion and should nly be used for export.
    *
    * @param document The document or revision to convert
    * @returns The document title and content as a Markdown string
@@ -138,8 +137,7 @@ export default class DocumentHelper {
   }
 
   /**
-   * Returns the document as plain HTML. This is a lossy conversion and should
-   * only be used for export.
+   * Returns the document as plain HTML. This is a lossy conversion and should only be used for export.
    *
    * @param document The document or revision to convert
    * @param options Options for the HTML output

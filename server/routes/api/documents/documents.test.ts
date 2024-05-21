@@ -17,7 +17,7 @@ import {
   User,
   GroupPermission,
 } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import {
   buildShare,
   buildCollection,
