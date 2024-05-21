@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import Collection from "~/models/Collection";
 import Avatar from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar/Avatar";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
@@ -66,7 +67,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
     return null;
   }
 
-  const overflow = usersCount - groupsCount - collectionUsers.length;
+  const overflow = usersCount + groupsCount - collectionUsers.length;
 
   return (
     <NudeButton
@@ -107,7 +108,9 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
           users={sortBy(collectionUsers, "lastActiveAt")}
           overflow={overflow}
           limit={limit}
-          renderAvatar={(user) => <Avatar model={user} size={32} />}
+          renderAvatar={(item) => (
+            <Avatar model={item} size={AvatarSize.Large} />
+          )}
         />
       </Fade>
     </NudeButton>
