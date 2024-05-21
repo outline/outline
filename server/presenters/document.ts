@@ -1,6 +1,7 @@
 import { traceFunction } from "@server/logging/tracing";
 import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import TextHelper from "@server/models/helpers/TextHelper";
 import { APIContext } from "@server/types";
 import presentUser from "./user";
 
@@ -19,6 +20,11 @@ async function presentDocument(
   };
 
   const asData = !ctx || Number(ctx?.headers["x-api-version"] ?? 0) >= 3;
+  const text =
+    options.isPublic && !asData
+      ? await TextHelper.attachmentsToSignedUrls(document.text, document.teamId)
+      : document.text;
+
   const data: Record<string, any> = {
     id: document.id,
     url: document.url,
@@ -32,7 +38,7 @@ async function presentDocument(
             : undefined
         )
       : undefined,
-    text: asData ? undefined : document.text,
+    text: asData ? undefined : text,
     emoji: document.emoji,
     tasks: document.tasks,
     createdAt: document.createdAt,
