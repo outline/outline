@@ -22,6 +22,7 @@ import env from "~/env";
 import type {
   FetchOptions,
   PaginationParams,
+  PartialWithId,
   Properties,
   SearchResult,
 } from "~/types";
@@ -472,6 +473,14 @@ export default class DocumentsStore extends Store<Document> {
     this.add(res.data);
     return this.data.get(res.data.id);
   };
+
+  override fetch = (id: string, options: FetchOptions = {}) =>
+    super.fetch(
+      id,
+      options,
+      (res: { data: { document: PartialWithId<Document> } }) =>
+        res.data.document
+    );
 
   @action
   fetchWithSharedTree = async (
