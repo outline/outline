@@ -153,6 +153,26 @@ export class ProsemirrorHelper {
   }
 
   /**
+   * Removes all marks from the node that match the given types.
+   *
+   * @param data The ProsemirrorData object to remove marks from
+   * @param marks The mark types to remove
+   * @returns The content with marks removed
+   */
+  static removeMarks(data: ProsemirrorData, marks: string[]) {
+    function removeMarksInner(node: ProsemirrorData) {
+      if (node.marks) {
+        node.marks = node.marks.filter((mark) => !marks.includes(mark.type));
+      }
+      if (node.content) {
+        node.content.forEach(removeMarksInner);
+      }
+      return node;
+    }
+    return removeMarksInner(data);
+  }
+
+  /**
    * Returns the document as a plain JSON object with attachment URLs signed.
    *
    * @param node The node to convert to JSON
@@ -189,7 +209,7 @@ export class ProsemirrorHelper {
       } else if (node.attrs?.href) {
         node.attrs.href = mapping[node.attrs.href as string] || node.attrs.href;
       } else if (node.marks) {
-        node.marks.forEach((mark: ProsemirrorData) => {
+        node.marks.forEach((mark) => {
           if (mark.attrs?.href) {
             mark.attrs.href =
               mapping[mark.attrs.href as string] || mark.attrs.href;

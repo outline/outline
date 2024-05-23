@@ -63,16 +63,19 @@ export class DocumentHelper {
    * @param options Options for the conversion
    * @returns The document content as a plain JSON object
    */
-  static toJSON(
+  static async toJSON(
     document: Document | Revision,
     options?: {
       /** The team context */
       teamId: string;
       /** Whether to sign attachment urls, and if so for how many seconds is the signature valid */
       signedUrls: number;
+      /** Marks to remove from the document */
+      removeMarks?: string[];
     }
   ): Promise<ProsemirrorData> {
     let doc: Node | null;
+    let json;
 
     if ("content" in document && document.content) {
       doc = Node.fromJSON(schema, document.content);
@@ -85,14 +88,20 @@ export class DocumentHelper {
     }
 
     if (doc && options?.signedUrls) {
-      return ProsemirrorHelper.signAttachmentUrls(
+      json = await ProsemirrorHelper.signAttachmentUrls(
         doc,
         options.teamId,
         options.signedUrls
       );
+    } else {
+      json = doc?.toJSON() ?? {};
     }
 
-    return doc?.toJSON() ?? {};
+    if (options?.removeMarks) {
+      json = ProsemirrorHelper.removeMarks(json, options.removeMarks);
+    }
+
+    return json;
   }
 
   /**

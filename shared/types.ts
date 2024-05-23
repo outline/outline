@@ -379,7 +379,10 @@ export type ProsemirrorData = {
   content: ProsemirrorData[];
   text?: string;
   attrs?: JSONObject;
-  marks?: JSONObject[];
+  marks?: {
+    type: string;
+    attrs: JSONObject;
+  }[];
 };
 
 export type ProsemirrorDoc = {

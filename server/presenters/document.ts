@@ -34,7 +34,11 @@ async function presentDocument(
       ? await DocumentHelper.toJSON(
           document,
           options.isPublic
-            ? { signedUrls: 60, teamId: document.teamId }
+            ? {
+                signedUrls: 60,
+                teamId: document.teamId,
+                removeMarks: ["comment"],
+              }
             : undefined
         )
       : undefined,
@@ -55,7 +59,7 @@ async function presentDocument(
     collectionId: undefined,
     parentDocumentId: undefined,
     lastViewedAt: undefined,
-    isCollectionDeleted: await document.isCollectionDeleted(),
+    isCollectionDeleted: undefined,
   };
 
   if (!!document.views && document.views.length > 0) {
@@ -65,6 +69,7 @@ async function presentDocument(
   if (!options.isPublic) {
     const source = await document.$get("import");
 
+    data.isCollectionDeleted = await document.isCollectionDeleted();
     data.collectionId = document.collectionId;
     data.parentDocumentId = document.parentDocumentId;
     data.createdBy = presentUser(document.createdBy);
