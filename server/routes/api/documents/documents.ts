@@ -428,7 +428,7 @@ router.post(
     });
     const isPublic = cannot(user, "read", document);
     const serializedDocument = await presentDocument(ctx, document, {
-      isPublic: isPublic || !!shareId,
+      isPublic,
     });
 
     const team = await document.$get("team");

@@ -123,10 +123,10 @@ function SharedDocumentScene(props: Props) {
   React.useEffect(() => {
     async function fetchData() {
       try {
-        const response = await documents.fetchWithSharedTree(documentSlug, {
+        const res = await documents.fetchWithSharedTree(documentSlug, {
           shareId,
         });
-        setResponse(response);
+        setResponse(res);
       } catch (err) {
         setError(err);
       }
