@@ -403,9 +403,9 @@ class DocumentScene extends React.Component<Props> {
     const hasHeadings = this.headings.length > 0;
     const showContents =
       ui.tocVisible && ((readOnly && hasHeadings) || !readOnly);
-    const tocPosition = team?.getPreference(
-      TeamPreference.TocPosition
-    ) as TOCPosition;
+    const tocPosition =
+      (team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
+      TOCPosition.Left;
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -467,11 +467,7 @@ class DocumentScene extends React.Component<Props> {
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
           />
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
-          <Container
-            justify="center"
-            column
-            auto
-          >
+          <Container column>
             {!readOnly && (
               <Prompt
                 when={this.isUploading && !this.isEditorDirty}
@@ -498,8 +494,14 @@ class DocumentScene extends React.Component<Props> {
               onSave={this.onSave}
               headings={this.headings}
             />
+            <Flex justify="center">
+              <Notices
+                document={document}
+                readOnly={readOnly}
+              />
+            </Flex>
             <MeasuredContainer
-              as={MaxWidth}
+              as={Main}
               name="document"
               archived={document.isArchived}
               showContents={showContents}
@@ -508,23 +510,27 @@ class DocumentScene extends React.Component<Props> {
               column
               auto
             >
-              <Notices
-                document={document}
-                readOnly={readOnly}
-              />
               <React.Suspense fallback={<PlaceholderDocument />}>
-                <Flex
-                  auto={!readOnly}
-                  reverse={tocPosition === TOCPosition.Left}
-                >
-                  {revision ? (
+                {revision ? (
+                  <RevisionWrapper>
                     <RevisionViewer
                       document={document}
                       revision={revision}
                       id={revision.id}
                     />
-                  ) : (
-                    <>
+                  </RevisionWrapper>
+                ) : (
+                  <>
+                    {showContents && (
+                      <ContentsWrapper position={tocPosition}>
+                        <Contents headings={this.headings} />
+                      </ContentsWrapper>
+                    )}
+                    <EditorWrapper
+                      isFullWidth={document.fullWidth}
+                      showContents={showContents}
+                      tocPosition={tocPosition}
+                    >
                       <Editor
                         id={document.id}
                         key={embedsDisabled ? "disabled" : "enabled"}
@@ -571,17 +577,9 @@ class DocumentScene extends React.Component<Props> {
                           </>
                         )}
                       </Editor>
-
-                      {showContents && (
-                        <Contents
-                          headings={this.headings}
-                          isFullWidth={document.fullWidth}
-                          position={tocPosition}
-                        />
-                      )}
-                    </>
-                  )}
-                </Flex>
+                    </EditorWrapper>
+                  </>
+                )}
               </React.Suspense>
             </MeasuredContainer>
             {isShare &&
@@ -601,6 +599,59 @@ class DocumentScene extends React.Component<Props> {
     );
   }
 }
+
+const Main = styled.div`
+  margin-top: 4px;
+  margin-bottom: 12px;
+
+  ${breakpoint("tablet")`
+    display: grid;
+    grid-template-columns: 1fr minmax(0, ${`calc(46em + 64px)`}) 1fr;
+  `};
+
+  ${breakpoint("desktopLarge")`
+    grid-template-columns: 1fr minmax(0, ${`calc(52em + 64px)`}) 1fr;
+  `};
+`;
+
+const ContentsWrapper = styled.div<{ position: TOCPosition }>`
+  ${breakpoint("tablet")`
+    grid-row: 1;
+    grid-column: ${({ position }) => (position === TOCPosition.Left ? 1 : 3)};
+    justify-self: ${({ position }) =>
+      position === TOCPosition.Left ? "end" : "start"};
+  `};
+`;
+
+const EditorWrapper = styled.div<{
+  isFullWidth: boolean;
+  showContents: boolean;
+  tocPosition: TOCPosition;
+}>`
+  // Adds space to the gutter to make room for heading annotations
+  padding: 0 32px;
+
+  ${breakpoint("tablet")`
+    grid-row: 1;
+
+    // Decides the editor column span
+    grid-column: ${({ isFullWidth, showContents, tocPosition }) =>
+      isFullWidth
+        ? showContents
+          ? tocPosition === TOCPosition.Left
+            ? "2 / -1"
+            : "1 / -2"
+          : "1 / -1"
+        : "2"}
+  `};
+`;
+
+const RevisionWrapper = styled.div`
+  ${breakpoint("tablet")`
+    grid-row: 1;
+    grid-column: 2;
+  `}
+`;
 
 const Footer = styled.div`
   position: absolute;
@@ -622,36 +673,6 @@ const ReferencesWrapper = styled.div`
   @media print {
     display: none;
   }
-`;
-
-type MaxWidthProps = {
-  isEditing?: boolean;
-  isFullWidth?: boolean;
-  archived?: boolean;
-  showContents?: boolean;
-};
-
-const MaxWidth = styled(Flex)<MaxWidthProps>`
-  // Adds space to the gutter to make room for heading annotations
-  padding: 0 32px;
-  transition: padding 100ms;
-  max-width: 100vw;
-  width: 100%;
-
-  padding-bottom: 16px;
-
-  ${breakpoint("tablet")`
-    margin: 4px auto 12px;
-    max-width: ${(props: MaxWidthProps) =>
-      props.isFullWidth
-        ? "100vw"
-        : `calc(64px + 46em + ${props.showContents ? "256px" : "0px"});`}
-  `};
-
-  ${breakpoint("desktopLarge")`
-    max-width: ${(props: MaxWidthProps) =>
-      props.isFullWidth ? "100vw" : `calc(64px + 52em);`}
-  `};
 `;
 
 export default withTranslation()(withStores(withRouter(DocumentScene)));

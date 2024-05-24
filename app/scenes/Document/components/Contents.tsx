@@ -4,26 +4,21 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
-import { TOCPosition } from "@shared/types";
 import Text from "~/components/Text";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 
 const HEADING_OFFSET = 20;
 
 type Props = {
-  /** Whether the document is rendering full width or not. */
-  isFullWidth: boolean;
   /** The headings to render in the contents. */
   headings: {
     title: string;
     level: number;
     id: string;
   }[];
-  /** Side to display the document's table of contents in relation to the main content. */
-  position: TOCPosition;
 };
 
-export default function Contents({ headings, isFullWidth, position }: Props) {
+export default function Contents({ headings }: Props) {
   const [activeSlug, setActiveSlug] = React.useState<string>();
   const scrollPosition = useWindowScrollPosition({
     throttle: 100,
@@ -59,70 +54,52 @@ export default function Contents({ headings, isFullWidth, position }: Props) {
   const { t } = useTranslation();
 
   return (
-    <Wrapper isFullWidth={isFullWidth} position={position}>
-      <Sticky>
-        <Heading>{t("Contents")}</Heading>
-        {headings.length ? (
-          <List>
-            {headings
-              .filter((heading) => heading.level < 4)
-              .map((heading) => (
-                <ListItem
-                  key={heading.id}
-                  level={heading.level - headingAdjustment}
-                  active={activeSlug === heading.id}
-                >
-                  <Link href={`#${heading.id}`}>{heading.title}</Link>
-                </ListItem>
-              ))}
-          </List>
-        ) : (
-          <Empty>
-            {t("Headings you add to the document will appear here")}
-          </Empty>
-        )}
-      </Sticky>
-    </Wrapper>
+    <StickyWrapper>
+      <Heading>{t("Contents")}</Heading>
+      {headings.length ? (
+        <List>
+          {headings
+            .filter(heading => heading.level < 4)
+            .map(heading => (
+              <ListItem
+                key={heading.id}
+                level={heading.level - headingAdjustment}
+                active={activeSlug === heading.id}
+              >
+                <Link href={`#${heading.id}`}>{heading.title}</Link>
+              </ListItem>
+            ))}
+        </List>
+      ) : (
+        <Empty>{t("Headings you add to the document will appear here")}</Empty>
+      )}
+    </StickyWrapper>
   );
 }
 
-const Wrapper = styled.div<{ isFullWidth: boolean; position: TOCPosition }>`
-  width: 256px;
+const StickyWrapper = styled.div`
   display: none;
 
-  ${breakpoint("tablet")`
-    display: block;
-  `};
-
-  ${(props) =>
-    !props.isFullWidth &&
-    breakpoint("desktopLarge")`
-    transform: ${props.position === TOCPosition.Left && "translateX(-256px)"};
-    width: 0;
-    `}
-`;
-
-const Sticky = styled.div`
   position: sticky;
-  top: 80px;
-  max-height: calc(100vh - 80px);
+  top: 130px;
+  max-height: calc(100vh - 130px);
+  width: 256px;
+
+  padding: 0 16px;
+  overflow-y: auto;
+  border-radius: 8px;
 
   background: ${s("background")};
   transition: ${s("backgroundTransition")};
 
-  margin-top: calc(50px + 6vh);
-  margin-right: 52px;
-  min-width: 204px;
-  width: 228px;
-  min-height: 40px;
-  overflow-y: auto;
-  padding: 0 16px;
-  border-radius: 8px;
-
   @supports (backdrop-filter: blur(20px)) {
     backdrop-filter: blur(20px);
-    background: ${(props) => transparentize(0.2, props.theme.background)};
+    background: ${props => transparentize(0.2, props.theme.background)};
   }
+
+  ${breakpoint("tablet")`
+    display: block;
+  `};
 `;
 
 const Heading = styled.h3`
@@ -134,21 +111,18 @@ const Heading = styled.h3`
 `;
 
 const Empty = styled(Text)`
-  margin: 1em 0 4em;
-  padding-right: 2em;
   font-size: 14px;
 `;
 
 const ListItem = styled.li<{ level: number; active?: boolean }>`
-  margin-left: ${(props) => (props.level - 1) * 10}px;
+  margin-left: ${props => (props.level - 1) * 10}px;
   margin-bottom: 8px;
-  padding-right: 2em;
   line-height: 1.3;
   word-break: break-word;
 
   a {
-    font-weight: ${(props) => (props.active ? "600" : "inherit")};
-    color: ${(props) => (props.active ? props.theme.accent : props.theme.text)};
+    font-weight: ${props => (props.active ? "600" : "inherit")};
+    color: ${props => (props.active ? props.theme.accent : props.theme.text)};
   }
 `;
 
