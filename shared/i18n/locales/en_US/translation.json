@@ -459,6 +459,7 @@
   "Edit group": "Edit group",
   "Delete group": "Delete group",
   "Group options": "Group options",
+  "Viewer insights": "Viewer insights",
   "Member options": "Member options",
   "New child document": "New child document",
   "New document in <em>{{ collectionName }}</em>": "New document in <em>{{ collectionName }}</em>",

@@ -44,6 +44,10 @@ export default createGlobalStyle<Props>`
     text-rendering: optimizeLegibility;
   }
 
+  body:has(> [data-radix-popper-content-wrapper]) {
+    padding-right: var(--removed-body-scroll-bar-size, 0)
+  }
+
   @media (min-width: ${breakpoints.tablet}px) {
     html,
     body {
