@@ -7,7 +7,7 @@ import breakpoint from "styled-components-breakpoint";
 import { Drawer } from "vaul";
 import { depths, s } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
-import { mobileContextMenu, fadeAndScaleIn } from "~/styles/animations";
+import { mobileContextMenu, fadeAndScaleIn, fadeIn } from "~/styles/animations";
 
 const ContextMenu: React.FC<
   React.ComponentProps<typeof ContextMenuPrimitive.Root & typeof Drawer.Root>
@@ -47,6 +47,27 @@ const DrawerPosition = styled.div`
   z-index: ${depths.menu};
 `;
 
+const DragHint = styled.div`
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 6px;
+  width: 3rem;
+  height: 0.375rem;
+  border-radius: 0.1875rem;
+  background-color: ${s("slateLight")};
+`;
+
+const DrawerOverlay = styled(Drawer.Overlay)`
+  animation: ${fadeIn} 200ms ease-in-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: ${s("backdrop")};
+  z-index: ${depths.menu - 1};
+`;
+
 const ContextMenuPrimitiveContent = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.Content & typeof Drawer.Content>,
   React.ComponentPropsWithoutRef<
@@ -57,8 +78,12 @@ const ContextMenuPrimitiveContent = React.forwardRef<
 
   return isMobile ? (
     <Drawer.Portal>
+      <DrawerOverlay />
       <DrawerPosition>
-        <Drawer.Content ref={ref} {...props} />
+        <Drawer.Content ref={ref} {...props}>
+          <DragHint />
+          {props.children}
+        </Drawer.Content>
       </DrawerPosition>
     </Drawer.Portal>
   ) : (
