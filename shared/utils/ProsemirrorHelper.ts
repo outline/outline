@@ -1,6 +1,7 @@
 import { Node, Schema } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
+import { ProsemirrorData } from "../types";
 
 export type Heading = {
   /* The heading in plain text */
@@ -27,7 +28,30 @@ export type Task = {
   completed: boolean;
 };
 
-export default class ProsemirrorHelper {
+export const attachmentRedirectRegex =
+  /\/api\/attachments\.redirect\?id=(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
+
+export const attachmentPublicRegex =
+  /public\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
+
+export class ProsemirrorHelper {
+  /**
+   * Get a new empty document.
+   *
+   * @returns A new empty document as JSON.
+   */
+  static getEmptyDocument(): ProsemirrorData {
+    return {
+      type: "doc",
+      content: [
+        {
+          content: [],
+          type: "paragraph",
+        },
+      ],
+    };
+  }
+
   /**
    * Returns the node as plain text.
    *
@@ -158,6 +182,21 @@ export default class ProsemirrorHelper {
     });
 
     return tasks;
+  }
+
+  /**
+   * Returns a summary of total and completed tasks in the node.
+   *
+   * @param doc Prosemirror document node
+   * @returns Object with completed and total keys
+   */
+  static getTasksSummary(doc: Node): { completed: number; total: number } {
+    const tasks = ProsemirrorHelper.getTasks(doc);
+
+    return {
+      completed: tasks.filter((t) => t.completed).length,
+      total: tasks.length,
+    };
   }
 
   /**

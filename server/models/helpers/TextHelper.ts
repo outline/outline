@@ -16,7 +16,7 @@ import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import parseImages from "@server/utils/parseImages";
 
 @trace()
-export default class TextHelper {
+export class TextHelper {
   /**
    * Replaces template variables in the given text with the current date and time.
    *

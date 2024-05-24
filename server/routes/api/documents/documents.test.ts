@@ -17,7 +17,7 @@ import {
   User,
   GroupPermission,
 } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import {
   buildShare,
   buildCollection,
@@ -3467,7 +3467,6 @@ describe("#documents.update", () => {
         token: user.getJwtToken(),
         id: document.id,
         title: document.title,
-        text: document.text,
       },
     });
     expect(res.status).toEqual(200);

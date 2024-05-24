@@ -6,7 +6,7 @@ import { createSubscriptionsForDocument } from "@server/commands/subscriptionCre
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Document, Revision, Notification, User, View } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { RevisionEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";

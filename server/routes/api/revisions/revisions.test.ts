@@ -105,7 +105,23 @@ describe("#revisions.diff", () => {
     });
     await Revision.createFromDocument(document);
 
-    await document.update({ text: "New text" });
+    await document.update({
+      content: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                content: [],
+                type: "text",
+                text: "New text",
+              },
+            ],
+          },
+        ],
+      },
+    });
     const revision1 = await Revision.createFromDocument(document);
 
     const res = await server.post("/api/revisions.diff", {

@@ -6,7 +6,7 @@ import Logger from "@server/logging/Logger";
 import { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import Document from "@server/models/Document";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";

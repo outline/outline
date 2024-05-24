@@ -81,7 +81,7 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
-        const data = await presentDocument(document);
+        const data = await presentDocument(undefined, document);
         const channels = await this.getDocumentEventChannels(event, document);
         return socketio.to(channels).emit(event.name, data);
       }
@@ -452,7 +452,7 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        const data = await presentNotification(notification);
+        const data = await presentNotification(undefined, notification);
         return socketio.to(`user-${event.userId}`).emit(event.name, data);
       }
 

@@ -12,7 +12,7 @@ import Share from "@server/models/Share";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import { sequelize } from "@server/storage/database";
-import DocumentHelper from "./DocumentHelper";
+import { DocumentHelper } from "./DocumentHelper";
 
 type SearchResponse = {
   results: {

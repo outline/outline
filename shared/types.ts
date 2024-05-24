@@ -374,4 +374,18 @@ export type JSONValue =
 
 export type JSONObject = { [x: string]: JSONValue };
 
-export type ProsemirrorData = JSONObject;
+export type ProsemirrorData = {
+  type: string;
+  content: ProsemirrorData[];
+  text?: string;
+  attrs?: JSONObject;
+  marks?: {
+    type: string;
+    attrs: JSONObject;
+  }[];
+};
+
+export type ProsemirrorDoc = {
+  type: "doc";
+  content: ProsemirrorData[];
+};

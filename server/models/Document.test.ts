@@ -1,5 +1,6 @@
 import { EmptyResultError } from "sequelize";
 import slugify from "@shared/utils/slugify";
+import { parser } from "@server/editor";
 import Document from "@server/models/Document";
 import {
   buildDocument,
@@ -208,20 +209,7 @@ describe("#findByPk", () => {
 });
 
 describe("tasks", () => {
-  test("should consider all the possible checkTtems", async () => {
-    const document = await buildDocument({
-      text: `- [x] test
-      - [X] test
-      - [ ] test
-      - [-] test
-      - [_] test`,
-    });
-    const tasks = document.tasks;
-    expect(tasks.completed).toBe(4);
-    expect(tasks.total).toBe(5);
-  });
-
-  test("should return tasks keys set to 0 if checkItems isn't present", async () => {
+  test("should return tasks keys set to 0 if check items isn't present", async () => {
     const document = await buildDocument({
       text: `text`,
     });
@@ -230,11 +218,12 @@ describe("tasks", () => {
     expect(tasks.total).toBe(0);
   });
 
-  test("should return tasks keys set to 0 if the text contains broken checkItems", async () => {
+  test("should return tasks keys set to 0 if the text contains broken check items", async () => {
     const document = await buildDocument({
-      text: `- [x ] test
-      - [ x ] test
-      - [  ] test`,
+      text: `
+- [x ] test
+- [ x ] test
+- [  ] test`,
     });
     const tasks = document.tasks;
     expect(tasks.completed).toBe(0);
@@ -243,8 +232,9 @@ describe("tasks", () => {
 
   test("should return tasks", async () => {
     const document = await buildDocument({
-      text: `- [x] list item
-      - [ ] list item`,
+      text: `
+- [x] list item
+- [ ] list item`,
     });
     const tasks = document.tasks;
     expect(tasks.completed).toBe(1);
@@ -253,15 +243,21 @@ describe("tasks", () => {
 
   test("should update tasks on save", async () => {
     const document = await buildDocument({
-      text: `- [x] list item
-      - [ ] list item`,
+      text: `
+- [x] list item
+- [ ] list item`,
     });
     const tasks = document.tasks;
     expect(tasks.completed).toBe(1);
     expect(tasks.total).toBe(2);
-    document.text = `- [x] list item
-    - [ ] list item
-    - [ ] list item`;
+    document.content = parser
+      .parse(
+        `
+- [x] list item
+- [ ] list item
+- [ ] list item`
+      )
+      ?.toJSON();
     await document.save();
     const newTasks = document.tasks;
     expect(newTasks.completed).toBe(1);

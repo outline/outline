@@ -1,6 +1,9 @@
+import cloneDeep from "lodash/cloneDeep";
 import debounce from "lodash/debounce";
+import isEqual from "lodash/isEqual";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
+import { Node } from "prosemirror-model";
 import { AllSelection } from "prosemirror-state";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
@@ -16,9 +19,8 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
-import { Heading } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper, Heading } from "@shared/utils/ProsemirrorHelper";
 import { parseDomain } from "@shared/utils/domains";
-import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -34,6 +36,7 @@ import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
+import { SearchResult } from "~/editor/components/LinkEditor";
 import { client } from "~/utils/ApiClient";
 import { replaceTitleVariables } from "~/utils/date";
 import { emojiToUrl } from "~/utils/emoji";
@@ -73,13 +76,13 @@ type Props = WithTranslation &
   RootStore &
   RouteComponentProps<Params, StaticContext, LocationState> & {
     sharedTree?: NavigationNode;
-    abilities: Record<string, any>;
+    abilities: Record<string, boolean>;
     document: Document;
     revision?: Revision;
     readOnly: boolean;
     shareId?: string;
     onCreateLink?: (title: string, nested?: boolean) => Promise<string>;
-    onSearchLink?: (term: string) => any;
+    onSearchLink?: (term: string) => Promise<SearchResult[]>;
   };
 
 @observer
@@ -107,8 +110,6 @@ class DocumentScene extends React.Component<Props> {
 
   @observable
   headings: Heading[] = [];
-
-  getEditorText: () => string = () => this.props.document.text;
 
   componentDidMount() {
     this.updateIsDirty();
@@ -140,8 +141,8 @@ class DocumentScene extends React.Component<Props> {
       return;
     }
 
-    const { view, parser } = editorRef;
-    const doc = parser.parse(template.text);
+    const { view, schema } = editorRef;
+    const doc = Node.fromJSON(schema, template.data);
 
     if (doc) {
       view.dispatch(
@@ -168,10 +169,8 @@ class DocumentScene extends React.Component<Props> {
     if (template.emoji) {
       this.props.document.emoji = template.emoji;
     }
-    if (template.text) {
-      this.props.document.text = template.text;
-    }
 
+    this.props.document.data = cloneDeep(template.data);
     this.updateIsDirty();
 
     return this.onSave({
@@ -292,15 +291,18 @@ class DocumentScene extends React.Component<Props> {
     }
 
     // get the latest version of the editor text value
-    const text = this.getEditorText ? this.getEditorText() : document.text;
-
-    // prevent save before anything has been written (single hash is empty doc)
-    if (text.trim() === "" && document.title.trim() === "") {
+    const doc = this.editor.current?.view.state.doc;
+    if (!doc) {
       return;
     }
 
-    document.text = text;
-    document.tasks = getTasks(document.text);
+    // prevent save before anything has been written (single hash is empty doc)
+    if (ProsemirrorHelper.isEmpty(doc) && document.title.trim() === "") {
+      return;
+    }
+
+    document.data = doc.toJSON();
+    document.tasks = ProsemirrorHelper.getTasksSummary(doc);
 
     // prevent autosave if nothing has changed
     if (options.autosave && !this.isEditorDirty && !document.isDirty()) {
@@ -340,12 +342,11 @@ class DocumentScene extends React.Component<Props> {
 
   updateIsDirty = () => {
     const { document } = this.props;
-    const editorText = this.getEditorText().trim();
-    this.isEditorDirty = editorText !== document.text.trim();
+    const doc = this.editor.current?.view.state.doc;
+    this.isEditorDirty = !isEqual(doc?.toJSON(), document.data);
 
     // a single hash is a doc with just an empty title
-    this.isEmpty =
-      (!editorText || editorText === "#" || editorText === "\\") && !this.title;
+    this.isEmpty = (!doc || ProsemirrorHelper.isEmpty(doc)) && !this.title;
   };
 
   updateIsDirtyDebounced = debounce(this.updateIsDirty, 500);
@@ -358,9 +359,8 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
-  handleChange = (getEditorText: () => string) => {
+  handleChange = () => {
     const { document } = this.props;
-    this.getEditorText = getEditorText;
 
     // Keep derived task list in sync
     const tasks = this.editor.current?.getTasks();
@@ -503,8 +503,8 @@ class DocumentScene extends React.Component<Props> {
                         isDraft={document.isDraft}
                         template={document.isTemplate}
                         document={document}
-                        value={readOnly ? document.text : undefined}
-                        defaultValue={document.text}
+                        value={readOnly ? document.data : undefined}
+                        defaultValue={document.data}
                         embedsDisabled={embedsDisabled}
                         onSynced={this.onSynced}
                         onFileUploadStart={this.onFileUploadStart}

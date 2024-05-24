@@ -1,7 +1,7 @@
 import { NotificationEventType } from "@shared/types";
 import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";
 import { Document, Notification, User } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { DocumentEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";

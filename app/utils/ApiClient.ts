@@ -84,6 +84,7 @@ class ApiClient {
       Accept: "application/json",
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
+      "x-api-version": "3",
       pragma: "no-cache",
       ...options?.headers,
     };

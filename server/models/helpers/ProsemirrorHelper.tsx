@@ -1,5 +1,8 @@
 import { prosemirrorToYDoc } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
+import compact from "lodash/compact";
+import flatten from "lodash/flatten";
+import uniq from "lodash/uniq";
 import { Node, DOMSerializer, Fragment, Mark } from "prosemirror-model";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
@@ -9,10 +12,14 @@ import EditorContainer from "@shared/editor/components/Styles";
 import embeds from "@shared/editor/embeds";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
+import { ProsemirrorData } from "@shared/types";
+import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { isRTL } from "@shared/utils/rtl";
 import { schema, parser } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
+import Attachment from "@server/models/Attachment";
+import FileStorage from "@server/storage/files";
 
 export type HTMLOptions = {
   /** A title, if it should be included */
@@ -36,15 +43,22 @@ type MentionAttrs = {
 };
 
 @trace()
-export default class ProsemirrorHelper {
+export class ProsemirrorHelper {
   /**
    * Returns the input text as a Y.Doc.
    *
    * @param markdown The text to parse
    * @returns The content as a Y.Doc.
    */
-  static toYDoc(markdown: string, fieldName = "default"): Y.Doc {
-    let node = parser.parse(markdown);
+  static toYDoc(input: string | ProsemirrorData, fieldName = "default"): Y.Doc {
+    if (typeof input === "object") {
+      return prosemirrorToYDoc(
+        ProsemirrorHelper.toProsemirror(input),
+        fieldName
+      );
+    }
+
+    let node = parser.parse(input);
 
     // in the editor embeds are created at runtime by converting links into
     // embeds where they match.Because we're converting to a CRDT structure on
@@ -106,7 +120,7 @@ export default class ProsemirrorHelper {
    * @param data The object to parse
    * @returns The content as a Prosemirror Node
    */
-  static toProsemirror(data: Record<string, any>) {
+  static toProsemirror(data: ProsemirrorData) {
     return Node.fromJSON(schema, data);
   }
 
@@ -116,10 +130,10 @@ export default class ProsemirrorHelper {
    * @param node The node to parse mentions from
    * @returns An array of mention attributes
    */
-  static parseMentions(node: Node) {
+  static parseMentions(doc: Node) {
     const mentions: MentionAttrs[] = [];
 
-    node.descendants((node: Node) => {
+    doc.descendants((node: Node) => {
       if (
         node.type.name === "mention" &&
         !mentions.some((m) => m.id === node.attrs.id)
@@ -136,6 +150,117 @@ export default class ProsemirrorHelper {
     });
 
     return mentions;
+  }
+
+  /**
+   * Removes all marks from the node that match the given types.
+   *
+   * @param data The ProsemirrorData object to remove marks from
+   * @param marks The mark types to remove
+   * @returns The content with marks removed
+   */
+  static removeMarks(data: ProsemirrorData, marks: string[]) {
+    function removeMarksInner(node: ProsemirrorData) {
+      if (node.marks) {
+        node.marks = node.marks.filter((mark) => !marks.includes(mark.type));
+      }
+      if (node.content) {
+        node.content.forEach(removeMarksInner);
+      }
+      return node;
+    }
+    return removeMarksInner(data);
+  }
+
+  /**
+   * Returns the document as a plain JSON object with attachment URLs signed.
+   *
+   * @param node The node to convert to JSON
+   * @param teamId The team ID to use for signing
+   * @param expiresIn The number of seconds until the signed URL expires
+   * @returns The content as a JSON object
+   */
+  static async signAttachmentUrls(doc: Node, teamId: string, expiresIn = 60) {
+    const attachmentIds = ProsemirrorHelper.parseAttachmentIds(doc);
+    const attachments = await Attachment.findAll({
+      where: {
+        id: attachmentIds,
+        teamId,
+      },
+    });
+
+    const mapping: Record<string, string> = {};
+
+    await Promise.all(
+      attachments.map(async (attachment) => {
+        const signedUrl = await FileStorage.getSignedUrl(
+          attachment.key,
+          expiresIn
+        );
+        mapping[attachment.redirectUrl] = signedUrl;
+      })
+    );
+
+    const json = doc.toJSON() as ProsemirrorData;
+
+    function replaceAttachmentUrls(node: ProsemirrorData) {
+      if (node.attrs?.src) {
+        node.attrs.src = mapping[node.attrs.src as string] || node.attrs.src;
+      } else if (node.attrs?.href) {
+        node.attrs.href = mapping[node.attrs.href as string] || node.attrs.href;
+      } else if (node.marks) {
+        node.marks.forEach((mark) => {
+          if (mark.attrs?.href) {
+            mark.attrs.href =
+              mapping[mark.attrs.href as string] || mark.attrs.href;
+          }
+        });
+      }
+
+      if (node.content) {
+        node.content.forEach(replaceAttachmentUrls);
+      }
+
+      return node;
+    }
+
+    return replaceAttachmentUrls(json);
+  }
+
+  /**
+   * Returns an array of attachment IDs in the node.
+   *
+   * @param node The node to parse attachments from
+   * @returns An array of attachment IDs
+   */
+  static parseAttachmentIds(doc: Node) {
+    const urls: string[] = [];
+
+    doc.descendants((node) => {
+      node.marks.forEach((mark) => {
+        if (mark.type.name === "link") {
+          urls.push(mark.attrs.href);
+        }
+      });
+      if (["image", "video"].includes(node.type.name)) {
+        urls.push(node.attrs.src);
+      }
+      if (node.type.name === "attachment") {
+        urls.push(node.attrs.href);
+      }
+    });
+
+    return uniq(
+      compact(
+        flatten(
+          urls.map((url) =>
+            [...url.matchAll(attachmentRedirectRegex)].map(
+              (match) => match.groups?.id
+            )
+          )
+        )
+      )
+    );
   }
 
   /**

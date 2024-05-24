@@ -21,6 +21,7 @@ describe("commentCreator", () => {
             type: "paragraph",
             content: [
               {
+                content: [],
                 type: "text",
                 text: "test",
               },

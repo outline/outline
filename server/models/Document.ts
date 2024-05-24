@@ -47,8 +47,8 @@ import type {
   ProsemirrorData,
   SourceMetadata,
 } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import getTasks from "@shared/utils/getTasks";
 import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
@@ -63,7 +63,7 @@ import UserMembership from "./UserMembership";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
-import DocumentHelper from "./helpers/DocumentHelper";
+import { DocumentHelper } from "./helpers/DocumentHelper";
 import Length from "./validators/Length";
 
 export const DOCUMENT_VERSION = 2;
@@ -75,9 +75,6 @@ type AdditionalFindOptions = {
 };
 
 @DefaultScope(() => ({
-  attributes: {
-    exclude: ["state"],
-  },
   include: [
     {
       model: User,
@@ -337,7 +334,9 @@ class Document extends ParanoidModel<
   }
 
   get tasks() {
-    return getTasks(this.text || "");
+    return ProsemirrorHelper.getTasksSummary(
+      DocumentHelper.toProsemirror(this)
+    );
   }
 
   // hooks
@@ -411,7 +410,7 @@ class Document extends ParanoidModel<
   }
 
   @BeforeUpdate
-  static processUpdate(model: Document) {
+  static async processUpdate(model: Document) {
     // ensure documents have a title
     model.title = model.title || "";
 
@@ -431,7 +430,7 @@ class Document extends ParanoidModel<
 
     // backfill content if it's missing
     if (!model.content) {
-      model.content = DocumentHelper.toJSON(model);
+      model.content = await DocumentHelper.toJSON(model);
     }
 
     // ensure the last modifying user is a collaborator
@@ -608,7 +607,6 @@ class Document extends ParanoidModel<
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
-      ...(includeState ? [] : ["withoutState"]),
       "withDrafts",
       {
         method: ["withCollectionPermissions", userId, rest.paranoid],

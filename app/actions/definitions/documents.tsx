@@ -31,7 +31,6 @@ import {
 import * as React from "react";
 import { toast } from "sonner";
 import { ExportContentType, TeamPreference } from "@shared/types";
-import MarkdownHelper from "@shared/utils/MarkdownHelper";
 import { getEventFiles } from "@shared/utils/files";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
@@ -454,7 +453,7 @@ export const copyDocumentAsMarkdown = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      copy(MarkdownHelper.toMarkdown(document));
+      copy(document.toMarkdown());
       toast.success(t("Markdown copied to clipboard"));
     }
   },
