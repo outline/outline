@@ -54,7 +54,7 @@ const DragHint = styled.div`
   width: 3rem;
   height: 0.375rem;
   border-radius: 0.1875rem;
-  background-color: ${s("slateLight")};
+  background-color: ${s("drawerDragHint")};
 `;
 
 const DrawerOverlay = styled(Drawer.Overlay)`

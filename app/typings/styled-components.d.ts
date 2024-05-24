@@ -171,5 +171,6 @@ declare module "styled-components" {
     progressBarBackground: string;
     scrollbarBackground: string;
     scrollbarThumb: string;
+    drawerDragHint: string;
   }
 }
