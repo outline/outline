@@ -49,7 +49,7 @@ router.post(
   auth(),
   validate(T.CollectionsCreateSchema),
   async (ctx: APIContext<T.CollectionsCreateReq>) => {
-    const { name, color, description, permission, sharing, icon, sort } =
+    const { name, color, description, data, permission, sharing, icon, sort } =
       ctx.input.body;
     let { index } = ctx.input.body;
 
@@ -80,7 +80,8 @@ router.post(
     index = await removeIndexCollision(user.teamId, index);
     const collection = await Collection.create({
       name,
-      description,
+      content: data,
+      description: data ? null : description,
       icon,
       color,
       teamId: user.teamId,
@@ -107,7 +108,7 @@ router.post(
     invariant(reloaded, "collection not found");
 
     ctx.body = {
-      data: presentCollection(reloaded),
+      data: await presentCollection(reloaded),
       policies: presentPolicies(user, [reloaded]),
     };
   }
@@ -127,7 +128,7 @@ router.post(
     authorize(user, "read", collection);
 
     ctx.body = {
-      data: presentCollection(collection),
+      data: await presentCollection(collection),
       policies: presentPolicies(user, [collection]),
     };
   }
@@ -636,8 +637,17 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsUpdateReq>) => {
     const { transaction } = ctx.state;
-    const { id, name, description, icon, permission, color, sort, sharing } =
-      ctx.input.body;
+    const {
+      id,
+      name,
+      description,
+      data,
+      icon,
+      permission,
+      color,
+      sort,
+      sharing,
+    } = ctx.input.body;
 
     const { user } = ctx.state.auth;
     const collection = await Collection.scope({
@@ -675,6 +685,10 @@ router.post(
 
     if (description !== undefined) {
       collection.description = description;
+    }
+
+    if (data !== undefined) {
+      collection.content = data;
     }
 
     if (icon !== undefined) {
@@ -759,7 +773,7 @@ router.post(
     }
 
     ctx.body = {
-      data: presentCollection(collection),
+      data: await presentCollection(collection),
       policies: presentPolicies(user, [collection]),
     };
   }
@@ -811,7 +825,7 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data: collections.map(presentCollection),
+      data: await Promise.all(collections.map(presentCollection)),
       policies: presentPolicies(user, collections),
     };
   }

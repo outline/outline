@@ -32,7 +32,7 @@ import {
   BeforeDestroy,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
-import type { CollectionSort } from "@shared/types";
+import type { CollectionSort, ProsemirrorData } from "@shared/types";
 import { CollectionPermission, NavigationNode } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
@@ -49,6 +49,7 @@ import User from "./User";
 import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
@@ -163,12 +164,24 @@ class Collection extends ParanoidModel<
   @Column
   name: string;
 
+  /**
+   * The content of the collection as Markdown.
+   *
+   * @deprecated Use `content` instead, or `DocumentHelper.toMarkdown` if exporting lossy markdown.
+   * This column will be removed in a future migration.
+   */
   @Length({
     max: CollectionValidation.maxDescriptionLength,
     msg: `description must be ${CollectionValidation.maxDescriptionLength} characters or less`,
   })
   @Column
   description: string | null;
+
+  /**
+   * The content of the collection as JSON, this is a snapshot at the last time the state was saved.
+   */
+  @Column(DataType.JSONB)
+  content: ProsemirrorData | null;
 
   @Length({
     max: 50,
@@ -259,6 +272,10 @@ class Collection extends ParanoidModel<
   static async onBeforeSave(model: Collection) {
     if (model.icon === "collection") {
       model.icon = null;
+    }
+
+    if (!model.content) {
+      model.content = await DocumentHelper.toJSON(model);
     }
   }
 

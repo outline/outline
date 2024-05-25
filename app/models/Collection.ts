@@ -1,10 +1,10 @@
 import invariant from "invariant";
-import trim from "lodash/trim";
 import { action, computed, observable, reaction, runInAction } from "mobx";
 import {
   CollectionPermission,
   FileOperationFormat,
   NavigationNode,
+  type ProsemirrorData,
 } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import type CollectionsStore from "~/stores/CollectionsStore";
@@ -31,9 +31,8 @@ export default class Collection extends ParanoidModel {
   @observable
   name: string;
 
-  @Field
-  @observable
-  description: string;
+  @observable.shallow
+  data: ProsemirrorData;
 
   @Field
   @observable
@@ -112,9 +111,8 @@ export default class Collection extends ParanoidModel {
     return !this.permission;
   }
 
-  @computed
   get hasDescription(): boolean {
-    return !!trim(this.description, "\\").trim();
+    return !!this.data;
   }
 
   @computed

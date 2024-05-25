@@ -1,12 +1,14 @@
 import { colorPalette } from "@shared/utils/collections";
 import Collection from "@server/models/Collection";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 
-export default function presentCollection(collection: Collection) {
+export default async function presentCollection(collection: Collection) {
   return {
     id: collection.id,
     url: collection.url,
     urlId: collection.urlId,
     name: collection.name,
+    data: await DocumentHelper.toJSON(collection),
     description: collection.description,
     sort: collection.sort,
     icon: collection.icon,

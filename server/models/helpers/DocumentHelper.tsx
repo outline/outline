@@ -11,7 +11,7 @@ import { ProsemirrorData } from "@shared/types";
 import { parser, serializer, schema } from "@server/editor";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
-import { Document, Revision } from "@server/models";
+import { Collection, Document, Revision } from "@server/models";
 import diff from "@server/utils/diff";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 import { TextHelper } from "./TextHelper";
@@ -64,7 +64,7 @@ export class DocumentHelper {
    * @returns The document content as a plain JSON object
    */
   static async toJSON(
-    document: Document | Revision,
+    document: Document | Revision | Collection,
     options?: {
       /** The team context */
       teamId: string;
@@ -83,6 +83,8 @@ export class DocumentHelper {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, document.state);
       doc = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+    } else if (document instanceof Collection) {
+      doc = parser.parse(document.description ?? "");
     } else {
       doc = parser.parse(document.text);
     }
