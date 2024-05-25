@@ -17,7 +17,7 @@ function zodEnumFromObjectKeys<
 }
 
 const BaseIdSchema = z.object({
-  /** Id of the document to be updated */
+  /** Id of the collection to be updated */
   id: z.string(),
 });
 

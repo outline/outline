@@ -10,6 +10,7 @@ import {
 import collectionDestroyer from "@server/commands/collectionDestroyer";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
+import { parser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -25,6 +26,7 @@ import {
   Attachment,
   FileOperation,
 } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
 import {
   presentCollection,
@@ -48,7 +50,9 @@ router.post(
   "collections.create",
   auth(),
   validate(T.CollectionsCreateSchema),
+  transaction(),
   async (ctx: APIContext<T.CollectionsCreateReq>) => {
+    const { transaction } = ctx.state;
     const { name, color, description, data, permission, sharing, icon, sort } =
       ctx.input.body;
     let { index } = ctx.input.body;
@@ -69,6 +73,7 @@ router.post(
           Sequelize.literal('"collection"."index" collate "C"'),
           ["updatedAt", "DESC"],
         ],
+        transaction,
       });
 
       index = fractionalIndex(
@@ -78,10 +83,10 @@ router.post(
     }
 
     index = await removeIndexCollision(user.teamId, index);
-    const collection = await Collection.create({
+    const collection = Collection.build({
       name,
       content: data,
-      description: data ? null : description,
+      description: data ? undefined : description,
       icon,
       color,
       teamId: user.teamId,
@@ -91,24 +96,38 @@ router.post(
       sort,
       index,
     });
-    await Event.create({
-      name: "collections.create",
-      collectionId: collection.id,
-      teamId: collection.teamId,
-      actorId: user.id,
-      data: {
-        name,
+
+    if (data) {
+      collection.description = DocumentHelper.toMarkdown(collection);
+    }
+
+    await collection.save({ transaction });
+
+    await Event.create(
+      {
+        name: "collections.create",
+        collectionId: collection.id,
+        teamId: collection.teamId,
+        actorId: user.id,
+        data: {
+          name,
+        },
+        ip: ctx.request.ip,
       },
-      ip: ctx.request.ip,
-    });
+      {
+        transaction,
+      }
+    );
     // we must reload the collection to get memberships for policy presenter
     const reloaded = await Collection.scope({
       method: ["withMembership", user.id],
-    }).findByPk(collection.id);
+    }).findByPk(collection.id, {
+      transaction,
+    });
     invariant(reloaded, "collection not found");
 
     ctx.body = {
-      data: await presentCollection(reloaded),
+      data: await presentCollection(ctx, reloaded),
       policies: presentPolicies(user, [reloaded]),
     };
   }
@@ -128,7 +147,7 @@ router.post(
     authorize(user, "read", collection);
 
     ctx.body = {
-      data: await presentCollection(collection),
+      data: await presentCollection(ctx, collection),
       policies: presentPolicies(user, [collection]),
     };
   }
@@ -685,10 +704,14 @@ router.post(
 
     if (description !== undefined) {
       collection.description = description;
+      collection.content = description
+        ? parser.parse(description)?.toJSON()
+        : null;
     }
 
     if (data !== undefined) {
       collection.content = data;
+      collection.description = DocumentHelper.toMarkdown(collection);
     }
 
     if (icon !== undefined) {
@@ -773,7 +796,7 @@ router.post(
     }
 
     ctx.body = {
-      data: await presentCollection(collection),
+      data: await presentCollection(ctx, collection),
       policies: presentPolicies(user, [collection]),
     };
   }
@@ -825,7 +848,9 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data: await Promise.all(collections.map(presentCollection)),
+      data: await Promise.all(
+        collections.map((collection) => presentCollection(ctx, collection))
+      ),
       policies: presentPolicies(user, collections),
     };
   }

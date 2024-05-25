@@ -43,7 +43,7 @@ export class DocumentHelper {
    * @param document The document or revision to convert
    * @returns The document content as a Prosemirror Node
    */
-  static toProsemirror(document: Document | Revision) {
+  static toProsemirror(document: Document | Revision | Collection) {
     if ("content" in document && document.content) {
       return Node.fromJSON(schema, document.content);
     }
@@ -52,7 +52,10 @@ export class DocumentHelper {
       Y.applyUpdate(ydoc, document.state);
       return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     }
-    return parser.parse(document.text) || Node.fromJSON(schema, {});
+
+    const text =
+      document instanceof Collection ? document.description : document.text;
+    return parser.parse(text ?? "") || Node.fromJSON(schema, {});
   }
 
   /**
@@ -125,12 +128,12 @@ export class DocumentHelper {
   }
 
   /**
-   * Returns the document as Markdown. This is a lossy conversion and should nly be used for export.
+   * Returns the document as Markdown. This is a lossy conversion and should only be used for export.
    *
    * @param document The document or revision to convert
    * @returns The document title and content as a Markdown string
    */
-  static toMarkdown(document: Document | Revision) {
+  static toMarkdown(document: Document | Revision | Collection) {
     const text = serializer
       .serialize(DocumentHelper.toProsemirror(document))
       .replace(/\n\\(\n|$)/g, "\n\n")
@@ -139,6 +142,10 @@ export class DocumentHelper {
       .replace(/‘/g, "'")
       .replace(/’/g, "'")
       .trim();
+
+    if (document instanceof Collection) {
+      return text;
+    }
 
     const title = `${document.emoji ? document.emoji + " " : ""}${
       document.title

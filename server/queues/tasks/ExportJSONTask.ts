@@ -62,7 +62,10 @@ export default class ExportJSONTask extends ExportTask {
   ) {
     const output: CollectionJSONExport = {
       collection: {
-        ...omit(await presentCollection(collection), ["url", "description"]),
+        ...omit(await presentCollection(undefined, collection), [
+          "url",
+          "description",
+        ]),
         documentStructure: collection.documentStructure,
       },
       documents: {},
