@@ -26,6 +26,9 @@ function CopyToClipboard(props: Props, ref: React.Ref<HTMLElement>) {
 
       if (elem && elem.props && typeof elem.props.onClick === "function") {
         elem.props.onClick(ev);
+      } else {
+        ev.preventDefault();
+        ev.stopPropagation();
       }
     },
     [children, onCopy, text]

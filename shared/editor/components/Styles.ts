@@ -259,6 +259,11 @@ const emailStyle = (props: Props) => css`
     border-radius: 8px;
     padding: 6px 8px;
   }
+
+  .image > img {
+    width: auto;
+    height: auto;
+  }
 `;
 
 const style = (props: Props) => `
@@ -338,7 +343,9 @@ width: 100%;
     font-weight: 600;
     cursor: text;
 
-    & + p {
+    & + p,
+    // accounts for block insert trigger and other widgets between heading and paragraph
+    & + .ProseMirror-widget + p {
       margin-top: 0.25em;
     }
 
@@ -528,7 +535,6 @@ iframe.embed {
 
 .image-right-50 {
   float: right;
-  width: 33.3%;
   margin-left: 2em;
   margin-bottom: 1em;
   clear: initial;
@@ -536,7 +542,6 @@ iframe.embed {
 
 .image-left-50 {
   float: left;
-  width: 33.3%;
   margin-right: 2em;
   margin-bottom: 1em;
   clear: initial;

@@ -18,6 +18,7 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 
 export interface FormData {
   name: string;
@@ -71,6 +72,10 @@ export const CollectionForm = observer(function CollectionForm_({
     }
   }, [values.name, collection]);
 
+  React.useEffect(() => {
+    setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
+  }, [setFocus]);
+
   const handleIconPickerChange = React.useCallback(
     (color: string, icon: string) => {
       if (icon !== values.icon) {
@@ -108,6 +113,7 @@ export const CollectionForm = observer(function CollectionForm_({
               icon={values.icon}
             />
           }
+          autoComplete="off"
           autoFocus
           flex
         />
@@ -133,16 +139,18 @@ export const CollectionForm = observer(function CollectionForm_({
         />
       )}
 
-      {team.sharing && !collection && (
-        <Switch
-          id="sharing"
-          label={t("Public document sharing")}
-          note={t(
-            "Allow documents within this collection to be shared publicly on the internet."
-          )}
-          {...register("sharing")}
-        />
-      )}
+      {team.sharing &&
+        (!collection ||
+          FeatureFlags.isEnabled(Feature.newCollectionSharing)) && (
+          <Switch
+            id="sharing"
+            label={t("Public document sharing")}
+            note={t(
+              "Allow documents within this collection to be shared publicly on the internet."
+            )}
+            {...register("sharing")}
+          />
+        )}
 
       <Flex justify="flex-end">
         <Button

@@ -21,7 +21,7 @@ export default function useActionContext(
     isContextMenu: false,
     isCommandBar: false,
     isButton: false,
-    activeCollectionId: stores.ui.activeCollectionId,
+    activeCollectionId: stores.ui.activeCollectionId ?? undefined,
     activeDocumentId: stores.ui.activeDocumentId,
     currentUserId: stores.auth.user?.id,
     currentTeamId: stores.auth.team?.id,

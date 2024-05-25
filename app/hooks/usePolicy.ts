@@ -1,5 +1,6 @@
 import * as React from "react";
 import Model from "~/models/base/Model";
+import useCurrentUser from "./useCurrentUser";
 import useStores from "./useStores";
 
 /**
@@ -11,6 +12,7 @@ import useStores from "./useStores";
  */
 export default function usePolicy(entity?: string | Model | null) {
   const { policies } = useStores();
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const entityId = entity
     ? typeof entity === "string"
       ? entity
@@ -24,12 +26,13 @@ export default function usePolicy(entity?: string | Model | null) {
       !entity.isNew &&
       !entity.isSaving
     ) {
-      // The policy for this model is missing, reload relationships for this model.
-      if (!policies.get(entity.id)) {
+      // The policy for this model is missing and we have an authenticated session, attempt to
+      // reload relationships for this model.
+      if (!policies.get(entity.id) && user) {
         void entity.loadRelations();
       }
     }
-  }, [policies, entity]);
+  }, [policies, user, entity]);
 
   return policies.abilities(entityId);
 }

@@ -229,7 +229,11 @@ export default abstract class Store<T extends Model> {
   }
 
   @action
-  async fetch(id: string, options: JSONObject = {}): Promise<T> {
+  async fetch(
+    id: string,
+    options: JSONObject = {},
+    accessor = (res: unknown) => (res as { data: PartialWithId<T> }).data
+  ): Promise<T> {
     if (!this.actions.includes(RPCAction.Info)) {
       throw new Error(`Cannot fetch ${this.modelName}`);
     }
@@ -248,7 +252,7 @@ export default abstract class Store<T extends Model> {
       return runInAction(`info#${this.modelName}`, () => {
         invariant(res?.data, "Data should be available");
         this.addPolicies(res.policies);
-        return this.add(res.data);
+        return this.add(accessor(res));
       });
     } catch (err) {
       if (err instanceof AuthorizationError || err instanceof NotFoundError) {

@@ -4,6 +4,7 @@ import Router from "koa-router";
 import { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { parseDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -155,12 +156,14 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             const team = await Team.findByPk(teamId, {
               rejectOnEmpty: true,
             });
-            return ctx.redirectOnClient(
-              SlackUtils.connectUrl({
-                baseUrl: team.url,
-                params: ctx.request.querystring,
-              })
-            );
+            return parseDomain(ctx.host).teamSubdomain === team.subdomain
+              ? ctx.redirect("/")
+              : ctx.redirectOnClient(
+                  SlackUtils.connectUrl({
+                    baseUrl: team.url,
+                    params: ctx.request.querystring,
+                  })
+                );
           } catch (err) {
             return ctx.redirect(SlackUtils.errorUrl("unauthenticated"));
           }
@@ -173,9 +176,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         case IntegrationType.Post: {
           const collection = await Collection.scope({
             method: ["withMembership", user.id],
-          }).findByPk(collectionId, {
-            rejectOnEmpty: true,
-          });
+          }).findByPk(collectionId);
           authorize(user, "read", collection);
           authorize(user, "update", user.team);
 

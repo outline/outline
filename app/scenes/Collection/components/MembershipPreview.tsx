@@ -2,11 +2,10 @@ import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import Collection from "~/models/Collection";
-import User from "~/models/User";
 import Avatar from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar/Avatar";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
@@ -14,6 +13,7 @@ import { editCollectionPermissions } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 
 type Props = {
   collection: Collection;
@@ -67,12 +67,16 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
     return null;
   }
 
-  const overflow = usersCount - groupsCount - collectionUsers.length;
+  const overflow = usersCount + groupsCount - collectionUsers.length;
 
   return (
     <NudeButton
       context={context}
-      action={editCollectionPermissions}
+      action={
+        FeatureFlags.isEnabled(Feature.newCollectionSharing)
+          ? undefined
+          : editCollectionPermissions
+      }
       tooltip={{
         content:
           usersCount > 0
@@ -104,16 +108,13 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
           users={sortBy(collectionUsers, "lastActiveAt")}
           overflow={overflow}
           limit={limit}
-          renderAvatar={(user) => <StyledAvatar model={user} size={32} />}
+          renderAvatar={(item) => (
+            <Avatar model={item} size={AvatarSize.Large} />
+          )}
         />
       </Fade>
     </NudeButton>
   );
 };
-
-const StyledAvatar = styled(Avatar)<{ model: User }>`
-  transition: opacity 250ms ease-in-out;
-  opacity: ${(props) => (props.model.isRecentlyActive ? 1 : 0.5)};
-`;
 
 export default observer(MembershipPreview);

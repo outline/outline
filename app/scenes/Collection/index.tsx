@@ -15,6 +15,7 @@ import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import Collection from "~/models/Collection";
 import Search from "~/scenes/Search";
+import { Action } from "~/components/Actions";
 import Badge from "~/components/Badge";
 import CenteredContent from "~/components/CenteredContent";
 import CollectionDescription from "~/components/CollectionDescription";
@@ -34,11 +35,13 @@ import useCommandBarActions from "~/hooks/useCommandBarActions";
 import useLastVisitedPath from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import { collectionPath, updateCollectionPath } from "~/utils/routeHelpers";
-import Actions from "./Collection/Actions";
-import DropToImport from "./Collection/DropToImport";
-import Empty from "./Collection/Empty";
-import MembershipPreview from "./Collection/MembershipPreview";
+import Actions from "./components/Actions";
+import DropToImport from "./components/DropToImport";
+import Empty from "./components/Empty";
+import MembershipPreview from "./components/MembershipPreview";
+import ShareButton from "./components/ShareButton";
 
 function CollectionScene() {
   const params = useParams<{ id?: string }>();
@@ -142,6 +145,10 @@ function CollectionScene() {
       actions={
         <>
           <MembershipPreview collection={collection} />
+          <Action>
+            {FeatureFlags.isEnabled(Feature.newCollectionSharing) &&
+              can.update && <ShareButton collection={collection} />}
+          </Action>
           <Actions collection={collection} />
         </>
       }
@@ -159,16 +166,17 @@ function CollectionScene() {
               <HeadingWithIcon>
                 <HeadingIcon collection={collection} size={40} expanded />
                 {collection.name}
-                {collection.isPrivate && (
-                  <Tooltip
-                    content={t(
-                      "This collection is only visible to those given access"
-                    )}
-                    placement="bottom"
-                  >
-                    <Badge>{t("Private")}</Badge>
-                  </Tooltip>
-                )}
+                {collection.isPrivate &&
+                  !FeatureFlags.isEnabled(Feature.newCollectionSharing) && (
+                    <Tooltip
+                      content={t(
+                        "This collection is only visible to those given access"
+                      )}
+                      placement="bottom"
+                    >
+                      <Badge>{t("Private")}</Badge>
+                    </Tooltip>
+                  )}
               </HeadingWithIcon>
 
               <PinnedDocuments

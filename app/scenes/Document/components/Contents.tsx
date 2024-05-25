@@ -141,6 +141,7 @@ const ListItem = styled.li<{ level: number; active?: boolean }>`
   margin-bottom: 8px;
   padding-right: 2em;
   line-height: 1.3;
+  word-break: break-word;
 
   a {
     font-weight: ${(props) => (props.active ? "600" : "inherit")};

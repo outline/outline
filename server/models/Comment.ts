@@ -10,7 +10,7 @@ import {
   DefaultScope,
 } from "sequelize-typescript";
 import type { ProsemirrorData } from "@shared/types";
-import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
 import { schema } from "@server/editor";
 import Document from "./Document";

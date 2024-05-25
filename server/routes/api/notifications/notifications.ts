@@ -117,7 +117,9 @@ router.post(
       pagination: { ...ctx.state.pagination, total },
       data: {
         notifications: await Promise.all(
-          notifications.map(presentNotification)
+          notifications.map((notification) =>
+            presentNotification(ctx, notification)
+          )
         ),
         unseen,
       },
@@ -172,7 +174,7 @@ router.post(
     });
 
     ctx.body = {
-      data: await presentNotification(notification),
+      data: await presentNotification(ctx, notification),
       policies: presentPolicies(user, [notification]),
     };
   }

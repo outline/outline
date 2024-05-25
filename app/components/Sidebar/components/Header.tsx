@@ -12,13 +12,17 @@ type Props = {
   children?: React.ReactNode;
 };
 
+export function getHeaderExpandedKey(id: string) {
+  return `sidebar-header-${id}`;
+}
+
 /**
  * Toggleable sidebar header
  */
 export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
   const [firstRender, setFirstRender] = React.useState(true);
   const [expanded, setExpanded] = usePersistedState<boolean>(
-    `sidebar-header-${id}`,
+    getHeaderExpandedKey(id ?? ""),
     true
   );
 

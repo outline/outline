@@ -21,15 +21,20 @@ type Props = {
 };
 
 function DocumentPublish({ document }: Props) {
-  const { dialogs } = useStores();
+  const { dialogs, policies } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
   const [selectedPath, selectPath] = React.useState<NavigationNode | null>(
     null
   );
   const publishOptions = React.useMemo(
-    () => flatten(collectionTrees.map(flattenTree)),
-    [collectionTrees]
+    () =>
+      flatten(collectionTrees.map(flattenTree)).filter((node) =>
+        node.collectionId
+          ? policies.get(node.collectionId)?.abilities.createDocument
+          : true
+      ),
+    [policies, collectionTrees]
   );
 
   const publish = async () => {

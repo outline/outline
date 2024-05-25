@@ -1,7 +1,7 @@
 import { Transaction } from "sequelize";
 import { Optional } from "utility-types";
 import { Document, Event, User } from "@server/models";
-import TextHelper from "@server/models/helpers/TextHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 
 type Props = Optional<
   Pick<
@@ -10,6 +10,7 @@ type Props = Optional<
     | "urlId"
     | "title"
     | "text"
+    | "content"
     | "emoji"
     | "collectionId"
     | "parentDocumentId"

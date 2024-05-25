@@ -62,6 +62,7 @@ export class MarkdownSerializer {
 // node and mark serialization methods (see `toMarkdown`).
 export class MarkdownSerializerState {
   inTable = false;
+  inList = false;
   inTightList = false;
   closed = false;
   delim = "";

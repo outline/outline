@@ -1,5 +1,5 @@
 import { buildUser } from "@server/test/factories";
-import TextHelper from "./TextHelper";
+import { TextHelper } from "./TextHelper";
 
 describe("TextHelper", () => {
   beforeAll(() => {

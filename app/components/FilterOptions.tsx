@@ -45,7 +45,7 @@ const FilterOptions = ({
     : "";
 
   return (
-    <Wrapper>
+    <div>
       <MenuButton {...menu}>
         {(props) => (
           <StyledButton {...props} className={className} neutral disclosure>
@@ -76,7 +76,7 @@ const FilterOptions = ({
           </MenuItem>
         ))}
       </ContextMenu>
-    </Wrapper>
+    </div>
   );
 };
 
@@ -98,7 +98,7 @@ const LabelWithNote = styled.div`
   }
 `;
 
-const StyledButton = styled(Button)`
+export const StyledButton = styled(Button)`
   box-shadow: none;
   text-transform: none;
   border-color: transparent;
@@ -118,10 +118,6 @@ const Icon = styled.div`
   margin-right: 8px;
   width: 18px;
   height: 18px;
-`;
-
-const Wrapper = styled.div`
-  margin-right: 8px;
 `;
 
 export default FilterOptions;

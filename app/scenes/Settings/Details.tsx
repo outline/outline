@@ -190,7 +190,6 @@ function Details() {
                     >
                       {t("Reset theme")}
                     </ButtonLink>
-                    .
                   </>
                 )}
               </>

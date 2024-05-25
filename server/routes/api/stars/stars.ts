@@ -112,7 +112,7 @@ router.post(
       data: {
         stars: stars.map(presentStar),
         documents: await Promise.all(
-          documents.map((document: Document) => presentDocument(document))
+          documents.map((document: Document) => presentDocument(ctx, document))
         ),
       },
       policies,

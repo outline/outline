@@ -82,4 +82,9 @@ export default class MembershipsStore extends Store<Membership> {
       }
     });
   };
+
+  inCollection = (collectionId: string) =>
+    this.orderedData.filter(
+      (membership) => membership.collectionId === collectionId
+    );
 }

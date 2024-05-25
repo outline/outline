@@ -118,7 +118,7 @@ export const DocumentsInfoSchema = BaseSchema.extend({
       .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
       .optional(),
 
-    /** Version of the API to be used */
+    /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
   }),
 }).refine((req) => !(isEmpty(req.body.id) && isEmpty(req.body.shareId)), {
@@ -152,6 +152,9 @@ export const DocumentsSearchSchema = BaseSchema.extend({
 
     /** Filter results based on user */
     userId: z.string().uuid().optional(),
+
+    /** Filter results based on content within a document and it's children */
+    documentId: z.string().uuid().optional(),
 
     /**
      * Whether to include archived documents in results
@@ -238,7 +241,7 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if text should be appended */
     append: z.boolean().optional(),
 
-    /** Version of the API to be used */
+    /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
 
     /** Whether the editing session is complete */
@@ -284,7 +287,7 @@ export type DocumentsDeleteReq = z.infer<typeof DocumentsDeleteSchema>;
 
 export const DocumentsUnpublishSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
-    /** Version of the API to be used */
+    /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
   }),
 });

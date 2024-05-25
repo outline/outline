@@ -48,6 +48,7 @@ export default async function documentDuplicator({
     emoji: document.emoji,
     template: document.template,
     title: title ?? document.title,
+    content: document.content,
     text: document.text,
     ...sharedProperties,
   });

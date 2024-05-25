@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
 import { NavigationNode, TeamPreference } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -92,7 +93,7 @@ function DataLoader({ match, children }: Props) {
       }
     }
     void fetchDocument();
-  }, [ui, documents, document, shareId, documentSlug]);
+  }, [ui, documents, shareId, documentSlug]);
 
   React.useEffect(() => {
     async function fetchRevision() {
@@ -161,7 +162,7 @@ function DataLoader({ match, children }: Props) {
         collectionId: document.collectionId,
         parentDocumentId: nested ? document.id : document.parentDocumentId,
         title,
-        text: "",
+        data: ProsemirrorHelper.getEmptyDocument(),
       });
 
       return newDocument.url;
@@ -183,7 +184,7 @@ function DataLoader({ match, children }: Props) {
 
       // Prevents unauthorized request to load share information for the document
       // when viewing a public share link
-      if (can.read) {
+      if (can.read && !document.isDeleted) {
         if (team.getPreference(TeamPreference.Commenting)) {
           void comments.fetchPage({
             documentId: document.id,

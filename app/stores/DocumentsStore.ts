@@ -22,6 +22,7 @@ import env from "~/env";
 import type {
   FetchOptions,
   PaginationParams,
+  PartialWithId,
   Properties,
   SearchResult,
 } from "~/types";
@@ -473,6 +474,14 @@ export default class DocumentsStore extends Store<Document> {
     return this.data.get(res.data.id);
   };
 
+  override fetch = (id: string, options: FetchOptions = {}) =>
+    super.fetch(
+      id,
+      options,
+      (res: { data: { document: PartialWithId<Document> } }) =>
+        res.data.document
+    );
+
   @action
   fetchWithSharedTree = async (
     id: string,
@@ -507,7 +516,6 @@ export default class DocumentsStore extends Store<Document> {
       const res = await client.post("/documents.info", {
         id,
         shareId: options.shareId,
-        apiVersion: 2,
       });
 
       invariant(res?.data, "Document not available");

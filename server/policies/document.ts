@@ -130,7 +130,7 @@ allow(User, "createChildDocument", Document, (actor, document) =>
   )
 );
 
-allow(User, ["pin", "unpin"], Document, (actor, document) =>
+allow(User, ["updateInsights", "pin", "unpin"], Document, (actor, document) =>
   and(
     can(actor, "update", document),
     can(actor, "update", document?.collection),
@@ -144,7 +144,10 @@ allow(User, "pinToHome", Document, (actor, document) =>
   and(
     //
     isTeamAdmin(actor, document),
-    isTeamMutable(actor)
+    isTeamMutable(actor),
+    !document?.isDraft,
+    !document?.template,
+    !!document?.isActive
   )
 );
 
@@ -154,7 +157,11 @@ allow(User, "delete", Document, (actor, document) =>
     isTeamMutable(actor),
     !actor.isGuest,
     !document?.isDeleted,
-    or(can(actor, "update", document), !document?.collection)
+    or(
+      can(actor, "unarchive", document),
+      can(actor, "update", document),
+      !document?.collection
+    )
   )
 );
 

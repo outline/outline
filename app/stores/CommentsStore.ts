@@ -10,6 +10,16 @@ export default class CommentsStore extends Store<Comment> {
   }
 
   /**
+   * Returns a list of comments in a document.
+   *
+   * @param documentId ID of the document to get comments for
+   * @returns Array of comments
+   */
+  inDocument(documentId: string): Comment[] {
+    return this.filter((comment: Comment) => comment.documentId === documentId);
+  }
+
+  /**
    * Returns a list of comments in a document that are not replies to other
    * comments.
    *

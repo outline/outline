@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
-import { JSONObject } from "@shared/types";
+import { ProsemirrorData } from "@shared/types";
 import { dateToRelative } from "@shared/utils/date";
 import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
@@ -100,7 +100,7 @@ function CommentThreadItem({
   const [isEditing, setEditing, setReadOnly] = useBoolean();
   const formRef = React.useRef<HTMLFormElement>(null);
 
-  const handleChange = (value: (asString: boolean) => JSONObject) => {
+  const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
     setData(value(false));
   };
 

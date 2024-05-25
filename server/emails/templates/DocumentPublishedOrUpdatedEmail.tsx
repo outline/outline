@@ -2,7 +2,7 @@ import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import { Document, Collection, Revision } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
@@ -73,7 +73,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
         });
 
         // inline all css so that it works in as many email providers as possible.
-        body = content ? HTMLHelper.inlineCSS(content) : undefined;
+        body = content ? await HTMLHelper.inlineCSS(content) : undefined;
       }
     }
 

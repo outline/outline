@@ -277,3 +277,29 @@ describe("no collection", () => {
     expect(abilities.comment).toEqual(true);
   });
 });
+
+describe("archived document", () => {
+  it("should have correct permissions", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const doc = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      archivedAt: new Date(),
+    });
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual(true);
+    expect(abilities.download).toEqual(true);
+    expect(abilities.delete).toEqual(true);
+    expect(abilities.unsubscribe).toEqual(true);
+    expect(abilities.unarchive).toEqual(true);
+    expect(abilities.update).toEqual(false);
+    expect(abilities.createChildDocument).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.share).toEqual(false);
+    expect(abilities.move).toEqual(false);
+    expect(abilities.comment).toEqual(false);
+  });
+});
