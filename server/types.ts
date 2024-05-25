@@ -495,7 +495,8 @@ export type CollectionJSONExport = {
     id: string;
     urlId: string;
     name: string;
-    data: ProsemirrorData;
+    data?: ProsemirrorData | null;
+    description?: ProsemirrorData | null;
     permission?: CollectionPermission | null;
     color: string;
     icon?: string | null;
