@@ -1,10 +1,10 @@
 import invariant from "invariant";
-import trim from "lodash/trim";
 import { action, computed, observable, reaction, runInAction } from "mobx";
 import {
   CollectionPermission,
   FileOperationFormat,
   NavigationNode,
+  type ProsemirrorData,
 } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import type CollectionsStore from "~/stores/CollectionsStore";
@@ -27,34 +27,56 @@ export default class Collection extends ParanoidModel {
   @observable
   id: string;
 
+  /**
+   * The name of the collection.
+   */
   @Field
   @observable
   name: string;
 
   @Field
-  @observable
-  description: string;
+  @observable.shallow
+  data: ProsemirrorData;
 
+  /**
+   * An emoji to use as the collection icon.
+   */
   @Field
   @observable
   icon: string;
 
+  /**
+   * A color to use for the collection icon and other highlights.
+   */
   @Field
   @observable
   color: string;
 
+  /**
+   * The default permission for workspace users.
+   */
   @Field
   @observable
   permission?: CollectionPermission;
 
+  /**
+   * Whether public sharing is enabled for the collection. Note this can also be disabled at the
+   * workspace level.
+   */
   @Field
   @observable
   sharing: boolean;
 
+  /**
+   * The sort index for the collection.
+   */
   @Field
   @observable
   index: string;
 
+  /**
+   * The sort field and direction for documents in the collection.
+   */
   @Field
   @observable
   sort: {
@@ -112,9 +134,8 @@ export default class Collection extends ParanoidModel {
     return !this.permission;
   }
 
-  @computed
   get hasDescription(): boolean {
-    return !!trim(this.description, "\\").trim();
+    return !!this.data;
   }
 
   @computed

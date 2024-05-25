@@ -1,7 +1,6 @@
 import JSZip from "jszip";
 import omit from "lodash/omit";
 import { NavigationNode } from "@shared/types";
-import { parser } from "@server/editor";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -63,10 +62,10 @@ export default class ExportJSONTask extends ExportTask {
   ) {
     const output: CollectionJSONExport = {
       collection: {
-        ...omit(presentCollection(collection), ["url"]),
-        description: collection.description
-          ? parser.parse(collection.description)
-          : null,
+        ...omit(await presentCollection(undefined, collection), [
+          "url",
+          "description",
+        ]),
         documentStructure: collection.documentStructure,
       },
       documents: {},

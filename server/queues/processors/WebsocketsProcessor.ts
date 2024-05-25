@@ -182,7 +182,7 @@ export default class WebsocketsProcessor {
               ? `team-${collection.teamId}`
               : `user-${collection.createdById}`
           )
-          .emit(event.name, presentCollection(collection));
+          .emit(event.name, await presentCollection(undefined, collection));
 
         return socketio
           .to(
@@ -210,7 +210,7 @@ export default class WebsocketsProcessor {
               ? `collection-${event.collectionId}`
               : `team-${collection.teamId}`
           )
-          .emit(event.name, presentCollection(collection));
+          .emit(event.name, await presentCollection(undefined, collection));
       }
 
       case "collections.delete": {

@@ -1172,7 +1172,7 @@ router.post(
           documents.map((document) => presentDocument(ctx, document))
         ),
         collections: await Promise.all(
-          collections.map((collection) => presentCollection(collection))
+          collections.map((collection) => presentCollection(ctx, collection))
         ),
       },
       policies: collectionChanged ? presentPolicies(user, documents) : [],

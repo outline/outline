@@ -6,7 +6,7 @@ import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import { Collection } from "@server/models";
 import { ValidateColor, ValidateIndex } from "@server/validation";
-import { BaseSchema } from "../schema";
+import { BaseSchema, ProsemirrorSchema } from "../schema";
 
 function zodEnumFromObjectKeys<
   TI extends Record<string, any>,
@@ -16,6 +16,11 @@ function zodEnumFromObjectKeys<
   return z.enum([firstKey, ...otherKeys]);
 }
 
+const BaseIdSchema = z.object({
+  /** Id of the collection to be updated */
+  id: z.string(),
+});
+
 export const CollectionsCreateSchema = BaseSchema.extend({
   body: z.object({
     name: z.string(),
@@ -24,6 +29,7 @@ export const CollectionsCreateSchema = BaseSchema.extend({
       .regex(ValidateColor.regex, { message: ValidateColor.message })
       .default(randomElement(colorPalette)),
     description: z.string().nullish(),
+    data: ProsemirrorSchema.nullish(),
     permission: z
       .nativeEnum(CollectionPermission)
       .nullish()
@@ -49,17 +55,13 @@ export const CollectionsCreateSchema = BaseSchema.extend({
 export type CollectionsCreateReq = z.infer<typeof CollectionsCreateSchema>;
 
 export const CollectionsInfoSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
-  }),
+  body: BaseIdSchema,
 });
 
 export type CollectionsInfoReq = z.infer<typeof CollectionsInfoSchema>;
 
 export const CollectionsDocumentsSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
-  }),
+  body: BaseIdSchema,
 });
 
 export type CollectionsDocumentsReq = z.infer<
@@ -82,8 +84,7 @@ export const CollectionsImportSchema = BaseSchema.extend({
 export type CollectionsImportReq = z.infer<typeof CollectionsImportSchema>;
 
 export const CollectionsAddGroupSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     groupId: z.string().uuid(),
     permission: z
       .nativeEnum(CollectionPermission)
@@ -94,8 +95,7 @@ export const CollectionsAddGroupSchema = BaseSchema.extend({
 export type CollectionsAddGroupsReq = z.infer<typeof CollectionsAddGroupSchema>;
 
 export const CollectionsRemoveGroupSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     groupId: z.string().uuid(),
   }),
 });
@@ -105,8 +105,7 @@ export type CollectionsRemoveGroupReq = z.infer<
 >;
 
 export const CollectionsGroupMembershipsSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     query: z.string().optional(),
     permission: z.nativeEnum(CollectionPermission).optional(),
   }),
@@ -117,8 +116,7 @@ export type CollectionsGroupMembershipsReq = z.infer<
 >;
 
 export const CollectionsAddUserSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     userId: z.string().uuid(),
     permission: z.nativeEnum(CollectionPermission).optional(),
   }),
@@ -127,8 +125,7 @@ export const CollectionsAddUserSchema = BaseSchema.extend({
 export type CollectionsAddUserReq = z.infer<typeof CollectionsAddUserSchema>;
 
 export const CollectionsRemoveUserSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     userId: z.string().uuid(),
   }),
 });
@@ -138,8 +135,7 @@ export type CollectionsRemoveUserReq = z.infer<
 >;
 
 export const CollectionsMembershipsSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     query: z.string().optional(),
     permission: z.nativeEnum(CollectionPermission).optional(),
   }),
@@ -150,8 +146,7 @@ export type CollectionsMembershipsReq = z.infer<
 >;
 
 export const CollectionsExportSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     format: z
       .nativeEnum(FileOperationFormat)
       .default(FileOperationFormat.MarkdownZip),
@@ -175,10 +170,10 @@ export type CollectionsExportAllReq = z.infer<
 >;
 
 export const CollectionsUpdateSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     name: z.string().optional(),
     description: z.string().nullish(),
+    data: ProsemirrorSchema.nullish(),
     icon: zodEnumFromObjectKeys(IconLibrary.mapping).nullish(),
     permission: z.nativeEnum(CollectionPermission).nullish(),
     color: z
@@ -206,16 +201,13 @@ export const CollectionsListSchema = BaseSchema.extend({
 export type CollectionsListReq = z.infer<typeof CollectionsListSchema>;
 
 export const CollectionsDeleteSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
-  }),
+  body: BaseIdSchema,
 });
 
 export type CollectionsDeleteReq = z.infer<typeof CollectionsDeleteSchema>;
 
 export const CollectionsMoveSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     index: z
       .string()
       .regex(ValidateIndex.regex, { message: ValidateIndex.message })

@@ -129,15 +129,14 @@ export default class ImportJSONTask extends ImportTask {
       }
 
       const collectionId = uuidv4();
+      const data = item.collection.description ?? item.collection.data;
+
       output.collections.push({
         ...item.collection,
         description:
-          item.collection.description &&
-          typeof item.collection.description === "object"
-            ? serializer.serialize(
-                Node.fromJSON(schema, item.collection.description)
-              )
-            : item.collection.description,
+          data && typeof data === "object"
+            ? serializer.serialize(Node.fromJSON(schema, data))
+            : data,
         id: collectionId,
         externalId: item.collection.id,
       });

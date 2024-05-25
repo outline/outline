@@ -10,6 +10,7 @@ import {
   DocumentPermission,
   JSONValue,
   UnfurlResourceType,
+  ProsemirrorData,
 } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { AccountProvisionerResult } from "./commands/accountProvisioner";
@@ -494,7 +495,8 @@ export type CollectionJSONExport = {
     id: string;
     urlId: string;
     name: string;
-    description: Record<string, any> | null;
+    data?: ProsemirrorData | null;
+    description?: ProsemirrorData | null;
     permission?: CollectionPermission | null;
     color: string;
     icon?: string | null;
