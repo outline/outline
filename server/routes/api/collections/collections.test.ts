@@ -1318,6 +1318,48 @@ describe("#collections.update", () => {
     expect(body.policies.length).toBe(1);
   });
 
+  it("allows editing description", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const res = await server.post("/api/collections.update", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+        description: "Test",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.description).toBe("Test");
+
+    await collection.reload();
+
+    expect(collection.description).toBe("Test");
+    expect(collection.content).toBeTruthy();
+  });
+
+  it("allows editing data", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const res = await server.post("/api/collections.update", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+        data: {
+          content: [
+            { content: [{ text: "Test", type: "text" }], type: "paragraph" },
+          ],
+          type: "doc",
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.description).toBe("Test");
+  });
+
   it("allows editing sort", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
