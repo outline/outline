@@ -10,19 +10,13 @@ export default function InputMemberPermissionSelect(
 ) {
   const { value, onChange, ...rest } = props;
   const { t } = useTranslation();
-  const handleChange = React.useCallback(
-    (value) => {
-      onChange?.(value === EmptySelectValue ? null : value);
-    },
-    [onChange]
-  );
 
   return (
     <Select
       label={t("Permissions")}
       options={props.permissions}
       ariaLabel={t("Permissions")}
-      onChange={handleChange}
+      onChange={onChange}
       value={value || EmptySelectValue}
       labelHidden
       nude

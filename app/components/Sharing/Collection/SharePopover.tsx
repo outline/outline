@@ -284,7 +284,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
 
   const rightButton = picker ? (
     pendingIds.length ? (
-      <Flex gap={4}>
+      <Flex gap={4} key="invite">
         <InputPermissionSelect
           permissions={permissions}
           onChange={(value: CollectionPermission) => setPermission(value)}
@@ -292,7 +292,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
           labelHidden
           nude
         />
-        <ButtonSmall action={inviteAction} context={context} key="invite">
+        <ButtonSmall action={inviteAction} context={context}>
           {t("Add")}
         </ButtonSmall>
       </Flex>

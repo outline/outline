@@ -17,12 +17,6 @@ function InputSelectPermission(
 ) {
   const { value, onChange, ...rest } = props;
   const { t } = useTranslation();
-  const handleChange = React.useCallback(
-    (value) => {
-      onChange?.(value === EmptySelectValue ? null : value);
-    },
-    [onChange]
-  );
 
   return (
     <InputSelect
@@ -44,7 +38,7 @@ function InputSelectPermission(
       ]}
       ariaLabel={t("Default access")}
       value={value || EmptySelectValue}
-      onChange={handleChange}
+      onChange={onChange}
       {...rest}
     />
   );
