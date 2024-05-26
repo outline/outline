@@ -1,14 +1,15 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
-import { IntegrationService, IntegrationType } from "../../types";
 import type { IntegrationSettings } from "../../types";
+import { IntegrationService, IntegrationType } from "../../types";
 import { urlRegex } from "../../utils/urls";
 import Image from "../components/Img";
 import Berrycast from "./Berrycast";
 import Diagrams from "./Diagrams";
 import Gist from "./Gist";
 import GitLabSnippet from "./GitLabSnippet";
+import IFrame from "./IFrame";
 import InVision from "./InVision";
 import JSFiddle from "./JSFiddle";
 import Linkedin from "./Linkedin";
@@ -74,6 +75,11 @@ export class EmbedDescriptor {
   component?: React.FunctionComponent<EmbedProps>;
   /** The integration settings, if any */
   settings?: IntegrationSettings<IntegrationType.Embed>;
+  /**
+   * A function that will be used to transform the user input URL to a string for editor text.
+   * This could be the original URL or wrapped with certain text or HTML tags.
+   */
+  urlTransformer?: (url: string) => string;
 
   constructor(options: Omit<EmbedDescriptor, "matcher">) {
     this.icon = options.icon;
@@ -89,6 +95,7 @@ export class EmbedDescriptor {
     this.attrs = options.attrs;
     this.visible = options.visible;
     this.component = options.component;
+    this.urlTransformer = options.urlTransformer;
   }
 
   matcher(url: string): false | RegExpMatchArray {
@@ -599,6 +606,17 @@ const embeds: EmbedDescriptor[] = [
     ],
     icon: <Img src="/images/youtube.png" alt="YouTube" />,
     component: YouTube,
+  }),
+  new EmbedDescriptor({
+    title: "iframe",
+    keywords: "iframe",
+    regexMatch: [/^<iframe\b[^>]*>(.*?)<\/iframe>$/i],
+    icon: <Img src="/images/iframe.png" alt="iframe" />,
+    // component: YouTube,
+    urlTransformer(url) {
+      return `<iframe src="${url}" frameborder="0"></iframe>`;
+    },
+    component: IFrame,
   }),
 ];
 

@@ -281,7 +281,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       event.stopPropagation();
 
       const href = event.currentTarget.value;
-      const matches = "matcher" in insertItem && insertItem.matcher(href);
+      const embedContent =
+        "urlTransformer" in insertItem && insertItem.urlTransformer
+          ? insertItem.urlTransformer(href)
+          : href;
+      const matches =
+        "matcher" in insertItem && insertItem.matcher(embedContent);
 
       if (!matches) {
         toast.error(dictionary.embedInvalidLink);
@@ -291,7 +296,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       insertNode({
         name: "embed",
         attrs: {
-          href,
+          href: embedContent,
         },
       });
     }
