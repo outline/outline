@@ -37,7 +37,7 @@ export type Props = {
   id?: string;
   name?: string;
   value?: string | null;
-  label?: string;
+  label?: React.ReactNode;
   nude?: boolean;
   ariaLabel: string;
   short?: boolean;
