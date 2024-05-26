@@ -954,6 +954,7 @@ router.post(
         emoji: original.emoji,
         title: original.title,
         text: original.text,
+        content: original.content,
       },
       {
         transaction,

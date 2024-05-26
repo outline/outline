@@ -7,9 +7,9 @@ import { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import Document from "@server/models/Document";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
-import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import ExportTask from "./ExportTask";
 
 export default abstract class ExportDocumentTreeTask extends ExportTask {
@@ -48,7 +48,9 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         : DocumentHelper.toMarkdown(document);
 
     const attachmentIds = includeAttachments
-      ? parseAttachmentIds(document.text)
+      ? ProsemirrorHelper.parseAttachmentIds(
+          DocumentHelper.toProsemirror(document)
+        )
       : [];
     const attachments = attachmentIds.length
       ? await Attachment.findAll({
