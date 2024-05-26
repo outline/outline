@@ -416,12 +416,12 @@ class WebsocketProvider extends React.Component<Props> {
           await collections.fetch(event.collectionId, {
             force: true,
           });
-        }
 
-        // Document policies might need updating as the permission changes
-        documents.inCollection(event.collectionId).forEach((document) => {
-          policies.remove(document.id);
-        });
+          // Document policies might need updating as the permission changes
+          documents.inCollection(event.collectionId).forEach((document) => {
+            policies.remove(document.id);
+          });
+        }
       }
     );
 

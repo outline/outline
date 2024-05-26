@@ -5,14 +5,18 @@ import { BackIcon, LinkIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { DocumentPermission, UserRole } from "@shared/types";
+import styled from "styled-components";
+import Flex from "@shared/components/Flex";
+import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
+import { Inner } from "~/components/Button";
 import ButtonSmall from "~/components/ButtonSmall";
 import CopyToClipboard from "~/components/CopyToClipboard";
+import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import { createAction } from "~/actions";
@@ -23,6 +27,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { Permission } from "~/types";
 import { documentPath, urlify } from "~/utils/routeHelpers";
 import { Separator, Wrapper, presence } from "../components";
 import { SearchInput } from "../components/SearchInput";
@@ -64,6 +69,9 @@ function SharePopover({
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
   const collectionSharingDisabled = document.collection?.sharing === false;
+  const [permission, setPermission] = React.useState<DocumentPermission>(
+    DocumentPermission.Read
+  );
 
   useKeyDown(
     "Escape",
@@ -150,11 +158,7 @@ function SharePopover({
               await userMemberships.create({
                 documentId: document.id,
                 userId: user.id,
-                permission:
-                  user?.role === UserRole.Viewer ||
-                  user?.role === UserRole.Guest
-                    ? DocumentPermission.Read
-                    : DocumentPermission.ReadWrite,
+                permission,
               });
 
               return user;
@@ -190,6 +194,7 @@ function SharePopover({
       hidePicker,
       userMemberships,
       document.id,
+      permission,
       users,
       team.defaultUserRole,
     ]
@@ -217,6 +222,21 @@ function SharePopover({
     [setPendingIds]
   );
 
+  const permissions = React.useMemo(
+    () =>
+      [
+        {
+          label: t("Can edit"),
+          value: DocumentPermission.ReadWrite,
+        },
+        {
+          label: t("View only"),
+          value: DocumentPermission.Read,
+        },
+      ] as Permission[],
+    [t]
+  );
+
   if (!hasRendered) {
     return null;
   }
@@ -242,9 +262,18 @@ function SharePopover({
 
   const rightButton = picker ? (
     pendingIds.length ? (
-      <ButtonSmall action={inviteAction} context={context} key="invite">
-        {t("Add")}
-      </ButtonSmall>
+      <Flex gap={4} key="invite">
+        <InputPermissionSelect
+          permissions={permissions}
+          onChange={(value: DocumentPermission) => setPermission(value)}
+          value={permission}
+          labelHidden
+          nude
+        />
+        <ButtonSmall action={inviteAction} context={context}>
+          {t("Add")}
+        </ButtonSmall>
+      </Flex>
     ) : null
   ) : (
     <Tooltip
@@ -311,5 +340,15 @@ function SharePopover({
     </Wrapper>
   );
 }
+
+const InputPermissionSelect = styled(InputMemberPermissionSelect)`
+  font-size: 13px;
+  height: 26px;
+
+  ${Inner} {
+    line-height: 26px;
+    min-height: 26px;
+  }
+`;
 
 export default observer(SharePopover);

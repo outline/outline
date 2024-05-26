@@ -5,16 +5,19 @@ import { BackIcon, LinkIcon, UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
+import Flex from "@shared/components/Flex";
 import Squircle from "@shared/components/Squircle";
-import { CollectionPermission, UserRole } from "@shared/types";
+import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
 import Group from "~/models/Group";
 import Share from "~/models/Share";
 import User from "~/models/User";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
+import { Inner } from "~/components/Button";
 import ButtonSmall from "~/components/ButtonSmall";
 import CopyToClipboard from "~/components/CopyToClipboard";
+import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
@@ -26,6 +29,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { Permission } from "~/types";
 import { collectionPath, urlify } from "~/utils/routeHelpers";
 import { Wrapper, presence } from "../components";
 import { ListItem } from "../components/ListItem";
@@ -55,6 +59,9 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
   const [hasRendered, setHasRendered] = React.useState(visible);
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
+  const [permission, setPermission] = React.useState<CollectionPermission>(
+    CollectionPermission.Read
+  );
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const context = useActionContext();
 
@@ -153,11 +160,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
                 await memberships.create({
                   collectionId: collection.id,
                   userId: user.id,
-                  permission:
-                    user.role === UserRole.Viewer ||
-                    user.role === UserRole.Guest
-                      ? CollectionPermission.Read
-                      : CollectionPermission.ReadWrite,
+                  permission,
                 });
                 return user;
               }
@@ -225,13 +228,35 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       }),
     [
       collection.id,
+      collectionGroupMemberships,
+      groups,
       hidePicker,
       memberships,
       pendingIds,
+      permission,
       t,
       team.defaultUserRole,
       users,
     ]
+  );
+
+  const permissions = React.useMemo(
+    () =>
+      [
+        {
+          label: t("Admin"),
+          value: CollectionPermission.Admin,
+        },
+        {
+          label: t("Can edit"),
+          value: CollectionPermission.ReadWrite,
+        },
+        {
+          label: t("View only"),
+          value: CollectionPermission.Read,
+        },
+      ] as Permission[],
+    [t]
   );
 
   if (!hasRendered) {
@@ -259,9 +284,18 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
 
   const rightButton = picker ? (
     pendingIds.length ? (
-      <ButtonSmall action={inviteAction} context={context} key="invite">
-        {t("Add")}
-      </ButtonSmall>
+      <Flex gap={4} key="invite">
+        <InputPermissionSelect
+          permissions={permissions}
+          onChange={(value: CollectionPermission) => setPermission(value)}
+          value={permission}
+          labelHidden
+          nude
+        />
+        <ButtonSmall action={inviteAction} context={context}>
+          {t("Add")}
+        </ButtonSmall>
+      </Flex>
     ) : null
   ) : (
     <Tooltip
@@ -338,5 +372,15 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
     </Wrapper>
   );
 }
+
+const InputPermissionSelect = styled(InputMemberPermissionSelect)`
+  font-size: 13px;
+  height: 26px;
+
+  ${Inner} {
+    line-height: 26px;
+    min-height: 26px;
+  }
+`;
 
 export default observer(SharePopover);
