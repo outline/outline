@@ -999,7 +999,7 @@
   "This will prevent any future updates from being posted to this Slack channel. Are you sure?": "Cela empêchera toute mise à jour future d'être postée sur ce salon Slack. Êtes-vous sûr(e) ?",
   "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your workspace. Try again?": "Oups, vous devez accepter les autorisations dans Slack pour connecter {{appName}} à votre espace de travail. Réessayer ?",
   "Personal account": "Compte personnel",
-  "Link your {{appName}} account to Slack to enable searching the documents you have access to directly within chat.": "Liez votre compte {{appName}} à Slack afin d'activer la recherche de documents auxquels vous avez accès directement depuis le chat.",
+  "Link your {{appName}} account to Slack to enable searching and previewing the documents you have access to, directly within chat.": "Link your {{appName}} account to Slack to enable searching and previewing the documents you have access to, directly within chat.",
   "Disconnecting your personal account will prevent searching for documents from Slack. Are you sure?": "La déconnexion de votre compte personnel empêchera la recherche de documents depuis Slack. Êtes-vous sûr(e) ?",
   "Slash command": "Commande Slash",
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "Obtenez un aperçu complets des liens {{ appName }} partagés dans Slack et utilisez la commande <em>{{ command }}</em> pour chercher des documents sans quitter la discussion.",
