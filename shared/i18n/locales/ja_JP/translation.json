@@ -999,7 +999,7 @@
   "This will prevent any future updates from being posted to this Slack channel. Are you sure?": "This will prevent any future updates from being posted to this Slack channel. Are you sure?",
   "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your workspace. Try again?": "{{appName}} をワークスペースに接続するには、Slack で権限を受け入れる必要があります。 もう一度やり直しますか？",
   "Personal account": "Personal account",
-  "Link your {{appName}} account to Slack to enable searching the documents you have access to directly within chat.": "Link your {{appName}} account to Slack to enable searching the documents you have access to directly within chat.",
+  "Link your {{appName}} account to Slack to enable searching and previewing the documents you have access to, directly within chat.": "Link your {{appName}} account to Slack to enable searching and previewing the documents you have access to, directly within chat.",
   "Disconnecting your personal account will prevent searching for documents from Slack. Are you sure?": "Disconnecting your personal account will prevent searching for documents from Slack. Are you sure?",
   "Slash command": "Slash command",
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "Slackで共有された{{ appName }} のリンクのプレビューを取得し、チャットを離れずにドキュメントを検索するには、<em>{{ command }}</em> スラッシュコマンドを使用してください。",
