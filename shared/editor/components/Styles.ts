@@ -584,6 +584,7 @@ iframe.embed {
 }
 
 .resize-cursor {
+  ${props.readOnly ? "pointer-events: none;" : ""}
   cursor: ew-resize;
   cursor: col-resize;
 }
@@ -1314,7 +1315,6 @@ table {
 
   th {
     font-weight: 600;
-    background: ${props.theme.secondaryBackground};
   }
 
   td,

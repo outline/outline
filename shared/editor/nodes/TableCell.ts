@@ -17,7 +17,7 @@ export default class TableCell extends Node {
 
   get schema(): NodeSpec {
     return {
-      content: "(paragraph | embed)+",
+      content: "block+",
       tableRole: "cell",
       isolating: true,
       parseDOM: [{ tag: "td" }],

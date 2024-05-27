@@ -14,7 +14,7 @@ export default class TableHeadCell extends Node {
 
   get schema(): NodeSpec {
     return {
-      content: "(paragraph | embed)+",
+      content: "block+",
       tableRole: "header_cell",
       isolating: true,
       parseDOM: [{ tag: "th" }],

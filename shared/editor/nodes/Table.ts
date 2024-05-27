@@ -96,7 +96,10 @@ export default class Table extends Node {
   get plugins() {
     return [
       tableEditing(),
-      columnResizing({ View, lastColumnResizable: false }),
+      columnResizing({
+        View,
+        lastColumnResizable: false,
+      }),
       new Plugin({
         props: {
           decorations: (state) => {
