@@ -92,8 +92,8 @@ function Slack() {
         label={t("Personal account")}
         description={
           <Trans>
-            Link your {{ appName }} account to Slack to enable searching the
-            documents you have access to directly within chat.
+            Link your {{ appName }} account to Slack to enable searching and
+            previewing the documents you have access to, directly within chat.
           </Trans>
         }
       >
