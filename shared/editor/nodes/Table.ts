@@ -2,8 +2,10 @@ import { chainCommands } from "prosemirror-commands";
 import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import {
+  TableView,
   addColumnAfter,
   addColumnBefore,
+  columnResizing,
   deleteColumn,
   deleteRow,
   deleteTable,
@@ -19,6 +21,7 @@ import {
   setColumnAttr,
   createTable,
   sortTable,
+  setTableAttr,
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import tablesRule from "../rules/tables";
@@ -36,15 +39,16 @@ export default class Table extends Node {
       isolating: true,
       group: "block",
       parseDOM: [{ tag: "table" }],
+      attrs: {
+        layout: {
+          default: null,
+        },
+      },
       toDOM() {
         return [
           "div",
           { class: "scrollable-wrapper table-wrapper" },
-          [
-            "div",
-            { class: "scrollable" },
-            ["table", { class: "rme-table" }, ["tbody", 0]],
-          ],
+          ["div", { class: "scrollable" }, ["table", {}, ["tbody", 0]]],
         ];
       },
     };
@@ -58,6 +62,7 @@ export default class Table extends Node {
     return {
       createTable,
       setColumnAttr,
+      setTableAttr,
       sortTable,
       addColumnBefore: () => addColumnBefore,
       addColumnAfter: () => addColumnAfter,
@@ -91,6 +96,7 @@ export default class Table extends Node {
   get plugins() {
     return [
       tableEditing(),
+      columnResizing({ View, lastColumnResizable: false }),
       new Plugin({
         props: {
           decorations: (state) => {
@@ -137,5 +143,25 @@ export default class Table extends Node {
         },
       }),
     ];
+  }
+}
+
+class View extends TableView {
+  constructor(public node: ProsemirrorNode, public cellMinWidth: number) {
+    super(node, cellMinWidth);
+
+    if (node.attrs.layout === "full-width") {
+      this.dom.classList.add("table-full-width");
+    }
+  }
+
+  update(node: ProsemirrorNode) {
+    if (node.attrs.layout === "full-width") {
+      this.dom.classList.add("table-full-width");
+    } else {
+      this.dom.classList.remove("table-full-width");
+    }
+
+    return super.update(node);
   }
 }

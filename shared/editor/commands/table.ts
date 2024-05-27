@@ -244,6 +244,22 @@ export function setColumnAttr({
   };
 }
 
+export function setTableAttr(attrs: { layout: string }): Command {
+  return (state, dispatch) => {
+    if (dispatch) {
+      const { tr } = state;
+      const rect = selectedRect(state);
+
+      tr.setNodeMarkup(rect.tableStart - 1, undefined, {
+        ...rect.table.attrs,
+        ...attrs,
+      });
+      dispatch(tr);
+    }
+    return true;
+  };
+}
+
 export function selectRow(index: number, expand = false) {
   return (state: EditorState): Transaction => {
     const rect = selectedRect(state);

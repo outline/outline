@@ -563,6 +563,31 @@ iframe.embed {
   }
 }
 
+.table-full-width {
+  transform: translateX(calc(50% + 16px + var(--container-width) * -0.5));
+
+  table {
+    width: calc(var(--container-width) - 32px);
+  }
+}
+
+.column-resize-handle {
+  ${props.readOnly ? "display: none;" : ""}
+  position: absolute;
+  right: -1px;
+  top: -16px;
+  bottom: 0;
+  width: 2px;
+  z-index: 20;
+  background-color: ${props.theme.accent};
+  pointer-events: none;
+}
+
+.resize-cursor {
+  cursor: ew-resize;
+  cursor: col-resize;
+}
+
 .ProseMirror-hideselection *::selection {
   background: transparent;
 }
@@ -1287,12 +1312,9 @@ table {
     border-bottom: 1px solid ${props.theme.tableDivider};
   }
 
-  tr:first-of-type {
-    background: ${props.theme.secondaryBackground};
-  }
-
   th {
-    background: transparent;
+    font-weight: 600;
+    background: ${props.theme.secondaryBackground};
   }
 
   td,

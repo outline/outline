@@ -3,6 +3,7 @@ import {
   InsertAboveIcon,
   InsertBelowIcon,
   MoreIcon,
+  TableHeaderRowIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
@@ -18,6 +19,12 @@ export default function tableRowMenuItems(
     {
       icon: <MoreIcon />,
       children: [
+        {
+          name: "toggleHeaderRow",
+          label: dictionary.toggleHeader,
+          icon: <TableHeaderRowIcon />,
+          visible: index === 0,
+        },
         {
           name: "addRowAfter",
           label: dictionary.addRowBefore,

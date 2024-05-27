@@ -7,6 +7,7 @@ import {
   InsertRightIcon,
   ArrowIcon,
   MoreIcon,
+  TableHeaderColumnIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
@@ -78,6 +79,12 @@ export default function tableColMenuItems(
     {
       icon: <MoreIcon />,
       children: [
+        {
+          name: "toggleHeaderColumn",
+          label: dictionary.toggleHeader,
+          icon: <TableHeaderColumnIcon />,
+          visible: index === 0,
+        },
         {
           name: rtl ? "addColumnAfter" : "addColumnBefore",
           label: rtl ? dictionary.addColumnAfter : dictionary.addColumnBefore,

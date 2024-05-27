@@ -31,6 +31,7 @@ export default class TableHeadCell extends Node {
         colspan: { default: 1 },
         rowspan: { default: 1 },
         alignment: { default: null },
+        colwidth: { default: null },
       },
     };
   }
