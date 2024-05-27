@@ -1,27 +1,19 @@
 import { isEmail } from "class-validator";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { BackIcon, LinkIcon } from "outline-icons";
+import { BackIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import styled from "styled-components";
-import Flex from "@shared/components/Flex";
 import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
-import { Inner } from "~/components/Button";
-import ButtonSmall from "~/components/ButtonSmall";
-import CopyToClipboard from "~/components/CopyToClipboard";
-import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import NudeButton from "~/components/NudeButton";
-import Tooltip from "~/components/Tooltip";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
-import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -30,6 +22,8 @@ import useStores from "~/hooks/useStores";
 import { Permission } from "~/types";
 import { documentPath, urlify } from "~/utils/routeHelpers";
 import { Separator, Wrapper, presence } from "../components";
+import { CopyLinkButton } from "../components/CopyLinkButton";
+import { PermissionAction } from "../components/PermissionAction";
 import { SearchInput } from "../components/SearchInput";
 import { Suggestions } from "../components/Suggestions";
 import DocumentMembersList from "./DocumentMemberList";
@@ -59,13 +53,10 @@ function SharePopover({
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const can = usePolicy(document);
-  const linkButtonRef = React.useRef<HTMLButtonElement>(null);
-  const context = useActionContext();
   const [hasRendered, setHasRendered] = React.useState(visible);
   const { users, userMemberships } = useStores();
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
-  const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
   const collectionSharingDisabled = document.collection?.sharing === false;
@@ -112,20 +103,6 @@ function SharePopover({
       setQuery("");
     }
   }, [picker]);
-
-  const handleCopied = React.useCallback(() => {
-    onRequestClose();
-
-    timeout.current = setTimeout(() => {
-      toast.message(t("Link copied to clipboard"));
-    }, 100);
-
-    return () => {
-      if (timeout.current) {
-        clearTimeout(timeout.current);
-      }
-    };
-  }, [onRequestClose, t]);
 
   const inviteAction = React.useMemo(
     () =>
@@ -262,35 +239,19 @@ function SharePopover({
 
   const rightButton = picker ? (
     pendingIds.length ? (
-      <Flex gap={4} key="invite">
-        <InputPermissionSelect
-          permissions={permissions}
-          onChange={(value: DocumentPermission) => setPermission(value)}
-          value={permission}
-          labelHidden
-          nude
-        />
-        <ButtonSmall action={inviteAction} context={context}>
-          {t("Add")}
-        </ButtonSmall>
-      </Flex>
+      <PermissionAction
+        permission={permission}
+        permissions={permissions}
+        action={inviteAction}
+        onChange={(value: DocumentPermission) => setPermission(value)}
+        key="invite"
+      />
     ) : null
   ) : (
-    <Tooltip
-      content={t("Copy link")}
-      delay={500}
-      placement="top"
-      key="copy-link"
-    >
-      <CopyToClipboard
-        text={urlify(documentPath(document))}
-        onCopy={handleCopied}
-      >
-        <NudeButton type="button" disabled={!share} ref={linkButtonRef}>
-          <LinkIcon size={20} />
-        </NudeButton>
-      </CopyToClipboard>
-    </Tooltip>
+    <CopyLinkButton
+      url={urlify(documentPath(document))}
+      onCopy={onRequestClose}
+    />
   );
 
   return (
@@ -340,15 +301,5 @@ function SharePopover({
     </Wrapper>
   );
 }
-
-const InputPermissionSelect = styled(InputMemberPermissionSelect)`
-  font-size: 13px;
-  height: 26px;
-
-  ${Inner} {
-    line-height: 26px;
-    min-height: 26px;
-  }
-`;
 
 export default observer(SharePopover);

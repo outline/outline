@@ -1,12 +1,11 @@
 import { isEmail } from "class-validator";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { BackIcon, LinkIcon, UserIcon } from "outline-icons";
+import { BackIcon, UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import styled, { useTheme } from "styled-components";
-import Flex from "@shared/components/Flex";
+import { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
 import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
@@ -14,16 +13,10 @@ import Group from "~/models/Group";
 import Share from "~/models/Share";
 import User from "~/models/User";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
-import { Inner } from "~/components/Button";
-import ButtonSmall from "~/components/ButtonSmall";
-import CopyToClipboard from "~/components/CopyToClipboard";
-import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import NudeButton from "~/components/NudeButton";
-import Tooltip from "~/components/Tooltip";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
-import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -32,12 +25,15 @@ import useStores from "~/hooks/useStores";
 import { Permission } from "~/types";
 import { collectionPath, urlify } from "~/utils/routeHelpers";
 import { Wrapper, presence } from "../components";
+import { CopyLinkButton } from "../components/CopyLinkButton";
 import { ListItem } from "../components/ListItem";
+import { PermissionAction } from "../components/PermissionAction";
 import { SearchInput } from "../components/SearchInput";
 import { Suggestions } from "../components/Suggestions";
 import CollectionMemberList from "./CollectionMemberList";
 
 type Props = {
+  /** The collection to share. */
   collection: Collection;
   /** The existing share model, if any. */
   share: Share | null | undefined;
@@ -62,8 +58,6 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
   const [permission, setPermission] = React.useState<CollectionPermission>(
     CollectionPermission.Read
   );
-  const timeout = React.useRef<ReturnType<typeof setTimeout>>();
-  const context = useActionContext();
 
   useKeyDown(
     "Escape",
@@ -82,6 +76,14 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
     }
   );
 
+  // Hide the picker when the popover is closed
+  React.useEffect(() => {
+    if (visible) {
+      setPendingIds([]);
+      hidePicker();
+    }
+  }, [hidePicker, visible]);
+
   // Clear the query when picker is closed
   React.useEffect(() => {
     if (!picker) {
@@ -94,20 +96,6 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       setHasRendered(true);
     }
   }, [visible]);
-
-  const handleCopied = React.useCallback(() => {
-    onRequestClose();
-
-    timeout.current = setTimeout(() => {
-      toast.message(t("Link copied to clipboard"));
-    }, 100);
-
-    return () => {
-      if (timeout.current) {
-        clearTimeout(timeout.current);
-      }
-    };
-  }, [onRequestClose, t]);
 
   const handleQuery = React.useCallback(
     (event) => {
@@ -284,35 +272,19 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
 
   const rightButton = picker ? (
     pendingIds.length ? (
-      <Flex gap={4} key="invite">
-        <InputPermissionSelect
-          permissions={permissions}
-          onChange={(value: CollectionPermission) => setPermission(value)}
-          value={permission}
-          labelHidden
-          nude
-        />
-        <ButtonSmall action={inviteAction} context={context}>
-          {t("Add")}
-        </ButtonSmall>
-      </Flex>
+      <PermissionAction
+        permission={permission}
+        permissions={permissions}
+        action={inviteAction}
+        onChange={(value: CollectionPermission) => setPermission(value)}
+        key="invite"
+      />
     ) : null
   ) : (
-    <Tooltip
-      content={t("Copy link")}
-      delay={500}
-      placement="top"
-      key="copy-link"
-    >
-      <CopyToClipboard
-        text={urlify(collectionPath(collection.path))}
-        onCopy={handleCopied}
-      >
-        <NudeButton type="button">
-          <LinkIcon size={20} />
-        </NudeButton>
-      </CopyToClipboard>
-    </Tooltip>
+    <CopyLinkButton
+      url={urlify(collectionPath(collection.path))}
+      onCopy={onRequestClose}
+    />
   );
 
   return (
@@ -372,15 +344,5 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
     </Wrapper>
   );
 }
-
-const InputPermissionSelect = styled(InputMemberPermissionSelect)`
-  font-size: 13px;
-  height: 26px;
-
-  ${Inner} {
-    line-height: 26px;
-    min-height: 26px;
-  }
-`;
 
 export default observer(SharePopover);
