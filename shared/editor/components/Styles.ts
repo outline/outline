@@ -553,7 +553,7 @@ iframe.embed {
   max-width: 100vw;
   clear: both;
   position: initial;
-  ${props.rtl ? `margin-right: var(--offset)` : `margin-left: var(--offset)`};
+  transform: translateX(calc(50% + var(--container-width) * -0.5));
 
   img {
     max-width: 100vw;

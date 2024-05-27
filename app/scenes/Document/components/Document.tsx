@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import useComponentSize from "@shared/editor/components/hooks/useComponentSize";
 import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
 import { ProsemirrorHelper, Heading } from "@shared/utils/ProsemirrorHelper";
@@ -437,8 +438,7 @@ class DocumentScene extends React.Component<Props> {
             }
           }}
         />
-        <Background
-          id="full-width-container"
+        <FullWidthContainer
           key={revision ? revision.id : document.id}
           column
           auto
@@ -564,7 +564,7 @@ class DocumentScene extends React.Component<Props> {
               <ConnectionStatus />
             </Footer>
           )}
-        </Background>
+        </FullWidthContainer>
       </ErrorBoundary>
     );
   }
@@ -621,5 +621,21 @@ const MaxWidth = styled(Flex)<MaxWidthProps>`
       props.isFullWidth ? "100vw" : `calc(64px + 52em);`}
   `};
 `;
+
+const FullWidthContainer = (props: React.ComponentProps<typeof Background>) => {
+  const ref = React.useRef(null);
+  const rect = useComponentSize(ref.current);
+
+  return (
+    <Background
+      {...props}
+      ref={ref}
+      style={{
+        "--container-width": `${rect.width}px`,
+        "--container-left": `${rect.left}px`,
+      }}
+    />
+  );
+};
 
 export default withTranslation()(withStores(withRouter(DocumentScene)));

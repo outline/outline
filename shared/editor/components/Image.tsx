@@ -29,10 +29,7 @@ const Image = (props: Props) => {
   const [loaded, setLoaded] = React.useState(false);
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
-  const containerBounds = useComponentSize(
-    document.body.querySelector("#full-width-container")
-  );
-  const documentBounds = props.view.dom.getBoundingClientRect();
+  const documentBounds = useComponentSize(props.view.dom);
   const maxWidth = documentBounds.width;
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
     {
@@ -60,21 +57,11 @@ const Image = (props: Props) => {
   }, [node.attrs.width]);
 
   const widthStyle = isFullWidth
-    ? { width: containerBounds.width }
+    ? { width: "var(--container-width)" }
     : { width: width || "auto" };
 
-  const containerStyle = isFullWidth
-    ? ({
-        "--offset": `${-(
-          documentBounds.left -
-          containerBounds.left +
-          getPadding(props.view.dom)
-        )}px`,
-      } as React.CSSProperties)
-    : undefined;
-
   return (
-    <div contentEditable={false} className={className} style={containerStyle}>
+    <div contentEditable={false} className={className}>
       <ImageWrapper
         isFullWidth={isFullWidth}
         className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
@@ -142,11 +129,6 @@ const Image = (props: Props) => {
     </div>
   );
 };
-
-function getPadding(element: Element) {
-  const computedStyle = window.getComputedStyle(element, null);
-  return parseFloat(computedStyle.paddingLeft);
-}
 
 function getPlaceholder(width: number, height: number) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" />`;
