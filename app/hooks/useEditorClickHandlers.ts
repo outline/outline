@@ -20,10 +20,9 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         return;
       }
 
-      if (isInternalUrl(href) && !isModKey(event) && !event.shiftKey) {
-        // relative
-        let navigateTo = href;
+      let navigateTo = href;
 
+      if (isInternalUrl(href)) {
         // probably absolute
         if (href[0] !== "/") {
           try {
@@ -51,10 +50,12 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         if (shareId && navigateTo.includes("/doc/")) {
           navigateTo = sharedDocumentPath(shareId, navigateTo);
         }
+      }
 
+      if (!isModKey(event) && !event.shiftKey) {
         history.push(navigateTo);
-      } else if (href) {
-        window.open(href, "_blank");
+      } else {
+        window.open(navigateTo, "_blank");
       }
     },
     [history, shareId]
