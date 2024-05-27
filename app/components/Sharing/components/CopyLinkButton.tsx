@@ -31,12 +31,7 @@ export function CopyLinkButton({
   }, [onCopy, t]);
 
   return (
-    <Tooltip
-      content={t("Copy link")}
-      delay={500}
-      placement="top"
-      key="copy-link"
-    >
+    <Tooltip content={t("Copy link")} delay={500} placement="top">
       <CopyToClipboard text={url} onCopy={handleCopied}>
         <NudeButton type="button">
           <LinkIcon size={20} />

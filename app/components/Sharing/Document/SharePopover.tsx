@@ -240,15 +240,16 @@ function SharePopover({
   const rightButton = picker ? (
     pendingIds.length ? (
       <PermissionAction
+        key="invite"
         permission={permission}
         permissions={permissions}
         action={inviteAction}
         onChange={(value: DocumentPermission) => setPermission(value)}
-        key="invite"
       />
     ) : null
   ) : (
     <CopyLinkButton
+      key="copy-link"
       url={urlify(documentPath(document))}
       onCopy={onRequestClose}
     />

@@ -270,15 +270,16 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
   const rightButton = picker ? (
     pendingIds.length ? (
       <PermissionAction
+        key="invite"
         permission={permission}
         permissions={permissions}
         action={inviteAction}
         onChange={(value: CollectionPermission) => setPermission(value)}
-        key="invite"
       />
     ) : null
   ) : (
     <CopyLinkButton
+      key="copy-link"
       url={urlify(collectionPath(collection.path))}
       onCopy={onRequestClose}
     />
