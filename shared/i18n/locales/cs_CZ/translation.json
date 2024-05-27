@@ -999,7 +999,7 @@
   "This will prevent any future updates from being posted to this Slack channel. Are you sure?": "Tímto zastavíte zasílání budoucích aktualizací do tohoto kanálu Slack. Chcete pokračovat?",
   "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your workspace. Try again?": "Jejda, pro připojení {{appName}} k vašemu pracovnímu prostoru musíte přijmout oprávnění ve Slacku. Zkusit znovu?",
   "Personal account": "Osobní účet",
-  "Link your {{appName}} account to Slack to enable searching the documents you have access to directly within chat.": "Napojte váš {{appName}} účet na Slack pro možnost vyhledávání dokumentů, ke kterým máte přístup, a to přímo v chatu.",
+  "Link your {{appName}} account to Slack to enable searching and previewing the documents you have access to, directly within chat.": "Link your {{appName}} account to Slack to enable searching and previewing the documents you have access to, directly within chat.",
   "Disconnecting your personal account will prevent searching for documents from Slack. Are you sure?": "Odpojení vašeho osobního účtu znepřístupní funkci hledání dokumentů ve Slacku. Pokračovat?",
   "Slash command": "Příkaz",
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "Získejte bohaté náhledy {{ appName }} odkazů sdílených ve Slacku a pomocí příkazu <em>{{ command }}</em> lomítko vyhledejte dokumenty, aniž byste opustili chat.",
