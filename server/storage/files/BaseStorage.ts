@@ -32,7 +32,8 @@ export default abstract class BaseStorage {
    * @param key The path to the file
    */
   public abstract getFileStream(
-    key: string
+    key: string,
+    range?: { start?: number; end?: number }
   ): Promise<NodeJS.ReadableStream | null>;
 
   /**

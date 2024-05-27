@@ -131,8 +131,12 @@ export default class LocalStorage extends BaseStorage {
     };
   }
 
-  public getFileStream(key: string) {
-    return Promise.resolve(fs.createReadStream(this.getFilePath(key)));
+  public getFileStream(key: string, range?: { start: number; end: number }) {
+    return Promise.resolve(fs.createReadStream(this.getFilePath(key), range));
+  }
+
+  public stat(key: string) {
+    return fs.stat(this.getFilePath(key));
   }
 
   private getFilePath(key: string) {
