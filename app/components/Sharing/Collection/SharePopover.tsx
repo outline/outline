@@ -10,7 +10,6 @@ import Squircle from "@shared/components/Squircle";
 import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
 import Group from "~/models/Group";
-import Share from "~/models/Share";
 import User from "~/models/User";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
 import InputSelectPermission from "~/components/InputSelectPermission";
@@ -35,8 +34,6 @@ import CollectionMemberList from "./CollectionMemberList";
 type Props = {
   /** The collection to share. */
   collection: Collection;
-  /** The existing share model, if any. */
-  share: Share | null | undefined;
   /** Callback fired when the popover requests to be closed. */
   onRequestClose: () => void;
   /** Whether the popover is visible. */

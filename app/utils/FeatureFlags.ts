@@ -6,6 +6,11 @@ export enum Feature {
   newCollectionSharing = "newCollectionSharing",
 }
 
+/** Default values for feature flags */
+const FeatureDefaults: Record<Feature, boolean> = {
+  [Feature.newCollectionSharing]: true,
+};
+
 /**
  * A simple feature flagging system that stores flags in browser storage.
  */
@@ -23,7 +28,7 @@ export class FeatureFlags {
       this.initalized = true;
     }
 
-    return this.cache.has(flag);
+    return this.cache.has(flag) ?? FeatureDefaults[flag];
   }
 
   public static enable(flag: Feature) {

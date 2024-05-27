@@ -48,7 +48,6 @@ function ShareButton({ collection }: Props) {
       <Popover {...popover} aria-label={t("Share")} width={400}>
         <SharePopover
           collection={collection}
-          share={share}
           onRequestClose={popover.hide}
           visible={popover.visible}
         />
