@@ -999,7 +999,7 @@
   "This will prevent any future updates from being posted to this Slack channel. Are you sure?": "This will prevent any future updates from being posted to this Slack channel. Are you sure?",
   "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your workspace. Try again?": "喔歐！您必須在 Slack 允許 {{appName}} 取得權限連結您的工作區。再試一次？",
   "Personal account": "Personal account",
-  "Link your {{appName}} account to Slack to enable searching the documents you have access to directly within chat.": "Link your {{appName}} account to Slack to enable searching the documents you have access to directly within chat.",
+  "Link your {{appName}} account to Slack to enable searching and previewing the documents you have access to, directly within chat.": "Link your {{appName}} account to Slack to enable searching and previewing the documents you have access to, directly within chat.",
   "Disconnecting your personal account will prevent searching for documents from Slack. Are you sure?": "Disconnecting your personal account will prevent searching for documents from Slack. Are you sure?",
   "Slash command": "Slash command",
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "使用 <em>{{ command }}</em> slash command 功能搜尋文件不需跳開聊天視窗，而且可以在 Slack 獲得更多細節的 {{ appName }} 文件預覽功能。",
