@@ -1,6 +1,7 @@
 /* eslint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css, keyframes } from "styled-components";
+import { EditorClassNames } from "../styles/EditorClassNames";
 import { videoStyle } from "./Video";
 
 export type Props = {
@@ -12,6 +13,11 @@ export type Props = {
   grow?: boolean;
   theme: DefaultTheme;
 };
+
+export const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
 
 export const pulse = keyframes`
   0% { box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.75) }
@@ -267,7 +273,7 @@ const emailStyle = (props: Props) => css`
   }
 `;
 
-const style = (props: Props) => `
+const style = (props: Props) => css`
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
 color: ${props.theme.text};
@@ -563,11 +569,16 @@ iframe.embed {
   }
 }
 
-.table-full-width {
+.${EditorClassNames.tableFullWidth} {
   transform: translateX(calc(50% + 16px + var(--container-width) * -0.5));
 
+  .${EditorClassNames.tableScrollable},
   table {
     width: calc(var(--container-width) - 32px);
+  }
+
+  &.${EditorClassNames.tableShadowRight}::after {
+    transform: translateX(calc(var(--container-width)* 0.5 - 24px));
   }
 }
 
@@ -1427,11 +1438,20 @@ table {
   }
 }
 
-.scrollable-wrapper {
+.${EditorClassNames.table} {
+  position: relative;
+}
+
+.${EditorClassNames.tableScrollable} {
   position: relative;
   margin: 0.5em 0px;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
+  overflow-y: hidden;
+  overflow-x: auto;
+  padding-${props.rtl ? "right" : "left"}: 1em;
+  margin-${props.rtl ? "right" : "left"}: -1em;
+  transition: border 250ms ease-in-out 0s;
 
   &:hover {
     scrollbar-color: ${props.theme.scrollbarThumb} ${
@@ -1460,17 +1480,11 @@ table {
   }
 }
 
-.scrollable {
-  overflow-y: hidden;
-  overflow-x: auto;
-  padding-${props.rtl ? "right" : "left"}: 1em;
-  margin-${props.rtl ? "right" : "left"}: -1em;
-  transition: border 250ms ease-in-out 0s;
-}
-
-.scrollable-shadow {
+.${EditorClassNames.tableShadowLeft}::before,
+.${EditorClassNames.tableShadowRight}::after {
+  content: "";
   position: absolute;
-  top: 16px;
+  top: 1px;
   bottom: 0;
   ${props.rtl ? "right" : "left"}: -1em;
   width: 32px;
@@ -1478,21 +1492,24 @@ table {
   transition: box-shadow 250ms ease-in-out;
   border: 0px solid transparent;
   pointer-events: none;
+}
 
-  &.left {
-    box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
-      props.theme.isDark ? 1 : 0.25
-    });
-    border-left: 1em solid ${props.theme.background};
-  }
+.${EditorClassNames.tableShadowLeft}::before {
+  left: -1em;
+  right: auto;
+  box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
+    props.theme.isDark ? 1 : 0.25
+  });
+  border-left: 1em solid ${props.theme.background};
+}
 
-  &.right {
-    right: 0;
-    left: auto;
-    box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, ${
-      props.theme.isDark ? 1 : 0.25
-    });
-  }
+.${EditorClassNames.tableShadowRight}::after {
+  animation: ${fadeIn} 200ms ease-in-out;
+  right: 0;
+  left: auto;
+  box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, ${
+    props.theme.isDark ? 1 : 0.25
+  });
 }
 
 .block-menu-trigger {

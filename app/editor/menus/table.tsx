@@ -2,7 +2,7 @@ import { AlignFullWidthIcon, TrashIcon } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import isNodeActive from "@shared/editor/queries/isNodeActive";
-import { MenuItem } from "@shared/editor/types";
+import { MenuItem, TableLayout } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 
 export default function tableMenuItems(
@@ -11,7 +11,7 @@ export default function tableMenuItems(
 ): MenuItem[] {
   const { schema } = state;
   const isFullWidth = isNodeActive(schema.nodes.table, {
-    layout: "full-width",
+    layout: TableLayout.fullWidth,
   })(state);
 
   return [
@@ -21,7 +21,7 @@ export default function tableMenuItems(
         ? dictionary.alignDefaultWidth
         : dictionary.alignFullWidth,
       icon: <AlignFullWidthIcon />,
-      attrs: isFullWidth ? { layout: null } : { layout: "full-width" },
+      attrs: isFullWidth ? { layout: null } : { layout: TableLayout.fullWidth },
       active: () => isFullWidth,
     },
     {
