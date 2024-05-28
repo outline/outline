@@ -7,7 +7,7 @@ import { JSDOM } from "jsdom";
 import { Node } from "prosemirror-model";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
-import { EditorClassNames } from "@shared/editor/styles/EditorClassNames";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { ProsemirrorData } from "@shared/types";
 import { parser, serializer, schema } from "@server/editor";
 import { addTags } from "@server/logging/tracer";
@@ -323,7 +323,7 @@ export class DocumentHelper {
 
         // Special case for largetables, as this block can get very large we
         // want to clip it to only the changed rows and surrounding context.
-        if (childNode.classList.contains(EditorClassNames.table)) {
+        if (childNode.classList.contains(EditorStyleHelper.table)) {
           const rows = childNode.querySelectorAll("tr");
           if (rows.length < 3) {
             continue;

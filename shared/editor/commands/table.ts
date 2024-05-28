@@ -13,6 +13,7 @@ import {
   tableNodeTypes,
 } from "prosemirror-tables";
 import { getCellsInColumn } from "../queries/table";
+import { TableLayout } from "../types";
 
 export function createTable({
   rowsCount,
@@ -244,7 +245,13 @@ export function setColumnAttr({
   };
 }
 
-export function setTableAttr(attrs: { layout: string }): Command {
+/**
+ * Set the table attributes
+ *
+ * @param attrs The attributes to set
+ * @returns The command
+ */
+export function setTableAttr(attrs: { layout: TableLayout | null }): Command {
   return (state, dispatch) => {
     if (dispatch) {
       const { tr } = state;

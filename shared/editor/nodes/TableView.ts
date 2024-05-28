@@ -1,6 +1,6 @@
 import { Node } from "prosemirror-model";
 import { TableView as ProsemirrorTableView } from "prosemirror-tables";
-import { EditorClassNames } from "../styles/EditorClassNames";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { TableLayout } from "../types";
 
 export class TableView extends ProsemirrorTableView {
@@ -8,12 +8,12 @@ export class TableView extends ProsemirrorTableView {
     super(node, cellMinWidth);
 
     this.dom.removeChild(this.table);
-    this.dom.classList.add(EditorClassNames.table);
+    this.dom.classList.add(EditorStyleHelper.table);
 
     // Add an extra wrapper to enable scrolling
     this.scrollable = this.dom.appendChild(document.createElement("div"));
     this.scrollable.appendChild(this.table);
-    this.scrollable.classList.add(EditorClassNames.tableScrollable);
+    this.scrollable.classList.add(EditorStyleHelper.tableScrollable);
 
     this.scrollable.addEventListener(
       "scroll",
@@ -50,7 +50,7 @@ export class TableView extends ProsemirrorTableView {
 
   private updateClassList(node: Node) {
     this.dom.classList.toggle(
-      EditorClassNames.tableFullWidth,
+      EditorStyleHelper.tableFullWidth,
       node.attrs.layout === TableLayout.fullWidth
     );
 
@@ -62,8 +62,8 @@ export class TableView extends ProsemirrorTableView {
         this.scrollable.scrollWidth - 1
     );
 
-    this.dom.classList.toggle(EditorClassNames.tableShadowLeft, shadowLeft);
-    this.dom.classList.toggle(EditorClassNames.tableShadowRight, shadowRight);
+    this.dom.classList.toggle(EditorStyleHelper.tableShadowLeft, shadowLeft);
+    this.dom.classList.toggle(EditorStyleHelper.tableShadowRight, shadowRight);
   }
 
   private scrollable: HTMLDivElement | null = null;

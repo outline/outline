@@ -1,7 +1,7 @@
 /**
- * Class names used by the editor.
+ * Class names and values used by the editor.
  */
-export class EditorClassNames {
+export class EditorStyleHelper {
   // Tables
 
   /** Table wrapper */
@@ -18,4 +18,7 @@ export class EditorClassNames {
 
   /** Shadow on the left side of the table */
   static readonly tableShadowLeft = "table-shadow-left";
+
+  /** Minimum padding around editor */
+  static readonly padding = 32;
 }

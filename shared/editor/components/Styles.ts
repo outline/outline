@@ -1,7 +1,7 @@
 /* eslint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css, keyframes } from "styled-components";
-import { EditorClassNames } from "../styles/EditorClassNames";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
 export type Props = {
@@ -569,16 +569,18 @@ iframe.embed {
   }
 }
 
-.${EditorClassNames.tableFullWidth} {
-  transform: translateX(calc(50% + 16px + var(--container-width) * -0.5));
+.${EditorStyleHelper.tableFullWidth} {
+  transform: translateX(calc(50% + ${
+    EditorStyleHelper.padding
+  }px + var(--container-width) * -0.5));
 
-  .${EditorClassNames.tableScrollable},
+  .${EditorStyleHelper.tableScrollable},
   table {
-    width: calc(var(--container-width) - 32px);
+    width: calc(var(--container-width) - ${EditorStyleHelper.padding * 2}px);
   }
 
-  &.${EditorClassNames.tableShadowRight}::after {
-    transform: translateX(calc(var(--container-width)* 0.5 - 24px));
+  &.${EditorStyleHelper.tableShadowRight}::after {
+    left: calc(var(--container-width) - ${EditorStyleHelper.padding * 3}px);
   }
 }
 
@@ -1438,11 +1440,11 @@ table {
   }
 }
 
-.${EditorClassNames.table} {
+.${EditorStyleHelper.table} {
   position: relative;
 }
 
-.${EditorClassNames.tableScrollable} {
+.${EditorStyleHelper.tableScrollable} {
   position: relative;
   margin: 0.5em 0px;
   scrollbar-width: thin;
@@ -1480,8 +1482,8 @@ table {
   }
 }
 
-.${EditorClassNames.tableShadowLeft}::before,
-.${EditorClassNames.tableShadowRight}::after {
+.${EditorStyleHelper.tableShadowLeft}::before,
+.${EditorStyleHelper.tableShadowRight}::after {
   content: "";
   position: absolute;
   top: 1px;
@@ -1494,7 +1496,7 @@ table {
   pointer-events: none;
 }
 
-.${EditorClassNames.tableShadowLeft}::before {
+.${EditorStyleHelper.tableShadowLeft}::before {
   left: -1em;
   right: auto;
   box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
@@ -1503,7 +1505,7 @@ table {
   border-left: 1em solid ${props.theme.background};
 }
 
-.${EditorClassNames.tableShadowRight}::after {
+.${EditorStyleHelper.tableShadowRight}::after {
   animation: ${fadeIn} 200ms ease-in-out;
   right: 0;
   left: auto;

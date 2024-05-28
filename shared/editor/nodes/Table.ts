@@ -22,7 +22,7 @@ import {
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import tablesRule from "../rules/tables";
-import { EditorClassNames } from "../styles/EditorClassNames";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { TableLayout } from "../types";
 import Node from "./Node";
 import { TableView } from "./TableView";
@@ -52,7 +52,7 @@ export default class Table extends Node {
         // Note: This is overridden by TableView
         return [
           "div",
-          { class: EditorClassNames.table },
+          { class: EditorStyleHelper.table },
           ["table", {}, ["tbody", 0]],
         ];
       },
@@ -100,11 +100,12 @@ export default class Table extends Node {
 
   get plugins() {
     return [
-      tableEditing(),
+      // Note: Important to register columnResizing before tableEditing
       columnResizing({
         View: TableView,
         lastColumnResizable: false,
       }),
+      tableEditing(),
     ];
   }
 }
