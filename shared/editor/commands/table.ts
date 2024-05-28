@@ -160,7 +160,10 @@ export function sortTable({
       }
 
       // replace the original table with this sorted one
-      const nodes = state.schema.nodes.table.createChecked(null, rows);
+      const nodes = state.schema.nodes.table.createChecked(
+        rect.table.attrs,
+        rows
+      );
       const { tr } = state;
 
       tr.replaceRangeWith(
@@ -169,16 +172,7 @@ export function sortTable({
         nodes
       );
 
-      dispatch(
-        tr
-          // .setSelection(
-          //   CellSelection.create(
-          //     tr.doc,
-          //     rect.map.positionAt(0, index, rect.table)
-          //   )
-          // )
-          .scrollIntoView()
-      );
+      dispatch(tr.scrollIntoView());
     }
     return true;
   };
