@@ -23,6 +23,7 @@ export default createGlobalStyle<Props>`
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
     --pointer: ${(props) => (props.useCursorPointer ? "pointer" : "default")};
+    overscroll-behavior-x: none;
   }
 
   body,

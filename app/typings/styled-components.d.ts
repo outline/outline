@@ -9,7 +9,6 @@ declare module "styled-components" {
     text: string;
     cursor: string;
     divider: string;
-    tableDivider: string;
     tableSelected: string;
     tableSelectedBackground: string;
     quote: string;

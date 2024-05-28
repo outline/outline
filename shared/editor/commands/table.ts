@@ -260,7 +260,7 @@ export function setTableAttr(attrs: { layout: TableLayout | null }): Command {
       tr.setNodeMarkup(rect.tableStart - 1, undefined, {
         ...rect.table.attrs,
         ...attrs,
-      });
+      }).setSelection(TextSelection.near(tr.doc.resolve(rect.tableStart)));
       dispatch(tr);
     }
     return true;

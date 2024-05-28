@@ -588,8 +588,8 @@ iframe.embed {
   ${props.readOnly ? "display: none;" : ""}
   position: absolute;
   right: -1px;
-  top: -16px;
-  bottom: 0;
+  top: 0;
+  bottom: -16px;
   width: 2px;
   z-index: 20;
   background-color: ${props.theme.accent};
@@ -1323,7 +1323,7 @@ table {
 
   tr {
     position: relative;
-    border-bottom: 1px solid ${props.theme.tableDivider};
+    border-bottom: 1px solid ${props.theme.divider};
   }
 
   th {
@@ -1334,7 +1334,7 @@ table {
   th {
     position: relative;
     vertical-align: top;
-    border: 1px solid ${props.theme.tableDivider};
+    border: 1px solid ${props.theme.divider};
     position: relative;
     padding: 4px 8px;
     text-align: ${props.rtl ? "right" : "left"};
@@ -1368,7 +1368,7 @@ table {
       ${props.rtl ? "right" : "left"}: 0;
       width: 100%;
       height: 12px;
-      background: ${props.theme.tableDivider};
+      background: ${props.theme.divider};
       border-bottom: 3px solid ${props.theme.background};
       display: ${props.readOnly ? "none" : "block"};
     }
@@ -1396,7 +1396,7 @@ table {
       top: 0;
       height: 100%;
       width: 12px;
-      background: ${props.theme.tableDivider};
+      background: ${props.theme.divider};
       border-${props.rtl ? "left" : "right"}: 3px solid;
       border-color: ${props.theme.background};
       display: ${props.readOnly ? "none" : "block"};
@@ -1420,7 +1420,7 @@ table {
     &::after {
       content: "";
       cursor: var(--pointer);
-      background: ${props.theme.tableDivider};
+      background: ${props.theme.divider};
       width: 13px;
       height: 13px;
       border-radius: 13px;
