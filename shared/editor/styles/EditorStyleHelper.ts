@@ -7,6 +7,15 @@ export class EditorStyleHelper {
   /** Table wrapper */
   static readonly table = "table-wrapper";
 
+  /** Table grip (circle in top left) */
+  static readonly tableGrip = "table-grip";
+
+  /** Table row grip */
+  static readonly tableGripRow = "table-grip-row";
+
+  /** Table column grip */
+  static readonly tableGripColumn = "table-grip-column";
+
   /** Scrollable area of table */
   static readonly tableScrollable = "table-scrollable";
 

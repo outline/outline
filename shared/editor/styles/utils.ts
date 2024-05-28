@@ -4,6 +4,6 @@
  * @param classNames An array of class names
  * @returns A single string of class names
  */
-export function cn(...classNames: (string | undefined)[]) {
+export function cn(...classNames: (string | number | undefined)[]) {
   return classNames.filter(Boolean).join(" ");
 }

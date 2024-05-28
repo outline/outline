@@ -1355,7 +1355,7 @@ table {
     background-clip: padding-box;
   }
 
-  .grip-column {
+  .${EditorStyleHelper.tableGripColumn} {
     /* usage of ::after for all of the table grips works around a bug in
      * prosemirror-tables that causes Safari to hang when selecting a cell
      * in an empty table:
@@ -1387,7 +1387,7 @@ table {
     }
   }
 
-  .grip-row {
+  .${EditorStyleHelper.tableGripRow} {
     &::after {
       content: "";
       cursor: var(--pointer);
@@ -1416,7 +1416,7 @@ table {
     }
   }
 
-  .grip-table {
+  .${EditorStyleHelper.tableGrip} {
     &::after {
       content: "";
       cursor: var(--pointer);

@@ -5,6 +5,8 @@ import { DecorationSet, Decoration } from "prosemirror-view";
 import { selectColumn } from "../commands/table";
 import { getCellsInRow, isColumnSelected } from "../queries/table";
 
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import { cn } from "../styles/utils";
 import Node from "./Node";
 
 export default class TableHeadCell extends Node {
@@ -58,32 +60,38 @@ export default class TableHeadCell extends Node {
 
             if (cells) {
               cells.forEach((pos, index) => {
+                const colSelected = isColumnSelected(index)(state);
+                let className = EditorStyleHelper.tableGripColumn;
+                if (colSelected) {
+                  className += " selected";
+                }
+                if (index === 0) {
+                  className += " first";
+                } else if (index === cells.length - 1) {
+                  className += " last";
+                }
                 decorations.push(
-                  Decoration.widget(pos + 1, () => {
-                    const colSelected = isColumnSelected(index)(state);
-                    let className = "grip-column";
-                    if (colSelected) {
-                      className += " selected";
+                  Decoration.widget(
+                    pos + 1,
+                    () => {
+                      const grip = document.createElement("a");
+                      grip.className = className;
+                      grip.addEventListener("mousedown", (event) => {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        this.editor.view.dispatch(
+                          selectColumn(
+                            index,
+                            event.metaKey || event.shiftKey
+                          )(state)
+                        );
+                      });
+                      return grip;
+                    },
+                    {
+                      key: cn(className, index),
                     }
-                    if (index === 0) {
-                      className += " first";
-                    } else if (index === cells.length - 1) {
-                      className += " last";
-                    }
-                    const grip = document.createElement("a");
-                    grip.className = className;
-                    grip.addEventListener("mousedown", (event) => {
-                      event.preventDefault();
-                      event.stopImmediatePropagation();
-                      this.editor.view.dispatch(
-                        selectColumn(
-                          index,
-                          event.metaKey || event.shiftKey
-                        )(state)
-                      );
-                    });
-                    return grip;
-                  })
+                  )
                 );
               });
             }

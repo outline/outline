@@ -8,6 +8,8 @@ import {
   isRowSelected,
   isTableSelected,
 } from "../queries/table";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import { cn } from "../styles/utils";
 import Node from "./Node";
 
 export default class TableCell extends Node {
@@ -62,49 +64,67 @@ export default class TableCell extends Node {
             if (cells) {
               cells.forEach((pos, index) => {
                 if (index === 0) {
+                  let className = EditorStyleHelper.tableGrip;
+                  const selected = isTableSelected(state);
+                  if (selected) {
+                    className += " selected";
+                  }
+
                   decorations.push(
-                    Decoration.widget(pos + 1, () => {
-                      let className = "grip-table";
-                      const selected = isTableSelected(state);
-                      if (selected) {
-                        className += " selected";
+                    Decoration.widget(
+                      pos + 1,
+                      () => {
+                        const grip = document.createElement("a");
+                        grip.className = className;
+                        grip.addEventListener("mousedown", (event) => {
+                          event.preventDefault();
+                          event.stopImmediatePropagation();
+                          this.editor.view.dispatch(selectTable(state));
+                        });
+                        return grip;
+                      },
+                      {
+                        key: className,
                       }
+                    )
+                  );
+                }
+
+                const rowSelected = isRowSelected(index)(state);
+
+                let className = EditorStyleHelper.tableGripRow;
+                if (rowSelected) {
+                  className += " selected";
+                }
+                if (index === 0) {
+                  className += " first";
+                }
+                if (index === cells.length - 1) {
+                  className += " last";
+                }
+
+                decorations.push(
+                  Decoration.widget(
+                    pos + 1,
+                    () => {
                       const grip = document.createElement("a");
                       grip.className = className;
                       grip.addEventListener("mousedown", (event) => {
                         event.preventDefault();
                         event.stopImmediatePropagation();
-                        this.editor.view.dispatch(selectTable(state));
+                        this.editor.view.dispatch(
+                          selectRow(
+                            index,
+                            event.metaKey || event.shiftKey
+                          )(state)
+                        );
                       });
                       return grip;
-                    })
-                  );
-                }
-                decorations.push(
-                  Decoration.widget(pos + 1, () => {
-                    const rowSelected = isRowSelected(index)(state);
-
-                    let className = "grip-row";
-                    if (rowSelected) {
-                      className += " selected";
+                    },
+                    {
+                      key: cn(className, index),
                     }
-                    if (index === 0) {
-                      className += " first";
-                    }
-                    if (index === cells.length - 1) {
-                      className += " last";
-                    }
-                    const grip = document.createElement("a");
-                    grip.className = className;
-                    grip.addEventListener("mousedown", (event) => {
-                      event.preventDefault();
-                      event.stopImmediatePropagation();
-                      this.editor.view.dispatch(
-                        selectRow(index, event.metaKey || event.shiftKey)(state)
-                      );
-                    });
-                    return grip;
-                  })
+                  )
                 );
               });
             }
