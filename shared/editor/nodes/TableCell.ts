@@ -64,17 +64,16 @@ export default class TableCell extends Node {
             if (cells) {
               cells.forEach((pos, index) => {
                 if (index === 0) {
-                  let className = EditorStyleHelper.tableGrip;
-                  const selected = isTableSelected(state);
-                  if (selected) {
-                    className += " selected";
-                  }
+                  const className = cn(EditorStyleHelper.tableGrip, {
+                    selected: isTableSelected(state),
+                  });
 
                   decorations.push(
                     Decoration.widget(
                       pos + 1,
                       () => {
                         const grip = document.createElement("a");
+                        grip.role = "button";
                         grip.className = className;
                         grip.addEventListener("mousedown", (event) => {
                           event.preventDefault();
@@ -92,22 +91,18 @@ export default class TableCell extends Node {
 
                 const rowSelected = isRowSelected(index)(state);
 
-                let className = EditorStyleHelper.tableGripRow;
-                if (rowSelected) {
-                  className += " selected";
-                }
-                if (index === 0) {
-                  className += " first";
-                }
-                if (index === cells.length - 1) {
-                  className += " last";
-                }
+                const className = cn(EditorStyleHelper.tableGripRow, {
+                  selected: rowSelected,
+                  first: index === 0,
+                  last: index === cells.length - 1,
+                });
 
                 decorations.push(
                   Decoration.widget(
                     pos + 1,
                     () => {
                       const grip = document.createElement("a");
+                      grip.role = "button";
                       grip.className = className;
                       grip.addEventListener("mousedown", (event) => {
                         event.preventDefault();

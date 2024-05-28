@@ -60,21 +60,18 @@ export default class TableHeadCell extends Node {
 
             if (cells) {
               cells.forEach((pos, index) => {
-                const colSelected = isColumnSelected(index)(state);
-                let className = EditorStyleHelper.tableGripColumn;
-                if (colSelected) {
-                  className += " selected";
-                }
-                if (index === 0) {
-                  className += " first";
-                } else if (index === cells.length - 1) {
-                  className += " last";
-                }
+                const className = cn(EditorStyleHelper.tableGripColumn, {
+                  selected: isColumnSelected(index)(state),
+                  first: index === 0,
+                  last: index === cells.length - 1,
+                });
+
                 decorations.push(
                   Decoration.widget(
                     pos + 1,
                     () => {
                       const grip = document.createElement("a");
+                      grip.role = "button";
                       grip.className = className;
                       grip.addEventListener("mousedown", (event) => {
                         event.preventDefault();
