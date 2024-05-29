@@ -1356,18 +1356,87 @@ table {
     background-clip: padding-box;
   }
 
+  .${EditorStyleHelper.tableAddRow},
   .${EditorStyleHelper.tableAddColumn} {
     display: block;
     position: absolute;
+    background: ${props.theme.accent};
+    cursor: var(--pointer);
+
+    &:hover::after {
+      width: 16px;
+      height: 16px;
+      z-index: 20;
+      background-color: ${props.theme.accent};
+      background-size: 16px 16px;
+      background-position: 50% 50%;
+      background-image: url("data:image/svg+xml;base64,${btoa(
+        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 5C11.4477 5 11 5.44772 11 6V11H6C5.44772 11 5 11.4477 5 12C5 12.5523 5.44772 13 6 13H11V18C11 18.5523 11.4477 19 12 19C12.5523 19 13 18.5523 13 18V13H18C18.5523 13 19 12.5523 19 12C19 11.4477 18.5523 11 18 11H13V6C13 5.44772 12.5523 5 12 5Z" fill="white"/></svg>'
+      )}")
+    }
+
+    // extra clickable area
+    &::before {
+      content: "";
+      display: block;
+      cursor: var(--pointer);
+      position: absolute;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .${EditorStyleHelper.tableAddRow} {
+    bottom: -1px;
+    left: -16px;
+    width: 0;
+    height: 2px;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: -10px;
+      width: 4px;
+      height: 4px;
+      display: ${props.readOnly ? "none" : "block"};
+      border-radius: 100%;
+      background-color: ${props.theme.divider};
+    }
+
+    &:hover {
+      width: calc(var(--table-width) + 16px);
+    }
+
+    &:hover::after {
+      bottom: -7.5px;
+      left: -16px;
+    }
+
+    &::before {
+      bottom: -16px;
+      left: -12px;
+    }
+
+    &.first {
+      bottom: auto;
+      top: -1px;
+
+      &::before {
+        bottom: auto;
+        top: -12px;
+      }
+    }
+  }
+
+  .${EditorStyleHelper.tableAddColumn} {
     top: -16px;
     right: -1px;
     width: 2px;
     height: 0;
-    background: ${props.theme.accent};
 
     &::after {
       content: "";
-      cursor: var(--pointer);
       position: absolute;
       top: -10px;
       right: -1px;
@@ -1384,30 +1453,12 @@ table {
 
     &:hover::after {
       top: -16px;
-      width: 16px;
-      height: 16px;
-      z-index: 20;
-      right: -9px;
-
-      border: 2px solid ${props.theme.background};
-      background-color: ${props.theme.accent};
-      background-size: 16px 16px;
-      background-position: 50% 50%;
-      background-image: url("data:image/svg+xml;base64,${btoa(
-        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 5C11.4477 5 11 5.44772 11 6V11H6C5.44772 11 5 11.4477 5 12C5 12.5523 5.44772 13 6 13H11V18C11 18.5523 11.4477 19 12 19C12.5523 19 13 18.5523 13 18V13H18C18.5523 13 19 12.5523 19 12C19 11.4477 18.5523 11 18 11H13V6C13 5.44772 12.5523 5 12 5Z" fill="white"/></svg>'
-      )}")
+      right: -7px;
     }
 
-    // extra clickable area
     &::before {
-      content: "";
-      display: block;
-      cursor: var(--pointer);
-      position: absolute;
       top: -16px;
       right: -12px;
-      width: 24px;
-      height: 24px;
     }
 
     &.first {
@@ -1497,6 +1548,7 @@ table {
       top: -18px;
       ${props.rtl ? "right" : "left"}: -18px;
       display: ${props.readOnly ? "none" : "block"};
+      z-index: 10;
     }
 
     &:hover::after {
@@ -1520,6 +1572,7 @@ table {
   overflow-y: hidden;
   overflow-x: auto;
   padding-top: 1em;
+  padding-bottom: .5em;
   padding-${props.rtl ? "right" : "left"}: ${EditorStyleHelper.padding}px;
   margin-${props.rtl ? "right" : "left"}: ${-EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
@@ -1559,7 +1612,7 @@ table {
   bottom: 0;
   ${props.rtl ? "right" : "left"}: -1em;
   width: 32px;
-  z-index: 1;
+  z-index: 20;
   transition: box-shadow 250ms ease-in-out;
   border: 0px solid transparent;
   pointer-events: none;

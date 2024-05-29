@@ -61,6 +61,7 @@ export default class TableHeadCell extends Node {
           plus.role = "button";
           plus.className = className;
           plus.addEventListener("mousedown", (event) => {
+            // TODO: Move to plugin dom handler
             event.preventDefault();
             event.stopImmediatePropagation();
             this.editor.view.dispatch(

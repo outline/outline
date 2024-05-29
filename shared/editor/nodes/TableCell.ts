@@ -1,6 +1,7 @@
 import Token from "markdown-it/lib/token";
 import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
+import { addRow, selectedRect } from "prosemirror-tables";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { selectRow, selectTable } from "../commands/table";
 import {
@@ -53,6 +54,36 @@ export default class TableCell extends Node {
   }
 
   get plugins() {
+    function buildAddRowDecoration(pos: number, index: number) {
+      return Decoration.widget(
+        pos + 1,
+        () => {
+          const className = cn(EditorStyleHelper.tableAddRow, {
+            first: index === 0,
+          });
+          const plus = document.createElement("a");
+          plus.role = "button";
+          plus.className = className;
+          plus.addEventListener("mousedown", (event) => {
+            // TODO: Move to plugin dom handler
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            this.editor.view.dispatch(
+              addRow(
+                this.editor.view.state.tr,
+                selectedRect(this.editor.view.state),
+                index
+              )
+            );
+          });
+          return plus;
+        },
+        {
+          key: cn(EditorStyleHelper.tableAddRow, index),
+        }
+      );
+    }
+
     return [
       new Plugin({
         props: {
@@ -89,10 +120,8 @@ export default class TableCell extends Node {
                   );
                 }
 
-                const rowSelected = isRowSelected(index)(state);
-
                 const className = cn(EditorStyleHelper.tableGripRow, {
-                  selected: rowSelected,
+                  selected: isRowSelected(index)(state),
                   first: index === 0,
                   last: index === rows.length - 1,
                 });
@@ -121,6 +150,12 @@ export default class TableCell extends Node {
                     }
                   )
                 );
+
+                if (index === 0) {
+                  decorations.push(buildAddRowDecoration(pos, index));
+                }
+
+                decorations.push(buildAddRowDecoration(pos, index + 1));
               });
             }
 
