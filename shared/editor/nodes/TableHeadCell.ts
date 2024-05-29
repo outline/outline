@@ -2,7 +2,7 @@ import Token from "markdown-it/lib/token";
 import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { addColumn, selectedRect } from "prosemirror-tables";
-import { DecorationSet, Decoration } from "prosemirror-view";
+import { DecorationSet, Decoration, EditorView } from "prosemirror-view";
 import { selectColumn } from "../commands/table";
 import { getCellsInRow, isColumnSelected } from "../queries/table";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
@@ -51,31 +51,21 @@ export default class TableHeadCell extends Node {
 
   get plugins() {
     function buildAddColumnDecoration(pos: number, index: number) {
+      const className = cn(EditorStyleHelper.tableAddColumn, {
+        first: index === 0,
+      });
+
       return Decoration.widget(
         pos + 1,
         () => {
-          const className = cn(EditorStyleHelper.tableAddColumn, {
-            first: index === 0,
-          });
           const plus = document.createElement("a");
           plus.role = "button";
           plus.className = className;
-          plus.addEventListener("mousedown", (event) => {
-            // TODO: Move to plugin dom handler
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            this.editor.view.dispatch(
-              addColumn(
-                this.editor.view.state.tr,
-                selectedRect(this.editor.view.state),
-                index
-              )
-            );
-          });
+          plus.dataset.index = index.toString();
           return plus;
         },
         {
-          key: cn(EditorStyleHelper.tableAddColumn, index),
+          key: cn(className, index),
         }
       );
     }
@@ -83,6 +73,46 @@ export default class TableHeadCell extends Node {
     return [
       new Plugin({
         props: {
+          handleDOMEvents: {
+            mousedown: (view: EditorView, event: MouseEvent) => {
+              if (!(event.target instanceof HTMLElement)) {
+                return false;
+              }
+
+              const targetAddColumn = event.target.closest(
+                `.${EditorStyleHelper.tableAddColumn}`
+              );
+              if (targetAddColumn) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                view.dispatch(
+                  addColumn(
+                    view.state.tr,
+                    selectedRect(view.state),
+                    Number(targetAddColumn.getAttribute("data-index"))
+                  )
+                );
+                return true;
+              }
+
+              const targetGripColumn = event.target.closest(
+                `.${EditorStyleHelper.tableGripColumn}`
+              );
+              if (targetGripColumn) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                view.dispatch(
+                  selectColumn(
+                    Number(targetGripColumn.getAttribute("data-index")),
+                    event.metaKey || event.shiftKey
+                  )(view.state)
+                );
+                return true;
+              }
+
+              return false;
+            },
+          },
           decorations: (state) => {
             const { doc } = state;
             const decorations: Decoration[] = [];
@@ -90,32 +120,24 @@ export default class TableHeadCell extends Node {
 
             if (cols) {
               cols.forEach((pos, index) => {
+                const className = cn(EditorStyleHelper.tableGripColumn, {
+                  selected: isColumnSelected(index)(state),
+                  first: index === 0,
+                  last: index === cols.length - 1,
+                });
+
                 decorations.push(
                   Decoration.widget(
                     pos + 1,
                     () => {
-                      const className = cn(EditorStyleHelper.tableGripColumn, {
-                        selected: isColumnSelected(index)(state),
-                        first: index === 0,
-                        last: index === cols.length - 1,
-                      });
                       const grip = document.createElement("a");
                       grip.role = "button";
                       grip.className = className;
-                      grip.addEventListener("mousedown", (event) => {
-                        event.preventDefault();
-                        event.stopImmediatePropagation();
-                        this.editor.view.dispatch(
-                          selectColumn(
-                            index,
-                            event.metaKey || event.shiftKey
-                          )(state)
-                        );
-                      });
+                      grip.dataset.index = index.toString();
                       return grip;
                     },
                     {
-                      key: cn(EditorStyleHelper.tableGripColumn, index),
+                      key: cn(className, index),
                     }
                   )
                 );

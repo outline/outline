@@ -55,31 +55,21 @@ export default class TableCell extends Node {
 
   get plugins() {
     function buildAddRowDecoration(pos: number, index: number) {
+      const className = cn(EditorStyleHelper.tableAddRow, {
+        first: index === 0,
+      });
+
       return Decoration.widget(
         pos + 1,
         () => {
-          const className = cn(EditorStyleHelper.tableAddRow, {
-            first: index === 0,
-          });
           const plus = document.createElement("a");
           plus.role = "button";
           plus.className = className;
-          plus.addEventListener("mousedown", (event) => {
-            // TODO: Move to plugin dom handler
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            this.editor.view.dispatch(
-              addRow(
-                this.editor.view.state.tr,
-                selectedRect(this.editor.view.state),
-                index
-              )
-            );
-          });
+          plus.dataset.index = index.toString();
           return plus;
         },
         {
-          key: cn(EditorStyleHelper.tableAddRow, index),
+          key: cn(className, index),
         }
       );
     }
@@ -87,6 +77,56 @@ export default class TableCell extends Node {
     return [
       new Plugin({
         props: {
+          handleDOMEvents: {
+            mousedown: (view, event) => {
+              if (!(event.target instanceof HTMLElement)) {
+                return false;
+              }
+
+              const targetAddRow = event.target.closest(
+                `.${EditorStyleHelper.tableAddRow}`
+              );
+              if (targetAddRow) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                view.dispatch(
+                  addRow(
+                    view.state.tr,
+                    selectedRect(view.state),
+                    Number(targetAddRow.getAttribute("data-index"))
+                  )
+                );
+                return true;
+              }
+
+              const targetGrip = event.target.closest(
+                `.${EditorStyleHelper.tableGrip}`
+              );
+              if (targetGrip) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                view.dispatch(selectTable(view.state));
+                return true;
+              }
+
+              const targetGripRow = event.target.closest(
+                `.${EditorStyleHelper.tableGripRow}`
+              );
+              if (targetGripRow) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                view.dispatch(
+                  selectRow(
+                    Number(targetGripRow.getAttribute("data-index")),
+                    event.metaKey || event.shiftKey
+                  )(view.state)
+                );
+                return true;
+              }
+
+              return false;
+            },
+          },
           decorations: (state) => {
             const { doc } = state;
             const decorations: Decoration[] = [];
@@ -106,11 +146,6 @@ export default class TableCell extends Node {
                         const grip = document.createElement("a");
                         grip.role = "button";
                         grip.className = className;
-                        grip.addEventListener("mousedown", (event) => {
-                          event.preventDefault();
-                          event.stopImmediatePropagation();
-                          this.editor.view.dispatch(selectTable(state));
-                        });
                         return grip;
                       },
                       {
@@ -133,16 +168,7 @@ export default class TableCell extends Node {
                       const grip = document.createElement("a");
                       grip.role = "button";
                       grip.className = className;
-                      grip.addEventListener("mousedown", (event) => {
-                        event.preventDefault();
-                        event.stopImmediatePropagation();
-                        this.editor.view.dispatch(
-                          selectRow(
-                            index,
-                            event.metaKey || event.shiftKey
-                          )(state)
-                        );
-                      });
+                      grip.dataset.index = index.toString();
                       return grip;
                     },
                     {

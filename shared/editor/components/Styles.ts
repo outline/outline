@@ -1413,9 +1413,10 @@ table {
       left: -16px;
     }
 
+    // extra clickable area
     &::before {
-      bottom: -16px;
-      left: -12px;
+      bottom: -12px;
+      left: -18px;
     }
 
     &.first {
@@ -1456,6 +1457,7 @@ table {
       right: -7px;
     }
 
+    // extra clickable area
     &::before {
       top: -16px;
       right: -12px;
@@ -1566,7 +1568,7 @@ table {
 
 .${EditorStyleHelper.tableScrollable} {
   position: relative;
-  margin: 0.5em 0px;
+  margin: -1em 0 -0.5em 0;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   overflow-y: hidden;
