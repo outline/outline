@@ -1361,8 +1361,8 @@ table {
   .${EditorStyleHelper.tableGrip},
   .${EditorStyleHelper.tableGripColumn},
   .${EditorStyleHelper.tableGripRow} {
-    &:not(.selected) {
-      animation: ${fadeIn} 100ms ease-in-out;
+    @media print {
+      display: none;
     }
   }
 

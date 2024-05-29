@@ -95,7 +95,7 @@ const buildBaseTheme = (input: Partial<Colors>) => {
     noticeWarningText: colors.almostBlack,
     noticeSuccessBackground: colors.brand.green,
     noticeSuccessText: colors.almostBlack,
-    tableSelectedBackground: transparentize(0.8, colors.accent),
+    tableSelectedBackground: transparentize(0.9, colors.accent),
     breakpoints,
     ...colors,
     ...spacing,
