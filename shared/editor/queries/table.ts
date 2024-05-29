@@ -90,6 +90,8 @@ export function isTableSelected(state: EditorState): boolean {
     rect.top === 0 &&
     rect.left === 0 &&
     rect.bottom === rect.map.height &&
-    rect.right === rect.map.width
+    rect.right === rect.map.width &&
+    !state.selection.empty &&
+    state.selection instanceof CellSelection
   );
 }
