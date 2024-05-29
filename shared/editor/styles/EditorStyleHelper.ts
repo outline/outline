@@ -16,6 +16,12 @@ export class EditorStyleHelper {
   /** Table column grip */
   static readonly tableGripColumn = "table-grip-column";
 
+  /** "Plus" to add column on tables */
+  static readonly tableAddColumn = "table-add-column";
+
+  /** "Plus" to add row on tables */
+  static readonly tableAddRow = "table-add-row";
+
   /** Scrollable area of table */
   static readonly tableScrollable = "table-scrollable";
 

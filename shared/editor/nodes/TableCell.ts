@@ -59,10 +59,10 @@ export default class TableCell extends Node {
           decorations: (state) => {
             const { doc } = state;
             const decorations: Decoration[] = [];
-            const cells = getCellsInColumn(0)(state);
+            const rows = getCellsInColumn(0)(state);
 
-            if (cells) {
-              cells.forEach((pos, index) => {
+            if (rows) {
+              rows.forEach((pos, index) => {
                 if (index === 0) {
                   const className = cn(EditorStyleHelper.tableGrip, {
                     selected: isTableSelected(state),
@@ -94,7 +94,7 @@ export default class TableCell extends Node {
                 const className = cn(EditorStyleHelper.tableGripRow, {
                   selected: rowSelected,
                   first: index === 0,
-                  last: index === cells.length - 1,
+                  last: index === rows.length - 1,
                 });
 
                 decorations.push(

@@ -1,5 +1,6 @@
 /**
- * Combines class names into a single string
+ * Combines class names into a single string. If the value is an object, it will only include keys
+ * with a truthy value.
  *
  * @param classNames An array of class names
  * @returns A single string of class names

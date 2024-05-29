@@ -1,6 +1,7 @@
 import Token from "markdown-it/lib/token";
 import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
+import { addColumn, selectedRect } from "prosemirror-tables";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { selectColumn } from "../commands/table";
 import { getCellsInRow, isColumnSelected } from "../queries/table";
@@ -56,20 +57,24 @@ export default class TableHeadCell extends Node {
           decorations: (state) => {
             const { doc } = state;
             const decorations: Decoration[] = [];
-            const cells = getCellsInRow(0)(state);
+            const cols = getCellsInRow(0)(state);
 
-            if (cells) {
-              cells.forEach((pos, index) => {
-                const className = cn(EditorStyleHelper.tableGripColumn, {
+            if (cols) {
+              cols.forEach((pos, index) => {
+                const baseClassName = cn({
                   selected: isColumnSelected(index)(state),
                   first: index === 0,
-                  last: index === cells.length - 1,
+                  last: index === cols.length - 1,
                 });
 
                 decorations.push(
                   Decoration.widget(
                     pos + 1,
                     () => {
+                      const className = cn(
+                        EditorStyleHelper.tableGripColumn,
+                        baseClassName
+                      );
                       const grip = document.createElement("a");
                       grip.role = "button";
                       grip.className = className;
@@ -86,7 +91,45 @@ export default class TableHeadCell extends Node {
                       return grip;
                     },
                     {
-                      key: cn(className, index),
+                      key: cn(
+                        baseClassName,
+                        EditorStyleHelper.tableGripColumn,
+                        index
+                      ),
+                    }
+                  )
+                );
+
+                decorations.push(
+                  Decoration.widget(
+                    pos + 1,
+                    () => {
+                      const className = cn(
+                        EditorStyleHelper.tableAddColumn,
+                        baseClassName
+                      );
+                      const plus = document.createElement("a");
+                      plus.role = "button";
+                      plus.className = className;
+                      plus.addEventListener("mousedown", (event) => {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        this.editor.view.dispatch(
+                          addColumn(
+                            this.editor.view.state.tr,
+                            selectedRect(this.editor.view.state),
+                            index
+                          )
+                        );
+                      });
+                      return plus;
+                    },
+                    {
+                      key: cn(
+                        baseClassName,
+                        EditorStyleHelper.tableAddColumn,
+                        index
+                      ),
                     }
                   )
                 );

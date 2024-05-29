@@ -1355,6 +1355,47 @@ table {
     background-clip: padding-box;
   }
 
+  .${EditorStyleHelper.tableAddColumn} {
+    /**
+     * Usage of ::after for all of the table grips works around a bug in
+     * prosemirror-tables that causes Safari to hang when selecting a cell
+     * in an empty table:
+     * https://github.com/ProseMirror/prosemirror/issues/947
+     */
+    &::after {
+      content: "";
+      cursor: var(--pointer);
+      position: absolute;
+      top: -28px;
+      ${props.rtl ? "right" : "left"}: -2px;
+      width: 4px;
+      height: 4px;
+      background: ${props.theme.divider};
+      display: ${props.readOnly ? "none" : "block"};
+      border-radius: 100%;
+    }
+
+    // extra clickable area
+    &::before {
+      content: "";
+      display: block;
+      cursor: var(--pointer);
+      position: absolute;
+      top: -32px;
+      left: -8px;
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover::after {
+      background: ${props.theme.text};
+      top: -32px;
+      width: 12px;
+      height: 12px;
+      ${props.rtl ? "right" : "left"}: -6px;
+    }
+  }
+
   .${EditorStyleHelper.tableGripColumn} {
     /* usage of ::after for all of the table grips works around a bug in
      * prosemirror-tables that causes Safari to hang when selecting a cell
@@ -1451,6 +1492,7 @@ table {
   scrollbar-color: transparent transparent;
   overflow-y: hidden;
   overflow-x: auto;
+  padding-top: 1em;
   padding-${props.rtl ? "right" : "left"}: 1em;
   margin-${props.rtl ? "right" : "left"}: -1em;
   transition: border 250ms ease-in-out 0s;
