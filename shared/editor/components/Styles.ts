@@ -590,7 +590,7 @@ iframe.embed {
   position: absolute;
   right: -1px;
   top: 0;
-  bottom: -16px;
+  bottom: -1px;
   width: 2px;
   z-index: 20;
   background-color: ${props.theme.text};
@@ -1357,6 +1357,16 @@ table {
   }
 
   .${EditorStyleHelper.tableAddRow},
+  .${EditorStyleHelper.tableAddColumn},
+  .${EditorStyleHelper.tableGrip},
+  .${EditorStyleHelper.tableGripColumn},
+  .${EditorStyleHelper.tableGripRow} {
+    &:not(.selected) {
+      animation: ${fadeIn} 100ms ease-in-out;
+    }
+  }
+
+  .${EditorStyleHelper.tableAddRow},
   .${EditorStyleHelper.tableAddColumn} {
     display: block;
     position: absolute;
@@ -1405,7 +1415,7 @@ table {
     }
 
     &:hover {
-      width: calc(var(--table-width) + 16px);
+      width: calc(var(--table-width) - ${EditorStyleHelper.padding * 1.5}px);
     }
 
     &:hover::after {
@@ -1449,7 +1459,7 @@ table {
     }
 
     &:hover {
-      height: calc(var(--table-height) + 16px);
+      height: calc(var(--table-height) - ${EditorStyleHelper.padding}px + 6px);
     }
 
     &:hover::after {
@@ -1568,15 +1578,15 @@ table {
 
 .${EditorStyleHelper.tableScrollable} {
   position: relative;
-  margin: -1em 0 -0.5em 0;
+  margin: -1em ${-EditorStyleHelper.padding}px -0.5em;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   overflow-y: hidden;
   overflow-x: auto;
   padding-top: 1em;
   padding-bottom: .5em;
-  padding-${props.rtl ? "right" : "left"}: ${EditorStyleHelper.padding}px;
-  margin-${props.rtl ? "right" : "left"}: ${-EditorStyleHelper.padding}px;
+  padding-left: ${EditorStyleHelper.padding}px;
+  padding-right: ${EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
 
   &:hover {
@@ -1630,12 +1640,12 @@ table {
 }
 
 .${EditorStyleHelper.tableShadowRight}::after {
-  animation: ${fadeIn} 200ms ease-in-out;
-  right: 0;
+  right: -${EditorStyleHelper.padding}px;
   left: auto;
   box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, ${
     props.theme.isDark ? 1 : 0.25
   });
+  border-right: ${EditorStyleHelper.padding}px solid ${props.theme.background};
 }
 
 .block-menu-trigger {
