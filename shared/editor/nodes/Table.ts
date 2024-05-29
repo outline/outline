@@ -3,6 +3,8 @@ import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
 import {
   addColumnAfter,
   addColumnBefore,
+  addRowAfter,
+  addRowBefore,
   columnResizing,
   deleteColumn,
   deleteRow,
@@ -72,7 +74,8 @@ export default class Table extends Node {
       addColumnBefore: () => addColumnBefore,
       addColumnAfter: () => addColumnAfter,
       deleteColumn: () => deleteColumn,
-      addRowAfter: addRowAndMoveSelection,
+      addRowBefore: () => addRowBefore,
+      addRowAfter: () => addRowAfter,
       deleteRow: () => deleteRow,
       deleteTable: () => deleteTable,
       toggleHeaderColumn: () => toggleHeaderColumn,

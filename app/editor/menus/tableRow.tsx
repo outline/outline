@@ -26,11 +26,10 @@ export default function tableRowMenuItems(
           visible: index === 0,
         },
         {
-          name: "addRowAfter",
+          name: "addRowBefore",
           label: dictionary.addRowBefore,
           icon: <InsertAboveIcon />,
-          attrs: { index: index - 1 },
-          visible: index !== 0,
+          attrs: { index },
         },
         {
           name: "addRowAfter",
