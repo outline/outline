@@ -50,6 +50,35 @@ export default class TableHeadCell extends Node {
   }
 
   get plugins() {
+    function buildAddColumnDecoration(pos: number, index: number) {
+      return Decoration.widget(
+        pos + 1,
+        () => {
+          const className = cn(EditorStyleHelper.tableAddColumn, {
+            first: index === 0,
+          });
+          const plus = document.createElement("a");
+          plus.role = "button";
+          plus.className = className;
+          plus.addEventListener("mousedown", (event) => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            this.editor.view.dispatch(
+              addColumn(
+                this.editor.view.state.tr,
+                selectedRect(this.editor.view.state),
+                index
+              )
+            );
+          });
+          return plus;
+        },
+        {
+          key: cn(EditorStyleHelper.tableAddColumn, index),
+        }
+      );
+    }
+
     return [
       new Plugin({
         props: {
@@ -60,20 +89,15 @@ export default class TableHeadCell extends Node {
 
             if (cols) {
               cols.forEach((pos, index) => {
-                const baseClassName = cn({
-                  selected: isColumnSelected(index)(state),
-                  first: index === 0,
-                  last: index === cols.length - 1,
-                });
-
                 decorations.push(
                   Decoration.widget(
                     pos + 1,
                     () => {
-                      const className = cn(
-                        EditorStyleHelper.tableGripColumn,
-                        baseClassName
-                      );
+                      const className = cn(EditorStyleHelper.tableGripColumn, {
+                        selected: isColumnSelected(index)(state),
+                        first: index === 0,
+                        last: index === cols.length - 1,
+                      });
                       const grip = document.createElement("a");
                       grip.role = "button";
                       grip.className = className;
@@ -90,48 +114,16 @@ export default class TableHeadCell extends Node {
                       return grip;
                     },
                     {
-                      key: cn(
-                        baseClassName,
-                        EditorStyleHelper.tableGripColumn,
-                        index
-                      ),
+                      key: cn(EditorStyleHelper.tableGripColumn, index),
                     }
                   )
                 );
 
-                decorations.push(
-                  Decoration.widget(
-                    pos + 1,
-                    () => {
-                      const className = cn(
-                        EditorStyleHelper.tableAddColumn,
-                        baseClassName
-                      );
-                      const plus = document.createElement("a");
-                      plus.role = "button";
-                      plus.className = className;
-                      plus.addEventListener("mousedown", (event) => {
-                        event.preventDefault();
-                        event.stopImmediatePropagation();
-                        this.editor.view.dispatch(
-                          addColumn(
-                            this.editor.view.state.tr,
-                            selectedRect(this.editor.view.state),
-                            index + 1
-                          )
-                        );
-                      });
-                      return plus;
-                    },
-                    {
-                      key: cn(
-                        baseClassName,
-                        EditorStyleHelper.tableAddColumn,
-                        index
-                      ),
-                    }
-                  )
-                );
+                if (index === 0) {
+                  decorations.push(buildAddColumnDecoration(pos, index));
+                }
+
+                decorations.push(buildAddColumnDecoration(pos, index + 1));
               });
             }
 

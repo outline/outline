@@ -72,10 +72,19 @@ export class TableView extends ProsemirrorTableView {
     this.dom.classList.toggle(EditorStyleHelper.tableShadowLeft, shadowLeft);
     this.dom.classList.toggle(EditorStyleHelper.tableShadowRight, shadowRight);
 
-    this.dom.style.setProperty(
-      "--table-height",
-      `${this.scrollable?.clientHeight}px`
-    );
+    if (this.scrollable) {
+      this.dom.style.setProperty(
+        "--table-height",
+        `${this.scrollable?.clientHeight}px`
+      );
+      this.dom.style.setProperty(
+        "--table-width",
+        `${this.scrollable?.clientWidth}px`
+      );
+    } else {
+      this.dom.style.removeProperty("--table-height");
+      this.dom.style.removeProperty("--table-width");
+    }
   }
 
   private scrollable: HTMLDivElement | null = null;

@@ -1365,25 +1365,17 @@ table {
     height: 0;
     background: ${props.theme.accent};
 
-    /**
-     * Usage of ::after for all of the table grips works around a bug in
-     * prosemirror-tables that causes Safari to hang when selecting a cell
-     * in an empty table:
-     * https://github.com/ProseMirror/prosemirror/issues/947
-     */
     &::after {
       content: "";
       cursor: var(--pointer);
       position: absolute;
       top: -10px;
-      ${props.rtl ? "left" : "right"}: -1px;
+      right: -1px;
       width: 4px;
       height: 4px;
       display: ${props.readOnly ? "none" : "block"};
       border-radius: 100%;
-      background-size: 16px 16px;
       background-color: ${props.theme.divider};
-      background-position: 50% 50%;
     }
 
     &:hover {
@@ -1395,10 +1387,12 @@ table {
       width: 16px;
       height: 16px;
       z-index: 20;
-      ${props.rtl ? "left" : "right"}: -9px;
+      right: -9px;
 
       border: 2px solid ${props.theme.background};
       background-color: ${props.theme.accent};
+      background-size: 16px 16px;
+      background-position: 50% 50%;
       background-image: url("data:image/svg+xml;base64,${btoa(
         '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 5C11.4477 5 11 5.44772 11 6V11H6C5.44772 11 5 11.4477 5 12C5 12.5523 5.44772 13 6 13H11V18C11 18.5523 11.4477 19 12 19C12.5523 19 13 18.5523 13 18V13H18C18.5523 13 19 12.5523 19 12C19 11.4477 18.5523 11 18 11H13V6C13 5.44772 12.5523 5 12 5Z" fill="white"/></svg>'
       )}")
@@ -1411,9 +1405,19 @@ table {
       cursor: var(--pointer);
       position: absolute;
       top: -16px;
-      ${props.rtl ? "left" : "right"}: -12px;
+      right: -12px;
       width: 24px;
       height: 24px;
+    }
+
+    &.first {
+      right: auto;
+      left: -1px;
+
+      &::before {
+        right: auto;
+        left: -12px;
+      }
     }
   }
 
@@ -1431,7 +1435,6 @@ table {
       width: 100%;
       height: 12px;
       background: ${props.theme.divider};
-      border-bottom: 3px solid ${props.theme.background};
       display: ${props.readOnly ? "none" : "block"};
     }
 
@@ -1440,9 +1443,11 @@ table {
     }
     &.first::after {
       border-top-${props.rtl ? "right" : "left"}-radius: 3px;
+      border-bottom-${props.rtl ? "right" : "left"}-radius: 3px;
     }
     &.last::after {
       border-top-${props.rtl ? "left" : "right"}-radius: 3px;
+      border-bottom-${props.rtl ? "left" : "right"}-radius: 3px;
     }
     &.selected::after {
       background: ${props.theme.tableSelected};
@@ -1459,7 +1464,6 @@ table {
       height: 100%;
       width: 12px;
       background: ${props.theme.divider};
-      border-${props.rtl ? "left" : "right"}: 3px solid;
       border-color: ${props.theme.background};
       display: ${props.readOnly ? "none" : "block"};
     }
@@ -1468,10 +1472,12 @@ table {
       background: ${props.theme.text};
     }
     &.first::after {
-      border-top-${props.rtl ? "right" : "left"}-radius: 3px;
+      border-top-left-radius: 3px;
+      border-top-right-radius: 3px;
     }
     &.last::after {
-      border-bottom-${props.rtl ? "right" : "left"}-radius: 3px;
+      border-bottom-left-radius: 3px;
+      border-bottom-right-radius: 3px;
     }
     &.selected::after {
       background: ${props.theme.tableSelected};
@@ -1514,8 +1520,8 @@ table {
   overflow-y: hidden;
   overflow-x: auto;
   padding-top: 1em;
-  padding-${props.rtl ? "right" : "left"}: 1em;
-  margin-${props.rtl ? "right" : "left"}: -1em;
+  padding-${props.rtl ? "right" : "left"}: ${EditorStyleHelper.padding}px;
+  margin-${props.rtl ? "right" : "left"}: ${-EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
 
   &:hover {
@@ -1560,12 +1566,12 @@ table {
 }
 
 .${EditorStyleHelper.tableShadowLeft}::before {
-  left: -1em;
+  left: -${EditorStyleHelper.padding}px;
   right: auto;
   box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
     props.theme.isDark ? 1 : 0.25
   });
-  border-left: 1em solid ${props.theme.background};
+  border-left: ${EditorStyleHelper.padding}px solid ${props.theme.background};
 }
 
 .${EditorStyleHelper.tableShadowRight}::after {
