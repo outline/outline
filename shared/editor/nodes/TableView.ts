@@ -26,6 +26,13 @@ export class TableView extends ProsemirrorTableView {
     );
 
     this.updateClassList(node);
+
+    // We need to wait for the next tick to ensure dom is rendered and scroll shadows are correct.
+    setTimeout(() => {
+      if (this.dom) {
+        this.updateClassList(node);
+      }
+    }, 0);
   }
 
   public override update(node: Node) {
