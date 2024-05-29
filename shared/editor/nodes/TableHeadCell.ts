@@ -5,7 +5,6 @@ import { addColumn, selectedRect } from "prosemirror-tables";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { selectColumn } from "../commands/table";
 import { getCellsInRow, isColumnSelected } from "../queries/table";
-
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { cn } from "../styles/utils";
 import Node from "./Node";
@@ -118,7 +117,7 @@ export default class TableHeadCell extends Node {
                           addColumn(
                             this.editor.view.state.tr,
                             selectedRect(this.editor.view.state),
-                            index
+                            index + 1
                           )
                         );
                       });

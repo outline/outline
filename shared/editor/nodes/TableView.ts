@@ -44,7 +44,7 @@ export class TableView extends ProsemirrorTableView {
     if (
       record.type === "attributes" &&
       record.target === this.dom &&
-      record.attributeName === "class"
+      (record.attributeName === "class" || record.attributeName === "style")
     ) {
       return true;
     }
@@ -71,6 +71,11 @@ export class TableView extends ProsemirrorTableView {
 
     this.dom.classList.toggle(EditorStyleHelper.tableShadowLeft, shadowLeft);
     this.dom.classList.toggle(EditorStyleHelper.tableShadowRight, shadowRight);
+
+    this.dom.style.setProperty(
+      "--table-height",
+      `${this.scrollable?.clientHeight}px`
+    );
   }
 
   private scrollable: HTMLDivElement | null = null;

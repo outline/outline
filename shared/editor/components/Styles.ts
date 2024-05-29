@@ -585,6 +585,7 @@ iframe.embed {
 }
 
 .column-resize-handle {
+  animation: ${fadeIn} 150ms ease-in-out;
   ${props.readOnly ? "display: none;" : ""}
   position: absolute;
   right: -1px;
@@ -592,7 +593,7 @@ iframe.embed {
   bottom: -16px;
   width: 2px;
   z-index: 20;
-  background-color: ${props.theme.accent};
+  background-color: ${props.theme.text};
   pointer-events: none;
 }
 
@@ -1356,6 +1357,14 @@ table {
   }
 
   .${EditorStyleHelper.tableAddColumn} {
+    display: block;
+    position: absolute;
+    top: -16px;
+    right: -1px;
+    width: 2px;
+    height: 0;
+    background: ${props.theme.accent};
+
     /**
      * Usage of ::after for all of the table grips works around a bug in
      * prosemirror-tables that causes Safari to hang when selecting a cell
@@ -1366,13 +1375,33 @@ table {
       content: "";
       cursor: var(--pointer);
       position: absolute;
-      top: -28px;
-      ${props.rtl ? "right" : "left"}: -2px;
+      top: -10px;
+      ${props.rtl ? "left" : "right"}: -1px;
       width: 4px;
       height: 4px;
-      background: ${props.theme.divider};
       display: ${props.readOnly ? "none" : "block"};
       border-radius: 100%;
+      background-size: 16px 16px;
+      background-color: ${props.theme.divider};
+      background-position: 50% 50%;
+    }
+
+    &:hover {
+      height: calc(var(--table-height) + 16px);
+    }
+
+    &:hover::after {
+      top: -16px;
+      width: 16px;
+      height: 16px;
+      z-index: 20;
+      ${props.rtl ? "left" : "right"}: -9px;
+
+      border: 2px solid ${props.theme.background};
+      background-color: ${props.theme.accent};
+      background-image: url("data:image/svg+xml;base64,${btoa(
+        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 5C11.4477 5 11 5.44772 11 6V11H6C5.44772 11 5 11.4477 5 12C5 12.5523 5.44772 13 6 13H11V18C11 18.5523 11.4477 19 12 19C12.5523 19 13 18.5523 13 18V13H18C18.5523 13 19 12.5523 19 12C19 11.4477 18.5523 11 18 11H13V6C13 5.44772 12.5523 5 12 5Z" fill="white"/></svg>'
+      )}")
     }
 
     // extra clickable area
@@ -1381,18 +1410,10 @@ table {
       display: block;
       cursor: var(--pointer);
       position: absolute;
-      top: -32px;
-      left: -8px;
-      width: 16px;
-      height: 16px;
-    }
-
-    &:hover::after {
-      background: ${props.theme.text};
-      top: -32px;
-      width: 12px;
-      height: 12px;
-      ${props.rtl ? "right" : "left"}: -6px;
+      top: -16px;
+      ${props.rtl ? "left" : "right"}: -12px;
+      width: 24px;
+      height: 24px;
     }
   }
 
