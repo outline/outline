@@ -213,11 +213,16 @@ export class ProsemirrorHelper {
         // Noop: Invalid url.
       }
 
-      return (
-        mapping[href] ||
-        (relativeHref ? mapping[relativeHref] : undefined) ||
-        href
-      );
+      for (const originalUrl of Object.keys(mapping)) {
+        if (
+          href.startsWith(originalUrl) ||
+          relativeHref?.startsWith(originalUrl)
+        ) {
+          return mapping[originalUrl];
+        }
+      }
+
+      return href;
     }
 
     function replaceAttachmentUrls(node: ProsemirrorData) {
