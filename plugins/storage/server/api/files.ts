@@ -15,6 +15,7 @@ import { Attachment } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import FileStorage from "@server/storage/files";
+import LocalStorage from "@server/storage/files/LocalStorage";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
@@ -84,12 +85,12 @@ router.get(
           "application/octet-stream"
       );
       ctx.attachment(fileName);
-      ctx.body = await FileStorage.getFileStream(key);
     } else {
       const attachment = await Attachment.findOne({
         where: { key },
         rejectOnEmpty: true,
       });
+
       authorize(actor, "read", attachment);
 
       ctx.set("Cache-Control", cacheHeader);
@@ -97,10 +98,46 @@ router.get(
       ctx.attachment(attachment.name, {
         type: FileStorage.getContentDisposition(attachment.contentType),
       });
-      ctx.body = attachment.stream;
     }
+
+    // Handle byte range requests
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
+    const stats = await (FileStorage as LocalStorage).stat(key);
+    const range = getByteRange(ctx, stats.size);
+
+    if (range) {
+      ctx.set("Content-Length", String(range.end - range.start + 1));
+      ctx.set(
+        "Content-Range",
+        `bytes ${range.start}-${range.end}/${stats.size}`
+      );
+    } else {
+      ctx.set("Content-Length", String(stats.size));
+    }
+
+    ctx.body = await FileStorage.getFileStream(key, range);
   }
 );
+
+function getByteRange(
+  ctx: APIContext<T.FilesGetReq>,
+  size: number
+): { start: number; end: number } | undefined {
+  const { range } = ctx.headers;
+  if (!range) {
+    return;
+  }
+
+  const match = range.match(/bytes=(\d+)-(\d+)?/);
+  if (!match) {
+    return;
+  }
+
+  const start = parseInt(match[1], 10);
+  const end = parseInt(match[2], 10) || size - 1;
+
+  return { start, end };
+}
 
 function getKeyFromContext(ctx: APIContext<T.FilesGetReq>): string {
   const { key, sig } = ctx.input.query;

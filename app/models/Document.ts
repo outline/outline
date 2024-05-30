@@ -5,7 +5,7 @@ import floor from "lodash/floor";
 import { action, autorun, computed, observable, set } from "mobx";
 import { Node, Schema } from "prosemirror-model";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import { richExtensions } from "@shared/editor/nodes";
+import { richExtensions, withComments } from "@shared/editor/nodes";
 import type {
   JSONObject,
   NavigationNode,
@@ -574,7 +574,7 @@ export default class Document extends ParanoidModel {
    * @returns The markdown representation of the document as a string.
    */
   toMarkdown = () => {
-    const extensionManager = new ExtensionManager(richExtensions);
+    const extensionManager = new ExtensionManager(withComments(richExtensions));
     const serializer = extensionManager.serializer();
     const schema = new Schema({
       nodes: extensionManager.nodes,

@@ -203,16 +203,37 @@ export class ProsemirrorHelper {
 
     const json = doc.toJSON() as ProsemirrorData;
 
+    function getMapping(href: string) {
+      let relativeHref;
+
+      try {
+        const url = new URL(href);
+        relativeHref = url.toString().substring(url.origin.length);
+      } catch {
+        // Noop: Invalid url.
+      }
+
+      for (const originalUrl of Object.keys(mapping)) {
+        if (
+          href.startsWith(originalUrl) ||
+          relativeHref?.startsWith(originalUrl)
+        ) {
+          return mapping[originalUrl];
+        }
+      }
+
+      return href;
+    }
+
     function replaceAttachmentUrls(node: ProsemirrorData) {
       if (node.attrs?.src) {
-        node.attrs.src = mapping[node.attrs.src as string] || node.attrs.src;
+        node.attrs.src = getMapping(String(node.attrs.src));
       } else if (node.attrs?.href) {
-        node.attrs.href = mapping[node.attrs.href as string] || node.attrs.href;
+        node.attrs.href = getMapping(String(node.attrs.href));
       } else if (node.marks) {
         node.marks.forEach((mark) => {
           if (mark.attrs?.href) {
-            mark.attrs.href =
-              mapping[mark.attrs.href as string] || mark.attrs.href;
+            mark.attrs.href = getMapping(String(mark.attrs.href));
           }
         });
       }

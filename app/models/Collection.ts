@@ -6,6 +6,7 @@ import {
   NavigationNode,
   type ProsemirrorData,
 } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import type CollectionsStore from "~/stores/CollectionsStore";
 import Document from "~/models/Document";
@@ -134,8 +135,14 @@ export default class Collection extends ParanoidModel {
     return !this.permission;
   }
 
+  /**
+   * Check whether this collection has a description.
+   *
+   * @returns boolean
+   */
+  @computed
   get hasDescription(): boolean {
-    return !!this.data;
+    return this.data ? !ProsemirrorHelper.isEmptyData(this.data) : false;
   }
 
   @computed

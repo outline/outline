@@ -50,12 +50,14 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         if (shareId && navigateTo.includes("/doc/")) {
           navigateTo = sharedDocumentPath(shareId, navigateTo);
         }
-      }
 
-      if (!isModKey(event) && !event.shiftKey) {
-        history.push(navigateTo);
+        if (!isModKey(event) && !event.shiftKey) {
+          history.push(navigateTo);
+        } else {
+          window.open(navigateTo, "_blank");
+        }
       } else {
-        window.open(navigateTo, "_blank");
+        window.open(href, "_blank");
       }
     },
     [history, shareId]

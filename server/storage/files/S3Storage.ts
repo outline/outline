@@ -201,12 +201,16 @@ export default class S3Storage extends BaseStorage {
     });
   }
 
-  public getFileStream(key: string): Promise<NodeJS.ReadableStream | null> {
+  public getFileStream(
+    key: string,
+    range?: { start: number; end: number }
+  ): Promise<NodeJS.ReadableStream | null> {
     return this.client
       .send(
         new GetObjectCommand({
           Bucket: this.getBucket(),
           Key: key,
+          Range: range ? `bytes=${range.start}-${range.end}` : undefined,
         })
       )
       .then((item) => item.Body as NodeJS.ReadableStream)
