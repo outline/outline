@@ -28,7 +28,7 @@ export class FeatureFlags {
       this.initalized = true;
     }
 
-    return this.cache.has(flag) ?? FeatureDefaults[flag];
+    return this.cache.has(flag) ? true : FeatureDefaults[flag] ?? false;
   }
 
   public static enable(flag: Feature) {
