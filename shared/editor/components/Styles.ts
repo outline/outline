@@ -320,8 +320,8 @@ width: 100%;
   }
 
   & > * {
-    margin-top: .5em;
-    margin-bottom: .5em;
+    margin-top: 0.85em;
+    margin-bottom: 0.85em;
 
     &:last-child {
       margin-bottom: 0;
@@ -497,8 +497,8 @@ iframe.embed {
   max-width: 840px;
   cursor: default;
 
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
+  margin-top: 0.85em;
+  margin-bottom: 0.85em;
 
   .title,
   .subtitle {
@@ -1244,7 +1244,7 @@ pre {
   background: ${props.theme.codeBackground};
   border-radius: 4px;
   border: 1px solid ${props.theme.codeBorder};
-  margin: .5em 0;
+  margin: 0.85em 0;
 
   -webkit-font-smoothing: initial;
   font-family: ${props.theme.fontFamilyMono};

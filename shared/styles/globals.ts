@@ -80,7 +80,7 @@ export default createGlobalStyle<Props>`
     font-weight: 500;
     line-height: 1.25;
     margin-top: 1em;
-    margin-bottom: 0.5em;
+    margin-bottom: 0.85em;
   }
   h1 { font-size: 36px; }
   h2 { font-size: 26px; }
