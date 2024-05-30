@@ -3,7 +3,6 @@ import {
   SearchIcon,
   ArchiveIcon,
   TrashIcon,
-  EditIcon,
   OpenIcon,
   SettingsIcon,
   KeyboardIcon,
@@ -12,6 +11,7 @@ import {
   ProfileIcon,
   BrowserIcon,
   ShapesIcon,
+  DraftsIcon,
 } from "outline-icons";
 import * as React from "react";
 import { UrlHelper } from "@shared/utils/UrlHelper";
@@ -57,7 +57,7 @@ export const navigateToDrafts = createAction({
   name: ({ t }) => t("Drafts"),
   analyticsName: "Navigate to drafts",
   section: NavigationSection,
-  icon: <EditIcon />,
+  icon: <DraftsIcon />,
   perform: () => history.push(draftsPath()),
   visible: ({ location }) => location.pathname !== draftsPath(),
 });

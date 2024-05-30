@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { EditIcon, SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
+import { DraftsIcon, SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -109,7 +109,7 @@ function AppSidebar() {
               {can.createDocument && (
                 <SidebarLink
                   to={draftsPath()}
-                  icon={<EditIcon />}
+                  icon={<DraftsIcon />}
                   label={
                     <Flex align="center" justify="space-between">
                       {t("Drafts")}

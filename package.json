@@ -157,7 +157,7 @@
     "node-fetch": "2.7.0",
     "nodemailer": "^6.9.9",
     "octokit": "^3.1.2",
-    "outline-icons": "^3.2.1",
+    "outline-icons": "^3.4.0",
     "oy-vey": "^0.12.1",
     "passport": "^0.7.0",
     "passport-google-oauth2": "^0.2.0",
