@@ -1,7 +1,6 @@
 #!/bin/bash
 # This is a script used by the devcontainer to build the project
 
-
 yarn install-local-ssl
 yarn install --pure-lockfile
 
@@ -62,6 +61,7 @@ replace_env "REDIS_URL" "$REDIS_URL" "$NEW_ENV_FILENAME"
 # configure the URL
 URL=https://localhost:3000
 replace_env "URL" "$URL" "$NEW_ENV_FILENAME"
+replace_env "URL" "$URL" ".env.development"
 
 # configure the NODE_ENV
 NODE_ENV=development
@@ -69,7 +69,6 @@ replace_env "NODE_ENV" "$NODE_ENV" "$NEW_ENV_FILENAME"
 
 # configure the IFRAMELY_URL
 comment_out_env "IFRAMELY_URL" "$NEW_ENV_FILENAME"
-
 
 # create the data directory and change the permissions
 DATA_DIR=/var/lib/outline/data
