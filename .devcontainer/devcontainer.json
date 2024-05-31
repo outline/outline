@@ -1,26 +1,30 @@
 // For format details, see https://aka.ms/devcontainer.json.
 {
     "name": "Debian",
+    "hostRequirements": {
+        "cpus": 4,
+        "memory": "16gb"
+    },
     "dockerComposeFile": "docker-compose.yml",
     "service": "app",
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     "features": {
-      "ghcr.io/devcontainers/features/node:1": {
-        "version": "18"
-      }
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "18"
+        }
     },
     // Configure tool-specific properties.
     "customizations": {
-      "vscode": {
-        "extensions": [
-          "ms-playwright.playwright",
-          "esbenp.prettier-vscode",
-          "streetsidesoftware.code-spell-checker"
-        ]
-      }
+        "vscode": {
+            "extensions": [
+                "ms-playwright.playwright",
+                "esbenp.prettier-vscode",
+                "streetsidesoftware.code-spell-checker"
+            ]
+        }
     },
     "updateContentCommand": "bash ./.devcontainer/build.sh",
     "postCreateCommand": "bash ./.devcontainer/setup-user.sh"
     // "postStartCommand": "yarn dev:watch"
     // "postStartCommand": "yarn build:server && node build/server/scripts/seed.js my@email.com"
-  }
+}
