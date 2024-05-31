@@ -21,6 +21,9 @@ export function SearchInput({ onChange, onClick, query, back, action }: Props) {
 
   const focusInput = React.useCallback(
     (event) => {
+      if (event.target.closest("button")) {
+        return;
+      }
       inputRef.current?.focus();
       onClick(event);
     },
