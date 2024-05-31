@@ -1328,6 +1328,7 @@ table {
   }
 
   th {
+    background: ${transparentize(0.5, props.theme.divider)};
     font-weight: 600;
   }
 
