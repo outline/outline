@@ -1327,11 +1327,6 @@ table {
     border-bottom: 1px solid ${props.theme.divider};
   }
 
-  th {
-    background: ${transparentize(0.5, props.theme.divider)};
-    font-weight: 600;
-  }
-
   td,
   th {
     position: relative;
@@ -1341,6 +1336,13 @@ table {
     padding: 4px 8px;
     text-align: ${props.rtl ? "right" : "left"};
     min-width: 100px;
+    font-weight: normal;
+  }
+
+  th {
+    background: ${transparentize(0.75, props.theme.divider)};
+    color: ${props.theme.textSecondary};
+    font-weight: 500;
   }
 
   td .component-embed {
