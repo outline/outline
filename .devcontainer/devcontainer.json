@@ -6,6 +6,10 @@
         "memory": "16gb"
     },
     "dockerComposeFile": "docker-compose.yml",
+    "forwardPorts":[
+        "postgres:5432",
+        "redis:6379"
+    ],
     "service": "app",
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     "features": {
