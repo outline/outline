@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
@@ -7,18 +7,18 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../..:/workspaces:cached
+    network_mode: bridge
     command: sleep infinity
+    depends_on:
+      - redis
+      - postgres
 
   redis:
     image: redis
-    ports:
-      - "127.0.0.1:6379:6379"
     user: "redis:redis"
 
   postgres:
     image: postgres
-    ports:
-      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
