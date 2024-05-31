@@ -3,6 +3,7 @@ import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { addRowBefore, selectRow, selectTable } from "../commands/table";
+import { getCellAttrs, setCellAttrs } from "../lib/table";
 import {
   getCellsInColumn,
   isRowSelected,
@@ -22,15 +23,9 @@ export default class TableCell extends Node {
       content: "block+",
       tableRole: "cell",
       isolating: true,
-      parseDOM: [{ tag: "td" }],
+      parseDOM: [{ tag: "td", getAttrs: getCellAttrs }],
       toDOM(node) {
-        return [
-          "td",
-          node.attrs.alignment
-            ? { style: `text-align: ${node.attrs.alignment}` }
-            : {},
-          0,
-        ];
+        return ["td", setCellAttrs(node), 0];
       },
       attrs: {
         colspan: { default: 1 },

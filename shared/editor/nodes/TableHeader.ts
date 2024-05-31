@@ -3,12 +3,13 @@ import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { DecorationSet, Decoration, EditorView } from "prosemirror-view";
 import { addColumnBefore, selectColumn } from "../commands/table";
+import { getCellAttrs, setCellAttrs } from "../lib/table";
 import { getCellsInRow, isColumnSelected } from "../queries/table";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { cn } from "../styles/utils";
 import Node from "./Node";
 
-export default class TableHeadCell extends Node {
+export default class TableHeader extends Node {
   get name() {
     return "th";
   }
@@ -18,15 +19,9 @@ export default class TableHeadCell extends Node {
       content: "block+",
       tableRole: "header_cell",
       isolating: true,
-      parseDOM: [{ tag: "th" }],
+      parseDOM: [{ tag: "th", getAttrs: getCellAttrs }],
       toDOM(node) {
-        return [
-          "th",
-          node.attrs.alignment
-            ? { style: `text-align: ${node.attrs.alignment}` }
-            : {},
-          0,
-        ];
+        return ["th", setCellAttrs(node), 0];
       },
       attrs: {
         colspan: { default: 1 },

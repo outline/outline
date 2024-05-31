@@ -281,6 +281,12 @@ export function addRowAndMoveSelection({
   };
 }
 
+/**
+ * Set column attributes. Passed attributes will be merged with existing.
+ *
+ * @param attrs The attributes to set
+ * @returns The command
+ */
 export function setColumnAttr({
   index,
   alignment,
@@ -293,7 +299,9 @@ export function setColumnAttr({
       const cells = getCellsInColumn(index)(state) || [];
       let transaction = state.tr;
       cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
         transaction = transaction.setNodeMarkup(pos, undefined, {
+          ...node?.attrs,
           alignment,
         });
       });
@@ -304,7 +312,7 @@ export function setColumnAttr({
 }
 
 /**
- * Set the table attributes
+ * Set table attributes. Passed attributes will be merged with existing.
  *
  * @param attrs The attributes to set
  * @returns The command
