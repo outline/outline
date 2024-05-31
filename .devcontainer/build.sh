@@ -5,3 +5,4 @@ yarn install-local-ssl
 yarn install --pure-lockfile
 
 
+cp .env.sample .env
