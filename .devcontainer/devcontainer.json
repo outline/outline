@@ -20,6 +20,7 @@
       }
     },
     "updateContentCommand": "bash ./.devcontainer/build.sh",
-    "postCreateCommand": "bash ./.devcontainer/setup-user.sh",
-    "postStartCommand": "yarn build:server && node build/server/scripts/seed.js my@email.com"
+    "postCreateCommand": "bash ./.devcontainer/setup-user.sh"
+    // "postStartCommand": "yarn dev:watch"
+    // "postStartCommand": "yarn build:server && node build/server/scripts/seed.js my@email.com"
   }
