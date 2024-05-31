@@ -8,6 +8,7 @@ import Button from "~/components/Button";
 import Popover from "~/components/Popover";
 import SharePopover from "~/components/Sharing/Document";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -32,6 +33,11 @@ function ShareButton({ document }: Props) {
     placement: "bottom-end",
     unstable_fixed: true,
   });
+
+  const isMobile = useMobile();
+  if (isMobile) {
+    return null;
+  }
 
   const icon = isPubliclyShared ? <GlobeIcon /> : undefined;
 
