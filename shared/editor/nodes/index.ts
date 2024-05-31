@@ -39,7 +39,7 @@ import Paragraph from "./Paragraph";
 import SimpleImage from "./SimpleImage";
 import Table from "./Table";
 import TableCell from "./TableCell";
-import TableHeadCell from "./TableHeadCell";
+import TableHeader from "./TableHeader";
 import TableRow from "./TableRow";
 import Text from "./Text";
 import Video from "./Video";
@@ -77,12 +77,7 @@ export const listExtensions: Nodes = [
   ListItem,
 ];
 
-export const tableExtensions: Nodes = [
-  Table,
-  TableCell,
-  TableHeadCell,
-  TableRow,
-];
+export const tableExtensions: Nodes = [Table, TableCell, TableHeader, TableRow];
 
 /**
  * The full set of nodes that are used in the editor. This is used for rich

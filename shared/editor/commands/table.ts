@@ -1,18 +1,18 @@
 import { Fragment, Node, NodeType } from "prosemirror-model";
-import {
-  Command,
-  EditorState,
-  TextSelection,
-  Transaction,
-} from "prosemirror-state";
+import { Command, EditorState, TextSelection } from "prosemirror-state";
 import {
   CellSelection,
   addRow,
   isInTable,
   selectedRect,
   tableNodeTypes,
+  toggleHeader,
+  addColumn,
 } from "prosemirror-tables";
-import { getCellsInColumn } from "../queries/table";
+import { chainTransactions } from "../lib/chainTransactions";
+import { getCellsInColumn, isHeaderEnabled } from "../queries/table";
+import { TableLayout } from "../types";
+import collapseSelection from "./collapseSelection";
 
 export function createTable({
   rowsCount,
@@ -34,7 +34,7 @@ export function createTable({
   };
 }
 
-export function createTableInner(
+function createTableInner(
   state: EditorState,
   rowsCount: number,
   colsCount: number,
@@ -93,6 +93,7 @@ export function sortTable({
     if (!isInTable(state)) {
       return false;
     }
+
     if (dispatch) {
       const rect = selectedRect(state);
       const table: Node[][] = [];
@@ -159,7 +160,10 @@ export function sortTable({
       }
 
       // replace the original table with this sorted one
-      const nodes = state.schema.nodes.table.createChecked(null, rows);
+      const nodes = state.schema.nodes.table.createChecked(
+        rect.table.attrs,
+        rows
+      );
       const { tr } = state;
 
       tr.replaceRangeWith(
@@ -168,17 +172,72 @@ export function sortTable({
         nodes
       );
 
-      dispatch(
-        tr
-          // .setSelection(
-          //   CellSelection.create(
-          //     tr.doc,
-          //     rect.map.positionAt(0, index, rect.table)
-          //   )
-          // )
-          .scrollIntoView()
-      );
+      dispatch(tr.scrollIntoView());
     }
+    return true;
+  };
+}
+
+/**
+ * A command that safely adds a row taking into account any existing heading column at the top of
+ * the table, and preventing it moving "into" the table.
+ *
+ * @param index The index to add the row at, if undefined the current selection is used
+ * @returns The command
+ */
+export function addRowBefore({ index }: { index?: number }): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const isHeaderRowEnabled = isHeaderEnabled(state, "row", rect);
+    const position = index !== undefined ? index : rect.left;
+
+    // Special case when adding row to the beginning of the table to ensure the header does not
+    // move inwards.
+    const headerSpecialCase = position === 0 && isHeaderRowEnabled;
+
+    chainTransactions(
+      headerSpecialCase ? toggleHeader("row") : undefined,
+      (s, d) => !!d?.(addRow(s.tr, rect, position)),
+      headerSpecialCase ? toggleHeader("row") : undefined,
+      collapseSelection()
+    )(state, dispatch);
+
+    return true;
+  };
+}
+
+/**
+ * A command that safely adds a column taking into account any existing heading column on the far
+ * left of the table, and preventing it moving "into" the table.
+ *
+ * @param index The index to add the column at, if undefined the current selection is used
+ * @returns The command
+ */
+export function addColumnBefore({ index }: { index?: number }): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    const rect = selectedRect(state);
+    const isHeaderColumnEnabled = isHeaderEnabled(state, "column", rect);
+    const position = index !== undefined ? index : rect.left;
+
+    // Special case when adding column to the beginning of the table to ensure the header does not
+    // move inwards.
+    const headerSpecialCase = position === 0 && isHeaderColumnEnabled;
+
+    chainTransactions(
+      headerSpecialCase ? toggleHeader("column") : undefined,
+      (s, d) => !!d?.(addColumn(s.tr, rect, position)),
+      headerSpecialCase ? toggleHeader("column") : undefined,
+      collapseSelection()
+    )(state, dispatch);
+
     return true;
   };
 }
@@ -222,6 +281,12 @@ export function addRowAndMoveSelection({
   };
 }
 
+/**
+ * Set column attributes. Passed attributes will be merged with existing.
+ *
+ * @param attrs The attributes to set
+ * @returns The command
+ */
 export function setColumnAttr({
   index,
   alignment,
@@ -234,7 +299,9 @@ export function setColumnAttr({
       const cells = getCellsInColumn(index)(state) || [];
       let transaction = state.tr;
       cells.forEach((pos) => {
+        const node = state.doc.nodeAt(pos);
         transaction = transaction.setNodeMarkup(pos, undefined, {
+          ...node?.attrs,
           alignment,
         });
       });
@@ -244,37 +311,78 @@ export function setColumnAttr({
   };
 }
 
-export function selectRow(index: number, expand = false) {
-  return (state: EditorState): Transaction => {
-    const rect = selectedRect(state);
-    const pos = rect.map.positionAt(index, 0, rect.table);
-    const $pos = state.doc.resolve(rect.tableStart + pos);
-    const rowSelection =
-      expand && state.selection instanceof CellSelection
-        ? CellSelection.rowSelection(state.selection.$anchorCell, $pos)
-        : CellSelection.rowSelection($pos);
-    return state.tr.setSelection(rowSelection);
+/**
+ * Set table attributes. Passed attributes will be merged with existing.
+ *
+ * @param attrs The attributes to set
+ * @returns The command
+ */
+export function setTableAttr(attrs: { layout: TableLayout | null }): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const { tr } = state;
+      const rect = selectedRect(state);
+
+      tr.setNodeMarkup(rect.tableStart - 1, undefined, {
+        ...rect.table.attrs,
+        ...attrs,
+      }).setSelection(TextSelection.near(tr.doc.resolve(rect.tableStart)));
+      dispatch(tr);
+      return true;
+    }
+    return false;
   };
 }
 
-export function selectColumn(index: number, expand = false) {
-  return (state: EditorState): Transaction => {
-    const rect = selectedRect(state);
-    const pos = rect.map.positionAt(0, index, rect.table);
-    const $pos = state.doc.resolve(rect.tableStart + pos);
-    const colSelection =
-      expand && state.selection instanceof CellSelection
-        ? CellSelection.colSelection(state.selection.$anchorCell, $pos)
-        : CellSelection.colSelection($pos);
-    return state.tr.setSelection(colSelection);
+export function selectRow(index: number, expand = false): Command {
+  return (state: EditorState, dispatch): boolean => {
+    if (dispatch) {
+      const rect = selectedRect(state);
+      const pos = rect.map.positionAt(index, 0, rect.table);
+      const $pos = state.doc.resolve(rect.tableStart + pos);
+      const rowSelection =
+        expand && state.selection instanceof CellSelection
+          ? CellSelection.rowSelection(state.selection.$anchorCell, $pos)
+          : CellSelection.rowSelection($pos);
+      dispatch(state.tr.setSelection(rowSelection));
+      return true;
+    }
+    return false;
   };
 }
 
-export function selectTable(state: EditorState): Transaction {
-  const rect = selectedRect(state);
-  const map = rect.map.map;
-  const $anchor = state.doc.resolve(rect.tableStart + map[0]);
-  const $head = state.doc.resolve(rect.tableStart + map[map.length - 1]);
-  const tableSelection = new CellSelection($anchor, $head);
-  return state.tr.setSelection(tableSelection);
+export function selectColumn(index: number, expand = false): Command {
+  return (state, dispatch): boolean => {
+    if (dispatch) {
+      const rect = selectedRect(state);
+      const pos = rect.map.positionAt(0, index, rect.table);
+      const $pos = state.doc.resolve(rect.tableStart + pos);
+      const colSelection =
+        expand && state.selection instanceof CellSelection
+          ? CellSelection.colSelection(state.selection.$anchorCell, $pos)
+          : CellSelection.colSelection($pos);
+      dispatch(state.tr.setSelection(colSelection));
+      return true;
+    }
+    return false;
+  };
+}
+
+export function selectTable(): Command {
+  return (state, dispatch): boolean => {
+    if (dispatch) {
+      const rect = selectedRect(state);
+      const map = rect.map.map;
+      const $anchor = state.doc.resolve(rect.tableStart + map[0]);
+      const $head = state.doc.resolve(rect.tableStart + map[map.length - 1]);
+      const tableSelection = new CellSelection($anchor, $head);
+      dispatch(state.tr.setSelection(tableSelection));
+      return true;
+    }
+    return false;
+  };
 }

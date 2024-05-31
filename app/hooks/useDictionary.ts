@@ -6,13 +6,14 @@ export default function useDictionary() {
 
   return React.useMemo(
     () => ({
-      addColumnAfter: t("Insert after"),
-      addColumnBefore: t("Insert before"),
-      addRowAfter: t("Insert after"),
-      addRowBefore: t("Insert before"),
+      addColumnAfter: t("Add column after"),
+      addColumnBefore: t("Add column before"),
+      addRowAfter: t("Add row after"),
+      addRowBefore: t("Add row before"),
       alignCenter: t("Align center"),
       alignLeft: t("Align left"),
       alignRight: t("Align right"),
+      alignDefaultWidth: t("Default width"),
       alignFullWidth: t("Full width"),
       bulletList: t("Bulleted list"),
       checkboxList: t("Todo list"),
@@ -75,6 +76,7 @@ export default function useDictionary() {
       sortAsc: t("Sort ascending"),
       sortDesc: t("Sort descending"),
       table: t("Table"),
+      toggleHeader: t("Toggle header"),
       mathInline: t("Math inline (LaTeX)"),
       mathBlock: t("Math block (LaTeX)"),
       tip: t("Tip"),

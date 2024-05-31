@@ -1,28 +1,35 @@
 import { chainCommands } from "prosemirror-commands";
 import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
-import { Plugin } from "prosemirror-state";
 import {
   addColumnAfter,
-  addColumnBefore,
+  addRowAfter,
+  columnResizing,
   deleteColumn,
   deleteRow,
   deleteTable,
   goToNextCell,
   tableEditing,
-  toggleHeaderCell,
-  toggleHeaderColumn,
-  toggleHeaderRow,
+  toggleHeader,
 } from "prosemirror-tables";
-import { Decoration, DecorationSet } from "prosemirror-view";
 import {
+  addRowBefore,
+  addColumnBefore,
   addRowAndMoveSelection,
   setColumnAttr,
   createTable,
   sortTable,
+  setTableAttr,
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import tablesRule from "../rules/tables";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import { TableLayout } from "../types";
 import Node from "./Node";
+import { TableView } from "./TableView";
+
+export type TableAttrs = {
+  layout: TableLayout | null;
+};
 
 export default class Table extends Node {
   get name() {
@@ -36,15 +43,17 @@ export default class Table extends Node {
       isolating: true,
       group: "block",
       parseDOM: [{ tag: "table" }],
+      attrs: {
+        layout: {
+          default: null,
+        },
+      },
       toDOM() {
+        // Note: This is overridden by TableView
         return [
           "div",
-          { class: "scrollable-wrapper table-wrapper" },
-          [
-            "div",
-            { class: "scrollable" },
-            ["table", { class: "rme-table" }, ["tbody", 0]],
-          ],
+          { class: EditorStyleHelper.table },
+          ["table", {}, ["tbody", 0]],
         ];
       },
     };
@@ -58,16 +67,17 @@ export default class Table extends Node {
     return {
       createTable,
       setColumnAttr,
+      setTableAttr,
       sortTable,
-      addColumnBefore: () => addColumnBefore,
+      addColumnBefore,
       addColumnAfter: () => addColumnAfter,
       deleteColumn: () => deleteColumn,
-      addRowAfter: addRowAndMoveSelection,
+      addRowBefore,
+      addRowAfter: () => addRowAfter,
       deleteRow: () => deleteRow,
       deleteTable: () => deleteTable,
-      toggleHeaderColumn: () => toggleHeaderColumn,
-      toggleHeaderRow: () => toggleHeaderRow,
-      toggleHeaderCell: () => toggleHeaderCell,
+      toggleHeaderColumn: () => toggleHeader("column"),
+      toggleHeaderRow: () => toggleHeader("row"),
     };
   }
 
@@ -90,52 +100,12 @@ export default class Table extends Node {
 
   get plugins() {
     return [
-      tableEditing(),
-      new Plugin({
-        props: {
-          decorations: (state) => {
-            const { doc } = state;
-            const decorations: Decoration[] = [];
-            let index = 0;
-
-            doc.descendants((node, pos) => {
-              if (node.type.name !== this.name) {
-                return;
-              }
-
-              const elements = document.getElementsByClassName("rme-table");
-              const table = elements[index];
-              if (!table) {
-                return;
-              }
-
-              const element = table.parentElement;
-              const shadowRight = !!(
-                element && element.scrollWidth > element.clientWidth
-              );
-
-              if (shadowRight) {
-                decorations.push(
-                  Decoration.widget(
-                    pos + 1,
-                    () => {
-                      const shadow = document.createElement("div");
-                      shadow.className = "scrollable-shadow right";
-                      return shadow;
-                    },
-                    {
-                      key: "table-shadow-right",
-                    }
-                  )
-                );
-              }
-              index++;
-            });
-
-            return DecorationSet.create(doc, decorations);
-          },
-        },
+      // Note: Important to register columnResizing before tableEditing
+      columnResizing({
+        View: TableView,
+        lastColumnResizable: false,
       }),
+      tableEditing(),
     ];
   }
 }

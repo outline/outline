@@ -1,5 +1,4 @@
 import Token from "markdown-it/lib/token";
-import { OpenIcon } from "outline-icons";
 import { toggleMark } from "prosemirror-commands";
 import { InputRule } from "prosemirror-inputrules";
 import { MarkdownSerializerState } from "prosemirror-markdown";
@@ -11,8 +10,6 @@ import {
 } from "prosemirror-model";
 import { Command, EditorState, Plugin, TextSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import * as React from "react";
-import ReactDOM from "react-dom";
 import { toast } from "sonner";
 import { sanitizeUrl } from "../../utils/urls";
 import getMarkRange from "../queries/getMarkRange";
@@ -21,14 +18,6 @@ import { EventType } from "../types";
 import Mark from "./Mark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
-let icon: HTMLSpanElement;
-
-if (typeof window !== "undefined") {
-  const component = <OpenIcon size={16} />;
-  icon = document.createElement("span");
-  icon.className = "external-link";
-  ReactDOM.render(component, icon);
-}
 
 function isPlainURL(
   link: ProsemirrorMark,
@@ -195,6 +184,10 @@ export default class Link extends Mark {
             }
 
             if (target.matches(".component-attachment *")) {
+              return false;
+            }
+
+            if (target.role === "button") {
               return false;
             }
 
