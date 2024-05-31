@@ -7,17 +7,14 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../..:/workspaces:cached
-    network_mode: bridge
+    network_mode: service:db
     command: sleep infinity
-    depends_on:
-      - redis
-      - postgres
 
   redis:
     image: redis
     user: "redis:redis"
 
-  postgres:
+  db:
     image: postgres
     environment:
       POSTGRES_USER: user

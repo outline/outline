@@ -6,10 +6,6 @@
         "memory": "16gb"
     },
     "dockerComposeFile": "docker-compose.yml",
-    "forwardPorts":[
-        "postgres:5432",
-        "redis:6379"
-    ],
     "service": "app",
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     "features": {
@@ -28,7 +24,6 @@
         }
     },
     "updateContentCommand": "bash ./.devcontainer/build.sh",
-    "postCreateCommand": "bash ./.devcontainer/setup-user.sh"
-    // "postStartCommand": "yarn dev:watch"
-    // "postStartCommand": "yarn build:server && node build/server/scripts/seed.js my@email.com"
+    "postCreateCommand": "bash ./.devcontainer/setup-user.sh",
+    "postStartCommand": "bash ./.devcontainer/create-account.sh "
 }
