@@ -33,6 +33,11 @@
       "generator": "secret",
       "required": true
     },
+    "UTILS_SECRET": {
+      "description": "A 32-character secret key, generate with openssl rand -hex 32",
+      "generator": "secret",
+      "required": true
+    },
     "ENABLE_UPDATES": {
       "value": "true",
       "required": true
