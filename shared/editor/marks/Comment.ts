@@ -3,7 +3,7 @@ import { MarkSpec, MarkType, Schema, Mark as PMMark } from "prosemirror-model";
 import { Command, Plugin } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
 import collapseSelection from "../commands/collapseSelection";
-import chainTransactions from "../lib/chainTransactions";
+import { chainTransactions } from "../lib/chainTransactions";
 import isMarkActive from "../queries/isMarkActive";
 import Mark from "./Mark";
 

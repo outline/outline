@@ -1,5 +1,10 @@
 import { EditorState } from "prosemirror-state";
-import { CellSelection, isInTable, selectedRect } from "prosemirror-tables";
+import {
+  CellSelection,
+  TableRect,
+  isInTable,
+  selectedRect,
+} from "prosemirror-tables";
 
 export function getColumnIndex(state: EditorState): number | undefined {
   if (state.selection instanceof CellSelection) {
@@ -68,6 +73,37 @@ export function isColumnSelected(index: number) {
 
     return false;
   };
+}
+
+/**
+ * Check if the header is enabled for the given type and table rect
+ *
+ * @param state The editor state
+ * @param type The type of header to check
+ * @param rect The table rect
+ * @returns Boolean indicating if the header is enabled
+ */
+export function isHeaderEnabled(
+  state: EditorState,
+  type: "row" | "column",
+  rect: TableRect
+): boolean {
+  // Get cell positions for first row or first column
+  const cellPositions = rect.map.cellsInRect({
+    left: 0,
+    top: 0,
+    right: type === "row" ? rect.map.width : 1,
+    bottom: type === "column" ? rect.map.height : 1,
+  });
+
+  for (let i = 0; i < cellPositions.length; i++) {
+    const cell = rect.table.nodeAt(cellPositions[i]);
+    if (cell && cell.type !== state.schema.nodes.th) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export function isRowSelected(index: number) {

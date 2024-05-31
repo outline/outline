@@ -1,9 +1,8 @@
 import Token from "markdown-it/lib/token";
 import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
-import { addRow, selectedRect } from "prosemirror-tables";
 import { DecorationSet, Decoration } from "prosemirror-view";
-import { selectRow, selectTable } from "../commands/table";
+import { addRowBefore, selectRow, selectTable } from "../commands/table";
 import {
   getCellsInColumn,
   isRowSelected,
@@ -89,13 +88,9 @@ export default class TableCell extends Node {
               if (targetAddRow) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                view.dispatch(
-                  addRow(
-                    view.state.tr,
-                    selectedRect(view.state),
-                    Number(targetAddRow.getAttribute("data-index"))
-                  )
-                );
+                const index = Number(targetAddRow.getAttribute("data-index"));
+
+                addRowBefore({ index })(view.state, view.dispatch);
                 return true;
               }
 
@@ -105,7 +100,7 @@ export default class TableCell extends Node {
               if (targetGrip) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                view.dispatch(selectTable(view.state));
+                selectTable()(view.state, view.dispatch);
                 return true;
               }
 
@@ -115,12 +110,11 @@ export default class TableCell extends Node {
               if (targetGripRow) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                view.dispatch(
-                  selectRow(
-                    Number(targetGripRow.getAttribute("data-index")),
-                    event.metaKey || event.shiftKey
-                  )(view.state)
-                );
+
+                selectRow(
+                  Number(targetGripRow.getAttribute("data-index")),
+                  event.metaKey || event.shiftKey
+                )(view.state, view.dispatch);
                 return true;
               }
 

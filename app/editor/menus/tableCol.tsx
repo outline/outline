@@ -89,11 +89,13 @@ export default function tableColMenuItems(
           name: rtl ? "addColumnAfter" : "addColumnBefore",
           label: rtl ? dictionary.addColumnAfter : dictionary.addColumnBefore,
           icon: <InsertLeftIcon />,
+          attrs: { index },
         },
         {
           name: rtl ? "addColumnBefore" : "addColumnAfter",
           label: rtl ? dictionary.addColumnBefore : dictionary.addColumnAfter,
           icon: <InsertRightIcon />,
+          attrs: { index },
         },
         {
           name: "deleteColumn",

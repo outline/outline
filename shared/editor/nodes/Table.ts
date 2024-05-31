@@ -2,20 +2,18 @@ import { chainCommands } from "prosemirror-commands";
 import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
 import {
   addColumnAfter,
-  addColumnBefore,
   addRowAfter,
-  addRowBefore,
   columnResizing,
   deleteColumn,
   deleteRow,
   deleteTable,
   goToNextCell,
   tableEditing,
-  toggleHeaderCell,
-  toggleHeaderColumn,
-  toggleHeaderRow,
+  toggleHeader,
 } from "prosemirror-tables";
 import {
+  addRowBefore,
+  addColumnBefore,
   addRowAndMoveSelection,
   setColumnAttr,
   createTable,
@@ -71,16 +69,15 @@ export default class Table extends Node {
       setColumnAttr,
       setTableAttr,
       sortTable,
-      addColumnBefore: () => addColumnBefore,
+      addColumnBefore,
       addColumnAfter: () => addColumnAfter,
       deleteColumn: () => deleteColumn,
-      addRowBefore: () => addRowBefore,
+      addRowBefore,
       addRowAfter: () => addRowAfter,
       deleteRow: () => deleteRow,
       deleteTable: () => deleteTable,
-      toggleHeaderColumn: () => toggleHeaderColumn,
-      toggleHeaderRow: () => toggleHeaderRow,
-      toggleHeaderCell: () => toggleHeaderCell,
+      toggleHeaderColumn: () => toggleHeader("column"),
+      toggleHeaderRow: () => toggleHeader("row"),
     };
   }
 

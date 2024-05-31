@@ -1,9 +1,8 @@
 import Token from "markdown-it/lib/token";
 import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
-import { addColumn, selectedRect } from "prosemirror-tables";
 import { DecorationSet, Decoration, EditorView } from "prosemirror-view";
-import { selectColumn } from "../commands/table";
+import { addColumnBefore, selectColumn } from "../commands/table";
 import { getCellsInRow, isColumnSelected } from "../queries/table";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { cn } from "../styles/utils";
@@ -85,13 +84,10 @@ export default class TableHeadCell extends Node {
               if (targetAddColumn) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                view.dispatch(
-                  addColumn(
-                    view.state.tr,
-                    selectedRect(view.state),
-                    Number(targetAddColumn.getAttribute("data-index"))
-                  )
+                const index = Number(
+                  targetAddColumn.getAttribute("data-index")
                 );
+                addColumnBefore({ index })(view.state, view.dispatch);
                 return true;
               }
 
@@ -101,12 +97,11 @@ export default class TableHeadCell extends Node {
               if (targetGripColumn) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                view.dispatch(
-                  selectColumn(
-                    Number(targetGripColumn.getAttribute("data-index")),
-                    event.metaKey || event.shiftKey
-                  )(view.state)
-                );
+
+                selectColumn(
+                  Number(targetGripColumn.getAttribute("data-index")),
+                  event.metaKey || event.shiftKey
+                )(view.state, view.dispatch);
                 return true;
               }
 
