@@ -21,7 +21,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { Permission } from "~/types";
+import { EmptySelectValue, Permission } from "~/types";
 import { collectionPath, urlify } from "~/utils/routeHelpers";
 import { Wrapper, presence } from "../components";
 import { CopyLinkButton } from "../components/CopyLinkButton";
@@ -322,8 +322,12 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
             <div style={{ marginRight: -8 }}>
               <InputSelectPermission
                 style={{ margin: 0 }}
-                onChange={(permission) => {
-                  void collection.save({ permission });
+                onChange={(
+                  value: CollectionPermission | typeof EmptySelectValue
+                ) => {
+                  void collection.save({
+                    permission: value === EmptySelectValue ? null : value,
+                  });
                 }}
                 disabled={!can.update}
                 value={collection?.permission}
