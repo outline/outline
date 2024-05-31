@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# yarn build 
+# yarn build:server
 # AUTH_LINK=$(node build/server/scripts/seed.js my@email.com)
 
 # echo "Please visit the following link to create an account: $AUTH_LINK"
