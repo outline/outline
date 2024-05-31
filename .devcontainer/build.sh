@@ -55,7 +55,7 @@ replace_secret "UTILS_SECRET" "$NEW_ENV_FILENAME"
 DATABASE_URL=postgres://user:pass@postgres:5432/outline
 REDIS_URL=redis://redis:6379
 
-remove_env "DATABASE_URL" “$DATABASE_URL” "$NEW_ENV_FILENAME"
-remove_env "REDIS_URL" "$REDIS_URL" "$NEW_ENV_FILENAME"
+replace_env "DATABASE_URL" “$DATABASE_URL” "$NEW_ENV_FILENAME"
+replace_env "REDIS_URL" "$REDIS_URL" "$NEW_ENV_FILENAME"
 
 comment_out_env "IFRAMELY_URL" "$NEW_ENV_FILENAME"
