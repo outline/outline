@@ -2,6 +2,7 @@ import * as React from "react";
 import { useMenuState } from "reakit";
 import { MenuButton } from "reakit/Menu";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { MenuItem } from "@shared/editor/types";
 import { s } from "@shared/styles";
 import ContextMenu from "~/components/ContextMenu";
@@ -123,6 +124,11 @@ const FlexibleWrapper = styled.div`
   overflow: hidden;
   display: flex;
   gap: 6px;
+
+  ${breakpoint("mobile", "tablet")`
+    justify-content: space-evenly;
+    align-items: baseline;
+  `}
 `;
 
 const Label = styled.span`
