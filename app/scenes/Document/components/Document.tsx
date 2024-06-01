@@ -17,7 +17,6 @@ import {
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import useComponentSize from "@shared/editor/components/hooks/useComponentSize";
 import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
 import { ProsemirrorHelper, Heading } from "@shared/utils/ProsemirrorHelper";
@@ -54,6 +53,7 @@ import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
+import { MeasuredContainer } from "./MeasuredContainer";
 import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
@@ -438,7 +438,9 @@ class DocumentScene extends React.Component<Props> {
             }
           }}
         />
-        <FullWidthContainer
+        <MeasuredContainer
+          as={Background}
+          name="container"
           key={revision ? revision.id : document.id}
           column
           auto
@@ -475,7 +477,9 @@ class DocumentScene extends React.Component<Props> {
               onSave={this.onSave}
               headings={this.headings}
             />
-            <MaxWidth
+            <MeasuredContainer
+              as={MaxWidth}
+              name="document"
               archived={document.isArchived}
               showContents={showContents}
               isEditing={!readOnly}
@@ -551,7 +555,7 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Flex>
               </React.Suspense>
-            </MaxWidth>
+            </MeasuredContainer>
             {isShare &&
               !parseDomain(window.location.origin).custom &&
               !auth.user && (
@@ -564,7 +568,7 @@ class DocumentScene extends React.Component<Props> {
               <ConnectionStatus />
             </Footer>
           )}
-        </FullWidthContainer>
+        </MeasuredContainer>
       </ErrorBoundary>
     );
   }
@@ -621,21 +625,5 @@ const MaxWidth = styled(Flex)<MaxWidthProps>`
       props.isFullWidth ? "100vw" : `calc(64px + 52em);`}
   `};
 `;
-
-const FullWidthContainer = (props: React.ComponentProps<typeof Background>) => {
-  const ref = React.useRef(null);
-  const rect = useComponentSize(ref.current);
-
-  return (
-    <Background
-      {...props}
-      ref={ref}
-      style={{
-        "--container-width": `${rect.width}px`,
-        "--container-left": `${rect.left}px`,
-      }}
-    />
-  );
-};
 
 export default withTranslation()(withStores(withRouter(DocumentScene)));

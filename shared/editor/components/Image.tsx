@@ -7,7 +7,6 @@ import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
 import ImageZoom from "./ImageZoom";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
-import useComponentSize from "./hooks/useComponentSize";
 import useDragResize from "./hooks/useDragResize";
 
 type Props = ComponentProps & {
@@ -29,18 +28,16 @@ const Image = (props: Props) => {
   const [loaded, setLoaded] = React.useState(false);
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
-  const documentBounds = useComponentSize(props.view.dom);
-  const maxWidth = documentBounds.width;
+  const ref = React.useRef<HTMLDivElement>(null);
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
     {
       width: node.attrs.width ?? naturalWidth,
       height: node.attrs.height ?? naturalHeight,
-      minWidth: documentBounds.width * 0.1,
-      maxWidth,
       naturalWidth,
       naturalHeight,
-      gridWidth: documentBounds.width / 20,
+      gridSnap: 5,
       onChangeSize,
+      ref,
     }
   );
 
@@ -61,7 +58,7 @@ const Image = (props: Props) => {
     : { width: width || "auto" };
 
   return (
-    <div contentEditable={false} className={className}>
+    <div contentEditable={false} className={className} ref={ref}>
       <ImageWrapper
         isFullWidth={isFullWidth}
         className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
