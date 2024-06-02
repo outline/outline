@@ -77,7 +77,14 @@ export const listExtensions: Nodes = [
   ListItem,
 ];
 
-export const tableExtensions: Nodes = [Table, TableCell, TableHeader, TableRow];
+export const tableExtensions: Nodes = [
+  TableCell,
+  TableHeader,
+  TableRow,
+  // Note: Table nodes comes last to ensure the table selection plugin is registered after the
+  // plugins for table grips in TableCell and TableHeader.
+  Table,
+];
 
 /**
  * The full set of nodes that are used in the editor. This is used for rich
