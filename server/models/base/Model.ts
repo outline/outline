@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import isEqual from "fast-deep-equal";
 import isArray from "lodash/isArray";
-import isEqual from "lodash/isEqual";
 import isObject from "lodash/isObject";
 import pick from "lodash/pick";
 import { FindOptions, NonAttribute } from "sequelize";
