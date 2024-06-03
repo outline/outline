@@ -9,12 +9,33 @@ type Props = {
   children: React.ReactNode;
 };
 
-export const ImageZoom = (props: Props) => (
-  <>
-    <Styles />
-    <Zoom zoomMargin={EditorStyleHelper.padding}>{props.children}</Zoom>
-  </>
-);
+/**
+ * Component that wraps an image with the ability to zoom in
+ */
+export const ImageZoom = (props: Props) => {
+  const [isActivated, setIsActivated] = React.useState(false);
+
+  const handleActivated = React.useCallback(() => {
+    setIsActivated(true);
+  }, []);
+
+  if (!isActivated) {
+    return (
+      <span onPointerEnter={handleActivated} onFocus={handleActivated}>
+        {props.children}
+      </span>
+    );
+  }
+
+  return (
+    <>
+      <Styles />
+      <Zoom zoomMargin={EditorStyleHelper.padding}>
+        <div>{props.children}</div>
+      </Zoom>
+    </>
+  );
+};
 
 const Styles = createGlobalStyle`
   [data-rmiz] {
