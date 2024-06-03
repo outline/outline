@@ -619,6 +619,13 @@ export class Editor extends React.PureComponent<
   public getHeadings = () => ProsemirrorHelper.getHeadings(this.view.state.doc);
 
   /**
+   * Return the images in the current editor.
+   *
+   * @returns A list of images in the document
+   */
+  public getImages = () => ProsemirrorHelper.getImages(this.view.state.doc);
+
+  /**
    * Return the tasks/checkmarks in the current editor.
    *
    * @returns A list of tasks in the document

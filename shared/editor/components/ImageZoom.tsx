@@ -5,6 +5,7 @@ import { s } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 type Props = {
+  /** An optional caption to display below the image */
   caption?: string;
   children: React.ReactNode;
 };
@@ -35,9 +36,7 @@ export const ImageZoom = ({ caption, children }: Props) => {
       <Styles />
       <Zoom
         zoomMargin={EditorStyleHelper.padding}
-        ZoomContent={(props) => (
-          <CustomZoomContent caption={caption} {...props} />
-        )}
+        ZoomContent={(props) => <Lightbox caption={caption} {...props} />}
       >
         <div>{children}</div>
       </Zoom>
@@ -45,7 +44,7 @@ export const ImageZoom = ({ caption, children }: Props) => {
   );
 };
 
-const CustomZoomContent = ({
+const Lightbox = ({
   caption,
   modalState,
   img,
