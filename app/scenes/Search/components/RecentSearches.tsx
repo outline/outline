@@ -3,7 +3,6 @@ import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { CompositeItem } from "reakit/Composite";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
@@ -42,14 +41,12 @@ function RecentSearches(
           onEscape={onEscape}
           aria-label={t("Search Results")}
         >
-          {(compositeProps) =>
+          {() =>
             searches.recent.map((searchQuery) => (
               <ListItem key={searchQuery.id}>
-                <CompositeItem
-                  as={RecentSearch}
+                <RecentSearch
                   to={searchPath(searchQuery.query)}
                   role="menuitem"
-                  {...compositeProps}
                 >
                   {searchQuery.query}
                   <Tooltip content={t("Remove search")} delay={150}>
@@ -63,7 +60,7 @@ function RecentSearches(
                       <CloseIcon />
                     </RemoveButton>
                   </Tooltip>
-                </CompositeItem>
+                </RecentSearch>
               </ListItem>
             ))
           }

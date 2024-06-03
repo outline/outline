@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { CompositeStateReturn, CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
@@ -32,7 +31,7 @@ type Props = {
   showPin?: boolean;
   showDraft?: boolean;
   showTemplate?: boolean;
-} & CompositeStateReturn;
+};
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
@@ -68,8 +67,7 @@ function DocumentListItem(
     !document.isDraft && !document.isArchived && !document.isTemplate;
 
   return (
-    <CompositeItem
-      as={DocumentLink}
+    <DocumentLink
       ref={ref}
       dir={document.dir}
       role="menuitem"
@@ -142,7 +140,7 @@ function DocumentListItem(
           modal={false}
         />
       </Actions>
-    </CompositeItem>
+    </DocumentLink>
   );
 }
 

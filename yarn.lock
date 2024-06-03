@@ -13279,6 +13279,13 @@ react-router@5.3.4:
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
 
+react-roving-tabindex@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/react-roving-tabindex/-/react-roving-tabindex-3.2.0.tgz#fb21d365fe5fe9b345cd4228f6b17b1207fd7cd2"
+  integrity sha512-WY5d46Y/QuS2zgXs4MgYJlmi3uIyq7M9UD4l3SWim8ClnyV1L3r84brxElLxEBXdKuWFUbll9mOBpxfcDZsCVQ==
+  dependencies:
+    warning "^4.0.3"
+
 react-style-singleton@^2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/react-style-singleton/-/react-style-singleton-2.2.1.tgz#f99e420492b2d8f34d38308ff660b60d0b1205b4"
@@ -15379,6 +15386,13 @@ walker@^1.0.8:
   integrity "sha1-vUmNtHev5XPcBBhfAR06uKjXZT8= sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ=="
   dependencies:
     makeerror "1.0.12"
+
+warning@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/warning/-/warning-4.0.3.tgz#16e9e077eb8a86d6af7d64aa1e05fd85b4678ca3"
+  integrity sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==
+  dependencies:
+    loose-envify "^1.0.0"
 
 webidl-conversions@^3.0.0:
   version "3.0.1"

@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s, ellipsis } from "@shared/styles";
@@ -35,8 +34,7 @@ function DocumentListItem(
   const { document, highlight, context, shareId, ...rest } = props;
 
   return (
-    <CompositeItem
-      as={DocumentLink}
+    <DocumentLink
       ref={ref}
       dir={document.dir}
       to={{
@@ -66,7 +64,7 @@ function DocumentListItem(
           />
         }
       </Content>
-    </CompositeItem>
+    </DocumentLink>
   );
 }
 

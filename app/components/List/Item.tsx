@@ -1,5 +1,6 @@
 import { LocationDescriptor } from "history";
 import * as React from "react";
+import { useFocusEffect, useRovingTabIndex } from "react-roving-tabindex";
 import styled, { useTheme } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
@@ -33,6 +34,19 @@ const ListItem = (
   const theme = useTheme();
   const compact = !subtitle;
 
+  let itemRef: React.Ref<HTMLAnchorElement> =
+    React.useRef<HTMLAnchorElement>(null);
+  if (ref) {
+    itemRef = ref;
+  }
+
+  const [tabIndex, focused, handleKeyDown, handleClick] = useRovingTabIndex(
+    itemRef as React.RefObject<HTMLAnchorElement>,
+    false
+  );
+
+  useFocusEffect(focused, itemRef as React.RefObject<HTMLAnchorElement>);
+
   const content = (selected: boolean) => (
     <>
       {image && <Image>{image}</Image>}
@@ -59,13 +73,21 @@ const ListItem = (
   if (to) {
     return (
       <Wrapper
-        ref={ref}
+        ref={itemRef}
         $border={border}
         $small={small}
         activeStyle={{
           background: theme.accent,
         }}
         {...rest}
+        tabIndex={tabIndex}
+        onKeyDown={handleKeyDown}
+        onClick={(ev) => {
+          if (rest.onClick) {
+            rest.onClick(ev);
+          }
+          handleClick();
+        }}
         as={NavLink}
         to={to}
       >
@@ -75,7 +97,20 @@ const ListItem = (
   }
 
   return (
-    <Wrapper ref={ref} $border={border} $small={small} {...rest}>
+    <Wrapper
+      ref={itemRef}
+      $border={border}
+      $small={small}
+      {...rest}
+      tabIndex={tabIndex}
+      onKeyDown={handleKeyDown}
+      onClick={(ev) => {
+        if (rest.onClick) {
+          rest.onClick(ev);
+        }
+        handleClick();
+      }}
+    >
       {content(false)}
     </Wrapper>
   );
