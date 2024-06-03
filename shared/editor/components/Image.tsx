@@ -70,7 +70,7 @@ const Image = (props: Props) => {
             <DownloadIcon />
           </Button>
         )}
-        <ImageZoom>
+        <ImageZoom caption={props.node.attrs.alt}>
           <img
             style={{
               ...widthStyle,

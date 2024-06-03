@@ -1,41 +1,78 @@
 import { transparentize } from "polished";
 import * as React from "react";
-import Zoom from "react-medium-image-zoom";
-import { createGlobalStyle } from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import { s } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 type Props = {
+  caption?: string;
   children: React.ReactNode;
 };
 
 /**
  * Component that wraps an image with the ability to zoom in
  */
-export const ImageZoom = (props: Props) => {
+export const ImageZoom = ({ caption, children }: Props) => {
+  const Zoom = React.lazy(() => import("react-medium-image-zoom"));
   const [isActivated, setIsActivated] = React.useState(false);
 
   const handleActivated = React.useCallback(() => {
     setIsActivated(true);
   }, []);
 
+  const fallback = (
+    <span onPointerEnter={handleActivated} onFocus={handleActivated}>
+      {children}
+    </span>
+  );
+
   if (!isActivated) {
-    return (
-      <span onPointerEnter={handleActivated} onFocus={handleActivated}>
-        {props.children}
-      </span>
-    );
+    return fallback;
   }
 
   return (
-    <>
+    <React.Suspense fallback={fallback}>
       <Styles />
-      <Zoom zoomMargin={EditorStyleHelper.padding}>
-        <div>{props.children}</div>
+      <Zoom
+        zoomMargin={EditorStyleHelper.padding}
+        ZoomContent={(props) => (
+          <CustomZoomContent caption={caption} {...props} />
+        )}
+      >
+        <div>{children}</div>
       </Zoom>
-    </>
+    </React.Suspense>
   );
 };
+
+const CustomZoomContent = ({
+  caption,
+  modalState,
+  img,
+}: {
+  caption: string | undefined;
+  modalState: string;
+  img: React.ReactNode;
+}) => (
+  <figure>
+    {img}
+    <Caption $loaded={modalState === "LOADED"}>{caption}</Caption>
+  </figure>
+);
+
+const Caption = styled("figcaption")<{ $loaded: boolean }>`
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: ${EditorStyleHelper.padding}px;
+  font-size: 15px;
+  opacity: ${(props) => (props.$loaded ? 1 : 0)};
+  transition: opacity 250ms;
+
+  font-weight: normal;
+  color: ${s("textSecondary")};
+`;
 
 const Styles = createGlobalStyle`
   [data-rmiz] {
