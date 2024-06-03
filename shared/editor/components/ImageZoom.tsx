@@ -1,8 +1,22 @@
 import { transparentize } from "polished";
+import * as React from "react";
+import Zoom from "react-medium-image-zoom";
 import { createGlobalStyle } from "styled-components";
 import { s } from "../../styles";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
-export default createGlobalStyle`
+type Props = {
+  children: React.ReactNode;
+};
+
+export const ImageZoom = (props: Props) => (
+  <>
+    <Styles />
+    <Zoom zoomMargin={EditorStyleHelper.padding}>{props.children}</Zoom>
+  </>
+);
+
+const Styles = createGlobalStyle`
   [data-rmiz] {
     position: relative;
   }
