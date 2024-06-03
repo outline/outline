@@ -1,12 +1,13 @@
 import { DownloadIcon } from "outline-icons";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
+import Zoom from "react-medium-image-zoom";
 import styled from "styled-components";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
-import ImageZoom from "./ImageZoom";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
+import Styles from "./ZoomStyles";
 import useDragResize from "./hooks/useDragResize";
 
 type Props = ComponentProps & {
@@ -59,6 +60,7 @@ const Image = (props: Props) => {
 
   return (
     <div contentEditable={false} className={className} ref={ref}>
+      <Styles />
       <ImageWrapper
         isFullWidth={isFullWidth}
         className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
@@ -70,7 +72,7 @@ const Image = (props: Props) => {
             <DownloadIcon />
           </Button>
         )}
-        <ImageZoom zoomMargin={24}>
+        <Zoom zoomMargin={24}>
           <img
             style={{
               ...widthStyle,
@@ -106,7 +108,7 @@ const Image = (props: Props) => {
               )}`}
             />
           )}
-        </ImageZoom>
+        </Zoom>
         {isEditable && !isFullWidth && isResizable && (
           <>
             <ResizeLeft

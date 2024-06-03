@@ -1,10 +1,39 @@
 import { transparentize } from "polished";
 import { createGlobalStyle } from "styled-components";
-import { s } from "../../../styles";
+import { s } from "../../styles";
 
 export default createGlobalStyle`
   [data-rmiz] {
     position: relative;
+  }
+  [data-rmiz-ghost] {
+    position: absolute;
+    pointer-events: none;
+  }
+  [data-rmiz-btn-zoom],
+  [data-rmiz-btn-unzoom] {
+    display: none;
+  }
+  [data-rmiz-btn-zoom]:not(:focus):not(:active) {
+    position: absolute;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    pointer-events: none;
+    white-space: nowrap;
+    width: 1px;
+  }
+  [data-rmiz-btn-zoom] {
+    position: absolute;
+    inset: 10px 10px auto auto;
+    cursor: zoom-in;
+  }
+  [data-rmiz-btn-unzoom] {
+    position: absolute;
+    inset: 20px 20px auto auto;
+    cursor: zoom-out;
+    z-index: 1;
   }
   [data-rmiz-content="found"] img,
   [data-rmiz-content="found"] svg,
@@ -18,9 +47,9 @@ export default createGlobalStyle`
   [data-rmiz-modal][open] {
     position: fixed;
     width: 100vw;
-    width: 100svw;
+    width: 100dvw;
     height: 100vh;
-    height: 100svh;
+    height: 100dvh;
     max-width: none;
     max-height: none;
     margin: 0;
