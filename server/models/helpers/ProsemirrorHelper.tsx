@@ -63,7 +63,7 @@ export class ProsemirrorHelper {
     // in the editor embeds are created at runtime by converting links into
     // embeds where they match.Because we're converting to a CRDT structure on
     //  the server we need to mimic this behavior.
-    function urlsToEmbeds(node: Node): Node | null {
+    function urlsToEmbeds(node: Node): Node {
       if (node.type.name === "paragraph") {
         // @ts-expect-error content
         for (const textNode of node.content.content) {
@@ -78,7 +78,7 @@ export class ProsemirrorHelper {
             ) {
               return schema.nodes.embed.createAndFill({
                 href: textNode.text,
-              });
+              }) as Node;
             }
           }
         }
