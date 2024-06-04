@@ -5,6 +5,9 @@ import { AuthenticationError } from "../errors";
 
 export function getJWTPayload(token: string) {
   let payload;
+  if (!token) {
+    throw AuthenticationError("Missing token");
+  }
 
   try {
     payload = JWT.decode(token);
@@ -15,7 +18,7 @@ export function getJWTPayload(token: string) {
 
     return payload as JWT.JwtPayload;
   } catch (err) {
-    throw AuthenticationError("Unable to decode JWT token");
+    throw AuthenticationError("Unable to decode token");
   }
 }
 
