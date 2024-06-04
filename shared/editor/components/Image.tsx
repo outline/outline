@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
-import ImageZoom from "./ImageZoom";
+import { ImageZoom } from "./ImageZoom";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 
@@ -70,7 +70,7 @@ const Image = (props: Props) => {
             <DownloadIcon />
           </Button>
         )}
-        <ImageZoom zoomMargin={24}>
+        <ImageZoom caption={props.node.attrs.alt}>
           <img
             style={{
               ...widthStyle,

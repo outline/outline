@@ -172,6 +172,26 @@ export class ProsemirrorHelper {
   }
 
   /**
+   * Iterates through the document to find all of the images.
+   *
+   * @param doc Prosemirror document node
+   * @returns Array<Node> of images
+   */
+  static getImages(doc: Node): Node[] {
+    const images: Node[] = [];
+
+    doc.descendants((node) => {
+      if (node.type.name === "image") {
+        images.push(node);
+      }
+
+      return true;
+    });
+
+    return images;
+  }
+
+  /**
    * Iterates through the document to find all of the tasks and their completion state.
    *
    * @param doc Prosemirror document node
