@@ -111,10 +111,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     (ev) => {
       if (hasPointerMoved) {
         setHovering(
-          ev.pageX < width &&
-            ev.pageX > 0 &&
-            ev.pageY < window.innerHeight &&
-            ev.pageY > 0
+          ev.pageX < width && ev.pageY < window.innerHeight && ev.pageY > 0
         );
       }
     },
