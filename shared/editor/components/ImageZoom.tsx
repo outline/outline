@@ -4,6 +4,8 @@ import styled, { createGlobalStyle } from "styled-components";
 import { s } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
+const Zoom = React.lazy(() => import("react-medium-image-zoom"));
+
 type Props = {
   /** An optional caption to display below the image */
   caption?: string;
@@ -14,7 +16,6 @@ type Props = {
  * Component that wraps an image with the ability to zoom in
  */
 export const ImageZoom = ({ caption, children }: Props) => {
-  const Zoom = React.lazy(() => import("react-medium-image-zoom"));
   const [isActivated, setIsActivated] = React.useState(false);
 
   const handleActivated = React.useCallback(() => {
@@ -53,18 +54,22 @@ const Lightbox = ({
   modalState: string;
   img: React.ReactNode;
 }) => (
-  <figure>
+  <Figure>
     {img}
     <Caption $loaded={modalState === "LOADED"}>{caption}</Caption>
-  </figure>
+  </Figure>
 );
+
+const Figure = styled("figure")`
+  margin: 0;
+`;
 
 const Caption = styled("figcaption")<{ $loaded: boolean }>`
   position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  margin-bottom: ${EditorStyleHelper.padding}px;
+  margin-bottom: 4px;
   font-size: 15px;
   opacity: ${(props) => (props.$loaded ? 1 : 0)};
   transition: opacity 250ms;
