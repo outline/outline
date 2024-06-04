@@ -156,14 +156,10 @@ export default class FindAndReplaceExtension extends Extension {
   }
 
   private get findRegExp() {
-    try {
-      return RegExp(
-        this.searchTerm.replace(/\\+$/, ""),
-        !this.options.caseSensitive ? "gui" : "gu"
-      );
-    } catch (err) {
-      return RegExp("");
-    }
+    return RegExp(
+      this.searchTerm.replace(/\\+$/, ""),
+      !this.options.caseSensitive ? "gui" : "gu"
+    );
   }
 
   private goToMatch(direction: number): Command {
@@ -250,15 +246,19 @@ export default class FindAndReplaceExtension extends Extension {
       const search = this.findRegExp;
       let m;
 
-      while ((m = search.exec(text))) {
-        if (m[0] === "") {
-          break;
-        }
+      try {
+        while ((m = search.exec(text))) {
+          if (m[0] === "") {
+            break;
+          }
 
-        this.results.push({
-          from: pos + m.index,
-          to: pos + m.index + m[0].length,
-        });
+          this.results.push({
+            from: pos + m.index,
+            to: pos + m.index + m[0].length,
+          });
+        }
+      } catch (e) {
+        // Invalid RegExp
       }
     });
   }
