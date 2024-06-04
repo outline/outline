@@ -233,13 +233,19 @@ const embeds: EmbedDescriptor[] = [
     keywords: "design svg vector",
     regexMatch: [
       new RegExp(
-        "^https://([w.-]+\\.)?figma\\.com/(file|proto|design)/([0-9a-zA-Z]{22,128})(?:/.*)?$"
+        "^https://([w.-]+\\.)?figma\\.com/(file|proto|board|design)/([0-9a-zA-Z]{22,128})(?:/.*)?$"
       ),
+      new RegExp("^https://([w.-]+\\.)?figma\\.com/embed(.*)$"),
     ],
-    transformMatch: (matches) =>
-      `https://www.figma.com/embed?embed_host=outline&url=${encodeURIComponent(
+    transformMatch: (matches) => {
+      if (matches[0].includes("/embed")) {
+        return matches[0];
+      }
+
+      return `https://www.figma.com/embed?embed_host=outline&url=${encodeURIComponent(
         matches[0]
-      )}`,
+      )}`;
+    },
     icon: <Img src="/images/figma.png" alt="Figma" />,
   }),
   new EmbedDescriptor({
