@@ -11,7 +11,6 @@ import {
 import * as React from "react";
 import stores from "~/stores";
 import Collection from "~/models/Collection";
-import CollectionPermissions from "~/scenes/CollectionPermissions";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
@@ -21,7 +20,6 @@ import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import history from "~/utils/history";
 import { searchPath } from "~/utils/routeHelpers";
 
@@ -111,24 +109,16 @@ export const editCollectionPermissions = createAction({
       return;
     }
 
-    if (FeatureFlags.isEnabled(Feature.newCollectionSharing)) {
-      stores.dialogs.openModal({
-        title: t("Share this collection"),
-        content: (
-          <SharePopover
-            collection={collection}
-            onRequestClose={stores.dialogs.closeAllModals}
-            visible
-          />
-        ),
-      });
-    } else {
-      stores.dialogs.openModal({
-        title: t("Collection permissions"),
-        fullscreen: true,
-        content: <CollectionPermissions collectionId={activeCollectionId} />,
-      });
-    }
+    stores.dialogs.openModal({
+      title: t("Share this collection"),
+      content: (
+        <SharePopover
+          collection={collection}
+          onRequestClose={stores.dialogs.closeAllModals}
+          visible
+        />
+      ),
+    });
   },
 });
 
