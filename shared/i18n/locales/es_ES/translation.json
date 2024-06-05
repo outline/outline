@@ -918,6 +918,8 @@
   "Allow editors to invite other people to the workspace": "Allow editors to invite other people to the workspace",
   "Require invites": "Requerir invitaciones",
   "Require members to be invited to the workspace before they can create an account using SSO.": "Requiere que los miembros sean invitados al área de trabajo antes de que puedan crear una cuenta usando SSO.",
+  "API access": "API access",
+  "Allow members to create API keys for programmatic access": "Allow members to create API keys for programmatic access",
   "Default role": "Rol predeterminado",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "El rol de usuario predeterminado para cuentas nuevas. Cambiar esta configuración no afecta a las cuentas de usuario existentes.",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "Cuando está activado, los documentos pueden ser compartidos públicamente en Internet por cualquier miembro del espacio de trabajo",
