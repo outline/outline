@@ -918,6 +918,8 @@
   "Allow editors to invite other people to the workspace": "Allow editors to invite other people to the workspace",
   "Require invites": "Yêu cầu lời mời",
   "Require members to be invited to the workspace before they can create an account using SSO.": "Yêu cầu các thành viên được mời vào không gian làm việc trước khi họ có thể tạo tài khoản bằng SSO.",
+  "API access": "API access",
+  "Allow members to create API keys for programmatic access": "Allow members to create API keys for programmatic access",
   "Default role": "Vai trò mặc định",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "Vai trò người dùng mặc định cho các tài khoản mới. Việc thay đổi cài đặt này không ảnh hưởng đến các tài khoản người dùng hiện có.",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "Khi được bật, tài liệu có thể được chia sẻ công khai trên internet bởi bất kỳ thành viên nào trong không gian làm việc",
