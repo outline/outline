@@ -918,6 +918,8 @@
   "Allow editors to invite other people to the workspace": "편집자가 다른 인원을 워크스페이스에 초대하도록 허용",
   "Require invites": "초대 필요",
   "Require members to be invited to the workspace before they can create an account using SSO.": "멤버가 SSO를 사용하여 계정을 만들려면 워크스페이스에 초대해야 합니다.",
+  "API access": "API access",
+  "Allow members to create API keys for programmatic access": "Allow members to create API keys for programmatic access",
   "Default role": "기본 역할",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "새 계정의 기본 사용자 역할입니다. 이 설정을 변경해도 기존 사용자 계정에는 영향을 미치지 않습니다.",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "활성화되면 워크스페이스에 모든 멤버가 문서를 인터넷에 공유 할 수 있습니다",
