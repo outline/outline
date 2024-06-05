@@ -91,6 +91,12 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
     rejectOnEmpty: true,
   });
 
+  if (user.lastSignedInAt) {
+    if (user.lastSignedInAt > new Date(payload.createdAt)) {
+      throw AuthenticationError("Expired token");
+    }
+  }
+
   try {
     JWT.verify(token, user.jwtSecret);
   } catch (err) {
