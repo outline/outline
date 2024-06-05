@@ -18,6 +18,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.SeamlessEdit]: true,
   [TeamPreference.ViewersCanExport]: true,
   [TeamPreference.MembersCanInvite]: false,
+  [TeamPreference.MembersCanCreateApiKey]: true,
   [TeamPreference.PublicBranding]: false,
   [TeamPreference.Commenting]: true,
   [TeamPreference.CustomTheme]: undefined,

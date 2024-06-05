@@ -39,6 +39,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         viewersCanExport: z.boolean().optional(),
         /** Whether members can invite new people to the team. */
         membersCanInvite: z.boolean().optional(),
+        /** Whether members can create API keys. */
+        membersCanCreateApiKey: z.boolean().optional(),
         /** Whether commenting is enabled */
         commenting: z.boolean().optional(),
         /** The custom theme for the team. */

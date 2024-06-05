@@ -189,6 +189,8 @@ export enum TeamPreference {
   ViewersCanExport = "viewersCanExport",
   /** Whether members can invite new users. */
   MembersCanInvite = "membersCanInvite",
+  /** Whether members can create API keys. */
+  MembersCanCreateApiKey = "membersCanCreateApiKey",
   /** Whether users can comment on documents. */
   Commenting = "commenting",
   /** The custom theme for the team. */
@@ -200,6 +202,7 @@ export type TeamPreferences = {
   [TeamPreference.PublicBranding]?: boolean;
   [TeamPreference.ViewersCanExport]?: boolean;
   [TeamPreference.MembersCanInvite]?: boolean;
+  [TeamPreference.MembersCanCreateApiKey]?: boolean;
   [TeamPreference.Commenting]?: boolean;
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
 };
