@@ -918,6 +918,8 @@
   "Allow editors to invite other people to the workspace": "允许编辑者邀请其他人到工作区",
   "Require invites": "需要邀请",
   "Require members to be invited to the workspace before they can create an account using SSO.": "成员需要先被邀请进入工作区，才能通过SSO创建账户。",
+  "API access": "API access",
+  "Allow members to create API keys for programmatic access": "Allow members to create API keys for programmatic access",
   "Default role": "默认权限",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "新帐户的默认用户角色。更改此设置不会影响现有用户帐户。",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "启用后，工作区的任何成员都可以在互联网上公开共享文档",
