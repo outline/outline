@@ -287,7 +287,7 @@ function SharePopover({
           />
         </OtherAccess>
 
-        {team.sharing && can.share && !collectionSharingDisabled && (
+        {team.sharing && can.share && !collectionSharingDisabled && visible && (
           <>
             {document.members.length ? <Separator /> : null}
             <PublicAccess
