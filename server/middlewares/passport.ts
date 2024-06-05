@@ -3,7 +3,7 @@ import { Context } from "koa";
 import { InternalOAuthError } from "passport-oauth2";
 import { Client } from "@shared/types";
 import env from "@server/env";
-import { AuthenticationError } from "@server/errors";
+import { AuthenticationError, OAuthStateMismatchError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { AuthenticationResult } from "@server/types";
 import { signIn } from "@server/utils/authentication";
@@ -39,7 +39,12 @@ export default function createMiddleware(providerName: string) {
             // form a URL object with the err.redirectPath and replace the host
             const reqProtocol =
               state?.client === Client.Desktop ? "outline" : ctx.protocol;
-            const requestHost = state?.host ?? ctx.hostname;
+
+            // `state.host` cannot be trusted if the error is a state mismatch, use `ctx.hostname`
+            const requestHost =
+              err instanceof OAuthStateMismatchError
+                ? ctx.hostname
+                : state?.host ?? ctx.hostname;
             const url = new URL(
               env.isCloudHosted
                 ? `${reqProtocol}://${requestHost}${redirectPath}`
