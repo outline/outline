@@ -8,6 +8,8 @@ import {
   tableNodeTypes,
   toggleHeader,
   addColumn,
+  deleteRow,
+  deleteColumn,
 } from "prosemirror-tables";
 import { chainTransactions } from "../lib/chainTransactions";
 import { getCellsInColumn, isHeaderEnabled } from "../queries/table";
@@ -207,6 +209,40 @@ export function addRowBefore({ index }: { index?: number }): Command {
     )(state, dispatch);
 
     return true;
+  };
+}
+
+/**
+ * A command that deletes the current selected row, if any.
+ *
+ * @returns The command
+ */
+export function deleteRowSelection(): Command {
+  return (state, dispatch) => {
+    if (
+      state.selection instanceof CellSelection &&
+      state.selection.isRowSelection()
+    ) {
+      return deleteRow(state, dispatch);
+    }
+    return false;
+  };
+}
+
+/**
+ * A command that deletes the current selected column, if any.
+ *
+ * @returns The command
+ */
+export function deleteColSelection(): Command {
+  return (state, dispatch) => {
+    if (
+      state.selection instanceof CellSelection &&
+      state.selection.isColSelection()
+    ) {
+      return deleteColumn(state, dispatch);
+    }
+    return false;
   };
 }
 

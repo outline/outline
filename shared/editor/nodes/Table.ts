@@ -19,6 +19,8 @@ import {
   createTable,
   sortTable,
   setTableAttr,
+  deleteColSelection,
+  deleteRowSelection,
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import tablesRule from "../rules/tables";
@@ -86,6 +88,10 @@ export default class Table extends Node {
       Tab: chainCommands(goToNextCell(1), addRowAndMoveSelection()),
       "Shift-Tab": goToNextCell(-1),
       "Mod-Enter": addRowAndMoveSelection(),
+      "Mod-Backspace": chainCommands(
+        deleteColSelection(),
+        deleteRowSelection()
+      ),
     };
   }
 
