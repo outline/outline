@@ -3,15 +3,14 @@ import { CodeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import ApiKey from "~/models/ApiKey";
-import APITokenNew from "~/scenes/APITokenNew";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
-import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
-import useBoolean from "~/hooks/useBoolean";
+import { createApiKey } from "~/actions/definitions/apiKeys";
+import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -21,12 +20,12 @@ function ApiKeys() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { apiKeys } = useStores();
-  const [newModalOpen, handleNewModalOpen, handleNewModalClose] = useBoolean();
   const can = usePolicy(team);
+  const context = useActionContext();
 
   return (
     <Scene
-      title={t("API Tokens")}
+      title={t("API Keys")}
       icon={<CodeIcon />}
       actions={
         <>
@@ -34,19 +33,20 @@ function ApiKeys() {
             <Action>
               <Button
                 type="submit"
-                value={`${t("New token")}…`}
-                onClick={handleNewModalOpen}
+                value={`${t("New API key")}…`}
+                action={createApiKey}
+                context={context}
               />
             </Action>
           )}
         </>
       }
     >
-      <Heading>{t("API Tokens")}</Heading>
+      <Heading>{t("API Keys")}</Heading>
       <Text as="p" type="secondary">
         <Trans
-          defaults="You can create an unlimited amount of personal tokens to authenticate
-          with the API. Tokens have the same permissions as your user account.
+          defaults="Create personal API keys to authenticate with the API and programatically control
+          your workspace's data. API keys have the same permissions as your user account.
           For more details see the <em>developer documentation</em>."
           components={{
             em: (
@@ -67,13 +67,6 @@ function ApiKeys() {
           <ApiKeyListItem key={apiKey.id} apiKey={apiKey} />
         )}
       />
-      <Modal
-        title={t("Create a token")}
-        onRequestClose={handleNewModalClose}
-        isOpen={newModalOpen}
-      >
-        <APITokenNew onSubmit={handleNewModalClose} />
-      </Modal>
     </Scene>
   );
 }

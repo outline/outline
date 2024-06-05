@@ -88,7 +88,7 @@ const useSettingsConfig = () => {
         icon: EmailIcon,
       },
       {
-        name: t("API Tokens"),
+        name: t("API"),
         path: settingsPath("tokens"),
         component: ApiKeys,
         enabled: can.createApiKey,

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { ApiKeyValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -11,7 +12,7 @@ type Props = {
   onSubmit: () => void;
 };
 
-function APITokenNew({ onSubmit }: Props) {
+function APIKeyNew({ onSubmit }: Props) {
   const [name, setName] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
   const { apiKeys } = useStores();
@@ -26,7 +27,7 @@ function APITokenNew({ onSubmit }: Props) {
         await apiKeys.create({
           name,
         });
-        toast.success(t("API token created"));
+        toast.success(t("API Key created"));
         onSubmit();
       } catch (err) {
         toast.error(err.message);
@@ -45,7 +46,7 @@ function APITokenNew({ onSubmit }: Props) {
     <form onSubmit={handleSubmit}>
       <Text as="p" type="secondary">
         {t(
-          `Name your token something that will help you to remember it's use in the future, for example "local development", "production", or "continuous integration".`
+          `Name your key something that will help you to remember it's use in the future, for example "local development" or "continuous integration".`
         )}
       </Text>
       <Flex>
@@ -54,16 +55,20 @@ function APITokenNew({ onSubmit }: Props) {
           label={t("Name")}
           onChange={handleNameChange}
           value={name}
+          minLength={ApiKeyValidation.minNameLength}
+          maxLength={ApiKeyValidation.maxNameLength}
           required
           autoFocus
           flex
         />
       </Flex>
-      <Button type="submit" disabled={isSaving || !name}>
-        {isSaving ? `${t("Creating")}…` : t("Create")}
-      </Button>
+      <Flex justify="flex-end">
+        <Button type="submit" disabled={isSaving || !name}>
+          {isSaving ? `${t("Creating")}…` : t("Create")}
+        </Button>
+      </Flex>
     </form>
   );
 }
 
-export default APITokenNew;
+export default APIKeyNew;

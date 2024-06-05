@@ -19,6 +19,13 @@ export const AttachmentValidation = {
   ],
 };
 
+export const ApiKeyValidation = {
+  /** The minimum length of the API key name */
+  minNameLength: 3,
+  /** The maximum length of the API key name */
+  maxNameLength: 255,
+};
+
 export const CollectionValidation = {
   /** The maximum length of the collection description */
   maxDescriptionLength: 10 * 1000,
