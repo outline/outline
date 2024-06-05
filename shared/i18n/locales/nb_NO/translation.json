@@ -918,6 +918,8 @@
   "Allow editors to invite other people to the workspace": "Tillat redaktører å invitere andre til arbeidsområdet",
   "Require invites": "Krev invitasjoner",
   "Require members to be invited to the workspace before they can create an account using SSO.": "Krev at medlemmer blir invitert til arbeidsområdet før de kan opprette en konto ved bruk av SSO.",
+  "API access": "API access",
+  "Allow members to create API keys for programmatic access": "Allow members to create API keys for programmatic access",
   "Default role": "Standardrolle",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "Standardbrukerrollen for nye kontoer. Endring av denne innstillingen påvirker ikke eksisterende brukerkontoer.",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "Når aktivert, kan dokumenter deles offentlig på internett av ethvert medlem av arbeidsområdet",
