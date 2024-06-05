@@ -19,6 +19,8 @@ import {
 type AuthenticationOptions = {
   /** Role requuired to access the route. */
   role?: UserRole;
+  /** Type of authentication required to access the route. */
+  type?: AuthenticationType;
   /** Authentication is parsed, but optional. */
   optional?: boolean;
 };
@@ -113,6 +115,10 @@ export default function auth(options: AuthenticationOptions = {}) {
 
       if (options.role && UserRoleHelper.isRoleLower(user.role, options.role)) {
         throw AuthorizationError(`${capitalize(options.role)} role required`);
+      }
+
+      if (options.type && type !== options.type) {
+        throw AuthorizationError(`Invalid authentication type`);
       }
 
       // not awaiting the promises here so that the request is not blocked

@@ -1,11 +1,12 @@
 import Router from "koa-router";
 import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { ApiKey, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentApiKey } from "@server/presenters";
-import { APIContext } from "@server/types";
+import { APIContext, AuthenticationType } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -13,28 +14,36 @@ const router = new Router();
 
 router.post(
   "apiKeys.create",
-  auth({ role: UserRole.Member }),
+  auth({ role: UserRole.Member, type: AuthenticationType.APP }),
   validate(T.APIKeysCreateSchema),
+  transaction(),
   async (ctx: APIContext<T.APIKeysCreateReq>) => {
     const { name } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     authorize(user, "createApiKey", user.team);
-    const key = await ApiKey.create({
-      name,
-      userId: user.id,
-    });
-
-    await Event.create({
-      name: "api_keys.create",
-      modelId: key.id,
-      teamId: user.teamId,
-      actorId: user.id,
-      data: {
+    const key = await ApiKey.create(
+      {
         name,
+        userId: user.id,
       },
-      ip: ctx.request.ip,
-    });
+      { transaction }
+    );
+
+    await Event.create(
+      {
+        name: "api_keys.create",
+        modelId: key.id,
+        teamId: user.teamId,
+        actorId: user.id,
+        data: {
+          name,
+        },
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
 
     ctx.body = {
       data: presentApiKey(key),
@@ -68,24 +77,32 @@ router.post(
   "apiKeys.delete",
   auth({ role: UserRole.Member }),
   validate(T.APIKeysDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.APIKeysDeleteReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
-    const key = await ApiKey.findByPk(id);
+    const key = await ApiKey.findByPk(id, {
+      lock: transaction.LOCK.UPDATE,
+      transaction,
+    });
     authorize(user, "delete", key);
 
-    await key.destroy();
-    await Event.create({
-      name: "api_keys.delete",
-      modelId: key.id,
-      teamId: user.teamId,
-      actorId: user.id,
-      data: {
-        name: key.name,
+    await key.destroy({ transaction });
+    await Event.create(
+      {
+        name: "api_keys.delete",
+        modelId: key.id,
+        teamId: user.teamId,
+        actorId: user.id,
+        data: {
+          name: key.name,
+        },
+        ip: ctx.request.ip,
       },
-      ip: ctx.request.ip,
-    });
+      { transaction }
+    );
 
     ctx.body = {
       success: true,
