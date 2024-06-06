@@ -918,8 +918,6 @@
   "Allow editors to invite other people to the workspace": "Allow editors to invite other people to the workspace",
   "Require invites": "招待が必要",
   "Require members to be invited to the workspace before they can create an account using SSO.": "メンバーは SSO を使用してアカウントを作成する前に、ワークスペースに招待される必要があります。",
-  "API access": "API access",
-  "Allow members to create API keys for programmatic access": "Allow members to create API keys for programmatic access",
   "Default role": "デフォルトのロール",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "新規アカウントのデフォルトのユーザーロールです。この設定を変更しても、既存のユーザーアカウントには影響しません。",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "この設定を有効にすると、チームメンバーなら誰でもインターネット上でドキュメントを公開することができます。",
