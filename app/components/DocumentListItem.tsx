@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { useFocusEffect, useRovingTabIndex } from "react-roving-tabindex";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
@@ -48,6 +49,19 @@ function DocumentListItem(
   const user = useCurrentUser();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
+  let itemRef: React.Ref<HTMLAnchorElement> =
+    React.useRef<HTMLAnchorElement>(null);
+  if (ref) {
+    itemRef = ref;
+  }
+
+  const [tabIndex, focused, handleKeyDown, handleClick] = useRovingTabIndex(
+    itemRef,
+    false
+  );
+
+  useFocusEffect(focused, itemRef);
+
   const {
     document,
     showParentDocuments,
@@ -68,7 +82,7 @@ function DocumentListItem(
 
   return (
     <DocumentLink
-      ref={ref}
+      ref={itemRef}
       dir={document.dir}
       role="menuitem"
       $isStarred={document.isStarred}
@@ -80,6 +94,9 @@ function DocumentListItem(
         },
       }}
       {...rest}
+      tabIndex={tabIndex}
+      onKeyDown={handleKeyDown}
+      onClick={handleClick}
     >
       <Content>
         <Heading dir={document.dir}>

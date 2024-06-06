@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
+import { useFocusEffect, useRovingTabIndex } from "react-roving-tabindex";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s, ellipsis } from "@shared/styles";
@@ -33,9 +34,22 @@ function DocumentListItem(
 ) {
   const { document, highlight, context, shareId, ...rest } = props;
 
+  let itemRef: React.Ref<HTMLAnchorElement> =
+    React.useRef<HTMLAnchorElement>(null);
+  if (ref) {
+    itemRef = ref;
+  }
+
+  const [tabIndex, focused, handleKeyDown, handleClick] = useRovingTabIndex(
+    itemRef,
+    false
+  );
+
+  useFocusEffect(focused, itemRef);
+
   return (
     <DocumentLink
-      ref={ref}
+      ref={itemRef}
       dir={document.dir}
       to={{
         pathname: shareId
@@ -46,6 +60,14 @@ function DocumentListItem(
         },
       }}
       {...rest}
+      tabIndex={tabIndex}
+      onKeyDown={handleKeyDown}
+      onClick={(ev) => {
+        if (rest.onClick) {
+          rest.onClick(ev);
+        }
+        handleClick();
+      }}
     >
       <Content>
         <Heading dir={document.dir}>
