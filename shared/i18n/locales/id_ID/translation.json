@@ -918,8 +918,6 @@
   "Allow editors to invite other people to the workspace": "Allow editors to invite other people to the workspace",
   "Require invites": "Memerlukan undangan",
   "Require members to be invited to the workspace before they can create an account using SSO.": "Wajibkan anggota untuk diundang ke workspace sebelum mereka dapat membuat akun menggunakan SSO.",
-  "API access": "API access",
-  "Allow members to create API keys for programmatic access": "Allow members to create API keys for programmatic access",
   "Default role": "Peran default",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "Peran pengguna default untuk akun baru. Mengubah setelan ini tidak memengaruhi akun pengguna yang ada.",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "Saat diaktifkan, dokumen dapat dibagikan secara publik di internet oleh anggota workspace mana pun",
