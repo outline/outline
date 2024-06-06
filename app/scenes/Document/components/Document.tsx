@@ -383,8 +383,7 @@ class DocumentScene extends React.Component<Props> {
 
   handleChangeEmoji = action((value: string) => {
     this.props.document.emoji = value;
-    this.updateIsDirty();
-    void this.autosave();
+    void this.onSave();
   });
 
   goBack = () => {
