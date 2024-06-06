@@ -918,8 +918,6 @@
   "Allow editors to invite other people to the workspace": "Povolit editorům posílat pozvánky do pracoviště",
   "Require invites": "Vyžadovat pozvání",
   "Require members to be invited to the workspace before they can create an account using SSO.": "Vyžadovat, aby členové byli pozváni do pracovního prostoru, než si vytvoří účet pomocí jednotného přihlášení.",
-  "API access": "API access",
-  "Allow members to create API keys for programmatic access": "Allow members to create API keys for programmatic access",
   "Default role": "Výchozí role uživatele",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "Výchozí uživatelská role pro nové účty. Změna tohoto nastavení nemá vliv na stávající uživatelské účty.",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "Je-li povoleno, dokumenty mohou být veřejně sdíleny na internetu kterýmkoli členem pracovního prostoru",
