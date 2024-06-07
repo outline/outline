@@ -1,5 +1,6 @@
 import passport from "@outlinewiki/koa-passport";
 import {
+  RESTAPIPartialCurrentUserGuild,
   RESTGetAPICurrentUserGuildsResult,
   RESTGetAPICurrentUserResult,
   RESTGetCurrentUserGuildMemberResult,
@@ -32,10 +33,10 @@ import env from "../env";
 
 const router = new Router();
 
-const scopes = ["identify", "email"];
+const scope = ["identify", "email"];
 
 if (env.DISCORD_SERVER_ID) {
-  scopes.push("guilds", "guilds.members.read");
+  scope.push("guilds", "guilds.members.read");
 }
 
 if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
@@ -46,7 +47,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
         clientID: env.DISCORD_CLIENT_ID,
         clientSecret: env.DISCORD_CLIENT_SECRET,
         passReqToCallback: true,
-        scope: scopes,
+        scope,
         // @ts-expect-error custom state store
         store: new StateStore(),
         state: true,
@@ -68,21 +69,17 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
         ) => void
       ) {
         try {
+          const team = await getTeamFromContext(ctx);
+          const client = getClientFromContext(ctx);
+          /** Fetch the user's profile */
           const profile: RESTGetAPICurrentUserResult = await request(
             "https://discord.com/api/users/@me",
             accessToken
           );
-          let guilds: RESTGetAPICurrentUserGuildsResult = [];
-          if (env.DISCORD_SERVER_ID) {
-            guilds = await request(
-              "https://discord.com/api/users/@me/guilds",
-              accessToken
-            );
-          }
-          const team = await getTeamFromContext(ctx);
-          const client = getClientFromContext(ctx);
+
           const email = profile.email;
           if (!email) {
+            /** We have the email scope, so this should never happen */
             throw InvalidRequestError("Discord profile email is missing");
           }
           const parts = email.toLowerCase().split("@");
@@ -92,58 +89,72 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             throw TeamDomainRequiredError();
           }
 
-          const foundGuild = guilds?.find(
-            (g) => g.id === env.DISCORD_SERVER_ID
-          );
-
-          let name = profile.username;
-
-          const teamIcon = foundGuild?.icon
-            ? `https://cdn.discordapp.com/icons/${foundGuild.id}/${foundGuild.icon}.png`
+          /** Determine the user's language from the locale */
+          const { locale } = profile;
+          const language = locale
+            ? languages.find((l) => l.startsWith(locale))
             : undefined;
 
+          let guild: RESTAPIPartialCurrentUserGuild | undefined = undefined;
+          let name = profile.username;
+
+          /**
+           * If a Discord server is configured, we will check if the user is a member of the server
+           * Additionally, we can get the user's nickname in the server if it exists
+           */
           if (env.DISCORD_SERVER_ID) {
-            if (!foundGuild) {
+            /** Fetch the guilds a user is in */
+            const guilds: RESTGetAPICurrentUserGuildsResult = await request(
+              "https://discord.com/api/users/@me/guilds",
+              accessToken
+            );
+
+            /** Find the guild that matches the configured server ID */
+            guild = guilds?.find((g) => g.id === env.DISCORD_SERVER_ID);
+
+            /** If the user is not in the server, throw an error */
+            if (!guild) {
               throw DiscordGuildError();
             }
 
-            const guildId = env.DISCORD_SERVER_ID;
+            /** Fetch the user's member object in the server for nickname and roles */
             const guildMember: RESTGetCurrentUserGuildMemberResult =
               await request(
-                `https://discord.com/api/users/@me/guilds/${guildId}/member`,
+                `https://discord.com/api/users/@me/guilds/${env.DISCORD_SERVER_ID}/member`,
                 accessToken
               );
 
+            /** If the user has a nickname in the server, use that as the name */
             if (guildMember.nick) {
               name = guildMember.nick;
             }
 
+            /** If server roles are configured, check if the user has any of the roles */
             if (env.DISCORD_SERVER_ROLES) {
               const { roles } = guildMember;
               const hasRole = roles?.some((role) =>
                 env.DISCORD_SERVER_ROLES?.includes(role)
               );
 
+              /** If the user does not have any of the roles, throw an error */
               if (!hasRole) {
                 throw DiscordGuildRoleError();
               }
             }
           }
 
-          // remove the TLD and form a subdomain from the remaining
-          const subdomain = foundGuild?.name
-            ? slugify(foundGuild.name)
+          /** Use the guild icon as the team icon if it exists */
+          const teamIcon = guild?.icon
+            ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
+            : undefined;
+
+          /** Determine the subdomain from the guild name or domain of email if no server */
+          const subdomain = guild?.name
+            ? slugify(guild.name)
             : slugifyDomain(domain);
 
-          // if a discord server is configured, use the server name as the team name
-          const teamName = foundGuild?.name ?? "Wiki";
-
-          const avatarHash = profile.avatar;
-          const avatarUrl = `https://cdn.discordapp.com/avatars/${profile.id}/${avatarHash}.png`;
-          const { locale } = profile;
-          const language = locale
-            ? languages.find((l) => l.startsWith(locale))
-            : undefined;
+          /** Use the guild name as the team name if it exists, otherwise default to "Wiki" */
+          const teamName = guild?.name ?? "Wiki";
 
           // if a team can be inferred, we assume the user is only interested in signing into
           // that team in particular; otherwise, we will do a best effort at finding their account
@@ -161,7 +172,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               email,
               name,
               language,
-              avatarUrl,
+              avatarUrl: `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`,
             },
             authenticationProvider: {
               name: config.id,
@@ -172,7 +183,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               accessToken,
               refreshToken,
               expiresIn: params.expires_in,
-              scopes,
+              scopes: scope,
             },
           });
           return done(null, result.user, { ...result, client });
@@ -186,7 +197,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
   router.get(
     config.id,
     passport.authenticate(config.id, {
-      scope: scopes,
+      scope,
       prompt: "consent",
     })
   );
