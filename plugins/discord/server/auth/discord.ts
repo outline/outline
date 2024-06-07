@@ -1,5 +1,5 @@
 import passport from "@outlinewiki/koa-passport";
-import {
+import type {
   RESTAPIPartialCurrentUserGuild,
   RESTGetAPICurrentUserGuildsResult,
   RESTGetAPICurrentUserResult,
