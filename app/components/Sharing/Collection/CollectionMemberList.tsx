@@ -99,17 +99,19 @@ function CollectionMemberList({ collection, invitedInSession }: Props) {
                 <InputMemberPermissionSelect
                   style={{ margin: 0 }}
                   permissions={permissions}
-                  onChange={async (permission: CollectionPermission) => {
-                    if (permission) {
+                  onChange={async (
+                    permission: CollectionPermission | typeof EmptySelectValue
+                  ) => {
+                    if (permission === EmptySelectValue) {
+                      await collectionGroupMemberships.delete({
+                        collectionId: collection.id,
+                        groupId: membership.groupId,
+                      });
+                    } else {
                       await collectionGroupMemberships.create({
                         collectionId: collection.id,
                         groupId: membership.groupId,
                         permission,
-                      });
-                    } else {
-                      await collectionGroupMemberships.delete({
-                        collectionId: collection.id,
-                        groupId: membership.groupId,
                       });
                     }
                   }}
