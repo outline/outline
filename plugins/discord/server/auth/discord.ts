@@ -1,6 +1,5 @@
 import passport from "@outlinewiki/koa-passport";
 import type {
-  RESTAPIPartialCurrentUserGuild,
   RESTGetAPICurrentUserGuildsResult,
   RESTGetAPICurrentUserResult,
   RESTGetCurrentUserGuildMemberResult,
@@ -95,8 +94,12 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             ? languages.find((l) => l.startsWith(locale))
             : undefined;
 
-          let guild: RESTAPIPartialCurrentUserGuild | undefined = undefined;
-          let name = profile.username;
+          /** Default user and team names metadata */
+          let userName = profile.username;
+          let teamName = "Wiki";
+          let userAvatarUrl: string = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`;
+          let teamAvatarUrl: string | undefined = undefined;
+          let subdomain = slugifyDomain(domain);
 
           /**
            * If a Discord server is configured, we will check if the user is a member of the server
@@ -110,12 +113,21 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             );
 
             /** Find the guild that matches the configured server ID */
-            guild = guilds?.find((g) => g.id === env.DISCORD_SERVER_ID);
+            const guild = guilds?.find((g) => g.id === env.DISCORD_SERVER_ID);
 
             /** If the user is not in the server, throw an error */
             if (!guild) {
               throw DiscordGuildError();
             }
+
+            /** Get the guild's icon */
+            if (guild.icon) {
+              teamAvatarUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`;
+            }
+
+            /** Guild Name */
+            teamName = guild.name;
+            subdomain = slugify(guild.name);
 
             /** Fetch the user's member object in the server for nickname and roles */
             const guildMember: RESTGetCurrentUserGuildMemberResult =
@@ -126,7 +138,12 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
 
             /** If the user has a nickname in the server, use that as the name */
             if (guildMember.nick) {
-              name = guildMember.nick;
+              userName = guildMember.nick;
+            }
+
+            /** If the user has a custom avatar in the server, use that as the avatar */
+            if (guildMember.avatar) {
+              userAvatarUrl = `https://cdn.discordapp.com/guilds/${guild.id}/users/${profile.id}/avatars/${guildMember.avatar}.png`;
             }
 
             /** If server roles are configured, check if the user has any of the roles */
@@ -143,19 +160,6 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             }
           }
 
-          /** Use the guild icon as the team icon if it exists */
-          const teamIcon = guild?.icon
-            ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
-            : undefined;
-
-          /** Determine the subdomain from the guild name or domain of email if no server */
-          const subdomain = guild?.name
-            ? slugify(guild.name)
-            : slugifyDomain(domain);
-
-          /** Use the guild name as the team name if it exists, otherwise default to "Wiki" */
-          const teamName = guild?.name ?? "Wiki";
-
           // if a team can be inferred, we assume the user is only interested in signing into
           // that team in particular; otherwise, we will do a best effort at finding their account
           // or provisioning a new one (within AccountProvisioner)
@@ -166,13 +170,13 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               name: teamName,
               domain,
               subdomain,
-              avatarUrl: teamIcon,
+              avatarUrl: teamAvatarUrl,
             },
             user: {
               email,
-              name,
+              name: userName,
               language,
-              avatarUrl: `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`,
+              avatarUrl: userAvatarUrl,
             },
             authenticationProvider: {
               name: config.id,
