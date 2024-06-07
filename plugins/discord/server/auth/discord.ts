@@ -35,11 +35,7 @@ const router = new Router();
 const scopes = ["identify", "email"];
 
 if (env.DISCORD_SERVER_ID) {
-  scopes.push("guilds");
-}
-
-if (env.DISCORD_SERVER_ROLES) {
-  scopes.push("guilds.members.read");
+  scopes.push("guilds", "guilds.members.read");
 }
 
 if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
@@ -100,6 +96,8 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             (g) => g.id === env.DISCORD_SERVER_ID
           );
 
+          let name = profile.username;
+
           const teamIcon = foundGuild?.icon
             ? `https://cdn.discordapp.com/icons/${foundGuild.id}/${foundGuild.icon}.png`
             : undefined;
@@ -109,14 +107,18 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               throw DiscordGuildError();
             }
 
-            if (env.DISCORD_SERVER_ROLES) {
-              const guildId = env.DISCORD_SERVER_ID;
-              const guildMember: RESTGetCurrentUserGuildMemberResult =
-                await request(
-                  `https://discord.com/api/users/@me/guilds/${guildId}/member`,
-                  accessToken
-                );
+            const guildId = env.DISCORD_SERVER_ID;
+            const guildMember: RESTGetCurrentUserGuildMemberResult =
+              await request(
+                `https://discord.com/api/users/@me/guilds/${guildId}/member`,
+                accessToken
+              );
 
+            if (guildMember.nick) {
+              name = guildMember.nick;
+            }
+
+            if (env.DISCORD_SERVER_ROLES) {
               const { roles } = guildMember;
               const hasRole = roles?.some((role) =>
                 env.DISCORD_SERVER_ROLES?.includes(role)
@@ -157,7 +159,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             },
             user: {
               email,
-              name: profile.username,
+              name,
               language,
               avatarUrl,
             },
