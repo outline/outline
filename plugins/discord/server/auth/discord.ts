@@ -10,6 +10,7 @@ import Router from "koa-router";
 import { Strategy } from "passport-oauth2";
 import { languages } from "@shared/i18n";
 import { slugifyDomain } from "@shared/utils/domains";
+import slugify from "@shared/utils/slugify";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import {
   DiscordGuildError,
@@ -128,7 +129,9 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
           }
 
           // remove the TLD and form a subdomain from the remaining
-          const subdomain = slugifyDomain(domain);
+          const subdomain = foundGuild?.name
+            ? slugify(foundGuild.name)
+            : slugifyDomain(domain);
 
           // if a discord server is configured, use the server name as the team name
           const teamName = foundGuild?.name ?? "Wiki";
