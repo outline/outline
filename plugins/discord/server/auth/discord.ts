@@ -2,6 +2,7 @@ import passport from "@outlinewiki/koa-passport";
 import {
   RESTGetAPICurrentUserGuildsResult,
   RESTGetAPICurrentUserResult,
+  RESTGetCurrentUserGuildMemberResult,
 } from "discord-api-types/v10";
 import type { Context } from "koa";
 import Router from "koa-router";
@@ -12,6 +13,7 @@ import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import {
   DiscordGuildError,
+  DiscordGuildRoleError,
   InvalidRequestError,
   TeamDomainRequiredError,
 } from "@server/errors";
@@ -29,9 +31,15 @@ import env from "../env";
 
 const router = new Router();
 
-const scopes = ["identify" as const, "email" as const];
+const scopes = ["identify", "email"];
 
-const scopesWithGuilds = [...scopes, "guilds" as const];
+if (env.DISCORD_SERVER_ID) {
+  scopes.push("guilds");
+}
+
+if (env.DISCORD_SERVER_ROLES) {
+  scopes.push("guilds.members.read");
+}
 
 if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
   passport.use(
@@ -41,7 +49,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
         clientID: env.DISCORD_CLIENT_ID,
         clientSecret: env.DISCORD_CLIENT_SECRET,
         passReqToCallback: true,
-        scope: env.DISCORD_SERVER_ID ? scopesWithGuilds : scopes,
+        scope: scopes,
         // @ts-expect-error custom state store
         store: new StateStore(),
         state: true,
@@ -91,8 +99,28 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             (g) => g.id === env.DISCORD_SERVER_ID
           );
 
-          if (env.DISCORD_SERVER_ID && !foundGuild) {
-            throw DiscordGuildError();
+          if (env.DISCORD_SERVER_ID) {
+            if (!foundGuild) {
+              throw DiscordGuildError();
+            }
+
+            if (env.DISCORD_SERVER_ROLES) {
+              const guildId = env.DISCORD_SERVER_ID;
+              const guildMember: RESTGetCurrentUserGuildMemberResult =
+                await request(
+                  `https://discord.com/api/users/@me/guilds/${guildId}/member`,
+                  accessToken
+                );
+
+              const { roles } = guildMember;
+              const hasRole = roles?.some((role) =>
+                env.DISCORD_SERVER_ROLES?.includes(role)
+              );
+
+              if (!hasRole) {
+                throw DiscordGuildRoleError();
+              }
+            }
           }
 
           // remove the TLD and form a subdomain from the remaining
@@ -148,7 +176,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
   router.get(
     config.id,
     passport.authenticate(config.id, {
-      scope: env.DISCORD_SERVER_ID ? scopesWithGuilds : scopes,
+      scope: scopes,
       prompt: "consent",
     })
   );

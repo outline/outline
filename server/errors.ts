@@ -216,3 +216,11 @@ export function DiscordGuildError(
     id: "discord_guild_error",
   });
 }
+
+export function DiscordGuildRoleError(
+  message = "User does not have the required role"
+) {
+  return httpErrors(400, message, {
+    id: "discord_guild_role_error",
+  });
+}
