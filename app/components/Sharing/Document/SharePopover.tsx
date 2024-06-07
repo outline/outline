@@ -203,12 +203,16 @@ function SharePopover({
     () =>
       [
         {
+          label: t("View only"),
+          value: DocumentPermission.Read,
+        },
+        {
           label: t("Can edit"),
           value: DocumentPermission.ReadWrite,
         },
         {
-          label: t("View only"),
-          value: DocumentPermission.Read,
+          label: t("Manage"),
+          value: DocumentPermission.Admin,
         },
       ] as Permission[],
     [t]
