@@ -172,11 +172,9 @@ function PublicAccess({ document, share, sharedParent }: Props) {
             error={validationError}
             defaultValue={urlId}
             prefix={
-              <DomainPrefix
-                readOnly
-                onClick={() => inputRef.current?.focus()}
-                value={env.URL.replace(/https?:\/\//, "") + "/s/"}
-              />
+              <DomainPrefix onClick={() => inputRef.current?.focus()}>
+                {env.URL.replace(/https?:\/\//, "") + "/s/"}
+              </DomainPrefix>
             }
           >
             {copyButton}
@@ -208,9 +206,9 @@ const Wrapper = styled.div`
   margin-bottom: 8px;
 `;
 
-const DomainPrefix = styled(NativeInput)`
+const DomainPrefix = styled.span`
+  padding: 0 2px 0 8px;
   flex: 0 1 auto;
-  padding-right: 0 !important;
   cursor: text;
   color: ${s("placeholder")};
   user-select: none;
