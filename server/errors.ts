@@ -208,3 +208,11 @@ export function ClientClosedRequestError(
     id: "client_closed_request",
   });
 }
+
+export function DiscordGuildError(
+  message = "User is not a member of the required server"
+) {
+  return httpErrors(400, message, {
+    id: "discord_guild_error",
+  });
+}
