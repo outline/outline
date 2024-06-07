@@ -99,6 +99,10 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             (g) => g.id === env.DISCORD_SERVER_ID
           );
 
+          const teamIcon = foundGuild?.icon
+            ? `https://cdn.discordapp.com/icons/${foundGuild.id}/${foundGuild.icon}.png`
+            : undefined;
+
           if (env.DISCORD_SERVER_ID) {
             if (!foundGuild) {
               throw DiscordGuildError();
@@ -146,6 +150,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               name: teamName,
               domain,
               subdomain,
+              avatarUrl: teamIcon,
             },
             user: {
               email,
