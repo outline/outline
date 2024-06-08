@@ -28,6 +28,7 @@ import {
   unstarCollection,
   searchInCollection,
 } from "~/actions/definitions/collections";
+import { createTemplate } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
@@ -179,6 +180,7 @@ function CollectionMenu({
       },
       actionToMenuItem(editCollection, context),
       actionToMenuItem(editCollectionPermissions, context),
+      actionToMenuItem(createTemplate, context),
       {
         type: "submenu",
         title: t("Sort in sidebar"),
