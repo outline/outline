@@ -42,9 +42,19 @@ export const renderEmbed = async (ctx: Context, next: Next) => {
     ctx.throw(400, "url is required");
   }
 
-  if (url.startsWith("https://gitlab.com") && ctx.path === "/embeds/gitlab") {
-    const snippetUrl = new URL(url);
-    const snippetLink = `${snippetUrl}.js`;
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch (err) {
+    ctx.throw(400, "Invalid URL provided");
+  }
+
+  if (
+    parsed.host === "gitlab.com" &&
+    parsed.protocol === "https:" &&
+    ctx.path === "/embeds/gitlab"
+  ) {
+    const snippetLink = `${url}.js`;
     const csp = ctx.response.get("Content-Security-Policy");
 
     // Inject gitlab.com into the script-src and style-src directives
@@ -73,11 +83,11 @@ ${resizeObserverScript(ctx)}
   }
 
   if (
-    url.startsWith("https://gist.github.com") &&
+    parsed.host === "gist.github.com" &&
+    parsed.protocol === "https:" &&
     ctx.path === "/embeds/github"
   ) {
-    const gistUrl = new URL(url);
-    const id = gistUrl.pathname.split("/")[2];
+    const id = parsed.pathname.split("/")[2];
     const gistLink = `https://gist.github.com/${id}.js`;
     const csp = ctx.response.get("Content-Security-Policy");
 
