@@ -97,7 +97,7 @@ function Details() {
     []
   );
 
-  const handleAvatarUpload = async (avatarUrl: string) => {
+  const handleAvatarChange = async (avatarUrl: string) => {
     await team.save({ avatarUrl });
     toast.success(t("Logo updated"));
   };
@@ -152,7 +152,7 @@ function Details() {
             )}
           >
             <ImageInput
-              onSuccess={handleAvatarUpload}
+              onSuccess={handleAvatarChange}
               onError={handleAvatarError}
               model={team}
               borderRadius={0}

@@ -212,7 +212,7 @@ router.post(
     if (name) {
       user.name = name;
     }
-    if (avatarUrl) {
+    if (avatarUrl !== undefined) {
       user.avatarUrl = avatarUrl;
     }
     if (language) {
