@@ -53,6 +53,14 @@ async function build() {
           `yarn babel --extensions .ts,.tsx --quiet -d "./build/plugins/${plugin}/server" "./plugins/${plugin}/server"`
         );
       }
+
+      const hasShared = existsSync(`./plugins/${plugin}/shared`);
+
+      if (hasShared) {
+        await execAsync(
+          `yarn babel --extensions .ts,.tsx --quiet -d "./build/plugins/${plugin}/shared" "./plugins/${plugin}/shared"`
+        );
+      }
     }),
   ]);
 
@@ -71,7 +79,7 @@ async function build() {
     execAsync("cp package.json ./build"),
     ...d.map(async (plugin) =>
       execAsync(
-        `mkdir -p ./build/plugins/${plugin} && cp ./plugins/${plugin}/plugin.json ./build/plugins/${plugin}/plugin.json`
+        `mkdir -p ./build/plugins/${plugin} && cp ./plugins/${plugin}/plugin.json ./build/plugins/${plugin}/plugin.json 2>/dev/null || :`
       )
     ),
   ]);

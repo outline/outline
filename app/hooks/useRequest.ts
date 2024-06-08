@@ -16,10 +16,12 @@ type RequestResponse<T> = {
  * A hook to make an API request and track its state within a component.
  *
  * @param requestFn The function to call to make the request, it should return a promise.
- * @returns
+ * @param makeRequestOnMount Whether to make the request when the component mounts.
+ * @returns An object containing the request state and a function to start the request.
  */
 export default function useRequest<T = unknown>(
-  requestFn: () => Promise<T>
+  requestFn: () => Promise<T>,
+  makeRequestOnMount = false
 ): RequestResponse<T> {
   const isMounted = useIsMounted();
   const [data, setData] = React.useState<T>();
@@ -47,6 +49,12 @@ export default function useRequest<T = unknown>(
 
     return undefined;
   }, [requestFn, isMounted]);
+
+  React.useEffect(() => {
+    if (makeRequestOnMount) {
+      void request();
+    }
+  }, [request, makeRequestOnMount]);
 
   return { data, loading, error, request };
 }

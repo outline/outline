@@ -1,15 +1,18 @@
+import { Node } from "prosemirror-model";
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DataType,
   BelongsTo,
   ForeignKey,
   Column,
   Table,
-  Scopes,
   Length,
   DefaultScope,
 } from "sequelize-typescript";
 import type { ProsemirrorData } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
+import { schema } from "@server/editor";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -25,20 +28,12 @@ import TextLength from "./validators/TextLength";
     },
   ],
 }))
-@Scopes(() => ({
-  withDocument: {
-    include: [
-      {
-        model: Document,
-        as: "document",
-        required: true,
-      },
-    ],
-  },
-}))
 @Table({ tableName: "comments", modelName: "comment" })
 @Fix
-class Comment extends ParanoidModel {
+class Comment extends ParanoidModel<
+  InferAttributes<Comment>,
+  Partial<InferCreationAttributes<Comment>>
+> {
   @TextLength({
     max: CommentValidation.maxLength,
     msg: `Comment must be less than ${CommentValidation.maxLength} characters`,
@@ -79,6 +74,11 @@ class Comment extends ParanoidModel {
   @ForeignKey(() => Comment)
   @Column(DataType.UUID)
   parentCommentId: string;
+
+  public toPlainText() {
+    const node = Node.fromJSON(schema, this.data);
+    return ProsemirrorHelper.toPlainText(node, schema);
+  }
 }
 
 export default Comment;

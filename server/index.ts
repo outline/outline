@@ -10,7 +10,6 @@ import Koa from "koa";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
 import Router from "koa-router";
-import uniq from "lodash/uniq";
 import { AddressInfo } from "net";
 import stoppable from "stoppable";
 import throng from "throng";
@@ -19,54 +18,53 @@ import services from "./services";
 import { getArg } from "./utils/args";
 import { getSSLOptions } from "./utils/ssl";
 import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
-import { checkEnv, checkPendingMigrations } from "./utils/startup";
+import { printEnv, checkPendingMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 import onerror from "./onerror";
 import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
-import { sequelize } from "./storage/database";
+import { checkConnection, sequelize } from "./storage/database";
 import RedisAdapter from "./storage/redis";
 import Metrics from "./logging/Metrics";
-
-// The default is to run all services to make development and OSS installations
-// easier to deal with. Separate services are only needed at scale.
-const serviceNames = uniq(
-  env.SERVICES.split(",").map((service) => service.trim())
-);
+import { PluginManager } from "./utils/PluginManager";
 
 // The number of processes to run, defaults to the number of CPU's available
 // for the web service, and 1 for collaboration during the beta period.
-let processCount = env.WEB_CONCURRENCY;
+let webProcessCount = env.WEB_CONCURRENCY;
 
-if (serviceNames.includes("collaboration")) {
-  if (processCount !== 1) {
+if (env.SERVICES.includes("collaboration")) {
+  if (webProcessCount !== 1) {
     Logger.info(
       "lifecycle",
       "Note: Restricting process count to 1 due to use of collaborative service"
     );
   }
 
-  processCount = 1;
+  webProcessCount = 1;
 }
 
 // This function will only be called once in the original process
 async function master() {
-  await checkEnv();
+  await checkConnection(sequelize);
   await checkPendingMigrations();
+  await printEnv();
 
-  if (env.TELEMETRY && env.ENVIRONMENT === "production") {
+  if (env.TELEMETRY && env.isProduction) {
     void checkUpdates();
     setInterval(checkUpdates, 24 * 3600 * 1000);
   }
 }
 
 // This function will only be called in each forked process
-async function start(id: number, disconnect: () => void) {
+async function start(_id: number, disconnect: () => void) {
+  // Ensure plugins are loaded
+  PluginManager.loadPlugins();
+
   // Find if SSL certs are available
   const ssl = getSSLOptions();
   const useHTTPS = !!ssl.key && !!ssl.cert;
 
   // If a --port flag is passed then it takes priority over the env variable
-  const normalizedPortFlag = getArg("port", "p");
+  const normalizedPort = getArg("port", "p") || env.PORT;
   const app = new Koa();
   const server = stoppable(
     useHTTPS
@@ -88,6 +86,16 @@ async function start(id: number, disconnect: () => void) {
 
   // Apply default rate limit to all routes
   app.use(defaultRateLimiter());
+
+  /** Perform a redirect on the browser so that the user's auth cookies are included in the request. */
+  app.context.redirectOnClient = function (url: string) {
+    this.type = "text/html";
+    this.body = `
+<html>
+<head>
+<meta http-equiv="refresh" content="0;URL='${url}'"/>
+</head>`;
+  };
 
   // Add a health check endpoint to all services
   router.get("/_health", async (ctx) => {
@@ -113,17 +121,30 @@ async function start(id: number, disconnect: () => void) {
   app.use(router.routes());
 
   // loop through requested services at startup
-  for (const name of serviceNames) {
+  for (const name of env.SERVICES) {
     if (!Object.keys(services).includes(name)) {
       throw new Error(`Unknown service ${name}`);
     }
 
     Logger.info("lifecycle", `Starting ${name} service`);
     const init = services[name];
-    await init(app, server, serviceNames);
+    await init(app, server, env.SERVICES);
   }
 
   server.on("error", (err) => {
+    if ("code" in err && err.code === "EADDRINUSE") {
+      Logger.error(`Port ${normalizedPort}  is already in use. Exiting…`, err);
+      process.exit(0);
+    }
+
+    if ("code" in err && err.code === "EACCES") {
+      Logger.error(
+        `Port ${normalizedPort} requires elevated privileges. Exiting…`,
+        err
+      );
+      process.exit(0);
+    }
+
     throw err;
   });
   server.on("listening", () => {
@@ -138,7 +159,7 @@ async function start(id: number, disconnect: () => void) {
     );
   });
 
-  server.listen(normalizedPortFlag || env.PORT);
+  server.listen(normalizedPort);
   server.setTimeout(env.REQUEST_TIMEOUT);
 
   ShutdownHelper.add(
@@ -163,13 +184,25 @@ async function start(id: number, disconnect: () => void) {
 
   ShutdownHelper.add("metrics", ShutdownOrder.last, () => Metrics.flush());
 
+  // Handle uncaught promise rejections
+  process.on("unhandledRejection", (error: Error) => {
+    Logger.error("Unhandled promise rejection", error, {
+      stack: error.stack,
+    });
+  });
+
   // Handle shutdown signals
   process.once("SIGTERM", () => ShutdownHelper.execute());
   process.once("SIGINT", () => ShutdownHelper.execute());
 }
 
+const isWebProcess =
+  env.SERVICES.includes("web") ||
+  env.SERVICES.includes("api") ||
+  env.SERVICES.includes("collaboration");
+
 void throng({
   master,
   worker: start,
-  count: processCount,
+  count: isWebProcess ? webProcessCount : undefined,
 });

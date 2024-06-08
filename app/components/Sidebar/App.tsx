@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { EditIcon, SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
+import { DraftsIcon, SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -24,6 +24,7 @@ import Collections from "./components/Collections";
 import DragPlaceholder from "./components/DragPlaceholder";
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
+import SharedWithMe from "./components/SharedWithMe";
 import SidebarAction from "./components/SidebarAction";
 import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
@@ -41,9 +42,6 @@ function AppSidebar() {
   React.useEffect(() => {
     if (!user.isViewer) {
       void documents.fetchDrafts();
-
-      // TODO: Move this out of sidebar
-      void documents.fetchTemplates();
     }
   }, [documents, user.isViewer]);
 
@@ -78,14 +76,17 @@ function AppSidebar() {
                 }
               >
                 <Tooltip
-                  tooltip={t("Toggle sidebar")}
+                  content={t("Toggle sidebar")}
                   shortcut={`${metaDisplay}+.`}
                   delay={500}
                 >
                   <ToggleButton
                     position="bottom"
                     image={<SidebarIcon />}
-                    onClick={ui.toggleCollapsedSidebar}
+                    onClick={() => {
+                      ui.toggleCollapsedSidebar();
+                      (document.activeElement as HTMLElement)?.blur();
+                    }}
                   />
                 </Tooltip>
               </SidebarButton>
@@ -108,17 +109,22 @@ function AppSidebar() {
               {can.createDocument && (
                 <SidebarLink
                   to={draftsPath()}
-                  icon={<EditIcon />}
+                  icon={<DraftsIcon />}
                   label={
                     <Flex align="center" justify="space-between">
                       {t("Drafts")}
-                      <Drafts size="xsmall" type="tertiary">
-                        {documents.totalDrafts}
-                      </Drafts>
+                      {documents.totalDrafts > 0 ? (
+                        <Drafts size="xsmall" type="tertiary">
+                          {documents.totalDrafts}
+                        </Drafts>
+                      ) : null}
                     </Flex>
                   }
                 />
               )}
+            </Section>
+            <Section>
+              <SharedWithMe />
             </Section>
             <Section>
               <Starred />

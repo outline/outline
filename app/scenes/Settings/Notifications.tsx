@@ -5,6 +5,7 @@ import {
   CheckboxIcon,
   CollectionIcon,
   CommentIcon,
+  DocumentIcon,
   EditIcon,
   EmailIcon,
   PublishIcon,
@@ -13,6 +14,7 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import { NotificationEventType } from "@shared/types";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -23,12 +25,10 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useToasts from "~/hooks/useToasts";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Notifications() {
-  const { showToast } = useToasts();
   const user = useCurrentUser();
   const { t } = useTranslation();
 
@@ -82,6 +82,22 @@ function Notifications() {
       ),
     },
     {
+      event: NotificationEventType.AddUserToDocument,
+      icon: <DocumentIcon />,
+      title: t("Invited to document"),
+      description: t(
+        "Receive a notification when a document is shared with you"
+      ),
+    },
+    {
+      event: NotificationEventType.AddUserToCollection,
+      icon: <CollectionIcon />,
+      title: t("Invited to collection"),
+      description: t(
+        "Receive a notification when you are given access to a collection"
+      ),
+    },
+    {
       event: NotificationEventType.ExportCompleted,
       icon: <CheckboxIcon checked />,
       title: t("Export completed"),
@@ -106,9 +122,7 @@ function Notifications() {
   ];
 
   const showSuccessMessage = debounce(() => {
-    showToast(t("Notifications saved"), {
-      type: "success",
-    });
+    toast.success(t("Notifications saved"));
   }, 500);
 
   const handleChange = React.useCallback(
@@ -134,50 +148,20 @@ function Notifications() {
           </Trans>
         </Notice>
       )}
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>Manage when and where you receive email notifications.</Trans>
       </Text>
 
       {env.EMAIL_ENABLED ? (
-        <>
-          <SettingRow
-            label={t("Email address")}
-            name="email"
-            description={t(
-              "Your email address should be updated in your SSO provider."
-            )}
-          >
-            <Input type="email" value={user.email} readOnly />
-          </SettingRow>
-
-          <h2>{t("Notifications")}</h2>
-
-          {options.map((option) => {
-            const setting = user.subscribedToEventType(option.event);
-
-            return (
-              <SettingRow
-                key={option.event}
-                visible={option.visible}
-                label={
-                  <Flex align="center" gap={4}>
-                    {option.icon} {option.title}
-                  </Flex>
-                }
-                name={option.event}
-                description={option.description}
-              >
-                <Switch
-                  key={option.event}
-                  id={option.event}
-                  name={option.event}
-                  checked={!!setting}
-                  onChange={handleChange}
-                />
-              </SettingRow>
-            );
-          })}
-        </>
+        <SettingRow
+          label={t("Email address")}
+          name="email"
+          description={t(
+            "Your email address should be updated in your SSO provider."
+          )}
+        >
+          <Input type="email" value={user.email} readOnly />
+        </SettingRow>
       ) : (
         <Notice>
           <Trans>
@@ -187,6 +171,34 @@ function Notifications() {
           </Trans>
         </Notice>
       )}
+
+      <h2>{t("Notifications")}</h2>
+
+      {options.map((option) => {
+        const setting = user.subscribedToEventType(option.event);
+
+        return (
+          <SettingRow
+            key={option.event}
+            visible={option.visible}
+            label={
+              <Flex align="center" gap={4}>
+                {option.icon} {option.title}
+              </Flex>
+            }
+            name={option.event}
+            description={option.description}
+          >
+            <Switch
+              key={option.event}
+              id={option.event}
+              name={option.event}
+              checked={!!setting}
+              onChange={handleChange}
+            />
+          </SettingRow>
+        );
+      })}
     </Scene>
   );
 }

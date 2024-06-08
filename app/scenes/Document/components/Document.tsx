@@ -1,6 +1,9 @@
+import cloneDeep from "lodash/cloneDeep";
 import debounce from "lodash/debounce";
+import isEqual from "lodash/isEqual";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
+import { Node } from "prosemirror-model";
 import { AllSelection } from "prosemirror-state";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
@@ -11,13 +14,13 @@ import {
   withRouter,
   Redirect,
 } from "react-router";
+import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
-import { Heading } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper, Heading } from "@shared/utils/ProsemirrorHelper";
 import { parseDomain } from "@shared/utils/domains";
-import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -33,6 +36,7 @@ import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
+import { SearchResult } from "~/editor/components/LinkEditor";
 import { client } from "~/utils/ApiClient";
 import { replaceTitleVariables } from "~/utils/date";
 import { emojiToUrl } from "~/utils/emoji";
@@ -49,6 +53,7 @@ import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
+import { MeasuredContainer } from "./MeasuredContainer";
 import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
@@ -72,13 +77,13 @@ type Props = WithTranslation &
   RootStore &
   RouteComponentProps<Params, StaticContext, LocationState> & {
     sharedTree?: NavigationNode;
-    abilities: Record<string, any>;
+    abilities: Record<string, boolean>;
     document: Document;
     revision?: Revision;
     readOnly: boolean;
     shareId?: string;
-    onCreateLink?: (title: string) => Promise<string>;
-    onSearchLink?: (term: string) => any;
+    onCreateLink?: (title: string, nested?: boolean) => Promise<string>;
+    onSearchLink?: (term: string) => Promise<SearchResult[]>;
   };
 
 @observer
@@ -107,8 +112,6 @@ class DocumentScene extends React.Component<Props> {
   @observable
   headings: Heading[] = [];
 
-  getEditorText: () => string = () => this.props.document.text;
-
   componentDidMount() {
     this.updateIsDirty();
   }
@@ -122,7 +125,7 @@ class DocumentScene extends React.Component<Props> {
   componentWillUnmount() {
     if (
       this.isEmpty &&
-      this.props.document.createdBy.id === this.props.auth.user?.id &&
+      this.props.document.createdBy?.id === this.props.auth.user?.id &&
       this.props.document.isDraft &&
       this.props.document.isActive &&
       this.props.document.hasEmptyTitle &&
@@ -139,8 +142,8 @@ class DocumentScene extends React.Component<Props> {
       return;
     }
 
-    const { view, parser } = editorRef;
-    const doc = parser.parse(template.text);
+    const { view, schema } = editorRef;
+    const doc = Node.fromJSON(schema, template.data);
 
     if (doc) {
       view.dispatch(
@@ -164,8 +167,11 @@ class DocumentScene extends React.Component<Props> {
       this.title = title;
       this.props.document.title = title;
     }
+    if (template.emoji) {
+      this.props.document.emoji = template.emoji;
+    }
 
-    this.props.document.text = template.text;
+    this.props.document.data = cloneDeep(template.data);
     this.updateIsDirty();
 
     return this.onSave({
@@ -176,7 +182,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onSynced = async () => {
-    const { toasts, history, location, t } = this.props;
+    const { history, location, t } = this.props;
     const restore = location.state?.restore;
     const revisionId = location.state?.revisionId;
     const editorRef = this.editor.current;
@@ -191,8 +197,22 @@ class DocumentScene extends React.Component<Props> {
 
     if (response) {
       await this.replaceDocument(response.data);
-      toasts.showToast(t("Document restored"));
+      toast.success(t("Document restored"));
       history.replace(this.props.document.url, history.location.state);
+    }
+  };
+
+  onUndoRedo = (event: KeyboardEvent) => {
+    if (isModKey(event)) {
+      if (event.shiftKey) {
+        if (this.editor.current?.redo()) {
+          event.preventDefault();
+        }
+      } else {
+        if (this.editor.current?.undo()) {
+          event.preventDefault();
+        }
+      }
     }
   };
 
@@ -202,7 +222,6 @@ class DocumentScene extends React.Component<Props> {
     if (abilities.move) {
       dialogs.openModal({
         title: t("Move document"),
-        isCentered: true,
         content: <DocumentMove document={document} />,
       });
     }
@@ -239,6 +258,8 @@ class DocumentScene extends React.Component<Props> {
 
   onPublish = (ev: React.MouseEvent | KeyboardEvent) => {
     ev.preventDefault();
+    ev.stopPropagation();
+
     const { document, dialogs, t } = this.props;
     if (document.publishedAt) {
       return;
@@ -252,23 +273,8 @@ class DocumentScene extends React.Component<Props> {
     } else {
       dialogs.openModal({
         title: t("Publish document"),
-        isCentered: true,
         content: <DocumentPublish document={document} />,
       });
-    }
-  };
-
-  onToggleTableOfContents = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) {
-      return;
-    }
-    ev.preventDefault();
-    const { ui } = this.props;
-
-    if (ui.tocVisible) {
-      ui.hideTableOfContents();
-    } else {
-      ui.showTableOfContents();
     }
   };
 
@@ -286,15 +292,18 @@ class DocumentScene extends React.Component<Props> {
     }
 
     // get the latest version of the editor text value
-    const text = this.getEditorText ? this.getEditorText() : document.text;
-
-    // prevent save before anything has been written (single hash is empty doc)
-    if (text.trim() === "" && document.title.trim() === "") {
+    const doc = this.editor.current?.view.state.doc;
+    if (!doc) {
       return;
     }
 
-    document.text = text;
-    document.tasks = getTasks(document.text);
+    // prevent save before anything has been written (single hash is empty doc)
+    if (ProsemirrorHelper.isEmpty(doc) && document.title.trim() === "") {
+      return;
+    }
+
+    document.data = doc.toJSON();
+    document.tasks = ProsemirrorHelper.getTasksSummary(doc);
 
     // prevent autosave if nothing has changed
     if (options.autosave && !this.isEditorDirty && !document.isDirty()) {
@@ -316,9 +325,7 @@ class DocumentScene extends React.Component<Props> {
         this.props.ui.setActiveDocument(savedDocument);
       }
     } catch (err) {
-      this.props.toasts.showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
     } finally {
       this.isSaving = false;
       this.isPublishing = false;
@@ -336,12 +343,11 @@ class DocumentScene extends React.Component<Props> {
 
   updateIsDirty = () => {
     const { document } = this.props;
-    const editorText = this.getEditorText().trim();
-    this.isEditorDirty = editorText !== document.text.trim();
+    const doc = this.editor.current?.view.state.doc;
+    this.isEditorDirty = !isEqual(doc?.toJSON(), document.data);
 
     // a single hash is a doc with just an empty title
-    this.isEmpty =
-      (!editorText || editorText === "#" || editorText === "\\") && !this.title;
+    this.isEmpty = (!doc || ProsemirrorHelper.isEmpty(doc)) && !this.title;
   };
 
   updateIsDirtyDebounced = debounce(this.updateIsDirty, 500);
@@ -354,9 +360,8 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
-  handleChange = (getEditorText: () => string) => {
+  handleChange = () => {
     const { document } = this.props;
-    this.getEditorText = getEditorText;
 
     // Keep derived task list in sync
     const tasks = this.editor.current?.getTasks();
@@ -378,8 +383,7 @@ class DocumentScene extends React.Component<Props> {
 
   handleChangeEmoji = action((value: string) => {
     this.props.document.emoji = value;
-    this.updateIsDirty();
-    void this.autosave();
+    void this.onSave();
   });
 
   goBack = () => {
@@ -418,27 +422,24 @@ class DocumentScene extends React.Component<Props> {
           />
         )}
         <RegisterKeyDown trigger="m" handler={this.onMove} />
+        <RegisterKeyDown trigger="z" handler={this.onUndoRedo} />
         <RegisterKeyDown trigger="e" handler={this.goToEdit} />
         <RegisterKeyDown trigger="Escape" handler={this.goBack} />
         <RegisterKeyDown trigger="h" handler={this.goToHistory} />
         <RegisterKeyDown
           trigger="p"
+          options={{
+            allowInInput: true,
+          }}
           handler={(event) => {
             if (isModKey(event) && event.shiftKey) {
               this.onPublish(event);
             }
           }}
         />
-        <RegisterKeyDown
-          trigger="h"
-          handler={(event) => {
-            if (event.ctrlKey && event.altKey) {
-              this.onToggleTableOfContents(event);
-            }
-          }}
-        />
-        <Background
-          id="full-width-container"
+        <MeasuredContainer
+          as={Background}
+          name="container"
           key={revision ? revision.id : document.id}
           column
           auto
@@ -475,7 +476,9 @@ class DocumentScene extends React.Component<Props> {
               onSave={this.onSave}
               headings={this.headings}
             />
-            <MaxWidth
+            <MeasuredContainer
+              as={MaxWidth}
+              name="document"
               archived={document.isArchived}
               showContents={showContents}
               isEditing={!readOnly}
@@ -503,8 +506,8 @@ class DocumentScene extends React.Component<Props> {
                         isDraft={document.isDraft}
                         template={document.isTemplate}
                         document={document}
-                        value={readOnly ? document.text : undefined}
-                        defaultValue={document.text}
+                        value={readOnly ? document.data : undefined}
+                        defaultValue={document.data}
                         embedsDisabled={embedsDisabled}
                         onSynced={this.onSynced}
                         onFileUploadStart={this.onFileUploadStart}
@@ -551,7 +554,7 @@ class DocumentScene extends React.Component<Props> {
                   )}
                 </Flex>
               </React.Suspense>
-            </MaxWidth>
+            </MeasuredContainer>
             {isShare &&
               !parseDomain(window.location.origin).custom &&
               !auth.user && (
@@ -564,7 +567,7 @@ class DocumentScene extends React.Component<Props> {
               <ConnectionStatus />
             </Footer>
           )}
-        </Background>
+        </MeasuredContainer>
       </ErrorBoundary>
     );
   }

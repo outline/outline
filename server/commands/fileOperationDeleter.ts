@@ -1,32 +1,30 @@
+import { Transaction } from "sequelize";
 import { FileOperation, Event, User } from "@server/models";
-import { sequelize } from "@server/storage/database";
 
-export default async function fileOperationDeleter(
-  fileOperation: FileOperation,
-  user: User,
-  ip: string
-) {
-  const transaction = await sequelize.transaction();
+type Props = {
+  fileOperation: FileOperation;
+  user: User;
+  ip: string;
+  transaction: Transaction;
+};
 
-  try {
-    await fileOperation.destroy({
+export default async function fileOperationDeleter({
+  fileOperation,
+  user,
+  ip,
+  transaction,
+}: Props) {
+  await fileOperation.destroy({ transaction });
+  await Event.create(
+    {
+      name: "fileOperations.delete",
+      teamId: user.teamId,
+      actorId: user.id,
+      modelId: fileOperation.id,
+      ip,
+    },
+    {
       transaction,
-    });
-    await Event.create(
-      {
-        name: "fileOperations.delete",
-        teamId: user.teamId,
-        actorId: user.id,
-        modelId: fileOperation.id,
-        ip,
-      },
-      {
-        transaction,
-      }
-    );
-    await transaction.commit();
-  } catch (error) {
-    await transaction.rollback();
-    throw error;
-  }
+    }
+  );
 }

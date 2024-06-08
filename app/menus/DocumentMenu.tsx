@@ -1,20 +1,21 @@
 import { observer } from "mobx-react";
-import { EditIcon, RestoreIcon } from "outline-icons";
+import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
+import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s, ellipsis } from "@shared/styles";
+import { s } from "@shared/styles";
+import { UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Separator from "~/components/ContextMenu/Separator";
 import Template from "~/components/ContextMenu/Template";
-import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Switch from "~/components/Switch";
 import { actionToMenuItem } from "~/actions";
@@ -40,6 +41,9 @@ import {
   openDocumentComments,
   createDocumentFromTemplate,
   createNestedDocument,
+  shareDocument,
+  copyDocument,
+  searchInDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -47,7 +51,6 @@ import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
 import { documentEditPath } from "~/utils/routeHelpers";
 
@@ -61,6 +64,8 @@ type Props = {
   showToggleEmbeds?: boolean;
   showPin?: boolean;
   label?: (props: MenuButtonHTMLProps) => React.ReactNode;
+  onFindAndReplace?: () => void;
+  onRename?: () => void;
   onOpen?: () => void;
   onClose?: () => void;
 };
@@ -72,12 +77,13 @@ function DocumentMenu({
   showToggleEmbeds,
   showDisplayOptions,
   label,
+  onFindAndReplace,
+  onRename,
   onOpen,
   onClose,
 }: Props) {
   const user = useCurrentUser();
   const { policies, collections, documents, subscriptions } = useStores();
-  const { showToast } = useToasts();
   const menu = useMenuState({
     modal,
     unstable_preventOverflow: true,
@@ -88,7 +94,7 @@ function DocumentMenu({
   const context = useActionContext({
     isContextMenu: true,
     activeDocumentId: document.id,
-    activeCollectionId: document.collectionId,
+    activeCollectionId: document.collectionId ?? undefined,
   });
   const { t } = useTranslation();
   const isMobile = useMobile();
@@ -118,11 +124,9 @@ function DocumentMenu({
       }
     ) => {
       await document.restore(options);
-      showToast(t("Document restored"), {
-        type: "success",
-      });
+      toast.success(t("Document restored"));
     },
-    [showToast, t, document]
+    [t, document]
   );
 
   const collection = document.collectionId
@@ -141,12 +145,8 @@ function DocumentMenu({
               handleRestore(ev, {
                 collectionId: collection.id,
               }),
-            title: (
-              <Flex align="center">
-                <CollectionIcon collection={collection} />
-                <CollectionName>{collection.name}</CollectionName>
-              </Flex>
-            ),
+            icon: <CollectionIcon collection={collection} />,
+            title: collection.name,
           });
         }
 
@@ -185,13 +185,11 @@ function DocumentMenu({
         );
         history.push(importedDocument.url);
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
         throw err;
       }
     },
-    [history, showToast, collection, documents, document.id]
+    [history, collection, documents, document.id]
   );
 
   return (
@@ -258,6 +256,14 @@ function DocumentMenu({
             actionToMenuItem(unstarDocument, context),
             actionToMenuItem(subscribeDocument, context),
             actionToMenuItem(unsubscribeDocument, context),
+            ...(isMobile ? [actionToMenuItem(shareDocument, context)] : []),
+            {
+              type: "button",
+              title: `${t("Find and replace")}…`,
+              visible: !!onFindAndReplace && isMobile,
+              onClick: () => onFindAndReplace?.(),
+              icon: <SearchIcon />,
+            },
             {
               type: "separator",
             },
@@ -265,8 +271,16 @@ function DocumentMenu({
               type: "route",
               title: t("Edit"),
               to: documentEditPath(document),
-              visible: !!can.update && user.separateEditMode,
+              visible:
+                !!can.update && user.separateEditMode && !document.template,
               icon: <EditIcon />,
+            },
+            {
+              type: "button",
+              title: `${t("Rename")}…`,
+              visible: !!can.update && !user.separateEditMode && !!onRename,
+              onClick: () => onRename?.(),
+              icon: <InputIcon />,
             },
             actionToMenuItem(createNestedDocument, context),
             actionToMenuItem(importDocument, context),
@@ -285,7 +299,9 @@ function DocumentMenu({
             actionToMenuItem(openDocumentHistory, context),
             actionToMenuItem(openDocumentInsights, context),
             actionToMenuItem(downloadDocument, context),
+            actionToMenuItem(copyDocument, context),
             actionToMenuItem(printDocument, context),
+            actionToMenuItem(searchInDocument, context),
             {
               type: "separator",
             },
@@ -293,38 +309,48 @@ function DocumentMenu({
             actionToMenuItem(permanentlyDeleteDocument, context),
           ]}
         />
-        {(showDisplayOptions || showToggleEmbeds) && (
+        {(showDisplayOptions || showToggleEmbeds) && can.update && (
           <>
             <Separator />
-            {showToggleEmbeds && (
-              <Style>
-                <ToggleMenuItem
-                  width={26}
-                  height={14}
-                  label={t("Enable embeds")}
-                  checked={!document.embedsDisabled}
-                  onChange={
-                    document.embedsDisabled
-                      ? document.enableEmbeds
-                      : document.disableEmbeds
-                  }
-                />
-              </Style>
-            )}
-            {showDisplayOptions && !isMobile && can.update && (
-              <Style>
-                <ToggleMenuItem
-                  width={26}
-                  height={14}
-                  label={t("Full width")}
-                  checked={document.fullWidth}
-                  onChange={(ev) => {
-                    document.fullWidth = ev.currentTarget.checked;
-                    void document.save();
-                  }}
-                />
-              </Style>
-            )}
+            <DisplayOptions>
+              {showToggleEmbeds && (
+                <Style>
+                  <ToggleMenuItem
+                    width={26}
+                    height={14}
+                    label={t("Enable embeds")}
+                    labelPosition="left"
+                    checked={!document.embedsDisabled}
+                    onChange={
+                      document.embedsDisabled
+                        ? document.enableEmbeds
+                        : document.disableEmbeds
+                    }
+                  />
+                </Style>
+              )}
+              {showDisplayOptions && !isMobile && (
+                <Style>
+                  <ToggleMenuItem
+                    width={26}
+                    height={14}
+                    label={t("Full width")}
+                    labelPosition="left"
+                    checked={document.fullWidth}
+                    onChange={(ev) => {
+                      const fullWidth = ev.currentTarget.checked;
+                      user.setPreference(
+                        UserPreference.FullWidthDocuments,
+                        fullWidth
+                      );
+                      void user.save();
+                      document.fullWidth = fullWidth;
+                      void document.save();
+                    }}
+                  />
+                </Style>
+              )}
+            </DisplayOptions>
           </>
         )}
       </ContextMenu>
@@ -339,6 +365,10 @@ const ToggleMenuItem = styled(Switch)`
   }
 `;
 
+const DisplayOptions = styled.div`
+  padding: 8px 0 0;
+`;
+
 const Style = styled.div`
   padding: 12px;
 
@@ -346,10 +376,6 @@ const Style = styled.div`
     padding: 4px 12px;
     font-size: 14px;
   `};
-`;
-
-const CollectionName = styled.div`
-  ${ellipsis()}
 `;
 
 export default observer(DocumentMenu);

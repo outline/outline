@@ -8,29 +8,27 @@ export function InternalError(message = "Internal error") {
 
 export function AuthenticationError(
   message = "Authentication required",
-  redirectUrl = "/"
+  redirectPath = "/"
 ) {
   return httpErrors(401, message, {
-    redirectUrl,
+    redirectPath,
     id: "authentication_required",
   });
 }
 
 export function InvalidAuthenticationError(
   message = "Invalid authentication",
-  redirectUrl = "/"
+  redirectPath = "/"
 ) {
   return httpErrors(401, message, {
-    redirectUrl,
+    redirectPath,
     id: "invalid_authentication",
   });
 }
 
-export function AuthorizationError(
-  message = "You do not have permission to access this resource"
-) {
+export function AuthorizationError(message = "Authorization error") {
   return httpErrors(403, message, {
-    id: "permission_required",
+    id: "authorization_error",
   });
 }
 
@@ -71,17 +69,27 @@ export function UserSuspendedError({
 }: {
   adminEmail: string | undefined;
 }) {
-  return httpErrors(403, "Your access has been suspended by the team admin", {
-    id: "user_suspended",
-    errorData: {
-      adminEmail,
-    },
-  });
+  return httpErrors(
+    403,
+    "Your access has been suspended by a workspace admin",
+    {
+      id: "user_suspended",
+      errorData: {
+        adminEmail,
+      },
+    }
+  );
 }
 
 export function InvalidRequestError(message = "Request invalid") {
   return httpErrors(400, message, {
     id: "invalid_request",
+  });
+}
+
+export function PaymentRequiredError(message = "Payment required") {
+  return httpErrors(402, message, {
+    id: "payment_required",
   });
 }
 
@@ -133,14 +141,6 @@ export function OAuthStateMismatchError(
   });
 }
 
-export function MaximumTeamsError(
-  message = "The maximum number of workspaces has been reached"
-) {
-  return httpErrors(400, message, {
-    id: "maximum_reached",
-  });
-}
-
 export function TeamPendingDeletionError(
   message = "The workspace is pending deletion"
 ) {
@@ -151,10 +151,10 @@ export function TeamPendingDeletionError(
 
 export function EmailAuthenticationRequiredError(
   message = "User must authenticate with email",
-  redirectUrl = "/"
+  redirectPath = "/"
 ) {
   return httpErrors(400, message, {
-    redirectUrl,
+    redirectPath,
     id: "email_auth_required",
   });
 }
@@ -193,10 +193,18 @@ export function OIDCMalformedUserInfoError(
 
 export function AuthenticationProviderDisabledError(
   message = "Authentication method has been disabled by an admin",
-  redirectUrl = "/"
+  redirectPath = "/"
 ) {
   return httpErrors(400, message, {
-    redirectUrl,
+    redirectPath,
     id: "authentication_provider_disabled",
+  });
+}
+
+export function ClientClosedRequestError(
+  message = "Client closed request before response was received"
+) {
+  return httpErrors(499, message, {
+    id: "client_closed_request",
   });
 }

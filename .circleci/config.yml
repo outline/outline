@@ -3,7 +3,7 @@ version: 2.1
 defaults: &defaults
   working_directory: ~/outline
   docker:
-    - image: cimg/node:18.12
+    - image: cimg/node:20.10
     - image: cimg/redis:5.0
     - image: cimg/postgres:14.2
       environment:
@@ -13,13 +13,8 @@ defaults: &defaults
   resource_class: large
   environment:
     NODE_ENV: test
-    SECRET_KEY: F0E5AD933D7F6FD8F4DBB3E038C501C052DC0593C686D21ACB30AE205D2F634B
-    DATABASE_URL_TEST: postgres://postgres:password@localhost:5432/circle_test
     DATABASE_URL: postgres://postgres:password@localhost:5432/circle_test
     URL: http://localhost:3000
-    SMTP_FROM_EMAIL: hello@example.com
-    AWS_S3_UPLOAD_BUCKET_URL: https://s3.amazonaws.com
-    AWS_S3_UPLOAD_BUCKET_NAME: outline-circle
     NODE_OPTIONS: --max-old-space-size=8000
 
 executors:
@@ -36,12 +31,12 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-v1-{{ checksum "package.json" }}
       - run:
           name: install-deps
           command: yarn install --frozen-lockfile
       - save_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-v1-{{ checksum "package.json" }}
           paths:
             - ./node_modules
   lint:
@@ -49,7 +44,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-v1-{{ checksum "package.json" }}
       - run:
           name: lint
           command: yarn lint
@@ -58,7 +53,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-v1-{{ checksum "package.json" }}
       - run:
           name: typescript
           command: yarn tsc
@@ -67,7 +62,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-v1-{{ checksum "package.json" }}
       - run:
           name: test
           command: yarn test:app
@@ -76,7 +71,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-v1-{{ checksum "package.json" }}
       - run:
           name: test
           command: yarn test:shared
@@ -86,10 +81,10 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-v1-{{ checksum "package.json" }}
       - run:
           name: migrate
-          command: ./node_modules/.bin/sequelize db:migrate --url $DATABASE_URL_TEST
+          command: ./node_modules/.bin/sequelize db:migrate
       - run:
           name: test
           command: |
@@ -102,7 +97,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-v1-{{ checksum "package.json" }}
       - run:
           name: build-vite
           command: yarn vite:build
@@ -145,7 +140,12 @@ jobs:
           command: docker push $BASE_IMAGE_NAME:latest
       - run:
           name: Build and push Docker image
-          command: docker buildx build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
+          command: |
+            if [[ "$CIRCLE_TAG" == *"-"* ]]; then
+              docker buildx build -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
+            else
+              docker buildx build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
+            fi
 
 workflows:
   version: 2

@@ -17,7 +17,7 @@ router.use(passport.initialize());
 
 // dynamically load available authentication provider routes
 AuthenticationHelper.providers.forEach((provider) => {
-  router.use("/", provider.router.routes());
+  router.use("/", provider.value.router.routes());
 });
 
 router.get("/redirect", auth(), async (ctx: APIContext) => {

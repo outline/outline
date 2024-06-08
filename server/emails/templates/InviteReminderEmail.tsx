@@ -23,7 +23,7 @@ type Props = EmailProps & {
  */
 export default class InviteReminderEmail extends BaseEmail<Props> {
   protected subject({ actorName, teamName }: Props) {
-    return `Reminder: ${actorName} invited you to join ${teamName}’s knowledge base`;
+    return `Reminder: ${actorName} invited you to join ${teamName}’s workspace`;
   }
 
   protected preview() {

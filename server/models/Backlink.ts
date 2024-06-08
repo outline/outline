@@ -1,3 +1,4 @@
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -12,7 +13,10 @@ import Fix from "./decorators/Fix";
 
 @Table({ tableName: "backlinks", modelName: "backlink" })
 @Fix
-class Backlink extends IdModel {
+class Backlink extends IdModel<
+  InferAttributes<Backlink>,
+  Partial<InferCreationAttributes<Backlink>>
+> {
   @BelongsTo(() => User, "userId")
   user: User;
 

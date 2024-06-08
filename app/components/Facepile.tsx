@@ -5,6 +5,7 @@ import { s } from "@shared/styles";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
+import { AvatarSize } from "./Avatar/Avatar";
 
 type Props = {
   users: User[];
@@ -17,7 +18,7 @@ type Props = {
 function Facepile({
   users,
   overflow = 0,
-  size = 32,
+  size = AvatarSize.Large,
   limit = 8,
   renderAvatar = DefaultAvatar,
   ...rest
@@ -32,15 +33,18 @@ function Facepile({
           </span>
         </More>
       )}
-      {users.slice(0, limit).map((user) => (
-        <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
-      ))}
+      {users
+        .filter(Boolean)
+        .slice(0, limit)
+        .map((user) => (
+          <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
+        ))}
     </Avatars>
   );
 }
 
 function DefaultAvatar(user: User) {
-  return <Avatar model={user} size={32} />;
+  return <Avatar model={user} size={AvatarSize.Large} />;
 }
 
 const AvatarWrapper = styled.div`
@@ -59,11 +63,11 @@ const More = styled.div<{ size: number }>`
   min-width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
   border-radius: 100%;
-  background: ${(props) => props.theme.slate};
-  color: ${s("text")};
+  background: ${(props) => props.theme.textTertiary};
+  color: ${s("white")};
   border: 2px solid ${s("background")};
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 `;
 

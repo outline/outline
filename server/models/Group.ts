@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
 import {
   AfterDestroy,
   BelongsTo,
@@ -11,7 +11,7 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
-import CollectionGroup from "./CollectionGroup";
+import GroupPermission from "./GroupPermission";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
@@ -69,7 +69,10 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   },
 })
 @Fix
-class Group extends ParanoidModel {
+class Group extends ParanoidModel<
+  InferAttributes<Group>,
+  Partial<InferCreationAttributes<Group>>
+> {
   @Length({ min: 0, max: 255, msg: "name must be be 255 characters or less" })
   @NotContainsUrl
   @Column
@@ -87,7 +90,7 @@ class Group extends ParanoidModel {
         groupId: model.id,
       },
     });
-    await CollectionGroup.destroy({
+    await GroupPermission.destroy({
       where: {
         groupId: model.id,
       },
@@ -106,8 +109,8 @@ class Group extends ParanoidModel {
   @HasMany(() => GroupUser, { as: "members", foreignKey: "groupId" })
   groupMemberships: GroupUser[];
 
-  @HasMany(() => CollectionGroup, "groupId")
-  collectionGroupMemberships: CollectionGroup[];
+  @HasMany(() => GroupPermission, "groupId")
+  collectionGroupMemberships: GroupPermission[];
 
   @BelongsTo(() => Team, "teamId")
   team: Team;

@@ -3,9 +3,9 @@ import Frame from "../components/Frame";
 import Image from "../components/Img";
 import { EmbedProps as Props } from ".";
 
-function Diagrams(props: Props) {
+function Diagrams({ matches, ...props }: Props) {
   const { embed } = props;
-  const embedUrl = props.attrs.matches[0];
+  const embedUrl = matches[0];
   const params = new URL(embedUrl).searchParams;
   const titlePrefix = embed.settings?.url ? "Draw.io" : "Diagrams.net";
   const title = params.get("title")
@@ -15,7 +15,7 @@ function Diagrams(props: Props) {
   return (
     <Frame
       {...props}
-      src={embedUrl}
+      src={props.attrs.href}
       icon={
         <Image
           src="/images/diagrams.png"
@@ -30,11 +30,5 @@ function Diagrams(props: Props) {
     />
   );
 }
-
-Diagrams.ENABLED = [
-  /^https:\/\/viewer\.diagrams\.net\/(?!proxy).*(title=\\w+)?/,
-];
-
-Diagrams.URL_PATH_REGEX = /\/(?!proxy).*(title=\\w+)?/;
 
 export default Diagrams;

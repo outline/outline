@@ -8,8 +8,22 @@ import { TeamPreference } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import { RefHandle } from "~/components/ContentEditable";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
+import BlockMenuExtension from "~/editor/extensions/BlockMenu";
+import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
+import DragAndDrop from "~/editor/extensions/DragAndDrop";
+import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
+import FindAndReplaceExtension from "~/editor/extensions/FindAndReplace";
+import HoverPreviewsExtension from "~/editor/extensions/HoverPreviews";
+import Keys from "~/editor/extensions/Keys";
+import MentionMenuExtension from "~/editor/extensions/MentionMenu";
+import PasteHandler from "~/editor/extensions/PasteHandler";
+import PreventTab from "~/editor/extensions/PreventTab";
+import SmartText from "~/editor/extensions/SmartText";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -18,14 +32,27 @@ import {
   documentPath,
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
-import { useDocumentContext } from "../../../components/DocumentContext";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
 
-const extensions = withComments(richExtensions);
+const extensions = [
+  ...withComments(richExtensions),
+  SmartText,
+  PasteHandler,
+  ClipboardTextSerializer,
+  BlockMenuExtension,
+  EmojiMenuExtension,
+  MentionMenuExtension,
+  FindAndReplaceExtension,
+  HoverPreviewsExtension,
+  DragAndDrop,
+  // Order these default key handlers last
+  PreventTab,
+  Keys,
+];
 
-type Props = Omit<EditorProps, "extensions" | "editorStyle"> & {
+type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;
   onChangeEmoji: (emoji: string | null) => void;
   id: string;
@@ -49,8 +76,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const { t } = useTranslation();
   const match = useRouteMatch();
   const focusedComment = useFocusedComment();
-  const { ui, comments, auth } = useStores();
-  const { user, team } = auth;
+  const { ui, comments } = useStores();
+  const user = useCurrentUser({ rejectOnEmpty: false });
+  const team = useCurrentTeam({ rejectOnEmpty: false });
   const history = useHistory();
   const {
     document,
@@ -63,7 +91,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     multiplayer,
     ...rest
   } = props;
-  const can = usePolicy(document.id);
+  const can = usePolicy(document);
 
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
@@ -161,6 +189,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             : document.title
         }
         emoji={document.emoji}
+        emojiPosition={document.fullWidth ? "top" : "side"}
         onChangeTitle={onChangeTitle}
         onChangeEmoji={onChangeEmoji}
         onGoToNextInput={handleGoToNextInput}
@@ -169,7 +198,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       />
       {!shareId && (
         <DocumentMeta
-          isDraft={isDraft}
           document={document}
           to={
             match.path === matchDocumentHistory

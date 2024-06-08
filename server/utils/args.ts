@@ -10,10 +10,11 @@ export function getArg(name: string, shortName?: string) {
     .slice(2)
     .filter(
       (arg) =>
+        arg === `--${name}` ||
         arg.startsWith(`--${name}=`) ||
         (shortName && arg.startsWith(`-${shortName}=`))
     )
-    .map((arg) => arg.split("=")[1])
+    .map((arg) => arg.split("=")[1] ?? "true")
     .map((arg) => arg.trim())
     .join(",");
 

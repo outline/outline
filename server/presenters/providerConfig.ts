@@ -1,12 +1,12 @@
 import { signin } from "@shared/utils/routeHelpers";
-import { AuthenticationProviderConfig } from "@server/models/helpers/AuthenticationHelper";
+import { Plugin, Hook } from "@server/utils/PluginManager";
 
 export default function presentProviderConfig(
-  config: AuthenticationProviderConfig
+  config: Plugin<Hook.AuthProvider>
 ) {
   return {
-    id: config.id,
+    id: config.value.id,
     name: config.name,
-    authUrl: signin(config.id),
+    authUrl: signin(config.value.id),
   };
 }

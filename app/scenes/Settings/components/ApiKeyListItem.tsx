@@ -1,12 +1,12 @@
 import { CopyIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import ApiKey from "~/models/ApiKey";
 import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
-import useToasts from "~/hooks/useToasts";
 import ApiKeyMenu from "~/menus/ApiKeyMenu";
 
 type Props = {
@@ -15,7 +15,6 @@ type Props = {
 
 const ApiKeyListItem = ({ apiKey }: Props) => {
   const { t } = useTranslation();
-  const { showToast } = useToasts();
   const [linkCopied, setLinkCopied] = React.useState<boolean>(false);
 
   React.useEffect(() => {
@@ -28,10 +27,8 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
 
   const handleCopy = React.useCallback(() => {
     setLinkCopied(true);
-    showToast(t("API token copied to clipboard"), {
-      type: "success",
-    });
-  }, [showToast, t]);
+    toast.message(t("API token copied to clipboard"));
+  }, [t]);
 
   return (
     <ListItem

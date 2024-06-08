@@ -58,9 +58,12 @@ export default async function userInviter({
       teamId: user.teamId,
       name: invite.name,
       email: invite.email,
-      service: null,
-      isAdmin: invite.role === UserRole.Admin,
-      isViewer: invite.role === UserRole.Viewer,
+      role:
+        user.isAdmin && invite.role === UserRole.Admin
+          ? UserRole.Admin
+          : user.isViewer || invite.role === UserRole.Viewer
+          ? UserRole.Viewer
+          : UserRole.Member,
       invitedById: user.id,
       flags: {
         [UserFlag.InviteSent]: 1,
@@ -89,7 +92,7 @@ export default async function userInviter({
       teamUrl: team.url,
     }).schedule();
 
-    if (env.ENVIRONMENT === "development") {
+    if (env.isDevelopment) {
       Logger.info(
         "email",
         `Sign in immediately: ${

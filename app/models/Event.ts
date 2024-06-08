@@ -3,13 +3,13 @@ import Model from "./base/Model";
 import Relation from "./decorators/Relation";
 
 class Event extends Model {
+  static modelName = "Event";
+
   id: string;
 
   name: string;
 
   modelId: string | null | undefined;
-
-  actorId: string;
 
   actorIpAddress: string | null | undefined;
 
@@ -17,10 +17,15 @@ class Event extends Model {
 
   collectionId: string | null | undefined;
 
+  @Relation(() => User)
+  user: User;
+
   userId: string;
 
   @Relation(() => User)
   actor: User;
+
+  actorId: string;
 
   data: {
     name: string;

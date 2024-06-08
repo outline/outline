@@ -7,6 +7,7 @@ const MenuIconWrapper = styled.span`
   margin-right: 6px;
   margin-left: -4px;
   color: ${s("textSecondary")};
+  flex-shrink: 0;
 `;
 
 export default MenuIconWrapper;

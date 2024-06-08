@@ -2,17 +2,17 @@ import * as React from "react";
 import { useMousePosition } from "~/hooks/useMousePosition";
 
 type Positions = {
-  /* Sub-menu x */
+  /** Sub-menu x */
   x: number;
-  /* Sub-menu y */
+  /** Sub-menu y */
   y: number;
-  /* Sub-menu height */
+  /** Sub-menu height */
   h: number;
-  /* Sub-menu width */
+  /** Sub-menu width */
   w: number;
-  /* Mouse x */
+  /** Mouse x */
   mouseX: number;
-  /* Mouse y */
+  /** Mouse y */
   mouseY: number;
 };
 

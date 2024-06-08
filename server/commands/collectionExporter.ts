@@ -7,6 +7,7 @@ import {
 } from "@shared/types";
 import { traceFunction } from "@server/logging/tracing";
 import { Collection, Event, Team, User, FileOperation } from "@server/models";
+import { Buckets } from "@server/models/helpers/AttachmentHelper";
 
 type Props = {
   collection?: Collection;
@@ -18,9 +19,14 @@ type Props = {
   transaction: Transaction;
 };
 
-function getKeyForFileOp(teamId: string, name: string) {
-  const bucket = "uploads";
-  return `${bucket}/${teamId}/${uuidv4()}/${name}-export.zip`;
+function getKeyForFileOp(
+  teamId: string,
+  format: FileOperationFormat,
+  name: string
+) {
+  return `${
+    Buckets.uploads
+  }/${teamId}/${uuidv4()}/${name}-export.${format.replace(/outline-/, "")}.zip`;
 }
 
 async function collectionExporter({
@@ -33,7 +39,11 @@ async function collectionExporter({
   transaction,
 }: Props) {
   const collectionId = collection?.id;
-  const key = getKeyForFileOp(user.teamId, collection?.name || team.name);
+  const key = getKeyForFileOp(
+    user.teamId,
+    format,
+    collection?.name || team.name
+  );
   const fileOperation = await FileOperation.create(
     {
       type: FileOperationType.Export,
@@ -43,9 +53,11 @@ async function collectionExporter({
       url: null,
       size: 0,
       collectionId,
-      includeAttachments,
       userId: user.id,
       teamId: user.teamId,
+      options: {
+        includeAttachments,
+      },
     },
     {
       transaction,

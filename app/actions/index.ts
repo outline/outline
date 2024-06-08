@@ -1,5 +1,6 @@
 import flattenDeep from "lodash/flattenDeep";
 import * as React from "react";
+import { toast } from "sonner";
 import { Optional } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -73,15 +74,7 @@ export function actionToMenuItem(
     icon,
     visible,
     dangerous: action.dangerous,
-    onClick: () => {
-      try {
-        action.perform?.(context);
-      } catch (err) {
-        context.stores.toasts.showToast(err.message, {
-          type: "error",
-        });
-      }
-    },
+    onClick: () => performAction(action, context),
     selected: action.selected?.(context),
   };
 }
@@ -115,8 +108,24 @@ export function actionToKBar(
       keywords: action.keywords ?? "",
       shortcut: action.shortcut || [],
       icon: resolvedIcon,
-      perform: action.perform ? () => action.perform?.(context) : undefined,
+      perform: action.perform
+        ? () => performAction(action, context)
+        : undefined,
     },
+  ].concat(
     // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-  ].concat(children.map((child) => ({ ...child, parent: action.id })));
+    children.map((child) => ({ ...child, parent: child.parent ?? action.id }))
+  );
+}
+
+export async function performAction(action: Action, context: ActionContext) {
+  const result = action.perform?.(context);
+
+  if (result instanceof Promise) {
+    return result.catch((err: Error) => {
+      toast.error(err.message);
+    });
+  }
+
+  return result;
 }

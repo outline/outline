@@ -1,6 +1,6 @@
 import { NotificationEventType } from "@shared/types";
 import { Comment, Document, Notification, User } from "@server/models";
-import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { CommentEvent, CommentUpdateEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 

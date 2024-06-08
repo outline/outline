@@ -7,6 +7,7 @@ import { NavigationNode } from "@shared/types";
 import EventBoundary from "~/components/EventBoundary";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
 import NudeButton from "~/components/NudeButton";
+import { UnreadBadge } from "~/components/UnreadBadge";
 import useUnmount from "~/hooks/useUnmount";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
@@ -22,17 +23,18 @@ type Props = Omit<NavLinkProps, "to"> & {
   to?: LocationDescriptor;
   innerRef?: (ref: HTMLElement | null | undefined) => void;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
-  /* Callback when we expect the user to click on the link. Used for prefetching data. */
+  /** Callback when we expect the user to click on the link. Used for prefetching data. */
   onClickIntent?: () => void;
   onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
   icon?: React.ReactNode;
   emoji?: string | null;
   label?: React.ReactNode;
   menu?: React.ReactNode;
+  unreadBadge?: boolean;
   showActions?: boolean;
   disabled?: boolean;
   active?: boolean;
-  /* If set, a disclosure will be rendered to the left of any icon */
+  /** If set, a disclosure will be rendered to the left of any icon */
   expanded?: boolean;
   isActiveDrop?: boolean;
   isDraft?: boolean;
@@ -64,6 +66,7 @@ function SidebarLink(
     expanded,
     onDisclosureClick,
     disabled,
+    unreadBadge,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -141,6 +144,7 @@ function SidebarLink(
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {emoji && <EmojiIcon emoji={emoji} />}
           <Label>{label}</Label>
+          {unreadBadge && <UnreadBadge />}
         </Content>
       </Link>
       {menu && <Actions showActions={showActions}>{menu}</Actions>}

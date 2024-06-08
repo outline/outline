@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { Op } from "sequelize";
+import { Op, WhereOptions } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -25,13 +25,25 @@ router.post(
   pagination(),
   validate(T.GroupsListSchema),
   async (ctx: APIContext<T.GroupsListReq>) => {
-    const { direction, sort, userId } = ctx.input.body;
+    const { direction, sort, userId, name } = ctx.input.body;
     const { user } = ctx.state.auth;
+    authorize(user, "listGroups", user.team);
+
+    let where: WhereOptions<Group> = {
+      teamId: user.teamId,
+    };
+
+    if (name) {
+      where = {
+        ...where,
+        name: {
+          [Op.eq]: name,
+        },
+      };
+    }
 
     const groups = await Group.filterByMember(userId).findAll({
-      where: {
-        teamId: user.teamId,
-      },
+      where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
@@ -93,15 +105,12 @@ router.post(
     // reload to get default scope
     const group = await Group.findByPk(g.id, { rejectOnEmpty: true });
 
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "groups.create",
-      actorId: user.id,
-      teamId: user.teamId,
       modelId: group.id,
       data: {
         name: group.name,
       },
-      ip: ctx.request.ip,
     });
 
     ctx.body = {
@@ -126,15 +135,12 @@ router.post(
 
     if (group.changed()) {
       await group.save();
-      await Event.create({
+      await Event.createFromContext(ctx, {
         name: "groups.update",
-        teamId: user.teamId,
-        actorId: user.id,
         modelId: group.id,
         data: {
           name,
         },
-        ip: ctx.request.ip,
       });
     }
 
@@ -157,15 +163,12 @@ router.post(
     authorize(user, "delete", group);
 
     await group.destroy();
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "groups.delete",
-      actorId: user.id,
       modelId: group.id,
-      teamId: group.teamId,
       data: {
         name: group.name,
       },
-      ip: ctx.request.ip,
     });
 
     ctx.body = {
@@ -263,16 +266,13 @@ router.post(
       // reload to get default scope
       group = await Group.findByPk(id, { rejectOnEmpty: true });
 
-      await Event.create({
+      await Event.createFromContext(ctx, {
         name: "groups.add_user",
         userId,
-        teamId: user.teamId,
         modelId: group.id,
-        actorId: actor.id,
         data: {
           name: user.name,
         },
-        ip: ctx.request.ip,
       });
     }
 
@@ -303,16 +303,13 @@ router.post(
     authorize(actor, "read", user);
 
     await group.$remove("user", user);
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "groups.remove_user",
       userId,
       modelId: group.id,
-      teamId: user.teamId,
-      actorId: actor.id,
       data: {
         name: user.name,
       },
-      ip: ctx.request.ip,
     });
 
     // reload to get default scope

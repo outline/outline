@@ -7,6 +7,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
+import Squircle from "@shared/components/Squircle";
 import { s, ellipsis } from "@shared/styles";
 import Document from "~/models/Document";
 import Pin from "~/models/Pin";
@@ -17,7 +18,6 @@ import useStores from "~/hooks/useStores";
 import { hover } from "~/styles";
 import CollectionIcon from "./Icons/CollectionIcon";
 import EmojiIcon from "./Icons/EmojiIcon";
-import Squircle from "./Squircle";
 import Text from "./Text";
 import Tooltip from "./Tooltip";
 
@@ -116,6 +116,7 @@ function DocumentCard(props: Props) {
             ) : (
               <Squircle color={collection?.color}>
                 {collection?.icon &&
+                collection?.icon !== "letter" &&
                 collection?.icon !== "collection" &&
                 !pin?.collectionId ? (
                   <CollectionIcon collection={collection} color="white" />
@@ -144,7 +145,7 @@ function DocumentCard(props: Props) {
           {canUpdatePin && (
             <Actions dir={document.dir} gap={4}>
               {!isDragging && pin && (
-                <Tooltip tooltip={t("Unpin")}>
+                <Tooltip content={t("Unpin")}>
                   <PinButton onClick={handleUnpin} aria-label={t("Unpin")}>
                     <CloseIcon />
                   </PinButton>

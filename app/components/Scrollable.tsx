@@ -10,11 +10,20 @@ type Props = React.HTMLAttributes<HTMLDivElement> & {
   bottomShadow?: boolean;
   hiddenScrollbars?: boolean;
   flex?: boolean;
+  overflow?: string;
   children: React.ReactNode;
 };
 
 function Scrollable(
-  { shadow, topShadow, bottomShadow, hiddenScrollbars, flex, ...rest }: Props,
+  {
+    shadow,
+    topShadow,
+    bottomShadow,
+    hiddenScrollbars,
+    flex,
+    overflow,
+    ...rest
+  }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const fallbackRef = React.useRef<HTMLDivElement>();
@@ -60,6 +69,7 @@ function Scrollable(
       $hiddenScrollbars={hiddenScrollbars}
       $topShadowVisible={topShadowVisible}
       $bottomShadowVisible={bottomShadowVisible}
+      $overflow={overflow}
       {...rest}
     />
   );
@@ -70,12 +80,13 @@ const Wrapper = styled.div<{
   $topShadowVisible?: boolean;
   $bottomShadowVisible?: boolean;
   $hiddenScrollbars?: boolean;
+  $overflow?: string;
 }>`
   display: ${(props) => (props.$flex ? "flex" : "block")};
   flex-direction: column;
   height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow-y: ${(props) => (props.$overflow ? props.$overflow : "auto")};
+  overflow-x: ${(props) => (props.$overflow ? props.$overflow : "hidden")};
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
   box-shadow: ${(props) => {

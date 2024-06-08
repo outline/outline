@@ -41,27 +41,32 @@ export default class Code extends Mark {
 
   get schema(): MarkSpec {
     return {
-      excludes: "comment mention link placeholder highlight em strong",
+      excludes: "mention link placeholder highlight em strong",
       parseDOM: [{ tag: "code.inline", preserveWhitespace: true }],
       toDOM: () => ["code", { class: "inline", spellCheck: "false" }],
     };
   }
 
   inputRules({ type }: { type: MarkType }) {
-    return [markInputRule(/(?:^|[^`])(`([^`]+)`)$/, type)];
+    return [markInputRule(/(?:^|\s)((?:`)((?:[^`]+))(?:`))$/, type)];
   }
 
   keys({ type }: { type: MarkType }) {
-    // Note: This key binding only works on non-Mac platforms
-    // https://github.com/ProseMirror/prosemirror/issues/515
     return {
+      // Note: This key binding only works on non-Mac platforms
+      // https://github.com/ProseMirror/prosemirror/issues/515
       "Mod`": toggleMark(type),
+      "Mod-e": toggleMark(type),
     };
   }
 
   get plugins() {
+    const codeCursorPlugin = codemark({
+      markType: this.editor.schema.marks.code_inline,
+    })[0];
+
     return [
-      ...codemark({ markType: this.editor.schema.marks.code_inline }),
+      codeCursorPlugin,
       new Plugin({
         props: {
           // Typing a character inside of two backticks will wrap the character

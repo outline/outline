@@ -1,12 +1,13 @@
 import { observable } from "mobx";
+import Collection from "./Collection";
+import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
+import Relation from "./decorators/Relation";
 
 class Share extends Model {
-  @Field
-  @observable
-  id: string;
+  static modelName = "Share";
 
   @Field
   @observable
@@ -16,13 +17,31 @@ class Share extends Model {
   @observable
   includeChildDocuments: boolean;
 
+  /** The document ID that is shared. */
   @Field
   @observable
   documentId: string;
 
+  /** The document that is shared. */
+  @Relation(() => Document, { onDelete: "cascade" })
+  document: Document;
+
+  /** The collection ID that is shared. */
+  @Field
+  @observable
+  collectionId: string;
+
+  /** The collection that is shared. */
+  @Relation(() => Collection, { onDelete: "cascade" })
+  collection: Collection;
+
   @Field
   @observable
   urlId: string;
+
+  @Field
+  @observable
+  domain: string;
 
   @observable
   documentTitle: string;
@@ -36,6 +55,8 @@ class Share extends Model {
   @observable
   url: string;
 
+  /** The user that shared the document. */
+  @Relation(() => User, { onDelete: "null" })
   createdBy: User;
 }
 

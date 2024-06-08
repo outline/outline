@@ -9,7 +9,7 @@ import { Command } from "prosemirror-state";
  * @returns A prosemirror command.
  */
 export default function backspaceToParagraph(type: NodeType): Command {
-  return (state, dispatch) => {
+  return (state, dispatch, view) => {
     const { $from, from, to, empty } = state.selection;
 
     // if the selection has anything in it then use standard delete behavior
@@ -23,8 +23,7 @@ export default function backspaceToParagraph(type: NodeType): Command {
     }
 
     // check if we're at the beginning of the heading
-    const $pos = state.doc.resolve(from - 1);
-    if ($pos.parent === $from.parent) {
+    if (!view?.endOfTextblock("backward", state)) {
       return false;
     }
 

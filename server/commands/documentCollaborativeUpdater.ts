@@ -1,7 +1,9 @@
 import { yDocToProsemirrorJSON } from "@getoutline/y-prosemirror";
+import isEqual from "fast-deep-equal";
 import uniq from "lodash/uniq";
 import { Node } from "prosemirror-model";
 import * as Y from "yjs";
+import { ProsemirrorData } from "@shared/types";
 import { schema, serializer } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
@@ -41,9 +43,10 @@ export default async function documentCollaborativeUpdater({
       });
 
     const state = Y.encodeStateAsUpdate(ydoc);
-    const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+    const content = yDocToProsemirrorJSON(ydoc, "default") as ProsemirrorData;
+    const node = Node.fromJSON(schema, content);
     const text = serializer.serialize(node, undefined);
-    const isUnchanged = document.text === text;
+    const isUnchanged = isEqual(document.content, content);
     const lastModifiedById = userId ?? document.lastModifiedById;
 
     if (isUnchanged) {
@@ -63,6 +66,7 @@ export default async function documentCollaborativeUpdater({
     await document.update(
       {
         text,
+        content,
         state: Buffer.from(state),
         lastModifiedById,
         collaboratorIds,

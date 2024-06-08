@@ -4,6 +4,7 @@ import * as React from "react";
 import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import getMarkRange from "@shared/editor/queries/getMarkRange";
+import isInCode from "@shared/editor/queries/isInCode";
 import isMarkActive from "@shared/editor/queries/isMarkActive";
 import isNodeActive from "@shared/editor/queries/isNodeActive";
 import { getColumnIndex, getRowIndex } from "@shared/editor/queries/table";
@@ -14,7 +15,7 @@ import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
-import useToasts from "~/hooks/useToasts";
+import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
 import getFormattingMenuItems from "../menus/formatting";
@@ -33,6 +34,7 @@ type Props = {
   isTemplate: boolean;
   readOnly?: boolean;
   canComment?: boolean;
+  canUpdate?: boolean;
   onOpen: () => void;
   onClose: () => void;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
@@ -65,7 +67,7 @@ function useIsActive(state: EditorState) {
   }
   if (
     selection instanceof NodeSelection &&
-    selection.node.type.name === "image"
+    ["image", "attachment"].includes(selection.node.type.name)
   ) {
     return true;
   }
@@ -96,13 +98,12 @@ function useIsDragging() {
 export default function SelectionToolbar(props: Props) {
   const { onClose, readOnly, onOpen } = props;
   const { view, commands } = useEditor();
-  const { showToast: onShowToast } = useToasts();
   const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
-  const isActive = useIsActive(view.state);
+  const isMobile = useMobile();
+  const isActive = useIsActive(view.state) || isMobile;
   const isDragging = useIsDragging();
   const previousIsActive = usePrevious(isActive);
-  const isMobile = useMobile();
 
   React.useEffect(() => {
     // Trigger callbacks when the toolbar is opened or closed
@@ -148,7 +149,10 @@ export default function SelectionToolbar(props: Props) {
     };
   }, [isActive, previousIsActive, readOnly, view]);
 
-  const handleOnCreateLink = async (title: string): Promise<void> => {
+  const handleOnCreateLink = async (
+    title: string,
+    nested?: boolean
+  ): Promise<void> => {
     const { onCreateLink } = props;
 
     if (!onCreateLink) {
@@ -173,8 +177,8 @@ export default function SelectionToolbar(props: Props) {
     );
 
     return createAndInsertLink(view, title, href, {
+      nested,
       onCreateLink,
-      onShowToast,
       dictionary,
     });
   };
@@ -199,12 +203,12 @@ export default function SelectionToolbar(props: Props) {
     );
   };
 
-  const { onCreateLink, isTemplate, rtl, canComment, ...rest } = props;
+  const { onCreateLink, isTemplate, rtl, canComment, canUpdate, ...rest } =
+    props;
   const { state } = view;
   const { selection } = state;
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
 
-  // no toolbar in read-only without commenting or when dragging
   if ((readOnly && !canComment) || isDragging) {
     return null;
   }
@@ -216,26 +220,29 @@ export default function SelectionToolbar(props: Props) {
   const range = getMarkRange(selection.$from, state.schema.marks.link);
   const isImageSelection =
     selection instanceof NodeSelection && selection.node.type.name === "image";
-  const isCodeSelection =
-    isNodeActive(state.schema.nodes.code_block)(state) ||
-    isNodeActive(state.schema.nodes.code_fence)(state);
+  const isAttachmentSelection =
+    selection instanceof NodeSelection &&
+    selection.node.type.name === "attachment";
+  const isCodeSelection = isInCode(state, { onlyBlock: true });
 
   let items: MenuItem[] = [];
 
-  if (isCodeSelection) {
+  if (isCodeSelection && selection.empty) {
     items = getCodeMenuItems(state, readOnly, dictionary);
   } else if (isTableSelection) {
-    items = getTableMenuItems(dictionary);
+    items = getTableMenuItems(state, dictionary);
   } else if (colIndex !== undefined) {
     items = getTableColMenuItems(state, colIndex, rtl, dictionary);
   } else if (rowIndex !== undefined) {
     items = getTableRowMenuItems(state, rowIndex, dictionary);
   } else if (isImageSelection) {
     items = readOnly ? [] : getImageMenuItems(state, dictionary);
+  } else if (isAttachmentSelection) {
+    items = readOnly ? [] : getAttachmentMenuItems(state, dictionary);
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, dictionary);
   } else if (readOnly) {
-    items = getReadOnlyMenuItems(state, dictionary);
+    items = getReadOnlyMenuItems(state, !!canUpdate, dictionary);
   } else {
     items = getFormattingMenuItems(state, isTemplate, isMobile, dictionary);
   }
@@ -246,6 +253,9 @@ export default function SelectionToolbar(props: Props) {
       return true;
     }
     if (item.name && !commands[item.name]) {
+      return false;
+    }
+    if (item.visible === false) {
       return false;
     }
     return true;
@@ -272,7 +282,6 @@ export default function SelectionToolbar(props: Props) {
           mark={range.mark}
           from={range.from}
           to={range.to}
-          onShowToast={onShowToast}
           onClickLink={props.onClickLink}
           onSearchLink={props.onSearchLink}
           onCreateLink={onCreateLink ? handleOnCreateLink : undefined}

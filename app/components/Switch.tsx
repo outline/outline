@@ -5,27 +5,38 @@ import { LabelText } from "~/components/Input";
 import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
 
-type Props = React.HTMLAttributes<HTMLInputElement> & {
+interface Props extends React.HTMLAttributes<HTMLInputElement> {
+  /** Width of the switch. Defaults to 32. */
   width?: number;
+  /** Height of the switch. Defaults to 18 */
   height?: number;
+  /** An optional label for the switch */
   label?: string;
-  name?: string;
+  /** Whether the label should be positioned on left or right. Defaults to right */
+  labelPosition?: "left" | "right";
+  /** An optional note to display below the switch */
   note?: React.ReactNode;
+  /** Name of the input */
+  name?: string;
+  /** Whether the switch is checked */
   checked?: boolean;
+  /** Whether the switch is disabled */
   disabled?: boolean;
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => unknown;
-  id?: string;
-};
+}
 
-function Switch({
-  width = 32,
-  height = 18,
-  label,
-  disabled,
-  className,
-  note,
-  ...props
-}: Props) {
+function Switch(
+  {
+    width = 32,
+    height = 18,
+    labelPosition = "left",
+    label,
+    disabled,
+    className,
+    note,
+    ...props
+  }: Props,
+  ref: React.Ref<HTMLInputElement>
+) {
   const component = (
     <Input
       width={width}
@@ -33,6 +44,7 @@ function Switch({
       className={label ? undefined : className}
     >
       <HiddenInput
+        ref={ref}
         type="checkbox"
         width={width}
         height={height}
@@ -46,12 +58,24 @@ function Switch({
   if (label) {
     return (
       <Wrapper>
-        <Label disabled={disabled} htmlFor={props.id} className={className}>
+        <Label
+          disabled={disabled}
+          htmlFor={props.id}
+          className={className}
+          $labelPosition={labelPosition}
+        >
           {component}
           <InlineLabelText>{label}</InlineLabelText>
         </Label>
         {note && (
-          <Text type="secondary" size="small">
+          <Text
+            type="secondary"
+            size="small"
+            style={{
+              paddingRight: labelPosition === "left" ? width : 0,
+              paddingLeft: labelPosition === "right" ? width : 0,
+            }}
+          >
             {note}
           </Text>
         )}
@@ -69,12 +93,20 @@ const Wrapper = styled.div`
 
 const InlineLabelText = styled(LabelText)`
   padding-bottom: 0;
+  width: 100%;
 `;
 
-const Label = styled.label<{ disabled?: boolean }>`
+const Label = styled.label<{
+  disabled?: boolean;
+  $labelPosition: "left" | "right";
+}>`
   display: flex;
   align-items: center;
   user-select: none;
+  gap: 8px;
+
+  ${(props) =>
+    props.$labelPosition === "left" ? `flex-direction: row-reverse;` : ""}
   ${(props) => (props.disabled ? `opacity: 0.75;` : "")}
 `;
 
@@ -84,10 +116,6 @@ const Input = styled.label<{ width: number; height: number }>`
   width: ${(props) => props.width}px;
   height: ${(props) => props.height}px;
   flex-shrink: 0;
-
-  &:not(:last-child) {
-    margin-right: 8px;
-  }
 `;
 
 const Slider = styled.span<{ width: number; height: number }>`
@@ -140,4 +168,4 @@ const HiddenInput = styled.input<{ width: number; height: number }>`
   }
 `;
 
-export default Switch;
+export default React.forwardRef(Switch);

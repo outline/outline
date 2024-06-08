@@ -25,10 +25,18 @@ import { altDisplay, isModKey, metaDisplay } from "~/utils/keyboard";
 import { useEditor } from "./EditorContext";
 
 type Props = {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
   readOnly?: boolean;
 };
 
-export default function FindAndReplace({ readOnly }: Props) {
+export default function FindAndReplace({
+  readOnly,
+  open,
+  onOpen,
+  onClose,
+}: Props) {
   const editor = useEditor();
   const finalFocusRef = React.useRef<HTMLElement>(
     editor.view.dom.parentElement
@@ -45,6 +53,12 @@ export default function FindAndReplace({ readOnly }: Props) {
   const [replaceTerm, setReplaceTerm] = React.useState("");
   const popover = usePopoverState();
   const { show } = popover;
+
+  React.useEffect(() => {
+    if (open) {
+      show();
+    }
+  }, [open]);
 
   // Hooks for desktop app menu items
   React.useEffect(() => {
@@ -65,8 +79,6 @@ export default function FindAndReplace({ readOnly }: Props) {
     }
   }, [show]);
 
-  // Close handlers
-  useKeyDown("Escape", popover.hide);
   useOnClickOutside(popover.unstable_referenceRef, popover.hide);
 
   // Keyboard shortcuts
@@ -138,13 +150,36 @@ export default function FindAndReplace({ readOnly }: Props) {
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
-      if (ev.key === "Enter") {
-        ev.preventDefault();
-
+      function nextPrevious(ev: React.KeyboardEvent<HTMLInputElement>) {
         if (ev.shiftKey) {
           editor.commands.prevSearchMatch();
         } else {
           editor.commands.nextSearchMatch();
+        }
+      }
+      function selectInputText() {
+        inputRef.current?.setSelectionRange(0, inputRef.current?.value.length);
+      }
+
+      switch (ev.key) {
+        case "Enter": {
+          ev.preventDefault();
+          nextPrevious(ev);
+          return;
+        }
+        case "g": {
+          if (ev.metaKey) {
+            ev.preventDefault();
+            nextPrevious(ev);
+            selectInputText();
+          }
+          return;
+        }
+        case "F3": {
+          ev.preventDefault();
+          nextPrevious(ev);
+          selectInputText();
+          return;
         }
       }
     },
@@ -200,7 +235,7 @@ export default function FindAndReplace({ readOnly }: Props) {
 
   const style: React.CSSProperties = React.useMemo(
     () => ({
-      position: "absolute",
+      position: "fixed",
       left: "initial",
       top: 60,
       right: 16,
@@ -211,6 +246,7 @@ export default function FindAndReplace({ readOnly }: Props) {
 
   React.useEffect(() => {
     if (popover.visible) {
+      onOpen();
       const startSearchText = selectionRef.current || searchTerm;
 
       editor.commands.find({
@@ -227,6 +263,7 @@ export default function FindAndReplace({ readOnly }: Props) {
         setSearchTerm(selectionRef.current);
       }
     } else {
+      onClose();
       setShowReplace(false);
       editor.commands.clearSearch();
     }
@@ -236,7 +273,7 @@ export default function FindAndReplace({ readOnly }: Props) {
   const navigation = (
     <>
       <Tooltip
-        tooltip={t("Previous match")}
+        content={t("Previous match")}
         shortcut="shift+enter"
         delay={500}
         placement="bottom"
@@ -246,7 +283,7 @@ export default function FindAndReplace({ readOnly }: Props) {
         </ButtonLarge>
       </Tooltip>
       <Tooltip
-        tooltip={t("Next match")}
+        content={t("Next match")}
         shortcut="enter"
         delay={500}
         placement="bottom"
@@ -265,6 +302,7 @@ export default function FindAndReplace({ readOnly }: Props) {
         unstable_finalFocusRef={finalFocusRef}
         style={style}
         aria-label={t("Find and replace")}
+        scrollable={false}
         width={420}
       >
         <Content column>
@@ -279,7 +317,7 @@ export default function FindAndReplace({ readOnly }: Props) {
             >
               <SearchModifiers gap={8}>
                 <Tooltip
-                  tooltip={t("Match case")}
+                  content={t("Match case")}
                   shortcut={`${altDisplay}+${metaDisplay}+c`}
                   delay={500}
                   placement="bottom"
@@ -291,7 +329,7 @@ export default function FindAndReplace({ readOnly }: Props) {
                   </ButtonSmall>
                 </Tooltip>
                 <Tooltip
-                  tooltip={t("Enable regex")}
+                  content={t("Enable regex")}
                   shortcut={`${altDisplay}+${metaDisplay}+r`}
                   delay={500}
                   placement="bottom"
@@ -307,7 +345,7 @@ export default function FindAndReplace({ readOnly }: Props) {
             {navigation}
             {!readOnly && (
               <Tooltip
-                tooltip={t("Replace options")}
+                content={t("Replace options")}
                 delay={500}
                 placement="bottom"
               >
@@ -349,6 +387,7 @@ const SearchModifiers = styled(Flex)`
 `;
 
 const StyledInput = styled(Input)`
+  width: 196px;
   flex: 1;
 `;
 
@@ -367,4 +406,5 @@ const ButtonLarge = styled(ButtonSmall)`
 const Content = styled(Flex)`
   padding: 8px 0;
   margin-bottom: -16px;
+  position: static;
 `;

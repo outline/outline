@@ -20,7 +20,7 @@ function NewDocumentMenu() {
 
   return (
     <Tooltip
-      tooltip={t("New document")}
+      content={t("New document")}
       shortcut="n"
       delay={500}
       placement="bottom"

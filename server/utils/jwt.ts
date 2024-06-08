@@ -1,11 +1,13 @@
 import { subMinutes } from "date-fns";
-import invariant from "invariant";
 import JWT from "jsonwebtoken";
 import { Team, User } from "@server/models";
 import { AuthenticationError } from "../errors";
 
-function getJWTPayload(token: string) {
+export function getJWTPayload(token: string) {
   let payload;
+  if (!token) {
+    throw AuthenticationError("Missing token");
+  }
 
   try {
     payload = JWT.decode(token);
@@ -16,7 +18,7 @@ function getJWTPayload(token: string) {
 
     return payload as JWT.JwtPayload;
   } catch (err) {
-    throw AuthenticationError("Unable to decode JWT token");
+    throw AuthenticationError("Unable to decode token");
   }
 }
 
@@ -85,8 +87,15 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
     }
   }
 
-  const user = await User.scope("withTeam").findByPk(payload.id);
-  invariant(user, "User not found");
+  const user = await User.scope("withTeam").findByPk(payload.id, {
+    rejectOnEmpty: true,
+  });
+
+  if (user.lastSignedInAt) {
+    if (user.lastSignedInAt > new Date(payload.createdAt)) {
+      throw AuthenticationError("Expired token");
+    }
+  }
 
   try {
     JWT.verify(token, user.jwtSecret);

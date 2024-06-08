@@ -1,35 +1,31 @@
+import { IntegrationType } from "@shared/types";
 import { Integration, User, Team } from "@server/models";
-import { AdminRequiredError } from "../errors";
 import { allow } from "./cancan";
+import {
+  and,
+  isOwner,
+  isTeamAdmin,
+  isTeamModel,
+  isTeamMutable,
+  or,
+} from "./utils";
 
-allow(User, "createIntegration", Team, (actor, team) => {
-  if (!team || actor.isViewer || actor.teamId !== team.id) {
-    return false;
-  }
-  if (actor.isAdmin) {
-    return true;
-  }
-
-  throw AdminRequiredError();
-});
-
-allow(
-  User,
-  "read",
-  Integration,
-  (user, integration) => user.teamId === integration?.teamId
+allow(User, "createIntegration", Team, (actor, team) =>
+  and(isTeamAdmin(actor, team), isTeamMutable(actor))
 );
 
-allow(User, ["update", "delete"], Integration, (user, integration) => {
-  if (user.isViewer) {
-    return false;
-  }
-  if (!integration || user.teamId !== integration.teamId) {
-    return false;
-  }
-  if (user.isAdmin) {
-    return true;
-  }
+allow(User, "read", Integration, isTeamModel);
 
-  throw AdminRequiredError();
-});
+allow(User, ["update", "delete"], Integration, (actor, integration) =>
+  and(
+    isTeamModel(actor, integration),
+    isTeamMutable(actor),
+    !actor.isGuest,
+    !actor.isViewer,
+    or(
+      actor.isAdmin,
+      isOwner(actor, integration) &&
+        integration.type === IntegrationType.LinkedAccount
+    )
+  )
+);

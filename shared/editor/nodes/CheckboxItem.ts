@@ -5,6 +5,7 @@ import {
   sinkListItem,
   liftListItem,
 } from "prosemirror-schema-list";
+import toggleCheckboxItem from "../commands/toggleCheckboxItem";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import checkboxRule from "../rules/checkboxes";
 import Node from "./Node";
@@ -93,6 +94,7 @@ export default class CheckboxItem extends Node {
         checked: false,
       }),
       Tab: sinkListItem(type),
+      "Mod-Enter": toggleCheckboxItem(),
       "Shift-Tab": liftListItem(type),
       "Mod-]": sinkListItem(type),
       "Mod-[": liftListItem(type),

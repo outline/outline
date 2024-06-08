@@ -86,8 +86,7 @@ export const newlineInCode: Command = (state, dispatch) => {
     return false;
   }
   const { tr, selection } = state;
-  const text = selection?.$anchor?.nodeBefore?.text;
-
+  const text = selection.$anchor.nodeBefore?.text;
   let newText = "\n";
 
   if (text) {

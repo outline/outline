@@ -43,14 +43,17 @@ function SettingsSidebar() {
         onClick={returnToApp}
       >
         <Tooltip
-          tooltip={t("Toggle sidebar")}
+          content={t("Toggle sidebar")}
           shortcut={`${metaDisplay}+.`}
           delay={500}
         >
           <ToggleButton
             position="bottom"
             image={<SidebarIcon />}
-            onClick={ui.toggleCollapsedSidebar}
+            onClick={() => {
+              ui.toggleCollapsedSidebar();
+              (document.activeElement as HTMLElement)?.blur();
+            }}
           />
         </Tooltip>
       </SidebarButton>

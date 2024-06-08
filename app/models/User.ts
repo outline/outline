@@ -12,10 +12,14 @@ import {
 } from "@shared/types";
 import type { NotificationSettings } from "@shared/types";
 import { client } from "~/utils/ApiClient";
+import Document from "./Document";
+import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
 
 class User extends ParanoidModel {
+  static modelName = "User";
+
   @Field
   @observable
   id: string;
@@ -48,10 +52,7 @@ class User extends ParanoidModel {
   email: string;
 
   @observable
-  isAdmin: boolean;
-
-  @observable
-  isViewer: boolean;
+  role: UserRole;
 
   @observable
   lastActiveAt: string;
@@ -61,12 +62,42 @@ class User extends ParanoidModel {
 
   @computed
   get initial(): string {
-    return this.name ? this.name[0] : "?";
+    return (this.name ? this.name[0] : "?").toUpperCase();
   }
 
-  @computed
+  /**
+   * Whether the user has been invited but not yet signed in.
+   */
   get isInvited(): boolean {
     return !this.lastActiveAt;
+  }
+
+  /**
+   * Whether the user is an admin.
+   */
+  get isAdmin(): boolean {
+    return this.role === UserRole.Admin;
+  }
+
+  /**
+   * Whether the user is a member (editor).
+   */
+  get isMember(): boolean {
+    return this.role === UserRole.Member;
+  }
+
+  /**
+   * Whether the user is a viewer.
+   */
+  get isViewer(): boolean {
+    return this.role === UserRole.Viewer;
+  }
+
+  /**
+   * Whether the user is a guest.
+   */
+  get isGuest(): boolean {
+    return this.role === UserRole.Guest;
   }
 
   /**
@@ -78,17 +109,6 @@ class User extends ParanoidModel {
   @computed
   get isRecentlyActive(): boolean {
     return new Date(this.lastActiveAt) > subMinutes(now(10000), 5);
-  }
-
-  @computed
-  get role(): UserRole {
-    if (this.isAdmin) {
-      return UserRole.Admin;
-    } else if (this.isViewer) {
-      return UserRole.Viewer;
-    } else {
-      return UserRole.Member;
-    }
   }
 
   /**
@@ -105,6 +125,18 @@ class User extends ParanoidModel {
         TeamPreference.SeamlessEdit
       )
     );
+  }
+
+  @computed
+  get memberships(): UserMembership[] {
+    return this.store.rootStore.userMemberships.orderedData
+      .filter(
+        (m) => m.userId === this.id && m.sourceId === null && m.documentId
+      )
+      .filter((m) => {
+        const document = this.store.rootStore.documents.get(m.documentId!);
+        return !document?.collection;
+      });
   }
 
   /**
@@ -169,6 +201,12 @@ class User extends ParanoidModel {
       ...this.preferences,
       [key]: value,
     };
+  }
+
+  getMembership(document: Document) {
+    return this.store.rootStore.userMemberships.orderedData.find(
+      (m) => m.documentId === document.id && m.userId === this.id
+    );
   }
 }
 

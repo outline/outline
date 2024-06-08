@@ -1,4 +1,5 @@
 import randomstring from "randomstring";
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
   Table,
@@ -7,6 +8,7 @@ import {
   BelongsTo,
   ForeignKey,
 } from "sequelize-typescript";
+import { ApiKeyValidation } from "@shared/validations";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -14,13 +16,16 @@ import Length from "./validators/Length";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
 @Fix
-class ApiKey extends ParanoidModel {
+class ApiKey extends ParanoidModel<
+  InferAttributes<ApiKey>,
+  Partial<InferCreationAttributes<ApiKey>>
+> {
   static prefix = "ol_api_";
 
   @Length({
-    min: 3,
-    max: 255,
-    msg: "Name must be between 3 and 255 characters",
+    min: ApiKeyValidation.minNameLength,
+    max: ApiKeyValidation.maxNameLength,
+    msg: `Name must be between ${ApiKeyValidation.minNameLength} and ${ApiKeyValidation.maxNameLength} characters`,
   })
   @Column
   name: string;

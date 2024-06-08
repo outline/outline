@@ -1,13 +1,13 @@
 import { HomeIcon } from "outline-icons";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Optional } from "utility-types";
 import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import InputSelect from "~/components/InputSelect";
 import { IconWrapper } from "~/components/Sidebar/components/SidebarLink";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 
 type DefaultCollectionInputSelectProps = Optional<
   React.ComponentProps<typeof InputSelect>
@@ -25,7 +25,6 @@ const DefaultCollectionInputSelect = ({
   const { collections } = useStores();
   const [fetching, setFetching] = useState(false);
   const [fetchError, setFetchError] = useState();
-  const { showToast } = useToasts();
 
   React.useEffect(() => {
     async function fetchData() {
@@ -36,11 +35,8 @@ const DefaultCollectionInputSelect = ({
             limit: 100,
           });
         } catch (error) {
-          showToast(
-            t("Collections could not be loaded, please reload the app"),
-            {
-              type: "error",
-            }
+          toast.error(
+            t("Collections could not be loaded, please reload the app")
           );
           setFetchError(error);
         } finally {
@@ -49,7 +45,7 @@ const DefaultCollectionInputSelect = ({
       }
     }
     void fetchData();
-  }, [showToast, fetchError, t, fetching, collections]);
+  }, [fetchError, t, fetching, collections]);
 
   const options = React.useMemo(
     () =>

@@ -4,6 +4,7 @@ import { BuildingBlocksIcon } from "outline-icons";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
@@ -11,7 +12,6 @@ import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import Scene from "~/components/Scene";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import SettingRow from "./components/SettingRow";
 
 type FormData = {
@@ -22,7 +22,6 @@ type FormData = {
 function SelfHosted() {
   const { integrations } = useStores();
   const { t } = useTranslation();
-  const { showToast } = useToasts();
 
   const integrationDiagrams = find(integrations.orderedData, {
     type: IntegrationType.Embed,
@@ -89,16 +88,12 @@ function SelfHosted() {
           await integrationGrist?.delete();
         }
 
-        showToast(t("Settings saved"), {
-          type: "success",
-        });
+        toast.success(t("Settings saved"));
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       }
     },
-    [integrations, integrationDiagrams, integrationGrist, t, showToast]
+    [integrations, integrationDiagrams, integrationGrist, t]
   );
 
   return (

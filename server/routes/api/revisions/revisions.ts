@@ -6,7 +6,7 @@ import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Document, Revision } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
 import { presentRevision } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -32,14 +32,14 @@ router.post(
       const document = await Document.findByPk(revision.documentId, {
         userId: user.id,
       });
-      authorize(user, "read", document);
+      authorize(user, "listRevisions", document);
       after = revision;
-      before = await revision.previous();
+      before = await revision.before();
     } else if (documentId) {
       const document = await Document.findByPk(documentId, {
         userId: user.id,
       });
-      authorize(user, "read", document);
+      authorize(user, "listRevisions", document);
       after = Revision.buildFromDocument(document);
       after.id = RevisionHelper.latestId(document.id);
       after.user = document.updatedBy;
@@ -75,7 +75,7 @@ router.post(
     const document = await Document.findByPk(revision.documentId, {
       userId: user.id,
     });
-    authorize(user, "read", document);
+    authorize(user, "listRevisions", document);
 
     let before;
     if (compareToId) {
@@ -94,7 +94,7 @@ router.post(
         );
       }
     } else {
-      before = await revision.previous();
+      before = await revision.before();
     }
 
     const accept = ctx.request.headers["accept"];
@@ -126,7 +126,7 @@ router.post(
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });
-    authorize(user, "read", document);
+    authorize(user, "listRevisions", document);
 
     const revisions = await Revision.findAll({
       where: {

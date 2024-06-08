@@ -1,19 +1,26 @@
 import { computed } from "mobx";
+import { ProsemirrorData } from "@shared/types";
 import { isRTL } from "@shared/utils/rtl";
+import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
 import Relation from "./decorators/Relation";
 
 class Revision extends Model {
-  id: string;
+  static modelName = "Revision";
 
+  /** The document ID that the revision is related to */
   documentId: string;
+
+  /** The document that the revision is related to */
+  @Relation(() => Document, { onDelete: "cascade" })
+  document: Document;
 
   /** The document title when the revision was created */
   title: string;
 
-  /** Markdown string of the content when revision was created */
-  text: string;
+  /** Prosemirror data of the content when revision was created */
+  data: ProsemirrorData;
 
   /** The emoji of the document when the revision was created */
   emoji: string | null;

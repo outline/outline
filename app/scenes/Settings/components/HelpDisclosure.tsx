@@ -19,28 +19,32 @@ const HelpDisclosure: React.FC<Props> = ({ title, children }: Props) => {
   const theme = useTheme();
 
   return (
-    <div>
+    <>
       <Disclosure {...disclosure}>
         {(props) => (
-          <Button
-            icon={<QuestionMarkIcon color={theme.text} />}
+          <StyledButton
+            icon={<QuestionMarkIcon color={theme.textSecondary} />}
             neutral
+            aria-label={title}
             borderOnHover
             {...props}
-          >
-            {title}
-          </Button>
+          />
         )}
       </Disclosure>
       <HelpContent {...disclosure}>
-        <Text type="secondary">
-          <br />
+        <Text as="p" type="secondary">
           {children}
         </Text>
       </HelpContent>
-    </div>
+    </>
   );
 };
+
+const StyledButton = styled(Button)`
+  position: absolute;
+  top: 20px;
+  right: 50px;
+`;
 
 const HelpContent = styled(DisclosureContent)`
   transition: opacity 250ms ease-in-out;

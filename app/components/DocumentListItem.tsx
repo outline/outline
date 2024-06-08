@@ -37,9 +37,8 @@ type Props = {
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 function replaceResultMarks(tag: string) {
-  // don't use SEARCH_RESULT_REGEX here as it causes
-  // an infinite loop to trigger a regex inside it's own callback
-  return tag.replace(/<b\b[^>]*>(.*?)<\/b>/gi, "$1");
+  // don't use SEARCH_RESULT_REGEX directly here as it causes an infinite loop
+  return tag.replace(new RegExp(SEARCH_RESULT_REGEX.source), "$1");
 }
 
 function DocumentListItem(
@@ -97,7 +96,7 @@ function DocumentListItem(
             highlight={highlight}
             dir={document.dir}
           />
-          {document.isBadgedNew && document.createdBy.id !== user.id && (
+          {document.isBadgedNew && document.createdBy?.id !== user.id && (
             <Badge yellow>{t("New")}</Badge>
           )}
           {canStar && (
@@ -107,7 +106,7 @@ function DocumentListItem(
           )}
           {document.isDraft && showDraft && (
             <Tooltip
-              tooltip={t("Only visible to you")}
+              content={t("Only visible to you")}
               delay={500}
               placement="top"
             >
@@ -260,8 +259,8 @@ const Title = styled(Highlight)`
 
 const ResultContext = styled(Highlight)`
   display: block;
-  color: ${s("textTertiary")};
-  font-size: 14px;
+  color: ${s("textSecondary")};
+  font-size: 15px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;
 `;

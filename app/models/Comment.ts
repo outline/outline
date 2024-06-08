@@ -8,6 +8,8 @@ import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 
 class Comment extends Model {
+  static modelName = "Comment";
+
   /**
    * Map to keep track of which users are currently typing a reply in this
    * comments thread.
@@ -33,6 +35,12 @@ class Comment extends Model {
   @Field
   @observable
   parentCommentId: string;
+
+  /**
+   * The comment that this comment is a reply to.
+   */
+  @Relation(() => Comment, { onDelete: "cascade" })
+  parentComment?: Comment;
 
   /**
    * The document to which this comment belongs.

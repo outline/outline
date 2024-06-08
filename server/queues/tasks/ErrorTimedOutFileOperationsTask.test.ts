@@ -19,7 +19,6 @@ describe("ErrorTimedOutFileOperationsTask", () => {
       state: FileOperationState.Complete,
     });
 
-    /* This is a test helper that creates a new task and runs it. */
     const task = new ErrorTimedOutFileOperationsTask();
     await task.perform({ limit: 100 });
 

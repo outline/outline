@@ -1,5 +1,7 @@
+import dns from "dns";
 import Router from "koa-router";
-import { parseDomain } from "@shared/utils/domains";
+import { UnfurlResourceType } from "@shared/types";
+import { getBaseDomain, parseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
 import { isInternalUrl } from "@shared/utils/urls";
@@ -7,16 +9,17 @@ import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
-import { Document, User } from "@server/models";
+import { Document, Share, Team, User } from "@server/models";
 import { authorize } from "@server/policies";
-import { presentDocument, presentMention } from "@server/presenters/unfurls";
-import presentUnfurl from "@server/presenters/unfurls/unfurl";
+import presentUnfurl from "@server/presenters/unfurl";
 import { APIContext } from "@server/types";
+import { CacheHelper } from "@server/utils/CacheHelper";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import resolvers from "@server/utils/unfurl";
 import * as T from "./schema";
 
 const router = new Router();
+const plugins = PluginManager.getHooks(Hook.UnfurlProvider);
 
 router.post(
   "urls.unfurl",
@@ -50,7 +53,11 @@ router.post(
       authorize(actor, "read", user);
       authorize(actor, "read", document);
 
-      ctx.body = await presentMention(user, document);
+      ctx.body = await presentUnfurl({
+        type: UnfurlResourceType.Mention,
+        user,
+        document,
+      });
       return;
     }
 
@@ -66,21 +73,100 @@ router.post(
         }
         authorize(actor, "read", document);
 
-        ctx.body = presentDocument(document, actor);
+        ctx.body = await presentUnfurl({
+          type: UnfurlResourceType.Document,
+          document,
+          viewer: actor,
+        });
         return;
       }
       return (ctx.response.status = 204);
     }
 
     // External resources
-    if (resolvers.Iframely) {
-      const data = await resolvers.Iframely.unfurl(url);
-      return data.error
-        ? (ctx.response.status = 204)
-        : (ctx.body = presentUnfurl(data));
+    const cachedData = await CacheHelper.getData(
+      CacheHelper.getUnfurlKey(actor.teamId, url)
+    );
+    if (cachedData) {
+      return (ctx.body = await presentUnfurl(cachedData));
+    }
+
+    for (const plugin of plugins) {
+      const data = await plugin.value.unfurl(url, actor);
+      if (data) {
+        if ("error" in data) {
+          return (ctx.response.status = 204);
+        } else {
+          await CacheHelper.setData(
+            CacheHelper.getUnfurlKey(actor.teamId, url),
+            data,
+            plugin.value.cacheExpiry
+          );
+          return (ctx.body = await presentUnfurl(data));
+        }
+      }
     }
 
     return (ctx.response.status = 204);
+  }
+);
+
+router.post(
+  "urls.validateCustomDomain",
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
+  auth(),
+  validate(T.UrlsCheckCnameSchema),
+  async (ctx: APIContext<T.UrlsCheckCnameReq>) => {
+    const { hostname } = ctx.input.body;
+
+    const [team, share] = await Promise.all([
+      Team.findOne({
+        where: {
+          domain: hostname,
+        },
+      }),
+      Share.findOne({
+        where: {
+          domain: hostname,
+        },
+      }),
+    ]);
+    if (team || share) {
+      throw ValidationError("Domain is already in use");
+    }
+
+    let addresses;
+    try {
+      addresses = await new Promise<string[]>((resolve, reject) => {
+        dns.resolveCname(hostname, (err, addresses) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve(addresses);
+        });
+      });
+    } catch (err) {
+      if (err.code === "ENOTFOUND") {
+        throw NotFoundError("No CNAME record found");
+      }
+
+      throw ValidationError("Invalid domain");
+    }
+
+    if (addresses.length === 0) {
+      throw ValidationError("No CNAME record found");
+    }
+
+    const address = addresses[0];
+    const likelyValid = address.endsWith(getBaseDomain());
+
+    if (!likelyValid) {
+      throw ValidationError("CNAME is not configured correctly");
+    }
+
+    ctx.body = {
+      success: true,
+    };
   }
 );
 

@@ -16,7 +16,7 @@ export default class MembershipsStore extends Store<Membership> {
 
   @action
   fetchPage = async (
-    params: PaginationParams | undefined
+    params: (PaginationParams & { id?: string }) | undefined
   ): Promise<Membership[]> => {
     this.isFetching = true;
 
@@ -71,16 +71,20 @@ export default class MembershipsStore extends Store<Membership> {
       id: collectionId,
       userId,
     });
-    this.remove(`${userId}-${collectionId}`);
-    this.rootStore.users.remove(userId);
+    this.removeAll({ userId, collectionId });
   }
 
   @action
   removeCollectionMemberships = (collectionId: string) => {
     this.data.forEach((membership, key) => {
-      if (key.includes(collectionId)) {
+      if (membership.collectionId === collectionId) {
         this.remove(key);
       }
     });
   };
+
+  inCollection = (collectionId: string) =>
+    this.orderedData.filter(
+      (membership) => membership.collectionId === collectionId
+    );
 }

@@ -2,7 +2,7 @@ import isEmpty from "lodash/isEmpty";
 import z from "zod";
 import { FileOperationType } from "@shared/types";
 import { FileOperation } from "@server/models";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 const CollectionsSortParamsSchema = z.object({
   /** The attribute to sort by */

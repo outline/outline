@@ -5,7 +5,7 @@ import useWindowSize from "~/hooks/useWindowSize";
 const useMenuHeight = ({
   visible,
   elementRef,
-  maxViewportHeight = 70,
+  maxViewportHeight = 90,
   margin = 8,
 }: {
   /** Whether the menu is visible. */

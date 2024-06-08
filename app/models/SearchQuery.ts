@@ -2,9 +2,17 @@ import { client } from "~/utils/ApiClient";
 import Model from "./base/Model";
 
 class SearchQuery extends Model {
-  id: string;
+  static modelName = "Search";
 
+  /**
+   * The query string, automatically truncated to 255 characters.
+   */
   query: string;
+
+  /**
+   * Where the query originated.
+   */
+  source: "api" | "app" | "slack";
 
   delete = async () => {
     this.isSaving = true;

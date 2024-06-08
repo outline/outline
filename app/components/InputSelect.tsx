@@ -14,6 +14,7 @@ import Button, { Inner } from "~/components/Button";
 import Text from "~/components/Text";
 import useMenuHeight from "~/hooks/useMenuHeight";
 import useMobile from "~/hooks/useMobile";
+import useOnClickOutside from "~/hooks/useOnClickOutside";
 import { fadeAndScaleIn } from "~/styles/animations";
 import {
   Position,
@@ -22,18 +23,21 @@ import {
   Placement,
 } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
+import Separator from "./ContextMenu/Separator";
 import { LabelText } from "./Input";
 
 export type Option = {
   label: string | JSX.Element;
   value: string;
+  description?: string;
+  divider?: boolean;
 };
 
 export type Props = {
   id?: string;
   name?: string;
   value?: string | null;
-  label?: string;
+  label?: React.ReactNode;
   nude?: boolean;
   ariaLabel: string;
   short?: boolean;
@@ -42,14 +46,26 @@ export type Props = {
   labelHidden?: boolean;
   icon?: React.ReactNode;
   options: Option[];
+  /** @deprecated Removing soon, do not use. */
   note?: React.ReactNode;
   onChange?: (value: string | null) => void;
+  style?: React.CSSProperties;
 };
+
+export interface InputSelectRef {
+  value: string | null;
+  focus: () => void;
+  blur: () => void;
+}
+
+interface InnerProps extends React.HTMLAttributes<HTMLDivElement> {
+  placement: Placement;
+}
 
 const getOptionFromValue = (options: Option[], value: string | null) =>
   options.find((option) => option.value === value);
 
-const InputSelect = (props: Props) => {
+const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
   const {
     value = null,
     label,
@@ -62,6 +78,7 @@ const InputSelect = (props: Props) => {
     disabled,
     note,
     icon,
+    nude,
     ...rest
   } = props;
 
@@ -71,9 +88,9 @@ const InputSelect = (props: Props) => {
     selectedValue: value,
   });
 
-  const popOver = useSelectPopover({
+  const popover = useSelectPopover({
     ...select,
-    hideOnClickOutside: true,
+    hideOnClickOutside: false,
     preventBodyScroll: true,
     disabled,
   });
@@ -99,8 +116,44 @@ const InputSelect = (props: Props) => {
 
   const wrappedLabel = <LabelText>{label}</LabelText>;
   const selectedValueIndex = options.findIndex(
-    (option) => option.value === select.selectedValue
+    (opt) => opt.value === select.selectedValue
   );
+
+  // Custom click outside handling rather than using `hideOnClickOutside` from reakit so that we can
+  // prevent event bubbling.
+  useOnClickOutside(
+    contentRef,
+    (event) => {
+      if (buttonRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      if (select.visible) {
+        event.stopPropagation();
+        event.preventDefault();
+        select.hide();
+      }
+    },
+    { capture: true }
+  );
+
+  React.useImperativeHandle(ref, () => ({
+    focus: () => {
+      buttonRef.current?.focus();
+    },
+    blur: () => {
+      buttonRef.current?.blur();
+    },
+    value: select.selectedValue,
+  }));
+
+  React.useEffect(() => {
+    previousValue.current = value;
+
+    // Update the selected value if it changes from the outside – both of these lines are needed
+    // for correct functioning
+    select.selectedValue = value;
+    select.setSelectedValue(value);
+  }, [value]);
 
   React.useEffect(() => {
     if (previousValue.current === select.selectedValue) {
@@ -121,6 +174,24 @@ const InputSelect = (props: Props) => {
     }
   }, [select.visible, selectedValueIndex]);
 
+  function labelForOption(opt: Option) {
+    return (
+      <>
+        {opt.label}
+        {opt.description && (
+          <>
+            &nbsp;
+            <Text as="span" type="tertiary" size="small" ellipsis>
+              – {opt.description}
+            </Text>
+          </>
+        )}
+      </>
+    );
+  }
+
+  const option = getOptionFromValue(options, select.selectedValue);
+
   return (
     <>
       <Wrapper short={short}>
@@ -132,37 +203,37 @@ const InputSelect = (props: Props) => {
           ))}
 
         <Select {...select} disabled={disabled} {...rest} ref={buttonRef}>
-          {(props) => (
+          {(buttonProps) => (
             <StyledButton
               neutral
               disclosure
               className={className}
               icon={icon}
-              {...props}
+              $nude={nude}
+              {...buttonProps}
             >
-              {getOptionFromValue(options, select.selectedValue)?.label || (
+              {option ? (
+                labelForOption(option)
+              ) : (
                 <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
               )}
             </StyledButton>
           )}
         </Select>
-        <SelectPopover {...select} {...popOver} aria-label={ariaLabel}>
-          {(
-            props: React.HTMLAttributes<HTMLDivElement> & {
-              placement: Placement;
-            }
-          ) => {
-            const topAnchor = props.style?.top === "0";
-            const rightAnchor = props.placement === "bottom-end";
+        <SelectPopover {...select} {...popover} aria-label={ariaLabel}>
+          {(popoverProps: InnerProps) => {
+            const topAnchor = popoverProps.style?.top === "0";
+            const rightAnchor = popoverProps.placement === "bottom-end";
 
             return (
-              <Positioner {...props}>
+              <Positioner {...popoverProps}>
                 <Background
                   dir="auto"
                   ref={contentRef}
                   topAnchor={topAnchor}
                   rightAnchor={rightAnchor}
                   hiddenScrollbars
+                  maxWidth={400}
                   style={
                     maxHeight && topAnchor
                       ? {
@@ -175,21 +246,23 @@ const InputSelect = (props: Props) => {
                   }
                 >
                   {select.visible
-                    ? options.map((option) => {
-                        const isSelected =
-                          select.selectedValue === option.value;
+                    ? options.map((opt) => {
+                        const isSelected = select.selectedValue === opt.value;
                         const Icon = isSelected ? CheckmarkIcon : Spacer;
                         return (
-                          <StyledSelectOption
-                            {...select}
-                            value={option.value}
-                            key={option.value}
-                            ref={isSelected ? selectedRef : undefined}
-                          >
-                            <Icon />
-                            &nbsp;
-                            {option.label}
-                          </StyledSelectOption>
+                          <React.Fragment key={opt.value}>
+                            {opt.divider && <Separator />}
+                            <StyledSelectOption
+                              {...select}
+                              value={opt.value}
+                              key={opt.value}
+                              ref={isSelected ? selectedRef : undefined}
+                            >
+                              <Icon />
+                              &nbsp;
+                              {labelForOption(opt)}
+                            </StyledSelectOption>
+                          </React.Fragment>
                         );
                       })
                     : null}
@@ -200,7 +273,7 @@ const InputSelect = (props: Props) => {
         </SelectPopover>
       </Wrapper>
       {note && (
-        <Text type="secondary" size="small">
+        <Text as="p" type="secondary" size="small">
           {note}
         </Text>
       )}
@@ -223,7 +296,7 @@ const Spacer = styled.div`
   flex-shrink: 0;
 `;
 
-const StyledButton = styled(Button)<{ nude?: boolean }>`
+const StyledButton = styled(Button)<{ $nude?: boolean }>`
   font-weight: normal;
   text-transform: none;
   margin-bottom: 16px;
@@ -236,7 +309,7 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
   }
 
   ${(props) =>
-    props.nude &&
+    props.$nude &&
     css`
       border-color: transparent;
       box-shadow: none;
@@ -244,8 +317,8 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
 
   ${Inner} {
     line-height: 28px;
-    padding-left: 16px;
-    padding-right: 8px;
+    padding-left: 12px;
+    padding-right: 4px;
   }
 
   svg {
@@ -267,7 +340,7 @@ const Wrapper = styled.label<{ short?: boolean }>`
   max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
 
-const Positioner = styled(Position)`
+export const Positioner = styled(Position)`
   &.focus-visible {
     ${StyledSelectOption} {
       &[aria-selected="true"] {
@@ -284,4 +357,4 @@ const Positioner = styled(Position)`
   }
 `;
 
-export default InputSelect;
+export default React.forwardRef(InputSelect);

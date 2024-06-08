@@ -3,7 +3,10 @@ import find from "lodash/find";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { withTranslation, WithTranslation } from "react-i18next";
 import { io, Socket } from "socket.io-client";
+import { toast } from "sonner";
+import { FileOperationState, FileOperationType } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Comment from "~/models/Comment";
@@ -15,6 +18,8 @@ import Pin from "~/models/Pin";
 import Star from "~/models/Star";
 import Subscription from "~/models/Subscription";
 import Team from "~/models/Team";
+import User from "~/models/User";
+import UserMembership from "~/models/UserMembership";
 import withStores from "~/components/withStores";
 import {
   PartialWithId,
@@ -33,7 +38,7 @@ type SocketWithAuthentication = Socket & {
 export const WebsocketContext =
   React.createContext<SocketWithAuthentication | null>(null);
 
-type Props = RootStore;
+type Props = WithTranslation & RootStore;
 
 @observer
 class WebsocketProvider extends React.Component<Props> {
@@ -77,13 +82,14 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.authenticated = false;
     const {
       auth,
-      toasts,
       documents,
       collections,
       groups,
       pins,
       stars,
       memberships,
+      users,
+      userMemberships,
       policies,
       comments,
       subscriptions,
@@ -111,9 +117,7 @@ class WebsocketProvider extends React.Component<Props> {
       if (this.socket) {
         this.socket.authenticated = false;
       }
-      toasts.showToast(err.message, {
-        type: "error",
-      });
+      toast.error(err.message);
       throw err;
     });
 
@@ -187,9 +191,8 @@ class WebsocketProvider extends React.Component<Props> {
                 err instanceof NotFoundError
               ) {
                 documents.removeCollectionDocuments(collectionId);
-                memberships.removeCollectionMemberships(collectionId);
+                memberships.removeAll({ collectionId });
                 collections.remove(collectionId);
-                policies.remove(collectionId);
                 return;
               }
             }
@@ -235,6 +238,10 @@ class WebsocketProvider extends React.Component<Props> {
           const collection = collections.get(event.collectionId);
           collection?.removeDocument(event.id);
         }
+
+        userMemberships.orderedData
+          .filter((m) => m.documentId === event.id)
+          .forEach((m) => userMemberships.remove(m.id));
       })
     );
 
@@ -242,6 +249,44 @@ class WebsocketProvider extends React.Component<Props> {
       "documents.permanent_delete",
       (event: WebsocketEntityDeletedEvent) => {
         documents.remove(event.modelId);
+      }
+    );
+
+    // received when a user is given access to a document
+    this.socket.on(
+      "documents.add_user",
+      (event: PartialWithId<UserMembership>) => {
+        userMemberships.add(event);
+      }
+    );
+
+    this.socket.on(
+      "documents.remove_user",
+      (event: PartialWithId<UserMembership>) => {
+        if (event.userId) {
+          const userMembership = userMemberships.get(event.id);
+
+          // TODO: Possibly replace this with a one-to-many relation decorator.
+          if (userMembership) {
+            userMemberships
+              .filter({
+                userId: event.userId,
+                sourceId: userMembership.id,
+              })
+              .forEach((m) => {
+                m.documentId && documents.remove(m.documentId);
+              });
+          }
+
+          userMemberships.removeAll({
+            userId: event.userId,
+            documentId: event.documentId,
+          });
+        }
+
+        if (event.documentId && event.userId === auth.user?.id) {
+          documents.remove(event.documentId);
+        }
       }
     );
 
@@ -254,9 +299,7 @@ class WebsocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("comments.delete", (event: WebsocketEntityDeletedEvent) => {
-      comments.inThread(event.modelId).forEach((comment) => {
-        comments.remove(comment.id);
-      });
+      comments.remove(event.modelId);
     });
 
     this.socket.on("groups.create", (event: PartialWithId<Group>) => {
@@ -304,9 +347,8 @@ class WebsocketProvider extends React.Component<Props> {
           policies.remove(doc.id);
         });
         documents.removeCollectionDocuments(collectionId);
-        memberships.removeCollectionMemberships(collectionId);
+        memberships.removeAll({ collectionId });
         collections.remove(collectionId);
-        policies.remove(collectionId);
       })
     );
 
@@ -370,16 +412,16 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on(
       "collections.add_user",
       async (event: WebsocketCollectionUserEvent) => {
-        if (auth.user && event.userId === auth.user.id) {
+        if (event.userId === auth.user?.id) {
           await collections.fetch(event.collectionId, {
             force: true,
           });
-        }
 
-        // Document policies might need updating as the permission changes
-        documents.inCollection(event.collectionId).forEach((document) => {
-          policies.remove(document.id);
-        });
+          // Document policies might need updating as the permission changes
+          documents.inCollection(event.collectionId).forEach((document) => {
+            policies.remove(document.id);
+          });
+        }
       }
     );
 
@@ -389,7 +431,7 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on(
       "collections.remove_user",
       async (event: WebsocketCollectionUserEvent) => {
-        if (auth.user && event.userId === auth.user.id) {
+        if (event.userId === auth.user?.id) {
           // check if we still have access to the collection
           try {
             await collections.fetch(event.collectionId, {
@@ -401,14 +443,20 @@ class WebsocketProvider extends React.Component<Props> {
               err instanceof NotFoundError
             ) {
               collections.remove(event.collectionId);
-              memberships.remove(`${event.userId}-${event.collectionId}`);
+              memberships.removeAll({
+                userId: event.userId,
+                collectionId: event.collectionId,
+              });
               return;
             }
           }
 
           documents.removeCollectionDocuments(event.collectionId);
         } else {
-          memberships.remove(`${event.userId}-${event.collectionId}`);
+          memberships.removeAll({
+            userId: event.userId,
+            collectionId: event.collectionId,
+          });
         }
       }
     );
@@ -435,6 +483,16 @@ class WebsocketProvider extends React.Component<Props> {
       "fileOperations.update",
       (event: PartialWithId<FileOperation>) => {
         fileOperations.add(event);
+
+        if (
+          event.state === FileOperationState.Complete &&
+          event.type === FileOperationType.Import &&
+          event.user?.id === auth.user?.id
+        ) {
+          toast.success(event.name, {
+            description: this.props.t("Your import completed"),
+          });
+        }
       }
     );
 
@@ -452,15 +510,33 @@ class WebsocketProvider extends React.Component<Props> {
       }
     );
 
+    this.socket.on("users.update", (event: PartialWithId<User>) => {
+      users.add(event);
+    });
+
+    this.socket.on("users.demote", async (event: PartialWithId<User>) => {
+      if (event.id === auth.user?.id) {
+        documents.all.forEach((document) => policies.remove(document.id));
+        await collections.fetchAll();
+      }
+    });
+
+    this.socket.on(
+      "userMemberships.update",
+      async (event: PartialWithId<UserMembership>) => {
+        userMemberships.add(event);
+      }
+    );
+
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.
-    this.socket.on("join", (event: any) => {
+    this.socket.on("join", (event) => {
       this.socket?.emit("join", event);
     });
 
     // received a message from the API server that we should request
     // to leave a specific room. Forward that to the ws server.
-    this.socket.on("leave", (event: any) => {
+    this.socket.on("leave", (event) => {
       this.socket?.emit("leave", event);
     });
   };
@@ -474,4 +550,4 @@ class WebsocketProvider extends React.Component<Props> {
   }
 }
 
-export default withStores(WebsocketProvider);
+export default withTranslation()(withStores(WebsocketProvider));

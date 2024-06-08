@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { isNil } from "lodash";
 import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
 import { WhereOptions, Op } from "sequelize";
@@ -80,12 +81,16 @@ router.post(
     if (eventType) {
       where = { ...where, event: eventType };
     }
-    if (archived) {
+    if (!isNil(archived)) {
       where = {
         ...where,
-        archivedAt: {
-          [Op.ne]: null,
-        },
+        archivedAt: archived
+          ? {
+              [Op.ne]: null,
+            }
+          : {
+              [Op.eq]: null,
+            },
       };
     }
     const [notifications, total, unseen] = await Promise.all([
@@ -112,7 +117,9 @@ router.post(
       pagination: { ...ctx.state.pagination, total },
       data: {
         notifications: await Promise.all(
-          notifications.map(presentNotification)
+          notifications.map((notification) =>
+            presentNotification(ctx, notification)
+          )
         ),
         unseen,
       },
@@ -167,7 +174,7 @@ router.post(
     });
 
     ctx.body = {
-      data: await presentNotification(notification),
+      data: await presentNotification(ctx, notification),
       policies: presentPolicies(user, [notification]),
     };
   }

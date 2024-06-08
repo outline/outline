@@ -29,7 +29,7 @@ const normalizeToLocation = (
 const joinClassnames = (...classnames: (string | undefined)[]) =>
   classnames.filter((i) => i).join(" ");
 
-export type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+export interface Props extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   activeClassName?: string;
   activeStyle?: React.CSSProperties;
   scrollIntoViewIfNeeded?: boolean;
@@ -40,7 +40,7 @@ export type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   strict?: boolean;
   to: LocationDescriptor;
   onBeforeClick?: () => void;
-};
+}
 
 /**
  * A <Link> wrapper that clicks extra fast and knows if it's "active" or not.

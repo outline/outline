@@ -1,7 +1,9 @@
 export default {
   upload: jest.fn().mockReturnValue("/endpoint/key"),
 
-  getPublicEndpoint: jest.fn().mockReturnValue("http://mock"),
+  getUploadUrl: jest.fn().mockReturnValue("http://mock/create"),
+
+  getUrlForKey: jest.fn().mockReturnValue("http://mock/get"),
 
   getSignedUrl: jest.fn().mockReturnValue("http://s3mock"),
 

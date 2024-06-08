@@ -3,16 +3,21 @@ import * as React from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { roundArrow } from "tippy.js";
 import { s } from "@shared/styles";
+import useMobile from "~/hooks/useMobile";
 
 export type Props = Omit<TippyProps, "content" | "theme"> & {
-  tooltip?: React.ReactChild | React.ReactChild[];
+  /** The content to display in the tooltip. */
+  content?: React.ReactChild | React.ReactChild[];
+  /** A keyboard shortcut to display next to the content */
   shortcut?: React.ReactNode;
 };
 
-function Tooltip({ shortcut, tooltip, delay = 50, ...rest }: Props) {
+function Tooltip({ shortcut, content: tooltip, delay = 50, ...rest }: Props) {
+  const isMobile = useMobile();
+
   let content = <>{tooltip}</>;
 
-  if (!tooltip) {
+  if (!tooltip || isMobile) {
     return rest.children ?? null;
   }
 

@@ -5,13 +5,23 @@ import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
 import { migrations } from "@server/storage/database";
+import { getArg } from "./args";
 
 export async function checkPendingMigrations() {
   try {
     const pending = await migrations.pending();
     if (!isEmpty(pending)) {
-      Logger.info("database", "Running migrations…");
-      await migrations.up();
+      if (getArg("no-migrate")) {
+        Logger.warn(
+          chalk.red(
+            `Database migrations are pending and were not ran because --no-migrate flag was passed.\nRun the migrations with "yarn db:migrate".`
+          )
+        );
+        process.exit(1);
+      } else {
+        Logger.info("database", "Running migrations…");
+        await migrations.up();
+      }
     }
     await checkDataMigrations();
   } catch (err) {
@@ -33,11 +43,10 @@ export async function checkDataMigrations() {
     return;
   }
 
-  const isProduction = env.ENVIRONMENT === "production";
   const teams = await Team.count();
   const providers = await AuthenticationProvider.count();
 
-  if (isProduction && teams && !providers) {
+  if (env.isProduction && teams && !providers) {
     Logger.warn(`
 This version of Outline cannot start until a data migration is complete.
 Backup your database, run the database migrations and the following script:
@@ -49,27 +58,15 @@ $ node ./build/server/scripts/20210226232041-migrate-authentication.js
   }
 }
 
-export async function checkEnv() {
-  await env.validate().then((errors) => {
-    if (errors.length > 0) {
-      Logger.warn(
-        "Environment configuration is invalid, please check the following:\n\n"
-      );
-      for (const error of errors) {
-        Logger.warn("- " + Object.values(error.constraints ?? {}).join(", "));
-      }
-      process.exit(1);
-    }
-  });
-
-  if (env.ENVIRONMENT === "production") {
+export async function printEnv() {
+  if (env.isProduction) {
     Logger.info(
       "lifecycle",
       chalk.green(`
 Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
 `)
     );
-  } else if (env.ENVIRONMENT === "development") {
+  } else if (env.isDevelopment) {
     Logger.warn(
       `Running Outline in ${chalk.bold(
         "development mode"

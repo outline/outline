@@ -6,10 +6,10 @@ import Logger from "@server/logging/Logger";
 import { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import Document from "@server/models/Document";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
-import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import ExportTask from "./ExportTask";
 
 export default abstract class ExportDocumentTreeTask extends ExportTask {
@@ -48,7 +48,9 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         : DocumentHelper.toMarkdown(document);
 
     const attachmentIds = includeAttachments
-      ? parseAttachmentIds(document.text)
+      ? ProsemirrorHelper.parseAttachmentIds(
+          DocumentHelper.toProsemirror(document)
+        )
       : [];
     const attachments = attachmentIds.length
       ? await Attachment.findAll({
@@ -63,28 +65,34 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     // reference in the document with the path to the attachment in the zip
     await Promise.all(
       attachments.map(async (attachment) => {
-        try {
-          Logger.debug("task", `Adding attachment to archive`, {
-            documentId,
-            key: attachment.key,
-          });
+        Logger.debug("task", `Adding attachment to archive`, {
+          documentId,
+          key: attachment.key,
+        });
 
-          const dir = path.dirname(pathInZip);
-          zip.file(path.join(dir, attachment.key), attachment.buffer, {
+        const dir = path.dirname(pathInZip);
+        zip.file(
+          path.join(dir, attachment.key),
+          new Promise<Buffer>((resolve) => {
+            attachment.buffer.then(resolve).catch((err) => {
+              Logger.warn(`Failed to read attachment from storage`, {
+                attachmentId: attachment.id,
+                teamId: attachment.teamId,
+                error: err.message,
+              });
+              resolve(Buffer.from(""));
+            });
+          }),
+          {
             date: attachment.updatedAt,
             createFolders: true,
-          });
+          }
+        );
 
-          text = text.replace(
-            new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
-            encodeURI(attachment.key)
-          );
-        } catch (err) {
-          Logger.error(
-            `Failed to add attachment to archive: ${attachment.key}`,
-            err
-          );
-        }
+        text = text.replace(
+          new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+          encodeURI(attachment.key)
+        );
       })
     );
 

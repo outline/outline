@@ -1,8 +1,10 @@
 import Router from "koa-router";
 import { WhereOptions } from "sequelize";
+import { UserRole } from "@shared/types";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { FileOperation, Team } from "@server/models";
 import { authorize } from "@server/policies";
@@ -16,7 +18,7 @@ const router = new Router();
 
 router.post(
   "fileOperations.info",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.FileOperationsInfoSchema),
   async (ctx: APIContext<T.FileOperationsInfoReq>) => {
     const { id } = ctx.input.body;
@@ -36,7 +38,7 @@ router.post(
 
 router.post(
   "fileOperations.list",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   pagination(),
   validate(T.FileOperationsListSchema),
   async (ctx: APIContext<T.FileOperationsListReq>) => {
@@ -90,31 +92,39 @@ const handleFileOperationsRedirect = async (
 
 router.get(
   "fileOperations.redirect",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.FileOperationsRedirectSchema),
   handleFileOperationsRedirect
 );
 router.post(
   "fileOperations.redirect",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.FileOperationsRedirectSchema),
   handleFileOperationsRedirect
 );
 
 router.post(
   "fileOperations.delete",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.FileOperationsDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.FileOperationsDeleteReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const fileOperation = await FileOperation.unscoped().findByPk(id, {
       rejectOnEmpty: true,
+      transaction,
     });
     authorize(user, "delete", fileOperation);
 
-    await fileOperationDeleter(fileOperation, user, ctx.request.ip);
+    await fileOperationDeleter({
+      fileOperation,
+      user,
+      ip: ctx.request.ip,
+      transaction,
+    });
 
     ctx.body = {
       success: true,

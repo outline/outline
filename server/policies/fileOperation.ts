@@ -1,21 +1,25 @@
+import { FileOperationState, FileOperationType } from "@shared/types";
 import { User, Team, FileOperation } from "@server/models";
 import { allow } from "./cancan";
+import { and, isTeamAdmin, isTeamMutable, or } from "./utils";
 
 allow(
   User,
   ["createFileOperation", "createImport", "createExport"],
   Team,
-  (user, team) => {
-    if (!team || user.isViewer || user.teamId !== team.id) {
-      return false;
-    }
-    return user.isAdmin;
-  }
+  // Note: Not checking for isTeamMutable here because we want to allow exporting data in read-only.
+  isTeamAdmin
 );
 
-allow(User, ["read", "delete"], FileOperation, (user, fileOperation) => {
-  if (!fileOperation || user.isViewer || user.teamId !== fileOperation.teamId) {
-    return false;
-  }
-  return user.isAdmin;
-});
+allow(User, "read", FileOperation, isTeamAdmin);
+
+allow(User, "delete", FileOperation, (actor, fileOperation) =>
+  and(
+    isTeamAdmin(actor, fileOperation),
+    isTeamMutable(actor),
+    or(
+      fileOperation?.type !== FileOperationType.Export,
+      fileOperation?.state === FileOperationState.Complete
+    )
+  )
+);

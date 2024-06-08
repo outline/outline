@@ -74,7 +74,11 @@ const SettingRow: React.FC<Props> = ({
         <Label as="h3">
           <label htmlFor={name}>{label}</label>
         </Label>
-        {description && <Text type="secondary">{description}</Text>}
+        {description && (
+          <Text as="p" type="secondary">
+            {description}
+          </Text>
+        )}
       </Column>
       <Column>{children}</Column>
     </Row>

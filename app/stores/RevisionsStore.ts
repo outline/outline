@@ -35,7 +35,6 @@ export default class RevisionsStore extends Store<Revision> {
             id: "latest",
             documentId: document.id,
             title: document.title,
-            text: document.text,
             createdAt: document.updatedAt,
             createdBy: document.createdBy,
           },

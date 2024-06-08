@@ -10,24 +10,25 @@ import useThrottledCallback from "./useThrottledCallback";
  */
 export default function useWindowSize() {
   const [windowSize, setWindowSize] = React.useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: window.visualViewport?.width || window.innerWidth,
+    height: window.visualViewport?.height || window.innerHeight,
   });
 
   const handleResize = useThrottledCallback(() => {
+    const width = window.visualViewport?.width || window.innerWidth;
+    const height = window.visualViewport?.height || window.innerHeight;
+
     setWindowSize((state) => {
-      if (
-        window.innerWidth === state.width &&
-        window.innerHeight === state.height
-      ) {
+      if (width === state.width && height === state.height) {
         return state;
       }
 
-      return { width: window.innerWidth, height: window.innerHeight };
+      return { width, height };
     });
   }, 100);
 
   useEventListener("resize", handleResize);
+  useEventListener("resize", handleResize, window.visualViewport);
 
   // Call handler right away so state gets updated with initial window size
   React.useEffect(() => {

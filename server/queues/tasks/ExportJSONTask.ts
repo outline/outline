@@ -1,7 +1,6 @@
 import JSZip from "jszip";
 import omit from "lodash/omit";
 import { NavigationNode } from "@shared/types";
-import { parser } from "@server/editor";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -10,12 +9,12 @@ import {
   Document,
   FileOperation,
 } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { presentAttachment, presentCollection } from "@server/presenters";
 import { CollectionJSONExport, JSONExportMetadata } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
-import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import packageJson from "../../../package.json";
 import ExportTask from "./ExportTask";
 
@@ -28,7 +27,7 @@ export default class ExportJSONTask extends ExportTask {
       await this.addCollectionToArchive(
         zip,
         collection,
-        fileOperation.includeAttachments
+        fileOperation.options?.includeAttachments ?? true
       );
     }
 
@@ -50,7 +49,7 @@ export default class ExportJSONTask extends ExportTask {
 
     zip.file(
       `metadata.json`,
-      env.ENVIRONMENT === "development"
+      env.isDevelopment
         ? JSON.stringify(metadata, null, 2)
         : JSON.stringify(metadata)
     );
@@ -63,10 +62,10 @@ export default class ExportJSONTask extends ExportTask {
   ) {
     const output: CollectionJSONExport = {
       collection: {
-        ...omit(presentCollection(collection), ["url"]),
-        description: collection.description
-          ? parser.parse(collection.description)
-          : null,
+        ...omit(await presentCollection(undefined, collection), [
+          "url",
+          "description",
+        ]),
         documentStructure: collection.documentStructure,
       },
       documents: {},
@@ -87,29 +86,37 @@ export default class ExportJSONTask extends ExportTask {
           ? await Attachment.findAll({
               where: {
                 teamId: document.teamId,
-                id: parseAttachmentIds(document.text),
+                id: ProsemirrorHelper.parseAttachmentIds(
+                  DocumentHelper.toProsemirror(document)
+                ),
               },
             })
           : [];
 
         await Promise.all(
           attachments.map(async (attachment) => {
-            try {
-              zip.file(attachment.key, attachment.buffer, {
+            zip.file(
+              attachment.key,
+              new Promise<Buffer>((resolve) => {
+                attachment.buffer.then(resolve).catch((err) => {
+                  Logger.warn(`Failed to read attachment from storage`, {
+                    attachmentId: attachment.id,
+                    teamId: attachment.teamId,
+                    error: err.message,
+                  });
+                  resolve(Buffer.from(""));
+                });
+              }),
+              {
                 date: attachment.updatedAt,
                 createFolders: true,
-              });
+              }
+            );
 
-              output.attachments[attachment.id] = {
-                ...omit(presentAttachment(attachment), "url"),
-                key: attachment.key,
-              };
-            } catch (err) {
-              Logger.error(
-                `Failed to add attachment to archive: ${attachment.key}`,
-                err
-              );
-            }
+            output.attachments[attachment.id] = {
+              ...omit(presentAttachment(attachment), "url"),
+              key: attachment.key,
+            };
           })
         );
 
@@ -117,8 +124,10 @@ export default class ExportJSONTask extends ExportTask {
           id: document.id,
           urlId: document.urlId,
           title: document.title,
+          emoji: document.emoji,
           data: DocumentHelper.toProsemirror(document),
           createdById: document.createdById,
+          createdByName: document.createdBy.name,
           createdByEmail: document.createdBy.email,
           createdAt: document.createdAt.toISOString(),
           updatedAt: document.updatedAt.toISOString(),
@@ -142,7 +151,7 @@ export default class ExportJSONTask extends ExportTask {
 
     zip.file(
       `${serializeFilename(collection.name)}.json`,
-      env.ENVIRONMENT === "development"
+      env.isDevelopment
         ? JSON.stringify(output, null, 2)
         : JSON.stringify(output)
     );

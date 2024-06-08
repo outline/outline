@@ -62,6 +62,7 @@ export class MarkdownSerializer {
 // node and mark serialization methods (see `toMarkdown`).
 export class MarkdownSerializerState {
   inTable = false;
+  inList = false;
   inTightList = false;
   closed = false;
   delim = "";
@@ -221,7 +222,7 @@ export class MarkdownSerializerState {
         })
       ) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
-        const [_, lead, inner, trail] = /^(\s*)(.*?)(\s*)$/m.exec(node.text);
+        const [, lead, inner, trail] = /^(\s*)(.*?)(\s*)$/m.exec(node.text);
         leading += lead;
         trailing = trail;
         if (lead || trail) {
@@ -366,20 +367,20 @@ export class MarkdownSerializerState {
       row.forEach((cell, _, j) => {
         this.out += j === 0 ? "| " : " | ";
 
-        cell.forEach((node) => {
+        cell.forEach((cellNode) => {
           // just padding the output so that empty cells take up the same space
           // as headings.
           // TODO: Ideally we'd calc the longest cell length and use that
           // to pad all the others.
           if (
-            node.textContent === "" &&
-            node.content.size === 0 &&
-            node.type.name === "paragraph"
+            cellNode.textContent === "" &&
+            cellNode.content.size === 0 &&
+            cellNode.type.name === "paragraph"
           ) {
             this.out += "  ";
           } else {
             this.closed = false;
-            this.render(node, row, j);
+            this.render(cellNode, row, j);
           }
         });
 

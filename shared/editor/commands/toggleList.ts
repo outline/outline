@@ -1,7 +1,7 @@
 import { NodeType } from "prosemirror-model";
 import { wrapInList, liftListItem } from "prosemirror-schema-list";
 import { Command } from "prosemirror-state";
-import chainTransactions from "../lib/chainTransactions";
+import { chainTransactions } from "../lib/chainTransactions";
 import { findParentNode } from "../queries/findParentNode";
 import isList from "../queries/isList";
 import clearNodes from "./clearNodes";
@@ -35,10 +35,7 @@ export default function toggleList(
       ) {
         tr.setNodeMarkup(parentList.pos, listType);
 
-        if (dispatch) {
-          dispatch(tr);
-        }
-
+        dispatch?.(tr);
         return false;
       }
     }

@@ -2,7 +2,7 @@ import { subHours, subMinutes } from "date-fns";
 import Router from "koa-router";
 import uniqBy from "lodash/uniqBy";
 import { TeamPreference } from "@shared/types";
-import { getCookieDomain, parseDomain } from "@shared/utils/domains";
+import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -163,16 +163,14 @@ router.post(
     const { user } = auth;
 
     await user.rotateJwtSecret({ transaction });
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "users.signout",
-        actorId: user.id,
         userId: user.id,
-        teamId: user.teamId,
         data: {
           name: user.name,
         },
-        ip: ctx.request.ip,
       },
       {
         transaction,
@@ -180,8 +178,8 @@ router.post(
     );
 
     ctx.cookies.set("accessToken", "", {
+      sameSite: "lax",
       expires: subMinutes(new Date(), 1),
-      domain: getCookieDomain(ctx.hostname, env.isCloudHosted),
     });
 
     ctx.body = {

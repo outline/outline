@@ -1,10 +1,17 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import { Location, LocationDescriptor } from "history";
 import { TFunction } from "i18next";
+import {
+  JSONValue,
+  CollectionPermission,
+  DocumentPermission,
+} from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
 import Pin from "./models/Pin";
 import Star from "./models/Star";
+import UserMembership from "./models/UserMembership";
 
 export type PartialWithId<T> = Partial<T> & { id: string };
 
@@ -76,7 +83,7 @@ export type ActionContext = {
   isCommandBar: boolean;
   isButton: boolean;
   inStarredSection?: boolean;
-  activeCollectionId?: string | null;
+  activeCollectionId?: string | undefined;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;
   currentTeamId: string | undefined;
@@ -100,7 +107,11 @@ export type Action = {
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: (context: ActionContext) => boolean;
   visible?: (context: ActionContext) => boolean;
-  perform?: (context: ActionContext) => Promise<any> | any;
+  /**
+   * Perform the action – note this should generally not be called directly, use `performAction`
+   * instead. Errors will be caught and displayed to the user as a toast message.
+   */
+  perform?: (context: ActionContext) => any;
   children?: ((context: ActionContext) => Action[]) | Action[];
 };
 
@@ -119,19 +130,6 @@ export type CommandBarAction = {
 
 export type LocationWithState = Location & {
   state: Record<string, string>;
-};
-
-export type Toast = {
-  id: string;
-  createdAt: string;
-  message: string;
-  type: "warning" | "error" | "info" | "success" | "loading";
-  timeout?: number;
-  reoccurring?: number;
-  action?: {
-    text: string;
-    onClick: React.MouseEventHandler<HTMLSpanElement>;
-  };
 };
 
 export type FetchOptions = {
@@ -177,15 +175,6 @@ export type SearchResult = {
   document: Document;
 };
 
-export type ToastOptions = {
-  type: "warning" | "error" | "info" | "success" | "loading";
-  timeout?: number;
-  action?: {
-    text: string;
-    onClick: React.MouseEventHandler<HTMLSpanElement>;
-  };
-};
-
 export type WebsocketEntityDeletedEvent = {
   modelId: string;
 };
@@ -203,6 +192,11 @@ export type WebsocketCollectionUserEvent = {
   userId: string;
 };
 
+export type WebsocketDocumentUserEvent = {
+  documentId: string;
+  userId: string;
+};
+
 export type WebsocketCollectionUpdateIndexEvent = {
   collectionId: string;
   index: string;
@@ -212,6 +206,7 @@ export type WebsocketEvent =
   | PartialWithId<Pin>
   | PartialWithId<Star>
   | PartialWithId<FileOperation>
+  | PartialWithId<UserMembership>
   | WebsocketCollectionUserEvent
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent
@@ -219,4 +214,19 @@ export type WebsocketEvent =
 
 export type AwarenessChangeEvent = {
   states: { user?: { id: string }; cursor: any; scrollY: number | undefined }[];
+};
+
+export const EmptySelectValue = "__empty__";
+
+export type Permission = {
+  label: string;
+  value: CollectionPermission | DocumentPermission | typeof EmptySelectValue;
+  divider?: boolean;
+};
+
+// TODO: Can we make this type driven by the @Field decorator
+export type Properties<C> = {
+  [Property in keyof C as C[Property] extends JSONValue
+    ? Property
+    : never]?: C[Property];
 };

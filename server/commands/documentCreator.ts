@@ -1,27 +1,33 @@
 import { Transaction } from "sequelize";
+import { Optional } from "utility-types";
 import { Document, Event, User } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 
-type Props = {
-  id?: string;
-  urlId?: string;
-  title: string;
-  emoji?: string;
-  text?: string;
+type Props = Optional<
+  Pick<
+    Document,
+    | "id"
+    | "urlId"
+    | "title"
+    | "text"
+    | "content"
+    | "emoji"
+    | "collectionId"
+    | "parentDocumentId"
+    | "importId"
+    | "template"
+    | "fullWidth"
+    | "sourceMetadata"
+    | "editorVersion"
+    | "publishedAt"
+    | "createdAt"
+    | "updatedAt"
+  >
+> & {
   state?: Buffer;
   publish?: boolean;
-  collectionId?: string | null;
-  parentDocumentId?: string | null;
-  importId?: string;
-  publishedAt?: Date;
-  template?: boolean;
   templateDocument?: Document | null;
-  fullWidth?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
   user: User;
-  editorVersion?: string;
-  source?: "import";
   ip?: string;
   transaction?: Transaction;
 };
@@ -46,7 +52,7 @@ export default async function documentCreator({
   user,
   editorVersion,
   publishedAt,
-  source,
+  sourceMetadata,
   ip,
   transaction,
 }: Props): Promise<Document> {
@@ -73,22 +79,23 @@ export default async function documentCreator({
       editorVersion,
       collectionId,
       teamId: user.teamId,
-      userId: user.id,
       createdAt,
-      updatedAt,
+      updatedAt: updatedAt ?? createdAt,
       lastModifiedById: user.id,
       createdById: user.id,
       template,
       templateId,
-      fullWidth,
       publishedAt,
       importId,
+      sourceMetadata,
+      fullWidth: templateDocument ? templateDocument.fullWidth : fullWidth,
       emoji: templateDocument ? templateDocument.emoji : emoji,
-      title: templateDocument
-        ? DocumentHelper.replaceTemplateVariables(templateDocument.title, user)
-        : title,
-      text: await DocumentHelper.replaceImagesWithAttachments(
-        DocumentHelper.replaceTemplateVariables(
+      title: TextHelper.replaceTemplateVariables(
+        templateDocument ? templateDocument.title : title,
+        user
+      ),
+      text: await TextHelper.replaceImagesWithAttachments(
+        TextHelper.replaceTemplateVariables(
           templateDocument ? templateDocument.text : text,
           user
         ),
@@ -111,7 +118,7 @@ export default async function documentCreator({
       teamId: document.teamId,
       actorId: user.id,
       data: {
-        source,
+        source: importId ? "import" : undefined,
         title: document.title,
         templateId,
       },
@@ -136,7 +143,7 @@ export default async function documentCreator({
         teamId: document.teamId,
         actorId: user.id,
         data: {
-          source,
+          source: importId ? "import" : undefined,
           title: document.title,
         },
         ip,
@@ -150,7 +157,10 @@ export default async function documentCreator({
   // reload to get all of the data needed to present (user, collection etc)
   // we need to specify publishedAt to bypass default scope that only returns
   // published documents
-  return await Document.findOne({
+  return await Document.scope([
+    "withDrafts",
+    { method: ["withMembership", user.id] },
+  ]).findOne({
     where: {
       id: document.id,
       publishedAt: document.publishedAt,

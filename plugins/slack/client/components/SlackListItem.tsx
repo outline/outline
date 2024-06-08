@@ -3,12 +3,13 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { IntegrationType } from "@shared/types";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
-import Button from "~/components/Button";
+import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
 import ButtonLink from "~/components/ButtonLink";
 import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
@@ -16,7 +17,6 @@ import ListItem from "~/components/List/Item";
 import Popover from "~/components/Popover";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   integration: Integration<IntegrationType.Post>;
@@ -25,7 +25,6 @@ type Props = {
 
 function SlackListItem({ integration, collection }: Props) {
   const { t } = useTranslation();
-  const { showToast } = useToasts();
 
   const handleChange = async (ev: React.ChangeEvent<HTMLInputElement>) => {
     if (ev.target.checked) {
@@ -38,9 +37,7 @@ function SlackListItem({ integration, collection }: Props) {
 
     await integration.save();
 
-    showToast(t("Settings saved"), {
-      type: "success",
-    });
+    toast.success(t("Settings saved"));
   };
 
   const mapping = {
@@ -83,7 +80,7 @@ function SlackListItem({ integration, collection }: Props) {
           <Popover {...popover} aria-label={t("Settings")}>
             <Events>
               <h3>{t("Notifications")}</h3>
-              <Text type="secondary">
+              <Text as="p" type="secondary">
                 {t("These events should be posted to Slack")}
               </Text>
               <Switch
@@ -103,9 +100,12 @@ function SlackListItem({ integration, collection }: Props) {
         </>
       }
       actions={
-        <Button onClick={integration.delete} neutral>
-          {t("Disconnect")}
-        </Button>
+        <ConnectedButton
+          onClick={integration.delete}
+          confirmationMessage={t(
+            "This will prevent any future updates from being posted to this Slack channel. Are you sure?"
+          )}
+        />
       }
     />
   );

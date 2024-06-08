@@ -1,27 +1,45 @@
 import { addDays, differenceInDays } from "date-fns";
-import { t } from "i18next";
+import i18n, { t } from "i18next";
+import capitalize from "lodash/capitalize";
 import floor from "lodash/floor";
 import { action, autorun, computed, observable, set } from "mobx";
-import { ExportContentType } from "@shared/types";
-import type { NavigationNode } from "@shared/types";
+import { Node, Schema } from "prosemirror-model";
+import ExtensionManager from "@shared/editor/lib/ExtensionManager";
+import { richExtensions, withComments } from "@shared/editor/nodes";
+import type {
+  JSONObject,
+  NavigationNode,
+  ProsemirrorData,
+} from "@shared/types";
+import {
+  ExportContentType,
+  FileOperationFormat,
+  NotificationEventType,
+} from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
 import DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
+import type { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { settingsPath } from "~/utils/routeHelpers";
+import Collection from "./Collection";
+import Notification from "./Notification";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
+import Relation from "./decorators/Relation";
 
-type SaveOptions = {
+type SaveOptions = JSONObject & {
   publish?: boolean;
   done?: boolean;
   autosave?: boolean;
 };
 
 export default class Document extends ParanoidModel {
+  static modelName = "Document";
+
   constructor(fields: Record<string, any>, store: DocumentsStore) {
     super(fields, store);
 
@@ -50,6 +68,46 @@ export default class Document extends ParanoidModel {
   @observable
   id: string;
 
+  @observable.shallow
+  data: ProsemirrorData;
+
+  /**
+   * The original data source of the document, if imported.
+   */
+  sourceMetadata?: {
+    /**
+     * The type of importer that was used, if any. This can also be empty if an individual file was
+     * imported through drag-and-drop, for example.
+     */
+    importType?: FileOperationFormat;
+    /** The date this document was imported. */
+    importedAt?: string;
+    /** The name of the user the created the original source document. */
+    createdByName?: string;
+    /** The name of the file this document was imported from. */
+    fileName?: string;
+  };
+
+  /**
+   * The name of the original data source, if imported.
+   */
+  get sourceName() {
+    if (!this.sourceMetadata?.importType) {
+      return undefined;
+    }
+
+    switch (this.sourceMetadata.importType) {
+      case FileOperationFormat.MarkdownZip:
+        return "Markdown";
+      case FileOperationFormat.JSON:
+        return "JSON";
+      case FileOperationFormat.Notion:
+        return "Notion";
+      default:
+        return capitalize(this.sourceMetadata.importType);
+    }
+  }
+
   /**
    * The id of the collection that this document belongs to, if any.
    */
@@ -58,10 +116,10 @@ export default class Document extends ParanoidModel {
   collectionId?: string | null;
 
   /**
-   * The text content of the document as Markdown.
+   * The comment that this comment is a reply to.
    */
-  @observable
-  text: string;
+  @Relation(() => Collection, { onDelete: "cascade" })
+  collection?: Collection;
 
   /**
    * The title of the document.
@@ -114,10 +172,10 @@ export default class Document extends ParanoidModel {
   collaboratorIds: string[];
 
   @observable
-  createdBy: User;
+  createdBy: User | undefined;
 
   @observable
-  updatedBy: User;
+  updatedBy: User | undefined;
 
   @observable
   publishedAt: string | undefined;
@@ -142,6 +200,30 @@ export default class Document extends ParanoidModel {
 
   @observable
   revision: number;
+
+  /**
+   * Whether this document is contained in a collection that has been deleted.
+   */
+  @observable
+  isCollectionDeleted: boolean;
+
+  /**
+   * Returns the notifications associated with this document.
+   */
+  @computed
+  get notifications(): Notification[] {
+    return this.store.rootStore.notifications.filter(
+      (notification: Notification) => notification.documentId === this.id
+    );
+  }
+
+  /**
+   * Returns the unread notifications associated with this document.
+   */
+  @computed
+  get unreadNotifications(): Notification[] {
+    return this.notifications.filter((notification) => !notification.viewedAt);
+  }
 
   /**
    * Returns the direction of the document text, either "rtl" or "ltr"
@@ -216,6 +298,19 @@ export default class Document extends ParanoidModel {
     );
   }
 
+  /**
+   * Returns users that have been individually given access to the document.
+   *
+   * @returns users that have been individually given access to the document
+   */
+  @computed
+  get members(): User[] {
+    return this.store.rootStore.userMemberships.orderedData
+      .filter((m) => m.documentId === this.id)
+      .map((m) => m.user)
+      .filter(Boolean);
+  }
+
   @computed
   get isArchived(): boolean {
     return !!this.archivedAt;
@@ -239,11 +334,6 @@ export default class Document extends ParanoidModel {
   @computed
   get hasEmptyTitle(): boolean {
     return this.title === "";
-  }
-
-  @computed
-  get titleWithDefault(): string {
-    return this.title || "Untitled";
   }
 
   @computed
@@ -277,6 +367,15 @@ export default class Document extends ParanoidModel {
     }
 
     return floor((this.tasks.completed / this.tasks.total) * 100);
+  }
+
+  @computed
+  get pathTo() {
+    return this.collection?.pathToDocument(this.id) ?? [];
+  }
+
+  get titleWithDefault(): string {
+    return this.title || i18n.t("Untitled");
   }
 
   @action
@@ -329,7 +428,7 @@ export default class Document extends ParanoidModel {
   };
 
   @action
-  star = () => this.store.star(this);
+  star = (index?: string) => this.store.star(this, index);
 
   @action
   unstar = () => this.store.unstar(this);
@@ -357,6 +456,20 @@ export default class Document extends ParanoidModel {
       return;
     }
 
+    // Mark associated unread notifications as read when the document is viewed
+    this.store.rootStore.notifications
+      .filter(
+        (notification: Notification) =>
+          !notification.viewedAt &&
+          notification.documentId === this.id &&
+          [
+            NotificationEventType.AddUserToDocument,
+            NotificationEventType.UpdateDocument,
+            NotificationEventType.PublishDocument,
+          ].includes(notification.event)
+      )
+      .forEach((notification) => notification.markAsRead());
+
     this.lastViewedAt = new Date().toString();
 
     return this.store.rootStore.views.create({
@@ -374,9 +487,9 @@ export default class Document extends ParanoidModel {
 
   @action
   save = async (
-    fields?: Partial<Document> | undefined,
-    options?: SaveOptions | undefined
-  ) => {
+    fields?: Properties<typeof this>,
+    options?: SaveOptions
+  ): Promise<Document> => {
     const params = fields ?? this.toAPI();
     this.isSaving = true;
 
@@ -400,12 +513,22 @@ export default class Document extends ParanoidModel {
   move = (collectionId: string, parentDocumentId?: string | undefined) =>
     this.store.move(this.id, collectionId, parentDocumentId);
 
-  duplicate = () => this.store.duplicate(this);
+  duplicate = (options?: {
+    title?: string;
+    publish?: boolean;
+    recursive?: boolean;
+  }) => this.store.duplicate(this, options);
 
-  getSummary = (paragraphs = 4) => {
-    const result = this.text.trim().split("\n").slice(0, paragraphs).join("\n");
-    return result;
-  };
+  /**
+   * Returns the first blocks of the document, useful for displaying a preview.
+   *
+   * @param blocks The number of blocks to return, defaults to 4.
+   * @returns A new ProseMirror document.
+   */
+  getSummary = (blocks = 4) => ({
+    ...this.data,
+    content: this.data.content.slice(0, blocks),
+  });
 
   @computed
   get pinned(): boolean {
@@ -428,17 +551,38 @@ export default class Document extends ParanoidModel {
   }
 
   @computed
+  get childDocuments() {
+    return this.store.orderedData.filter(
+      (doc) => doc.parentDocumentId === this.id
+    );
+  }
+
+  @computed
   get asNavigationNode(): NavigationNode {
     return {
       id: this.id,
       title: this.title,
-      children: this.store.orderedData
-        .filter((doc) => doc.parentDocumentId === this.id)
-        .map((doc) => doc.asNavigationNode),
+      children: this.childDocuments.map((doc) => doc.asNavigationNode),
       url: this.url,
       isDraft: this.isDraft,
     };
   }
+
+  /**
+   * Returns the markdown representation of the document derived from the ProseMirror data.
+   *
+   * @returns The markdown representation of the document as a string.
+   */
+  toMarkdown = () => {
+    const extensionManager = new ExtensionManager(withComments(richExtensions));
+    const serializer = extensionManager.serializer();
+    const schema = new Schema({
+      nodes: extensionManager.nodes,
+      marks: extensionManager.marks,
+    });
+    const markdown = serializer.serialize(Node.fromJSON(schema, this.data));
+    return markdown;
+  };
 
   download = (contentType: ExportContentType) =>
     client.post(

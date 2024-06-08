@@ -7,9 +7,11 @@ import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
+import { ProsemirrorData } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import Avatar from "~/components/Avatar";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
@@ -17,6 +19,7 @@ import Typing from "~/components/Typing";
 import { WebsocketContext } from "~/components/WebsocketProvider";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
+import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { hover } from "~/styles";
@@ -61,6 +64,7 @@ function CommentThread({
   recessed,
   focused,
 }: Props) {
+  const { editor } = useDocumentContext();
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
@@ -71,7 +75,12 @@ function CommentThread({
     document,
     comment: thread,
   });
-  const can = usePolicy(document.id);
+  const can = usePolicy(document);
+
+  const highlightedCommentMarks = editor
+    ?.getComments()
+    .filter((comment) => comment.id === thread.id);
+  const highlightedText = highlightedCommentMarks?.map((c) => c.text).join("");
 
   const commentsInThread = comments
     .inThread(thread.id)
@@ -106,7 +115,7 @@ function CommentThread({
     if (focused) {
       // If the thread is already visible, scroll it into view immediately,
       // otherwise wait for the sidebar to appear.
-      const isVisible =
+      const isThreadVisible =
         (topRef.current?.getBoundingClientRect().left ?? 0) < window.innerWidth;
 
       setTimeout(
@@ -123,20 +132,29 @@ function CommentThread({
               parent.id !== "comments",
           });
         },
-        isVisible ? 0 : sidebarAppearDuration
+        isThreadVisible ? 0 : sidebarAppearDuration
       );
 
-      setTimeout(() => {
-        const commentMarkElement = window.document?.getElementById(
-          `comment-${thread.id}`
-        );
-        commentMarkElement?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }, 0);
+      const getCommentMarkElement = () =>
+        window.document?.getElementById(`comment-${thread.id}`);
+      const isMarkVisible = !!getCommentMarkElement();
+
+      setTimeout(
+        () => {
+          getCommentMarkElement()?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        },
+        isMarkVisible ? 0 : sidebarAppearDuration
+      );
     }
   }, [focused, thread.id]);
+
+  const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
+    `draft-${document.id}-${thread.id}`,
+    undefined
+  );
 
   return (
     <Thread
@@ -156,10 +174,12 @@ function CommentThread({
 
         return (
           <CommentThreadItem
+            highlightedText={index === 0 ? highlightedText : undefined}
             comment={comment}
+            onDelete={() => editor?.removeComment(comment.id)}
             key={comment.id}
             firstOfThread={index === 0}
-            lastOfThread={index === commentsInThread.length - 1}
+            lastOfThread={index === commentsInThread.length - 1 && !draft}
             canReply={focused && can.comment}
             firstOfAuthor={firstOfAuthor}
             lastOfAuthor={lastOfAuthor}
@@ -179,9 +199,11 @@ function CommentThread({
         ))}
 
       <ResizingHeightContainer hideOverflow={false}>
-        {(focused || commentsInThread.length === 0) && can.comment && (
+        {(focused || draft || commentsInThread.length === 0) && can.comment && (
           <Fade timing={100}>
             <CommentForm
+              onSaveDraft={onSaveDraft}
+              draft={draft}
               documentId={document.id}
               thread={thread}
               onTyping={setIsTyping}
@@ -192,7 +214,7 @@ function CommentThread({
           </Fade>
         )}
       </ResizingHeightContainer>
-      {!focused && !recessed && can.comment && (
+      {!focused && !recessed && !draft && can.comment && (
         <Reply onClick={() => setAutoFocus(true)}>{t("Reply")}…</Reply>
       )}
     </Thread>

@@ -2,11 +2,11 @@ import { observer } from "mobx-react";
 import { BackIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Portal } from "react-portal";
 import styled from "styled-components";
 import { depths, s, ellipsis } from "@shared/styles";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
+import { Portal } from "~/components/Portal";
 import Scrollable from "~/components/Scrollable";
 import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
@@ -32,7 +32,7 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
     <>
       <Header>
         <Title>{title}</Title>
-        <Tooltip tooltip={t("Close")} shortcut="Esc" delay={500}>
+        <Tooltip content={t("Close")} shortcut="Esc" delay={500}>
           <Button
             icon={<ForwardIcon />}
             onClick={onClose}
@@ -66,7 +66,7 @@ const Backdrop = styled.a`
   bottom: 0;
   right: 0;
   cursor: default;
-  z-index: ${depths.sidebar - 1};
+  z-index: ${depths.mobileSidebar - 1};
   background: ${s("backdrop")};
 `;
 

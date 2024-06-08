@@ -116,7 +116,7 @@ const Heading = styled.h4<{ rtl?: boolean }>`
   display: flex;
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   align-items: center;
-  height: 18px;
+  height: 22px;
   margin-top: 0;
   margin-bottom: 0.25em;
   overflow: hidden;
@@ -138,7 +138,7 @@ const ResultContext = styled(Highlight)`
   color: ${s("textTertiary")};
   font-size: 14px;
   margin-top: -0.25em;
-  margin-bottom: 0.25em;
+  margin-bottom: 0;
   ${ellipsis()}
 
   ${Mark} {

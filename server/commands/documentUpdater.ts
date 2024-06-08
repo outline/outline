@@ -1,6 +1,6 @@
 import { Transaction } from "sequelize";
 import { Event, Document, User } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 
 type Props = {
   /** The user updating the document */

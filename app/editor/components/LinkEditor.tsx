@@ -9,6 +9,7 @@ import { Mark } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { s, hideScrollbars } from "@shared/styles";
 import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
@@ -16,7 +17,6 @@ import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
-import { ToastOptions } from "~/types";
 import Logger from "~/utils/Logger";
 import Input from "./Input";
 import LinkSearchResult from "./LinkSearchResult";
@@ -25,7 +25,7 @@ import Tooltip from "./Tooltip";
 
 export type SearchResult = {
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   url: string;
 };
 
@@ -35,7 +35,7 @@ type Props = {
   to: number;
   dictionary: Dictionary;
   onRemoveLink?: () => void;
-  onCreateLink?: (title: string) => Promise<void>;
+  onCreateLink?: (title: string, nested?: boolean) => Promise<void>;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
   onSelectLink: (options: {
     href: string;
@@ -47,7 +47,6 @@ type Props = {
     href: string,
     event: React.MouseEvent<HTMLButtonElement>
   ) => void;
-  onShowToast: (message: string, options?: ToastOptions) => void;
   view: EditorView;
 };
 
@@ -187,7 +186,7 @@ class LinkEditor extends React.Component<Props, State> {
         event.preventDefault();
         event.stopPropagation();
         const { selectedIndex } = this.state;
-        const total = results.length;
+        const total = results.length + 1;
         const nextIndex = selectedIndex + 1;
 
         this.setState({
@@ -240,21 +239,21 @@ class LinkEditor extends React.Component<Props, State> {
     try {
       this.props.onClickLink(this.href, event);
     } catch (err) {
-      this.props.onShowToast(this.props.dictionary.openLinkError);
+      toast.error(this.props.dictionary.openLinkError);
     }
   };
 
-  handleCreateLink = async (value: string) => {
+  handleCreateLink = async (title: string, nested?: boolean) => {
     this.discardInputValue = true;
     const { onCreateLink } = this.props;
 
-    value = value.trim();
-    if (value.length === 0) {
+    title = title.trim();
+    if (title.length === 0) {
       return;
     }
 
     if (onCreateLink) {
-      return onCreateLink(value);
+      return onCreateLink(title, nested);
     }
   };
 
@@ -335,13 +334,13 @@ class LinkEditor extends React.Component<Props, State> {
         />
 
         <Tooltip
-          tooltip={isInternal ? dictionary.goToLink : dictionary.openLink}
+          content={isInternal ? dictionary.goToLink : dictionary.openLink}
         >
           <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
             {isInternal ? <ArrowIcon /> : <OpenIcon />}
           </ToolbarButton>
         </Tooltip>
-        <Tooltip tooltip={dictionary.removeLink}>
+        <Tooltip content={dictionary.removeLink}>
           <ToolbarButton onClick={this.handleRemoveLink}>
             <CloseIcon />
           </ToolbarButton>
@@ -369,22 +368,42 @@ class LinkEditor extends React.Component<Props, State> {
                 ))}
 
                 {showCreateLink && (
-                  <LinkSearchResult
-                    key="create"
-                    containerRef={this.resultsRef}
-                    title={suggestedLinkTitle}
-                    subtitle={dictionary.createNewDoc}
-                    icon={<PlusIcon />}
-                    onPointerMove={() => this.handleFocusLink(results.length)}
-                    onClick={async () => {
-                      await this.handleCreateLink(suggestedLinkTitle);
+                  <>
+                    <LinkSearchResult
+                      key="create"
+                      containerRef={this.resultsRef}
+                      title={suggestedLinkTitle}
+                      subtitle={dictionary.createNewDoc}
+                      icon={<PlusIcon />}
+                      onPointerMove={() => this.handleFocusLink(results.length)}
+                      onClick={async () => {
+                        await this.handleCreateLink(suggestedLinkTitle);
 
-                      if (this.initialSelectionLength) {
-                        this.moveSelectionToEnd();
+                        if (this.initialSelectionLength) {
+                          this.moveSelectionToEnd();
+                        }
+                      }}
+                      selected={results.length === selectedIndex}
+                    />
+                    <LinkSearchResult
+                      key="create-nested"
+                      containerRef={this.resultsRef}
+                      title={suggestedLinkTitle}
+                      subtitle={dictionary.createNewChildDoc}
+                      icon={<PlusIcon />}
+                      onPointerMove={() =>
+                        this.handleFocusLink(results.length + 1)
                       }
-                    }}
-                    selected={results.length === selectedIndex}
-                  />
+                      onClick={async () => {
+                        await this.handleCreateLink(suggestedLinkTitle, true);
+
+                        if (this.initialSelectionLength) {
+                          this.moveSelectionToEnd();
+                        }
+                      }}
+                      selected={results.length + 1 === selectedIndex}
+                    />
+                  </>
                 )}
               </>
             )}

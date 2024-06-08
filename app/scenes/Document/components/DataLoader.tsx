@@ -2,26 +2,38 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
 import { NavigationNode, TeamPreference } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
+import Error402 from "~/scenes/Error402";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
-import { NotFoundError, OfflineError } from "~/utils/errors";
+import {
+  NotFoundError,
+  OfflineError,
+  PaymentRequiredError,
+} from "~/utils/errors";
 import history from "~/utils/history";
-import { matchDocumentEdit } from "~/utils/routeHelpers";
+import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
 import Loading from "./Loading";
 
 type Params = {
+  /** The document urlId + slugified title  */
   documentSlug: string;
+  /** A specific revision id to load. */
   revisionId?: string;
+  /** The share ID to use to load data. */
   shareId?: string;
 };
 
 type LocationState = {
+  /** The document title, if preloaded */
   title?: string;
   restore?: boolean;
   revisionId?: string;
@@ -32,7 +44,7 @@ type Children = (options: {
   revision: Revision | undefined;
   abilities: Record<string, boolean>;
   readOnly: boolean;
-  onCreateLink: (title: string) => Promise<string>;
+  onCreateLink: (title: string, nested?: boolean) => Promise<string>;
   sharedTree: NavigationNode | undefined;
 }) => React.ReactNode;
 
@@ -41,17 +53,10 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const {
-    ui,
-    views,
-    shares,
-    comments,
-    documents,
-    auth,
-    revisions,
-    subscriptions,
-  } = useStores();
-  const { team } = auth;
+  const { ui, views, shares, comments, documents, revisions, subscriptions } =
+    useStores();
+  const team = useCurrentTeam();
+  const user = useCurrentUser();
   const [error, setError] = React.useState<Error | null>(null);
   const { revisionId, shareId, documentSlug } = match.params;
 
@@ -71,9 +76,10 @@ function DataLoader({ match, children }: Props) {
   const sharedTree = document
     ? documents.getSharedTree(document.id)
     : undefined;
-  const isEditRoute = match.path === matchDocumentEdit;
-  const isEditing = isEditRoute || !auth.user?.separateEditMode;
-  const can = usePolicy(document?.id);
+  const isEditRoute =
+    match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
+  const isEditing = isEditRoute || !user?.separateEditMode;
+  const can = usePolicy(document);
   const location = useLocation<LocationState>();
 
   React.useEffect(() => {
@@ -87,7 +93,7 @@ function DataLoader({ match, children }: Props) {
       }
     }
     void fetchDocument();
-  }, [ui, documents, document, shareId, documentSlug]);
+  }, [ui, documents, shareId, documentSlug]);
 
   React.useEffect(() => {
     async function fetchRevision() {
@@ -117,7 +123,7 @@ function DataLoader({ match, children }: Props) {
 
   React.useEffect(() => {
     async function fetchSubscription() {
-      if (document?.id && !revisionId) {
+      if (document?.id && !document?.isDeleted && !revisionId) {
         try {
           await subscriptions.fetchPage({
             documentId: document.id,
@@ -129,7 +135,7 @@ function DataLoader({ match, children }: Props) {
       }
     }
     void fetchSubscription();
-  }, [document?.id, subscriptions, revisionId]);
+  }, [document?.id, document?.isDeleted, subscriptions, revisionId]);
 
   React.useEffect(() => {
     async function fetchViews() {
@@ -147,16 +153,16 @@ function DataLoader({ match, children }: Props) {
   }, [document?.id, document?.isDeleted, revisionId, views]);
 
   const onCreateLink = React.useCallback(
-    async (title: string) => {
+    async (title: string, nested?: boolean) => {
       if (!document) {
         throw new Error("Document not loaded yet");
       }
 
       const newDocument = await documents.create({
         collectionId: document.collectionId,
-        parentDocumentId: document.parentDocumentId,
+        parentDocumentId: nested ? document.id : document.parentDocumentId,
         title,
-        text: "",
+        data: ProsemirrorHelper.getEmptyDocument(),
       });
 
       return newDocument.url;
@@ -178,9 +184,10 @@ function DataLoader({ match, children }: Props) {
 
       // Prevents unauthorized request to load share information for the document
       // when viewing a public share link
-      if (can.read) {
-        if (team?.getPreference(TeamPreference.Commenting)) {
-          void comments.fetchDocumentComments(document.id, {
+      if (can.read && !document.isDeleted) {
+        if (team.getPreference(TeamPreference.Commenting)) {
+          void comments.fetchPage({
+            documentId: document.id,
             limit: 100,
           });
         }
@@ -195,10 +202,16 @@ function DataLoader({ match, children }: Props) {
   }, [can.read, can.update, document, isEditRoute, comments, team, shares, ui]);
 
   if (error) {
-    return error instanceof OfflineError ? <ErrorOffline /> : <Error404 />;
+    return error instanceof OfflineError ? (
+      <ErrorOffline />
+    ) : error instanceof PaymentRequiredError ? (
+      <Error402 />
+    ) : (
+      <Error404 />
+    );
   }
 
-  if (!document || !team || (revisionId && !revision)) {
+  if (!document || (revisionId && !revision)) {
     return (
       <>
         <Loading location={location} />

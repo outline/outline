@@ -1,4 +1,4 @@
-import invariant from "invariant";
+import isEqual from "fast-deep-equal";
 import revisionCreator from "@server/commands/revisionCreator";
 import { Revision, Document, User } from "@server/models";
 import { DocumentEvent, RevisionEvent, Event } from "@server/types";
@@ -22,15 +22,15 @@ export default class RevisionsProcessor extends BaseProcessor {
 
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
+          rejectOnEmpty: true,
         });
-        invariant(document, "Document should exist");
         const previous = await Revision.findLatest(document.id);
 
-        // we don't create revisions if identical to previous revision, this can
-        // happen if a manual revision was created from another service or user.
+        // we don't create revisions if identical to previous revision, this can happen if a manual
+        // revision was created from another service or user.
         if (
           previous &&
-          document.text === previous.text &&
+          isEqual(document.content, previous.content) &&
           document.title === previous.title
         ) {
           return;

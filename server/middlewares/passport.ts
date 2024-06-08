@@ -3,7 +3,7 @@ import { Context } from "koa";
 import { InternalOAuthError } from "passport-oauth2";
 import { Client } from "@shared/types";
 import env from "@server/env";
-import { AuthenticationError } from "@server/errors";
+import { AuthenticationError, OAuthStateMismatchError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { AuthenticationResult } from "@server/types";
 import { signIn } from "@server/utils/authentication";
@@ -25,8 +25,8 @@ export default function createMiddleware(providerName: string) {
 
           if (err.id) {
             const notice = err.id.replace(/_/g, "-");
-            const redirectUrl = err.redirectUrl ?? "/";
-            const hasQueryString = redirectUrl?.includes("?");
+            const redirectPath = err.redirectPath ?? "/";
+            const hasQueryString = redirectPath?.includes("?");
 
             // Every authentication action is routed through the apex domain.
             // But when there is an error, we want to redirect the user on the
@@ -35,24 +35,28 @@ export default function createMiddleware(providerName: string) {
             // get original host
             const stateString = ctx.cookies.get("state");
             const state = stateString ? parseState(stateString) : undefined;
-            const host = state?.host ?? ctx.hostname;
 
-            // form a URL object with the err.redirectUrl and replace the host
+            // form a URL object with the err.redirectPath and replace the host
             const reqProtocol =
               state?.client === Client.Desktop ? "outline" : ctx.protocol;
-            const requestHost = ctx.get("host");
-            const url = new URL(
-              `${reqProtocol}://${requestHost}${redirectUrl}`
-            );
 
-            url.host = host;
+            // `state.host` cannot be trusted if the error is a state mismatch, use `ctx.hostname`
+            const requestHost =
+              err instanceof OAuthStateMismatchError
+                ? ctx.hostname
+                : state?.host ?? ctx.hostname;
+            const url = new URL(
+              env.isCloudHosted
+                ? `${reqProtocol}://${requestHost}${redirectPath}`
+                : `${env.URL}${redirectPath}`
+            );
 
             return ctx.redirect(
               `${url.toString()}${hasQueryString ? "&" : "?"}notice=${notice}`
             );
           }
 
-          if (env.ENVIRONMENT === "development") {
+          if (env.isDevelopment) {
             throw err;
           }
 
@@ -86,7 +90,7 @@ export default function createMiddleware(providerName: string) {
         }
 
         if (result.user.isSuspended) {
-          return ctx.redirect("/?notice=suspended");
+          return ctx.redirect("/?notice=user-suspended");
         }
 
         await signIn(ctx, providerName, result);

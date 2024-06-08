@@ -1,8 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { CollectionPermission } from "@shared/types";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
-import CollectionUser from "./CollectionUser";
-import UserAuthentication from "./UserAuthentication";
+import UserMembership from "./UserMembership";
 
 beforeAll(() => {
   jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
@@ -13,24 +12,34 @@ afterAll(() => {
 });
 
 describe("user model", () => {
+  describe("create", () => {
+    it("should not allow URLs in name", async () => {
+      await expect(
+        buildUser({
+          name: "www.google.com",
+        })
+      ).rejects.toThrowError();
+
+      await expect(
+        buildUser({
+          name: "My name https://malicious.com",
+        })
+      ).rejects.toThrowError();
+
+      await expect(
+        buildUser({
+          name: "wwwww",
+        })
+      ).resolves.toBeDefined();
+    });
+  });
+
   describe("destroy", () => {
-    it("should delete user authentications", async () => {
+    it("should clear PII", async () => {
       const user = await buildUser();
-      expect(
-        await UserAuthentication.count({
-          where: {
-            userId: user.id,
-          },
-        })
-      ).toBe(1);
       await user.destroy();
-      expect(
-        await UserAuthentication.count({
-          where: {
-            userId: user.id,
-          },
-        })
-      ).toBe(0);
+      expect(user.email).toBe(null);
+      expect(user.name).toBe("Unknown");
     });
   });
 
@@ -104,7 +113,7 @@ describe("user model", () => {
         teamId: team.id,
         permission: null,
       });
-      await CollectionUser.create({
+      await UserMembership.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,

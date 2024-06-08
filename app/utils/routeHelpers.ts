@@ -2,9 +2,10 @@ import queryString from "query-string";
 import Collection from "~/models/Collection";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
+import env from "~/env";
 
 export function homePath(): string {
-  return "/home";
+  return env.ROOT_SHARE_ID ? "/" : "/home";
 }
 
 export function draftsPath(): string {
@@ -41,7 +42,7 @@ export function updateCollectionPath(
   // Update url to match the current one
   return oldUrl.replace(
     new RegExp("/collection/[0-9a-zA-Z-_~]*"),
-    collection.url
+    collection.path
   );
 }
 
@@ -100,6 +101,7 @@ export function searchPath(
   query?: string,
   params: {
     collectionId?: string;
+    documentId?: string;
     ref?: string;
   } = {}
 ): string {
@@ -115,6 +117,10 @@ export function searchPath(
 }
 
 export function sharedDocumentPath(shareId: string, docPath?: string) {
+  if (shareId === env.ROOT_SHARE_ID) {
+    return docPath ? docPath : "/";
+  }
+
   return docPath ? `/s/${shareId}${docPath}` : `/s/${shareId}`;
 }
 

@@ -4,7 +4,7 @@ import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { githubIssuesUrl, feedbackUrl } from "@shared/utils/urlHelpers";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
 import PageTitle from "~/components/PageTitle";
@@ -57,7 +57,7 @@ class ErrorBoundary extends React.Component<Props> {
   };
 
   handleReportBug = () => {
-    window.open(isCloudHosted ? feedbackUrl() : githubIssuesUrl());
+    window.open(isCloudHosted ? UrlHelper.contact : UrlHelper.github);
   };
 
   render() {
@@ -82,7 +82,7 @@ class ErrorBoundary extends React.Component<Props> {
                 </h1>
               </>
             )}
-            <Text type="secondary">
+            <Text as="p" type="secondary">
               <Trans>
                 Sorry, part of the application failed to load. This may be
                 because it was updated since you opened the tab or because of a
@@ -106,7 +106,7 @@ class ErrorBoundary extends React.Component<Props> {
               </h1>
             </>
           )}
-          <Text type="secondary">
+          <Text as="p" type="secondary">
             <Trans
               defaults="Sorry, an unrecoverable error occurred{{notified}}. Please try reloading the page, it may have been a temporary glitch."
               values={{
@@ -121,11 +121,11 @@ class ErrorBoundary extends React.Component<Props> {
             <Button onClick={this.handleReload}>{t("Reload")}</Button>{" "}
             {this.showDetails ? (
               <Button onClick={this.handleReportBug} neutral>
-                <Trans>Report a Bug</Trans>…
+                <Trans>Report a bug</Trans>…
               </Button>
             ) : (
               <Button onClick={this.handleShowDetails} neutral>
-                <Trans>Show Detail</Trans>…
+                <Trans>Show detail</Trans>…
               </Button>
             )}
           </p>

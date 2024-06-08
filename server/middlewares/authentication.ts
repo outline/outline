@@ -1,4 +1,7 @@
 import { Next } from "koa";
+import capitalize from "lodash/capitalize";
+import { UserRole } from "@shared/types";
+import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import Logger from "@server/logging/Logger";
 import tracer, {
   addTags,
@@ -14,14 +17,11 @@ import {
 } from "../errors";
 
 type AuthenticationOptions = {
-  /* An admin user role is required to access the route */
-  admin?: boolean;
-  /* A member or admin user role is required to access the route */
-  member?: boolean;
-  /**
-   * Authentication is parsed, but optional. Note that if a token is provided
-   * in the request it must be valid or the requst will be rejected.
-   */
+  /** Role requuired to access the route. */
+  role?: UserRole;
+  /** Type of authentication required to access the route. */
+  type?: AuthenticationType;
+  /** Authentication is parsed, but optional. */
   optional?: boolean;
 };
 
@@ -57,14 +57,14 @@ export default function auth(options: AuthenticationOptions = {}) {
       token = ctx.cookies.get("accessToken");
     }
 
-    if (!token && options.optional !== true) {
-      throw AuthenticationError("Authentication required");
-    }
+    try {
+      if (!token) {
+        throw AuthenticationError("Authentication required");
+      }
 
-    let user: User | null;
-    let type: AuthenticationType;
+      let user: User | null;
+      let type: AuthenticationType;
 
-    if (token) {
       if (ApiKey.match(String(token))) {
         type = AuthenticationType.API;
         let apiKey;
@@ -104,7 +104,7 @@ export default function auth(options: AuthenticationOptions = {}) {
       if (user.isSuspended) {
         const suspendingAdmin = await User.findOne({
           where: {
-            id: user.suspendedById,
+            id: user.suspendedById!,
           },
           paranoid: false,
         });
@@ -113,21 +113,20 @@ export default function auth(options: AuthenticationOptions = {}) {
         });
       }
 
-      if (options.admin) {
-        if (!user.isAdmin) {
-          throw AuthorizationError("Admin role required");
-        }
+      if (options.role && UserRoleHelper.isRoleLower(user.role, options.role)) {
+        throw AuthorizationError(`${capitalize(options.role)} role required`);
       }
 
-      if (options.member) {
-        if (user.isViewer) {
-          throw AuthorizationError("Member role required");
-        }
+      if (options.type && type !== options.type) {
+        throw AuthorizationError(`Invalid authentication type`);
       }
 
-      // not awaiting the promise here so that the request is not blocked
+      // not awaiting the promises here so that the request is not blocked
       user.updateActiveAt(ctx).catch((err) => {
         Logger.error("Failed to update user activeAt", err);
+      });
+      user.team?.updateActiveAt().catch((err) => {
+        Logger.error("Failed to update team activeAt", err);
       });
 
       ctx.state.auth = {
@@ -146,8 +145,12 @@ export default function auth(options: AuthenticationOptions = {}) {
           getRootSpanFromRequestContext(ctx)
         );
       }
-    } else {
-      ctx.state.auth = {};
+    } catch (err) {
+      if (options.optional) {
+        ctx.state.auth = {};
+      } else {
+        throw err;
+      }
     }
 
     return next();

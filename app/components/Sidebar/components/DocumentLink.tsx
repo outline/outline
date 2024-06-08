@@ -6,6 +6,7 @@ import { useDrag, useDrop } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { NavigationNode } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
@@ -18,14 +19,14 @@ import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { newDocumentPath } from "~/utils/routeHelpers";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
-import EditableTitle from "./EditableTitle";
+import EditableTitle, { RefHandle } from "./EditableTitle";
 import Folder from "./Folder";
 import Relative from "./Relative";
+import { useSharedContext } from "./SharedContext";
 import SidebarLink, { DragObject } from "./SidebarLink";
 import { useStarredContext } from "./StarredContext";
 
@@ -53,7 +54,6 @@ function InnerDocumentLink(
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
-  const { showToast } = useToasts();
   const { documents, policies } = useStores();
   const { t } = useTranslation();
   const canUpdate = usePolicy(node.id).update;
@@ -63,13 +63,21 @@ function InnerDocumentLink(
   const document = documents.get(node.id);
   const { fetchChildDocuments } = documents;
   const [isEditing, setIsEditing] = React.useState(false);
+  const editableTitleRef = React.useRef<RefHandle>(null);
   const inStarredSection = useStarredContext();
+  const inSharedSection = useSharedContext();
 
   React.useEffect(() => {
-    if (isActiveDocument && hasChildDocuments) {
+    if (isActiveDocument && (hasChildDocuments || inSharedSection)) {
       void fetchChildDocuments(node.id);
     }
-  }, [fetchChildDocuments, node.id, hasChildDocuments, isActiveDocument]);
+  }, [
+    fetchChildDocuments,
+    node.id,
+    hasChildDocuments,
+    inSharedSection,
+    isActiveDocument,
+  ]);
 
   const pathToNode = React.useMemo(
     () => collection?.pathToDocument(node.id).map((entry) => entry.id),
@@ -221,14 +229,10 @@ function InnerDocumentLink(
     accept: "document",
     drop: (item: DragObject) => {
       if (!manualSort) {
-        showToast(
+        toast.message(
           t(
             "You can't reorder documents in an alphabetically sorted collection"
-          ),
-          {
-            type: "info",
-            timeout: 5000,
-          }
+          )
         );
         return;
       }
@@ -274,10 +278,6 @@ function InnerDocumentLink(
     collection,
     node,
   ]);
-
-  const handleTitleEditing = React.useCallback((isEditing: boolean) => {
-    setIsEditing(isEditing);
-  }, []);
 
   const title =
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
@@ -329,9 +329,10 @@ function InnerDocumentLink(
                   <EditableTitle
                     title={title}
                     onSubmit={handleTitleChange}
-                    onEditing={handleTitleEditing}
+                    onEditing={setIsEditing}
                     canUpdate={canUpdate}
                     maxLength={DocumentValidation.maxTitleLength}
+                    ref={editableTitleRef}
                   />
                 }
                 isActive={(match, location: Location<{ starred?: boolean }>) =>
@@ -353,7 +354,7 @@ function InnerDocumentLink(
                   !isDraggingAnyDocument ? (
                     <Fade>
                       {can.createChildDocument && (
-                        <Tooltip tooltip={t("New doc")} delay={500}>
+                        <Tooltip content={t("New doc")} delay={500}>
                           <NudeButton
                             type={undefined}
                             aria-label={t("New nested document")}
@@ -368,6 +369,9 @@ function InnerDocumentLink(
                       )}
                       <DocumentMenu
                         document={document}
+                        onRename={() =>
+                          editableTitleRef.current?.setIsEditing(true)
+                        }
                         onOpen={handleMenuOpen}
                         onClose={handleMenuClose}
                       />

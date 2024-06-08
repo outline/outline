@@ -1,22 +1,26 @@
+import crypto from "crypto";
 import path from "path";
+import { formatRFC7231 } from "date-fns";
 import Koa, { BaseContext } from "koa";
 import compress from "koa-compress";
 import Router from "koa-router";
 import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
-import { IntegrationType } from "@shared/types";
+import { IntegrationType, TeamPreference } from "@shared/types";
+import { Day } from "@shared/utils/time";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
+import shareDomains from "@server/middlewares/shareDomains";
 import { Integration } from "@server/models";
 import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
 import apexRedirect from "../middlewares/apexRedirect";
 import { renderApp, renderShare } from "./app";
+import { renderEmbed } from "./embeds";
 import errors from "./errors";
 
-const isProduction = env.ENVIRONMENT === "production";
 const koa = new Koa();
 const router = new Router();
 
@@ -31,7 +35,10 @@ router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
       done = await send(ctx, ctx.path, {
         root: path.resolve(__dirname, "../../../public"),
         // 7 day expiry, these assets are mostly static but do not contain a hash
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: Day * 7,
+        setHeaders: (res) => {
+          res.setHeader("Access-Control-Allow-Origin", "*");
+        },
       });
     } catch (err) {
       if (err.status !== 404) {
@@ -53,7 +60,7 @@ router.use(
   }
 );
 
-if (isProduction) {
+if (env.isProduction) {
   router.get("/static/*", async (ctx) => {
     try {
       const pathname = ctx.path.substring(8);
@@ -64,7 +71,7 @@ if (isProduction) {
       await send(ctx, pathname, {
         root: path.join(__dirname, "../../app/"),
         // Hashed static assets get 1 year expiry plus immutable flag
-        maxAge: 365 * 24 * 60 * 60 * 1000,
+        maxAge: Day * 365,
         immutable: true,
         setHeaders: (res) => {
           res.setHeader("Service-Worker-Allowed", "/");
@@ -96,10 +103,12 @@ router.get("/locales/:lng.json", async (ctx) => {
   }
 
   await send(ctx, path.join(lng, "translation.json"), {
-    setHeaders: (res) => {
+    setHeaders: (res, _, stats) => {
+      res.setHeader("Last-Modified", formatRFC7231(stats.mtime));
+      res.setHeader("Cache-Control", `public, max-age=${(7 * Day) / 1000}`);
       res.setHeader(
-        "Cache-Control",
-        isProduction ? `max-age=${7 * 24 * 60 * 60}` : "no-cache"
+        "ETag",
+        crypto.createHash("md5").update(stats.mtime.toISOString()).digest("hex")
       );
     },
     root: path.join(__dirname, "../../shared/i18n/locales"),
@@ -112,17 +121,31 @@ router.get("/robots.txt", (ctx) => {
 
 router.get("/opensearch.xml", (ctx) => {
   ctx.type = "text/xml";
-
+  ctx.response.set("Cache-Control", `public, max-age=${(7 * Day) / 1000}`);
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
-router.get("/s/:shareId", renderShare);
-router.get("/s/:shareId/doc/:documentSlug", renderShare);
-router.get("/s/:shareId/*", renderShare);
+router.get("/s/:shareId", shareDomains(), renderShare);
+router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
+router.get("/s/:shareId/*", shareDomains(), renderShare);
+
+router.get("/embeds/gitlab", renderEmbed);
+router.get("/embeds/github", renderEmbed);
 
 // catch all for application
-router.get("*", async (ctx, next) => {
+router.get("*", shareDomains(), async (ctx, next) => {
+  if (ctx.state?.rootShare) {
+    return renderShare(ctx, next);
+  }
+
   const team = await getTeamFromContext(ctx);
+
+  // Redirect all requests to custom domain if one is set
+  if (team?.domain && team.domain !== ctx.hostname) {
+    ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
+    return;
+  }
+
   const analytics = team
     ? await Integration.findOne({
         where: {
@@ -132,14 +155,12 @@ router.get("*", async (ctx, next) => {
       })
     : undefined;
 
-  // Redirect all requests to custom domain if one is set
-  if (team?.domain && team.domain !== ctx.hostname) {
-    ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
-    return;
-  }
-
   return renderApp(ctx, next, {
     analytics,
+    shortcutIcon:
+      team?.getPreference(TeamPreference.PublicBranding) && team.avatarUrl
+        ? team.avatarUrl
+        : undefined,
   });
 });
 

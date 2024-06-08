@@ -22,6 +22,7 @@ import PageTitle from "~/components/PageTitle";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
 import env from "~/env";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useLastVisitedPath from "~/hooks/useLastVisitedPath";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
@@ -32,6 +33,7 @@ import { detectLanguage } from "~/utils/language";
 import AuthenticationProvider from "./components/AuthenticationProvider";
 import BackButton from "./components/BackButton";
 import Notices from "./components/Notices";
+import { getRedirectUrl, navigateToSubdomain } from "./urls";
 
 type Props = {
   children?: (config?: Config) => React.ReactNode;
@@ -43,12 +45,13 @@ function Login({ children }: Props) {
   const notice = query.get("notice");
 
   const { t } = useTranslation();
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const { auth } = useStores();
   const { config } = auth;
   const [error, setError] = React.useState(null);
   const [emailLinkSentTo, setEmailLinkSentTo] = React.useState("");
   const isCreate = location.pathname === "/create";
-  const rememberLastPath = !!auth.user?.getPreference(
+  const rememberLastPath = !!user?.getPreference(
     UserPreference.RememberLastPath
   );
   const [lastVisitedPath] = useLastVisitedPath();
@@ -63,17 +66,7 @@ function Login({ children }: Props) {
   const handleGoSubdomain = React.useCallback(async (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target));
-    const normalizedSubdomain = data.subdomain
-      .toString()
-      .toLowerCase()
-      .trim()
-      .replace(/^https?:\/\//, "");
-    const host = `https://${normalizedSubdomain}.getoutline.com`;
-    await Desktop.bridge.addCustomHost(host);
-
-    setTimeout(() => {
-      window.location.href = host;
-    }, 500);
+    await navigateToSubdomain(data.subdomain.toString());
   }, []);
 
   React.useEffect(() => {
@@ -183,6 +176,8 @@ function Login({ children }: Props) {
               name="subdomain"
               style={{ textAlign: "right" }}
               placeholder={t("subdomain")}
+              pattern="^[a-z\d-]+$"
+              required
             >
               <Domain>.getoutline.com</Domain>
             </Input>
@@ -223,6 +218,17 @@ function Login({ children }: Props) {
         </Centered>
       </Background>
     );
+  }
+
+  // If there is only one provider and it's OIDC, redirect immediately.
+  if (
+    config.providers.length === 1 &&
+    config.providers[0].id === "oidc" &&
+    !env.OIDC_DISABLE_REDIRECT &&
+    !query.get("notice")
+  ) {
+    window.location.href = getRedirectUrl(config.providers[0].authUrl);
+    return null;
   }
 
   return (

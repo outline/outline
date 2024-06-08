@@ -1,4 +1,6 @@
+import { EmptyResultError } from "sequelize";
 import slugify from "@shared/utils/slugify";
+import { parser } from "@server/editor";
 import Document from "@server/models/Document";
 import {
   buildDocument,
@@ -110,7 +112,7 @@ describe("#save", () => {
   });
 });
 
-describe("#getChildDocumentIds", () => {
+describe("#findAllChildDocumentIds", () => {
   test("should return empty array if no children", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -124,7 +126,7 @@ describe("#getChildDocumentIds", () => {
       collectionId: collection.id,
       title: "test",
     });
-    const results = await document.getChildDocumentIds();
+    const results = await document.findAllChildDocumentIds();
     expect(results.length).toBe(0);
   });
 
@@ -155,7 +157,7 @@ describe("#getChildDocumentIds", () => {
       parentDocumentId: document2.id,
       title: "test",
     });
-    const results = await document.getChildDocumentIds();
+    const results = await document.findAllChildDocumentIds();
     expect(results.length).toBe(2);
     expect(results[0]).toBe(document2.id);
     expect(results[1]).toBe(document3.id);
@@ -176,23 +178,38 @@ describe("#findByPk", () => {
     const response = await Document.findByPk(id);
     expect(response?.id).toBe(document.id);
   });
+
+  it("should test with rejectOnEmpty flag", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+    await expect(
+      Document.findByPk(document.id, {
+        userId: user.id,
+        rejectOnEmpty: true,
+      })
+    ).resolves.not.toBeNull();
+
+    await expect(
+      Document.findByPk(document.urlId, {
+        userId: user.id,
+        rejectOnEmpty: true,
+      })
+    ).resolves.not.toBeNull();
+
+    await expect(
+      Document.findByPk("0e8280ea-7b4c-40e5-98ba-ec8a2f00f5e8", {
+        userId: user.id,
+        rejectOnEmpty: true,
+      })
+    ).rejects.toThrow(EmptyResultError);
+  });
 });
 
 describe("tasks", () => {
-  test("should consider all the possible checkTtems", async () => {
-    const document = await buildDocument({
-      text: `- [x] test
-      - [X] test
-      - [ ] test
-      - [-] test
-      - [_] test`,
-    });
-    const tasks = document.tasks;
-    expect(tasks.completed).toBe(4);
-    expect(tasks.total).toBe(5);
-  });
-
-  test("should return tasks keys set to 0 if checkItems isn't present", async () => {
+  test("should return tasks keys set to 0 if check items isn't present", async () => {
     const document = await buildDocument({
       text: `text`,
     });
@@ -201,11 +218,12 @@ describe("tasks", () => {
     expect(tasks.total).toBe(0);
   });
 
-  test("should return tasks keys set to 0 if the text contains broken checkItems", async () => {
+  test("should return tasks keys set to 0 if the text contains broken check items", async () => {
     const document = await buildDocument({
-      text: `- [x ] test
-      - [ x ] test
-      - [  ] test`,
+      text: `
+- [x ] test
+- [ x ] test
+- [  ] test`,
     });
     const tasks = document.tasks;
     expect(tasks.completed).toBe(0);
@@ -214,8 +232,9 @@ describe("tasks", () => {
 
   test("should return tasks", async () => {
     const document = await buildDocument({
-      text: `- [x] list item
-      - [ ] list item`,
+      text: `
+- [x] list item
+- [ ] list item`,
     });
     const tasks = document.tasks;
     expect(tasks.completed).toBe(1);
@@ -224,15 +243,21 @@ describe("tasks", () => {
 
   test("should update tasks on save", async () => {
     const document = await buildDocument({
-      text: `- [x] list item
-      - [ ] list item`,
+      text: `
+- [x] list item
+- [ ] list item`,
     });
     const tasks = document.tasks;
     expect(tasks.completed).toBe(1);
     expect(tasks.total).toBe(2);
-    document.text = `- [x] list item
-    - [ ] list item
-    - [ ] list item`;
+    document.content = parser
+      .parse(
+        `
+- [x] list item
+- [ ] list item
+- [ ] list item`
+      )
+      ?.toJSON();
     await document.save();
     const newTasks = document.tasks;
     expect(newTasks.completed).toBe(1);

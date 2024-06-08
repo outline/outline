@@ -1,14 +1,18 @@
 import {
   onChangePayload,
-  onConnectPayload,
   onDisconnectPayload,
   onLoadDocumentPayload,
   Extension,
+  connectedPayload,
 } from "@hocuspocus/server";
 import Metrics from "@server/logging/Metrics";
+import { withContext } from "./types";
 
 export default class MetricsExtension implements Extension {
-  async onLoadDocument({ documentName, instance }: onLoadDocumentPayload) {
+  async onLoadDocument({
+    documentName,
+    instance,
+  }: withContext<onLoadDocumentPayload>) {
     Metrics.increment("collaboration.load_document", {
       documentName,
     });
@@ -24,7 +28,7 @@ export default class MetricsExtension implements Extension {
     });
   }
 
-  async onConnect({ documentName, instance }: onConnectPayload) {
+  async connected({ documentName, instance }: withContext<connectedPayload>) {
     Metrics.increment("collaboration.connect", {
       documentName,
     });
@@ -38,7 +42,10 @@ export default class MetricsExtension implements Extension {
     );
   }
 
-  async onDisconnect({ documentName, instance }: onDisconnectPayload) {
+  async onDisconnect({
+    documentName,
+    instance,
+  }: withContext<onDisconnectPayload>) {
     Metrics.increment("collaboration.disconnect", {
       documentName,
     });
@@ -52,7 +59,7 @@ export default class MetricsExtension implements Extension {
     );
   }
 
-  async onStoreDocument({ documentName }: onChangePayload) {
+  async onStoreDocument({ documentName }: withContext<onChangePayload>) {
     Metrics.increment("collaboration.change", {
       documentName,
     });

@@ -1,7 +1,7 @@
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
 import { NotificationEventType } from "@shared/types";
-import BaseSchema from "../BaseSchema";
+import { BaseSchema } from "../schema";
 
 export const NotificationSettingsCreateSchema = BaseSchema.extend({
   body: z.object({

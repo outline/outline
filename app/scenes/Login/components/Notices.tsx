@@ -40,7 +40,7 @@ export default function Notices() {
       {notice === "pending-deletion" && (
         <Trans>
           The workspace associated with your user is scheduled for deletion and
-          cannot at accessed at this time.
+          cannot be accessed at this time.
         </Trans>
       )}
       {notice === "maximum-reached" && (
@@ -84,10 +84,16 @@ export default function Notices() {
           requesting another.
         </Trans>
       )}
-      {(notice === "suspended" || notice === "user-suspended") && (
+      {notice === "user-suspended" && (
         <Trans>
           Your account has been suspended. To re-activate your account, please
           contact a workspace admin.
+        </Trans>
+      )}
+      {notice === "team-suspended" && (
+        <Trans>
+          This workspace has been suspended. Please contact support to restore
+          access.
         </Trans>
       )}
       {notice === "authentication-provider-disabled" && (

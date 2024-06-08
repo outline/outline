@@ -44,7 +44,7 @@ function LinkSearchResult({
     >
       <IconWrapper selected={selected}>{icon}</IconWrapper>
       <Content>
-        <Title>{title}</Title>
+        <Title title={title}>{title}</Title>
         {subtitle ? <Subtitle selected={selected}>{subtitle}</Subtitle> : null}
       </Content>
     </ListItem>

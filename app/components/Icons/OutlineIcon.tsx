@@ -5,7 +5,7 @@ type Props = {
   size?: number;
   /** The color of the icon, defaults to the current text color */
   color?: string;
-  /* Whether the safe area should be removed and have graphic across full size */
+  /** Whether the safe area should be removed and have graphic across full size */
   cover?: boolean;
 };
 

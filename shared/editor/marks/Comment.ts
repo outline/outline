@@ -1,9 +1,9 @@
 import { toggleMark } from "prosemirror-commands";
-import { MarkSpec, MarkType, Schema } from "prosemirror-model";
+import { MarkSpec, MarkType, Schema, Mark as PMMark } from "prosemirror-model";
 import { Command, Plugin } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
 import collapseSelection from "../commands/collapseSelection";
-import chainTransactions from "../lib/chainTransactions";
+import { chainTransactions } from "../lib/chainTransactions";
 import isMarkActive from "../queries/isMarkActive";
 import Mark from "./Mark";
 
@@ -106,17 +106,58 @@ export default class Comment extends Mark {
   get plugins(): Plugin[] {
     return [
       new Plugin({
+        appendTransaction(transactions, oldState, newState) {
+          if (
+            !transactions.some(
+              (transaction) => transaction.getMeta("uiEvent") === "paste"
+            )
+          ) {
+            return;
+          }
+
+          // Record existing comment marks
+          const existingComments: PMMark[] = [];
+          oldState.doc.descendants((node) => {
+            node.marks.forEach((mark) => {
+              if (mark.type.name === "comment") {
+                existingComments.push(mark);
+              }
+            });
+            return true;
+          });
+
+          // Remove comment marks that are new duplicates of existing ones. This allows us to cut
+          // and paste a comment mark, but not copy and paste.
+          let tr = newState.tr;
+          newState.doc.descendants((node, pos) => {
+            node.marks.forEach((mark) => {
+              if (
+                mark.type.name === "comment" &&
+                existingComments.find((m) => m.attrs.id === mark.attrs.id) &&
+                !existingComments.find((m) => m === mark)
+              ) {
+                tr = tr.removeMark(pos, pos + node.nodeSize, mark.type);
+              }
+            });
+
+            return true;
+          });
+
+          return tr;
+        },
         props: {
           handleDOMEvents: {
             mouseup: (_view, event: MouseEvent) => {
-              if (
-                !(event.target instanceof HTMLSpanElement) ||
-                !event.target.classList.contains("comment-marker")
-              ) {
+              if (!(event.target instanceof HTMLElement)) {
                 return false;
               }
 
-              const commentId = event.target.id.replace("comment-", "");
+              const comment = event.target.closest(".comment-marker");
+              if (!comment) {
+                return false;
+              }
+
+              const commentId = comment.id.replace("comment-", "");
               if (commentId) {
                 this.options?.onClickCommentMark?.(commentId);
               }

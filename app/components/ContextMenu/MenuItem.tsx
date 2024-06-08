@@ -1,5 +1,6 @@
 import { LocationDescriptor } from "history";
 import { CheckmarkIcon } from "outline-icons";
+import { ellipsis } from "polished";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
@@ -71,13 +72,12 @@ const MenuItem = (
           ])}
         >
           {selected !== undefined && (
-            <>
+            <MenuIconWrapper aria-hidden>
               {selected ? <CheckmarkIcon /> : <Spacer />}
-              &nbsp;
-            </>
+            </MenuIconWrapper>
           )}
-          {icon && <MenuIconWrapper>{icon}</MenuIconWrapper>}
-          {children}
+          {icon && <MenuIconWrapper aria-hidden>{icon}</MenuIconWrapper>}
+          <Title>{children}</Title>
         </MenuAnchor>
       );
     },
@@ -100,6 +100,12 @@ const Spacer = styled.svg`
   width: 24px;
   height: 24px;
   flex-shrink: 0;
+`;
+
+const Title = styled.div`
+  ${ellipsis()}
+  flex-grow: 1;
+  display: flex;
 `;
 
 type MenuAnchorProps = {
@@ -130,10 +136,6 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
   white-space: nowrap;
   position: relative;
 
-  svg:not(:last-child) {
-    margin-right: 4px;
-  }
-
   svg {
     flex-shrink: 0;
     opacity: ${(props) => (props.disabled ? ".5" : 1)};
@@ -155,6 +157,7 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
       cursor: var(--pointer);
 
       svg {
+        color: ${props.theme.accentText};
         fill: ${props.theme.accentText};
       }
     }

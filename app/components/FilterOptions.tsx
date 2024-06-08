@@ -16,7 +16,7 @@ type TFilterOption = {
 
 type Props = {
   options: TFilterOption[];
-  activeKey: string | null | undefined;
+  selectedKeys: (string | null | undefined)[];
   defaultLabel?: string;
   selectedPrefix?: string;
   className?: string;
@@ -25,7 +25,7 @@ type Props = {
 
 const FilterOptions = ({
   options,
-  activeKey = "",
+  selectedKeys = [],
   defaultLabel = "Filter options",
   selectedPrefix = "",
   className,
@@ -34,17 +34,22 @@ const FilterOptions = ({
   const menu = useMenuState({
     modal: true,
   });
-  const selected =
-    options.find((option) => option.key === activeKey) || options[0];
+  const selectedItems = options.filter((option) =>
+    selectedKeys.includes(option.key)
+  );
 
-  const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
+  const selectedLabel = selectedItems.length
+    ? selectedItems
+        .map((selected) => `${selectedPrefix} ${selected.label}`)
+        .join(", ")
+    : "";
 
   return (
-    <Wrapper>
+    <div>
       <MenuButton {...menu}>
         {(props) => (
           <StyledButton {...props} className={className} neutral disclosure>
-            {activeKey ? selectedLabel : defaultLabel}
+            {selectedItems.length ? selectedLabel : defaultLabel}
           </StyledButton>
         )}
       </MenuButton>
@@ -56,7 +61,7 @@ const FilterOptions = ({
               onSelect(option.key);
               menu.hide();
             }}
-            selected={option.key === activeKey}
+            selected={selectedKeys.includes(option.key)}
             {...menu}
           >
             {option.icon && <Icon>{option.icon}</Icon>}
@@ -71,13 +76,13 @@ const FilterOptions = ({
           </MenuItem>
         ))}
       </ContextMenu>
-    </Wrapper>
+    </div>
   );
 };
 
 const Note = styled(Text)`
-  margin-top: 2px;
-  margin-bottom: 0;
+  display: block;
+  margin: 2px 0;
   line-height: 1.2em;
   font-size: 14px;
   font-weight: 500;
@@ -93,7 +98,7 @@ const LabelWithNote = styled.div`
   }
 `;
 
-const StyledButton = styled(Button)`
+export const StyledButton = styled(Button)`
   box-shadow: none;
   text-transform: none;
   border-color: transparent;
@@ -113,10 +118,6 @@ const Icon = styled.div`
   margin-right: 8px;
   width: 18px;
   height: 18px;
-`;
-
-const Wrapper = styled.div`
-  margin-right: 8px;
 `;
 
 export default FilterOptions;

@@ -3,13 +3,15 @@ import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
+import { toast } from "sonner";
+import { UserPreference } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import CenteredContent from "~/components/CenteredContent";
 import Flex from "~/components/Flex";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import { documentEditPath, documentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -25,7 +27,6 @@ function DocumentNew({ template }: Props) {
   const match = useRouteMatch<{ id?: string }>();
   const { t } = useTranslation();
   const { documents, collections } = useStores();
-  const { showToast } = useToasts();
   const id = match.params.id || query.get("collectionId");
 
   useEffect(() => {
@@ -43,11 +44,13 @@ function DocumentNew({ template }: Props) {
         const document = await documents.create({
           collectionId: collection?.id,
           parentDocumentId,
-          fullWidth: parentDocument?.fullWidth,
+          fullWidth:
+            parentDocument?.fullWidth ||
+            user.getPreference(UserPreference.FullWidthDocuments),
           templateId: query.get("templateId") ?? undefined,
           template,
           title: "",
-          text: "",
+          data: ProsemirrorHelper.getEmptyDocument(),
         });
         history.replace(
           template || !user.separateEditMode
@@ -56,9 +59,7 @@ function DocumentNew({ template }: Props) {
           location.state
         );
       } catch (err) {
-        showToast(t("Couldn’t create the document, try again?"), {
-          type: "error",
-        });
+        toast.error(t("Couldn’t create the document, try again?"));
         history.goBack();
       }
     }

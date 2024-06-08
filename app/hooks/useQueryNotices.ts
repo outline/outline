@@ -1,8 +1,8 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { QueryNotices } from "@shared/types";
 import useQuery from "./useQuery";
-import useToasts from "./useToasts";
 
 /**
  * Display a toast message based on a notice in the query string. This is usually
@@ -12,13 +12,12 @@ import useToasts from "./useToasts";
 export default function useQueryNotices() {
   const query = useQuery();
   const { t } = useTranslation();
-  const { showToast } = useToasts();
   const notice = query.get("notice") as QueryNotices;
 
   React.useEffect(() => {
     switch (notice) {
       case QueryNotices.UnsubscribeDocument: {
-        showToast(
+        toast.success(
           t("Unsubscribed from document", {
             type: "success",
           })
@@ -27,5 +26,5 @@ export default function useQueryNotices() {
       }
       default:
     }
-  }, [t, showToast, notice]);
+  }, [t, notice]);
 }

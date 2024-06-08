@@ -1,5 +1,6 @@
 import copy from "copy-to-clipboard";
 import Token from "markdown-it/lib/token";
+import { exitCode } from "prosemirror-commands";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import {
   NodeSpec,
@@ -7,7 +8,7 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { Command, Plugin, PluginKey } from "prosemirror-state";
+import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
 import bash from "refractor/lang/bash";
@@ -55,23 +56,27 @@ import visualbasic from "refractor/lang/visual-basic";
 import yaml from "refractor/lang/yaml";
 import zig from "refractor/lang/zig";
 
+import { toast } from "sonner";
 import { Primitive } from "utility-types";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { Dictionary } from "~/hooks/useDictionary";
 import { UserPreferences } from "../../types";
 import Storage from "../../utils/Storage";
 import { isMac } from "../../utils/browser";
+import backspaceToParagraph from "../commands/backspaceToParagraph";
 import {
   newlineInCode,
   insertSpaceTab,
   moveToNextNewline,
   moveToPreviousNewline,
 } from "../commands/codeFence";
+import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
 import Mermaid from "../extensions/Mermaid";
 import Prism from "../extensions/Prism";
 import { isCode } from "../lib/isCode";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findParentNode } from "../queries/findParentNode";
+import getMarkRange from "../queries/getMarkRange";
 import isInCode from "../queries/isInCode";
 import Node from "./Node";
 
@@ -129,7 +134,6 @@ export default class CodeFence extends Node {
   constructor(options: {
     dictionary: Dictionary;
     userPreferences?: UserPreferences | null;
-    onShowToast: (message: string) => void;
   }) {
     super(options);
   }
@@ -150,7 +154,7 @@ export default class CodeFence extends Node {
         },
       },
       content: "text*",
-      marks: "",
+      marks: "comment",
       group: "block",
       code: true,
       defining: true,
@@ -183,21 +187,46 @@ export default class CodeFence extends Node {
 
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
-      code_block: (attrs: Record<string, Primitive>) =>
-        toggleBlockType(type, schema.nodes.paragraph, {
+      code_block: (attrs: Record<string, Primitive>) => {
+        if (attrs?.language) {
+          Storage.set(PERSISTENCE_KEY, attrs.language);
+        }
+        return toggleBlockType(type, schema.nodes.paragraph, {
           language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
           ...attrs,
-        }),
-      copyToClipboard: (): Command => (state) => {
+        });
+      },
+      copyToClipboard: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
 
-        if (!codeBlock) {
-          return false;
+        if (codeBlock) {
+          copy(codeBlock.node.textContent);
+          toast.message(this.options.dictionary.codeCopied);
+          return true;
         }
 
-        copy(codeBlock.node.textContent);
-        this.options.onShowToast(this.options.dictionary.codeCopied);
-        return true;
+        const { doc, tr } = state;
+        const range =
+          getMarkRange(
+            doc.resolve(state.selection.from),
+            this.editor.schema.marks.code_inline
+          ) ||
+          getMarkRange(
+            doc.resolve(state.selection.to),
+            this.editor.schema.marks.code_inline
+          );
+
+        if (range) {
+          const $end = doc.resolve(range.to);
+          tr.setSelection(new TextSelection($end, $end));
+          dispatch?.(tr);
+
+          copy(tr.doc.textBetween(state.selection.from, state.selection.to));
+          toast.message(this.options.dictionary.codeCopied);
+          return true;
+        }
+
+        return false;
       },
     };
   }
@@ -207,11 +236,29 @@ export default class CodeFence extends Node {
   }
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
-    const output = {
+    const output: Record<string, Command> = {
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),
       Tab: insertSpaceTab,
-      Enter: newlineInCode,
+      Enter: (state, dispatch) => {
+        if (!isInCode(state)) {
+          return false;
+        }
+        const { selection } = state;
+        const text = selection.$anchor.nodeBefore?.text;
+        const selectionAtEnd =
+          selection.$anchor.parentOffset ===
+          selection.$anchor.parent.nodeSize - 2;
+
+        if (selectionAtEnd && text?.endsWith("\n")) {
+          exitCode(state, dispatch);
+          return true;
+        }
+
+        return newlineInCode(state, dispatch);
+      },
+      Backspace: backspaceToParagraph(type),
       "Shift-Enter": newlineInCode,
+      "Mod-a": selectAll(type),
     };
 
     if (isMac()) {

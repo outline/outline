@@ -17,7 +17,7 @@ export function bytesToHumanReadable(bytes: number | undefined) {
     return bytes + " Bytes";
   }
 
-  const f = out[1].substring(0, 2);
+  const f = (out[1] ?? "").substring(0, 2);
 
   return `${Number(out[0])}${f === "00" ? "" : `.${f}`} ${
     "  kMGTPEZY"[out.length]
@@ -44,8 +44,8 @@ export function getDataTransferFiles(
       return dt.items
         ? Array.prototype.slice
             .call(dt.items)
-            .filter((dt: DataTransferItem) => dt.kind !== "string")
-            .map((dt: DataTransferItem) => dt.getAsFile())
+            .filter((dti: DataTransferItem) => dti.kind !== "string")
+            .map((dti: DataTransferItem) => dti.getAsFile())
             .filter(Boolean)
         : [];
     }

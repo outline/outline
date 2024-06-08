@@ -7,6 +7,7 @@ import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import { View } from "@server/models";
+import { withContext } from "./types";
 
 @trace()
 export class ViewsExtension implements Extension {
@@ -21,7 +22,15 @@ export class ViewsExtension implements Extension {
    *
    * @param data The change payload
    */
-  async onChange({ documentName, context, socketId }: onChangePayload) {
+  async onChange({
+    documentName,
+    context,
+    socketId,
+  }: withContext<onChangePayload>) {
+    if (!context.user) {
+      return;
+    }
+
     const lastUpdate = this.lastViewBySocket.get(socketId);
     const [, documentId] = documentName.split(".");
 
@@ -34,7 +43,7 @@ export class ViewsExtension implements Extension {
       );
       await Promise.all([
         View.touch(documentId, context.user.id, true),
-        context.user.update({ lastViewedAt: new Date() }),
+        context.user.update({ lastActiveAt: new Date() }),
       ]);
     }
   }

@@ -38,6 +38,8 @@ export type Placement =
 
 type Props = MenuStateReturn & {
   "aria-label"?: string;
+  /** Reference to the rendered menu div element */
+  menuRef?: React.RefObject<HTMLDivElement>;
   /** The parent menu state if this is a submenu. */
   parentMenuState?: Omit<MenuStateReturn, "items">;
   /** Called when the context menu is opened. */
@@ -46,10 +48,13 @@ type Props = MenuStateReturn & {
   onClose?: () => void;
   /** Called when the context menu is clicked. */
   onClick?: (ev: React.MouseEvent) => void;
+  /** The maximum width of the context menu. */
+  maxWidth?: number;
   children?: React.ReactNode;
 };
 
 const ContextMenu: React.FC<Props> = ({
+  menuRef,
   children,
   onOpen,
   onClose,
@@ -103,7 +108,12 @@ const ContextMenu: React.FC<Props> = ({
   // trigger and the bottom of the window
   return (
     <>
-      <Menu hideOnClickOutside={!isMobile} preventBodyScroll={false} {...rest}>
+      <Menu
+        ref={menuRef}
+        hideOnClickOutside={!isMobile}
+        preventBodyScroll={false}
+        {...rest}
+      >
         {(props) => (
           <InnerContextMenu
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,6 +133,7 @@ type InnerContextMenuProps = MenuStateReturn & {
   isSubMenu: boolean;
   menuProps: { style?: React.CSSProperties; placement: string };
   children: React.ReactNode;
+  maxWidth?: number;
 };
 
 /**
@@ -134,7 +145,8 @@ const InnerContextMenu = (props: InnerContextMenuProps) => {
   // kind of hacky, but this is an effective way of telling which way
   // the menu will _actually_ be placed when taking into account screen
   // positioning.
-  const topAnchor = menuProps.style?.top === "0";
+  const topAnchor =
+    menuProps.style?.top === "0" || menuProps.style?.position === "fixed";
   const rightAnchor = menuProps.placement === "bottom-end";
   const backgroundRef = React.useRef<HTMLDivElement>(null);
   const isMobile = useMobile();
@@ -159,6 +171,13 @@ const InnerContextMenu = (props: InnerContextMenuProps) => {
     };
   }, [props.isSubMenu, props.visible]);
 
+  const style =
+    topAnchor && !isMobile
+      ? {
+          maxHeight,
+        }
+      : undefined;
+
   return (
     <>
       {isMobile && (
@@ -173,17 +192,12 @@ const InnerContextMenu = (props: InnerContextMenuProps) => {
       <Position {...menuProps}>
         <Background
           dir="auto"
+          maxWidth={props.maxWidth}
           topAnchor={topAnchor}
           rightAnchor={rightAnchor}
           ref={backgroundRef}
           hiddenScrollbars
-          style={
-            topAnchor && !isMobile
-              ? {
-                  maxHeight,
-                }
-              : undefined
-          }
+          style={style}
         >
           {props.visible || props.animating ? props.children : null}
         </Background>
@@ -209,6 +223,12 @@ export const Position = styled.div`
   position: absolute;
   z-index: ${depths.menu};
 
+  &.focus-visible {
+    transition-delay: 250ms;
+    transition-property: outline-width;
+    transition-duration: 0;
+  }
+
   /*
    * overrides make mobile-first coding style challenging
    * so we explicitly define mobile breakpoint here
@@ -226,6 +246,7 @@ export const Position = styled.div`
 type BackgroundProps = {
   topAnchor?: boolean;
   rightAnchor?: boolean;
+  maxWidth?: number;
   theme: DefaultTheme;
 };
 
@@ -251,7 +272,8 @@ export const Background = styled(Scrollable)<BackgroundProps>`
       props.topAnchor ? fadeAndSlideDown : fadeAndSlideUp} 200ms ease;
     transform-origin: ${(props: BackgroundProps) =>
       props.rightAnchor ? "75%" : "25%"} 0;
-    max-width: 276px;
+    max-width: ${(props: BackgroundProps) => props.maxWidth ?? 276}px;
+    max-height: 100vh;
     background: ${(props: BackgroundProps) => props.theme.menuBackground};
     box-shadow: ${(props: BackgroundProps) => props.theme.menuShadow};
   `};

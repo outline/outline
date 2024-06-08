@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import WebhookSubscription from "~/models/WebhookSubscription";
-import useToasts from "~/hooks/useToasts";
 import WebhookSubscriptionForm from "./WebhookSubscriptionForm";
 
 type Props = {
@@ -16,7 +16,6 @@ interface FormData {
 }
 
 function WebhookSubscriptionEdit({ onSubmit, webhookSubscription }: Props) {
-  const { showToast } = useToasts();
   const { t } = useTranslation();
 
   const handleSubmit = React.useCallback(
@@ -31,19 +30,13 @@ function WebhookSubscriptionEdit({ onSubmit, webhookSubscription }: Props) {
 
         await webhookSubscription.save(toSend);
 
-        showToast(
-          t("Webhook updated", {
-            type: "success",
-          })
-        );
+        toast.success(t("Webhook updated"));
         onSubmit();
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       }
     },
-    [t, showToast, onSubmit, webhookSubscription]
+    [t, onSubmit, webhookSubscription]
   );
 
   return (

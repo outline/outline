@@ -9,7 +9,11 @@ const Section = styled(Flex)`
   flex-shrink: 0;
 
   &:first-child {
-    margin-top: 20px;
+    margin-top: 12px;
+  }
+
+  &:empty {
+    display: none;
   }
 `;
 

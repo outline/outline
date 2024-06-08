@@ -4,7 +4,6 @@ import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
 import { creatingUrlPrefix } from "@shared/utils/urls";
 import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
-import useToasts from "~/hooks/useToasts";
 import { useEditor } from "./EditorContext";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor, { SearchResult } from "./LinkEditor";
@@ -39,7 +38,6 @@ export default function LinkToolbar({
 }: Props) {
   const dictionary = useDictionary();
   const { view } = useEditor();
-  const { showToast } = useToasts();
   const menuRef = React.useRef<HTMLDivElement>(null);
 
   useEventListener("mousedown", (event: Event) => {
@@ -54,7 +52,7 @@ export default function LinkToolbar({
   });
 
   const handleOnCreateLink = React.useCallback(
-    async (title: string) => {
+    async (title: string, nested?: boolean) => {
       onClose();
       view.focus();
 
@@ -83,12 +81,12 @@ export default function LinkToolbar({
       );
 
       return createAndInsertLink(view, title, href, {
+        nested,
         onCreateLink,
-        onShowToast: showToast,
         dictionary,
       });
     },
-    [onCreateLink, onClose, view, dictionary, showToast]
+    [onCreateLink, onClose, view, dictionary]
   );
 
   const handleOnSelectLink = React.useCallback(
@@ -137,7 +135,6 @@ export default function LinkToolbar({
           onCreateLink={onCreateLink ? handleOnCreateLink : undefined}
           onSelectLink={handleOnSelectLink}
           onRemoveLink={onClose}
-          onShowToast={showToast}
           onClickLink={onClickLink}
           onSearchLink={onSearchLink}
           dictionary={dictionary}

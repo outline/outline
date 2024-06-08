@@ -1,10 +1,11 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   /** Callback when the dialog is submitted */
@@ -29,8 +30,8 @@ const ConfirmationDialog: React.FC<Props> = ({
   disabled = false,
 }: Props) => {
   const [isSaving, setIsSaving] = React.useState(false);
+  const { t } = useTranslation();
   const { dialogs } = useStores();
-  const { showToast } = useToasts();
 
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
@@ -40,30 +41,31 @@ const ConfirmationDialog: React.FC<Props> = ({
         await onSubmit();
         dialogs.closeAllModals();
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       } finally {
         setIsSaving(false);
       }
     },
-    [onSubmit, dialogs, showToast]
+    [onSubmit, dialogs]
   );
 
   return (
-    <Flex column>
-      <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
+      <Flex gap={12} column>
         <Text type="secondary">{children}</Text>
-        <Button
-          type="submit"
-          disabled={isSaving || disabled}
-          danger={danger}
-          autoFocus
-        >
-          {isSaving && savingText ? savingText : submitText}
-        </Button>
-      </form>
-    </Flex>
+
+        <Flex justify="flex-end">
+          <Button
+            type="submit"
+            disabled={isSaving || disabled}
+            danger={danger}
+            autoFocus
+          >
+            {isSaving && savingText ? savingText : submitText ?? t("Confirm")}
+          </Button>
+        </Flex>
+      </Flex>
+    </form>
   );
 };
 

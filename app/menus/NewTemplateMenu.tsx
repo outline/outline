@@ -3,8 +3,6 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
-import styled from "styled-components";
-import { ellipsis } from "@shared/styles";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import Header from "~/components/ContextMenu/Header";
@@ -35,11 +33,11 @@ function NewTemplateMenu() {
       collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
         const can = policies.abilities(collection.id);
 
-        if (can.update) {
+        if (can.createDocument) {
           filtered.push({
             type: "route",
             to: newTemplatePath(collection.id),
-            title: <CollectionName>{collection.name}</CollectionName>,
+            title: collection.name,
             icon: <CollectionIcon collection={collection} />,
           });
         }
@@ -69,9 +67,5 @@ function NewTemplateMenu() {
     </>
   );
 }
-
-const CollectionName = styled.div`
-  ${ellipsis()}
-`;
 
 export default observer(NewTemplateMenu);

@@ -1,9 +1,5 @@
 import { Notification, User } from "@server/models";
 import { allow } from "./cancan";
+import { isOwner } from "./utils";
 
-allow(User, ["read", "update"], Notification, (user, notification) => {
-  if (!notification) {
-    return false;
-  }
-  return user?.id === notification.userId;
-});
+allow(User, ["read", "update"], Notification, isOwner);

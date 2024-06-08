@@ -5,16 +5,27 @@ import find from "lodash/find";
 import omitBy from "lodash/omitBy";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
-import { DateFilter, NavigationNode, PublicTeam } from "@shared/types";
+import type {
+  DateFilter,
+  JSONObject,
+  NavigationNode,
+  PublicTeam,
+  StatusFilter,
+} from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
-import { DocumentValidation } from "@shared/validations";
 import RootStore from "~/stores/RootStore";
 import Store from "~/stores/base/Store";
 import Document from "~/models/Document";
 import env from "~/env";
-import { FetchOptions, PaginationParams, SearchResult } from "~/types";
+import type {
+  FetchOptions,
+  PaginationParams,
+  PartialWithId,
+  Properties,
+  SearchResult,
+} from "~/types";
 import { client } from "~/utils/ApiClient";
 import { extname } from "~/utils/files";
 
@@ -27,8 +38,7 @@ export type SearchParams = {
   offset?: number;
   limit?: number;
   dateFilter?: DateFilter;
-  includeArchived?: boolean;
-  includeDrafts?: boolean;
+  statusFilter?: StatusFilter[];
   collectionId?: string;
   userId?: string;
   shareId?: string;
@@ -43,9 +53,6 @@ export default class DocumentsStore extends Store<Document> {
     string,
     { sharedTree: NavigationNode; team: PublicTeam } | undefined
   > = new Map();
-
-  @observable
-  searchCache: Map<string, SearchResult[] | undefined> = new Map();
 
   @observable
   backlinks: Map<string, string[]> = new Map();
@@ -103,7 +110,7 @@ export default class DocumentsStore extends Store<Document> {
 
   createdByUser(userId: string): Document[] {
     return orderBy(
-      filter(this.all, (d) => d.createdBy.id === userId),
+      filter(this.all, (d) => d.createdBy?.id === userId),
       "updatedAt",
       "desc"
     );
@@ -174,8 +181,11 @@ export default class DocumentsStore extends Store<Document> {
     return naturalSort(this.inCollection(collectionId), "title");
   }
 
-  searchResults(query: string): SearchResult[] | undefined {
-    return this.searchCache.get(query);
+  get(id: string): Document | undefined {
+    return (
+      this.data.get(id) ??
+      this.orderedData.find((doc) => id.endsWith(doc.urlId))
+    );
   }
 
   @computed
@@ -368,7 +378,10 @@ export default class DocumentsStore extends Store<Document> {
     this.fetchNamedPage("list", options);
 
   @action
-  searchTitles = async (query: string, options?: SearchParams) => {
+  searchTitles = async (
+    query: string,
+    options?: SearchParams
+  ): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.post("/documents.search_titles", {
       ...compactedOptions,
@@ -389,15 +402,12 @@ export default class DocumentsStore extends Store<Document> {
           return null;
         }
         return {
+          id: document.id,
           document,
         };
       })
     );
-    const existing = this.searchCache.get(query) || [];
-    // splice modifies any existing results, taking into account pagination
-    existing.splice(0, existing.length, ...results);
-    this.searchCache.set(query, existing);
-    return res.data;
+    return results;
   };
 
   @action
@@ -432,11 +442,7 @@ export default class DocumentsStore extends Store<Document> {
         };
       })
     );
-    const existing = this.searchCache.get(query) || [];
-    // splice modifies any existing results, taking into account pagination
-    existing.splice(options.offset || 0, options.limit || 0, ...results);
-    this.searchCache.set(query, existing);
-    return res.data;
+    return results;
   };
 
   @action
@@ -467,6 +473,14 @@ export default class DocumentsStore extends Store<Document> {
     this.add(res.data);
     return this.data.get(res.data.id);
   };
+
+  override fetch = (id: string, options: FetchOptions = {}) =>
+    super.fetch(
+      id,
+      options,
+      (res: { data: { document: PartialWithId<Document> } }) =>
+        res.data.document
+    );
 
   @action
   fetchWithSharedTree = async (
@@ -502,7 +516,6 @@ export default class DocumentsStore extends Store<Document> {
       const res = await client.post("/documents.info", {
         id,
         shareId: options.shareId,
-        apiVersion: 2,
       });
 
       invariant(res?.data, "Document not available");
@@ -558,26 +571,22 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  duplicate = async (document: Document): Promise<Document> => {
-    const append = " (duplicate)";
-    const res = await client.post("/documents.create", {
-      publish: document.isTemplate,
-      parentDocumentId: null,
-      collectionId: document.isTemplate ? document.collectionId : null,
-      template: document.isTemplate,
-      title: `${document.title.slice(
-        0,
-        DocumentValidation.maxTitleLength - append.length
-      )}${append}`,
-      text: document.text,
+  duplicate = async (
+    document: Document,
+    options?: {
+      title?: string;
+      publish?: boolean;
+      recursive?: boolean;
+    }
+  ): Promise<Document[]> => {
+    const res = await client.post("/documents.duplicate", {
+      id: document.id,
+      ...options,
     });
     invariant(res?.data, "Data should be available");
-    const collection = this.getCollectionForDocument(document);
-    if (collection) {
-      await collection.refresh();
-    }
+
     this.addPolicies(res.policies);
-    return this.add(res.data);
+    return res.data.documents.map(this.add);
   };
 
   @action
@@ -596,10 +605,10 @@ export default class DocumentsStore extends Store<Document> {
       throw new Error(`The selected file type is not supported (${file.type})`);
     }
 
-    if (file.size > env.MAXIMUM_IMPORT_SIZE) {
+    if (file.size > env.FILE_STORAGE_IMPORT_MAX_SIZE) {
       throw new Error(
         `The selected file was larger than the ${bytesToHumanReadable(
-          env.MAXIMUM_IMPORT_SIZE
+          env.FILE_STORAGE_IMPORT_MAX_SIZE
         )} maximum size`
       );
     }
@@ -640,7 +649,9 @@ export default class DocumentsStore extends Store<Document> {
         formData.append(info.key, info.value);
       }
     });
-    const res = await client.post("/documents.import", formData);
+    const res = await client.post("/documents.import", formData, {
+      retry: false,
+    });
     invariant(res?.data, "Data should be available");
     this.addPolicies(res.policies);
     return this.add(res.data);
@@ -655,42 +666,6 @@ export default class DocumentsStore extends Store<Document> {
     );
     const documentIds = documents.map((doc) => doc.id);
     documentIds.forEach((id) => this.remove(id));
-  }
-
-  @action
-  async update(
-    params: {
-      id: string;
-      title?: string;
-      emoji?: string | null;
-      text?: string;
-      fullWidth?: boolean;
-      templateId?: string;
-    },
-    options?: {
-      publish?: boolean;
-      done?: boolean;
-      autosave?: boolean;
-    }
-  ) {
-    this.isSaving = true;
-
-    try {
-      const res = await client.post(`/${this.apiEndpoint}.update`, {
-        ...params,
-        ...options,
-        apiVersion: 2,
-      });
-
-      invariant(res?.data, "Data should be available");
-      this.addPolicies(res.policies);
-      const document = this.add(res.data.document);
-      const collection = this.getCollectionForDocument(document);
-      collection?.updateData(res.data.collection);
-      return document;
-    } finally {
-      this.isSaving = false;
-    }
   }
 
   @action
@@ -756,24 +731,60 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
+  async update(
+    params: Properties<Document>,
+    options?: JSONObject
+  ): Promise<Document> {
+    this.isSaving = true;
+
+    try {
+      const res = await client.post(`/${this.apiEndpoint}.update`, {
+        ...params,
+        ...options,
+      });
+
+      invariant(res?.data, "Data should be available");
+
+      const collection = this.getCollectionForDocument(res.data);
+      await collection?.fetchDocuments({ force: true });
+
+      return runInAction("Document#update", () => {
+        const document = this.add(res.data);
+        this.addPolicies(res.policies);
+        return document;
+      });
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  @action
   unpublish = async (document: Document) => {
     const res = await client.post("/documents.unpublish", {
       id: document.id,
-      apiVersion: 2,
     });
 
     runInAction("Document#unpublish", () => {
       invariant(res?.data, "Data should be available");
-      document.updateData(res.data.document);
-      const collection = this.getCollectionForDocument(document);
-      collection?.updateData(res.data.collection);
+      document.updateData(res.data);
       this.addPolicies(res.policies);
+      const collection = this.getCollectionForDocument(document);
+      void collection?.fetchDocuments({ force: true });
     });
   };
 
-  star = (document: Document) =>
+  @action
+  emptyTrash = async () => {
+    await client.post("/documents.empty_trash");
+
+    const documentIdsSet = new Set(this.deleted.map((doc) => doc.id));
+    this.removeAll((doc: Document) => documentIdsSet.has(doc.id));
+  };
+
+  star = (document: Document, index?: string) =>
     this.rootStore.stars.create({
       documentId: document.id,
+      index,
     });
 
   unstar = (document: Document) => {

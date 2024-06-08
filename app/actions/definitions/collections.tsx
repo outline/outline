@@ -3,6 +3,7 @@ import {
   EditIcon,
   PadlockIcon,
   PlusIcon,
+  SearchIcon,
   StarredIcon,
   TrashIcon,
   UnstarredIcon,
@@ -10,14 +11,17 @@ import {
 import * as React from "react";
 import stores from "~/stores";
 import Collection from "~/models/Collection";
-import CollectionEdit from "~/scenes/CollectionEdit";
-import CollectionNew from "~/scenes/CollectionNew";
-import CollectionPermissions from "~/scenes/CollectionPermissions";
+import { CollectionEdit } from "~/components/Collection/CollectionEdit";
+import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
+import SharePopover from "~/components/Sharing/Collection/SharePopover";
+import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
+import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
+import { searchPath } from "~/utils/routeHelpers";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
   <DynamicCollectionIcon collection={collection} />
@@ -34,11 +38,11 @@ export const openCollection = createAction({
     return collections.map((collection) => ({
       // Note: using url which includes the slug rather than id here to bust
       // cache if the collection is renamed
-      id: collection.url,
+      id: collection.path,
       name: collection.name,
       icon: <ColorCollectionIcon collection={collection} />,
       section: CollectionSection,
-      perform: () => history.push(collection.url),
+      perform: () => history.push(collection.path),
     }));
   },
 });
@@ -96,15 +100,36 @@ export const editCollectionPermissions = createAction({
   visible: ({ stores, activeCollectionId }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
-  perform: ({ t, activeCollectionId }) => {
+  perform: ({ t, stores, activeCollectionId }) => {
     if (!activeCollectionId) {
+      return;
+    }
+    const collection = stores.collections.get(activeCollectionId);
+    if (!collection) {
       return;
     }
 
     stores.dialogs.openModal({
-      title: t("Collection permissions"),
-      content: <CollectionPermissions collectionId={activeCollectionId} />,
+      title: t("Share this collection"),
+      content: (
+        <SharePopover
+          collection={collection}
+          onRequestClose={stores.dialogs.closeAllModals}
+          visible
+        />
+      ),
     });
+  },
+});
+
+export const searchInCollection = createAction({
+  name: ({ t }) => t("Search in collection"),
+  analyticsName: "Search collection",
+  section: CollectionSection,
+  icon: <SearchIcon />,
+  visible: ({ activeCollectionId }) => !!activeCollectionId,
+  perform: ({ activeCollectionId }) => {
+    history.push(searchPath(undefined, { collectionId: activeCollectionId }));
   },
 });
 
@@ -131,6 +156,7 @@ export const starCollection = createAction({
 
     const collection = stores.collections.get(activeCollectionId);
     await collection?.star();
+    setPersistedState(getHeaderExpandedKey("starred"), true);
   },
 });
 
@@ -161,9 +187,10 @@ export const unstarCollection = createAction({
 });
 
 export const deleteCollection = createAction({
-  name: ({ t }) => t("Delete"),
+  name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete collection",
   section: CollectionSection,
+  dangerous: true,
   icon: <TrashIcon />,
   visible: ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
@@ -182,7 +209,6 @@ export const deleteCollection = createAction({
     }
 
     stores.dialogs.openModal({
-      isCentered: true,
       title: t("Delete collection"),
       content: (
         <CollectionDeleteDialog

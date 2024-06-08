@@ -50,7 +50,6 @@ function TrashLink() {
           })}
           onRequestClose={() => setDocument(undefined)}
           isOpen
-          isCentered
         >
           <DocumentDelete
             document={document}

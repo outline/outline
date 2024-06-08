@@ -1,10 +1,9 @@
-import inlineCss from "inline-css";
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import { Day } from "@shared/utils/time";
-import env from "@server/env";
 import { Document, Collection, Revision } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
@@ -65,22 +64,16 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       const revision = await Revision.findByPk(revisionId);
 
       if (revision) {
-        const before = await revision.previous();
+        const before = await revision.before();
         const content = await DocumentHelper.toEmailDiff(before, revision, {
           includeTitle: false,
           centered: false,
           signedUrls: (4 * Day) / 1000,
+          baseUrl: props.teamUrl,
         });
 
         // inline all css so that it works in as many email providers as possible.
-        body = content
-          ? await inlineCss(content, {
-              url: env.URL,
-              applyStyleTags: true,
-              applyLinkTags: false,
-              removeStyleTags: true,
-            })
-          : undefined;
+        body = content ? await HTMLHelper.inlineCSS(content) : undefined;
       }
     }
 

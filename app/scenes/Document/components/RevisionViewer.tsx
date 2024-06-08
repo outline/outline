@@ -31,6 +31,7 @@ function RevisionViewer(props: Props) {
         documentId={revision.documentId}
         title={revision.title}
         emoji={revision.emoji}
+        emojiPosition={document.fullWidth ? "top" : "side"}
         readOnly
       />
       <DocumentMeta

@@ -4,7 +4,7 @@ import { TeamPreference } from "@shared/types";
 import env from "@server/env";
 import { Event, Team, TeamDomain, User } from "@server/models";
 
-type TeamUpdaterProps = {
+type Props = {
   params: Partial<Omit<Team, "allowedDomains">> & { allowedDomains?: string[] };
   ip?: string;
   user: User;
@@ -12,59 +12,14 @@ type TeamUpdaterProps = {
   transaction: Transaction;
 };
 
-const teamUpdater = async ({
-  params,
-  user,
-  team,
-  ip,
-  transaction,
-}: TeamUpdaterProps) => {
-  const {
-    name,
-    avatarUrl,
-    subdomain,
-    sharing,
-    guestSignin,
-    documentEmbeds,
-    memberCollectionCreate,
-    defaultCollectionId,
-    defaultUserRole,
-    inviteRequired,
-    allowedDomains,
-    preferences,
-  } = params;
+const teamUpdater = async ({ params, user, team, ip, transaction }: Props) => {
+  const { allowedDomains, preferences, subdomain, ...attributes } = params;
+  team.setAttributes(attributes);
 
   if (subdomain !== undefined && env.isCloudHosted) {
     team.subdomain = subdomain === "" ? null : subdomain;
   }
 
-  if (name) {
-    team.name = name;
-  }
-  if (sharing !== undefined) {
-    team.sharing = sharing;
-  }
-  if (documentEmbeds !== undefined) {
-    team.documentEmbeds = documentEmbeds;
-  }
-  if (guestSignin !== undefined) {
-    team.guestSignin = guestSignin;
-  }
-  if (avatarUrl !== undefined) {
-    team.avatarUrl = avatarUrl;
-  }
-  if (memberCollectionCreate !== undefined) {
-    team.memberCollectionCreate = memberCollectionCreate;
-  }
-  if (defaultCollectionId !== undefined) {
-    team.defaultCollectionId = defaultCollectionId;
-  }
-  if (defaultUserRole !== undefined) {
-    team.defaultUserRole = defaultUserRole;
-  }
-  if (inviteRequired !== undefined) {
-    team.inviteRequired = inviteRequired;
-  }
   if (allowedDomains !== undefined) {
     const existingAllowedDomains = await TeamDomain.findAll({
       where: { teamId: team.id },
@@ -101,9 +56,9 @@ const teamUpdater = async ({
       (x) => !allowedDomains.includes(x.name)
     );
     await Promise.all(deletedDomains.map((x) => x.destroy({ transaction })));
-
     team.allowedDomains = newAllowedDomains;
   }
+
   if (preferences) {
     for (const value of Object.values(TeamPreference)) {
       if (has(preferences, value)) {
@@ -112,25 +67,15 @@ const teamUpdater = async ({
     }
   }
 
-  const changes = team.changed();
-
-  const savedTeam = await team.save({
-    transaction,
-  });
-
-  if (changes) {
-    const data = changes.reduce(
-      (acc, curr) => ({ ...acc, [curr]: team[curr] }),
-      {}
-    );
-
+  const changes = team.changeset;
+  if (Object.keys(changes.attributes).length) {
     await Event.create(
       {
         name: "teams.update",
         actorId: user.id,
         teamId: user.teamId,
-        data,
         ip,
+        changes,
       },
       {
         transaction,
@@ -138,7 +83,7 @@ const teamUpdater = async ({
     );
   }
 
-  return savedTeam;
+  return team.save({ transaction });
 };
 
 export default teamUpdater;

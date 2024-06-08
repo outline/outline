@@ -116,7 +116,7 @@ function Table({
   const showPlaceholder = isLoading && data.length === 0;
 
   return (
-    <>
+    <div style={{ overflowX: "auto" }}>
       <Anchor ref={topRef} />
       <InnerTable {...getTableProps()}>
         <thead>
@@ -189,7 +189,7 @@ function Table({
           )}
         </Pagination>
       )}
-    </>
+    </div>
   );
 }
 
@@ -239,7 +239,7 @@ const AscSortIcon = styled(DescSortIcon)`
 const InnerTable = styled.table`
   border-collapse: collapse;
   margin: 16px 0;
-  width: 100%;
+  min-width: 100%;
 `;
 
 const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
@@ -261,6 +261,7 @@ const Cell = styled.td`
   padding: 10px 6px;
   border-bottom: 1px solid ${s("divider")};
   font-size: 14px;
+  text-wrap: nowrap;
 
   &:first-child {
     font-size: 15px;
@@ -271,6 +272,12 @@ const Cell = styled.td`
   &.right-aligned {
     text-align: right;
     vertical-align: bottom;
+  }
+
+  &.actions {
+    background: ${s("background")};
+    position: sticky;
+    right: 0;
   }
 
   ${NudeButton} {
@@ -299,8 +306,6 @@ const Row = styled.tr`
 
 const Head = styled.th`
   text-align: left;
-  position: sticky;
-  top: 54px;
   padding: 6px 6px 0;
   border-bottom: 1px solid ${s("divider")};
   background: ${s("background")};
@@ -309,6 +314,7 @@ const Head = styled.th`
   color: ${s("textSecondary")};
   font-weight: 500;
   z-index: 1;
+  cursor: var(--pointer) !important;
 
   :first-child {
     padding-left: 0;

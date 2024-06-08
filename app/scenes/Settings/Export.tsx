@@ -10,7 +10,6 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import ExportDialog from "../../components/ExportDialog";
 import FileOperationListItem from "./components/FileOperationListItem";
 
@@ -18,7 +17,6 @@ function Export() {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const { fileOperations, dialogs } = useStores();
-  const { showToast } = useToasts();
 
   const handleOpenDialog = React.useCallback(
     async (ev: React.SyntheticEvent) => {
@@ -26,31 +24,16 @@ function Export() {
 
       dialogs.openModal({
         title: t("Export data"),
-        isCentered: true,
         content: <ExportDialog onSubmit={dialogs.closeAllModals} />,
       });
     },
     [dialogs, t]
   );
 
-  const handleDelete = React.useCallback(
-    async (fileOperation: FileOperation) => {
-      try {
-        await fileOperations.delete(fileOperation);
-        showToast(t("Export deleted"));
-      } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
-      }
-    },
-    [fileOperations, showToast, t]
-  );
-
   return (
     <Scene title={t("Export")} icon={<DownloadIcon />}>
       <Heading>{t("Export")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans
           defaults="A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – if you have notifications enabled, we will email a link to <em>{{ userEmail }}</em> when it’s complete."
           values={{
@@ -77,11 +60,7 @@ function Export() {
           </h2>
         }
         renderItem={(item: FileOperation) => (
-          <FileOperationListItem
-            key={item.id}
-            fileOperation={item}
-            handleDelete={handleDelete}
-          />
+          <FileOperationListItem key={item.id} fileOperation={item} />
         )}
       />
     </Scene>

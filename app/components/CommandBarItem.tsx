@@ -62,7 +62,7 @@ function CommandBarItem(
               {index > 0 ? (
                 <>
                   {" "}
-                  <Text size="xsmall" as="span" type="secondary">
+                  <Text size="xsmall" type="secondary">
                     then
                   </Text>{" "}
                 </>

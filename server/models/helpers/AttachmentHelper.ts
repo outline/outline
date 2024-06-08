@@ -1,6 +1,13 @@
 import { addHours } from "date-fns";
 import { AttachmentPreset } from "@shared/types";
 import env from "@server/env";
+import { ValidateKey } from "@server/validation";
+
+export enum Buckets {
+  public = "public",
+  uploads = "uploads",
+  avatars = "avatars",
+}
 
 export default class AttachmentHelper {
   /**
@@ -22,9 +29,37 @@ export default class AttachmentHelper {
     name: string;
     userId: string;
   }) {
-    const bucket = acl === "public-read" ? "public" : "uploads";
+    const bucket = acl === "public-read" ? Buckets.public : Buckets.uploads;
     const keyPrefix = `${bucket}/${userId}/${id}`;
-    return `${keyPrefix}/${name}`;
+    return ValidateKey.sanitize(`${keyPrefix}/${name}`);
+  }
+
+  /**
+   * Parse a key into its constituent parts
+   *
+   * @param key The key to parse
+   * @returns The constituent parts
+   */
+  static parseKey(key: string): {
+    bucket: string;
+    userId: string;
+    id: string;
+    fileName: string | undefined;
+    isPublicBucket: boolean;
+  } {
+    const parts = key.split("/");
+    const bucket = parts[0];
+    const userId = parts[1];
+    const id = parts[2];
+    const [fileName] = parts.length > 3 ? parts.slice(-1) : [];
+
+    return {
+      bucket,
+      userId,
+      id,
+      fileName,
+      isPublicBucket: bucket === Buckets.avatars || bucket === Buckets.public,
+    };
   }
 
   /**
@@ -51,6 +86,7 @@ export default class AttachmentHelper {
   static presetToExpiry(preset: AttachmentPreset) {
     switch (preset) {
       case AttachmentPreset.Import:
+      case AttachmentPreset.WorkspaceImport:
         return addHours(new Date(), 24);
       default:
         return undefined;
@@ -66,11 +102,13 @@ export default class AttachmentHelper {
   static presetToMaxUploadSize(preset: AttachmentPreset) {
     switch (preset) {
       case AttachmentPreset.Import:
-        return env.MAXIMUM_IMPORT_SIZE;
+        return env.FILE_STORAGE_IMPORT_MAX_SIZE;
+      case AttachmentPreset.WorkspaceImport:
+        return env.FILE_STORAGE_WORKSPACE_IMPORT_MAX_SIZE;
       case AttachmentPreset.Avatar:
       case AttachmentPreset.DocumentAttachment:
       default:
-        return env.AWS_S3_UPLOAD_MAX_SIZE;
+        return env.FILE_STORAGE_UPLOAD_MAX_SIZE;
     }
   }
 }

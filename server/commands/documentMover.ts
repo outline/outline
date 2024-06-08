@@ -1,7 +1,15 @@
 import invariant from "invariant";
 import { Transaction } from "sequelize";
+import { ValidationError } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
-import { User, Document, Collection, Pin, Event } from "@server/models";
+import {
+  User,
+  Document,
+  Collection,
+  Pin,
+  Event,
+  UserMembership,
+} from "@server/models";
 import pinDestroyer from "./pinDestroyer";
 
 type Props = {
@@ -50,7 +58,10 @@ async function documentMover({
   }
 
   if (document.template) {
-    invariant(collectionId, "collectionId should exist");
+    if (!document.collectionId) {
+      throw ValidationError("Templates must be in a collection");
+    }
+
     document.collectionId = collectionId;
     document.parentDocumentId = null;
     document.lastModifiedById = user.id;
@@ -133,7 +144,7 @@ async function documentMover({
     if (collectionChanged) {
       // Efficiently find the ID's of all the documents that are children of
       // the moved document and update in one query
-      const childDocumentIds = await document.getChildDocumentIds();
+      const childDocumentIds = await document.findAllChildDocumentIds();
 
       if (collectionId) {
         // Reload the collection to get relationship data
@@ -142,7 +153,8 @@ async function documentMover({
         }).findByPk(collectionId, {
           transaction,
         });
-        invariant(newCollection, "collection should exist");
+        invariant(newCollection, "Collection not found");
+
         result.collections.push(newCollection);
 
         await Document.update(
@@ -219,6 +231,24 @@ async function documentMover({
   await document.save({ transaction });
   result.documents.push(document);
 
+  // If there are any sourced permissions for this document, we need to go to the source
+  // permission and recalculate
+  const [documentPermissions, parentDocumentPermissions] = await Promise.all([
+    UserMembership.findRootMembershipsForDocument(document.id, undefined, {
+      transaction,
+    }),
+    parentDocumentId
+      ? UserMembership.findRootMembershipsForDocument(
+          parentDocumentId,
+          undefined,
+          { transaction }
+        )
+      : [],
+  ]);
+
+  await recalculatePermissions(documentPermissions, transaction);
+  await recalculatePermissions(parentDocumentPermissions, transaction);
+
   await Event.create(
     {
       name: "documents.move",
@@ -240,6 +270,15 @@ async function documentMover({
 
   // we need to send all updated models back to the client
   return result;
+}
+
+async function recalculatePermissions(
+  permissions: UserMembership[],
+  transaction?: Transaction
+) {
+  for (const permission of permissions) {
+    await UserMembership.createSourcedMemberships(permission, { transaction });
+  }
 }
 
 export default traceFunction({

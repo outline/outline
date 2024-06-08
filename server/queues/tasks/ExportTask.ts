@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "fs-extra";
 import truncate from "lodash/truncate";
 import { FileOperationState, NotificationEventType } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -59,7 +59,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
         );
 
         if (
-          fileOperation.includeAttachments &&
+          fileOperation.options?.includeAttachments &&
           env.MAXIMUM_EXPORT_SIZE &&
           totalAttachmentsSize > env.MAXIMUM_EXPORT_SIZE
         ) {
@@ -74,7 +74,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
       }
 
       Logger.info("task", `ExportTask processing data for ${fileOperationId}`, {
-        includeAttachments: fileOperation.includeAttachments,
+        options: fileOperation.options,
       });
 
       await this.updateFileOperation(fileOperation, {
@@ -89,8 +89,8 @@ export default abstract class ExportTask extends BaseTask<Props> {
         state: FileOperationState.Uploading,
       });
 
-      const stat = await fs.promises.stat(filePath);
-      const url = await FileStorage.upload({
+      const stat = await fs.stat(filePath);
+      const url = await FileStorage.store({
         body: fs.createReadStream(filePath),
         contentLength: stat.size,
         contentType: "application/zip",
@@ -129,7 +129,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
       throw error;
     } finally {
       if (filePath) {
-        void fs.promises.unlink(filePath).catch((error) => {
+        void fs.unlink(filePath).catch((error) => {
           Logger.error(`Failed to delete temporary file ${filePath}`, error);
         });
       }

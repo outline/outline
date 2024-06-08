@@ -1,5 +1,5 @@
 import { z } from "zod";
-import BaseSchema from "@server/routes/api/BaseSchema";
+import { BaseSchema } from "@server/routes/api/schema";
 
 export const AuthenticationProvidersInfoSchema = BaseSchema.extend({
   body: z.object({

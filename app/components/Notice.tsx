@@ -11,7 +11,7 @@ type Props = {
 };
 
 const Notice: React.FC<Props> = ({ children, icon, description }: Props) => (
-  <Container>
+  <Container as="div">
     <Flex as="span" gap={8}>
       {icon}
       <span>

@@ -27,7 +27,7 @@ export default class ConfirmTeamDeleteEmail extends BaseEmail<Props> {
 
   protected renderAsText({ deleteConfirmationCode }: Props): string {
     return `
-You requested to permanantly delete your ${env.APP_NAME} workspace. Please enter the code below to confirm the workspace deletion.
+You requested to permanently delete your ${env.APP_NAME} workspace. Please enter the code below to confirm the workspace deletion.
 
 Code: ${deleteConfirmationCode}
 `;
@@ -41,7 +41,7 @@ Code: ${deleteConfirmationCode}
         <Body>
           <Heading>Your workspace deletion request</Heading>
           <p>
-            You requested to permanantly delete your {env.APP_NAME} workspace.
+            You requested to permanently delete your {env.APP_NAME} workspace.
             Please enter the code below to confirm your workspace deletion.
           </p>
           <EmptySpace height={5} />

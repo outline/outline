@@ -5,6 +5,8 @@ import User from "./User";
 import Model from "./base/Model";
 
 class FileOperation extends Model {
+  static modelName = "FileOperation";
+
   id: string;
 
   @observable
@@ -16,6 +18,7 @@ class FileOperation extends Model {
 
   collectionId: string | null;
 
+  @observable
   size: number;
 
   type: FileOperationType;
@@ -27,6 +30,11 @@ class FileOperation extends Model {
   @computed
   get sizeInMB(): string {
     return bytesToHumanReadable(this.size);
+  }
+
+  @computed
+  get downloadUrl(): string {
+    return `/api/fileOperations.redirect?id=${this.id}`;
   }
 }
 

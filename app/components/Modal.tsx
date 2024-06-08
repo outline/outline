@@ -23,7 +23,7 @@ let openModals = 0;
 type Props = {
   children?: React.ReactNode;
   isOpen: boolean;
-  isCentered?: boolean;
+  fullscreen?: boolean;
   title?: React.ReactNode;
   onRequestClose: () => void;
 };
@@ -31,7 +31,7 @@ type Props = {
 const Modal: React.FC<Props> = ({
   children,
   isOpen,
-  isCentered,
+  fullscreen = true,
   title = "Untitled",
   onRequestClose,
 }: Props) => {
@@ -68,39 +68,17 @@ const Modal: React.FC<Props> = ({
   return (
     <DialogBackdrop {...dialog}>
       {(props) => (
-        <Backdrop $isCentered={isCentered} {...props}>
+        <Backdrop $fullscreen={fullscreen} {...props}>
           <Dialog
             {...dialog}
             aria-label={typeof title === "string" ? title : undefined}
             preventBodyScroll
             hideOnEsc
-            hideOnClickOutside={!!isCentered}
+            hideOnClickOutside={!fullscreen}
             hide={onRequestClose}
           >
             {(props) =>
-              isCentered && !isMobile ? (
-                <Small {...props}>
-                  <Centered
-                    onClick={(ev) => ev.stopPropagation()}
-                    column
-                    reverse
-                  >
-                    <SmallContent shadow>
-                      <ErrorBoundary component="div">{children}</ErrorBoundary>
-                    </SmallContent>
-                    <Header>
-                      {title && (
-                        <Text as="span" size="large">
-                          {title}
-                        </Text>
-                      )}
-                      <NudeButton onClick={onRequestClose}>
-                        <CloseIcon />
-                      </NudeButton>
-                    </Header>
-                  </Centered>
-                </Small>
-              ) : (
+              fullscreen || isMobile ? (
                 <Fullscreen
                   $nested={!!depth}
                   style={
@@ -114,7 +92,11 @@ const Modal: React.FC<Props> = ({
                 >
                   <Content>
                     <Centered onClick={(ev) => ev.stopPropagation()} column>
-                      {title && <h1>{title}</h1>}
+                      {title && (
+                        <Text size="xlarge" weight="bold">
+                          {title}
+                        </Text>
+                      )}
                       <ErrorBoundary>{children}</ErrorBoundary>
                     </Centered>
                   </Content>
@@ -123,9 +105,27 @@ const Modal: React.FC<Props> = ({
                   </Close>
                   <Back onClick={onRequestClose}>
                     <BackIcon size={32} />
-                    <Text as="span">{t("Back")} </Text>
+                    <Text>{t("Back")} </Text>
                   </Back>
                 </Fullscreen>
+              ) : (
+                <Small {...props}>
+                  <Centered
+                    onClick={(ev) => ev.stopPropagation()}
+                    column
+                    reverse
+                  >
+                    <SmallContent shadow>
+                      <ErrorBoundary component="div">{children}</ErrorBoundary>
+                    </SmallContent>
+                    <Header>
+                      {title && <Text size="large">{title}</Text>}
+                      <NudeButton onClick={onRequestClose}>
+                        <CloseIcon />
+                      </NudeButton>
+                    </Header>
+                  </Centered>
+                </Small>
               )
             }
           </Dialog>
@@ -135,16 +135,16 @@ const Modal: React.FC<Props> = ({
   );
 };
 
-const Backdrop = styled(Flex)<{ $isCentered?: boolean }>`
+const Backdrop = styled(Flex)<{ $fullscreen?: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background-color: ${(props) =>
-    props.$isCentered
-      ? props.theme.modalBackdrop
-      : transparentize(0.25, props.theme.background)} !important;
+    props.$fullscreen
+      ? transparentize(0.25, props.theme.background)
+      : props.theme.modalBackdrop} !important;
   z-index: ${depths.modalOverlay};
   transition: opacity 50ms ease-in-out;
   opacity: 0;
@@ -188,7 +188,7 @@ const Fullscreen = styled.div<FullscreenProps>`
 
 const Content = styled(Scrollable)`
   width: 100%;
-  padding: 8vh 32px;
+  padding: 8vh 12px;
 
   ${breakpoint("tablet")`
     padding: 13vh 2rem 2rem;
@@ -255,9 +255,9 @@ const Small = styled.div`
   animation: ${fadeAndScaleIn} 250ms ease;
 
   margin: auto auto;
-  width: 30vw;
+  width: 75vw;
   min-width: 350px;
-  max-width: 500px;
+  max-width: 450px;
   z-index: ${depths.modal};
   display: flex;
   justify-content: center;

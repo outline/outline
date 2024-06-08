@@ -9,7 +9,7 @@ describe("/test/error", () => {
     });
     const body = await res.json();
     expect(res.status).toBe(500);
-    expect(body.message).toBe("Internal server error");
+    expect(body.message).toBe("Internal error");
   });
 
   it("should return error response as html", async () => {
@@ -33,6 +33,6 @@ describe("/test/error", () => {
     });
     const body = await res.json();
     expect(res.status).toBe(500);
-    expect(body.message).toBe("Internal server error");
+    expect(body.message).toBe("Internal error");
   });
 });

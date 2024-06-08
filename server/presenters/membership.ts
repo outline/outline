@@ -1,20 +1,28 @@
-import { CollectionPermission } from "@shared/types";
-import { CollectionUser } from "@server/models";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
+import { UserMembership } from "@server/models";
 
 type Membership = {
   id: string;
   userId: string;
-  collectionId: string;
-  permission: CollectionPermission;
+  collectionId?: string | null;
+  documentId?: string | null;
+  sourceId?: string | null;
+  createdById: string;
+  permission: CollectionPermission | DocumentPermission;
+  index: string | null;
 };
 
 export default function presentMembership(
-  membership: CollectionUser
+  membership: UserMembership
 ): Membership {
   return {
-    id: `${membership.userId}-${membership.collectionId}`,
+    id: membership.id,
     userId: membership.userId,
+    documentId: membership.documentId,
     collectionId: membership.collectionId,
     permission: membership.permission,
+    createdById: membership.createdById,
+    sourceId: membership.sourceId,
+    index: membership.index,
   };
 }

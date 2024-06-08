@@ -6,6 +6,7 @@ import escape from "lodash/escape";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import { IntegrationType, TeamPreference } from "@shared/types";
+import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import { Integration } from "@server/models";
@@ -14,10 +15,6 @@ import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 import readManifestFile from "@server/utils/readManifestFile";
 
-const isProduction = env.ENVIRONMENT === "production";
-const isDevelopment = env.ENVIRONMENT === "development";
-const isTest = env.ENVIRONMENT === "test";
-
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
 const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
@@ -25,17 +22,17 @@ const viteHost = env.URL.replace(`:${env.PORT}`, ":3001");
 let indexHtmlCache: Buffer | undefined;
 
 const readIndexFile = async (): Promise<Buffer> => {
-  if (isProduction || isTest) {
+  if (env.isProduction || env.isTest) {
     if (indexHtmlCache) {
       return indexHtmlCache;
     }
   }
 
-  if (isTest) {
+  if (env.isTest) {
     return await readFile(path.join(__dirname, "../static/index.html"));
   }
 
-  if (isDevelopment) {
+  if (env.isDevelopment) {
     return await readFile(
       path.join(__dirname, "../../../server/static/index.html")
     );
@@ -54,6 +51,7 @@ export const renderApp = async (
     description?: string;
     canonical?: string;
     shortcutIcon?: string;
+    rootShareId?: string;
     analytics?: Integration | null;
   } = {}
 ) => {
@@ -72,11 +70,11 @@ export const renderApp = async (
   const page = await readIndexFile();
   const environment = `
     <script nonce="${ctx.state.cspNonce}">
-      window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
+      window.env = ${JSON.stringify(presentEnv(env, options))};
     </script>
   `;
 
-  const scriptTags = isProduction
+  const scriptTags = env.isProduction
     ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
         env.CDN_URL || ""
       }/static/${readManifestFile()[entry]["file"]}"></script>`
@@ -94,19 +92,23 @@ export const renderApp = async (
   ctx.body = page
     .toString()
     .replace(/\{env\}/g, environment)
+    .replace(/\{lang\}/g, unicodeCLDRtoISO639(env.DEFAULT_LANGUAGE))
     .replace(/\{title\}/g, escape(title))
     .replace(/\{description\}/g, escape(description))
     .replace(/\{canonical-url\}/g, canonical)
     .replace(/\{shortcut-icon\}/g, shortcutIcon)
     .replace(/\{prefetch\}/g, shareId ? "" : prefetchTags)
-    .replace(/\{slack-app-id\}/g, env.SLACK_APP_ID || "")
+    .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{cdn-url\}/g, env.CDN_URL || "")
     .replace(/\{script-tags\}/g, scriptTags)
     .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);
 };
 
 export const renderShare = async (ctx: Context, next: Next) => {
-  const { shareId, documentSlug } = ctx.params;
+  const rootShareId = ctx.state?.rootShare?.id;
+  const shareId = rootShareId ?? ctx.params.shareId;
+  const documentSlug = ctx.params.documentSlug;
+
   // Find the share record if publicly published so that the document title
   // can be be returned in the server-rendered HTML. This allows it to appear in
   // unfurls with more reliablity
@@ -159,6 +161,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
         ? team.avatarUrl
         : undefined,
     analytics,
+    rootShareId,
     canonical: share
       ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
       : undefined,

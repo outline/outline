@@ -1,4 +1,8 @@
+import path from "path";
+import fs from "fs-extra";
+import chunk from "lodash/chunk";
 import truncate from "lodash/truncate";
+import tmp from "tmp";
 import {
   AttachmentPreset,
   CollectionPermission,
@@ -20,6 +24,7 @@ import {
   Attachment,
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
+import ZipHelper from "@server/utils/ZipHelper";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -49,12 +54,13 @@ export type StructuredImportData = {
      */
     description?: string | Record<string, any> | null;
     /** Optional id from import source, useful for mapping */
-    sourceId?: string;
+    externalId?: string;
   }[];
   documents: {
     id: string;
     urlId?: string;
     title: string;
+    emoji?: string | null;
     /**
      * The document text. To reference an attachment or image use the special
      * formatting <<attachmentId>>. It will be replaced with a reference to the
@@ -72,10 +78,12 @@ export type StructuredImportData = {
     publishedAt?: Date | null;
     parentDocumentId?: string | null;
     createdById?: string;
+    createdByName?: string;
     createdByEmail?: string | null;
     path: string;
+    mimeType: string;
     /** Optional id from import source, useful for mapping */
-    sourceId?: string;
+    externalId?: string;
   }[];
   attachments: {
     id: string;
@@ -84,7 +92,7 @@ export type StructuredImportData = {
     mimeType: string;
     buffer: () => Promise<Buffer>;
     /** Optional id from import source, useful for mapping */
-    sourceId?: string;
+    externalId?: string;
   }[];
 };
 
@@ -95,19 +103,22 @@ export default abstract class ImportTask extends BaseTask<Props> {
    * @param props The props
    */
   public async perform({ fileOperationId }: Props) {
+    let dirPath;
     const fileOperation = await FileOperation.findByPk(fileOperationId, {
       rejectOnEmpty: true,
     });
 
     try {
       Logger.info("task", `ImportTask fetching data for ${fileOperationId}`);
-      const data = await this.fetchData(fileOperation);
-      if (!data) {
+      dirPath = await this.fetchAndExtractData(fileOperation);
+      if (!dirPath) {
         throw InternalError("Failed to fetch data for import from storage.");
       }
 
-      Logger.info("task", `ImportTask parsing data for ${fileOperationId}`);
-      const parsed = await this.parseData(data, fileOperation);
+      Logger.info("task", `ImportTask parsing data for ${fileOperationId}`, {
+        dirPath,
+      });
+      const parsed = await this.parseData(dirPath, fileOperation);
 
       if (parsed.collections.length === 0) {
         throw ValidationError(
@@ -149,6 +160,10 @@ export default abstract class ImportTask extends BaseTask<Props> {
         error
       );
       throw error;
+    } finally {
+      if (dirPath) {
+        await this.cleanupExtractedData(dirPath, fileOperation);
+      }
     }
   }
 
@@ -176,38 +191,84 @@ export default abstract class ImportTask extends BaseTask<Props> {
   }
 
   /**
-   * Fetch the remote data associated with the file operation as a Buffer.
+   * Fetch the remote data associated with the file operation into a temporary disk location.
    *
    * @param fileOperation The FileOperation to fetch data for
-   * @returns A promise that resolves to the data as a buffer.
+   * @returns A promise that resolves to the temporary file path.
    */
-  protected async fetchData(fileOperation: FileOperation): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      const bufs: Buffer[] = [];
-      const stream = fileOperation.stream;
-      if (!stream) {
-        return reject(new Error("No stream available"));
-      }
+  protected async fetchAndExtractData(
+    fileOperation: FileOperation
+  ): Promise<string> {
+    let cleanup;
+    let filePath: string;
 
-      stream.on("data", function (d) {
-        bufs.push(d);
+    try {
+      const res = await fileOperation.handle;
+      filePath = res.path;
+      cleanup = res.cleanup;
+
+      const path = await new Promise<string>((resolve, reject) => {
+        tmp.dir((err, tmpDir) => {
+          if (err) {
+            Logger.error("Could not create temporary directory", err);
+            return reject(err);
+          }
+
+          Logger.debug(
+            "task",
+            `ImportTask extracting data for ${fileOperation.id}`
+          );
+
+          void ZipHelper.extract(filePath, tmpDir)
+            .then(() => resolve(tmpDir))
+            .catch((err) => {
+              Logger.error("Could not extract zip file", err);
+              reject(err);
+            });
+        });
       });
-      stream.on("error", reject);
-      stream.on("end", () => {
-        resolve(Buffer.concat(bufs));
-      });
-    });
+
+      return path;
+    } finally {
+      Logger.debug(
+        "task",
+        `ImportTask cleaning up temporary data for ${fileOperation.id}`
+      );
+
+      await cleanup?.();
+    }
   }
 
   /**
-   * Parse the data loaded from fetchData into a consistent structured format
+   * Cleanup the temporary directory where the data was fetched and extracted.
+   *
+   * @param dirPath The temporary directory path where the data was fetched
+   * @param fileOperation The associated FileOperation
+   */
+  protected async cleanupExtractedData(
+    dirPath: string,
+    fileOperation: FileOperation
+  ) {
+    try {
+      await fs.rm(dirPath, { recursive: true, force: true });
+    } catch (error) {
+      Logger.error(
+        `ImportTask failed to cleanup extracted data for ${fileOperation.id}`,
+        error
+      );
+    }
+  }
+
+  /**
+   * Parse the data loaded from fetchAndExtractData into a consistent structured format
    * that represents collections, documents, and the relationships between them.
    *
-   * @param data The data loaded from fetchData
+   * @param dirPath The temporary directory path where the data was fetched
+   * @param fileOperation The FileOperation to parse data for
    * @returns A promise that resolves to the structured data
    */
   protected abstract parseData(
-    data: Buffer | NodeJS.ReadableStream,
+    dirPath: string,
     fileOperation: FileOperation
   ): Promise<StructuredImportData>;
 
@@ -229,39 +290,19 @@ export default abstract class ImportTask extends BaseTask<Props> {
     const documents = new Map<string, Document>();
     const attachments = new Map<string, Attachment>();
 
+    const user = await User.findByPk(fileOperation.userId, {
+      rejectOnEmpty: true,
+    });
+    const ip = user.lastActiveIp || undefined;
+
     try {
-      return await sequelize.transaction(async (transaction) => {
-        const user = await User.findByPk(fileOperation.userId, {
-          transaction,
-          rejectOnEmpty: true,
-        });
-
-        const ip = user.lastActiveIp || undefined;
-
-        // Attachments
-        await Promise.all(
-          data.attachments.map(async (item) => {
-            Logger.debug("task", `ImportTask persisting attachment ${item.id}`);
-            const attachment = await attachmentCreator({
-              source: "import",
-              preset: AttachmentPreset.DocumentAttachment,
-              id: item.id,
-              name: item.name,
-              type: item.mimeType,
-              buffer: await item.buffer(),
-              user,
-              ip,
-              transaction,
-            });
-            if (attachment) {
-              attachments.set(item.id, attachment);
-            }
-          })
-        );
-
-        // Collections
-        for (const item of data.collections) {
-          Logger.debug("task", `ImportTask persisting collection ${item.id}`);
+      // Collections
+      for (const item of data.collections) {
+        await sequelize.transaction(async (transaction) => {
+          Logger.debug(
+            "task",
+            `ImportTask persisting collection ${item.name} (${item.id})`
+          );
           let description = item.description;
 
           // Description can be markdown text or a Prosemirror object if coming
@@ -274,13 +315,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
             // Check all of the attachments we've created against urls in the text
             // and replace them out with attachment redirect urls before saving.
             for (const aitem of data.attachments) {
-              const attachment = attachments.get(aitem.id);
-              if (!attachment) {
-                continue;
-              }
               description = description.replace(
-                new RegExp(`<<${attachment.id}>>`, "g"),
-                attachment.redirectUrl
+                new RegExp(`<<${aitem.id}>>`, "g"),
+                Attachment.getRedirectUrl(aitem.id)
               );
             }
 
@@ -300,6 +337,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           if (item.urlId) {
             const existing = await Collection.unscoped().findOne({
               attributes: ["id"],
+              paranoid: false,
               transaction,
               where: {
                 urlId: item.urlId,
@@ -353,7 +391,11 @@ export default abstract class ImportTask extends BaseTask<Props> {
                 teamId: fileOperation.teamId,
                 createdById: fileOperation.userId,
                 name,
-                permission: item.permission ?? CollectionPermission.ReadWrite,
+                permission:
+                  item.permission ??
+                  fileOperation.options?.permission !== undefined
+                    ? fileOperation.options?.permission
+                    : CollectionPermission.ReadWrite,
                 importId: fileOperation.id,
               },
               { transaction }
@@ -377,84 +419,115 @@ export default abstract class ImportTask extends BaseTask<Props> {
           );
 
           collections.set(item.id, collection);
-        }
 
-        // Documents
-        for (const item of data.documents) {
-          Logger.debug("task", `ImportTask persisting document ${item.id}`);
-          let text = item.text;
+          // Documents
+          for (const item of data.documents.filter(
+            (d) => d.collectionId === collection.id
+          )) {
+            Logger.debug(
+              "task",
+              `ImportTask persisting document ${item.title} (${item.id})`
+            );
+            let text = item.text;
 
-          // Check all of the attachments we've created against urls in the text
-          // and replace them out with attachment redirect urls before saving.
-          for (const aitem of data.attachments) {
-            const attachment = attachments.get(aitem.id);
-            if (!attachment) {
-              continue;
+            // Check all of the attachments we've created against urls in the text
+            // and replace them out with attachment redirect urls before saving.
+            for (const aitem of data.attachments) {
+              text = text.replace(
+                new RegExp(`<<${aitem.id}>>`, "g"),
+                Attachment.getRedirectUrl(aitem.id)
+              );
             }
-            text = text.replace(
-              new RegExp(`<<${attachment.id}>>`, "g"),
-              attachment.redirectUrl
-            );
-          }
 
-          // Check all of the document we've created against urls in the text
-          // and replace them out with a valid internal link. Because we are doing
-          // this before saving, we can't use the document slug, but we can take
-          // advantage of the fact that the document id will redirect in the client
-          for (const ditem of data.documents) {
-            text = text.replace(
-              new RegExp(`<<${ditem.id}>>`, "g"),
-              `/doc/${ditem.id}`
-            );
-          }
+            // Check all of the document we've created against urls in the text
+            // and replace them out with a valid internal link. Because we are doing
+            // this before saving, we can't use the document slug, but we can take
+            // advantage of the fact that the document id will redirect in the client
+            for (const ditem of data.documents) {
+              text = text.replace(
+                new RegExp(`<<${ditem.id}>>`, "g"),
+                `/doc/${ditem.id}`
+              );
+            }
 
-          const options: { urlId?: string } = {};
-          if (item.urlId) {
-            const existing = await Document.unscoped().findOne({
-              attributes: ["id"],
-              transaction,
-              where: {
-                urlId: item.urlId,
+            const options: { urlId?: string } = {};
+            if (item.urlId) {
+              const existing = await Document.unscoped().findOne({
+                attributes: ["id"],
+                paranoid: false,
+                transaction,
+                where: {
+                  urlId: item.urlId,
+                },
+              });
+
+              if (!existing) {
+                options.urlId = item.urlId;
+              }
+            }
+
+            const document = await documentCreator({
+              ...options,
+              sourceMetadata: {
+                fileName: path.basename(item.path),
+                mimeType: item.mimeType,
+                externalId: item.externalId,
+                createdByName: item.createdByName,
               },
+              id: item.id,
+              title: item.title,
+              text,
+              collectionId: item.collectionId,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt ?? item.createdAt,
+              publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
+              parentDocumentId: item.parentDocumentId,
+              importId: fileOperation.id,
+              user,
+              ip,
+              transaction,
             });
+            documents.set(item.id, document);
 
-            if (!existing) {
-              options.urlId = item.urlId;
-            }
-          }
-
-          const document = await documentCreator({
-            ...options,
-            source: "import",
-            id: item.id,
-            title: item.title,
-            text,
-            collectionId: item.collectionId,
-            createdAt: item.createdAt,
-            updatedAt: item.updatedAt ?? item.createdAt,
-            publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
-            parentDocumentId: item.parentDocumentId,
-            importId: fileOperation.id,
-            user,
-            ip,
-            transaction,
-          });
-          documents.set(item.id, document);
-
-          const collection = collections.get(item.collectionId);
-          if (collection) {
             await collection.addDocumentToStructure(document, 0, {
               transaction,
+              save: false,
             });
           }
-        }
 
-        // Return value is only used for testing
-        return {
-          collections,
-          documents,
-          attachments,
-        };
+          await collection.save({ transaction });
+        });
+      }
+
+      // Attachments
+      await sequelize.transaction(async (transaction) => {
+        const chunks = chunk(data.attachments, 10);
+
+        for (const chunk of chunks) {
+          // Parallelize 10 uploads at a time
+          await Promise.all(
+            chunk.map(async (item) => {
+              Logger.debug(
+                "task",
+                `ImportTask persisting attachment ${item.name} (${item.id})`
+              );
+              const attachment = await attachmentCreator({
+                source: "import",
+                preset: AttachmentPreset.DocumentAttachment,
+                id: item.id,
+                name: item.name,
+                type: item.mimeType,
+                buffer: await item.buffer(),
+                user,
+                ip,
+                transaction,
+              });
+              if (attachment) {
+                attachments.set(item.id, attachment);
+              }
+            })
+          );
+        }
       });
     } catch (err) {
       Logger.info(
@@ -469,6 +542,13 @@ export default abstract class ImportTask extends BaseTask<Props> {
       );
       throw err;
     }
+
+    // Return value is only used for testing
+    return {
+      collections,
+      documents,
+      attachments,
+    };
   }
 
   /**

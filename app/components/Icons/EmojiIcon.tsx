@@ -2,9 +2,9 @@ import * as React from "react";
 import styled from "styled-components";
 
 type Props = {
-  /* The emoji to render */
+  /** The emoji to render */
   emoji: string;
-  /* The size of the emoji, 24px is default to match standard icons */
+  /** The size of the emoji, 24px is default to match standard icons */
   size?: number;
 };
 

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { useMenuState } from "reakit/Menu";
+import { toast } from "sonner";
 import Share from "~/models/Share";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
@@ -11,7 +12,6 @@ import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 
 type Props = {
   share: Share;
@@ -22,10 +22,9 @@ function ShareMenu({ share }: Props) {
     modal: true,
   });
   const { shares } = useStores();
-  const { showToast } = useToasts();
   const { t } = useTranslation();
   const history = useHistory();
-  const can = usePolicy(share.id);
+  const can = usePolicy(share);
 
   const handleGoToDocument = React.useCallback(
     (ev: React.SyntheticEvent) => {
@@ -41,23 +40,17 @@ function ShareMenu({ share }: Props) {
 
       try {
         await shares.revoke(share);
-        showToast(t("Share link revoked"), {
-          type: "info",
-        });
+        toast.message(t("Share link revoked"));
       } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
+        toast.error(err.message);
       }
     },
-    [t, shares, share, showToast]
+    [t, shares, share]
   );
 
   const handleCopy = React.useCallback(() => {
-    showToast(t("Share link copied"), {
-      type: "info",
-    });
-  }, [t, showToast]);
+    toast.success(t("Share link copied"));
+  }, [t]);
 
   return (
     <>
