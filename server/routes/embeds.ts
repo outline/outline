@@ -47,7 +47,7 @@ export const renderEmbed = async (ctx: Context, next: Next) => {
     const snippetLink = `${snippetUrl}.js`;
     const csp = ctx.response.get("Content-Security-Policy");
 
-    // inject gitlab.com into the script-src and style-src directives
+    // Inject gitlab.com into the script-src and style-src directives
     ctx.set(
       "Content-Security-Policy",
       csp
@@ -81,12 +81,12 @@ ${resizeObserverScript(ctx)}
     const gistLink = `https://gist.github.com/${id}.js`;
     const csp = ctx.response.get("Content-Security-Policy");
 
-    // inject gist.github.com into the script-src and style-src directives
+    // Inject GitHub domains into the script-src and style-src directives
     ctx.set(
       "Content-Security-Policy",
       csp
         .replace("script-src", "script-src gist.github.com")
-        .replace("style-src", "style-src gist.github.com")
+        .replace("style-src", "style-src github.githubassets.com")
     );
 
     ctx.type = "html";
