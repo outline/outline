@@ -52,7 +52,7 @@ export const renderApp = async (
     canonical?: string;
     shortcutIcon?: string;
     rootShareId?: string;
-    analytics?: Integration | null;
+    analytics?: Integration<IntegrationType.Analytics> | null;
   } = {}
 ) => {
   const {
@@ -64,6 +64,15 @@ export const renderApp = async (
 
   if (ctx.request.path === "/realtime/") {
     return next();
+  }
+
+  if (!env.isCloudHosted && options.analytics?.settings?.instanceUrl) {
+    const parsed = new URL(options.analytics?.settings?.instanceUrl);
+    const csp = ctx.response.get("Content-Security-Policy");
+    ctx.set(
+      "Content-Security-Policy",
+      csp.replace("script-src", `script-src ${parsed.hostname}`)
+    );
   }
 
   const { shareId } = ctx.params;

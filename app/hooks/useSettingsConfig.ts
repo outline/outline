@@ -201,6 +201,7 @@ const useSettingsConfig = () => {
       const enabledInDeployment =
         !plugin.config?.deployments ||
         plugin.config.deployments.length === 0 ||
+        (plugin.config.deployments.includes("community") && !isCloudHosted) ||
         (plugin.config.deployments.includes("cloud") && isCloudHosted) ||
         (plugin.config.deployments.includes("enterprise") && !isCloudHosted);
 

@@ -2,5 +2,6 @@
   "id": "matomo",
   "name": "Matomo",
   "roles": ["admin"],
-  "description": "Adds support for reporting analytics to a Matomo server."
+  "description": "Adds support for reporting analytics to a Matomo server.",
+  "deployments": ["community", "enterprise"]
 }
