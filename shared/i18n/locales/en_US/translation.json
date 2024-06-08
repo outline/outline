@@ -973,7 +973,7 @@
   "Instance URL": "Instance URL",
   "The URL of your Matomo instance. If you are using Matomo Cloud, the it will end in matomo.cloud/": "The URL of your Matomo instance. If you are using Matomo Cloud, the it will end in matomo.cloud/",
   "Site ID": "Site ID",
-  "An ID that uniquely identifies the site in your Matomo account. You can find this ID in the \"Settings\" section of your Matomo account.": "An ID that uniquely identifies the site in your Matomo account. You can find this ID in the \"Settings\" section of your Matomo account.",
+  "An ID that uniquely identifies the website in your Matomo instance.": "An ID that uniquely identifies the website in your Matomo instance.",
   "Add to Slack": "Add to Slack",
   "document published": "document published",
   "document updated": "document updated",

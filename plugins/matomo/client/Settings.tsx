@@ -110,7 +110,7 @@ function Matomo() {
           label={t("Site ID")}
           name="measurementId"
           description={t(
-            'An ID that uniquely identifies the site in your Matomo account. You can find this ID in the "Settings" section of your Matomo account.'
+            "An ID that uniquely identifies the website in your Matomo instance."
           )}
           border={false}
         >
