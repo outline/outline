@@ -1,3 +1,4 @@
+import escape from "escape-html";
 import { Context, Next } from "koa";
 
 /**
@@ -36,7 +37,7 @@ const iframeCheckScript = (
  * @returns The response body
  */
 export const renderEmbed = async (ctx: Context, next: Next) => {
-  const url = String(ctx.query.url);
+  const url = escape(String(ctx.query.url));
 
   if (!url) {
     ctx.throw(400, "url is required");
