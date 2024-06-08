@@ -59,11 +59,11 @@ export const Suggestions = observer(
     const theme = useTheme();
 
     const fetchUsersByQuery = useThrottledCallback(
-      (params) => {
-        void users.fetchPage({ query: params.query });
+      (query: string) => {
+        void users.fetchPage({ query });
 
         if (showGroups) {
-          void groups.fetchPage({ query: params.query });
+          void groups.fetchPage({ query });
         }
       },
       250,
