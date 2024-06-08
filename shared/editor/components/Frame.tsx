@@ -26,8 +26,6 @@ type Props = Omit<Optional<HTMLIFrameElement>, "children"> & {
   height?: string;
   /** The allow policy of the frame */
   allow?: string;
-  /** Whether to skip sanitization of the `src` prop */
-  dangerouslySkipSanitizeSrc?: boolean;
 };
 
 type PropsWithRef = Props & {
@@ -69,7 +67,6 @@ class Frame extends React.Component<PropsWithRef> {
       isSelected,
       referrerPolicy,
       className = "",
-      dangerouslySkipSanitizeSrc,
       src,
     } = this.props;
     const withBar = !!(icon || canonicalUrl);
@@ -94,7 +91,7 @@ class Frame extends React.Component<PropsWithRef> {
             frameBorder="0"
             title="embed"
             loading="lazy"
-            src={dangerouslySkipSanitizeSrc ? src : sanitizeUrl(src)}
+            src={sanitizeUrl(src)}
             referrerPolicy={referrerPolicy}
             allowFullScreen
           />
@@ -166,19 +163,6 @@ const Bar = styled.div`
   user-select: none;
   position: relative;
 `;
-
-/**
- * Resize observer script that sends a message to the parent window when content is resized. Inject
- * this script into the iframe to receive resize events.
- */
-export const resizeObserverScript = `<script>
-  const resizeObserver = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      window.parent.postMessage({ "type": "frame-resized", "value": entry.contentRect.height }, '*');
-    }
-  });
-  resizeObserver.observe(document.body);
-</script>`;
 
 export default React.forwardRef<HTMLIFrameElement, Props>((props, ref) => (
   <Frame {...props} forwardedRef={ref} />
