@@ -65,7 +65,8 @@ function Matomo() {
             service: IntegrationService.Matomo,
             settings: {
               measurementId: data.measurementId,
-              instanceUrl: data.instanceUrl,
+              // Ensure the URL ends with a trailing slash
+              instanceUrl: data.instanceUrl.replace(/\/?$/, "/"),
             } as Integration<IntegrationType.Analytics>["settings"],
           });
         } else {
