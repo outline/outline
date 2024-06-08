@@ -88,6 +88,7 @@ ${resizeObserverScript(ctx)}
         .replace("script-src", "script-src gist.github.com")
         .replace("style-src", "style-src github.githubassets.com")
     );
+    ctx.set("X-Frame-Options", "sameorigin");
 
     ctx.type = "html";
     ctx.body = `
