@@ -681,31 +681,25 @@ router.post(
       authorize(user, "restore", document);
       // restore a previously deleted document
       await document.unarchive(user.id);
-      await Event.create({
+      await Event.createFromContext(ctx, {
         name: "documents.restore",
         documentId: document.id,
         collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
         data: {
           title: document.title,
         },
-        ip: ctx.request.ip,
       });
     } else if (document.archivedAt) {
       authorize(user, "unarchive", document);
       // restore a previously archived document
       await document.unarchive(user.id);
-      await Event.create({
+      await Event.createFromContext(ctx, {
         name: "documents.unarchive",
         documentId: document.id,
         collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
         data: {
           title: document.title,
         },
-        ip: ctx.request.ip,
       });
     } else if (revisionId) {
       // restore a document to a specific revision
@@ -716,16 +710,13 @@ router.post(
       document.restoreFromRevision(revision);
       await document.save();
 
-      await Event.create({
+      await Event.createFromContext(ctx, {
         name: "documents.restore",
         documentId: document.id,
         collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
         data: {
           title: document.title,
         },
-        ip: ctx.request.ip,
       });
     } else {
       assertPresent(revisionId, "revisionId is required");
@@ -960,18 +951,16 @@ router.post(
         transaction,
       }
     );
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "documents.create",
         documentId: document.id,
         collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
         data: {
           title: document.title,
           template: true,
         },
-        ip: ctx.request.ip,
       },
       {
         transaction,
@@ -1195,16 +1184,13 @@ router.post(
     authorize(user, "archive", document);
 
     await document.archive(user.id);
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "documents.archive",
       documentId: document.id,
       collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
       data: {
         title: document.title,
       },
-      ip: ctx.request.ip,
     });
 
     ctx.body = {
@@ -1230,16 +1216,13 @@ router.post(
       authorize(user, "permanentDelete", document);
 
       await documentPermanentDeleter([document]);
-      await Event.create({
+      await Event.createFromContext(ctx, {
         name: "documents.permanent_delete",
         documentId: document.id,
         collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
         data: {
           title: document.title,
         },
-        ip: ctx.request.ip,
       });
     } else {
       const document = await Document.findByPk(id, {
@@ -1249,16 +1232,13 @@ router.post(
       authorize(user, "delete", document);
 
       await document.delete(user.id);
-      await Event.create({
+      await Event.createFromContext(ctx, {
         name: "documents.delete",
         documentId: document.id,
         collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
         data: {
           title: document.title,
         },
-        ip: ctx.request.ip,
       });
     }
 
@@ -1293,16 +1273,13 @@ router.post(
     }
 
     await document.unpublish(user.id);
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "documents.unpublish",
       documentId: document.id,
       collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
       data: {
         title: document.title,
       },
-      ip: ctx.request.ip,
     });
 
     ctx.body = {
@@ -1550,15 +1527,13 @@ router.post(
       await membership.save({ transaction });
     }
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "documents.add_user",
         userId,
         modelId: membership.id,
         documentId: document.id,
-        teamId: document.teamId,
-        actorId: actor.id,
-        ip: ctx.request.ip,
         data: {
           title: document.title,
           isNew,
@@ -1618,15 +1593,13 @@ router.post(
 
     await membership.destroy({ transaction });
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "documents.remove_user",
         userId,
         modelId: membership.id,
         documentId: document.id,
-        teamId: document.teamId,
-        actorId: actor.id,
-        ip: ctx.request.ip,
       },
       { transaction }
     );
@@ -1736,11 +1709,8 @@ router.post(
     });
 
     await documentPermanentDeleter(documents);
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "documents.empty_trash",
-      teamId: user.teamId,
-      actorId: user.id,
-      ip: ctx.request.ip,
     });
 
     ctx.body = {

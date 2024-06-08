@@ -105,15 +105,12 @@ router.post(
     // reload to get default scope
     const group = await Group.findByPk(g.id, { rejectOnEmpty: true });
 
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "groups.create",
-      actorId: user.id,
-      teamId: user.teamId,
       modelId: group.id,
       data: {
         name: group.name,
       },
-      ip: ctx.request.ip,
     });
 
     ctx.body = {
@@ -138,15 +135,12 @@ router.post(
 
     if (group.changed()) {
       await group.save();
-      await Event.create({
+      await Event.createFromContext(ctx, {
         name: "groups.update",
-        teamId: user.teamId,
-        actorId: user.id,
         modelId: group.id,
         data: {
           name,
         },
-        ip: ctx.request.ip,
       });
     }
 
@@ -169,15 +163,12 @@ router.post(
     authorize(user, "delete", group);
 
     await group.destroy();
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "groups.delete",
-      actorId: user.id,
       modelId: group.id,
-      teamId: group.teamId,
       data: {
         name: group.name,
       },
-      ip: ctx.request.ip,
     });
 
     ctx.body = {
@@ -275,16 +266,13 @@ router.post(
       // reload to get default scope
       group = await Group.findByPk(id, { rejectOnEmpty: true });
 
-      await Event.create({
+      await Event.createFromContext(ctx, {
         name: "groups.add_user",
         userId,
-        teamId: user.teamId,
         modelId: group.id,
-        actorId: actor.id,
         data: {
           name: user.name,
         },
-        ip: ctx.request.ip,
       });
     }
 
@@ -315,16 +303,13 @@ router.post(
     authorize(actor, "read", user);
 
     await group.$remove("user", user);
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "groups.remove_user",
       userId,
       modelId: group.id,
-      teamId: user.teamId,
-      actorId: actor.id,
       data: {
         name: user.name,
       },
-      ip: ctx.request.ip,
     });
 
     // reload to get default scope

@@ -56,17 +56,14 @@ router.post(
       userId: user.id,
     });
 
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "views.create",
-      actorId: user.id,
       documentId: document.id,
       collectionId: document.collectionId,
-      teamId: user.teamId,
       modelId: view.id,
       data: {
         title: document.title,
       },
-      ip: ctx.request.ip,
     });
     view.user = user;
 

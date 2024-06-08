@@ -31,16 +31,14 @@ router.post(
       { transaction }
     );
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "api_keys.create",
         modelId: key.id,
-        teamId: user.teamId,
-        actorId: user.id,
         data: {
           name,
         },
-        ip: ctx.request.ip,
       },
       { transaction }
     );
@@ -90,16 +88,14 @@ router.post(
     authorize(user, "delete", key);
 
     await key.destroy({ transaction });
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "api_keys.delete",
         modelId: key.id,
-        teamId: user.teamId,
-        actorId: user.id,
         data: {
           name: key.name,
         },
-        ip: ctx.request.ip,
       },
       { transaction }
     );
