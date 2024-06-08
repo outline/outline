@@ -57,16 +57,14 @@ router.post(
       await authenticationProvider.disable({ transaction });
     }
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "authenticationProviders.update",
         data: {
           enabled,
         },
         modelId: id,
-        teamId: user.teamId,
-        actorId: user.id,
-        ip: ctx.request.ip,
       },
       { transaction }
     );

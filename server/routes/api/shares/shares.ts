@@ -200,20 +200,17 @@ router.post(
     });
 
     if (isCreated) {
-      await Event.create({
+      await Event.createFromContext(ctx, {
         name: "shares.create",
         documentId,
         collectionId: document.collectionId,
         modelId: share.id,
-        teamId: user.teamId,
-        actorId: user.id,
         data: {
           name: document.title,
           published,
           includeChildDocuments,
           urlId,
         },
-        ip: ctx.request.ip,
       });
     }
 
@@ -261,16 +258,13 @@ router.post(
     }
 
     await share.save();
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "shares.update",
       documentId: share.documentId,
       modelId: share.id,
-      teamId: user.teamId,
-      actorId: user.id,
       data: {
         published,
       },
-      ip: ctx.request.ip,
     });
 
     ctx.body = {
@@ -297,17 +291,14 @@ router.post(
     const { document } = share;
 
     await share.revoke(user.id);
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "shares.revoke",
       documentId: document.id,
       collectionId: document.collectionId,
       modelId: share.id,
-      teamId: user.teamId,
-      actorId: user.id,
       data: {
         name: document.title,
       },
-      ip: ctx.request.ip,
     });
 
     ctx.body = {
