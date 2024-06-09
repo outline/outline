@@ -18,7 +18,7 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
     await createSubscriptionsForDocument(document, event);
 
     // Send notifications to mentioned users first
-    const mentions = DocumentHelper.parseMentions(document);
+    const mentions = DocumentHelper.parseMentions(document, "user");
     const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {

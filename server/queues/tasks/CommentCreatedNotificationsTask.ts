@@ -35,7 +35,8 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
     });
 
     const mentions = ProsemirrorHelper.parseMentions(
-      ProsemirrorHelper.toProsemirror(comment.data)
+      ProsemirrorHelper.toProsemirror(comment.data),
+      "user"
     );
     const userIdsMentioned: string[] = [];
 

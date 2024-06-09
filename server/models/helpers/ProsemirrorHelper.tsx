@@ -128,14 +128,16 @@ export class ProsemirrorHelper {
    * Returns an array of attributes of all mentions in the node.
    *
    * @param node The node to parse mentions from
+   * @param type An optional mention type to filter by
    * @returns An array of mention attributes
    */
-  static parseMentions(doc: Node) {
+  static parseMentions(doc: Node, type?: string) {
     const mentions: MentionAttrs[] = [];
 
     doc.descendants((node: Node) => {
       if (
         node.type.name === "mention" &&
+        (!type || node.attrs.type === type) &&
         !mentions.some((m) => m.id === node.attrs.id)
       ) {
         mentions.push(node.attrs as MentionAttrs);

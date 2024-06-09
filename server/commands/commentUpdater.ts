@@ -32,7 +32,8 @@ export default async function commentUpdater({
   transaction,
 }: Props): Promise<Comment> {
   const mentionIdsBefore = ProsemirrorHelper.parseMentions(
-    ProsemirrorHelper.toProsemirror(comment.data)
+    ProsemirrorHelper.toProsemirror(comment.data),
+    "user"
   ).map((mention) => mention.id);
 
   if (resolvedBy !== undefined) {
@@ -43,7 +44,8 @@ export default async function commentUpdater({
   }
 
   const mentionsAfter = ProsemirrorHelper.parseMentions(
-    ProsemirrorHelper.toProsemirror(comment.data)
+    ProsemirrorHelper.toProsemirror(comment.data),
+    "user"
   );
 
   const newMentionIds = mentionsAfter

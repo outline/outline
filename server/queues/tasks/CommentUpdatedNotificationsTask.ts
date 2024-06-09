@@ -19,7 +19,8 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
     }
 
     const mentions = ProsemirrorHelper.parseMentions(
-      ProsemirrorHelper.toProsemirror(comment.data)
+      ProsemirrorHelper.toProsemirror(comment.data),
+      "user"
     ).filter((mention) => event.data.newMentionIds.includes(mention.id));
     const userIdsMentioned: string[] = [];
 

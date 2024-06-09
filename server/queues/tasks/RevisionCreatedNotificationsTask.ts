@@ -26,8 +26,10 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
 
     // Send notifications to mentioned users first
     const before = await revision.before();
-    const oldMentions = before ? DocumentHelper.parseMentions(before) : [];
-    const newMentions = DocumentHelper.parseMentions(document);
+    const oldMentions = before
+      ? DocumentHelper.parseMentions(before, "user")
+      : [];
+    const newMentions = DocumentHelper.parseMentions(document, "user");
     const mentions = differenceBy(newMentions, oldMentions, "id");
     const userIdsMentioned: string[] = [];
 

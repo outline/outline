@@ -203,9 +203,9 @@ export class DocumentHelper {
    * @param document Document or Revision
    * @returns An array of mentions in passed document or revision
    */
-  static parseMentions(document: Document | Revision) {
+  static parseMentions(document: Document | Revision, type?: string) {
     const node = DocumentHelper.toProsemirror(document);
-    return ProsemirrorHelper.parseMentions(node);
+    return ProsemirrorHelper.parseMentions(node, type);
   }
 
   /**
