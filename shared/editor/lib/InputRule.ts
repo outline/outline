@@ -1,6 +1,6 @@
 import { InputRule as ProsemirrorInputRule } from "prosemirror-inputrules";
 import { EditorState } from "prosemirror-state";
-import isInCode from "../queries/isInCode";
+import { isInCode } from "../queries/isInCode";
 
 /**
  * A factory function for creating Prosemirror input rules that automatically insert text

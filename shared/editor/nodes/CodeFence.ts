@@ -76,8 +76,8 @@ import Prism from "../extensions/Prism";
 import { isCode } from "../lib/isCode";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findParentNode } from "../queries/findParentNode";
-import getMarkRange from "../queries/getMarkRange";
-import isInCode from "../queries/isInCode";
+import { getMarkRange } from "../queries/getMarkRange";
+import { isInCode } from "../queries/isInCode";
 import Node from "./Node";
 
 const PERSISTENCE_KEY = "rme-code-language";

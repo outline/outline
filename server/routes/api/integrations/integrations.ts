@@ -157,13 +157,11 @@ router.post(
 
     await integration.destroy({ transaction });
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "integrations.delete",
         modelId: integration.id,
-        teamId: integration.teamId,
-        actorId: user.id,
-        ip: ctx.request.ip,
       },
       { transaction }
     );

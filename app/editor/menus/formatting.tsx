@@ -20,10 +20,10 @@ import {
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
-import isInCode from "@shared/editor/queries/isInCode";
-import isInList from "@shared/editor/queries/isInList";
-import isMarkActive from "@shared/editor/queries/isMarkActive";
-import isNodeActive from "@shared/editor/queries/isNodeActive";
+import { isInCode } from "@shared/editor/queries/isInCode";
+import { isInList } from "@shared/editor/queries/isInList";
+import { isMarkActive } from "@shared/editor/queries/isMarkActive";
+import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 
@@ -34,7 +34,6 @@ export default function formattingMenuItems(
   dictionary: Dictionary
 ): MenuItem[] {
   const { schema } = state;
-  const isList = isInList(state);
   const isCode = isInCode(state);
   const isCodeBlock = isInCode(state, { onlyBlock: true });
   const isEmpty = state.selection.empty;
@@ -152,13 +151,27 @@ export default function formattingMenuItems(
       name: "outdentList",
       tooltip: dictionary.outdent,
       icon: <OutdentIcon />,
-      visible: isList && isMobile,
+      visible:
+        isMobile && isInList(state, { types: ["ordered_list", "bullet_list"] }),
     },
     {
       name: "indentList",
       tooltip: dictionary.indent,
       icon: <IndentIcon />,
-      visible: isList && isMobile,
+      visible:
+        isMobile && isInList(state, { types: ["ordered_list", "bullet_list"] }),
+    },
+    {
+      name: "outdentCheckboxList",
+      tooltip: dictionary.outdent,
+      icon: <OutdentIcon />,
+      visible: isMobile && isInList(state, { types: ["checkbox_list"] }),
+    },
+    {
+      name: "indentCheckboxList",
+      tooltip: dictionary.indent,
+      icon: <IndentIcon />,
+      visible: isMobile && isInList(state, { types: ["checkbox_list"] }),
     },
     {
       name: "separator",

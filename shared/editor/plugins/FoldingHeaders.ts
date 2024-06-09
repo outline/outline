@@ -3,7 +3,7 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import Storage from "../../utils/Storage";
 import { headingToPersistenceKey } from "../lib/headingToSlug";
 import { findBlockNodes } from "../queries/findChildren";
-import findCollapsedNodes from "../queries/findCollapsedNodes";
+import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 
 export class FoldingHeadersPlugin extends Plugin {
   constructor(documentId: string | undefined) {

@@ -8,7 +8,7 @@ import {
   Command,
 } from "prosemirror-state";
 import Extension from "@shared/editor/lib/Extension";
-import isInCode from "@shared/editor/queries/isInCode";
+import { isInCode } from "@shared/editor/queries/isInCode";
 
 export default class Keys extends Extension {
   get name() {

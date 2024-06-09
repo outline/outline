@@ -259,7 +259,7 @@ function DocumentHeader({
                 />
               </Action>
             )}
-            {!isEditing && !isRevision && can.update && (
+            {!isEditing && !isRevision && !isTemplate && can.update && (
               <Action>
                 <ShareButton document={document} />
               </Action>

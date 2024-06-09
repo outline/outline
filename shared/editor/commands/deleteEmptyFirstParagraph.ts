@@ -1,5 +1,5 @@
 import { Command } from "prosemirror-state";
-import isNodeActive from "../queries/isNodeActive";
+import { isNodeActive } from "../queries/isNodeActive";
 
 /**
  * Deletes the first paragraph node if it is empty and the cursor is at the

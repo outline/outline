@@ -55,6 +55,7 @@ import {
   documentPath,
   urlify,
   trashPath,
+  newTemplatePath,
 } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
@@ -677,34 +678,36 @@ export const importDocument = createAction({
 });
 
 export const createTemplate = createAction({
-  name: ({ t }) => t("Templatize"),
+  name: ({ t, activeDocumentId }) =>
+    activeDocumentId ? t("Templatize") : t("New template"),
   analyticsName: "Templatize document",
   section: DocumentSection,
   icon: <ShapesIcon />,
   keywords: "new create template",
   visible: ({ activeCollectionId, activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
+    if (activeDocumentId) {
+      const document = stores.documents.get(activeDocumentId);
+      if (document?.isTemplate || !document?.isActive) {
+        return false;
+      }
     }
-    const document = stores.documents.get(activeDocumentId);
     return !!(
       !!activeCollectionId &&
-      stores.policies.abilities(activeCollectionId).update &&
-      !document?.isTemplate &&
-      !!document?.isActive
+      stores.policies.abilities(activeCollectionId).update
     );
   },
-  perform: ({ activeDocumentId, stores, t, event }) => {
-    if (!activeDocumentId) {
-      return;
-    }
+  perform: ({ activeCollectionId, activeDocumentId, stores, t, event }) => {
     event?.preventDefault();
     event?.stopPropagation();
 
-    stores.dialogs.openModal({
-      title: t("Create template"),
-      content: <DocumentTemplatizeDialog documentId={activeDocumentId} />,
-    });
+    if (activeDocumentId) {
+      stores.dialogs.openModal({
+        title: t("Create template"),
+        content: <DocumentTemplatizeDialog documentId={activeDocumentId} />,
+      });
+    } else if (activeCollectionId) {
+      history.push(newTemplatePath(activeCollectionId));
+    }
   },
 });
 

@@ -5,7 +5,7 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
 import Extension from "@shared/editor/lib/Extension";
 import { SuggestionsMenuPlugin } from "@shared/editor/plugins/Suggestions";
-import isInCode from "@shared/editor/queries/isInCode";
+import { isInCode } from "@shared/editor/queries/isInCode";
 
 export default class Suggestion extends Extension {
   state: {

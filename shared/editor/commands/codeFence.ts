@@ -1,5 +1,5 @@
 import { Command, TextSelection } from "prosemirror-state";
-import isInCode from "../queries/isInCode";
+import { isInCode } from "../queries/isInCode";
 
 /**
  * Moves the current selection to the previous newline, this is used inside

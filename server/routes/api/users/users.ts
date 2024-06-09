@@ -212,7 +212,7 @@ router.post(
     if (name) {
       user.name = name;
     }
-    if (avatarUrl) {
+    if (avatarUrl !== undefined) {
       user.avatarUrl = avatarUrl;
     }
     if (language) {
@@ -335,17 +335,15 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
 
   await user.update({ role }, { transaction });
 
-  await Event.create(
+  await Event.createFromContext(
+    ctx,
     {
       name,
       userId,
-      actorId: actor.id,
-      teamId: actor.teamId,
       data: {
         name: user.name,
         role,
       },
-      ip: ctx.request.ip,
     },
     {
       transaction,

@@ -90,15 +90,13 @@ router.post(
     membership.index = index;
     await membership.save({ transaction });
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "userMemberships.update",
         modelId: membership.id,
         userId: membership.userId,
-        teamId: user.teamId,
-        actorId: user.id,
         documentId: membership.documentId,
-        ip: ctx.request.ip,
         data: {
           index: membership.index,
         },

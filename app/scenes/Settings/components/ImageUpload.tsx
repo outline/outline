@@ -18,7 +18,7 @@ import { compressImage } from "~/utils/compressImage";
 import { uploadFile, dataUrlToBlob } from "~/utils/files";
 
 export type Props = {
-  onSuccess: (url: string) => void | Promise<void>;
+  onSuccess: (url: string | null) => void | Promise<void>;
   onError: (error: string) => void;
   submitText?: string;
   borderRadius?: number;

@@ -163,16 +163,14 @@ router.post(
     const { user } = auth;
 
     await user.rotateJwtSecret({ transaction });
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "users.signout",
-        actorId: user.id,
         userId: user.id,
-        teamId: user.teamId,
         data: {
           name: user.name,
         },
-        ip: ctx.request.ip,
       },
       {
         transaction,

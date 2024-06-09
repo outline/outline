@@ -103,16 +103,14 @@ router.post(
 
     await collection.save({ transaction });
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "collections.create",
         collectionId: collection.id,
-        teamId: collection.teamId,
-        actorId: user.id,
         data: {
           name,
         },
-        ip: ctx.request.ip,
       },
       {
         transaction,
@@ -208,11 +206,10 @@ router.post(
       }
     );
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "fileOperations.create",
-        teamId: user.teamId,
-        actorId: user.id,
         modelId: fileOperation.id,
         data: {
           type: FileOperationType.Import,
@@ -264,17 +261,14 @@ router.post(
       await membership.save();
     }
 
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "collections.add_group",
       collectionId: collection.id,
-      teamId: collection.teamId,
-      actorId: user.id,
       modelId: groupId,
       data: {
         name: group.name,
         membershipId: membership.id,
       },
-      ip: ctx.request.ip,
     });
 
     ctx.body = {
@@ -315,18 +309,16 @@ router.post(
     }
 
     await collection.$remove("group", group);
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "collections.remove_group",
         collectionId: collection.id,
-        teamId: collection.teamId,
-        actorId: user.id,
         modelId: groupId,
         data: {
           name: group.name,
           membershipId: membership.id,
         },
-        ip: ctx.request.ip,
       },
       { transaction }
     );
@@ -439,19 +431,17 @@ router.post(
       await membership.save({ transaction });
     }
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "collections.add_user",
         userId,
         modelId: membership.id,
         collectionId: collection.id,
-        teamId: collection.teamId,
-        actorId: actor.id,
         data: {
           isNew,
           permission: membership.permission,
         },
-        ip: ctx.request.ip,
       },
       {
         transaction,
@@ -495,18 +485,16 @@ router.post(
 
     await collection.$remove("user", user, { transaction });
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "collections.remove_user",
         userId,
         modelId: membership.id,
         collectionId: collection.id,
-        teamId: collection.teamId,
-        actorId: actor.id,
         data: {
           name: user.name,
         },
-        ip: ctx.request.ip,
       },
       { transaction }
     );
@@ -737,16 +725,14 @@ router.post(
     }
 
     await collection.save({ transaction });
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "collections.update",
         collectionId: collection.id,
-        teamId: collection.teamId,
-        actorId: user.id,
         data: {
           name,
         },
-        ip: ctx.request.ip,
       },
       {
         transaction,
@@ -754,17 +740,15 @@ router.post(
     );
 
     if (privacyChanged || sharingChanged) {
-      await Event.create(
+      await Event.createFromContext(
+        ctx,
         {
           name: "collections.permission_changed",
           collectionId: collection.id,
-          teamId: collection.teamId,
-          actorId: user.id,
           data: {
             privacyChanged,
             sharingChanged,
           },
-          ip: ctx.request.ip,
         },
         {
           transaction,
@@ -912,16 +896,14 @@ router.post(
         transaction,
       }
     );
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "collections.move",
         collectionId: collection.id,
-        teamId: collection.teamId,
-        actorId: user.id,
         data: {
           index,
         },
-        ip: ctx.request.ip,
       },
       {
         transaction,
