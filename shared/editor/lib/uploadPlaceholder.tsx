@@ -62,8 +62,7 @@ const uploadPlaceholder = new Plugin({
 
           const img = document.createElement("img");
           img.src = URL.createObjectURL(action.add.file);
-          img.width = action.add.dimensions?.width;
-          img.height = action.add.dimensions?.height;
+          img.style.width = `${action.add.dimensions?.width}px`;
 
           element.appendChild(img);
 
