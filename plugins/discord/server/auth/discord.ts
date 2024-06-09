@@ -120,7 +120,9 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               throw DiscordGuildError();
             }
 
-            /** Get the guild's icon */
+            /** Get the guild's icon
+             * https://discord.com/developers/docs/reference#image-formatting-cdn-endpoints
+             **/
             if (guild.icon) {
               const isGif = guild.icon.startsWith("a_");
               if (isGif) {
