@@ -20,11 +20,14 @@ import {
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
+import Highlight from "@shared/editor/marks/Highlight";
+import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInList } from "@shared/editor/queries/isInList";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
+import CircleIcon from "~/components/Icons/CircleIcon";
 import { Dictionary } from "~/hooks/useDictionary";
 
 export default function formattingMenuItems(
@@ -37,6 +40,12 @@ export default function formattingMenuItems(
   const isCode = isInCode(state);
   const isCodeBlock = isInCode(state, { onlyBlock: true });
   const isEmpty = state.selection.empty;
+
+  const highlight = getMarksBetween(
+    state.selection.from,
+    state.selection.to,
+    state
+  ).find(({ mark }) => mark.type.name === "highlight");
 
   return [
     {
@@ -72,11 +81,21 @@ export default function formattingMenuItems(
       visible: !isCode && (!isMobile || !isEmpty),
     },
     {
-      name: "highlight",
       tooltip: dictionary.mark,
-      icon: <HighlightIcon />,
-      active: isMarkActive(schema.marks.highlight),
+      icon: highlight ? (
+        <CircleIcon color={highlight.mark.attrs.color} />
+      ) : (
+        <HighlightIcon />
+      ),
+      active: () => !!highlight,
       visible: !isCode && (!isMobile || !isEmpty),
+      children: Highlight.colors.map((color, index) => ({
+        name: "highlight",
+        label: Highlight.colorNames[index],
+        icon: <CircleIcon retainColor color={color} />,
+        active: isMarkActive(schema.marks.highlight, { color }),
+        attrs: { color },
+      })),
     },
     {
       name: "code_inline",

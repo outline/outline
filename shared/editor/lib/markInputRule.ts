@@ -1,23 +1,7 @@
 import { InputRule } from "prosemirror-inputrules";
-import { MarkType, Mark } from "prosemirror-model";
+import { MarkType } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
-
-function getMarksBetween(start: number, end: number, state: EditorState) {
-  let marks: { start: number; end: number; mark: Mark }[] = [];
-
-  state.doc.nodesBetween(start, end, (node, pos) => {
-    marks = [
-      ...marks,
-      ...node.marks.map((mark) => ({
-        start: pos,
-        end: pos + node.nodeSize,
-        mark,
-      })),
-    ];
-  });
-
-  return marks;
-}
+import { getMarksBetween } from "../queries/getMarksBetween";
 
 /**
  * A factory function for creating Prosemirror plugins that automatically apply a mark to text

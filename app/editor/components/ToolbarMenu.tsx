@@ -20,7 +20,7 @@ type Props = {
 /*
  * Renders a dropdown menu in the floating toolbar.
  */
-function ToolbarDropdown(props: { item: MenuItem }) {
+function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
   const menu = useMenuState();
   const { commands, view } = useEditor();
   const { item } = props;
@@ -102,7 +102,7 @@ function ToolbarMenu(props: Props) {
             key={index}
           >
             {item.children ? (
-              <ToolbarDropdown item={item} />
+              <ToolbarDropdown active={isActive && !item.label} item={item} />
             ) : (
               <ToolbarButton
                 onClick={handleClick(item)}

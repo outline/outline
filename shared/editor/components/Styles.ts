@@ -1179,11 +1179,10 @@ code {
 
 mark {
   border-radius: 1px;
-  color: ${props.theme.textHighlightForeground};
-  background: ${props.theme.textHighlight};
+  color: ${props.theme.text};
 
   a {
-    color: ${props.theme.textHighlightForeground};
+    color: ${props.theme.text};
   }
 }
 
