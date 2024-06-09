@@ -6,8 +6,8 @@ import { getMarksBetween } from "./getMarksBetween";
 /**
  * Checks if a mark is active in the current selection or not.
  *
- * @param type - The mark type to check.
- * @param attrs - The attributes to check.
+ * @param type The mark type to check.
+ * @param attrs The attributes to check.
  * @returns A function that checks if a mark is active in the current selection or not.
  */
 export const isMarkActive =
