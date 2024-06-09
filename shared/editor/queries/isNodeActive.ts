@@ -3,7 +3,7 @@ import { EditorState } from "prosemirror-state";
 import { Primitive } from "utility-types";
 import { findParentNode } from "./findParentNode";
 
-const isNodeActive =
+export const isNodeActive =
   (type: NodeType, attrs: Record<string, Primitive> = {}) =>
   (state: EditorState) => {
     if (!type) {
@@ -26,5 +26,3 @@ const isNodeActive =
 
     return node.hasMarkup(type, { ...node.attrs, ...attrs });
   };
-
-export default isNodeActive;

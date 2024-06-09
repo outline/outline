@@ -1,7 +1,7 @@
 import { NodeType } from "prosemirror-model";
 import { Command, TextSelection } from "prosemirror-state";
 import { findBlockNodes } from "../queries/findChildren";
-import findCollapsedNodes from "../queries/findCollapsedNodes";
+import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 
 export default function splitHeading(type: NodeType): Command {
   return (state, dispatch): boolean => {

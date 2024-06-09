@@ -1,6 +1,6 @@
 import { EditorState } from "prosemirror-state";
-import isMarkActive from "./isMarkActive";
-import isNodeActive from "./isNodeActive";
+import { isMarkActive } from "./isMarkActive";
+import { isNodeActive } from "./isNodeActive";
 
 type Options = {
   /** Only check if the selection is inside a code block. */
@@ -16,10 +16,7 @@ type Options = {
  * @param options The options.
  * @returns True if the selection is inside a code block or code mark.
  */
-export default function isInCode(
-  state: EditorState,
-  options?: Options
-): boolean {
+export function isInCode(state: EditorState, options?: Options): boolean {
   const { nodes, marks } = state.schema;
 
   if (!options?.onlyMark) {

@@ -14,9 +14,9 @@ import {
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findParentNodeClosestToPos } from "../queries/findParentNode";
-import getParentListItem from "../queries/getParentListItem";
-import isInList from "../queries/isInList";
-import isList from "../queries/isList";
+import { getParentListItem } from "../queries/getParentListItem";
+import { isInList } from "../queries/isInList";
+import { isList } from "../queries/isList";
 import Node from "./Node";
 
 export default class ListItem extends Node {

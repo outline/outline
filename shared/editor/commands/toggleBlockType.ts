@@ -1,7 +1,7 @@
 import { setBlockType } from "prosemirror-commands";
 import { NodeType } from "prosemirror-model";
 import { Command } from "prosemirror-state";
-import isNodeActive from "../queries/isNodeActive";
+import { isNodeActive } from "../queries/isNodeActive";
 
 /**
  * Toggles the block type of the current selection between the given type and the toggle type.
