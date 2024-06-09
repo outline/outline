@@ -122,7 +122,12 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
 
             /** Get the guild's icon */
             if (guild.icon) {
-              teamAvatarUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`;
+              const isGif = guild.icon.startsWith("a_");
+              if (isGif) {
+                teamAvatarUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.gif`;
+              } else {
+                teamAvatarUrl = `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`;
+              }
             }
 
             /** Guild Name */
