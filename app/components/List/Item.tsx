@@ -1,6 +1,9 @@
+import {
+  useFocusEffect,
+  useRovingTabIndex,
+} from "@getoutline/react-roving-tabindex";
 import { LocationDescriptor } from "history";
 import * as React from "react";
-import { useFocusEffect, useRovingTabIndex } from "react-roving-tabindex";
 import styled, { useTheme } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
@@ -40,10 +43,8 @@ const ListItem = (
     itemRef = ref;
   }
 
-  const [tabIndex, focused, handleKeyDown, handleClick] = useRovingTabIndex(
-    itemRef as React.RefObject<HTMLAnchorElement>,
-    false
-  );
+  const [tabIndex, focused, handleKeyDown, handleClick, handleFocus] =
+    useRovingTabIndex(itemRef as React.RefObject<HTMLAnchorElement>, false);
 
   useFocusEffect(focused, itemRef as React.RefObject<HTMLAnchorElement>);
 
@@ -88,6 +89,7 @@ const ListItem = (
           }
           handleClick();
         }}
+        onFocus={handleFocus}
         as={NavLink}
         to={to}
       >

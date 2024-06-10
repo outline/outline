@@ -1,7 +1,10 @@
+import {
+  useFocusEffect,
+  useRovingTabIndex,
+} from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { useFocusEffect, useRovingTabIndex } from "react-roving-tabindex";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s, ellipsis } from "@shared/styles";
@@ -40,10 +43,8 @@ function DocumentListItem(
     itemRef = ref;
   }
 
-  const [tabIndex, focused, handleKeyDown, handleClick] = useRovingTabIndex(
-    itemRef,
-    false
-  );
+  const [tabIndex, focused, handleKeyDown, handleClick, handleFocus] =
+    useRovingTabIndex(itemRef, false);
 
   useFocusEffect(focused, itemRef);
 
@@ -68,6 +69,7 @@ function DocumentListItem(
         }
         handleClick();
       }}
+      onFocus={handleFocus}
     >
       <Content>
         <Heading dir={document.dir}>

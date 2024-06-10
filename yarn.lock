@@ -2776,6 +2776,13 @@
   dependencies:
     prop-types "^15.8.1"
 
+"@getoutline/react-roving-tabindex@^3.2.1":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@getoutline/react-roving-tabindex/-/react-roving-tabindex-3.2.1.tgz#9702fccc10f361afabe37fd91d945b19ae964774"
+  integrity sha512-mS1dkFa+ToLuPJWeX7FI8wk5ljltutGKIik+rg/MNCaukkehP0V8N7NC8U5jqN6Vn9XLrDdfuekDnSsbUjvcsw==
+  dependencies:
+    warning "^4.0.3"
+
 "@getoutline/y-prosemirror@^1.0.18":
   version "1.0.18"
   resolved "https://registry.yarnpkg.com/@getoutline/y-prosemirror/-/y-prosemirror-1.0.18.tgz#17245c0362d30adb85131c86fb9a59358884b234"
@@ -13278,13 +13285,6 @@ react-router@5.3.4:
     react-is "^16.6.0"
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
-
-react-roving-tabindex@^3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/react-roving-tabindex/-/react-roving-tabindex-3.2.0.tgz#fb21d365fe5fe9b345cd4228f6b17b1207fd7cd2"
-  integrity sha512-WY5d46Y/QuS2zgXs4MgYJlmi3uIyq7M9UD4l3SWim8ClnyV1L3r84brxElLxEBXdKuWFUbll9mOBpxfcDZsCVQ==
-  dependencies:
-    warning "^4.0.3"
 
 react-style-singleton@^2.2.1:
   version "2.2.1"
