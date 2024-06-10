@@ -20,10 +20,12 @@ class DiscordPluginEnvironment extends Environment {
   );
 
   @IsOptional()
+  @CannotUseWithout("DISCORD_CLIENT_SECRET")
   public DISCORD_SERVER_ID = this.toOptionalString(
     environment.DISCORD_SERVER_ID
   );
 
+  @CannotUseWithout("DISCORD_SERVER_ID")
   @IsOptional()
   public DISCORD_SERVER_ROLES = this.toOptionalCommaList(
     environment.DISCORD_SERVER_ROLES
