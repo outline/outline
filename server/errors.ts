@@ -210,7 +210,7 @@ export function ClientClosedRequestError(
 }
 
 export function DiscordGuildError(
-  message = "User is not a member of the required server"
+  message = "User is not a member of the required Discord server"
 ) {
   return httpErrors(400, message, {
     id: "discord_guild_error",
@@ -218,7 +218,7 @@ export function DiscordGuildError(
 }
 
 export function DiscordGuildRoleError(
-  message = "User does not have the required role"
+  message = "User does not have the required role from the Discord server"
 ) {
   return httpErrors(400, message, {
     id: "discord_guild_role_error",
