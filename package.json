@@ -285,7 +285,7 @@
     "@types/mermaid": "^9.2.0",
     "@types/mime-types": "^2.1.4",
     "@types/natural-sort": "^0.0.24",
-    "@types/node": "20.10.0",
+    "@types/node": "20.14.2",
     "@types/node-fetch": "^2.6.9",
     "@types/nodemailer": "^6.4.14",
     "@types/passport-oauth2": "^1.4.17",
