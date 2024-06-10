@@ -6,11 +6,14 @@ import {
   Schema,
 } from "prosemirror-model";
 import { Command, TextSelection } from "prosemirror-state";
+import * as React from "react";
 import { Primitive } from "utility-types";
-import { MentionType } from "@shared/types";
+import { MentionType } from "../../types";
+import { MentionDocument, MentionUser } from "../components/Mentions";
 import Extension from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import mentionRule from "../rules/mention";
+import { ComponentProps } from "../types";
 
 export default class Mention extends Extension {
   get type() {
@@ -51,14 +54,10 @@ export default class Mention extends Extension {
         },
       ],
       toDOM: (node) => [
-        "a",
+        "span",
         {
-          class: `${node.type.name} mention-${node.attrs.type} use-hover-preview`,
+          class: `${node.type.name} use-hover-preview`,
           id: node.attrs.id,
-          href:
-            node.attrs.type === MentionType.User
-              ? undefined
-              : `/doc/${node.attrs.modelId}`,
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorId": node.attrs.actorId,
@@ -69,6 +68,17 @@ export default class Mention extends Extension {
       toPlainText: (node) => `@${node.attrs.label}`,
     };
   }
+
+  component = (props: ComponentProps) => {
+    switch (props.node.attrs.type) {
+      case MentionType.User:
+        return <MentionUser {...props} />;
+      case MentionType.Document:
+        return <MentionDocument {...props} />;
+      default:
+        return null;
+    }
+  };
 
   get rulePlugins() {
     return [mentionRule];
