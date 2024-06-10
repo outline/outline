@@ -1,4 +1,3 @@
-import { toggleMark } from "prosemirror-commands";
 import { InputRule } from "prosemirror-inputrules";
 import { ParseSpec } from "prosemirror-markdown";
 import {
@@ -8,6 +7,7 @@ import {
   Schema,
 } from "prosemirror-model";
 import { Command } from "prosemirror-state";
+import { toggleMark } from "../commands/toggleMark";
 import Extension, { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 
