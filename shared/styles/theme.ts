@@ -4,7 +4,7 @@ import breakpoints from "./breakpoints";
 
 const defaultColors: Colors = {
   transparent: "transparent",
-  almostBlack: "#111319",
+  almostBlack: "#ff0000",
   lightBlack: "#2F3336",
   almostWhite: "#E6E6E6",
   veryDarkBlue: "#08090C",
