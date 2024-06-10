@@ -294,8 +294,12 @@ width: 100%;
   font-size: 0.9em;
   cursor: default;
 
-  &:before {
+  &.mention-user:before {
     content: "@";
+  }
+
+  &.mention-document:before {
+    content: "+";
   }
 }
 

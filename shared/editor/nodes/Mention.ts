@@ -7,6 +7,7 @@ import {
 } from "prosemirror-model";
 import { Command, TextSelection } from "prosemirror-state";
 import { Primitive } from "utility-types";
+import { MentionType } from "@shared/types";
 import Extension from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import mentionRule from "../rules/mention";
@@ -50,10 +51,14 @@ export default class Mention extends Extension {
         },
       ],
       toDOM: (node) => [
-        "span",
+        "a",
         {
-          class: `${node.type.name} use-hover-preview`,
+          class: `${node.type.name} mention-${node.attrs.type} use-hover-preview`,
           id: node.attrs.id,
+          href:
+            node.attrs.type === MentionType.User
+              ? undefined
+              : `/doc/${node.attrs.modelId}`,
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorId": node.attrs.actorId,

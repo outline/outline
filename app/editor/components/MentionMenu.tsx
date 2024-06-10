@@ -7,6 +7,7 @@ import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import User from "~/models/User";
+import Model from "~/models/base/Model";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import Flex from "~/components/Flex";
@@ -19,7 +20,7 @@ import SuggestionsMenu, {
 
 interface MentionItem extends MenuItem {
   name: string;
-  user: User;
+  model: Model;
   appendSpace: boolean;
   attrs: {
     id: string;
@@ -39,7 +40,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const [loaded, setLoaded] = React.useState(false);
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { t } = useTranslation();
-  const { auth, users } = useStores();
+  const { auth, documents, users } = useStores();
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
   const { data, loading, request } = useRequest(
@@ -60,19 +61,35 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
 
   React.useEffect(() => {
     if (data && !loading) {
-      const items = data.map((user) => ({
-        name: "mention",
-        user,
-        title: user.name,
-        appendSpace: true,
-        attrs: {
-          id: v4(),
-          type: MentionType.User,
-          modelId: user.id,
-          actorId: auth.currentUserId ?? undefined,
-          label: user.name,
-        },
-      }));
+      const items = data
+        .map((user) => ({
+          name: "mention",
+          model: user,
+          title: user.name,
+          appendSpace: true,
+          attrs: {
+            id: v4(),
+            type: MentionType.User,
+            modelId: user.id,
+            actorId: auth.currentUserId ?? undefined,
+            label: user.name,
+          },
+        }))
+        .concat(
+          documents.orderedData.map((doc) => ({
+            name: "mention",
+            model: doc,
+            title: doc.title,
+            appendSpace: true,
+            attrs: {
+              id: v4(),
+              type: MentionType.Document,
+              modelId: doc.id,
+              actorId: auth.currentUserId ?? undefined,
+              label: doc.title,
+            },
+          }))
+        );
 
       setItems(items);
       setLoaded(true);
@@ -105,7 +122,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               style={{ width: 24, height: 24 }}
             >
               <Avatar
-                model={item.user}
+                model={item.model as User}
                 showBorder={false}
                 alt={t("Profile picture")}
                 size={AvatarSize.Small}
