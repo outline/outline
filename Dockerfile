@@ -1,5 +1,5 @@
 ARG APP_PATH=/opt/outline
-FROM ghcr.io/arch-storm/outline-base as base
+FROM ghcr.io/arch-storm/outline-base:main as base
 
 ARG APP_PATH
 WORKDIR $APP_PATH
