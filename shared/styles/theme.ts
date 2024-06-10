@@ -4,7 +4,7 @@ import breakpoints from "./breakpoints";
 
 const defaultColors: Colors = {
   transparent: "transparent",
-  almostBlack: "#ff0000",
+  almostBlack: "#111111",
   lightBlack: "#2F3336",
   almostWhite: "#E6E6E6",
   veryDarkBlue: "#08090C",
@@ -42,6 +42,35 @@ const defaultColors: Colors = {
   },
 };
 
+const catppuccinColors = {
+  rosewater: "#f5e0dc",
+  flamingo: "#f2cdcd",
+  pink: "#f5c2e7",
+  mauve: "#cba6f7",
+  red: "#f38ba8",
+  maroon: "#eba0ac",
+  peach: "#fab387",
+  yellow: "#f9e2af",
+  green: "#a6e3a1",
+  teal: "#94e2d5",
+  sky: "#89dceb",
+  sapphire: "#74c7ec",
+  blue: "#89b4fa",
+  lavender: "#b4befe",
+  text: "#cdd6f4",
+  subtext1: "#bac2de",
+  subtext0: "#a6adc8",
+  overlay2: "#9399b2",
+  overlay1: "#7f849c",
+  overlay0: "#6c7086",
+  surface2: "#585b70",
+  surface1: "#45475a",
+  surface0: "#313244",
+  base: "#1e1e2e",
+  mantle: "#181825",
+  crust: "#11111b",
+};
+
 const spacing = {
   sidebarWidth: 260,
   sidebarRightWidth: 300,
@@ -53,6 +82,7 @@ const spacing = {
 const buildBaseTheme = (input: Partial<Colors>) => {
   const colors = {
     ...defaultColors,
+    ...catppuccinColors,
     ...input,
   };
 
@@ -170,39 +200,39 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
   return {
     ...colors,
     isDark: true,
-    background: colors.almostBlack,
+    background: colors.base,
     secondaryBackground: colors.black50,
-    link: "#137FFB",
-    text: colors.almostWhite,
-    cursor: colors.almostWhite,
-    textSecondary: lighten(0.1, colors.slate),
-    textTertiary: colors.slate,
+    link: colors.blue,
+    text: colors.text,
+    cursor: colors.rosewater,
+    textSecondary: colors.subtext1,
+    textTertiary: colors.subtext0,
     textDiffInserted: colors.almostWhite,
     textDiffInsertedBackground: "rgba(63,185,80,0.3)",
     textDiffDeleted: darken(0.1, colors.almostWhite),
     textDiffDeletedBackground: "rgba(248,81,73,0.15)",
     placeholder: "#596673",
-    sidebarBackground: colors.veryDarkBlue,
-    sidebarActiveBackground: lighten(0.02, colors.almostBlack),
+    sidebarBackground: colors.mantle,
+    sidebarActiveBackground: colors.surface0,
     sidebarControlHoverBackground: colors.white10,
     sidebarDraftBorder: darken("0.35", colors.slate),
-    sidebarText: colors.slate,
+    sidebarText: colors.text,
     backdrop: "rgba(0, 0, 0, 0.5)",
     shadow: "rgba(0, 0, 0, 0.6)",
 
     commentBackground: "#1f232e",
 
     modalBackdrop: colors.black50,
-    modalBackground: "#1f2128",
+    modalBackground: colors.base,
     modalShadow:
       "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
 
-    menuItemSelected: lighten(0.1, "#1f2128"),
-    menuBackground: "#1f2128",
+    menuItemSelected: colors.surface0,
+    menuBackground: colors.base,
     menuShadow:
       "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
-    divider: lighten(0.1, colors.almostBlack),
-    titleBarDivider: darken(0.4, colors.slate),
+    divider: colors.surface0,
+    titleBarDivider: colors.overlay0,
     inputBorder: colors.slateDark,
     inputBorderFocused: colors.slate,
     listItemHoverBackground: colors.white10,
