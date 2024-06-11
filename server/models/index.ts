@@ -8,6 +8,8 @@ export { default as Backlink } from "./Backlink";
 
 export { default as Collection } from "./Collection";
 
+export { default as DataAttribute } from "./DataAttribute";
+
 export { default as GroupMembership } from "./GroupMembership";
 
 export { default as UserMembership } from "./UserMembership";

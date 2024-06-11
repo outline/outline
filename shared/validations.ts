@@ -26,6 +26,13 @@ export const ApiKeyValidation = {
   maxNameLength: 255,
 };
 
+export const DataAttributeValidation = {
+  /** The minimum length of the name */
+  minNameLength: 3,
+  /** The maximum length of the name */
+  maxNameLength: 255,
+};
+
 export const CollectionValidation = {
   /** The maximum length of the collection description */
   maxDescriptionLength: 10 * 1000,

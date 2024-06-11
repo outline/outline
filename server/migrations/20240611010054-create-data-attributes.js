@@ -19,6 +19,14 @@ module.exports = {
               model: "users",
             },
           },
+          teamId: {
+            type: Sequelize.UUID,
+            allowNull: false,
+            onDelete: "cascade",
+            references: {
+              model: "teams",
+              }
+          },
           name: {
             type: Sequelize.STRING,
             allowNull: false,
@@ -106,8 +114,8 @@ module.exports = {
   },
   down: async (queryInterface, Sequelize) => {
     await queryInterface.sequelize.transaction(async (transaction) => {
-      await queryInterface.dropTable("data_attributes", { transaction });
       await queryInterface.dropTable("document_data_attributes", { transaction });
+      await queryInterface.dropTable("data_attributes", { transaction });
     });
   }
 };
