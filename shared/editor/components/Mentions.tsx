@@ -1,25 +1,38 @@
 import * as React from "react";
+import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
 
 export function MentionUser(props: ComponentProps) {
-  const { isSelected, node, isEditable, children, onChangeSize } = props;
+  const { isSelected, stores, node } = props;
+  const user = stores.users.get(node.attrs.modelId);
 
   return (
-    <span className={isSelected ? `ProseMirror-selectednode` : undefined}>
-      @{node.attrs.label}
+    <span
+      className={cn({
+        "ProseMirror-selectednode": isSelected,
+        "use-hover-preview": true,
+        mention: true,
+      })}
+    >
+      @{user?.name || node.attrs.label}
     </span>
   );
 }
 
 export function MentionDocument(props: ComponentProps) {
-  const { isSelected, node, isEditable, children, onChangeSize } = props;
+  const { isSelected, stores, node } = props;
+  const doc = stores.documents.get(node.attrs.modelId);
 
   return (
     <a
-      className={isSelected ? `ProseMirror-selectednode` : undefined}
+      className={cn({
+        "ProseMirror-selectednode": isSelected,
+        "use-hover-preview": true,
+        mention: true,
+      })}
       href={`/doc/${node.attrs.modelId}`}
     >
-      +{node.attrs.label}
+      {doc?.emoji || "+"} {doc?.title || node.attrs.label}
     </a>
   );
 }

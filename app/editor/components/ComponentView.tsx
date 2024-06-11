@@ -5,6 +5,7 @@ import ReactDOM from "react-dom";
 import { ThemeProvider } from "styled-components";
 import Extension from "@shared/editor/lib/Extension";
 import { ComponentProps } from "@shared/editor/types";
+import stores from "~/stores";
 import { Editor } from "~/editor";
 
 type Component = (props: ComponentProps) => React.ReactElement;
@@ -63,6 +64,7 @@ export default class ComponentView {
 
     const children = this.component({
       theme,
+      stores,
       node: this.node,
       view: this.view,
       isSelected: this.isSelected,

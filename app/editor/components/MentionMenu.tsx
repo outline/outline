@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
@@ -11,6 +12,7 @@ import Model from "~/models/base/Model";
 import Avatar from "~/components/Avatar";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import Flex from "~/components/Flex";
+import EmojiIcon from "~/components/Icons/EmojiIcon";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import MentionMenuItem from "./MentionMenuItem";
@@ -19,8 +21,6 @@ import SuggestionsMenu, {
 } from "./SuggestionsMenu";
 
 interface MentionItem extends MenuItem {
-  name: string;
-  model: Model;
   appendSpace: boolean;
   attrs: {
     id: string;
@@ -64,7 +64,20 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       const items = data
         .map((user) => ({
           name: "mention",
-          model: user,
+          icon: (
+            <Flex
+              align="center"
+              justify="center"
+              style={{ width: 24, height: 24 }}
+            >
+              <Avatar
+                model={user}
+                showBorder={false}
+                alt={t("Profile picture")}
+                size={AvatarSize.Small}
+              />
+            </Flex>
+          ),
           title: user.name,
           appendSpace: true,
           attrs: {
@@ -78,7 +91,11 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
         .concat(
           documents.orderedData.map((doc) => ({
             name: "mention",
-            model: doc,
+            icon: doc.emoji ? (
+              <EmojiIcon emoji={doc.emoji} />
+            ) : (
+              <DocumentIcon />
+            ),
             title: doc.title,
             appendSpace: true,
             attrs: {
@@ -115,20 +132,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
           selected={options.selected}
           title={item.title}
           label={item.attrs.label}
-          icon={
-            <Flex
-              align="center"
-              justify="center"
-              style={{ width: 24, height: 24 }}
-            >
-              <Avatar
-                model={item.model as User}
-                showBorder={false}
-                alt={t("Profile picture")}
-                size={AvatarSize.Small}
-              />
-            </Flex>
-          }
+          icon={item.icon}
         />
       )}
       items={items}
