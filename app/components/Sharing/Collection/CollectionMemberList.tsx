@@ -53,16 +53,16 @@ function CollectionMemberList({ collection, invitedInSession }: Props) {
     () =>
       [
         {
-          label: t("Admin"),
-          value: CollectionPermission.Admin,
+          label: t("View only"),
+          value: CollectionPermission.Read,
         },
         {
           label: t("Can edit"),
           value: CollectionPermission.ReadWrite,
         },
         {
-          label: t("View only"),
-          value: CollectionPermission.Read,
+          label: t("Manage"),
+          value: CollectionPermission.Admin,
         },
         {
           divider: true,
