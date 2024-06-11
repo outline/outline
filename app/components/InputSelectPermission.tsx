@@ -24,14 +24,15 @@ function InputSelectPermission(
       label={t("Permission")}
       options={[
         {
-          label: t("Can edit"),
-          value: CollectionPermission.ReadWrite,
-        },
-        {
           label: t("View only"),
           value: CollectionPermission.Read,
         },
         {
+          label: t("Can edit"),
+          value: CollectionPermission.ReadWrite,
+        },
+        {
+          divider: true,
           label: t("No access"),
           value: EmptySelectValue,
         },

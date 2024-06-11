@@ -26,6 +26,7 @@ allow(User, "read", Document, (actor, document) =>
       includesMembership(document, [
         DocumentPermission.Read,
         DocumentPermission.ReadWrite,
+        DocumentPermission.Admin,
       ]),
       and(!!document?.isDraft, actor.id === document?.createdById),
       can(actor, "readDocument", document?.collection)
@@ -93,7 +94,10 @@ allow(User, "update", Document, (actor, document) =>
     isTeamMutable(actor),
     !!document?.isActive,
     or(
-      includesMembership(document, [DocumentPermission.ReadWrite]),
+      includesMembership(document, [
+        DocumentPermission.ReadWrite,
+        DocumentPermission.Admin,
+      ]),
       or(
         can(actor, "updateDocument", document?.collection),
         and(!!document?.isDraft && actor.id === document?.createdById)
@@ -115,6 +119,7 @@ allow(User, ["move", "duplicate", "manageUsers"], Document, (actor, document) =>
     !actor.isGuest,
     can(actor, "update", document),
     or(
+      includesMembership(document, [DocumentPermission.Admin]),
       can(actor, "updateDocument", document?.collection),
       and(!!document?.isDraft && actor.id === document?.createdById)
     )
@@ -124,6 +129,7 @@ allow(User, ["move", "duplicate", "manageUsers"], Document, (actor, document) =>
 allow(User, "createChildDocument", Document, (actor, document) =>
   and(
     can(actor, "update", document),
+    can(actor, "read", document?.collection),
     !document?.isDraft,
     !document?.template,
     !actor.isGuest
@@ -171,7 +177,10 @@ allow(User, ["restore", "permanentDelete"], Document, (actor, document) =>
     !actor.isGuest,
     !!document?.isDeleted,
     or(
-      includesMembership(document, [DocumentPermission.ReadWrite]),
+      includesMembership(document, [
+        DocumentPermission.ReadWrite,
+        DocumentPermission.Admin,
+      ]),
       or(
         can(actor, "updateDocument", document?.collection),
         and(!!document?.isDraft && actor.id === document?.createdById)
@@ -202,7 +211,10 @@ allow(User, "unarchive", Document, (actor, document) =>
     and(
       can(actor, "read", document),
       or(
-        includesMembership(document, [DocumentPermission.ReadWrite]),
+        includesMembership(document, [
+          DocumentPermission.ReadWrite,
+          DocumentPermission.Admin,
+        ]),
         or(
           can(actor, "updateDocument", document?.collection),
           and(!!document?.isDraft && actor.id === document?.createdById)

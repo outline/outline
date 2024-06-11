@@ -52,6 +52,10 @@ const DocumentMemberListItem = ({
       value: DocumentPermission.ReadWrite,
     },
     {
+      label: t("Manage"),
+      value: DocumentPermission.Admin,
+    },
+    {
       divider: true,
       label: t("Remove"),
       value: EmptySelectValue,
