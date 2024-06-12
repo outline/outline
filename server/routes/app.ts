@@ -52,7 +52,7 @@ export const renderApp = async (
     canonical?: string;
     shortcutIcon?: string;
     rootShareId?: string;
-    analytics?: Integration<IntegrationType.Analytics> | null;
+    analytics?: Integration<IntegrationType.Analytics>[];
   } = {}
 ) => {
   const {
@@ -66,13 +66,17 @@ export const renderApp = async (
     return next();
   }
 
-  if (!env.isCloudHosted && options.analytics?.settings?.instanceUrl) {
-    const parsed = new URL(options.analytics?.settings?.instanceUrl);
-    const csp = ctx.response.get("Content-Security-Policy");
-    ctx.set(
-      "Content-Security-Policy",
-      csp.replace("script-src", `script-src ${parsed.hostname}`)
-    );
+  if (!env.isCloudHosted) {
+    options.analytics?.forEach((integration) => {
+      if (integration.settings?.instanceUrl) {
+        const parsed = new URL(integration.settings?.instanceUrl);
+        const csp = ctx.response.get("Content-Security-Policy");
+        ctx.set(
+          "Content-Security-Policy",
+          csp.replace("script-src", `script-src ${parsed.hostname}`)
+        );
+      }
+    });
   }
 
   const { shareId } = ctx.params;
@@ -121,7 +125,8 @@ export const renderShare = async (ctx: Context, next: Next) => {
   // Find the share record if publicly published so that the document title
   // can be be returned in the server-rendered HTML. This allows it to appear in
   // unfurls with more reliablity
-  let share, document, team, analytics;
+  let share, document, team;
+  let analytics: Integration<IntegrationType.Analytics>[] = [];
 
   try {
     team = await getTeamFromContext(ctx);
@@ -140,7 +145,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     }
     document = result.document;
 
-    analytics = await Integration.findOne({
+    analytics = await Integration.findAll({
       where: {
         teamId: document.teamId,
         type: IntegrationType.Analytics,

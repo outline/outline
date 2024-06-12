@@ -147,13 +147,13 @@ router.get("*", shareDomains(), async (ctx, next) => {
   }
 
   const analytics = team
-    ? await Integration.findOne({
+    ? await Integration.findAll({
         where: {
           teamId: team.id,
           type: IntegrationType.Analytics,
         },
       })
-    : undefined;
+    : [];
 
   return renderApp(ctx, next, {
     analytics,
