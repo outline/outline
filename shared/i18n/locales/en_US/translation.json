@@ -971,7 +971,7 @@
   "Create a \"Web\" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.": "Create a \"Web\" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.",
   "Configure a Matomo installation to send views and analytics from the workspace to your own Matomo instance.": "Configure a Matomo installation to send views and analytics from the workspace to your own Matomo instance.",
   "Instance URL": "Instance URL",
-  "The URL of your Matomo instance. If you are using Matomo Cloud, the it will end in matomo.cloud/": "The URL of your Matomo instance. If you are using Matomo Cloud, the it will end in matomo.cloud/",
+  "The URL of your Matomo instance. If you are using Matomo Cloud it will end in matomo.cloud/": "The URL of your Matomo instance. If you are using Matomo Cloud it will end in matomo.cloud/",
   "Site ID": "Site ID",
   "An ID that uniquely identifies the website in your Matomo instance.": "An ID that uniquely identifies the website in your Matomo instance.",
   "Add to Slack": "Add to Slack",
