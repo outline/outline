@@ -1,0 +1,6 @@
+{
+  "id": "googleanalytics",
+  "name": "Google Analytics",
+  "priority": 20,
+  "description": "Adds support for reporting analytics to a Google."
+}

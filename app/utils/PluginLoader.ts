@@ -8,6 +8,7 @@ interface Plugin {
     description: string;
     roles?: UserRole[];
     deployments?: string[];
+    priority?: number;
   };
   settings: React.FC;
   icon: React.FC<{ size?: number; fill?: string }>;
