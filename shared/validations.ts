@@ -22,6 +22,7 @@ export const AttachmentValidation = {
 export const ApiKeyValidation = {
   /** The minimum length of the API key name */
   minNameLength: 3,
+
   /** The maximum length of the API key name */
   maxNameLength: 255,
 };
@@ -29,8 +30,12 @@ export const ApiKeyValidation = {
 export const DataAttributeValidation = {
   /** The minimum length of the name */
   minNameLength: 3,
+
   /** The maximum length of the name */
   maxNameLength: 255,
+
+  /** The maximum number of data attributes */
+  max: 25,
 };
 
 export const CollectionValidation = {

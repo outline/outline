@@ -14,6 +14,7 @@ import {
   ImportIcon,
   ShapesIcon,
   Icon,
+  DatabaseIcon,
 } from "outline-icons";
 import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
@@ -29,6 +30,7 @@ import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
 
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
+const DataAttributes = lazy(() => import("~/scenes/Settings/DataAttributes"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
@@ -118,6 +120,14 @@ const useSettingsConfig = () => {
         enabled: can.update,
         group: t("Workspace"),
         icon: BeakerIcon,
+      },
+      {
+        name: t("Attributes"),
+        path: settingsPath("attributes"),
+        component: DataAttributes,
+        enabled: can.createDataAttribute,
+        group: t("Workspace"),
+        icon: DatabaseIcon,
       },
       {
         name: t("Members"),

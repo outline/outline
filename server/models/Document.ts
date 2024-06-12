@@ -54,6 +54,7 @@ import { ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
+import DocumentDataAttribute from "./DocumentDataAttribute";
 import FileOperation from "./FileOperation";
 import Revision from "./Revision";
 import Star from "./Star";
@@ -86,6 +87,10 @@ type AdditionalFindOptions = {
       model: User,
       as: "updatedBy",
       paranoid: false,
+    },
+    {
+      model: DocumentDataAttribute,
+      as: "dataAttributes",
     },
   ],
   where: {
@@ -553,6 +558,9 @@ class Document extends ParanoidModel<
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
+
+  @HasMany(() => DocumentDataAttribute)
+  dataAttributes: DocumentDataAttribute[];
 
   @HasMany(() => UserMembership)
   memberships: UserMembership[];

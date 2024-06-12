@@ -6,6 +6,7 @@ import AuthStore from "./AuthStore";
 import AuthenticationProvidersStore from "./AuthenticationProvidersStore";
 import CollectionsStore from "./CollectionsStore";
 import CommentsStore from "./CommentsStore";
+import DataAttributesStore from "./DataAttributesStore";
 import DialogsStore from "./DialogsStore";
 import DocumentPresenceStore from "./DocumentPresenceStore";
 import DocumentsStore from "./DocumentsStore";
@@ -39,6 +40,7 @@ export default class RootStore {
   groupMemberships: GroupMembershipsStore;
   comments: CommentsStore;
   dialogs: DialogsStore;
+  dataAttributes: DataAttributesStore;
   documents: DocumentsStore;
   events: EventsStore;
   groups: GroupsStore;
@@ -68,6 +70,7 @@ export default class RootStore {
     this.registerStore(CollectionsStore);
     this.registerStore(GroupMembershipsStore);
     this.registerStore(CommentsStore);
+    this.registerStore(DataAttributesStore);
     this.registerStore(DocumentsStore);
     this.registerStore(EventsStore);
     this.registerStore(GroupsStore);
