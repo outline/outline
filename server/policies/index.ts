@@ -9,6 +9,7 @@ import {
   Group,
   Notification,
   UserMembership,
+  DataAttribute,
 } from "@server/models";
 import { _abilities, _can, _cannot, _authorize } from "./cancan";
 import "./apiKey";
@@ -16,6 +17,7 @@ import "./attachment";
 import "./authenticationProvider";
 import "./collection";
 import "./comment";
+import "./dataAttribute";
 import "./document";
 import "./fileOperation";
 import "./integration";
@@ -54,6 +56,7 @@ export function serialize(
     | Attachment
     | Collection
     | Comment
+    | DataAttribute
     | FileOperation
     | Team
     | Document

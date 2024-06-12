@@ -1,12 +1,14 @@
-import DataAttribute from "@server/models/DataAttribute";
+import DocumentDataAttribute from "@server/models/DocumentDataAttribute";
 
-export default function presentDataAttribute(dataAttribute: DataAttribute) {
+export default function presentDocumentDataAttribute(
+  dataAttribute: DocumentDataAttribute
+) {
   return {
     id: dataAttribute.id,
-    name: dataAttribute.name,
-    description: dataAttribute.description,
+    value: dataAttribute.value,
+    dataAttributeId: dataAttribute.dataAttributeId,
+    documentId: dataAttribute.documentId,
     createdAt: dataAttribute.createdAt,
     updatedAt: dataAttribute.updatedAt,
-    archivedAt: dataAttribute.archivedAt,
   };
 }

@@ -3,6 +3,7 @@ import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { APIContext } from "@server/types";
+import presentDocumentDataAttribute from "./dataAttribute";
 import presentUser from "./user";
 
 type Options = {
@@ -76,6 +77,9 @@ async function presentDocument(
   if (!options.isPublic) {
     const source = await document.$get("import");
 
+    data.dataAttributes = document.dataAttributes?.map(
+      presentDocumentDataAttribute(dataAttribute)
+    ) ?? [];
     data.isCollectionDeleted = await document.isCollectionDeleted();
     data.collectionId = document.collectionId;
     data.parentDocumentId = document.parentDocumentId;

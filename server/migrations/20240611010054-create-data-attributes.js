@@ -25,7 +25,7 @@ module.exports = {
             onDelete: "cascade",
             references: {
               model: "teams",
-              }
+            }
           },
           name: {
             type: Sequelize.STRING,
@@ -60,11 +60,17 @@ module.exports = {
             type: Sequelize.DATE,
             allowNull: false,
           },
-          archivedAt: {
+          deletedAt: {
             type: Sequelize.DATE,
             allowNull: true,
           },
         },
+        { transaction }
+      );
+
+      await queryInterface.addIndex(
+        "data_attributes",
+        ["teamId"],
         { transaction }
       );
 
@@ -75,6 +81,14 @@ module.exports = {
             type: Sequelize.UUID,
             allowNull: false,
             primaryKey: true,
+          },
+          userId: {
+            type: Sequelize.UUID,
+            allowNull: false,
+            onDelete: "cascade",
+            references: {
+              model: "users",
+            }
           },
           documentId: {
             type: Sequelize.UUID,
