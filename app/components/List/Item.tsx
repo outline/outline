@@ -44,7 +44,10 @@ const ListItem = (
   }
 
   const [tabIndex, focused, handleKeyDown, handleClick, handleFocus] =
-    useRovingTabIndex(itemRef as React.RefObject<HTMLAnchorElement>, false);
+    useRovingTabIndex(
+      itemRef as React.RefObject<HTMLAnchorElement>,
+      to ? false : true
+    );
 
   useFocusEffect(focused, itemRef as React.RefObject<HTMLAnchorElement>);
 
@@ -99,20 +102,7 @@ const ListItem = (
   }
 
   return (
-    <Wrapper
-      ref={itemRef}
-      $border={border}
-      $small={small}
-      {...rest}
-      tabIndex={tabIndex}
-      onKeyDown={handleKeyDown}
-      onClick={(ev) => {
-        if (rest.onClick) {
-          rest.onClick(ev);
-        }
-        handleClick();
-      }}
-    >
+    <Wrapper ref={itemRef} $border={border} $small={small} {...rest}>
       {content(false)}
     </Wrapper>
   );
