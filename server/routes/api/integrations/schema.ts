@@ -51,7 +51,12 @@ export const IntegrationsCreateSchema = BaseSchema.extend({
           channelId: z.string(),
         })
       )
-      .or(z.object({ measurementId: z.string() }))
+      .or(
+        z.object({
+          measurementId: z.string(),
+          instanceUrl: z.string().url().optional(),
+        })
+      )
       .or(z.object({ serviceTeamId: z.string() }))
       .optional(),
   }),
@@ -74,7 +79,12 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
           channelId: z.string(),
         })
       )
-      .or(z.object({ measurementId: z.string() }))
+      .or(
+        z.object({
+          measurementId: z.string(),
+          instanceUrl: z.string().url().optional(),
+        })
+      )
       .or(z.object({ serviceTeamId: z.string() }))
       .optional(),
 

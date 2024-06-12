@@ -1,6 +1,6 @@
 {
   "id": "google",
   "name": "Google",
-  "priority": 10,
+  "priority": 0,
   "description": "Adds a Google authentication provider."
 }
