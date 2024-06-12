@@ -8,7 +8,6 @@ type Options = {
   openRegex: RegExp;
   closeRegex: RegExp;
   enabledInCode: true;
-  enabledInTable: true;
 };
 
 type ExtensionState = {
