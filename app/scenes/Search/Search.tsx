@@ -178,19 +178,9 @@ function Search(props: Props) {
         }
       }
 
-      const firstResultItem = (
-        resultListRef.current?.querySelectorAll(
-          "[href]"
-        ) as NodeListOf<HTMLAnchorElement>
-      )?.[0];
+      const firstItem = (resultListRef.current?.firstElementChild ??
+        recentSearchesRef.current?.firstElementChild) as HTMLAnchorElement;
 
-      const firstRecentSearchItem = (
-        recentSearchesRef.current?.querySelectorAll(
-          "li > [href]"
-        ) as NodeListOf<HTMLAnchorElement>
-      )?.[0];
-
-      const firstItem = firstResultItem ?? firstRecentSearchItem;
       firstItem?.focus();
     }
   };
