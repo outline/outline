@@ -55,7 +55,7 @@ function AppSidebar() {
   );
 
   return (
-    <Sidebar ref={handleSidebarRef}>
+    <Sidebar hidden={!ui.readyToShow} ref={handleSidebarRef}>
       <HistoryNavigation />
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>

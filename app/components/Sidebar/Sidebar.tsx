@@ -24,11 +24,12 @@ const ANIMATION_MS = 250;
 
 type Props = {
   children: React.ReactNode;
+  hidden?: boolean;
   className?: string;
 };
 
 const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
-  { children, className }: Props,
+  { children, hidden = false, className }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
@@ -178,7 +179,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       <Container
         ref={ref}
         style={style}
-        $visible={ui.readyToShow}
+        $hidden={hidden}
         $isHovering={isHovering}
         $isAnimating={isAnimating}
         $isSmallerThanMinimum={isSmallerThanMinimum}
@@ -250,7 +251,7 @@ type ContainerProps = {
   $isSmallerThanMinimum: boolean;
   $isHovering: boolean;
   $collapsed: boolean;
-  $visible: boolean;
+  $hidden: boolean;
 };
 
 const hoverStyles = (props: ContainerProps) => `
@@ -269,7 +270,7 @@ const hoverStyles = (props: ContainerProps) => `
 `;
 
 const Container = styled(Flex)<ContainerProps>`
-  opacity: ${(props) => (props.$visible ? 1 : 0)};
+  opacity: ${(props) => (props.$hidden ? 0 : 1)};
   position: fixed;
   top: 0;
   bottom: 0;
