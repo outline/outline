@@ -206,7 +206,7 @@ function SearchPopover({ shareId }: Props) {
             <NoResults>{t("No results for {{query}}", { query })}</NoResults>
           }
           loading={<PlaceholderList count={3} header={{ height: 20 }} />}
-          renderItem={(item: SearchResult, index, compositeProps) => (
+          renderItem={(item: SearchResult, index) => (
             <SearchListItem
               key={item.document.id}
               shareId={shareId}
@@ -215,7 +215,6 @@ function SearchPopover({ shareId }: Props) {
               context={item.context}
               highlight={cachedQuery}
               onClick={handleSearchItemClick}
-              {...compositeProps}
             />
           )}
         />

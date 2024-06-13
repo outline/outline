@@ -1,18 +1,12 @@
 import { observer } from "mobx-react";
-import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
-import { CompositeItem } from "reakit/Composite";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import Fade from "~/components/Fade";
-import NudeButton from "~/components/NudeButton";
-import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
-import { hover } from "~/styles";
-import { searchPath } from "~/utils/routeHelpers";
+import RecentSearchListItem from "./RecentSearchListItem";
 
 type Props = {
   /** Callback when the Escape key is pressed while navigating the list */
@@ -36,39 +30,20 @@ function RecentSearches(
   const content = searches.recent.length ? (
     <>
       <Heading>{t("Recent searches")}</Heading>
-      <List>
-        <ArrowKeyNavigation
-          ref={ref}
-          onEscape={onEscape}
-          aria-label={t("Search Results")}
-        >
-          {(compositeProps) =>
-            searches.recent.map((searchQuery) => (
-              <ListItem key={searchQuery.id}>
-                <CompositeItem
-                  as={RecentSearch}
-                  to={searchPath(searchQuery.query)}
-                  role="menuitem"
-                  {...compositeProps}
-                >
-                  {searchQuery.query}
-                  <Tooltip content={t("Remove search")} delay={150}>
-                    <RemoveButton
-                      aria-label={t("Remove search")}
-                      onClick={async (ev) => {
-                        ev.preventDefault();
-                        await searchQuery.delete();
-                      }}
-                    >
-                      <CloseIcon />
-                    </RemoveButton>
-                  </Tooltip>
-                </CompositeItem>
-              </ListItem>
-            ))
-          }
-        </ArrowKeyNavigation>
-      </List>
+      <StyledArrowKeyNavigation
+        ref={ref}
+        onEscape={onEscape}
+        aria-label={t("Recent searches")}
+      >
+        {() =>
+          searches.recent.map((searchQuery) => (
+            <RecentSearchListItem
+              key={searchQuery.id}
+              searchQuery={searchQuery}
+            />
+          ))
+        }
+      </StyledArrowKeyNavigation>
     </>
   ) : null;
 
@@ -83,55 +58,9 @@ const Heading = styled.h2`
   margin-bottom: 0;
 `;
 
-const List = styled.ol`
+const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   padding: 0;
   margin-top: 8px;
-`;
-
-const ListItem = styled.li`
-  font-size: 14px;
-  padding: 0;
-  list-style: none;
-  position: relative;
-
-  &:before {
-    content: "·";
-    color: ${s("textTertiary")};
-    position: absolute;
-    left: -8px;
-  }
-`;
-
-const RemoveButton = styled(NudeButton)`
-  opacity: 0;
-  color: ${s("textTertiary")};
-
-  &:hover {
-    color: ${s("text")};
-  }
-`;
-
-const RecentSearch = styled(Link)`
-  display: flex;
-  justify-content: space-between;
-  color: ${s("textSecondary")};
-  cursor: var(--pointer);
-  padding: 1px 4px;
-  border-radius: 4px;
-
-  &:focus-visible {
-    outline: none;
-  }
-
-  &:focus,
-  &: ${hover} {
-    color: ${s("text")};
-    background: ${s("secondaryBackground")};
-
-    ${RemoveButton} {
-      opacity: 1;
-    }
-  }
 `;
 
 export default observer(React.forwardRef(RecentSearches));

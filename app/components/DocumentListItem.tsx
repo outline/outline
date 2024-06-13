@@ -1,8 +1,11 @@
+import {
+  useFocusEffect,
+  useRovingTabIndex,
+} from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { CompositeStateReturn, CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
@@ -32,7 +35,7 @@ type Props = {
   showPin?: boolean;
   showDraft?: boolean;
   showTemplate?: boolean;
-} & CompositeStateReturn;
+};
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
@@ -48,6 +51,15 @@ function DocumentListItem(
   const { t } = useTranslation();
   const user = useCurrentUser();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+
+  let itemRef: React.Ref<HTMLAnchorElement> =
+    React.useRef<HTMLAnchorElement>(null);
+  if (ref) {
+    itemRef = ref;
+  }
+
+  const { focused, ...rovingTabIndex } = useRovingTabIndex(itemRef, false);
+  useFocusEffect(focused, itemRef);
 
   const {
     document,
@@ -68,9 +80,8 @@ function DocumentListItem(
     !document.isDraft && !document.isArchived && !document.isTemplate;
 
   return (
-    <CompositeItem
-      as={DocumentLink}
-      ref={ref}
+    <DocumentLink
+      ref={itemRef}
       dir={document.dir}
       role="menuitem"
       $isStarred={document.isStarred}
@@ -82,6 +93,7 @@ function DocumentListItem(
         },
       }}
       {...rest}
+      {...rovingTabIndex}
     >
       <Content>
         <Heading dir={document.dir}>
@@ -142,7 +154,7 @@ function DocumentListItem(
           modal={false}
         />
       </Actions>
-    </CompositeItem>
+    </DocumentLink>
   );
 }
 

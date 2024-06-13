@@ -2776,6 +2776,13 @@
   dependencies:
     prop-types "^15.8.1"
 
+"@getoutline/react-roving-tabindex@^3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@getoutline/react-roving-tabindex/-/react-roving-tabindex-3.2.2.tgz#a3d957b0aa298d8c601a02a575cbfb263dcd940e"
+  integrity sha512-K8uk2BQpngOTrJUMvw/Ai3zOmKNkEo2wmjnkfgHrpW6eOgzTh3VCDOLdqCMNBNqFlNwJudpVRD6EuXNO77cQ0w==
+  dependencies:
+    warning "^4.0.3"
+
 "@getoutline/y-prosemirror@^1.0.18":
   version "1.0.18"
   resolved "https://registry.yarnpkg.com/@getoutline/y-prosemirror/-/y-prosemirror-1.0.18.tgz#17245c0362d30adb85131c86fb9a59358884b234"
@@ -15379,6 +15386,13 @@ walker@^1.0.8:
   integrity "sha1-vUmNtHev5XPcBBhfAR06uKjXZT8= sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ=="
   dependencies:
     makeerror "1.0.12"
+
+warning@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/warning/-/warning-4.0.3.tgz#16e9e077eb8a86d6af7d64aa1e05fd85b4678ca3"
+  integrity sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==
+  dependencies:
+    loose-envify "^1.0.0"
 
 webidl-conversions@^3.0.0:
   version "3.0.1"

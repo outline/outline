@@ -1,3 +1,7 @@
+import {
+  useFocusEffect,
+  useRovingTabIndex,
+} from "@getoutline/react-roving-tabindex";
 import { LocationDescriptor } from "history";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
@@ -33,6 +37,18 @@ const ListItem = (
   const theme = useTheme();
   const compact = !subtitle;
 
+  let itemRef: React.Ref<HTMLAnchorElement> =
+    React.useRef<HTMLAnchorElement>(null);
+  if (ref) {
+    itemRef = ref;
+  }
+
+  const { focused, ...rovingTabIndex } = useRovingTabIndex(
+    itemRef as React.RefObject<HTMLAnchorElement>,
+    to ? false : true
+  );
+  useFocusEffect(focused, itemRef as React.RefObject<HTMLAnchorElement>);
+
   const content = (selected: boolean) => (
     <>
       {image && <Image>{image}</Image>}
@@ -59,13 +75,20 @@ const ListItem = (
   if (to) {
     return (
       <Wrapper
-        ref={ref}
+        ref={itemRef}
         $border={border}
         $small={small}
         activeStyle={{
           background: theme.accent,
         }}
         {...rest}
+        {...rovingTabIndex}
+        onClick={(ev) => {
+          if (rest.onClick) {
+            rest.onClick(ev);
+          }
+          rovingTabIndex.onClick(ev);
+        }}
         as={NavLink}
         to={to}
       >
@@ -75,7 +98,7 @@ const ListItem = (
   }
 
   return (
-    <Wrapper ref={ref} $border={border} $small={small} {...rest}>
+    <Wrapper ref={itemRef} $border={border} $small={small} {...rest}>
       {content(false)}
     </Wrapper>
   );
