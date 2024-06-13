@@ -53,8 +53,8 @@ function Search(props: Props) {
 
   // refs
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
-  const resultListCompositeRef = React.useRef<HTMLDivElement | null>(null);
-  const recentSearchesCompositeRef = React.useRef<HTMLDivElement | null>(null);
+  const resultListRef = React.useRef<HTMLDivElement | null>(null);
+  const recentSearchesRef = React.useRef<HTMLDivElement | null>(null);
 
   // filters
   const query = decodeURIComponentSafe(routeMatch.params.term ?? "");
@@ -178,19 +178,9 @@ function Search(props: Props) {
         }
       }
 
-      const firstResultItem = (
-        resultListCompositeRef.current?.querySelectorAll(
-          "[href]"
-        ) as NodeListOf<HTMLAnchorElement>
-      )?.[0];
+      const firstItem = (resultListRef.current?.firstElementChild ??
+        recentSearchesRef.current?.firstElementChild) as HTMLAnchorElement;
 
-      const firstRecentSearchItem = (
-        recentSearchesCompositeRef.current?.querySelectorAll(
-          "li > [href]"
-        ) as NodeListOf<HTMLAnchorElement>
-      )?.[0];
-
-      const firstItem = firstResultItem ?? firstRecentSearchItem;
       firstItem?.focus();
     }
   };
@@ -277,11 +267,11 @@ function Search(props: Props) {
             )}
             <ResultList column>
               <StyledArrowKeyNavigation
-                ref={resultListCompositeRef}
+                ref={resultListRef}
                 onEscape={handleEscape}
                 aria-label={t("Search Results")}
               >
-                {(compositeProps) =>
+                {() =>
                   data?.length
                     ? data.map((result) => (
                         <DocumentListItem
@@ -291,7 +281,6 @@ function Search(props: Props) {
                           context={result.context}
                           showCollection
                           showTemplate
-                          {...compositeProps}
                         />
                       ))
                     : null
@@ -305,10 +294,7 @@ function Search(props: Props) {
             </ResultList>
           </>
         ) : documentId || collectionId ? null : (
-          <RecentSearches
-            ref={recentSearchesCompositeRef}
-            onEscape={handleEscape}
-          />
+          <RecentSearches ref={recentSearchesRef} onEscape={handleEscape} />
         )}
       </ResultsWrapper>
     </Scene>

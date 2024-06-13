@@ -42,7 +42,7 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
       fetch={fetch}
       options={options}
       renderError={(props) => <Error {...props} />}
-      renderItem={(item: Document, _index, compositeProps) => (
+      renderItem={(item: Document, _index) => (
         <DocumentListItem
           key={item.id}
           document={item}
@@ -52,7 +52,6 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
           showPublished={showPublished}
           showTemplate={showTemplate}
           showDraft={showDraft}
-          {...compositeProps}
         />
       )}
       {...rest}

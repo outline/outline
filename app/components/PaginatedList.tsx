@@ -4,7 +4,6 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
-import { CompositeStateReturn } from "reakit/Composite";
 import { Pagination } from "@shared/constants";
 import RootStore from "~/stores/RootStore";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
@@ -30,11 +29,7 @@ type Props<T> = WithTranslation &
     loading?: React.ReactElement;
     items?: T[];
     className?: string;
-    renderItem: (
-      item: T,
-      index: number,
-      compositeProps: CompositeStateReturn
-    ) => React.ReactNode;
+    renderItem: (item: T, index: number) => React.ReactNode;
     renderError?: (options: {
       error: Error;
       retry: () => void;
@@ -194,10 +189,10 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
           onEscape={onEscape}
           className={this.props.className}
         >
-          {(composite: CompositeStateReturn) => {
+          {() => {
             let previousHeading = "";
             return items.slice(0, this.renderCount).map((item, index) => {
-              const children = this.props.renderItem(item, index, composite);
+              const children = this.props.renderItem(item, index);
 
               // If there is no renderHeading method passed then no date
               // headings are rendered
