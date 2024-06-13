@@ -43,12 +43,10 @@ const ListItem = (
     itemRef = ref;
   }
 
-  const [tabIndex, focused, handleKeyDown, handleClick, handleFocus] =
-    useRovingTabIndex(
-      itemRef as React.RefObject<HTMLAnchorElement>,
-      to ? false : true
-    );
-
+  const { focused, ...rovingTabIndex } = useRovingTabIndex(
+    itemRef as React.RefObject<HTMLAnchorElement>,
+    to ? false : true
+  );
   useFocusEffect(focused, itemRef as React.RefObject<HTMLAnchorElement>);
 
   const content = (selected: boolean) => (
@@ -84,15 +82,13 @@ const ListItem = (
           background: theme.accent,
         }}
         {...rest}
-        tabIndex={tabIndex}
-        onKeyDown={handleKeyDown}
+        {...rovingTabIndex}
         onClick={(ev) => {
           if (rest.onClick) {
             rest.onClick(ev);
           }
-          handleClick();
+          rovingTabIndex.onClick(ev);
         }}
-        onFocus={handleFocus}
         as={NavLink}
         to={to}
       >

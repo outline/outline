@@ -58,9 +58,7 @@ function DocumentListItem(
     itemRef = ref;
   }
 
-  const [tabIndex, focused, handleKeyDown, handleClick, handleFocus] =
-    useRovingTabIndex(itemRef, false);
-
+  const { focused, ...rovingTabIndex } = useRovingTabIndex(itemRef, false);
   useFocusEffect(focused, itemRef);
 
   const {
@@ -95,10 +93,7 @@ function DocumentListItem(
         },
       }}
       {...rest}
-      tabIndex={tabIndex}
-      onKeyDown={handleKeyDown}
-      onClick={handleClick}
-      onFocus={handleFocus}
+      {...rovingTabIndex}
     >
       <Content>
         <Heading dir={document.dir}>

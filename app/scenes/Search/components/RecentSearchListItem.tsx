@@ -23,19 +23,14 @@ function RecentSearchListItem({ searchQuery }: Props) {
 
   const ref = React.useRef<HTMLAnchorElement>(null);
 
-  const [tabIndex, focused, handleKeyDown, handleClick, handleFocus] =
-    useRovingTabIndex(ref, false);
-
+  const { focused, ...rovingTabIndex } = useRovingTabIndex(ref, false);
   useFocusEffect(focused, ref);
 
   return (
     <RecentSearch
       to={searchPath(searchQuery.query)}
       ref={ref}
-      tabIndex={tabIndex}
-      onKeyDown={handleKeyDown}
-      onClick={handleClick}
-      onFocus={handleFocus}
+      {...rovingTabIndex}
     >
       {searchQuery.query}
       <Tooltip content={t("Remove search")} delay={150}>
