@@ -3,6 +3,7 @@ import { light as defaultTheme } from "@shared/styles/theme";
 import Storage from "@shared/utils/Storage";
 import Document from "~/models/Document";
 import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
+import type RootStore from "./RootStore";
 
 const UI_STORE = "UI_STORE";
 
@@ -82,7 +83,11 @@ class UiStore {
   @observable
   multiplayerErrorCode?: number;
 
-  constructor() {
+  rootStore: RootStore;
+
+  constructor(rootStore: RootStore) {
+    this.rootStore = rootStore;
+
     // Rehydrate
     const data: PersistedData = Storage.get(UI_STORE) || {};
     this.languagePromptDismissed = data.languagePromptDismissed;
@@ -269,6 +274,14 @@ class UiStore {
   hideMobileSidebar = () => {
     this.mobileSidebarVisible = false;
   };
+
+  @computed
+  get readyToShow() {
+    return (
+      !this.rootStore.auth.user ||
+      (this.rootStore.collections.isLoaded && this.rootStore.documents.isLoaded)
+    );
+  }
 
   /**
    * Returns the current state of the sidebar taking into account user preference

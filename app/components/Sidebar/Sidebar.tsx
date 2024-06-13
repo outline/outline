@@ -178,6 +178,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       <Container
         ref={ref}
         style={style}
+        $visible={ui.readyToShow}
         $isHovering={isHovering}
         $isAnimating={isAnimating}
         $isSmallerThanMinimum={isSmallerThanMinimum}
@@ -249,6 +250,7 @@ type ContainerProps = {
   $isSmallerThanMinimum: boolean;
   $isHovering: boolean;
   $collapsed: boolean;
+  $visible: boolean;
 };
 
 const hoverStyles = (props: ContainerProps) => `
@@ -267,13 +269,14 @@ const hoverStyles = (props: ContainerProps) => `
 `;
 
 const Container = styled(Flex)<ContainerProps>`
+  opacity: ${(props) => (props.$visible ? 1 : 0)};
   position: fixed;
   top: 0;
   bottom: 0;
   width: 100%;
   background: ${s("sidebarBackground")};
-  transition: box-shadow 100ms ease-in-out, opacity 100ms ease-in-out,
-    transform 100ms ease-out,
+  transition: box-shadow 150ms ease-in-out, opacity 150ms ease-in-out,
+    transform 150ms ease-out,
     ${s("backgroundTransition")}
       ${(props: ContainerProps) =>
         props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
@@ -316,7 +319,7 @@ const Container = styled(Flex)<ContainerProps>`
 
       & > div {
         opacity: 1;
-      }    
+      }
     }
   `};
 `;
