@@ -69,7 +69,7 @@ class DataAttribute extends ParanoidModel<
   // hooks
   @BeforeCreate
   static async checkMaximumAttributes(model: DataAttribute) {
-    const count = await DataAttribute.count({
+    const count = await this.count({
       where: {
         teamId: model.teamId,
       },

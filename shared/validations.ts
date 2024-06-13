@@ -34,8 +34,17 @@ export const DataAttributeValidation = {
   /** The maximum length of the name */
   maxNameLength: 255,
 
+  /** The maximum length of the description */
+  maxDescriptionLength: 1000,
+
   /** The maximum number of data attributes */
   max: 25,
+
+  /** The maximum number of data attributes that can be pinned */
+  maxPinned: 3,
+
+  /** The maximum number of options for a single attribute */
+  maxOptions: 10,
 };
 
 export const CollectionValidation = {

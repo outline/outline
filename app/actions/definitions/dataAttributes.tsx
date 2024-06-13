@@ -1,6 +1,7 @@
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import stores from "~/stores";
+import { DataAttributeNew } from "~/components/DataAttribute/DataAttributeNew";
 import { createAction } from "..";
 import { SettingsSection } from "../sections";
 
@@ -18,7 +19,7 @@ export const createDataAttribute = createAction({
 
     stores.dialogs.openModal({
       title: t("New attribute"),
-      // content: TODO
+      content: <DataAttributeNew onSubmit={stores.dialogs.closeAllModals} />,
     });
   },
 });

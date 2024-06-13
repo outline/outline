@@ -1,5 +1,5 @@
 import z from "zod";
-import { DataAttributeDataType } from "@server/models/DataAttribute";
+import { DataAttributeDataType } from "@shared/models/types";
 import { BaseSchema } from "../schema";
 
 const BaseIdSchema = z.object({
@@ -34,24 +34,32 @@ export const DataAttributesListSchema = BaseSchema.extend({
 export type DataAttributesListReq = z.infer<typeof DataAttributesListSchema>;
 
 export const DataAttributesCreateSchema = BaseSchema.extend({
-  body: z.object({
-    /** Name of the data attribute */
-    name: z.string(),
+  body: z
+    .object({
+      /** Name of the data attribute */
+      name: z.string(),
 
-    /** Description of the data attribute */
-    description: z.string().optional(),
+      /** Description of the data attribute */
+      description: z.string().optional(),
 
-    /** Type of the data attribute */
-    dataType: z.nativeEnum(DataAttributeDataType),
+      /** Type of the data attribute */
+      dataType: z.nativeEnum(DataAttributeDataType),
 
-    /** Options for the data attribute (if list type) */
-    options: z.object({
-      options: z.array(z.string()),
-    }),
+      /** Options for the data attribute (if list type) */
+      options: z
+        .object({
+          options: z.array(z.string()),
+        })
+        .optional(),
 
-    /** Whether the data attribute is pinned to the top of document */
-    pinned: z.boolean().optional(),
-  }),
+      /** Whether the data attribute is pinned to the top of document */
+      pinned: z.boolean().optional(),
+    })
+    .refine(
+      (val) =>
+        val.dataType !== DataAttributeDataType.List ||
+        (val.dataType === DataAttributeDataType.List && val.options)
+    ),
 });
 
 export type DataAttributesCreateReq = z.infer<

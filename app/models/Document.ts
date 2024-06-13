@@ -62,6 +62,12 @@ export default class Document extends ParanoidModel {
   @observable
   lastViewedAt: string | undefined;
 
+  @observable
+  dataAttributes: {
+    dataAttributeId: string;
+    value: string;
+  }[];
+
   store: DocumentsStore;
 
   @Field

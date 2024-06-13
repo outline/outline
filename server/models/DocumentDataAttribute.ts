@@ -9,7 +9,7 @@ import {
 import DataAttribute from "./DataAttribute";
 import Document from "./Document";
 import User from "./User";
-import Model from "./base/Model";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 @Table({
@@ -17,7 +17,7 @@ import Fix from "./decorators/Fix";
   modelName: "document_data_attribute",
 })
 @Fix
-class DocumentDataAttribute extends Model<
+class DocumentDataAttribute extends IdModel<
   InferAttributes<DocumentDataAttribute>,
   Partial<InferCreationAttributes<DocumentDataAttribute>>
 > {
