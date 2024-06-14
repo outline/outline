@@ -1,7 +1,7 @@
 import { transparentize } from "polished";
 import * as React from "react";
 import styled, { createGlobalStyle } from "styled-components";
-import EventBoundary from "~/components/EventBoundary";
+import EventBoundary from "../../components/EventBoundary";
 import { s } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
