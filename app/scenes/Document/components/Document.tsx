@@ -366,7 +366,7 @@ class DocumentScene extends React.Component<Props> {
     // Keep derived task list in sync
     const tasks = this.editor.current?.getTasks();
     const total = tasks?.length ?? 0;
-    const completed = tasks?.filter(t => t.completed).length ?? 0;
+    const completed = tasks?.filter((t) => t.completed).length ?? 0;
     document.updateTasks(total, completed);
   };
 
@@ -424,32 +424,17 @@ class DocumentScene extends React.Component<Props> {
             }}
           />
         )}
-        <RegisterKeyDown
-          trigger="m"
-          handler={this.onMove}
-        />
-        <RegisterKeyDown
-          trigger="z"
-          handler={this.onUndoRedo}
-        />
-        <RegisterKeyDown
-          trigger="e"
-          handler={this.goToEdit}
-        />
-        <RegisterKeyDown
-          trigger="Escape"
-          handler={this.goBack}
-        />
-        <RegisterKeyDown
-          trigger="h"
-          handler={this.goToHistory}
-        />
+        <RegisterKeyDown trigger="m" handler={this.onMove} />
+        <RegisterKeyDown trigger="z" handler={this.onUndoRedo} />
+        <RegisterKeyDown trigger="e" handler={this.goToEdit} />
+        <RegisterKeyDown trigger="Escape" handler={this.goBack} />
+        <RegisterKeyDown trigger="h" handler={this.goToHistory} />
         <RegisterKeyDown
           trigger="p"
           options={{
             allowInInput: true,
           }}
-          handler={event => {
+          handler={(event) => {
             if (isModKey(event) && event.shiftKey) {
               this.onPublish(event);
             }
@@ -495,39 +480,35 @@ class DocumentScene extends React.Component<Props> {
               headings={this.headings}
             />
             <Flex justify="center">
-              <Notices
-                document={document}
-                readOnly={readOnly}
-              />
+              <Notices document={document} readOnly={readOnly} />
             </Flex>
             <MeasuredContainer
               as={Main}
               name="document"
-              archived={document.isArchived}
-              showContents={showContents}
-              isEditing={!readOnly}
-              isFullWidth={document.fullWidth}
-              column
-              auto
+              fullWidth={document.fullWidth}
+              tocPosition={tocPosition}
             >
               <React.Suspense fallback={<PlaceholderDocument />}>
                 {revision ? (
-                  <RevisionWrapper>
+                  <RevisionContainer docFullWidth={document.fullWidth}>
                     <RevisionViewer
                       document={document}
                       revision={revision}
                       id={revision.id}
                     />
-                  </RevisionWrapper>
+                  </RevisionContainer>
                 ) : (
                   <>
                     {showContents && (
-                      <ContentsWrapper position={tocPosition}>
+                      <ContentsContainer
+                        docFullWidth={document.fullWidth}
+                        position={tocPosition}
+                      >
                         <Contents headings={this.headings} />
-                      </ContentsWrapper>
+                      </ContentsContainer>
                     )}
-                    <EditorWrapper
-                      isFullWidth={document.fullWidth}
+                    <EditorContainer
+                      docFullWidth={document.fullWidth}
                       showContents={showContents}
                       tocPosition={tocPosition}
                     >
@@ -577,7 +558,7 @@ class DocumentScene extends React.Component<Props> {
                           </>
                         )}
                       </Editor>
-                    </EditorWrapper>
+                    </EditorContainer>
                   </>
                 )}
               </React.Suspense>
@@ -600,56 +581,91 @@ class DocumentScene extends React.Component<Props> {
   }
 }
 
-const Main = styled.div`
-  margin-top: 4px;
+type MainProps = {
+  fullWidth: boolean;
+  tocPosition: TOCPosition;
+};
+
+const Main = styled.div<MainProps>`
+  margin-top: 24px;
   margin-bottom: 12px;
 
   ${breakpoint("tablet")`
     display: grid;
-    grid-template-columns: 1fr minmax(0, ${`calc(46em + 64px)`}) 1fr;
+    grid-template-columns: ${({ fullWidth, tocPosition }: MainProps) =>
+      fullWidth
+        ? tocPosition === TOCPosition.Left
+          ? `256px minmax(0, 1fr)`
+          : `minmax(0, 1fr) 256px`
+        : `1fr minmax(0, ${`calc(46em + 76px)`}) 1fr`};
   `};
 
   ${breakpoint("desktopLarge")`
-    grid-template-columns: 1fr minmax(0, ${`calc(52em + 64px)`}) 1fr;
+    grid-template-columns: ${({ fullWidth, tocPosition }: MainProps) =>
+      fullWidth
+        ? tocPosition === TOCPosition.Left
+          ? `256px minmax(0, 1fr)`
+          : `minmax(0, 1fr) 256px`
+        : `1fr minmax(0, ${`calc(52em + 76px)`}) 1fr`};
   `};
 `;
 
-const ContentsWrapper = styled.div<{ position: TOCPosition }>`
+type ContentsContainerProps = {
+  docFullWidth: boolean;
+  position: TOCPosition;
+};
+
+const ContentsContainer = styled.div<ContentsContainerProps>`
   ${breakpoint("tablet")`
     grid-row: 1;
-    grid-column: ${({ position }) => (position === TOCPosition.Left ? 1 : 3)};
-    justify-self: ${({ position }) =>
+    grid-column: ${({ docFullWidth, position }: ContentsContainerProps) =>
+      position === TOCPosition.Left ? 1 : docFullWidth ? 2 : 3};
+    justify-self: ${({ position }: ContentsContainerProps) =>
       position === TOCPosition.Left ? "end" : "start"};
   `};
 `;
 
-const EditorWrapper = styled.div<{
-  isFullWidth: boolean;
+type EditorContainerProps = {
+  docFullWidth: boolean;
   showContents: boolean;
   tocPosition: TOCPosition;
-}>`
-  // Adds space to the gutter to make room for heading annotations
-  padding: 0 32px;
+};
+
+const EditorContainer = styled.div<EditorContainerProps>`
+  // Adds space to the gutter to make room for icon & heading annotations
+  padding: 0 44px;
 
   ${breakpoint("tablet")`
     grid-row: 1;
 
-    // Decides the editor column span
-    grid-column: ${({ isFullWidth, showContents, tocPosition }) =>
-      isFullWidth
+    // Decides the editor column position & span
+    grid-column: ${({
+      docFullWidth,
+      showContents,
+      tocPosition,
+    }: EditorContainerProps) =>
+      docFullWidth
         ? showContents
           ? tocPosition === TOCPosition.Left
-            ? "2 / -1"
-            : "1 / -2"
+            ? 2
+            : 1
           : "1 / -1"
-        : "2"}
+        : 2};
   `};
 `;
 
-const RevisionWrapper = styled.div`
+type RevisionContainerProps = {
+  docFullWidth: boolean;
+};
+
+const RevisionContainer = styled.div<RevisionContainerProps>`
+  // Adds space to the gutter to make room for icon
+  padding: 0 44px;
+
   ${breakpoint("tablet")`
     grid-row: 1;
-    grid-column: 2;
+    grid-column: ${({ docFullWidth }: RevisionContainerProps) =>
+      docFullWidth ? "1 / -1" : 2};
   `}
 `;
 

@@ -81,8 +81,8 @@ const StickyWrapper = styled.div`
   display: none;
 
   position: sticky;
-  top: 130px;
-  max-height: calc(100vh - 130px);
+  top: 90px;
+  max-height: calc(100vh - 90px);
   width: 256px;
 
   padding: 0 16px;
