@@ -520,7 +520,12 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: event.documentId,
-        model: model && (await presentDocument(undefined, model)),
+        model:
+          model &&
+          (await presentDocument(undefined, model, {
+            includeData: true,
+            includeText: true,
+          })),
       },
     });
   }
@@ -546,7 +551,12 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: event.modelId,
         model: model && presentMembership(model),
-        document: model && (await presentDocument(undefined, model.document!)),
+        document:
+          model &&
+          (await presentDocument(undefined, model.document!, {
+            includeData: true,
+            includeText: true,
+          })),
         user: model && presentUser(model.user),
       },
     });
