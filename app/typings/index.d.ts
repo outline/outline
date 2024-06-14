@@ -2,8 +2,6 @@ declare module "autotrack/autotrack.js";
 
 declare module "emoji-mart";
 
-declare module "@emoji-mart/react";
-
 declare module "string-replace-to-array";
 
 declare module "sequelize-encrypted";

@@ -11,7 +11,7 @@ import { CollectionValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import IconPicker from "~/components/IconPicker";
+import Icon from "~/components/Icon";
 import Input from "~/components/Input";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Switch from "~/components/Switch";
@@ -20,10 +20,12 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 
+const IconPicker = React.lazy(() => import("~/components/IconPicker"));
+
 export interface FormData {
   name: string;
   icon: string;
-  color: string;
+  color: string | null;
   sharing: boolean;
   permission: CollectionPermission | undefined;
 }
@@ -37,7 +39,16 @@ export const CollectionForm = observer(function CollectionForm_({
 }) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
+
   const [hasOpenedIconPicker, setHasOpenedIconPicker] = useBoolean(false);
+
+  const iconColor = React.useMemo(
+    () => collection?.color ?? randomElement(colorPalette),
+    [collection?.color]
+  );
+
+  const fallbackIcon = <Icon value={"collection"} color={iconColor} />;
+
   const {
     register,
     handleSubmit: formHandleSubmit,
@@ -53,7 +64,7 @@ export const CollectionForm = observer(function CollectionForm_({
       icon: collection?.icon,
       sharing: collection?.sharing ?? true,
       permission: collection?.permission,
-      color: collection?.color ?? randomElement(colorPalette),
+      color: iconColor,
     },
   });
 
@@ -70,20 +81,20 @@ export const CollectionForm = observer(function CollectionForm_({
           "collection"
       );
     }
-  }, [values.name, collection]);
+  }, [collection, hasOpenedIconPicker, setValue, values.name, values.icon]);
 
   React.useEffect(() => {
     setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
   }, [setFocus]);
 
-  const handleIconPickerChange = React.useCallback(
-    (color: string, icon: string) => {
+  const handleIconChange = React.useCallback(
+    (icon: string, color: string | null) => {
       if (icon !== values.icon) {
         setFocus("name");
       }
 
-      setValue("color", color);
       setValue("icon", icon);
+      setValue("color", color);
     },
     [setFocus, setValue, values.icon]
   );
@@ -105,13 +116,16 @@ export const CollectionForm = observer(function CollectionForm_({
             maxLength: CollectionValidation.maxNameLength,
           })}
           prefix={
-            <StyledIconPicker
-              onOpen={setHasOpenedIconPicker}
-              onChange={handleIconPickerChange}
-              initial={values.name[0]}
-              color={values.color}
-              icon={values.icon}
-            />
+            <React.Suspense fallback={fallbackIcon}>
+              <StyledIconPicker
+                icon={values.icon}
+                color={values.color ?? iconColor}
+                initial={values.name[0]}
+                popoverPosition="right"
+                onOpen={setHasOpenedIconPicker}
+                onChange={handleIconChange}
+              />
+            </React.Suspense>
           }
           autoComplete="off"
           autoFocus

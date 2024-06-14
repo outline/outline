@@ -183,6 +183,7 @@ class Collection extends ParanoidModel<
   @Column(DataType.JSONB)
   content: ProsemirrorData | null;
 
+  /** An icon (or) emoji to use as the collection icon. */
   @Length({
     max: 50,
     msg: `icon must be 50 characters or less`,
@@ -190,6 +191,7 @@ class Collection extends ParanoidModel<
   @Column
   icon: string | null;
 
+  /** The color of the icon. */
   @IsHexColor
   @Column
   color: string | null;
@@ -270,10 +272,6 @@ class Collection extends ParanoidModel<
 
   @BeforeSave
   static async onBeforeSave(model: Collection) {
-    if (model.icon === "collection") {
-      model.icon = null;
-    }
-
     if (!model.content) {
       model.content = await DocumentHelper.toJSON(model);
     }

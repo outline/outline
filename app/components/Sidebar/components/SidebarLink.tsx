@@ -5,7 +5,6 @@ import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
-import EmojiIcon from "~/components/Icons/EmojiIcon";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
 import useUnmount from "~/hooks/useUnmount";
@@ -27,7 +26,6 @@ type Props = Omit<NavLinkProps, "to"> & {
   onClickIntent?: () => void;
   onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
   icon?: React.ReactNode;
-  emoji?: string | null;
   label?: React.ReactNode;
   menu?: React.ReactNode;
   unreadBadge?: boolean;
@@ -52,7 +50,6 @@ function SidebarLink(
     onClick,
     onClickIntent,
     to,
-    emoji,
     label,
     active,
     isActiveDrop,
@@ -142,7 +139,6 @@ function SidebarLink(
             />
           )}
           {icon && <IconWrapper>{icon}</IconWrapper>}
-          {emoji && <EmojiIcon emoji={emoji} />}
           <Label>{label}</Label>
           {unreadBadge && <UnreadBadge />}
         </Content>
@@ -175,7 +171,7 @@ export const IconWrapper = styled.span`
 
 const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   display: inline-flex;
-  visibility: ${(props) => (props.showActions ? "visible" : "hidden")};
+  visibility: ${props => (props.showActions ? "visible" : "hidden")};
   position: absolute;
   top: 4px;
   right: 4px;
@@ -212,23 +208,23 @@ const Link = styled(NavLink)<{
   min-height: 32px;
   transition: background 50ms, color 50ms;
   user-select: none;
-  background: ${(props) =>
+  background: ${props =>
     props.$isActiveDrop ? props.theme.slateDark : "inherit"};
-  color: ${(props) =>
+  color: ${props =>
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
   font-size: 16px;
   cursor: var(--pointer);
   overflow: hidden;
   ${undraggableOnDesktop()}
 
-  ${(props) =>
+  ${props =>
     props.$disabled &&
     css`
       pointer-events: none;
       opacity: 0.75;
     `}
 
-  ${(props) =>
+  ${props =>
     props.$isDraft &&
     css`
       &:after {
@@ -245,7 +241,7 @@ const Link = styled(NavLink)<{
     `}
 
   svg {
-    ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
+    ${props => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
     transition: fill 50ms;
   }
 
@@ -285,7 +281,7 @@ const Link = styled(NavLink)<{
     }
 
     &:hover {
-      color: ${(props) =>
+      color: ${props =>
         props.$isActiveDrop ? props.theme.white : props.theme.text};
     }
   }

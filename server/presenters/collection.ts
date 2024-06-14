@@ -1,4 +1,3 @@
-import { colorPalette } from "@shared/utils/collections";
 import Collection from "@server/models/Collection";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { APIContext } from "@server/types";
@@ -19,7 +18,7 @@ export default async function presentCollection(
     sort: collection.sort,
     icon: collection.icon,
     index: collection.index,
-    color: collection.color || colorPalette[0],
+    color: collection.color,
     permission: collection.permission,
     sharing: collection.sharing,
     createdAt: collection.createdAt,

@@ -2,7 +2,8 @@ import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import { NotificationEventType } from "@shared/types";
+import { IconType, NotificationEventType } from "@shared/types";
+import { determineIconType } from "@shared/utils/icon";
 import UserMembership from "~/models/UserMembership";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
@@ -78,10 +79,11 @@ function SharedWithMeLink({ userMembership }: Props) {
       return null;
     }
 
-    const { emoji } = document;
-    const label = emoji
-      ? document.title.replace(emoji, "")
-      : document.titleWithDefault;
+    const { icon: docIcon } = document;
+    const label =
+      determineIconType(docIcon) === IconType.Emoji
+        ? document.title.replace(docIcon!, "")
+        : document.titleWithDefault;
     const collection = document.collectionId
       ? collections.get(document.collectionId)
       : undefined;

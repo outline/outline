@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import EditorContainer from "@shared/editor/components/Styles";
+import { colorPalette } from "@shared/utils/collections";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import { Props as EditorProps } from "~/components/Editor";
@@ -26,11 +27,15 @@ function RevisionViewer(props: Props) {
   const { document, children, revision } = props;
 
   return (
-    <Flex auto column>
+    <Flex
+      auto
+      column
+    >
       <DocumentTitle
         documentId={revision.documentId}
         title={revision.title}
-        emoji={revision.emoji}
+        icon={revision.icon}
+        color={revision.color ?? colorPalette[0]}
         readOnly
       />
       <DocumentMeta

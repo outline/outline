@@ -9,15 +9,17 @@ import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
 import { s, ellipsis } from "@shared/styles";
+import { IconType } from "@shared/types";
+import { determineIconType } from "@shared/utils/icon";
 import Document from "~/models/Document";
 import Pin from "~/models/Pin";
 import Flex from "~/components/Flex";
+import Icon from "~/components/Icon";
 import NudeButton from "~/components/NudeButton";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import { hover } from "~/styles";
 import CollectionIcon from "./Icons/CollectionIcon";
-import EmojiIcon from "./Icons/EmojiIcon";
 import Text from "./Text";
 import Tooltip from "./Tooltip";
 
@@ -51,6 +53,8 @@ function DocumentCard(props: Props) {
     id: props.document.id,
     disabled: !isDraggable || !canUpdatePin,
   });
+
+  const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -109,12 +113,18 @@ function DocumentCard(props: Props) {
               <path d="M19.5 19.5H6C2.96243 19.5 0.5 17.0376 0.5 14V0.5H0.792893L19.5 19.2071V19.5Z" />
             </Fold>
 
-            {document.emoji ? (
-              <Squircle color={theme.slateLight}>
-                <EmojiIcon emoji={document.emoji} size={24} />
-              </Squircle>
+            {document.icon ? (
+              <DocumentSquircle
+                icon={document.icon}
+                color={document.color ?? undefined}
+              />
             ) : (
-              <Squircle color={collection?.color}>
+              <Squircle
+                color={
+                  collection?.color ??
+                  (!pin?.collectionId ? theme.slateLight : theme.slateDark)
+                }
+              >
                 {collection?.icon &&
                 collection?.icon !== "letter" &&
                 collection?.icon !== "collection" &&
@@ -127,8 +137,8 @@ function DocumentCard(props: Props) {
             )}
             <div>
               <Heading dir={document.dir}>
-                {document.emoji
-                  ? document.titleWithDefault.replace(document.emoji, "")
+                {hasEmojiInTitle
+                  ? document.titleWithDefault.replace(document.icon!, "")
                   : document.titleWithDefault}
               </Heading>
               <DocumentMeta size="xsmall">
@@ -158,6 +168,25 @@ function DocumentCard(props: Props) {
     </Reorderable>
   );
 }
+
+const DocumentSquircle = ({
+  icon,
+  color,
+}: {
+  icon: string;
+  color?: string;
+}) => {
+  const theme = useTheme();
+  const iconType = determineIconType(icon)!;
+  const squircleColor =
+    iconType === IconType.Outline ? color : theme.slateLight;
+
+  return (
+    <Squircle color={squircleColor}>
+      <Icon value={icon} color={theme.white} />
+    </Squircle>
+  );
+};
 
 const Clock = styled(ClockIcon)`
   flex-shrink: 0;

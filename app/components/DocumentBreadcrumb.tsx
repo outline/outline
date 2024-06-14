@@ -6,6 +6,7 @@ import styled from "styled-components";
 import type { NavigationNode } from "@shared/types";
 import Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
+import Icon from "~/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
 import { MenuInternalLink } from "~/types";
@@ -15,7 +16,6 @@ import {
   settingsPath,
   trashPath,
 } from "~/utils/routeHelpers";
-import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
   children?: React.ReactNode;
@@ -106,9 +106,9 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     path.slice(0, -1).forEach((node: NavigationNode) => {
       output.push({
         type: "route",
-        title: node.emoji ? (
+        title: node.icon ? (
           <>
-            <EmojiIcon emoji={node.emoji} /> {node.title}
+            <Icon value={node.icon} color={node.color} /> {node.title}
           </>
         ) : (
           node.title

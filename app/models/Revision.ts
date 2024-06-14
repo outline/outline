@@ -22,8 +22,11 @@ class Revision extends Model {
   /** Prosemirror data of the content when revision was created */
   data: ProsemirrorData;
 
-  /** The emoji of the document when the revision was created */
-  emoji: string | null;
+  /** The icon (or) emoji of the document when the revision was created */
+  icon: string | null;
+
+  /** The color of the document icon when the revision was created */
+  color: string | null;
 
   /** HTML string representing the revision as a diff from the previous version */
   html: string;

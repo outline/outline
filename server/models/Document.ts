@@ -263,6 +263,7 @@ class Document extends ParanoidModel<
   @Column
   emoji: string | null;
 
+  /** An icon to use as the document icon. */
   @Length({
     max: 50,
     msg: `icon must be 50 characters or less`,
@@ -365,7 +366,11 @@ class Document extends ParanoidModel<
       model.archivedAt ||
       model.template ||
       !model.publishedAt ||
-      !(model.changed("title") || model.changed("emoji")) ||
+      !(
+        model.changed("title") ||
+        model.changed("icon") ||
+        model.changed("color")
+      ) ||
       !model.collectionId
     ) {
       return;
@@ -570,7 +575,7 @@ class Document extends ParanoidModel<
       return [];
     }
 
-    return document.memberships.map((membership) => membership.userId);
+    return document.memberships.map(membership => membership.userId);
   }
 
   static defaultScopeWithUser(userId: string) {
@@ -720,7 +725,8 @@ class Document extends ParanoidModel<
     this.content = revision.content;
     this.text = revision.text;
     this.title = revision.title;
-    this.emoji = revision.emoji;
+    this.icon = revision.icon;
+    this.color = revision.color;
   };
 
   /**
@@ -731,7 +737,7 @@ class Document extends ParanoidModel<
    */
   collaborators = async (options?: FindOptions<User>): Promise<User[]> => {
     const users = await Promise.all(
-      this.collaboratorIds.map((collaboratorId) =>
+      this.collaboratorIds.map(collaboratorId =>
         User.findByPk(collaboratorId, options)
       )
     );
@@ -783,7 +789,7 @@ class Document extends ParanoidModel<
         ...options,
       });
 
-      const childDocumentIds = childDocuments.map((doc) => doc.id);
+      const childDocumentIds = childDocuments.map(doc => doc.id);
 
       if (childDocumentIds.length > 0) {
         return [
@@ -864,7 +870,7 @@ class Document extends ParanoidModel<
       : [];
 
     await Promise.all(
-      parentDocumentPermissions.map((permission) =>
+      parentDocumentPermissions.map(permission =>
         UserMembership.create(
           {
             documentId: this.id,
@@ -1075,14 +1081,15 @@ class Document extends ParanoidModel<
           });
 
     const children = await Promise.all(
-      childDocuments.map((child) => child.toNavigationNode(options))
+      childDocuments.map(child => child.toNavigationNode(options))
     );
 
     return {
       id: this.id,
       title: this.title,
       url: this.url,
-      emoji: isNil(this.emoji) ? undefined : this.emoji,
+      icon: isNil(this.icon) ? undefined : this.icon,
+      color: isNil(this.color) ? undefined : this.color,
       children,
     };
   };

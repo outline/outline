@@ -229,7 +229,8 @@ export type NavigationNode = {
   id: string;
   title: string;
   url: string;
-  emoji?: string;
+  icon?: string;
+  color?: string;
   children: NavigationNode[];
   isDraft?: boolean;
   collectionId?: string;
@@ -404,4 +405,44 @@ export type ProsemirrorData = {
 export type ProsemirrorDoc = {
   type: "doc";
   content: ProsemirrorData[];
+};
+
+export enum IconType {
+  Outline = "outline",
+  Emoji = "emoji",
+}
+
+export enum EmojiCategory {
+  People = "Smileys & People",
+  Nature = "Animals & Nature",
+  Foods = "Food & Drink",
+  Activity = "Activity",
+  Places = "Travel & Places",
+  Objects = "Objects",
+  Symbols = "Symbols",
+  Flags = "Flags",
+}
+
+export enum EmojiSkin {
+  Default = "Default",
+  Light = "Light",
+  MediumLight = "MediumLight",
+  Medium = "Medium",
+  MediumDark = "MediumDark",
+  Dark = "Dark",
+}
+
+export type Emoji = {
+  id: string;
+  name: string;
+  value: string;
+};
+
+export type EmojiVariants = {
+  [EmojiSkin.Default]: Emoji;
+  [EmojiSkin.Light]?: Emoji;
+  [EmojiSkin.MediumLight]?: Emoji;
+  [EmojiSkin.Medium]?: Emoji;
+  [EmojiSkin.MediumDark]?: Emoji;
+  [EmojiSkin.Dark]?: Emoji;
 };

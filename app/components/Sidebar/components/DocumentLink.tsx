@@ -14,6 +14,7 @@ import { DocumentValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
+import Icon from "~/components/Icon";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
@@ -282,6 +283,8 @@ function InnerDocumentLink(
   const title =
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
     t("Untitled");
+  const icon = document?.icon || node.icon;
+  const color = document?.color || node.color;
 
   const isExpanded = expanded && !isDragging;
   const hasChildren = nodeChildren.length > 0;
@@ -324,7 +327,7 @@ function InnerDocumentLink(
                     starred: inStarredSection,
                   },
                 }}
-                emoji={document?.emoji || node.emoji}
+                icon={icon && <Icon value={icon} color={color} />}
                 label={
                   <EditableTitle
                     title={title}

@@ -24,11 +24,11 @@ export default class ImportNotionTask extends ImportTask {
     // folder and go directly to the children.
     if (
       tree.children.length === 1 &&
-      tree.children[0].children.find((child) => child.title === "index")
+      tree.children[0].children.find(child => child.title === "index")
     ) {
       return this.parseFileTree(
         fileOperation,
-        tree.children[0].children.filter((child) => child.title !== "index")
+        tree.children[0].children.filter(child => child.title !== "index")
       );
     }
 
@@ -63,7 +63,7 @@ export default class ImportNotionTask extends ImportTask {
       parentDocumentId?: string
     ): Promise<void> => {
       await Promise.all(
-        children.map(async (child) => {
+        children.map(async child => {
           // Ignore the CSV's for databases upfront
           if (child.path.endsWith(".csv")) {
             return;
@@ -96,7 +96,7 @@ export default class ImportNotionTask extends ImportTask {
 
           Logger.debug("task", `Processing ${name} as ${mimeType}`);
 
-          const { title, emoji, text } = await documentImporter({
+          const { title, icon, text } = await documentImporter({
             mimeType: mimeType || "text/markdown",
             fileName: name,
             content:
@@ -108,7 +108,7 @@ export default class ImportNotionTask extends ImportTask {
           });
 
           const existingDocumentIndex = output.documents.findIndex(
-            (doc) => doc.externalId === externalId
+            doc => doc.externalId === externalId
           );
 
           const existingDocument = output.documents[existingDocumentIndex];
@@ -130,8 +130,8 @@ export default class ImportNotionTask extends ImportTask {
             output.documents.push({
               id,
               title,
-              emoji,
-              icon: emoji,
+              emoji: icon,
+              icon,
               text,
               collectionId,
               parentDocumentId,
@@ -152,7 +152,7 @@ export default class ImportNotionTask extends ImportTask {
       for (const image of imagesInText) {
         const name = path.basename(image.src);
         const attachment = output.attachments.find(
-          (att) =>
+          att =>
             att.path.endsWith(image.src) ||
             encodeURI(att.path).endsWith(image.src)
         );
@@ -183,7 +183,7 @@ export default class ImportNotionTask extends ImportTask {
       // instead of a relative or absolute URL within the original zip file.
       for (const link of internalLinksInText) {
         const doc = output.documents.find(
-          (doc) => doc.externalId === link.externalId
+          doc => doc.externalId === link.externalId
         );
 
         if (!doc) {
@@ -207,7 +207,7 @@ export default class ImportNotionTask extends ImportTask {
       const mimeType = mime.lookup(node.name);
 
       const existingCollectionIndex = output.collections.findIndex(
-        (collection) => collection.externalId === externalId
+        collection => collection.externalId === externalId
       );
       const existingCollection = output.collections[existingCollectionIndex];
       const collectionId = existingCollection?.id || uuidv4();
@@ -277,7 +277,7 @@ export default class ImportNotionTask extends ImportTask {
     text: string
   ): { title: string; href: string; externalId: string }[] {
     return compact(
-      [...text.matchAll(this.NotionLinkRegex)].map((match) => ({
+      [...text.matchAll(this.NotionLinkRegex)].map(match => ({
         title: match[1],
         href: match[2],
         externalId: match[3],
@@ -293,7 +293,7 @@ export default class ImportNotionTask extends ImportTask {
    */
   private parseImages(text: string): { alt: string; src: string }[] {
     return compact(
-      [...text.matchAll(this.ImageRegex)].map((match) => ({
+      [...text.matchAll(this.ImageRegex)].map(match => ({
         alt: match[1],
         src: match[2],
       }))

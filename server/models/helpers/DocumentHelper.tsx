@@ -8,7 +8,8 @@ import { Node } from "prosemirror-model";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { ProsemirrorData } from "@shared/types";
+import { IconType, ProsemirrorData } from "@shared/types";
+import { determineIconType } from "@shared/utils/icon";
 import { parser, serializer, schema } from "@server/editor";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
@@ -148,7 +149,9 @@ export class DocumentHelper {
       return text;
     }
 
-    const title = `${document.emoji ? document.emoji + " " : ""}${
+    const iconType = determineIconType(document.icon);
+
+    const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${
       document.title
     }`;
 

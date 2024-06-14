@@ -71,6 +71,7 @@ class Revision extends IdModel<
   @Column(DataType.JSONB)
   content: ProsemirrorData;
 
+  /** An emoji to use as the document icon. */
   @Length({
     max: 1,
     msg: `Emoji must be a single character`,
@@ -78,6 +79,7 @@ class Revision extends IdModel<
   @Column
   emoji: string | null;
 
+  /** An icon to use as the document icon. */
   @Length({
     max: 50,
     msg: `icon must be 50 characters or less`,

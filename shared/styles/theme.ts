@@ -61,6 +61,8 @@ const buildBaseTheme = (input: Partial<Colors>) => {
       "-apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto, Oxygen, sans-serif",
     fontFamilyMono:
       "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace",
+    fontFamilyEmoji:
+      "Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Segoe UI, Twemoji Mozilla, Noto Color Emoji, Android Emoji",
     fontWeightRegular: 400,
     fontWeightMedium: 500,
     fontWeightBold: 600,

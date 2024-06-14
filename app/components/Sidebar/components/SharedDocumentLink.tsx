@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { NavigationNode } from "@shared/types";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import Icon from "~/components/Icon";
 import useStores from "~/hooks/useStores";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { descendants } from "~/utils/tree";
@@ -111,7 +112,7 @@ function DocumentLink(
         }}
         expanded={hasChildDocuments && depth !== 0 ? expanded : undefined}
         onDisclosureClick={handleDisclosureClick}
-        emoji={node.emoji}
+        icon={node.icon && <Icon value={node.icon} color={node.color} />}
         label={title}
         depth={depth}
         exact={false}

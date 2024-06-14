@@ -4,7 +4,9 @@ import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import { richExtensions, withComments } from "@shared/editor/nodes";
+import { randomElement } from "@shared/random";
 import { TeamPreference } from "@shared/types";
+import { colorPalette } from "@shared/utils/collections";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import { RefHandle } from "~/components/ContentEditable";
@@ -52,7 +54,7 @@ const extensions = [
 
 type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;
-  onChangeEmoji: (emoji: string | null) => void;
+  onChangeIcon: (icon: string | null, color: string | null) => void;
   id: string;
   document: Document;
   isDraft: boolean;
@@ -81,7 +83,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const {
     document,
     onChangeTitle,
-    onChangeEmoji,
+    onChangeIcon,
     isDraft,
     shareId,
     readOnly,
@@ -91,6 +93,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   } = props;
   const can = usePolicy(document);
 
+  const iconColor = React.useMemo(
+    () => document.color ?? randomElement(colorPalette),
+    [document.color]
+  );
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
     if (ref.current) {
@@ -176,7 +182,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
   return (
-    <Flex auto column>
+    <Flex
+      auto
+      column
+    >
       <DocumentTitle
         ref={titleRef}
         readOnly={readOnly}
@@ -186,9 +195,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             ? document.titleWithDefault
             : document.title
         }
-        emoji={document.emoji}
+        icon={document.icon}
+        color={iconColor}
         onChangeTitle={onChangeTitle}
-        onChangeEmoji={onChangeEmoji}
+        onChangeIcon={onChangeIcon}
         onGoToNextInput={handleGoToNextInput}
         onBlur={handleBlur}
         placeholder={t("Untitled")}

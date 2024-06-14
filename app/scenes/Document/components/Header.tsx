@@ -24,8 +24,9 @@ import {
   useDocumentContext,
   useEditingFocus,
 } from "~/components/DocumentContext";
+import Flex from "~/components/Flex";
 import Header from "~/components/Header";
-import EmojiIcon from "~/components/Icons/EmojiIcon";
+import Icon from "~/components/Icon";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import { publishDocument } from "~/actions/definitions/documents";
@@ -189,7 +190,14 @@ function DocumentHeader({
     return (
       <StyledHeader
         $hidden={isEditingFocus}
-        title={document.title}
+        title={
+          <Flex gap={4}>
+            {document.icon && (
+              <Icon value={document.icon} color={document.color ?? undefined} />
+            )}
+            {document.title}
+          </Flex>
+        }
         hasSidebar={sharedTree && sharedTree.children?.length > 0}
         left={
           isMobile ? (
@@ -229,17 +237,15 @@ function DocumentHeader({
           )
         }
         title={
-          <>
-            {document.emoji && (
-              <>
-                <EmojiIcon size={24} emoji={document.emoji} />{" "}
-              </>
+          <Flex gap={4}>
+            {document.icon && (
+              <Icon value={document.icon} color={document.color ?? undefined} />
             )}
-            {document.title}{" "}
+            {document.title}
             {document.isArchived && (
               <ArchivedBadge>{t("Archived")}</ArchivedBadge>
             )}
-          </>
+          </Flex>
         }
         actions={
           <>
