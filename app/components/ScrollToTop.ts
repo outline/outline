@@ -2,6 +2,7 @@
 import * as React from "react";
 import { useLocation } from "react-router-dom";
 import usePrevious from "~/hooks/usePrevious";
+import { useScrollContext } from "./ScrollContext";
 
 type Props = {
   children: JSX.Element;
@@ -10,6 +11,7 @@ type Props = {
 export default function ScrollToTop({ children }: Props) {
   const location = useLocation<{ retainScrollPosition?: boolean }>();
   const previousLocationPathname = usePrevious(location.pathname);
+  const scrollContainerRef = useScrollContext();
 
   React.useEffect(() => {
     if (
@@ -25,8 +27,9 @@ export default function ScrollToTop({ children }: Props) {
     ) {
       return;
     }
-    window.scrollTo(0, 0);
+    (scrollContainerRef?.current || window).scrollTo(0, 0);
   }, [
+    scrollContainerRef,
     location.pathname,
     previousLocationPathname,
     location.state?.retainScrollPosition,
