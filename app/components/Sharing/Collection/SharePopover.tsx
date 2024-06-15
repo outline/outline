@@ -59,6 +59,9 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
   useKeyDown(
     "Escape",
     (ev) => {
+      if (!visible) {
+        return;
+      }
       ev.preventDefault();
       ev.stopImmediatePropagation();
 
