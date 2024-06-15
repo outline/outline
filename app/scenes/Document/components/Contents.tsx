@@ -107,7 +107,7 @@ const Sticky = styled.div`
   background: ${s("background")};
   transition: ${s("backgroundTransition")};
 
-  margin-top: 80px;
+  margin-top: calc(50px + 6vh);
   margin-right: 52px;
   min-width: 204px;
   width: 228px;
