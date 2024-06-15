@@ -5,7 +5,7 @@ import { MarkdownParser } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
 import { Primitive } from "utility-types";
-import { Editor } from "~/editor";
+import type { Editor } from "~/editor";
 import Mark from "../marks/Mark";
 import Node from "../nodes/Node";
 import Extension, { CommandFactory } from "./Extension";
