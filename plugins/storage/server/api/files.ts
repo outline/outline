@@ -72,33 +72,31 @@ router.get(
   async (ctx: APIContext<T.FilesGetReq>) => {
     const actor = ctx.state.auth.user;
     const key = getKeyFromContext(ctx);
+    const forceDownload = !!ctx.input.query.download;
     const isSignedRequest = !!ctx.input.query.sig;
     const { isPublicBucket, fileName } = AttachmentHelper.parseKey(key);
     const skipAuthorize = isPublicBucket || isSignedRequest;
     const cacheHeader = "max-age=604800, immutable";
+    let contentType =
+      (fileName ? mime.lookup(fileName) : undefined) ||
+      "application/octet-stream";
 
-    if (skipAuthorize) {
-      ctx.set("Cache-Control", cacheHeader);
-      ctx.set(
-        "Content-Type",
-        (fileName ? mime.lookup(fileName) : undefined) ||
-          "application/octet-stream"
-      );
-      ctx.attachment(fileName);
-    } else {
+    if (!skipAuthorize) {
       const attachment = await Attachment.findOne({
         where: { key },
         rejectOnEmpty: true,
       });
-
       authorize(actor, "read", attachment);
-
-      ctx.set("Cache-Control", cacheHeader);
-      ctx.set("Content-Type", attachment.contentType);
-      ctx.attachment(attachment.name, {
-        type: FileStorage.getContentDisposition(attachment.contentType),
-      });
+      contentType = attachment.contentType;
     }
+
+    ctx.set("Cache-Control", cacheHeader);
+    ctx.set("Content-Type", contentType);
+    ctx.attachment(fileName, {
+      type: forceDownload
+        ? "attachment"
+        : FileStorage.getContentDisposition(contentType),
+    });
 
     // Handle byte range requests
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
