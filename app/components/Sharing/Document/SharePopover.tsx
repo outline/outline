@@ -67,6 +67,9 @@ function SharePopover({
   useKeyDown(
     "Escape",
     (ev) => {
+      if (!visible) {
+        return;
+      }
       ev.preventDefault();
       ev.stopImmediatePropagation();
 
