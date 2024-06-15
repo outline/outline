@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import Text from "~/components/Text";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 
@@ -59,8 +59,8 @@ export default function Contents({ headings }: Props) {
       {headings.length ? (
         <List>
           {headings
-            .filter(heading => heading.level < 4)
-            .map(heading => (
+            .filter((heading) => heading.level < 4)
+            .map((heading) => (
               <ListItem
                 key={heading.id}
                 level={heading.level - headingAdjustment}
@@ -94,11 +94,12 @@ const StickyWrapper = styled.div`
 
   @supports (backdrop-filter: blur(20px)) {
     backdrop-filter: blur(20px);
-    background: ${props => transparentize(0.2, props.theme.background)};
+    background: ${(props) => transparentize(0.2, props.theme.background)};
   }
 
   ${breakpoint("tablet")`
     display: block;
+    z-index: ${depths.header};
   `};
 `;
 
@@ -115,14 +116,14 @@ const Empty = styled(Text)`
 `;
 
 const ListItem = styled.li<{ level: number; active?: boolean }>`
-  margin-left: ${props => (props.level - 1) * 10}px;
+  margin-left: ${(props) => (props.level - 1) * 10}px;
   margin-bottom: 8px;
   line-height: 1.3;
   word-break: break-word;
 
   a {
-    font-weight: ${props => (props.active ? "600" : "inherit")};
-    color: ${props => (props.active ? props.theme.accent : props.theme.text)};
+    font-weight: ${(props) => (props.active ? "600" : "inherit")};
+    color: ${(props) => (props.active ? props.theme.accent : props.theme.text)};
   }
 `;
 
