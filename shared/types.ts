@@ -52,9 +52,9 @@ export enum MentionType {
 export type PublicEnv = {
   ROOT_SHARE_ID?: string;
   analytics: {
-    service?: IntegrationService;
-    settings?: IntegrationSettings<IntegrationType.Analytics>;
-  };
+    service: IntegrationService;
+    settings: IntegrationSettings<IntegrationType.Analytics>;
+  }[];
 };
 
 export enum AttachmentPreset {
@@ -82,6 +82,7 @@ export enum IntegrationService {
   Grist = "grist",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
+  Matomo = "matomo",
   GitHub = "github",
 }
 
@@ -90,12 +91,14 @@ export type UserCreatableIntegrationService = Extract<
   | IntegrationService.Diagrams
   | IntegrationService.Grist
   | IntegrationService.GoogleAnalytics
+  | IntegrationService.Matomo
 >;
 
 export const UserCreatableIntegrationService = {
   Diagrams: IntegrationService.Diagrams,
   Grist: IntegrationService.Grist,
   GoogleAnalytics: IntegrationService.GoogleAnalytics,
+  Matomo: IntegrationService.Matomo,
 } as const;
 
 export enum CollectionPermission {
@@ -121,7 +124,7 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       };
     }
   : T extends IntegrationType.Analytics
-  ? { measurementId: string }
+  ? { measurementId: string; instanceUrl?: string }
   : T extends IntegrationType.Post
   ? { url: string; channel: string; channelId: string }
   : T extends IntegrationType.Command

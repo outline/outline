@@ -23,6 +23,7 @@ import {
   deleteRowSelection,
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { FixTablesPlugin } from "../plugins/FixTables";
 import tablesRule from "../rules/tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { TableLayout } from "../types";
@@ -112,6 +113,7 @@ export default class Table extends Node {
         lastColumnResizable: false,
       }),
       tableEditing(),
+      new FixTablesPlugin(),
     ];
   }
 }

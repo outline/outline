@@ -6,7 +6,12 @@ import { APIContext } from "@server/types";
 import presentUser from "./user";
 
 type Options = {
+  /** Whether to render the document's public fields. */
   isPublic?: boolean;
+  /** Always include the text of the document in the payload. */
+  includeText?: boolean;
+  /** Always include the data of the document in the payload. */
+  includeData?: boolean;
 };
 
 async function presentDocument(
@@ -20,29 +25,29 @@ async function presentDocument(
   };
 
   const asData = !ctx || Number(ctx?.headers["x-api-version"] ?? 0) >= 3;
-  const text =
-    options.isPublic && !asData
-      ? await TextHelper.attachmentsToSignedUrls(document.text, document.teamId)
-      : document.text;
+  const text = options.isPublic
+    ? await TextHelper.attachmentsToSignedUrls(document.text, document.teamId)
+    : document.text;
 
   const data: Record<string, any> = {
     id: document.id,
     url: document.url,
     urlId: document.urlId,
     title: document.title,
-    data: asData
-      ? await DocumentHelper.toJSON(
-          document,
-          options.isPublic
-            ? {
-                signedUrls: 60,
-                teamId: document.teamId,
-                removeMarks: ["comment"],
-              }
-            : undefined
-        )
-      : undefined,
-    text: asData ? undefined : text,
+    data:
+      asData || options.includeData
+        ? await DocumentHelper.toJSON(
+            document,
+            options.isPublic
+              ? {
+                  signedUrls: 60,
+                  teamId: document.teamId,
+                  removeMarks: ["comment"],
+                }
+              : undefined
+          )
+        : undefined,
+    text: !asData || options?.includeText ? text : undefined,
     emoji: document.emoji,
     tasks: document.tasks,
     createdAt: document.createdAt,

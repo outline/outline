@@ -7,16 +7,16 @@ import { Integration } from "@server/models";
 export default function present(
   env: Environment,
   options: {
-    analytics?: Integration<IntegrationType.Analytics> | null;
+    analytics?: Integration<IntegrationType.Analytics>[];
     rootShareId?: string | null;
   } = {}
 ): PublicEnv {
   return {
     ROOT_SHARE_ID: options.rootShareId || undefined,
-    analytics: {
-      service: options.analytics?.service,
-      settings: options.analytics?.settings,
-    },
+    analytics: (options.analytics ?? []).map((integration) => ({
+      service: integration?.service,
+      settings: integration?.settings,
+    })),
     ...env.public,
   };
 }

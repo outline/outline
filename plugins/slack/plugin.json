@@ -1,7 +1,7 @@
 {
   "id": "slack",
   "name": "Slack",
-  "priority": 40,
+  "priority": 20,
   "roles": ["admin", "member"],
   "description": "Adds a Slack authentication provider, support for the /outline slash command, and link unfurling."
 }

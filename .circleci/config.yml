@@ -126,7 +126,7 @@ jobs:
             docker buildx install
             docker context create docker-multiarch
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-            docker buildx create --name docker-multiarch --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x docker-multiarch
+            docker buildx create --name docker-multiarch --platform linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x docker-multiarch
             docker buildx inspect --builder docker-multiarch --bootstrap
             docker buildx use docker-multiarch
       - run:
@@ -142,9 +142,9 @@ jobs:
           name: Build and push Docker image
           command: |
             if [[ "$CIRCLE_TAG" == *"-"* ]]; then
-              docker buildx build -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
+              docker buildx build -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
             else
-              docker buildx build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
+              docker buildx build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
             fi
 
 workflows:

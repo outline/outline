@@ -24,11 +24,12 @@ const ANIMATION_MS = 250;
 
 type Props = {
   children: React.ReactNode;
+  hidden?: boolean;
   className?: string;
 };
 
 const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
-  { children, className }: Props,
+  { children, hidden = false, className }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
@@ -178,6 +179,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       <Container
         ref={ref}
         style={style}
+        $hidden={hidden}
         $isHovering={isHovering}
         $isAnimating={isAnimating}
         $isSmallerThanMinimum={isSmallerThanMinimum}
@@ -249,6 +251,7 @@ type ContainerProps = {
   $isSmallerThanMinimum: boolean;
   $isHovering: boolean;
   $collapsed: boolean;
+  $hidden: boolean;
 };
 
 const hoverStyles = (props: ContainerProps) => `
@@ -267,13 +270,14 @@ const hoverStyles = (props: ContainerProps) => `
 `;
 
 const Container = styled(Flex)<ContainerProps>`
+  opacity: ${(props) => (props.$hidden ? 0 : 1)};
   position: fixed;
   top: 0;
   bottom: 0;
   width: 100%;
   background: ${s("sidebarBackground")};
-  transition: box-shadow 100ms ease-in-out, opacity 100ms ease-in-out,
-    transform 100ms ease-out,
+  transition: box-shadow 150ms ease-in-out, opacity 150ms ease-in-out,
+    transform 150ms ease-out,
     ${s("backgroundTransition")}
       ${(props: ContainerProps) =>
         props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
@@ -316,7 +320,7 @@ const Container = styled(Flex)<ContainerProps>`
 
       & > div {
         opacity: 1;
-      }    
+      }
     }
   `};
 `;

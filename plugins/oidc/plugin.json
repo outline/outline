@@ -1,6 +1,6 @@
 {
   "id": "oidc",
   "name": "OIDC",
-  "priority": 30,
+  "priority": 10,
   "description": "Adds an OpenID compatible authentication provider."
 }
