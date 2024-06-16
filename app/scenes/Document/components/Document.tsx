@@ -588,8 +588,7 @@ type MainProps = {
 };
 
 const Main = styled.div<MainProps>`
-  margin-top: 24px;
-  margin-bottom: 12px;
+  margin-top: 4px;
 
   ${breakpoint("tablet")`
     display: grid;
@@ -617,6 +616,8 @@ type ContentsContainerProps = {
 };
 
 const ContentsContainer = styled.div<ContentsContainerProps>`
+  margin-top: calc(44px + 6vh);
+
   ${breakpoint("tablet")`
     grid-row: 1;
     grid-column: ${({ docFullWidth, position }: ContentsContainerProps) =>
