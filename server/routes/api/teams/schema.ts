@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserRole } from "@shared/types";
+import { TOCPosition, UserRole } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 
 export const TeamsUpdateSchema = BaseSchema.extend({
@@ -50,6 +50,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
             accentText: z.string().min(4).max(7).regex(/^#/).optional(),
           })
           .optional(),
+        /** Side to display the document's table of contents in relation to the main content. */
+        tocPosition: z.nativeEnum(TOCPosition).optional(),
       })
       .optional(),
   }),

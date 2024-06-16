@@ -187,7 +187,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             : document.title
         }
         emoji={document.emoji}
-        emojiPosition={document.fullWidth ? "top" : "side"}
         onChangeTitle={onChangeTitle}
         onChangeEmoji={onChangeEmoji}
         onGoToNextInput={handleGoToNextInput}

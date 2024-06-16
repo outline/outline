@@ -4,7 +4,7 @@ import { Selection } from "prosemirror-state";
 import { __parseFromClipboard } from "prosemirror-view";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
@@ -33,8 +33,6 @@ type Props = {
   title: string;
   /** Emoji to display */
   emoji?: string | null;
-  /** Position of the emoji relative to text */
-  emojiPosition: "side" | "top";
   /** Placeholder to display when the document has no title */
   placeholder?: string;
   /** Should the title be editable, policies will also be considered separately */
@@ -59,7 +57,6 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
     documentId,
     title,
     emoji,
-    emojiPosition,
     readOnly,
     onChangeTitle,
     onChangeEmoji,
@@ -247,12 +244,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       ref={mergeRefs([ref, externalRef])}
     >
       {can.update && !readOnly ? (
-        <EmojiWrapper
-          align="center"
-          justify="center"
-          $position={emojiPosition}
-          dir={dir}
-        >
+        <EmojiWrapper align="center" justify="center" dir={dir}>
           <React.Suspense fallback={emojiIcon}>
             <StyledEmojiPicker
               value={emoji}
@@ -265,12 +257,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
           </React.Suspense>
         </EmojiWrapper>
       ) : emoji ? (
-        <EmojiWrapper
-          align="center"
-          justify="center"
-          $position={emojiPosition}
-          dir={dir}
-        >
+        <EmojiWrapper align="center" justify="center" dir={dir}>
           {emojiIcon}
         </EmojiWrapper>
       ) : null}
@@ -282,25 +269,17 @@ const StyledEmojiPicker = styled(EmojiPicker)`
   ${extraArea(8)}
 `;
 
-const EmojiWrapper = styled(Flex)<{ $position: "top" | "side"; dir?: string }>`
+const EmojiWrapper = styled(Flex)<{ dir?: string }>`
+  position: absolute;
+  top: 8px;
   height: 32px;
   width: 32px;
 
   // Always move above TOC
   z-index: 1;
 
-  ${(props) =>
-    props.$position === "top"
-      ? css`
-          position: relative;
-          top: -8px;
-        `
-      : css`
-          position: absolute;
-          top: 8px;
-          ${(props: { dir?: string }) =>
-            props.dir === "rtl" ? "right: -40px" : "left: -40px"};
-        `}
+  ${(props: { dir?: string }) =>
+    props.dir === "rtl" ? "right: -40px" : "left: -40px"};
 `;
 
 type TitleProps = {
