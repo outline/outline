@@ -99,7 +99,7 @@ const StickyWrapper = styled.div`
 
   ${breakpoint("tablet")`
     display: block;
-    z-index: ${depths.header};
+    z-index: ${depths.toc};
   `};
 `;
 
