@@ -14,24 +14,15 @@ import { User } from "@server/models";
 import { AuthenticationResult } from "@server/types";
 import {
   StateStore,
-  request,
   getTeamFromContext,
   getClientFromContext,
+  request,
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
 
 const router = new Router();
 const scopes = env.OIDC_SCOPES.split(" ");
-
-Strategy.prototype.userProfile = async function (accessToken, done) {
-  try {
-    const response = await request(env.OIDC_USERINFO_URI ?? "", accessToken);
-    return done(null, response);
-  } catch (err) {
-    return done(err);
-  }
-};
 
 const authorizationParams = Strategy.prototype.authorizationParams;
 Strategy.prototype.authorizationParams = function (options) {
@@ -81,7 +72,7 @@ if (
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number },
-        profile: Record<string, string>,
+        _profile: unknown,
         done: (
           err: Error | null,
           user: User | null,
@@ -89,6 +80,11 @@ if (
         ) => void
       ) {
         try {
+          const profile = await request(
+            env.OIDC_USERINFO_URI ?? "",
+            accessToken
+          );
+
           if (!profile.email) {
             throw AuthenticationError(
               `An email field was not returned in the profile parameter, but is required.`
