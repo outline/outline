@@ -12,12 +12,7 @@ import { languages } from "@shared/i18n";
 import { slugifyDomain } from "@shared/utils/domains";
 import slugify from "@shared/utils/slugify";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import {
-  DiscordGuildError,
-  DiscordGuildRoleError,
-  InvalidRequestError,
-  TeamDomainRequiredError,
-} from "@server/errors";
+import { InvalidRequestError, TeamDomainRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
 import { AuthenticationResult } from "@server/types";
@@ -29,6 +24,7 @@ import {
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
+import { DiscordGuildError, DiscordGuildRoleError } from "../errors";
 
 const router = new Router();
 
@@ -120,7 +116,8 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               throw DiscordGuildError();
             }
 
-            /** Get the guild's icon
+            /**
+             * Get the guild's icon
              * https://discord.com/developers/docs/reference#image-formatting-cdn-endpoints
              **/
             if (guild.icon) {
@@ -187,7 +184,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             },
             authenticationProvider: {
               name: config.id,
-              providerId: domain ?? "",
+              providerId: env.DISCORD_SERVER_ID ?? "",
             },
             authentication: {
               providerId: profile.id,
