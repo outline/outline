@@ -1,6 +1,9 @@
+import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import PluginLoader from "~/utils/PluginLoader";
+import { Hook, PluginManager } from "~/utils/PluginManager";
+
+const icons = PluginManager.getHooks(Hook.Icon);
 
 type Props = {
   id: string;
@@ -8,9 +11,12 @@ type Props = {
   color?: string;
 };
 
+/**
+ * Renders an icon defined in a plugin (Hook.Icon).
+ */
 function PluginIcon({ id, color, size = 24 }: Props) {
-  const plugin = PluginLoader.plugins[id];
-  const Icon = plugin?.icon;
+  const plugin = icons.find((p) => p.id === id);
+  const Icon = plugin?.value;
 
   if (Icon) {
     return (
@@ -32,4 +38,4 @@ const Wrapper = styled.div`
   height: 24px;
 `;
 
-export default PluginIcon;
+export default observer(PluginIcon);

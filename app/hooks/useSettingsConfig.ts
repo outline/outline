@@ -1,4 +1,3 @@
-import sortBy from "lodash/sortBy";
 import {
   EmailIcon,
   ProfileIcon,
@@ -20,10 +19,11 @@ import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
-import PluginLoader from "~/utils/PluginLoader";
+import { Hook, PluginManager } from "~/utils/PluginManager";
 import isCloudHosted from "~/utils/isCloudHosted";
 import lazy from "~/utils/lazyWithRetry";
 import { settingsPath } from "~/utils/routeHelpers";
+import { useComputed } from "./useComputed";
 import useCurrentTeam from "./useCurrentTeam";
 import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
@@ -59,7 +59,7 @@ const useSettingsConfig = () => {
   const can = usePolicy(team);
   const { t } = useTranslation();
 
-  const config = React.useMemo(() => {
+  const config = useComputed(() => {
     const items: ConfigItem[] = [
       // Account
       {
@@ -187,37 +187,19 @@ const useSettingsConfig = () => {
     ];
 
     // Plugins
-    const insertIndex = items.findIndex((i) => i.group === t("Integrations"));
-    items.splice(
-      insertIndex,
-      0,
-      ...(sortBy(
-        Object.values(PluginLoader.plugins),
-        (plugin) => plugin.config?.priority ?? 0
-      ).map((plugin) => {
-        const hasSettings = !!plugin.settings;
-        const enabledInDeployment =
-          !plugin.config?.deployments ||
-          plugin.config.deployments.length === 0 ||
-          (plugin.config.deployments.includes("community") && !isCloudHosted) ||
-          (plugin.config.deployments.includes("cloud") && isCloudHosted) ||
-          (plugin.config.deployments.includes("enterprise") && !isCloudHosted);
-
-        return {
-          name: t(plugin.config.name),
-          path: integrationSettingsPath(plugin.id),
-          // TODO: Remove hardcoding of plugin id here
-          group:
-            plugin.id === "collections" ? t("Workspace") : t("Integrations"),
-          component: plugin.settings,
-          enabled:
-            enabledInDeployment &&
-            hasSettings &&
-            (plugin.config.roles?.includes(user.role) || can.update),
-          icon: plugin.icon,
-        };
-      }) as ConfigItem[])
-    );
+    PluginManager.getHooks(Hook.Settings).forEach((plugin) => {
+      const insertIndex = items.findIndex(
+        (i) => i.group === t(plugin.value.group ?? "Integrations")
+      );
+      items.splice(insertIndex, 0, {
+        name: t(plugin.name),
+        path: integrationSettingsPath(plugin.id),
+        group: t(plugin.value.group),
+        component: plugin.value.component,
+        enabled: plugin.roles?.includes(user.role) || can.update,
+        icon: plugin.value.icon,
+      } as ConfigItem);
+    });
 
     return items;
   }, [t, can.createApiKey, can.update, can.createImport, can.createExport]);
