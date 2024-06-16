@@ -188,9 +188,11 @@ const useSettingsConfig = () => {
 
     // Plugins
     PluginManager.getHooks(Hook.Settings).forEach((plugin) => {
-      const insertIndex = items.findIndex(
-        (i) => i.group === t(plugin.value.group ?? "Integrations")
-      );
+      const insertIndex = plugin.value.after
+        ? items.findIndex((i) => i.name === t(plugin.value.after!)) + 1
+        : items.findIndex(
+            (i) => i.group === t(plugin.value.group ?? "Integrations")
+          );
       items.splice(insertIndex, 0, {
         name: t(plugin.name),
         path: integrationSettingsPath(plugin.id),

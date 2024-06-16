@@ -20,6 +20,8 @@ type PluginValueMap = {
   [Hook.Settings]: {
     /** The group in settings sidebar this plugin belongs to. */
     group: string;
+    /** An optional settings item to display this after. */
+    after?: string;
     /** The displayed icon of the plugin. */
     icon: React.ElementType;
     /** The settings screen somponent, should be lazy loaded. */
