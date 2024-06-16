@@ -1,5 +1,6 @@
+import { BackIcon } from "outline-icons";
 import React from "react";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { breakpoints, s } from "@shared/styles";
 import { colorPalette } from "@shared/utils/collections";
 import { validateColorHex } from "@shared/utils/color";
@@ -12,14 +13,6 @@ enum Panel {
   Builtin,
   Hex,
 }
-
-const colorWheel = `conic-gradient(
-	rgb(235, 87, 87),
-	rgb(242, 201, 76),
-	rgb(76, 183, 130),
-	rgb(78, 167, 252),
-	rgb(250, 96, 122)
-)`;
 
 type Props = {
   width: number;
@@ -55,7 +48,12 @@ const ColorPicker = ({ width, activeColor, onSelect }: Props) => {
       />
     </Container>
   ) : (
-    <Container justify="space-between" gap={12}>
+    <Container gap={12}>
+      <PanelSwitcher align="center">
+        <SwitcherButton panel={panel} onClick={handleSwitcherClick}>
+          {panel === Panel.Builtin ? "#" : <BackIcon />}
+        </SwitcherButton>
+      </PanelSwitcher>
       {panel === Panel.Builtin ? (
         <BuiltinColors activeColor={activeColor} onClick={onSelect} />
       ) : (
@@ -65,11 +63,6 @@ const ColorPicker = ({ width, activeColor, onSelect }: Props) => {
           onValidHex={onSelect}
         />
       )}
-      <PanelSwitcher justify="flex-end" align="center">
-        <SwitcherButton panel={panel} onClick={handleSwitcherClick}>
-          {panel === Panel.Builtin && "#"}
-        </SwitcherButton>
-      </PanelSwitcher>
     </Container>
   );
 };
@@ -184,29 +177,20 @@ const ColorButton = styled(NudeButton)<{ color: string; active: boolean }>`
 
 const PanelSwitcher = styled(Flex)`
   width: 40px;
-  border-left: 1px solid ${s("inputBorder")};
+  border-right: 1px solid ${s("inputBorder")};
 `;
 
 const SwitcherButton = styled(NudeButton)<{ panel: Panel }>`
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   font-size: 14px;
   border: 1px solid ${s("inputBorder")};
   transition: all 100ms ease-in-out;
 
-  ${({ panel }) =>
-    panel === Panel.Builtin
-      ? css`
-          &: ${hover} {
-            border-color: ${s("inputBorderFocused")};
-          }
-        `
-      : css`
-          border-radius: 50%;
-          background: ${colorWheel};
-
-          &: ${hover} {
-            border-color: ${colorWheel} !important;
-          }
-        `}
+  &: ${hover} {
+    border-color: ${s("inputBorderFocused")};
+  }
 `;
 
 const LargeMobileBuiltinColors = styled(BuiltinColors)`
@@ -217,13 +201,13 @@ const LargeMobileBuiltinColors = styled(BuiltinColors)`
 const LargeMobileCustomColor = styled(CustomColor)`
   padding-left: 8px;
   border-left: 1px solid ${s("inputBorder")};
+  width: 120px;
 `;
 
 const CustomColorInput = styled.input.attrs(() => ({
   type: "text",
   autocomplete: "off",
 }))`
-  width: 70px;
   font-size: 14px;
   color: ${s("textSecondary")};
   background: transparent;
