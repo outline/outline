@@ -434,7 +434,7 @@ router.post(
     const team = await document.$get("team");
 
     // Passing apiVersion=2 has a single effect, to change the response payload to
-    // include top level keys for document, sharedTree, team, and preferences.
+    // include top level keys for document, sharedTree, and team.
     const data =
       apiVersion >= 2
         ? {
