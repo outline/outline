@@ -41,6 +41,7 @@ type Props = {
   className?: string;
   popoverPosition: "bottom-start" | "right";
   allowDelete?: boolean;
+  borderOnHover?: boolean;
   onChange: (icon: string | null, color: string | null) => void;
   onOpen?: () => void;
   onClose?: () => void;
@@ -57,6 +58,7 @@ const IconPicker = ({
   onChange,
   onOpen,
   onClose,
+  borderOnHover,
 }: Props) => {
   const { t } = useTranslation();
 
@@ -170,6 +172,7 @@ const IconPicker = ({
             className={className}
             size={size}
             onClick={handlePopoverButtonClick}
+            borderOnHover={borderOnHover}
           >
             {iconType && icon ? (
               <Icon value={icon} color={color} size={size} initial={initial} />

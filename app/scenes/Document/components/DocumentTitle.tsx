@@ -271,6 +271,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
               size={40}
               popoverPosition="bottom-start"
               allowDelete={true}
+              borderOnHover={true}
               onChange={handleIconChange}
               onOpen={handleOpen}
               onClose={handleClose}

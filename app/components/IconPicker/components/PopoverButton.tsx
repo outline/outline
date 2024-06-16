@@ -1,11 +1,20 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
 import { hover } from "~/styles";
 
-export const PopoverButton = styled(NudeButton)`
+export const PopoverButton = styled(NudeButton)<{ borderOnHover?: boolean }>`
   &: ${hover},
   &:active,
   &[aria-expanded= "true"] {
     opacity: 1 !important;
+
+    ${({ borderOnHover }) =>
+      borderOnHover &&
+      css`
+        background: ${s("buttonNeutralBackground")};
+        box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px,
+          ${s("buttonNeutralBorder")} 0 0 0 1px inset;
+      `};
   }
 `;
