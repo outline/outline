@@ -194,6 +194,8 @@ const getAllEmojis = ({
   skinTone: EmojiSkinTone;
   freqEmojis: string[];
 }): DataNode[] => {
+  const emojisWithCategory = getEmojisWithCategory({ skinTone });
+
   const getFrequentEmojis = (): DataNode => {
     const emojis = getEmojis({ ids: freqEmojis, skinTone });
     return {
@@ -207,7 +209,7 @@ const getAllEmojis = ({
   };
 
   const getCategoryData = (emojiCategory: EmojiCategory): DataNode => {
-    const emojis = getEmojisWithCategory({ skinTone })[emojiCategory];
+    const emojis = emojisWithCategory[emojiCategory] ?? [];
     return {
       category: emojiCategory,
       icons: emojis.map((emoji) => ({

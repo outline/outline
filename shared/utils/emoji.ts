@@ -5,13 +5,31 @@ import FuzzySearch from "fuzzy-search";
 import capitalize from "lodash/capitalize";
 import sortBy from "lodash/sortBy";
 import { Emoji, EmojiCategory, EmojiSkinTone, EmojiVariants } from "../types";
+import { isMac } from "./browser";
+
+const isMacEnv = isMac();
 
 init({ data: RawData });
 
 // Data has the pre-processed "search" terms.
 const TypedData = Data as EmojiMartData;
 
-const searcher = new FuzzySearch(Object.values(TypedData.emojis), ["search"], {
+const flagEmojiIds =
+  TypedData.categories
+    .filter(({ id }) => id === EmojiCategory.Flags.toLowerCase())
+    .map(({ emojis }) => emojis)[0] ?? [];
+
+const Categories = TypedData.categories.filter(
+  ({ id }) => isMacEnv || capitalize(id) !== EmojiCategory.Flags
+);
+
+const Emojis = Object.fromEntries(
+  Object.entries(TypedData.emojis).filter(
+    ([id]) => isMacEnv || !flagEmojiIds.includes(id)
+  )
+);
+
+const searcher = new FuzzySearch(Object.values(Emojis), ["search"], {
   caseSensitive: false,
   sort: true,
 });
@@ -40,7 +58,7 @@ const getVariants = ({ id, name, skins }: GetVariantsProps): EmojiVariants =>
     return obj;
   }, {} as EmojiVariants);
 
-const EMOJI_ID_TO_VARIANTS = Object.entries(TypedData.emojis).reduce(
+const EMOJI_ID_TO_VARIANTS = Object.entries(Emojis).reduce(
   (obj, [id, emoji]) => {
     obj[id] = getVariants({
       id,
@@ -53,7 +71,7 @@ const EMOJI_ID_TO_VARIANTS = Object.entries(TypedData.emojis).reduce(
 );
 
 const CATEGORY_TO_EMOJI_IDS: Record<EmojiCategory, string[]> =
-  TypedData.categories.reduce((obj, { id, emojis }) => {
+  Categories.reduce((obj, { id, emojis }) => {
     const category = EmojiCategory[capitalize(id)];
     if (!category) {
       return obj;
