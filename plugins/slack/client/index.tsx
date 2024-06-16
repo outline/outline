@@ -3,7 +3,7 @@ import { Hook, PluginManager } from "~/utils/PluginManager";
 import config from "../plugin.json";
 import Icon from "./Icon";
 
-export default PluginManager.add([
+PluginManager.add([
   {
     ...config,
     type: Hook.Settings,
@@ -12,5 +12,10 @@ export default PluginManager.add([
       icon: Icon,
       component: React.lazy(() => import("./Settings")),
     },
+  },
+  {
+    ...config,
+    type: Hook.Icon,
+    value: Icon,
   },
 ]);

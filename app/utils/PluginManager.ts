@@ -1,6 +1,7 @@
 import isArray from "lodash/isArray";
 import sortBy from "lodash/sortBy";
-import { observable } from "mobx";
+import { action, observable } from "mobx";
+import { useComputed } from "~/hooks/useComputed";
 import Logger from "./Logger";
 import isCloudHosted from "./isCloudHosted";
 
@@ -22,7 +23,7 @@ type PluginValueMap = {
     /** The displayed icon of the plugin. */
     icon: React.ElementType;
     /** The settings screen somponent, should be lazy loaded. */
-    component: React.LazyExoticComponent<React.ComponentType<void>>;
+    component: React.LazyExoticComponent<React.ComponentType>;
   };
   [Hook.Icon]: React.ElementType;
 };
@@ -63,6 +64,7 @@ export class PluginManager {
     this.register(plugins);
   }
 
+  @action
   private static register<T extends Hook>(plugin: Plugin<T>) {
     const enabledInDeployment =
       !plugin?.deployments ||
@@ -75,7 +77,7 @@ export class PluginManager {
     }
 
     if (!this.plugins.has(plugin.type)) {
-      this.plugins.set(plugin.type, []);
+      this.plugins.set(plugin.type, observable.array([]));
     }
 
     this.plugins
@@ -108,7 +110,9 @@ export class PluginManager {
    * @returns A plugin
    */
   public static getHook<T extends Hook>(type: T, id: string) {
-    return this.getHooks(type).find((hook) => hook.id === id);
+    return this.plugins.get(type)?.find((hook) => hook.id === id) as
+      | Plugin<T>
+      | undefined;
   }
 
   /**
@@ -121,11 +125,21 @@ export class PluginManager {
 
     const r = import.meta.glob("../../plugins/*/client/index.{ts,js,tsx,jsx}");
     await Promise.all(Object.keys(r).map((key: string) => r[key]()));
-
     this.loaded = true;
   }
 
   private static plugins = observable.map<Hook, Plugin<Hook>[]>();
 
+  @observable
   private static loaded = false;
+}
+
+/**
+ * Convenience hook to get the value for a specific plugin and type.
+ */
+export function usePluginValue<T extends Hook>(type: T, id: string) {
+  return useComputed(
+    () => PluginManager.getHook<T>(type, id)?.value,
+    [type, id]
+  );
 }
