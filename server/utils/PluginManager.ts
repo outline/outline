@@ -58,10 +58,15 @@ export type Plugin<T extends Hook> = {
   priority?: number;
 };
 
+/**
+ * Server plugin manager.
+ */
 export class PluginManager {
   private static plugins = new Map<Hook, Plugin<Hook>[]>();
+
   /**
-   * Add plugins
+   * Add plugins to the manager.
+   *
    * @param plugins
    */
   public static add(plugins: Array<Plugin<Hook>> | Plugin<Hook>) {

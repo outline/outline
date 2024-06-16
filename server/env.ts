@@ -625,6 +625,10 @@ export class Environment {
     return value ? value : undefined;
   }
 
+  protected toOptionalCommaList(value: string | undefined) {
+    return value ? value.split(",").map((item) => item.trim()) : undefined;
+  }
+
   protected toOptionalNumber(value: string | undefined) {
     return value ? parseInt(value, 10) : undefined;
   }

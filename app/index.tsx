@@ -23,8 +23,12 @@ import LazyPolyfill from "./components/LazyPolyfills";
 import PageScroll from "./components/PageScroll";
 import Routes from "./routes";
 import Logger from "./utils/Logger";
+import { PluginManager } from "./utils/PluginManager";
 import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
+
+// Load plugins as soon as possible
+void PluginManager.loadPlugins();
 
 initI18n(env.DEFAULT_LANGUAGE);
 const element = window.document.getElementById("root");
