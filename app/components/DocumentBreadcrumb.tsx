@@ -108,7 +108,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
         type: "route",
         title: node.icon ? (
           <>
-            <Icon value={node.icon} color={node.color} /> {node.title}
+            <StyledIcon value={node.icon} color={node.color} /> {node.title}
           </>
         ) : (
           node.title
@@ -143,6 +143,10 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     </Breadcrumb>
   );
 };
+
+const StyledIcon = styled(Icon)`
+  margin-right: 2px;
+`;
 
 const SmallSlash = styled(GoToIcon)`
   width: 12px;
