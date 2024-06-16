@@ -153,7 +153,10 @@ const IconPicker = ({
   useOnClickOutside(
     contentRef,
     (event) => {
-      if (popover.visible) {
+      if (
+        popover.visible &&
+        !popover.unstable_disclosureRef.current?.contains(event.target as Node)
+      ) {
         event.stopPropagation();
         event.preventDefault();
         popover.hide();
