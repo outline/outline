@@ -184,6 +184,10 @@ export type PublicTeam = {
   customTheme: Partial<CustomTheme>;
 };
 
+export type PublicDocumentPreferences = {
+  tocPosition: TOCPosition;
+};
+
 export enum TOCPosition {
   Left = "left",
   Right = "right",

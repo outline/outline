@@ -83,6 +83,7 @@ type Props = WithTranslation &
     revision?: Revision;
     readOnly: boolean;
     shareId?: string;
+    tocPosition?: TOCPosition;
     onCreateLink?: (title: string, nested?: boolean) => Promise<string>;
     onSearchLink?: (term: string) => Promise<SearchResult[]>;
   };
@@ -394,8 +395,17 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
-    const { document, revision, readOnly, abilities, auth, ui, shareId, t } =
-      this.props;
+    const {
+      document,
+      revision,
+      readOnly,
+      abilities,
+      auth,
+      ui,
+      shareId,
+      tocPosition,
+      t,
+    } = this.props;
     const { team, user } = auth;
     const isShare = !!shareId;
     const embedsDisabled =
@@ -404,9 +414,10 @@ class DocumentScene extends React.Component<Props> {
     const hasHeadings = this.headings.length > 0;
     const showContents =
       ui.tocVisible && ((readOnly && hasHeadings) || !readOnly);
-    const tocPosition =
-      (team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
-      TOCPosition.Left;
+    const tocPos =
+      tocPosition ??
+      ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
+        TOCPosition.Left);
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -503,7 +514,7 @@ class DocumentScene extends React.Component<Props> {
                     {showContents && (
                       <ContentsContainer
                         docFullWidth={document.fullWidth}
-                        position={tocPosition}
+                        position={tocPos}
                       >
                         <Contents headings={this.headings} />
                       </ContentsContainer>
@@ -511,7 +522,7 @@ class DocumentScene extends React.Component<Props> {
                     <EditorContainer
                       docFullWidth={document.fullWidth}
                       showContents={showContents}
-                      tocPosition={tocPosition}
+                      tocPosition={tocPos}
                     >
                       <Editor
                         id={document.id}

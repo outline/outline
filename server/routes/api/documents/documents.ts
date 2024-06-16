@@ -9,7 +9,12 @@ import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { StatusFilter, TeamPreference, UserRole } from "@shared/types";
+import {
+  StatusFilter,
+  TeamPreference,
+  TOCPosition,
+  UserRole,
+} from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -434,7 +439,7 @@ router.post(
     const team = await document.$get("team");
 
     // Passing apiVersion=2 has a single effect, to change the response payload to
-    // include top level keys for document, sharedTree, and team.
+    // include top level keys for document, sharedTree, team, and preferences.
     const data =
       apiVersion >= 2
         ? {
@@ -446,6 +451,11 @@ router.post(
               share && share.includeChildDocuments
                 ? collection?.getDocumentTree(share.documentId)
                 : undefined,
+            preferences: {
+              tocPosition: team?.getPreference(
+                TeamPreference.TocPosition
+              ) as TOCPosition,
+            },
           }
         : serializedDocument;
     ctx.body = {
