@@ -413,11 +413,11 @@ export enum IconType {
 }
 
 export enum EmojiCategory {
-  People = "Smileys & People",
-  Nature = "Animals & Nature",
-  Foods = "Food & Drink",
+  People = "People",
+  Nature = "Nature",
+  Foods = "Foods",
   Activity = "Activity",
-  Places = "Travel & Places",
+  Places = "Places",
   Objects = "Objects",
   Symbols = "Symbols",
   Flags = "Flags",

@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { IconType } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import Text from "~/components/Text";
+import { TRANSLATED_CATEGORIES } from "../utils";
 import { Emoji } from "./Emoji";
 import Grid from "./Grid";
 import { IconButton } from "./IconButton";
@@ -29,7 +30,7 @@ type EmojiNode = {
 };
 
 export type DataNode = {
-  category: string;
+  category: keyof typeof TRANSLATED_CATEGORIES;
   icons: (OutlineNode | EmojiNode)[];
 };
 
@@ -60,7 +61,7 @@ const GridTemplate = (
           size="xsmall"
           weight="bold"
         >
-          {node.category}
+          {TRANSLATED_CATEGORIES[node.category]}
         </CategoryName>
       );
 

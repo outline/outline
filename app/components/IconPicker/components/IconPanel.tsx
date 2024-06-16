@@ -8,7 +8,7 @@ import InputSearch from "~/components/InputSearch";
 import usePersistedState from "~/hooks/usePersistedState";
 import {
   FREQUENTLY_USED_COUNT,
-  IconCategory,
+  DisplayCategory,
   iconsFreqKey,
   lastIconKey,
   sortFrequencies,
@@ -108,7 +108,7 @@ const IconPanel = ({
   );
 
   const isSearch = query !== "";
-  const category = isSearch ? IconCategory.Search : IconCategory.All;
+  const category = isSearch ? DisplayCategory.Search : DisplayCategory.All;
   const delayPerIcon = 250 / (TotalIcons + totalFreqIcons);
 
   const handleFilter = React.useCallback(
@@ -142,7 +142,7 @@ const IconPanel = ({
     ? [baseIcons]
     : [
         {
-          category: IconCategory.Frequent,
+          category: DisplayCategory.Frequent,
           icons: freqIcons.map((name, index) => ({
             type: IconType.Outline,
             name,

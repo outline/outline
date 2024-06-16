@@ -9,7 +9,7 @@ import InputSearch from "~/components/InputSearch";
 import usePersistedState from "~/hooks/usePersistedState";
 import {
   FREQUENTLY_USED_COUNT,
-  IconCategory,
+  DisplayCategory,
   emojiSkinToneKey,
   emojisFreqKey,
   lastEmojiKey,
@@ -177,7 +177,7 @@ const getSearchResults = ({
   const emojis = search({ query, skinTone });
   return [
     {
-      category: IconCategory.Search,
+      category: DisplayCategory.Search,
       icons: emojis.map((emoji) => ({
         type: IconType.Emoji,
         id: emoji.id,
@@ -199,7 +199,7 @@ const getAllEmojis = ({
   const getFrequentEmojis = (): DataNode => {
     const emojis = getEmojis({ ids: freqEmojis, skinTone });
     return {
-      category: IconCategory.Frequent,
+      category: DisplayCategory.Frequent,
       icons: emojis.map((emoji) => ({
         type: IconType.Emoji,
         id: emoji.id,

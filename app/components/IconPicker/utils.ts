@@ -1,7 +1,23 @@
-export const IconCategory = {
-  All: "All",
-  Frequent: "Frequently Used",
-  Search: "Search Results",
+import i18next from "i18next";
+
+export enum DisplayCategory {
+  All = "All",
+  Frequent = "Frequent",
+  Search = "Search",
+}
+
+export const TRANSLATED_CATEGORIES = {
+  All: i18next.t("All"),
+  Frequent: i18next.t("Frequently Used"),
+  Search: i18next.t("Search Results"),
+  People: i18next.t("Smileys & People"),
+  Nature: i18next.t("Animals & Nature"),
+  Foods: i18next.t("Food & Drink"),
+  Activity: i18next.t("Activity"),
+  Places: i18next.t("Travel & Places"),
+  Objects: i18next.t("Objects"),
+  Symbols: i18next.t("Symbols"),
+  Flags: i18next.t("Flags"),
 };
 
 export const FREQUENTLY_USED_COUNT = {
