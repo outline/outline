@@ -182,10 +182,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
   return (
-    <Flex
-      auto
-      column
-    >
+    <Flex auto column>
       <DocumentTitle
         ref={titleRef}
         readOnly={readOnly}

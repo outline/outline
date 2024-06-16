@@ -377,7 +377,7 @@ class DocumentScene extends React.Component<Props> {
     // Keep derived task list in sync
     const tasks = this.editor.current?.getTasks();
     const total = tasks?.length ?? 0;
-    const completed = tasks?.filter(t => t.completed).length ?? 0;
+    const completed = tasks?.filter((t) => t.completed).length ?? 0;
     document.updateTasks(total, completed);
   };
 
@@ -452,32 +452,17 @@ class DocumentScene extends React.Component<Props> {
             }}
           />
         )}
-        <RegisterKeyDown
-          trigger="m"
-          handler={this.onMove}
-        />
-        <RegisterKeyDown
-          trigger="z"
-          handler={this.onUndoRedo}
-        />
-        <RegisterKeyDown
-          trigger="e"
-          handler={this.goToEdit}
-        />
-        <RegisterKeyDown
-          trigger="Escape"
-          handler={this.goBack}
-        />
-        <RegisterKeyDown
-          trigger="h"
-          handler={this.goToHistory}
-        />
+        <RegisterKeyDown trigger="m" handler={this.onMove} />
+        <RegisterKeyDown trigger="z" handler={this.onUndoRedo} />
+        <RegisterKeyDown trigger="e" handler={this.goToEdit} />
+        <RegisterKeyDown trigger="Escape" handler={this.goBack} />
+        <RegisterKeyDown trigger="h" handler={this.goToHistory} />
         <RegisterKeyDown
           trigger="p"
           options={{
             allowInInput: true,
           }}
-          handler={event => {
+          handler={(event) => {
             if (isModKey(event) && event.shiftKey) {
               this.onPublish(event);
             }
@@ -490,10 +475,7 @@ class DocumentScene extends React.Component<Props> {
           column
           auto
         >
-          <PageTitle
-            title={title}
-            favicon={favicon}
-          />
+          <PageTitle title={title} favicon={favicon} />
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
           <Container column>
             {!readOnly && (
@@ -523,10 +505,7 @@ class DocumentScene extends React.Component<Props> {
               headings={this.headings}
             />
             <Flex justify="center">
-              <Notices
-                document={document}
-                readOnly={readOnly}
-              />
+              <Notices document={document} readOnly={readOnly} />
             </Flex>
             <MeasuredContainer
               as={Main}

@@ -234,11 +234,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   const dir = ref.current?.getComputedDirection();
 
   const fallbackIcon = icon ? (
-    <Icon
-      value={icon}
-      color={color}
-      size={40}
-    />
+    <Icon value={icon} color={color} size={40} />
   ) : null;
 
   return (
@@ -259,11 +255,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       ref={mergeRefs([ref, externalRef])}
     >
       {can.update && !readOnly ? (
-        <IconWrapper
-          align="center"
-          justify="center"
-          dir={dir}
-        >
+        <IconWrapper align="center" justify="center" dir={dir}>
           <React.Suspense fallback={fallbackIcon}>
             <StyledIconPicker
               icon={icon ?? null}
@@ -279,11 +271,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
           </React.Suspense>
         </IconWrapper>
       ) : icon ? (
-        <IconWrapper
-          align="center"
-          justify="center"
-          dir={dir}
-        >
+        <IconWrapper align="center" justify="center" dir={dir}>
           {fallbackIcon}
         </IconWrapper>
       ) : null}
@@ -301,13 +289,13 @@ const Title = styled(ContentEditable)<TitleProps>`
   line-height: ${lineHeight};
   margin-top: 6vh;
   margin-bottom: 0.5em;
-  margin-left: ${props =>
+  margin-left: ${(props) =>
     props.$containsIcon || props.$iconPickerIsOpen ? "40px" : "0px"};
   font-size: ${fontSize};
   font-weight: 600;
   border: 0;
   padding: 0;
-  cursor: ${props => (props.readOnly ? "default" : "text")};
+  cursor: ${(props) => (props.readOnly ? "default" : "text")};
 
   > span {
     outline: none;

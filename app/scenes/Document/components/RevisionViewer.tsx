@@ -27,10 +27,7 @@ function RevisionViewer(props: Props) {
   const { document, children, revision } = props;
 
   return (
-    <Flex
-      auto
-      column
-    >
+    <Flex auto column>
       <DocumentTitle
         documentId={revision.documentId}
         title={revision.title}

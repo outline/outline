@@ -171,7 +171,7 @@ export const IconWrapper = styled.span`
 
 const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   display: inline-flex;
-  visibility: ${props => (props.showActions ? "visible" : "hidden")};
+  visibility: ${(props) => (props.showActions ? "visible" : "hidden")};
   position: absolute;
   top: 4px;
   right: 4px;
@@ -208,23 +208,23 @@ const Link = styled(NavLink)<{
   min-height: 32px;
   transition: background 50ms, color 50ms;
   user-select: none;
-  background: ${props =>
+  background: ${(props) =>
     props.$isActiveDrop ? props.theme.slateDark : "inherit"};
-  color: ${props =>
+  color: ${(props) =>
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
   font-size: 16px;
   cursor: var(--pointer);
   overflow: hidden;
   ${undraggableOnDesktop()}
 
-  ${props =>
+  ${(props) =>
     props.$disabled &&
     css`
       pointer-events: none;
       opacity: 0.75;
     `}
 
-  ${props =>
+  ${(props) =>
     props.$isDraft &&
     css`
       &:after {
@@ -241,7 +241,7 @@ const Link = styled(NavLink)<{
     `}
 
   svg {
-    ${props => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
+    ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
     transition: fill 50ms;
   }
 
@@ -281,7 +281,7 @@ const Link = styled(NavLink)<{
     }
 
     &:hover {
-      color: ${props =>
+      color: ${(props) =>
         props.$isActiveDrop ? props.theme.white : props.theme.text};
     }
   }
