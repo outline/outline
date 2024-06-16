@@ -3,11 +3,12 @@ import * as React from "react";
 import styled from "styled-components";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 
-const icons = PluginManager.getHooks(Hook.Icon);
-
 type Props = {
+  /** The ID of the plugin to render an Icon for. */
   id: string;
+  /** The size of the icon. */
   size?: number;
+  /** The color of the icon. */
   color?: string;
 };
 
@@ -15,21 +16,21 @@ type Props = {
  * Renders an icon defined in a plugin (Hook.Icon).
  */
 function PluginIcon({ id, color, size = 24 }: Props) {
-  const plugin = icons.find((p) => p.id === id);
+  const plugin = PluginManager.getHook(Hook.Icon, id);
   const Icon = plugin?.value;
 
   if (Icon) {
     return (
-      <Wrapper>
+      <IconPosition>
         <Icon size={size} fill={color} />
-      </Wrapper>
+      </IconPosition>
     );
   }
 
   return null;
 }
 
-const Wrapper = styled.div`
+const IconPosition = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;

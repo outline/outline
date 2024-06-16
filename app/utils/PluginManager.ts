@@ -17,9 +17,12 @@ export enum Hook {
  */
 type PluginValueMap = {
   [Hook.Settings]: {
+    /** The group in settings sidebar this plugin belongs to. */
     group: string;
+    /** The displayed icon of the plugin. */
     icon: React.ElementType;
-    component: React.LazyExoticComponent<React.ComponentType<any>>;
+    /** The settings screen somponent, should be lazy loaded. */
+    component: React.LazyExoticComponent<React.ComponentType<void>>;
   };
   [Hook.Icon]: React.ElementType;
 };
@@ -48,7 +51,8 @@ export type Plugin<T extends Hook> = {
  */
 export class PluginManager {
   /**
-   * Add plugins
+   * Add plugins to the manager.
+   *
    * @param plugins
    */
   public static add(plugins: Array<Plugin<Hook>> | Plugin<Hook>) {
@@ -97,7 +101,18 @@ export class PluginManager {
   }
 
   /**
-   * Load plugin client components, must be in `/<plugin>/client/index.ts`
+   * Returns a plugin of a given type by its id.
+   *
+   * @param type The type of plugin to filter by
+   * @param id The id of the plugin
+   * @returns A plugin
+   */
+  public static getHook<T extends Hook>(type: T, id: string) {
+    return this.getHooks(type).find((hook) => hook.id === id);
+  }
+
+  /**
+   * Load plugin client components, must be in `/<plugin>/client/index.ts(x)`
    */
   public static async loadPlugins() {
     if (this.loaded) {
