@@ -32,7 +32,8 @@ export class TextHelper {
     return text
       .replace(/{date}/g, startCase(getCurrentDateAsString(locales)))
       .replace(/{time}/g, startCase(getCurrentTimeAsString(locales)))
-      .replace(/{datetime}/g, startCase(getCurrentDateTimeAsString(locales)));
+      .replace(/{datetime}/g, startCase(getCurrentDateTimeAsString(locales)))
+      .replace(/{author}/g, user.name);
   }
 
   /**
