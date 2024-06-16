@@ -182,6 +182,7 @@ export type PublicTeam = {
   avatarUrl: string;
   name: string;
   customTheme: Partial<CustomTheme>;
+  tocPosition: TOCPosition;
 };
 
 export enum TOCPosition {

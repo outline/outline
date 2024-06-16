@@ -439,8 +439,11 @@ router.post(
       apiVersion >= 2
         ? {
             document: serializedDocument,
-            team: team?.getPreference(TeamPreference.PublicBranding)
-              ? presentPublicTeam(team)
+            team: team
+              ? presentPublicTeam(
+                  team,
+                  !!team?.getPreference(TeamPreference.PublicBranding)
+                )
               : undefined,
             sharedTree:
               share && share.includeChildDocuments
