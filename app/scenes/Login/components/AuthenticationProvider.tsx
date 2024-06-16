@@ -93,17 +93,15 @@ function AuthenticationProvider(props: Props) {
   }
 
   return (
-    <Wrapper>
-      <ButtonLarge
-        onClick={() => (window.location.href = href)}
-        icon={<PluginIcon id={id} />}
-        fullwidth
-      >
-        {t("Continue with {{ authProviderName }}", {
-          authProviderName: name,
-        })}
-      </ButtonLarge>
-    </Wrapper>
+    <ButtonLarge
+      onClick={() => (window.location.href = href)}
+      icon={<PluginIcon id={id} />}
+      fullwidth
+    >
+      {t("Continue with {{ authProviderName }}", {
+        authProviderName: name,
+      })}
+    </ButtonLarge>
   );
 }
 
