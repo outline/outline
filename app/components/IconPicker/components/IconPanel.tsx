@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { IconType } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
@@ -8,8 +9,8 @@ import usePersistedState from "~/hooks/usePersistedState";
 import {
   FREQUENTLY_USED_COUNT,
   IconCategory,
-  getIconsFreqKey,
-  getLastIconKey,
+  iconsFreqKey,
+  lastIconKey,
   sortFrequencies,
 } from "../utils";
 import ColorPicker from "./ColorPicker";
@@ -26,11 +27,11 @@ const GRID_HEIGHT = 314;
 
 const useIconState = () => {
   const [iconsFreq, setIconsFreq] = usePersistedState<Record<string, number>>(
-    getIconsFreqKey(),
+    iconsFreqKey,
     {}
   );
   const [lastIcon, setLastIcon] = usePersistedState<string | undefined>(
-    getLastIconKey(),
+    lastIconKey,
     undefined
   );
 
@@ -117,10 +118,10 @@ const IconPanel = ({
     [onQueryChange]
   );
 
-  const handleIconClick = React.useCallback(
-    (icon: string) => {
-      onIconChange(icon);
-      incrementIconCount(icon);
+  const handleIconSelection = React.useCallback(
+    ({ id, value }: { id: string; value: string }) => {
+      onIconChange(value);
+      incrementIconCount(id);
     },
     [onIconChange, incrementIconCount]
   );
@@ -128,12 +129,12 @@ const IconPanel = ({
   const baseIcons: DataNode = {
     category,
     icons: filteredIcons.map((name, index) => ({
-      type: "outline",
+      type: IconType.Outline,
       name,
       color,
       initial,
       delay: Math.round((index + totalFreqIcons) * delayPerIcon),
-      onClick: handleIconClick,
+      onClick: handleIconSelection,
     })),
   };
 
@@ -143,12 +144,12 @@ const IconPanel = ({
         {
           category: IconCategory.Frequent,
           icons: freqIcons.map((name, index) => ({
-            type: "outline",
+            type: IconType.Outline,
             name,
             color,
             initial,
             delay: Math.round((index + totalFreqIcons) * delayPerIcon),
-            onClick: handleIconClick,
+            onClick: handleIconSelection,
           })),
         },
         baseIcons,
@@ -166,7 +167,7 @@ const IconPanel = ({
       <ColorPicker
         width={panelWidth}
         activeColor={color}
-        onSelect={(c) => onColorChange(c)}
+        onSelect={onColorChange}
       />
       <StyledInputSearch
         ref={searchRef}
@@ -179,6 +180,7 @@ const IconPanel = ({
         width={panelWidth}
         height={GRID_HEIGHT}
         data={templateData}
+        onIconSelect={handleIconSelection}
       />
     </Flex>
   );

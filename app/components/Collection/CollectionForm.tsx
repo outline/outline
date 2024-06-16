@@ -47,7 +47,7 @@ export const CollectionForm = observer(function CollectionForm_({
     [collection?.color]
   );
 
-  const fallbackIcon = <Icon value={"collection"} color={iconColor} />;
+  const fallbackIcon = <Icon value="collection" color={iconColor} />;
 
   const {
     register,

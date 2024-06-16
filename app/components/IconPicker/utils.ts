@@ -11,7 +11,7 @@ export const FREQUENTLY_USED_COUNT = {
 
 const STORAGE_KEYS = {
   Base: "icon-state",
-  EmojiSkin: "emoji-skin",
+  EmojiSkinTone: "emoji-skintone",
   IconsFrequency: "icons-freq",
   EmojisFrequency: "emojis-freq",
   LastIcon: "last-icon",
@@ -20,16 +20,15 @@ const STORAGE_KEYS = {
 
 const getStorageKey = (key: string) => `${STORAGE_KEYS.Base}.${key}`;
 
-export const getEmojiSkinKey = () => getStorageKey(STORAGE_KEYS.EmojiSkin);
+export const emojiSkinToneKey = getStorageKey(STORAGE_KEYS.EmojiSkinTone);
 
-export const getIconsFreqKey = () => getStorageKey(STORAGE_KEYS.IconsFrequency);
+export const iconsFreqKey = getStorageKey(STORAGE_KEYS.IconsFrequency);
 
-export const getEmojisFreqKey = () =>
-  getStorageKey(STORAGE_KEYS.EmojisFrequency);
+export const emojisFreqKey = getStorageKey(STORAGE_KEYS.EmojisFrequency);
 
-export const getLastIconKey = () => getStorageKey(STORAGE_KEYS.LastIcon);
+export const lastIconKey = getStorageKey(STORAGE_KEYS.LastIcon);
 
-export const getLastEmojiKey = () => getStorageKey(STORAGE_KEYS.LastEmoji);
+export const lastEmojiKey = getStorageKey(STORAGE_KEYS.LastEmoji);
 
 export const sortFrequencies = (freqs: [string, number][]) =>
   freqs.sort((a, b) => (a[1] >= b[1] ? -1 : 1));

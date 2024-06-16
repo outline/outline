@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Menu, MenuButton, MenuItem, useMenuState } from "reakit";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
-import { EmojiSkin } from "@shared/types";
+import { EmojiSkinTone } from "@shared/types";
 import { getEmojiVariants } from "@shared/utils/emoji";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
@@ -11,12 +11,12 @@ import { hover } from "~/styles";
 import { Emoji } from "./Emoji";
 import { IconButton } from "./IconButton";
 
-const SkinPicker = ({
-  skin,
+const SkinTonePicker = ({
+  skinTone,
   onChange,
 }: {
-  skin: EmojiSkin;
-  onChange: (skin: EmojiSkin) => void;
+  skinTone: EmojiSkinTone;
+  onChange: (skin: EmojiSkinTone) => void;
 }) => {
   const { t } = useTranslation();
 
@@ -55,12 +55,15 @@ const SkinPicker = ({
     <>
       <MenuButton {...menu}>
         {(props) => (
-          <StyledMenuButton {...props} aria-label={t("Show Skin Selector")}>
-            {handEmojiVariants[skin]!.value}
+          <StyledMenuButton
+            {...props}
+            aria-label={t("Choose default skin tone")}
+          >
+            {handEmojiVariants[skinTone]!.value}
           </StyledMenuButton>
         )}
       </MenuButton>
-      <Menu {...menu} aria-label={t("Skin Selector")}>
+      <Menu {...menu} aria-label={t("Choose default skin tone")}>
         {(props) => <MenuContainer {...props}>{menuItems}</MenuContainer>}
       </Menu>
     </>
@@ -86,4 +89,4 @@ const StyledMenuButton = styled(NudeButton)`
   }
 `;
 
-export default SkinPicker;
+export default SkinTonePicker;

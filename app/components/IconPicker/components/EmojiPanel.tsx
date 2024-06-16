@@ -2,7 +2,7 @@ import concat from "lodash/concat";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { EmojiCategory, EmojiSkin } from "@shared/types";
+import { EmojiCategory, EmojiSkinTone, IconType } from "@shared/types";
 import { getEmojis, getEmojisWithCategory, search } from "@shared/utils/emoji";
 import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
@@ -10,13 +10,13 @@ import usePersistedState from "~/hooks/usePersistedState";
 import {
   FREQUENTLY_USED_COUNT,
   IconCategory,
-  getEmojiSkinKey,
-  getEmojisFreqKey,
-  getLastEmojiKey,
+  emojiSkinToneKey,
+  emojisFreqKey,
+  lastEmojiKey,
   sortFrequencies,
 } from "../utils";
 import GridTemplate, { DataNode } from "./GridTemplate";
-import SkinPicker from "./SkinPicker";
+import SkinTonePicker from "./SkinTonePicker";
 
 /**
  * This is needed as a constant for react-window.
@@ -25,16 +25,16 @@ import SkinPicker from "./SkinPicker";
 const GRID_HEIGHT = 362;
 
 const useEmojiState = () => {
-  const [emojiSkin, setEmojiSkin] = usePersistedState<EmojiSkin>(
-    getEmojiSkinKey(),
-    EmojiSkin.Default
+  const [emojiSkinTone, setEmojiSkinTone] = usePersistedState<EmojiSkinTone>(
+    emojiSkinToneKey,
+    EmojiSkinTone.Default
   );
   const [emojisFreq, setEmojisFreq] = usePersistedState<Record<string, number>>(
-    getEmojisFreqKey(),
+    emojisFreqKey,
     {}
   );
   const [lastEmoji, setLastEmoji] = usePersistedState<string | undefined>(
-    getLastEmojiKey(),
+    lastEmojiKey,
     undefined
   );
 
@@ -69,8 +69,8 @@ const useEmojiState = () => {
   }, [emojisFreq, setEmojisFreq, lastEmoji]);
 
   return {
-    emojiSkin,
-    setEmojiSkin,
+    emojiSkinTone,
+    setEmojiSkinTone,
     incrementEmojiCount,
     getFreqEmojis,
   };
@@ -97,8 +97,8 @@ const EmojiPanel = ({
   const scrollableRef = React.useRef<HTMLDivElement | null>(null);
 
   const {
-    emojiSkin: skin,
-    setEmojiSkin,
+    emojiSkinTone: skinTone,
+    setEmojiSkinTone,
     incrementEmojiCount,
     getFreqEmojis,
   } = useEmojiState();
@@ -113,13 +113,13 @@ const EmojiPanel = ({
   );
 
   const handleSkinChange = React.useCallback(
-    (emojiSkin: EmojiSkin) => {
-      setEmojiSkin(emojiSkin);
+    (emojiSkinTone: EmojiSkinTone) => {
+      setEmojiSkinTone(emojiSkinTone);
     },
-    [setEmojiSkin]
+    [setEmojiSkinTone]
   );
 
-  const handleEmojiClick = React.useCallback(
+  const handleEmojiSelection = React.useCallback(
     ({ id, value }: { id: string; value: string }) => {
       onEmojiChange(value);
       incrementEmojiCount(id);
@@ -131,13 +131,11 @@ const EmojiPanel = ({
   const templateData: DataNode[] = isSearch
     ? getSearchResults({
         query,
-        skin,
-        onClick: handleEmojiClick,
+        skinTone,
       })
     : getAllEmojis({
-        skin,
+        skinTone,
         freqEmojis,
-        onClick: handleEmojiClick,
       });
 
   React.useEffect(() => {
@@ -156,13 +154,14 @@ const EmojiPanel = ({
           placeholder={`${t("Search emoji")}…`}
           onChange={handleFilter}
         />
-        <SkinPicker skin={skin} onChange={handleSkinChange} />
+        <SkinTonePicker skinTone={skinTone} onChange={handleSkinChange} />
       </UserInputContainer>
       <GridTemplate
         ref={scrollableRef}
         width={panelWidth}
         height={GRID_HEIGHT}
         data={templateData}
+        onIconSelect={handleEmojiSelection}
       />
     </Flex>
   );
@@ -170,58 +169,51 @@ const EmojiPanel = ({
 
 const getSearchResults = ({
   query,
-  skin,
-  onClick,
+  skinTone,
 }: {
   query: string;
-  skin: EmojiSkin;
-  onClick: (props: { id: string; value: string }) => void;
+  skinTone: EmojiSkinTone;
 }): DataNode[] => {
-  const emojis = search({ query, skin });
+  const emojis = search({ query, skinTone });
   return [
     {
       category: IconCategory.Search,
       icons: emojis.map((emoji) => ({
-        type: "emoji",
+        type: IconType.Emoji,
         id: emoji.id,
         value: emoji.value,
-        onClick,
       })),
     },
   ];
 };
 
 const getAllEmojis = ({
-  skin,
+  skinTone,
   freqEmojis,
-  onClick,
 }: {
-  skin: EmojiSkin;
+  skinTone: EmojiSkinTone;
   freqEmojis: string[];
-  onClick: (props: { id: string; value: string }) => void;
 }): DataNode[] => {
   const getFrequentEmojis = (): DataNode => {
-    const emojis = getEmojis({ ids: freqEmojis, skin });
+    const emojis = getEmojis({ ids: freqEmojis, skinTone });
     return {
       category: IconCategory.Frequent,
       icons: emojis.map((emoji) => ({
-        type: "emoji",
+        type: IconType.Emoji,
         id: emoji.id,
         value: emoji.value,
-        onClick,
       })),
     };
   };
 
   const getCategoryData = (emojiCategory: EmojiCategory): DataNode => {
-    const emojis = getEmojisWithCategory({ skin })[emojiCategory];
+    const emojis = getEmojisWithCategory({ skinTone })[emojiCategory];
     return {
       category: emojiCategory,
       icons: emojis.map((emoji) => ({
-        type: "emoji",
+        type: IconType.Emoji,
         id: emoji.id,
         value: emoji.value,
-        onClick,
       })),
     };
   };

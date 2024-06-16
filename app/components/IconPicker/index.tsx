@@ -27,7 +27,7 @@ import IconPanel from "./components/IconPanel";
 import { PopoverButton } from "./components/PopoverButton";
 
 const TAB_NAMES = {
-  Outline: "outline",
+  Icon: "icon",
   Emoji: "emoji",
 } as const;
 
@@ -72,7 +72,7 @@ const IconPicker = ({
   const iconType = determineIconType(icon);
   const defaultTab = React.useMemo(
     () =>
-      iconType === IconType.Emoji ? TAB_NAMES["Emoji"] : TAB_NAMES["Outline"],
+      iconType === IconType.Emoji ? TAB_NAMES["Emoji"] : TAB_NAMES["Icon"],
     [iconType]
   );
 
@@ -172,7 +172,7 @@ const IconPicker = ({
             className={className}
             size={size}
             onClick={handlePopoverButtonClick}
-            borderOnHover={borderOnHover}
+            $borderOnHover={borderOnHover}
           >
             {iconType && icon ? (
               <Icon value={icon} color={color} size={size} initial={initial} />
@@ -196,23 +196,25 @@ const IconPicker = ({
             <TabList {...tab}>
               <StyledTab
                 {...tab}
-                id={TAB_NAMES["Outline"]}
-                aria-label={t("Icons Tab")}
-                active={tab.selectedId === TAB_NAMES["Outline"]}
+                id={TAB_NAMES["Icon"]}
+                aria-label={t("Icons")}
+                active={tab.selectedId === TAB_NAMES["Icon"]}
               >
-                Icons
+                {t("Icons")}
               </StyledTab>
               <StyledTab
                 {...tab}
                 id={TAB_NAMES["Emoji"]}
-                aria-label={t("Emojis Tab")}
+                aria-label={t("Emojis")}
                 active={tab.selectedId === TAB_NAMES["Emoji"]}
               >
-                Emojis
+                {t("Emojis")}
               </StyledTab>
             </TabList>
             {allowDelete && icon && (
-              <RemoveButton onClick={handleIconRemove}>Remove</RemoveButton>
+              <RemoveButton onClick={handleIconRemove}>
+                {t("Remove")}
+              </RemoveButton>
             )}
           </TabActionsWrapper>
           <StyledTabPanel {...tab}>
@@ -222,7 +224,7 @@ const IconPicker = ({
               color={chosenColor}
               query={query}
               panelActive={
-                popover.visible && tab.selectedId === TAB_NAMES["Outline"]
+                popover.visible && tab.selectedId === TAB_NAMES["Icon"]
               }
               onIconChange={handleIconChange}
               onColorChange={handleIconColorChange}

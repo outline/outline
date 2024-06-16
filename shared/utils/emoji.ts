@@ -4,7 +4,7 @@ import { init, Data } from "emoji-mart";
 import FuzzySearch from "fuzzy-search";
 import capitalize from "lodash/capitalize";
 import sortBy from "lodash/sortBy";
-import { Emoji, EmojiCategory, EmojiSkin, EmojiVariants } from "../types";
+import { Emoji, EmojiCategory, EmojiSkinTone, EmojiVariants } from "../types";
 
 init({ data: RawData });
 
@@ -17,12 +17,12 @@ const searcher = new FuzzySearch(Object.values(TypedData.emojis), ["search"], {
 });
 
 // Codes defined by unicode.org
-const SKIN_CODE_TO_ENUM = {
-  "1f3fb": EmojiSkin.Light,
-  "1f3fc": EmojiSkin.MediumLight,
-  "1f3fd": EmojiSkin.Medium,
-  "1f3fe": EmojiSkin.MediumDark,
-  "1f3ff": EmojiSkin.Dark,
+const SKINTONE_CODE_TO_ENUM = {
+  "1f3fb": EmojiSkinTone.Light,
+  "1f3fc": EmojiSkinTone.MediumLight,
+  "1f3fd": EmojiSkinTone.Medium,
+  "1f3fe": EmojiSkinTone.MediumDark,
+  "1f3ff": EmojiSkinTone.Dark,
 };
 
 type GetVariantsProps = {
@@ -33,9 +33,10 @@ type GetVariantsProps = {
 
 const getVariants = ({ id, name, skins }: GetVariantsProps): EmojiVariants =>
   skins.reduce((obj, skin) => {
-    const skinCode = skin.unified.split("-")[1];
-    const skinType = SKIN_CODE_TO_ENUM[skinCode] ?? EmojiSkin.Default;
-    obj[skinType] = { id, name, value: skin.native } satisfies Emoji;
+    const skinToneCode = skin.unified.split("-")[1];
+    const skinToneType =
+      SKINTONE_CODE_TO_ENUM[skinToneCode] ?? EmojiSkinTone.Default;
+    obj[skinToneType] = { id, name, value: skin.native } satisfies Emoji;
     return obj;
   }, {} as EmojiVariants);
 
@@ -63,28 +64,28 @@ const CATEGORY_TO_EMOJI_IDS: Record<EmojiCategory, string[]> =
 
 export const getEmojis = ({
   ids,
-  skin,
+  skinTone,
 }: {
   ids: string[];
-  skin: EmojiSkin;
+  skinTone: EmojiSkinTone;
 }): Emoji[] =>
   ids.map(
     (id) =>
-      EMOJI_ID_TO_VARIANTS[id][skin] ??
-      EMOJI_ID_TO_VARIANTS[id][EmojiSkin.Default]
+      EMOJI_ID_TO_VARIANTS[id][skinTone] ??
+      EMOJI_ID_TO_VARIANTS[id][EmojiSkinTone.Default]
   );
 
 export const getEmojisWithCategory = ({
-  skin,
+  skinTone,
 }: {
-  skin: EmojiSkin;
+  skinTone: EmojiSkinTone;
 }): Record<EmojiCategory, Emoji[]> =>
   Object.keys(CATEGORY_TO_EMOJI_IDS).reduce((obj, category: EmojiCategory) => {
     const emojiIds = CATEGORY_TO_EMOJI_IDS[category];
     const emojis = emojiIds.map(
       (emojiId) =>
-        EMOJI_ID_TO_VARIANTS[emojiId][skin] ??
-        EMOJI_ID_TO_VARIANTS[emojiId][EmojiSkin.Default]
+        EMOJI_ID_TO_VARIANTS[emojiId][skinTone] ??
+        EMOJI_ID_TO_VARIANTS[emojiId][EmojiSkinTone.Default]
     );
     obj[category] = emojis;
     return obj;
@@ -95,20 +96,20 @@ export const getEmojiVariants = ({ id }: { id: string }) =>
 
 export const search = ({
   query,
-  skin,
+  skinTone,
 }: {
   query: string;
-  skin?: EmojiSkin;
+  skinTone?: EmojiSkinTone;
 }) => {
   const queryLowercase = query.toLowerCase();
-  const emojiSkin = skin ?? EmojiSkin.Default;
+  const emojiSkinTone = skinTone ?? EmojiSkinTone.Default;
 
   const matchedEmojis = searcher
     .search(queryLowercase)
     .map(
       (emoji) =>
-        EMOJI_ID_TO_VARIANTS[emoji.id][emojiSkin] ??
-        EMOJI_ID_TO_VARIANTS[emoji.id][EmojiSkin.Default]
+        EMOJI_ID_TO_VARIANTS[emoji.id][emojiSkinTone] ??
+        EMOJI_ID_TO_VARIANTS[emoji.id][EmojiSkinTone.Default]
     );
   return sortBy(matchedEmojis, (emoji) => {
     const nlc = emoji.name.toLowerCase();

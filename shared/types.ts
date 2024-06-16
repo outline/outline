@@ -423,7 +423,7 @@ export enum EmojiCategory {
   Flags = "Flags",
 }
 
-export enum EmojiSkin {
+export enum EmojiSkinTone {
   Default = "Default",
   Light = "Light",
   MediumLight = "MediumLight",
@@ -439,10 +439,10 @@ export type Emoji = {
 };
 
 export type EmojiVariants = {
-  [EmojiSkin.Default]: Emoji;
-  [EmojiSkin.Light]?: Emoji;
-  [EmojiSkin.MediumLight]?: Emoji;
-  [EmojiSkin.Medium]?: Emoji;
-  [EmojiSkin.MediumDark]?: Emoji;
-  [EmojiSkin.Dark]?: Emoji;
+  [EmojiSkinTone.Default]: Emoji;
+  [EmojiSkinTone.Light]?: Emoji;
+  [EmojiSkinTone.MediumLight]?: Emoji;
+  [EmojiSkinTone.Medium]?: Emoji;
+  [EmojiSkinTone.MediumDark]?: Emoji;
+  [EmojiSkinTone.Dark]?: Emoji;
 };

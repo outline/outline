@@ -2,6 +2,7 @@ import chunk from "lodash/chunk";
 import compact from "lodash/compact";
 import React from "react";
 import styled from "styled-components";
+import { IconType } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import Text from "~/components/Text";
 import { Emoji } from "./Emoji";
@@ -14,19 +15,17 @@ import { IconButton } from "./IconButton";
 const BUTTON_SIZE = 32;
 
 type OutlineNode = {
-  type: "outline";
+  type: IconType.Outline;
   name: string;
   color: string;
   initial: string;
-  onClick: (icon: string) => void;
   delay: number;
 };
 
 type EmojiNode = {
-  type: "emoji";
+  type: IconType.Emoji;
   id: string;
   value: string;
-  onClick: ({ id, value }: { id: string; value: string }) => void;
 };
 
 export type DataNode = {
@@ -38,10 +37,11 @@ type Props = {
   width: number;
   height: number;
   data: DataNode[];
+  onIconSelect: ({ id, value }: { id: string; value: string }) => void;
 };
 
 const GridTemplate = (
-  { width, height, data }: Props,
+  { width, height, data, onIconSelect }: Props,
   ref: React.Ref<HTMLDivElement>
 ) => {
   // 24px padding for the Grid Container
@@ -65,11 +65,11 @@ const GridTemplate = (
       );
 
       const items = node.icons.map((item) => {
-        if (item.type === "outline") {
+        if (item.type === IconType.Outline) {
           return (
             <IconButton
               key={item.name}
-              onClick={() => item.onClick(item.name)}
+              onClick={() => onIconSelect({ id: item.name, value: item.name })}
               delay={item.delay}
             >
               <Icon as={IconLibrary.getComponent(item.name)} color={item.color}>
@@ -82,7 +82,7 @@ const GridTemplate = (
         return (
           <IconButton
             key={item.id}
-            onClick={() => item.onClick({ id: item.id, value: item.value })}
+            onClick={() => onIconSelect({ id: item.id, value: item.value })}
           >
             <Emoji>{item.value}</Emoji>
           </IconButton>
