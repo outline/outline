@@ -36,4 +36,7 @@ export class EditorStyleHelper {
 
   /** Minimum padding around editor */
   static readonly padding = 32;
+
+  /** Table of contents width */
+  static readonly tocWidth = 256;
 }

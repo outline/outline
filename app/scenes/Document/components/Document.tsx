@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { s } from "@shared/styles";
 import { NavigationNode, TOCPosition, TeamPreference } from "@shared/types";
 import { ProsemirrorHelper, Heading } from "@shared/utils/ProsemirrorHelper";
@@ -595,8 +596,8 @@ const Main = styled.div<MainProps>`
     grid-template-columns: ${({ fullWidth, tocPosition }: MainProps) =>
       fullWidth
         ? tocPosition === TOCPosition.Left
-          ? `256px minmax(0, 1fr)`
-          : `minmax(0, 1fr) 256px`
+          ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
+          : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
         : `1fr minmax(0, ${`calc(46em + 76px)`}) 1fr`};
   `};
 
@@ -604,8 +605,8 @@ const Main = styled.div<MainProps>`
     grid-template-columns: ${({ fullWidth, tocPosition }: MainProps) =>
       fullWidth
         ? tocPosition === TOCPosition.Left
-          ? `256px minmax(0, 1fr)`
-          : `minmax(0, 1fr) 256px`
+          ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
+          : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
         : `1fr minmax(0, ${`calc(52em + 76px)`}) 1fr`};
   `};
 `;

@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, s } from "@shared/styles";
 import Text from "~/components/Text";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
@@ -83,7 +84,7 @@ const StickyWrapper = styled.div`
   position: sticky;
   top: 90px;
   max-height: calc(100vh - 90px);
-  width: 256px;
+  width: ${EditorStyleHelper.tocWidth}px;
 
   padding: 0 16px;
   overflow-y: auto;

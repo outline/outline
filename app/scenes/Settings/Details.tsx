@@ -235,14 +235,14 @@ function Details() {
           )}
           <SettingRow
             border={false}
-            label={t("Table of Contents position")}
+            label={t("Table of contents position")}
             name="tocPosition"
             description={t(
               "The side to display the table of contents in relation to the main content."
             )}
           >
             <InputSelect
-              ariaLabel={t("Table of Contents position")}
+              ariaLabel={t("Table of contents position")}
               options={[
                 {
                   label: t("Left"),
