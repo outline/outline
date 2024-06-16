@@ -7,12 +7,7 @@ import { RouteComponentProps, useLocation } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { setCookie } from "tiny-cookie";
 import { s } from "@shared/styles";
-import {
-  NavigationNode,
-  PublicDocumentPreferences,
-  PublicTeam,
-  TOCPosition,
-} from "@shared/types";
+import { NavigationNode, PublicTeam, TOCPosition } from "@shared/types";
 import type { Theme } from "~/stores/UiStore";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
@@ -38,7 +33,6 @@ type Response = {
   document: DocumentModel;
   team?: PublicTeam;
   sharedTree?: NavigationNode | undefined;
-  preferences?: PublicDocumentPreferences;
 };
 
 type Props = RouteComponentProps<{
@@ -108,9 +102,7 @@ function SharedDocumentScene(props: Props) {
     ? (searchParams.get("theme") as Theme)
     : undefined;
   const theme = useBuildTheme(response?.team?.customTheme, themeOverride);
-
-  const preferences = response?.preferences;
-  const tocPosition = preferences?.tocPosition ?? TOCPosition.Left;
+  const tocPosition = response?.team?.tocPosition ?? TOCPosition.Left;
 
   React.useEffect(() => {
     if (!user) {

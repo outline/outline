@@ -182,9 +182,6 @@ export type PublicTeam = {
   avatarUrl: string;
   name: string;
   customTheme: Partial<CustomTheme>;
-};
-
-export type PublicDocumentPreferences = {
   tocPosition: TOCPosition;
 };
 

@@ -9,7 +9,6 @@ import type {
   DateFilter,
   JSONObject,
   NavigationNode,
-  PublicDocumentPreferences,
   PublicTeam,
   StatusFilter,
 } from "@shared/types";
@@ -491,7 +490,6 @@ export default class DocumentsStore extends Store<Document> {
     document: Document;
     team?: PublicTeam;
     sharedTree?: NavigationNode;
-    preferences?: PublicDocumentPreferences;
   }> => {
     if (!options.prefetch) {
       this.isFetching = true;
@@ -536,7 +534,6 @@ export default class DocumentsStore extends Store<Document> {
           document,
           sharedTree: res.data.sharedTree,
           team: res.data.team,
-          preferences: res.data.preferences,
         };
       }
 
