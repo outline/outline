@@ -7966,12 +7966,7 @@ email-providers@^1.14.0:
   resolved "https://registry.yarnpkg.com/email-providers/-/email-providers-1.14.0.tgz#a353f56390f9a8b42ba1843a1701c1f5fcd332ee"
   integrity "sha1-o1P1Y5D5qLQroYQ6FwHB9fzTMu4= sha512-9PjNtvOzhnl5mtyAnxe7tUQ/SWnplbJjk0w6+8fKIjFFOQizqB+H+9dvOdwOVz07iOHt2zvl0Yb1bFAl1il0pA=="
 
-emittery@^0.12.1:
-  version "0.12.1"
-  resolved "https://registry.yarnpkg.com/emittery/-/emittery-0.12.1.tgz#cb9a4a18745816f7a1fa03a8953e7eaededb45f2"
-  integrity "sha1-y5pKGHRYFveh+gOolT5+rt7bRfI= sha512-pYyW59MIZo0HxPFf+Vb3+gacUu0gxVS3TZwB2ClwkEZywgF9f9OJDoVmNLojTn0vKX3tO9LC+pdQEcLP4Oz/bQ=="
-
-emittery@^0.13.1:
+emittery@^0.13.0, emittery@^0.13.1:
   version "0.13.1"
   resolved "https://registry.yarnpkg.com/emittery/-/emittery-0.13.1.tgz#c04b8c3457490e0847ae51fced3af52d338e3dad"
   integrity "sha1-wEuMNFdJDghHrlH87Tr1LTOOPa0= sha512-DeWwawk6r5yR9jFgnDKYt4sLS0LmHJJi3ZOnb5/JdbYwj3nW+FxQnHIjhBKz8YLC7oRNPVM9NQ47I3CVx34eqQ=="
@@ -9031,14 +9026,6 @@ fs-extra@^9.0.0, fs-extra@^9.0.1, fs-extra@^9.1.0:
     graceful-fs "^4.2.0"
     jsonfile "^6.0.1"
     universalify "^2.0.0"
-
-fs-jetpack@^4.3.1:
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/fs-jetpack/-/fs-jetpack-4.3.1.tgz#cdfd4b64e6bfdec7c7dc55c76b39efaa7853bb20"
-  integrity "sha1-zf1LZOa/3sfH3FXHaznvqnhTuyA= sha512-dbeOK84F6BiQzk2yqqCVwCPWTxAvVGJ3fMQc6E2wuEohS28mR6yHngbrKuVCK1KHRx/ccByDylqu4H5PCP2urQ=="
-  dependencies:
-    minimatch "^3.0.2"
-    rimraf "^2.6.3"
 
 fs-merger@^3.2.1:
   version "3.2.1"
@@ -12666,10 +12653,10 @@ polished@^4.3.1:
   dependencies:
     "@babel/runtime" "^7.17.8"
 
-pony-cause@^2.1.2:
-  version "2.1.9"
-  resolved "https://registry.yarnpkg.com/pony-cause/-/pony-cause-2.1.9.tgz#39cd05418a94ee285d6f956f7df530449a497605"
-  integrity "sha1-Oc0FQYqU7ihdb5VvffUwRJpJdgU= sha512-DIWdKGa0CSu5W1ooX1bcw4jQ+Fo++sgee0v1iczO7epT/suU/s2XBA8JDMl+8zkXZkjyfHfPaEngFwK5L3D9pg=="
+pony-cause@^2.1.4:
+  version "2.1.11"
+  resolved "https://registry.yarnpkg.com/pony-cause/-/pony-cause-2.1.11.tgz#d69a20aaccdb3bdb8f74dd59e5c68d8e6772e4bd"
+  integrity sha512-M7LhCsdNbNgiLYiP4WjsfLUuFmCfnjdF6jKe2R9NKl4WFN+HZPGHJZ9lnLP7f9ZnKe3U9nuWD0szirmj+migUg==
 
 popmotion@9.3.6:
   version "9.3.6"
@@ -14927,10 +14914,10 @@ type-fest@^1.0.2:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-1.4.0.tgz#e9fb813fe3bf1744ec359d55d1affefa76f14be1"
   integrity "sha1-6fuBP+O/F0TsNZ1V0a/++nbxS+E= sha512-yGSza74xk0UG8k+pLh5oeoYirvIiWo5t0/o3zHHAO2tRDiZcxWP7fywNlXhqb6/r6sWvwi+RsyQMWhVLe4BVuA=="
 
-type-fest@^2.18.0:
-  version "2.19.0"
-  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-2.19.0.tgz#88068015bb33036a598b952e55e9311a60fd3a9b"
-  integrity "sha1-iAaAFbszA2pZi5UuVekxGmD9Ops= sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA=="
+type-fest@^4.0.0:
+  version "4.20.1"
+  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-4.20.1.tgz#d97bb1e923bf524e5b4b43421d586760fb2ee8be"
+  integrity sha512-R6wDsVsoS9xYOpy8vgeBlqpdOyzJ12HNfQhC/aAKWM3YoCV9TtunJzh/QpkMgeDhkoynDcw5f1y+qF9yc/HHyg==
 
 type-is@^1.6.16:
   version "1.6.18"
@@ -15031,17 +15018,16 @@ umzug@^2.3.0:
   dependencies:
     bluebird "^3.7.2"
 
-umzug@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/umzug/-/umzug-3.2.1.tgz#01c3a109efb037a10a317d4191be22810c37b195"
-  integrity "sha1-AcOhCe+wN6EKMX1Bkb4igQw3sZU= sha512-XyWQowvP9CKZycKc/Zg9SYWrAWX/gJCE799AUTFqk8yC3tp44K1xWr3LoFF0MNEjClKOo1suCr5ASnoy+KltdA=="
+umzug@^3.8.1:
+  version "3.8.1"
+  resolved "https://registry.yarnpkg.com/umzug/-/umzug-3.8.1.tgz#52e7f2c831b56fade367a42bf190ac73a786dda7"
+  integrity sha512-k0HjOc3b/s8vH24BUTvnaFiKhfWI9UQAGpqHDG+3866CGlBTB83Xs5wZ1io1mwYLj/GHvQ34AxKhbpYnWtkRJg==
   dependencies:
     "@rushstack/ts-command-line" "^4.12.2"
-    emittery "^0.12.1"
-    fs-jetpack "^4.3.1"
-    glob "^8.0.3"
-    pony-cause "^2.1.2"
-    type-fest "^2.18.0"
+    emittery "^0.13.0"
+    fast-glob "^3.3.2"
+    pony-cause "^2.1.4"
+    type-fest "^4.0.0"
 
 unbox-primitive@^1.0.2:
   version "1.0.2"
