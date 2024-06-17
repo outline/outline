@@ -83,6 +83,10 @@ export default function auth(options: AuthenticationOptions = {}) {
           throw AuthenticationError("Invalid API key");
         }
 
+        if (apiKey.expiryAt && apiKey.expiryAt < new Date()) {
+          throw AuthenticationError("Invalid API key");
+        }
+
         user = await User.findByPk(apiKey.userId, {
           include: [
             {

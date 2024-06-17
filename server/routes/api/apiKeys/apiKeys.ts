@@ -18,7 +18,7 @@ router.post(
   validate(T.APIKeysCreateSchema),
   transaction(),
   async (ctx: APIContext<T.APIKeysCreateReq>) => {
-    const { name } = ctx.input.body;
+    const { name, expiryAt } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -27,6 +27,7 @@ router.post(
       {
         name,
         userId: user.id,
+        expiryAt,
       },
       { transaction }
     );

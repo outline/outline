@@ -7,6 +7,7 @@ import {
   BeforeValidate,
   BelongsTo,
   ForeignKey,
+  IsDate,
 } from "sequelize-typescript";
 import { ApiKeyValidation } from "@shared/validations";
 import User from "./User";
@@ -33,6 +34,10 @@ class ApiKey extends ParanoidModel<
   @Unique
   @Column
   secret: string;
+
+  @IsDate
+  @Column
+  expiryAt: Date | null;
 
   // hooks
 

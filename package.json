@@ -191,6 +191,7 @@
     "react": "^17.0.2",
     "react-avatar-editor": "^13.0.2",
     "react-color": "^2.17.3",
+    "react-day-picker": "^8.10.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^17.0.2",
