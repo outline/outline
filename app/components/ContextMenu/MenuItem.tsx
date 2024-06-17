@@ -1,11 +1,12 @@
 import { LocationDescriptor } from "history";
 import { CheckmarkIcon } from "outline-icons";
-import { ellipsis } from "polished";
+import { ellipsis, transparentize } from "polished";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import Text from "../Text";
 import MenuIconWrapper from "./MenuIconWrapper";
 
 type Props = {
@@ -159,6 +160,10 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
       svg {
         color: ${props.theme.accentText};
         fill: ${props.theme.accentText};
+      }
+
+      ${Text} {
+        color: ${transparentize(0.5, props.theme.accentText)};
       }
     }
   }
