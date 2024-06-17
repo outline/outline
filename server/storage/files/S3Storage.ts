@@ -28,10 +28,6 @@ export default class S3Storage extends BaseStorage {
     this.client = new S3Client({
       bucketEndpoint: env.AWS_S3_ACCELERATE_URL ? true : false,
       forcePathStyle: env.AWS_S3_FORCE_PATH_STYLE,
-      credentials: {
-        accessKeyId: env.AWS_ACCESS_KEY_ID || "",
-        secretAccessKey: env.AWS_SECRET_ACCESS_KEY || "",
-      },
       region: env.AWS_REGION,
       endpoint: this.getEndpoint(),
     });
