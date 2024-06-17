@@ -25,6 +25,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
 import TeamDelete from "../TeamDelete";
+import { ActionRow } from "./components/ActionRow";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 
@@ -303,9 +304,11 @@ function Details() {
             />
           </SettingRow>
 
-          <Button type="submit" disabled={team.isSaving || !isValid}>
-            {team.isSaving ? `${t("Saving")}…` : t("Save")}
-          </Button>
+          <ActionRow>
+            <Button type="submit" disabled={team.isSaving || !isValid}>
+              {team.isSaving ? `${t("Saving")}…` : t("Save")}
+            </Button>
+          </ActionRow>
 
           {can.delete && (
             <>

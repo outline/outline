@@ -49,8 +49,8 @@ const RealButton = styled(ActionButton)<RealProps>`
   &:disabled {
     cursor: default;
     pointer-events: none;
-    color: ${(props) => transparentize(0.5, props.theme.accentText)};
-    background: ${(props) => lighten(0.2, props.theme.accent)};
+    color: ${(props) => transparentize(0.3, props.theme.accentText)};
+    background: ${(props) => transparentize(0.1, props.theme.accent)};
 
     svg {
       fill: ${(props) => props.theme.white50};
