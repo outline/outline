@@ -67,6 +67,7 @@ export default async function documentUpdater({
   }
   if (emoji !== undefined) {
     document.emoji = emoji;
+    document.icon = emoji;
   }
   if (editorVersion) {
     document.editorVersion = editorVersion;

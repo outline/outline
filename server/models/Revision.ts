@@ -20,6 +20,7 @@ import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
+import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 
 @DefaultScope(() => ({
@@ -77,6 +78,18 @@ class Revision extends IdModel<
   @Column
   emoji: string | null;
 
+  @Length({
+    max: 50,
+    msg: `icon must be 50 characters or less`,
+  })
+  @Column
+  icon: string | null;
+
+  /** The color of the icon. */
+  @IsHexColor
+  @Column
+  color: string | null;
+
   // associations
 
   @BelongsTo(() => Document, "documentId")
@@ -121,6 +134,8 @@ class Revision extends IdModel<
       title: document.title,
       text: document.text,
       emoji: document.emoji,
+      icon: document.emoji,
+      color: document.color,
       content: document.content,
       userId: document.lastModifiedById,
       editorVersion: document.editorVersion,

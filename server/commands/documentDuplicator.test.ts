@@ -26,6 +26,7 @@ describe("documentDuplicator", () => {
     expect(response[0].title).toEqual(original.title);
     expect(response[0].text).toEqual(original.text);
     expect(response[0].emoji).toEqual(original.emoji);
+    expect(response[0].icon).toEqual(original.emoji);
     expect(response[0].publishedAt).toBeInstanceOf(Date);
   });
 
@@ -52,6 +53,7 @@ describe("documentDuplicator", () => {
     expect(response[0].title).toEqual("New title");
     expect(response[0].text).toEqual(original.text);
     expect(response[0].emoji).toEqual(original.emoji);
+    expect(response[0].icon).toEqual(original.emoji);
     expect(response[0].publishedAt).toBeInstanceOf(Date);
   });
 
@@ -106,6 +108,7 @@ describe("documentDuplicator", () => {
     expect(response[0].title).toEqual(original.title);
     expect(response[0].text).toEqual(original.text);
     expect(response[0].emoji).toEqual(original.emoji);
+    expect(response[0].icon).toEqual(original.emoji);
     expect(response[0].publishedAt).toBeNull();
   });
 });

@@ -131,6 +131,7 @@ export default class ImportNotionTask extends ImportTask {
               id,
               title,
               emoji,
+              icon: emoji,
               text,
               collectionId,
               parentDocumentId,
