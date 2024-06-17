@@ -304,7 +304,7 @@
     "@types/react-table": "^7.7.18",
     "@types/react-virtualized-auto-sizer": "^1.0.4",
     "@types/react-window": "^1.8.8",
-    "@types/readable-stream": "^4.0.12",
+    "@types/readable-stream": "^4.0.14",
     "@types/redis-info": "^3.0.3",
     "@types/refractor": "^3.4.0",
     "@types/resolve-path": "^1.4.2",
