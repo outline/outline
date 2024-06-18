@@ -348,8 +348,8 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     template: z.boolean().optional(),
   }),
 })
-  .refine((req) => !(req.body.parentDocumentId && !req.body.collectionId), {
-    message: "collectionId is required to create a nested document",
+  .refine((req) => !req.body.parentDocumentId || !req.body.collectionId, {
+    message: "collectionId is ignored when creating a nested document",
   })
   .refine((req) => !(req.body.template && !req.body.collectionId), {
     message: "collectionId is required to create a template document",
