@@ -1,6 +1,10 @@
 import invariant from "invariant";
 import some from "lodash/some";
-import { DocumentPermission, TeamPreference } from "@shared/types";
+import {
+  CollectionPermission,
+  DocumentPermission,
+  TeamPreference,
+} from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, _cannot as cannot, _can as can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
@@ -254,7 +258,7 @@ allow(User, "unpublish", Document, (user, document) => {
 
 function includesMembership(
   document: Document | null,
-  permissions: DocumentPermission[]
+  permissions: (DocumentPermission | CollectionPermission)[]
 ) {
   if (!document) {
     return false;
