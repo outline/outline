@@ -18,25 +18,25 @@ describe("#ApiKey", () => {
     });
   });
 
-  describe("lastUsedAt", () => {
-    test("should update lastUsedAt", async () => {
+  describe("lastActiveAt", () => {
+    test("should update lastActiveAt", async () => {
       const apiKey = await buildApiKey({
         name: "Dev",
       });
-      await apiKey.updateUsedAt();
-      expect(apiKey.lastUsedAt).toBeTruthy();
+      await apiKey.updateActiveAt();
+      expect(apiKey.lastActiveAt).toBeTruthy();
     });
 
-    test("should not update lastUsedAt within 5 minutes", async () => {
+    test("should not update lastActiveAt within 5 minutes", async () => {
       const apiKey = await buildApiKey({
         name: "Dev",
       });
-      await apiKey.updateUsedAt();
-      expect(apiKey.lastUsedAt).toBeTruthy();
+      await apiKey.updateActiveAt();
+      expect(apiKey.lastActiveAt).toBeTruthy();
 
-      const lastUsedAt = apiKey.lastUsedAt;
-      await apiKey.updateUsedAt();
-      expect(apiKey.lastUsedAt).toEqual(lastUsedAt);
+      const lastActiveAt = apiKey.lastActiveAt;
+      await apiKey.updateActiveAt();
+      expect(apiKey.lastActiveAt).toEqual(lastActiveAt);
     });
   });
 });

@@ -14,7 +14,7 @@ class ApiKey extends Model {
   name: string;
 
   @observable
-  lastUsedAt?: string;
+  lastActiveAt?: string;
 
   secret: string;
 }

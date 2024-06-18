@@ -38,7 +38,7 @@ class ApiKey extends ParanoidModel<
 
   @IsDate
   @Column
-  lastUsedAt: Date | null;
+  lastActiveAt: Date | null;
 
   // hooks
 
@@ -69,13 +69,13 @@ class ApiKey extends ParanoidModel<
   @Column
   userId: string;
 
-  updateUsedAt = async () => {
+  updateActiveAt = async () => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);
 
     // ensure this is updated only every few minutes otherwise
     // we'll be constantly writing to the DB as API requests happen
-    if (!this.lastUsedAt || this.lastUsedAt < fiveMinutesAgo) {
-      this.lastUsedAt = new Date();
+    if (!this.lastActiveAt || this.lastActiveAt < fiveMinutesAgo) {
+      this.lastActiveAt = new Date();
     }
 
     return this.save();

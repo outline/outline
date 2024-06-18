@@ -19,9 +19,9 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
   const { t } = useTranslation();
   const [linkCopied, setLinkCopied] = React.useState<boolean>(false);
 
-  const subtitle = apiKey.lastUsedAt ? (
+  const subtitle = apiKey.lastActiveAt ? (
     <Text type={"tertiary"}>
-      {t("Last used")} <Time dateTime={apiKey.lastUsedAt} addSuffix />
+      {t("Last used")} <Time dateTime={apiKey.lastActiveAt} addSuffix />
     </Text>
   ) : null;
 
