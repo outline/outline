@@ -2537,11 +2537,12 @@ describe("#documents.restore", () => {
 
   it("should not allow restore of trashed documents to collection user cannot access", async () => {
     const user = await buildUser();
+    const collection = await buildCollection();
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
+      collectionId: collection.id,
     });
-    const collection = await buildCollection();
     await document.destroy();
     const res = await server.post("/api/documents.restore", {
       body: {
@@ -2772,14 +2773,9 @@ describe("#documents.create", () => {
   it("should fail for invalid parentDocumentId", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
-    const collection = await buildCollection({
-      userId: user.id,
-      teamId: team.id,
-    });
     const res = await server.post("/api/documents.create", {
       body: {
         token: user.getJwtToken(),
-        collectionId: collection.id,
         parentDocumentId: "invalid",
         title: "new document",
         text: "hello",
@@ -2834,7 +2830,7 @@ describe("#documents.create", () => {
     expect(body.data.collectionId).toBeNull();
   });
 
-  it("should not allow creating a template without a collection", async () => {
+  it("should not allow creating a template with a collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const res = await server.post("/api/documents.create", {
@@ -2867,15 +2863,18 @@ describe("#documents.create", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(400);
-    expect(body.message).toBe("collectionId is required to publish");
+    expect(body.message).toBe(
+      "collectionId or parentDocumentId is required to publish"
+    );
   });
 
-  it("should not allow creating a nested doc without a collection", async () => {
+  it("should not allow creating a nested doc with a collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const res = await server.post("/api/documents.create", {
       body: {
         token: user.getJwtToken(),
+        collectionId: "d7a4eb73-fac1-4028-af45-d7e34d54db8e",
         parentDocumentId: "d7a4eb73-fac1-4028-af45-d7e34d54db8e",
         title: "nested doc",
         text: "nested doc without collection",
@@ -2885,7 +2884,7 @@ describe("#documents.create", () => {
 
     expect(res.status).toEqual(400);
     expect(body.message).toBe(
-      "collectionId is required to create a nested document"
+      "collectionId is inferred when creating a nested document"
     );
   });
 
@@ -2947,7 +2946,6 @@ describe("#documents.create", () => {
     const res = await server.post("/api/documents.create", {
       body: {
         token: user.getJwtToken(),
-        collectionId: collection.id,
         parentDocumentId: document.id,
         title: "new document",
         text: "hello",
@@ -2963,14 +2961,9 @@ describe("#documents.create", () => {
   it("should error with invalid parentDocument", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
-    const collection = await buildCollection({
-      userId: user.id,
-      teamId: team.id,
-    });
     const res = await server.post("/api/documents.create", {
       body: {
         token: user.getJwtToken(),
-        collectionId: collection.id,
         parentDocumentId: "d7a4eb73-fac1-4028-af45-d7e34d54db8e",
         title: "new document",
         text: "hello",
@@ -2996,7 +2989,6 @@ describe("#documents.create", () => {
     const res = await server.post("/api/documents.create", {
       body: {
         token: user.getJwtToken(),
-        collectionId: collection.id,
         parentDocumentId: document.id,
         title: "new document",
         text: "hello",

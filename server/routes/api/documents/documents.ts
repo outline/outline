@@ -1410,11 +1410,8 @@ router.post(
       parentDocument = await Document.findByPk(parentDocumentId, {
         userId: user.id,
       });
-      if (!parentDocument) {
-        throw NotFoundError();
-      }
 
-      if (parentDocument.collectionId) {
+      if (parentDocument?.collectionId) {
         collection = await Collection.scope({
           method: ["withMembership", user.id],
         }).findOne({
