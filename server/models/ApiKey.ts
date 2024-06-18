@@ -37,7 +37,7 @@ class ApiKey extends ParanoidModel<
 
   @IsDate
   @Column
-  expiryAt: Date | null;
+  expiresAt: Date | null;
 
   // hooks
 

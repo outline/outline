@@ -15,7 +15,7 @@ class ApiKey extends Model {
 
   @Field
   @observable
-  expiryAt?: string;
+  expiresAt?: string;
 
   secret: string;
 }

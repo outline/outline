@@ -83,7 +83,7 @@ export default function auth(options: AuthenticationOptions = {}) {
           throw AuthenticationError("Invalid API key");
         }
 
-        if (apiKey.expiryAt && apiKey.expiryAt < new Date()) {
+        if (apiKey.expiresAt && apiKey.expiresAt < new Date()) {
           throw AuthenticationError("Invalid API key");
         }
 

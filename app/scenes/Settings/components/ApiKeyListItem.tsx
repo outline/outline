@@ -22,14 +22,14 @@ const ApiKeyListItem = ({ apiKey, isCopied, onCopy }: Props) => {
   const { t } = useTranslation();
   const userLocale = useUserLocale();
 
-  const hasExpired = apiKey.expiryAt
-    ? isPast(new Date(apiKey.expiryAt))
+  const hasExpired = apiKey.expiresAt
+    ? isPast(new Date(apiKey.expiresAt))
     : false;
 
   const subtitle = (
     <Text type={hasExpired ? "danger" : "tertiary"}>
-      {apiKey.expiryAt
-        ? dateToExpiry(apiKey.expiryAt, t, userLocale)
+      {apiKey.expiresAt
+        ? dateToExpiry(apiKey.expiresAt, t, userLocale)
         : t("No expiry")}
     </Text>
   );

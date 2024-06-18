@@ -14,7 +14,7 @@ import useUserLocale from "~/hooks/useUserLocale";
 import { dateToExpiry } from "~/utils/date";
 import "react-day-picker/dist/style.css";
 import ExpiryDatePicker from "./components/ExpiryDatePicker";
-import { ExpiryType, calculateExpiryDate } from "./utils";
+import { ExpiryType, ExpiryValues, calculateExpiryDate } from "./utils";
 
 type Props = {
   onSubmit: () => void;
@@ -26,7 +26,7 @@ function ApiKeyNew({ onSubmit }: Props) {
     ExpiryType.Week
   );
   const currentDate = React.useRef<Date>(new Date());
-  const [expiryAt, setExpiryAt] = React.useState<Date | undefined>(() =>
+  const [expiresAt, setExpiresAt] = React.useState<Date | undefined>(() =>
     calculateExpiryDate(currentDate.current, expiryType)
   );
   const [isSaving, setIsSaving] = React.useState(false);
@@ -36,13 +36,13 @@ function ApiKeyNew({ onSubmit }: Props) {
   const userLocale = useUserLocale();
 
   const submitDisabled =
-    isSaving || !name || (!expiryAt && expiryType !== ExpiryType.NoExpiration);
+    isSaving || !name || (!expiresAt && expiryType !== ExpiryType.NoExpiration);
 
   const expiryOptions = React.useMemo<Option[]>(
     () =>
-      Object.values(ExpiryType).map((value) => ({
-        label: value,
-        value,
+      [...ExpiryValues.entries()].map(([expType, { label }]) => ({
+        label,
+        value: expType,
       })),
     []
   );
@@ -54,11 +54,11 @@ function ApiKeyNew({ onSubmit }: Props) {
   const handleExpiryTypeChange = React.useCallback((value: string) => {
     const expiry = value as ExpiryType;
     setExpiryType(expiry);
-    setExpiryAt(calculateExpiryDate(currentDate.current, expiry));
+    setExpiresAt(calculateExpiryDate(currentDate.current, expiry));
   }, []);
 
   const handleSelectCustomDate = React.useCallback((date: Date) => {
-    setExpiryAt(endOfDay(date));
+    setExpiresAt(endOfDay(date));
   }, []);
 
   const handleSubmit = React.useCallback(
@@ -69,9 +69,9 @@ function ApiKeyNew({ onSubmit }: Props) {
       try {
         await apiKeys.create({
           name,
-          expiryAt: expiryAt?.toISOString(),
+          expiresAt: expiresAt?.toISOString(),
         });
-        toast.success(t("API Key created"));
+        toast.success(t("API key created"));
         onSubmit();
       } catch (err) {
         toast.error(err.message);
@@ -79,7 +79,7 @@ function ApiKeyNew({ onSubmit }: Props) {
         setIsSaving(false);
       }
     },
-    [t, name, expiryAt, onSubmit, apiKeys]
+    [t, name, expiresAt, onSubmit, apiKeys]
   );
 
   return (
@@ -103,7 +103,7 @@ function ApiKeyNew({ onSubmit }: Props) {
         />
         <Flex align="center" gap={16}>
           <StyledExpirySelect
-            ariaLabel={t("API key expiry")}
+            ariaLabel={t("Expiration")}
             label={t("Expiration")}
             value={expiryType}
             options={expiryOptions}
@@ -112,14 +112,14 @@ function ApiKeyNew({ onSubmit }: Props) {
           />
           {expiryType === ExpiryType.Custom ? (
             <ExpiryDatePicker
-              selectedDate={expiryAt}
+              selectedDate={expiresAt}
               onSelect={handleSelectCustomDate}
             />
           ) : (
             <StyledExpiryText type="secondary" size="small">
-              {expiryAt
-                ? `${dateToExpiry(expiryAt.toString(), t, userLocale)}.`
-                : t("Never expires!")}
+              {expiresAt
+                ? `${dateToExpiry(expiresAt.toString(), t, userLocale)}.`
+                : `${t("Never expires")}.`}
             </StyledExpiryText>
           )}
         </Flex>

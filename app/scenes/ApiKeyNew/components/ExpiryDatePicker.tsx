@@ -1,6 +1,5 @@
-import { faCalendar } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { isToday, isPast, format as formatDate } from "date-fns";
+import { format as formatDate } from "date-fns";
+import { CalendarIcon } from "outline-icons";
 import React from "react";
 import { DayPicker } from "react-day-picker";
 import { useTranslation } from "react-i18next";
@@ -8,9 +7,7 @@ import { usePopoverState, PopoverDisclosure } from "reakit";
 import styled, { useTheme } from "styled-components";
 import { dateLocale } from "@shared/utils/date";
 import Button from "~/components/Button";
-import Flex from "~/components/Flex";
 import Popover from "~/components/Popover";
-import Text from "~/components/Text";
 import useUserLocale from "~/hooks/useUserLocale";
 
 type Props = {
@@ -23,8 +20,7 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
   const theme = useTheme();
 
   const userLocale = useUserLocale();
-  const locale = React.useMemo(() => dateLocale(userLocale), [userLocale]);
-  const [error, setError] = React.useState<string>();
+  const locale = dateLocale(userLocale);
 
   const popover = usePopoverState({ gutter: 0, placement: "right" });
   const popoverContentRef = React.useRef<HTMLDivElement>(null);
@@ -45,15 +41,10 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
 
   const handleSelect = React.useCallback(
     (date: Date) => {
-      if (!isToday(date) && isPast(date)) {
-        setError(t("Cannot select a past date"));
-        return;
-      }
       popover.hide();
-      setError(undefined);
       onSelect(date);
     },
-    [t, popover, onSelect]
+    [popover, onSelect]
   );
 
   return (
@@ -67,14 +58,20 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
           </StyledPopoverButton>
         )}
       </PopoverDisclosure>
-      <Popover {...popover} ref={popoverContentRef} width={280} shrink>
+      <Popover
+        {...popover}
+        ref={popoverContentRef}
+        width={280}
+        shrink
+        aria-label={t("Choose a date")}
+      >
         <DayPicker
+          required
           mode="single"
-          required={true}
           selected={selectedDate}
           onSelect={handleSelect}
           style={styles}
-          footer={<ErrorFooter error={error} />}
+          disabled={{ before: new Date() }}
         />
       </Popover>
     </>
@@ -83,22 +80,9 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
 
 const Icon = () => (
   <IconWrapper>
-    <FontAwesomeIcon icon={faCalendar} />
+    <CalendarIcon />
   </IconWrapper>
 );
-
-const ErrorFooter = ({ error }: { error?: string }) => {
-  if (!error) {
-    return null;
-  }
-  return (
-    <Flex justify="center">
-      <Text type="danger" size="small">
-        {error}
-      </Text>
-    </Flex>
-  );
-};
 
 const StyledPopoverButton = styled(Button)`
   margin-top: 12px;

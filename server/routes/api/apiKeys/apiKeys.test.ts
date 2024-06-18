@@ -12,14 +12,14 @@ describe("#apiKeys.create", () => {
       body: {
         token: user.getJwtToken(),
         name: "My API Key",
-        expiryAt: now.toISOString(),
+        expiresAt: now.toISOString(),
       },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual("My API Key");
-    expect(body.data.expiryAt).toEqual(now.toISOString());
+    expect(body.data.expiresAt).toEqual(now.toISOString());
   });
 
   it("should allow creating an api key without expiry", async () => {
@@ -35,7 +35,7 @@ describe("#apiKeys.create", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual("My API Key");
-    expect(body.data.expiryAt).toBeNull();
+    expect(body.data.expiresAt).toBeNull();
   });
 
   it("should require authentication", async () => {
@@ -51,7 +51,7 @@ describe("#apiKeys.list", () => {
     await buildApiKey({
       name: "My API Key",
       userId: user.id,
-      expiryAt: now,
+      expiresAt: now,
     });
 
     const res = await server.post("/api/apiKeys.list", {
@@ -63,7 +63,7 @@ describe("#apiKeys.list", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data[0].name).toEqual("My API Key");
-    expect(body.data[0].expiryAt).toEqual(now.toISOString());
+    expect(body.data[0].expiresAt).toEqual(now.toISOString());
   });
 
   it("should require authentication", async () => {

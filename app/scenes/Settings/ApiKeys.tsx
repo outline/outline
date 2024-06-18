@@ -36,7 +36,7 @@ function ApiKeys() {
       copyTimeoutIdRef.current = setTimeout(() => {
         setCopiedKeyId(null);
       }, 3000);
-      toast.message(t("API token copied to clipboard"));
+      toast.message(t("API key copied to clipboard"));
     },
     [t]
   );
