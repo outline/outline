@@ -1,10 +1,6 @@
 import invariant from "invariant";
 import some from "lodash/some";
-import {
-  CollectionPermission,
-  DocumentPermission,
-  TeamPreference,
-} from "@shared/types";
+import { DocumentPermission, TeamPreference } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, _cannot as cannot, _can as can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
@@ -35,10 +31,9 @@ allow(User, "read", Document, (actor, document) =>
 );
 
 allow(User, ["listRevisions", "listViews"], Document, (actor, document) =>
-  and(
-    //
-    can(actor, "read", document),
-    !actor.isGuest
+  or(
+    and(can(actor, "read", document), !actor.isGuest),
+    and(can(actor, "update", document), actor.isGuest)
   )
 );
 
@@ -83,7 +78,6 @@ allow(User, "share", Document, (actor, document) =>
     isTeamMutable(actor),
     !!document?.isActive,
     !document?.template,
-    !actor.isGuest,
     or(!document?.collection, can(actor, "share", document?.collection))
   )
 );
@@ -114,12 +108,21 @@ allow(User, "publish", Document, (actor, document) =>
   )
 );
 
-allow(User, ["move", "duplicate", "manageUsers"], Document, (actor, document) =>
+allow(User, ["manageUsers", "duplicate"], Document, (actor, document) =>
   and(
-    !actor.isGuest,
     can(actor, "update", document),
     or(
       includesMembership(document, [DocumentPermission.Admin]),
+      can(actor, "updateDocument", document?.collection),
+      !!document?.isDraft && actor.id === document?.createdById
+    )
+  )
+);
+
+allow(User, "move", Document, (actor, document) =>
+  and(
+    can(actor, "update", document),
+    or(
       can(actor, "updateDocument", document?.collection),
       and(!!document?.isDraft && actor.id === document?.createdById)
     )
@@ -134,8 +137,7 @@ allow(User, "createChildDocument", Document, (actor, document) =>
       can(actor, "read", document?.collection)
     ),
     !document?.isDraft,
-    !document?.template,
-    !actor.isGuest
+    !document?.template
   )
 );
 
@@ -164,7 +166,6 @@ allow(User, "delete", Document, (actor, document) =>
   and(
     isTeamModel(actor, document),
     isTeamMutable(actor),
-    !actor.isGuest,
     !document?.isDeleted,
     or(
       can(actor, "unarchive", document),
@@ -253,7 +254,7 @@ allow(User, "unpublish", Document, (user, document) => {
 
 function includesMembership(
   document: Document | null,
-  permissions: (DocumentPermission | CollectionPermission)[]
+  permissions: DocumentPermission[]
 ) {
   if (!document) {
     return false;
