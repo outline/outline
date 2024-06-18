@@ -7,6 +7,8 @@ import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
+import Text from "~/components/Text";
+import Time from "~/components/Time";
 import ApiKeyMenu from "~/menus/ApiKeyMenu";
 
 type Props = {
@@ -16,6 +18,12 @@ type Props = {
 const ApiKeyListItem = ({ apiKey }: Props) => {
   const { t } = useTranslation();
   const [linkCopied, setLinkCopied] = React.useState<boolean>(false);
+
+  const subtitle = apiKey.lastUsedAt ? (
+    <Text type={"tertiary"}>
+      {t("Last used")} <Time dateTime={apiKey.lastUsedAt} addSuffix />
+    </Text>
+  ) : null;
 
   React.useEffect(() => {
     if (linkCopied) {
@@ -34,7 +42,7 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
     <ListItem
       key={apiKey.id}
       title={apiKey.name}
-      subtitle={<code>{apiKey.secret.slice(0, 15)}…</code>}
+      subtitle={subtitle}
       actions={
         <Flex align="center" gap={8}>
           <CopyToClipboard text={apiKey.secret} onCopy={handleCopy}>

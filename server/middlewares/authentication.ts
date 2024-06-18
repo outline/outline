@@ -96,6 +96,8 @@ export default function auth(options: AuthenticationOptions = {}) {
         if (!user) {
           throw AuthenticationError("Invalid API key");
         }
+
+        await apiKey.updateUsedAt();
       } else {
         type = AuthenticationType.APP;
         user = await getUserForJWT(String(token));

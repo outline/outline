@@ -1,3 +1,4 @@
+import { subMinutes } from "date-fns";
 import randomstring from "randomstring";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
@@ -7,6 +8,7 @@ import {
   BeforeValidate,
   BelongsTo,
   ForeignKey,
+  IsDate,
 } from "sequelize-typescript";
 import { ApiKeyValidation } from "@shared/validations";
 import User from "./User";
@@ -33,6 +35,10 @@ class ApiKey extends ParanoidModel<
   @Unique
   @Column
   secret: string;
+
+  @IsDate
+  @Column
+  lastUsedAt: Date | null;
 
   // hooks
 
@@ -62,6 +68,18 @@ class ApiKey extends ParanoidModel<
   @ForeignKey(() => User)
   @Column
   userId: string;
+
+  updateUsedAt = async () => {
+    const fiveMinutesAgo = subMinutes(new Date(), 5);
+
+    // ensure this is updated only every few minutes otherwise
+    // we'll be constantly writing to the DB as API requests happen
+    if (!this.lastUsedAt || this.lastUsedAt < fiveMinutesAgo) {
+      this.lastUsedAt = new Date();
+    }
+
+    return this.save();
+  };
 }
 
 export default ApiKey;

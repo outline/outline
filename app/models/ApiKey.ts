@@ -13,6 +13,9 @@ class ApiKey extends Model {
   @observable
   name: string;
 
+  @observable
+  lastUsedAt?: string;
+
   secret: string;
 }
 

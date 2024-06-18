@@ -17,6 +17,7 @@ describe("#apiKeys.create", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual("My API Key");
+    expect(body.data.lastUsedAt).toBeNull();
   });
 
   it("should require authentication", async () => {

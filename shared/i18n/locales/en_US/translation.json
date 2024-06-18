@@ -759,6 +759,7 @@
   "API Keys": "API Keys",
   "Create personal API keys to authenticate with the API and programatically control\n          your workspace's data. API keys have the same permissions as your user account.\n          For more details see the <em>developer documentation</em>.": "Create personal API keys to authenticate with the API and programatically control\n          your workspace's data. API keys have the same permissions as your user account.\n          For more details see the <em>developer documentation</em>.",
   "Active": "Active",
+  "Last used": "Last used",
   "API token copied to clipboard": "API token copied to clipboard",
   "Copied": "Copied",
   "Revoking": "Revoking",
