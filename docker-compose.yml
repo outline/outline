@@ -5,7 +5,7 @@ services:
     image: docker.getoutline.com/outlinewiki/outline:latest
     env_file: ./docker.env
     ports:
-      - "3001:3000"
+      - "3000:3000"
     volumes:
       - ./storage-data:/var/lib/outline/data
     depends_on:
@@ -36,11 +36,12 @@ services:
     volumes:
       - ./database-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-d", "outline", "-U", "user"]
+      test: ["CMD", "pg_isready", "-d", "outline", "-U", "outline"]
       interval: 30s
       timeout: 20s
       retries: 3
     environment:
-      POSTGRES_USER: ''      #
-      POSTGRES_PASSWORD: ''  #
-      POSTGRES_DB: ''        # 
+      POSTGRES_USER: 'outline'      # Customize the user here, default "outline"
+      POSTGRES_PASSWORD: 's3cr3t'   # Your super secure password here
+      POSTGRES_DB: 'outline'        # Enter the database to be created for this user, default "outline"
+                                    # Dont forget to modify "DATABASE_URL=postgres://POSTGRES_USER:POSTGRES_PASSWORD@localhost:5432/POSTGRES_DB" in the docker.env
