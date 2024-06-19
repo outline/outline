@@ -7,6 +7,7 @@ export default function presentApiKey(key: ApiKey) {
     secret: key.secret,
     createdAt: key.createdAt,
     updatedAt: key.updatedAt,
+    expiresAt: key.expiresAt,
     lastActiveAt: key.lastActiveAt,
   };
 }

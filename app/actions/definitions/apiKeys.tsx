@@ -1,7 +1,7 @@
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import stores from "~/stores";
-import APIKeyNew from "~/scenes/APIKeyNew";
+import ApiKeyNew from "~/scenes/ApiKeyNew";
 import { createAction } from "..";
 import { SettingsSection } from "../sections";
 
@@ -19,7 +19,7 @@ export const createApiKey = createAction({
 
     stores.dialogs.openModal({
       title: t("New API key"),
-      content: <APIKeyNew onSubmit={stores.dialogs.closeAllModals} />,
+      content: <ApiKeyNew onSubmit={stores.dialogs.closeAllModals} />,
     });
   },
 });
