@@ -498,7 +498,7 @@ class DocumentScene extends React.Component<Props> {
               as={Main}
               name="document"
               fullWidth={document.fullWidth}
-              tocPosition={tocPosition}
+              tocPosition={tocPos}
             >
               <React.Suspense fallback={<PlaceholderDocument />}>
                 {revision ? (
@@ -627,9 +627,9 @@ type ContentsContainerProps = {
 };
 
 const ContentsContainer = styled.div<ContentsContainerProps>`
-  margin-top: calc(44px + 6vh);
-
   ${breakpoint("tablet")`
+    margin-top: calc(44px + 6vh);
+
     grid-row: 1;
     grid-column: ${({ docFullWidth, position }: ContentsContainerProps) =>
       position === TOCPosition.Left ? 1 : docFullWidth ? 2 : 3};
