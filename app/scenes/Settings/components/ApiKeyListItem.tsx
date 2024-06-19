@@ -8,6 +8,7 @@ import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
 import Text from "~/components/Text";
+import Time from "~/components/Time";
 import useUserLocale from "~/hooks/useUserLocale";
 import ApiKeyMenu from "~/menus/ApiKeyMenu";
 import { dateToExpiry } from "~/utils/date";
@@ -28,6 +29,7 @@ const ApiKeyListItem = ({ apiKey, isCopied, onCopy }: Props) => {
 
   const subtitle = (
     <Text type={hasExpired ? "danger" : "tertiary"}>
+      {t(`Created`)} <Time dateTime={apiKey.createdAt} addSuffix /> &middot;{" "}
       {apiKey.expiresAt
         ? dateToExpiry(apiKey.expiresAt, t, userLocale)
         : t("No expiry")}

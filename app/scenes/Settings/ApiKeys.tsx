@@ -43,7 +43,7 @@ function ApiKeys() {
 
   return (
     <Scene
-      title={t("API Keys")}
+      title={t("API")}
       icon={<CodeIcon />}
       actions={
         <>
@@ -60,7 +60,7 @@ function ApiKeys() {
         </>
       }
     >
-      <Heading>{t("API Keys")}</Heading>
+      <Heading>{t("API")}</Heading>
       <Text as="p" type="secondary">
         <Trans
           defaults="Create personal API keys to authenticate with the API and programatically control
@@ -80,7 +80,7 @@ function ApiKeys() {
       <PaginatedList
         fetch={apiKeys.fetchPage}
         items={apiKeys.orderedData}
-        heading={<h2>{t("Generated Keys")}</h2>}
+        heading={<h2>{t("Personal keys")}</h2>}
         renderItem={(apiKey: ApiKey) => (
           <ApiKeyListItem
             key={apiKey.id}
