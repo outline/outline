@@ -50,6 +50,11 @@ export type Props = {
   note?: React.ReactNode;
   onChange?: (value: string | null) => void;
   style?: React.CSSProperties;
+  /**
+   * Set to true if this component is rendered inside a Modal.
+   * The Modal will take care of preventing body scroll behaviour.
+   */
+  skipBodyScroll?: boolean;
 };
 
 export interface InputSelectRef {
@@ -79,6 +84,7 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
     note,
     icon,
     nude,
+    skipBodyScroll,
     ...rest
   } = props;
 
@@ -91,7 +97,7 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
   const popover = useSelectPopover({
     ...select,
     hideOnClickOutside: false,
-    preventBodyScroll: true,
+    preventBodyScroll: skipBodyScroll ? false : true,
     disabled,
   });
 
@@ -220,7 +226,12 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
             </StyledButton>
           )}
         </Select>
-        <SelectPopover {...select} {...popover} aria-label={ariaLabel}>
+        <SelectPopover
+          {...select}
+          {...popover}
+          aria-label={ariaLabel}
+          preventBodyScroll={skipBodyScroll ? false : true}
+        >
           {(popoverProps: InnerProps) => {
             const topAnchor = popoverProps.style?.top === "0";
             const rightAnchor = popoverProps.placement === "bottom-end";

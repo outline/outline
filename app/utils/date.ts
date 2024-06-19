@@ -5,6 +5,9 @@ import {
   differenceInCalendarMonths,
   differenceInCalendarYears,
   format as formatDate,
+  isTomorrow,
+  isSameWeek,
+  isPast,
 } from "date-fns";
 import { TFunction } from "i18next";
 import startCase from "lodash/startCase";
@@ -69,6 +72,42 @@ export function dateToHeading(
   return formatDate(Date.parse(dateTime), "y", {
     locale,
   });
+}
+
+export function dateToExpiry(
+  dateTime: string,
+  t: TFunction,
+  userLocale: string | null | undefined
+) {
+  const date = Date.parse(dateTime);
+  const now = new Date();
+  const locale = dateLocale(userLocale);
+
+  if (isYesterday(date)) {
+    return t("Expired Yesterday");
+  }
+
+  if (isPast(date)) {
+    return `${t("Expired on")} ${formatDate(date, "MMM dd, yyyy", { locale })}`;
+  }
+
+  if (isToday(date)) {
+    return t("Expires Today");
+  }
+
+  if (isTomorrow(date)) {
+    return t("Expires Tomorrow");
+  }
+
+  const prefix = t("Expires on");
+
+  if (isSameWeek(date, now)) {
+    return `${prefix} ${formatDate(Date.parse(dateTime), "iiii", {
+      locale,
+    })}`;
+  }
+
+  return `${prefix} ${formatDate(date, "MMM dd, yyyy", { locale })}`;
 }
 
 /**

@@ -13,6 +13,10 @@ class ApiKey extends Model {
   @observable
   name: string;
 
+  @Field
+  @observable
+  expiresAt?: string;
+
   secret: string;
 }
 
