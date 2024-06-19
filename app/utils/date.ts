@@ -74,6 +74,13 @@ export function dateToHeading(
   });
 }
 
+/**
+ * Converts a date string to a human-readable expiry string.
+ *
+ * @param dateTime The date string to convert
+ * @param t The translation function
+ * @param userLocale The user's locale
+ */
 export function dateToExpiry(
   dateTime: string,
   t: TFunction,
@@ -84,30 +91,34 @@ export function dateToExpiry(
   const locale = dateLocale(userLocale);
 
   if (isYesterday(date)) {
-    return t("Expired Yesterday");
+    return t("Expired yesterday");
   }
 
   if (isPast(date)) {
-    return `${t("Expired on")} ${formatDate(date, "MMM dd, yyyy", { locale })}`;
-  }
-
-  if (isToday(date)) {
-    return t("Expires Today");
-  }
-
-  if (isTomorrow(date)) {
-    return t("Expires Tomorrow");
-  }
-
-  const prefix = t("Expires on");
-
-  if (isSameWeek(date, now)) {
-    return `${prefix} ${formatDate(Date.parse(dateTime), "iiii", {
-      locale,
+    return `${t("Expired {{ date }}", {
+      date: formatDate(date, "MMM dd, yyyy", { locale }),
     })}`;
   }
 
-  return `${prefix} ${formatDate(date, "MMM dd, yyyy", { locale })}`;
+  if (isToday(date)) {
+    return t("Expires today");
+  }
+
+  if (isTomorrow(date)) {
+    return t("Expires tomorrow");
+  }
+
+  if (isSameWeek(date, now)) {
+    return t("Expires {{ date }}", {
+      date: formatDate(Date.parse(dateTime), "iiii", {
+        locale,
+      }),
+    });
+  }
+
+  return t("Expires {{ date }}", {
+    date: formatDate(date, "MMM dd, yyyy", { locale }),
+  });
 }
 
 /**

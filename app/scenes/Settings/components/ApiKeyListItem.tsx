@@ -1,4 +1,3 @@
-import { isPast } from "date-fns";
 import { CopyIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -23,17 +22,17 @@ const ApiKeyListItem = ({ apiKey, isCopied, onCopy }: Props) => {
   const { t } = useTranslation();
   const userLocale = useUserLocale();
 
-  const hasExpired = apiKey.expiresAt
-    ? isPast(new Date(apiKey.expiresAt))
-    : false;
-
   const subtitle = (
-    <Text type={hasExpired ? "danger" : "tertiary"}>
-      {t(`Created`)} <Time dateTime={apiKey.createdAt} addSuffix /> &middot;{" "}
-      {apiKey.expiresAt
-        ? dateToExpiry(apiKey.expiresAt, t, userLocale)
-        : t("No expiry")}
-    </Text>
+    <>
+      <Text type="tertiary">
+        {t(`Created`)} <Time dateTime={apiKey.createdAt} addSuffix /> &middot;{" "}
+      </Text>
+      <Text type={apiKey.isExpired ? "danger" : "tertiary"}>
+        {apiKey.expiresAt
+          ? dateToExpiry(apiKey.expiresAt, t, userLocale)
+          : t("No expiry")}
+      </Text>
+    </>
   );
 
   const handleCopy = React.useCallback(() => {
