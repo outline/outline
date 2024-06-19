@@ -24,15 +24,15 @@ const ApiKeyListItem = ({ apiKey, isCopied, onCopy }: Props) => {
 
   const subtitle = (
     <>
+      <Text type="tertiary">
+        {t(`Created`)} <Time dateTime={apiKey.createdAt} addSuffix /> &middot;{" "}
+      </Text>
       {apiKey.lastActiveAt && (
         <Text type={"tertiary"}>
           {t("Last used")} <Time dateTime={apiKey.lastActiveAt} addSuffix />{" "}
           &middot;{" "}
         </Text>
       )}
-      <Text type="tertiary">
-        {t(`Created`)} <Time dateTime={apiKey.createdAt} addSuffix /> &middot;{" "}
-      </Text>
       <Text type={apiKey.isExpired ? "danger" : "tertiary"}>
         {apiKey.expiresAt
           ? dateToExpiry(apiKey.expiresAt, t, userLocale)
