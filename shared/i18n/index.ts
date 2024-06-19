@@ -46,6 +46,10 @@ export const languageOptions = [
     value: "nl_NL",
   },
   {
+    label: "Norsk Bokmål (Norwegian)",
+    value: "nb_NO",
+  },
+  {
     label: "Português (Portuguese, Brazil)",
     value: "pt_BR",
   },
