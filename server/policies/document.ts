@@ -198,7 +198,6 @@ allow(User, ["restore", "permanentDelete"], Document, (actor, document) =>
 
 allow(User, "archive", Document, (actor, document) =>
   and(
-    !actor.isGuest,
     !document?.template,
     !document?.isDraft,
     !!document?.isActive,
@@ -212,7 +211,6 @@ allow(User, "archive", Document, (actor, document) =>
 
 allow(User, "unarchive", Document, (actor, document) =>
   and(
-    !actor.isGuest,
     !document?.template,
     !document?.isDraft,
     !document?.isDeleted,
