@@ -316,112 +316,121 @@ describe("archived document", () => {
 });
 
 describe("read document", () => {
-  it("should allow read permissions for team member", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const collection = await buildCollection({
-      teamId: team.id,
-      permission: null,
-    });
-    const doc = await buildDocument({
-      teamId: team.id,
-      collectionId: collection.id,
-    });
-    await UserMembership.create({
-      userId: user.id,
-      documentId: doc.id,
-      permission: DocumentPermission.Read,
-      createdById: user.id,
-    });
+  for (const role of Object.values(UserRole)) {
+    it(`should allow read permissions for ${role}`, async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: null,
+      });
+      const doc = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+      });
+      await UserMembership.create({
+        userId: user.id,
+        documentId: doc.id,
+        permission: DocumentPermission.Read,
+        createdById: user.id,
+      });
 
-    // reload to get membership
-    const document = await Document.findByPk(doc.id, { userId: user.id });
-    const abilities = serialize(user, document);
-    expect(abilities.read).toEqual(true);
-    expect(abilities.download).toEqual(true);
-    expect(abilities.subscribe).toEqual(true);
-    expect(abilities.unsubscribe).toEqual(true);
-    expect(abilities.comment).toEqual(true);
-    expect(abilities.update).toEqual(false);
-    expect(abilities.createChildDocument).toEqual(false);
-    expect(abilities.manageUsers).toEqual(false);
-    expect(abilities.archive).toEqual(false);
-    expect(abilities.delete).toEqual(false);
-    expect(abilities.share).toEqual(false);
-    expect(abilities.move).toEqual(false);
-  });
+      // reload to get membership
+      const document = await Document.findByPk(doc.id, { userId: user.id });
+      const abilities = serialize(user, document);
+      expect(abilities.read).toEqual(true);
+      expect(abilities.download).toEqual(true);
+      expect(abilities.subscribe).toEqual(true);
+      expect(abilities.unsubscribe).toEqual(true);
+      expect(abilities.comment).toEqual(true);
+      expect(abilities.update).toEqual(false);
+      expect(abilities.createChildDocument).toEqual(false);
+      expect(abilities.manageUsers).toEqual(false);
+      expect(abilities.archive).toEqual(false);
+      expect(abilities.delete).toEqual(false);
+      expect(abilities.share).toEqual(false);
+      expect(abilities.move).toEqual(false);
+    });
+  }
 });
 
 describe("read_write document", () => {
-  it("should allow write permissions for team member", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const collection = await buildCollection({
-      teamId: team.id,
-      permission: null,
-    });
-    const doc = await buildDocument({
-      teamId: team.id,
-      collectionId: collection.id,
-    });
-    await UserMembership.create({
-      userId: user.id,
-      documentId: doc.id,
-      permission: DocumentPermission.ReadWrite,
-      createdById: user.id,
-    });
+  for (const role of Object.values(UserRole)) {
+    it(`should allow write permissions for ${role}`, async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id, role });
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: null,
+      });
+      const doc = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+      });
+      await UserMembership.create({
+        userId: user.id,
+        documentId: doc.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
 
-    // reload to get membership
-    const document = await Document.findByPk(doc.id, { userId: user.id });
-    const abilities = serialize(user, document);
-    expect(abilities.read).toEqual(true);
-    expect(abilities.download).toEqual(true);
-    expect(abilities.update).toEqual(true);
-    expect(abilities.delete).toEqual(true);
-    expect(abilities.subscribe).toEqual(true);
-    expect(abilities.unsubscribe).toEqual(true);
-    expect(abilities.comment).toEqual(true);
-    expect(abilities.createChildDocument).toEqual(false);
-    expect(abilities.manageUsers).toEqual(false);
-    expect(abilities.archive).toEqual(false);
-    expect(abilities.share).toEqual(false);
-    expect(abilities.move).toEqual(false);
-  });
+      // reload to get membership
+      const document = await Document.findByPk(doc.id, { userId: user.id });
+      const abilities = serialize(user, document);
+      expect(abilities.read).toEqual(true);
+      expect(abilities.download).toEqual(true);
+      expect(abilities.update).toEqual(true);
+      expect(abilities.delete).toEqual(true);
+      expect(abilities.subscribe).toEqual(true);
+      expect(abilities.unsubscribe).toEqual(true);
+      expect(abilities.comment).toEqual(true);
+      expect(abilities.createChildDocument).toEqual(false);
+      expect(abilities.manageUsers).toEqual(false);
+      expect(abilities.archive).toEqual(false);
+      expect(abilities.share).toEqual(false);
+      expect(abilities.move).toEqual(false);
+    });
+  }
 });
 
 describe("manage document", () => {
-  it("should allow write permissions, user management, and sub-document creation", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const collection = await buildCollection({
-      teamId: team.id,
-      permission: null,
-    });
-    const doc = await buildDocument({
-      teamId: team.id,
-      collectionId: collection.id,
-    });
-    await UserMembership.create({
-      userId: user.id,
-      documentId: doc.id,
-      permission: DocumentPermission.Admin,
-      createdById: user.id,
-    });
+  for (const role of Object.values(UserRole)) {
+    it(`should allow write permissions, user management, and sub-document creation for ${role}`, async () => {
+      const team = await buildTeam();
+      const user = await buildUser({
+        teamId: team.id,
+        role,
+      });
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: null,
+      });
+      const doc = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+      });
+      await UserMembership.create({
+        userId: user.id,
+        documentId: doc.id,
+        permission: DocumentPermission.Admin,
+        createdById: user.id,
+      });
 
-    // reload to get membership
-    const document = await Document.findByPk(doc.id, { userId: user.id });
-    const abilities = serialize(user, document);
-    expect(abilities.read).toEqual(true);
-    expect(abilities.download).toEqual(true);
-    expect(abilities.update).toEqual(true);
-    expect(abilities.delete).toEqual(true);
-    expect(abilities.subscribe).toEqual(true);
-    expect(abilities.unsubscribe).toEqual(true);
-    expect(abilities.comment).toEqual(true);
-    expect(abilities.createChildDocument).toEqual(true);
-    expect(abilities.manageUsers).toEqual(true);
-    expect(abilities.archive).toEqual(true);
-    expect(abilities.move).toEqual(true);
-    expect(abilities.share).toEqual(false);
-  });
+      // reload to get membership
+      const document = await Document.findByPk(doc.id, { userId: user.id });
+      const abilities = serialize(user, document);
+      expect(abilities.read).toEqual(true);
+      expect(abilities.download).toEqual(true);
+      expect(abilities.update).toEqual(true);
+      expect(abilities.delete).toEqual(true);
+      expect(abilities.subscribe).toEqual(true);
+      expect(abilities.unsubscribe).toEqual(true);
+      expect(abilities.comment).toEqual(true);
+      expect(abilities.createChildDocument).toEqual(true);
+      expect(abilities.manageUsers).toEqual(true);
+      expect(abilities.archive).toEqual(true);
+      expect(abilities.move).toEqual(false);
+      expect(abilities.share).toEqual(false);
+    });
+  }
 });
