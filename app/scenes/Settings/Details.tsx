@@ -104,7 +104,7 @@ function Details() {
     []
   );
 
-  const handleAvatarChange = async (avatarUrl: string) => {
+  const handleAvatarChange = async (avatarUrl: string | null) => {
     await team.save({ avatarUrl });
     toast.success(t("Logo updated"));
   };

@@ -7,7 +7,7 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     /** Team name */
     name: z.string().optional(),
     /** Avatar URL */
-    avatarUrl: z.string().optional(),
+    avatarUrl: z.string().nullish(),
     /** The subdomain to access the team */
     subdomain: z.string().nullish(),
     /** Whether public sharing is enabled */
