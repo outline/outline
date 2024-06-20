@@ -51,6 +51,7 @@ import {
   documentHistoryPath,
   homePath,
   newDocumentPath,
+  newNestedDocumentPath,
   searchPath,
   documentPath,
   urlify,
@@ -141,15 +142,10 @@ export const createNestedDocument = createAction({
     !!activeDocumentId &&
     stores.policies.abilities(currentTeamId).createDocument &&
     stores.policies.abilities(activeDocumentId).createChildDocument,
-  perform: ({ activeCollectionId, activeDocumentId, inStarredSection }) =>
-    history.push(
-      newDocumentPath(activeCollectionId, {
-        parentDocumentId: activeDocumentId,
-      }),
-      {
-        starred: inStarredSection,
-      }
-    ),
+  perform: ({ activeDocumentId, inStarredSection }) =>
+    history.push(newNestedDocumentPath(activeDocumentId), {
+      starred: inStarredSection,
+    }),
 });
 
 export const starDocument = createAction({

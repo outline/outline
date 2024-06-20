@@ -129,7 +129,10 @@ allow(User, ["move", "duplicate", "manageUsers"], Document, (actor, document) =>
 allow(User, "createChildDocument", Document, (actor, document) =>
   and(
     can(actor, "update", document),
-    can(actor, "read", document?.collection),
+    or(
+      includesMembership(document, [DocumentPermission.Admin]),
+      can(actor, "read", document?.collection)
+    ),
     !document?.isDraft,
     !document?.template,
     !actor.isGuest
@@ -181,10 +184,8 @@ allow(User, ["restore", "permanentDelete"], Document, (actor, document) =>
         DocumentPermission.ReadWrite,
         DocumentPermission.Admin,
       ]),
-      or(
-        can(actor, "updateDocument", document?.collection),
-        and(!!document?.isDraft && actor.id === document?.createdById)
-      ),
+      can(actor, "updateDocument", document?.collection),
+      and(!!document?.isDraft && actor.id === document?.createdById),
       !document?.collection
     )
   )
@@ -197,7 +198,10 @@ allow(User, "archive", Document, (actor, document) =>
     !document?.isDraft,
     !!document?.isActive,
     can(actor, "update", document),
-    can(actor, "updateDocument", document?.collection)
+    or(
+      includesMembership(document, [DocumentPermission.Admin]),
+      can(actor, "updateDocument", document?.collection)
+    )
   )
 );
 
@@ -208,20 +212,15 @@ allow(User, "unarchive", Document, (actor, document) =>
     !document?.isDraft,
     !document?.isDeleted,
     !!document?.archivedAt,
-    and(
-      can(actor, "read", document),
-      or(
-        includesMembership(document, [
-          DocumentPermission.ReadWrite,
-          DocumentPermission.Admin,
-        ]),
-        or(
-          can(actor, "updateDocument", document?.collection),
-          and(!!document?.isDraft && actor.id === document?.createdById)
-        )
-      )
-    ),
-    can(actor, "updateDocument", document?.collection)
+    can(actor, "read", document),
+    or(
+      includesMembership(document, [
+        DocumentPermission.ReadWrite,
+        DocumentPermission.Admin,
+      ]),
+      can(actor, "updateDocument", document?.collection),
+      and(!!document?.isDraft && actor.id === document?.createdById)
+    )
   )
 );
 

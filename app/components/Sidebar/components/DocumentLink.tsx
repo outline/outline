@@ -20,7 +20,7 @@ import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
-import { newDocumentPath } from "~/utils/routeHelpers";
+import { newNestedDocumentPath } from "~/utils/routeHelpers";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle, { RefHandle } from "./EditableTitle";
@@ -359,9 +359,7 @@ function InnerDocumentLink(
                             type={undefined}
                             aria-label={t("New nested document")}
                             as={Link}
-                            to={newDocumentPath(document.collectionId, {
-                              parentDocumentId: document.id,
-                            })}
+                            to={newNestedDocumentPath(document.id)}
                           >
                             <PlusIcon />
                           </NudeButton>

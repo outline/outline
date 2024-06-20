@@ -136,5 +136,9 @@ export default async function documentUpdater({
     });
   }
 
-  return document;
+  return await Document.findByPk(document.id, {
+    userId: user.id,
+    rejectOnEmpty: true,
+    transaction,
+  });
 }

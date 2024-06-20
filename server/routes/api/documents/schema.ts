@@ -348,15 +348,23 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     template: z.boolean().optional(),
   }),
 })
-  .refine((req) => !(req.body.parentDocumentId && !req.body.collectionId), {
-    message: "collectionId is required to create a nested document",
+  .refine((req) => !req.body.parentDocumentId || !req.body.collectionId, {
+    message: "collectionId is inferred when creating a nested document",
   })
   .refine((req) => !(req.body.template && !req.body.collectionId), {
     message: "collectionId is required to create a template document",
   })
-  .refine((req) => !(req.body.publish && !req.body.collectionId), {
-    message: "collectionId is required to publish",
-  });
+  .refine(
+    (req) =>
+      !(
+        req.body.publish &&
+        !req.body.parentDocumentId &&
+        !req.body.collectionId
+      ),
+    {
+      message: "collectionId or parentDocumentId is required to publish",
+    }
+  );
 
 export type DocumentsCreateReq = z.infer<typeof DocumentsCreateSchema>;
 

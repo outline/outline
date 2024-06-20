@@ -88,13 +88,16 @@ export function newTemplatePath(collectionId: string) {
 export function newDocumentPath(
   collectionId?: string | null,
   params: {
-    parentDocumentId?: string;
     templateId?: string;
   } = {}
 ): string {
   return collectionId
     ? `/collection/${collectionId}/new?${queryString.stringify(params)}`
-    : `/doc/new`;
+    : `/doc/new?${queryString.stringify(params)}`;
+}
+
+export function newNestedDocumentPath(parentDocumentId?: string): string {
+  return `/doc/new?${queryString.stringify({ parentDocumentId })}`;
 }
 
 export function searchPath(

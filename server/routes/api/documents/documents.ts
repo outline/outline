@@ -675,10 +675,6 @@ router.post(
       );
     }
 
-    if (document.collection) {
-      authorize(user, "updateDocument", collection);
-    }
-
     if (document.deletedAt) {
       authorize(user, "restore", document);
       // restore a previously deleted document
@@ -1023,7 +1019,19 @@ router.post(
           method: ["withMembership", user.id],
         }).findByPk(collectionId!, { transaction });
       }
-      authorize(user, "createDocument", collection);
+
+      if (document.parentDocumentId) {
+        const parentDocument = await Document.findByPk(
+          document.parentDocumentId,
+          {
+            userId: user.id,
+            transaction,
+          }
+        );
+        authorize(user, "createChildDocument", parentDocument, { collection });
+      } else {
+        authorize(user, "createDocument", collection);
+      }
     }
 
     await documentUpdater({
@@ -1038,18 +1046,9 @@ router.post(
       ip: ctx.request.ip,
     });
 
-    collection = document.collectionId
-      ? await Collection.scope({
-          method: ["withMembership", user.id],
-        }).findByPk(document.collectionId, { transaction })
-      : null;
-
-    document.updatedBy = user;
-    document.collection = collection;
-
     ctx.body = {
       data: await presentDocument(ctx, document),
-      policies: presentPolicies(user, [document, collection]),
+      policies: presentPolicies(user, [document]),
     };
   }
 );
@@ -1395,7 +1394,29 @@ router.post(
 
     let collection;
 
-    if (collectionId) {
+    let parentDocument;
+
+    if (parentDocumentId) {
+      parentDocument = await Document.findByPk(parentDocumentId, {
+        userId: user.id,
+      });
+
+      if (parentDocument?.collectionId) {
+        collection = await Collection.scope({
+          method: ["withMembership", user.id],
+        }).findOne({
+          where: {
+            id: parentDocument.collectionId,
+            teamId: user.teamId,
+          },
+          transaction,
+        });
+      }
+
+      authorize(user, "createChildDocument", parentDocument, {
+        collection,
+      });
+    } else if (collectionId) {
       collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findOne({
@@ -1406,17 +1427,6 @@ router.post(
         transaction,
       });
       authorize(user, "createDocument", collection);
-    }
-
-    let parentDocument;
-
-    if (parentDocumentId) {
-      parentDocument = await Document.findByPk(parentDocumentId, {
-        userId: user.id,
-      });
-      authorize(user, "read", parentDocument, {
-        collection,
-      });
     }
 
     let templateDocument: Document | null | undefined;
@@ -1435,7 +1445,7 @@ router.post(
       emoji,
       createdAt,
       publish,
-      collectionId,
+      collectionId: collection?.id,
       parentDocumentId,
       templateDocument,
       template,
