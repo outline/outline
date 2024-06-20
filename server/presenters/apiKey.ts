@@ -8,5 +8,6 @@ export default function presentApiKey(key: ApiKey) {
     createdAt: key.createdAt,
     updatedAt: key.updatedAt,
     expiresAt: key.expiresAt,
+    lastActiveAt: key.lastActiveAt,
   };
 }

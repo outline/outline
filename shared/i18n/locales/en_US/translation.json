@@ -768,6 +768,7 @@
   "API key copied to clipboard": "API key copied to clipboard",
   "Create personal API keys to authenticate with the API and programatically control\n          your workspace's data. API keys have the same permissions as your user account.\n          For more details see the <em>developer documentation</em>.": "Create personal API keys to authenticate with the API and programatically control\n          your workspace's data. API keys have the same permissions as your user account.\n          For more details see the <em>developer documentation</em>.",
   "Personal keys": "Personal keys",
+  "Last used": "Last used",
   "No expiry": "No expiry",
   "Copied": "Copied",
   "Revoking": "Revoking",

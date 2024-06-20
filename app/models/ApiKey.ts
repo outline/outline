@@ -24,6 +24,12 @@ class ApiKey extends Model {
   @observable
   expiresAt?: string;
 
+  /**
+   * An optional datetime that the API key was last used at.
+   */
+  @observable
+  lastActiveAt?: string;
+
   secret: string;
 
   /**

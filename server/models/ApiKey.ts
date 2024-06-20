@@ -1,3 +1,4 @@
+import { subMinutes } from "date-fns";
 import randomstring from "randomstring";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
@@ -39,6 +40,10 @@ class ApiKey extends ParanoidModel<
   @Column
   expiresAt: Date | null;
 
+  @IsDate
+  @Column
+  lastActiveAt: Date | null;
+
   // hooks
 
   @BeforeValidate
@@ -67,6 +72,18 @@ class ApiKey extends ParanoidModel<
   @ForeignKey(() => User)
   @Column
   userId: string;
+
+  updateActiveAt = async () => {
+    const fiveMinutesAgo = subMinutes(new Date(), 5);
+
+    // ensure this is updated only every few minutes otherwise
+    // we'll be constantly writing to the DB as API requests happen
+    if (!this.lastActiveAt || this.lastActiveAt < fiveMinutesAgo) {
+      this.lastActiveAt = new Date();
+    }
+
+    return this.save();
+  };
 }
 
 export default ApiKey;

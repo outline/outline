@@ -20,6 +20,7 @@ describe("#apiKeys.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual("My API Key");
     expect(body.data.expiresAt).toEqual(now.toISOString());
+    expect(body.data.lastActiveAt).toBeNull();
   });
 
   it("should allow creating an api key without expiry", async () => {
@@ -36,6 +37,7 @@ describe("#apiKeys.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual("My API Key");
     expect(body.data.expiresAt).toBeNull();
+    expect(body.data.lastActiveAt).toBeNull();
   });
 
   it("should require authentication", async () => {
