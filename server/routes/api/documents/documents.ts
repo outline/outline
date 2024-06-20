@@ -1049,7 +1049,7 @@ router.post(
 
     ctx.body = {
       data: await presentDocument(ctx, document),
-      policies: presentPolicies(user, [document, collection]),
+      policies: presentPolicies(user, [document]),
     };
   }
 );
