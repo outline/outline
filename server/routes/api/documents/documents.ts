@@ -1047,15 +1047,6 @@ router.post(
       ip: ctx.request.ip,
     });
 
-    collection = document.collectionId
-      ? await Collection.scope({
-          method: ["withMembership", user.id],
-        }).findByPk(document.collectionId, { transaction })
-      : null;
-
-    document.updatedBy = user;
-    document.collection = collection;
-
     ctx.body = {
       data: await presentDocument(ctx, document),
       policies: presentPolicies(user, [document, collection]),
