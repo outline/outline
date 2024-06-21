@@ -45,6 +45,27 @@ module.exports = {
         { transaction }
       );
     });
+
+    if (process.env.DEPLOYMENT === "hosted") {
+      return;
+    }
+
+    await queryInterface.sequelize.transaction(async (transaction) => {
+      await queryInterface.sequelize.query(
+        `UPDATE documents SET icon = emoji`,
+        {
+          transaction,
+          type: queryInterface.sequelize.QueryTypes.UPDATE,
+        }
+      );
+      await queryInterface.sequelize.query(
+        `UPDATE revisions SET icon = emoji`,
+        {
+          transaction,
+          type: queryInterface.sequelize.QueryTypes.UPDATE,
+        }
+      );
+    });
   },
 
   async down(queryInterface, Sequelize) {
