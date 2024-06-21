@@ -159,7 +159,7 @@ function DataLoader({ match, children }: Props) {
       }
 
       const newDocument = await documents.create({
-        collectionId: document.collectionId,
+        collectionId: nested ? undefined : document.collectionId,
         parentDocumentId: nested ? document.id : document.parentDocumentId,
         title,
         data: ProsemirrorHelper.getEmptyDocument(),
