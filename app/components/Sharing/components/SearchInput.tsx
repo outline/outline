@@ -1,6 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { mergeRefs } from "react-merge-refs";
 import Flex from "~/components/Flex";
 import useMobile from "~/hooks/useMobile";
 import Input, { NativeInput } from "../../Input";
@@ -17,13 +18,11 @@ type Props = {
 
 export const SearchInput = React.forwardRef(function _SearchInput(
   { onChange, onClick, onKeyDown, query, back, action }: Props,
-  ref?: React.Ref<HTMLInputElement>
+  ref: React.Ref<HTMLInputElement>
 ) {
   const { t } = useTranslation();
-  let inputRef = React.useRef<HTMLInputElement>(null);
-  if (ref) {
-    inputRef = ref as React.RefObject<HTMLInputElement>;
-  }
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
   const isMobile = useMobile();
 
   const focusInput = React.useCallback(
@@ -60,7 +59,7 @@ export const SearchInput = React.forwardRef(function _SearchInput(
         {back}
         <NativeInput
           key="input"
-          ref={inputRef}
+          ref={mergeRefs([inputRef, ref])}
           placeholder={`${t("Add or invite")}…`}
           value={query}
           onChange={onChange}
