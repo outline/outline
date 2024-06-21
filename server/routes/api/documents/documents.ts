@@ -100,8 +100,6 @@ router.post(
       where = {
         ...where,
         template: true,
-        // override publishedAt filter from Document defaultScope to include drafts.
-        publishedAt: { [Op.or]: { [Op.eq]: null, [Op.ne]: null } },
       };
     }
 

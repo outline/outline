@@ -28,7 +28,6 @@ import {
   buildTeam,
   buildGroup,
   buildAdmin,
-  buildTemplateDocument,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -787,28 +786,6 @@ describe("#documents.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
-  });
-
-  it("should include drafts when templates are requested", async () => {
-    const user = await buildUser();
-    await buildTemplateDocument({
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    await buildTemplateDocument({
-      userId: user.id,
-      teamId: user.teamId,
-      publishedAt: null,
-    });
-    const res = await server.post("/api/documents.list", {
-      body: {
-        token: user.getJwtToken(),
-        template: true,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
   });
 
   it("should not return archived documents", async () => {
