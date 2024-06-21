@@ -97,7 +97,12 @@ router.post(
     };
 
     if (template) {
-      where = { ...where, template: true };
+      where = {
+        ...where,
+        template: true,
+        // override publishedAt filter from Document defaultScope to include drafts.
+        publishedAt: { [Op.or]: { [Op.eq]: null, [Op.ne]: null } },
+      };
     }
 
     // if a specific user is passed then add to filters. If the user doesn't

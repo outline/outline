@@ -342,6 +342,12 @@ export async function buildDraftDocument(
   return buildDocument({ ...overrides, publishedAt: null });
 }
 
+export async function buildTemplateDocument(
+  overrides: Partial<Document> & { userId?: string } = {}
+) {
+  return buildDocument({ ...overrides, template: true });
+}
+
 export async function buildDocument(
   // Omission first, addition later?
   // This is actually a workaround to allow
