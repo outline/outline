@@ -3316,13 +3316,14 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        text: "Changed text",
+        title: "Changed text",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.text).toBe("Changed text");
+    expect(body.data.title).toBe("Changed text");
     expect(body.data.updatedBy.id).toBe(user.id);
+    expect(body.policies[0].abilities.update).toEqual(true);
   });
 
   it("does not allow editing by read-only collection user", async () => {

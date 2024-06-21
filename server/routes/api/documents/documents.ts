@@ -996,7 +996,7 @@ router.post(
     const { user } = ctx.state.auth;
     let collection: Collection | null | undefined;
 
-    const document = await Document.findByPk(id, {
+    let document = await Document.findByPk(id, {
       userId: user.id,
       includeState: true,
       transaction,
@@ -1037,7 +1037,7 @@ router.post(
       }
     }
 
-    await documentUpdater({
+    document = await documentUpdater({
       document,
       user,
       ...input,
