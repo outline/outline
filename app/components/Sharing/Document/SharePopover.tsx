@@ -18,6 +18,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
+import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import { Permission } from "~/types";
 import { documentPath, urlify } from "~/utils/routeHelpers";
@@ -64,6 +65,11 @@ function SharePopover({
     DocumentPermission.Read
   );
 
+  const prevPendingIds = usePrevious(pendingIds);
+
+  const suggestionsRef = React.useRef<HTMLDivElement | null>(null);
+  const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+
   useKeyDown(
     "Escape",
     (ev) => {
@@ -106,6 +112,19 @@ function SharePopover({
       setQuery("");
     }
   }, [picker]);
+
+  React.useEffect(() => {
+    if (prevPendingIds && pendingIds.length > prevPendingIds.length) {
+      setQuery("");
+      searchInputRef.current?.focus();
+    } else if (prevPendingIds && pendingIds.length < prevPendingIds.length) {
+      const firstPending = suggestionsRef.current?.firstElementChild;
+
+      if (firstPending) {
+        (firstPending as HTMLAnchorElement).focus();
+      }
+    }
+  }, [pendingIds, prevPendingIds]);
 
   const inviteAction = React.useMemo(
     () =>
@@ -202,6 +221,39 @@ function SharePopover({
     [setPendingIds]
   );
 
+  const handleKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      if (ev.nativeEvent.isComposing) {
+        return;
+      }
+      if (ev.key === "ArrowDown" && !ev.shiftKey) {
+        ev.preventDefault();
+
+        if (ev.currentTarget.value) {
+          const length = ev.currentTarget.value.length;
+          const selectionStart = ev.currentTarget.selectionStart || 0;
+          if (selectionStart < length) {
+            ev.currentTarget.selectionStart = length;
+            ev.currentTarget.selectionEnd = length;
+            return;
+          }
+        }
+
+        const firstSuggestion = suggestionsRef.current?.firstElementChild;
+
+        if (firstSuggestion) {
+          (firstSuggestion as HTMLAnchorElement).focus();
+        }
+      }
+    },
+    []
+  );
+
+  const handleEscape = React.useCallback(
+    () => searchInputRef.current?.focus(),
+    []
+  );
+
   const permissions = React.useMemo(
     () =>
       [
@@ -266,8 +318,10 @@ function SharePopover({
     <Wrapper>
       {can.manageUsers && (
         <SearchInput
+          ref={searchInputRef}
           onChange={handleQuery}
           onClick={showPicker}
+          onKeyDown={handleKeyDown}
           query={query}
           back={backButton}
           action={rightButton}
@@ -275,15 +329,15 @@ function SharePopover({
       )}
 
       {picker && (
-        <div>
-          <Suggestions
-            document={document}
-            query={query}
-            pendingIds={pendingIds}
-            addPendingId={handleAddPendingId}
-            removePendingId={handleRemovePendingId}
-          />
-        </div>
+        <Suggestions
+          ref={suggestionsRef}
+          document={document}
+          query={query}
+          pendingIds={pendingIds}
+          addPendingId={handleAddPendingId}
+          removePendingId={handleRemovePendingId}
+          onEscape={handleEscape}
+        />
       )}
 
       <div style={{ display: picker ? "none" : "block" }}>

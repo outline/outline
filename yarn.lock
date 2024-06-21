@@ -2776,10 +2776,10 @@
   dependencies:
     prop-types "^15.8.1"
 
-"@getoutline/react-roving-tabindex@^3.2.2":
-  version "3.2.2"
-  resolved "https://registry.yarnpkg.com/@getoutline/react-roving-tabindex/-/react-roving-tabindex-3.2.2.tgz#a3d957b0aa298d8c601a02a575cbfb263dcd940e"
-  integrity sha512-K8uk2BQpngOTrJUMvw/Ai3zOmKNkEo2wmjnkfgHrpW6eOgzTh3VCDOLdqCMNBNqFlNwJudpVRD6EuXNO77cQ0w==
+"@getoutline/react-roving-tabindex@^3.2.4":
+  version "3.2.4"
+  resolved "https://registry.yarnpkg.com/@getoutline/react-roving-tabindex/-/react-roving-tabindex-3.2.4.tgz#c1c9ec97865a89d3ce3a4a665e712f91f16ea23c"
+  integrity sha512-XlzvLD0dVkzVSXSKBap8cBUSt6mMzI1FfNqQ6R1JwCOcO+LO6QKMojrGuvaccP45RpLoAT5Sjy5UYyRWmF+BZg==
   dependencies:
     warning "^4.0.3"
 

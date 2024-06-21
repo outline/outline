@@ -270,6 +270,7 @@ function Search(props: Props) {
                 ref={resultListRef}
                 onEscape={handleEscape}
                 aria-label={t("Search Results")}
+                items={data ?? []}
               >
                 {() =>
                   data?.length

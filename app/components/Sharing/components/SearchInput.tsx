@@ -10,13 +10,20 @@ type Props = {
   query: string;
   onChange: React.ChangeEventHandler;
   onClick: React.MouseEventHandler;
+  onKeyDown: React.KeyboardEventHandler;
   back: React.ReactNode;
   action: React.ReactNode;
 };
 
-export function SearchInput({ onChange, onClick, query, back, action }: Props) {
+export const SearchInput = React.forwardRef(function _SearchInput(
+  { onChange, onClick, onKeyDown, query, back, action }: Props,
+  ref?: React.Ref<HTMLInputElement>
+) {
   const { t } = useTranslation();
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  let inputRef = React.useRef<HTMLInputElement>(null);
+  if (ref) {
+    inputRef = ref as React.RefObject<HTMLInputElement>;
+  }
   const isMobile = useMobile();
 
   const focusInput = React.useCallback(
@@ -39,6 +46,7 @@ export function SearchInput({ onChange, onClick, query, back, action }: Props) {
         value={query}
         onChange={onChange}
         onClick={onClick}
+        onKeyDown={onKeyDown}
         autoFocus
         margin={0}
         flex
@@ -57,10 +65,11 @@ export function SearchInput({ onChange, onClick, query, back, action }: Props) {
           value={query}
           onChange={onChange}
           onClick={onClick}
+          onKeyDown={onKeyDown}
           style={{ padding: "6px 0" }}
         />
         {action}
       </AnimatePresence>
     </HeaderInput>
   );
-}
+});

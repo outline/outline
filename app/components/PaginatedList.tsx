@@ -188,6 +188,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
           aria-label={this.props["aria-label"]}
           onEscape={onEscape}
           className={this.props.className}
+          items={items.slice(0, this.renderCount)}
         >
           {() => {
             let previousHeading = "";
