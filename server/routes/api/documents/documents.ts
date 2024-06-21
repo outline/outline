@@ -97,7 +97,10 @@ router.post(
     };
 
     if (template) {
-      where = { ...where, template: true };
+      where = {
+        ...where,
+        template: true,
+      };
     }
 
     // if a specific user is passed then add to filters. If the user doesn't

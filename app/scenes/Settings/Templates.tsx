@@ -23,6 +23,10 @@ function Templates() {
   const { fetchTemplates, templates, templatesAlphabetical } = documents;
   const sort = param.get("sort") || "recent";
 
+  React.useEffect(() => {
+    void documents.fetchDrafts();
+  }, [documents]);
+
   return (
     <Scene
       icon={<ShapesIcon />}
