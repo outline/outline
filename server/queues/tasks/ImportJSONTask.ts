@@ -80,6 +80,8 @@ export default class ImportJSONTask extends ImportTask {
           // structure directly in the future.
           text: serializer.serialize(Node.fromJSON(schema, node.data)),
           emoji: node.emoji,
+          icon: node.emoji,
+          color: null,
           createdAt: node.createdAt ? new Date(node.createdAt) : undefined,
           updatedAt: node.updatedAt ? new Date(node.updatedAt) : undefined,
           publishedAt: node.publishedAt ? new Date(node.publishedAt) : null,

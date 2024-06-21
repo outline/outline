@@ -97,6 +97,8 @@ export default async function documentCreator({
       sourceMetadata,
       fullWidth: templateDocument ? templateDocument.fullWidth : fullWidth,
       emoji: templateDocument ? templateDocument.emoji : emoji,
+      icon: templateDocument ? templateDocument.emoji : emoji,
+      color: templateDocument ? templateDocument.color : null,
       title: TextHelper.replaceTemplateVariables(
         templateDocument ? templateDocument.title : title,
         user

@@ -116,6 +116,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
               id,
               title,
               emoji,
+              icon: emoji,
               text,
               collectionId,
               parentDocumentId,

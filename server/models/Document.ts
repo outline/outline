@@ -64,6 +64,7 @@ import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
+import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 
 export const DOCUMENT_VERSION = 2;
@@ -261,6 +262,18 @@ class Document extends ParanoidModel<
   })
   @Column
   emoji: string | null;
+
+  @Length({
+    max: 50,
+    msg: `icon must be 50 characters or less`,
+  })
+  @Column
+  icon: string | null;
+
+  /** The color of the icon. */
+  @IsHexColor
+  @Column
+  color: string | null;
 
   /**
    * The content of the document as Markdown.
