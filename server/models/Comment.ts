@@ -26,6 +26,11 @@ import TextLength from "./validators/TextLength";
       as: "createdBy",
       paranoid: false,
     },
+    {
+      model: User,
+      as: "resolvedBy",
+      paranoid: false,
+    },
   ],
 }))
 @Table({ tableName: "comments", modelName: "comment" })
