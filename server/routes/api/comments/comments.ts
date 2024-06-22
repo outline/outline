@@ -5,6 +5,7 @@ import commentCreator from "@server/commands/commentCreator";
 import commentDestroyer from "@server/commands/commentDestroyer";
 import commentUpdater from "@server/commands/commentUpdater";
 import auth from "@server/middlewares/authentication";
+import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -13,7 +14,6 @@ import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import { feature } from "../middlewares/feature";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
