@@ -19,8 +19,9 @@ import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useBoolean from "~/hooks/useBoolean";
 import CommentMenu from "~/menus/CommentMenu";
-import { hover, truncateMultiline } from "~/styles";
+import { hover } from "~/styles";
 import CommentEditor from "./CommentEditor";
+import { HighlightedText } from "./HighlightText";
 
 /**
  * Hook to calculate if we should display a timestamp on a comment
@@ -127,12 +128,12 @@ function CommentThreadItem({
   const handleCancel = () => {
     setData(toJS(comment.data));
     setReadOnly();
-    setForceRender((s) => ++s);
+    setForceRender((i) => ++i);
   };
 
   React.useEffect(() => {
     setData(toJS(comment.data));
-    setForceRender((s) => ++s);
+    setForceRender((i) => ++i);
   }, [comment.data]);
 
   return (
@@ -238,28 +239,6 @@ const AvatarSpacer = styled(Flex)`
 
 const Body = styled.form`
   border-radius: 2px;
-`;
-
-const HighlightedText = styled(Text)`
-  position: relative;
-  color: ${s("textSecondary")};
-  font-size: 14px;
-  padding: 0 8px;
-  margin: 4px 0;
-  display: inline-block;
-
-  ${truncateMultiline(3)}
-
-  &:after {
-    content: "";
-    width: 2px;
-    position: absolute;
-    left: 0;
-    top: 2px;
-    bottom: 2px;
-    background: ${s("commentMarkBackground")};
-    border-radius: 2px;
-  }
 `;
 
 const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`
