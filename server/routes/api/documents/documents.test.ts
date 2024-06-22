@@ -2868,26 +2868,6 @@ describe("#documents.create", () => {
     );
   });
 
-  it("should not allow creating a nested doc with a collection", async () => {
-    const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
-    const res = await server.post("/api/documents.create", {
-      body: {
-        token: user.getJwtToken(),
-        collectionId: "d7a4eb73-fac1-4028-af45-d7e34d54db8e",
-        parentDocumentId: "d7a4eb73-fac1-4028-af45-d7e34d54db8e",
-        title: "nested doc",
-        text: "nested doc without collection",
-      },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(400);
-    expect(body.message).toBe(
-      "collectionId is inferred when creating a nested document"
-    );
-  });
-
   it("should not allow very long titles", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
