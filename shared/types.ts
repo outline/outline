@@ -229,6 +229,7 @@ export type NavigationNode = {
   id: string;
   title: string;
   url: string;
+  emoji?: string;
   icon?: string;
   color?: string;
   children: NavigationNode[];

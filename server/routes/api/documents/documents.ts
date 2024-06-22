@@ -1042,6 +1042,7 @@ router.post(
       document,
       user,
       ...input,
+      icon: input.icon ?? input.emoji,
       publish,
       collectionId,
       insightsEnabled,

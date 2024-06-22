@@ -72,9 +72,6 @@ export default async function documentUpdater({
     document.emoji = icon;
     document.icon = icon;
   }
-  if (icon !== undefined) {
-    document.icon = icon;
-  }
   if (color !== undefined) {
     document.color = color;
   }

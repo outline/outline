@@ -49,7 +49,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
       parentDocumentId?: string
     ): Promise<void> {
       await Promise.all(
-        children.map(async child => {
+        children.map(async (child) => {
           // special case for folders of attachments
           if (
             child.name === Buckets.uploads ||
@@ -91,7 +91,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
           });
 
           const existingDocumentIndex = output.documents.findIndex(
-            doc =>
+            (doc) =>
               doc.title === title &&
               doc.collectionId === collectionId &&
               doc.parentDocumentId === parentDocumentId

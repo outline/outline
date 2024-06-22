@@ -223,7 +223,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
           void ZipHelper.extract(filePath, tmpDir)
             .then(() => resolve(tmpDir))
-            .catch(err => {
+            .catch((err) => {
               Logger.error("Could not extract zip file", err);
               reject(err);
             });
@@ -300,7 +300,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
     try {
       // Collections
       for (const item of data.collections) {
-        await sequelize.transaction(async transaction => {
+        await sequelize.transaction(async (transaction) => {
           Logger.debug(
             "task",
             `ImportTask persisting collection ${item.name} (${item.id})`
@@ -424,7 +424,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
           // Documents
           for (const item of data.documents.filter(
-            d => d.collectionId === collection.id
+            (d) => d.collectionId === collection.id
           )) {
             Logger.debug(
               "task",
@@ -502,13 +502,13 @@ export default abstract class ImportTask extends BaseTask<Props> {
       }
 
       // Attachments
-      await sequelize.transaction(async transaction => {
+      await sequelize.transaction(async (transaction) => {
         const chunks = chunk(data.attachments, 10);
 
         for (const chunk of chunks) {
           // Parallelize 10 uploads at a time
           await Promise.all(
-            chunk.map(async item => {
+            chunk.map(async (item) => {
               Logger.debug(
                 "task",
                 `ImportTask persisting attachment ${item.name} (${item.id})`
@@ -538,7 +538,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
       );
 
       await Promise.all(
-        Array.from(attachments.values()).map(model =>
+        Array.from(attachments.values()).map((model) =>
           Attachment.deleteAttachmentFromS3(model)
         )
       );

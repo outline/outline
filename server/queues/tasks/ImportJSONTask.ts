@@ -71,7 +71,7 @@ export default class ImportJSONTask extends ImportTask {
       documents: { [id: string]: DocumentJSONExport },
       collectionId: string
     ) {
-      Object.values(documents).forEach(node => {
+      Object.values(documents).forEach((node) => {
         const id = uuidv4();
         output.documents.push({
           ...node,
@@ -79,8 +79,8 @@ export default class ImportJSONTask extends ImportTask {
           // TODO: This is kind of temporary, we can import the document
           // structure directly in the future.
           text: serializer.serialize(Node.fromJSON(schema, node.data)),
-          emoji: node.emoji ?? node.icon,
-          icon: node.emoji ?? node.icon,
+          emoji: node.icon ?? node.emoji,
+          icon: node.icon ?? node.emoji,
           color: node.color,
           createdAt: node.createdAt ? new Date(node.createdAt) : undefined,
           updatedAt: node.updatedAt ? new Date(node.updatedAt) : undefined,
@@ -91,7 +91,7 @@ export default class ImportJSONTask extends ImportTask {
           parentDocumentId: node.parentDocumentId
             ? find(
                 output.documents,
-                d => d.externalId === node.parentDocumentId
+                (d) => d.externalId === node.parentDocumentId
               )?.id
             : null,
           id,
@@ -102,7 +102,7 @@ export default class ImportJSONTask extends ImportTask {
     async function mapAttachments(attachments: {
       [id: string]: AttachmentJSONExport;
     }) {
-      Object.values(attachments).forEach(node => {
+      Object.values(attachments).forEach((node) => {
         const id = uuidv4();
         const mimeType = mime.lookup(node.key) || "application/octet-stream";
 
