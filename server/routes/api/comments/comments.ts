@@ -1,11 +1,9 @@
-import { Next } from "koa";
 import Router from "koa-router";
 import { FindOptions, Op } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import commentCreator from "@server/commands/commentCreator";
 import commentDestroyer from "@server/commands/commentDestroyer";
 import commentUpdater from "@server/commands/commentUpdater";
-import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -15,6 +13,7 @@ import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { feature } from "../middlewares/feature";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -24,7 +23,7 @@ router.post(
   "comments.create",
   rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
@@ -58,7 +57,7 @@ router.post(
 router.post(
   "comments.info",
   auth(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsInfoSchema),
   async (ctx: APIContext<T.CommentsInfoReq>) => {
     const { id } = ctx.input.body;
@@ -87,7 +86,7 @@ router.post(
   "comments.list",
   auth(),
   pagination(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsListSchema),
   async (ctx: APIContext<T.CommentsListReq>) => {
     const { sort, direction, documentId, collectionId } = ctx.input.body;
@@ -153,7 +152,7 @@ router.post(
 router.post(
   "comments.update",
   auth(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsUpdateReq>) => {
@@ -194,7 +193,7 @@ router.post(
 router.post(
   "comments.delete",
   auth(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsDeleteReq>) => {
@@ -229,7 +228,7 @@ router.post(
 router.post(
   "comments.resolve",
   auth(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsResolveSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsResolveReq>) => {
@@ -260,7 +259,7 @@ router.post(
 router.post(
   "comments.unresolve",
   auth(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsUnresolveSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsUnresolveReq>) => {
@@ -287,17 +286,5 @@ router.post(
     };
   }
 );
-
-function checkCommentingEnabled() {
-  return async function checkCommentingEnabledMiddleware(
-    ctx: APIContext,
-    next: Next
-  ) {
-    if (!ctx.state.auth.user.team.getPreference(TeamPreference.Commenting)) {
-      throw ValidationError("Commenting is currently disabled");
-    }
-    return next();
-  };
-}
 
 export default router;
