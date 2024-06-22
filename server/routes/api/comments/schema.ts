@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CommentStatusFilter } from "@shared/types";
 import { BaseSchema, ProsemirrorSchema } from "@server/routes/api/schema";
 
 const BaseIdSchema = z.object({
@@ -57,7 +58,12 @@ export const CommentsListSchema = BaseSchema.extend({
   body: CommentsSortParamsSchema.extend({
     /** Id of a document to list comments for */
     documentId: z.string().optional(),
-    collectionId: z.string().uuid().optional(),
+    /** Id of a collection to list comments for */
+    collectionId: z.string().optional(),
+    /** Id of a parent comment to list comments for */
+    parentCommentId: z.string().uuid().optional(),
+    /** Comment statuses to include in results */
+    statusFilter: z.nativeEnum(CommentStatusFilter).array().optional(),
   }),
 });
 

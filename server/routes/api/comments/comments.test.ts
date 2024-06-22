@@ -1,3 +1,4 @@
+import { CommentStatusFilter } from "@shared/types";
 import {
   buildAdmin,
   buildCollection,
@@ -85,7 +86,7 @@ describe("#comments.list", () => {
     expect(body).toMatchSnapshot();
   });
 
-  it("should return all comments for a document", async () => {
+  it("should return unresolved comments for a document", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({
@@ -95,6 +96,11 @@ describe("#comments.list", () => {
     const comment = await buildComment({
       userId: user.id,
       documentId: document.id,
+    });
+    await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      resolvedById: user.id,
     });
     const res = await server.post("/api/comments.list", {
       body: {
@@ -111,7 +117,7 @@ describe("#comments.list", () => {
     expect(body.policies[0].abilities.read).toEqual(true);
   });
 
-  it("should return all comments for a collection", async () => {
+  it("should return unresolved comments for a collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -140,6 +146,71 @@ describe("#comments.list", () => {
     expect(body.data[0].id).toEqual(comment.id);
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
+  });
+
+  it("should return unresolved comments for a parentCommentId", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const childComment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      parentCommentId: comment.id,
+    });
+    const res = await server.post("/api/comments.list", {
+      body: {
+        token: user.getJwtToken(),
+        parentCommentId: comment.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(childComment.id);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+  });
+
+  it("should return resolved comments for a statusFilter", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const resolved = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      resolvedById: user.id,
+    });
+    const res = await server.post("/api/comments.list", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        statusFilter: [CommentStatusFilter.Resolved],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(resolved.id);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.unresolve).toEqual(true);
+    expect(body.policies[0].abilities.resolve).toEqual(false);
   });
 
   it("should return all comments", async () => {
