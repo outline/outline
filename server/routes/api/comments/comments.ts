@@ -1,6 +1,6 @@
 import Router from "koa-router";
-import { FindOptions, Op } from "sequelize";
-import { TeamPreference } from "@shared/types";
+import { FindOptions, Op, WhereOptions } from "sequelize";
+import { CommentStatusFilter, TeamPreference } from "@shared/types";
 import commentCreator from "@server/commands/commentCreator";
 import commentDestroyer from "@server/commands/commentDestroyer";
 import commentUpdater from "@server/commands/commentUpdater";
@@ -86,10 +86,41 @@ router.post(
   feature(TeamPreference.Commenting),
   validate(T.CommentsListSchema),
   async (ctx: APIContext<T.CommentsListReq>) => {
-    const { sort, direction, documentId, collectionId } = ctx.input.body;
+    const {
+      sort,
+      direction,
+      documentId,
+      parentCommentId,
+      statusFilter,
+      collectionId,
+    } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const statusQuery = [];
+
+    if (statusFilter?.includes(CommentStatusFilter.Resolved)) {
+      statusQuery.push({ resolvedById: { [Op.not]: null } });
+    }
+    if (
+      statusFilter?.includes(CommentStatusFilter.Unresolved) ||
+      !statusFilter?.length
+    ) {
+      statusQuery.push({ resolvedById: null });
+    }
+
+    const where: WhereOptions<Comment> = {
+      [Op.and]: [{ [Op.or]: statusQuery }],
+    };
+    if (documentId) {
+      // @ts-expect-error ignore
+      where[Op.and].push({ documentId });
+    }
+    if (parentCommentId) {
+      // @ts-expect-error ignore
+      where[Op.and].push({ parentCommentId });
+    }
 
     const params: FindOptions<Comment> = {
+      where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
@@ -99,12 +130,7 @@ router.post(
     if (documentId) {
       const document = await Document.findByPk(documentId, { userId: user.id });
       authorize(user, "read", document);
-      comments = await Comment.findAll({
-        where: {
-          documentId: document.id,
-        },
-        ...params,
-      });
+      comments = await Comment.findAll(params);
     } else if (collectionId) {
       const collection = await Collection.findByPk(collectionId);
       authorize(user, "read", collection);

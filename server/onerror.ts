@@ -73,6 +73,10 @@ export default function onerror(app: Koa) {
       requestErrorHandler(err, this);
 
       if (!(err instanceof InternalError)) {
+        if (env.ENVIRONMENT === "test") {
+          // eslint-disable-next-line no-console
+          console.error(err);
+        }
         err = InternalError();
       }
     }
