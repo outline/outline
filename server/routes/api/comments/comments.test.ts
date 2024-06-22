@@ -4,6 +4,7 @@ import {
   buildCollection,
   buildComment,
   buildDocument,
+  buildResolvedComment,
   buildTeam,
   buildUser,
 } from "@server/test/factories";
@@ -97,10 +98,9 @@ describe("#comments.list", () => {
       userId: user.id,
       documentId: document.id,
     });
-    await buildComment({
+    await buildResolvedComment(user, {
       userId: user.id,
       documentId: document.id,
-      resolvedById: user.id,
     });
     const res = await server.post("/api/comments.list", {
       body: {
@@ -190,10 +190,9 @@ describe("#comments.list", () => {
       userId: user.id,
       documentId: document.id,
     });
-    const resolved = await buildComment({
+    const resolved = await buildResolvedComment(user, {
       userId: user.id,
       documentId: document.id,
-      resolvedById: user.id,
     });
     const res = await server.post("/api/comments.list", {
       body: {
@@ -213,7 +212,7 @@ describe("#comments.list", () => {
     expect(body.policies[0].abilities.resolve).toEqual(false);
   });
 
-  it("should return all comments", async () => {
+  it("should return all unresolved comments", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection1 = await buildCollection({
@@ -408,6 +407,7 @@ describe("#comments.resolve", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
+    expect(body.data.resolvedAt).toBeTruthy();
     expect(body.data.resolvedById).toEqual(user.id);
     expect(body.data.resolvedBy.id).toEqual(user.id);
     expect(body.policies.length).toEqual(1);
@@ -463,10 +463,9 @@ describe("#comments.unresolve", () => {
       teamId: user.teamId,
     });
 
-    const comment = await buildComment({
+    const comment = await buildResolvedComment(user, {
       userId: user.id,
       documentId: document.id,
-      resolvedById: user.id,
     });
 
     const res = await server.post("/api/comments.unresolve", {
@@ -478,6 +477,8 @@ describe("#comments.unresolve", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
+    expect(body.data.resolvedAt).toEqual(null);
+    expect(body.data.resolvedBy).toEqual(null);
     expect(body.data.resolvedById).toEqual(null);
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
