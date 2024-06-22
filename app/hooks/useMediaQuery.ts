@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 
 export default function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState<boolean>(false);
+  const [matches, setMatches] = useState<boolean | null>(null);
+
+  if (matches === null) {
+    if (window.matchMedia) {
+      const media = window.matchMedia(query);
+      setMatches(media.matches);
+    }
+  }
 
   useEffect(() => {
     if (window.matchMedia) {
@@ -19,5 +26,5 @@ export default function useMediaQuery(query: string): boolean {
     return undefined;
   }, [matches, query]);
 
-  return matches;
+  return !!matches;
 }
