@@ -210,6 +210,9 @@ function CommentThread({
               standalone={commentsInThread.length === 0}
               dir={document.dir}
               autoFocus={autoFocus}
+              highlightedText={
+                commentsInThread.length === 0 ? highlightedText : undefined
+              }
             />
           </Fade>
         )}
