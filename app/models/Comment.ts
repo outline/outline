@@ -110,6 +110,20 @@ class Comment extends Model {
   public get isReply() {
     return !!this.parentCommentId;
   }
+
+  /**
+   * Resolve the comment
+   */
+  public resolve() {
+    return this.store.rootStore.comments.resolve(this.id);
+  }
+
+  /**
+   * Unresolve the comment
+   */
+  public unresolve() {
+    return this.store.rootStore.comments.unresolve(this.id);
+  }
 }
 
 export default Comment;
