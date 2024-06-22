@@ -1,5 +1,9 @@
 import { Node } from "prosemirror-model";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  SaveOptions,
+} from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -13,6 +17,7 @@ import type { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
 import { schema } from "@server/editor";
+import { ValidationError } from "@server/errors";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -80,6 +85,50 @@ class Comment extends ParanoidModel<
   @Column(DataType.UUID)
   parentCommentId: string;
 
+  // methods
+
+  /**
+   * Resolve the comment
+   *
+   * @param resolvedBy The user who resolved the comment
+   * @param options The save options
+   */
+  public resolve(
+    resolvedBy: User,
+    options?: SaveOptions<InferAttributes<Comment>>
+  ) {
+    if (this.resolvedById) {
+      throw ValidationError("Comment is already resolved");
+    }
+    if (this.parentCommentId) {
+      throw ValidationError("Cannot resolve a reply");
+    }
+
+    this.resolvedById = resolvedBy.id;
+    this.resolvedBy = resolvedBy;
+    return this.save(options);
+  }
+
+  /**
+   * Unresolve the comment
+   *
+   * @param options The save options
+   */
+  public unresolve(options?: SaveOptions<InferAttributes<Comment>>) {
+    if (!this.resolvedById) {
+      throw ValidationError("Comment is not resolved");
+    }
+
+    this.resolvedById = null;
+    this.resolvedBy = null;
+    return this.save(options);
+  }
+
+  /**
+   * Convert the comment data to plain text
+   *
+   * @returns The plain text representation of the comment data
+   */
   public toPlainText() {
     const node = Node.fromJSON(schema, this.data);
     return ProsemirrorHelper.toPlainText(node, schema);

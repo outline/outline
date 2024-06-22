@@ -247,9 +247,7 @@ router.post(
     authorize(user, "resolve", comment);
     authorize(user, "update", document);
 
-    comment.resolvedById = user.id;
-    comment.resolvedBy = user;
-    await comment.save({ transaction });
+    await comment.resolve(user, { transaction });
 
     ctx.body = {
       data: presentComment(comment),
@@ -283,9 +281,7 @@ router.post(
     authorize(user, "unresolve", comment);
     authorize(user, "update", document);
 
-    comment.resolvedById = null;
-    comment.resolvedBy = null;
-    await comment.save({ transaction });
+    await comment.unresolve({ transaction });
 
     ctx.body = {
       data: presentComment(comment),
