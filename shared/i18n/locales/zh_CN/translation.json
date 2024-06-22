@@ -280,6 +280,7 @@
   "Add or invite": "添加或邀请",
   "Viewer": "浏览者",
   "Editor": "编辑者",
+  "Suggestions for invitation": "Suggestions for invitation",
   "No matches": "无匹配项",
   "{{ userName }} was removed from the document": "已从文档中移除 {{ userName }}",
   "Could not remove user": "无法删除用户",
