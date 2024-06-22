@@ -43,6 +43,7 @@ type Props = {
   standalone?: boolean;
   /** Whether to animate the comment form in and out */
   animatePresence?: boolean;
+  /** Text to highlight at the top of the comment */
   highlightedText?: string;
   /** The text direction of the editor */
   dir?: "rtl" | "ltr";
