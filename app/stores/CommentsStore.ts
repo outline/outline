@@ -1,6 +1,8 @@
+import invariant from "invariant";
 import orderBy from "lodash/orderBy";
 import { action, computed } from "mobx";
 import Comment from "~/models/Comment";
+import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store from "./base/Store";
 
@@ -24,12 +26,15 @@ export default class CommentsStore extends Store<Comment> {
    * comments.
    *
    * @param documentId ID of the document to get comments for
+   * @param resolved Whether to return resolved or unresolved comments
    * @returns Array of comments
    */
-  threadsInDocument(documentId: string): Comment[] {
+  threadsInDocument(documentId: string, resolved = false): Comment[] {
     return this.filter(
       (comment: Comment) =>
-        comment.documentId === documentId && !comment.parentCommentId
+        comment.documentId === documentId &&
+        !comment.parentCommentId &&
+        comment.isResolved === resolved
     );
   }
 
@@ -45,6 +50,40 @@ export default class CommentsStore extends Store<Comment> {
         comment.parentCommentId === threadId || comment.id === threadId
     );
   }
+
+  /**
+   * Resolve a comment thread with the given ID.
+   *
+   * @param id ID of the comment to resolve
+   * @returns Resolved comment
+   */
+  @action
+  resolve = async (id: string): Promise<Comment> => {
+    const res = await client.post("/comments.resolve", {
+      id,
+    });
+    invariant(res?.data, "Comment not available");
+    this.addPolicies(res.policies);
+    this.add(res.data);
+    return this.data.get(res.data.id) as Comment;
+  };
+
+  /**
+   * Unresolve a comment thread with the given ID.
+   *
+   * @param id ID of the comment to unresolve
+   * @returns Unresolved comment
+   */
+  @action
+  unresolve = async (id: string): Promise<Comment> => {
+    const res = await client.post("/comments.unresolve", {
+      id,
+    });
+    invariant(res?.data, "Comment not available");
+    this.addPolicies(res.policies);
+    this.add(res.data);
+    return this.data.get(res.data.id) as Comment;
+  };
 
   @action
   setTyping({
