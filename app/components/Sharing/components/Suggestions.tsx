@@ -1,4 +1,5 @@
 import { isEmail } from "class-validator";
+import concat from "lodash/concat";
 import { observer } from "mobx-react";
 import { CheckmarkIcon, CloseIcon, GroupIcon } from "outline-icons";
 import * as React from "react";
@@ -11,6 +12,7 @@ import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Group from "~/models/Group";
 import User from "~/models/User";
+import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import Avatar from "~/components/Avatar";
 import { AvatarSize, IAvatar } from "~/components/Avatar/Avatar";
 import Empty from "~/components/Empty";
@@ -40,18 +42,24 @@ type Props = {
   removePendingId: (id: string) => void;
   /** Show group suggestions. */
   showGroups?: boolean;
+  /** Handles escape from suggestions list */
+  onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
 };
 
 export const Suggestions = observer(
-  ({
-    document,
-    collection,
-    query,
-    pendingIds,
-    addPendingId,
-    removePendingId,
-    showGroups,
-  }: Props) => {
+  React.forwardRef(function _Suggestions(
+    {
+      document,
+      collection,
+      query,
+      pendingIds,
+      addPendingId,
+      removePendingId,
+      showGroups,
+      onEscape,
+    }: Props,
+    ref: React.Ref<HTMLDivElement>
+  ) {
     const neverRenderedList = React.useRef(false);
     const { users, groups } = useStores();
     const { t } = useTranslation();
@@ -174,34 +182,57 @@ export const Suggestions = observer(
     neverRenderedList.current = false;
 
     return (
-      <>
-        {pending.map((suggestion) => (
-          <PendingListItem
-            {...getListItemProps(suggestion)}
-            key={suggestion.id}
-            onClick={() => removePendingId(suggestion.id)}
-            actions={
-              <>
-                <InvitedIcon />
-                <RemoveIcon />
-              </>
-            }
-          />
-        ))}
-        {pending.length > 0 &&
-          (suggestionsWithPending.length > 0 || isEmpty) && <Separator />}
-        {suggestionsWithPending.map((suggestion) => (
-          <ListItem
-            {...getListItemProps(suggestion as User)}
-            key={suggestion.id}
-            onClick={() => addPendingId(suggestion.id)}
-            actions={<InviteIcon />}
-          />
-        ))}
-        {isEmpty && <Empty style={{ marginTop: 22 }}>{t("No matches")}</Empty>}
-      </>
+      <ArrowKeyNavigation
+        ref={ref}
+        onEscape={onEscape}
+        aria-label={t("Suggestions for invitation")}
+        items={concat(pending, suggestionsWithPending)}
+      >
+        {() => [
+          ...pending.map((suggestion) => (
+            <PendingListItem
+              keyboardNavigation
+              {...getListItemProps(suggestion)}
+              key={suggestion.id}
+              onClick={() => removePendingId(suggestion.id)}
+              onKeyDown={(ev) => {
+                if (ev.key === "Enter") {
+                  ev.preventDefault();
+                  ev.stopPropagation();
+                  removePendingId(suggestion.id);
+                }
+              }}
+              actions={
+                <>
+                  <InvitedIcon />
+                  <RemoveIcon />
+                </>
+              }
+            />
+          )),
+          pending.length > 0 &&
+            (suggestionsWithPending.length > 0 || isEmpty) && <Separator />,
+          ...suggestionsWithPending.map((suggestion) => (
+            <ListItem
+              keyboardNavigation
+              {...getListItemProps(suggestion as User)}
+              key={suggestion.id}
+              onClick={() => addPendingId(suggestion.id)}
+              onKeyDown={(ev) => {
+                if (ev.key === "Enter") {
+                  ev.preventDefault();
+                  ev.stopPropagation();
+                  addPendingId(suggestion.id);
+                }
+              }}
+              actions={<InviteIcon />}
+            />
+          )),
+          isEmpty && <Empty style={{ marginTop: 22 }}>{t("No matches")}</Empty>,
+        ]}
+      </ArrowKeyNavigation>
     );
-  }
+  })
 );
 
 const InvitedIcon = styled(CheckmarkIcon)`

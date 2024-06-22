@@ -5,10 +5,11 @@ import * as React from "react";
 type Props = React.HTMLAttributes<HTMLDivElement> & {
   children: () => React.ReactNode;
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
+  items: unknown[];
 };
 
 function ArrowKeyNavigation(
-  { children, onEscape, ...rest }: Props,
+  { children, onEscape, items, ...rest }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const handleKeyDown = React.useCallback(
@@ -36,7 +37,10 @@ function ArrowKeyNavigation(
   );
 
   return (
-    <RovingTabIndexProvider options={{ focusOnClick: true, direction: "both" }}>
+    <RovingTabIndexProvider
+      options={{ focusOnClick: true, direction: "both" }}
+      items={items}
+    >
       <div {...rest} onKeyDown={handleKeyDown} ref={ref}>
         {children()}
       </div>

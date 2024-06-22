@@ -34,6 +34,7 @@ function RecentSearches(
         ref={ref}
         onEscape={onEscape}
         aria-label={t("Recent searches")}
+        items={searches.recent}
       >
         {() =>
           searches.recent.map((searchQuery) => (

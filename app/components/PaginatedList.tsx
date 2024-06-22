@@ -1,5 +1,5 @@
 import isEqual from "lodash/isEqual";
-import { observable, action } from "mobx";
+import { observable, action, computed } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
@@ -39,7 +39,9 @@ type Props<T> = WithTranslation &
   };
 
 @observer
-class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
+class PaginatedList<T extends PaginatedItem> extends React.PureComponent<
+  Props<T>
+> {
   @observable
   error?: Error;
 
@@ -145,6 +147,11 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
     }
   };
 
+  @computed
+  get itemsToRender() {
+    return this.props.items?.slice(0, this.renderCount) ?? [];
+  }
+
   render() {
     const {
       items = [],
@@ -188,10 +195,11 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
           aria-label={this.props["aria-label"]}
           onEscape={onEscape}
           className={this.props.className}
+          items={this.itemsToRender}
         >
           {() => {
             let previousHeading = "";
-            return items.slice(0, this.renderCount).map((item, index) => {
+            return this.itemsToRender.map((item, index) => {
               const children = this.props.renderItem(item, index);
 
               // If there is no renderHeading method passed then no date

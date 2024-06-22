@@ -1,6 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { mergeRefs } from "react-merge-refs";
 import Flex from "~/components/Flex";
 import useMobile from "~/hooks/useMobile";
 import Input, { NativeInput } from "../../Input";
@@ -10,13 +11,18 @@ type Props = {
   query: string;
   onChange: React.ChangeEventHandler;
   onClick: React.MouseEventHandler;
+  onKeyDown: React.KeyboardEventHandler;
   back: React.ReactNode;
   action: React.ReactNode;
 };
 
-export function SearchInput({ onChange, onClick, query, back, action }: Props) {
+export const SearchInput = React.forwardRef(function _SearchInput(
+  { onChange, onClick, onKeyDown, query, back, action }: Props,
+  ref: React.Ref<HTMLInputElement>
+) {
   const { t } = useTranslation();
   const inputRef = React.useRef<HTMLInputElement>(null);
+
   const isMobile = useMobile();
 
   const focusInput = React.useCallback(
@@ -39,6 +45,7 @@ export function SearchInput({ onChange, onClick, query, back, action }: Props) {
         value={query}
         onChange={onChange}
         onClick={onClick}
+        onKeyDown={onKeyDown}
         autoFocus
         margin={0}
         flex
@@ -52,15 +59,16 @@ export function SearchInput({ onChange, onClick, query, back, action }: Props) {
         {back}
         <NativeInput
           key="input"
-          ref={inputRef}
+          ref={mergeRefs([inputRef, ref])}
           placeholder={`${t("Add or invite")}…`}
           value={query}
           onChange={onChange}
           onClick={onClick}
+          onKeyDown={onKeyDown}
           style={{ padding: "6px 0" }}
         />
         {action}
       </AnimatePresence>
     </HeaderInput>
   );
-}
+});
