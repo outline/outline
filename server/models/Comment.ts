@@ -55,11 +55,11 @@ class Comment extends ParanoidModel<
   createdById: string;
 
   @BelongsTo(() => User, "resolvedById")
-  resolvedBy: User;
+  resolvedBy: User | null;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  resolvedById: string;
+  resolvedById: string | null;
 
   @BelongsTo(() => Document, "documentId")
   document: Document;

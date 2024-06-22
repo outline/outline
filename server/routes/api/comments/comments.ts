@@ -226,6 +226,68 @@ router.post(
   }
 );
 
+router.post(
+  "comments.resolve",
+  auth(),
+  checkCommentingEnabled(),
+  validate(T.CommentsResolveSchema),
+  transaction(),
+  async (ctx: APIContext<T.CommentsResolveReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const comment = await Comment.findByPk(id, {
+      transaction,
+      rejectOnEmpty: true,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
+    });
+    authorize(user, "resolve", comment);
+
+    comment.resolvedById = user.id;
+    await comment.save({ transaction });
+
+    ctx.body = {
+      data: presentComment(comment),
+      policies: presentPolicies(user, [comment]),
+    };
+  }
+);
+
+router.post(
+  "comments.unresolve",
+  auth(),
+  checkCommentingEnabled(),
+  validate(T.CommentsUnresolveSchema),
+  transaction(),
+  async (ctx: APIContext<T.CommentsUnresolveReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const comment = await Comment.findByPk(id, {
+      transaction,
+      rejectOnEmpty: true,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
+    });
+    authorize(user, "unresolve", comment);
+
+    comment.resolvedById = null;
+    await comment.save({ transaction });
+
+    ctx.body = {
+      data: presentComment(comment),
+      policies: presentPolicies(user, [comment]),
+    };
+  }
+);
+
 function checkCommentingEnabled() {
   return async function checkCommentingEnabledMiddleware(
     ctx: APIContext,
@@ -237,8 +299,5 @@ function checkCommentingEnabled() {
     return next();
   };
 }
-
-// router.post("comments.resolve", auth(), async (ctx) => {
-// router.post("comments.unresolve", auth(), async (ctx) => {
 
 export default router;
