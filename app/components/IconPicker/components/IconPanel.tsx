@@ -163,17 +163,19 @@ const IconPanel = ({
   }, [panelActive]);
 
   return (
-    <Flex column gap={8}>
+    <Flex column>
+      <InputSearchContainer align="center">
+        <StyledInputSearch
+          ref={searchRef}
+          value={query}
+          placeholder={`${t("Search icons")}…`}
+          onChange={handleFilter}
+        />
+      </InputSearchContainer>
       <ColorPicker
         width={panelWidth}
         activeColor={color}
         onSelect={onColorChange}
-      />
-      <StyledInputSearch
-        ref={searchRef}
-        value={query}
-        placeholder={`${t("Search icons")}…`}
-        onChange={handleFilter}
       />
       <GridTemplate
         ref={scrollableRef}
@@ -186,8 +188,13 @@ const IconPanel = ({
   );
 };
 
+const InputSearchContainer = styled(Flex)`
+  height: 48px;
+  padding: 6px 12px 0px;
+`;
+
 const StyledInputSearch = styled(InputSearch)`
-  padding: 0px 12px;
+  flex-grow: 1;
 `;
 
 export default IconPanel;
