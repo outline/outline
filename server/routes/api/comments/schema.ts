@@ -68,3 +68,15 @@ export const CommentsInfoSchema = z.object({
 });
 
 export type CommentsInfoReq = z.infer<typeof CommentsInfoSchema>;
+
+export const CommentsResolveSchema = z.object({
+  body: BaseIdSchema,
+});
+
+export type CommentsResolveReq = z.infer<typeof CommentsResolveSchema>;
+
+export const CommentsUnresolveSchema = z.object({
+  body: BaseIdSchema,
+});
+
+export type CommentsUnresolveReq = z.infer<typeof CommentsUnresolveSchema>;
