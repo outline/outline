@@ -64,6 +64,9 @@ class Comment extends ParanoidModel<
   @Column(DataType.UUID)
   createdById: string;
 
+  @Column(DataType.DATE)
+  resolvedAt: Date | null;
+
   @BelongsTo(() => User, "resolvedById")
   resolvedBy: User | null;
 
@@ -97,7 +100,7 @@ class Comment extends ParanoidModel<
     resolvedBy: User,
     options?: SaveOptions<InferAttributes<Comment>>
   ) {
-    if (this.resolvedById) {
+    if (this.isResolved) {
       throw ValidationError("Comment is already resolved");
     }
     if (this.parentCommentId) {
@@ -106,6 +109,7 @@ class Comment extends ParanoidModel<
 
     this.resolvedById = resolvedBy.id;
     this.resolvedBy = resolvedBy;
+    this.resolvedAt = new Date();
     return this.save(options);
   }
 
@@ -115,13 +119,21 @@ class Comment extends ParanoidModel<
    * @param options The save options
    */
   public unresolve(options?: SaveOptions<InferAttributes<Comment>>) {
-    if (!this.resolvedById) {
+    if (!this.isResolved) {
       throw ValidationError("Comment is not resolved");
     }
 
     this.resolvedById = null;
     this.resolvedBy = null;
+    this.resolvedAt = null;
     return this.save(options);
+  }
+
+  /**
+   * Whether the comment is resolved
+   */
+  public get isResolved() {
+    return !!this.resolvedAt;
   }
 
   /**

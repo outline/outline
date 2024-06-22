@@ -9,6 +9,7 @@ export default function present(comment: Comment) {
     parentCommentId: comment.parentCommentId,
     createdBy: presentUser(comment.createdBy),
     createdById: comment.createdById,
+    resolvedAt: comment.resolvedAt,
     resolvedBy: comment.resolvedBy ? presentUser(comment.resolvedBy) : null,
     resolvedById: comment.resolvedById,
     createdAt: comment.createdAt,

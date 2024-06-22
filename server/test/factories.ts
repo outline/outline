@@ -431,6 +431,15 @@ export async function buildComment(overrides: {
   return comment;
 }
 
+export async function buildResolvedComment(
+  user: User,
+  overrides: Parameters<typeof buildComment>[0]
+) {
+  const comment = await buildComment(overrides);
+  await comment.resolve(user);
+  return comment;
+}
+
 export async function buildFileOperation(
   overrides: Partial<FileOperation> = {}
 ) {
