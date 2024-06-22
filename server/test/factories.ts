@@ -403,8 +403,12 @@ export async function buildDocument(
 export async function buildComment(overrides: {
   userId: string;
   documentId: string;
+  parentCommentId?: string;
+  resolvedById?: string;
 }) {
   const comment = await Comment.create({
+    resolvedById: overrides.resolvedById,
+    parentCommentId: overrides.parentCommentId,
     documentId: overrides.documentId,
     data: {
       type: "doc",

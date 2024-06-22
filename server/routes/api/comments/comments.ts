@@ -66,14 +66,11 @@ router.post(
     const comment = await Comment.findByPk(id, {
       rejectOnEmpty: true,
     });
+    const document = await Document.findByPk(comment.documentId, {
+      userId: user.id,
+    });
     authorize(user, "read", comment);
-
-    if (comment.documentId) {
-      const document = await Document.findByPk(comment.documentId, {
-        userId: user.id,
-      });
-      authorize(user, "read", document);
-    }
+    authorize(user, "read", document);
 
     ctx.body = {
       data: presentComment(comment),
@@ -244,9 +241,14 @@ router.post(
         of: Comment,
       },
     });
+    const document = await Document.findByPk(comment.documentId, {
+      userId: user.id,
+    });
     authorize(user, "resolve", comment);
+    authorize(user, "update", document);
 
     comment.resolvedById = user.id;
+    comment.resolvedBy = user;
     await comment.save({ transaction });
 
     ctx.body = {
@@ -275,9 +277,14 @@ router.post(
         of: Comment,
       },
     });
+    const document = await Document.findByPk(comment.documentId, {
+      userId: user.id,
+    });
     authorize(user, "unresolve", comment);
+    authorize(user, "update", document);
 
     comment.resolvedById = null;
+    comment.resolvedBy = null;
     await comment.save({ transaction });
 
     ctx.body = {
