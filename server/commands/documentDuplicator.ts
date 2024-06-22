@@ -45,7 +45,7 @@ export default async function documentDuplicator({
 
   const duplicated = await documentCreator({
     parentDocumentId: parentDocumentId ?? document.parentDocumentId,
-    icon: document.icon,
+    icon: document.icon ?? document.emoji,
     color: document.color,
     template: document.template,
     title: title ?? document.title,
@@ -79,7 +79,7 @@ export default async function documentDuplicator({
     for (const childDocument of childDocuments) {
       const duplicatedChildDocument = await documentCreator({
         parentDocumentId: duplicated.id,
-        icon: childDocument.icon,
+        icon: childDocument.icon ?? childDocument.emoji,
         color: childDocument.color,
         title: childDocument.title,
         text: childDocument.text,

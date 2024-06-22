@@ -12,7 +12,7 @@ describe("documentDuplicator", () => {
       teamId: user.teamId,
     });
 
-    const response = await sequelize.transaction(transaction =>
+    const response = await sequelize.transaction((transaction) =>
       documentDuplicator({
         document: original,
         collection: original.collection,
@@ -39,7 +39,7 @@ describe("documentDuplicator", () => {
       icon: "👋",
     });
 
-    const response = await sequelize.transaction(transaction =>
+    const response = await sequelize.transaction((transaction) =>
       documentDuplicator({
         document: original,
         collection: original.collection,
@@ -53,7 +53,7 @@ describe("documentDuplicator", () => {
     expect(response).toHaveLength(1);
     expect(response[0].title).toEqual("New title");
     expect(response[0].text).toEqual(original.text);
-    expect(response[0].emoji).toEqual(original.emoji);
+    expect(response[0].emoji).toEqual(original.icon);
     expect(response[0].icon).toEqual(original.icon);
     expect(response[0].color).toEqual(original.color);
     expect(response[0].publishedAt).toBeInstanceOf(Date);
@@ -74,7 +74,7 @@ describe("documentDuplicator", () => {
       collection: original.collection,
     });
 
-    const response = await sequelize.transaction(transaction =>
+    const response = await sequelize.transaction((transaction) =>
       documentDuplicator({
         document: original,
         collection: original.collection,
@@ -95,7 +95,7 @@ describe("documentDuplicator", () => {
       teamId: user.teamId,
     });
 
-    const response = await sequelize.transaction(transaction =>
+    const response = await sequelize.transaction((transaction) =>
       documentDuplicator({
         document: original,
         collection: original.collection,

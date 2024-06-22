@@ -943,6 +943,7 @@ router.post(
         lastModifiedById: user.id,
         createdById: user.id,
         template: true,
+        emoji: original.emoji,
         icon: original.icon,
         color: original.color,
         title: original.title,
@@ -1383,6 +1384,7 @@ router.post(
     const {
       title,
       text,
+      emoji,
       icon,
       color,
       publish,
@@ -1448,7 +1450,7 @@ router.post(
     const document = await documentCreator({
       title,
       text,
-      icon,
+      icon: icon ?? emoji,
       color,
       createdAt,
       publish,
