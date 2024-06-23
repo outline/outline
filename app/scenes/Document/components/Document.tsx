@@ -659,7 +659,7 @@ type EditorContainerProps = {
 
 const EditorContainer = styled.div<EditorContainerProps>`
   // Adds space to the gutter to make room for icon & heading annotations
-  padding: 0 44px;
+  padding: 0 40px;
 
   ${breakpoint("tablet")`
     grid-row: 1;
@@ -686,7 +686,7 @@ type RevisionContainerProps = {
 
 const RevisionContainer = styled.div<RevisionContainerProps>`
   // Adds space to the gutter to make room for icon
-  padding: 0 44px;
+  padding: 0 40px;
 
   ${breakpoint("tablet")`
     grid-row: 1;

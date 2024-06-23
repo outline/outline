@@ -8,7 +8,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
-import { extraArea, s } from "@shared/styles";
+import { s } from "@shared/styles";
 import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
@@ -138,21 +138,21 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   );
 
   const handleChange = React.useCallback(
-    (value: string) => {
-      let title = value;
+    (input: string) => {
+      let value = input;
 
-      if (/\/date\s$/.test(value)) {
-        title = getCurrentDateAsString();
+      if (/\/date\s$/.test(input)) {
+        value = getCurrentDateAsString();
         ref?.current?.focusAtEnd();
-      } else if (/\/time$/.test(value)) {
-        title = getCurrentTimeAsString();
+      } else if (/\/time$/.test(input)) {
+        value = getCurrentTimeAsString();
         ref?.current?.focusAtEnd();
-      } else if (/\/datetime$/.test(value)) {
-        title = getCurrentDateTimeAsString();
+      } else if (/\/datetime$/.test(input)) {
+        value = getCurrentDateTimeAsString();
         ref?.current?.focusAtEnd();
       }
 
-      onChangeTitle?.(title);
+      onChangeTitle?.(value);
     },
     [ref, onChangeTitle]
   );
@@ -257,16 +257,16 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       {can.update && !readOnly ? (
         <IconWrapper align="center" justify="center" dir={dir}>
           <React.Suspense fallback={fallbackIcon}>
-            <StyledIconPicker
+            <IconPicker
               icon={icon ?? null}
               color={color}
               size={40}
               popoverPosition="bottom-start"
-              allowDelete={true}
-              borderOnHover={true}
               onChange={handleIconChange}
               onOpen={handleOpen}
               onClose={handleClose}
+              allowDelete
+              borderOnHover
             />
           </React.Suspense>
         </IconWrapper>
@@ -344,10 +344,6 @@ const Title = styled(ContentEditable)<TitleProps>`
     -webkit-text-fill-color: ${light.text};
     background: none;
   }
-`;
-
-const StyledIconPicker = styled(IconPicker)`
-  ${extraArea(8)}
 `;
 
 const IconWrapper = styled(Flex)<{ dir?: string }>`
