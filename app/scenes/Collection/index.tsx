@@ -13,6 +13,7 @@ import {
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
+import { colorPalette } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Search from "~/scenes/Search";
 import { Action } from "~/components/Actions";
@@ -43,6 +44,8 @@ import Empty from "./components/Empty";
 import MembershipPreview from "./components/MembershipPreview";
 import ShareButton from "./components/ShareButton";
 
+const IconPicker = React.lazy(() => import("~/components/IconPicker"));
+
 function CollectionScene() {
   const params = useParams<{ id?: string }>();
   const history = useHistory();
@@ -59,6 +62,13 @@ function CollectionScene() {
   const collection: Collection | null | undefined =
     collections.getByUrl(id) || collections.get(id);
   const can = usePolicy(collection);
+
+  const handleIconChange = React.useCallback(
+    async (icon: string | null, color: string | null) => {
+      await collection?.save({ icon, color });
+    },
+    [collection]
+  );
 
   React.useEffect(() => {
     setLastVisitedPath(currentPath);
@@ -119,6 +129,10 @@ function CollectionScene() {
     return <Search notFound />;
   }
 
+  const fallbackIcon = collection ? (
+    <Icon as={CollectionIcon} collection={collection} size={40} expanded />
+  ) : null;
+
   return collection ? (
     <Scene
       // Forced mount prevents animation of pinned documents when navigating
@@ -164,7 +178,21 @@ function CollectionScene() {
           ) : (
             <>
               <HeadingWithIcon>
-                <HeadingIcon collection={collection} size={40} expanded />
+                {can.update ? (
+                  <React.Suspense fallback={fallbackIcon}>
+                    <Icon
+                      icon={collection.icon ?? "collection"}
+                      color={collection.color ?? colorPalette[0]}
+                      initial={collection.name[0]}
+                      size={40}
+                      popoverPosition="bottom-start"
+                      onChange={handleIconChange}
+                      borderOnHover
+                    />
+                  </React.Suspense>
+                ) : (
+                  fallbackIcon
+                )}
                 {collection.name}
                 {collection.isPrivate &&
                   !FeatureFlags.isEnabled(Feature.newCollectionSharing) && (
@@ -305,7 +333,7 @@ const HeadingWithIcon = styled(Heading)`
   `};
 `;
 
-const HeadingIcon = styled(CollectionIcon)`
+const Icon = styled(IconPicker)`
   flex-shrink: 0;
   margin-left: -8px;
   margin-right: 8px;

@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { CollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
 import * as React from "react";
-import { randomElement } from "@shared/random";
 import { colorPalette } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Icon from "~/components/Icon";
@@ -32,7 +31,7 @@ function ResolvedCollectionIcon({
   if (!collection.icon || collection.icon === "collection") {
     // If the chosen icon color is very dark then we invert it in dark mode
     // otherwise it will be impossible to see against the dark background.
-    const collectionColor = collection.color ?? randomElement(colorPalette);
+    const collectionColor = collection.color ?? colorPalette[0];
     const color =
       inputColor ||
       (ui.resolvedTheme === "dark" && collectionColor !== "currentColor"
