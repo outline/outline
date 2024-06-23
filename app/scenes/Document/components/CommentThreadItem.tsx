@@ -1,6 +1,7 @@
 import { differenceInMilliseconds } from "date-fns";
 import { toJS } from "mobx";
 import { observer } from "mobx-react";
+import { CheckmarkIcon } from "outline-icons";
 import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -15,8 +16,12 @@ import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
+import Tooltip from "~/components/Tooltip";
+import { resolveCommentFactory } from "~/actions/definitions/comments";
+import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import CommentMenu from "~/menus/CommentMenu";
 import { hover } from "~/styles";
@@ -94,6 +99,7 @@ function CommentThreadItem({
   const { t } = useTranslation();
   const [forceRender, setForceRender] = React.useState(0);
   const [data, setData] = React.useState(toJS(comment.data));
+  const context = useActionContext();
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
   const showEdited =
@@ -199,12 +205,23 @@ function CommentThreadItem({
           )}
         </Body>
         {!isEditing && (
-          <Menu
-            comment={comment}
-            onEdit={setEditing}
-            onDelete={onDelete}
-            dir={dir}
-          />
+          <Actions dir={dir} gap={4}>
+            <Action
+              context={context}
+              action={resolveCommentFactory({ comment })}
+              hideOnActionDisabled
+            >
+              <Tooltip content={t("Resolve thread")}>
+                <CheckmarkIcon />
+              </Tooltip>
+            </Action>
+            <Action
+              as={CommentMenu}
+              comment={comment}
+              onEdit={setEditing}
+              onDelete={onDelete}
+            />
+          </Actions>
         )}
       </Bubble>
     </Flex>
@@ -241,19 +258,22 @@ const Body = styled.form`
   border-radius: 2px;
 `;
 
-const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`
-  position: absolute;
-  left: ${(props) => (props.dir !== "rtl" ? "auto" : "4px")};
-  right: ${(props) => (props.dir === "rtl" ? "auto" : "4px")};
-  top: 4px;
+const Action = styled(NudeButton)`
+  color: ${s("textSecondary")};
   opacity: 0;
   transition: opacity 100ms ease-in-out;
-  color: ${s("textSecondary")};
 
   &: ${hover}, &[aria-expanded= "true"] {
     opacity: 1;
     background: ${s("sidebarActiveBackground")};
   }
+`;
+
+const Actions = styled(Flex)<{ dir?: "rtl" | "ltr" }>`
+  position: absolute;
+  left: ${(props) => (props.dir !== "rtl" ? "auto" : "4px")};
+  right: ${(props) => (props.dir === "rtl" ? "auto" : "4px")};
+  top: 4px;
 `;
 
 const Meta = styled(Text)`
@@ -301,7 +321,7 @@ export const Bubble = styled(Flex)<{
     margin-bottom: 0;
   }
 
-  &: ${hover} ${Menu} {
+  &: ${hover} ${Action} {
     opacity: 1;
   }
 
