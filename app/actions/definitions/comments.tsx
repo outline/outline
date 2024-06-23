@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import stores from "~/stores";
 import Comment from "~/models/Comment";
 import CommentDeleteDialog from "~/components/CommentDeleteDialog";
+import history from "~/utils/history";
 import { createAction } from "..";
 import { DocumentSection } from "../sections";
 
@@ -42,6 +43,11 @@ export const resolveCommentFactory = ({ comment }: { comment: Comment }) =>
     visible: () => stores.policies.abilities(comment.id).resolve,
     perform: async ({ t }) => {
       await comment.resolve();
+
+      history.replace({
+        ...history.location,
+        state: null,
+      });
       toast.success(t("Thread resolved"));
     },
   });

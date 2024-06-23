@@ -100,15 +100,12 @@ router.post(
     if (statusFilter?.includes(CommentStatusFilter.Resolved)) {
       statusQuery.push({ resolvedById: { [Op.not]: null } });
     }
-    if (
-      statusFilter?.includes(CommentStatusFilter.Unresolved) ||
-      !statusFilter?.length
-    ) {
+    if (statusFilter?.includes(CommentStatusFilter.Unresolved)) {
       statusQuery.push({ resolvedById: null });
     }
 
     const where: WhereOptions<Comment> = {
-      [Op.and]: [{ [Op.or]: statusQuery }],
+      [Op.and]: [],
     };
     if (documentId) {
       // @ts-expect-error ignore
@@ -117,6 +114,10 @@ router.post(
     if (parentCommentId) {
       // @ts-expect-error ignore
       where[Op.and].push({ parentCommentId });
+    }
+    if (statusQuery.length) {
+      // @ts-expect-error ignore
+      where[Op.and].push({ [Op.or]: statusQuery });
     }
 
     const params: FindOptions<Comment> = {

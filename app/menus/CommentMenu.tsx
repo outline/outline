@@ -10,7 +10,10 @@ import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
 import { actionToMenuItem } from "~/actions";
-import { deleteCommentFactory } from "~/actions/definitions/comments";
+import {
+  deleteCommentFactory,
+  resolveCommentFactory,
+} from "~/actions/definitions/comments";
 import useActionContext from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -64,12 +67,7 @@ function CommentMenu({ comment, onEdit, onDelete, className }: Props) {
               onClick: onEdit,
               visible: can.update,
             },
-            {
-              type: "button",
-              title: t("Resolve thread"),
-              onClick: () => comment.resolve(),
-              visible: can.resolve,
-            },
+            actionToMenuItem(resolveCommentFactory({ comment }), context),
             {
               type: "button",
               title: t("Unresolve thread"),

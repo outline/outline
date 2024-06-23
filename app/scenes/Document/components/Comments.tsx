@@ -1,18 +1,21 @@
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
+import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useRouteMatch } from "react-router-dom";
+import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { ProsemirrorData } from "@shared/types";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
+import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
@@ -22,7 +25,10 @@ function Comments() {
   const { ui, comments, documents } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const location = useLocation();
+  const history = useHistory();
   const match = useRouteMatch<{ documentSlug: string }>();
+  const params = useQuery();
   const document = documents.getByUrl(match.params.documentSlug);
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
@@ -38,14 +44,42 @@ function Comments() {
     return null;
   }
 
+  const viewingResolved = !!params.get("resolved");
   const threads = comments
-    .threadsInDocument(document.id)
+    .threadsInDocument(document.id, viewingResolved)
     .filter((thread) => !thread.isNew || thread.createdById === user.id);
   const hasComments = threads.length > 0;
 
+  const toggleViewingResolved = () => {
+    history.push({
+      search: queryString.stringify(
+        {
+          ...queryString.parse(location.search),
+          resolved: viewingResolved ? undefined : "true",
+        },
+        {
+          skipEmptyString: true,
+        }
+      ),
+      pathname: location.pathname,
+    });
+  };
+
   return (
     <Sidebar
-      title={t("Comments")}
+      title={
+        <Flex gap={8} align="center">
+          {t("Comments")}{" "}
+          <Text
+            size="small"
+            type="secondary"
+            weight="normal"
+            onClick={toggleViewingResolved}
+          >
+            History
+          </Text>
+        </Flex>
+      }
       onClose={() => ui.collapseComments(document?.id)}
       scrollable={false}
     >
@@ -68,13 +102,17 @@ function Comments() {
             ))
           ) : (
             <NoComments align="center" justify="center" auto>
-              <PositionedEmpty>{t("No comments yet")}</PositionedEmpty>
+              <PositionedEmpty>
+                {viewingResolved
+                  ? t("No resolved threads")
+                  : t("No comments yet")}
+              </PositionedEmpty>
             </NoComments>
           )}
         </Wrapper>
       </Scrollable>
       <AnimatePresence initial={false}>
-        {!focusedComment && can.comment && (
+        {!focusedComment && can.comment && !viewingResolved && (
           <NewCommentForm
             draft={draft}
             onSaveDraft={onSaveDraft}

@@ -87,7 +87,7 @@ describe("#comments.list", () => {
     expect(body).toMatchSnapshot();
   });
 
-  it("should return unresolved comments for a document", async () => {
+  it("should return all comments for a document", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({
@@ -111,10 +111,11 @@ describe("#comments.list", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].id).toEqual(comment.id);
-    expect(body.policies.length).toEqual(1);
+    expect(body.data.length).toEqual(2);
+    expect(body.data[1].id).toEqual(comment.id);
+    expect(body.policies.length).toEqual(2);
     expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[1].abilities.read).toEqual(true);
   });
 
   it("should return unresolved comments for a collection", async () => {
