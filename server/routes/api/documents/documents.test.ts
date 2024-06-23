@@ -2786,7 +2786,7 @@ describe("#documents.create", () => {
     expect(body.message).toEqual("parentDocumentId: Invalid uuid");
   });
 
-  it("should create as a new document", async () => {
+  it("should create as a new document with emoji", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -2809,6 +2809,34 @@ describe("#documents.create", () => {
     expect(newDocument!.parentDocumentId).toBe(null);
     expect(newDocument!.collectionId).toBe(collection.id);
     expect(newDocument!.emoji).toBe("🚢");
+    expect(newDocument!.icon).toBe("🚢");
+    expect(body.policies[0].abilities.update).toEqual(true);
+  });
+
+  it("should create as a new document with icon", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        icon: "🚢",
+        title: "new document",
+        text: "hello",
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    const newDocument = await Document.findByPk(body.data.id);
+    expect(res.status).toEqual(200);
+    expect(newDocument!.parentDocumentId).toBe(null);
+    expect(newDocument!.collectionId).toBe(collection.id);
+    expect(newDocument!.emoji).toBe("🚢");
+    expect(newDocument!.icon).toBe("🚢");
     expect(body.policies[0].abilities.update).toEqual(true);
   });
 
@@ -3094,7 +3122,7 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(403);
   });
 
-  it("should fail to update an invalid emoji value", async () => {
+  it("should fail to update an invalid icon value", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
@@ -3105,13 +3133,13 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        emoji: ":)",
+        icon: ":)",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
 
-    expect(body.message).toBe("emoji: Invalid");
+    expect(body.message).toBe("icon: Invalid");
   });
 
   it("should successfully update the emoji", async () => {
@@ -3124,12 +3152,34 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        emoji: "😂",
+        emoji: "🚢",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.emoji).toBe("😂");
+    expect(body.data.emoji).toBe("🚢");
+    expect(body.data.icon).toBe("🚢");
+    expect(body.data.color).toBeNull;
+  });
+
+  it("should successfully update the icon", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        icon: "beaker",
+        color: "#FFDDEE",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.icon).toBe("beaker");
+    expect(body.data.color).toBe("#FFDDEE");
   });
 
   it("should not add template to collection structure when publishing", async () => {

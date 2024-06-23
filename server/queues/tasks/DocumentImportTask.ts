@@ -43,7 +43,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
           transaction,
         });
 
-        const { text, state, title, emoji } = await documentImporter({
+        const { text, state, title, icon } = await documentImporter({
           user,
           fileName: sourceMetadata.fileName,
           mimeType: sourceMetadata.mimeType,
@@ -55,7 +55,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
         return documentCreator({
           sourceMetadata,
           title,
-          emoji,
+          icon,
           text,
           state,
           publish,

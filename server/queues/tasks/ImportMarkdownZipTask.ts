@@ -79,7 +79,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
             return;
           }
 
-          const { title, emoji, text } = await documentImporter({
+          const { title, icon, text } = await documentImporter({
             mimeType: "text/markdown",
             fileName: child.name,
             content:
@@ -115,8 +115,8 @@ export default class ImportMarkdownZipTask extends ImportTask {
             output.documents.push({
               id,
               title,
-              emoji,
-              icon: emoji,
+              emoji: icon,
+              icon,
               text,
               collectionId,
               parentDocumentId,

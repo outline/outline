@@ -1,7 +1,7 @@
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
+import Icon from "~/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import EmojiIcon from "~/components/Icons/EmojiIcon";
 import useStores from "~/hooks/useStores";
 
 interface SidebarItem {
@@ -21,7 +21,11 @@ export function useSidebarLabelAndIcon(
     if (document) {
       return {
         label: document.titleWithDefault,
-        icon: document.emoji ? <EmojiIcon emoji={document.emoji} /> : icon,
+        icon: document.icon ? (
+          <Icon value={document.icon} color={document.color ?? undefined} />
+        ) : (
+          icon
+        ),
       };
     }
   }

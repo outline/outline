@@ -28,7 +28,7 @@ async function documentImporter({
   ip,
   transaction,
 }: Props): Promise<{
-  emoji?: string;
+  icon?: string;
   text: string;
   title: string;
   state: Buffer;
@@ -43,9 +43,9 @@ async function documentImporter({
   // find and extract emoji near the beginning of the document.
   const regex = emojiRegex();
   const matches = regex.exec(text.slice(0, 10));
-  const emoji = matches ? matches[0] : undefined;
-  if (emoji) {
-    text = text.replace(emoji, "");
+  const icon = matches ? matches[0] : undefined;
+  if (icon) {
+    text = text.replace(icon, "");
   }
 
   // If the first line of the imported text looks like a markdown heading
@@ -96,7 +96,7 @@ async function documentImporter({
     text,
     state,
     title,
-    emoji,
+    icon,
   };
 }
 

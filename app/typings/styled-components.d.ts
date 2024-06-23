@@ -19,6 +19,7 @@ declare module "styled-components" {
     scrollbarThumb: string;
     fontFamily: string;
     fontFamilyMono: string;
+    fontFamilyEmoji: string;
     fontWeightRegular: number;
     fontWeightMedium: number;
     fontWeightBold: number;

@@ -1,20 +1,12 @@
+import emojiRegex from "emoji-regex";
 import isUndefined from "lodash/isUndefined";
 import { z } from "zod";
-import { randomElement } from "@shared/random";
 import { CollectionPermission, FileOperationFormat } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
-import { colorPalette } from "@shared/utils/collections";
 import { Collection } from "@server/models";
+import { zodEnumFromObjectKeys } from "@server/utils/zod";
 import { ValidateColor, ValidateIndex } from "@server/validation";
 import { BaseSchema, ProsemirrorSchema } from "../schema";
-
-function zodEnumFromObjectKeys<
-  TI extends Record<string, any>,
-  R extends string = TI extends Record<infer R, any> ? R : never
->(input: TI): z.ZodEnum<[R, ...R[]]> {
-  const [firstKey, ...otherKeys] = Object.keys(input) as [R, ...R[]];
-  return z.enum([firstKey, ...otherKeys]);
-}
 
 const BaseIdSchema = z.object({
   /** Id of the collection to be updated */
@@ -27,7 +19,7 @@ export const CollectionsCreateSchema = BaseSchema.extend({
     color: z
       .string()
       .regex(ValidateColor.regex, { message: ValidateColor.message })
-      .default(randomElement(colorPalette)),
+      .nullish(),
     description: z.string().nullish(),
     data: ProsemirrorSchema.nullish(),
     permission: z
@@ -35,7 +27,12 @@ export const CollectionsCreateSchema = BaseSchema.extend({
       .nullish()
       .transform((val) => (isUndefined(val) ? null : val)),
     sharing: z.boolean().default(true),
-    icon: zodEnumFromObjectKeys(IconLibrary.mapping).optional(),
+    icon: z
+      .union([
+        z.string().regex(emojiRegex()),
+        zodEnumFromObjectKeys(IconLibrary.mapping),
+      ])
+      .optional(),
     sort: z
       .object({
         field: z.union([z.literal("title"), z.literal("index")]),
@@ -174,7 +171,12 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
     name: z.string().optional(),
     description: z.string().nullish(),
     data: ProsemirrorSchema.nullish(),
-    icon: zodEnumFromObjectKeys(IconLibrary.mapping).nullish(),
+    icon: z
+      .union([
+        z.string().regex(emojiRegex()),
+        zodEnumFromObjectKeys(IconLibrary.mapping),
+      ])
+      .nullish(),
     permission: z.nativeEnum(CollectionPermission).nullish(),
     color: z
       .string()

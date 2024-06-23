@@ -26,7 +26,7 @@ export default async function main(exit = false, limit = 1000) {
         try {
           const { emoji, strippedTitle } = parseTitle(revision.title);
           if (emoji) {
-            revision.emoji = emoji;
+            revision.icon = emoji;
             revision.title = strippedTitle;
 
             if (revision.changed()) {

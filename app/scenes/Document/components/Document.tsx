@@ -19,9 +19,15 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { s } from "@shared/styles";
-import { NavigationNode, TOCPosition, TeamPreference } from "@shared/types";
+import {
+  IconType,
+  NavigationNode,
+  TOCPosition,
+  TeamPreference,
+} from "@shared/types";
 import { ProsemirrorHelper, Heading } from "@shared/utils/ProsemirrorHelper";
 import { parseDomain } from "@shared/utils/domains";
+import { determineIconType } from "@shared/utils/icon";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -169,8 +175,11 @@ class DocumentScene extends React.Component<Props> {
       this.title = title;
       this.props.document.title = title;
     }
-    if (template.emoji) {
-      this.props.document.emoji = template.emoji;
+    if (template.icon) {
+      this.props.document.icon = template.icon;
+    }
+    if (template.color) {
+      this.props.document.color = template.color;
     }
 
     this.props.document.data = cloneDeep(template.data);
@@ -383,8 +392,9 @@ class DocumentScene extends React.Component<Props> {
     void this.autosave();
   });
 
-  handleChangeEmoji = action((value: string) => {
-    this.props.document.emoji = value;
+  handleChangeIcon = action((icon: string | null, color: string | null) => {
+    this.props.document.icon = icon;
+    this.props.document.color = color;
     void this.onSave();
   });
 
@@ -425,6 +435,12 @@ class DocumentScene extends React.Component<Props> {
       ? this.props.match.url
       : updateDocumentPath(this.props.match.url, document);
 
+    const hasEmojiInTitle = determineIconType(document.icon) === IconType.Emoji;
+    const title = hasEmojiInTitle
+      ? document.titleWithDefault.replace(document.icon!, "")
+      : document.titleWithDefault;
+    const favicon = hasEmojiInTitle ? emojiToUrl(document.icon!) : undefined;
+
     return (
       <ErrorBoundary showTitle>
         {this.props.location.pathname !== canonicalUrl && (
@@ -459,10 +475,7 @@ class DocumentScene extends React.Component<Props> {
           column
           auto
         >
-          <PageTitle
-            title={document.titleWithDefault.replace(document.emoji || "", "")}
-            favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
-          />
+          <PageTitle title={title} favicon={favicon} />
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
           <Container column>
             {!readOnly && (
@@ -542,7 +555,7 @@ class DocumentScene extends React.Component<Props> {
                         onSearchLink={this.props.onSearchLink}
                         onCreateLink={this.props.onCreateLink}
                         onChangeTitle={this.handleChangeTitle}
-                        onChangeEmoji={this.handleChangeEmoji}
+                        onChangeIcon={this.handleChangeIcon}
                         onChange={this.handleChange}
                         onHeadingsChange={this.onHeadingsChange}
                         onSave={this.onSave}

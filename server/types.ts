@@ -468,7 +468,13 @@ export type DocumentJSONExport = {
   id: string;
   urlId: string;
   title: string;
-  emoji: string | null;
+  /**
+   * For backward compatibility, maintain the `emoji` field.
+   * Future exports will use the `icon` field.
+   * */
+  emoji?: string | null;
+  icon: string | null;
+  color: string | null;
   data: Record<string, any>;
   createdById: string;
   createdByName: string;
@@ -498,7 +504,7 @@ export type CollectionJSONExport = {
     data?: ProsemirrorData | null;
     description?: ProsemirrorData | null;
     permission?: CollectionPermission | null;
-    color: string;
+    color?: string | null;
     icon?: string | null;
     sort: CollectionSort;
     documentStructure: NavigationNode[] | null;

@@ -9,8 +9,10 @@ type Props = {
   document: Document;
   /** The new title */
   title?: string;
-  /** The document emoji */
-  emoji?: string | null;
+  /** The document icon */
+  icon?: string | null;
+  /** The document icon's color */
+  color?: string | null;
   /** The new text content */
   text?: string;
   /** Whether the editing session is complete */
@@ -46,7 +48,8 @@ export default async function documentUpdater({
   user,
   document,
   title,
-  emoji,
+  icon,
+  color,
   text,
   editorVersion,
   templateId,
@@ -65,9 +68,12 @@ export default async function documentUpdater({
   if (title !== undefined) {
     document.title = title.trim();
   }
-  if (emoji !== undefined) {
-    document.emoji = emoji;
-    document.icon = emoji;
+  if (icon !== undefined) {
+    document.emoji = icon;
+    document.icon = icon;
+  }
+  if (color !== undefined) {
+    document.color = color;
   }
   if (editorVersion) {
     document.editorVersion = editorVersion;

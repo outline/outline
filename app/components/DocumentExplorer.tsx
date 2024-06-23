@@ -18,8 +18,8 @@ import { NavigationNode } from "@shared/types";
 import DocumentExplorerNode from "~/components/DocumentExplorerNode";
 import DocumentExplorerSearchResult from "~/components/DocumentExplorerSearchResult";
 import Flex from "~/components/Flex";
+import Icon from "~/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import EmojiIcon from "~/components/Icons/EmojiIcon";
 import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import Text from "~/components/Text";
@@ -216,25 +216,30 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
     }) => {
       const node = data[index];
       const isCollection = node.type === "collection";
-      let icon, title: string, emoji: string | undefined, path;
+      let renderedIcon,
+        title: string,
+        icon: string | undefined,
+        color: string | undefined,
+        path;
 
       if (isCollection) {
         const col = collections.get(node.collectionId as string);
-        icon = col && (
+        renderedIcon = col && (
           <CollectionIcon collection={col} expanded={isExpanded(index)} />
         );
         title = node.title;
       } else {
         const doc = documents.get(node.id);
-        emoji = doc?.emoji ?? node.emoji;
+        icon = doc?.icon ?? node.icon;
+        color = doc?.color ?? node.color;
         title = doc?.title ?? node.title;
 
-        if (emoji) {
-          icon = <EmojiIcon emoji={emoji} />;
+        if (icon) {
+          renderedIcon = <Icon value={icon} color={color} />;
         } else if (doc?.isStarred) {
-          icon = <StarredIcon color={theme.yellow} />;
+          renderedIcon = <StarredIcon color={theme.yellow} />;
         } else {
-          icon = <DocumentIcon color={theme.textSecondary} />;
+          renderedIcon = <DocumentIcon color={theme.textSecondary} />;
         }
 
         path = ancestors(node)
@@ -254,7 +259,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
           }}
           onPointerMove={() => setActiveNode(index)}
           onClick={() => toggleSelect(index)}
-          icon={icon}
+          icon={renderedIcon}
           title={title}
           path={path}
         />
@@ -275,7 +280,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
           selected={isSelected(index)}
           active={activeNode === index}
           expanded={isExpanded(index)}
-          icon={icon}
+          icon={renderedIcon}
           title={title}
           depth={node.depth as number}
           hasChildren={hasChildren(index)}

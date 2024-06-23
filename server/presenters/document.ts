@@ -49,6 +49,8 @@ async function presentDocument(
         : undefined,
     text: !asData || options?.includeText ? text : undefined,
     emoji: document.emoji,
+    icon: document.icon,
+    color: document.color,
     tasks: document.tasks,
     createdAt: document.createdAt,
     createdBy: undefined,

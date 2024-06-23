@@ -129,11 +129,18 @@ export default class Document extends ParanoidModel {
   title: string;
 
   /**
-   * An emoji to use as the document icon.
+   * An icon (or) emoji to use as the document icon.
    */
   @Field
   @observable
-  emoji: string | undefined | null;
+  icon?: string | null;
+
+  /**
+   * The color to use for the document icon.
+   */
+  @Field
+  @observable
+  color?: string | null;
 
   /**
    * Whether this is a template.

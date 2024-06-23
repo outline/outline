@@ -210,7 +210,7 @@ export class IconLibrary {
         }
         return undefined;
       })
-      .filter(Boolean);
+      .filter((icon: string | undefined): icon is string => !!icon);
   }
 
   /**

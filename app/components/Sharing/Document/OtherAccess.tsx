@@ -4,7 +4,8 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, IconType } from "@shared/types";
+import { determineIconType } from "@shared/utils/icon";
 import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import Flex from "~/components/Flex";
@@ -54,15 +55,7 @@ export const OtherAccess = observer(({ document, children }: Props) => {
             />
           ) : usersInCollection ? (
             <ListItem
-              image={
-                <Squircle color={collection.color} size={AvatarSize.Medium}>
-                  <CollectionIcon
-                    collection={collection}
-                    color={theme.white}
-                    size={16}
-                  />
-                </Squircle>
-              }
+              image={<CollectionSquircle collection={collection} />}
               title={collection.name}
               subtitle={t("Everyone in the collection")}
               actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
@@ -133,6 +126,24 @@ const AccessTooltip = ({
         <QuestionMarkIcon size={18} />
       </Tooltip>
     </Flex>
+  );
+};
+
+const CollectionSquircle = ({ collection }: { collection: Collection }) => {
+  const theme = useTheme();
+  const iconType = determineIconType(collection.icon)!;
+  const squircleColor =
+    iconType === IconType.Outline ? collection.color! : theme.slateLight;
+  const iconSize = iconType === IconType.Outline ? 16 : 22;
+
+  return (
+    <Squircle color={squircleColor} size={AvatarSize.Medium}>
+      <CollectionIcon
+        collection={collection}
+        color={theme.white}
+        size={iconSize}
+      />
+    </Squircle>
   );
 };
 

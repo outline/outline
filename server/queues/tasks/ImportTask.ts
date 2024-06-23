@@ -38,7 +38,7 @@ export type StructuredImportData = {
   collections: {
     id: string;
     urlId?: string;
-    color?: string;
+    color?: string | null;
     icon?: string | null;
     sort?: CollectionSort;
     permission?: CollectionPermission | null;

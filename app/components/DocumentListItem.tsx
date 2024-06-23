@@ -15,6 +15,7 @@ import Badge from "~/components/Badge";
 import DocumentMeta from "~/components/DocumentMeta";
 import Flex from "~/components/Flex";
 import Highlight from "~/components/Highlight";
+import Icon from "~/components/Icon";
 import NudeButton from "~/components/NudeButton";
 import StarButton, { AnimatedStar } from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
@@ -23,7 +24,6 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { hover } from "~/styles";
 import { documentPath } from "~/utils/routeHelpers";
-import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
   document: Document;
@@ -97,9 +97,9 @@ function DocumentListItem(
     >
       <Content>
         <Heading dir={document.dir}>
-          {document.emoji && (
+          {document.icon && (
             <>
-              <EmojiIcon emoji={document.emoji} size={24} />
+              <Icon value={document.icon} color={document.color ?? undefined} />
               &nbsp;
             </>
           )}
