@@ -29,7 +29,7 @@ function ResolvedCollectionIcon({
 }: Props) {
   const { ui } = useStores();
 
-  if (collection.icon === "collection") {
+  if (!collection.icon || collection.icon === "collection") {
     // If the chosen icon color is very dark then we invert it in dark mode
     // otherwise it will be impossible to see against the dark background.
     const collectionColor = collection.color ?? randomElement(colorPalette);
