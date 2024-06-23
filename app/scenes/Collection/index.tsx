@@ -187,7 +187,6 @@ function CollectionScene() {
                       size={40}
                       popoverPosition="bottom-start"
                       onChange={handleIconChange}
-                      allowDelete
                       borderOnHover
                     />
                   </React.Suspense>
