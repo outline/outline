@@ -123,18 +123,15 @@ const ListItem = (
       ref={itemRef}
       $border={border}
       $small={small}
+      $hover={!!rest.onClick}
       {...rest}
       {...rovingTabIndex}
       onClick={(ev) => {
-        if (rest.onClick) {
-          rest.onClick(ev);
-        }
+        rest.onClick?.(ev);
         rovingTabIndex.onClick(ev);
       }}
       onKeyDown={(ev) => {
-        if (rest.onKeyDown) {
-          rest.onKeyDown(ev);
-        }
+        rest.onKeyDown?.(ev);
         rovingTabIndex.onKeyDown(ev);
       }}
     >
@@ -146,6 +143,7 @@ const ListItem = (
 const Wrapper = styled.a<{
   $small?: boolean;
   $border?: boolean;
+  $hover?: boolean;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   to?: LocationDescriptor;
 }>`
@@ -170,7 +168,7 @@ const Wrapper = styled.a<{
   &:focus,
   &:focus-within {
     background: ${(props) =>
-      props.onClick ? props.theme.secondaryBackground : "inherit"};
+      props.$hover ? props.theme.secondaryBackground : "inherit"};
   }
 
   cursor: ${(props) =>
