@@ -3182,6 +3182,29 @@ describe("#documents.update", () => {
     expect(body.data.color).toBe("#FFDDEE");
   });
 
+  it("should successfully remove the icon", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      icon: "beaker",
+      color: "#FFDDEE",
+    });
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        icon: null,
+        color: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.icon).toBeNull();
+    expect(body.data.emoji).toBeNull();
+    expect(body.data.color).toBeNull();
+  });
+
   it("should not add template to collection structure when publishing", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
