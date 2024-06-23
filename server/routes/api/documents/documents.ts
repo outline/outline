@@ -1043,7 +1043,7 @@ router.post(
       document,
       user,
       ...input,
-      icon: input.icon ?? input.emoji,
+      icon: input.icon ?? input.emoji ?? null,
       publish,
       collectionId,
       insightsEnabled,
