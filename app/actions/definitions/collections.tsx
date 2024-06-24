@@ -128,7 +128,9 @@ export const searchInCollection = createAction({
   analyticsName: "Search collection",
   section: CollectionSection,
   icon: <SearchIcon />,
-  visible: ({ activeCollectionId }) => !!activeCollectionId,
+  visible: ({ activeCollectionId }) =>
+    !!activeCollectionId &&
+    stores.policies.abilities(activeCollectionId).readDocument,
   perform: ({ activeCollectionId }) => {
     history.push(searchPath(undefined, { collectionId: activeCollectionId }));
   },
@@ -230,7 +232,7 @@ export const createTemplate = createAction({
   visible: ({ activeCollectionId, stores }) =>
     !!(
       !!activeCollectionId &&
-      stores.policies.abilities(activeCollectionId).update
+      stores.policies.abilities(activeCollectionId).createDocument
     ),
   perform: ({ activeCollectionId, event }) => {
     if (!activeCollectionId) {
