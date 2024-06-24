@@ -1016,7 +1016,7 @@
   "Personal account": "Personal account",
   "Link your {{appName}} account to Slack to enable searching and previewing the documents you have access to, directly within chat.": "Link your {{appName}} account to Slack to enable searching and previewing the documents you have access to, directly within chat.",
   "Disconnecting your personal account will prevent searching for documents from Slack. Are you sure?": "Disconnecting your personal account will prevent searching for documents from Slack. Are you sure?",
-  "Slash command": "Slash command",
+  "Slash command": "/Befehl",
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "Erhalte eine umfassende Vorschau deiner in Slack freigegebenen {{ appName }}-Links und verwenden den <em>{{ command }}</em> der Slash Funktion, um nach Dokumenten zu suchen, ohne deinen Chat zu verlassen.",
   "This will remove the Outline slash command from your Slack workspace. Are you sure?": "Das wird den Outline Slash Befehl von Ihrem Slack Team entfernen. Sind Sie sicher?",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Verbinde {{appName}}-Sammlungen mit deinen Slack-Kanälen, für automatische Nachrichten, wenn Dokumente veröffentlicht oder aktualisiert werden.",
