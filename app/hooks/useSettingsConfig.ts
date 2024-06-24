@@ -188,17 +188,21 @@ const useSettingsConfig = () => {
 
     // Plugins
     PluginManager.getHooks(Hook.Settings).forEach((plugin) => {
+      const group = plugin.value.group ?? "Integrations";
       const insertIndex = plugin.value.after
         ? items.findIndex((i) => i.name === t(plugin.value.after!)) + 1
-        : items.findIndex(
-            (i) => i.group === t(plugin.value.group ?? "Integrations")
-          );
+        : items.findIndex((i) => i.group === t(group));
       items.splice(insertIndex, 0, {
         name: t(plugin.name),
-        path: integrationSettingsPath(plugin.id),
-        group: t(plugin.value.group),
+        path:
+          group === "Integrations"
+            ? integrationSettingsPath(plugin.id)
+            : settingsPath(plugin.id),
+        group: t(group),
         component: plugin.value.component,
-        enabled: plugin.roles?.includes(user.role) || can.update,
+        enabled: plugin.value.enabled
+          ? plugin.value.enabled(team, user)
+          : can.update,
         icon: plugin.value.icon,
       } as ConfigItem);
     });

@@ -1,6 +1,8 @@
 import isArray from "lodash/isArray";
 import sortBy from "lodash/sortBy";
 import { action, observable } from "mobx";
+import Team from "~/models/Team";
+import User from "~/models/User";
 import { useComputed } from "~/hooks/useComputed";
 import Logger from "./Logger";
 import isCloudHosted from "./isCloudHosted";
@@ -26,6 +28,8 @@ type PluginValueMap = {
     icon: React.ElementType;
     /** The settings screen somponent, should be lazy loaded. */
     component: React.LazyExoticComponent<React.ComponentType>;
+    /** Whether the plugin is enabled in the current context. */
+    enabled?: (team: Team, user: User) => boolean;
   };
   [Hook.Icon]: React.ElementType;
 };
@@ -45,8 +49,6 @@ export type Plugin<T extends Hook> = {
   priority?: number;
   /** The deployments this plugin is enabled for (default: all) */
   deployments?: string[];
-  /** The roles this plugin is enabled for. (default: admin) */
-  roles?: string[];
 };
 
 /**

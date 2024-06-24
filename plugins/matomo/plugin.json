@@ -1,7 +1,6 @@
 {
   "id": "matomo",
   "name": "Matomo",
-  "roles": ["admin"],
   "priority": 40,
   "description": "Adds support for reporting analytics to a Matomo server.",
   "deployments": ["community", "enterprise"]

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { UserRole } from "@shared/types";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import config from "../plugin.json";
 import Icon from "./Icon";
@@ -11,6 +12,8 @@ PluginManager.add([
       group: "Integrations",
       icon: Icon,
       component: React.lazy(() => import("./Settings")),
+      enabled: (_, user) =>
+        [UserRole.Member, UserRole.Admin].includes(user.role),
     },
   },
   {
