@@ -95,7 +95,7 @@
     "bull": "^4.12.2",
     "cancan": "3.1.0",
     "chalk": "^4.1.0",
-    "class-validator": "^0.14.0",
+    "class-validator": "^0.14.1",
     "command-score": "^0.1.2",
     "compressorjs": "^1.2.1",
     "cookie": "^0.6.0",
