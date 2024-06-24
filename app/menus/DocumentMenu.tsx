@@ -21,7 +21,7 @@ import Switch from "~/components/Switch";
 import { actionToMenuItem } from "~/actions";
 import {
   pinDocument,
-  createTemplate,
+  createTemplateFromDocument,
   subscribeDocument,
   unsubscribeDocument,
   moveDocument,
@@ -284,7 +284,7 @@ function DocumentMenu({
             },
             actionToMenuItem(createNestedDocument, context),
             actionToMenuItem(importDocument, context),
-            actionToMenuItem(createTemplate, context),
+            actionToMenuItem(createTemplateFromDocument, context),
             actionToMenuItem(duplicateDocument, context),
             actionToMenuItem(publishDocument, context),
             actionToMenuItem(unpublishDocument, context),

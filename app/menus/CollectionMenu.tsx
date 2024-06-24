@@ -27,8 +27,8 @@ import {
   starCollection,
   unstarCollection,
   searchInCollection,
+  createTemplate,
 } from "~/actions/definitions/collections";
-import { createTemplate } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";

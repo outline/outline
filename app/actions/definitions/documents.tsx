@@ -56,7 +56,6 @@ import {
   documentPath,
   urlify,
   trashPath,
-  newTemplatePath,
 } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
@@ -673,37 +672,34 @@ export const importDocument = createAction({
   },
 });
 
-export const createTemplate = createAction({
-  name: ({ t, activeDocumentId }) =>
-    activeDocumentId ? t("Templatize") : t("New template"),
+export const createTemplateFromDocument = createAction({
+  name: ({ t }) => t("Templatize"),
   analyticsName: "Templatize document",
   section: DocumentSection,
   icon: <ShapesIcon />,
   keywords: "new create template",
   visible: ({ activeCollectionId, activeDocumentId, stores }) => {
-    if (activeDocumentId) {
-      const document = stores.documents.get(activeDocumentId);
-      if (document?.isTemplate || !document?.isActive) {
-        return false;
-      }
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document?.isTemplate || !document?.isActive) {
+      return false;
     }
     return !!(
       !!activeCollectionId &&
       stores.policies.abilities(activeCollectionId).update
     );
   },
-  perform: ({ activeCollectionId, activeDocumentId, stores, t, event }) => {
+  perform: ({ activeDocumentId, stores, t, event }) => {
+    if (!activeDocumentId) {
+      return;
+    }
     event?.preventDefault();
     event?.stopPropagation();
-
-    if (activeDocumentId) {
-      stores.dialogs.openModal({
-        title: t("Create template"),
-        content: <DocumentTemplatizeDialog documentId={activeDocumentId} />,
-      });
-    } else if (activeCollectionId) {
-      history.push(newTemplatePath(activeCollectionId));
-    }
+    stores.dialogs.openModal({
+      title: t("Create template"),
+      content: <DocumentTemplatizeDialog documentId={activeDocumentId} />,
+    });
   },
 });
 
@@ -987,7 +983,7 @@ export const rootDocumentActions = [
   openDocument,
   archiveDocument,
   createDocument,
-  createTemplate,
+  createTemplateFromDocument,
   deleteDocument,
   importDocument,
   downloadDocument,
