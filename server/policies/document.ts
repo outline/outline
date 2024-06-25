@@ -138,7 +138,7 @@ allow(User, "createChildDocument", Document, (actor, document) =>
     can(actor, "update", document),
     or(
       includesMembership(document, [DocumentPermission.Admin]),
-      can(actor, "read", document?.collection)
+      can(actor, "readDocument", document?.collection)
     ),
     !document?.isDraft,
     !document?.template

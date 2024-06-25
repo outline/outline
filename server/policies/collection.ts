@@ -32,9 +32,24 @@ allow(User, "move", Collection, (actor, collection) =>
   )
 );
 
+allow(User, "read", Collection, (user, collection) => {
+  if (!collection || user.teamId !== collection.teamId) {
+    return false;
+  }
+  if (user.isAdmin) {
+    return true;
+  }
+
+  if (collection.isPrivate || user.isGuest) {
+    return includesMembership(collection, Object.values(CollectionPermission));
+  }
+
+  return true;
+});
+
 allow(
   User,
-  ["read", "readDocument", "star", "unstar"],
+  ["readDocument", "star", "unstar"],
   Collection,
   (user, collection) => {
     if (!collection || user.teamId !== collection.teamId) {

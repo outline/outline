@@ -100,7 +100,7 @@ export const Suggestions = observer(
           : collection
           ? users.notInCollection(collection.id, query)
           : users.orderedData
-      ).filter((u) => u.id !== user.id && !u.isSuspended);
+      ).filter((u) => !u.isSuspended);
 
       if (isEmail(query)) {
         filtered.push(getSuggestionForEmail(query));
