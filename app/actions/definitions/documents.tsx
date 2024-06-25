@@ -687,7 +687,7 @@ export const createTemplateFromDocument = createAction({
     }
     return !!(
       !!activeCollectionId &&
-      stores.policies.abilities(activeCollectionId).update
+      stores.policies.abilities(activeCollectionId).updateDocument
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {
@@ -771,10 +771,10 @@ export const moveDocumentToLocation = createAction({
     }
     const document = stores.documents.get(activeDocumentId);
     return document?.template && document?.collectionId
-      ? t("Move to location")
+      ? t("Move to collection")
       : t("Move");
   },
-  analyticsName: "Move document to location",
+  analyticsName: "Move document",
   section: DocumentSection,
   icon: <MoveIcon />,
   iconInContextMenu: false,
@@ -812,7 +812,7 @@ export const moveDocumentButton = createAction({
     }
     const document = stores.documents.get(activeDocumentId);
     // Don't show the button if this is a non-workspace template.
-    if (!document || !document.isWorkspaceTemplate) {
+    if (!document || (document.template && !document.isWorkspaceTemplate)) {
       return false;
     }
     return !!stores.policies.abilities(activeDocumentId).move;

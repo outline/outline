@@ -189,7 +189,7 @@ allow(User, "delete", Document, (actor, document) =>
     or(
       can(actor, "unarchive", document),
       can(actor, "update", document),
-      !document?.collection
+      and(!document?.isWorkspaceTemplate, !document?.collection)
     )
   )
 );

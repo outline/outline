@@ -1097,7 +1097,7 @@ router.post(
     if (collection) {
       authorize(user, "updateDocument", collection);
     } else if (document.isWorkspaceTemplate) {
-      authorize(user, "updateDocument", user.team);
+      authorize(user, "createDocument", user.team);
     }
 
     if (parentDocumentId) {

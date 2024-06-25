@@ -66,7 +66,7 @@
   "Search documents for \"{{searchQuery}}\"": "Search documents for \"{{searchQuery}}\"",
   "Move to workspace": "Move to workspace",
   "Move": "Move",
-  "Move to location": "Move to location",
+  "Move to collection": "Move to collection",
   "Move {{ documentType }}": "Move {{ documentType }}",
   "Archive": "Archive",
   "Document archived": "Document archived",

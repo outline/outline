@@ -57,7 +57,7 @@ describe("policies/team", () => {
     const permissions = new Map<UserRole, boolean>([
       [UserRole.Admin, true],
       [UserRole.Member, true],
-      [UserRole.Viewer, true],
+      [UserRole.Viewer, false],
       [UserRole.Guest, false],
     ]);
     for (const [role, permission] of permissions.entries()) {
