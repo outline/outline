@@ -81,20 +81,8 @@ const Image = (props: Props) => {
               // For some SVG's Firefox does not provide the naturalWidth, in this
               // rare case we need to provide a default so that the image can be
               // seen and is not sized to 0px
-              let nw = (ev.target as HTMLImageElement).naturalWidth || 300;
-              let nh = (ev.target as HTMLImageElement).naturalHeight;
-
-              // If the natural image width is greater than nwMax
-              // cap it at nwMax to make it more manageable
-              const nwMax = 400;
-              if (nw > nwMax) {
-                const ratio = nwMax / nw;
-                const calcHeight = nh * ratio;
-
-                nw = nwMax;
-                nh = calcHeight;
-              }
-
+              const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
+              const nh = (ev.target as HTMLImageElement).naturalHeight;
               setNaturalWidth(nw);
               setNaturalHeight(nh);
               setLoaded(true);
