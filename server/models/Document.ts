@@ -578,7 +578,7 @@ class Document extends ParanoidModel<
       return [];
     }
 
-    return document.memberships.map((membership) => membership.userId);
+    return document.memberships.map(membership => membership.userId);
   }
 
   static defaultScopeWithUser(userId: string) {
@@ -716,6 +716,13 @@ class Document extends ParanoidModel<
   }
 
   /**
+   * Returns whether this document is a template created at the workspace level.
+   */
+  get isWorkspaceTemplate() {
+    return this.template && !this.collectionId;
+  }
+
+  /**
    * Revert the state of the document to match the passed revision.
    *
    * @param revision The revision to revert to.
@@ -741,7 +748,7 @@ class Document extends ParanoidModel<
    */
   collaborators = async (options?: FindOptions<User>): Promise<User[]> => {
     const users = await Promise.all(
-      this.collaboratorIds.map((collaboratorId) =>
+      this.collaboratorIds.map(collaboratorId =>
         User.findByPk(collaboratorId, options)
       )
     );
@@ -793,7 +800,7 @@ class Document extends ParanoidModel<
         ...options,
       });
 
-      const childDocumentIds = childDocuments.map((doc) => doc.id);
+      const childDocumentIds = childDocuments.map(doc => doc.id);
 
       if (childDocumentIds.length > 0) {
         return [
@@ -810,8 +817,8 @@ class Document extends ParanoidModel<
 
   publish = async (
     user: User,
-    collectionId: string,
-    { transaction }: SaveOptions<Document>
+    { transaction }: SaveOptions<Document>,
+    collectionId?: string | null
   ) => {
     // If the document is already published then calling publish should act like
     // a regular save
@@ -823,7 +830,7 @@ class Document extends ParanoidModel<
       this.collectionId = collectionId;
     }
 
-    if (!this.template) {
+    if (!this.template && this.collectionId) {
       const collection = await Collection.findByPk(this.collectionId, {
         transaction,
         lock: Transaction.LOCK.UPDATE,
@@ -845,7 +852,7 @@ class Document extends ParanoidModel<
       : [];
 
     await Promise.all(
-      parentDocumentPermissions.map((permission) =>
+      parentDocumentPermissions.map(permission =>
         UserMembership.create(
           {
             documentId: this.id,
@@ -1054,7 +1061,7 @@ class Document extends ParanoidModel<
           });
 
     const children = await Promise.all(
-      childDocuments.map((child) => child.toNavigationNode(options))
+      childDocuments.map(child => child.toNavigationNode(options))
     );
 
     return {

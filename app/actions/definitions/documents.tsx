@@ -223,7 +223,7 @@ export const publishDocument = createAction({
       return;
     }
 
-    if (document?.collectionId) {
+    if (document?.collectionId || document?.template) {
       await document.save(undefined, {
         publish: true,
       });
@@ -735,11 +735,50 @@ export const searchDocumentsForQuery = (searchQuery: string) =>
     visible: ({ location }) => location.pathname !== searchPath(),
   });
 
-export const moveDocument = createAction({
-  name: ({ t }) => t("Move"),
-  analyticsName: "Move document",
+export const moveTemplateToWorkspace = createAction({
+  name: ({ t }) => t("Move to workspace"),
+  analyticsName: "Move template to workspace",
   section: DocumentSection,
   icon: <MoveIcon />,
+  iconInContextMenu: false,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    if (!document || !document.template || document.isWorkspaceTemplate) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeDocumentId).move;
+  },
+  perform: async ({ activeDocumentId, stores }) => {
+    if (activeDocumentId) {
+      const document = stores.documents.get(activeDocumentId);
+      if (!document) {
+        return;
+      }
+
+      await document.move({
+        template: true,
+      });
+    }
+  },
+});
+
+export const moveDocumentToLocation = createAction({
+  name: ({ activeDocumentId, stores, t }) => {
+    if (!activeDocumentId) {
+      return t("Move");
+    }
+    const document = stores.documents.get(activeDocumentId);
+    return document?.template && document?.collectionId
+      ? t("Move to location")
+      : t("Move");
+  },
+  analyticsName: "Move document to location",
+  section: DocumentSection,
+  icon: <MoveIcon />,
+  iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return false;
@@ -761,6 +800,44 @@ export const moveDocument = createAction({
       });
     }
   },
+});
+
+export const moveDocumentButton = createAction({
+  name: ({ t }) => t("Move"),
+  analyticsName: "Move document",
+  section: DocumentSection,
+  icon: <MoveIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    // Don't show the button if this is a non-workspace template.
+    if (!document || !document.isWorkspaceTemplate) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeDocumentId).move;
+  },
+  perform: moveDocumentToLocation.perform,
+});
+
+export const moveDocumentMenu = createAction({
+  name: ({ t }) => t("Move"),
+  analyticsName: "Move document",
+  section: DocumentSection,
+  icon: <MoveIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    // Don't show the menu if this is not a template (or) a workspace template.
+    if (!document || !document.template || document.isWorkspaceTemplate) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeDocumentId).move;
+  },
+  children: [moveTemplateToWorkspace, moveDocumentToLocation],
 });
 
 export const archiveDocument = createAction({
@@ -997,7 +1074,8 @@ export const rootDocumentActions = [
   subscribeDocument,
   unsubscribeDocument,
   duplicateDocument,
-  moveDocument,
+  moveTemplateToWorkspace,
+  moveDocumentToLocation,
   openRandomDocument,
   permanentlyDeleteDocument,
   permanentlyDeleteDocumentsInTrash,

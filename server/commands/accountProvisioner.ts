@@ -198,7 +198,7 @@ async function accountProvisioner({
 }
 
 async function provisionFirstCollection(team: Team, user: User) {
-  await sequelize.transaction(async (transaction) => {
+  await sequelize.transaction(async transaction => {
     const collection = await Collection.create(
       {
         name: "Welcome",
@@ -244,9 +244,13 @@ async function provisionFirstCollection(team: Team, user: User) {
 
       document.content = await DocumentHelper.toJSON(document);
 
-      await document.publish(user, collection.id, {
-        transaction,
-      });
+      await document.publish(
+        user,
+        {
+          transaction,
+        },
+        collection.id
+      );
     }
   });
 }

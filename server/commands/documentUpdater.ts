@@ -106,11 +106,11 @@ export default async function documentUpdater({
     ip,
   };
 
-  if (publish && cId) {
+  if (publish && (document.template || cId)) {
     if (!document.collectionId) {
       document.collectionId = cId;
     }
-    await document.publish(user, cId, { transaction });
+    await document.publish(user, { transaction }, cId);
 
     await Event.create(
       {

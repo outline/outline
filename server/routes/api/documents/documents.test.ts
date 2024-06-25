@@ -1929,6 +1929,127 @@ describe("#documents.templatize", () => {
     expect(res.status).toBe(400);
     expect(body.message).toBe("id: Required");
   });
+  it("should require publish", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.templatize", {
+      body: {
+        token: user.getJwtToken(),
+        id: "random-id",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(400);
+    expect(body.message).toBe("publish: Required");
+  });
+  it("should require workspace", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.templatize", {
+      body: {
+        token: user.getJwtToken(),
+        id: "random-id",
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(400);
+    expect(body.message).toBe("workspace: Required");
+  });
+  it("should create a published non-workspace template", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.templatize", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        publish: true,
+        workspace: false,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data.publishedAt).toBeTruthy();
+    expect(body.data.collectionId).toEqual(document.collectionId);
+  });
+  it("should create a published workspace template", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.templatize", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        publish: true,
+        workspace: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data.publishedAt).toBeTruthy();
+    expect(body.data.collectionId).toBeNull();
+  });
+  it("should create a draft non-workspace template", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.templatize", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        publish: false,
+        workspace: false,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data.publishedAt).toBeNull();
+    expect(body.data.collectionId).toEqual(document.collectionId);
+  });
+  it("should create a draft workspace template", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.templatize", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        publish: false,
+        workspace: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data.publishedAt).toBeNull();
+    expect(body.data.collectionId).toBeNull();
+  });
 });
 
 describe("#documents.archived", () => {
@@ -2285,7 +2406,7 @@ describe("#documents.move", () => {
     expect(body.message).toEqual("id: Required");
   });
 
-  it("should require collectionId", async () => {
+  it("should require collectionId for non-template", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
@@ -2299,7 +2420,7 @@ describe("#documents.move", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("collectionId: Required");
+    expect(body.message).toEqual("collectionId is required to move a document");
   });
 
   it("should fail for invalid index", async () => {
@@ -2412,6 +2533,54 @@ describe("#documents.move", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should move a template to workspace", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      template: true,
+    });
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        template: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].collectionId).toBeNull();
+    expect(body.policies[0].abilities.move).toEqual(true);
+  });
+
+  it("should move a workspace template to collection", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      template: true,
+    });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+        template: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].collectionId).toEqual(collection.id);
+    expect(body.policies[0].abilities.move).toEqual(true);
   });
 });
 
@@ -2858,7 +3027,7 @@ describe("#documents.create", () => {
     expect(body.data.collectionId).toBeNull();
   });
 
-  it("should not allow creating a template with a collection", async () => {
+  it("should allow creating a draft template without a collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const res = await server.post("/api/documents.create", {
@@ -2871,10 +3040,10 @@ describe("#documents.create", () => {
     });
     const body = await res.json();
 
-    expect(res.status).toEqual(400);
-    expect(body.message).toBe(
-      "collectionId is required to create a template document"
-    );
+    expect(res.status).toEqual(200);
+    expect(body.data.template).toBe(true);
+    expect(body.data.publishedAt).toBeNull();
+    expect(body.data.collectionId).toBeNull();
   });
 
   it("should not allow publishing without specifying the collection", async () => {
@@ -3092,6 +3261,39 @@ describe("#documents.update", () => {
     expect(body.data.collectionId).toBe(collection.id);
     expect(body.data.title).toBe("Updated title");
     expect(body.data.text).toBe("Updated text");
+  });
+
+  it("should successfully publish a draft template without collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDraftDocument({
+      title: "title",
+      text: "text",
+      teamId: team.id,
+      userId: user.id,
+      collectionId: null,
+      template: true,
+    });
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: "Updated title",
+        text: "Updated text",
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBe(collection.id);
+    expect(body.data.title).toBe("Updated title");
+    expect(body.data.text).toBe("Updated text");
+    expect(body.data.publishedAt).toBeTruthy();
   });
 
   it("should not allow publishing by another collection's user", async () => {
