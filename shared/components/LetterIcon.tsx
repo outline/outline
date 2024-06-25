@@ -15,7 +15,7 @@ type Props = {
 const LetterIcon = ({ children, size = 24, ...rest }: Props) => (
   <LetterIconWrapper $size={size}>
     <Squircle size={Math.round(size * 0.66)} {...rest}>
-      {children}
+      {children ?? "?"}
     </Squircle>
   </LetterIconWrapper>
 );
