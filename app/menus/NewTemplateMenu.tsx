@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
-import Header from "~/components/ContextMenu/Header";
 import Template from "~/components/ContextMenu/Template";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import TeamLogo from "~/components/TeamLogo";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -28,7 +28,14 @@ function NewTemplateMenu() {
     });
   }, [collections]);
 
-  const items = React.useMemo(
+  const workspaceItem: MenuItem = {
+    type: "route",
+    to: newTemplatePath(),
+    title: t("Save in workspace"),
+    icon: <TeamLogo model={team} />,
+  };
+
+  const collectionItems = React.useMemo(
     () =>
       collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
         const can = policies.abilities(collection.id);
@@ -47,6 +54,20 @@ function NewTemplateMenu() {
     [collections.orderedData, policies]
   );
 
+  const collectionItemsWithHeader: MenuItem[] = React.useMemo(
+    () =>
+      collectionItems.length
+        ? [
+            { type: "separator" },
+            { type: "heading", title: t("Choose a collection") },
+            ...collectionItems,
+          ]
+        : [],
+    [t, collectionItems]
+  );
+
+  const items = [workspaceItem, ...collectionItemsWithHeader];
+
   if (!can.createDocument || items.length === 0) {
     return null;
   }
@@ -61,7 +82,6 @@ function NewTemplateMenu() {
         )}
       </MenuButton>
       <ContextMenu aria-label={t("New template")} {...menu}>
-        <Header>{t("Choose a collection")}</Header>
         <Template {...menu} items={items} />
       </ContextMenu>
     </>

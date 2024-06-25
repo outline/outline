@@ -103,7 +103,7 @@ function DocumentHeader({
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
-  // navigates away from the doc
+  // navigates away from the doc, as long as it is not published.
   const [isNew] = React.useState(document.isPersistedOnce);
 
   const handleSave = React.useCallback(() => {
@@ -257,14 +257,17 @@ function DocumentHeader({
             {!isDeleted && !isRevision && can.listViews && (
               <Collaborators document={document} />
             )}
-            {(isEditing || !user?.separateEditMode) && !isTemplate && isNew && (
-              <Action>
-                <TemplatesMenu
-                  document={document}
-                  onSelectTemplate={onSelectTemplate}
-                />
-              </Action>
-            )}
+            {(isEditing || !user?.separateEditMode) &&
+              !isTemplate &&
+              isNew &&
+              !document.publishedAt && (
+                <Action>
+                  <TemplatesMenu
+                    document={document}
+                    onSelectTemplate={onSelectTemplate}
+                  />
+                </Action>
+              )}
             {!isEditing && !isRevision && !isTemplate && can.update && (
               <Action>
                 <ShareButton document={document} />

@@ -457,7 +457,15 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  templatize = async (id: string): Promise<Document | null | undefined> => {
+  templatize = async ({
+    id,
+    publish,
+    workspace,
+  }: {
+    id: string;
+    publish: boolean;
+    workspace: boolean;
+  }): Promise<Document | null | undefined> => {
     const doc: Document | null | undefined = this.data.get(id);
     invariant(doc, "Document should exist");
 
@@ -467,6 +475,8 @@ export default class DocumentsStore extends Store<Document> {
 
     const res = await client.post("/documents.templatize", {
       id,
+      publish,
+      workspace,
     });
     invariant(res?.data, "Document not available");
     this.addPolicies(res.policies);
@@ -547,19 +557,33 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   move = async (
-    documentId: string,
-    collectionId: string,
-    parentDocumentId?: string | null,
-    index?: number | null
+    options:
+      | {
+          template: true;
+          documentId: string;
+          collectionId?: string;
+        }
+      | {
+          documentId: string;
+          collectionId: string;
+          parentDocumentId?: string | null;
+          index?: number | null;
+        }
   ) => {
-    this.movingDocumentId = documentId;
+    this.movingDocumentId = options.documentId;
+
+    const template = "template" in options ? options.template : undefined;
+    const parentDocumentId =
+      "parentDocumentId" in options ? options.parentDocumentId : undefined;
+    const index = "index" in options ? options.index : undefined;
 
     try {
       const res = await client.post("/documents.move", {
-        id: documentId,
-        collectionId,
+        id: options.documentId,
+        collectionId: options.collectionId,
         parentDocumentId,
         index,
+        template,
       });
       invariant(res?.data, "Data not available");
       res.data.documents.forEach(this.add);

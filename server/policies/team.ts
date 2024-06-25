@@ -32,3 +32,28 @@ allow(User, ["delete", "audit"], Team, (actor, team) =>
     isTeamAdmin(actor, team)
   )
 );
+
+allow(User, "createDocument", Team, (actor, team) =>
+  and(
+    //
+    !actor.isGuest,
+    !actor.isViewer,
+    isTeamModel(actor, team)
+  )
+);
+
+allow(User, "readDocument", Team, (actor, team) =>
+  and(
+    //
+    !actor.isGuest,
+    isTeamModel(actor, team)
+  )
+);
+
+allow(User, "updateDocument", Team, (actor, team) =>
+  and(
+    //
+    actor.isAdmin,
+    isTeamModel(actor, team)
+  )
+);

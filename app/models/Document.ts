@@ -381,6 +381,11 @@ export default class Document extends ParanoidModel {
     return this.collection?.pathToDocument(this.id) ?? [];
   }
 
+  @computed
+  get isWorkspaceTemplate() {
+    return this.template && !this.collectionId;
+  }
+
   get titleWithDefault(): string {
     return this.title || i18n.t("Untitled");
   }
@@ -490,7 +495,13 @@ export default class Document extends ParanoidModel {
   };
 
   @action
-  templatize = () => this.store.templatize(this.id);
+  templatize = ({
+    publish,
+    workspace,
+  }: {
+    publish: boolean;
+    workspace: boolean;
+  }) => this.store.templatize({ id: this.id, publish, workspace });
 
   @action
   save = async (
@@ -517,8 +528,17 @@ export default class Document extends ParanoidModel {
     }
   };
 
-  move = (collectionId: string, parentDocumentId?: string | undefined) =>
-    this.store.move(this.id, collectionId, parentDocumentId);
+  move = (
+    options:
+      | {
+          template: true;
+          collectionId?: string;
+        }
+      | {
+          collectionId: string;
+          parentDocumentId?: string;
+        }
+  ) => this.store.move({ documentId: this.id, ...options });
 
   duplicate = (options?: {
     title?: string;

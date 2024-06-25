@@ -100,7 +100,7 @@ const CollectionLink: React.FC<Props> = ({
           ),
         });
       } else {
-        await documents.move(id, collection.id);
+        await documents.move({ documentId: id, collectionId: collection.id });
 
         if (!expanded) {
           onDisclosureClick();

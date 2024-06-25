@@ -68,9 +68,17 @@ function DocumentMove({ document }: Props) {
       const collectionId = selectedPath.collectionId as string;
 
       if (type === "document") {
-        await document.move(collectionId, parentDocumentId);
+        await document.move({ collectionId, parentDocumentId });
       } else {
-        await document.move(collectionId);
+        const options = document.template
+          ? {
+              template: true,
+              collectionId,
+            }
+          : {
+              collectionId,
+            };
+        await document.move(options);
       }
 
       toast.success(t("Document moved"));

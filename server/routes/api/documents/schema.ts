@@ -210,7 +210,12 @@ export const DocumentsDuplicateSchema = BaseSchema.extend({
 export type DocumentsDuplicateReq = z.infer<typeof DocumentsDuplicateSchema>;
 
 export const DocumentsTemplatizeSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** Whether the new template should be published */
+    publish: z.boolean(),
+    /** Whether the new template should be created at the workspace level */
+    workspace: z.boolean(),
+  }),
 });
 
 export type DocumentsTemplatizeReq = z.infer<typeof DocumentsTemplatizeSchema>;
@@ -273,17 +278,24 @@ export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateSchema>;
 export const DocumentsMoveSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Id of collection to which the doc is supposed to be moved */
-    collectionId: z.string().uuid(),
+    collectionId: z.string().uuid().optional(),
 
     /** Parent Id, in case if the doc is moved to a new parent */
     parentDocumentId: z.string().uuid().nullish(),
 
     /** Helps evaluate the new index in collection structure upon move */
     index: z.number().gte(0).optional(),
+
+    /** Whether this should be considered a template */
+    template: z.boolean().optional(),
   }),
-}).refine((req) => !(req.body.parentDocumentId === req.body.id), {
-  message: "infinite loop detected, cannot nest a document inside itself",
-});
+})
+  .refine((req) => !(req.body.parentDocumentId === req.body.id), {
+    message: "infinite loop detected, cannot nest a document inside itself",
+  })
+  .refine((req) => req.body.collectionId || req.body.template, {
+    message: "collectionId is required to move a document",
+  });
 
 export type DocumentsMoveReq = z.infer<typeof DocumentsMoveSchema>;
 
@@ -378,21 +390,13 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** Whether this should be considered a template */
     template: z.boolean().optional(),
   }),
-})
-  .refine((req) => !(req.body.template && !req.body.collectionId), {
-    message: "collectionId is required to create a template document",
-  })
-  .refine(
-    (req) =>
-      !(
-        req.body.publish &&
-        !req.body.parentDocumentId &&
-        !req.body.collectionId
-      ),
-    {
-      message: "collectionId or parentDocumentId is required to publish",
-    }
-  );
+}).refine(
+  (req) =>
+    !(req.body.publish && !req.body.parentDocumentId && !req.body.collectionId),
+  {
+    message: "collectionId or parentDocumentId is required to publish",
+  }
+);
 
 export type DocumentsCreateReq = z.infer<typeof DocumentsCreateSchema>;
 
