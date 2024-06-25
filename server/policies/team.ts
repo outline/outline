@@ -33,16 +33,7 @@ allow(User, ["delete", "audit"], Team, (actor, team) =>
   )
 );
 
-allow(User, "createDocument", Team, (actor, team) =>
-  and(
-    //
-    !actor.isGuest,
-    !actor.isViewer,
-    isTeamModel(actor, team)
-  )
-);
-
-allow(User, "readDocument", Team, (actor, team) =>
+allow(User, ["createDocument", "readDocument"], Team, (actor, team) =>
   and(
     //
     !actor.isGuest,
