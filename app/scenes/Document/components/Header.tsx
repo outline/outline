@@ -116,8 +116,9 @@ function DocumentHeader({
     activeDocumentId: document?.id,
   });
 
-  const { isDeleted, isTemplate } = document;
   const can = usePolicy(document);
+  const { isDeleted, isTemplate } = document;
+  const isTemplateEditable = can.update && isTemplate;
   const canToggleEmbeds = team?.documentEmbeds;
   const isShare = !!shareId;
   const showContents =
@@ -279,7 +280,7 @@ function DocumentHeader({
                 <ShareButton document={document} />
               </Action>
             )}
-            {(isEditing || isTemplate) && (
+            {(isEditing || isTemplateEditable) && (
               <Action>
                 <Tooltip
                   content={t("Save")}
