@@ -845,9 +845,8 @@ class Document extends ParanoidModel<
   };
 
   publish = async (
-    userId: string,
-    { transaction }: SaveOptions<Document>,
-    collectionId?: string | null
+    { userId, collectionId }: { userId: string; collectionId?: string | null },
+    { transaction }: SaveOptions<Document>
   ) => {
     // If the document is already published then calling publish should act like
     // a regular save

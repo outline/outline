@@ -64,7 +64,7 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
     () =>
       workspaceTemplates.length
         ? [{ type: "heading", title: t("Workspace") }, ...workspaceTemplates]
-        : workspaceTemplates,
+        : [],
     [t, workspaceTemplates]
   );
 

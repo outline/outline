@@ -245,11 +245,10 @@ async function provisionFirstCollection(team: Team, user: User) {
       document.content = await DocumentHelper.toJSON(document);
 
       await document.publish(
-        collection.createdById,
+        { userId: collection.createdById, collectionId: collection.id },
         {
           transaction,
-        },
-        collection.id
+        }
       );
     }
   });

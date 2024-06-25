@@ -764,7 +764,7 @@ export const moveTemplateToWorkspace = createAction({
   },
 });
 
-export const moveDocumentToLocation = createAction({
+export const moveDocumentToCollection = createAction({
   name: ({ activeDocumentId, stores, t }) => {
     if (!activeDocumentId) {
       return t("Move");
@@ -817,7 +817,7 @@ export const moveDocumentButton = createAction({
     }
     return !!stores.policies.abilities(activeDocumentId).move;
   },
-  perform: moveDocumentToLocation.perform,
+  perform: moveDocumentToCollection.perform,
 });
 
 export const moveDocumentMenu = createAction({
@@ -836,7 +836,7 @@ export const moveDocumentMenu = createAction({
     }
     return !!stores.policies.abilities(activeDocumentId).move;
   },
-  children: [moveTemplateToWorkspace, moveDocumentToLocation],
+  children: [moveTemplateToWorkspace, moveDocumentToCollection],
 });
 
 export const archiveDocument = createAction({
@@ -1074,7 +1074,7 @@ export const rootDocumentActions = [
   unsubscribeDocument,
   duplicateDocument,
   moveTemplateToWorkspace,
-  moveDocumentToLocation,
+  moveDocumentToCollection,
   openRandomDocument,
   permanentlyDeleteDocument,
   permanentlyDeleteDocumentsInTrash,
