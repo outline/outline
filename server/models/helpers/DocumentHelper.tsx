@@ -149,10 +149,9 @@ export class DocumentHelper {
       return text;
     }
 
-    const icon = document.icon ?? document.emoji;
-    const iconType = determineIconType(icon);
+    const iconType = determineIconType(document.icon);
 
-    const title = `${iconType === IconType.Emoji ? icon + " " : ""}${
+    const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${
       document.title
     }`;
 
