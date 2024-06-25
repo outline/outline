@@ -20,6 +20,7 @@ import NudeButton from "~/components/NudeButton";
 import Popover from "~/components/Popover";
 import useMobile from "~/hooks/useMobile";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
+import usePrevious from "~/hooks/usePrevious";
 import useWindowSize from "~/hooks/useWindowSize";
 import { hover } from "~/styles";
 import EmojiPanel from "./components/EmojiPanel";
@@ -82,6 +83,7 @@ const IconPicker = ({
     unstable_offset: [0, 0],
   });
   const tab = useTabState({ selectedId: defaultTab });
+  const previouslyVisible = usePrevious(popover.visible);
 
   const popoverWidth = isMobile ? windowWidth : POPOVER_WIDTH;
   // In mobile, popover is absolutely positioned to leave 8px on both sides.
@@ -120,11 +122,6 @@ const IconPicker = ({
     onChange(null, null);
   }, [popover, onChange]);
 
-  const handleQueryChange = React.useCallback(
-    (q: string) => setQuery(q),
-    [setQuery]
-  );
-
   const handlePopoverButtonClick = React.useCallback(
     (ev: React.MouseEvent) => {
       ev.stopPropagation();
@@ -139,14 +136,14 @@ const IconPicker = ({
 
   // Popover open effect
   React.useEffect(() => {
-    if (popover.visible) {
+    if (popover.visible && !previouslyVisible) {
       onOpen?.();
-    } else {
+    } else if (!popover.visible && previouslyVisible) {
       onClose?.();
       setQuery("");
       resetDefaultTab();
     }
-  }, [popover.visible, onOpen, onClose, setQuery, resetDefaultTab]);
+  }, [popover.visible, previouslyVisible, onOpen, onClose, resetDefaultTab]);
 
   // Custom click outside handling rather than using `hideOnClickOutside` from reakit so that we can
   // prevent event bubbling.
@@ -231,7 +228,7 @@ const IconPicker = ({
               }
               onIconChange={handleIconChange}
               onColorChange={handleIconColorChange}
-              onQueryChange={handleQueryChange}
+              onQueryChange={setQuery}
             />
           </StyledTabPanel>
           <StyledTabPanel {...tab}>
@@ -242,7 +239,7 @@ const IconPicker = ({
                 popover.visible && tab.selectedId === TAB_NAMES["Emoji"]
               }
               onEmojiChange={handleIconChange}
-              onQueryChange={handleQueryChange}
+              onQueryChange={setQuery}
             />
           </StyledTabPanel>
         </>

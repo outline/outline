@@ -72,7 +72,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   externalRef: React.RefObject<RefHandle>
 ) {
   const ref = React.useRef<RefHandle>(null);
-  const [iconPickerIsOpen, handleOpen, handleClose] = useBoolean();
+  const [iconPickerIsOpen, handleOpen, setIconPickerClosed] = useBoolean();
   const { editor } = useDocumentContext();
   const can = usePolicy(documentId);
 
@@ -216,6 +216,11 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
     [editor]
   );
 
+  const handleClose = React.useCallback(() => {
+    setIconPickerClosed();
+    restoreFocus();
+  }, [setIconPickerClosed, restoreFocus]);
+
   const handleIconChange = React.useCallback(
     (chosenIcon: string | null, iconColor: string | null) => {
       if (icon !== chosenIcon || color !== iconColor) {
@@ -224,12 +229,6 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
     },
     [icon, color, onChangeIcon]
   );
-
-  React.useEffect(() => {
-    if (!iconPickerIsOpen) {
-      restoreFocus();
-    }
-  }, [iconPickerIsOpen, restoreFocus]);
 
   const dir = ref.current?.getComputedDirection();
 
