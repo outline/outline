@@ -191,7 +191,7 @@ describe("#comments.create", () => {
     expect(anotherRes.status).toEqual(400);
   });
 
-  it("should not allow only comments containing only whitespaces", async () => {
+  it("should not allow comments containing only whitespaces", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({
