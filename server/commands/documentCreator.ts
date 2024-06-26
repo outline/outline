@@ -45,6 +45,7 @@ export default async function documentCreator({
   publish,
   collectionId,
   parentDocumentId,
+  content,
   template,
   templateDocument,
   fullWidth,
@@ -119,7 +120,7 @@ export default async function documentCreator({
             templateDocument.content,
             user
           )
-        : undefined,
+        : content,
       state,
     },
     {
