@@ -283,7 +283,7 @@ function InnerDocumentLink(
   const title =
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
     t("Untitled");
-  const icon = document?.icon || node.icon;
+  const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
 
   const isExpanded = expanded && !isDragging;
