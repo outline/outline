@@ -26,20 +26,58 @@ export default class CommentsStore extends Store<Comment> {
    * comments.
    *
    * @param documentId ID of the document to get comments for
-   * @param resolved Whether to return resolved or unresolved comments
    * @returns Array of comments
    */
-  threadsInDocument(documentId: string, resolved = false): Comment[] {
+  threadsInDocument(documentId: string): Comment[] {
     return this.filter(
       (comment: Comment) =>
         comment.documentId === documentId &&
         !comment.parentCommentId &&
-        comment.isResolved === resolved
+        !comment.isNew
     );
   }
 
   /**
-   * Returns a list of comments that are replies to the given comment.
+   * Returns a list of resolved comments in a document that are not replies to other
+   * comments.
+   *
+   * @param documentId ID of the document to get comments for
+   * @returns Array of comments
+   */
+  resolvedThreadsInDocument(documentId: string): Comment[] {
+    return this.threadsInDocument(documentId).filter(
+      (comment: Comment) => comment.isResolved === true
+    );
+  }
+
+  /**
+   * Returns a list of comments in a document that are not replies to other
+   * comments.
+   *
+   * @param documentId ID of the document to get comments for
+   * @returns Array of comments
+   */
+  unresolvedThreadsInDocument(documentId: string): Comment[] {
+    return this.threadsInDocument(documentId).filter(
+      (comment: Comment) => comment.isResolved === false
+    );
+  }
+
+  /**
+   * Returns the total number of unresolbed comments in the given document.
+   *
+   * @param documentId ID of the document to get comments for
+   * @returns A number of comments
+   */
+  unresolvedCommentsInDocumentCount(documentId: string): number {
+    return this.unresolvedThreadsInDocument(documentId).reduce(
+      (memo, thread) => memo + this.inThread(thread.id).length,
+      0
+    );
+  }
+
+  /**
+   * Returns a list of comments that includes the given thread ID and any of it's replies.
    *
    * @param commentId ID of the comment to get replies for
    * @returns Array of comments

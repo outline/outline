@@ -47,9 +47,11 @@ function Comments() {
   }
 
   const viewingResolved = params.get("resolved") === "";
-  const threads = comments
-    .threadsInDocument(document.id, viewingResolved)
-    .filter((thread) => !thread.isNew || thread.createdById === user.id);
+  const threads = (
+    viewingResolved
+      ? comments.resolvedThreadsInDocument(document.id)
+      : comments.unresolvedThreadsInDocument(document.id)
+  ).filter((thread) => thread.createdById === user.id);
   const hasComments = threads.length > 0;
 
   const toggleViewingResolved = () => {

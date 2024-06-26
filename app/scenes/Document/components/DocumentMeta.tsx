@@ -37,9 +37,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const Wrapper = viewsLoadedOnMount.current ? React.Fragment : Fade;
 
   const insightsPath = documentInsightsPath(document);
-  const commentsCount = comments
-    .inDocument(document.id)
-    .filter((comment) => !comment.isResolved).length;
+  const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);
 
   return (
     <Meta document={document} revision={revision} to={to} replace {...rest}>
