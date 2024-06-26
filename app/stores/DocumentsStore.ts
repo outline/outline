@@ -459,12 +459,12 @@ export default class DocumentsStore extends Store<Document> {
   @action
   templatize = async ({
     id,
+    collectionId,
     publish,
-    workspace,
   }: {
     id: string;
+    collectionId: string | null;
     publish: boolean;
-    workspace: boolean;
   }): Promise<Document | null | undefined> => {
     const doc: Document | null | undefined = this.data.get(id);
     invariant(doc, "Document should exist");
@@ -475,8 +475,8 @@ export default class DocumentsStore extends Store<Document> {
 
     const res = await client.post("/documents.templatize", {
       id,
+      collectionId,
       publish,
-      workspace,
     });
     invariant(res?.data, "Document not available");
     this.addPolicies(res.policies);
@@ -556,34 +556,25 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  move = async (
-    options:
-      | {
-          template: true;
-          documentId: string;
-          collectionId?: string;
-        }
-      | {
-          documentId: string;
-          collectionId: string;
-          parentDocumentId?: string | null;
-          index?: number | null;
-        }
-  ) => {
-    this.movingDocumentId = options.documentId;
-
-    const template = "template" in options ? options.template : undefined;
-    const parentDocumentId =
-      "parentDocumentId" in options ? options.parentDocumentId : undefined;
-    const index = "index" in options ? options.index : undefined;
+  move = async ({
+    documentId,
+    collectionId,
+    parentDocumentId,
+    index,
+  }: {
+    documentId: string;
+    collectionId?: string | null;
+    parentDocumentId?: string | null;
+    index?: number | null;
+  }) => {
+    this.movingDocumentId = documentId;
 
     try {
       const res = await client.post("/documents.move", {
-        id: options.documentId,
-        collectionId: options.collectionId,
+        id: documentId,
+        collectionId,
         parentDocumentId,
         index,
-        template,
       });
       invariant(res?.data, "Data not available");
       res.data.documents.forEach(this.add);

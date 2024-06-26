@@ -37,10 +37,10 @@ import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
-import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import DuplicateDialog from "~/components/DuplicateDialog";
 import SharePopover from "~/components/Sharing/Document";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
+import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection, TrashSection } from "~/actions/sections";
 import env from "~/env";
@@ -759,7 +759,7 @@ export const moveTemplateToWorkspace = createAction({
       }
 
       await document.move({
-        template: true,
+        collectionId: null,
       });
     }
   },

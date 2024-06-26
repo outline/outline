@@ -924,7 +924,7 @@ router.post(
   validate(T.DocumentsTemplatizeSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsTemplatizeReq>) => {
-    const { id, publish, workspace } = ctx.input.body;
+    const { id, collectionId, publish } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -935,10 +935,19 @@ router.post(
 
     authorize(user, "update", original);
 
+    if (collectionId) {
+      const collection = await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(collectionId, { transaction });
+      authorize(user, "createDocument", collection);
+    } else {
+      authorize(user, "createDocument", user.team);
+    }
+
     const document = await Document.create(
       {
         editorVersion: original.editorVersion,
-        collectionId: workspace ? null : original.collectionId,
+        collectionId,
         teamId: original.teamId,
         publishedAt: publish ? new Date() : null,
         lastModifiedById: user.id,
@@ -1142,12 +1151,19 @@ router.post(
     });
     authorize(user, "move", document);
 
+    invariant(
+      collectionId || document.template,
+      "collectionId is required to move a document"
+    );
+
     if (collectionId) {
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId, { transaction });
       authorize(user, "updateDocument", collection);
-    } else if (document.isWorkspaceTemplate) {
+    }
+
+    if (document.isWorkspaceTemplate) {
       authorize(user, "updateDocument", user.team);
     }
 

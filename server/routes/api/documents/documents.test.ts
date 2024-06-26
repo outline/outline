@@ -1941,19 +1941,6 @@ describe("#documents.templatize", () => {
     expect(res.status).toBe(400);
     expect(body.message).toBe("publish: Required");
   });
-  it("should require workspace", async () => {
-    const user = await buildUser();
-    const res = await server.post("/api/documents.templatize", {
-      body: {
-        token: user.getJwtToken(),
-        id: "random-id",
-        publish: true,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toBe(400);
-    expect(body.message).toBe("workspace: Required");
-  });
   it("should create a published non-workspace template", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -1969,14 +1956,14 @@ describe("#documents.templatize", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
+        collectionId: collection.id,
         publish: true,
-        workspace: false,
       },
     });
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.data.publishedAt).toBeTruthy();
-    expect(body.data.collectionId).toEqual(document.collectionId);
+    expect(body.data.collectionId).toEqual(collection.id);
   });
   it("should create a published workspace template", async () => {
     const user = await buildUser();
@@ -1994,7 +1981,6 @@ describe("#documents.templatize", () => {
         token: user.getJwtToken(),
         id: document.id,
         publish: true,
-        workspace: true,
       },
     });
     const body = await res.json();
@@ -2017,14 +2003,14 @@ describe("#documents.templatize", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
+        collectionId: collection.id,
         publish: false,
-        workspace: false,
       },
     });
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.data.publishedAt).toBeNull();
-    expect(body.data.collectionId).toEqual(document.collectionId);
+    expect(body.data.collectionId).toEqual(collection.id);
   });
   it("should create a draft workspace template", async () => {
     const user = await buildUser();
@@ -2042,13 +2028,40 @@ describe("#documents.templatize", () => {
         token: user.getJwtToken(),
         id: document.id,
         publish: false,
-        workspace: true,
       },
     });
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.data.publishedAt).toBeNull();
     expect(body.data.collectionId).toBeNull();
+  });
+  it("should create a template in a different collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const anotherCollection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.templatize", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: anotherCollection.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.data.publishedAt).toBeTruthy();
+    expect(body.data.collectionId).toEqual(anotherCollection.id);
   });
 });
 
@@ -2406,23 +2419,6 @@ describe("#documents.move", () => {
     expect(body.message).toEqual("id: Required");
   });
 
-  it("should require collectionId for non-template", async () => {
-    const user = await buildUser();
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    const res = await server.post("/api/documents.move", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(400);
-    expect(body.message).toEqual("collectionId is required to move a document");
-  });
-
   it("should fail for invalid index", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -2490,6 +2486,29 @@ describe("#documents.move", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.documents[0].collectionId).toEqual(collection.id);
+    expect(body.policies[0].abilities.move).toEqual(true);
+  });
+
+  it("should move the template without collectionId", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      template: true,
+    });
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].collectionId).toBeNull();
     expect(body.policies[0].abilities.move).toEqual(true);
   });
 

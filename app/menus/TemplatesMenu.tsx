@@ -42,22 +42,15 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
 
   const templates = documents.templates.filter((tmpl) => tmpl.publishedAt);
 
-  const workspaceTemplates = templates
-    .filter((tmpl) => tmpl.isWorkspaceTemplate)
-    .map(templateToMenuItem);
-
-  const templatesInCollection = templates
+  const collectionItems = templates
     .filter(
       (tmpl) =>
         !tmpl.isWorkspaceTemplate && tmpl.collectionId === document.collectionId
     )
     .map(templateToMenuItem);
 
-  const otherTemplates = templates
-    .filter(
-      (tmpl) =>
-        !tmpl.isWorkspaceTemplate && tmpl.collectionId !== document.collectionId
-    )
+  const workspaceTemplates = templates
+    .filter((tmpl) => tmpl.isWorkspaceTemplate)
     .map(templateToMenuItem);
 
   const workspaceItems: MenuItem[] = React.useMemo(
@@ -68,35 +61,15 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
     [t, workspaceTemplates]
   );
 
-  const collectionItemsWithHeader: MenuItem[] = React.useMemo(
-    () =>
-      templatesInCollection.length
-        ? [
-            { type: "separator" },
-            { type: "heading", title: t("This collection") },
-            ...templatesInCollection,
-          ]
-        : [],
-    [t, templatesInCollection]
-  );
-
-  const otherItemsWithHeader: MenuItem[] = React.useMemo(
-    () =>
-      otherTemplates.length
-        ? [
-            { type: "separator" },
-            { type: "heading", title: t("Other collections") },
-            ...otherTemplates,
-          ]
-        : [],
-    [t, otherTemplates]
-  );
-
-  const items: MenuItem[] = [
-    ...workspaceItems,
-    ...collectionItemsWithHeader,
-    ...otherItemsWithHeader,
-  ];
+  const items = collectionItems
+    ? workspaceItems.length
+      ? [
+          ...collectionItems,
+          { type: "separator" } as MenuItem,
+          ...workspaceItems,
+        ]
+      : collectionItems
+    : workspaceItems;
 
   if (!items.length) {
     return null;
