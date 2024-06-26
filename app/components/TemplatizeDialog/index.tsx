@@ -4,12 +4,14 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
+import styled from "styled-components";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import Flex from "~/components/Flex";
+import Switch from "~/components/Switch";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
-import Flex from "./Flex";
-import Switch from "./Switch";
-import Text from "./Text";
+import SelectLocation from "./SelectLocation";
 
 type Props = {
   documentId: string;
@@ -23,7 +25,9 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
   invariant(document, "Document must exist");
 
   const [publish, setPublish] = React.useState(true);
-  const [workspace, setWorkspace] = React.useState(false);
+  const [collectionId, setCollectionId] = React.useState(
+    document.collectionId ?? null
+  );
 
   const handlePublishChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,20 +36,16 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
     []
   );
 
-  const handleWorkspaceChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setWorkspace(ev.target.checked);
-    },
-    []
-  );
-
   const handleSubmit = React.useCallback(async () => {
-    const template = await document?.templatize({ publish, workspace });
+    const template = await document?.templatize({
+      collectionId,
+      publish,
+    });
     if (template) {
       history.push(documentPath(template));
       toast.success(t("Template created, go ahead and customize it"));
     }
-  }, [document, history, t, publish, workspace]);
+  }, [t, document, history, collectionId, publish]);
 
   return (
     <ConfirmationDialog
@@ -76,20 +76,23 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
             onChange={handlePublishChange}
           />
         </Text>
-        <Text>
-          <Switch
-            name="workspace"
-            label={t("Workspace")}
-            note={t(
-              "Save the template within the workspace to enable sharing across collections."
-            )}
-            checked={workspace}
-            onChange={handleWorkspaceChange}
+        <Flex justify="space-between">
+          <Location>
+            <label htmlFor={"templateLocation"}>{t("Location")}</label>
+          </Location>
+          <SelectLocation
+            id={"templateLocation"}
+            defaultCollectionId={collectionId}
+            onSelect={setCollectionId}
           />
-        </Text>
+        </Flex>
       </Flex>
     </ConfirmationDialog>
   );
 }
+
+const Location = styled(Text)`
+  margin-top: 3px;
+`;
 
 export default observer(DocumentTemplatizeDialog);

@@ -28,12 +28,14 @@ function NewTemplateMenu() {
     });
   }, [collections]);
 
-  const workspaceItem: MenuItem = {
-    type: "route",
-    to: newTemplatePath(),
-    title: t("Save in workspace"),
-    icon: <TeamLogo model={team} />,
-  };
+  const workspaceItem: MenuItem | null = can.createDocument
+    ? {
+        type: "route",
+        to: newTemplatePath(),
+        title: t("Save in workspace"),
+        icon: <TeamLogo model={team} />,
+      }
+    : null;
 
   const collectionItems = React.useMemo(
     () =>
@@ -58,7 +60,6 @@ function NewTemplateMenu() {
     () =>
       collectionItems.length
         ? [
-            { type: "separator" },
             { type: "heading", title: t("Choose a collection") },
             ...collectionItems,
           ]
@@ -66,7 +67,15 @@ function NewTemplateMenu() {
     [t, collectionItems]
   );
 
-  const items = [workspaceItem, ...collectionItemsWithHeader];
+  const items = workspaceItem
+    ? collectionItemsWithHeader.length
+      ? [
+          workspaceItem,
+          { type: "separator" } as MenuItem,
+          ...collectionItemsWithHeader,
+        ]
+      : [workspaceItem]
+    : collectionItemsWithHeader;
 
   if (!can.createDocument || items.length === 0) {
     return null;

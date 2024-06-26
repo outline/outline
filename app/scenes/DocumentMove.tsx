@@ -70,15 +70,7 @@ function DocumentMove({ document }: Props) {
       if (type === "document") {
         await document.move({ collectionId, parentDocumentId });
       } else {
-        const options = document.template
-          ? {
-              template: true,
-              collectionId,
-            }
-          : {
-              collectionId,
-            };
-        await document.move(options);
+        await document.move({ collectionId });
       }
 
       toast.success(t("Document moved"));

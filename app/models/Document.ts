@@ -496,12 +496,12 @@ export default class Document extends ParanoidModel {
 
   @action
   templatize = ({
+    collectionId,
     publish,
-    workspace,
   }: {
+    collectionId: string | null;
     publish: boolean;
-    workspace: boolean;
-  }) => this.store.templatize({ id: this.id, publish, workspace });
+  }) => this.store.templatize({ id: this.id, collectionId, publish });
 
   @action
   save = async (
@@ -528,17 +528,10 @@ export default class Document extends ParanoidModel {
     }
   };
 
-  move = (
-    options:
-      | {
-          template: true;
-          collectionId?: string;
-        }
-      | {
-          collectionId: string;
-          parentDocumentId?: string;
-        }
-  ) => this.store.move({ documentId: this.id, ...options });
+  move = (options: {
+    collectionId?: string | null;
+    parentDocumentId?: string;
+  }) => this.store.move({ documentId: this.id, ...options });
 
   duplicate = (options?: {
     title?: string;
