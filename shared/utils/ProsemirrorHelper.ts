@@ -2,6 +2,7 @@ import { Node, Schema } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
 import { ProsemirrorData } from "../types";
+import { isInternalUrl, isUrl } from "./urls";
 
 export type Heading = {
   /* The heading in plain text */
@@ -58,22 +59,55 @@ export class ProsemirrorHelper {
    * @param data The ProsemirrorData to check.
    * @returns True if the document is empty.
    */
-  static isEmptyData(data: ProsemirrorData): boolean {
-    if (data.type !== "doc") {
-      return false;
+  static isEmptyData(data: ProsemirrorData, schema?: Schema): boolean {
+    if (!schema) {
+      if (data.type !== "doc") {
+        return false;
+      }
+
+      if (data.content.length === 1) {
+        const node = data.content[0];
+        return (
+          node.type === "paragraph" &&
+          (node.content === null ||
+            node.content === undefined ||
+            node.content.length === 0)
+        );
+      }
+
+      return data.content.length === 0;
     }
 
-    if (data.content.length === 1) {
-      const node = data.content[0];
-      return (
-        node.type === "paragraph" &&
-        (node.content === null ||
-          node.content === undefined ||
-          node.content.length === 0)
-      );
-    }
+    const node = Node.fromJSON(schema, data);
+    const textSerializers = Object.fromEntries(
+      Object.entries(schema.nodes)
+        .filter(([, node]) => node.spec.toPlainText)
+        .map(([name, node]) => [name, node.spec.toPlainText])
+    );
 
-    return data.content.length === 0;
+    let foundNonEmptyData = false;
+    node.descendants((child: Node) => {
+      // If we've already found non-empty data, we can stop descending further
+      if (foundNonEmptyData) {
+        return false;
+      }
+
+      const toPlainText = textSerializers[child.type.name];
+      if (toPlainText) {
+        foundNonEmptyData = !!toPlainText(child).trim();
+      } else if (child.isText) {
+        foundNonEmptyData = !!child.text?.trim();
+      } else if (
+        child.type.name === "image" &&
+        (isUrl(child.attrs.src) || isInternalUrl(child.attrs.src))
+      ) {
+        foundNonEmptyData = true;
+      }
+
+      return !foundNonEmptyData;
+    });
+
+    return foundNonEmptyData;
   }
 
   /**

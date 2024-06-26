@@ -15,7 +15,7 @@ export const ProsemirrorSchema = z.custom<TProsemirrorData>((val) => {
   try {
     const node = Node.fromJSON(schema, val);
     node.check();
-    return !!ProsemirrorHelper.toPlainText(node, schema).trim();
+    return ProsemirrorHelper.isEmptyData(val as TProsemirrorData, schema);
   } catch (_e) {
     return false;
   }
