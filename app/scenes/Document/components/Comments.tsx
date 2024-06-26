@@ -1,15 +1,17 @@
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
+import { CommentIcon, DoneIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { ProsemirrorData } from "@shared/types";
+import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
-import Text from "~/components/Text";
+import Tooltip from "~/components/Tooltip";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -44,7 +46,7 @@ function Comments() {
     return null;
   }
 
-  const viewingResolved = !!params.get("resolved");
+  const viewingResolved = params.get("resolved") === "";
   const threads = comments
     .threadsInDocument(document.id, viewingResolved)
     .filter((thread) => !thread.isNew || thread.createdById === user.id);
@@ -52,15 +54,10 @@ function Comments() {
 
   const toggleViewingResolved = () => {
     history.push({
-      search: queryString.stringify(
-        {
-          ...queryString.parse(location.search),
-          resolved: viewingResolved ? undefined : "true",
-        },
-        {
-          skipEmptyString: true,
-        }
-      ),
+      search: queryString.stringify({
+        ...queryString.parse(location.search),
+        resolved: viewingResolved ? undefined : "",
+      }),
       pathname: location.pathname,
     });
   };
@@ -68,16 +65,32 @@ function Comments() {
   return (
     <Sidebar
       title={
-        <Flex gap={8} align="center">
-          {t("Comments")}{" "}
-          <Text
-            size="small"
-            type="secondary"
-            weight="normal"
-            onClick={toggleViewingResolved}
-          >
-            History
-          </Text>
+        <Flex align="center" justify="space-between" auto>
+          {viewingResolved ? (
+            <React.Fragment key="resolved">
+              <span>{t("Resolved comments")}</span>
+              <Tooltip delay={500} content={t("View comments")}>
+                <Button
+                  neutral
+                  borderOnHover
+                  icon={<CommentIcon />}
+                  onClick={toggleViewingResolved}
+                />
+              </Tooltip>
+            </React.Fragment>
+          ) : (
+            <React.Fragment>
+              <span>{t("Comments")}</span>
+              <Tooltip delay={250} content={t("View resolved comments")}>
+                <Button
+                  neutral
+                  borderOnHover
+                  icon={<DoneIcon />}
+                  onClick={toggleViewingResolved}
+                />
+              </Tooltip>
+            </React.Fragment>
+          )}
         </Flex>
       }
       onClose={() => ui.collapseComments(document?.id)}
