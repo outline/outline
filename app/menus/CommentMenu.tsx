@@ -13,6 +13,7 @@ import { actionToMenuItem } from "~/actions";
 import {
   deleteCommentFactory,
   resolveCommentFactory,
+  unresolveCommentFactory,
 } from "~/actions/definitions/comments";
 import useActionContext from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
@@ -28,9 +29,17 @@ type Props = {
   onEdit: () => void;
   /** Callback when the comment has been deleted */
   onDelete: () => void;
+  /** Callback when the comment has been updated */
+  onUpdate: (attrs: { resolved: boolean }) => void;
 };
 
-function CommentMenu({ comment, onEdit, onDelete, className }: Props) {
+function CommentMenu({
+  comment,
+  onEdit,
+  onDelete,
+  onUpdate,
+  className,
+}: Props) {
   const menu = useMenuState({
     modal: true,
   });
@@ -67,13 +76,20 @@ function CommentMenu({ comment, onEdit, onDelete, className }: Props) {
               onClick: onEdit,
               visible: can.update,
             },
-            actionToMenuItem(resolveCommentFactory({ comment }), context),
-            {
-              type: "button",
-              title: t("Unresolve thread"),
-              onClick: () => comment.unresolve(),
-              visible: can.unresolve,
-            },
+            actionToMenuItem(
+              resolveCommentFactory({
+                comment,
+                onResolve: () => onUpdate({ resolved: true }),
+              }),
+              context
+            ),
+            actionToMenuItem(
+              unresolveCommentFactory({
+                comment,
+                onUnresolve: () => onUpdate({ resolved: false }),
+              }),
+              context
+            ),
             {
               type: "button",
               title: t("Copy link"),

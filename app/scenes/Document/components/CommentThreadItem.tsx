@@ -76,6 +76,8 @@ type Props = {
   canReply: boolean;
   /** Callback when the comment has been deleted */
   onDelete: () => void;
+  /** Callback when the comment has been updated */
+  onUpdate: (attrs: { resolved: boolean }) => void;
   /** Text to highlight at the top of the comment */
   highlightedText?: string;
 };
@@ -89,6 +91,7 @@ function CommentThreadItem({
   previousCommentCreatedAt,
   canReply,
   onDelete,
+  onUpdate,
   highlightedText,
 }: Props) {
   const { t } = useTranslation();
@@ -205,6 +208,7 @@ function CommentThreadItem({
             comment={comment}
             onEdit={setEditing}
             onDelete={onDelete}
+            onUpdate={onUpdate}
             dir={dir}
           />
         )}

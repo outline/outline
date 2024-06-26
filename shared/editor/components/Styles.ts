@@ -857,14 +857,16 @@ h6 {
   opacity: 1;
 }
 
-.comment-marker {
-  border-bottom: 2px solid ${props.theme.commentMarkBackground};
-  transition: background 100ms ease-in-out;
-  border-radius: 2px;
+.${EditorStyleHelper.comment} {
+  &:not([data-resolved]) {
+    border-bottom: 2px solid ${props.theme.commentMarkBackground};
+    transition: background 100ms ease-in-out;
+    border-radius: 2px;
 
-  &:hover {
-    ${props.readOnly ? "cursor: var(--pointer);" : ""}
-    background: ${props.theme.commentMarkBackground};
+    &:hover {
+      ${props.readOnly ? "cursor: var(--pointer);" : ""}
+      background: ${props.theme.commentMarkBackground};
+    }
   }
 }
 
@@ -1768,7 +1770,7 @@ del[data-operation-index] {
     page-break-inside: avoid;
   }
 
-  .comment-marker {
+  .${EditorStyleHelper.comment} {
     border: 0;
     background: none;
   }

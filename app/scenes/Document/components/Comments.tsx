@@ -81,7 +81,7 @@ function Comments() {
           ) : (
             <React.Fragment>
               <span>{t("Comments")}</span>
-              <Tooltip delay={250} content={t("View resolved comments")}>
+              <Tooltip delay={250} content={t("View resolved threads")}>
                 <Button
                   neutral
                   borderOnHover

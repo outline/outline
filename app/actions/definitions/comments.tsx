@@ -34,7 +34,13 @@ export const deleteCommentFactory = ({
     },
   });
 
-export const resolveCommentFactory = ({ comment }: { comment: Comment }) =>
+export const resolveCommentFactory = ({
+  comment,
+  onResolve,
+}: {
+  comment: Comment;
+  onResolve: () => void;
+}) =>
   createAction({
     name: ({ t }) => t("Resolve thread"),
     analyticsName: "Resolve thread",
@@ -48,6 +54,27 @@ export const resolveCommentFactory = ({ comment }: { comment: Comment }) =>
         ...history.location,
         state: null,
       });
+
+      onResolve();
       toast.success(t("Thread resolved"));
+    },
+  });
+
+export const unresolveCommentFactory = ({
+  comment,
+  onUnresolve,
+}: {
+  comment: Comment;
+  onUnresolve: () => void;
+}) =>
+  createAction({
+    name: ({ t }) => t("Unresolve thread"),
+    analyticsName: "Unresolve thread",
+    section: DocumentSection,
+    icon: <CheckmarkIcon />,
+    visible: () => stores.policies.abilities(comment.id).unresolve,
+    perform: async () => {
+      await comment.unresolve();
+      onUnresolve();
     },
   });
