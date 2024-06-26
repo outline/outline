@@ -101,8 +101,8 @@ export default function onerror(app: Koa) {
       this.body = JSON.stringify({
         ok: false,
         error: snakeCase(err.id),
-        status: err.status,
-        message: err.message || err.name,
+        status: Number(err.status),
+        message: String(err.message || err.name),
         data: err.errorData ?? undefined,
       });
     }
