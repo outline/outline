@@ -78,6 +78,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const { view, commands } = useEditor();
   const dictionary = useDictionary();
   const hasActivated = React.useRef(false);
+  const pointerRef = React.useRef<{ clientX: number; clientY: number }>({
+    clientX: 0,
+    clientY: 0,
+  });
   const menuRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [position, setPosition] = React.useState<Position>(defaultPosition);
@@ -576,7 +580,23 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                     return null;
                   }
 
-                  const handlePointer = () => {
+                  const handlePointerMove = (ev: React.PointerEvent) => {
+                    if (
+                      selectedIndex !== index &&
+                      // Safari triggers pointermove with identical coordinates when the pointer has not moved.
+                      // This causes the menu selection to flicker when the pointer is over the menu but not moving.
+                      (pointerRef.current.clientX !== ev.clientX ||
+                        pointerRef.current.clientY !== ev.clientY)
+                    ) {
+                      setSelectedIndex(index);
+                    }
+                    pointerRef.current = {
+                      clientX: ev.clientX,
+                      clientY: ev.clientY,
+                    };
+                  };
+
+                  const handlePointerDown = () => {
                     if (selectedIndex !== index) {
                       setSelectedIndex(index);
                     }
@@ -585,8 +605,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                   return (
                     <ListItem
                       key={index}
-                      onPointerMove={handlePointer}
-                      onPointerDown={handlePointer}
+                      onPointerMove={handlePointerMove}
+                      onPointerDown={handlePointerDown}
                     >
                       {props.renderMenuItem(item as any, index, {
                         selected: index === selectedIndex,
