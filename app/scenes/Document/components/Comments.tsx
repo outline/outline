@@ -1,11 +1,11 @@
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
-import { CommentIcon, DoneIcon } from "outline-icons";
+import { DoneIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { ProsemirrorData } from "@shared/types";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
@@ -19,6 +19,7 @@ import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import { bigPulse } from "~/styles/animations";
 import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
 import Sidebar from "./SidebarLayout";
@@ -31,6 +32,7 @@ function Comments() {
   const history = useHistory();
   const match = useRouteMatch<{ documentSlug: string }>();
   const params = useQuery();
+  const [pulse, setPulse] = React.useState(false);
   const document = documents.getByUrl(match.params.documentSlug);
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
@@ -42,14 +44,29 @@ function Comments() {
     undefined
   );
 
+  const viewingResolved = params.get("resolved") === "";
+  const resolvedThreads = document
+    ? comments.resolvedThreadsInDocument(document.id)
+    : [];
+  const resolvedThreadsCount = resolvedThreads.length;
+
+  React.useEffect(() => {
+    setPulse(true);
+    const timeout = setTimeout(() => setPulse(false), 250);
+
+    return () => {
+      clearTimeout(timeout);
+      setPulse(false);
+    };
+  }, [resolvedThreadsCount]);
+
   if (!document) {
     return null;
   }
 
-  const viewingResolved = params.get("resolved") === "";
   const threads = (
     viewingResolved
-      ? comments.resolvedThreadsInDocument(document.id)
+      ? resolvedThreads
       : comments.unresolvedThreadsInDocument(document.id)
   ).filter((thread) => thread.createdById === user.id);
   const hasComments = threads.length > 0;
@@ -72,10 +89,10 @@ function Comments() {
             <React.Fragment key="resolved">
               <span>{t("Resolved comments")}</span>
               <Tooltip delay={500} content={t("View comments")}>
-                <Button
+                <ResolvedButton
                   neutral
                   borderOnHover
-                  icon={<CommentIcon />}
+                  icon={<DoneIcon />}
                   onClick={toggleViewingResolved}
                 />
               </Tooltip>
@@ -83,12 +100,13 @@ function Comments() {
           ) : (
             <React.Fragment>
               <span>{t("Comments")}</span>
-              <Tooltip delay={250} content={t("View resolved threads")}>
-                <Button
+              <Tooltip delay={250} content={t("View resolved comments")}>
+                <ResolvedButton
                   neutral
                   borderOnHover
-                  icon={<DoneIcon />}
+                  icon={<DoneIcon outline />}
                   onClick={toggleViewingResolved}
+                  $pulse={pulse}
                 />
               </Tooltip>
             </React.Fragment>
@@ -143,6 +161,14 @@ function Comments() {
     </Sidebar>
   );
 }
+
+const ResolvedButton = styled(Button)<{ $pulse: boolean }>`
+  ${(props) =>
+    props.$pulse &&
+    css`
+      animation: ${bigPulse} 250ms 1;
+    `}
+`;
 
 const PositionedEmpty = styled(Empty)`
   position: absolute;

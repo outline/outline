@@ -1,5 +1,6 @@
 import copy from "copy-to-clipboard";
 import { observer } from "mobx-react";
+import { CopyIcon, EditIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
@@ -68,11 +69,11 @@ function CommentMenu({
       <ContextMenu {...menu} aria-label={t("Comment options")}>
         <Template
           {...menu}
-          showIcons={false}
           items={[
             {
               type: "button",
-              title: t("Edit"),
+              title: `${t("Edit")}…`,
+              icon: <EditIcon />,
               onClick: onEdit,
               visible: can.update,
             },
@@ -92,6 +93,7 @@ function CommentMenu({
             ),
             {
               type: "button",
+              icon: <CopyIcon />,
               title: t("Copy link"),
               onClick: handleCopyLink,
             },

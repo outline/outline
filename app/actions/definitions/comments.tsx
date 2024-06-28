@@ -1,4 +1,4 @@
-import { CheckmarkIcon, TrashIcon } from "outline-icons";
+import { DoneIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
 import stores from "~/stores";
@@ -42,10 +42,10 @@ export const resolveCommentFactory = ({
   onResolve: () => void;
 }) =>
   createAction({
-    name: ({ t }) => t("Resolve thread"),
+    name: ({ t }) => t("Mark as resolved"),
     analyticsName: "Resolve thread",
     section: DocumentSection,
-    icon: <CheckmarkIcon />,
+    icon: <DoneIcon outline />,
     visible: () => stores.policies.abilities(comment.id).resolve,
     perform: async ({ t }) => {
       await comment.resolve();
@@ -68,13 +68,19 @@ export const unresolveCommentFactory = ({
   onUnresolve: () => void;
 }) =>
   createAction({
-    name: ({ t }) => t("Unresolve thread"),
+    name: ({ t }) => t("Unresolve comment"),
     analyticsName: "Unresolve thread",
     section: DocumentSection,
-    icon: <CheckmarkIcon />,
+    icon: <DoneIcon outline />,
     visible: () => stores.policies.abilities(comment.id).unresolve,
     perform: async () => {
       await comment.unresolve();
+
+      history.replace({
+        ...history.location,
+        state: null,
+      });
+
       onUnresolve();
     },
   });

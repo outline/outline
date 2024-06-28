@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import EventBoundary from "@shared/components/EventBoundary";
 import { s } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
 import { dateToRelative } from "@shared/utils/date";
@@ -203,15 +204,17 @@ function CommentThreadItem({
             </Flex>
           )}
         </Body>
-        {!isEditing && (
-          <Menu
-            comment={comment}
-            onEdit={setEditing}
-            onDelete={onDelete}
-            onUpdate={onUpdate}
-            dir={dir}
-          />
-        )}
+        <EventBoundary>
+          {!isEditing && (
+            <Menu
+              comment={comment}
+              onEdit={setEditing}
+              onDelete={onDelete}
+              onUpdate={onUpdate}
+              dir={dir}
+            />
+          )}
+        </EventBoundary>
       </Bubble>
     </Flex>
   );
