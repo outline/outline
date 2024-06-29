@@ -115,6 +115,19 @@ function KeyboardShortcuts() {
         ],
       },
       {
+        title: t("Collaboration"),
+        items: [
+          {
+            shortcut: (
+              <>
+                <Key symbol>{metaDisplay}</Key> + <Key>Alt</Key> + <Key>m</Key>
+              </>
+            ),
+            label: t("Comment"),
+          },
+        ],
+      },
+      {
         title: t("Formatting"),
         items: [
           {
