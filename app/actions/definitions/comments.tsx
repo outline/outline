@@ -68,7 +68,7 @@ export const unresolveCommentFactory = ({
   onUnresolve: () => void;
 }) =>
   createAction({
-    name: ({ t }) => t("Unresolve comment"),
+    name: ({ t }) => t("Mark as unresolved"),
     analyticsName: "Unresolve thread",
     section: DocumentSection,
     icon: <DoneIcon outline />,

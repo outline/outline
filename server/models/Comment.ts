@@ -1,9 +1,5 @@
 import { Node } from "prosemirror-model";
-import {
-  InferAttributes,
-  InferCreationAttributes,
-  SaveOptions,
-} from "sequelize";
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -91,15 +87,11 @@ class Comment extends ParanoidModel<
   // methods
 
   /**
-   * Resolve the comment
+   * Resolve the comment. Note this does not save the comment to the database.
    *
    * @param resolvedBy The user who resolved the comment
-   * @param options The save options
    */
-  public resolve(
-    resolvedBy: User,
-    options?: SaveOptions<InferAttributes<Comment>>
-  ) {
+  public resolve(resolvedBy: User) {
     if (this.isResolved) {
       throw ValidationError("Comment is already resolved");
     }
@@ -110,15 +102,12 @@ class Comment extends ParanoidModel<
     this.resolvedById = resolvedBy.id;
     this.resolvedBy = resolvedBy;
     this.resolvedAt = new Date();
-    return this.save(options);
   }
 
   /**
-   * Unresolve the comment
-   *
-   * @param options The save options
+   * Unresolve the comment. Note this does not save the comment to the database.
    */
-  public unresolve(options?: SaveOptions<InferAttributes<Comment>>) {
+  public unresolve() {
     if (!this.isResolved) {
       throw ValidationError("Comment is not resolved");
     }
@@ -126,7 +115,6 @@ class Comment extends ParanoidModel<
     this.resolvedById = null;
     this.resolvedBy = null;
     this.resolvedAt = null;
-    return this.save(options);
   }
 
   /**

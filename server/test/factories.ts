@@ -436,7 +436,8 @@ export async function buildResolvedComment(
   overrides: Parameters<typeof buildComment>[0]
 ) {
   const comment = await buildComment(overrides);
-  await comment.resolve(user);
+  comment.resolve(user);
+  await comment.save();
   return comment;
 }
 

@@ -9,7 +9,7 @@ import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, Comment, Collection } from "@server/models";
+import { Document, Comment, Collection, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -274,7 +274,20 @@ router.post(
     authorize(user, "resolve", comment);
     authorize(user, "update", document);
 
-    await comment.resolve(user, { transaction });
+    comment.resolve(user);
+    const changes = comment.changeset;
+    await comment.save({ transaction });
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "comments.update",
+        modelId: comment.id,
+        documentId: comment.documentId,
+        changes,
+      },
+      { transaction }
+    );
 
     ctx.body = {
       data: presentComment(comment),
@@ -308,7 +321,20 @@ router.post(
     authorize(user, "unresolve", comment);
     authorize(user, "update", document);
 
-    await comment.unresolve({ transaction });
+    comment.unresolve();
+    const changes = comment.changeset;
+    await comment.save({ transaction });
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "comments.update",
+        modelId: comment.id,
+        documentId: comment.documentId,
+        changes,
+      },
+      { transaction }
+    );
 
     ctx.body = {
       data: presentComment(comment),

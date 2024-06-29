@@ -17,7 +17,7 @@
   "Delete comment": "Delete comment",
   "Mark as resolved": "Mark as resolved",
   "Thread resolved": "Thread resolved",
-  "Unresolve comment": "Unresolve comment",
+  "Mark as unresolved": "Mark as unresolved",
   "Copy ID": "Copy ID",
   "Clear IndexedDB cache": "Clear IndexedDB cache",
   "IndexedDB cache cleared": "IndexedDB cache cleared",
