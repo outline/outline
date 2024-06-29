@@ -137,7 +137,7 @@ function Comments() {
             <NoComments align="center" justify="center" auto>
               <PositionedEmpty>
                 {viewingResolved
-                  ? t("No resolved threads")
+                  ? t("No resolved comments")
                   : t("No comments yet")}
               </PositionedEmpty>
             </NoComments>
