@@ -424,6 +424,7 @@ export default class WebsocketsProcessor {
 
       case "comments.delete": {
         const comment = await Comment.findByPk(event.modelId, {
+          paranoid: false,
           include: [
             {
               model: Document.scope(["withoutState", "withDrafts"]),
