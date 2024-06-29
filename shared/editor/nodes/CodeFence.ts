@@ -59,6 +59,7 @@ import zig from "refractor/lang/zig";
 import { toast } from "sonner";
 import { Primitive } from "utility-types";
 import type { Dictionary } from "~/hooks/useDictionary";
+import env from "../../env";
 import { UserPreferences } from "../../types";
 import Storage from "../../utils/Storage";
 import { isMac } from "../../utils/browser";
@@ -290,7 +291,7 @@ export default class CodeFence extends Node {
       }),
       Kroki({
         name: this.name,
-        url: "https://kroki.io",
+        url: env.KROKI_URL,
       }),
       new Plugin({
         key: new PluginKey("triple-click"),

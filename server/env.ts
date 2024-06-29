@@ -487,6 +487,13 @@ export class Environment {
   public AWS_S3_UPLOAD_BUCKET_URL = environment.AWS_S3_UPLOAD_BUCKET_URL ?? "";
 
   /**
+   * Optional Kroki API URL for remote rendering diagrams.
+   */
+  @Public
+  @IsOptional()
+  public KROKI_URL = environment.KROKI_URL ?? "https://kroki.io";
+
+  /**
    * The bucket name to store file attachments in.
    */
   @IsOptional()
