@@ -513,7 +513,17 @@ class DocumentScene extends React.Component<Props> {
               fullWidth={document.fullWidth}
               tocPosition={tocPos}
             >
-              <React.Suspense fallback={<PlaceholderDocument />}>
+              <React.Suspense
+                fallback={
+                  <EditorContainer
+                    docFullWidth={document.fullWidth}
+                    showContents={showContents}
+                    tocPosition={tocPos}
+                  >
+                    <PlaceholderDocument />
+                  </EditorContainer>
+                }
+              >
                 {revision ? (
                   <RevisionContainer docFullWidth={document.fullWidth}>
                     <RevisionViewer
