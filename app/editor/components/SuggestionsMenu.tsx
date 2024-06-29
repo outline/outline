@@ -348,6 +348,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const handleFilesPicked = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    // Re-focus the editor as it loses focus when file picker is opened on iOS
+    view.focus();
+
     const { uploadFile, onFileUploadStart, onFileUploadStop } = props;
     const files = getEventFiles(event);
     const parent = findParentNode((node) => !!node)(view.state.selection);
