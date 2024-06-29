@@ -16,7 +16,7 @@ export const deleteCommentFactory = ({
   onDelete: () => void;
 }) =>
   createAction({
-    name: ({ t }) => t("Delete"),
+    name: ({ t }) => `${t("Delete")}…`,
     analyticsName: "Delete comment",
     section: DocumentSection,
     icon: <TrashIcon />,
