@@ -209,7 +209,7 @@ export default function formattingMenuItems(
       tooltip: dictionary.comment,
       icon: <CommentIcon />,
       label: isCodeBlock ? dictionary.comment : undefined,
-      active: isMarkActive(schema.marks.comment),
+      active: isMarkActive(schema.marks.comment, { resolved: false }),
       visible: !isMobile || !isEmpty,
     },
     {
