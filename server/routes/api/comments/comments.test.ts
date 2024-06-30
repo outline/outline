@@ -176,7 +176,116 @@ describe("#comments.create", () => {
       },
     });
 
+    const anotherRes = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: {
+          type: "doc",
+          content: [{ type: "paragraph" }],
+        },
+      },
+    });
+
     expect(res.status).toEqual(400);
+    expect(anotherRes.status).toEqual(400);
+  });
+
+  it("should not allow comments containing only whitespaces", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "  \n\r\n" }],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.status).toEqual(400);
+  });
+
+  it("should allow adding images to comments", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "image",
+                  attrs: {
+                    src: "https://example.com/image.png",
+                    alt: "Example image",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
+  it("should allow adding images from internal sources", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        data: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "image",
+                  attrs: {
+                    src: "/api/attachments.redirect?id=1401323b-c4e2-40de-b172-e1668ec89111",
+                    alt: null,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(res.status).toEqual(200);
   });
 
   it("should not allow invalid comment data", async () => {
