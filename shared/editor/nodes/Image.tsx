@@ -167,7 +167,7 @@ export default class Image extends SimpleImage {
         ];
       },
       toPlainText: (node) =>
-        node.attrs.alt ? `(image:${node.attrs.alt})` : "(image)",
+        node.attrs.alt ? `(image: ${node.attrs.alt})` : "(image)",
     };
   }
 
