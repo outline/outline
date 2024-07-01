@@ -254,7 +254,7 @@ const Header = styled(Flex)`
 const Small = styled.div`
   animation: ${fadeAndScaleIn} 250ms ease;
 
-  margin: auto auto;
+  margin: 25vh auto auto auto;
   width: 75vw;
   min-width: 350px;
   max-width: 450px;
