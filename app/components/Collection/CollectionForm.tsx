@@ -18,6 +18,7 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import { EmptySelectValue } from "~/types";
 import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 
 const IconPicker = React.lazy(() => import("~/components/IconPicker"));
@@ -142,8 +143,10 @@ export const CollectionForm = observer(function CollectionForm_({
             <InputSelectPermission
               ref={field.ref}
               value={field.value}
-              onChange={(value: CollectionPermission) => {
-                field.onChange(value);
+              onChange={(
+                value: CollectionPermission | typeof EmptySelectValue
+              ) => {
+                field.onChange(value === EmptySelectValue ? null : value);
               }}
               note={t(
                 "The default access for workspace members, you can share with more users or groups later."
