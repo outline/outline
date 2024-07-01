@@ -5250,10 +5250,10 @@
   resolved "https://registry.yarnpkg.com/@types/quoted-printable/-/quoted-printable-1.0.2.tgz#1d89663da9ded3df30d162558c5d18759831f659"
   integrity "sha1-HYlmPane098w0WJVjF0YdZgx9lk= sha512-3B28oB1rRaZNb3N5dlxysm8lH1ujzvReDuYBiIO4jvpTIg9ksrILCNgPxSGVyTWE/qwuxzgHaVehwMK3CVqAtA=="
 
-"@types/randomstring@^1.1.11":
-  version "1.1.11"
-  resolved "https://registry.yarnpkg.com/@types/randomstring/-/randomstring-1.1.11.tgz#ed2c624b637580e0b49d0eadc018cd252c53c983"
-  integrity "sha1-7SxiS2N1gOC0nQ6twBjNJSxTyYM= sha512-j3y9mKzGyYN5PHWjRv8Ah/ieZlApRbfSb0rBWVrW9Z+z5N1xjZpbBxgVKbO7WAGfnMpvLG2Gg8gRPxo+f0JWmg=="
+"@types/randomstring@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@types/randomstring/-/randomstring-1.3.0.tgz#2953e8de350c27c10eb1aa011fbca8d88c327d79"
+  integrity sha512-kCP61wludjY7oNUeFiMxfswHB3Wn/aC03Cu82oQsNTO6OCuhVN/rCbBs68Cq6Nkgjmp2Sh3Js6HearJPkk7KQA==
 
 "@types/range-parser@*":
   version "1.2.4"
