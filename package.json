@@ -215,7 +215,7 @@
     "sanitize-filename": "^1.6.3",
     "semver": "^7.6.2",
     "sequelize": "^6.37.3",
-    "sequelize-cli": "^6.6.1",
+    "sequelize-cli": "^6.6.2",
     "sequelize-encrypted": "^1.0.0",
     "sequelize-typescript": "^2.1.6",
     "slug": "^5.3.0",
