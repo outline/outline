@@ -342,7 +342,7 @@ export type CommentUpdateEvent = BaseEvent<Comment> & {
   documentId: string;
   actorId: string;
   data: {
-    newMentionIds: string[];
+    newMentionIds?: string[];
   };
 };
 
