@@ -1,14 +1,83 @@
+import { CommentStatusFilter } from "@shared/types";
 import {
   buildAdmin,
   buildCollection,
   buildComment,
   buildDocument,
+  buildResolvedComment,
   buildTeam,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
+
+describe("#comments.info", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/comments.info");
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should return comment info", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user2.id,
+      documentId: document.id,
+    });
+    const res = await server.post("/api/comments.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(comment.id);
+    expect(body.data.data).toEqual(comment.data);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.update).toEqual(false);
+    expect(body.policies[0].abilities.delete).toEqual(false);
+  });
+
+  it("should return comment info for admin", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const user2 = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user2.id,
+      documentId: document.id,
+    });
+    const res = await server.post("/api/comments.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(comment.id);
+    expect(body.data.data).toEqual(comment.data);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.update).toEqual(true);
+    expect(body.policies[0].abilities.delete).toEqual(true);
+  });
+});
 
 describe("#comments.list", () => {
   it("should require authentication", async () => {
@@ -29,6 +98,10 @@ describe("#comments.list", () => {
       userId: user.id,
       documentId: document.id,
     });
+    await buildResolvedComment(user, {
+      userId: user.id,
+      documentId: document.id,
+    });
     const res = await server.post("/api/comments.list", {
       body: {
         token: user.getJwtToken(),
@@ -38,13 +111,14 @@ describe("#comments.list", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].id).toEqual(comment.id);
-    expect(body.policies.length).toEqual(1);
+    expect(body.data.length).toEqual(2);
+    expect(body.data[1].id).toEqual(comment.id);
+    expect(body.policies.length).toEqual(2);
     expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[1].abilities.read).toEqual(true);
   });
 
-  it("should return all comments for a collection", async () => {
+  it("should return unresolved comments for a collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -75,7 +149,71 @@ describe("#comments.list", () => {
     expect(body.policies[0].abilities.read).toEqual(true);
   });
 
-  it("should return all comments", async () => {
+  it("should return unresolved comments for a parentCommentId", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const childComment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      parentCommentId: comment.id,
+    });
+    const res = await server.post("/api/comments.list", {
+      body: {
+        token: user.getJwtToken(),
+        parentCommentId: comment.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(childComment.id);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+  });
+
+  it("should return resolved comments for a statusFilter", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const resolved = await buildResolvedComment(user, {
+      userId: user.id,
+      documentId: document.id,
+    });
+    const res = await server.post("/api/comments.list", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        statusFilter: [CommentStatusFilter.Resolved],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(resolved.id);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.unresolve).toEqual(true);
+    expect(body.policies[0].abilities.resolve).toEqual(false);
+  });
+
+  it("should return all unresolved comments", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection1 = await buildCollection({
@@ -310,69 +448,153 @@ describe("#comments.create", () => {
   });
 });
 
-describe("#comments.info", () => {
+describe("#comments.update", () => {
   it("should require authentication", async () => {
-    const res = await server.post("/api/comments.info");
+    const res = await server.post("/api/comments.update");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
   });
 
-  it("should return comment info", async () => {
+  it("should update an existing comment", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
-    const user2 = await buildUser({ teamId: team.id });
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
     });
+
     const comment = await buildComment({
-      userId: user2.id,
+      userId: user.id,
       documentId: document.id,
     });
-    const res = await server.post("/api/comments.info", {
+
+    const res = await server.post("/api/comments.update", {
       body: {
         token: user.getJwtToken(),
         id: comment.id,
+        data: comment.data,
       },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.data.id).toEqual(comment.id);
-    expect(body.data.data).toEqual(comment.data);
-    expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.update).toEqual(false);
-    expect(body.policies[0].abilities.delete).toEqual(false);
-  });
-
-  it("should return comment info for admin", async () => {
-    const team = await buildTeam();
-    const user = await buildAdmin({ teamId: team.id });
-    const user2 = await buildUser({ teamId: team.id });
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    const comment = await buildComment({
-      userId: user2.id,
-      documentId: document.id,
-    });
-    const res = await server.post("/api/comments.info", {
-      body: {
-        token: user.getJwtToken(),
-        id: comment.id,
-      },
-    });
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data.id).toEqual(comment.id);
     expect(body.data.data).toEqual(comment.data);
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
     expect(body.policies[0].abilities.update).toEqual(true);
     expect(body.policies[0].abilities.delete).toEqual(true);
+  });
+});
+
+describe("#comments.resolve", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/comments.resolve");
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should allow resolving a comment thread", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/comments.resolve", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.resolvedAt).toBeTruthy();
+    expect(body.data.resolvedById).toEqual(user.id);
+    expect(body.data.resolvedBy.id).toEqual(user.id);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.update).toEqual(true);
+    expect(body.policies[0].abilities.delete).toEqual(true);
+    expect(body.policies[0].abilities.unresolve).toEqual(true);
+    expect(body.policies[0].abilities.resolve).toEqual(false);
+  });
+
+  it("should not allow resolving a child comment", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const parentComment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      parentCommentId: parentComment.id,
+    });
+
+    const res = await server.post("/api/comments.resolve", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
+describe("#comments.unresolve", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/comments.unresolve");
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should allow unresolving a comment", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const comment = await buildResolvedComment(user, {
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/comments.unresolve", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.resolvedAt).toEqual(null);
+    expect(body.data.resolvedBy).toEqual(null);
+    expect(body.data.resolvedById).toEqual(null);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.update).toEqual(true);
+    expect(body.policies[0].abilities.delete).toEqual(true);
+    expect(body.policies[0].abilities.resolve).toEqual(true);
+    expect(body.policies[0].abilities.unresolve).toEqual(false);
   });
 });

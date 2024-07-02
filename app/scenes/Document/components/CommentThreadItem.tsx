@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import EventBoundary from "@shared/components/EventBoundary";
 import { s } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
 import { dateToRelative } from "@shared/utils/date";
@@ -76,6 +77,8 @@ type Props = {
   canReply: boolean;
   /** Callback when the comment has been deleted */
   onDelete: () => void;
+  /** Callback when the comment has been updated */
+  onUpdate: (attrs: { resolved: boolean }) => void;
   /** Text to highlight at the top of the comment */
   highlightedText?: string;
 };
@@ -89,6 +92,7 @@ function CommentThreadItem({
   previousCommentCreatedAt,
   canReply,
   onDelete,
+  onUpdate,
   highlightedText,
 }: Props) {
   const { t } = useTranslation();
@@ -97,7 +101,9 @@ function CommentThreadItem({
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
   const showEdited =
-    comment.updatedAt && comment.updatedAt !== comment.createdAt;
+    comment.updatedAt &&
+    comment.updatedAt !== comment.createdAt &&
+    !comment.isResolved;
   const [isEditing, setEditing, setReadOnly] = useBoolean();
   const formRef = React.useRef<HTMLFormElement>(null);
 
@@ -198,14 +204,17 @@ function CommentThreadItem({
             </Flex>
           )}
         </Body>
-        {!isEditing && (
-          <Menu
-            comment={comment}
-            onEdit={setEditing}
-            onDelete={onDelete}
-            dir={dir}
-          />
-        )}
+        <EventBoundary>
+          {!isEditing && (
+            <Menu
+              comment={comment}
+              onEdit={setEditing}
+              onDelete={onDelete}
+              onUpdate={onUpdate}
+              dir={dir}
+            />
+          )}
+        </EventBoundary>
       </Bubble>
     </Flex>
   );

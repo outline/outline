@@ -2,6 +2,10 @@
  * Class names and values used by the editor.
  */
 export class EditorStyleHelper {
+  // Comments
+
+  static readonly comment = "comment-marker";
+
   // Tables
 
   /** Table wrapper */
@@ -33,6 +37,8 @@ export class EditorStyleHelper {
 
   /** Shadow on the left side of the table */
   static readonly tableShadowLeft = "table-shadow-left";
+
+  // Global
 
   /** Minimum padding around editor */
   static readonly padding = 32;
