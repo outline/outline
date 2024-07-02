@@ -5,6 +5,7 @@ import map from "lodash/map";
 import queryParser from "pg-tsquery";
 import { Op, Sequelize, WhereOptions } from "sequelize";
 import { DateFilter, StatusFilter } from "@shared/types";
+import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
@@ -304,16 +305,39 @@ export default class SearchHelper {
       "gi"
     );
 
+    // Breaking characters
+    const breakChars = [
+      " ",
+      ".",
+      ",",
+      `"`,
+      "'",
+      "\n",
+      "。",
+      "！",
+      "？",
+      "!",
+      "?",
+      "…",
+    ];
+    const breakCharsRegex = new RegExp(`[${breakChars.join("")}]`, "g");
+
     // chop text around the first match, prefer the first full match if possible.
     const fullMatchIndex = text.search(fullMatchRegex);
     const offsetStartIndex =
       (fullMatchIndex >= 0 ? fullMatchIndex : text.search(highlightRegex)) - 65;
     const startIndex = Math.max(
       0,
-      offsetStartIndex <= 0 ? 0 : text.indexOf(" ", offsetStartIndex)
+      offsetStartIndex <= 0
+        ? 0
+        : regexIndexOf(text, breakCharsRegex, offsetStartIndex)
     );
     const context = text.replace(highlightRegex, "<b>$&</b>");
-    const endIndex = context.lastIndexOf(" ", startIndex + 250);
+    const endIndex = regexLastIndexOf(
+      context,
+      breakCharsRegex,
+      startIndex + 250
+    );
 
     return context.slice(startIndex, endIndex);
   }

@@ -275,6 +275,8 @@ const ResultContext = styled(Highlight)`
   font-size: 15px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;
+  max-height: 90px;
+  overflow: hidden;
 `;
 
 export default observer(React.forwardRef(DocumentListItem));

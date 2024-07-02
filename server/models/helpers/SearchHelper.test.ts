@@ -465,7 +465,7 @@ describe("SearchHelper", () => {
       expect(totalCount).toBe(0);
     });
 
-    test("should find extact phrases", async () => {
+    test("should find exact phrases", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
