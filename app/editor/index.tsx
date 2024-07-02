@@ -646,6 +646,7 @@ export class Editor extends React.PureComponent<
    */
   public removeComment = (commentId: string) => {
     const { state, dispatch } = this.view;
+    const tr = state.tr;
 
     state.doc.descendants((node, pos) => {
       if (!node.isInline) {
@@ -657,9 +658,11 @@ export class Editor extends React.PureComponent<
       );
 
       if (mark) {
-        dispatch(state.tr.removeMark(pos, pos + node.nodeSize, mark));
+        tr.removeMark(pos, pos + node.nodeSize, mark);
       }
     });
+
+    dispatch(tr);
   };
 
   /**
@@ -670,6 +673,7 @@ export class Editor extends React.PureComponent<
    */
   public updateComment = (commentId: string, attrs: { resolved: boolean }) => {
     const { state, dispatch } = this.view;
+    const tr = state.tr;
 
     state.doc.descendants((node, pos) => {
       if (!node.isInline) {
@@ -687,11 +691,12 @@ export class Editor extends React.PureComponent<
           ...mark.attrs,
           ...attrs,
         });
-        dispatch(
-          state.tr.removeMark(from, to, mark).addMark(from, to, newMark)
-        );
+
+        tr.removeMark(from, to, mark).addMark(from, to, newMark);
       }
     });
+
+    dispatch(tr);
   };
 
   /**
