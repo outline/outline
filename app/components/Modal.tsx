@@ -282,7 +282,7 @@ const Small = styled.div`
 `;
 
 const SmallContent = styled(Scrollable)`
-  padding: 12px 24px 24px;
+  padding: 12px 24px;
 `;
 
 export default observer(Modal);

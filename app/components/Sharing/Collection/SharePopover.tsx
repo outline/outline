@@ -355,17 +355,15 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       )}
 
       {picker && (
-        <div>
-          <Suggestions
-            ref={suggestionsRef}
-            query={query}
-            collection={collection}
-            pendingIds={pendingIds}
-            addPendingId={handleAddPendingId}
-            removePendingId={handleRemovePendingId}
-            onEscape={handleEscape}
-          />
-        </div>
+        <Suggestions
+          ref={suggestionsRef}
+          query={query}
+          collection={collection}
+          pendingIds={pendingIds}
+          addPendingId={handleAddPendingId}
+          removePendingId={handleRemovePendingId}
+          onEscape={handleEscape}
+        />
       )}
 
       <div style={{ display: picker ? "none" : "block" }}>
