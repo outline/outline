@@ -249,6 +249,11 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
 
     /** Whether the editing session is complete */
     done: z.boolean().optional(),
+
+    // TODO
+    dataAttributes: z
+      .array(z.object({ dataAttributeId: z.string(), value: z.string() }))
+      .optional(),
   }),
 }).refine((req) => !(req.body.append && !req.body.text), {
   message: "text is required while appending",

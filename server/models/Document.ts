@@ -41,6 +41,7 @@ import {
   BelongsToMany,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
+import { ZodError } from "zod";
 import type {
   NavigationNode,
   ProsemirrorData,
@@ -54,7 +55,7 @@ import { ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
-import DocumentDataAttribute from "./DocumentDataAttribute";
+import DataAttribute from "./DataAttribute";
 import FileOperation from "./FileOperation";
 import Revision from "./Revision";
 import Star from "./Star";
@@ -87,10 +88,6 @@ type AdditionalFindOptions = {
       model: User,
       as: "updatedBy",
       paranoid: false,
-    },
-    {
-      model: DocumentDataAttribute,
-      as: "dataAttributes",
     },
   ],
   where: {
@@ -284,6 +281,10 @@ class Document extends ParanoidModel<
   @Column
   color: string | null;
 
+  // TODO
+  @Column(DataType.JSONB)
+  dataAttributes: Record<string, any>[];
+
   /**
    * The content of the document as Markdown.
    *
@@ -369,6 +370,52 @@ class Document extends ParanoidModel<
   }
 
   // hooks
+
+  @BeforeSave
+  static async validateDataAttributes(
+    model: Document,
+    { transaction }: SaveOptions<Document>
+  ) {
+    if (model.changed("dataAttributes")) {
+      const dataAttributeIds = model.dataAttributes.map(
+        (d) => d.dataAttributeId
+      );
+      const definitions = await DataAttribute.findAll({
+        where: {
+          id: dataAttributeIds,
+        },
+        transaction,
+      });
+
+      for (const attr of model.dataAttributes) {
+        const definition = definitions.find(
+          (d) => d.id === attr.dataAttributeId
+        );
+        if (!definition) {
+          throw ValidationError(
+            `Data attribute ${attr.dataAttributeId} not found`
+          );
+        }
+
+        try {
+          definition.zodType.parse(attr.value);
+        } catch (err) {
+          if (err instanceof ZodError) {
+            const { path, message } = err.issues[0];
+            const errMessage =
+              path.length > 0
+                ? `${path[path.length - 1]}: ${message}`
+                : message;
+            throw ValidationError(
+              `Data attribute ${attr.dataAttributeId} has invalid value: ${errMessage}`
+            );
+          }
+
+          throw err;
+        }
+      }
+    }
+  }
 
   @BeforeSave
   static async updateCollectionStructure(
@@ -558,9 +605,6 @@ class Document extends ParanoidModel<
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
-
-  @HasMany(() => DocumentDataAttribute)
-  dataAttributes: DocumentDataAttribute[];
 
   @HasMany(() => UserMembership)
   memberships: UserMembership[];

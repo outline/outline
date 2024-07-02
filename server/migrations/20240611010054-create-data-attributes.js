@@ -74,70 +74,18 @@ module.exports = {
         { transaction }
       );
 
-      await queryInterface.createTable(
-        "document_data_attributes",
-        {
-          id: {
-            type: Sequelize.UUID,
-            allowNull: false,
-            primaryKey: true,
-          },
-          userId: {
-            type: Sequelize.UUID,
-            allowNull: false,
-            onDelete: "cascade",
-            references: {
-              model: "users",
-            }
-          },
-          documentId: {
-            type: Sequelize.UUID,
-            allowNull: false,
-            onDelete: "cascade",
-            references: {
-              model: "documents",
-            }
-          },
-          dataAttributeId: {
-            type: Sequelize.UUID,
-            allowNull: false,
-            onDelete: "cascade",
-            references: {
-              model: "data_attributes",
-            }
-          },
-          value: {
-            type: Sequelize.STRING,
-            allowNull: false,
-          },
-          createdAt: {
-            type: Sequelize.DATE,
-            allowNull: false,
-          },
-          updatedAt: {
-            type: Sequelize.DATE,
-            allowNull: false,
-          },
-        }, {
-          transaction
-        });
-
-        await queryInterface.addIndex(
-          "document_data_attributes",
-          ["documentId"],
-          { transaction }
-        );
-        await queryInterface.addIndex(
-          "document_data_attributes",
-          ["dataAttributeId"],
-          { transaction }
-        );
+      await queryInterface.addColumn("documents", "dataAttributes", {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      });
     });
   },
   down: async (queryInterface, Sequelize) => {
     await queryInterface.sequelize.transaction(async (transaction) => {
-      await queryInterface.dropTable("document_data_attributes", { transaction });
       await queryInterface.dropTable("data_attributes", { transaction });
+      await queryInterface.removeColumn("documents", "dataAttributes", {
+        transaction,
+      });
     });
   }
 };

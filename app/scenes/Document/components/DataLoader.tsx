@@ -13,6 +13,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import Logger from "~/utils/Logger";
 import {
   NotFoundError,
@@ -53,8 +54,16 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const { ui, views, shares, comments, documents, revisions, subscriptions } =
-    useStores();
+  const {
+    ui,
+    views,
+    shares,
+    comments,
+    documents,
+    revisions,
+    subscriptions,
+    dataAttributes,
+  } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const [error, setError] = React.useState<Error | null>(null);
@@ -81,6 +90,15 @@ function DataLoader({ match, children }: Props) {
   const isEditing = isEditRoute || !user?.separateEditMode;
   const can = usePolicy(document);
   const location = useLocation<LocationState>();
+
+  React.useEffect(() => {
+    if (
+      !dataAttributes.isLoaded &&
+      FeatureFlags.isEnabled(Feature.dataAttributes)
+    ) {
+      void dataAttributes.fetchAll();
+    }
+  }, [dataAttributes]);
 
   React.useEffect(() => {
     async function fetchDocument() {

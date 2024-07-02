@@ -62,10 +62,12 @@ export default class Document extends ParanoidModel {
   @observable
   lastViewedAt: string | undefined;
 
+  @Field
   @observable
   dataAttributes: {
     dataAttributeId: string;
-    value: string;
+    value: string | number;
+    updatedAt: string;
   }[];
 
   store: DocumentsStore;
@@ -488,6 +490,22 @@ export default class Document extends ParanoidModel {
     return this.store.rootStore.views.create({
       documentId: this.id,
     });
+  };
+
+  @action
+  setDataAttribute = (dataAttributeId: string, value: string | number) => {
+    this.dataAttributes = (this.dataAttributes ?? [])
+      .filter((attr) => attr.dataAttributeId !== dataAttributeId)
+      .concat({ dataAttributeId, value, updatedAt: new Date().toISOString() });
+    return this;
+  };
+
+  @action
+  deleteDataAttribute = (dataAttributeId: string) => {
+    this.dataAttributes = this.dataAttributes?.filter(
+      (attr) => attr.dataAttributeId !== dataAttributeId
+    );
+    return this;
   };
 
   @action

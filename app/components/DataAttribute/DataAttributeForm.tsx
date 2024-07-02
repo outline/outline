@@ -88,6 +88,11 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
             <div key={index}>
               <Input
                 value={option}
+                onChange={(event) => {
+                  const newOptions = [...(values.options?.options ?? [])];
+                  newOptions[index] = event.target.value;
+                  setValue("options", { options: newOptions });
+                }}
                 type="text"
                 autoComplete="off"
                 autoFocus
