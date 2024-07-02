@@ -20,12 +20,11 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useTextSelection from "~/hooks/useTextSelection";
 import InsightsMenu from "~/menus/InsightsMenu";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
 
 function Insights() {
-  const { views, dataAttributes, documents } = useStores();
+  const { views, documents } = useStores();
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
@@ -45,9 +44,6 @@ function Insights() {
 
   useKeyDown("Escape", onCloseInsights);
 
-  // Temporarily here, insights will be removed / renamed.
-  const hasDataAttributes = FeatureFlags.isEnabled(Feature.dataAttributes);
-
   return (
     <Sidebar title={t("Insights")} onClose={onCloseInsights}>
       {document ? (
@@ -58,27 +54,6 @@ function Insights() {
           justify="space-between"
         >
           <div>
-            {hasDataAttributes && (
-              <Content column>
-                <Heading>{t("Data attributes")}</Heading>
-
-                {dataAttributes.orderedData.map((dataAttribute) => (
-                  <Text
-                    as="p"
-                    type="secondary"
-                    size="small"
-                    key={dataAttribute.id}
-                  >
-                    {dataAttribute.name}:{" "}
-                    {
-                      document.dataAttributes?.find(
-                        (da) => da.dataAttributeId === dataAttribute.id
-                      )?.value
-                    }
-                  </Text>
-                ))}
-              </Content>
-            )}
             <Content column>
               {document.sourceMetadata && (
                 <>

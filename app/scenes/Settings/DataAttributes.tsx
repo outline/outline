@@ -50,7 +50,7 @@ function DataAttributes() {
         </Trans>
       </Text>
       <PaginatedList
-        fetch={dataAttributes.fetchPage}
+        fetch={dataAttributes.fetchAll}
         items={dataAttributes.orderedData}
         renderItem={(dataAttribute: DataAttribute) => (
           <span>{JSON.stringify(dataAttribute)}</span>

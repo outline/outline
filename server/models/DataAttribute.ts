@@ -1,4 +1,8 @@
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  type SaveOptions,
+} from "sequelize";
 import {
   Column,
   Table,
@@ -10,6 +14,7 @@ import {
   Default,
   BeforeCreate,
 } from "sequelize-typescript";
+import { z } from "zod";
 import {
   DataAttributeDataType,
   type DataAttributeOptions,
@@ -52,7 +57,7 @@ class DataAttribute extends ParanoidModel<
   @Column(DataType.ENUM(...Object.values(DataAttributeDataType)))
   dataType: DataAttributeDataType;
 
-  /** Options for `list` data type. */
+  /** Additional options for some datatypes. */
   @AllowNull
   @Column(DataType.JSONB)
   options: DataAttributeOptions;
@@ -68,15 +73,39 @@ class DataAttribute extends ParanoidModel<
 
   // hooks
   @BeforeCreate
-  static async checkMaximumAttributes(model: DataAttribute) {
+  static async checkMaximumAttributes(
+    model: DataAttribute,
+    { transaction }: SaveOptions<DataAttribute>
+  ) {
     const count = await this.count({
       where: {
         teamId: model.teamId,
       },
+      transaction,
     });
 
     if (count >= DataAttributeValidation.max) {
       throw new Error("Maximum number of attributes reached");
+    }
+  }
+
+  /**
+   * The Zod type for validating this data attribute.
+   */
+  get zodType() {
+    switch (this.dataType) {
+      case DataAttributeDataType.String:
+        return z.string();
+      case DataAttributeDataType.Number:
+        return z.number();
+      case DataAttributeDataType.Boolean:
+        return z.boolean();
+      case DataAttributeDataType.List:
+        return z
+          .string()
+          .refine((value) => this.options.values.includes(value));
+      default:
+        throw new Error(`Unknown data type: ${this.dataType}`);
     }
   }
 

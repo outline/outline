@@ -1,5 +1,6 @@
+import uniqBy from "lodash/uniqBy";
 import { Transaction } from "sequelize";
-import { Event, Document, User, DocumentDataAttribute } from "@server/models";
+import { Event, Document, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 
 type Props = {
@@ -7,8 +8,11 @@ type Props = {
   user: User;
   /** The existing document */
   document: Document;
-  /** Data attributes to apply to the document */
-  attributes?: Pick<DocumentDataAttribute, "value" | "dataAttributeId">[];
+  /** TODO: Data attributes to apply to the document */
+  dataAttributes?: {
+    dataAttributeId: string;
+    value: string;
+  }[];
   /** The new title */
   title?: string;
   /** The document icon */
@@ -49,7 +53,7 @@ type Props = {
 export default async function documentUpdater({
   user,
   document,
-  attributes,
+  dataAttributes,
   title,
   icon,
   color,
@@ -68,8 +72,19 @@ export default async function documentUpdater({
   const previousTitle = document.title;
   const cId = collectionId || document.collectionId;
 
-  if (attributes !== undefined) {
-    await updateDataAttributes(user, document, attributes, { transaction });
+  if (dataAttributes !== undefined) {
+    // TODO: Validate schema
+    document.dataAttributes = uniqBy(
+      [
+        ...dataAttributes.map(({ dataAttributeId, value }) => ({
+          dataAttributeId,
+          value,
+          updatedAt: new Date(),
+        })),
+        ...(document.dataAttributes ?? []),
+      ],
+      "dataAttributeId"
+    );
   }
 
   if (title !== undefined) {
@@ -156,25 +171,4 @@ export default async function documentUpdater({
     rejectOnEmpty: true,
     transaction,
   });
-}
-
-async function updateDataAttributes(
-  user: User,
-  document: Document,
-  attributes: Pick<DocumentDataAttribute, "value" | "dataAttributeId">[],
-  { transaction }: { transaction: Transaction }
-) {
-  await DocumentDataAttribute.destroy({
-    where: { documentId: document.id },
-    transaction,
-  });
-
-  await DocumentDataAttribute.bulkCreate(
-    attributes.map((attribute) => ({
-      ...attribute,
-      userId: user.id,
-      documentId: document.id,
-    })),
-    { transaction }
-  );
 }

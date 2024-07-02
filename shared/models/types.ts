@@ -1,10 +1,10 @@
 export enum DataAttributeDataType {
   String = "string",
-  Integer = "integer",
+  Number = "number",
   Boolean = "boolean",
   List = "list",
 }
 
 export type DataAttributeOptions = {
-  options: string[];
+  values: string[];
 };
