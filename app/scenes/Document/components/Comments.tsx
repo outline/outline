@@ -12,7 +12,6 @@ import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import Tooltip from "~/components/Tooltip";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePersistedState from "~/hooks/usePersistedState";
@@ -27,7 +26,6 @@ import Sidebar from "./SidebarLayout";
 function Comments() {
   const { ui, comments, documents } = useStores();
   const { t } = useTranslation();
-  const user = useCurrentUser();
   const location = useLocation();
   const history = useHistory();
   const match = useRouteMatch<{ documentSlug: string }>();
@@ -64,11 +62,9 @@ function Comments() {
     return null;
   }
 
-  const threads = (
-    viewingResolved
-      ? resolvedThreads
-      : comments.unresolvedThreadsInDocument(document.id)
-  ).filter((thread) => thread.createdById === user.id);
+  const threads = viewingResolved
+    ? resolvedThreads
+    : comments.unresolvedThreadsInDocument(document.id);
   const hasComments = threads.length > 0;
 
   const toggleViewingResolved = () => {

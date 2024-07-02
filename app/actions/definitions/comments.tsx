@@ -46,7 +46,9 @@ export const resolveCommentFactory = ({
     analyticsName: "Resolve thread",
     section: DocumentSection,
     icon: <DoneIcon outline />,
-    visible: () => stores.policies.abilities(comment.id).resolve,
+    visible: () =>
+      stores.policies.abilities(comment.id).resolve &&
+      stores.policies.abilities(comment.documentId).update,
     perform: async ({ t }) => {
       await comment.resolve();
 
@@ -72,7 +74,9 @@ export const unresolveCommentFactory = ({
     analyticsName: "Unresolve thread",
     section: DocumentSection,
     icon: <DoneIcon outline />,
-    visible: () => stores.policies.abilities(comment.id).unresolve,
+    visible: () =>
+      stores.policies.abilities(comment.id).unresolve &&
+      stores.policies.abilities(comment.documentId).update,
     perform: async () => {
       await comment.unresolve();
 

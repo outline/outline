@@ -60,7 +60,7 @@ export default class CommentsStore extends Store<Comment> {
    */
   unresolvedThreadsInDocument(documentId: string): Comment[] {
     return this.threadsInDocument(documentId).filter(
-      (comment: Comment) => comment.isResolved === false
+      (comment: Comment) => comment.isResolved !== true
     );
   }
 
