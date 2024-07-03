@@ -341,8 +341,8 @@ export type CommentUpdateEvent = BaseEvent<Comment> & {
   modelId: string;
   documentId: string;
   actorId: string;
-  data: {
-    newMentionIds?: string[];
+  data?: {
+    newMentionIds: string[];
   };
 };
 

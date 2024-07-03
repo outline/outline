@@ -6,7 +6,7 @@ import BaseTask, { TaskPriority } from "./BaseTask";
 
 export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEvent> {
   public async perform(event: CommentUpdateEvent) {
-    const newMentionIds = event.data.newMentionIds;
+    const newMentionIds = event.data?.newMentionIds;
     if (!newMentionIds) {
       return;
     }
