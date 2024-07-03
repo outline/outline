@@ -8,7 +8,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
-import { s } from "@shared/styles";
+import { extraArea, s } from "@shared/styles";
 import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
@@ -256,7 +256,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       {can.update && !readOnly ? (
         <IconWrapper align="center" justify="center" dir={dir}>
           <React.Suspense fallback={fallbackIcon}>
-            <IconPicker
+            <StyledIconPicker
               icon={icon ?? null}
               color={color}
               size={40}
@@ -282,6 +282,11 @@ type TitleProps = {
   $containsIcon: boolean;
   $iconPickerIsOpen: boolean;
 };
+
+// Extra area prevents gap between icon and beginning of title
+const StyledIconPicker = styled(IconPicker)`
+  ${extraArea(8)}
+`;
 
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
