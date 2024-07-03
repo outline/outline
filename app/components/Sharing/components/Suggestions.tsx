@@ -70,7 +70,7 @@ export const Suggestions = observer(
     const containerRef = React.useRef<HTMLDivElement | null>(null);
     const maxHeight = useMaxHeight({
       elementRef: containerRef,
-      maxViewportHeight: 70,
+      maxViewportPercentage: 70,
     });
 
     const fetchUsersByQuery = useThrottledCallback(

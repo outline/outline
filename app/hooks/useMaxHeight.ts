@@ -4,11 +4,11 @@ import useWindowSize from "./useWindowSize";
 
 const useMaxHeight = ({
   elementRef,
-  maxViewportHeight = 90,
-  margin = 8,
+  maxViewportPercentage = 90,
+  margin = 16,
 }: {
   /** The maximum height of the element as a percentage of the viewport. */
-  maxViewportHeight?: number;
+  maxViewportPercentage?: number;
   /** A ref pointing to the element. */
   elementRef?: React.RefObject<HTMLElement | null>;
   /** The margin to apply to the positioning. */
@@ -20,7 +20,7 @@ const useMaxHeight = ({
 
   React.useLayoutEffect(() => {
     if (!isMobile && elementRef?.current) {
-      const mxHeight = (windowHeight / 100) * maxViewportHeight;
+      const mxHeight = (windowHeight / 100) * maxViewportPercentage;
 
       setMaxHeight(
         Math.min(
@@ -35,7 +35,7 @@ const useMaxHeight = ({
     } else {
       setMaxHeight(0);
     }
-  }, [elementRef, windowHeight, margin, isMobile, maxViewportHeight]);
+  }, [elementRef, windowHeight, margin, isMobile, maxViewportPercentage]);
 
   return maxHeight;
 };
