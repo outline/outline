@@ -51,7 +51,12 @@ function ShareButton({ document }: Props) {
         )}
       </PopoverDisclosure>
 
-      <Popover {...popover} aria-label={t("Share")} width={400}>
+      <Popover
+        {...popover}
+        aria-label={t("Share")}
+        width={400}
+        scrollable={false}
+      >
         <SharePopover
           document={document}
           share={share}

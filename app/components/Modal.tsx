@@ -254,7 +254,7 @@ const Header = styled(Flex)`
 const Small = styled.div`
   animation: ${fadeAndScaleIn} 250ms ease;
 
-  margin: auto auto;
+  margin: 25vh auto auto auto;
   width: 75vw;
   min-width: 350px;
   max-width: 450px;
@@ -282,7 +282,7 @@ const Small = styled.div`
 `;
 
 const SmallContent = styled(Scrollable)`
-  padding: 12px 24px 24px;
+  padding: 12px 24px;
 `;
 
 export default observer(Modal);
