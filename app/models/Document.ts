@@ -6,6 +6,7 @@ import { action, autorun, computed, observable, set } from "mobx";
 import { Node, Schema } from "prosemirror-model";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { richExtensions, withComments } from "@shared/editor/nodes";
+import { DataAttributeDataType } from "@shared/models/types";
 import type {
   JSONObject,
   NavigationNode,
@@ -493,7 +494,32 @@ export default class Document extends ParanoidModel {
   };
 
   @action
-  setDataAttribute = (dataAttributeId: string, value: string | number) => {
+  setDataAttribute = (
+    dataAttributeId: string,
+    input: string | number | boolean
+  ) => {
+    const definition = this.store.rootStore.dataAttributes.get(dataAttributeId);
+    if (!definition) {
+      throw new Error(`Data attribute ${dataAttributeId} not found`);
+    }
+
+    let value: string | number | boolean = input;
+    switch (definition.dataType) {
+      case DataAttributeDataType.Number:
+        value = Number(input);
+        break;
+      case DataAttributeDataType.Boolean:
+        value = input === true || input === "true";
+        break;
+      case DataAttributeDataType.List:
+        if (!definition.options?.values.includes(input as string)) {
+          throw new Error(
+            `Invalid value for data attribute ${dataAttributeId}`
+          );
+        }
+        break;
+    }
+
     this.dataAttributes = (this.dataAttributes ?? [])
       .filter((attr) => attr.dataAttributeId !== dataAttributeId)
       .concat({ dataAttributeId, value, updatedAt: new Date().toISOString() });

@@ -75,14 +75,11 @@ export default async function documentUpdater({
   if (dataAttributes !== undefined) {
     // TODO: Validate schema
     document.dataAttributes = uniqBy(
-      [
-        ...dataAttributes.map(({ dataAttributeId, value }) => ({
-          dataAttributeId,
-          value,
-          updatedAt: new Date(),
-        })),
-        ...(document.dataAttributes ?? []),
-      ],
+      dataAttributes.map(({ dataAttributeId, value, updatedAt }) => ({
+        dataAttributeId,
+        value,
+        updatedAt: updatedAt ?? new Date(),
+      })),
       "dataAttributeId"
     );
   }

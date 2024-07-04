@@ -1,11 +1,12 @@
 import { observer } from "mobx-react";
-import { DatabaseIcon } from "outline-icons";
+import { DatabaseIcon, MoreIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import DataAttribute from "~/models/DataAttribute";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
+import Item from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
@@ -14,6 +15,7 @@ import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { DataAttributesHelper } from "~/utils/DataAttributesHelper";
 
 function DataAttributes() {
   const team = useCurrentTeam();
@@ -24,7 +26,7 @@ function DataAttributes() {
 
   return (
     <Scene
-      title={t("Attributes")}
+      title={t("Data Attributes")}
       icon={<DatabaseIcon />}
       actions={
         <>
@@ -41,19 +43,25 @@ function DataAttributes() {
         </>
       }
     >
-      <Heading>{t("Attributes")}</Heading>
+      <Heading>{t("Data Attributes")}</Heading>
       <Text as="p" type="secondary">
         <Trans>
           Attributes allow you to define data to be stored with your documents.
-          They can be used to store metadata, tags, or any other structured
-          data.
+          They can be used to store custom properties, metadata, or any other
+          structured information that is common across documents.
         </Trans>
       </Text>
       <PaginatedList
         fetch={dataAttributes.fetchAll}
         items={dataAttributes.orderedData}
         renderItem={(dataAttribute: DataAttribute) => (
-          <span>{JSON.stringify(dataAttribute)}</span>
+          <Item
+            key={dataAttribute.id}
+            title={dataAttribute.name}
+            subtitle={dataAttribute.description || dataAttribute.dataType}
+            image={DataAttributesHelper.getIcon(dataAttribute)}
+            actions={<MoreIcon />}
+          />
         )}
       />
     </Scene>

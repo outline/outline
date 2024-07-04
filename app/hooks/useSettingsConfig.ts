@@ -20,8 +20,8 @@ import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
-import { Hook, PluginManager } from "~/utils/PluginManager";
 import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
+import { Hook, PluginManager } from "~/utils/PluginManager";
 import isCloudHosted from "~/utils/isCloudHosted";
 import lazy from "~/utils/lazyWithRetry";
 import { settingsPath } from "~/utils/routeHelpers";
@@ -123,16 +123,6 @@ const useSettingsConfig = () => {
         icon: BeakerIcon,
       },
       {
-        name: t("Attributes"),
-        path: settingsPath("attributes"),
-        component: DataAttributes,
-        enabled:
-          can.createDataAttribute &&
-          FeatureFlags.isEnabled(Feature.dataAttributes),
-        group: t("Workspace"),
-        icon: DatabaseIcon,
-      },
-      {
         name: t("Members"),
         path: settingsPath("members"),
         component: Members,
@@ -155,6 +145,16 @@ const useSettingsConfig = () => {
         enabled: can.update,
         group: t("Workspace"),
         icon: ShapesIcon,
+      },
+      {
+        name: t("Data Attributes"),
+        path: settingsPath("attributes"),
+        component: DataAttributes,
+        enabled:
+          can.createDataAttribute &&
+          FeatureFlags.isEnabled(Feature.dataAttributes),
+        group: t("Workspace"),
+        icon: DatabaseIcon,
       },
       {
         name: t("Shared Links"),
