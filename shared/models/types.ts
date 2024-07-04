@@ -6,5 +6,11 @@ export enum DataAttributeDataType {
 }
 
 export type DataAttributeOptions = {
-  values: string[];
+  /** An icon to display next to the attribute. */
+  icon?: string;
+  /** Valid options for list data type. */
+  options: {
+    value: string;
+    color?: string;
+  }[];
 };

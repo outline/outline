@@ -118,21 +118,23 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
         {document.dataAttributes?.map((dataAttribute) => {
           const definition = dataAttributes.get(dataAttribute.dataAttributeId);
           return (
-            <div key={dataAttribute.dataAttributeId}>
-              <Text type="tertiary" weight="bold">
+            <React.Fragment key={dataAttribute.dataAttributeId}>
+              <Text type="tertiary" weight="bold" as="dt">
                 {definition?.name}:
               </Text>{" "}
-              <Text type="tertiary">{String(dataAttribute.value)}</Text>
-              <Button
-                onClick={() => {
-                  document.deleteDataAttribute(dataAttribute.dataAttributeId);
-                  void document.save();
-                }}
-                neutral
-              >
-                x
-              </Button>
-            </div>
+              <Text type="tertiary" as="dd">
+                {String(dataAttribute.value)}
+                <Button
+                  onClick={() => {
+                    document.deleteDataAttribute(dataAttribute.dataAttributeId);
+                    void document.save();
+                  }}
+                  neutral
+                >
+                  x
+                </Button>
+              </Text>
+            </React.Fragment>
           );
         })}
         {document.dataAttributes?.length > 0 && addProperty}
@@ -180,7 +182,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   );
 }
 
-const Properties = styled.div`
+const Properties = styled.dl`
   margin-top: -1.9em;
   margin-bottom: 2em;
   font-size: 14px;

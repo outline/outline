@@ -9,6 +9,7 @@ import {
   type DataAttributeOptions,
 } from "@shared/models/types";
 import { DataAttributeValidation } from "@shared/validations";
+import type DataAttribute from "~/models/DataAttribute";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -83,14 +84,14 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
       />
       {values.dataType === DataAttributeDataType.List && (
         <Flex column gap={8}>
-          {values.options?.values?.map((option, index) => (
+          {values.options?.options?.map((option, index) => (
             <div key={index}>
               <Input
-                value={option}
+                value={option.value}
                 onChange={(event) => {
-                  const newValues = [...(values.options?.values ?? [])];
-                  newValues[index] = event.target.value;
-                  setValue("options", { values: newValues });
+                  const newOptions = [...(values.options?.options ?? [])];
+                  newOptions[index] = { value: event.target.value };
+                  setValue("options", { options: newOptions });
                 }}
                 type="text"
                 autoComplete="off"
@@ -105,12 +106,12 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
             render={({ field }) => (
               <NudeButton
                 disabled={
-                  (values.options?.values?.length ?? 0) >=
+                  (values.options?.options?.length ?? 0) >=
                   DataAttributeValidation.maxOptions
                 }
                 onClick={() => {
                   field.onChange({
-                    values: [...(field.value?.values ?? []), ""],
+                    options: [...(field.value?.options ?? []), ""],
                   });
                 }}
               >

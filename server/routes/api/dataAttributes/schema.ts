@@ -1,5 +1,6 @@
 import z from "zod";
 import { DataAttributeDataType } from "@shared/models/types";
+import { zodIconType } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
 
 const BaseIdSchema = z.object({
@@ -45,10 +46,19 @@ export const DataAttributesCreateSchema = BaseSchema.extend({
       /** Type of the data attribute */
       dataType: z.nativeEnum(DataAttributeDataType),
 
-      /** Options for the data attribute (if list type) */
+      /** Additional options for the data attribute */
       options: z
         .object({
-          values: z.array(z.string()),
+          /** An icon representing the data attribute */
+          icon: zodIconType().optional(),
+          values: z.array(
+            z.object({
+              /** Label of the option */
+              label: z.string(),
+              /** Color of the option */
+              color: z.string().optional(),
+            })
+          ),
         })
         .optional(),
 

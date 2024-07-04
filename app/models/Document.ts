@@ -512,7 +512,11 @@ export default class Document extends ParanoidModel {
         value = input === true || input === "true";
         break;
       case DataAttributeDataType.List:
-        if (!definition.options?.values.includes(input as string)) {
+        if (
+          !definition.options?.options
+            .map((i) => i.value)
+            .includes(input as string)
+        ) {
           throw new Error(
             `Invalid value for data attribute ${dataAttributeId}`
           );
