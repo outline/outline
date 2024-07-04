@@ -48,7 +48,7 @@ export const DataAttributesCreateSchema = BaseSchema.extend({
       /** Options for the data attribute (if list type) */
       options: z
         .object({
-          options: z.array(z.string()),
+          values: z.array(z.string()),
         })
         .optional(),
 

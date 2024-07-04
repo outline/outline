@@ -9,7 +9,6 @@ import {
   type DataAttributeOptions,
 } from "@shared/models/types";
 import { DataAttributeValidation } from "@shared/validations";
-import DataAttribute from "~/models/DataAttribute";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -70,7 +69,7 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
               field.onChange(value);
 
               if (value === DataAttributeDataType.List) {
-                setValue("options", { options: [""] });
+                setValue("options", { values: [""] });
               }
             }}
             ariaLabel={t("Format")}
@@ -84,14 +83,14 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
       />
       {values.dataType === DataAttributeDataType.List && (
         <Flex column gap={8}>
-          {values.options?.options?.map((option, index) => (
+          {values.options?.values?.map((option, index) => (
             <div key={index}>
               <Input
                 value={option}
                 onChange={(event) => {
-                  const newOptions = [...(values.options?.options ?? [])];
-                  newOptions[index] = event.target.value;
-                  setValue("options", { options: newOptions });
+                  const newValues = [...(values.options?.values ?? [])];
+                  newValues[index] = event.target.value;
+                  setValue("options", { values: newValues });
                 }}
                 type="text"
                 autoComplete="off"
@@ -106,12 +105,12 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
             render={({ field }) => (
               <NudeButton
                 disabled={
-                  (values.options?.options?.length ?? 0) >=
+                  (values.options?.values?.length ?? 0) >=
                   DataAttributeValidation.maxOptions
                 }
                 onClick={() => {
                   field.onChange({
-                    options: [...(field.value?.options ?? []), ""],
+                    values: [...(field.value?.values ?? []), ""],
                   });
                 }}
               >

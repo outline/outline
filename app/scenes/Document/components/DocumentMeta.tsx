@@ -9,6 +9,7 @@ import Flex from "@shared/components/Flex";
 import { TeamPreference } from "@shared/types";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
+import Button from "~/components/Button";
 import DocumentMeta from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
 import Input from "~/components/Input";
@@ -55,7 +56,15 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const addProperty = (
     <InlineLink
       to={documentPath(document)}
-      onClick={() => setDraftAttribute((state) => (state ? null : {}))}
+      onClick={() =>
+        setDraftAttribute((state) =>
+          state
+            ? null
+            : {
+                dataAttributeId: dataAttributes.orderedData[0].id,
+              }
+        )
+      }
     >
       <PlusIcon size={18} /> Property
     </InlineLink>
@@ -100,7 +109,8 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
             </Link>
           </Wrapper>
         ) : null}
-        {hasDataAttributes && document.dataAttributes.length === 0 ? (
+        {hasDataAttributes &&
+        (!document.dataAttributes || document.dataAttributes.length === 0) ? (
           <>&nbsp;•&nbsp;{addProperty}</>
         ) : null}
       </Meta>
@@ -112,11 +122,20 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
               <Text type="tertiary" weight="bold">
                 {definition?.name}:
               </Text>{" "}
-              <Text type="tertiary">{dataAttribute.value}</Text>
+              <Text type="tertiary">{String(dataAttribute.value)}</Text>
+              <Button
+                onClick={() => {
+                  document.deleteDataAttribute(dataAttribute.dataAttributeId);
+                  void document.save();
+                }}
+                neutral
+              >
+                x
+              </Button>
             </div>
           );
         })}
-        {document.dataAttributes.length > 1 && addProperty}
+        {document.dataAttributes?.length > 0 && addProperty}
         {draftAttribute && (
           <Flex gap={8} auto>
             <InputSelect
@@ -130,6 +149,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
                 dataAttributes.orderedData[0].id
               }
               onChange={(dataAttributeId) =>
+                dataAttributeId &&
                 setDraftAttribute({ ...draftAttribute, dataAttributeId })
               }
             />

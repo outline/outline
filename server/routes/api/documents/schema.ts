@@ -255,9 +255,14 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Whether the editing session is complete */
     done: z.boolean().optional(),
 
-    // TODO
+    /** Data attributes to be updated, attributes not included will be removed */
     dataAttributes: z
-      .array(z.object({ dataAttributeId: z.string(), value: z.string() }))
+      .array(
+        z.object({
+          dataAttributeId: z.string(),
+          value: z.string().or(z.boolean()).or(z.number()),
+        })
+      )
       .optional(),
   }),
 }).refine((req) => !(req.body.append && !req.body.text), {
