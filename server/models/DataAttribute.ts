@@ -103,7 +103,9 @@ class DataAttribute extends ParanoidModel<
       case DataAttributeDataType.List:
         return z
           .string()
-          .refine((value) => this.options.values.includes(value));
+          .refine((value) =>
+            this.options.options.map((i) => i.value).includes(value)
+          );
       default:
         throw new Error(`Unknown data type: ${this.dataType}`);
     }
