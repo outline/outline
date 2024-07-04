@@ -94,6 +94,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
   const handleMouseDown = React.useCallback(
     (event) => {
+      event.preventDefault();
       setOffset(event.pageX - width);
       setResizing(true);
       setAnimating(false);
