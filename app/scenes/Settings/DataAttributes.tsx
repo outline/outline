@@ -1,13 +1,11 @@
 import { observer } from "mobx-react";
-import { DatabaseIcon, MoreIcon } from "outline-icons";
+import { DatabaseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import DataAttribute from "~/models/DataAttribute";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
-import { DataAttributeEdit } from "~/components/DataAttribute/DataAttributeEdit";
 import Heading from "~/components/Heading";
-import Item from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
@@ -16,12 +14,12 @@ import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { DataAttributesHelper } from "~/utils/DataAttributesHelper";
+import { DataAttributeListItem } from "./components/DataAttributeListItem";
 
 function DataAttributes() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { dialogs, dataAttributes } = useStores();
+  const { dataAttributes } = useStores();
   const can = usePolicy(team);
   const context = useActionContext();
 
@@ -56,26 +54,9 @@ function DataAttributes() {
         fetch={dataAttributes.fetchAll}
         items={dataAttributes.orderedData}
         renderItem={(dataAttribute: DataAttribute) => (
-          <Item
+          <DataAttributeListItem
             key={dataAttribute.id}
-            title={dataAttribute.name}
-            subtitle={dataAttribute.description || dataAttribute.dataType}
-            image={DataAttributesHelper.getIcon(dataAttribute.dataType)}
-            actions={
-              <MoreIcon
-                onClick={() => {
-                  dialogs.openModal({
-                    title: t("Edit attribute"),
-                    content: (
-                      <DataAttributeEdit
-                        dataAttribute={dataAttribute}
-                        onSubmit={dialogs.closeAllModals}
-                      />
-                    ),
-                  });
-                }}
-              />
-            }
+            dataAttribute={dataAttribute}
           />
         )}
       />

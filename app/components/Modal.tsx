@@ -271,7 +271,7 @@ const Small = styled.div`
   outline: none;
 
   ${NudeButton} {
-    &:hover,
+    &:hover:not(:disabled),
     &[aria-expanded="true"] {
       background: ${s("sidebarControlHoverBackground")};
     }
