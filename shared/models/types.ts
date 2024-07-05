@@ -9,7 +9,7 @@ export type DataAttributeOptions = {
   /** An icon to display next to the attribute. */
   icon?: string;
   /** Valid options for list data type. */
-  options: {
+  options?: {
     value: string;
     color?: string;
   }[];

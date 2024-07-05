@@ -1,4 +1,3 @@
-import capitalize from "lodash/capitalize";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
@@ -13,9 +12,15 @@ import type DataAttribute from "~/models/DataAttribute";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
+import { DataAttributesHelper } from "~/utils/DataAttributesHelper";
 import InputSelect from "../InputSelect";
 import NudeButton from "../NudeButton";
 import Switch from "../Switch";
+
+type Props = {
+  handleSubmit: (data: FormData) => void;
+  dataAttribute?: DataAttribute;
+};
 
 export interface FormData {
   name: string;
@@ -28,10 +33,7 @@ export interface FormData {
 export const DataAttributeForm = observer(function DataAttributeForm_({
   handleSubmit,
   dataAttribute,
-}: {
-  handleSubmit: (data: FormData) => void;
-  dataAttribute?: DataAttribute;
-}) {
+}: Props) {
   const { t } = useTranslation();
   const {
     register,
@@ -70,14 +72,20 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
               field.onChange(value);
 
               if (value === DataAttributeDataType.List) {
-                setValue("options", { values: [""] });
+                setValue("options", {
+                  options: [
+                    {
+                      value: "",
+                    },
+                  ],
+                });
               }
             }}
             ariaLabel={t("Format")}
             label={t("Format")}
             options={Object.values(DataAttributeDataType).map((dataType) => ({
               value: dataType,
-              label: t(capitalize(dataType)),
+              label: DataAttributesHelper.getName(dataType, t),
             }))}
           />
         )}
@@ -111,7 +119,12 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
                 }
                 onClick={() => {
                   field.onChange({
-                    options: [...(field.value?.options ?? []), ""],
+                    options: [
+                      ...(field.value?.options ?? []),
+                      {
+                        value: "",
+                      },
+                    ],
                   });
                 }}
               >

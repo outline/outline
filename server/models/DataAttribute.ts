@@ -60,7 +60,7 @@ class DataAttribute extends ParanoidModel<
   /** Additional options for some datatypes. */
   @AllowNull
   @Column(DataType.JSONB)
-  options: DataAttributeOptions;
+  options: DataAttributeOptions | null;
 
   /** Whether this data attribute is pinned to the top of the document. */
   @Default(false)
@@ -104,7 +104,7 @@ class DataAttribute extends ParanoidModel<
         return z
           .string()
           .refine((value) =>
-            this.options.options.map((i) => i.value).includes(value)
+            this.options?.options?.map((i) => i.value).includes(value)
           );
       default:
         throw new Error(`Unknown data type: ${this.dataType}`);

@@ -18,6 +18,7 @@ import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { DataAttributesHelper } from "~/utils/DataAttributesHelper";
 import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import { documentPath, documentInsightsPath } from "~/utils/routeHelpers";
 
@@ -61,6 +62,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
           state
             ? null
             : {
+                value: "",
                 dataAttributeId: dataAttributes.orderedData[0].id,
               }
         )
@@ -120,6 +122,11 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
           return (
             <React.Fragment key={dataAttribute.dataAttributeId}>
               <Text type="tertiary" weight="bold" as="dt">
+                {definition
+                  ? DataAttributesHelper.getIcon(definition.dataType, {
+                      size: 18,
+                    })
+                  : null}
                 {definition?.name}:
               </Text>{" "}
               <Text type="tertiary" as="dd">
@@ -143,7 +150,10 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
             <InputSelect
               ariaLabel="Type"
               options={dataAttributes.orderedData.map((attribute) => ({
-                label: attribute.name,
+                label:
+                  attribute.name +
+                  " – " +
+                  DataAttributesHelper.getName(attribute.dataType, t),
                 value: attribute.id,
               }))}
               value={

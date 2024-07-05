@@ -84,4 +84,31 @@ router.post(
   }
 );
 
+router.post(
+  "dataAttributes.update",
+  auth({ role: UserRole.Admin }),
+  validate(T.DataAttributesUpdateSchema),
+  transaction(),
+  async (ctx: APIContext<T.DataAttributesUpdateReq>) => {
+    const { id, ...input } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const dataAttribute = await DataAttribute.findByPk(id, {
+      rejectOnEmpty: true,
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    authorize(user, "update", dataAttribute);
+    dataAttribute.set(input);
+    await dataAttribute.save({ transaction });
+
+    ctx.body = {
+      data: presentDataAttribute(dataAttribute),
+      policies: presentPolicies(user, [dataAttribute]),
+    };
+  }
+);
+
 export default router;

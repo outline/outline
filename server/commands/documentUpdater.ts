@@ -1,5 +1,6 @@
 import uniqBy from "lodash/uniqBy";
 import { Transaction } from "sequelize";
+import { Primitive } from "utility-types";
 import { Event, Document, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 
@@ -11,7 +12,7 @@ type Props = {
   /** TODO: Data attributes to apply to the document */
   dataAttributes?: {
     dataAttributeId: string;
-    value: string;
+    value: Primitive;
   }[];
   /** The new title */
   title?: string;
@@ -75,10 +76,10 @@ export default async function documentUpdater({
   if (dataAttributes !== undefined) {
     // TODO: Validate schema
     document.dataAttributes = uniqBy(
-      dataAttributes.map(({ dataAttributeId, value, updatedAt }) => ({
+      dataAttributes.map(({ dataAttributeId, value }) => ({
         dataAttributeId,
         value,
-        updatedAt: updatedAt ?? new Date(),
+        updatedAt: new Date(),
       })),
       "dataAttributeId"
     );
