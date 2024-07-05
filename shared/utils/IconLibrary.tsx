@@ -249,7 +249,7 @@ export class IconLibrary {
     },
     browser: {
       component: BrowserIcon,
-      keywords: "browser web app",
+      keywords: "browser web website app",
     },
     collection: {
       component: (props) => <CollectionIcon expanded {...props} />,
@@ -365,7 +365,8 @@ export class IconLibrary {
     },
     padlock: {
       component: PadlockIcon,
-      keywords: "padlock private security authentication authorization auth",
+      keywords:
+        "padlock private privacy security authentication authorization auth",
     },
     palette: {
       component: PaletteIcon,

@@ -12,7 +12,10 @@ type Props = {
 export const DataAttributeListItem = observer(function DataAttributeListItem_({
   dataAttribute,
 }: Props) {
-  const image = DataAttributesHelper.getIcon(dataAttribute.dataType);
+  const image = DataAttributesHelper.getIcon(
+    dataAttribute.dataType,
+    dataAttribute.name
+  );
 
   return (
     <ListItem
