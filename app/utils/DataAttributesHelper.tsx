@@ -7,6 +7,7 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import { DataAttributeDataType } from "@shared/models/types";
+import { IconLibrary } from "@shared/utils/IconLibrary";
 import DataAttribute from "~/models/DataAttribute";
 
 export class DataAttributesHelper {
@@ -34,8 +35,15 @@ export class DataAttributesHelper {
    */
   public static getIcon(
     dataType: DataAttributeDataType,
+    keyword?: string,
     props?: React.ComponentProps<typeof DoneIcon>
   ) {
+    const match = keyword ? IconLibrary.findIconByKeyword(keyword) : undefined;
+    if (match) {
+      const IconComponent = IconLibrary.getComponent(match);
+      return <IconComponent {...props} />;
+    }
+
     switch (dataType) {
       case DataAttributeDataType.Boolean:
         return <DoneIcon {...props} />;
