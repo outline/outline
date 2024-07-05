@@ -19,7 +19,7 @@ export class DataAttributesHelper {
       case DataAttributeDataType.String:
         return t("Text");
       case DataAttributeDataType.List:
-        return t("Select");
+        return t("List");
       default:
         return "";
     }

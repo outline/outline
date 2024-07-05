@@ -385,6 +385,7 @@ class Document extends ParanoidModel<
           id: dataAttributeIds,
         },
         transaction,
+        paranoid: false,
       });
 
       for (const attr of model.dataAttributes) {

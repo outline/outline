@@ -1,8 +1,9 @@
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+import { CloseIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import styled, { useTheme } from "styled-components";
 import {
   DataAttributeDataType,
   type DataAttributeOptions,
@@ -15,7 +16,6 @@ import Input from "~/components/Input";
 import { DataAttributesHelper } from "~/utils/DataAttributesHelper";
 import InputSelect from "../InputSelect";
 import NudeButton from "../NudeButton";
-import Switch from "../Switch";
 
 type Props = {
   handleSubmit: (data: FormData) => void;
@@ -27,13 +27,13 @@ export interface FormData {
   description?: string;
   dataType: DataAttributeDataType;
   options?: DataAttributeOptions;
-  pinned: boolean;
 }
 
 export const DataAttributeForm = observer(function DataAttributeForm_({
   handleSubmit,
   dataAttribute,
 }: Props) {
+  const theme = useTheme();
   const { t } = useTranslation();
   const {
     register,
@@ -50,50 +50,60 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
       description: dataAttribute?.description ?? undefined,
       dataType: dataAttribute?.dataType ?? DataAttributeDataType.String,
       options: dataAttribute?.options ?? undefined,
-      pinned: dataAttribute?.pinned ?? false,
     },
   });
-  React.useEffect(() => {
-    setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
-  }, [setFocus]);
-
   const values = watch();
+  const isEditing = !!dataAttribute;
+
+  React.useEffect(() => {
+    if (isEditing) {
+      return;
+    }
+    setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
+  }, [isEditing, setFocus]);
 
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
-      <Controller
-        control={control}
-        name="dataType"
-        render={({ field }) => (
-          <InputSelect
-            ref={field.ref}
-            value={field.value}
-            onChange={(value: DataAttributeDataType) => {
-              field.onChange(value);
+      <div>
+        <Controller
+          control={control}
+          name="dataType"
+          render={({ field }) => (
+            <InputSelect
+              ref={field.ref}
+              value={field.value}
+              disabled={isEditing}
+              onChange={(value: DataAttributeDataType) => {
+                field.onChange(value);
 
-              if (value === DataAttributeDataType.List) {
-                setValue("options", {
-                  options: [
-                    {
-                      value: "",
-                    },
-                  ],
-                });
-              }
-            }}
-            ariaLabel={t("Format")}
-            label={t("Format")}
-            options={Object.values(DataAttributeDataType).map((dataType) => ({
-              value: dataType,
-              label: DataAttributesHelper.getName(dataType, t),
-            }))}
-          />
-        )}
-      />
+                if (value === DataAttributeDataType.List) {
+                  setValue("options", {
+                    options: [
+                      {
+                        value: "",
+                      },
+                      {
+                        value: "",
+                      },
+                    ],
+                  });
+                }
+              }}
+              ariaLabel={t("Format")}
+              label={t("Format")}
+              options={Object.values(DataAttributeDataType).map((dataType) => ({
+                value: dataType,
+                label: DataAttributesHelper.getName(dataType, t),
+              }))}
+              style={{ width: "auto" }}
+            />
+          )}
+        />
+      </div>
       {values.dataType === DataAttributeDataType.List && (
-        <Flex column gap={8}>
+        <Options gap={8} column>
           {values.options?.options?.map((option, index) => (
-            <div key={index}>
+            <Flex gap={4} align="center" key={index}>
               <Input
                 value={option.value}
                 onChange={(event) => {
@@ -103,42 +113,65 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
                 }}
                 type="text"
                 autoComplete="off"
-                autoFocus
+                autoFocus={index !== 1}
+                minLength={DataAttributeValidation.minOptionLength}
+                maxLength={DataAttributeValidation.maxOptionLength}
+                margin={0}
+                required
                 flex
               />
-            </div>
-          ))}
-          <Controller
-            control={control}
-            name="options"
-            render={({ field }) => (
               <NudeButton
                 disabled={
-                  (values.options?.options?.length ?? 0) >=
-                  DataAttributeValidation.maxOptions
+                  (values.options?.options?.length ?? 0) <=
+                  DataAttributeValidation.minOptions
                 }
                 onClick={() => {
-                  field.onChange({
-                    options: [
-                      ...(field.value?.options ?? []),
-                      {
-                        value: "",
-                      },
-                    ],
-                  });
+                  const newOptions = [...(values.options?.options ?? [])];
+                  newOptions.splice(index, 1);
+                  setValue("options", { options: newOptions });
                 }}
               >
-                <PlusIcon />
+                <CloseIcon color={theme.textSecondary} />
               </NudeButton>
-            )}
-          />
-        </Flex>
+            </Flex>
+          ))}
+          <div>
+            <Controller
+              control={control}
+              name="options"
+              render={({ field }) => (
+                <Button
+                  neutral
+                  borderOnHover
+                  icon={<PlusIcon size={20} />}
+                  disabled={
+                    (values.options?.options?.length ?? 0) >=
+                    DataAttributeValidation.maxOptions
+                  }
+                  onClick={() => {
+                    field.onChange({
+                      options: [
+                        ...(field.value?.options ?? []),
+                        {
+                          value: "",
+                        },
+                      ],
+                    });
+                  }}
+                >
+                  {t("Add option")}
+                </Button>
+              )}
+            />
+          </div>
+        </Options>
       )}
       <Input
         type="text"
         label={t("Name")}
         {...register("name", {
           required: true,
+          minLength: DataAttributeValidation.minNameLength,
           maxLength: DataAttributeValidation.maxNameLength,
         })}
         autoComplete="off"
@@ -148,17 +181,12 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
       <Input
         type="text"
         label={t("Description")}
+        placeholder={t("Optional")}
         {...register("description", {
           maxLength: DataAttributeValidation.maxDescriptionLength,
         })}
         autoComplete="off"
         flex
-      />
-      <Switch
-        id="pinned"
-        label={t("Pinned")}
-        note={t("Pinned attributes are shown at the top of documents.")}
-        {...register("pinned")}
       />
       <Flex justify="flex-end">
         <Button
@@ -177,3 +205,8 @@ export const DataAttributeForm = observer(function DataAttributeForm_({
     </form>
   );
 });
+
+const Options = styled(Flex)`
+  margin-left: 16px;
+  margin-bottom: 16px;
+`;

@@ -34,6 +34,12 @@ export const DataAttributeValidation = {
   /** The maximum length of the name */
   maxNameLength: 255,
 
+  /** The minimum length of a list option */
+  minOptionLength: 1,
+
+  /** The maximum length of a list option */
+  maxOptionLength: 50,
+
   /** The maximum length of the description */
   maxDescriptionLength: 1000,
 
@@ -43,7 +49,10 @@ export const DataAttributeValidation = {
   /** The maximum number of data attributes that can be pinned */
   maxPinned: 3,
 
-  /** The maximum number of options for a single attribute */
+  /** The minimum number of options for a list attribute */
+  minOptions: 2,
+
+  /** The maximum number of options for a list attribute */
   maxOptions: 10,
 };
 
