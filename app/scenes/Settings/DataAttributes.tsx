@@ -5,6 +5,7 @@ import { useTranslation, Trans } from "react-i18next";
 import DataAttribute from "~/models/DataAttribute";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
+import { DataAttributeEdit } from "~/components/DataAttribute/DataAttributeEdit";
 import Heading from "~/components/Heading";
 import Item from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
@@ -20,7 +21,7 @@ import { DataAttributesHelper } from "~/utils/DataAttributesHelper";
 function DataAttributes() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { dataAttributes } = useStores();
+  const { dialogs, dataAttributes } = useStores();
   const can = usePolicy(team);
   const context = useActionContext();
 
@@ -59,8 +60,22 @@ function DataAttributes() {
             key={dataAttribute.id}
             title={dataAttribute.name}
             subtitle={dataAttribute.description || dataAttribute.dataType}
-            image={DataAttributesHelper.getIcon(dataAttribute)}
-            actions={<MoreIcon />}
+            image={DataAttributesHelper.getIcon(dataAttribute.dataType)}
+            actions={
+              <MoreIcon
+                onClick={() => {
+                  dialogs.openModal({
+                    title: t("Edit attribute"),
+                    content: (
+                      <DataAttributeEdit
+                        dataAttribute={dataAttribute}
+                        onSubmit={dialogs.closeAllModals}
+                      />
+                    ),
+                  });
+                }}
+              />
+            }
           />
         )}
       />

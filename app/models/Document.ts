@@ -4,6 +4,7 @@ import capitalize from "lodash/capitalize";
 import floor from "lodash/floor";
 import { action, autorun, computed, observable, set } from "mobx";
 import { Node, Schema } from "prosemirror-model";
+import { Primitive } from "utility-types";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import { DataAttributeDataType } from "@shared/models/types";
@@ -67,7 +68,7 @@ export default class Document extends ParanoidModel {
   @observable
   dataAttributes: {
     dataAttributeId: string;
-    value: string | number;
+    value: Primitive;
     updatedAt: string;
   }[];
 
@@ -513,7 +514,7 @@ export default class Document extends ParanoidModel {
         break;
       case DataAttributeDataType.List:
         if (
-          !definition.options?.options
+          !(definition.options?.options ?? [])
             .map((i) => i.value)
             .includes(input as string)
         ) {

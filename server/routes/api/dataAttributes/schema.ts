@@ -51,10 +51,10 @@ export const DataAttributesCreateSchema = BaseSchema.extend({
         .object({
           /** An icon representing the data attribute */
           icon: zodIconType().optional(),
-          values: z.array(
+          options: z.array(
             z.object({
               /** Label of the option */
-              label: z.string(),
+              value: z.string(),
               /** Color of the option */
               color: z.string().optional(),
             })
@@ -74,4 +74,37 @@ export const DataAttributesCreateSchema = BaseSchema.extend({
 
 export type DataAttributesCreateReq = z.infer<
   typeof DataAttributesCreateSchema
+>;
+
+export const DataAttributesUpdateSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    /** Name of the data attribute */
+    name: z.string(),
+
+    /** Description of the data attribute */
+    description: z.string().optional(),
+
+    /** Additional options for the data attribute */
+    options: z
+      .object({
+        /** An icon representing the data attribute */
+        icon: zodIconType().nullish(),
+        options: z.array(
+          z.object({
+            /** Label of the option */
+            value: z.string(),
+            /** Color of the option */
+            color: z.string().optional(),
+          })
+        ),
+      })
+      .optional(),
+
+    /** Whether the data attribute is pinned to the top of document */
+    pinned: z.boolean().optional(),
+  }),
+});
+
+export type DataAttributesUpdateReq = z.infer<
+  typeof DataAttributesUpdateSchema
 >;
