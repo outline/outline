@@ -108,3 +108,11 @@ export const DataAttributesUpdateSchema = BaseSchema.extend({
 export type DataAttributesUpdateReq = z.infer<
   typeof DataAttributesUpdateSchema
 >;
+
+export const DataAttributesDeleteSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DataAttributesDeleteReq = z.infer<
+  typeof DataAttributesDeleteSchema
+>;

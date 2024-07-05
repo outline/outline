@@ -111,4 +111,29 @@ router.post(
   }
 );
 
+router.post(
+  "dataAttributes.delete",
+  auth({ role: UserRole.Admin }),
+  validate(T.DataAttributesDeleteSchema),
+  transaction(),
+  async (ctx: APIContext<T.DataAttributesDeleteReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const dataAttribute = await DataAttribute.findByPk(id, {
+      lock: transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+      transaction,
+    });
+
+    authorize(user, "delete", dataAttribute);
+    await dataAttribute.destroy({ transaction });
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
 export default router;
