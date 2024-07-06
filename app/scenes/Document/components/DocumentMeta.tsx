@@ -4,18 +4,22 @@ import { CommentIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useRouteMatch } from "react-router-dom";
+import { MenuButton, useMenuState } from "reakit";
 import styled from "styled-components";
 import { TeamPreference } from "@shared/types";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
+import ContextMenu from "~/components/ContextMenu";
+import MenuItem from "~/components/ContextMenu/MenuItem";
 import DocumentMeta from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { DataAttributesHelper } from "~/utils/DataAttributesHelper";
 import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import { documentPath, documentInsightsPath } from "~/utils/routeHelpers";
-import { Properties } from "./Properties";
+import { Properties, PropertiesRef } from "./Properties";
 
 type Props = {
   /* The document to display meta data for */
@@ -35,6 +39,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const onlyYou = totalViewers === 1 && documentViews[0].userId;
   const viewsLoadedOnMount = React.useRef(totalViewers > 0);
   const can = usePolicy(document);
+  const propertiesRef = React.useRef<PropertiesRef>(null);
 
   const Wrapper = viewsLoadedOnMount.current ? React.Fragment : Fade;
 
@@ -44,25 +49,8 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const dataAttributesAvailable =
     FeatureFlags.isEnabled(Feature.dataAttributes) &&
     dataAttributes.orderedData.length > 0;
-  const hasDataAttributes = document.dataAttributes?.length > 0;
-
-  const addProperty = (
-    <InlineLink
-      to={documentPath(document)}
-      onClick={() =>
-        setDraftAttribute((state) =>
-          state
-            ? null
-            : {
-                value: "",
-                dataAttributeId: dataAttributes.orderedData[0].id,
-              }
-        )
-      }
-    >
-      <PlusIcon size={18} /> Property
-    </InlineLink>
-  );
+  const missingDataAttributes =
+    document.dataAttributes?.length < dataAttributes.orderedData.length;
 
   return (
     <>
@@ -81,8 +69,14 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
             </InlineLink>
           </>
         )}
-        {dataAttributesAvailable && !hasDataAttributes ? (
-          <>&nbsp;•&nbsp;{addProperty}</>
+        {dataAttributesAvailable && missingDataAttributes ? (
+          <>
+            &nbsp;•&nbsp;
+            <AddPropertyMenu
+              document={document}
+              propertiesRef={propertiesRef}
+            />
+          </>
         ) : null}
         {totalViewers &&
         can.listViews &&
@@ -107,10 +101,57 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
           </Wrapper>
         ) : null}
       </Meta>
-      <Properties document={document} />
+      <Properties document={document} ref={propertiesRef} />
     </>
   );
 }
+
+const AddPropertyMenu = ({
+  propertiesRef,
+  document,
+}: {
+  document: Document;
+  propertiesRef: React.RefObject<PropertiesRef>;
+}) => {
+  const { dataAttributes } = useStores();
+  const { t } = useTranslation();
+  const menu = useMenuState({
+    modal: true,
+  });
+
+  return (
+    <>
+      <MenuButton {...menu}>
+        {(props) => (
+          <InlineLink to={documentPath(document)} {...props}>
+            <PlusIcon size={18} /> {t("Property")}
+          </InlineLink>
+        )}
+      </MenuButton>
+      <ContextMenu {...menu}>
+        {dataAttributes.orderedData
+          .filter(
+            (a) =>
+              !a.deletedAt &&
+              !document.dataAttributes?.find((d) => d.dataAttributeId === a.id)
+          )
+          .map((attribute) => (
+            <MenuItem
+              key={attribute.id}
+              icon={DataAttributesHelper.getIcon(
+                attribute.dataType,
+                attribute.name
+              )}
+              {...menu}
+              onClick={() => propertiesRef.current?.addProperty(attribute.id)}
+            >
+              {attribute.name}
+            </MenuItem>
+          ))}
+      </ContextMenu>
+    </>
+  );
+};
 
 const InlineLink = styled(Link)`
   display: inline-flex;

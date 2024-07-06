@@ -7,7 +7,10 @@ import { Node, Schema } from "prosemirror-model";
 import { Primitive } from "utility-types";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { richExtensions, withComments } from "@shared/editor/nodes";
-import { DataAttributeDataType } from "@shared/models/types";
+import {
+  DataAttributeDataType,
+  DocumentDataAttribute,
+} from "@shared/models/types";
 import type {
   JSONObject,
   NavigationNode,
@@ -66,11 +69,7 @@ export default class Document extends ParanoidModel {
 
   @Field
   @observable
-  dataAttributes: {
-    dataAttributeId: string;
-    value: Primitive;
-    updatedAt: string;
-  }[];
+  dataAttributes: DocumentDataAttribute[];
 
   store: DocumentsStore;
 

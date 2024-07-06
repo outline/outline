@@ -249,7 +249,7 @@ export class IconLibrary {
     },
     browser: {
       component: BrowserIcon,
-      keywords: "browser web website app",
+      keywords: "browser web app",
     },
     collection: {
       component: (props) => <CollectionIcon expanded {...props} />,
@@ -309,7 +309,7 @@ export class IconLibrary {
     },
     globe: {
       component: GlobeIcon,
-      keywords: "world translate",
+      keywords: "world website translate",
     },
     hashtag: {
       component: HashtagIcon,
