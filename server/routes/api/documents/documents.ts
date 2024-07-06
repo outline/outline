@@ -799,6 +799,7 @@ router.post(
     let teamId;
     let response;
     let share;
+    let isPublic = false;
 
     if (shareId) {
       const teamFromCtx = await getTeamFromContext(ctx);
@@ -809,6 +810,7 @@ router.post(
       });
 
       share = loaded.share;
+      isPublic = cannot(user, "read", document);
 
       if (!share?.includeChildDocuments) {
         throw InvalidRequestError("Child documents cannot be searched");
@@ -878,7 +880,6 @@ router.post(
 
     const data = await Promise.all(
       results.map(async (result) => {
-        const isPublic = cannot(user, "read", result.document);
         const document = await presentDocument(ctx, result.document, {
           isPublic,
         });
