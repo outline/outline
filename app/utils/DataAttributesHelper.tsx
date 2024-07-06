@@ -61,14 +61,14 @@ export class DataAttributesHelper {
   /**
    * Returns the regex to validate the input of the data attribute
    * @param dataAttribute
-   * @returns A regex or null
+   * @returns A regex or undefined
    */
   public static getValidationRegex(dataAttribute: DataAttribute) {
     switch (dataAttribute.dataType) {
       case DataAttributeDataType.Number:
         return /^[0-9]+$/;
       default:
-        return null;
+        return undefined;
     }
   }
 }

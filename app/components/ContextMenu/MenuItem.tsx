@@ -22,7 +22,7 @@ type Props = {
   as?: string | React.ComponentType<any>;
   hide?: () => void;
   level?: number;
-  icon?: React.ReactElement;
+  icon?: React.ReactElement | null;
   children?: React.ReactNode;
   ref?: React.LegacyRef<HTMLButtonElement> | undefined;
 };
