@@ -9,7 +9,7 @@ import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { StatusFilter, TeamPreference, UserRole } from "@shared/types";
+import { TeamPreference, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -789,24 +789,12 @@ router.post(
       userId,
       dateFilter,
       statusFilter = [],
-      includeArchived,
-      includeDrafts,
       shareId,
       snippetMinWords,
       snippetMaxWords,
     } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
-
-    // Unfortunately, this still doesn't adequately handle cases when auth is optional
     const { user } = ctx.state.auth;
-
-    // TODO: Deprecated filter options, remove in a few versions
-    if (includeArchived && !statusFilter.includes(StatusFilter.Archived)) {
-      statusFilter.push(StatusFilter.Archived);
-    }
-    if (includeDrafts && !statusFilter.includes(StatusFilter.Draft)) {
-      statusFilter.push(StatusFilter.Draft);
-    }
 
     let teamId;
     let response;
