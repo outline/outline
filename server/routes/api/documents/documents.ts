@@ -890,7 +890,10 @@ router.post(
 
     const data = await Promise.all(
       results.map(async (result) => {
-        const document = await presentDocument(ctx, result.document);
+        const isPublic = cannot(user, "read", result.document);
+        const document = await presentDocument(ctx, result.document, {
+          isPublic,
+        });
         return { ...result, document };
       })
     );
