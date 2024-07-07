@@ -10,6 +10,7 @@ import Router from "koa-router";
 import { Strategy } from "passport-oauth2";
 import { languages } from "@shared/i18n";
 import { slugifyDomain } from "@shared/utils/domains";
+import { parseEmail } from "@shared/utils/email";
 import slugify from "@shared/utils/slugify";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import { InvalidRequestError, TeamDomainRequiredError } from "@server/errors";
@@ -77,8 +78,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             /** We have the email scope, so this should never happen */
             throw InvalidRequestError("Discord profile email is missing");
           }
-          const parts = email.toLowerCase().split("@");
-          const domain = parts.length && parts[1];
+          const { domain } = parseEmail(email);
 
           if (!domain) {
             throw TeamDomainRequiredError();

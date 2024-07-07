@@ -1,5 +1,6 @@
 import "./bootstrap";
 import { UserRole } from "@shared/types";
+import { parseEmail } from "@shared/utils/email";
 import teamCreator from "@server/commands/teamCreator";
 import env from "@server/env";
 import { Team, User } from "@server/models";
@@ -10,6 +11,7 @@ const email = process.argv[2];
 export default async function main(exit = false) {
   const teamCount = await Team.count();
   if (teamCount === 0) {
+    const name = parseEmail(email).local;
     const user = await sequelize.transaction(async (transaction) => {
       const team = await teamCreator({
         name: "Wiki",
@@ -22,7 +24,7 @@ export default async function main(exit = false) {
       return await User.create(
         {
           teamId: team.id,
-          name: email.split("@")[0],
+          name,
           email,
           role: UserRole.Admin,
         },
