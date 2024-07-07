@@ -4,7 +4,7 @@ import { Selection } from "prosemirror-state";
 import { __parseFromClipboard } from "prosemirror-view";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
@@ -281,6 +281,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
 type TitleProps = {
   $containsIcon: boolean;
   $iconPickerIsOpen: boolean;
+  readOnly?: boolean;
 };
 
 // Extra area prevents gap between icon and beginning of title
@@ -311,14 +312,18 @@ const Title = styled(ContentEditable)<TitleProps>`
     opacity: 1;
   }
 
-  &:focus-within,
-  &:focus {
-    margin-left: 40px;
+  ${(props: TitleProps) =>
+    !props.readOnly &&
+    css`
+      &:focus-within,
+      &:focus {
+        margin-left: 40px;
 
-    ${PopoverButton} {
-      opacity: 1 !important;
-    }
-  }
+        ${PopoverButton} {
+          opacity: 1 !important;
+        }
+      }
+    `};
 
   ${PopoverButton} {
     opacity: ${(props: TitleProps) =>
