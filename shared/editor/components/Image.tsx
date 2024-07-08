@@ -1,9 +1,11 @@
-import { DownloadIcon } from "outline-icons";
+import { CrossIcon, DownloadIcon } from "outline-icons";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
+import Flex from "../../components/Flex";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import { ImageZoom } from "./ImageZoom";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
@@ -26,6 +28,7 @@ const Image = (props: Props) => {
   const { src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [loaded, setLoaded] = React.useState(false);
+  const [error, setError] = React.useState(false);
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -42,7 +45,8 @@ const Image = (props: Props) => {
   );
 
   const isFullWidth = layoutClass === "full-width";
-  const isResizable = !!props.onChangeSize;
+  const isResizable = !!props.onChangeSize && !error;
+  const isDownloadable = !!props.onDownload && !error;
 
   React.useEffect(() => {
     if (node.attrs.width && node.attrs.width !== width) {
@@ -65,48 +69,59 @@ const Image = (props: Props) => {
         onClick={dragging ? undefined : props.onClick}
         style={widthStyle}
       >
-        {!dragging && width > 60 && props.onDownload && (
+        {!dragging && width > 60 && isDownloadable && (
           <Button onClick={props.onDownload}>
             <DownloadIcon />
           </Button>
         )}
-        <ImageZoom caption={props.node.attrs.alt}>
-          <img
-            style={{
-              ...widthStyle,
-              display: loaded ? "block" : "none",
-            }}
-            src={sanitizeUrl(src) ?? ""}
-            onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
-              // For some SVG's Firefox does not provide the naturalWidth, in this
-              // rare case we need to provide a default so that the image can be
-              // seen and is not sized to 0px
-              const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
-              const nh = (ev.target as HTMLImageElement).naturalHeight;
-              setNaturalWidth(nw);
-              setNaturalHeight(nh);
-              setLoaded(true);
-
-              if (!node.attrs.width) {
-                setSize((state) => ({
-                  ...state,
-                  width: nw,
-                }));
-              }
-            }}
-          />
-          {!loaded && width && height && (
+        {error ? (
+          <Error style={widthStyle} className={EditorStyleHelper.imageHandle}>
+            <CrossIcon size={16} /> Image failed to load
+          </Error>
+        ) : (
+          <ImageZoom caption={props.node.attrs.alt}>
             <img
+              className={EditorStyleHelper.imageHandle}
               style={{
                 ...widthStyle,
-                display: "block",
+                display: loaded ? "block" : "none",
               }}
-              src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-                getPlaceholder(width, height)
-              )}`}
+              src={sanitizeUrl(src) ?? ""}
+              onError={() => {
+                setError(true);
+                setLoaded(true);
+              }}
+              onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
+                // For some SVG's Firefox does not provide the naturalWidth, in this
+                // rare case we need to provide a default so that the image can be
+                // seen and is not sized to 0px
+                const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
+                const nh = (ev.target as HTMLImageElement).naturalHeight;
+                setNaturalWidth(nw);
+                setNaturalHeight(nh);
+                setLoaded(true);
+
+                if (!node.attrs.width) {
+                  setSize((state) => ({
+                    ...state,
+                    width: nw,
+                  }));
+                }
+              }}
             />
-          )}
-        </ImageZoom>
+            {!loaded && width && height && (
+              <img
+                style={{
+                  ...widthStyle,
+                  display: "block",
+                }}
+                src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+                  getPlaceholder(width, height)
+                )}`}
+              />
+            )}
+          </ImageZoom>
+        )}
         {isEditable && !isFullWidth && isResizable && (
           <>
             <ResizeLeft
@@ -130,6 +145,18 @@ const Image = (props: Props) => {
 function getPlaceholder(width: number, height: number) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" />`;
 }
+
+const Error = styled(Flex)`
+  color: ${s("textTertiary")};
+  font-size: 14px;
+  background: ${s("secondaryBackground")};
+  border-radius: 4px;
+  min-width: 33vw;
+  height: 80px;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+`;
 
 const Button = styled.button`
   position: absolute;

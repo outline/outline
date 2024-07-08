@@ -2,6 +2,10 @@
  * Class names and values used by the editor.
  */
 export class EditorStyleHelper {
+  // Images
+
+  static readonly imageHandle = "image-handle";
+
   // Comments
 
   static readonly comment = "comment-marker";
