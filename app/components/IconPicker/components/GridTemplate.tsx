@@ -16,7 +16,7 @@ import { IconButton } from "./IconButton";
 const BUTTON_SIZE = 32;
 
 type OutlineNode = {
-  type: IconType.Outline;
+  type: IconType.SVG;
   name: string;
   color: string;
   initial: string;
@@ -66,7 +66,7 @@ const GridTemplate = (
       );
 
       const items = node.icons.map((item) => {
-        if (item.type === IconType.Outline) {
+        if (item.type === IconType.SVG) {
           return (
             <IconButton
               key={item.name}

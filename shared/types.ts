@@ -414,7 +414,7 @@ export type ProsemirrorDoc = {
 };
 
 export enum IconType {
-  Outline = "outline",
+  SVG = "svg",
   Emoji = "emoji",
 }
 

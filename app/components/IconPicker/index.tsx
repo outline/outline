@@ -98,7 +98,7 @@ const IconPicker = ({
     (ic: string) => {
       popover.hide();
       const icType = determineIconType(ic);
-      const finalColor = icType === IconType.Outline ? chosenColor : null;
+      const finalColor = icType === IconType.SVG ? chosenColor : null;
       onChange(ic, finalColor);
     },
     [popover, onChange, chosenColor]
@@ -110,7 +110,7 @@ const IconPicker = ({
 
       const icType = determineIconType(icon);
       // Outline icon set; propagate color change
-      if (icType === IconType.Outline) {
+      if (icType === IconType.SVG) {
         onChange(icon, c);
       }
     },

@@ -9,5 +9,5 @@ export const determineIconType = (
   if (!icon) {
     return;
   }
-  return outlineIconNames.has(icon) ? IconType.Outline : IconType.Emoji;
+  return outlineIconNames.has(icon) ? IconType.SVG : IconType.Emoji;
 };
