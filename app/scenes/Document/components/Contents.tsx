@@ -54,7 +54,7 @@ export default function Contents({ headings }: Props) {
   const { t } = useTranslation();
 
   if (headings.length === 0) {
-    return null;
+    return <StickyWrapper />;
   }
 
   return (
