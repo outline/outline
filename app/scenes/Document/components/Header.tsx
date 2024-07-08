@@ -121,7 +121,13 @@ function DocumentHeader({
   const canToggleEmbeds = team?.documentEmbeds;
   const toc = (
     <Tooltip
-      content={ui.tocVisible ? t("Hide contents") : t("Show contents")}
+      content={
+        ui.tocVisible
+          ? t("Hide contents")
+          : documentHasHeadings
+          ? t("Show contents")
+          : `${t("Show contents")} (${t("available when headings are added")})`
+      }
       shortcut="ctrl+alt+h"
       delay={250}
       placement="bottom"

@@ -5,7 +5,6 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, s } from "@shared/styles";
-import Text from "~/components/Text";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 
 const HEADING_OFFSET = 20;
@@ -54,26 +53,26 @@ export default function Contents({ headings }: Props) {
   const headingAdjustment = minHeading - 1;
   const { t } = useTranslation();
 
+  if (headings.length === 0) {
+    return null;
+  }
+
   return (
     <StickyWrapper>
       <Heading>{t("Contents")}</Heading>
-      {headings.length ? (
-        <List>
-          {headings
-            .filter((heading) => heading.level < 4)
-            .map((heading) => (
-              <ListItem
-                key={heading.id}
-                level={heading.level - headingAdjustment}
-                active={activeSlug === heading.id}
-              >
-                <Link href={`#${heading.id}`}>{heading.title}</Link>
-              </ListItem>
-            ))}
-        </List>
-      ) : (
-        <Empty>{t("Headings you add to the document will appear here")}</Empty>
-      )}
+      <List>
+        {headings
+          .filter((heading) => heading.level < 4)
+          .map((heading) => (
+            <ListItem
+              key={heading.id}
+              level={heading.level - headingAdjustment}
+              active={activeSlug === heading.id}
+            >
+              <Link href={`#${heading.id}`}>{heading.title}</Link>
+            </ListItem>
+          ))}
+      </List>
     </StickyWrapper>
   );
 }
@@ -110,10 +109,6 @@ const Heading = styled.h3`
   color: ${s("textTertiary")};
   letter-spacing: 0.03em;
   margin-top: 10px;
-`;
-
-const Empty = styled(Text)`
-  font-size: 14px;
 `;
 
 const ListItem = styled.li<{ level: number; active?: boolean }>`
