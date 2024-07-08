@@ -69,7 +69,7 @@
     "@emoji-mart/data": "^1.2.1",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
-    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@getoutline/react-roving-tabindex": "^3.2.4",
     "@getoutline/y-prosemirror": "^1.0.18",
     "@hocuspocus/extension-throttle": "1.1.2",
