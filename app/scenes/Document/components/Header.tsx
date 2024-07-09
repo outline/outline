@@ -245,14 +245,12 @@ function DocumentHeader({
           )
         }
         title={
-          <Flex gap={4}>
+          <Flex gap={4} align="center">
             {document.icon && (
               <Icon value={document.icon} color={document.color ?? undefined} />
             )}
             {document.title}
-            {document.isArchived && (
-              <ArchivedBadge>{t("Archived")}</ArchivedBadge>
-            )}
+            {document.isArchived && <Badge>{t("Archived")}</Badge>}
           </Flex>
         }
         actions={
@@ -385,10 +383,6 @@ function DocumentHeader({
 const StyledHeader = styled(Header)<{ $hidden: boolean }>`
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
-`;
-
-const ArchivedBadge = styled(Badge)`
-  position: absolute;
 `;
 
 const Status = styled(Action)`
