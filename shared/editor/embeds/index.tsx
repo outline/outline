@@ -547,7 +547,7 @@ const embeds: EmbedDescriptor[] = [
     title: "Tldraw",
     keywords: "draw schematics diagrams",
     regexMatch: [
-      new RegExp("^https?://(beta|www|old)\\.tldraw\\.com/[rsv]/(.*)"),
+      new RegExp("^https?://(beta|www|old)\\.tldraw\\.com/[rsvo]+/(.*)"),
     ],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/tldraw.png" alt="Tldraw" />,
