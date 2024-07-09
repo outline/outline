@@ -423,7 +423,7 @@ class DocumentScene extends React.Component<Props> {
 
     const hasHeadings = this.headings.length > 0;
     const showContents =
-      ui.tocVisible && ((readOnly && hasHeadings) || !readOnly);
+      ui.tocVisible === true || (isShare && ui.tocVisible !== false);
     const tocPos =
       tocPosition ??
       ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||

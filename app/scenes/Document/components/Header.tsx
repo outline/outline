@@ -119,10 +119,14 @@ function DocumentHeader({
   const { isDeleted, isTemplate } = document;
   const can = usePolicy(document);
   const canToggleEmbeds = team?.documentEmbeds;
+  const isShare = !!shareId;
+  const showContents =
+    ui.tocVisible === true || (isShare && ui.tocVisible !== false);
+
   const toc = (
     <Tooltip
       content={
-        ui.tocVisible
+        showContents
           ? t("Hide contents")
           : documentHasHeadings
           ? t("Show contents")
@@ -133,9 +137,7 @@ function DocumentHeader({
       placement="bottom"
     >
       <Button
-        onClick={
-          ui.tocVisible ? ui.hideTableOfContents : ui.showTableOfContents
-        }
+        onClick={showContents ? ui.hideTableOfContents : ui.showTableOfContents}
         icon={<TableOfContentsIcon />}
         borderOnHover
         neutral
