@@ -2363,6 +2363,13 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "6.5.2"
 
+"@fortawesome/free-brands-svg-icons@^6.5.2":
+  version "6.5.2"
+  resolved "https://registry.yarnpkg.com/@fortawesome/free-brands-svg-icons/-/free-brands-svg-icons-6.5.2.tgz#bfca0cebd2c4713dc93244e1fa8b384f1f023587"
+  integrity sha512-zi5FNYdmKLnEc0jc0uuHH17kz/hfYTg4Uei0wMGzcoCL/4d3WM3u1VMc0iGGa31HuhV5i7ZK8ZlTCQrHqRHSGQ==
+  dependencies:
+    "@fortawesome/fontawesome-common-types" "6.5.2"
+
 "@fortawesome/free-solid-svg-icons@^6.5.2":
   version "6.5.2"
   resolved "https://registry.yarnpkg.com/@fortawesome/free-solid-svg-icons/-/free-solid-svg-icons-6.5.2.tgz#9b40b077b27400a5e9fcbf2d15b986c7be69e9ca"
