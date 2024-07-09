@@ -1,5 +1,5 @@
 import { CollectionPermission } from "@shared/types";
-import { GroupPermission } from "@server/models";
+import { GroupMembership } from "@server/models";
 
 type Membership = {
   id: string;
@@ -9,7 +9,7 @@ type Membership = {
 };
 
 export default function presentCollectionGroupMembership(
-  membership: GroupPermission
+  membership: GroupMembership
 ): Membership {
   return {
     id: membership.id,

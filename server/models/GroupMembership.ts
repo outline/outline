@@ -40,9 +40,9 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "group_permissions", modelName: "group_permission" })
 @Fix
-class GroupPermission extends ParanoidModel<
-  InferAttributes<GroupPermission>,
-  Partial<InferCreationAttributes<GroupPermission>>
+class GroupMembership extends ParanoidModel<
+  InferAttributes<GroupMembership>,
+  Partial<InferCreationAttributes<GroupMembership>>
 > {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
@@ -80,4 +80,4 @@ class GroupPermission extends ParanoidModel<
   createdById: string;
 }
 
-export default GroupPermission;
+export default GroupMembership;

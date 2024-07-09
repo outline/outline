@@ -35,7 +35,7 @@ import type {
   View,
   Notification,
   Share,
-  GroupPermission,
+  GroupMembership,
 } from "./models";
 
 export enum AuthenticationType {
@@ -246,7 +246,7 @@ export type CollectionUserEvent = BaseEvent<UserMembership> & {
   };
 };
 
-export type CollectionGroupEvent = BaseEvent<GroupPermission> & {
+export type CollectionGroupEvent = BaseEvent<GroupMembership> & {
   name: "collections.add_group" | "collections.remove_group";
   collectionId: string;
   modelId: string;

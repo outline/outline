@@ -20,7 +20,7 @@ import {
   View,
   Share,
   UserMembership,
-  GroupPermission,
+  GroupMembership,
   GroupUser,
   Comment,
 } from "@server/models";
@@ -478,7 +478,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CollectionGroupEvent
   ): Promise<void> {
-    const model = await GroupPermission.scope([
+    const model = await GroupMembership.scope([
       "withGroup",
       "withCollection",
     ]).findOne({

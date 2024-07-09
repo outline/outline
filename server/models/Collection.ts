@@ -42,7 +42,7 @@ import { ValidationError } from "@server/errors";
 import Document from "./Document";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
-import GroupPermission from "./GroupPermission";
+import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
@@ -63,7 +63,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         required: false,
       },
       {
-        model: GroupPermission,
+        model: GroupMembership,
         as: "collectionGroupMemberships",
         required: false,
         // use of "separate" property: sequelize breaks when there are
@@ -110,7 +110,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         required: false,
       },
       {
-        model: GroupPermission,
+        model: GroupMembership,
         as: "collectionGroupMemberships",
         required: false,
         // use of "separate" property: sequelize breaks when there are
@@ -322,13 +322,13 @@ class Collection extends ParanoidModel<
   @HasMany(() => UserMembership, "collectionId")
   memberships: UserMembership[];
 
-  @HasMany(() => GroupPermission, "collectionId")
-  collectionGroupMemberships: GroupPermission[];
+  @HasMany(() => GroupMembership, "collectionId")
+  collectionGroupMemberships: GroupMembership[];
 
   @BelongsToMany(() => User, () => UserMembership)
   users: User[];
 
-  @BelongsToMany(() => Group, () => GroupPermission)
+  @BelongsToMany(() => Group, () => GroupMembership)
   groups: Group[];
 
   @BelongsTo(() => User, "createdById")
