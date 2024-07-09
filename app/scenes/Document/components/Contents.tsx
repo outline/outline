@@ -25,6 +25,8 @@ export default function Contents({ headings }: Props) {
   });
 
   React.useEffect(() => {
+    let activeId = headings.at(0)?.id;
+
     for (let key = 0; key < headings.length; key++) {
       const heading = headings[key];
       const element = window.document.getElementById(
@@ -33,14 +35,14 @@ export default function Contents({ headings }: Props) {
 
       if (element) {
         const bounding = element.getBoundingClientRect();
-
         if (bounding.top > HEADING_OFFSET) {
-          const last = headings[Math.max(0, key - 1)];
-          setActiveSlug(last.id);
-          return;
+          break;
         }
+        activeId = heading.id;
       }
     }
+
+    setActiveSlug(activeId);
   }, [scrollPosition, headings]);
 
   // calculate the minimum heading level and adjust all the headings to make
