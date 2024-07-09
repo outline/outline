@@ -1,11 +1,11 @@
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import { GroupMembership } from "@server/models";
 
 type Membership = {
   id: string;
   groupId: string;
   collectionId?: string | null;
-  permission: CollectionPermission;
+  permission: CollectionPermission | DocumentPermission;
 };
 
 export default function presentCollectionGroupMembership(

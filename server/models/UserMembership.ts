@@ -25,6 +25,9 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
+/**
+ * Represents a users's permission to access a collection or document.
+ */
 @Scopes(() => ({
   withUser: {
     include: [
@@ -69,6 +72,7 @@ class UserMembership extends IdModel<
   @Column(DataType.STRING)
   permission: CollectionPermission | DocumentPermission;
 
+  /** The visible sort order in "shared with me" */
   @AllowNull
   @Column
   index: string | null;
