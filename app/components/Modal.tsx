@@ -25,6 +25,7 @@ type Props = {
   isOpen: boolean;
   fullscreen?: boolean;
   title?: React.ReactNode;
+  style?: React.CSSProperties;
   onRequestClose: () => void;
 };
 
@@ -33,6 +34,7 @@ const Modal: React.FC<Props> = ({
   isOpen,
   fullscreen = true,
   title = "Untitled",
+  style,
   onRequestClose,
 }: Props) => {
   const dialog = useDialogState({
@@ -115,7 +117,7 @@ const Modal: React.FC<Props> = ({
                     column
                     reverse
                   >
-                    <SmallContent shadow>
+                    <SmallContent style={style} shadow>
                       <ErrorBoundary component="div">{children}</ErrorBoundary>
                     </SmallContent>
                     <Header>
@@ -282,7 +284,7 @@ const Small = styled.div`
 `;
 
 const SmallContent = styled(Scrollable)`
-  padding: 12px 24px;
+  padding: 12px 24px 24px;
 `;
 
 export default observer(Modal);
