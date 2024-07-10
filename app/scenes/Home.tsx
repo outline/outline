@@ -78,7 +78,7 @@ function Home() {
               documents={documents.createdByUser(userId)}
               fetch={documents.fetchOwned}
               options={{
-                user: userId,
+                userId,
               }}
               empty={
                 <Empty>{t("You haven’t created any documents yet")}</Empty>
