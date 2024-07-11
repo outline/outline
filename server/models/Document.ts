@@ -977,7 +977,7 @@ class Document extends ParanoidModel<
   };
 
   // Delete a document, archived or otherwise.
-  delete = (userId: string) =>
+  delete = (user: User) =>
     this.sequelize.transaction(async (transaction: Transaction) => {
       if (!this.archivedAt && !this.template && this.collectionId) {
         // delete any children and remove from the document structure
@@ -999,15 +999,10 @@ class Document extends ParanoidModel<
         },
         transaction,
       });
-      await this.update(
-        {
-          lastModifiedById: userId,
-        },
-        {
-          transaction,
-        }
-      );
-      return this;
+
+      this.lastModifiedById = user.id;
+      this.updatedBy = user;
+      return this.save({ transaction });
     });
 
   getTimestamp = () => Math.round(new Date(this.updatedAt).getTime() / 1000);

@@ -40,7 +40,7 @@ describe("#delete", () => {
   test("should soft delete and set last modified", async () => {
     const document = await buildDocument();
     const user = await buildUser();
-    await document.delete(user.id);
+    await document.delete(user);
 
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
@@ -54,7 +54,7 @@ describe("#delete", () => {
       template: true,
     });
     const user = await buildUser();
-    await document.delete(user.id);
+    await document.delete(user);
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -67,7 +67,7 @@ describe("#delete", () => {
       archivedAt: new Date(),
     });
     const user = await buildUser();
-    await document.delete(user.id);
+    await document.delete(user);
     const newDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
@@ -78,7 +78,7 @@ describe("#delete", () => {
   it("should delete draft without collection", async () => {
     const user = await buildUser();
     const document = await buildDraftDocument();
-    await document.delete(user.id);
+    await document.delete(user);
     const deletedDocument = await Document.findByPk(document.id, {
       paranoid: false,
     });
