@@ -67,7 +67,7 @@ export type Props<T extends MenuItem = MenuItem> = {
     index: number,
     options: {
       selected: boolean;
-      onClick: () => void;
+      onClick: (event: React.SyntheticEvent) => void;
     }
   ) => React.ReactNode;
   filterable?: boolean;
