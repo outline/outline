@@ -25,7 +25,7 @@ const RealButton = styled(ActionButton)<RealProps>`
   background: ${s("accent")};
   color: ${s("accentText")};
   box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   height: 32px;

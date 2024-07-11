@@ -9,7 +9,7 @@ import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import { getRedirectUrl } from "../urls";
 
-type Props = {
+type Props = React.ComponentProps<typeof ButtonLarge> & {
   id: string;
   name: string;
   authUrl: string;
@@ -22,7 +22,7 @@ function AuthenticationProvider(props: Props) {
   const [showEmailSignin, setShowEmailSignin] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [email, setEmail] = React.useState("");
-  const { isCreate, id, name, authUrl } = props;
+  const { isCreate, id, name, authUrl, onEmailSuccess, ...rest } = props;
 
   const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
@@ -45,7 +45,7 @@ function AuthenticationProvider(props: Props) {
         if (response.redirect) {
           window.location.href = response.redirect;
         } else {
-          props.onEmailSuccess(email);
+          onEmailSuccess(email);
         }
       } finally {
         setSubmitting(false);
@@ -78,12 +78,12 @@ function AuthenticationProvider(props: Props) {
                 required
                 short
               />
-              <ButtonLarge type="submit" disabled={isSubmitting}>
+              <ButtonLarge type="submit" disabled={isSubmitting} {...rest}>
                 {t("Sign In")} →
               </ButtonLarge>
             </>
           ) : (
-            <ButtonLarge type="submit" icon={<EmailIcon />} fullwidth>
+            <ButtonLarge type="submit" icon={<EmailIcon />} fullwidth {...rest}>
               {t("Continue with Email")}
             </ButtonLarge>
           )}
@@ -97,6 +97,7 @@ function AuthenticationProvider(props: Props) {
       onClick={() => (window.location.href = href)}
       icon={<PluginIcon id={id} />}
       fullwidth
+      {...rest}
     >
       {t("Continue with {{ authProviderName }}", {
         authProviderName: name,
