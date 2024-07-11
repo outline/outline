@@ -18,8 +18,7 @@ import {
 import { DocumentValidation } from "@shared/validations";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
-import Flex from "~/components/Flex";
-import Icon from "~/components/Icon";
+import Icon, { IconTitleWrapper } from "~/components/Icon";
 import { PopoverButton } from "~/components/IconPicker/components/PopoverButton";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
@@ -254,7 +253,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       ref={mergeRefs([ref, externalRef])}
     >
       {can.update && !readOnly ? (
-        <IconWrapper align="center" justify="center" dir={dir}>
+        <IconTitleWrapper dir={dir}>
           <React.Suspense fallback={fallbackIcon}>
             <StyledIconPicker
               icon={icon ?? null}
@@ -268,11 +267,9 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
               borderOnHover
             />
           </React.Suspense>
-        </IconWrapper>
+        </IconTitleWrapper>
       ) : icon ? (
-        <IconWrapper align="center" justify="center" dir={dir}>
-          {fallbackIcon}
-        </IconWrapper>
+        <IconTitleWrapper dir={dir}>{fallbackIcon}</IconTitleWrapper>
       ) : null}
     </Title>
   );
@@ -353,19 +350,6 @@ const Title = styled(ContentEditable)<TitleProps>`
     -webkit-text-fill-color: ${light.text};
     background: none;
   }
-`;
-
-const IconWrapper = styled(Flex)<{ dir?: string }>`
-  position: absolute;
-  top: 3px;
-  height: 40px;
-  width: 40px;
-
-  // Always move above TOC
-  z-index: 1;
-
-  ${(props: { dir?: string }) =>
-    props.dir === "rtl" ? "right: -48px" : "left: -48px"};
 `;
 
 export default observer(DocumentTitle);

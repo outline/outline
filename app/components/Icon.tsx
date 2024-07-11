@@ -1,6 +1,8 @@
 import { observer } from "mobx-react";
 import { getLuminance } from "polished";
 import * as React from "react";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { randomElement } from "@shared/random";
 import { IconType } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
@@ -9,6 +11,7 @@ import { determineIconType } from "@shared/utils/icon";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
 import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
+import Flex from "./Flex";
 
 export type Props = {
   /** The icon to render */
@@ -103,5 +106,25 @@ const SVGIcon = observer(
     );
   }
 );
+
+export const IconTitleWrapper = styled(Flex)<{ dir?: string }>`
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 3px;
+  height: 40px;
+  width: 40px;
+
+  // Always move above TOC
+  z-index: 1;
+
+  ${(props: { dir?: string }) =>
+    props.dir === "rtl" ? "right: -40px" : "left: -40px"};
+
+  ${breakpoint("desktop")`
+    ${(props: { dir?: string }) =>
+      props.dir === "rtl" ? "right: -44px" : "left: -44px"};
+  `}
+`;
 
 export default Icon;
