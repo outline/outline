@@ -2,7 +2,6 @@ import * as React from "react";
 import { useDragLayer, XYCoord } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import Icon from "~/components/Icon";
 import useStores from "~/hooks/useStores";
 import SidebarLink from "./SidebarLink";
 
@@ -62,7 +61,7 @@ const DragPlaceholder = () => {
     <div style={layerStyles}>
       <div style={getItemStyles(initialOffset, currentOffset, ui.sidebarWidth)}>
         <GhostLink
-          icon={<Icon value={item.icon ?? item.emoji} color={item.color} />}
+          icon={item.icon}
           label={item.title || t("Untitled")}
           isDraft={item.isDraft}
           depth={item.depth}
