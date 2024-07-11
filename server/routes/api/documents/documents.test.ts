@@ -87,7 +87,7 @@ describe("#documents.info", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user.id);
+    await document.archive(user);
     const res = await server.post("/api/documents.info", {
       body: {
         token: user.getJwtToken(),
@@ -433,7 +433,7 @@ describe("#documents.info", () => {
       teamId: document.teamId,
       userId: user.id,
     });
-    await document.archive(user.id);
+    await document.archive(user);
     const res = await server.post("/api/documents.info", {
       body: {
         shareId: share.id,
@@ -607,7 +607,7 @@ describe("#documents.export", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user.id);
+    await document.archive(user);
     const res = await server.post("/api/documents.export", {
       body: {
         token: user.getJwtToken(),
@@ -1638,7 +1638,7 @@ describe("#documents.search", () => {
       text: "search term",
       teamId: user.teamId,
     });
-    await document.archive(user.id);
+    await document.archive(user);
     const res = await server.post("/api/documents.search", {
       body: {
         token: user.getJwtToken(),
@@ -1658,7 +1658,7 @@ describe("#documents.search", () => {
       text: "search term",
       teamId: user.teamId,
     });
-    await document.archive(user.id);
+    await document.archive(user);
     const res = await server.post("/api/documents.search", {
       body: {
         token: user.getJwtToken(),
@@ -1938,7 +1938,7 @@ describe("#documents.archived", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user.id);
+    await document.archive(user);
     const res = await server.post("/api/documents.archived", {
       body: {
         token: user.getJwtToken(),
@@ -1955,7 +1955,7 @@ describe("#documents.archived", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user.id);
+    await document.delete(user);
     const res = await server.post("/api/documents.archived", {
       body: {
         token: user.getJwtToken(),
@@ -1975,7 +1975,7 @@ describe("#documents.archived", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await document.archive(user.id);
+    await document.archive(user);
     const res = await server.post("/api/documents.archived", {
       body: {
         token: user.getJwtToken(),
@@ -2009,7 +2009,7 @@ describe("#documents.deleted", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user.id);
+    await document.delete(user);
     const res = await server.post("/api/documents.deleted", {
       body: {
         token: user.getJwtToken(),
@@ -2041,9 +2041,9 @@ describe("#documents.deleted", () => {
       collectionId: null,
     });
     await Promise.all([
-      document.delete(user.id),
-      draftDocument.delete(user.id),
-      otherUserDraft.delete(user2.id),
+      document.delete(user),
+      draftDocument.delete(user),
+      otherUserDraft.delete(user2),
     ]);
     const res = await server.post("/api/documents.deleted", {
       body: {
@@ -2067,7 +2067,7 @@ describe("#documents.deleted", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await document.delete(user.id);
+    await document.delete(user);
     const res = await server.post("/api/documents.deleted", {
       body: {
         token: user.getJwtToken(),
@@ -2476,7 +2476,7 @@ describe("#documents.restore", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user.id);
+    await document.delete(user);
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -2560,7 +2560,7 @@ describe("#documents.restore", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user.id);
+    await document.archive(user);
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -2584,8 +2584,8 @@ describe("#documents.restore", () => {
       collectionId: document.collectionId,
       parentDocumentId: document.id,
     });
-    await childDocument.archive(user.id);
-    await document.archive(user.id);
+    await childDocument.archive(user);
+    await document.archive(user);
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -3286,7 +3286,7 @@ describe("#documents.update", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user.id);
+    await document.archive(user);
     const res = await server.post("/api/documents.update", {
       body: {
         token: user.getJwtToken(),
@@ -3594,9 +3594,10 @@ describe("#documents.archive", () => {
   });
 
   it("should allow archiving document", async () => {
-    const user = await buildUser();
+    const admin = await buildAdmin();
+    const user = await buildUser({ teamId: admin.teamId });
     const document = await buildDocument({
-      userId: user.id,
+      userId: admin.id,
       teamId: user.teamId,
     });
     const res = await server.post("/api/documents.archive", {
@@ -3800,6 +3801,8 @@ describe("#documents.unpublish", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
+    expect(body.data.createdBy.id).toEqual(user.id);
+    expect(body.data.updatedBy.id).toEqual(user.id);
 
     const reloaded = await Document.unscoped().findByPk(document.id);
     expect(reloaded!.createdById).toEqual(user.id);
@@ -3816,7 +3819,7 @@ describe("#documents.unpublish", () => {
       teamId: user.teamId,
       parentDocumentId: document.id,
     });
-    await child.archive(user.id);
+    await child.archive(user);
     const res = await server.post("/api/documents.unpublish", {
       body: {
         token: user.getJwtToken(),
@@ -3827,6 +3830,7 @@ describe("#documents.unpublish", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
+    expect(body.data.updatedBy.id).toEqual(user.id);
   });
 
   it("should unpublish another users document", async () => {
@@ -3850,6 +3854,7 @@ describe("#documents.unpublish", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(document.id);
     expect(body.data.publishedAt).toBeNull();
+    expect(body.data.updatedBy.id).toEqual(user.id);
 
     const reloaded = await Document.unscoped().findByPk(document.id);
     expect(reloaded!.createdById).toEqual(user.id);
@@ -3876,7 +3881,7 @@ describe("#documents.unpublish", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user.id);
+    await document.delete(user);
     const res = await server.post("/api/documents.unpublish", {
       body: {
         token: user.getJwtToken(),
@@ -3892,7 +3897,7 @@ describe("#documents.unpublish", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user.id);
+    await document.archive(user);
     const res = await server.post("/api/documents.unpublish", {
       body: {
         token: user.getJwtToken(),
@@ -4496,7 +4501,7 @@ describe("#documents.empty_trash", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user.id);
+    await document.delete(user);
 
     const res = await server.post("/api/documents.empty_trash", {
       body: {

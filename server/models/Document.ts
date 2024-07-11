@@ -808,37 +808,8 @@ class Document extends ParanoidModel<
     return findAllChildDocumentIds(this.id);
   };
 
-  archiveWithChildren = async (
-    userId: string,
-    options?: FindOptions<Document>
-  ) => {
-    const archivedAt = new Date();
-
-    // Helper to archive all child documents for a document
-    const archiveChildren = async (parentDocumentId: string) => {
-      const childDocuments = await (
-        this.constructor as typeof Document
-      ).findAll({
-        where: {
-          parentDocumentId,
-        },
-      });
-      for (const child of childDocuments) {
-        await archiveChildren(child.id);
-        child.archivedAt = archivedAt;
-        child.lastModifiedById = userId;
-        await child.save(options);
-      }
-    };
-
-    await archiveChildren(this.id);
-    this.archivedAt = archivedAt;
-    this.lastModifiedById = userId;
-    return this.save(options);
-  };
-
   publish = async (
-    userId: string,
+    user: User,
     collectionId: string,
     { transaction }: SaveOptions<Document>
   ) => {
@@ -890,7 +861,8 @@ class Document extends ParanoidModel<
       )
     );
 
-    this.lastModifiedById = userId;
+    this.lastModifiedById = user.id;
+    this.updatedBy = user;
     this.publishedAt = new Date();
     return this.save({ transaction });
   };
@@ -911,9 +883,8 @@ class Document extends ParanoidModel<
     return false;
   };
 
-  unpublish = async (userId: string) => {
-    // If the document is already a draft then calling unpublish should act like
-    // a regular save
+  unpublish = async (user: User) => {
+    // If the document is already a draft then calling unpublish should act like save
     if (!this.publishedAt) {
       return this.save();
     }
@@ -934,15 +905,17 @@ class Document extends ParanoidModel<
 
     // unpublishing a document converts the ownership to yourself, so that it
     // will appear in your drafts rather than the original creators
-    this.createdById = userId;
-    this.lastModifiedById = userId;
+    this.createdById = user.id;
+    this.lastModifiedById = user.id;
+    this.createdBy = user;
+    this.updatedBy = user;
     this.publishedAt = null;
     return this.save();
   };
 
   // Moves a document from being visible to the team within a collection
   // to the archived area, where it can be subsequently restored.
-  archive = async (userId: string) => {
+  archive = async (user: User) => {
     await this.sequelize.transaction(async (transaction: Transaction) => {
       const collection = this.collectionId
         ? await Collection.findByPk(this.collectionId, {
@@ -957,12 +930,12 @@ class Document extends ParanoidModel<
       }
     });
 
-    await this.archiveWithChildren(userId);
+    await this.archiveWithChildren(user);
     return this;
   };
 
   // Restore an archived document back to being visible to the team
-  unarchive = async (userId: string) => {
+  unarchive = async (user: User) => {
     await this.sequelize.transaction(async (transaction: Transaction) => {
       const collection = this.collectionId
         ? await Collection.findByPk(this.collectionId, {
@@ -997,13 +970,14 @@ class Document extends ParanoidModel<
     }
 
     this.archivedAt = null;
-    this.lastModifiedById = userId;
+    this.lastModifiedById = user.id;
+    this.updatedBy = user;
     await this.save();
     return this;
   };
 
   // Delete a document, archived or otherwise.
-  delete = (userId: string) =>
+  delete = (user: User) =>
     this.sequelize.transaction(async (transaction: Transaction) => {
       if (!this.archivedAt && !this.template && this.collectionId) {
         // delete any children and remove from the document structure
@@ -1025,15 +999,10 @@ class Document extends ParanoidModel<
         },
         transaction,
       });
-      await this.update(
-        {
-          lastModifiedById: userId,
-        },
-        {
-          transaction,
-        }
-      );
-      return this;
+
+      this.lastModifiedById = user.id;
+      this.updatedBy = user;
+      return this.save({ transaction });
     });
 
   getTimestamp = () => Math.round(new Date(this.updatedAt).getTime() / 1000);
@@ -1097,6 +1066,37 @@ class Document extends ParanoidModel<
       color: isNil(this.color) ? undefined : this.color,
       children,
     };
+  };
+
+  private archiveWithChildren = async (
+    user: User,
+    options?: FindOptions<Document>
+  ) => {
+    const archivedAt = new Date();
+
+    // Helper to archive all child documents for a document
+    const archiveChildren = async (parentDocumentId: string) => {
+      const childDocuments = await (
+        this.constructor as typeof Document
+      ).findAll({
+        where: {
+          parentDocumentId,
+        },
+      });
+      for (const child of childDocuments) {
+        await archiveChildren(child.id);
+        child.archivedAt = archivedAt;
+        child.lastModifiedById = user.id;
+        child.updatedBy = user;
+        await child.save(options);
+      }
+    };
+
+    await archiveChildren(this.id);
+    this.archivedAt = archivedAt;
+    this.lastModifiedById = user.id;
+    this.updatedBy = user;
+    return this.save(options);
   };
 }
 

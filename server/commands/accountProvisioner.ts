@@ -244,7 +244,7 @@ async function provisionFirstCollection(team: Team, user: User) {
 
       document.content = await DocumentHelper.toJSON(document);
 
-      await document.publish(collection.createdById, collection.id, {
+      await document.publish(user, collection.id, {
         transaction,
       });
     }

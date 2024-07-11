@@ -681,7 +681,7 @@ router.post(
     if (document.deletedAt) {
       authorize(user, "restore", document);
       // restore a previously deleted document
-      await document.unarchive(user.id);
+      await document.unarchive(user);
       await Event.createFromContext(ctx, {
         name: "documents.restore",
         documentId: document.id,
@@ -693,7 +693,7 @@ router.post(
     } else if (document.archivedAt) {
       authorize(user, "unarchive", document);
       // restore a previously archived document
-      await document.unarchive(user.id);
+      await document.unarchive(user);
       await Event.createFromContext(ctx, {
         name: "documents.unarchive",
         documentId: document.id,
@@ -1182,7 +1182,7 @@ router.post(
     });
     authorize(user, "archive", document);
 
-    await document.archive(user.id);
+    await document.archive(user);
     await Event.createFromContext(ctx, {
       name: "documents.archive",
       documentId: document.id,
@@ -1230,7 +1230,7 @@ router.post(
 
       authorize(user, "delete", document);
 
-      await document.delete(user.id);
+      await document.delete(user);
       await Event.createFromContext(ctx, {
         name: "documents.delete",
         documentId: document.id,
@@ -1271,7 +1271,7 @@ router.post(
       );
     }
 
-    await document.unpublish(user.id);
+    await document.unpublish(user);
     await Event.createFromContext(ctx, {
       name: "documents.unpublish",
       documentId: document.id,
