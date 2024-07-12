@@ -28,6 +28,7 @@ import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
+import Icon from "./Icon";
 
 const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 
@@ -89,6 +90,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
               title: document.title,
               subtitle: `Updated ${time}`,
               url: document.url,
+              icon: document.icon ? (
+                <Icon
+                  value={document.icon}
+                  color={document.color ?? undefined}
+                />
+              ) : undefined,
             },
           ];
         } catch (error) {
@@ -107,6 +114,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           title: document.title,
           subtitle: <DocumentBreadcrumb document={document} onlyText />,
           url: document.url,
+          icon: document.icon ? (
+            <Icon value={document.icon} color={document.color ?? undefined} />
+          ) : undefined,
         })),
         (document) =>
           deburr(document.title)

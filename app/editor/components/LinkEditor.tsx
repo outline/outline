@@ -26,6 +26,7 @@ import Tooltip from "./Tooltip";
 export type SearchResult = {
   title: string;
   subtitle?: React.ReactNode;
+  icon?: React.ReactNode;
   url: string;
 };
 
@@ -359,7 +360,7 @@ class LinkEditor extends React.Component<Props, State> {
                     key={result.url}
                     title={result.title}
                     subtitle={result.subtitle}
-                    icon={<DocumentIcon />}
+                    icon={result.icon ?? <DocumentIcon />}
                     onPointerMove={() => this.handleFocusLink(index)}
                     onClick={this.handleSelectLink(result.url, result.title)}
                     selected={index === selectedIndex}
