@@ -182,7 +182,7 @@ const DocumentSquircle = ({
 
   return (
     <Squircle color={squircleColor}>
-      <Icon value={icon} color={theme.white} />
+      <Icon value={icon} color={theme.white} forceColor />
     </Squircle>
   );
 };
