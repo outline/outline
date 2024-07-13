@@ -3,7 +3,7 @@ import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { DataAttribute } from "@server/models";
+import { DataAttribute, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentDataAttribute, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -77,6 +77,18 @@ router.post(
       { transaction }
     );
 
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "dataAttributes.create",
+        modelId: dataAttribute.id,
+        data: {
+          name,
+        },
+      },
+      { transaction }
+    );
+
     ctx.body = {
       data: presentDataAttribute(dataAttribute),
       policies: presentPolicies(user, [dataAttribute]),
@@ -102,7 +114,19 @@ router.post(
 
     authorize(user, "update", dataAttribute);
     dataAttribute.set(input);
+
+    const changes = dataAttribute.changeset;
     await dataAttribute.save({ transaction });
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "dataAttributes.update",
+        modelId: dataAttribute.id,
+        changes,
+      },
+      { transaction }
+    );
 
     ctx.body = {
       data: presentDataAttribute(dataAttribute),
@@ -129,6 +153,18 @@ router.post(
 
     authorize(user, "delete", dataAttribute);
     await dataAttribute.destroy({ transaction });
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "dataAttributes.delete",
+        modelId: dataAttribute.id,
+        data: {
+          name: dataAttribute.name,
+        },
+      },
+      { transaction }
+    );
 
     ctx.body = {
       success: true,

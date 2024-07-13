@@ -36,6 +36,7 @@ import type {
   Notification,
   Share,
   GroupMembership,
+  DataAttribute,
 } from "./models";
 
 export enum AuthenticationType {
@@ -259,6 +260,15 @@ export type CollectionGroupEvent = BaseEvent<GroupMembership> & {
   data: { name: string };
 };
 
+export type DataAttributeEvent = BaseEvent<DataAttribute> & {
+  name:
+    | "dataAttributes.create"
+    | "dataAttributes.update"
+    | "dataAttributes.delete";
+  modelId: string;
+  data: { name: string };
+};
+
 export type DocumentUserEvent = BaseEvent<UserMembership> & {
   name: "documents.add_user" | "documents.remove_user";
   userId: string;
@@ -439,6 +449,7 @@ export type Event =
   | ApiKeyEvent
   | AttachmentEvent
   | AuthenticationProviderEvent
+  | DataAttributeEvent
   | DocumentEvent
   | DocumentUserEvent
   | DocumentGroupEvent
