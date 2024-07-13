@@ -50,6 +50,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
     FeatureFlags.isEnabled(Feature.dataAttributes) &&
     dataAttributes.orderedData.length > 0;
   const missingDataAttributes =
+    !document.dataAttributes ||
     document.dataAttributes?.length < dataAttributes.orderedData.length;
 
   return (

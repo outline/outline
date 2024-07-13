@@ -499,16 +499,13 @@ export default class Document extends ParanoidModel {
   };
 
   @action
-  setDataAttribute = (
-    dataAttributeId: string,
-    input: string | number | boolean
-  ) => {
+  setDataAttribute = (dataAttributeId: string, input: Primitive) => {
     const definition = this.store.rootStore.dataAttributes.get(dataAttributeId);
     if (!definition) {
       throw new Error(`Data attribute ${dataAttributeId} not found`);
     }
 
-    let value: string | number | boolean = input;
+    let value: Primitive = input;
     switch (definition.dataType) {
       case DataAttributeDataType.Number:
         value = Number(input);

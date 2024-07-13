@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
 import Flex from "@shared/components/Flex";
@@ -67,7 +66,9 @@ export const Properties = observer(
       return null;
     }
 
-    const definition = dataAttributes.get(draftAttribute?.dataAttributeId);
+    const definition = draftAttribute?.dataAttributeId
+      ? dataAttributes.get(draftAttribute?.dataAttributeId)
+      : undefined;
 
     return (
       <List>
@@ -80,27 +81,28 @@ export const Properties = observer(
         ))}
         {draftAttribute && (
           <Flex gap={8} auto>
-            {definition.name}
-            {definition.dataType === DataAttributeDataType.List ? (
+            {definition?.name}
+            {definition?.dataType === DataAttributeDataType.List ? (
               <InputSelect
-                required
                 ariaLabel={definition.name}
-                options={definition.options?.options.map((option) => ({
-                  label: option.value,
-                  value: option.value,
-                }))}
-                value={draftAttribute?.value ?? ""}
+                options={
+                  definition.options?.options?.map((option) => ({
+                    label: option.value,
+                    value: option.value,
+                  })) ?? []
+                }
+                value={String(draftAttribute?.value) ?? ""}
                 onChange={(event) => {
                   if (event) {
                     setDraftAttribute({
                       ...draftAttribute,
                       value: event,
                     });
-                    handleSave();
+                    void handleSave();
                   }
                 }}
               />
-            ) : definition.dataType === DataAttributeDataType.Boolean ? (
+            ) : definition?.dataType === DataAttributeDataType.Boolean ? (
               <Switch
                 checked={!!draftAttribute?.value}
                 onChange={(event) => {
@@ -108,14 +110,19 @@ export const Properties = observer(
                     ...draftAttribute,
                     value: event.currentTarget.checked,
                   });
-                  handleSave();
+                  void handleSave();
                 }}
               />
             ) : (
               <Input
-                value={draftAttribute?.value ?? ""}
+                value={String(draftAttribute?.value) ?? ""}
                 onBlur={handleSave}
-                pattern={DataAttributesHelper.getValidationRegex(definition)}
+                pattern={
+                  definition
+                    ? DataAttributesHelper.getValidationRegex(definition)
+                        ?.source
+                    : undefined
+                }
                 required
                 onChange={(event) =>
                   setDraftAttribute({
@@ -229,10 +236,4 @@ const Dd = styled(Text)`
       opacity: 1;
     }
   }
-`;
-
-const InlineLink = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  color: ${(props) => props.theme.textSecondary};
 `;
