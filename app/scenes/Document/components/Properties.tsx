@@ -64,6 +64,10 @@ export const Properties = observer(
       return null;
     }
 
+    if ((document.dataAttributes ?? []).length === 0 && !draftAttribute) {
+      return null;
+    }
+
     return (
       <List>
         {document.dataAttributes?.map((dataAttribute) => (
