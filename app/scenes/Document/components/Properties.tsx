@@ -32,26 +32,30 @@ export type PropertiesRef = {
 
 export const Properties = observer(
   React.forwardRef(function Properties_({ document }: Props, ref) {
+    const { dataAttributes } = useStores();
     const [draftAttribute, setDraftAttribute] =
       React.useState<DocumentDataAttribute | null>(null);
 
-    const handleAddProperty = (dataAttributeId: string) =>
+    const handleAddProperty = (dataAttributeId: string) => {
+      const definition = dataAttributes.get(dataAttributeId);
+
       setDraftAttribute((state) =>
         state
           ? null
           : {
-              value: "",
+              value: definition?.defaultValue ?? "",
               dataAttributeId,
               updatedAt: new Date().toISOString(),
             }
       );
+    };
 
     React.useImperativeHandle(ref, () => ({
       addProperty: handleAddProperty,
     }));
 
     const handleSave = async () => {
-      if (draftAttribute?.value) {
+      if (draftAttribute) {
         document.setDataAttribute(
           draftAttribute.dataAttributeId,
           draftAttribute.value

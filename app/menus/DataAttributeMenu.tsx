@@ -1,7 +1,9 @@
+import copy from "copy-to-clipboard";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
+import { toast } from "sonner";
 import DataAttribute from "~/models/DataAttribute";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
@@ -34,6 +36,11 @@ function DataAttributeMenu({ dataAttribute }: Props) {
     });
   }, [t, dialogs, dataAttribute]);
 
+  const handleCopy = React.useCallback(() => {
+    copy(dataAttribute.id);
+    toast.success("Copied to clipboard");
+  }, [dataAttribute]);
+
   const handleDelete = React.useCallback(() => {
     void dataAttribute.delete();
   }, [dataAttribute]);
@@ -44,6 +51,9 @@ function DataAttributeMenu({ dataAttribute }: Props) {
       <ContextMenu {...menu}>
         <MenuItem {...menu} onClick={handleEdit}>
           {t("Edit")}…
+        </MenuItem>
+        <MenuItem {...menu} onClick={handleCopy}>
+          {t("Copy ID")}
         </MenuItem>
         <Separator />
         <MenuItem {...menu} onClick={handleDelete} dangerous>
