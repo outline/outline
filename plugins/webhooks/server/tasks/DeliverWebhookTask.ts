@@ -225,6 +225,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "userMemberships.update":
         // Ignored
         return;
+      case "dataAttributes.create":
+      case "dataAttributes.update":
+      case "dataAttributes.delete":
+        // Ignored
+        return;
       default:
         assertUnreachable(event);
     }

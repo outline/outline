@@ -42,6 +42,7 @@ import {
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import { ZodError } from "zod";
+import { DocumentDataAttribute } from "@shared/models/types";
 import type {
   NavigationNode,
   ProsemirrorData,
@@ -283,7 +284,7 @@ class Document extends ParanoidModel<
 
   // TODO
   @Column(DataType.JSONB)
-  dataAttributes: Record<string, any>[];
+  dataAttributes: DocumentDataAttribute[];
 
   /**
    * The content of the document as Markdown.

@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { DatabaseIcon } from "outline-icons";
+import { DigitalIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import DataAttribute from "~/models/DataAttribute";
@@ -26,7 +26,7 @@ function DataAttributes() {
   return (
     <Scene
       title={t("Data Attributes")}
-      icon={<DatabaseIcon />}
+      icon={<DigitalIcon />}
       actions={
         <>
           {can.createDataAttribute && (

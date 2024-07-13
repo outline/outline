@@ -14,7 +14,7 @@ export class DataAttributesHelper {
   public static getName(dataType: DataAttributeDataType, t: TFunction) {
     switch (dataType) {
       case DataAttributeDataType.Boolean:
-        return t("True / False");
+        return t("Boolean");
       case DataAttributeDataType.Number:
         return t("Number");
       case DataAttributeDataType.String:
