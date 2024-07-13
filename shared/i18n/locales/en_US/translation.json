@@ -626,6 +626,8 @@
   "Archived by {{userName}}": "Archived by {{userName}}",
   "Deleted by {{userName}}": "Deleted by {{userName}}",
   "Observing {{ userName }}": "Observing {{ userName }}",
+  "Yes": "Yes",
+  "No": "No",
   "Backlinks": "Backlinks",
   "Close": "Close",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} is using {{ appName }} to share documents, please login to continue.",

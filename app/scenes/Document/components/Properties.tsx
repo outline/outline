@@ -1,21 +1,21 @@
 import { isEmail, isPhoneNumber } from "class-validator";
 import { observer } from "mobx-react";
-import { CloseIcon } from "outline-icons";
+import { CloseIcon, EditIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
-import Flex from "@shared/components/Flex";
 import {
   DataAttributeDataType,
   DocumentDataAttribute,
 } from "@shared/models/types";
 import { isUrl } from "@shared/utils/urls";
 import Document from "~/models/Document";
+import { Inner } from "~/components/Button";
+import ButtonSmall from "~/components/ButtonSmall";
 import Input from "~/components/Input";
 import InputSelect from "~/components/InputSelect";
 import NudeButton from "~/components/NudeButton";
-import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
@@ -32,11 +32,8 @@ export type PropertiesRef = {
 
 export const Properties = observer(
   React.forwardRef(function Properties_({ document }: Props, ref) {
-    const { dataAttributes } = useStores();
-    const [draftAttribute, setDraftAttribute] = React.useState<{
-      dataAttributeId: string;
-      value: Primitive;
-    } | null>(null);
+    const [draftAttribute, setDraftAttribute] =
+      React.useState<DocumentDataAttribute | null>(null);
 
     const handleAddProperty = (dataAttributeId: string) =>
       setDraftAttribute((state) =>
@@ -45,6 +42,7 @@ export const Properties = observer(
           : {
               value: "",
               dataAttributeId,
+              updatedAt: new Date().toISOString(),
             }
       );
 
@@ -66,74 +64,41 @@ export const Properties = observer(
       return null;
     }
 
-    const definition = draftAttribute?.dataAttributeId
-      ? dataAttributes.get(draftAttribute?.dataAttributeId)
-      : undefined;
-
     return (
       <List>
         {document.dataAttributes?.map((dataAttribute) => (
           <Property
             key={dataAttribute.dataAttributeId}
             dataAttribute={dataAttribute}
-            document={document}
+            onChange={(value) => {
+              document.setDataAttribute(dataAttribute.dataAttributeId, value);
+            }}
+            onSubmit={() => {
+              void document.save();
+            }}
+            onRemove={() => {
+              document.deleteDataAttribute(dataAttribute.dataAttributeId);
+              void document.save();
+            }}
           />
         ))}
         {draftAttribute && (
-          <Flex gap={8} auto>
-            {definition?.name}
-            {definition?.dataType === DataAttributeDataType.List ? (
-              <InputSelect
-                ariaLabel={definition.name}
-                options={
-                  definition.options?.options?.map((option) => ({
-                    label: option.value,
-                    value: option.value,
-                  })) ?? []
-                }
-                value={String(draftAttribute?.value) ?? ""}
-                onChange={(event) => {
-                  if (event) {
-                    setDraftAttribute({
-                      ...draftAttribute,
-                      value: event,
-                    });
-                    void handleSave();
-                  }
-                }}
-              />
-            ) : definition?.dataType === DataAttributeDataType.Boolean ? (
-              <Switch
-                checked={!!draftAttribute?.value}
-                onChange={(event) => {
-                  setDraftAttribute({
-                    ...draftAttribute,
-                    value: event.currentTarget.checked,
-                  });
-                  void handleSave();
-                }}
-              />
-            ) : (
-              <Input
-                value={String(draftAttribute?.value) ?? ""}
-                onBlur={handleSave}
-                pattern={
-                  definition
-                    ? DataAttributesHelper.getValidationRegex(definition)
-                        ?.source
-                    : undefined
-                }
-                required
-                onChange={(event) =>
-                  setDraftAttribute({
-                    ...draftAttribute,
-                    value: event.target.value,
-                  })
-                }
-                autoFocus
-              />
-            )}
-          </Flex>
+          <Property
+            key={draftAttribute.dataAttributeId}
+            dataAttribute={draftAttribute}
+            onChange={(value) => {
+              setDraftAttribute({
+                ...draftAttribute,
+                value,
+              });
+            }}
+            onRemove={() => setDraftAttribute(null)}
+            onSubmit={() => {
+              setDraftAttribute(null);
+              void handleSave();
+            }}
+            isEditing
+          />
         )}
       </List>
     );
@@ -141,14 +106,21 @@ export const Properties = observer(
 );
 
 const Property = observer(function Property_({
-  document,
   dataAttribute,
+  onChange,
+  onSubmit,
+  onRemove,
+  ...props
 }: {
-  document: Document;
   dataAttribute: DocumentDataAttribute;
+  isEditing?: boolean;
+  onChange: (value: Primitive) => void;
+  onSubmit: () => void;
+  onRemove: () => void;
 }) {
   const { t } = useTranslation();
   const { dataAttributes } = useStores();
+  const [isEditing, setIsEditing] = React.useState(props.isEditing ?? false);
   const definition = dataAttributes.get(dataAttribute.dataAttributeId);
   const value = String(dataAttribute.value);
 
@@ -168,39 +140,140 @@ const Property = observer(function Property_({
     <a href={`tel:${value}`} target="_blank" rel="noopener noreferrer">
       {value}
     </a>
+  ) : dataAttribute.value === true ? (
+    t("Yes")
+  ) : dataAttribute.value === false ? (
+    t("No")
   ) : (
     value
   );
 
+  const handleSubmit = () => {
+    setIsEditing(false);
+    onSubmit();
+  };
+
+  const inputId = `data-attribute-${dataAttribute.dataAttributeId}`;
+  const displayedInput = isEditing ? (
+    <>
+      {definition?.dataType === DataAttributeDataType.List ? (
+        <StyledInputSelect
+          id={inputId}
+          ariaLabel={definition.name}
+          options={
+            definition.options?.options?.map((option) => ({
+              label: option.value,
+              value: option.value,
+            })) ?? []
+          }
+          value={String(dataAttribute?.value) ?? ""}
+          onChange={onChange}
+        />
+      ) : definition?.dataType === DataAttributeDataType.Boolean ? (
+        <StyledInputSelect
+          id={inputId}
+          ariaLabel={definition.name}
+          options={[
+            { label: t("Yes"), value: "true" },
+            { label: t("No"), value: "false" },
+          ]}
+          value={dataAttribute?.value ? "true" : "false"}
+          onChange={onChange}
+        />
+      ) : (
+        <StyledInput
+          id={inputId}
+          labelHidden
+          margin={0}
+          onRequestSubmit={handleSubmit}
+          placeholder={definition.description ?? ""}
+          value={String(dataAttribute?.value) ?? ""}
+          pattern={
+            definition
+              ? DataAttributesHelper.getValidationRegex(definition)?.source
+              : undefined
+          }
+          required
+          onChange={(event) => onChange(event.target.value)}
+          autoFocus
+        />
+      )}
+    </>
+  ) : null;
+
   return (
     <React.Fragment key={dataAttribute.dataAttributeId}>
       <Dt type="tertiary" weight="bold" as="dt">
-        {definition
-          ? DataAttributesHelper.getIcon(definition.dataType, definition.name, {
-              size: 18,
-            })
-          : null}
-        {definition?.name}
+        <Label htmlFor={inputId}>
+          {definition
+            ? DataAttributesHelper.getIcon(
+                definition.dataType,
+                definition.name,
+                {
+                  size: 18,
+                }
+              )
+            : null}
+          {definition?.name}
+        </Label>
       </Dt>
       <Dd type="tertiary" as="dd">
-        {displayedValue}
-        <Tooltip content={t("Remove")} delay={500}>
-          <RemoveButton
-            onClick={() => {
-              document.deleteDataAttribute(dataAttribute.dataAttributeId);
-              void document.save();
-            }}
-          >
-            <CloseIcon size={18} />
-          </RemoveButton>
-        </Tooltip>
+        {displayedInput ?? displayedValue}
+        {isEditing ? (
+          <ButtonSmall onClick={handleSubmit} neutral>
+            {t("Save")}
+          </ButtonSmall>
+        ) : (
+          <>
+            <Tooltip content={t("Edit")} delay={500}>
+              <HoverButton
+                onClick={() => setIsEditing(true)}
+                $isEditing={isEditing}
+              >
+                <EditIcon size={18} />
+              </HoverButton>
+            </Tooltip>
+            <Tooltip content={t("Remove")} delay={500}>
+              <HoverButton onClick={onRemove} $isEditing={isEditing}>
+                <CloseIcon size={18} />
+              </HoverButton>
+            </Tooltip>
+          </>
+        )}
       </Dd>
     </React.Fragment>
   );
 });
 
-const RemoveButton = styled(NudeButton)`
-  opacity: 0;
+const Label = styled.label`
+  white-space: nowrap;
+`;
+
+const HoverButton = styled(NudeButton)<{ $isEditing: boolean }>`
+  opacity: ${(props) => (props.$isEditing ? 1 : 0)};
+`;
+
+const StyledInputSelect = styled(InputSelect)`
+  padding: 0;
+  margin: -4px;
+  margin-right: 8px;
+  height: 26px;
+
+  ${Inner} {
+    line-height: 14px;
+    min-height: auto;
+  }
+`;
+
+const StyledInput = styled(Input)`
+  padding: 0;
+  margin: -4px;
+  margin-right: 4px;
+
+  input {
+    padding: 4px 8px;
+    height: 24px;
+  }
 `;
 
 const List = styled.dl`
@@ -217,6 +290,7 @@ const Dt = styled(Text)`
   clear: left;
   flex-basis: 20%;
   margin-bottom: 2px;
+  height: 26px;
 
   svg {
     position: relative;
@@ -232,7 +306,7 @@ const Dd = styled(Text)`
   margin-bottom: 2px;
 
   &:hover {
-    ${RemoveButton} {
+    ${HoverButton} {
       opacity: 1;
     }
   }
