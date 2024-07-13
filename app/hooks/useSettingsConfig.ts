@@ -14,7 +14,7 @@ import {
   ImportIcon,
   ShapesIcon,
   Icon,
-  DatabaseIcon,
+  DigitalIcon,
 } from "outline-icons";
 import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
@@ -123,6 +123,16 @@ const useSettingsConfig = () => {
         icon: BeakerIcon,
       },
       {
+        name: t("Data Attributes"),
+        path: settingsPath("attributes"),
+        component: DataAttributes,
+        enabled:
+          can.createDataAttribute &&
+          FeatureFlags.isEnabled(Feature.dataAttributes),
+        group: t("Workspace"),
+        icon: DigitalIcon,
+      },
+      {
         name: t("Members"),
         path: settingsPath("members"),
         component: Members,
@@ -145,16 +155,6 @@ const useSettingsConfig = () => {
         enabled: can.update,
         group: t("Workspace"),
         icon: ShapesIcon,
-      },
-      {
-        name: t("Data Attributes"),
-        path: settingsPath("attributes"),
-        component: DataAttributes,
-        enabled:
-          can.createDataAttribute &&
-          FeatureFlags.isEnabled(Feature.dataAttributes),
-        group: t("Workspace"),
-        icon: DatabaseIcon,
       },
       {
         name: t("Shared Links"),
