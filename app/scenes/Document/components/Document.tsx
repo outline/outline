@@ -119,6 +119,9 @@ class DocumentScene extends React.Component<Props> {
   @observable
   headings: Heading[] = [];
 
+  @observable
+  fullWidthElems: HTMLElement[] = [];
+
   componentDidMount() {
     this.updateIsDirty();
   }
@@ -384,6 +387,10 @@ class DocumentScene extends React.Component<Props> {
     this.headings = headings;
   };
 
+  onFullWidthElemsChange = (fullWidthElems: HTMLElement[]) => {
+    this.fullWidthElems = fullWidthElems;
+  };
+
   handleChangeTitle = action((value: string) => {
     this.title = value;
     this.props.document.title = value;
@@ -535,7 +542,10 @@ class DocumentScene extends React.Component<Props> {
                         docFullWidth={document.fullWidth}
                         position={tocPos}
                       >
-                        <Contents headings={this.headings} />
+                        <Contents
+                          headings={this.headings}
+                          fullWidthElems={this.fullWidthElems}
+                        />
                       </ContentsContainer>
                     )}
                     <EditorContainer
@@ -566,6 +576,7 @@ class DocumentScene extends React.Component<Props> {
                         onChangeIcon={this.handleChangeIcon}
                         onChange={this.handleChange}
                         onHeadingsChange={this.onHeadingsChange}
+                        onFullWidthElemsChange={this.onFullWidthElemsChange}
                         onSave={this.onSave}
                         onPublish={this.onPublish}
                         onCancel={this.goBack}
@@ -649,8 +660,6 @@ type ContentsContainerProps = {
 
 const ContentsContainer = styled.div<ContentsContainerProps>`
   ${breakpoint("tablet")`
-    margin-top: calc(44px + 6vh);
-
     grid-row: 1;
     grid-column: ${({ docFullWidth, position }: ContentsContainerProps) =>
       position === TOCPosition.Left ? 1 : docFullWidth ? 2 : 3};

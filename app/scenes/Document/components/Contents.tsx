@@ -1,11 +1,9 @@
-import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
-import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { depths, s } from "@shared/styles";
+import { s } from "@shared/styles";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
+import ContentsPositioner from "./ContentsPositioner";
 
 const HEADING_OFFSET = 20;
 
@@ -16,9 +14,10 @@ type Props = {
     level: number;
     id: string;
   }[];
+  fullWidthElems: HTMLElement[];
 };
 
-export default function Contents({ headings }: Props) {
+export default function Contents({ headings, fullWidthElems }: Props) {
   const [activeSlug, setActiveSlug] = React.useState<string>();
   const scrollPosition = useWindowScrollPosition({
     throttle: 100,
@@ -56,11 +55,11 @@ export default function Contents({ headings }: Props) {
   const { t } = useTranslation();
 
   if (headings.length === 0) {
-    return <StickyWrapper />;
+    return <ContentsPositioner headings={[]} fullWidthElems={[]} />;
   }
 
   return (
-    <StickyWrapper>
+    <ContentsPositioner headings={headings} fullWidthElems={fullWidthElems}>
       <Heading>{t("Contents")}</Heading>
       <List>
         {headings
@@ -75,35 +74,9 @@ export default function Contents({ headings }: Props) {
             </ListItem>
           ))}
       </List>
-    </StickyWrapper>
+    </ContentsPositioner>
   );
 }
-
-const StickyWrapper = styled.div`
-  display: none;
-
-  position: sticky;
-  top: 90px;
-  max-height: calc(100vh - 90px);
-  width: ${EditorStyleHelper.tocWidth}px;
-
-  padding: 0 16px;
-  overflow-y: auto;
-  border-radius: 8px;
-
-  background: ${s("background")};
-  transition: ${s("backgroundTransition")};
-
-  @supports (backdrop-filter: blur(20px)) {
-    backdrop-filter: blur(20px);
-    background: ${(props) => transparentize(0.2, props.theme.background)};
-  }
-
-  ${breakpoint("tablet")`
-    display: block;
-    z-index: ${depths.toc};
-  `};
-`;
 
 const Heading = styled.h3`
   font-size: 13px;
