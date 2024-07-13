@@ -60,7 +60,6 @@ import { toast } from "sonner";
 import { Primitive } from "utility-types";
 import type { Dictionary } from "~/hooks/useDictionary";
 import { UserPreferences } from "../../types";
-import Storage from "../../utils/Storage";
 import { isMac } from "../../utils/browser";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import {
@@ -73,6 +72,7 @@ import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
 import Mermaid from "../extensions/Mermaid";
 import Prism from "../extensions/Prism";
+import { getRecentCodeLanguage, setRecentCodeLanguage } from "../lib/code";
 import { isCode } from "../lib/isCode";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findParentNode } from "../queries/findParentNode";
@@ -80,7 +80,6 @@ import { getMarkRange } from "../queries/getMarkRange";
 import { isInCode } from "../queries/isInCode";
 import Node from "./Node";
 
-const PERSISTENCE_KEY = "rme-code-language";
 const DEFAULT_LANGUAGE = "javascript";
 
 [
@@ -189,10 +188,10 @@ export default class CodeFence extends Node {
     return {
       code_block: (attrs: Record<string, Primitive>) => {
         if (attrs?.language) {
-          Storage.set(PERSISTENCE_KEY, attrs.language);
+          setRecentCodeLanguage(attrs.language as string);
         }
         return toggleBlockType(type, schema.nodes.paragraph, {
-          language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
+          language: getRecentCodeLanguage() ?? DEFAULT_LANGUAGE,
           ...attrs,
         });
       },
@@ -322,7 +321,7 @@ export default class CodeFence extends Node {
   inputRules({ type }: { type: NodeType }) {
     return [
       textblockTypeInputRule(/^```$/, type, () => ({
-        language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
+        language: getRecentCodeLanguage() ?? DEFAULT_LANGUAGE,
       })),
     ];
   }
