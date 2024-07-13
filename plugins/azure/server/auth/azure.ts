@@ -29,7 +29,8 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       clientID: env.AZURE_CLIENT_ID,
       clientSecret: env.AZURE_CLIENT_SECRET,
       callbackURL: `${env.URL}/auth/azure.callback`,
-      useCommonEndpoint: true,
+      useCommonEndpoint: env.AZURE_TENANT_ID ? false : true,
+      tenant: env.AZURE_TENANT_ID ? env.AZURE_TENANT_ID : undefined,
       passReqToCallback: true,
       resource: env.AZURE_RESOURCE_APP_ID,
       // @ts-expect-error StateStore
