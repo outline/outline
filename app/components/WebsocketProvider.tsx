@@ -10,6 +10,7 @@ import { FileOperationState, FileOperationType } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Comment from "~/models/Comment";
+import DataAttribute from "~/models/DataAttribute";
 import Document from "~/models/Document";
 import FileOperation from "~/models/FileOperation";
 import Group from "~/models/Group";
@@ -82,6 +83,7 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.authenticated = false;
     const {
       auth,
+      dataAttributes,
       documents,
       collections,
       groups,
@@ -287,6 +289,27 @@ class WebsocketProvider extends React.Component<Props> {
         if (event.documentId && event.userId === auth.user?.id) {
           documents.remove(event.documentId);
         }
+      }
+    );
+
+    this.socket.on(
+      "dataAttributes.create",
+      (event: PartialWithId<DataAttribute>) => {
+        dataAttributes.add(event);
+      }
+    );
+
+    this.socket.on(
+      "dataAttributes.update",
+      (event: PartialWithId<DataAttribute>) => {
+        dataAttributes.add(event);
+      }
+    );
+
+    this.socket.on(
+      "dataAttributes.delete",
+      (event: WebsocketEntityDeletedEvent) => {
+        dataAttributes.remove(event.modelId);
       }
     );
 

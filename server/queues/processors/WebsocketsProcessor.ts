@@ -16,10 +16,12 @@ import {
   Notification,
   UserMembership,
   User,
+  DataAttribute,
 } from "@server/models";
 import {
   presentComment,
   presentCollection,
+  presentDataAttribute,
   presentDocument,
   presentFileOperation,
   presentGroup,
@@ -369,6 +371,22 @@ export default class WebsocketsProcessor {
         return socketio
           .to(`user-${event.actorId}`)
           .emit(event.name, presentFileOperation(fileOperation));
+      }
+
+      case "dataAttributes.create":
+      case "dataAttributes.update": {
+        const dataAttribute = await DataAttribute.findByPk(event.modelId);
+        if (!dataAttribute) {
+          return;
+        }
+        return socketio
+          .to(`team-${dataAttribute.teamId}`)
+          .emit(event.name, presentDataAttribute(dataAttribute));
+      }
+      case "dataAttributes.delete": {
+        return socketio.to(`team-${event.teamId}`).emit(event.name, {
+          modelId: event.modelId,
+        });
       }
 
       case "pins.create":
