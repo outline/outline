@@ -55,6 +55,8 @@ export type Props = {
    * The Modal will take care of preventing body scroll behaviour.
    */
   skipBodyScroll?: boolean;
+  autoFocus?: boolean;
+  placeholder?: string;
 };
 
 export interface InputSelectRef {
@@ -85,6 +87,8 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
     icon,
     nude,
     skipBodyScroll,
+    autoFocus,
+    placeholder,
     ...rest
   } = props;
 
@@ -214,6 +218,7 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
               neutral
               disclosure
               className={className}
+              autoFocus={autoFocus}
               icon={icon}
               $nude={nude}
               {...buttonProps}
@@ -221,7 +226,9 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
               {option ? (
                 labelForOption(option)
               ) : (
-                <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
+                <Placeholder>
+                  {placeholder ?? `Select a ${ariaLabel.toLowerCase()}`}
+                </Placeholder>
               )}
             </StyledButton>
           )}

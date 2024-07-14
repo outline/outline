@@ -47,17 +47,6 @@ class DataAttribute extends ParanoidModel {
 
   /** The user ID that created this data attribute. */
   createdById: string;
-
-  /** The default value to use when creating a new property. */
-  get defaultValue() {
-    switch (this.dataType) {
-      case DataAttributeDataType.Boolean:
-        return false;
-      case DataAttributeDataType.List:
-        return this.options?.options?.[0]?.value;
-    }
-    return undefined;
-  }
 }
 
 export default DataAttribute;

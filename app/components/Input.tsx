@@ -143,8 +143,12 @@ export interface Props
   onRequestSubmit?: (
     ev: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => unknown;
-  onFocus?: (ev: React.SyntheticEvent) => unknown;
-  onBlur?: (ev: React.SyntheticEvent) => unknown;
+  onFocus?: (
+    ev: React.SyntheticEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => unknown;
+  onBlur?: (
+    ev: React.SyntheticEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => unknown;
 }
 
 function Input(
@@ -154,7 +158,9 @@ function Input(
   const internalRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>();
   const [focused, setFocused] = React.useState(false);
 
-  const handleBlur = (ev: React.SyntheticEvent) => {
+  const handleBlur = (
+    ev: React.SyntheticEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFocused(false);
 
     if (props.onBlur) {
@@ -162,7 +168,9 @@ function Input(
     }
   };
 
-  const handleFocus = (ev: React.SyntheticEvent) => {
+  const handleFocus = (
+    ev: React.SyntheticEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFocused(true);
 
     if (props.onFocus) {

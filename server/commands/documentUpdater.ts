@@ -9,7 +9,7 @@ type Props = {
   user: User;
   /** The existing document */
   document: Document;
-  /** TODO: Data attributes to apply to the document */
+  /** Data attributes to apply to the document */
   dataAttributes?: Omit<DocumentDataAttribute, "updatedAt">[];
   /** The new title */
   title?: string;
