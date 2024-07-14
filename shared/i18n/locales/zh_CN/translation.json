@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} 已创建",
   "You published": "你发布了",
   "{{ userName }} published": "{{ userName }} 已发布",
-  "You saved": "你保存了",
-  "{{ userName }} saved": "{{ userName }} 已保存",
   "Never viewed": "从未被浏览过",
   "Viewed": "已浏览",
   "in": "在",
