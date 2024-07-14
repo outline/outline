@@ -2489,29 +2489,6 @@ describe("#documents.move", () => {
     expect(body.policies[0].abilities.move).toEqual(true);
   });
 
-  it("should move the template without collectionId", async () => {
-    const user = await buildUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-    });
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-      collectionId: collection.id,
-      template: true,
-    });
-    const res = await server.post("/api/documents.move", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.documents[0].collectionId).toBeNull();
-    expect(body.policies[0].abilities.move).toEqual(true);
-  });
-
   it("should not allow moving the document to a collection the user cannot access", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -2527,6 +2504,56 @@ describe("#documents.move", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should move a template to workspace", async () => {
+    const user = await buildAdmin();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      template: true,
+    });
+
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].collectionId).toBeNull();
+    expect(body.policies[0].abilities.move).toEqual(true);
+  });
+
+  it("should move a workspace template to collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      template: true,
+    });
+
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.documents[0].collectionId).toEqual(collection.id);
+    expect(body.policies[0].abilities.move).toEqual(true);
   });
 
   it("should require authentication", async () => {
@@ -2552,54 +2579,6 @@ describe("#documents.move", () => {
       },
     });
     expect(res.status).toEqual(403);
-  });
-
-  it("should move a template to workspace", async () => {
-    const user = await buildUser();
-    const collection = await buildCollection({
-      teamId: user.teamId,
-    });
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-      collectionId: collection.id,
-      template: true,
-    });
-    const res = await server.post("/api/documents.move", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-        template: true,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.documents[0].collectionId).toBeNull();
-    expect(body.policies[0].abilities.move).toEqual(true);
-  });
-
-  it("should move a workspace template to collection", async () => {
-    const user = await buildUser();
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-      template: true,
-    });
-    const collection = await buildCollection({
-      teamId: user.teamId,
-    });
-    const res = await server.post("/api/documents.move", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-        collectionId: collection.id,
-        template: true,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.documents[0].collectionId).toEqual(collection.id);
-    expect(body.policies[0].abilities.move).toEqual(true);
   });
 });
 
