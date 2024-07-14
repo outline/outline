@@ -70,7 +70,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
             </InlineLink>
           </>
         )}
-        {dataAttributesAvailable && missingDataAttributes ? (
+        {dataAttributesAvailable && missingDataAttributes && can.update ? (
           <>
             &nbsp;•&nbsp;
             <AddPropertyMenu

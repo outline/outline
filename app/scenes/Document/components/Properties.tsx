@@ -20,11 +20,12 @@ import InputSelect from "~/components/InputSelect";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { DataAttributesHelper } from "~/utils/DataAttributesHelper";
 import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 
-const PropertyHeight = 26;
+const PropertyHeight = 30;
 
 type Props = {
   document: Document;
@@ -37,6 +38,7 @@ export type PropertiesRef = {
 export const Properties = observer(
   React.forwardRef(function Properties_({ document }: Props, ref) {
     const { dataAttributes } = useStores();
+    const can = usePolicy(document);
     const [draftAttribute, setDraftAttribute] =
       React.useState<DocumentDataAttribute | null>(null);
 
@@ -95,6 +97,7 @@ export const Properties = observer(
             <Property
               key={dataAttribute.dataAttributeId}
               dataAttribute={dataAttribute}
+              canUpdate={can.update}
               onChange={(value) => {
                 document.setDataAttribute(dataAttribute.dataAttributeId, value);
               }}
@@ -112,6 +115,7 @@ export const Properties = observer(
           <Property
             key={draftAttribute.dataAttributeId}
             dataAttribute={draftAttribute}
+            canUpdate={can.update}
             onChange={(value) => {
               setDraftAttribute({
                 ...draftAttribute,
@@ -136,12 +140,14 @@ export const Properties = observer(
 
 const Property = observer(function Property_({
   dataAttribute,
+  canUpdate,
   onChange,
   onSubmit,
   onRemove,
   ...props
 }: {
   dataAttribute: DocumentDataAttribute;
+  canUpdate: boolean;
   isEditing?: boolean;
   onChange: (value: Primitive) => void;
   onSubmit: (value: Primitive) => void;
@@ -177,9 +183,9 @@ const Property = observer(function Property_({
     value
   );
 
-  const handleSubmit = (value: Primitive) => {
+  const handleSubmit = (newValue: Primitive) => {
     setIsEditing(false);
-    onSubmit(value);
+    onSubmit(newValue);
   };
 
   const inputId = `data-attribute-${dataAttribute.dataAttributeId}`;
@@ -263,20 +269,22 @@ const Property = observer(function Property_({
       </Dt>
       <Dd type="tertiary" as="dd">
         {displayedInput ?? displayedValue}
-        <Actions align="center">
-          {!isEditing && (
-            <Tooltip content={t("Edit")} delay={500}>
-              <HoverButton onClick={() => setIsEditing(true)}>
-                <EditIcon size={18} />
+        {canUpdate && (
+          <Actions align="center">
+            {!isEditing && (
+              <Tooltip content={t("Edit")} delay={500}>
+                <HoverButton onClick={() => setIsEditing(true)}>
+                  <EditIcon size={18} />
+                </HoverButton>
+              </Tooltip>
+            )}
+            <Tooltip content={t("Remove")} delay={500}>
+              <HoverButton onClick={onRemove} $isEditing={isEditing}>
+                <CloseIcon size={18} />
               </HoverButton>
             </Tooltip>
-          )}
-          <Tooltip content={t("Remove")} delay={500}>
-            <HoverButton onClick={onRemove} $isEditing={isEditing}>
-              <CloseIcon size={18} />
-            </HoverButton>
-          </Tooltip>
-        </Actions>
+          </Actions>
+        )}
       </Dd>
     </React.Fragment>
   );
@@ -333,11 +341,26 @@ const List = styled.dl`
   position: relative;
 `;
 
+const Dd = styled(Text)`
+  flex-basis: 70%;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  height: ${PropertyHeight}px;
+  gap: 4px;
+
+  &:hover {
+    ${HoverButton} {
+      opacity: 1;
+    }
+  }
+`;
+
 const Dt = styled(Text)`
   float: left;
   clear: left;
-  flex-basis: 20%;
-  margin-bottom: 2px;
+  flex-basis: 30%;
+  margin: 0;
   height: ${PropertyHeight}px;
 
   svg {
@@ -345,17 +368,8 @@ const Dt = styled(Text)`
     top: 4px;
     margin-right: 4px;
   }
-`;
 
-const Dd = styled(Text)`
-  flex-basis: 70%;
-  display: flex;
-  align-items: center;
-  margin-bottom: 2px;
-  height: ${PropertyHeight}px;
-  gap: 4px;
-
-  &:hover {
+  &:hover + ${Dd} {
     ${HoverButton} {
       opacity: 1;
     }
