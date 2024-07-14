@@ -66,7 +66,7 @@ export class DataAttributesHelper {
   public static getValidationRegex(dataAttribute: DataAttribute) {
     switch (dataAttribute.dataType) {
       case DataAttributeDataType.Number:
-        return /^[0-9]+$/;
+        return /^-?\d+(\.\d+)?$/;
       default:
         return undefined;
     }

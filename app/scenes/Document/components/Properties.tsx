@@ -5,14 +5,15 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
+import Flex from "@shared/components/Flex";
 import {
   DataAttributeDataType,
   DocumentDataAttribute,
 } from "@shared/models/types";
+import { s } from "@shared/styles";
 import { isUrl } from "@shared/utils/urls";
 import Document from "~/models/Document";
 import { Inner } from "~/components/Button";
-import ButtonSmall from "~/components/ButtonSmall";
 import Input from "~/components/Input";
 import InputSelect from "~/components/InputSelect";
 import NudeButton from "~/components/NudeButton";
@@ -21,6 +22,8 @@ import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
 import { DataAttributesHelper } from "~/utils/DataAttributesHelper";
 import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
+
+const PropertyHeight = 26;
 
 type Props = {
   document: Document;
@@ -32,18 +35,15 @@ export type PropertiesRef = {
 
 export const Properties = observer(
   React.forwardRef(function Properties_({ document }: Props, ref) {
-    const { dataAttributes } = useStores();
     const [draftAttribute, setDraftAttribute] =
       React.useState<DocumentDataAttribute | null>(null);
 
     const handleAddProperty = (dataAttributeId: string) => {
-      const definition = dataAttributes.get(dataAttributeId);
-
       setDraftAttribute((state) =>
         state
           ? null
           : {
-              value: definition?.defaultValue ?? "",
+              value: "",
               dataAttributeId,
               updatedAt: new Date().toISOString(),
             }
@@ -54,12 +54,11 @@ export const Properties = observer(
       addProperty: handleAddProperty,
     }));
 
-    const handleSave = async () => {
-      if (draftAttribute) {
-        document.setDataAttribute(
-          draftAttribute.dataAttributeId,
-          draftAttribute.value
-        );
+    const handleSave = async (dataAttribute: DocumentDataAttribute) => {
+      if (dataAttribute) {
+        const value = dataAttribute.value;
+        setDraftAttribute(null);
+        document.setDataAttribute(dataAttribute.dataAttributeId, value);
         await document.save();
       }
     };
@@ -101,10 +100,12 @@ export const Properties = observer(
               });
             }}
             onRemove={() => setDraftAttribute(null)}
-            onSubmit={() => {
-              setDraftAttribute(null);
-              void handleSave();
-            }}
+            onSubmit={(value) =>
+              handleSave({
+                ...draftAttribute,
+                value,
+              })
+            }
             isEditing
           />
         )}
@@ -123,7 +124,7 @@ const Property = observer(function Property_({
   dataAttribute: DocumentDataAttribute;
   isEditing?: boolean;
   onChange: (value: Primitive) => void;
-  onSubmit: () => void;
+  onSubmit: (value: Primitive) => void;
   onRemove: () => void;
 }) {
   const { t } = useTranslation();
@@ -156,9 +157,9 @@ const Property = observer(function Property_({
     value
   );
 
-  const handleSubmit = () => {
+  const handleSubmit = (value: Primitive) => {
     setIsEditing(false);
-    onSubmit();
+    onSubmit(value);
   };
 
   const inputId = `data-attribute-${dataAttribute.dataAttributeId}`;
@@ -167,6 +168,7 @@ const Property = observer(function Property_({
       {definition?.dataType === DataAttributeDataType.List ? (
         <StyledInputSelect
           id={inputId}
+          placeholder={t("Select an option")}
           ariaLabel={definition.name}
           options={
             definition.options?.options?.map((option) => ({
@@ -174,35 +176,49 @@ const Property = observer(function Property_({
               value: option.value,
             })) ?? []
           }
-          value={String(dataAttribute?.value) ?? ""}
-          onChange={onChange}
+          value={String(dataAttribute.value) ?? ""}
+          onChange={(val) => {
+            onChange(val);
+            handleSubmit(val);
+          }}
         />
       ) : definition?.dataType === DataAttributeDataType.Boolean ? (
         <StyledInputSelect
           id={inputId}
           ariaLabel={definition.name}
+          placeholder={t("Select an option")}
           options={[
             { label: t("Yes"), value: "true" },
             { label: t("No"), value: "false" },
           ]}
-          value={dataAttribute?.value ? "true" : "false"}
-          onChange={onChange}
+          value={
+            dataAttribute.value === true
+              ? "true"
+              : dataAttribute.value === false
+              ? "false"
+              : ""
+          }
+          onChange={(val) => {
+            onChange(val);
+            handleSubmit(val);
+          }}
         />
       ) : (
         <StyledInput
           id={inputId}
           labelHidden
           margin={0}
-          onRequestSubmit={handleSubmit}
+          onBlur={(event) => handleSubmit(event.currentTarget.value)}
+          onRequestSubmit={(event) => handleSubmit(event.currentTarget.value)}
           placeholder={definition.description ?? ""}
-          value={String(dataAttribute?.value) ?? ""}
+          value={String(dataAttribute.value) ?? ""}
           pattern={
             definition
               ? DataAttributesHelper.getValidationRegex(definition)?.source
               : undefined
           }
           required
-          onChange={(event) => onChange(event.target.value)}
+          onChange={(event) => onChange(event.currentTarget.value)}
           autoFocus
         />
       )}
@@ -227,45 +243,49 @@ const Property = observer(function Property_({
       </Dt>
       <Dd type="tertiary" as="dd">
         {displayedInput ?? displayedValue}
-        {isEditing ? (
-          <ButtonSmall onClick={handleSubmit} neutral>
-            {t("Save")}
-          </ButtonSmall>
-        ) : (
-          <>
+        <Actions align="center">
+          {!isEditing && (
             <Tooltip content={t("Edit")} delay={500}>
-              <HoverButton
-                onClick={() => setIsEditing(true)}
-                $isEditing={isEditing}
-              >
+              <HoverButton onClick={() => setIsEditing(true)}>
                 <EditIcon size={18} />
               </HoverButton>
             </Tooltip>
-            <Tooltip content={t("Remove")} delay={500}>
-              <HoverButton onClick={onRemove} $isEditing={isEditing}>
-                <CloseIcon size={18} />
-              </HoverButton>
-            </Tooltip>
-          </>
-        )}
+          )}
+          <Tooltip content={t("Remove")} delay={500}>
+            <HoverButton onClick={onRemove} $isEditing={isEditing}>
+              <CloseIcon size={18} />
+            </HoverButton>
+          </Tooltip>
+        </Actions>
       </Dd>
     </React.Fragment>
   );
 });
 
+const Actions = styled(Flex)`
+  display: flex;
+  margin-left: 8px;
+`;
+
 const Label = styled.label`
   white-space: nowrap;
 `;
 
-const HoverButton = styled(NudeButton)<{ $isEditing: boolean }>`
+const HoverButton = styled(NudeButton)<{ $isEditing?: boolean }>`
   opacity: ${(props) => (props.$isEditing ? 1 : 0)};
+  margin-left: -4px;
+
+  &:hover,
+  &:focus {
+    color: ${s("text")};
+  }
 `;
 
 const StyledInputSelect = styled(InputSelect)`
   padding: 0;
   margin: -4px;
   margin-right: 8px;
-  height: 26px;
+  height: ${PropertyHeight}px;
 
   ${Inner} {
     line-height: 14px;
@@ -288,7 +308,7 @@ const List = styled.dl`
   display: flex;
   flex-flow: row wrap;
   margin-top: -1.4em;
-  margin-bottom: 2em;
+  margin-bottom: 1.6em;
   font-size: 14px;
   position: relative;
 `;
@@ -298,7 +318,7 @@ const Dt = styled(Text)`
   clear: left;
   flex-basis: 20%;
   margin-bottom: 2px;
-  height: 26px;
+  height: ${PropertyHeight}px;
 
   svg {
     position: relative;
@@ -312,6 +332,8 @@ const Dd = styled(Text)`
   display: flex;
   align-items: center;
   margin-bottom: 2px;
+  height: ${PropertyHeight}px;
+  gap: 4px;
 
   &:hover {
     ${HoverButton} {

@@ -628,6 +628,7 @@
   "Observing {{ userName }}": "Observing {{ userName }}",
   "Yes": "Yes",
   "No": "No",
+  "Select an option": "Select an option",
   "Backlinks": "Backlinks",
   "Close": "Close",
   "{{ teamName }} is using {{ appName }} to share documents, please login to continue.": "{{ teamName }} is using {{ appName }} to share documents, please login to continue.",
