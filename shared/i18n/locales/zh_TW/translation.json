@@ -190,8 +190,6 @@
   "{{ userName }} created": "由 {{ userName }} 建立",
   "You published": "由您發佈",
   "{{ userName }} published": "由 {{ userName }} 發佈",
-  "You saved": "由您保存",
-  "{{ userName }} saved": "由 {{ userName }} 保存",
   "Never viewed": "從未瀏覽過",
   "Viewed": "已瀏覽",
   "in": "在",
