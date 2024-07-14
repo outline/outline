@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { CloseIcon, EditIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
 import Flex from "@shared/components/Flex";
@@ -35,6 +36,7 @@ export type PropertiesRef = {
 
 export const Properties = observer(
   React.forwardRef(function Properties_({ document }: Props, ref) {
+    const { dataAttributes } = useStores();
     const [draftAttribute, setDraftAttribute] =
       React.useState<DocumentDataAttribute | null>(null);
 
@@ -54,12 +56,21 @@ export const Properties = observer(
       addProperty: handleAddProperty,
     }));
 
+    const saveOrToast = async () => {
+      try {
+        await document.save();
+      } catch (error) {
+        toast.error(error.message);
+      }
+    };
+
     const handleSave = async (dataAttribute: DocumentDataAttribute) => {
       if (dataAttribute) {
-        const value = dataAttribute.value;
-        setDraftAttribute(null);
-        document.setDataAttribute(dataAttribute.dataAttributeId, value);
-        await document.save();
+        document.setDataAttribute(
+          dataAttribute.dataAttributeId,
+          dataAttribute.value
+        );
+        await saveOrToast();
       }
     };
 
@@ -73,22 +84,30 @@ export const Properties = observer(
 
     return (
       <List>
-        {document.dataAttributes?.map((dataAttribute) => (
-          <Property
-            key={dataAttribute.dataAttributeId}
-            dataAttribute={dataAttribute}
-            onChange={(value) => {
-              document.setDataAttribute(dataAttribute.dataAttributeId, value);
-            }}
-            onSubmit={() => {
-              void document.save();
-            }}
-            onRemove={() => {
-              document.deleteDataAttribute(dataAttribute.dataAttributeId);
-              void document.save();
-            }}
-          />
-        ))}
+        {dataAttributes.orderedData.map((definition) => {
+          const dataAttribute = document.dataAttributes?.find(
+            (da) => da.dataAttributeId === definition.id
+          );
+          if (!dataAttribute) {
+            return null;
+          }
+          return (
+            <Property
+              key={dataAttribute.dataAttributeId}
+              dataAttribute={dataAttribute}
+              onChange={(value) => {
+                document.setDataAttribute(dataAttribute.dataAttributeId, value);
+              }}
+              onSubmit={() => {
+                void saveOrToast();
+              }}
+              onRemove={() => {
+                document.deleteDataAttribute(dataAttribute.dataAttributeId);
+                void saveOrToast();
+              }}
+            />
+          );
+        })}
         {draftAttribute && (
           <Property
             key={draftAttribute.dataAttributeId}
@@ -100,12 +119,13 @@ export const Properties = observer(
               });
             }}
             onRemove={() => setDraftAttribute(null)}
-            onSubmit={(value) =>
-              handleSave({
+            onSubmit={(value) => {
+              setDraftAttribute(null);
+              void handleSave({
                 ...draftAttribute,
                 value,
-              })
-            }
+              });
+            }}
             isEditing
           />
         )}
