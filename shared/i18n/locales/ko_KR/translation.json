@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} 이(가) 생성함:",
   "You published": "내가 게시함:",
   "{{ userName }} published": "{{ userName }} 이(가) 게시함:",
-  "You saved": "내가 저장함:",
-  "{{ userName }} saved": "{{ userName }} 이(가) 저장함:",
   "Never viewed": "미조회",
   "Viewed": "조회",
   "in": "•",
