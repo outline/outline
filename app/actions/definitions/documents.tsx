@@ -802,7 +802,7 @@ export const moveDocumentToCollection = createAction({
   },
 });
 
-export const moveDocumentButton = createAction({
+export const moveDocument = createAction({
   name: ({ t }) => t("Move"),
   analyticsName: "Move document",
   section: DocumentSection,
@@ -821,7 +821,7 @@ export const moveDocumentButton = createAction({
   perform: moveDocumentToCollection.perform,
 });
 
-export const moveDocumentMenu = createAction({
+export const moveTemplate = createAction({
   name: ({ t }) => t("Move"),
   analyticsName: "Move document",
   section: DocumentSection,

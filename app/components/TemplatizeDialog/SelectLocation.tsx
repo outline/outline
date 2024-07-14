@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -8,6 +8,7 @@ import InputSelect, { Option } from "~/components/InputSelect";
 import TeamLogo from "~/components/TeamLogo";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
+import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import Label from "./Label";
 
@@ -22,8 +23,16 @@ const SelectLocation = ({ id, defaultCollectionId, onSelect }: Props) => {
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
   const can = usePolicy(team);
-  const [fetching, setFetching] = useState(false);
-  const [fetchError, setFetchError] = useState();
+
+  const { loading, error } = useRequest(
+    React.useCallback(async () => {
+      if (!collections.isLoaded) {
+        await collections.fetchPage({
+          limit: 100,
+        });
+      }
+    }, [collections])
+  );
 
   const workspaceOption: Option | null = can.createDocument
     ? {
@@ -81,28 +90,11 @@ const SelectLocation = ({ id, defaultCollectionId, onSelect }: Props) => {
     [onSelect]
   );
 
-  React.useEffect(() => {
-    async function fetchData() {
-      if (!collections.isLoaded && !fetching && !fetchError) {
-        try {
-          setFetching(true);
-          await collections.fetchPage({
-            limit: 100,
-          });
-        } catch (error) {
-          toast.error(
-            t("Collections could not be loaded, please reload the app")
-          );
-          setFetchError(error);
-        } finally {
-          setFetching(false);
-        }
-      }
-    }
-    void fetchData();
-  }, [fetchError, t, fetching, collections]);
+  if (error) {
+    toast.error(t("Collections could not be loaded, please reload the app"));
+  }
 
-  if (fetching || !options.length) {
+  if (loading || !options.length) {
     return null;
   }
 

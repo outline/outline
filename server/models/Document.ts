@@ -578,7 +578,7 @@ class Document extends ParanoidModel<
       return [];
     }
 
-    return document.memberships.map(membership => membership.userId);
+    return document.memberships.map((membership) => membership.userId);
   }
 
   static defaultScopeWithUser(userId: string) {
@@ -748,7 +748,7 @@ class Document extends ParanoidModel<
    */
   collaborators = async (options?: FindOptions<User>): Promise<User[]> => {
     const users = await Promise.all(
-      this.collaboratorIds.map(collaboratorId =>
+      this.collaboratorIds.map((collaboratorId) =>
         User.findByPk(collaboratorId, options)
       )
     );
@@ -800,7 +800,7 @@ class Document extends ParanoidModel<
         ...options,
       });
 
-      const childDocumentIds = childDocuments.map(doc => doc.id);
+      const childDocumentIds = childDocuments.map((doc) => doc.id);
 
       if (childDocumentIds.length > 0) {
         return [
@@ -852,7 +852,7 @@ class Document extends ParanoidModel<
       : [];
 
     await Promise.all(
-      parentDocumentPermissions.map(permission =>
+      parentDocumentPermissions.map((permission) =>
         UserMembership.create(
           {
             documentId: this.id,
@@ -1061,7 +1061,7 @@ class Document extends ParanoidModel<
           });
 
     const children = await Promise.all(
-      childDocuments.map(child => child.toNavigationNode(options))
+      childDocuments.map((child) => child.toNavigationNode(options))
     );
 
     return {

@@ -25,7 +25,7 @@ import {
   createTemplateFromDocument,
   subscribeDocument,
   unsubscribeDocument,
-  moveDocumentButton,
+  moveDocument,
   deleteDocument,
   permanentlyDeleteDocument,
   downloadDocument,
@@ -45,7 +45,7 @@ import {
   shareDocument,
   copyDocument,
   searchInDocument,
-  moveDocumentMenu,
+  moveTemplate,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -301,8 +301,8 @@ function DocumentMenu({
             actionToMenuItem(publishDocument, context),
             actionToMenuItem(unpublishDocument, context),
             actionToMenuItem(archiveDocument, context),
-            actionToMenuItem(moveDocumentButton, context),
-            actionToMenuItem(moveDocumentMenu, context),
+            actionToMenuItem(moveDocument, context),
+            actionToMenuItem(moveTemplate, context),
             actionToMenuItem(pinDocument, context),
             actionToMenuItem(createDocumentFromTemplate, context),
             {

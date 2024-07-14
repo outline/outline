@@ -43,7 +43,6 @@ import {
   User,
   View,
   UserMembership,
-  Team,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -948,7 +947,7 @@ router.post(
       {
         editorVersion: original.editorVersion,
         collectionId,
-        teamId: original.teamId,
+        teamId: user.teamId,
         publishedAt: publish ? new Date() : null,
         lastModifiedById: user.id,
         createdById: user.id,
@@ -1045,8 +1044,7 @@ router.post(
         );
         authorize(user, "createChildDocument", parentDocument, { collection });
       } else if (document.isWorkspaceTemplate) {
-        const team = await Team.findByPk(document.teamId);
-        authorize(user, "createDocument", team);
+        authorize(user, "createDocument", user.team);
       } else {
         authorize(user, "createDocument", collection);
       }
@@ -1151,20 +1149,15 @@ router.post(
     });
     authorize(user, "move", document);
 
-    invariant(
-      collectionId || document.template,
-      "collectionId is required to move a document"
-    );
-
     if (collectionId) {
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId, { transaction });
       authorize(user, "updateDocument", collection);
-    }
-
-    if (document.isWorkspaceTemplate) {
+    } else if (document.template) {
       authorize(user, "updateDocument", user.team);
+    } else {
+      throw InvalidRequestError("collectionId is required to move a document");
     }
 
     if (parentDocumentId) {

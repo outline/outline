@@ -198,7 +198,7 @@ async function accountProvisioner({
 }
 
 async function provisionFirstCollection(team: Team, user: User) {
-  await sequelize.transaction(async transaction => {
+  await sequelize.transaction(async (transaction) => {
     const collection = await Collection.create(
       {
         name: "Welcome",
