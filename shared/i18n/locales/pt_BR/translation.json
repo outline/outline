@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} criou",
   "You published": "Você publicou",
   "{{ userName }} published": "{{ userName }} publicou",
-  "You saved": "Você salvou",
-  "{{ userName }} saved": "{{ userName }} salvou",
   "Never viewed": "Nunca visualizado",
   "Viewed": "Visualizado",
   "in": "em",
