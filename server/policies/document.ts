@@ -134,15 +134,7 @@ allow(User, "move", Document, (actor, document) =>
 );
 
 allow(User, "createChildDocument", Document, (actor, document) =>
-  and(
-    can(actor, "update", document),
-    or(
-      includesMembership(document, [DocumentPermission.Admin]),
-      can(actor, "readDocument", document?.collection)
-    ),
-    !document?.isDraft,
-    !document?.template
-  )
+  and(can(actor, "update", document), !document?.isDraft, !document?.template)
 );
 
 allow(User, ["updateInsights", "pin", "unpin"], Document, (actor, document) =>
