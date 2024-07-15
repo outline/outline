@@ -26,7 +26,7 @@ function NewDocumentMenu() {
       placement="bottom"
     >
       <Button as={Link} to={newDocumentPath()} icon={<PlusIcon />}>
-        {t("New draft")}
+        {t("New doc")}
       </Button>
     </Tooltip>
   );
