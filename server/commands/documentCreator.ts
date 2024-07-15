@@ -147,10 +147,6 @@ export default async function documentCreator({
     }
   );
 
-  if (collectionId) {
-    publish = true;
-  }
-
   if (publish) {
     if (!collectionId) {
       throw new Error("Collection ID is required to publish");
