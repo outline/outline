@@ -1,5 +1,5 @@
 ARG APP_PATH=/opt/outline
-FROM outlinewiki/outline-base as base
+FROM outlinewiki/outline-base AS base
 
 ARG APP_PATH
 WORKDIR $APP_PATH
@@ -11,7 +11,7 @@ LABEL org.opencontainers.image.source="https://github.com/outline/outline"
 
 ARG APP_PATH
 WORKDIR $APP_PATH
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 COPY --from=base $APP_PATH/build ./build
 COPY --from=base $APP_PATH/server ./server
@@ -27,7 +27,7 @@ RUN addgroup --gid 1001 nodejs && \
   mkdir -p /var/lib/outline && \
 	chown -R nodejs:nodejs /var/lib/outline
 
-ENV FILE_STORAGE_LOCAL_ROOT_DIR /var/lib/outline/data
+ENV FILE_STORAGE_LOCAL_ROOT_DIR=/var/lib/outline/data
 RUN mkdir -p "$FILE_STORAGE_LOCAL_ROOT_DIR" && \
   chown -R nodejs:nodejs "$FILE_STORAGE_LOCAL_ROOT_DIR" && \
   chmod 1777 "$FILE_STORAGE_LOCAL_ROOT_DIR"

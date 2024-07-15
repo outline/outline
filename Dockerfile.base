@@ -22,5 +22,5 @@ RUN rm -rf node_modules
 RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
   yarn cache clean
 
-ENV PORT 3000
+ENV PORT=3000
 HEALTHCHECK CMD wget -qO- http://localhost:${PORT}/_health | grep -q "OK" || exit 1
