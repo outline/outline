@@ -265,6 +265,13 @@ export type DocumentUserEvent = BaseEvent<UserMembership> & {
   };
 };
 
+export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
+  name: "documents.add_group" | "documents.remove_group";
+  documentId: string;
+  modelId: string;
+  data: { name: string };
+};
+
 export type CollectionEvent = BaseEvent<Collection> &
   (
     | {
@@ -428,6 +435,7 @@ export type Event =
   | AuthenticationProviderEvent
   | DocumentEvent
   | DocumentUserEvent
+  | DocumentGroupEvent
   | PinEvent
   | CommentEvent
   | StarEvent
