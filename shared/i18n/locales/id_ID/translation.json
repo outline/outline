@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} membuat",
   "You published": "Anda menerbitkan",
   "{{ userName }} published": "{{ userName }} diterbitkan",
-  "You saved": "Anda menyimpan",
-  "{{ userName }} saved": "{{ userName }} menyimpan",
   "Never viewed": "Tak pernah dilihat",
   "Viewed": "Dilihat",
   "in": "in",

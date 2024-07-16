@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} opprettet",
   "You published": "Du publiserte",
   "{{ userName }} published": "{{ userName }} publiserte",
-  "You saved": "Du lagret",
-  "{{ userName }} saved": "{{ userName }} lagret",
   "Never viewed": "Aldri sett",
   "Viewed": "Sett",
   "in": "i",

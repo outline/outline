@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} สร้าง",
   "You published": "คุณทำการเผยแพร่",
   "{{ userName }} published": "{{ userName }} ทำการเผยแพร่",
-  "You saved": "คุณทำการบันทึก",
-  "{{ userName }} saved": "{{ userName }} ทำการบันทึก",
   "Never viewed": "ไม่เคยดู",
   "Viewed": "ดูแล้ว",
   "in": "ใน",

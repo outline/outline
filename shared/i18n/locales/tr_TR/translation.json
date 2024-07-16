@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} oluşturdu",
   "You published": "Siz yayınladınız",
   "{{ userName }} published": "{{ userName }} yayınladı",
-  "You saved": "Siz kaydettiniz",
-  "{{ userName }} saved": "{{ userName }} kaydetti",
   "Never viewed": "Hiç görüntülenmedi",
   "Viewed": "Görüntülendi",
   "in": "içinde",

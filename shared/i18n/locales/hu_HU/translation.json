@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} hozta létre",
   "You published": "Ön publikálta",
   "{{ userName }} published": "{{ userName }} publikálta",
-  "You saved": "Ön mentette",
-  "{{ userName }} saved": "{{ userName }} mentette",
   "Never viewed": "Sohasem nézték meg",
   "Viewed": "Megnézve",
   "in": "itt:",
