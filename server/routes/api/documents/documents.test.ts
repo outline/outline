@@ -3803,6 +3803,8 @@ describe("#documents.unpublish", () => {
     expect(body.data.publishedAt).toBeNull();
     expect(body.data.createdBy.id).toEqual(user.id);
     expect(body.data.updatedBy.id).toEqual(user.id);
+    expect(body.policies[0].abilities.createChildDocument).toEqual(false);
+    expect(body.policies[0].abilities.update).toEqual(true);
 
     const reloaded = await Document.unscoped().findByPk(document.id);
     expect(reloaded!.createdById).toEqual(user.id);

@@ -831,7 +831,9 @@ class Document extends ParanoidModel<
 
       if (collection) {
         await collection.addDocumentToStructure(this, 0, { transaction });
-        this.collection = collection;
+        if (this.collection) {
+          this.collection.documentStructure = collection.documentStructure;
+        }
       }
     }
 
@@ -899,7 +901,9 @@ class Document extends ParanoidModel<
 
       if (collection) {
         await collection.removeDocumentInStructure(this, { transaction });
-        this.collection = collection;
+        if (this.collection) {
+          this.collection.documentStructure = collection.documentStructure;
+        }
       }
     });
 
@@ -926,7 +930,9 @@ class Document extends ParanoidModel<
 
       if (collection) {
         await collection.removeDocumentInStructure(this, { transaction });
-        this.collection = collection;
+        if (this.collection) {
+          this.collection.documentStructure = collection.documentStructure;
+        }
       }
     });
 
@@ -961,7 +967,9 @@ class Document extends ParanoidModel<
         await collection.addDocumentToStructure(this, undefined, {
           transaction,
         });
-        this.collection = collection;
+        if (this.collection) {
+          this.collection.documentStructure = collection.documentStructure;
+        }
       }
     });
 
