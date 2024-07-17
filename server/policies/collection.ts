@@ -28,7 +28,7 @@ allow(User, "move", Collection, (actor, collection) =>
     //
     isTeamAdmin(actor, collection),
     isTeamMutable(actor),
-    !collection?.deletedAt
+    !!collection?.isActive
   )
 );
 
@@ -112,7 +112,8 @@ allow(
   (user, collection) => {
     if (
       !collection ||
-      user.teamId !== collection.teamId ||
+      !collection.isActive ||
+      user.isMemberOf(collection.team) ||
       !isTeamMutable(user)
     ) {
       return false;
@@ -137,16 +138,38 @@ allow(
   }
 );
 
-allow(User, ["update", "delete"], Collection, (user, collection) => {
-  if (!collection || user.isGuest || user.teamId !== collection.teamId) {
-    return false;
-  }
-  if (user.isAdmin) {
-    return true;
-  }
+allow(User, ["update", "archive"], Collection, (user, collection) =>
+  and(
+    !!collection,
+    !!collection?.isActive,
+    or(
+      user.isTeamAdmin(collection?.teamId),
+      includesMembership(collection, [CollectionPermission.Admin])
+    )
+  )
+);
 
-  return includesMembership(collection, [CollectionPermission.Admin]);
-});
+allow(User, "delete", Collection, (user, collection) =>
+  and(
+    !!collection,
+    !collection?.deletedAt,
+    or(
+      user.isTeamAdmin(collection?.teamId),
+      includesMembership(collection, [CollectionPermission.Admin])
+    )
+  )
+);
+
+allow(User, "restore", Collection, (user, collection) =>
+  and(
+    !!collection,
+    !collection?.isActive,
+    or(
+      user.isTeamAdmin(collection?.teamId),
+      includesMembership(collection, [CollectionPermission.Admin])
+    )
+  )
+);
 
 function includesMembership(
   collection: Collection | null,
