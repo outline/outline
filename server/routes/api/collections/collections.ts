@@ -34,7 +34,7 @@ import {
   presentPolicies,
   presentMembership,
   presentGroup,
-  presentCollectionGroupMembership,
+  presentGroupMembership,
   presentFileOperation,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -273,9 +273,7 @@ router.post(
 
     ctx.body = {
       data: {
-        collectionGroupMemberships: [
-          presentCollectionGroupMembership(membership),
-        ],
+        groupMemberships: [presentGroupMembership(membership)],
       },
     };
   }
@@ -299,7 +297,7 @@ router.post(
     const group = await Group.findByPk(groupId, { transaction });
     authorize(user, "read", group);
 
-    const [membership] = await collection.$get("collectionGroupMemberships", {
+    const [membership] = await collection.$get("groupMemberships", {
       where: { groupId },
       transaction,
     });
@@ -385,9 +383,7 @@ router.post(
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
-        collectionGroupMemberships: memberships.map(
-          presentCollectionGroupMembership
-        ),
+        groupMemberships: memberships.map(presentGroupMembership),
         groups: memberships.map((membership) => presentGroup(membership.group)),
       },
     };

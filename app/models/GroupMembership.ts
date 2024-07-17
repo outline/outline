@@ -5,8 +5,8 @@ import Group from "./Group";
 import Model from "./base/Model";
 import Relation from "./decorators/Relation";
 
-class CollectionGroupMembership extends Model {
-  static modelName = "CollectionGroupMembership";
+class GroupMembership extends Model {
+  static modelName = "GroupMembership";
 
   id: string;
 
@@ -24,4 +24,4 @@ class CollectionGroupMembership extends Model {
   permission: CollectionPermission;
 }
 
-export default CollectionGroupMembership;
+export default GroupMembership;

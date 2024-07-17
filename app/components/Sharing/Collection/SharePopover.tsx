@@ -44,8 +44,7 @@ type Props = {
 function SharePopover({ collection, visible, onRequestClose }: Props) {
   const theme = useTheme();
   const team = useCurrentTeam();
-  const { collectionGroupMemberships, users, groups, memberships } =
-    useStores();
+  const { groupMemberships, users, groups, memberships } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(collection);
   const [query, setQuery] = React.useState("");
@@ -206,7 +205,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
               }
 
               if (group) {
-                await collectionGroupMemberships.create({
+                await groupMemberships.create({
                   collectionId: collection.id,
                   groupId: group.id,
                   permission: CollectionPermission.Read,
@@ -268,7 +267,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       }),
     [
       collection.id,
-      collectionGroupMemberships,
+      groupMemberships,
       groups,
       hidePicker,
       memberships,

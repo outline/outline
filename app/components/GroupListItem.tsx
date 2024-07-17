@@ -5,8 +5,8 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import { s } from "@shared/styles";
-import CollectionGroupMembership from "~/models/CollectionGroupMembership";
 import Group from "~/models/Group";
+import GroupMembership from "~/models/GroupMembership";
 import GroupMembers from "~/scenes/GroupMembers";
 import Facepile from "~/components/Facepile";
 import Flex from "~/components/Flex";
@@ -19,7 +19,7 @@ import NudeButton from "./NudeButton";
 
 type Props = {
   group: Group;
-  membership?: CollectionGroupMembership;
+  membership?: GroupMembership;
   showFacepile?: boolean;
   showAvatar?: boolean;
   renderActions: (params: { openMembersModal: () => void }) => React.ReactNode;

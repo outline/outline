@@ -1,33 +1,33 @@
 import invariant from "invariant";
 import { action, runInAction } from "mobx";
 import { CollectionPermission } from "@shared/types";
-import CollectionGroupMembership from "~/models/CollectionGroupMembership";
+import GroupMembership from "~/models/GroupMembership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store, { PAGINATION_SYMBOL, RPCAction } from "./base/Store";
 
-export default class CollectionGroupMembershipsStore extends Store<CollectionGroupMembership> {
+export default class GroupMembershipsStore extends Store<GroupMembership> {
   actions = [RPCAction.Create, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {
-    super(rootStore, CollectionGroupMembership);
+    super(rootStore, GroupMembership);
   }
 
   @action
   fetchPage = async (
     params: PaginationParams | undefined
-  ): Promise<CollectionGroupMembership[]> => {
+  ): Promise<GroupMembership[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/collections.group_memberships`, params);
       invariant(res?.data, "Data not available");
 
-      let response: CollectionGroupMembership[] = [];
-      runInAction(`CollectionGroupMembershipsStore#fetchPage`, () => {
+      let response: GroupMembership[] = [];
+      runInAction(`GroupMembershipsStore#fetchPage`, () => {
         res.data.groups.forEach(this.rootStore.groups.add);
-        response = res.data.collectionGroupMemberships.map(this.add);
+        response = res.data.groupMemberships.map(this.add);
         this.isLoaded = true;
       });
 
@@ -55,7 +55,7 @@ export default class CollectionGroupMembershipsStore extends Store<CollectionGro
     });
     invariant(res?.data, "Membership data should be available");
 
-    const cgm = res.data.collectionGroupMemberships.map(this.add);
+    const cgm = res.data.groupMemberships.map(this.add);
     return cgm[0];
   }
 
