@@ -1,17 +1,17 @@
 import GroupUser from "@server/models/GroupUser";
 import { presentUser } from ".";
 
-type GroupMembership = {
+type GroupUserMembership = {
   id: string;
   userId: string;
   groupId: string;
   user?: ReturnType<typeof presentUser>;
 };
 
-export default function presentGroupMembership(
+export default function presentGroupUserMembership(
   membership: GroupUser,
   options?: { includeUser: boolean }
-): GroupMembership {
+): GroupUserMembership {
   return {
     id: `${membership.userId}-${membership.groupId}`,
     userId: membership.userId,

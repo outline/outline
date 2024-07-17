@@ -10,7 +10,7 @@ import {
   presentGroup,
   presentPolicies,
   presentUser,
-  presentGroupMembership,
+  presentGroupUserMembership,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
@@ -61,7 +61,7 @@ router.post(
           )
           .flat()
           .map((membership) =>
-            presentGroupMembership(membership, { includeUser: true })
+            presentGroupUserMembership(membership, { includeUser: true })
           ),
       },
       policies: presentPolicies(user, groups),
@@ -219,7 +219,7 @@ router.post(
       pagination: ctx.state.pagination,
       data: {
         groupMemberships: memberships.map((membership) =>
-          presentGroupMembership(membership, { includeUser: true })
+          presentGroupUserMembership(membership, { includeUser: true })
         ),
         users: memberships.map((membership) => presentUser(membership.user)),
       },
@@ -280,7 +280,7 @@ router.post(
       data: {
         users: [presentUser(user)],
         groupMemberships: [
-          presentGroupMembership(membership, { includeUser: true }),
+          presentGroupUserMembership(membership, { includeUser: true }),
         ],
         groups: [presentGroup(group)],
       },
