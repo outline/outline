@@ -809,9 +809,15 @@ router.post(
       includeListOnly && user.isAdmin
         ? {
             teamId: user.teamId,
+            archivedAt: {
+              [Op.is]: null,
+            },
           }
         : {
             teamId: user.teamId,
+            archivedAt: {
+              [Op.is]: null,
+            },
             id: collectionIds,
           };
     const [collections, total] = await Promise.all([

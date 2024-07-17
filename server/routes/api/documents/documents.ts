@@ -20,7 +20,6 @@ import documentPermanentDeleter from "@server/commands/documentPermanentDeleter"
 import documentUpdater from "@server/commands/documentUpdater";
 import env from "@server/env";
 import {
-  NotFoundError,
   InvalidRequestError,
   AuthenticationError,
   ValidationError,
@@ -744,11 +743,8 @@ router.post(
     const document = await Document.findByPk(id, {
       userId: user.id,
       paranoid: false,
+      rejectOnEmpty: true,
     });
-
-    if (!document) {
-      throw NotFoundError();
-    }
 
     // Passing collectionId allows restoring to a different collection than the
     // document was originally within
@@ -766,9 +762,9 @@ router.post(
     // be caught as a 403 on the authorize call below. Otherwise we're checking here
     // that the original collection still exists and advising to pass collectionId
     // if not.
-    if (document.collection && !collectionId && !collection) {
+    if (document.collection && !collectionId && !collection?.isActive) {
       throw ValidationError(
-        "Unable to restore to original collection, it may have been deleted"
+        "Unable to restore to original collection, it may have been deleted or archived"
       );
     }
 

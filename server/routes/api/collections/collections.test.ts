@@ -122,6 +122,24 @@ describe("#collections.list", () => {
     expect(body.policies.length).toEqual(2);
     expect(body.policies[0].abilities.read).toBeTruthy();
   });
+
+  it("should not include archived collections", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/collections.list", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
 });
 
 describe("#collections.import", () => {
