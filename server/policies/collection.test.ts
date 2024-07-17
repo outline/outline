@@ -40,7 +40,11 @@ describe("admin", () => {
       teamId: team.id,
       permission: CollectionPermission.Read,
     });
-    const abilities = serialize(user, collection);
+    // reload to get membership
+    const reloaded = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(collection.id);
+    const abilities = serialize(user, reloaded);
     expect(abilities.readDocument).toBeTruthy();
     expect(abilities.updateDocument).toBeTruthy();
     expect(abilities.createDocument).toBeTruthy();
