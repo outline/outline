@@ -29,6 +29,7 @@ import {
   DataType,
   Length as SimpleLength,
   BeforeDestroy,
+  IsDate,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";
@@ -249,6 +250,11 @@ class Collection extends ParanoidModel<
   })
   sort: CollectionSort;
 
+  /** Whether the collection is archvied, and if so when. */
+  @IsDate
+  @Column
+  archivedAt: Date | null;
+
   // getters
 
   /**
@@ -266,6 +272,16 @@ class Collection extends ParanoidModel<
       return `/collection/untitled-${this.urlId}`;
     }
     return `/collection/${slugify(this.name)}-${this.urlId}`;
+  }
+
+  /**
+   * Whether this document is considered active or not. A document is active if
+   * it has not been archived or deleted.
+   *
+   * @returns boolean
+   */
+  get isActive(): boolean {
+    return !this.archivedAt && !this.deletedAt;
   }
 
   // hooks
