@@ -275,7 +275,7 @@ class Collection extends ParanoidModel<
   }
 
   /**
-   * Whether this document is considered active or not. A document is active if
+   * Whether this collection is considered active or not. A collection is active if
    * it has not been archived or deleted.
    *
    * @returns boolean
