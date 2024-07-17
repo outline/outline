@@ -38,7 +38,7 @@ import {
   presentView,
   presentShare,
   presentMembership,
-  presentGroupMembership,
+  presentGroupUser,
   presentCollectionGroupMembership,
   presentComment,
 } from "@server/presenters";
@@ -409,7 +409,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: `${event.userId}-${event.modelId}`,
-        model: model && presentGroupMembership(model),
+        model: model && presentGroupUser(model),
         group: model && presentGroup(model.group),
         user: model && presentUser(model.user),
       },

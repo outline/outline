@@ -81,7 +81,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
             include: [
               {
                 model: GroupUser,
-                as: "groupMemberships",
+                as: "groupUsers",
                 required: true,
               },
             ],
@@ -128,7 +128,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
             include: [
               {
                 model: GroupUser,
-                as: "groupMemberships",
+                as: "groupUsers",
                 required: true,
                 where: {
                   userId,
@@ -368,7 +368,7 @@ class Collection extends ParanoidModel<
     }
 
     const groupMemberships = collection.collectionGroupMemberships
-      .map((cgm) => cgm.group.groupMemberships)
+      .map((cgm) => cgm.group.groupUsers)
       .flat();
     const membershipUserIds = [
       ...groupMemberships,

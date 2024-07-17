@@ -32,7 +32,7 @@ export default class GroupsStore extends Store<Group> {
       runInAction(`GroupsStore#fetchPage`, () => {
         this.addPolicies(res.policies);
         models = res.data.groups.map(this.add);
-        res.data.groupMemberships.forEach(this.rootStore.groupMemberships.add);
+        res.data.groupMemberships.forEach(this.rootStore.groupUsers.add);
         this.isLoaded = true;
       });
       return models;

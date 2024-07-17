@@ -26,12 +26,12 @@ type Props = {
 };
 
 function GroupListItem({ group, showFacepile, renderActions }: Props) {
-  const { groupMemberships } = useStores();
+  const { groupUsers } = useStores();
   const { t } = useTranslation();
   const [membersModalOpen, setMembersModalOpen, setMembersModalClosed] =
     useBoolean();
   const memberCount = group.memberCount;
-  const membershipsInGroup = groupMemberships.inGroup(group.id);
+  const membershipsInGroup = groupUsers.inGroup(group.id);
   const users = membershipsInGroup
     .slice(0, MAX_AVATAR_DISPLAY)
     .map((gm) => gm.user);

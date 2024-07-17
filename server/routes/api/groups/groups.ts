@@ -8,9 +8,9 @@ import { User, Event, Group, GroupUser } from "@server/models";
 import { authorize } from "@server/policies";
 import {
   presentGroup,
+  presentGroupUser,
   presentPolicies,
   presentUser,
-  presentGroupMembership,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
@@ -54,14 +54,14 @@ router.post(
       data: {
         groups: groups.map(presentGroup),
         groupMemberships: groups
-          .map((g) =>
-            g.groupMemberships
-              .filter((membership) => !!membership.user)
+          .map((group) =>
+            group.groupUsers
+              .filter((groupUser) => !!groupUser.user)
               .slice(0, MAX_AVATAR_DISPLAY)
           )
           .flat()
-          .map((membership) =>
-            presentGroupMembership(membership, { includeUser: true })
+          .map((groupUser) =>
+            presentGroupUser(groupUser, { includeUser: true })
           ),
       },
       policies: presentPolicies(user, groups),
@@ -198,7 +198,7 @@ router.post(
       };
     }
 
-    const memberships = await GroupUser.findAll({
+    const groupUsers = await GroupUser.findAll({
       where: {
         groupId: id,
       },
@@ -218,10 +218,10 @@ router.post(
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        groupMemberships: memberships.map((membership) =>
-          presentGroupMembership(membership, { includeUser: true })
+        groupMemberships: groupUsers.map((groupUser) =>
+          presentGroupUser(groupUser, { includeUser: true })
         ),
-        users: memberships.map((membership) => presentUser(membership.user)),
+        users: groupUsers.map((groupUser) => presentUser(groupUser.user)),
       },
     };
   }
@@ -241,21 +241,21 @@ router.post(
     let group = await Group.findByPk(id);
     authorize(actor, "update", group);
 
-    let membership = await GroupUser.findOne({
+    let groupUser = await GroupUser.findOne({
       where: {
         groupId: id,
         userId,
       },
     });
 
-    if (!membership) {
+    if (!groupUser) {
       await group.$add("user", user, {
         through: {
           createdById: actor.id,
         },
       });
       // reload to get default scope
-      membership = await GroupUser.findOne({
+      groupUser = await GroupUser.findOne({
         where: {
           groupId: id,
           userId,
@@ -279,9 +279,7 @@ router.post(
     ctx.body = {
       data: {
         users: [presentUser(user)],
-        groupMemberships: [
-          presentGroupMembership(membership, { includeUser: true }),
-        ],
+        groupMemberships: [presentGroupUser(groupUser, { includeUser: true })],
         groups: [presentGroup(group)],
       },
     };
