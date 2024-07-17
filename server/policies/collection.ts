@@ -113,7 +113,7 @@ allow(
     if (
       !collection ||
       !collection.isActive ||
-      user.isMemberOf(collection.team) ||
+      !user.isMemberOf(collection.teamId) ||
       !isTeamMutable(user)
     ) {
       return false;
