@@ -23,7 +23,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 @DefaultScope(() => ({
   include: [
     {
-      association: "groupMemberships",
+      association: "groupUsers",
       required: false,
     },
   ],
@@ -32,7 +32,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withMember: (memberId: string) => ({
     include: [
       {
-        association: "groupMemberships",
+        association: "groupUsers",
         required: true,
       },
       {
@@ -107,7 +107,7 @@ class Group extends ParanoidModel<
 
   @HasMany(() => GroupUser, "groupId")
   @HasMany(() => GroupUser, { as: "members", foreignKey: "groupId" })
-  groupMemberships: GroupUser[];
+  groupUsers: GroupUser[];
 
   @HasMany(() => GroupPermission, "groupId")
   collectionGroupMemberships: GroupPermission[];

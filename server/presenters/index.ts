@@ -9,7 +9,7 @@ import presentDocument from "./document";
 import presentEvent from "./event";
 import presentFileOperation from "./fileOperation";
 import presentGroup from "./group";
-import presentGroupUserMembership from "./groupUserMembership";
+import presentGroupUser from "./groupUser";
 import presentIntegration from "./integration";
 import presentMembership from "./membership";
 import presentPin from "./pin";
@@ -37,7 +37,7 @@ export {
   presentEvent,
   presentFileOperation,
   presentGroup,
-  presentGroupUserMembership,
+  presentGroupUser,
   presentIntegration,
   presentMembership,
   presentPublicTeam,

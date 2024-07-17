@@ -6,8 +6,8 @@ import Relation from "./decorators/Relation";
 /**
  * Represents a user's membership in a group.
  */
-class GroupUserMembership extends Model {
-  static modelName = "GroupUserMembership";
+class GroupUser extends Model {
+  static modelName = "GroupUser";
 
   /**
    * The ID of the user.
@@ -32,4 +32,4 @@ class GroupUserMembership extends Model {
   group: Group;
 }
 
-export default GroupUserMembership;
+export default GroupUser;

@@ -23,7 +23,7 @@ type Props = {
 
 function GroupMembers({ group }: Props) {
   const [addModalOpen, setAddModalOpen] = React.useState(false);
-  const { users, groupUserMemberships } = useStores();
+  const { users, groupUsers } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(group);
 
@@ -33,7 +33,7 @@ function GroupMembers({ group }: Props) {
 
   const handleRemoveUser = async (user: User) => {
     try {
-      await groupUserMemberships.delete({
+      await groupUsers.delete({
         groupId: group.id,
         userId: user.id,
       });
@@ -92,7 +92,7 @@ function GroupMembers({ group }: Props) {
       </Subheading>
       <PaginatedList
         items={users.inGroup(group.id)}
-        fetch={groupUserMemberships.fetchPage}
+        fetch={groupUsers.fetchPage}
         options={{
           id: group.id,
         }}

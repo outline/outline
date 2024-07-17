@@ -42,7 +42,7 @@ export default class RootStore {
   documents: DocumentsStore;
   events: EventsStore;
   groups: GroupsStore;
-  groupUserMemberships: GroupUserMembershipsStore;
+  groupUsers: GroupUserMembershipsStore;
   integrations: IntegrationsStore;
   memberships: MembershipsStore;
   notifications: NotificationsStore;

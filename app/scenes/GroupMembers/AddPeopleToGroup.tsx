@@ -29,7 +29,7 @@ type Props = {
 function AddPeopleToGroup(props: Props) {
   const { group } = props;
 
-  const { users, groupUserMemberships } = useStores();
+  const { users, groupUsers } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const can = usePolicy(team);
@@ -55,7 +55,7 @@ function AddPeopleToGroup(props: Props) {
 
   const handleAddUser = async (user: User) => {
     try {
-      await groupUserMemberships.create({
+      await groupUsers.create({
         groupId: group.id,
         userId: user.id,
       });

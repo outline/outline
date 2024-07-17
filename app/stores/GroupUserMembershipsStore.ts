@@ -1,31 +1,31 @@
 import invariant from "invariant";
 import filter from "lodash/filter";
 import { action, runInAction } from "mobx";
-import GroupUserMembership from "~/models/GroupUserMembership";
+import GroupUser from "~/models/GroupUser";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
 
-export default class GroupUserMembershipsStore extends Store<GroupUserMembership> {
+export default class GroupUsersStore extends Store<GroupUser> {
   actions = [RPCAction.Create, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {
-    super(rootStore, GroupUserMembership);
+    super(rootStore, GroupUser);
   }
 
   @action
   fetchPage = async (
     params: PaginationParams | undefined
-  ): Promise<GroupUserMembership[]> => {
+  ): Promise<GroupUser[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/groups.memberships`, params);
       invariant(res?.data, "Data not available");
 
-      let models: GroupUserMembership[] = [];
-      runInAction(`GroupUserMembershipsStore#fetchPage`, () => {
+      let models: GroupUser[] = [];
+      runInAction(`GroupUsersStore#fetchPage`, () => {
         res.data.users.forEach(this.rootStore.users.add);
         models = res.data.groupMemberships.map(this.add);
         this.isLoaded = true;
@@ -58,7 +58,7 @@ export default class GroupUserMembershipsStore extends Store<GroupUserMembership
     });
     invariant(res?.data, "Group Membership data should be available");
     this.remove(`${userId}-${groupId}`);
-    runInAction(`GroupUserMembershipsStore#delete`, () => {
+    runInAction(`GroupUsersStore#delete`, () => {
       res.data.groups.forEach(this.rootStore.groups.add);
       this.isLoaded = true;
     });
