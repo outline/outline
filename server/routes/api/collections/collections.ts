@@ -18,7 +18,7 @@ import validate from "@server/middlewares/validate";
 import {
   Collection,
   UserMembership,
-  GroupPermission,
+  GroupMembership,
   Team,
   Event,
   User,
@@ -242,7 +242,7 @@ router.post(
     const group = await Group.findByPk(groupId);
     authorize(user, "read", group);
 
-    let membership = await GroupPermission.findOne({
+    let membership = await GroupMembership.findOne({
       where: {
         collectionId: id,
         groupId,
@@ -250,7 +250,7 @@ router.post(
     });
 
     if (!membership) {
-      membership = await GroupPermission.create({
+      membership = await GroupMembership.create({
         collectionId: id,
         groupId,
         permission,
@@ -343,7 +343,7 @@ router.post(
     }).findByPk(id);
     authorize(user, "read", collection);
 
-    let where: WhereOptions<GroupPermission> = {
+    let where: WhereOptions<GroupMembership> = {
       collectionId: id,
     };
     let groupWhere;
@@ -373,8 +373,8 @@ router.post(
     };
 
     const [total, memberships] = await Promise.all([
-      GroupPermission.count(options),
-      GroupPermission.findAll({
+      GroupMembership.count(options),
+      GroupMembership.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,

@@ -6,33 +6,33 @@ import {
   type FindOptions,
 } from "sequelize";
 import {
-  Column,
-  ForeignKey,
   BelongsTo,
+  Column,
   Default,
+  ForeignKey,
   IsIn,
   Table,
   DataType,
   Scopes,
-  AllowNull,
   AfterCreate,
   AfterUpdate,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
 import Document from "./Document";
+import Group from "./Group";
 import User from "./User";
-import IdModel from "./base/IdModel";
+import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 
 /**
- * Represents a users's permission to access a collection or document.
+ * Represents a group's permission to access a collection or document.
  */
 @Scopes(() => ({
-  withUser: {
+  withGroup: {
     include: [
       {
-        association: "user",
+        association: "group",
       },
     ],
   },
@@ -61,59 +61,54 @@ import Fix from "./decorators/Fix";
     ],
   },
 }))
-@Table({ tableName: "user_permissions", modelName: "user_permission" })
+@Table({ tableName: "group_permissions", modelName: "group_permission" })
 @Fix
-class UserMembership extends IdModel<
-  InferAttributes<UserMembership>,
-  Partial<InferCreationAttributes<UserMembership>>
+class GroupMembership extends ParanoidModel<
+  InferAttributes<GroupMembership>,
+  Partial<InferCreationAttributes<GroupMembership>>
 > {
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
   permission: CollectionPermission | DocumentPermission;
 
-  /** The visible sort order in "shared with me" */
-  @AllowNull
-  @Column
-  index: string | null;
-
   // associations
 
-  /** The collection that this permission grants the user access to. */
+  /** The collection that this permission grants the group access to. */
   @BelongsTo(() => Collection, "collectionId")
   collection?: Collection | null;
 
-  /** The collection ID that this permission grants the user access to. */
+  /** The collection ID that this permission grants the group access to. */
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
 
-  /** The document that this permission grants the user access to. */
+  /** The document that this permission grants the group access to. */
   @BelongsTo(() => Document, "documentId")
   document?: Document | null;
 
-  /** The document ID that this permission grants the user access to. */
+  /** The document ID that this permission grants the group access to. */
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
   documentId?: string | null;
 
   /** If this represents the permission on a child then this points to the permission on the root */
-  @BelongsTo(() => UserMembership, "sourceId")
-  source?: UserMembership | null;
+  @BelongsTo(() => GroupMembership, "sourceId")
+  source?: GroupMembership | null;
 
   /** If this represents the permission on a child then this points to the permission on the root */
-  @ForeignKey(() => UserMembership)
+  @ForeignKey(() => GroupMembership)
   @Column(DataType.UUID)
   sourceId?: string | null;
 
-  /** The user that this permission is granted to. */
-  @BelongsTo(() => User, "userId")
-  user: User;
+  /** The group that this permission is granted to. */
+  @BelongsTo(() => Group, "groupId")
+  group: Group;
 
-  /** The user ID that this permission is granted to. */
-  @ForeignKey(() => User)
+  /** The group ID that this permission is granted to. */
+  @ForeignKey(() => Group)
   @Column(DataType.UUID)
-  userId: string;
+  groupId: string;
 
   /** The user that created this permission. */
   @BelongsTo(() => User, "createdById")
@@ -125,22 +120,22 @@ class UserMembership extends IdModel<
   createdById: string;
 
   /**
-   * Find the root membership for a document and (optionally) user.
+   * Find the root membership for a document and (optionally) group.
    *
    * @param documentId The document ID to find the membership for.
-   * @param userId The user ID to find the membership for.
+   * @param groupId The group ID to find the membership for.
    * @param options Additional options to pass to the query.
-   * @returns A promise that resolves to the root memberships for the document and user, or null.
+   * @returns A promise that resolves to the root memberships for the document and group, or null.
    */
   static async findRootMembershipsForDocument(
     documentId: string,
-    userId?: string,
-    options?: FindOptions<UserMembership>
-  ): Promise<UserMembership[]> {
+    groupId?: string,
+    options?: FindOptions<GroupMembership>
+  ): Promise<GroupMembership[]> {
     const memberships = await this.findAll({
       where: {
         documentId,
-        ...(userId ? { userId } : {}),
+        ...(groupId ? { groupId } : {}),
       },
     });
 
@@ -152,13 +147,13 @@ class UserMembership extends IdModel<
       )
     );
 
-    return rootMemberships.filter(Boolean) as UserMembership[];
+    return rootMemberships.filter(Boolean) as GroupMembership[];
   }
 
   @AfterUpdate
   static async updateSourcedMemberships(
-    model: UserMembership,
-    options: SaveOptions<UserMembership>
+    model: GroupMembership,
+    options: SaveOptions<GroupMembership>
   ) {
     if (model.sourceId || !model.documentId) {
       return;
@@ -183,8 +178,8 @@ class UserMembership extends IdModel<
 
   @AfterCreate
   static async createSourcedMemberships(
-    model: UserMembership,
-    options: SaveOptions<UserMembership>
+    model: GroupMembership,
+    options: SaveOptions<GroupMembership>
   ) {
     if (model.sourceId || !model.documentId) {
       return;
@@ -197,8 +192,8 @@ class UserMembership extends IdModel<
    * Recreate all sourced permissions for a given permission.
    */
   static async recreateSourcedMemberships(
-    model: UserMembership,
-    options: SaveOptions<UserMembership>
+    model: GroupMembership,
+    options: SaveOptions<GroupMembership>
   ) {
     if (!model.documentId) {
       return;
@@ -238,7 +233,7 @@ class UserMembership extends IdModel<
       await this.create(
         {
           documentId: childDocumentId,
-          userId: model.userId,
+          groupId: model.groupId,
           permission: model.permission,
           sourceId: model.id,
           createdById: model.createdById,
@@ -253,4 +248,4 @@ class UserMembership extends IdModel<
   }
 }
 
-export default UserMembership;
+export default GroupMembership;

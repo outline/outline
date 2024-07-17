@@ -20,7 +20,7 @@ import {
   View,
   Share,
   UserMembership,
-  GroupPermission,
+  GroupMembership,
   GroupUser,
   Comment,
 } from "@server/models";
@@ -42,6 +42,7 @@ import {
   presentCollectionGroupMembership,
   presentComment,
 } from "@server/presenters";
+import presentDocumentGroupMembership from "@server/presenters/documentGroupMembership";
 import BaseTask from "@server/queues/tasks/BaseTask";
 import {
   CollectionEvent,
@@ -50,6 +51,7 @@ import {
   CommentEvent,
   DocumentEvent,
   DocumentUserEvent,
+  DocumentGroupEvent,
   Event,
   FileOperationEvent,
   GroupEvent,
@@ -137,6 +139,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "documents.add_user":
       case "documents.remove_user":
         await this.handleDocumentUserEvent(subscription, event);
+        return;
+      case "documents.add_group":
+      case "documents.remove_group":
+        await this.handleDocumentGroupEvent(subscription, event);
         return;
       case "documents.update.delayed":
       case "documents.update.debounced":
@@ -478,7 +484,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CollectionGroupEvent
   ): Promise<void> {
-    const model = await GroupPermission.scope([
+    const model = await GroupMembership.scope([
       "withGroup",
       "withCollection",
     ]).findOne({
@@ -577,6 +583,36 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
             includeText: true,
           })),
         user: model && presentUser(model.user),
+      },
+    });
+  }
+
+  private async handleDocumentGroupEvent(
+    subscription: WebhookSubscription,
+    event: DocumentGroupEvent
+  ): Promise<void> {
+    const model = await GroupMembership.scope([
+      "withGroup",
+      "withDocument",
+    ]).findOne({
+      where: {
+        documentId: event.documentId,
+        groupId: event.modelId,
+      },
+      paranoid: false,
+    });
+
+    const document =
+      model && (await presentDocument(undefined, model.document!));
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: event.modelId,
+        model: model && presentDocumentGroupMembership(model),
+        document,
+        group: model && presentGroup(model.group),
       },
     });
   }

@@ -7,7 +7,7 @@ import {
   Collection,
   FileOperation,
   Group,
-  GroupPermission,
+  GroupMembership,
   GroupUser,
   Pin,
   Star,
@@ -487,7 +487,7 @@ export default class WebsocketsProcessor {
 
       case "groups.add_user": {
         // do an add user for every collection that the group is a part of
-        const collectionGroupMemberships = await GroupPermission.scope(
+        const collectionGroupMemberships = await GroupMembership.scope(
           "withCollection"
         ).findAll({
           where: {
@@ -522,7 +522,7 @@ export default class WebsocketsProcessor {
       }
 
       case "groups.remove_user": {
-        const collectionGroupMemberships = await GroupPermission.scope(
+        const collectionGroupMemberships = await GroupMembership.scope(
           "withCollection"
         ).findAll({
           where: {
@@ -593,7 +593,7 @@ export default class WebsocketsProcessor {
             },
           },
         });
-        const collectionGroupMemberships = await GroupPermission.scope(
+        const collectionGroupMemberships = await GroupMembership.scope(
           "withCollection"
         ).findAll({
           paranoid: false,
