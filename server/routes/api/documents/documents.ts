@@ -762,7 +762,7 @@ router.post(
     // be caught as a 403 on the authorize call below. Otherwise we're checking here
     // that the original collection still exists and advising to pass collectionId
     // if not.
-    if (document.collection && !collectionId && !collection?.isActive) {
+    if (document.collection && !collection?.isActive) {
       throw ValidationError(
         "Unable to restore to original collection, it may have been deleted or archived"
       );

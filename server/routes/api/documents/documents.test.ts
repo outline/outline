@@ -2788,13 +2788,58 @@ describe("#documents.restore", () => {
     });
     await document.destroy();
     await collection.destroy({ hooks: false });
+    // passing deleted collection's id
     const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+    // not passing collection's id
+    const anotherRes = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
         id: document.id,
       },
     });
+    const body = await res.json();
+    const anotherBody = await anotherRes.json();
     expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "Unable to restore to original collection, it may have been deleted or archived"
+    );
+    expect(anotherRes.status).toEqual(400);
+    expect(anotherBody.message).toEqual(
+      "Unable to restore to original collection, it may have been deleted or archived"
+    );
+  });
+
+  it("should not allow restore of documents in archived collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await document.destroy();
+    collection.archivedAt = new Date();
+    await collection.save();
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "Unable to restore to original collection, it may have been deleted or archived"
+    );
   });
 
   it("should not allow restore of trashed documents to collection user cannot access", async () => {
