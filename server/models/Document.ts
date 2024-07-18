@@ -811,12 +811,14 @@ class Document extends ParanoidModel<
   publish = async (
     user: User,
     collectionId: string,
-    { transaction }: SaveOptions<Document>
+    options: SaveOptions<Document>
   ) => {
+    const { transaction } = options;
+
     // If the document is already published then calling publish should act like
     // a regular save
     if (this.publishedAt) {
-      return this.save({ transaction });
+      return this.save(options);
     }
 
     if (!this.collectionId) {
@@ -866,7 +868,7 @@ class Document extends ParanoidModel<
     this.lastModifiedById = user.id;
     this.updatedBy = user;
     this.publishedAt = new Date();
-    return this.save({ transaction });
+    return this.save(options);
   };
 
   isCollectionDeleted = async () => {
