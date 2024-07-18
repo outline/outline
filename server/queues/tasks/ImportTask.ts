@@ -8,6 +8,7 @@ import {
   CollectionPermission,
   CollectionSort,
   FileOperationState,
+  ProsemirrorData,
 } from "@shared/types";
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
@@ -479,6 +480,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
               id: item.id,
               title: item.title,
               text,
+              content: item.data ? (item.data as ProsemirrorData) : undefined,
               collectionId: item.collectionId,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt ?? item.createdAt,
