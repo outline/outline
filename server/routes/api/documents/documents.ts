@@ -1651,21 +1651,27 @@ router.post(
     authorize(user, "update", document);
     authorize(user, "read", group);
 
-    const [membership] = await GroupMembership.findOrCreate({
+    const [membership, isNew] = await GroupMembership.findOrCreate({
       where: {
         documentId: id,
         groupId,
       },
       defaults: {
-        permission,
+        permission: permission || user.defaultDocumentPermission,
         createdById: user.id,
       },
       lock: transaction.LOCK.UPDATE,
       transaction,
     });
 
-    membership.permission = permission;
-    await membership.save({ transaction });
+    if (permission) {
+      membership.permission = permission;
+
+      // disconnect from the source if the permission is manually updated
+      membership.sourceId = null;
+
+      await membership.save({ transaction });
+    }
 
     await Event.createFromContext(
       ctx,
@@ -1674,8 +1680,9 @@ router.post(
         documentId: document.id,
         modelId: groupId,
         data: {
-          name: group.name,
-          membershipId: membership.id,
+          title: document.title,
+          isNew,
+          permission: membership.permission,
         },
       },
       { transaction }

@@ -67,6 +67,7 @@ class UserMembership extends IdModel<
   InferAttributes<UserMembership>,
   Partial<InferCreationAttributes<UserMembership>>
 > {
+  /** The permission granted to the user. */
   @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
@@ -79,47 +80,47 @@ class UserMembership extends IdModel<
 
   // associations
 
-  /** The collection that this permission grants the user access to. */
+  /** The collection that this membership grants the user access to. */
   @BelongsTo(() => Collection, "collectionId")
   collection?: Collection | null;
 
-  /** The collection ID that this permission grants the user access to. */
+  /** The collection ID that this membership grants the user access to. */
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId?: string | null;
 
-  /** The document that this permission grants the user access to. */
+  /** The document that this membership grants the user access to. */
   @BelongsTo(() => Document, "documentId")
   document?: Document | null;
 
-  /** The document ID that this permission grants the user access to. */
+  /** The document ID that this membership grants the user access to. */
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
   documentId?: string | null;
 
-  /** If this represents the permission on a child then this points to the permission on the root */
+  /** If this represents the membership on a child then this points to the membership on the root */
   @BelongsTo(() => UserMembership, "sourceId")
   source?: UserMembership | null;
 
-  /** If this represents the permission on a child then this points to the permission on the root */
+  /** If this represents the membership on a child then this points to the membership on the root */
   @ForeignKey(() => UserMembership)
   @Column(DataType.UUID)
   sourceId?: string | null;
 
-  /** The user that this permission is granted to. */
+  /** The user that this membership is granted to. */
   @BelongsTo(() => User, "userId")
   user: User;
 
-  /** The user ID that this permission is granted to. */
+  /** The user ID that this membership is granted to. */
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   userId: string;
 
-  /** The user that created this permission. */
+  /** The user that created this membership. */
   @BelongsTo(() => User, "createdById")
   createdBy: User;
 
-  /** The user ID that created this permission. */
+  /** The user ID that created this membership. */
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   createdById: string;

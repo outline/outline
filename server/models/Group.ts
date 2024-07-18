@@ -29,7 +29,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   ],
 }))
 @Scopes(() => ({
-  withMember: (memberId: string) => ({
+  withMember: (userId: string) => ({
     include: [
       {
         association: "groupUsers",
@@ -39,7 +39,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         association: "members",
         required: true,
         where: {
-          userId: memberId,
+          userId,
         },
       },
     ],
@@ -97,9 +97,9 @@ class Group extends ParanoidModel<
     });
   }
 
-  static filterByMember(memberId: string | undefined) {
-    return memberId
-      ? this.scope({ method: ["withMember", memberId] })
+  static filterByMember(userId: string | undefined) {
+    return userId
+      ? this.scope({ method: ["withMember", userId] })
       : this.scope("defaultScope");
   }
 

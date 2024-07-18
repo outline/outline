@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import some from "lodash/some";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import { CollectionPermission } from "@shared/types";
 import { Collection, User, Team } from "@server/models";
 import { allow, _can as can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
@@ -150,7 +150,7 @@ allow(User, ["update", "delete"], Collection, (user, collection) => {
 
 function includesMembership(
   collection: Collection | null,
-  permissions: (CollectionPermission | DocumentPermission)[]
+  permissions: CollectionPermission[]
 ) {
   if (!collection) {
     return false;
@@ -162,6 +162,6 @@ function includesMembership(
   );
   return some(
     [...collection.memberships, ...collection.groupMemberships],
-    (m) => permissions.includes(m.permission)
+    (m) => permissions.includes(m.permission as CollectionPermission)
   );
 }
