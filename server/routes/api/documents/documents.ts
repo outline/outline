@@ -1461,7 +1461,9 @@ router.post(
       transaction,
     });
 
-    document.collection = collection;
+    if (collection) {
+      document.collection = collection;
+    }
 
     ctx.body = {
       data: await presentDocument(ctx, document),
