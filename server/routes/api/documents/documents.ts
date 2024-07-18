@@ -59,6 +59,7 @@ import {
   presentPublicTeam,
   presentUser,
   presentGroupMembership,
+  presentGroup,
 } from "@server/presenters";
 import DocumentImportTask, {
   DocumentImportTaskResponse,
@@ -1798,6 +1799,69 @@ router.post(
       data: {
         memberships: memberships.map(presentMembership),
         users: memberships.map((membership) => presentUser(membership.user)),
+      },
+    };
+  }
+);
+
+router.post(
+  "documents.group_memberships",
+  auth(),
+  pagination(),
+  validate(T.DocumentsMembershipsSchema),
+  async (ctx: APIContext<T.DocumentsMembershipsReq>) => {
+    const { id, query, permission } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, { userId: user.id });
+    authorize(user, "update", document);
+
+    let where: WhereOptions<GroupMembership> = {
+      documentId: id,
+    };
+    let groupWhere;
+
+    if (query) {
+      groupWhere = {
+        name: {
+          [Op.iLike]: `%${query}%`,
+        },
+      };
+    }
+
+    if (permission) {
+      where = { ...where, permission };
+    }
+
+    const options = {
+      where,
+      include: [
+        {
+          model: Group,
+          as: "group",
+          where: groupWhere,
+          required: true,
+        },
+      ],
+    };
+
+    const [total, memberships] = await Promise.all([
+      GroupMembership.count(options),
+      GroupMembership.findAll({
+        ...options,
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+    ]);
+
+    const groupMemberships = memberships.map(presentGroupMembership);
+
+    ctx.body = {
+      pagination: { ...ctx.state.pagination, total },
+      data: {
+        groupMemberships,
+        groups: memberships.map((membership) => presentGroup(membership.group)),
       },
     };
   }

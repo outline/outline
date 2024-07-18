@@ -445,8 +445,7 @@ export type DocumentsSharedWithUserReq = z.infer<
 >;
 
 export const DocumentsMembershipsSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     query: z.string().optional(),
     permission: z.nativeEnum(DocumentPermission).optional(),
   }),

@@ -344,8 +344,8 @@ router.post(
   "collections.group_memberships",
   auth(),
   pagination(),
-  validate(T.CollectionsGroupMembershipsSchema),
-  async (ctx: APIContext<T.CollectionsGroupMembershipsReq>) => {
+  validate(T.CollectionsMembershipsSchema),
+  async (ctx: APIContext<T.CollectionsMembershipsReq>) => {
     const { id, query, permission } = ctx.input.body;
     const { user } = ctx.state.auth;
 
