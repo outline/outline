@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { action, runInAction } from "mobx";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import GroupMembership from "~/models/GroupMembership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -41,18 +41,26 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
   @action
   async create({
     collectionId,
+    documentId,
     groupId,
     permission,
   }: {
-    collectionId: string;
+    collectionId?: string;
+    documentId?: string;
     groupId: string;
-    permission?: CollectionPermission;
+    permission?: CollectionPermission | DocumentPermission;
   }) {
-    const res = await client.post("/collections.add_group", {
-      id: collectionId,
-      groupId,
-      permission,
-    });
+    const res = collectionId
+      ? await client.post("/collections.add_group", {
+          id: collectionId,
+          groupId,
+          permission,
+        })
+      : await client.post("/documents.add_group", {
+          id: documentId,
+          groupId,
+          permission,
+        });
     invariant(res?.data, "Membership data should be available");
 
     const cgm = res.data.groupMemberships.map(this.add);
@@ -62,21 +70,51 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
   @action
   async delete({
     collectionId,
+    documentId,
     groupId,
   }: {
     collectionId?: string;
+    documentId?: string;
     groupId: string;
   }) {
-    await client.post("/collections.remove_group", {
-      id: collectionId,
-      groupId,
-    });
-    this.removeAll({
-      collectionId,
-      groupId,
-    });
+    collectionId
+      ? await client.post("/collections.remove_group", {
+          id: collectionId,
+          groupId,
+        })
+      : await client.post("/documents.remove_group", {
+          id: documentId,
+          groupId,
+        });
+
+    this.removeAll(
+      collectionId
+        ? {
+            collectionId,
+            groupId,
+          }
+        : {
+            documentId,
+            groupId,
+          }
+    );
   }
 
+  /**
+   * Returns all group memberships for the given collection
+   *
+   * @param collectionId The collection ID
+   * @returns A list of group memberships
+   */
   inCollection = (collectionId: string) =>
     this.orderedData.filter((cgm) => cgm.collectionId === collectionId);
+
+  /**
+   * Returns all group memberships for the given document
+   *
+   * @param documentId The document ID
+   * @returns A list of group memberships
+   */
+  inDocument = (documentId: string) =>
+    this.orderedData.filter((cgm) => cgm.documentId === documentId);
 }

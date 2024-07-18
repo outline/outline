@@ -1,6 +1,7 @@
 import { observable } from "mobx";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
+import Document from "./Document";
 import Group from "./Group";
 import Model from "./base/Model";
 import Relation from "./decorators/Relation";
@@ -18,6 +19,13 @@ class GroupMembership extends Model {
   @Relation(() => Group, { onDelete: "cascade" })
   group: Group;
 
+  /** The document ID that this membership grants the group access to. */
+  documentId: string | undefined;
+
+  /** The document that this membership grants the group access to. */
+  @Relation(() => Document, { onDelete: "cascade" })
+  document: Document | undefined;
+
   /** The collection ID that this membership grants the group access to. */
   collectionId: string | undefined;
 
@@ -27,7 +35,7 @@ class GroupMembership extends Model {
 
   /** The permission level granted to the group. */
   @observable
-  permission: CollectionPermission;
+  permission: CollectionPermission | DocumentPermission;
 }
 
 export default GroupMembership;
