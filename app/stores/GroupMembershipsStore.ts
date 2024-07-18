@@ -64,7 +64,7 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
     collectionId,
     groupId,
   }: {
-    collectionId: string;
+    collectionId?: string;
     groupId: string;
   }) {
     await client.post("/collections.remove_group", {
