@@ -55,6 +55,7 @@ import { ValidationError } from "@server/errors";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
+import GroupMembership from "./GroupMembership";
 import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
@@ -549,6 +550,9 @@ class Document extends ParanoidModel<
 
   @HasMany(() => UserMembership)
   memberships: UserMembership[];
+
+  @HasMany(() => GroupMembership, "documentId")
+  groupMemberships: GroupMembership[];
 
   @HasMany(() => Revision)
   revisions: Revision[];

@@ -43,6 +43,8 @@ import {
   User,
   View,
   UserMembership,
+  Group,
+  GroupMembership,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -56,6 +58,7 @@ import {
   presentMembership,
   presentPublicTeam,
   presentUser,
+  presentGroupMembership,
 } from "@server/presenters";
 import DocumentImportTask, {
   DocumentImportTaskResponse,
@@ -1613,6 +1616,122 @@ router.post(
         userId,
         modelId: membership.id,
         documentId: document.id,
+      },
+      { transaction }
+    );
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
+  "documents.add_group",
+  auth(),
+  validate(T.DocumentsAddGroupSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsAddGroupsReq>) => {
+    const { id, groupId, permission } = ctx.input.body;
+    const { transaction } = ctx.state;
+    const { user } = ctx.state.auth;
+
+    const [document, group] = await Promise.all([
+      Document.findByPk(id, {
+        userId: user.id,
+        rejectOnEmpty: true,
+        transaction,
+      }),
+      Group.findByPk(groupId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
+    authorize(user, "update", document);
+    authorize(user, "read", group);
+
+    const [membership] = await GroupMembership.findOrCreate({
+      where: {
+        documentId: id,
+        groupId,
+      },
+      defaults: {
+        permission,
+        createdById: user.id,
+      },
+      lock: transaction.LOCK.UPDATE,
+      transaction,
+    });
+
+    membership.permission = permission;
+    await membership.save({ transaction });
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "documents.add_group",
+        documentId: document.id,
+        modelId: groupId,
+        data: {
+          name: group.name,
+          membershipId: membership.id,
+        },
+      },
+      { transaction }
+    );
+
+    ctx.body = {
+      data: {
+        groupMemberships: [presentGroupMembership(membership)],
+      },
+    };
+  }
+);
+
+router.post(
+  "documents.remove_group",
+  auth(),
+  validate(T.DocumentsRemoveGroupSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsRemoveGroupReq>) => {
+    const { id, groupId } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const [document, group] = await Promise.all([
+      Document.findByPk(id, {
+        userId: user.id,
+        rejectOnEmpty: true,
+        transaction,
+      }),
+      Group.findByPk(groupId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
+    authorize(user, "update", document);
+    authorize(user, "read", group);
+
+    const [membership] = await document.$get("groupMemberships", {
+      where: { groupId },
+      transaction,
+    });
+
+    if (!membership) {
+      ctx.throw(400, "This Group is not a part of the document");
+    }
+
+    await document.$remove("group", group, { transaction });
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "documents.remove_group",
+        documentId: document.id,
+        modelId: groupId,
+        data: {
+          name: group.name,
+          membershipId: membership.id,
+        },
       },
       { transaction }
     );

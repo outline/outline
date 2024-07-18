@@ -415,6 +415,27 @@ export const DocumentsRemoveUserSchema = BaseSchema.extend({
 
 export type DocumentsRemoveUserReq = z.infer<typeof DocumentsRemoveUserSchema>;
 
+export const DocumentsAddGroupSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    groupId: z.string().uuid(),
+    permission: z
+      .nativeEnum(DocumentPermission)
+      .default(DocumentPermission.ReadWrite),
+  }),
+});
+
+export type DocumentsAddGroupsReq = z.infer<typeof DocumentsAddGroupSchema>;
+
+export const DocumentsRemoveGroupSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    groupId: z.string().uuid(),
+  }),
+});
+
+export type DocumentsRemoveGroupReq = z.infer<
+  typeof DocumentsRemoveGroupSchema
+>;
+
 export const DocumentsSharedWithUserSchema = BaseSchema.extend({
   body: DocumentsSortParamsSchema,
 });
