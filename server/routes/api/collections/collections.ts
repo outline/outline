@@ -34,7 +34,7 @@ import {
   presentPolicies,
   presentMembership,
   presentGroup,
-  presentCollectionGroupMembership,
+  presentGroupMembership,
   presentFileOperation,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -271,11 +271,13 @@ router.post(
       },
     });
 
+    const groupMemberships = [presentGroupMembership(membership)];
+
     ctx.body = {
       data: {
-        collectionGroupMemberships: [
-          presentCollectionGroupMembership(membership),
-        ],
+        // `collectionGroupMemberships` retained for backwards compatibility – remove after version v0.79.0
+        collectionGroupMemberships: groupMemberships,
+        groupMemberships,
       },
     };
   }
@@ -299,7 +301,7 @@ router.post(
     const group = await Group.findByPk(groupId, { transaction });
     authorize(user, "read", group);
 
-    const [membership] = await collection.$get("collectionGroupMemberships", {
+    const [membership] = await collection.$get("groupMemberships", {
       where: { groupId },
       transaction,
     });
@@ -382,12 +384,14 @@ router.post(
       }),
     ]);
 
+    const groupMemberships = memberships.map(presentGroupMembership);
+
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
-        collectionGroupMemberships: memberships.map(
-          presentCollectionGroupMembership
-        ),
+        // `collectionGroupMemberships` retained for backwards compatibility – remove after version v0.79.0
+        collectionGroupMemberships: groupMemberships,
+        groupMemberships,
         groups: memberships.map((membership) => presentGroup(membership.group)),
       },
     };

@@ -161,7 +161,7 @@ function includesMembership(
     "Development: collection memberships not preloaded, did you forget `withMembership` scope?"
   );
   return some(
-    [...collection.memberships, ...collection.collectionGroupMemberships],
+    [...collection.memberships, ...collection.groupMemberships],
     (m) => permissions.includes(m.permission)
   );
 }

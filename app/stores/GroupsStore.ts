@@ -43,7 +43,7 @@ export default class GroupsStore extends Store<Group> {
 
   inCollection = (collectionId: string, query?: string) => {
     const memberships = filter(
-      this.rootStore.collectionGroupMemberships.orderedData,
+      this.rootStore.groupMemberships.orderedData,
       (member) => member.collectionId === collectionId
     );
     const groupIds = memberships.map((member) => member.groupId);
@@ -58,7 +58,7 @@ export default class GroupsStore extends Store<Group> {
 
   notInCollection = (collectionId: string, query = "") => {
     const memberships = filter(
-      this.rootStore.collectionGroupMemberships.orderedData,
+      this.rootStore.groupMemberships.orderedData,
       (member) => member.collectionId === collectionId
     );
     const groupIds = memberships.map((member) => member.groupId);

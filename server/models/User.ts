@@ -433,7 +433,7 @@ class User extends ParanoidModel<
           ) &&
             !this.isGuest) ||
           c.memberships.length > 0 ||
-          c.collectionGroupMemberships.length > 0
+          c.groupMemberships.length > 0
       )
       .map((c) => c.id);
   };

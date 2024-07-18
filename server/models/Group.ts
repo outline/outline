@@ -110,7 +110,7 @@ class Group extends ParanoidModel<
   groupUsers: GroupUser[];
 
   @HasMany(() => GroupMembership, "groupId")
-  collectionGroupMemberships: GroupMembership[];
+  groupMemberships: GroupMembership[];
 
   @BelongsTo(() => Team, "teamId")
   team: Team;

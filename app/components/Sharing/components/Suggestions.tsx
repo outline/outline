@@ -122,6 +122,8 @@ export const Suggestions = observer(
       getSuggestionForEmail,
       users,
       users.orderedData,
+      groups,
+      groups.orderedData,
       document?.id,
       document?.members,
       collection?.id,

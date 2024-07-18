@@ -64,7 +64,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
       },
       {
         model: GroupMembership,
-        as: "collectionGroupMemberships",
+        as: "groupMemberships",
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -111,7 +111,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
       },
       {
         model: GroupMembership,
-        as: "collectionGroupMemberships",
+        as: "groupMemberships",
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -323,7 +323,7 @@ class Collection extends ParanoidModel<
   memberships: UserMembership[];
 
   @HasMany(() => GroupMembership, "collectionId")
-  collectionGroupMemberships: GroupMembership[];
+  groupMemberships: GroupMembership[];
 
   @BelongsToMany(() => User, () => UserMembership)
   users: User[];
@@ -367,7 +367,7 @@ class Collection extends ParanoidModel<
       return [];
     }
 
-    const groupMemberships = collection.collectionGroupMemberships
+    const groupMemberships = collection.groupMemberships
       .map((cgm) => cgm.group.groupUsers)
       .flat();
     const membershipUserIds = [
