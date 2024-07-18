@@ -271,9 +271,13 @@ router.post(
       },
     });
 
+    const groupMemberships = [presentGroupMembership(membership)];
+
     ctx.body = {
       data: {
-        groupMemberships: [presentGroupMembership(membership)],
+        // `collectionGroupMemberships` retained for backwards compatibility – remove after version v0.79.0
+        collectionGroupMemberships: groupMemberships,
+        groupMemberships,
       },
     };
   }
@@ -380,10 +384,14 @@ router.post(
       }),
     ]);
 
+    const groupMemberships = memberships.map(presentGroupMembership);
+
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
-        groupMemberships: memberships.map(presentGroupMembership),
+        // `collectionGroupMemberships` retained for backwards compatibility – remove after version v0.79.0
+        collectionGroupMemberships: groupMemberships,
+        groupMemberships,
         groups: memberships.map((membership) => presentGroup(membership.group)),
       },
     };
