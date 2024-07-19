@@ -361,7 +361,7 @@ class Document extends ParanoidModel<
   @BeforeSave
   static async updateCollectionStructure(
     model: Document,
-    { transaction }: SaveOptions<Document>
+    { transaction }: SaveOptions<InferAttributes<Document>>
   ) {
     // templates, drafts, and archived documents don't appear in the structure
     // and so never need to be updated when the title changes
@@ -811,8 +811,8 @@ class Document extends ParanoidModel<
   publish = async (
     user: User,
     collectionId: string,
-    options: SaveOptions<Document>
-  ) => {
+    options: SaveOptions
+  ): Promise<this> => {
     const { transaction } = options;
 
     // If the document is already published then calling publish should act like
