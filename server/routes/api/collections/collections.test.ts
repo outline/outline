@@ -1723,3 +1723,96 @@ describe("#collections.delete", () => {
     expect(body.success).toBe(true);
   });
 });
+
+describe("#collections.archive", () => {
+  it("should archive collection", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      publishedAt: new Date(),
+    });
+
+    await collection.reload();
+    expect(collection.documentStructure).not.toBe(null);
+    expect(document.archivedAt).toBe(null);
+    const res = await server.post("/api/collections.archive", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+      },
+    });
+    const [, , body] = await Promise.all([
+      collection.reload(),
+      document.reload(),
+      res.json(),
+    ]);
+    expect(res.status).toEqual(200);
+    expect(body.data.archivedAt).not.toBe(null);
+    expect(collection.documentStructure).toBe(null);
+    expect(document.archivedAt).not.toBe(null);
+  });
+});
+
+describe("#collections.restore", () => {
+  it("should restore collection", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+    });
+    await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      publishedAt: new Date(),
+    });
+    // reload to ensure documentStructure is set
+    await collection.reload();
+    expect(collection.documentStructure).not.toBe(null);
+    const archiveRes = await server.post("/api/collections.archive", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+      },
+    });
+    const [, archiveBody] = await Promise.all([
+      collection.reload(),
+      archiveRes.json(),
+    ]);
+    expect(archiveRes.status).toEqual(200);
+    expect(archiveBody.data.archivedAt).not.toBe(null);
+    expect(collection.documentStructure).toBe(null);
+    const res = await server.post("/api/collections.restore", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+      },
+    });
+    const [, body] = await Promise.all([collection.reload(), res.json()]);
+    expect(res.status).toEqual(200);
+    expect(body.data.archivedAt).toBe(null);
+    expect(collection.documentStructure).not.toBe(null);
+  });
+});
+
+describe("#collections.archived", () => {
+  it("should return archived collections", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    await buildCollection({
+      teamId: team.id,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/collections.archived", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].archivedAt).toBeTruthy();
+  });
+});

@@ -11,6 +11,7 @@ import collectionDestroyer from "@server/commands/collectionDestroyer";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import { parser } from "@server/editor";
+import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -25,6 +26,7 @@ import {
   Group,
   Attachment,
   FileOperation,
+  Document,
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
@@ -883,6 +885,167 @@ router.post(
 
     ctx.body = {
       success: true,
+    };
+  }
+);
+
+router.post(
+  "collections.archive",
+  auth(),
+  validate(T.CollectionsArchiveSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsArchiveReq>) => {
+    const { transaction } = ctx.state;
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(id, {
+      transaction,
+    });
+
+    if (!collection) {
+      throw NotFoundError("Collection not found");
+    }
+
+    authorize(user, "archive", collection);
+
+    collection.archivedAt = new Date();
+    collection.documentStructure = null;
+    await collection.save({ transaction });
+
+    // Archive all documents within the collection
+    await Document.update(
+      {
+        lastModifiedById: user.id,
+        archivedAt: collection.archivedAt,
+      },
+      {
+        where: {
+          teamId: collection.teamId,
+          collectionId: collection.id,
+          archivedAt: {
+            [Op.is]: null,
+          },
+        },
+        transaction,
+      }
+    );
+
+    await Event.createFromContext(ctx, {
+      name: "collections.archive",
+      collectionId: collection.id,
+      data: {
+        name: collection.name,
+      },
+    });
+
+    ctx.body = {
+      data: await presentCollection(ctx, collection),
+      policies: presentPolicies(user, [collection]),
+    };
+  }
+);
+
+router.post(
+  "collections.restore",
+  auth(),
+  validate(T.CollectionsRestoreSchema),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsRestoreReq>) => {
+    const { transaction } = ctx.state;
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    let collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(id, {
+      transaction,
+    });
+
+    if (!collection) {
+      throw NotFoundError("Collection not found");
+    }
+
+    authorize(user, "restore", collection);
+
+    const documents = await Document.findAll({
+      where: {
+        teamId: collection.teamId,
+        collectionId: collection.id,
+        archivedAt: {
+          [Op.not]: null,
+        },
+      },
+      transaction,
+    });
+
+    // Restore the entire document structure within collection
+    for (const document of documents) {
+      collection = await collection!.addDocumentToStructure(
+        document,
+        undefined,
+        {
+          transaction,
+        }
+      );
+    }
+
+    collection!.archivedAt = null;
+    await collection!.save({ transaction });
+
+    ctx.body = {
+      data: await presentCollection(ctx, collection!),
+      policies: presentPolicies(user, [collection]),
+    };
+  }
+);
+
+router.post(
+  "collections.archived",
+  auth(),
+  pagination(),
+  transaction(),
+  async (ctx: APIContext<T.CollectionsArchivedReq>) => {
+    const { transaction } = ctx.state;
+    const { user } = ctx.state.auth;
+    const collectionIds = await user.collectionIds({ transaction });
+    const [collections, total] = await Promise.all([
+      Collection.findAll({
+        where: {
+          teamId: user.teamId,
+          id: collectionIds,
+          archivedAt: {
+            [Op.not]: null,
+          },
+        },
+        order: [
+          Sequelize.literal('"collection"."index" collate "C"'),
+          ["archivedAt", "DESC"],
+        ],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+        transaction,
+      }),
+      Collection.count({
+        where: {
+          teamId: user.teamId,
+          id: collectionIds,
+          archivedAt: {
+            [Op.not]: null,
+          },
+        },
+        transaction,
+      }),
+    ]);
+
+    ctx.body = {
+      pagination: { ...ctx.state.pagination, total },
+      data: await Promise.all(
+        collections.map((collection) => presentCollection(ctx, collection))
+      ),
+      policies: presentPolicies(user, collections),
     };
   }
 );
