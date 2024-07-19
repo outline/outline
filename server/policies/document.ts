@@ -254,6 +254,10 @@ function includesMembership(
     document.memberships,
     "Development: document memberships should be preloaded, did you forget withMembership scope?"
   );
+  invariant(
+    document.groupMemberships,
+    "Development: document groupMemberships should be preloaded, did you forget withMembership scope?"
+  );
   return some([...document.memberships, ...document.groupMemberships], (m) =>
     permissions.includes(m.permission as DocumentPermission)
   );

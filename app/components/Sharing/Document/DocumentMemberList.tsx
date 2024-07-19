@@ -25,27 +25,36 @@ type Props = {
 };
 
 function DocumentMembersList({ document, invitedInSession }: Props) {
-  const { userMemberships } = useStores();
+  const { userMemberships, groupMemberships } = useStores();
   const user = useCurrentUser();
   const history = useHistory();
   const can = usePolicy(document);
   const { t } = useTranslation();
+  const documentId = document.id;
 
-  const { loading: loadingDocumentMembers, request: fetchDocumentMembers } =
+  const { loading: loadingDocumentMembers, request: fetchUserMemberships } =
     useRequest(
       React.useCallback(
         () =>
           userMemberships.fetchDocumentMemberships({
-            id: document.id,
+            id: documentId,
             limit: Pagination.defaultLimit,
           }),
-        [userMemberships, document.id]
+        [userMemberships, documentId]
       )
     );
 
+  const { request: fetchGroupMemberships } = useRequest(
+    React.useCallback(
+      () => groupMemberships.fetchAll({ documentId }),
+      [groupMemberships, documentId]
+    )
+  );
+
   React.useEffect(() => {
-    void fetchDocumentMembers();
-  }, [fetchDocumentMembers]);
+    void fetchUserMemberships();
+    void fetchGroupMemberships();
+  }, [fetchUserMemberships, fetchGroupMemberships]);
 
   const handleRemoveUser = React.useCallback(
     async (item) => {
@@ -68,7 +77,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
         toast.error(t("Could not remove user"));
       }
     },
-    [history, userMemberships, user, document]
+    [t, history, userMemberships, user, document]
   );
 
   const handleUpdateUser = React.useCallback(
@@ -88,7 +97,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
         toast.error(t("Could not update user"));
       }
     },
-    [userMemberships, document]
+    [t, userMemberships, document]
   );
 
   // Order newly added users first during the current editing session, on reload members are
@@ -111,6 +120,16 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
 
   return (
     <>
+      {groupMemberships
+        .inDocument(document.id)
+        .sort((a, b) =>
+          (
+            (invitedInSession.includes(a.group.id) ? "_" : "") + a.group.name
+          ).localeCompare(b.group.name)
+        )
+        .map((membership) => (
+          <li key={membership.id}>{membership.group.name}</li>
+        ))}
       {members.map((item) => (
         <MemberListItem
           key={item.id}

@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
+import Group from "~/models/Group";
 import Share from "~/models/Share";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
@@ -55,7 +56,7 @@ function SharePopover({
   const { t } = useTranslation();
   const can = usePolicy(document);
   const [hasRendered, setHasRendered] = React.useState(visible);
-  const { users, userMemberships } = useStores();
+  const { users, userMemberships, groups, groupMemberships } = useStores();
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
@@ -132,9 +133,9 @@ function SharePopover({
         name: t("Invite"),
         section: UserSection,
         perform: async () => {
-          const usersInvited = await Promise.all(
+          const invited = await Promise.all(
             pendingIds.map(async (idOrEmail) => {
-              let user;
+              let user, group;
 
               // convert email to user
               if (isEmail(idOrEmail)) {
@@ -148,37 +149,71 @@ function SharePopover({
                 user = response[0];
               } else {
                 user = users.get(idOrEmail);
+                group = groups.get(idOrEmail);
               }
 
-              if (!user) {
-                return;
+              if (user) {
+                await userMemberships.create({
+                  documentId: document.id,
+                  userId: user.id,
+                  permission,
+                });
+                return user;
               }
 
-              await userMemberships.create({
-                documentId: document.id,
-                userId: user.id,
-                permission,
-              });
+              if (group) {
+                await groupMemberships.create({
+                  documentId: document.id,
+                  groupId: group.id,
+                  permission,
+                });
+                return group;
+              }
 
-              return user;
+              return;
             })
           );
 
-          if (usersInvited.length === 1) {
-            const user = usersInvited[0] as User;
+          const invitedUsers = invited.filter(
+            (item) => item instanceof User
+          ) as User[];
+          const invitedGroups = invited.filter(
+            (item) => item instanceof Group
+          ) as Group[];
+
+          // Special case for the common action of adding a single user.
+          if (invitedUsers.length === 1 && invited.length === 1) {
+            const user = invitedUsers[0];
             toast.message(
-              t("{{ userName }} was invited to the document", {
+              t("{{ userName }} was added to the document", {
                 userName: user.name,
               }),
               {
                 icon: <Avatar model={user} size={AvatarSize.Toast} />,
               }
             );
+          } else if (invitedGroups.length === 1 && invited.length === 1) {
+            const group = invitedGroups[0];
+            toast.success(
+              t("{{ userName }} was added to the document", {
+                userName: group.name,
+              })
+            );
+          } else if (invitedGroups.length === 0) {
+            toast.success(
+              t("{{ count }} people added to the document", {
+                count: invitedUsers.length,
+              })
+            );
           } else {
             toast.success(
-              t("{{ count }} people invited to the document", {
-                count: pendingIds.length,
-              })
+              t(
+                "{{ count }} people and {{ count2 }} groups added to the document",
+                {
+                  count: invitedUsers.length,
+                  count2: invitedGroups.length,
+                }
+              )
             );
           }
 
@@ -188,14 +223,16 @@ function SharePopover({
         },
       }),
     [
-      t,
-      pendingIds,
+      document.id,
+      groupMemberships,
+      groups,
       hidePicker,
       userMemberships,
-      document.id,
+      pendingIds,
       permission,
-      users,
+      t,
       team.defaultUserRole,
+      users,
     ]
   );
 

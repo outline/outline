@@ -15,13 +15,25 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
   }
 
   @action
-  fetchPage = async (
-    params: PaginationParams | undefined
-  ): Promise<GroupMembership[]> => {
+  fetchPage = async ({
+    collectionId,
+    documentId,
+    ...params
+  }:
+    | (PaginationParams & { documentId?: string; collectionId?: string })
+    | undefined): Promise<GroupMembership[]> => {
     this.isFetching = true;
 
     try {
-      const res = await client.post(`/collections.group_memberships`, params);
+      const res = collectionId
+        ? await client.post(`/collections.group_memberships`, {
+            id: collectionId,
+            ...params,
+          })
+        : await client.post(`/documents.group_memberships`, {
+            id: documentId,
+            ...params,
+          });
       invariant(res?.data, "Data not available");
 
       let response: GroupMembership[] = [];

@@ -198,9 +198,9 @@ type AdditionalFindOptions = {
           // nested "includes" with alternating values for "required"
           // see https://github.com/sequelize/sequelize/issues/9869
           separate: true,
-          // include for groups that are members of this collection,
+          // include for groups that are members of this document,
           // of which userId is a member of, resulting in:
-          // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
+          // GroupMembership [inner join] Group [inner join] GroupUser [where] userId
           include: [
             {
               model: Group,

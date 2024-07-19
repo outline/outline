@@ -62,6 +62,27 @@ export default class GroupsStore extends Store<Group> {
   };
 
   /**
+   * Returns groups that are not in the given document, optionally filtered by a query.
+   *
+   * @param documentId
+   * @param query
+   * @returns A list of groups that are not in the given document.
+   */
+  notInDocument = (documentId: string, query = "") => {
+    const memberships = filter(
+      this.rootStore.groupMemberships.orderedData,
+      (member) => member.documentId === documentId
+    );
+    const groupIds = memberships.map((member) => member.groupId);
+    const groups = filter(
+      this.orderedData,
+      (group) => !groupIds.includes(group.id)
+    );
+
+    return query ? queriedGroups(groups, query) : groups;
+  };
+
+  /**
    * Returns groups that are not in the given collection, optionally filtered by a query.
    *
    * @param collectionId

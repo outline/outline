@@ -42,8 +42,6 @@ type Props = {
   addPendingId: (id: string) => void;
   /** Callback to remove a user from the pending list. */
   removePendingId: (id: string) => void;
-  /** Show group suggestions. */
-  showGroups?: boolean;
   /** Handles escape from suggestions list */
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
 };
@@ -57,7 +55,6 @@ export const Suggestions = observer(
       pendingIds,
       addPendingId,
       removePendingId,
-      showGroups,
       onEscape,
     }: Props,
     ref: React.Ref<HTMLDivElement>
@@ -76,10 +73,7 @@ export const Suggestions = observer(
     const fetchUsersByQuery = useThrottledCallback(
       (query: string) => {
         void users.fetchPage({ query });
-
-        if (showGroups) {
-          void groups.fetchPage({ query });
-        }
+        void groups.fetchPage({ query });
       },
       250,
       undefined,
@@ -113,11 +107,14 @@ export const Suggestions = observer(
         filtered.push(getSuggestionForEmail(query));
       }
 
-      if (collection?.id) {
-        return [...groups.notInCollection(collection.id, query), ...filtered];
-      }
-
-      return filtered;
+      return [
+        ...(document
+          ? groups.notInDocument(document.id, query)
+          : collection
+          ? groups.notInCollection(collection.id, query)
+          : []),
+        ...filtered,
+      ];
     }, [
       getSuggestionForEmail,
       users,

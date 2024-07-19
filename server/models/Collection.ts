@@ -72,7 +72,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         separate: true,
         // include for groups that are members of this collection,
         // of which userId is a member of, resulting in:
-        // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
+        // GroupMembership [inner join] Group [inner join] GroupUser [where] userId
         include: [
           {
             model: Group,

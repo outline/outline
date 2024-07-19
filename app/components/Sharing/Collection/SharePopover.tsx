@@ -362,7 +362,6 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
           addPendingId={handleAddPendingId}
           removePendingId={handleRemovePendingId}
           onEscape={handleEscape}
-          showGroups
         />
       )}
 

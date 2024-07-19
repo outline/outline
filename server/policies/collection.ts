@@ -160,6 +160,10 @@ function includesMembership(
     collection.memberships,
     "Development: collection memberships not preloaded, did you forget `withMembership` scope?"
   );
+  invariant(
+    collection.groupMemberships,
+    "Development: collection groupMemberships not preloaded, did you forget `withMembership` scope?"
+  );
   return some(
     [...collection.memberships, ...collection.groupMemberships],
     (m) => permissions.includes(m.permission as CollectionPermission)
