@@ -208,7 +208,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
                 await groupMemberships.create({
                   collectionId: collection.id,
                   groupId: group.id,
-                  permission: CollectionPermission.Read,
+                  permission,
                 });
                 return group;
               }
