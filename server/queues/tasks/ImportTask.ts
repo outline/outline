@@ -25,7 +25,7 @@ import {
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import ZipHelper from "@server/utils/ZipHelper";
-import { generateDocUrlId } from "@server/utils/url";
+import { generateUrlId } from "@server/utils/url";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -563,7 +563,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
         }
       }
 
-      doc.urlId = generateDocUrlId();
+      doc.urlId = generateUrlId();
     }
   }
 }

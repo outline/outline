@@ -1,5 +1,5 @@
 import randomstring from "randomstring";
 
-const DocumentUrlIdLen = 10;
+const UrlIdLength = 10;
 
-export const generateDocUrlId = () => randomstring.generate(DocumentUrlIdLen);
+export const generateUrlId = () => randomstring.generate(UrlIdLength);

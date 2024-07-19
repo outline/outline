@@ -3,7 +3,6 @@ import find from "lodash/find";
 import findIndex from "lodash/findIndex";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
-import randomstring from "randomstring";
 import {
   Identifier,
   Transaction,
@@ -39,6 +38,7 @@ import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
+import { generateUrlId } from "@server/utils/url";
 import Document from "./Document";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
@@ -267,7 +267,7 @@ class Collection extends ParanoidModel<
 
   @BeforeValidate
   static async onBeforeValidate(model: Collection) {
-    model.urlId = model.urlId || randomstring.generate(10);
+    model.urlId = model.urlId || generateUrlId();
   }
 
   @BeforeSave

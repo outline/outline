@@ -51,7 +51,7 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
-import { generateDocUrlId } from "@server/utils/url";
+import { generateUrlId } from "@server/utils/url";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
@@ -425,7 +425,7 @@ class Document extends ParanoidModel<
 
   @BeforeValidate
   static createUrlId(model: Document) {
-    return (model.urlId = model.urlId || generateDocUrlId());
+    return (model.urlId = model.urlId || generateUrlId());
   }
 
   @BeforeCreate
