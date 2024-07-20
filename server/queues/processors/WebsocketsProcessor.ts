@@ -30,6 +30,7 @@ import {
   presentTeam,
   presentMembership,
   presentUser,
+  presentGroupUser,
 } from "@server/presenters";
 import presentNotification from "@server/presenters/notification";
 import { Event } from "../../types";
@@ -527,18 +528,31 @@ export default class WebsocketsProcessor {
       }
 
       case "groups.add_user": {
-        // do an add user for every collection that the group is a part of
-        const groupMemberships = await GroupMembership.scope(
-          "withCollection"
-        ).findAll({
-          where: {
-            groupId: event.modelId,
-          },
-        });
+        const [groupUser, groupMemberships] = await Promise.all([
+          GroupUser.scope("withGroup").findOne({
+            where: {
+              groupId: event.modelId,
+              userId: event.userId,
+            },
+          }),
+          GroupMembership.findAll({
+            where: {
+              groupId: event.modelId,
+            },
+          }),
+        ]);
+
+        if (groupUser) {
+          socketio
+            .to(`team-${groupUser.group.teamId}`)
+            .emit(event.name, presentGroupUser(groupUser));
+        }
 
         for (const groupMembership of groupMemberships) {
-          // the user being added isn't yet in the websocket channel for the collection
-          // so they need to be notified separately
+          if (!groupMembership.collectionId) {
+            continue;
+          }
+          // the user being added needs to know they were added
           socketio.to(`user-${event.userId}`).emit("collections.add_user", {
             event: event.name,
             userId: event.userId,
@@ -552,8 +566,8 @@ export default class WebsocketsProcessor {
               userId: event.userId,
               collectionId: groupMembership.collectionId,
             });
-          // tell any user clients to connect to the websocket channel for the collection
-          return socketio.to(`user-${event.userId}`).emit("join", {
+          // tell clients from the user to connect to the websocket channel for the collection
+          socketio.to(`user-${event.userId}`).emit("join", {
             event: event.name,
             collectionId: groupMembership.collectionId,
           });
@@ -563,13 +577,22 @@ export default class WebsocketsProcessor {
       }
 
       case "groups.remove_user": {
-        const groupMemberships = await GroupMembership.scope(
-          "withCollection"
-        ).findAll({
-          where: {
+        const [group, groupMemberships] = await Promise.all([
+          Group.findByPk(event.modelId),
+          GroupMembership.findAll({
+            where: {
+              groupId: event.modelId,
+            },
+          }),
+        ]);
+
+        if (group) {
+          socketio.to(`team-${group.teamId}`).emit(event.name, {
+            event: event.name,
+            userId: event.userId,
             groupId: event.modelId,
-          },
-        });
+          });
+        }
 
         for (const groupMembership of groupMemberships) {
           // if the user has any memberships remaining on the collection
