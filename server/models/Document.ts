@@ -905,31 +905,23 @@ class Document extends ParanoidModel<
       }
     }
 
-    const parentDocumentPermissions = this.parentDocumentId
-      ? await UserMembership.findAll({
-          where: {
-            documentId: this.parentDocumentId,
-          },
-          transaction,
-        })
-      : [];
-
-    await Promise.all(
-      parentDocumentPermissions.map((permission) =>
-        UserMembership.create(
-          {
-            documentId: this.id,
-            userId: permission.userId,
-            sourceId: permission.sourceId ?? permission.id,
-            permission: permission.permission,
-            createdById: permission.createdById,
-          },
-          {
-            transaction,
-          }
-        )
-      )
-    );
+    // Copy the group and user memberships from the parent document, if any
+    if (this.parentDocumentId) {
+      await GroupMembership.copy(
+        {
+          documentId: this.parentDocumentId,
+        },
+        this,
+        { transaction }
+      );
+      await UserMembership.copy(
+        {
+          documentId: this.parentDocumentId,
+        },
+        this,
+        { transaction }
+      );
+    }
 
     this.lastModifiedById = user.id;
     this.updatedBy = user;

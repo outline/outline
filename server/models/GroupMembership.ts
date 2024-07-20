@@ -5,6 +5,7 @@ import {
   type SaveOptions,
   type FindOptions,
 } from "sequelize";
+import { WhereOptions } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -120,6 +121,41 @@ class GroupMembership extends ParanoidModel<
   @Column(DataType.UUID)
   createdById: string;
 
+  // static methods
+
+  /**
+   * Copy group memberships from one document to another.
+   *
+   * @param where The where clause to find the group memberships to copy.
+   * @param document The document to copy the group memberships to.
+   * @param options Additional options to pass to the query.
+   */
+  public static async copy(
+    where: WhereOptions<GroupMembership>,
+    document: Document,
+    options: SaveOptions
+  ) {
+    const { transaction } = options;
+    const groupMemberships = await this.findAll({
+      where,
+      transaction,
+    });
+    await Promise.all(
+      groupMemberships.map((membership) =>
+        this.create(
+          {
+            documentId: document.id,
+            groupId: membership.groupId,
+            sourceId: membership.sourceId ?? membership.id,
+            permission: membership.permission,
+            createdById: membership.createdById,
+          },
+          { transaction }
+        )
+      )
+    );
+  }
+
   /**
    * Find the root membership for a document and (optionally) group.
    *
@@ -128,7 +164,7 @@ class GroupMembership extends ParanoidModel<
    * @param options Additional options to pass to the query.
    * @returns A promise that resolves to the root memberships for the document and group, or null.
    */
-  static async findRootMembershipsForDocument(
+  public static async findRootMembershipsForDocument(
     documentId: string,
     groupId?: string,
     options?: FindOptions<GroupMembership>
@@ -150,6 +186,8 @@ class GroupMembership extends ParanoidModel<
 
     return rootMemberships.filter(Boolean) as GroupMembership[];
   }
+
+  // hooks
 
   @AfterUpdate
   static async updateSourcedMemberships(

@@ -5,6 +5,7 @@ import {
   type SaveOptions,
   type FindOptions,
 } from "sequelize";
+import { WhereOptions } from "sequelize";
 import {
   Column,
   ForeignKey,
@@ -125,6 +126,41 @@ class UserMembership extends IdModel<
   @Column(DataType.UUID)
   createdById: string;
 
+  // static methods
+
+  /**
+   * Copy user memberships from one document to another.
+   *
+   * @param where The where clause to find the user memberships to copy.
+   * @param document The document to copy the user memberships to.
+   * @param options Additional options to pass to the query.
+   */
+  public static async copy(
+    where: WhereOptions<UserMembership>,
+    document: Document,
+    options: SaveOptions
+  ) {
+    const { transaction } = options;
+    const groupMemberships = await this.findAll({
+      where,
+      transaction,
+    });
+    await Promise.all(
+      groupMemberships.map((membership) =>
+        this.create(
+          {
+            documentId: document.id,
+            userId: membership.userId,
+            sourceId: membership.sourceId ?? membership.id,
+            permission: membership.permission,
+            createdById: membership.createdById,
+          },
+          { transaction }
+        )
+      )
+    );
+  }
+
   /**
    * Find the root membership for a document and (optionally) user.
    *
@@ -155,6 +191,8 @@ class UserMembership extends IdModel<
 
     return rootMemberships.filter(Boolean) as UserMembership[];
   }
+
+  // hooks
 
   @AfterUpdate
   static async updateSourcedMemberships(
