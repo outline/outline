@@ -657,9 +657,7 @@ export default class WebsocketsProcessor {
             },
           },
         });
-        const groupMemberships = await GroupMembership.scope(
-          "withCollection"
-        ).findAll({
+        const groupMemberships = await GroupMembership.findAll({
           paranoid: false,
           where: {
             groupId: event.modelId,
@@ -670,9 +668,12 @@ export default class WebsocketsProcessor {
         });
 
         for (const groupMembership of groupMemberships) {
-          const membershipUserIds = groupMembership.collectionId
-            ? await Collection.membershipUserIds(groupMembership.collectionId)
-            : [];
+          if (!groupMembership.collectionId) {
+            continue;
+          }
+          const membershipUserIds = await Collection.membershipUserIds(
+            groupMembership.collectionId
+          );
 
           for (const groupUser of groupUsers) {
             if (membershipUserIds.includes(groupUser.userId)) {
