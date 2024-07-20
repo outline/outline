@@ -42,7 +42,10 @@ router.post(
       };
     }
 
-    const groups = await Group.filterByMember(userId).findAll({
+    const groups = await Group.filterByMember(
+      userId,
+      "withAllMemberships"
+    ).findAll({
       where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,

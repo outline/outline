@@ -1,4 +1,9 @@
-import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  Op,
+  ScopeOptions,
+} from "sequelize";
 import {
   AfterDestroy,
   BelongsTo,
@@ -29,18 +34,22 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   ],
 }))
 @Scopes(() => ({
-  withMember: (userId: string) => ({
+  withMembership: (userId: string) => ({
     include: [
-      {
-        association: "groupUsers",
-        required: true,
-      },
       {
         association: "members",
         required: true,
         where: {
           userId,
         },
+      },
+    ],
+  }),
+  withAllMemberships: () => ({
+    include: [
+      {
+        association: "groupUsers",
+        required: true,
       },
     ],
   }),
@@ -97,9 +106,13 @@ class Group extends ParanoidModel<
     });
   }
 
-  static filterByMember(userId: string | undefined) {
+  static filterByMember(
+    userId: string | undefined,
+    additionalScope?: ScopeOptions | string
+  ) {
+    const scope = { method: ["withMembership", userId] } as ScopeOptions;
     return userId
-      ? this.scope({ method: ["withMember", userId] })
+      ? this.scope(additionalScope ? [scope, additionalScope] : scope)
       : this.scope("defaultScope");
   }
 

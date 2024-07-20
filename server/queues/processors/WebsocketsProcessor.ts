@@ -1,4 +1,5 @@
 import { subHours } from "date-fns";
+import uniq from "lodash/uniq";
 import { Op } from "sequelize";
 import { Server } from "socket.io";
 import {
@@ -166,6 +167,46 @@ export default class WebsocketsProcessor {
           userId: event.userId,
           documentId: event.documentId,
         });
+        return;
+      }
+
+      case "documents.add_group": {
+        const [document, membership] = await Promise.all([
+          Document.findByPk(event.documentId),
+          UserMembership.findByPk(event.modelId),
+        ]);
+        if (!document || !membership) {
+          return;
+        }
+
+        const channels = await this.getDocumentEventChannels(event, document);
+        socketio.to(channels).emit(event.name, presentMembership(membership));
+        return;
+      }
+
+      case "documents.remove_group": {
+        const [document, group] = await Promise.all([
+          Document.findByPk(event.documentId),
+          Group.findByPk(event.modelId),
+        ]);
+        if (!document || !group) {
+          return;
+        }
+
+        const channels = await this.getDocumentEventChannels(event, document);
+        const groupUserIds = (await group.$get("groupUsers")).map(
+          (groupUser) => groupUser.userId
+        );
+        const groupUserChannels = groupUserIds.map(
+          (userId) => `user-${userId}`
+        );
+        socketio
+          .to(uniq([...channels, ...groupUserChannels]))
+          .emit(event.name, {
+            id: event.modelId,
+            groupId: event.modelId,
+            documentId: event.documentId,
+          });
         return;
       }
 
@@ -712,16 +753,32 @@ export default class WebsocketsProcessor {
       channels.push(`collection-${document.collectionId}`);
     }
 
-    const memberships = await UserMembership.findAll({
-      where: {
-        documentId: document.id,
-      },
-    });
+    const [userMemberships, groupMemberships] = await Promise.all([
+      UserMembership.findAll({
+        where: {
+          documentId: document.id,
+        },
+      }),
+      GroupMembership.scope("withGroup").findAll({
+        where: {
+          documentId: document.id,
+        },
+      }),
+    ]);
 
-    for (const membership of memberships) {
+    for (const membership of userMemberships) {
       channels.push(`user-${membership.userId}`);
     }
 
-    return channels;
+    await Promise.all(
+      groupMemberships.map(async (groupMembership) => {
+        const groupUsers = await groupMembership.group.$get("groupUsers");
+        for (const groupUser of groupUsers) {
+          channels.push(`user-${groupUser.userId}`);
+        }
+      })
+    );
+
+    return uniq(channels);
   }
 }
