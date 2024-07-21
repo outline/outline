@@ -111,15 +111,19 @@ export default abstract class Store<T extends Model> {
           (item) => item[relation.idKey] === id
         );
 
-        if (relation.options.onDelete === "cascade") {
-          items.forEach((item) => store.remove(item.id));
-        }
+        items.forEach((item) => {
+          let deleteBehavior = relation.options.onDelete;
 
-        if (relation.options.onDelete === "null") {
-          items.forEach((item) => {
+          if (typeof relation.options.onDelete === "function") {
+            deleteBehavior = relation.options.onDelete(item);
+          }
+
+          if (deleteBehavior === "cascade") {
+            store.remove(item.id);
+          } else if (deleteBehavior === "null") {
             item[relation.idKey] = null;
-          });
-        }
+          }
+        });
       }
     });
 

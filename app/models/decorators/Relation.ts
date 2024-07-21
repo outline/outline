@@ -1,20 +1,23 @@
 import invariant from "invariant";
 import type Model from "../base/Model";
 
-type RelationOptions = {
+/** The behavior of a relationship on deletion */
+type DeleteBehavior = "cascade" | "null" | "ignore";
+
+type RelationOptions<T = Model> = {
   /** Whether this relation is required */
   required?: boolean;
   /** Behavior of relationship on deletion */
-  onDelete: "cascade" | "null" | "ignore";
+  onDelete: DeleteBehavior | ((item: T) => DeleteBehavior);
 };
 
-type RelationProperties = {
+type RelationProperties<T = Model> = {
   /** The name of the property on the model that stores the ID of the relation */
   idKey: string;
   /** A function that returns the class of the relation */
   relationClassResolver: () => typeof Model;
   /** Options for the relation */
-  options: RelationOptions;
+  options: RelationOptions<T>;
 };
 
 type InverseRelationProperties = RelationProperties & {
