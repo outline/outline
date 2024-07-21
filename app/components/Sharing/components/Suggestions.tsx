@@ -138,7 +138,7 @@ export const Suggestions = observer(
               : users.get(id) ?? groups.get(id)
           )
           .filter(Boolean) as User[],
-      [users, getSuggestionForEmail, pendingIds]
+      [users, groups, getSuggestionForEmail, pendingIds]
     );
 
     React.useEffect(() => {
