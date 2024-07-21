@@ -487,9 +487,7 @@ export default class WebsocketsProcessor {
 
       case "groups.add_user": {
         // do an add user for every collection that the group is a part of
-        const groupMemberships = await GroupMembership.scope(
-          "withCollection"
-        ).findAll({
+        const groupMemberships = await GroupMembership.findAll({
           where: {
             groupId: event.modelId,
           },
@@ -512,7 +510,7 @@ export default class WebsocketsProcessor {
               collectionId: groupMembership.collectionId,
             });
           // tell any user clients to connect to the websocket channel for the collection
-          return socketio.to(`user-${event.userId}`).emit("join", {
+          socketio.to(`user-${event.userId}`).emit("join", {
             event: event.name,
             collectionId: groupMembership.collectionId,
           });
@@ -522,9 +520,7 @@ export default class WebsocketsProcessor {
       }
 
       case "groups.remove_user": {
-        const groupMemberships = await GroupMembership.scope(
-          "withCollection"
-        ).findAll({
+        const groupMemberships = await GroupMembership.findAll({
           where: {
             groupId: event.modelId,
           },
