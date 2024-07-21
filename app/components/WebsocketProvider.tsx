@@ -306,7 +306,7 @@ class WebsocketProvider extends React.Component<Props> {
 
         // TODO: Possibly replace this with a one-to-many relation decorator.
         if (groupMembership) {
-          userMemberships
+          groupMemberships
             .filter({
               groupId: event.groupId,
               sourceId: groupMembership.id,
@@ -316,7 +316,7 @@ class WebsocketProvider extends React.Component<Props> {
             });
         }
 
-        userMemberships.removeAll({
+        groupMemberships.removeAll({
           groupId: event.groupId,
           documentId: event.documentId,
         });
