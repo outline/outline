@@ -5,18 +5,18 @@ import type Model from "../base/Model";
 type DeleteBehavior = "cascade" | "null" | "ignore";
 
 type RelationOptions<T = Model> = {
-  /** Whether this relation is required */
+  /** Whether this relation is required. */
   required?: boolean;
-  /** Behavior of relationship on deletion */
+  /** Behavior of this model when relationship is deleted. */
   onDelete: DeleteBehavior | ((item: T) => DeleteBehavior);
 };
 
 type RelationProperties<T = Model> = {
-  /** The name of the property on the model that stores the ID of the relation */
+  /** The name of the property on the model that stores the ID of the relation. */
   idKey: string;
-  /** A function that returns the class of the relation */
+  /** A function that returns the class of the relation. */
   relationClassResolver: () => typeof Model;
-  /** Options for the relation */
+  /** Options for the relation. */
   options: RelationOptions<T>;
 };
 
