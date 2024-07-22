@@ -208,7 +208,7 @@ const embeds: EmbedDescriptor[] = [
   new EmbedDescriptor({
     title: "DBDiagram",
     keywords: "diagrams database",
-    regexMatch: [new RegExp("^https://dbdiagram.io/(embed|d)/(\\w+)$")],
+    regexMatch: [new RegExp("^https://dbdiagram.io/(embed|e|d)/(\\w+)(/.*)?$")],
     transformMatch: (matches) => `https://dbdiagram.io/embed/${matches[2]}`,
     icon: <Img src="/images/dbdiagram.png" alt="DBDiagram" />,
   }),
