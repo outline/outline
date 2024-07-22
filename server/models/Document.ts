@@ -2,7 +2,6 @@
 import compact from "lodash/compact";
 import isNil from "lodash/isNil";
 import uniq from "lodash/uniq";
-import randomstring from "randomstring";
 import type {
   Identifier,
   InferAttributes,
@@ -52,6 +51,7 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
+import { generateUrlId } from "@server/utils/url";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
@@ -356,6 +356,13 @@ class Document extends ParanoidModel<
     );
   }
 
+  static getPath({ title, urlId }: { title: string; urlId: string }) {
+    if (!title.length) {
+      return `/doc/untitled-${urlId}`;
+    }
+    return `/doc/${slugify(title)}-${urlId}`;
+  }
+
   // hooks
 
   @BeforeSave
@@ -418,7 +425,7 @@ class Document extends ParanoidModel<
 
   @BeforeValidate
   static createUrlId(model: Document) {
-    return (model.urlId = model.urlId || randomstring.generate(10));
+    return (model.urlId = model.urlId || generateUrlId());
   }
 
   @BeforeCreate
