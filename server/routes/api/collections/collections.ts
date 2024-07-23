@@ -60,29 +60,16 @@ router.post(
     const { user } = ctx.state.auth;
     authorize(user, "createCollection", user.team);
 
-    if (!index) {
-      const collections = await Collection.findAll({
-        where: {
-          teamId: user.teamId,
-          deletedAt: null,
-        },
-        attributes: ["id", "index", "updatedAt"],
-        limit: 1,
-        order: [
-          // using LC_COLLATE:"C" because we need byte order to drive the sorting
-          Sequelize.literal('"collection"."index" collate "C"'),
-          ["updatedAt", "DESC"],
-        ],
+    if (index) {
+      index = await removeIndexCollision(user.teamId, index, { transaction });
+    } else {
+      const first = await Collection.findFirstCollectionForUser(user, {
+        attributes: ["id", "index"],
         transaction,
       });
-
-      index = fractionalIndex(
-        null,
-        collections.length ? collections[0].index : null
-      );
+      index = fractionalIndex(null, first ? first.index : null);
     }
 
-    index = await removeIndexCollision(user.teamId, index);
     const collection = Collection.build({
       name,
       content: data,
@@ -891,7 +878,7 @@ router.post(
     });
     authorize(user, "move", collection);
 
-    index = await removeIndexCollision(user.teamId, index);
+    index = await removeIndexCollision(user.teamId, index, { transaction });
     await collection.update(
       {
         index,
