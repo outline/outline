@@ -139,6 +139,10 @@ class DocumentScene extends React.Component<Props> {
       this.props.document.isPersistedOnce
     ) {
       void this.props.document.delete();
+    } else if (this.props.document.isDirty()) {
+      void this.props.document.save(undefined, {
+        autosave: true,
+      });
     }
   }
 
