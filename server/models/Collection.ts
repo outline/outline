@@ -197,8 +197,8 @@ class Collection extends ParanoidModel<
   color: string | null;
 
   @Length({
-    max: 100,
-    msg: `index must be 100 characters or less`,
+    max: 256,
+    msg: `index must be 256 characters or less`,
   })
   @Column
   index: string | null;

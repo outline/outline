@@ -14,9 +14,9 @@ import {
   Table,
   DataType,
   Scopes,
-  AllowNull,
   AfterCreate,
   AfterUpdate,
+  Length,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
@@ -73,7 +73,10 @@ class UserMembership extends IdModel<
   permission: CollectionPermission | DocumentPermission;
 
   /** The visible sort order in "shared with me" */
-  @AllowNull
+  @Length({
+    max: 256,
+    msg: `index must be 256 characters or less`,
+  })
   @Column
   index: string | null;
 
