@@ -197,8 +197,8 @@ class Collection extends ParanoidModel<
   color: string | null;
 
   @Length({
-    max: 100,
-    msg: `index must be 100 characters or less`,
+    max: 256,
+    msg: `index must be 256 characters or less`,
   })
   @Column
   index: string | null;
@@ -425,13 +425,18 @@ class Collection extends ParanoidModel<
   /**
    * Find the first collection that the specified user has access to.
    *
-   * @param user User object
+   * @param user User to find the collection for
+   * @param options Additional options for the query
    * @returns collection First collection in the sidebar order
    */
-  static async findFirstCollectionForUser(user: User) {
+  static async findFirstCollectionForUser(
+    user: User,
+    options: FindOptions = {}
+  ) {
     const id = await user.collectionIds();
     return this.findOne({
       where: {
+        teamId: user.teamId,
         id,
       },
       order: [
@@ -439,6 +444,7 @@ class Collection extends ParanoidModel<
         Sequelize.literal('"collection"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
+      ...options,
     });
   }
 
