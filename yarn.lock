@@ -11981,10 +11981,10 @@ os-tmpdir@~1.0.2:
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
   integrity "sha1-u+Z0BseaqFxc/sdm/lc0VV36EnQ= sha512-D2FR03Vir7FIu45XBY20mTb+/ZSWB00sjU9jdQXt83gDrI4Ztz5Fs7/yy74g2N5SVQY4xY1qDr4rNddwYRVX0g=="
 
-outline-icons@^3.5.0:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-3.5.0.tgz#acc3896a3f0eae2ab70fe693d1d1a924cced6e0f"
-  integrity sha512-zZAbnR6gjXI4KLEmVj3EsdrlVG3YXBmZ1clY5O1zI5LfaLXQvUAThV/z5MxZpMwcNVYOZMRyXv/W1Sy0TNwCsA==
+outline-icons@^3.6.0:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-3.6.0.tgz#eff299bfde165a18a57d3c2f278598984551b912"
+  integrity sha512-eAqfxu1kGeqsTWKJrkXOvNlRq4PYVwK0qUs/L5vCMGU9Mkua1VUJvGYaCHeYA9LPXbjTPETiC38hAhsPwnKSyQ==
 
 oy-vey@^0.12.1:
   version "0.12.1"
