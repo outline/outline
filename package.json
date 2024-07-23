@@ -176,7 +176,7 @@
     "prosemirror-commands": "^1.5.2",
     "prosemirror-dropcursor": "^1.8.1",
     "prosemirror-gapcursor": "^1.3.2",
-    "prosemirror-history": "^1.4.0",
+    "prosemirror-history": "^1.4.1",
     "prosemirror-inputrules": "^1.4.0",
     "prosemirror-keymap": "^1.2.2",
     "prosemirror-markdown": "^1.13.0",
