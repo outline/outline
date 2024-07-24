@@ -156,23 +156,6 @@ export default async function documentCreator({
       silent: true,
       transaction,
     });
-    await Event.create(
-      {
-        name: "documents.publish",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
-        data: {
-          source: importId ? "import" : undefined,
-          title: document.title,
-        },
-        ip,
-      },
-      {
-        transaction,
-      }
-    );
   }
 
   // reload to get all of the data needed to present (user, collection etc)
