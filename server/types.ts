@@ -217,6 +217,9 @@ export type DocumentEvent = BaseEvent<Document> &
           previousTitle: string;
         };
       }
+    | {
+        name: "documents.empty_trash";
+      }
   );
 
 export type RevisionEvent = BaseEvent<Revision> & {
