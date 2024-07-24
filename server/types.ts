@@ -219,6 +219,12 @@ export type DocumentEvent = BaseEvent<Document> &
       }
   );
 
+export type EmptyTrashEvent = {
+  name: "documents.empty_trash";
+  teamId: string;
+  actorId: string;
+};
+
 export type RevisionEvent = BaseEvent<Revision> & {
   name: "revisions.create";
   documentId: string;
@@ -453,7 +459,8 @@ export type Event =
   | UserMembershipEvent
   | ViewEvent
   | WebhookSubscriptionEvent
-  | NotificationEvent;
+  | NotificationEvent
+  | EmptyTrashEvent;
 
 export type NotificationMetadata = {
   notificationId?: string;
