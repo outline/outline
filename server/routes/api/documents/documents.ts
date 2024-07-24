@@ -1722,9 +1722,6 @@ router.post(
     });
 
     await documentPermanentDeleter(documents);
-    await Event.createFromContext(ctx, {
-      name: "documents.empty_trash",
-    });
 
     ctx.body = {
       success: true,
