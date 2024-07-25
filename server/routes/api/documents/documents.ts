@@ -132,7 +132,7 @@ router.post(
       where = {
         ...where,
         collectionId:
-          template && can(user, "readDocument", user.team)
+          template && can(user, "readTemplate", user.team)
             ? {
                 [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
               }
@@ -940,7 +940,7 @@ router.post(
       }).findByPk(collectionId, { transaction });
       authorize(user, "createDocument", collection);
     } else {
-      authorize(user, "createDocument", user.team);
+      authorize(user, "createTemplate", user.team);
     }
 
     const document = await Document.create(
@@ -1044,7 +1044,7 @@ router.post(
         );
         authorize(user, "createChildDocument", parentDocument, { collection });
       } else if (document.isWorkspaceTemplate) {
-        authorize(user, "createDocument", user.team);
+        authorize(user, "createTemplate", user.team);
       } else {
         authorize(user, "createDocument", collection);
       }
@@ -1096,7 +1096,7 @@ router.post(
     if (collection) {
       authorize(user, "updateDocument", collection);
     } else if (document.isWorkspaceTemplate) {
-      authorize(user, "createDocument", user.team);
+      authorize(user, "createTemplate", user.team);
     }
 
     if (parentDocumentId) {
@@ -1155,7 +1155,7 @@ router.post(
       }).findByPk(collectionId, { transaction });
       authorize(user, "updateDocument", collection);
     } else if (document.template) {
-      authorize(user, "updateDocument", user.team);
+      authorize(user, "updateTemplate", user.team);
     } else {
       throw InvalidRequestError("collectionId is required to move a document");
     }
@@ -1455,7 +1455,7 @@ router.post(
       });
       authorize(user, "createDocument", collection);
     } else if (!!template && !collectionId) {
-      authorize(user, "createDocument", user.team);
+      authorize(user, "createTemplate", user.team);
     }
 
     let templateDocument: Document | null | undefined;

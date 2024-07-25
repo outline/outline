@@ -35,7 +35,7 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
     }, [collections])
   );
 
-  const workspaceOption: Option | null = can.createDocument
+  const workspaceOption: Option | null = can.createTemplate
     ? {
         label: (
           <Label

@@ -28,7 +28,7 @@ function NewTemplateMenu() {
     });
   }, [collections]);
 
-  const workspaceItem: MenuItem | null = can.createDocument
+  const workspaceItem: MenuItem | null = can.createTemplate
     ? {
         type: "route",
         to: newTemplatePath(),
@@ -77,7 +77,7 @@ function NewTemplateMenu() {
       : [workspaceItem]
     : collectionItemsWithHeader;
 
-  if (!can.createDocument || items.length === 0) {
+  if (items.length === 0) {
     return null;
   }
 

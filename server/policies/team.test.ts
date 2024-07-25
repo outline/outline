@@ -16,7 +16,7 @@ describe("policies/team", () => {
     expect(abilities.createTeam).toEqual(false);
     expect(abilities.createAttachment).toEqual(true);
     expect(abilities.createCollection).toEqual(true);
-    expect(abilities.createDocument).toEqual(true);
+    expect(abilities.createTemplate).toEqual(true);
     expect(abilities.createGroup).toEqual(false);
     expect(abilities.createIntegration).toEqual(false);
   });
@@ -33,7 +33,7 @@ describe("policies/team", () => {
     expect(abilities.createTeam).toEqual(false);
     expect(abilities.createAttachment).toEqual(true);
     expect(abilities.createCollection).toEqual(true);
-    expect(abilities.createDocument).toEqual(true);
+    expect(abilities.createTemplate).toEqual(true);
     expect(abilities.createGroup).toEqual(true);
     expect(abilities.createIntegration).toEqual(true);
   });
@@ -48,12 +48,12 @@ describe("policies/team", () => {
     expect(abilities.createTeam).toEqual(true);
     expect(abilities.createAttachment).toEqual(true);
     expect(abilities.createCollection).toEqual(true);
-    expect(abilities.createDocument).toEqual(true);
+    expect(abilities.createTemplate).toEqual(true);
     expect(abilities.createGroup).toEqual(true);
     expect(abilities.createIntegration).toEqual(true);
   });
 
-  describe("read document", () => {
+  describe("read template", () => {
     const permissions = new Map<UserRole, boolean>([
       [UserRole.Admin, true],
       [UserRole.Member, true],
@@ -69,12 +69,12 @@ describe("policies/team", () => {
         });
 
         const abilities = serialize(user, team);
-        expect(abilities.readDocument).toEqual(permission);
+        expect(abilities.readTemplate).toEqual(permission);
       });
     }
   });
 
-  describe("create document", () => {
+  describe("create template", () => {
     const permissions = new Map<UserRole, boolean>([
       [UserRole.Admin, true],
       [UserRole.Member, true],
@@ -90,12 +90,12 @@ describe("policies/team", () => {
         });
 
         const abilities = serialize(user, team);
-        expect(abilities.createDocument).toEqual(permission);
+        expect(abilities.createTemplate).toEqual(permission);
       });
     }
   });
 
-  describe("update document", () => {
+  describe("update template", () => {
     const permissions = new Map<UserRole, boolean>([
       [UserRole.Admin, true],
       [UserRole.Member, false],
@@ -111,7 +111,7 @@ describe("policies/team", () => {
         });
 
         const abilities = serialize(user, team);
-        expect(abilities.updateDocument).toEqual(permission);
+        expect(abilities.updateTemplate).toEqual(permission);
       });
     }
   });

@@ -21,7 +21,7 @@ allow(User, "read", Document, (actor, document) =>
       and(!!document?.isDraft, actor.id === document?.createdById),
       and(
         !!document?.isWorkspaceTemplate,
-        can(actor, "readDocument", actor.team)
+        can(actor, "readTemplate", actor.team)
       ),
       can(actor, "readDocument", document?.collection)
     )
@@ -97,7 +97,7 @@ allow(User, "update", Document, (actor, document) =>
           !!document?.isWorkspaceTemplate,
           or(
             actor.id === document?.createdById,
-            can(actor, "updateDocument", actor.team)
+            can(actor, "updateTemplate", actor.team)
           )
         )
       )
@@ -124,7 +124,7 @@ allow(User, ["manageUsers", "duplicate"], Document, (actor, document) =>
         !!document?.isWorkspaceTemplate,
         or(
           actor.id === document?.createdById,
-          can(actor, "updateDocument", actor.team)
+          can(actor, "updateTemplate", actor.team)
         )
       )
     )
@@ -141,7 +141,7 @@ allow(User, "move", Document, (actor, document) =>
         !!document?.isWorkspaceTemplate,
         or(
           actor.id === document?.createdById,
-          can(actor, "updateDocument", actor.team)
+          can(actor, "updateTemplate", actor.team)
         )
       )
     )
@@ -200,7 +200,7 @@ allow(User, ["restore", "permanentDelete"], Document, (actor, document) =>
       and(!!document?.isDraft && actor.id === document?.createdById),
       and(
         !!document?.isWorkspaceTemplate,
-        can(actor, "updateDocument", actor.team)
+        can(actor, "updateTemplate", actor.team)
       ),
       !document?.collection
     )
@@ -258,7 +258,7 @@ allow(User, "unpublish", Document, (user, document) => {
 
   if (
     document.isWorkspaceTemplate &&
-    (user.id === document.createdById || can(user, "updateDocument", user.team))
+    (user.id === document.createdById || can(user, "updateTemplate", user.team))
   ) {
     return true;
   }
