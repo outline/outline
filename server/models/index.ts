@@ -10,8 +10,6 @@ export { default as Collection } from "./Collection";
 
 export { default as DataAttribute } from "./DataAttribute";
 
-export { default as DocumentDataAttribute } from "./DocumentDataAttribute";
-
 export { default as GroupMembership } from "./GroupMembership";
 
 export { default as UserMembership } from "./UserMembership";

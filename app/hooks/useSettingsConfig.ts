@@ -14,7 +14,7 @@ import {
   ImportIcon,
   ShapesIcon,
   Icon,
-  DigitalIcon,
+  DatabaseIcon,
 } from "outline-icons";
 import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
@@ -130,7 +130,7 @@ const useSettingsConfig = () => {
           can.createDataAttribute &&
           FeatureFlags.isEnabled(Feature.dataAttributes),
         group: t("Workspace"),
-        icon: DigitalIcon,
+        icon: DatabaseIcon,
       },
       {
         name: t("Members"),
