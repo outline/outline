@@ -1,12 +1,14 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
+import env from "../../env";
 import { IntegrationService, IntegrationType } from "../../types";
 import type { IntegrationSettings } from "../../types";
 import { urlRegex } from "../../utils/urls";
 import Image from "../components/Img";
 import Berrycast from "./Berrycast";
 import Diagrams from "./Diagrams";
+import Dropbox from "./Dropbox";
 import Gist from "./Gist";
 import GitLabSnippet from "./GitLabSnippet";
 import InVision from "./InVision";
@@ -228,6 +230,19 @@ const embeds: EmbedDescriptor[] = [
       `https://share.descript.com/embed/${matches[1]}`,
     icon: <Img src="/images/descript.png" alt="Descript" />,
   }),
+  ...(env.DROPBOX_APP_KEY
+    ? [
+        new EmbedDescriptor({
+          title: "Dropbox",
+          keywords: "file document",
+          regexMatch: [
+            new RegExp("^https?://(www.)?dropbox.com/(s|scl)/(.*)$"),
+          ],
+          icon: <Img src="/images/dropbox.png" alt="Dropbox" />,
+          component: Dropbox,
+        }),
+      ]
+    : []),
   new EmbedDescriptor({
     title: "Figma",
     keywords: "design svg vector",
