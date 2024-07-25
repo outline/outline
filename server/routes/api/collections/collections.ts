@@ -18,7 +18,7 @@ import validate from "@server/middlewares/validate";
 import {
   Collection,
   UserMembership,
-  GroupPermission,
+  GroupMembership,
   Team,
   Event,
   User,
@@ -34,7 +34,7 @@ import {
   presentPolicies,
   presentMembership,
   presentGroup,
-  presentCollectionGroupMembership,
+  presentGroupMembership,
   presentFileOperation,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -60,29 +60,16 @@ router.post(
     const { user } = ctx.state.auth;
     authorize(user, "createCollection", user.team);
 
-    if (!index) {
-      const collections = await Collection.findAll({
-        where: {
-          teamId: user.teamId,
-          deletedAt: null,
-        },
-        attributes: ["id", "index", "updatedAt"],
-        limit: 1,
-        order: [
-          // using LC_COLLATE:"C" because we need byte order to drive the sorting
-          Sequelize.literal('"collection"."index" collate "C"'),
-          ["updatedAt", "DESC"],
-        ],
+    if (index) {
+      index = await removeIndexCollision(user.teamId, index, { transaction });
+    } else {
+      const first = await Collection.findFirstCollectionForUser(user, {
+        attributes: ["id", "index"],
         transaction,
       });
-
-      index = fractionalIndex(
-        null,
-        collections.length ? collections[0].index : null
-      );
+      index = fractionalIndex(null, first ? first.index : null);
     }
 
-    index = await removeIndexCollision(user.teamId, index);
     const collection = Collection.build({
       name,
       content: data,
@@ -242,7 +229,7 @@ router.post(
     const group = await Group.findByPk(groupId);
     authorize(user, "read", group);
 
-    let membership = await GroupPermission.findOne({
+    let membership = await GroupMembership.findOne({
       where: {
         collectionId: id,
         groupId,
@@ -250,7 +237,7 @@ router.post(
     });
 
     if (!membership) {
-      membership = await GroupPermission.create({
+      membership = await GroupMembership.create({
         collectionId: id,
         groupId,
         permission,
@@ -271,11 +258,13 @@ router.post(
       },
     });
 
+    const groupMemberships = [presentGroupMembership(membership)];
+
     ctx.body = {
       data: {
-        collectionGroupMemberships: [
-          presentCollectionGroupMembership(membership),
-        ],
+        // `collectionGroupMemberships` retained for backwards compatibility – remove after version v0.79.0
+        collectionGroupMemberships: groupMemberships,
+        groupMemberships,
       },
     };
   }
@@ -299,7 +288,7 @@ router.post(
     const group = await Group.findByPk(groupId, { transaction });
     authorize(user, "read", group);
 
-    const [membership] = await collection.$get("collectionGroupMemberships", {
+    const [membership] = await collection.$get("groupMemberships", {
       where: { groupId },
       transaction,
     });
@@ -343,7 +332,7 @@ router.post(
     }).findByPk(id);
     authorize(user, "read", collection);
 
-    let where: WhereOptions<GroupPermission> = {
+    let where: WhereOptions<GroupMembership> = {
       collectionId: id,
     };
     let groupWhere;
@@ -373,8 +362,8 @@ router.post(
     };
 
     const [total, memberships] = await Promise.all([
-      GroupPermission.count(options),
-      GroupPermission.findAll({
+      GroupMembership.count(options),
+      GroupMembership.findAll({
         ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
@@ -382,12 +371,14 @@ router.post(
       }),
     ]);
 
+    const groupMemberships = memberships.map(presentGroupMembership);
+
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
-        collectionGroupMemberships: memberships.map(
-          presentCollectionGroupMembership
-        ),
+        // `collectionGroupMemberships` retained for backwards compatibility – remove after version v0.79.0
+        collectionGroupMemberships: groupMemberships,
+        groupMemberships,
         groups: memberships.map((membership) => presentGroup(membership.group)),
       },
     };
@@ -884,10 +875,11 @@ router.post(
 
     const collection = await Collection.findByPk(id, {
       transaction,
+      lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "move", collection);
 
-    index = await removeIndexCollision(user.teamId, index);
+    index = await removeIndexCollision(user.teamId, index, { transaction });
     await collection.update(
       {
         index,

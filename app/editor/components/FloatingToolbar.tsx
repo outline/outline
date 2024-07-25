@@ -5,6 +5,7 @@ import { Portal as ReactPortal } from "react-portal";
 import styled, { css } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, s } from "@shared/styles";
 import { Portal } from "~/components/Portal";
 import useComponentSize from "~/hooks/useComponentSize";
@@ -131,10 +132,10 @@ function usePosition({
   if (isImageSelection) {
     const element = view.nodeDOM(selection.from);
 
-    // Images are wrapped which impacts positioning - need to traverse through
-    // p > span > div.image
-    const imageElement = (element as HTMLElement).getElementsByTagName(
-      "img"
+    // Images are wrapped which impacts positioning - need to get the element
+    // specifically tagged as the handle
+    const imageElement = (element as HTMLElement).getElementsByClassName(
+      EditorStyleHelper.imageHandle
     )[0];
     const { left, top, width } = imageElement.getBoundingClientRect();
 

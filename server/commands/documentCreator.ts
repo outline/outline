@@ -45,6 +45,7 @@ export default async function documentCreator({
   publish,
   collectionId,
   parentDocumentId,
+  content,
   template,
   templateDocument,
   fullWidth,
@@ -119,7 +120,7 @@ export default async function documentCreator({
             templateDocument.content,
             user
           )
-        : undefined,
+        : content,
       state,
     },
     {
@@ -151,24 +152,26 @@ export default async function documentCreator({
       throw new Error("Collection ID is required to publish");
     }
 
-    await document.publish({ userId: user.id, collectionId }, { transaction });
-    await Event.create(
-      {
-        name: "documents.publish",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
-        data: {
-          source: importId ? "import" : undefined,
-          title: document.title,
+    await document.publish(user, collectionId, { silent: true, transaction });
+
+    if (document.title) {
+      await Event.create(
+        {
+          name: "documents.publish",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          teamId: document.teamId,
+          actorId: user.id,
+          data: {
+            source: importId ? "import" : undefined,
+            title: document.title,
+          },
         },
-        ip,
-      },
-      {
-        transaction,
-      }
-    );
+        {
+          transaction,
+        }
+      );
+    }
   }
 
   // reload to get all of the data needed to present (user, collection etc)

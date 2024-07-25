@@ -143,6 +143,8 @@ function InnerDocumentLink(
   const isMoving = documents.movingDocumentId === node.id;
   const manualSort = collection?.sort.field === "index";
   const can = policies.abilities(node.id);
+  const icon = document?.icon || node.icon || node.emoji;
+  const color = document?.color || node.color;
 
   // Draggable
   const [{ isDragging }, drag, preview] = useDrag({
@@ -150,6 +152,7 @@ function InnerDocumentLink(
     item: () => ({
       ...node,
       depth,
+      icon: icon ? <Icon value={icon} color={color} /> : undefined,
       active: isActiveDocument,
       collectionId: collection?.id || "",
     }),
@@ -294,11 +297,8 @@ function InnerDocumentLink(
     node,
   ]);
 
-  const title =
-    (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
-    t("Untitled");
-  const icon = document?.icon || node.icon;
-  const color = document?.color || node.color;
+  const doc = documents.get(node.id);
+  const title = doc?.title || node.title || t("Untitled");
 
   const isExpanded = expanded && !isDragging;
   const hasChildren = nodeChildren.length > 0;

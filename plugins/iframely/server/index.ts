@@ -8,7 +8,12 @@ import env from "./env";
 import Iframely from "./iframely";
 
 const isDefaultHost = env.IFRAMELY_URL === Iframely.defaultUrl;
-const enabled = (isDefaultHost && !!env.IFRAMELY_API_KEY) || !!env.IFRAMELY_URL;
+
+// To be considered enabled either we're using the default (cloud) host and have an API key,
+// or we're using a custom host where no API key is required.
+const enabled =
+  (isDefaultHost && !!env.IFRAMELY_API_KEY) ||
+  (!isDefaultHost && !!env.IFRAMELY_URL);
 
 if (enabled) {
   PluginManager.add([

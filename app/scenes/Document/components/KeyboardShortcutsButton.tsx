@@ -35,7 +35,7 @@ const Button = styled(NudeButton)<{ $hidden: boolean }>`
   display: none;
   position: fixed;
   bottom: 0;
-  margin: 24px;
+  margin: 20px;
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
 

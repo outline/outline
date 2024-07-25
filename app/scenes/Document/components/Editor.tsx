@@ -1,10 +1,10 @@
+import last from "lodash/last";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import { richExtensions, withComments } from "@shared/editor/nodes";
-import { randomElement } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import Comment from "~/models/Comment";
@@ -93,10 +93,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   } = props;
   const can = usePolicy(document);
 
-  const iconColor = React.useMemo(
-    () => document.color ?? randomElement(colorPalette),
-    [document.color]
-  );
+  const iconColor = document.color ?? (last(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
     if (ref.current) {

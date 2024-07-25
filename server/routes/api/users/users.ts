@@ -433,13 +433,20 @@ router.post(
   validate(T.UsersInviteSchema),
   async (ctx: APIContext<T.UsersInviteReq>) => {
     const { invites } = ctx.input.body;
+
+    if (invites.length > UserValidation.maxInvitesPerRequest) {
+      throw ValidationError(
+        `You can only invite up to ${UserValidation.maxInvitesPerRequest} users at a time`
+      );
+    }
+
     const { user } = ctx.state.auth;
     const team = await Team.findByPk(user.teamId);
     authorize(user, "inviteUser", team);
 
     const response = await userInviter({
       user,
-      invites: invites.slice(0, UserValidation.maxInvitesPerRequest),
+      invites,
       ip: ctx.request.ip,
     });
 

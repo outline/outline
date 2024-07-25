@@ -110,10 +110,7 @@ export default async function documentUpdater({
     if (!document.collectionId) {
       document.collectionId = cId;
     }
-    await document.publish(
-      { userId: user.id, collectionId: cId },
-      { transaction }
-    );
+    await document.publish(user, cId, { transaction });
 
     await Event.create(
       {
@@ -124,6 +121,7 @@ export default async function documentUpdater({
     );
   } else if (changed) {
     document.lastModifiedById = user.id;
+    document.updatedBy = user;
     await document.save({ transaction });
 
     await Event.create(event, { transaction });

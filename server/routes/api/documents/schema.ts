@@ -159,20 +159,6 @@ export const DocumentsSearchSchema = BaseSchema.extend({
     /** Filter results based on content within a document and it's children */
     documentId: z.string().uuid().optional(),
 
-    /**
-     * Whether to include archived documents in results
-     *
-     * @deprecated Use `statusFilter` instead
-     */
-    includeArchived: z.boolean().optional(),
-
-    /**
-     * Whether to include draft documents in results
-     *
-     * @deprecated Use `statusFilter` instead
-     */
-    includeDrafts: z.boolean().optional(),
-
     /** Document statuses to include in results */
     statusFilter: z.nativeEnum(StatusFilter).array().optional(),
 

@@ -94,6 +94,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
   const handleMouseDown = React.useCallback(
     (event) => {
+      event.preventDefault();
       setOffset(event.pageX - width);
       setResizing(true);
       setAnimating(false);
@@ -143,8 +144,11 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
   React.useEffect(() => {
     if (isResizing) {
+      document.body.style.cursor = "col-resize";
       document.addEventListener("mousemove", handleDrag);
       document.addEventListener("mouseup", handleStopDrag);
+    } else {
+      document.body.style.cursor = "initial";
     }
 
     return () => {

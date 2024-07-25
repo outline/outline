@@ -87,7 +87,8 @@ export default function useDragResize(props: Params): ReturnValue {
     setDragging(undefined);
     props.onChangeSize?.(size);
 
-    document.removeEventListener("mousemove", handlePointerMove);
+    document.removeEventListener("pointerup", handlePointerUp);
+    document.removeEventListener("pointermove", handlePointerMove);
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {

@@ -41,6 +41,8 @@ const WEBHOOK_EVENTS = {
     "documents.title_change",
     "documents.add_user",
     "documents.remove_user",
+    "documents.add_group",
+    "documents.remove_group",
   ],
   collections: [
     "collections.create",

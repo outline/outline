@@ -59,7 +59,7 @@ export default class Mention extends Extension {
           "data-actorId": node.attrs.actorId,
           "data-url": `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
         },
-        node.attrs.label,
+        String(node.attrs.label),
       ],
       toPlainText: (node) => `@${node.attrs.label}`,
     };

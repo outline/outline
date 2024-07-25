@@ -1,16 +1,15 @@
-import { Next } from "koa";
 import Router from "koa-router";
-import { FindOptions, Op } from "sequelize";
-import { TeamPreference } from "@shared/types";
+import { FindOptions, Op, WhereOptions } from "sequelize";
+import { CommentStatusFilter, TeamPreference } from "@shared/types";
 import commentCreator from "@server/commands/commentCreator";
 import commentDestroyer from "@server/commands/commentDestroyer";
 import commentUpdater from "@server/commands/commentUpdater";
-import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, Comment, Collection } from "@server/models";
+import { Document, Comment, Collection, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -24,7 +23,7 @@ router.post(
   "comments.create",
   rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
@@ -58,7 +57,7 @@ router.post(
 router.post(
   "comments.info",
   auth(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsInfoSchema),
   async (ctx: APIContext<T.CommentsInfoReq>) => {
     const { id } = ctx.input.body;
@@ -67,14 +66,11 @@ router.post(
     const comment = await Comment.findByPk(id, {
       rejectOnEmpty: true,
     });
+    const document = await Document.findByPk(comment.documentId, {
+      userId: user.id,
+    });
     authorize(user, "read", comment);
-
-    if (comment.documentId) {
-      const document = await Document.findByPk(comment.documentId, {
-        userId: user.id,
-      });
-      authorize(user, "read", document);
-    }
+    authorize(user, "read", document);
 
     ctx.body = {
       data: presentComment(comment),
@@ -87,13 +83,45 @@ router.post(
   "comments.list",
   auth(),
   pagination(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsListSchema),
   async (ctx: APIContext<T.CommentsListReq>) => {
-    const { sort, direction, documentId, collectionId } = ctx.input.body;
+    const {
+      sort,
+      direction,
+      documentId,
+      parentCommentId,
+      statusFilter,
+      collectionId,
+    } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const statusQuery = [];
+
+    if (statusFilter?.includes(CommentStatusFilter.Resolved)) {
+      statusQuery.push({ resolvedById: { [Op.not]: null } });
+    }
+    if (statusFilter?.includes(CommentStatusFilter.Unresolved)) {
+      statusQuery.push({ resolvedById: null });
+    }
+
+    const where: WhereOptions<Comment> = {
+      [Op.and]: [],
+    };
+    if (documentId) {
+      // @ts-expect-error ignore
+      where[Op.and].push({ documentId });
+    }
+    if (parentCommentId) {
+      // @ts-expect-error ignore
+      where[Op.and].push({ parentCommentId });
+    }
+    if (statusQuery.length) {
+      // @ts-expect-error ignore
+      where[Op.and].push({ [Op.or]: statusQuery });
+    }
 
     const params: FindOptions<Comment> = {
+      where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
@@ -103,12 +131,7 @@ router.post(
     if (documentId) {
       const document = await Document.findByPk(documentId, { userId: user.id });
       authorize(user, "read", document);
-      comments = await Comment.findAll({
-        where: {
-          documentId: document.id,
-        },
-        ...params,
-      });
+      comments = await Comment.findAll(params);
     } else if (collectionId) {
       const collection = await Collection.findByPk(collectionId);
       authorize(user, "read", collection);
@@ -153,7 +176,7 @@ router.post(
 router.post(
   "comments.update",
   auth(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsUpdateReq>) => {
@@ -194,7 +217,7 @@ router.post(
 router.post(
   "comments.delete",
   auth(),
-  checkCommentingEnabled(),
+  feature(TeamPreference.Commenting),
   validate(T.CommentsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsDeleteReq>) => {
@@ -226,19 +249,98 @@ router.post(
   }
 );
 
-function checkCommentingEnabled() {
-  return async function checkCommentingEnabledMiddleware(
-    ctx: APIContext,
-    next: Next
-  ) {
-    if (!ctx.state.auth.user.team.getPreference(TeamPreference.Commenting)) {
-      throw ValidationError("Commenting is currently disabled");
-    }
-    return next();
-  };
-}
+router.post(
+  "comments.resolve",
+  auth(),
+  feature(TeamPreference.Commenting),
+  validate(T.CommentsResolveSchema),
+  transaction(),
+  async (ctx: APIContext<T.CommentsResolveReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
-// router.post("comments.resolve", auth(), async (ctx) => {
-// router.post("comments.unresolve", auth(), async (ctx) => {
+    const comment = await Comment.findByPk(id, {
+      transaction,
+      rejectOnEmpty: true,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
+    });
+    const document = await Document.findByPk(comment.documentId, {
+      userId: user.id,
+    });
+    authorize(user, "resolve", comment);
+    authorize(user, "update", document);
+
+    comment.resolve(user);
+    const changes = comment.changeset;
+    await comment.save({ transaction });
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "comments.update",
+        modelId: comment.id,
+        documentId: comment.documentId,
+        changes,
+      },
+      { transaction }
+    );
+
+    ctx.body = {
+      data: presentComment(comment),
+      policies: presentPolicies(user, [comment]),
+    };
+  }
+);
+
+router.post(
+  "comments.unresolve",
+  auth(),
+  feature(TeamPreference.Commenting),
+  validate(T.CommentsUnresolveSchema),
+  transaction(),
+  async (ctx: APIContext<T.CommentsUnresolveReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const comment = await Comment.findByPk(id, {
+      transaction,
+      rejectOnEmpty: true,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
+    });
+    const document = await Document.findByPk(comment.documentId, {
+      userId: user.id,
+    });
+    authorize(user, "unresolve", comment);
+    authorize(user, "update", document);
+
+    comment.unresolve();
+    const changes = comment.changeset;
+    await comment.save({ transaction });
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "comments.update",
+        modelId: comment.id,
+        documentId: comment.documentId,
+        changes,
+      },
+      { transaction }
+    );
+
+    ctx.body = {
+      data: presentComment(comment),
+      policies: presentPolicies(user, [comment]),
+    };
+  }
+);
 
 export default router;

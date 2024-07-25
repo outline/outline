@@ -129,7 +129,7 @@ const IconPanel = ({
   const baseIcons: DataNode = {
     category,
     icons: filteredIcons.map((name, index) => ({
-      type: IconType.Outline,
+      type: IconType.SVG,
       name,
       color,
       initial,
@@ -144,7 +144,7 @@ const IconPanel = ({
         {
           category: DisplayCategory.Frequent,
           icons: freqIcons.map((name, index) => ({
-            type: IconType.Outline,
+            type: IconType.SVG,
             name,
             color,
             initial,

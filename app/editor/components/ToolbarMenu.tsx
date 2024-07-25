@@ -40,16 +40,21 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
     };
 
     return item.children
-      ? item.children.map((child) => ({
-          type: "button",
-          title: child.label,
-          icon: child.icon,
-          dangerous: child.dangerous,
-          visible: child.visible,
-          selected:
-            child.active !== undefined ? child.active(state) : undefined,
-          onClick: handleClick(child),
-        }))
+      ? item.children.map((child) => {
+          if (child.name === "separator") {
+            return { type: "separator", visible: child.visible };
+          }
+          return {
+            type: "button",
+            title: child.label,
+            icon: child.icon,
+            dangerous: child.dangerous,
+            visible: child.visible,
+            selected:
+              child.active !== undefined ? child.active(state) : undefined,
+            onClick: handleClick(child),
+          };
+        })
       : [];
   }, [item.children, commands, state]);
 

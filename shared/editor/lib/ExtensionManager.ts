@@ -2,7 +2,7 @@ import { PluginSimple } from "markdown-it";
 import { observer } from "mobx-react";
 import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
-import { Schema } from "prosemirror-model";
+import { MarkSpec, NodeSpec, Schema } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
 import { Primitive } from "utility-types";
 import type { Editor } from "~/editor";
@@ -46,8 +46,8 @@ export default class ExtensionManager {
     return this.extensions
       .filter((extension) => extension.widget({ rtl: false, readOnly: false }))
       .reduce(
-        (nodes, node: Node) => ({
-          ...nodes,
+        (memo, node: Node) => ({
+          ...memo,
           [node.name]: observer(node.widget as any),
         }),
         {}
@@ -55,21 +55,22 @@ export default class ExtensionManager {
   }
 
   get nodes() {
-    const nodes = this.extensions
+    const nodes: Record<string, NodeSpec> = this.extensions
       .filter((extension) => extension.type === "node")
       .reduce(
-        (nodes, node: Node) => ({
-          ...nodes,
+        (memo, node: Node) => ({
+          ...memo,
           [node.name]: node.schema,
         }),
         {}
       );
 
     for (const i in nodes) {
-      if (nodes[i].marks) {
+      const { marks } = nodes[i];
+      if (marks) {
         // We must filter marks from the marks list that are not defined
         // in the schema for the current editor.
-        nodes[i].marks = nodes[i].marks
+        nodes[i].marks = marks
           .split(" ")
           .filter((m: string) => Object.keys(this.marks).includes(m))
           .join(" ");
@@ -80,21 +81,22 @@ export default class ExtensionManager {
   }
 
   get marks() {
-    const marks = this.extensions
+    const marks: Record<string, MarkSpec> = this.extensions
       .filter((extension) => extension.type === "mark")
       .reduce(
-        (marks, mark: Mark) => ({
-          ...marks,
+        (memo, mark: Mark) => ({
+          ...memo,
           [mark.name]: mark.schema,
         }),
         {}
       );
 
     for (const i in marks) {
-      if (marks[i].excludes) {
+      const { excludes } = marks[i];
+      if (excludes) {
         // We must filter marks from the excludes list that are not defined
         // in the schema for the current editor.
-        marks[i].excludes = marks[i].excludes
+        marks[i].excludes = excludes
           .split(" ")
           .filter((m: string) => Object.keys(marks).includes(m))
           .join(" ");
@@ -108,8 +110,8 @@ export default class ExtensionManager {
     const nodes = this.extensions
       .filter((extension) => extension.type === "node")
       .reduce(
-        (nodes, extension: Node) => ({
-          ...nodes,
+        (memo, extension: Node) => ({
+          ...memo,
           [extension.name]: extension.toMarkdown,
         }),
         {}
@@ -118,8 +120,8 @@ export default class ExtensionManager {
     const marks = this.extensions
       .filter((extension) => extension.type === "mark")
       .reduce(
-        (marks, extension: Mark) => ({
-          ...marks,
+        (memo, extension: Mark) => ({
+          ...memo,
           [extension.name]: extension.toMarkdown,
         }),
         {}

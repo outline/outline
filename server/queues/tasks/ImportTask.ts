@@ -25,6 +25,7 @@ import {
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import ZipHelper from "@server/utils/ZipHelper";
+import { generateUrlId } from "@server/utils/url";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -298,6 +299,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
     const ip = user.lastActiveIp || undefined;
 
     try {
+      await this.preprocessDocUrlIds(data);
+
       // Collections
       for (const item of data.collections) {
         await sequelize.transaction(async (transaction) => {
@@ -324,13 +327,11 @@ export default abstract class ImportTask extends BaseTask<Props> {
             }
 
             // Check all of the document we've created against urls in the text
-            // and replace them out with a valid internal link. Because we are doing
-            // this before saving, we can't use the document slug, but we can take
-            // advantage of the fact that the document id will redirect in the client
+            // and replace them out with a valid internal link.
             for (const ditem of data.documents) {
               description = description.replace(
                 new RegExp(`<<${ditem.id}>>`, "g"),
-                `/doc/${ditem.id}`
+                Document.getPath({ title: ditem.title, urlId: ditem.urlId! })
               );
             }
           }
@@ -442,34 +443,15 @@ export default abstract class ImportTask extends BaseTask<Props> {
             }
 
             // Check all of the document we've created against urls in the text
-            // and replace them out with a valid internal link. Because we are doing
-            // this before saving, we can't use the document slug, but we can take
-            // advantage of the fact that the document id will redirect in the client
+            // and replace them out with a valid internal link.
             for (const ditem of data.documents) {
               text = text.replace(
                 new RegExp(`<<${ditem.id}>>`, "g"),
-                `/doc/${ditem.id}`
+                Document.getPath({ title: ditem.title, urlId: ditem.urlId! })
               );
             }
 
-            const options: { urlId?: string } = {};
-            if (item.urlId) {
-              const existing = await Document.unscoped().findOne({
-                attributes: ["id"],
-                paranoid: false,
-                transaction,
-                where: {
-                  urlId: item.urlId,
-                },
-              });
-
-              if (!existing) {
-                options.urlId = item.urlId;
-              }
-            }
-
             const document = await documentCreator({
-              ...options,
               sourceMetadata: {
                 fileName: path.basename(item.path),
                 mimeType: item.mimeType,
@@ -478,6 +460,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
               },
               id: item.id,
               title: item.title,
+              urlId: item.urlId,
               text,
               collectionId: item.collectionId,
               createdAt: item.createdAt,
@@ -561,5 +544,26 @@ export default abstract class ImportTask extends BaseTask<Props> {
       priority: TaskPriority.Low,
       attempts: 1,
     };
+  }
+
+  private async preprocessDocUrlIds(data: StructuredImportData) {
+    for (const doc of data.documents) {
+      // check DB only if urlId is present in the input.
+      if (doc.urlId) {
+        const existing = await Document.unscoped().findOne({
+          attributes: ["id"],
+          paranoid: false,
+          where: {
+            urlId: doc.urlId,
+          },
+        });
+
+        if (!existing) {
+          continue;
+        }
+      }
+
+      doc.urlId = generateUrlId();
+    }
   }
 }

@@ -403,8 +403,12 @@ export async function buildDocument(
 export async function buildComment(overrides: {
   userId: string;
   documentId: string;
+  parentCommentId?: string;
+  resolvedById?: string;
 }) {
   const comment = await Comment.create({
+    resolvedById: overrides.resolvedById,
+    parentCommentId: overrides.parentCommentId,
     documentId: overrides.documentId,
     data: {
       type: "doc",
@@ -424,6 +428,16 @@ export async function buildComment(overrides: {
     createdById: overrides.userId,
   });
 
+  return comment;
+}
+
+export async function buildResolvedComment(
+  user: User,
+  overrides: Parameters<typeof buildComment>[0]
+) {
+  const comment = await buildComment(overrides);
+  comment.resolve(user);
+  await comment.save();
   return comment;
 }
 

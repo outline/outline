@@ -17,7 +17,9 @@ import Avatar from "~/components/Avatar";
 import { AvatarSize, IAvatar } from "~/components/Avatar/Avatar";
 import Empty from "~/components/Empty";
 import Placeholder from "~/components/List/Placeholder";
+import Scrollable from "~/components/Scrollable";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useMaxHeight from "~/hooks/useMaxHeight";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
 import { hover } from "~/styles";
@@ -65,6 +67,11 @@ export const Suggestions = observer(
     const { t } = useTranslation();
     const user = useCurrentUser();
     const theme = useTheme();
+    const containerRef = React.useRef<HTMLDivElement | null>(null);
+    const maxHeight = useMaxHeight({
+      elementRef: containerRef,
+      maxViewportPercentage: 70,
+    });
 
     const fetchUsersByQuery = useThrottledCallback(
       (query: string) => {
@@ -115,6 +122,8 @@ export const Suggestions = observer(
       getSuggestionForEmail,
       users,
       users.orderedData,
+      groups,
+      groups.orderedData,
       document?.id,
       document?.members,
       collection?.id,
@@ -182,55 +191,63 @@ export const Suggestions = observer(
     neverRenderedList.current = false;
 
     return (
-      <ArrowKeyNavigation
-        ref={ref}
-        onEscape={onEscape}
-        aria-label={t("Suggestions for invitation")}
-        items={concat(pending, suggestionsWithPending)}
+      <ScrollableContainer
+        ref={containerRef}
+        hiddenScrollbars
+        style={{ maxHeight }}
       >
-        {() => [
-          ...pending.map((suggestion) => (
-            <PendingListItem
-              keyboardNavigation
-              {...getListItemProps(suggestion)}
-              key={suggestion.id}
-              onClick={() => removePendingId(suggestion.id)}
-              onKeyDown={(ev) => {
-                if (ev.key === "Enter") {
-                  ev.preventDefault();
-                  ev.stopPropagation();
-                  removePendingId(suggestion.id);
+        <ArrowKeyNavigation
+          ref={ref}
+          onEscape={onEscape}
+          aria-label={t("Suggestions for invitation")}
+          items={concat(pending, suggestionsWithPending)}
+        >
+          {() => [
+            ...pending.map((suggestion) => (
+              <PendingListItem
+                keyboardNavigation
+                {...getListItemProps(suggestion)}
+                key={suggestion.id}
+                onClick={() => removePendingId(suggestion.id)}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter") {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    removePendingId(suggestion.id);
+                  }
+                }}
+                actions={
+                  <>
+                    <InvitedIcon />
+                    <RemoveIcon />
+                  </>
                 }
-              }}
-              actions={
-                <>
-                  <InvitedIcon />
-                  <RemoveIcon />
-                </>
-              }
-            />
-          )),
-          pending.length > 0 &&
-            (suggestionsWithPending.length > 0 || isEmpty) && <Separator />,
-          ...suggestionsWithPending.map((suggestion) => (
-            <ListItem
-              keyboardNavigation
-              {...getListItemProps(suggestion as User)}
-              key={suggestion.id}
-              onClick={() => addPendingId(suggestion.id)}
-              onKeyDown={(ev) => {
-                if (ev.key === "Enter") {
-                  ev.preventDefault();
-                  ev.stopPropagation();
-                  addPendingId(suggestion.id);
-                }
-              }}
-              actions={<InviteIcon />}
-            />
-          )),
-          isEmpty && <Empty style={{ marginTop: 22 }}>{t("No matches")}</Empty>,
-        ]}
-      </ArrowKeyNavigation>
+              />
+            )),
+            pending.length > 0 &&
+              (suggestionsWithPending.length > 0 || isEmpty) && <Separator />,
+            ...suggestionsWithPending.map((suggestion) => (
+              <ListItem
+                keyboardNavigation
+                {...getListItemProps(suggestion as User)}
+                key={suggestion.id}
+                onClick={() => addPendingId(suggestion.id)}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter") {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    addPendingId(suggestion.id);
+                  }
+                }}
+                actions={<InviteIcon />}
+              />
+            )),
+            isEmpty && (
+              <Empty style={{ marginTop: 22 }}>{t("No matches")}</Empty>
+            ),
+          ]}
+        </ArrowKeyNavigation>
+      </ScrollableContainer>
     );
   })
 );
@@ -258,4 +275,9 @@ const PendingListItem = styled(ListItem)`
 const Separator = styled.div`
   border-top: 1px dashed ${s("divider")};
   margin: 12px 0;
+`;
+
+const ScrollableContainer = styled(Scrollable)`
+  padding: 12px 24px;
+  margin: -12px -24px;
 `;

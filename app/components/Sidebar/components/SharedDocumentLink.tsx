@@ -101,6 +101,8 @@ function DocumentLink(
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
     t("Untitled");
 
+  const icon = node.icon ?? node.emoji;
+
   return (
     <>
       <SidebarLink
@@ -112,7 +114,7 @@ function DocumentLink(
         }}
         expanded={hasChildDocuments && depth !== 0 ? expanded : undefined}
         onDisclosureClick={handleDisclosureClick}
-        icon={node.icon && <Icon value={node.icon} color={node.color} />}
+        icon={icon && <Icon value={icon} color={node.color} />}
         label={title}
         depth={depth}
         exact={false}

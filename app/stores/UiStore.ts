@@ -27,7 +27,7 @@ type PersistedData = {
   sidebarCollapsed: boolean;
   sidebarWidth: number;
   sidebarRightWidth: number;
-  tocVisible: boolean;
+  tocVisible: boolean | undefined;
   commentsExpanded: string[];
 };
 
@@ -57,7 +57,7 @@ class UiStore {
   progressBarVisible = false;
 
   @observable
-  tocVisible = false;
+  tocVisible: boolean | undefined;
 
   @observable
   mobileSidebarVisible = false;
@@ -95,7 +95,7 @@ class UiStore {
     this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
     this.sidebarRightWidth =
       data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
-    this.tocVisible = !!data.tocVisible;
+    this.tocVisible = data.tocVisible;
     this.commentsExpanded = data.commentsExpanded || [];
     this.theme = data.theme || Theme.System;
 
@@ -129,7 +129,7 @@ class UiStore {
         this.theme = newData.theme;
         this.languagePromptDismissed = newData.languagePromptDismissed;
         this.sidebarCollapsed = !!newData.sidebarCollapsed;
-        this.tocVisible = !!newData.tocVisible;
+        this.tocVisible = newData.tocVisible;
       }
     });
 
@@ -193,6 +193,10 @@ class UiStore {
   clearActiveDocument = (): void => {
     this.activeDocumentId = undefined;
     this.observingUserId = undefined;
+
+    // Unset when navigating away from a document (e.g. to another document, home, settings, etc.)
+    // Next document's onMount will set the right activeCollectionId.
+    this.activeCollectionId = undefined;
   };
 
   @action

@@ -2,7 +2,7 @@ import throttle from "lodash/throttle";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -70,6 +70,7 @@ function CommentThread({
   const user = useCurrentUser();
   const { t } = useTranslation();
   const history = useHistory();
+  const location = useLocation();
   const [autoFocus, setAutoFocus] = React.useState(thread.isNew);
   const [, setIsTyping] = useTypingIndicator({
     document,
@@ -92,7 +93,8 @@ function CommentThread({
       !(event.target as HTMLElement).classList.contains("comment")
     ) {
       history.replace({
-        pathname: window.location.pathname,
+        search: location.search,
+        pathname: location.pathname,
         state: { commentId: undefined },
       });
     }
@@ -100,7 +102,8 @@ function CommentThread({
 
   const handleClickThread = () => {
     history.replace({
-      pathname: window.location.pathname.replace(/\/history$/, ""),
+      search: location.search,
+      pathname: location.pathname.replace(/\/history$/, ""),
       state: { commentId: thread.id },
     });
   };
@@ -177,6 +180,7 @@ function CommentThread({
             highlightedText={index === 0 ? highlightedText : undefined}
             comment={comment}
             onDelete={() => editor?.removeComment(comment.id)}
+            onUpdate={(attrs) => editor?.updateComment(comment.id, attrs)}
             key={comment.id}
             firstOfThread={index === 0}
             lastOfThread={index === commentsInThread.length - 1 && !draft}

@@ -186,7 +186,7 @@ function DataLoader({ match, children }: Props) {
       // when viewing a public share link
       if (can.read && !document.isDeleted) {
         if (team.getPreference(TeamPreference.Commenting)) {
-          void comments.fetchPage({
+          void comments.fetchAll({
             documentId: document.id,
             limit: 100,
           });

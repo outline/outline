@@ -422,7 +422,7 @@ describe("userProvisioner", () => {
     try {
       await userProvisioner({
         name: "Bad Domain User",
-        email: faker.internet.domainName(),
+        email: faker.internet.email(),
         teamId: team.id,
         ip,
         authentication: {

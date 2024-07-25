@@ -133,8 +133,8 @@ const CollectionSquircle = ({ collection }: { collection: Collection }) => {
   const theme = useTheme();
   const iconType = determineIconType(collection.icon)!;
   const squircleColor =
-    iconType === IconType.Outline ? collection.color! : theme.slateLight;
-  const iconSize = iconType === IconType.Outline ? 16 : 22;
+    iconType === IconType.SVG ? collection.color! : theme.slateLight;
+  const iconSize = iconType === IconType.SVG ? 16 : 22;
 
   return (
     <Squircle color={squircleColor} size={AvatarSize.Medium}>

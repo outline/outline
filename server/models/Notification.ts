@@ -177,7 +177,7 @@ class Notification extends Model<
   @AfterCreate
   static async createEvent(
     model: Notification,
-    options: SaveOptions<Notification>
+    options: SaveOptions<InferAttributes<Notification>>
   ) {
     const params = {
       name: "notifications.create",

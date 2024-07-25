@@ -178,12 +178,11 @@ const DocumentSquircle = ({
 }) => {
   const theme = useTheme();
   const iconType = determineIconType(icon)!;
-  const squircleColor =
-    iconType === IconType.Outline ? color : theme.slateLight;
+  const squircleColor = iconType === IconType.SVG ? color : theme.slateLight;
 
   return (
     <Squircle color={squircleColor}>
-      <Icon value={icon} color={theme.white} />
+      <Icon value={icon} color={theme.white} forceColor />
     </Squircle>
   );
 };
