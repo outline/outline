@@ -1,7 +1,7 @@
+import { observer } from "mobx-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import styled from "styled-components";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import InputSelect, { Option } from "~/components/InputSelect";
@@ -13,12 +13,13 @@ import useStores from "~/hooks/useStores";
 import Label from "./Label";
 
 type Props = {
-  id: string;
+  /** Collection ID to select by default. */
   defaultCollectionId?: string | null;
+  /** Callback to be called when a collection is selected. */
   onSelect: (collectionId: string | null) => void;
 };
 
-const SelectLocation = ({ id, defaultCollectionId, onSelect }: Props) => {
+const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
@@ -27,7 +28,7 @@ const SelectLocation = ({ id, defaultCollectionId, onSelect }: Props) => {
   const { loading, error } = useRequest(
     React.useCallback(async () => {
       if (!collections.isLoaded) {
-        await collections.fetchPage({
+        await collections.fetchAll({
           limit: 100,
         });
       }
@@ -46,13 +47,13 @@ const SelectLocation = ({ id, defaultCollectionId, onSelect }: Props) => {
       }
     : null;
 
-  const collectionOptions = React.useMemo(
+  const collectionOptions: Option[] = React.useMemo(
     () =>
-      collections.orderedData.reduce<Option[]>((options, collection) => {
-        const can = policies.abilities(collection.id);
+      collections.orderedData.reduce<Option[]>((memo, collection) => {
+        const canCollection = policies.abilities(collection.id);
 
-        if (can.createDocument) {
-          options.push({
+        if (canCollection.createDocument) {
+          memo.push({
             label: (
               <Label
                 icon={<CollectionIcon collection={collection} />}
@@ -63,12 +64,12 @@ const SelectLocation = ({ id, defaultCollectionId, onSelect }: Props) => {
           });
         }
 
-        return options;
+        return memo;
       }, []),
     [collections.orderedData, policies]
   );
 
-  const options = workspaceOption
+  const options: Option[] = workspaceOption
     ? collectionOptions.length
       ? [
           workspaceOption,
@@ -99,18 +100,14 @@ const SelectLocation = ({ id, defaultCollectionId, onSelect }: Props) => {
   }
 
   return (
-    <StyledSelect
-      id={id}
+    <InputSelect
       value={defaultCollectionId ?? "workspace"}
       options={options}
       onChange={handleSelection}
       ariaLabel={t("Location")}
+      label={t("Location")}
     />
   );
 };
 
-const StyledSelect = styled(InputSelect)`
-  width: 220px;
-`;
-
-export default SelectLocation;
+export default observer(SelectLocation);

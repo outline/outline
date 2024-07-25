@@ -264,17 +264,14 @@ function DocumentHeader({
             {!isDeleted && !isRevision && can.listViews && (
               <Collaborators document={document} />
             )}
-            {(isEditing || !user?.separateEditMode) &&
-              !isTemplate &&
-              isNew &&
-              !document.publishedAt && (
-                <Action>
-                  <TemplatesMenu
-                    document={document}
-                    onSelectTemplate={onSelectTemplate}
-                  />
-                </Action>
-              )}
+            {(isEditing || !user?.separateEditMode) && !isTemplate && isNew && (
+              <Action>
+                <TemplatesMenu
+                  document={document}
+                  onSelectTemplate={onSelectTemplate}
+                />
+              </Action>
+            )}
             {!isEditing && !isRevision && !isTemplate && can.update && (
               <Action>
                 <ShareButton document={document} />

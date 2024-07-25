@@ -4,11 +4,9 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
-import styled from "styled-components";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Switch from "~/components/Switch";
-import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
 import SelectLocation from "./SelectLocation";
@@ -65,34 +63,20 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
             }}
           />
         </div>
-        <Text>
-          <Switch
-            name="publish"
-            label={t("Published")}
-            note={t(
-              "Create a published template that's available for use immediately."
-            )}
-            checked={publish}
-            onChange={handlePublishChange}
-          />
-        </Text>
-        <Flex justify="space-between">
-          <Location>
-            <label htmlFor={"templateLocation"}>{t("Location")}</label>
-          </Location>
-          <SelectLocation
-            id={"templateLocation"}
-            defaultCollectionId={collectionId}
-            onSelect={setCollectionId}
-          />
-        </Flex>
+        <SelectLocation
+          defaultCollectionId={collectionId}
+          onSelect={setCollectionId}
+        />
+        <Switch
+          name="publish"
+          label={t("Published")}
+          note={t("Enable other members to use the template immediately")}
+          checked={publish}
+          onChange={handlePublishChange}
+        />
       </Flex>
     </ConfirmationDialog>
   );
 }
-
-const Location = styled(Text)`
-  margin-top: 3px;
-`;
 
 export default observer(DocumentTemplatizeDialog);

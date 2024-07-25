@@ -352,7 +352,7 @@
   "Next page": "Next page",
   "Template created, go ahead and customize it": "Template created, go ahead and customize it",
   "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.": "Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents.",
-  "Create a published template that's available for use immediately.": "Create a published template that's available for use immediately.",
+  "Enable other members to use the template immediately": "Enable other members to use the template immediately",
   "Location": "Location",
   "Admins can manage the workspace and access billing.": "Admins can manage the workspace and access billing.",
   "Editors can create, edit, and comment on documents.": "Editors can create, edit, and comment on documents.",
