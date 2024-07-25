@@ -20,7 +20,6 @@ import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import isCloudHosted from "~/utils/isCloudHosted";
 import lazy from "~/utils/lazyWithRetry";
@@ -126,9 +125,7 @@ const useSettingsConfig = () => {
         name: t("Data Attributes"),
         path: settingsPath("attributes"),
         component: DataAttributes,
-        enabled:
-          can.createDataAttribute &&
-          FeatureFlags.isEnabled(Feature.dataAttributes),
+        enabled: can.createDataAttribute,
         group: t("Workspace"),
         icon: DatabaseIcon,
       },

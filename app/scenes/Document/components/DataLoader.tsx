@@ -13,7 +13,6 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import Logger from "~/utils/Logger";
 import {
   NotFoundError,
@@ -89,16 +88,14 @@ function DataLoader({ match, children }: Props) {
     match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
   const isEditing = isEditRoute || !user?.separateEditMode;
   const can = usePolicy(document);
+  const canTeam = usePolicy(team);
   const location = useLocation<LocationState>();
 
   React.useEffect(() => {
-    if (
-      !dataAttributes.isLoaded &&
-      FeatureFlags.isEnabled(Feature.dataAttributes)
-    ) {
+    if (!dataAttributes.isLoaded && canTeam.listDataAttribute) {
       void dataAttributes.fetchAll();
     }
-  }, [dataAttributes]);
+  }, [dataAttributes, canTeam]);
 
   React.useEffect(() => {
     async function fetchDocument() {

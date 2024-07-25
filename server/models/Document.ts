@@ -282,9 +282,9 @@ class Document extends ParanoidModel<
   @Column
   color: string | null;
 
-  // TODO
+  /** Attributes associated with the document. */
   @Column(DataType.JSONB)
-  dataAttributes: DocumentDataAttribute[];
+  dataAttributes: DocumentDataAttribute[] | null;
 
   /**
    * The content of the document as Markdown.
@@ -377,7 +377,7 @@ class Document extends ParanoidModel<
     model: Document,
     { transaction }: SaveOptions<Document>
   ) {
-    if (model.changed("dataAttributes")) {
+    if (model.changed("dataAttributes") && model.dataAttributes) {
       const dataAttributeIds = model.dataAttributes.map(
         (d) => d.dataAttributeId
       );

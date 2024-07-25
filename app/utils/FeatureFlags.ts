@@ -4,14 +4,11 @@ import Storage from "@shared/utils/Storage";
 export enum Feature {
   /** New collection permissions UI */
   newCollectionSharing = "newCollectionSharing",
-  /** Document data attributes */
-  dataAttributes = "dataAttributes",
 }
 
 /** Default values for feature flags */
 const FeatureDefaults: Record<Feature, boolean> = {
   [Feature.newCollectionSharing]: true,
-  [Feature.dataAttributes]: false,
 };
 
 /**

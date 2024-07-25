@@ -257,7 +257,7 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
           value: z.string().or(z.boolean()).or(z.number()),
         })
       )
-      .optional(),
+      .nullish(),
   }),
 }).refine((req) => !(req.body.append && !req.body.text), {
   message: "text is required while appending",

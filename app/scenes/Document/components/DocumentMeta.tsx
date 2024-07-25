@@ -17,7 +17,6 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { DataAttributesHelper } from "~/utils/DataAttributesHelper";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 import { documentPath, documentInsightsPath } from "~/utils/routeHelpers";
 import { Properties, PropertiesRef } from "./Properties";
 
@@ -39,6 +38,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const onlyYou = totalViewers === 1 && documentViews[0].userId;
   const viewsLoadedOnMount = React.useRef(totalViewers > 0);
   const can = usePolicy(document);
+  const canTeam = usePolicy(team);
   const propertiesRef = React.useRef<PropertiesRef>(null);
 
   const Wrapper = viewsLoadedOnMount.current ? React.Fragment : Fade;
@@ -47,8 +47,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);
 
   const dataAttributesAvailable =
-    FeatureFlags.isEnabled(Feature.dataAttributes) &&
-    dataAttributes.orderedData.length > 0;
+    canTeam.listDataAttribute && dataAttributes.orderedData.length > 0;
   const missingDataAttributes =
     !document.dataAttributes ||
     document.dataAttributes?.length < dataAttributes.orderedData.length;

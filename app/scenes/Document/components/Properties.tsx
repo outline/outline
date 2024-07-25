@@ -20,10 +20,10 @@ import InputSelect from "~/components/InputSelect";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { DataAttributesHelper } from "~/utils/DataAttributesHelper";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 
 const PropertyHeight = 30;
 
@@ -38,7 +38,9 @@ export type PropertiesRef = {
 export const Properties = observer(
   React.forwardRef(function Properties_({ document }: Props, ref) {
     const { dataAttributes } = useStores();
+    const team = useCurrentTeam();
     const can = usePolicy(document);
+    const canTeam = usePolicy(team);
     const [draftAttribute, setDraftAttribute] =
       React.useState<DocumentDataAttribute | null>(null);
 
@@ -76,7 +78,7 @@ export const Properties = observer(
       }
     };
 
-    if (!FeatureFlags.isEnabled(Feature.dataAttributes)) {
+    if (!canTeam.listDataAttribute) {
       return null;
     }
 

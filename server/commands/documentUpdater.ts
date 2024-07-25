@@ -10,7 +10,7 @@ type Props = {
   /** The existing document */
   document: Document;
   /** Data attributes to apply to the document */
-  dataAttributes?: Omit<DocumentDataAttribute, "updatedAt">[];
+  dataAttributes?: Omit<DocumentDataAttribute, "updatedAt">[] | null;
   /** The new title */
   title?: string;
   /** The document icon */
@@ -71,25 +71,25 @@ export default async function documentUpdater({
   const cId = collectionId || document.collectionId;
 
   if (dataAttributes !== undefined) {
-    // TODO: Validate schema
+    document.dataAttributes = dataAttributes
+      ? uniqBy(
+          dataAttributes.map(({ dataAttributeId, value }) => {
+            const existing = document.dataAttributes?.find(
+              (da) => da.dataAttributeId === dataAttributeId
+            );
+            if (existing?.value === value) {
+              return existing as DocumentDataAttribute;
+            }
 
-    document.dataAttributes = uniqBy(
-      dataAttributes.map(({ dataAttributeId, value }) => {
-        const existing = document.dataAttributes.find(
-          (da) => da.dataAttributeId === dataAttributeId
-        );
-        if (existing?.value === value) {
-          return existing as DocumentDataAttribute;
-        }
-
-        return {
-          dataAttributeId,
-          value,
-          updatedAt: new Date().toISOString(),
-        } as DocumentDataAttribute;
-      }),
-      "dataAttributeId"
-    );
+            return {
+              dataAttributeId,
+              value,
+              updatedAt: new Date().toISOString(),
+            } as DocumentDataAttribute;
+          }),
+          "dataAttributeId"
+        )
+      : null;
   }
 
   if (title !== undefined) {
