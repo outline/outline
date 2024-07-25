@@ -190,8 +190,6 @@
   "{{ userName }} created": "Створено {{ userName }}",
   "You published": "Ви опублікували",
   "{{ userName }} published": "Опубліковано {{ userName }}",
-  "You saved": "Ви зберегли",
-  "{{ userName }} saved": "Збережено {{ userName }}",
   "Never viewed": "Ніхто не переглядав",
   "Viewed": "Переглянуто",
   "in": "в",

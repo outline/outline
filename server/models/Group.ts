@@ -11,7 +11,7 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
-import GroupPermission from "./GroupPermission";
+import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
@@ -23,7 +23,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 @DefaultScope(() => ({
   include: [
     {
-      association: "groupMemberships",
+      association: "groupUsers",
       required: false,
     },
   ],
@@ -32,7 +32,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withMember: (memberId: string) => ({
     include: [
       {
-        association: "groupMemberships",
+        association: "groupUsers",
         required: true,
       },
       {
@@ -90,7 +90,7 @@ class Group extends ParanoidModel<
         groupId: model.id,
       },
     });
-    await GroupPermission.destroy({
+    await GroupMembership.destroy({
       where: {
         groupId: model.id,
       },
@@ -107,10 +107,10 @@ class Group extends ParanoidModel<
 
   @HasMany(() => GroupUser, "groupId")
   @HasMany(() => GroupUser, { as: "members", foreignKey: "groupId" })
-  groupMemberships: GroupUser[];
+  groupUsers: GroupUser[];
 
-  @HasMany(() => GroupPermission, "groupId")
-  collectionGroupMemberships: GroupPermission[];
+  @HasMany(() => GroupMembership, "groupId")
+  groupMemberships: GroupMembership[];
 
   @BelongsTo(() => Team, "teamId")
   team: Team;

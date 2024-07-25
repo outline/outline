@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} vytvořil",
   "You published": "Zveřejnili jste",
   "{{ userName }} published": "{{ userName }} zveřejnil",
-  "You saved": "Uložili jste",
-  "{{ userName }} saved": "{{ userName }} uložil",
   "Never viewed": "Nikdy nezobrazeno",
   "Viewed": "Zobrazeno",
   "in": "v",

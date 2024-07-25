@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} ایجاد شد",
   "You published": "منتشر کردی",
   "{{ userName }} published": "{{ userName }} منتشر کرد",
-  "You saved": "ذخیره کردی",
-  "{{ userName }} saved": "{{ userName }} saved",
   "Never viewed": "هرگز مشاهده نشده",
   "Viewed": "Viewed",
   "in": "in",

@@ -1,21 +1,11 @@
-import GroupUser from "@server/models/GroupUser";
-import { presentUser } from ".";
+import { GroupMembership } from "@server/models";
 
-type GroupMembership = {
-  id: string;
-  userId: string;
-  groupId: string;
-  user?: ReturnType<typeof presentUser>;
-};
-
-export default function presentGroupMembership(
-  membership: GroupUser,
-  options?: { includeUser: boolean }
-): GroupMembership {
+export default function presentGroupMembership(membership: GroupMembership) {
   return {
-    id: `${membership.userId}-${membership.groupId}`,
-    userId: membership.userId,
+    id: membership.id,
     groupId: membership.groupId,
-    user: options?.includeUser ? presentUser(membership.user) : undefined,
+    documentId: membership.documentId,
+    collectionId: membership.collectionId,
+    permission: membership.permission,
   };
 }

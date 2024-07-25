@@ -390,6 +390,21 @@ describe("#users.invite", () => {
     expect(body.data.users[0].role).toEqual(UserRole.Viewer);
   });
 
+  it("should limit number of invites", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.invite", {
+      body: {
+        token: user.getJwtToken(),
+        invites: new Array(21).fill({
+          email: "test@example.com",
+          name: "Test",
+          role: "viewer",
+        }),
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/users.invite");
     expect(res.status).toEqual(401);

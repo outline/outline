@@ -15,7 +15,7 @@ import {
   SearchQuery,
   Event,
   User,
-  GroupPermission,
+  GroupMembership,
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import {
@@ -4003,6 +4003,8 @@ describe("#documents.unpublish", () => {
     expect(body.data.publishedAt).toBeNull();
     expect(body.data.createdBy.id).toEqual(user.id);
     expect(body.data.updatedBy.id).toEqual(user.id);
+    expect(body.policies[0].abilities.createChildDocument).toEqual(false);
+    expect(body.policies[0].abilities.update).toEqual(true);
 
     const reloaded = await Document.unscoped().findByPk(document.id);
     expect(reloaded!.createdById).toEqual(user.id);
@@ -4294,7 +4296,7 @@ describe("#documents.users", () => {
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
-      GroupPermission.create({
+      GroupMembership.create({
         collectionId: collection.id,
         groupId: group.id,
         permission: CollectionPermission.ReadWrite,

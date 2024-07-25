@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} aangemaakt",
   "You published": "Je hebt gepubliceerd",
   "{{ userName }} published": "{{ userName }} heeft gepubliceerd",
-  "You saved": "Je hebt opgeslagen",
-  "{{ userName }} saved": "{{ userName }} heeft opgeslagen",
   "Never viewed": "Nog nooit bekeken",
   "Viewed": "Bekeken",
   "in": "in",

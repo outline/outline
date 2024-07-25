@@ -152,24 +152,26 @@ export default async function documentCreator({
       throw new Error("Collection ID is required to publish");
     }
 
-    await document.publish(user, { transaction }, collectionId);
-    await Event.create(
-      {
-        name: "documents.publish",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
-        data: {
-          source: importId ? "import" : undefined,
-          title: document.title,
+    await document.publish(user, { silent: true, transaction }, collectionId);
+    if (document.title) {
+      await Event.create(
+        {
+          name: "documents.publish",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          teamId: document.teamId,
+          actorId: user.id,
+          data: {
+            source: importId ? "import" : undefined,
+            title: document.title,
+          },
+          ip,
         },
-        ip,
-      },
-      {
-        transaction,
-      }
-    );
+        {
+          transaction,
+        }
+      );
+    }
   }
 
   // reload to get all of the data needed to present (user, collection etc)

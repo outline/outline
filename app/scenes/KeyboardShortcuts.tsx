@@ -24,6 +24,22 @@ function KeyboardShortcuts() {
             label: t("Open command menu"),
           },
           {
+            shortcut: (
+              <>
+                <Key symbol>{metaDisplay}</Key> + <Key symbol>[</Key>
+              </>
+            ),
+            label: t("Back"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key symbol>{metaDisplay}</Key> + <Key symbol>]</Key>
+              </>
+            ),
+            label: t("Forward"),
+          },
+          {
             shortcut: <Key>n</Key>,
             label: t("New document"),
           },
@@ -65,7 +81,7 @@ function KeyboardShortcuts() {
                 <Key symbol>{metaDisplay}</Key> + <Key>.</Key>
               </>
             ),
-            label: t("Toggle navigation"),
+            label: t("Toggle sidebar"),
           },
           {
             shortcut: (

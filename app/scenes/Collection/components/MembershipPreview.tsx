@@ -25,7 +25,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
   const [usersCount, setUsersCount] = React.useState(0);
   const [groupsCount, setGroupsCount] = React.useState(0);
   const { t } = useTranslation();
-  const { memberships, collectionGroupMemberships, users } = useStores();
+  const { memberships, groupMemberships, users } = useStores();
   const collectionUsers = users.inCollection(collection.id);
   const context = useActionContext();
   const isMobile = useMobile();
@@ -44,7 +44,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
         };
         const [users, groups] = await Promise.all([
           memberships.fetchPage(options),
-          collectionGroupMemberships.fetchPage(options),
+          groupMemberships.fetchPage(options),
         ]);
         setUsersCount(users[PAGINATION_SYMBOL].total);
         setGroupsCount(groups[PAGINATION_SYMBOL].total);
@@ -58,7 +58,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
     isMobile,
     collection.permission,
     collection.id,
-    collectionGroupMemberships,
+    groupMemberships,
     memberships,
     limit,
   ]);

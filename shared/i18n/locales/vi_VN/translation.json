@@ -190,8 +190,6 @@
   "{{ userName }} created": "{{ userName }} được tạo",
   "You published": "Bạn vừa đăng",
   "{{ userName }} published": "{{ userName}} đã đăng tải",
-  "You saved": "Bạn đã lưu",
-  "{{ userName }} saved": "{{ userName }} được lưu",
   "Never viewed": "Chưa bao giờ xem",
   "Viewed": "Đã xem",
   "in": "trong",

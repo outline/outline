@@ -24,7 +24,7 @@ type Props = {
 };
 
 function CollectionMemberList({ collection, invitedInSession }: Props) {
-  const { memberships, collectionGroupMemberships } = useStores();
+  const { memberships, groupMemberships } = useStores();
   const can = usePolicy(collection);
   const { t } = useTranslation();
   const theme = useTheme();
@@ -39,8 +39,8 @@ function CollectionMemberList({ collection, invitedInSession }: Props) {
 
   const { request: fetchGroupMemberships } = useRequest(
     React.useCallback(
-      () => collectionGroupMemberships.fetchAll({ id: collectionId }),
-      [collectionGroupMemberships, collectionId]
+      () => groupMemberships.fetchAll({ id: collectionId }),
+      [groupMemberships, collectionId]
     )
   );
 
@@ -75,7 +75,7 @@ function CollectionMemberList({ collection, invitedInSession }: Props) {
 
   return (
     <>
-      {collectionGroupMemberships
+      {groupMemberships
         .inCollection(collection.id)
         .sort((a, b) =>
           (
@@ -103,12 +103,12 @@ function CollectionMemberList({ collection, invitedInSession }: Props) {
                     permission: CollectionPermission | typeof EmptySelectValue
                   ) => {
                     if (permission === EmptySelectValue) {
-                      await collectionGroupMemberships.delete({
+                      await groupMemberships.delete({
                         collectionId: collection.id,
                         groupId: membership.groupId,
                       });
                     } else {
-                      await collectionGroupMemberships.create({
+                      await groupMemberships.create({
                         collectionId: collection.id,
                         groupId: membership.groupId,
                         permission,
