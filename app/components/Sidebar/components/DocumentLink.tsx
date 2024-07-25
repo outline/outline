@@ -283,9 +283,8 @@ function InnerDocumentLink(
     node,
   ]);
 
-  const title =
-    (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
-    t("Untitled");
+  const doc = documents.get(node.id);
+  const title = doc?.title || node.title || t("Untitled");
 
   const isExpanded = expanded && !isDragging;
   const hasChildren = nodeChildren.length > 0;
