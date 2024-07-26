@@ -126,7 +126,7 @@ ${resizeObserverScript(ctx)}
     const dropboxJs = "https://www.dropbox.com/static/api/2/dropins.js";
     const csp = ctx.response.get("Content-Security-Policy");
 
-    // Inject GitHub domains into the script-src and style-src directives
+    // Inject Dropbox domain into the script-src directive
     ctx.set(
       "Content-Security-Policy",
       csp.replace("script-src", "script-src www.dropbox.com")
