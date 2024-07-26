@@ -131,6 +131,7 @@ router.get("/s/:shareId/*", shareDomains(), renderShare);
 
 router.get("/embeds/gitlab", renderEmbed);
 router.get("/embeds/github", renderEmbed);
+router.get("/embeds/dropbox", renderEmbed);
 
 // catch all for application
 router.get("*", shareDomains(), async (ctx, next) => {
