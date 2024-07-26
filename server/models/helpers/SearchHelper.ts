@@ -555,7 +555,9 @@ export default class SearchHelper {
     }
 
     return (
-      queryParser()(quotedSearch ? limitedQuery : `${limitedQuery}*`)
+      queryParser()(
+        quotedSearch ? limitedQuery.trim() : `${limitedQuery.trim()}*`
+      )
         // Remove any trailing join characters
         .replace(/&$/, "")
     );
