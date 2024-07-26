@@ -152,7 +152,7 @@ export default async function documentCreator({
       throw new Error("Collection ID is required to publish");
     }
 
-    await document.publish(user, { silent: true, transaction }, collectionId);
+    await document.publish(user, collectionId, { silent: true, transaction });
     if (document.title) {
       await Event.create(
         {

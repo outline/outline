@@ -110,7 +110,7 @@ export default async function documentUpdater({
     if (!document.collectionId) {
       document.collectionId = cId;
     }
-    await document.publish(user, { transaction }, cId);
+    await document.publish(user, cId, { transaction });
 
     await Event.create(
       {

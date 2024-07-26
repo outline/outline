@@ -824,8 +824,8 @@ class Document extends ParanoidModel<
 
   publish = async (
     user: User,
-    options: SaveOptions,
-    collectionId?: string | null
+    collectionId: string | null | undefined,
+    options: SaveOptions
   ): Promise<this> => {
     const { transaction } = options;
 

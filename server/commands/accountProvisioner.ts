@@ -244,14 +244,10 @@ async function provisionFirstCollection(team: Team, user: User) {
 
       document.content = await DocumentHelper.toJSON(document);
 
-      await document.publish(
-        user,
-        {
-          silent: true,
-          transaction,
-        },
-        collection.id
-      );
+      await document.publish(user, collection.id, {
+        silent: true,
+        transaction,
+      });
     }
   });
 }
