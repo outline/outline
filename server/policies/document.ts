@@ -5,9 +5,19 @@ import {
   DocumentPermission,
   TeamPreference,
 } from "@shared/types";
-import { Document, Revision, User } from "@server/models";
+import { Document, Revision, User, Team } from "@server/models";
 import { allow, _cannot as cannot, _can as can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
+
+allow(User, "createDocument", Team, (actor, document) =>
+  and(
+    //
+    !actor.isGuest,
+    !actor.isViewer,
+    isTeamModel(actor, document),
+    isTeamMutable(actor)
+  )
+);
 
 allow(User, "read", Document, (actor, document) =>
   and(
