@@ -83,6 +83,10 @@ export class DocumentHelper {
     let json;
 
     if ("content" in document && document.content) {
+      // Optimized path for documents with content available and no transformation required.
+      if (!options?.removeMarks && !options?.signedUrls) {
+        return document.content;
+      }
       doc = Node.fromJSON(schema, document.content);
     } else if ("state" in document && document.state) {
       const ydoc = new Y.Doc();
