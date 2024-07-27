@@ -155,7 +155,9 @@ export default class ImportJSONTask extends ImportTask {
 
     // Check all of the attachments we've created against urls and
     // replace them with the correct redirect urls before continuing.
-    this.replaceAttachmentURLs(output);
+    if (output.attachments.length) {
+      this.replaceAttachmentURLs(output);
+    }
 
     return output;
   }
