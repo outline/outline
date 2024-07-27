@@ -1,3 +1,4 @@
+import capitalize from "lodash/capitalize";
 import { observer } from "mobx-react";
 import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
@@ -44,6 +45,7 @@ import {
   shareDocument,
   copyDocument,
   searchInDocument,
+  moveTemplate,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -124,7 +126,11 @@ function DocumentMenu({
       }
     ) => {
       await document.restore(options);
-      toast.success(t("Document restored"));
+      toast.success(
+        t("{{ documentName }} restored", {
+          documentName: capitalize(document.noun),
+        })
+      );
     },
     [t, document]
   );
@@ -228,7 +234,10 @@ function DocumentMenu({
             {
               type: "button",
               title: t("Restore"),
-              visible: (!!collection && can.restore) || can.unarchive,
+              visible:
+                ((document.isWorkspaceTemplate || !!collection) &&
+                  can.restore) ||
+                can.unarchive,
               onClick: (ev) => handleRestore(ev),
               icon: <RestoreIcon />,
             },
@@ -236,7 +245,10 @@ function DocumentMenu({
               type: "submenu",
               title: t("Restore"),
               visible:
-                !collection && !!can.restore && restoreItems.length !== 0,
+                !document.isWorkspaceTemplate &&
+                !collection &&
+                !!can.restore &&
+                restoreItems.length !== 0,
               style: {
                 left: -170,
                 position: "relative",
@@ -290,6 +302,7 @@ function DocumentMenu({
             actionToMenuItem(unpublishDocument, context),
             actionToMenuItem(archiveDocument, context),
             actionToMenuItem(moveDocument, context),
+            actionToMenuItem(moveTemplate, context),
             actionToMenuItem(pinDocument, context),
             actionToMenuItem(createDocumentFromTemplate, context),
             {

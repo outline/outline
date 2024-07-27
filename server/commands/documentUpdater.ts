@@ -106,7 +106,7 @@ export default async function documentUpdater({
     ip,
   };
 
-  if (publish && cId) {
+  if (publish && (document.template || cId)) {
     if (!document.collectionId) {
       document.collectionId = cId;
     }

@@ -723,6 +723,13 @@ class Document extends ParanoidModel<
   }
 
   /**
+   * Returns whether this document is a template created at the workspace level.
+   */
+  get isWorkspaceTemplate() {
+    return this.template && !this.collectionId;
+  }
+
+  /**
    * Revert the state of the document to match the passed revision.
    *
    * @param revision The revision to revert to.
@@ -817,7 +824,7 @@ class Document extends ParanoidModel<
 
   publish = async (
     user: User,
-    collectionId: string,
+    collectionId: string | null | undefined,
     options: SaveOptions
   ): Promise<this> => {
     const { transaction } = options;
@@ -832,7 +839,7 @@ class Document extends ParanoidModel<
       this.collectionId = collectionId;
     }
 
-    if (!this.template) {
+    if (!this.template && this.collectionId) {
       const collection = await Collection.findByPk(this.collectionId, {
         transaction,
         lock: Transaction.LOCK.UPDATE,

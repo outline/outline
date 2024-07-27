@@ -457,7 +457,15 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  templatize = async (id: string): Promise<Document | null | undefined> => {
+  templatize = async ({
+    id,
+    collectionId,
+    publish,
+  }: {
+    id: string;
+    collectionId: string | null;
+    publish: boolean;
+  }): Promise<Document | null | undefined> => {
     const doc: Document | null | undefined = this.data.get(id);
     invariant(doc, "Document should exist");
 
@@ -467,6 +475,8 @@ export default class DocumentsStore extends Store<Document> {
 
     const res = await client.post("/documents.templatize", {
       id,
+      collectionId,
+      publish,
     });
     invariant(res?.data, "Document not available");
     this.addPolicies(res.policies);
@@ -546,12 +556,17 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  move = async (
-    documentId: string,
-    collectionId: string,
-    parentDocumentId?: string | null,
-    index?: number | null
-  ) => {
+  move = async ({
+    documentId,
+    collectionId,
+    parentDocumentId,
+    index,
+  }: {
+    documentId: string;
+    collectionId?: string | null;
+    parentDocumentId?: string | null;
+    index?: number | null;
+  }) => {
     this.movingDocumentId = documentId;
 
     try {
