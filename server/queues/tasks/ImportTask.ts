@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs-extra";
 import chunk from "lodash/chunk";
 import truncate from "lodash/truncate";
+import { InferCreationAttributes } from "sequelize";
 import tmp from "tmp";
 import {
   AttachmentPreset,
@@ -358,20 +359,28 @@ export default abstract class ImportTask extends BaseTask<Props> {
               })
             : null;
 
+          const sharedDefaults: Partial<InferCreationAttributes<Collection>> = {
+            ...options,
+            id: item.id,
+            description: truncatedDescription,
+            color: item.color,
+            icon: item.icon,
+            sort: item.sort,
+            createdById: fileOperation.userId,
+            permission:
+              item.permission ?? fileOperation.options?.permission !== undefined
+                ? fileOperation.options?.permission
+                : CollectionPermission.ReadWrite,
+            importId: fileOperation.id,
+          };
+
           // check if collection with name exists
           const response = await Collection.findOrCreate({
             where: {
               teamId: fileOperation.teamId,
               name: item.name,
             },
-            defaults: {
-              ...options,
-              id: item.id,
-              description: truncatedDescription,
-              createdById: fileOperation.userId,
-              permission: CollectionPermission.ReadWrite,
-              importId: fileOperation.id,
-            },
+            defaults: sharedDefaults,
             transaction,
           });
 
@@ -385,21 +394,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
             const name = `${item.name} (Imported)`;
             collection = await Collection.create(
               {
-                ...options,
-                id: item.id,
-                description: truncatedDescription,
-                color: item.color,
-                icon: item.icon,
-                sort: item.sort,
-                teamId: fileOperation.teamId,
-                createdById: fileOperation.userId,
+                ...sharedDefaults,
                 name,
-                permission:
-                  item.permission ??
-                  fileOperation.options?.permission !== undefined
-                    ? fileOperation.options?.permission
-                    : CollectionPermission.ReadWrite,
-                importId: fileOperation.id,
+                teamId: fileOperation.teamId,
               },
               { transaction }
             );
