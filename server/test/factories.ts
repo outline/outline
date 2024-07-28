@@ -4,6 +4,7 @@ import isNull from "lodash/isNull";
 import randomstring from "randomstring";
 import { InferCreationAttributes } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
+import { DataAttributeDataType } from "@shared/models/types";
 import {
   CollectionPermission,
   FileOperationState,
@@ -19,6 +20,7 @@ import {
   Team,
   User,
   Event,
+  DataAttribute,
   Document,
   Star,
   Collection,
@@ -398,6 +400,19 @@ export async function buildDocument(
   }
 
   return document;
+}
+
+export async function buildDataAttribute({
+  userId,
+  ...overrides
+}: Partial<DataAttribute> & { userId: string }) {
+  const dataAttribute = await DataAttribute.create({
+    dataType: DataAttributeDataType.String,
+    createdById: userId,
+    name: faker.company.name(),
+    ...overrides,
+  });
+  return dataAttribute;
 }
 
 export async function buildComment(overrides: {

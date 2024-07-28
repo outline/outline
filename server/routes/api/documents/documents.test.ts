@@ -22,6 +22,7 @@ import {
   buildShare,
   buildCollection,
   buildUser,
+  buildDataAttribute,
   buildDocument,
   buildDraftDocument,
   buildViewer,
@@ -3005,6 +3006,35 @@ describe("#documents.create", () => {
     expect(newDocument!.emoji).toBe("🚢");
     expect(newDocument!.icon).toBe("🚢");
     expect(body.policies[0].abilities.update).toEqual(true);
+  });
+
+  it("should create as a new document with data attributes", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const dataAttribute = await buildDataAttribute({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        dataAttributes: [
+          {
+            dataAttributeId: dataAttribute.id,
+            value: "123",
+          },
+        ],
+        title: "new document",
+        text: "hello",
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(200);
   });
 
   it("should create a draft document not belonging to any collection", async () => {
