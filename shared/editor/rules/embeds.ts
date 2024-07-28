@@ -27,6 +27,9 @@ export default function linksToEmbeds(embeds: EmbedDescriptor[]) {
     }
 
     for (const embed of embeds) {
+      if (embed.noAutoMatch) {
+        continue;
+      }
       const matches = embed.matcher(href);
       if (matches) {
         return {
