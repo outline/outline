@@ -1,5 +1,6 @@
 import { Transaction } from "sequelize";
 import { Optional } from "utility-types";
+import { DocumentDataAttribute } from "@shared/models/types";
 import { Document, Event, User } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
@@ -29,6 +30,7 @@ type Props = Optional<
   state?: Buffer;
   publish?: boolean;
   templateDocument?: Document | null;
+  dataAttributes?: Omit<DocumentDataAttribute, "updatedAt">[] | null;
   user: User;
   ip?: string;
   transaction?: Transaction;
@@ -45,6 +47,7 @@ export default async function documentCreator({
   publish,
   collectionId,
   parentDocumentId,
+  dataAttributes,
   content,
   template,
   templateDocument,
@@ -86,6 +89,14 @@ export default async function documentCreator({
       id,
       urlId,
       parentDocumentId,
+      dataAttributes: dataAttributes?.map(
+        ({ dataAttributeId, value }) =>
+          ({
+            dataAttributeId,
+            value,
+            updatedAt: new Date().toISOString(),
+          } as DocumentDataAttribute)
+      ),
       editorVersion,
       collectionId,
       teamId: user.teamId,

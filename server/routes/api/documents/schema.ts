@@ -354,6 +354,16 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** A template to create the document from */
     templateId: z.string().uuid().optional(),
 
+    /** Data attributes to be included on the document */
+    dataAttributes: z
+      .array(
+        z.object({
+          dataAttributeId: z.string(),
+          value: z.string().or(z.boolean()).or(z.number()),
+        })
+      )
+      .optional(),
+
     /** Optionally set the created date in the past */
     createdAt: z.coerce
       .date()
