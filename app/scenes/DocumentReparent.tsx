@@ -48,7 +48,10 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
       setIsSaving(true);
 
       try {
-        await documents.move(item.id, collection.id);
+        await documents.move({
+          documentId: item.id,
+          collectionId: collection.id,
+        });
         toast.message(t("Document moved"));
         onSubmit();
       } catch (err) {

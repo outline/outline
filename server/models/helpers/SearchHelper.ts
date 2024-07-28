@@ -555,7 +555,12 @@ export default class SearchHelper {
     }
 
     return (
-      queryParser()(quotedSearch ? limitedQuery : `${limitedQuery}*`)
+      queryParser()(
+        // Although queryParser trims the query, looks like there's a
+        // bug for certain cases where it removes other characters in addition to
+        // spaces. Ref: https://github.com/caub/pg-tsquery/issues/27
+        quotedSearch ? limitedQuery.trim() : `${limitedQuery.trim()}*`
+      )
         // Remove any trailing join characters
         .replace(/&$/, "")
     );

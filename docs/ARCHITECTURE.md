@@ -8,10 +8,10 @@ Outline's frontend is a React application compiled with [Vite](https://vitejs.de
 
 ```
 app
-├── components  - React components reusable across scenes
-├── embeds      - Embed definitions that represent rich interactive embeds in the editor
-├── hooks       - Reusable React hooks
 ├── actions     - Reusable actions such as navigating, opening, creating entities
+├── components  - React components reusable across scenes
+├── editor      - React components specific to the editor
+├── hooks       - Reusable React hooks
 ├── menus       - Context menus, often appear in multiple places in the UI
 ├── models      - State models using MobX observables
 ├── routes      - Route definitions, note that chunks are async loaded with suspense
@@ -30,15 +30,14 @@ Interested in more documentation on the API routes? Check out the [API documenta
 
 ```
 server
-├── api               - All API routes are contained within here
-│   └── middlewares   - Koa middlewares specific to the API
-├── auth              - Authentication logic
-│   └── providers     - Authentication providers export passport.js strategies and config
-├── commands          - We are gradually moving to the command pattern for new write logic
+├── routes            - All API routes are contained within here
+│   ├── api           - API routes
+│   └── auth          - Authentication routes
+├── commands          - Complex commands that perform actions across multiple models
 ├── config            - Database configuration
 ├── emails            - Transactional email templates
 │   └── templates     - Classes that define each possible email template
-├── middlewares       - Koa middlewares
+├── middlewares       - Shared Koa middlewares
 ├── migrations        - Database migrations
 ├── models            - Sequelize models
 ├── onboarding        - Markdown templates for onboarding documents
@@ -60,10 +59,10 @@ small utilities.
 
 ```
 shared
+├── components        - Shared React components that are used in both the frontend and backend
 ├── editor            - The text editor, based on Prosemirror
 ├── i18n              - Internationalization configuration
 │   └── locales       - Language specific translation files
 ├── styles            - Styles, colors and other global aesthetics
-├── utils             - Shared utility methods
-└── constants         - Shared constants
+└── utils             - Shared utility methods
 ```

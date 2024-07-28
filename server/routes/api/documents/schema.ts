@@ -196,7 +196,12 @@ export const DocumentsDuplicateSchema = BaseSchema.extend({
 export type DocumentsDuplicateReq = z.infer<typeof DocumentsDuplicateSchema>;
 
 export const DocumentsTemplatizeSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** Id of the collection inside which the template should be created */
+    collectionId: z.string().nullish(),
+    /** Whether the new template should be published */
+    publish: z.boolean(),
+  }),
 });
 
 export type DocumentsTemplatizeReq = z.infer<typeof DocumentsTemplatizeSchema>;
@@ -259,7 +264,7 @@ export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateSchema>;
 export const DocumentsMoveSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Id of collection to which the doc is supposed to be moved */
-    collectionId: z.string().uuid(),
+    collectionId: z.string().uuid().nullish(),
 
     /** Parent Id, in case if the doc is moved to a new parent */
     parentDocumentId: z.string().uuid().nullish(),
@@ -364,21 +369,13 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** Whether this should be considered a template */
     template: z.boolean().optional(),
   }),
-})
-  .refine((req) => !(req.body.template && !req.body.collectionId), {
-    message: "collectionId is required to create a template document",
-  })
-  .refine(
-    (req) =>
-      !(
-        req.body.publish &&
-        !req.body.parentDocumentId &&
-        !req.body.collectionId
-      ),
-    {
-      message: "collectionId or parentDocumentId is required to publish",
-    }
-  );
+}).refine(
+  (req) =>
+    !(req.body.publish && !req.body.parentDocumentId && !req.body.collectionId),
+  {
+    message: "collectionId or parentDocumentId is required to publish",
+  }
+);
 
 export type DocumentsCreateReq = z.infer<typeof DocumentsCreateSchema>;
 

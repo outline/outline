@@ -1,6 +1,5 @@
 import invariant from "invariant";
 import { Transaction } from "sequelize";
-import { ValidationError } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
 import {
   User,
@@ -59,10 +58,6 @@ async function documentMover({
   }
 
   if (document.template) {
-    if (!document.collectionId) {
-      throw ValidationError("Templates must be in a collection");
-    }
-
     document.collectionId = collectionId;
     document.parentDocumentId = null;
     document.lastModifiedById = user.id;

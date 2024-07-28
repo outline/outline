@@ -213,6 +213,10 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
 
       map.set(node.url, filePath);
 
+      // If this is an imported document, the references to this doc are in the 'doc/{docId}' format.
+      // Set this format to replace them with relative URLs in the zip.
+      map.set(`/doc/${node.id}`, filePath);
+
       if (node.children?.length) {
         this.addDocumentTreeToPathMap(
           map,

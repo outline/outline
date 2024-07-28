@@ -24,8 +24,18 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
 
     await createSubscriptionsForDocument(document, event);
 
-    // Send notifications to mentioned users first
     const before = await revision.before();
+
+    // If the content looks the same, don't send notifications
+    if (DocumentHelper.isTextContentEqual(before, revision)) {
+      Logger.info(
+        "processor",
+        `suppressing notifications as update has no visual changes`
+      );
+      return;
+    }
+
+    // Send notifications to mentioned users first
     const oldMentions = before ? DocumentHelper.parseMentions(before) : [];
     const newMentions = DocumentHelper.parseMentions(document);
     const mentions = differenceBy(newMentions, oldMentions, "id");

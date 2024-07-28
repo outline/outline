@@ -83,6 +83,10 @@ export class DocumentHelper {
     let json;
 
     if ("content" in document && document.content) {
+      // Optimized path for documents with content available and no transformation required.
+      if (!options?.removeMarks && !options?.signedUrls) {
+        return document.content;
+      }
       doc = Node.fromJSON(schema, document.content);
     } else if ("state" in document && document.state) {
       const ydoc = new Y.Doc();
@@ -445,5 +449,27 @@ export class DocumentHelper {
     }
 
     return document;
+  }
+
+  /**
+   * Compares two documents and returns true if the text content is equal. This does not take into account
+   * changes to other properties such as table column widths, other visual settings.
+   *
+   * @param document The document to compare
+   * @param other The other document to compare
+   * @returns True if the text content is equal
+   */
+  public static isTextContentEqual(
+    before: Document | Revision | null,
+    after: Document | Revision | null
+  ) {
+    if (!before || !after) {
+      return false;
+    }
+
+    return (
+      before.title === after.title &&
+      this.toMarkdown(before) === this.toMarkdown(after)
+    );
   }
 }

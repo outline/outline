@@ -187,7 +187,11 @@ function InnerDocumentLink(
       if (!collection) {
         return;
       }
-      await documents.move(item.id, collection.id, node.id);
+      await documents.move({
+        documentId: item.id,
+        collectionId: collection.id,
+        parentDocumentId: node.id,
+      });
       setExpanded(true);
     },
     canDrop: (item, monitor) =>
@@ -249,11 +253,21 @@ function InnerDocumentLink(
       }
 
       if (expanded) {
-        void documents.move(item.id, collection.id, node.id, 0);
+        void documents.move({
+          documentId: item.id,
+          collectionId: collection.id,
+          parentDocumentId: node.id,
+          index: 0,
+        });
         return;
       }
 
-      void documents.move(item.id, collection.id, parentId, index + 1);
+      void documents.move({
+        documentId: item.id,
+        collectionId: collection.id,
+        parentDocumentId: parentId,
+        index: index + 1,
+      });
     },
     collect: (monitor) => ({
       isOverReorder: monitor.isOver(),
@@ -283,9 +297,8 @@ function InnerDocumentLink(
     node,
   ]);
 
-  const title =
-    (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
-    t("Untitled");
+  const doc = documents.get(node.id);
+  const title = doc?.title || node.title || t("Untitled");
 
   const isExpanded = expanded && !isDragging;
   const hasChildren = nodeChildren.length > 0;
