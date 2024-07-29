@@ -106,14 +106,9 @@ export default async function documentCreator({
         templateDocument ? templateDocument.title : title,
         user
       ),
-      text: await TextHelper.replaceImagesWithAttachments(
-        TextHelper.replaceTemplateVariables(
-          templateDocument ? templateDocument.text : text,
-          user
-        ),
-        user,
-        ip,
-        transaction
+      text: TextHelper.replaceTemplateVariables(
+        templateDocument ? templateDocument.text : text,
+        user
       ),
       content: templateDocument
         ? ProsemirrorHelper.replaceTemplateVariables(

@@ -48,6 +48,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, can, cannot } from "@server/policies";
 import {
   presentCollection,
@@ -1470,7 +1471,12 @@ router.post(
 
     const document = await documentCreator({
       title,
-      text,
+      text: await TextHelper.replaceImagesWithAttachments(
+        text,
+        user,
+        ctx.request.ip,
+        transaction
+      ),
       icon: icon ?? emoji,
       color,
       createdAt,
