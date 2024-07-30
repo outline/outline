@@ -1282,24 +1282,32 @@ router.post(
   "documents.archive",
   auth(),
   validate(T.DocumentsArchiveSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsArchiveReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const document = await Document.findByPk(id, {
       userId: user.id,
+      rejectOnEmpty: true,
+      transaction,
     });
     authorize(user, "archive", document);
 
-    await document.archive(user);
-    await Event.createFromContext(ctx, {
-      name: "documents.archive",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      data: {
-        title: document.title,
+    await document.archive(user, { transaction });
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "documents.archive",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        data: {
+          title: document.title,
+        },
       },
-    });
+      { transaction }
+    );
 
     ctx.body = {
       data: await presentDocument(ctx, document),
