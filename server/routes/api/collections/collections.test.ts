@@ -1751,7 +1751,6 @@ describe("#collections.archive", () => {
     ]);
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).not.toBe(null);
-    expect(collection.documentStructure).toBe(null);
     expect(document.archivedAt).not.toBe(null);
   });
 });
@@ -1783,7 +1782,6 @@ describe("#collections.restore", () => {
     ]);
     expect(archiveRes.status).toEqual(200);
     expect(archiveBody.data.archivedAt).not.toBe(null);
-    expect(collection.documentStructure).toBe(null);
     const res = await server.post("/api/collections.restore", {
       body: {
         token: admin.getJwtToken(),

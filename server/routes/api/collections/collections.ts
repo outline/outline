@@ -912,7 +912,6 @@ router.post(
     authorize(user, "archive", collection);
 
     collection.archivedAt = new Date();
-    collection.documentStructure = null;
     await collection.save({ transaction });
 
     // Archive all documents within the collection
@@ -958,7 +957,7 @@ router.post(
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    let collection = await Collection.scope({
+    const collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(id, {
       transaction,
@@ -970,30 +969,34 @@ router.post(
 
     authorize(user, "restore", collection);
 
-    const documents = await Document.findAll({
-      where: {
-        teamId: collection.teamId,
-        collectionId: collection.id,
-        archivedAt: {
-          [Op.not]: null,
-        },
+    await Document.update(
+      {
+        lastModifiedById: user.id,
+        archivedAt: null,
       },
-      transaction,
+      {
+        where: {
+          collectionId: collection.id,
+          teamId: user.teamId,
+          archivedAt: {
+            [Op.not]: null,
+          },
+        },
+        transaction,
+      }
+    );
+
+    // update collection archivedAt
+    collection.archivedAt = null;
+    await collection.save({ transaction });
+
+    await Event.createFromContext(ctx, {
+      name: "collections.restore",
+      collectionId: collection.id,
+      data: {
+        name: collection.name,
+      },
     });
-
-    // Restore the entire document structure within collection
-    for (const document of documents) {
-      collection = await collection!.addDocumentToStructure(
-        document,
-        undefined,
-        {
-          transaction,
-        }
-      );
-    }
-
-    collection!.archivedAt = null;
-    await collection!.save({ transaction });
 
     ctx.body = {
       data: await presentCollection(ctx, collection!),
