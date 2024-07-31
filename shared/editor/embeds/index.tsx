@@ -55,8 +55,8 @@ export class EmbedDescriptor {
   defaultHidden?: boolean;
   /** Whether the bottom toolbar should be hidden – use this when the embed itself includes a footer */
   hideToolbar?: boolean;
-  /** Whether the embed should be auto matched when pasting a URL */
-  noAutoMatch?: boolean;
+  /** Whether the embed should match when pasting a URL (default to true) */
+  matchOnPaste?: boolean;
   /** A regex that will be used to match the embed when pasting a URL */
   regexMatch?: RegExp[];
   /**
@@ -88,7 +88,7 @@ export class EmbedDescriptor {
     this.tooltip = options.tooltip;
     this.defaultHidden = options.defaultHidden;
     this.hideToolbar = options.hideToolbar;
-    this.noAutoMatch = options.noAutoMatch;
+    this.matchOnPaste = options.matchOnPaste ?? true;
     this.regexMatch = options.regexMatch;
     this.transformMatch = options.transformMatch;
     this.attrs = options.attrs;
@@ -626,11 +626,11 @@ const embeds: EmbedDescriptor[] = [
   }),
   /* The generic iframe embed should always be the last one */
   new EmbedDescriptor({
-    title: "Iframe",
+    title: "Embed",
     keywords: "iframe",
-    icon: <Img src="/images/iframe.png" alt="Iframe" />,
+    icon: <Img src="/images/embed.png" alt="Embed" />,
     defaultHidden: false,
-    noAutoMatch: true,
+    matchOnPaste: false,
     regexMatch: [new RegExp("^https?://(.*)$")],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
     hideToolbar: true,

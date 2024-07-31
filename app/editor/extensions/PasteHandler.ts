@@ -157,7 +157,7 @@ export default class PasteHandler extends Extension {
                 !isInList(state)
               ) {
                 for (const embed of embeds) {
-                  if (embed.noAutoMatch) {
+                  if (!embed.matchOnPaste) {
                     continue;
                   }
                   const matches = embed.matcher(text);
