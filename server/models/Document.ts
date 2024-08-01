@@ -998,10 +998,13 @@ class Document extends ArchivableModel<
   };
 
   // Restore an archived document back to being visible to the team
-  unarchive = async (user: User, options?: FindOptions) => {
+  restoreTo = async (
+    collectionId: string,
+    options: FindOptions & { user: User }
+  ) => {
     const { transaction } = { ...options };
-    const collection = this.collectionId
-      ? await Collection.findByPk(this.collectionId, {
+    const collection = collectionId
+      ? await Collection.findByPk(collectionId, {
           transaction,
           lock: transaction?.LOCK.UPDATE,
         })
@@ -1025,9 +1028,6 @@ class Document extends ArchivableModel<
       await collection.addDocumentToStructure(this, undefined, {
         transaction,
       });
-      if (this.collection) {
-        this.collection.documentStructure = collection.documentStructure;
-      }
     }
 
     if (this.deletedAt) {
@@ -1035,9 +1035,11 @@ class Document extends ArchivableModel<
     }
 
     this.archivedAt = null;
-    this.lastModifiedById = user.id;
-    this.updatedBy = user;
+    this.lastModifiedById = options.user.id;
+    this.updatedBy = options.user;
+    this.collectionId = collectionId;
     await this.save({ transaction });
+    await this.reload({ transaction });
     return this;
   };
 

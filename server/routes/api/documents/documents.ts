@@ -749,35 +749,38 @@ router.post(
       transaction,
     });
 
-    // Passing collectionId allows restoring to a different collection than the
-    // document was originally within
-    if (collectionId) {
-      document.collectionId = collectionId;
-    }
+    const srcCollectionId = document.collectionId;
+    const destCollectionId = collectionId ?? srcCollectionId;
 
-    const collection = document.collectionId
+    const srcCollection = srcCollectionId
       ? await Collection.scope({
           method: ["withMembership", user.id],
-          // note that transaction is not needed here because
-          // we're loading collection again inside `document.unarchive` below
-          // where we pass the transaction for locking
-        }).findByPk(document.collectionId)
+        }).findByPk(srcCollectionId)
       : undefined;
 
-    // if the collectionId was provided in the request and isn't valid then it will
-    // be caught as a 403 on the authorize call below. Otherwise we're checking here
-    // that the original collection still exists and advising to pass collectionId
-    // if not.
-    if (document.collection && !collection?.isActive) {
+    const destCollection = destCollectionId
+      ? await Collection.scope({
+          method: ["withMembership", user.id],
+        }).findByPk(destCollectionId)
+      : undefined;
+
+    if (!destCollection?.isActive) {
       throw ValidationError(
-        "Unable to restore to original collection, it may have been deleted or archived"
+        "Unable to restore, the collection may have been deleted or archived"
       );
+    }
+
+    if (srcCollectionId !== destCollectionId) {
+      await srcCollection?.removeDocumentInStructure(document, {
+        save: true,
+        transaction,
+      });
     }
 
     if (document.deletedAt) {
       authorize(user, "restore", document);
       // restore a previously deleted document
-      await document.unarchive(user, { transaction });
+      await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
       await Event.createFromContext(
         ctx,
         {
@@ -793,7 +796,7 @@ router.post(
     } else if (document.archivedAt) {
       authorize(user, "unarchive", document);
       // restore a previously archived document
-      await document.unarchive(user, { transaction });
+      await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
       await Event.createFromContext(
         ctx,
         {
