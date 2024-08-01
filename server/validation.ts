@@ -174,6 +174,13 @@ export const assertCollectionPermission = (
 };
 
 export class ValidateKey {
+  /**
+   * Checks if key is valid. A valid key is of the form
+   * <bucket>/<uuid>/<uuid>/<name>
+   *
+   * @param key
+   * @returns true if key is valid, false otherwise
+   */
   public static isValid = (key: string) => {
     let parts = key.split("/");
     const bucket = parts[0];
@@ -189,11 +196,18 @@ export class ValidateKey {
     );
   };
 
+  /**
+   * Sanitizes a key by removing any invalid characters
+   *
+   * @param key
+   * @returns sanitized key
+   */
   public static sanitize = (key: string) => {
     const [filename] = key.split("/").slice(-1);
     return key
       .split("/")
       .slice(0, -1)
+      .filter((part) => part !== "" && part !== ".." && part !== ".")
       .join("/")
       .concat(`/${sanitize(filename)}`);
   };
