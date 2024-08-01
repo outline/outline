@@ -737,13 +737,16 @@ router.post(
   "documents.restore",
   auth({ role: UserRole.Member }),
   validate(T.DocumentsRestoreSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsRestoreReq>) => {
     const { id, collectionId, revisionId } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
     const document = await Document.findByPk(id, {
       userId: user.id,
       paranoid: false,
       rejectOnEmpty: true,
+      transaction,
     });
 
     // Passing collectionId allows restoring to a different collection than the
@@ -755,6 +758,9 @@ router.post(
     const collection = document.collectionId
       ? await Collection.scope({
           method: ["withMembership", user.id],
+          // note that transaction is not needed here because
+          // we're loading collection again inside `document.unarchive` below
+          // where we pass the transaction for locking
         }).findByPk(document.collectionId)
       : undefined;
 
@@ -771,44 +777,56 @@ router.post(
     if (document.deletedAt) {
       authorize(user, "restore", document);
       // restore a previously deleted document
-      await document.unarchive(user);
-      await Event.createFromContext(ctx, {
-        name: "documents.restore",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
+      await document.unarchive(user, { transaction });
+      await Event.createFromContext(
+        ctx,
+        {
+          name: "documents.restore",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          data: {
+            title: document.title,
+          },
         },
-      });
+        { transaction }
+      );
     } else if (document.archivedAt) {
       authorize(user, "unarchive", document);
       // restore a previously archived document
-      await document.unarchive(user);
-      await Event.createFromContext(ctx, {
-        name: "documents.unarchive",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
+      await document.unarchive(user, { transaction });
+      await Event.createFromContext(
+        ctx,
+        {
+          name: "documents.unarchive",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          data: {
+            title: document.title,
+          },
         },
-      });
+        { transaction }
+      );
     } else if (revisionId) {
       // restore a document to a specific revision
       authorize(user, "update", document);
-      const revision = await Revision.findByPk(revisionId);
+      const revision = await Revision.findByPk(revisionId, { transaction });
       authorize(document, "restore", revision);
 
       document.restoreFromRevision(revision);
-      await document.save();
+      await document.save({ transaction });
 
-      await Event.createFromContext(ctx, {
-        name: "documents.restore",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
+      await Event.createFromContext(
+        ctx,
+        {
+          name: "documents.restore",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          data: {
+            title: document.title,
+          },
         },
-      });
+        { transaction }
+      );
     } else {
       assertPresent(revisionId, "revisionId is required");
     }
