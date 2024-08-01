@@ -194,9 +194,16 @@ class ApiClient {
     }
 
     if (response.status === 502) {
-      throw new BadGatewayError(
-        `Request to ${urlToFetch} failed in ${timeEnd - timeStart}ms.`
-      );
+      const text = await response.text();
+      const err = new BadGatewayError(text);
+
+      Logger.error("BadGatewayError", err, {
+        url: urlToFetch,
+        requestTime: Math.round(timeEnd - timeStart),
+        responseText: text,
+        responseHeaders: Object.fromEntries(response.headers.entries()),
+      });
+      throw err;
     }
 
     const err = new RequestError(`Error ${response.status}`);
