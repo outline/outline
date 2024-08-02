@@ -36,7 +36,7 @@ module.exports = {
             allowNull: true,
           },
           dataType: {
-            type: Sequelize.ENUM("string", "integer", "boolean", "list"),
+            type: Sequelize.ENUM("string", "number", "boolean", "list"),
             allowNull: false,
           },
           options: {
