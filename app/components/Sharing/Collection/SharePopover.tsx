@@ -26,7 +26,7 @@ import { CopyLinkButton } from "../components/CopyLinkButton";
 import { PermissionAction } from "../components/PermissionAction";
 import { SearchInput } from "../components/SearchInput";
 import { Suggestions } from "../components/Suggestions";
-import { CollectionMemberList } from "./CollectionMemberList";
+import { AccessControlList } from "./AccessControlList";
 
 type Props = {
   /** The collection to share. */
@@ -362,7 +362,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       )}
 
       <div style={{ display: picker ? "none" : "block" }}>
-        <CollectionMemberList
+        <AccessControlList
           collection={collection}
           invitedInSession={invitedInSession}
         />

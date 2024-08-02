@@ -25,7 +25,7 @@ type Props = {
   invitedInSession: string[];
 };
 
-export function CollectionMemberList({ collection, invitedInSession }: Props) {
+export function AccessControlList({ collection, invitedInSession }: Props) {
   const { memberships, groupMemberships } = useStores();
   const can = usePolicy(collection);
   const { t } = useTranslation();
@@ -59,10 +59,8 @@ export function CollectionMemberList({ collection, invitedInSession }: Props) {
   });
 
   React.useEffect(() => {
-    if (!!membershipData && !!grpMembershipData) {
-      calcMaxHeight();
-    }
-  }, [membershipData, grpMembershipData, calcMaxHeight]);
+    calcMaxHeight();
+  });
 
   const permissions = React.useMemo(
     () =>

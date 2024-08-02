@@ -27,7 +27,7 @@ import { CopyLinkButton } from "../components/CopyLinkButton";
 import { PermissionAction } from "../components/PermissionAction";
 import { SearchInput } from "../components/SearchInput";
 import { Suggestions } from "../components/Suggestions";
-import { OtherAccess } from "./OtherAccess";
+import { AccessControlList } from "./AccessControlList";
 
 type Props = {
   /** The document to share. */
@@ -338,7 +338,7 @@ function SharePopover({
       )}
 
       <div style={{ display: picker ? "none" : "block" }}>
-        <OtherAccess
+        <AccessControlList
           document={document}
           invitedInSession={invitedInSession}
           share={share}

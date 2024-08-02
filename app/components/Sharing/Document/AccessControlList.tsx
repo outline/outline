@@ -44,7 +44,7 @@ type Props = {
   visible: boolean;
 };
 
-export const OtherAccess = observer(
+export const AccessControlList = observer(
   ({
     document,
     invitedInSession,
@@ -89,10 +89,8 @@ export const OtherAccess = observer(
     }, [fetchDocumentMembers]);
 
     React.useEffect(() => {
-      if (data) {
-        calcMaxHeight();
-      }
-    }, [data, calcMaxHeight]);
+      calcMaxHeight();
+    });
 
     if (loadingDocumentMembers) {
       return <LoadingIndicator />;
