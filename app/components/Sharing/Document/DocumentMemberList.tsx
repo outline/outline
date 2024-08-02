@@ -4,13 +4,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
-import { Pagination } from "@shared/constants";
 import Document from "~/models/Document";
 import UserMembership from "~/models/UserMembership";
-import LoadingIndicator from "~/components/LoadingIndicator";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
-import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { homePath } from "~/utils/routeHelpers";
 import MemberListItem from "./DocumentMemberListItem";
@@ -26,26 +23,11 @@ type Props = {
 
 function DocumentMembersList({ document, invitedInSession }: Props) {
   const { userMemberships } = useStores();
+
   const user = useCurrentUser();
   const history = useHistory();
   const can = usePolicy(document);
   const { t } = useTranslation();
-
-  const { loading: loadingDocumentMembers, request: fetchDocumentMembers } =
-    useRequest(
-      React.useCallback(
-        () =>
-          userMemberships.fetchDocumentMemberships({
-            id: document.id,
-            limit: Pagination.defaultLimit,
-          }),
-        [userMemberships, document.id]
-      )
-    );
-
-  React.useEffect(() => {
-    void fetchDocumentMembers();
-  }, [fetchDocumentMembers]);
 
   const handleRemoveUser = React.useCallback(
     async (item) => {
@@ -104,10 +86,6 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
       ),
     [document.members, invitedInSession]
   );
-
-  if (loadingDocumentMembers) {
-    return <LoadingIndicator />;
-  }
 
   return (
     <>

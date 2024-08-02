@@ -18,7 +18,7 @@ const useMaxHeight = ({
   const isMobile = useMobile();
   const { height: windowHeight } = useWindowSize();
 
-  React.useLayoutEffect(() => {
+  const calcMaxHeight = React.useCallback(() => {
     if (!isMobile && elementRef?.current) {
       const mxHeight = (windowHeight / 100) * maxViewportPercentage;
 
@@ -37,7 +37,11 @@ const useMaxHeight = ({
     }
   }, [elementRef, windowHeight, margin, isMobile, maxViewportPercentage]);
 
-  return maxHeight;
+  React.useLayoutEffect(() => {
+    calcMaxHeight();
+  }, [calcMaxHeight]);
+
+  return { maxHeight, calcMaxHeight };
 };
 
 export default useMaxHeight;
