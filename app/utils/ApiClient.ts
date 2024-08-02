@@ -142,6 +142,19 @@ class ApiClient {
       throw new AuthorizationError();
     }
 
+    if (response.status === 502) {
+      const text = await response.text();
+      const err = new BadGatewayError(text);
+
+      Logger.error("BadGatewayError", err, {
+        url: urlToFetch,
+        requestTime: Math.round(timeEnd - timeStart),
+        responseText: text,
+        responseHeaders: Object.fromEntries(response.headers.entries()),
+      });
+      throw err;
+    }
+
     // Handle failed responses
     const error: {
       message?: string;
@@ -191,19 +204,6 @@ class ApiClient {
       throw new RateLimitExceededError(
         `Too many requests, try again in a minute.`
       );
-    }
-
-    if (response.status === 502) {
-      const text = await response.text();
-      const err = new BadGatewayError(text);
-
-      Logger.error("BadGatewayError", err, {
-        url: urlToFetch,
-        requestTime: Math.round(timeEnd - timeStart),
-        responseText: text,
-        responseHeaders: Object.fromEntries(response.headers.entries()),
-      });
-      throw err;
     }
 
     const err = new RequestError(`Error ${response.status}`);
