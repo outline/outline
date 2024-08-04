@@ -67,6 +67,7 @@ export const AccessControlList = observer(
     const { maxHeight, calcMaxHeight } = useMaxHeight({
       elementRef: containerRef,
       maxViewportPercentage: 70,
+      margin: 24,
     });
 
     const {

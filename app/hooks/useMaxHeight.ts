@@ -18,7 +18,7 @@ const useMaxHeight = ({
 
   const calcMaxHeight = React.useCallback(() => {
     if (elementRef?.current) {
-      const mxHeight = (windowHeight / 100) * maxViewportPercentage;
+      const mxHeight = (windowHeight / 100) * maxViewportPercentage - margin;
 
       setMaxHeight(
         Math.min(
@@ -35,9 +35,7 @@ const useMaxHeight = ({
     }
   }, [elementRef, windowHeight, margin, maxViewportPercentage]);
 
-  React.useLayoutEffect(() => {
-    calcMaxHeight();
-  }, [calcMaxHeight]);
+  React.useLayoutEffect(calcMaxHeight, [calcMaxHeight]);
 
   return { maxHeight, calcMaxHeight };
 };
