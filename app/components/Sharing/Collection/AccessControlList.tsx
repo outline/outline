@@ -39,7 +39,7 @@ export function AccessControlList({ collection, invitedInSession }: Props) {
     )
   );
 
-  const { request: fetchGroupMemberships, data: grpMembershipData } =
+  const { request: fetchGroupMemberships, data: groupMembershipData } =
     useRequest(
       React.useCallback(
         () => groupMemberships.fetchAll({ id: collectionId }),
@@ -86,7 +86,7 @@ export function AccessControlList({ collection, invitedInSession }: Props) {
     [t]
   );
 
-  if (!membershipData || !grpMembershipData) {
+  if (!membershipData || !groupMembershipData) {
     return null;
   }
 
