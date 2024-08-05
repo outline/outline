@@ -1,16 +1,22 @@
 import copy from "copy-to-clipboard";
 import { observer } from "mobx-react";
+import { CopyIcon, EditIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
 import { toast } from "sonner";
 import EventBoundary from "@shared/components/EventBoundary";
 import Comment from "~/models/Comment";
-import CommentDeleteDialog from "~/components/CommentDeleteDialog";
 import ContextMenu from "~/components/ContextMenu";
-import MenuItem from "~/components/ContextMenu/MenuItem";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Separator from "~/components/ContextMenu/Separator";
+import Template from "~/components/ContextMenu/Template";
+import { actionToMenuItem } from "~/actions";
+import {
+  deleteCommentFactory,
+  resolveCommentFactory,
+  unresolveCommentFactory,
+} from "~/actions/definitions/comments";
+import useActionContext from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { commentPath, urlify } from "~/utils/routeHelpers";
@@ -24,23 +30,25 @@ type Props = {
   onEdit: () => void;
   /** Callback when the comment has been deleted */
   onDelete: () => void;
+  /** Callback when the comment has been updated */
+  onUpdate: (attrs: { resolved: boolean }) => void;
 };
 
-function CommentMenu({ comment, onEdit, onDelete, className }: Props) {
+function CommentMenu({
+  comment,
+  onEdit,
+  onDelete,
+  onUpdate,
+  className,
+}: Props) {
   const menu = useMenuState({
     modal: true,
   });
-  const { documents, dialogs } = useStores();
+  const { documents } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(comment);
+  const context = useActionContext({ isContextMenu: true });
   const document = documents.get(comment.documentId);
-
-  const handleDelete = React.useCallback(() => {
-    dialogs.openModal({
-      title: t("Delete comment"),
-      content: <CommentDeleteDialog comment={comment} onSubmit={onDelete} />,
-    });
-  }, [dialogs, comment, onDelete, t]);
 
   const handleCopyLink = React.useCallback(() => {
     if (document) {
@@ -58,24 +66,46 @@ function CommentMenu({ comment, onEdit, onDelete, className }: Props) {
           {...menu}
         />
       </EventBoundary>
-
       <ContextMenu {...menu} aria-label={t("Comment options")}>
-        {can.update && (
-          <MenuItem {...menu} onClick={onEdit}>
-            {t("Edit")}
-          </MenuItem>
-        )}
-        <MenuItem {...menu} onClick={handleCopyLink}>
-          {t("Copy link")}
-        </MenuItem>
-        {can.delete && (
-          <>
-            <Separator />
-            <MenuItem {...menu} onClick={handleDelete} dangerous>
-              {t("Delete")}
-            </MenuItem>
-          </>
-        )}
+        <Template
+          {...menu}
+          items={[
+            {
+              type: "button",
+              title: `${t("Edit")}…`,
+              icon: <EditIcon />,
+              onClick: onEdit,
+              visible: can.update,
+            },
+            actionToMenuItem(
+              resolveCommentFactory({
+                comment,
+                onResolve: () => onUpdate({ resolved: true }),
+              }),
+              context
+            ),
+            actionToMenuItem(
+              unresolveCommentFactory({
+                comment,
+                onUnresolve: () => onUpdate({ resolved: false }),
+              }),
+              context
+            ),
+            {
+              type: "button",
+              icon: <CopyIcon />,
+              title: t("Copy link"),
+              onClick: handleCopyLink,
+            },
+            {
+              type: "separator",
+            },
+            actionToMenuItem(
+              deleteCommentFactory({ comment, onDelete }),
+              context
+            ),
+          ]}
+        />
       </ContextMenu>
     </>
   );

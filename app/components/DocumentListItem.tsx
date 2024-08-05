@@ -76,8 +76,7 @@ function DocumentListItem(
   const queryIsInTitle =
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
-  const canStar =
-    !document.isDraft && !document.isArchived && !document.isTemplate;
+  const canStar = !document.isArchived && !document.isTemplate;
 
   return (
     <DocumentLink
@@ -111,11 +110,6 @@ function DocumentListItem(
           {document.isBadgedNew && document.createdBy?.id !== user.id && (
             <Badge yellow>{t("New")}</Badge>
           )}
-          {canStar && (
-            <StarPositioner>
-              <StarButton document={document} />
-            </StarPositioner>
-          )}
           {document.isDraft && showDraft && (
             <Tooltip
               content={t("Only visible to you")}
@@ -124,6 +118,11 @@ function DocumentListItem(
             >
               <Badge>{t("Draft")}</Badge>
             </Tooltip>
+          )}
+          {canStar && (
+            <StarPositioner>
+              <StarButton document={document} />
+            </StarPositioner>
           )}
           {document.isTemplate && showTemplate && (
             <Badge primary>{t("Template")}</Badge>
@@ -275,6 +274,8 @@ const ResultContext = styled(Highlight)`
   font-size: 15px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;
+  max-height: 90px;
+  overflow: hidden;
 `;
 
 export default observer(React.forwardRef(DocumentListItem));

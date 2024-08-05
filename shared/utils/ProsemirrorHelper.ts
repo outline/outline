@@ -142,8 +142,35 @@ export class ProsemirrorHelper {
    *
    * @returns True if the editor is empty
    */
-  static isEmpty(doc: Node) {
-    return !doc || doc.textContent.trim() === "";
+  static isEmpty(doc: Node, schema?: Schema) {
+    if (!schema) {
+      return !doc || doc.textContent.trim() === "";
+    }
+
+    const textSerializers = Object.fromEntries(
+      Object.entries(schema.nodes)
+        .filter(([, node]) => node.spec.toPlainText)
+        .map(([name, node]) => [name, node.spec.toPlainText])
+    );
+
+    let empty = true;
+    doc.descendants((child: Node) => {
+      // If we've already found non-empty data, we can stop descending further
+      if (!empty) {
+        return false;
+      }
+
+      const toPlainText = textSerializers[child.type.name];
+      if (toPlainText) {
+        empty = !toPlainText(child).trim();
+      } else if (child.isText) {
+        empty = !child.text?.trim();
+      }
+
+      return empty;
+    });
+
+    return empty;
   }
 
   /**

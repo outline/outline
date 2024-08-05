@@ -8,7 +8,11 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import { collectionPath, documentPath } from "~/utils/routeHelpers";
+import {
+  collectionPath,
+  documentPath,
+  settingsPath,
+} from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -21,7 +25,8 @@ function DocumentDelete({ document, onSubmit }: Props) {
   const history = useHistory();
   const [isDeleting, setDeleting] = React.useState(false);
   const [isArchiving, setArchiving] = React.useState(false);
-  const canArchive = !document.isDraft && !document.isArchived;
+  const canArchive =
+    !document.isDraft && !document.isArchived && !document.template;
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
@@ -50,8 +55,12 @@ function DocumentDelete({ document, onSubmit }: Props) {
             }
           }
 
-          // otherwise, redirect to the collection home
-          history.push(collectionPath(collection?.path || "/"));
+          // If template, redirect to the template settings.
+          // Otherwise redirect to the collection (or) home.
+          const path = document.template
+            ? settingsPath("templates")
+            : collectionPath(collection?.path || "/");
+          history.push(path);
         }
 
         onSubmit();

@@ -4,6 +4,7 @@ import Router from "koa-router";
 import get from "lodash/get";
 import { Strategy } from "passport-oauth2";
 import { slugifyDomain } from "@shared/utils/domains";
+import { parseEmail } from "@shared/utils/email";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import {
   OIDCMalformedUserInfoError,
@@ -92,9 +93,7 @@ if (
           }
           const team = await getTeamFromContext(ctx);
           const client = getClientFromContext(ctx);
-
-          const parts = profile.email.toLowerCase().split("@");
-          const domain = parts.length && parts[1];
+          const { domain } = parseEmail(profile.email);
 
           if (!domain) {
             throw OIDCMalformedUserInfoError();
@@ -151,6 +150,7 @@ if (
 
   router.get(config.id, passport.authenticate(config.id));
   router.get(`${config.id}.callback`, passportMiddleware(config.id));
+  router.post(`${config.id}.callback`, passportMiddleware(config.id));
 }
 
 export default router;

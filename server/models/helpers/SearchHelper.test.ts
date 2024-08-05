@@ -465,7 +465,7 @@ describe("SearchHelper", () => {
       expect(totalCount).toBe(0);
     });
 
-    test("should find extact phrases", async () => {
+    test("should find exact phrases", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
       const collection = await buildCollection({
@@ -484,6 +484,25 @@ describe("SearchHelper", () => {
         user,
         `"test number"`
       );
+      expect(totalCount).toBe(1);
+    });
+
+    test("should correctly handle removal of trailing spaces", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        text: "env: some env",
+      });
+      document.title = "change";
+      await document.save();
+      const { totalCount } = await SearchHelper.searchForUser(user, "env: ");
       expect(totalCount).toBe(1);
     });
   });

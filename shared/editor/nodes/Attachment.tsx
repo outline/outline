@@ -63,7 +63,7 @@ export default class Attachment extends Node {
           download: node.attrs.title,
           "data-size": node.attrs.size,
         },
-        node.attrs.title,
+        String(node.attrs.title),
       ],
       toPlainText: (node) => node.attrs.title,
     };

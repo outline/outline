@@ -14,7 +14,7 @@ import {
 import { chainTransactions } from "../lib/chainTransactions";
 import { getCellsInColumn, isHeaderEnabled } from "../queries/table";
 import { TableLayout } from "../types";
-import collapseSelection from "./collapseSelection";
+import { collapseSelection } from "./collapseSelection";
 
 export function createTable({
   rowsCount,

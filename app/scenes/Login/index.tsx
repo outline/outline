@@ -298,6 +298,7 @@ function Login({ children }: Props) {
               key={provider.id}
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
+              neutral={defaultProvider && hasMultipleProviders}
               {...provider}
             />
           );
@@ -361,6 +362,8 @@ const Or = styled.hr`
   margin: 1em 0;
   position: relative;
   width: 100%;
+  border: 0;
+  border-top: 1px solid ${s("divider")};
 
   &:after {
     content: attr(data-text);
@@ -370,7 +373,8 @@ const Or = styled.hr`
     transform: translate3d(-50%, -50%, 0);
     text-transform: uppercase;
     font-size: 11px;
-    color: ${s("textSecondary")};
+    font-weight: 500;
+    color: ${s("textTertiary")};
     background: ${s("background")};
     border-radius: 2px;
     padding: 0 4px;

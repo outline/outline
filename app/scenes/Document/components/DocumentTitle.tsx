@@ -4,11 +4,11 @@ import { Selection } from "prosemirror-state";
 import { __parseFromClipboard } from "prosemirror-view";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
-import { s } from "@shared/styles";
+import { extraArea, s } from "@shared/styles";
 import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
@@ -18,8 +18,7 @@ import {
 import { DocumentValidation } from "@shared/validations";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
-import Flex from "~/components/Flex";
-import Icon from "~/components/Icon";
+import Icon, { IconTitleWrapper } from "~/components/Icon";
 import { PopoverButton } from "~/components/IconPicker/components/PopoverButton";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
@@ -72,7 +71,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   externalRef: React.RefObject<RefHandle>
 ) {
   const ref = React.useRef<RefHandle>(null);
-  const [iconPickerIsOpen, handleOpen, handleClose] = useBoolean();
+  const [iconPickerIsOpen, handleOpen, setIconPickerClosed] = useBoolean();
   const { editor } = useDocumentContext();
   const can = usePolicy(documentId);
 
@@ -216,6 +215,11 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
     [editor]
   );
 
+  const handleClose = React.useCallback(() => {
+    setIconPickerClosed();
+    restoreFocus();
+  }, [setIconPickerClosed, restoreFocus]);
+
   const handleIconChange = React.useCallback(
     (chosenIcon: string | null, iconColor: string | null) => {
       if (icon !== chosenIcon || color !== iconColor) {
@@ -224,12 +228,6 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
     },
     [icon, color, onChangeIcon]
   );
-
-  React.useEffect(() => {
-    if (!iconPickerIsOpen) {
-      restoreFocus();
-    }
-  }, [iconPickerIsOpen, restoreFocus]);
 
   const dir = ref.current?.getComputedDirection();
 
@@ -255,9 +253,9 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       ref={mergeRefs([ref, externalRef])}
     >
       {can.update && !readOnly ? (
-        <IconWrapper align="center" justify="center" dir={dir}>
+        <IconTitleWrapper dir={dir}>
           <React.Suspense fallback={fallbackIcon}>
-            <IconPicker
+            <StyledIconPicker
               icon={icon ?? null}
               color={color}
               size={40}
@@ -269,11 +267,9 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
               borderOnHover
             />
           </React.Suspense>
-        </IconWrapper>
+        </IconTitleWrapper>
       ) : icon ? (
-        <IconWrapper align="center" justify="center" dir={dir}>
-          {fallbackIcon}
-        </IconWrapper>
+        <IconTitleWrapper dir={dir}>{fallbackIcon}</IconTitleWrapper>
       ) : null}
     </Title>
   );
@@ -282,7 +278,13 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
 type TitleProps = {
   $containsIcon: boolean;
   $iconPickerIsOpen: boolean;
+  readOnly?: boolean;
 };
+
+// Extra area prevents gap between icon and beginning of title
+const StyledIconPicker = styled(IconPicker)`
+  ${extraArea(8)}
+`;
 
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
@@ -307,14 +309,18 @@ const Title = styled(ContentEditable)<TitleProps>`
     opacity: 1;
   }
 
-  &:focus-within,
-  &:focus {
-    margin-left: 40px;
+  ${(props: TitleProps) =>
+    !props.readOnly &&
+    css`
+      &:focus-within,
+      &:focus {
+        margin-left: 40px;
 
-    ${PopoverButton} {
-      opacity: 1 !important;
-    }
-  }
+        ${PopoverButton} {
+          opacity: 1 !important;
+        }
+      }
+    `};
 
   ${PopoverButton} {
     opacity: ${(props: TitleProps) =>
@@ -344,19 +350,6 @@ const Title = styled(ContentEditable)<TitleProps>`
     -webkit-text-fill-color: ${light.text};
     background: none;
   }
-`;
-
-const IconWrapper = styled(Flex)<{ dir?: string }>`
-  position: absolute;
-  top: 3px;
-  height: 40px;
-  width: 40px;
-
-  // Always move above TOC
-  z-index: 1;
-
-  ${(props: { dir?: string }) =>
-    props.dir === "rtl" ? "right: -48px" : "left: -48px"};
 `;
 
 export default observer(DocumentTitle);

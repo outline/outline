@@ -25,6 +25,7 @@ type Props = {
   isOpen: boolean;
   fullscreen?: boolean;
   title?: React.ReactNode;
+  style?: React.CSSProperties;
   onRequestClose: () => void;
 };
 
@@ -33,6 +34,7 @@ const Modal: React.FC<Props> = ({
   isOpen,
   fullscreen = true,
   title = "Untitled",
+  style,
   onRequestClose,
 }: Props) => {
   const dialog = useDialogState({
@@ -115,7 +117,7 @@ const Modal: React.FC<Props> = ({
                     column
                     reverse
                   >
-                    <SmallContent shadow>
+                    <SmallContent style={style} shadow>
                       <ErrorBoundary component="div">{children}</ErrorBoundary>
                     </SmallContent>
                     <Header>
@@ -254,7 +256,7 @@ const Header = styled(Flex)`
 const Small = styled.div`
   animation: ${fadeAndScaleIn} 250ms ease;
 
-  margin: auto auto;
+  margin: 25vh auto auto auto;
   width: 75vw;
   min-width: 350px;
   max-width: 450px;

@@ -149,10 +149,10 @@ const Container = styled(Flex)`
 `;
 
 const Selected = styled.span`
-  width: 8px;
-  height: 4px;
-  border-left: 1px solid white;
-  border-bottom: 1px solid white;
+  width: 10px;
+  height: 5px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
   transform: translateY(-25%) rotate(-45deg);
 `;
 

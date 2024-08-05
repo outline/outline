@@ -106,6 +106,7 @@ function CommentForm({
       thread ??
       new Comment(
         {
+          createdAt: new Date().toISOString(),
           documentId,
           data: draft,
         },
@@ -139,6 +140,7 @@ function CommentForm({
 
     const comment = new Comment(
       {
+        createdAt: new Date().toISOString(),
         parentCommentId: thread?.id,
         documentId,
         data: draft,

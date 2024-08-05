@@ -13,6 +13,11 @@ export enum StatusFilter {
   Draft = "draft",
 }
 
+export enum CommentStatusFilter {
+  Resolved = "resolved",
+  Unresolved = "unresolved",
+}
+
 export enum Client {
   Web = "web",
   Desktop = "desktop",
@@ -409,7 +414,7 @@ export type ProsemirrorDoc = {
 };
 
 export enum IconType {
-  Outline = "outline",
+  SVG = "svg",
   Emoji = "emoji",
 }
 

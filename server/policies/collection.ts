@@ -32,9 +32,24 @@ allow(User, "move", Collection, (actor, collection) =>
   )
 );
 
+allow(User, "read", Collection, (user, collection) => {
+  if (!collection || user.teamId !== collection.teamId) {
+    return false;
+  }
+  if (user.isAdmin) {
+    return true;
+  }
+
+  if (collection.isPrivate || user.isGuest) {
+    return includesMembership(collection, Object.values(CollectionPermission));
+  }
+
+  return true;
+});
+
 allow(
   User,
-  ["read", "readDocument", "star", "unstar"],
+  ["readDocument", "star", "unstar"],
   Collection,
   (user, collection) => {
     if (!collection || user.teamId !== collection.teamId) {
@@ -146,7 +161,7 @@ function includesMembership(
     "Development: collection memberships not preloaded, did you forget `withMembership` scope?"
   );
   return some(
-    [...collection.memberships, ...collection.collectionGroupMemberships],
+    [...collection.memberships, ...collection.groupMemberships],
     (m) => permissions.includes(m.permission)
   );
 }

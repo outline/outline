@@ -384,7 +384,7 @@ describe("read_write document", () => {
       expect(abilities.subscribe).toEqual(true);
       expect(abilities.unsubscribe).toEqual(true);
       expect(abilities.comment).toEqual(true);
-      expect(abilities.createChildDocument).toEqual(false);
+      expect(abilities.createChildDocument).toEqual(true);
       expect(abilities.manageUsers).toEqual(false);
       expect(abilities.archive).toEqual(false);
       expect(abilities.share).toEqual(false);

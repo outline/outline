@@ -151,11 +151,11 @@ export default class UsersStore extends Store<User> {
   };
 
   notInCollection = (collectionId: string, query = "") => {
-    const memberships = filter(
+    const groupUsers = filter(
       this.rootStore.memberships.orderedData,
       (member) => member.collectionId === collectionId
     );
-    const userIds = memberships.map((member) => member.userId);
+    const userIds = groupUsers.map((groupUser) => groupUser.userId);
     const users = filter(
       this.activeOrInvited,
       (user) => !userIds.includes(user.id)
@@ -164,11 +164,11 @@ export default class UsersStore extends Store<User> {
   };
 
   inCollection = (collectionId: string, query?: string) => {
-    const memberships = filter(
+    const groupUsers = filter(
       this.rootStore.memberships.orderedData,
       (member) => member.collectionId === collectionId
     );
-    const userIds = memberships.map((member) => member.userId);
+    const userIds = groupUsers.map((groupUser) => groupUser.userId);
     const users = filter(this.activeOrInvited, (user) =>
       userIds.includes(user.id)
     );
@@ -176,11 +176,11 @@ export default class UsersStore extends Store<User> {
   };
 
   notInGroup = (groupId: string, query = "") => {
-    const memberships = filter(
-      this.rootStore.groupMemberships.orderedData,
+    const groupUsers = filter(
+      this.rootStore.groupUsers.orderedData,
       (member) => member.groupId === groupId
     );
-    const userIds = memberships.map((member) => member.userId);
+    const userIds = groupUsers.map((groupUser) => groupUser.userId);
     const users = filter(
       this.activeOrInvited,
       (user) => !userIds.includes(user.id)
@@ -189,11 +189,11 @@ export default class UsersStore extends Store<User> {
   };
 
   inGroup = (groupId: string, query?: string) => {
-    const groupMemberships = filter(
-      this.rootStore.groupMemberships.orderedData,
+    const groupUsers = filter(
+      this.rootStore.groupUsers.orderedData,
       (member) => member.groupId === groupId
     );
-    const userIds = groupMemberships.map((member) => member.userId);
+    const userIds = groupUsers.map((groupUser) => groupUser.userId);
     const users = filter(this.activeOrInvited, (user) =>
       userIds.includes(user.id)
     );

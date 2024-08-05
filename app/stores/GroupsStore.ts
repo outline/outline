@@ -32,7 +32,7 @@ export default class GroupsStore extends Store<Group> {
       runInAction(`GroupsStore#fetchPage`, () => {
         this.addPolicies(res.policies);
         models = res.data.groups.map(this.add);
-        res.data.groupMemberships.forEach(this.rootStore.groupMemberships.add);
+        res.data.groupMemberships.forEach(this.rootStore.groupUsers.add);
         this.isLoaded = true;
       });
       return models;
@@ -43,7 +43,7 @@ export default class GroupsStore extends Store<Group> {
 
   inCollection = (collectionId: string, query?: string) => {
     const memberships = filter(
-      this.rootStore.collectionGroupMemberships.orderedData,
+      this.rootStore.groupMemberships.orderedData,
       (member) => member.collectionId === collectionId
     );
     const groupIds = memberships.map((member) => member.groupId);
@@ -58,7 +58,7 @@ export default class GroupsStore extends Store<Group> {
 
   notInCollection = (collectionId: string, query = "") => {
     const memberships = filter(
-      this.rootStore.collectionGroupMemberships.orderedData,
+      this.rootStore.groupMemberships.orderedData,
       (member) => member.collectionId === collectionId
     );
     const groupIds = memberships.map((member) => member.groupId);

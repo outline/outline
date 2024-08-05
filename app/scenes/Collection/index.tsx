@@ -21,6 +21,7 @@ import Badge from "~/components/Badge";
 import CenteredContent from "~/components/CenteredContent";
 import CollectionDescription from "~/components/CollectionDescription";
 import Heading from "~/components/Heading";
+import Icon, { IconTitleWrapper } from "~/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import InputSearchPage from "~/components/InputSearchPage";
 import PlaceholderList from "~/components/List/Placeholder";
@@ -130,7 +131,11 @@ function CollectionScene() {
   }
 
   const fallbackIcon = collection ? (
-    <Icon as={CollectionIcon} collection={collection} size={40} expanded />
+    <Icon
+      value={collection.icon ?? "collection"}
+      color={collection.color || undefined}
+      size={40}
+    />
   ) : null;
 
   return collection ? (
@@ -177,22 +182,24 @@ function CollectionScene() {
             <Empty collection={collection} />
           ) : (
             <>
-              <HeadingWithIcon>
-                {can.update ? (
-                  <React.Suspense fallback={fallbackIcon}>
-                    <Icon
-                      icon={collection.icon ?? "collection"}
-                      color={collection.color ?? colorPalette[0]}
-                      initial={collection.name[0]}
-                      size={40}
-                      popoverPosition="bottom-start"
-                      onChange={handleIconChange}
-                      borderOnHover
-                    />
-                  </React.Suspense>
-                ) : (
-                  fallbackIcon
-                )}
+              <CollectionHeading>
+                <IconTitleWrapper>
+                  {can.update ? (
+                    <React.Suspense fallback={fallbackIcon}>
+                      <IconPicker
+                        icon={collection.icon ?? "collection"}
+                        color={collection.color ?? colorPalette[0]}
+                        initial={collection.name[0]}
+                        size={40}
+                        popoverPosition="bottom-start"
+                        onChange={handleIconChange}
+                        borderOnHover
+                      />
+                    </React.Suspense>
+                  ) : (
+                    fallbackIcon
+                  )}
+                </IconTitleWrapper>
                 {collection.name}
                 {collection.isPrivate &&
                   !FeatureFlags.isEnabled(Feature.newCollectionSharing) && (
@@ -205,7 +212,7 @@ function CollectionScene() {
                       <Badge>{t("Private")}</Badge>
                     </Tooltip>
                   )}
-              </HeadingWithIcon>
+              </CollectionHeading>
 
               <PinnedDocuments
                 pins={pins.inCollection(collection.id)}
@@ -324,19 +331,15 @@ const Documents = styled.div`
   background: ${s("background")};
 `;
 
-const HeadingWithIcon = styled(Heading)`
+const CollectionHeading = styled(Heading)`
   display: flex;
   align-items: center;
+  position: relative;
+  margin-left: 40px;
 
   ${breakpoint("tablet")`
-    margin-left: -40px;
-  `};
-`;
-
-const Icon = styled(IconPicker)`
-  flex-shrink: 0;
-  margin-left: -8px;
-  margin-right: 8px;
+    margin-left: 0;
+  `}
 `;
 
 export default observer(CollectionScene);

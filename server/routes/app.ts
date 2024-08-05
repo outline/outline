@@ -52,6 +52,7 @@ export const renderApp = async (
     canonical?: string;
     shortcutIcon?: string;
     rootShareId?: string;
+    isShare?: boolean;
     analytics?: Integration<IntegrationType.Analytics>[];
   } = {}
 ) => {
@@ -108,11 +109,15 @@ export const renderApp = async (
     .replace(/\{lang\}/g, unicodeCLDRtoISO639(env.DEFAULT_LANGUAGE))
     .replace(/\{title\}/g, escape(title))
     .replace(/\{description\}/g, escape(description))
+    .replace(
+      /\{manifest-url\}/g,
+      options.isShare ? "" : "/static/manifest.webmanifest"
+    )
     .replace(/\{canonical-url\}/g, canonical)
-    .replace(/\{shortcut-icon\}/g, shortcutIcon)
+    .replace(/\{shortcut-icon-url\}/g, shortcutIcon)
+    .replace(/\{cdn-url\}/g, env.CDN_URL || "")
     .replace(/\{prefetch\}/g, shareId ? "" : prefetchTags)
     .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
-    .replace(/\{cdn-url\}/g, env.CDN_URL || "")
     .replace(/\{script-tags\}/g, scriptTags)
     .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);
 };
@@ -175,6 +180,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
         ? team.avatarUrl
         : undefined,
     analytics,
+    isShare: true,
     rootShareId,
     canonical: share
       ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`

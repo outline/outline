@@ -70,7 +70,7 @@ export default class Placeholder extends Mark {
             return true;
           },
           handleKeyDown: (view, event: KeyboardEvent) => {
-            if (!view.props.editable || !view.props.editable(view.state)) {
+            if (!view.editable) {
               return false;
             }
             if (this.editor.props.template) {
@@ -138,7 +138,7 @@ export default class Placeholder extends Mark {
             return false;
           },
           handleClick: (view, pos, event: MouseEvent) => {
-            if (!view.props.editable || !view.props.editable(view.state)) {
+            if (!view.editable) {
               return false;
             }
             if (this.editor.props.template) {

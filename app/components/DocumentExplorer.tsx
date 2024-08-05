@@ -230,7 +230,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
         title = node.title;
       } else {
         const doc = documents.get(node.id);
-        icon = doc?.icon ?? node.icon;
+        icon = doc?.icon ?? node.icon ?? node.emoji;
         color = doc?.color ?? node.color;
         title = doc?.title ?? node.title;
 

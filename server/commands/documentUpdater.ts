@@ -105,11 +105,11 @@ export default async function documentUpdater({
     ip,
   };
 
-  if (publish && cId) {
+  if (publish && (document.template || cId)) {
     if (!document.collectionId) {
       document.collectionId = cId;
     }
-    await document.publish(user.id, cId, { transaction });
+    await document.publish(user, cId, { transaction });
 
     await Event.create(
       {
@@ -120,6 +120,7 @@ export default async function documentUpdater({
     );
   } else if (changed) {
     document.lastModifiedById = user.id;
+    document.updatedBy = user;
     await document.save({ transaction });
 
     await Event.create(event, { transaction });

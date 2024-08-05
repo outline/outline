@@ -9,7 +9,7 @@ import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { StatusFilter, TeamPreference, UserRole } from "@shared/types";
+import { TeamPreference, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -48,7 +48,8 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
-import { authorize, cannot } from "@server/policies";
+import { TextHelper } from "@server/models/helpers/TextHelper";
+import { authorize, can, cannot } from "@server/policies";
 import {
   presentCollection,
   presentDocument,
@@ -129,7 +130,15 @@ router.post(
       } // otherwise, filter by all collections the user has access to
     } else {
       const collectionIds = await user.collectionIds();
-      where = { ...where, collectionId: collectionIds };
+      where = {
+        ...where,
+        collectionId:
+          template && can(user, "readTemplate", user.team)
+            ? {
+                [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
+              }
+            : collectionIds,
+      };
     }
 
     if (parentDocumentId) {
@@ -681,7 +690,7 @@ router.post(
     if (document.deletedAt) {
       authorize(user, "restore", document);
       // restore a previously deleted document
-      await document.unarchive(user.id);
+      await document.unarchive(user);
       await Event.createFromContext(ctx, {
         name: "documents.restore",
         documentId: document.id,
@@ -693,7 +702,7 @@ router.post(
     } else if (document.archivedAt) {
       authorize(user, "unarchive", document);
       // restore a previously archived document
-      await document.unarchive(user.id);
+      await document.unarchive(user);
       await Event.createFromContext(ctx, {
         name: "documents.unarchive",
         documentId: document.id,
@@ -789,28 +798,17 @@ router.post(
       userId,
       dateFilter,
       statusFilter = [],
-      includeArchived,
-      includeDrafts,
       shareId,
       snippetMinWords,
       snippetMaxWords,
     } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
-
-    // Unfortunately, this still doesn't adequately handle cases when auth is optional
     const { user } = ctx.state.auth;
-
-    // TODO: Deprecated filter options, remove in a few versions
-    if (includeArchived && !statusFilter.includes(StatusFilter.Archived)) {
-      statusFilter.push(StatusFilter.Archived);
-    }
-    if (includeDrafts && !statusFilter.includes(StatusFilter.Draft)) {
-      statusFilter.push(StatusFilter.Draft);
-    }
 
     let teamId;
     let response;
     let share;
+    let isPublic = false;
 
     if (shareId) {
       const teamFromCtx = await getTeamFromContext(ctx);
@@ -821,6 +819,7 @@ router.post(
       });
 
       share = loaded.share;
+      isPublic = cannot(user, "read", document);
 
       if (!share?.includeChildDocuments) {
         throw InvalidRequestError("Child documents cannot be searched");
@@ -890,7 +889,9 @@ router.post(
 
     const data = await Promise.all(
       results.map(async (result) => {
-        const document = await presentDocument(ctx, result.document);
+        const document = await presentDocument(ctx, result.document, {
+          isPublic,
+        });
         return { ...result, document };
       })
     );
@@ -923,7 +924,7 @@ router.post(
   validate(T.DocumentsTemplatizeSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsTemplatizeReq>) => {
-    const { id } = ctx.input.body;
+    const { id, collectionId, publish } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -934,12 +935,21 @@ router.post(
 
     authorize(user, "update", original);
 
+    if (collectionId) {
+      const collection = await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(collectionId, { transaction });
+      authorize(user, "createDocument", collection);
+    } else {
+      authorize(user, "createTemplate", user.team);
+    }
+
     const document = await Document.create(
       {
         editorVersion: original.editorVersion,
-        collectionId: original.collectionId,
-        teamId: original.teamId,
-        publishedAt: new Date(),
+        collectionId,
+        teamId: user.teamId,
+        publishedAt: publish ? new Date() : null,
         lastModifiedById: user.id,
         createdById: user.id,
         template: true,
@@ -1014,7 +1024,7 @@ router.post(
         authorize(user, "publish", document);
       }
 
-      if (!document.collectionId) {
+      if (!document.collectionId && !document.isWorkspaceTemplate) {
         assertPresent(
           collectionId,
           "collectionId is required to publish a draft without collection"
@@ -1033,6 +1043,8 @@ router.post(
           }
         );
         authorize(user, "createChildDocument", parentDocument, { collection });
+      } else if (document.isWorkspaceTemplate) {
+        authorize(user, "createTemplate", user.team);
       } else {
         authorize(user, "createDocument", collection);
       }
@@ -1083,6 +1095,8 @@ router.post(
 
     if (collection) {
       authorize(user, "updateDocument", collection);
+    } else if (document.isWorkspaceTemplate) {
+      authorize(user, "createTemplate", user.team);
     }
 
     if (parentDocumentId) {
@@ -1135,10 +1149,16 @@ router.post(
     });
     authorize(user, "move", document);
 
-    const collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(collectionId, { transaction });
-    authorize(user, "updateDocument", collection);
+    if (collectionId) {
+      const collection = await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(collectionId, { transaction });
+      authorize(user, "updateDocument", collection);
+    } else if (document.template) {
+      authorize(user, "updateTemplate", user.team);
+    } else {
+      throw InvalidRequestError("collectionId is required to move a document");
+    }
 
     if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
@@ -1155,7 +1175,7 @@ router.post(
     const { documents, collections, collectionChanged } = await documentMover({
       user,
       document,
-      collectionId,
+      collectionId: collectionId ?? null,
       parentDocumentId,
       index,
       ip: ctx.request.ip,
@@ -1189,7 +1209,7 @@ router.post(
     });
     authorize(user, "archive", document);
 
-    await document.archive(user.id);
+    await document.archive(user);
     await Event.createFromContext(ctx, {
       name: "documents.archive",
       documentId: document.id,
@@ -1237,7 +1257,7 @@ router.post(
 
       authorize(user, "delete", document);
 
-      await document.delete(user.id);
+      await document.delete(user);
       await Event.createFromContext(ctx, {
         name: "documents.delete",
         documentId: document.id,
@@ -1278,7 +1298,7 @@ router.post(
       );
     }
 
-    await document.unpublish(user.id);
+    await document.unpublish(user);
     await Event.createFromContext(ctx, {
       name: "documents.unpublish",
       documentId: document.id,
@@ -1433,6 +1453,8 @@ router.post(
         transaction,
       });
       authorize(user, "createDocument", collection);
+    } else if (!!template && !collectionId) {
+      authorize(user, "createTemplate", user.team);
     }
 
     let templateDocument: Document | null | undefined;
@@ -1447,7 +1469,12 @@ router.post(
 
     const document = await documentCreator({
       title,
-      text,
+      text: await TextHelper.replaceImagesWithAttachments(
+        text,
+        user,
+        ctx.request.ip,
+        transaction
+      ),
       icon,
       color,
       createdAt,
