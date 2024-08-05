@@ -214,9 +214,6 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Doc text to be updated */
     text: z.string().optional(),
 
-    /** Emoji displayed alongside doc title */
-    emoji: z.string().regex(emojiRegex()).nullish(),
-
     /** Icon displayed alongside doc title */
     icon: z
       .union([
@@ -325,9 +322,6 @@ export const DocumentsCreateSchema = BaseSchema.extend({
 
     /** Document text */
     text: z.string().default(""),
-
-    /** Emoji displayed alongside doc title */
-    emoji: z.string().regex(emojiRegex()).nullish(),
 
     /** Icon displayed alongside doc title */
     icon: z

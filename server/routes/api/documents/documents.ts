@@ -953,7 +953,6 @@ router.post(
         lastModifiedById: user.id,
         createdById: user.id,
         template: true,
-        emoji: original.emoji,
         icon: original.icon,
         color: original.color,
         title: original.title,
@@ -1055,7 +1054,7 @@ router.post(
       document,
       user,
       ...input,
-      icon: input.icon ?? input.emoji ?? null,
+      icon: input.icon ?? null,
       publish,
       collectionId,
       insightsEnabled,
@@ -1404,7 +1403,6 @@ router.post(
     const {
       title,
       text,
-      emoji,
       icon,
       color,
       publish,
@@ -1477,7 +1475,7 @@ router.post(
         ctx.request.ip,
         transaction
       ),
-      icon: icon ?? emoji,
+      icon,
       color,
       createdAt,
       publish,
