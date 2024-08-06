@@ -281,7 +281,10 @@ class UiStore {
 
   @computed
   get readyToShow() {
-    return !this.rootStore.auth.user || this.rootStore.documents.isLoaded;
+    return (
+      !this.rootStore.auth.user ||
+      (this.rootStore.collections.isLoaded && this.rootStore.documents.isLoaded)
+    );
   }
 
   /**
