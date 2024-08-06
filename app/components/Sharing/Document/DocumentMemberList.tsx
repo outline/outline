@@ -7,16 +7,13 @@ import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
-import { Pagination } from "@shared/constants";
 import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
 import UserMembership from "~/models/UserMembership";
 import { AvatarSize } from "~/components/Avatar/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
-import LoadingIndicator from "~/components/LoadingIndicator";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
-import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue, Permission } from "~/types";
 import { homePath } from "~/utils/routeHelpers";
@@ -34,37 +31,12 @@ type Props = {
 
 function DocumentMembersList({ document, invitedInSession }: Props) {
   const { userMemberships, groupMemberships } = useStores();
+
   const user = useCurrentUser();
   const history = useHistory();
   const can = usePolicy(document);
   const { t } = useTranslation();
   const theme = useTheme();
-  const documentId = document.id;
-
-  const { loading: loadingUserMemberships, request: fetchUserMemberships } =
-    useRequest(
-      React.useCallback(
-        () =>
-          userMemberships.fetchDocumentMemberships({
-            id: documentId,
-            limit: Pagination.defaultLimit,
-          }),
-        [userMemberships, documentId]
-      )
-    );
-
-  const { loading: loadingGroupMemberships, request: fetchGroupMemberships } =
-    useRequest(
-      React.useCallback(
-        () => groupMemberships.fetchAll({ documentId }),
-        [groupMemberships, documentId]
-      )
-    );
-
-  React.useEffect(() => {
-    void fetchUserMemberships();
-    void fetchGroupMemberships();
-  }, [fetchUserMemberships, fetchGroupMemberships]);
 
   const handleRemoveUser = React.useCallback(
     async (item) => {
@@ -147,10 +119,6 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
       ] as Permission[],
     [t]
   );
-
-  if (loadingUserMemberships || loadingGroupMemberships) {
-    return <LoadingIndicator />;
-  }
 
   return (
     <>

@@ -1,13 +1,11 @@
-import emojiRegex from "emoji-regex";
 import formidable from "formidable";
 import isEmpty from "lodash/isEmpty";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { DocumentPermission, StatusFilter } from "@shared/types";
-import { IconLibrary } from "@shared/utils/IconLibrary";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { BaseSchema } from "@server/routes/api/schema";
-import { zodEnumFromObjectKeys } from "@server/utils/zod";
+import { zodIconType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
 
 const DocumentsSortParamsSchema = z.object({
@@ -214,16 +212,8 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Doc text to be updated */
     text: z.string().optional(),
 
-    /** Emoji displayed alongside doc title */
-    emoji: z.string().regex(emojiRegex()).nullish(),
-
     /** Icon displayed alongside doc title */
-    icon: z
-      .union([
-        z.string().regex(emojiRegex()),
-        zodEnumFromObjectKeys(IconLibrary.mapping),
-      ])
-      .nullish(),
+    icon: zodIconType().nullish(),
 
     /** Icon color */
     color: z
@@ -326,16 +316,8 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     /** Document text */
     text: z.string().default(""),
 
-    /** Emoji displayed alongside doc title */
-    emoji: z.string().regex(emojiRegex()).nullish(),
-
     /** Icon displayed alongside doc title */
-    icon: z
-      .union([
-        z.string().regex(emojiRegex()),
-        zodEnumFromObjectKeys(IconLibrary.mapping),
-      ])
-      .optional(),
+    icon: zodIconType().optional(),
 
     /** Icon color */
     color: z

@@ -1,5 +1,4 @@
 import * as React from "react";
-import useMobile from "./useMobile";
 import useWindowSize from "./useWindowSize";
 
 const useMaxHeight = ({
@@ -15,12 +14,11 @@ const useMaxHeight = ({
   margin?: number;
 }) => {
   const [maxHeight, setMaxHeight] = React.useState<number | undefined>(10);
-  const isMobile = useMobile();
   const { height: windowHeight } = useWindowSize();
 
-  React.useLayoutEffect(() => {
-    if (!isMobile && elementRef?.current) {
-      const mxHeight = (windowHeight / 100) * maxViewportPercentage;
+  const calcMaxHeight = React.useCallback(() => {
+    if (elementRef?.current) {
+      const mxHeight = (windowHeight / 100) * maxViewportPercentage - margin;
 
       setMaxHeight(
         Math.min(
@@ -35,9 +33,11 @@ const useMaxHeight = ({
     } else {
       setMaxHeight(0);
     }
-  }, [elementRef, windowHeight, margin, isMobile, maxViewportPercentage]);
+  }, [elementRef, windowHeight, margin, maxViewportPercentage]);
 
-  return maxHeight;
+  React.useLayoutEffect(calcMaxHeight, [calcMaxHeight]);
+
+  return { maxHeight, calcMaxHeight };
 };
 
 export default useMaxHeight;

@@ -1,13 +1,15 @@
-import { observer } from "mobx-react";
-import { GroupIcon } from "outline-icons";
+import { GroupIcon, UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
 import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
+import InputSelectPermission from "~/components/InputSelectPermission";
+import Scrollable from "~/components/Scrollable";
+import useMaxHeight from "~/hooks/useMaxHeight";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -23,31 +25,42 @@ type Props = {
   invitedInSession: string[];
 };
 
-function CollectionMemberList({ collection, invitedInSession }: Props) {
+export function AccessControlList({ collection, invitedInSession }: Props) {
   const { memberships, groupMemberships } = useStores();
   const can = usePolicy(collection);
   const { t } = useTranslation();
   const theme = useTheme();
   const collectionId = collection.id;
 
-  const { request: fetchMemberships } = useRequest(
+  const { request: fetchMemberships, data: membershipData } = useRequest(
     React.useCallback(
       () => memberships.fetchAll({ id: collectionId }),
       [memberships, collectionId]
     )
   );
 
-  const { request: fetchGroupMemberships } = useRequest(
-    React.useCallback(
-      () => groupMemberships.fetchAll({ id: collectionId }),
-      [groupMemberships, collectionId]
-    )
-  );
+  const { request: fetchGroupMemberships, data: groupMembershipData } =
+    useRequest(
+      React.useCallback(
+        () => groupMemberships.fetchAll({ id: collectionId }),
+        [groupMemberships, collectionId]
+      )
+    );
 
   React.useEffect(() => {
     void fetchMemberships();
     void fetchGroupMemberships();
   }, [fetchMemberships, fetchGroupMemberships]);
+
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const { maxHeight, calcMaxHeight } = useMaxHeight({
+    elementRef: containerRef,
+    maxViewportPercentage: 70,
+  });
+
+  React.useEffect(() => {
+    calcMaxHeight();
+  });
 
   const permissions = React.useMemo(
     () =>
@@ -73,8 +86,43 @@ function CollectionMemberList({ collection, invitedInSession }: Props) {
     [t]
   );
 
+  if (!membershipData || !groupMembershipData) {
+    return null;
+  }
+
   return (
-    <>
+    <ScrollableContainer
+      ref={containerRef}
+      hiddenScrollbars
+      style={{ maxHeight }}
+    >
+      <ListItem
+        image={
+          <Squircle color={theme.accent} size={AvatarSize.Medium}>
+            <UserIcon color={theme.accentText} size={16} />
+          </Squircle>
+        }
+        title={t("All members")}
+        subtitle={t("Everyone in the workspace")}
+        actions={
+          <div style={{ marginRight: -8 }}>
+            <InputSelectPermission
+              style={{ margin: 0 }}
+              onChange={(
+                value: CollectionPermission | typeof EmptySelectValue
+              ) => {
+                void collection.save({
+                  permission: value === EmptySelectValue ? null : value,
+                });
+              }}
+              disabled={!can.update}
+              value={collection?.permission}
+              labelHidden
+              nude
+            />
+          </div>
+        }
+      />
       {groupMemberships
         .inCollection(collection.id)
         .sort((a, b) =>
@@ -173,8 +221,11 @@ function CollectionMemberList({ collection, invitedInSession }: Props) {
             }
           />
         ))}
-    </>
+    </ScrollableContainer>
   );
 }
 
-export default observer(CollectionMemberList);
+const ScrollableContainer = styled(Scrollable)`
+  padding: 12px 24px;
+  margin: -12px -24px;
+`;

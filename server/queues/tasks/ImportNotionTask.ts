@@ -130,7 +130,6 @@ export default class ImportNotionTask extends ImportTask {
             output.documents.push({
               id,
               title,
-              emoji: icon,
               icon,
               text,
               collectionId,

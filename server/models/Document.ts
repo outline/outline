@@ -312,17 +312,6 @@ class Document extends ParanoidModel<
   @Column
   editorVersion: string;
 
-  /**
-   * An emoji to use as the document icon,
-   * This is used as fallback (for backward compat) when icon is not set.
-   */
-  @Length({
-    max: 50,
-    msg: `Emoji must be 50 characters or less`,
-  })
-  @Column
-  emoji: string | null;
-
   /** An icon to use as the document icon. */
   @Length({
     max: 50,
@@ -808,7 +797,6 @@ class Document extends ParanoidModel<
     this.content = revision.content;
     this.text = revision.text;
     this.title = revision.title;
-    this.emoji = revision.emoji;
     this.icon = revision.icon;
     this.color = revision.color;
   };
@@ -1143,7 +1131,6 @@ class Document extends ParanoidModel<
       id: this.id,
       title: this.title,
       url: this.url,
-      emoji: isNil(this.emoji) ? undefined : this.emoji,
       icon: isNil(this.icon) ? undefined : this.icon,
       color: isNil(this.color) ? undefined : this.color,
       children,

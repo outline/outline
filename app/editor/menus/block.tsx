@@ -123,7 +123,7 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "code_block",
       title: dictionary.codeBlock,
       icon: <CodeIcon />,
-      shortcut: "^ ⇧ \\",
+      shortcut: "^ ⇧ c",
       keywords: "script",
     },
     {

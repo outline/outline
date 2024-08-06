@@ -18,13 +18,13 @@ describe("user model", () => {
         buildUser({
           name: "www.google.com",
         })
-      ).rejects.toThrowError();
+      ).rejects.toThrow();
 
       await expect(
         buildUser({
           name: "My name https://malicious.com",
         })
-      ).rejects.toThrowError();
+      ).rejects.toThrow();
 
       await expect(
         buildUser({

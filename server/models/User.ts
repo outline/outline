@@ -670,7 +670,7 @@ class User extends ParanoidModel<
       if (attachment) {
         await DeleteAttachmentTask.schedule({
           attachmentId: attachment.id,
-          teamId: model.id,
+          teamId: model.teamId,
         });
       }
     }

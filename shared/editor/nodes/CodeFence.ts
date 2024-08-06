@@ -236,6 +236,8 @@ export default class CodeFence extends Node {
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     const output: Record<string, Command> = {
+      // Both shortcuts work, but Shift-Ctrl-c matches the one in the menu
+      "Shift-Ctrl-c": toggleBlockType(type, schema.nodes.paragraph),
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),
       Tab: insertSpaceTab,
       Enter: (state, dispatch) => {

@@ -99,21 +99,15 @@ export default async function documentCreator({
       importId,
       sourceMetadata,
       fullWidth: templateDocument ? templateDocument.fullWidth : fullWidth,
-      emoji: templateDocument ? templateDocument.emoji : icon,
-      icon: templateDocument ? templateDocument.emoji : icon,
+      icon: templateDocument ? templateDocument.icon : icon,
       color: templateDocument ? templateDocument.color : color,
       title: TextHelper.replaceTemplateVariables(
         templateDocument ? templateDocument.title : title,
         user
       ),
-      text: await TextHelper.replaceImagesWithAttachments(
-        TextHelper.replaceTemplateVariables(
-          templateDocument ? templateDocument.text : text,
-          user
-        ),
-        user,
-        ip,
-        transaction
+      text: TextHelper.replaceTemplateVariables(
+        templateDocument ? templateDocument.text : text,
+        user
       ),
       content: templateDocument
         ? ProsemirrorHelper.replaceTemplateVariables(
