@@ -42,6 +42,13 @@ if (env.GOOGLE_ANALYTICS_ID) {
   scriptSrc.push("www.google-analytics.com");
 }
 
+if (env.UMAMI_SCRIPT_DOMAIN) {
+  const domain = env.UMAMI_SCRIPT_DOMAIN.replace(/(^\w+:|^)\/\//, "").split(
+    "/"
+  )[0];
+  scriptSrc.push(domain);
+}
+
 if (env.CDN_URL) {
   scriptSrc.push(env.CDN_URL);
   styleSrc.push(env.CDN_URL);

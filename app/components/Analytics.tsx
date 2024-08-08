@@ -106,6 +106,25 @@ const Analytics: React.FC = ({ children }: Props) => {
     });
   }, []);
 
+  // Umami
+  React.useEffect(() => {
+    (env.analytics as PublicEnv["analytics"]).forEach((integration) => {
+      if (integration.service !== IntegrationService.Umami) {
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.type = "text/javascript";
+      script.defer = true;
+      script.src = `${integration.settings?.instanceUrl}/${integration.settings?.scriptName}`;
+      script.setAttribute(
+        "data-website-id",
+        integration.settings?.measurementId
+      );
+      document.getElementsByTagName("head")[0]?.appendChild(script);
+    });
+  }, []);
+
   return <>{children}</>;
 };
 

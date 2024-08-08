@@ -3,7 +3,13 @@
   "description": "Open source wiki and knowledge base for growing teams",
   "website": "https://www.getoutline.com/",
   "repository": "https://github.com/outline/outline",
-  "keywords": ["wiki", "team", "node", "markdown", "slack"],
+  "keywords": [
+    "wiki",
+    "team",
+    "node",
+    "markdown",
+    "slack"
+  ],
   "success_url": "/",
   "formation": {
     "web": {
@@ -196,6 +202,20 @@
     },
     "GOOGLE_ANALYTICS_ID": {
       "description": "G-xxxx (optional)",
+      "required": false
+    },
+    "UMAMI_SCRIPT_DOMAIN": {
+      "description": "Protocols and domain names (optional)",
+      "value": "https://cloud.umami.is",
+      "required": false
+    },
+    "UMAMI_SCRIPT_NAME": {
+      "description": "Script Name (optional)",
+      "value": "script.js",
+      "required": false
+    },
+    "UMAMI_WEBSITE_ID": {
+      "description": "xxx-xxx-xxx-xxx-xxx (optional)",
       "required": false
     },
     "SENTRY_DSN": {
