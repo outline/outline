@@ -5,7 +5,6 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { Pagination } from "@shared/constants";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
@@ -43,7 +42,7 @@ function AppSidebar() {
   React.useEffect(() => {
     if (!user.isViewer) {
       void documents.fetchDrafts();
-      void collections.fetchPage({ limit: Pagination.maxLimit });
+      void collections.fetchAll();
     }
   }, [documents, collections, user.isViewer]);
 
