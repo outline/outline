@@ -65,7 +65,7 @@ function Umami() {
           await integrations.save({
             id: integration?.id,
             type: IntegrationType.Analytics,
-            service: IntegrationService.Matomo,
+            service: IntegrationService.Umami,
             settings: {
               measurementId: data.umamiWebsiteId,
               instanceUrl: data.umamiDomain.replace(/\/?$/, "/"),
@@ -106,7 +106,6 @@ function Umami() {
           <Input
             required
             placeholder="https://cloud.umami.is/"
-            defaultValue={integration?.settings.instanceUrl}
             {...register("umamiDomain")}
           />
         </SettingRow>
@@ -121,7 +120,6 @@ function Umami() {
           <Input
             required
             placeholder="script.js"
-            defaultValue={integration?.settings.scriptName}
             {...register("umamiScriptName")}
           />
         </SettingRow>
