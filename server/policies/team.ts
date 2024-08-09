@@ -40,7 +40,7 @@ allow(User, ["delete", "audit"], Team, (actor, team) =>
   )
 );
 
-allow(User, ["createTemplate", "readTemplate"], Team, (actor, team) =>
+allow(User, "createTemplate", Team, (actor, team) =>
   and(
     //
     !actor.isGuest,
@@ -48,6 +48,10 @@ allow(User, ["createTemplate", "readTemplate"], Team, (actor, team) =>
     isTeamModel(actor, team),
     isTeamMutable(actor)
   )
+);
+
+allow(User, "readTemplate", Team, (actor, team) =>
+  and(!actor.isViewer, isTeamModel(actor, team))
 );
 
 allow(User, "updateTemplate", Team, (actor, team) =>

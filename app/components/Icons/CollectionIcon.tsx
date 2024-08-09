@@ -57,6 +57,7 @@ function ResolvedCollectionIcon({
       size={size}
       initial={collection.initial}
       className={className}
+      forceColor={inputColor ? true : false}
     />
   );
 }
