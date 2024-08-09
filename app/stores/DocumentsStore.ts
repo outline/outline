@@ -804,7 +804,7 @@ export default class DocumentsStore extends Store<Document> {
 
   unstar = (document: Document) => {
     const star = this.rootStore.stars.orderedData.find(
-      (star) => star.documentId === document.id
+      (s) => s.documentId === document.id
     );
     return star?.delete();
   };
@@ -817,9 +817,7 @@ export default class DocumentsStore extends Store<Document> {
 
   unsubscribe = (userId: string, document: Document) => {
     const subscription = this.rootStore.subscriptions.orderedData.find(
-      (subscription) =>
-        subscription.documentId === document.id &&
-        subscription.userId === userId
+      (s) => s.documentId === document.id && s.userId === userId
     );
 
     return subscription?.delete();

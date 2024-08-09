@@ -116,8 +116,8 @@ const CollectionLink: React.FC<Props> = ({
     }),
   });
 
-  const handleTitleEditing = React.useCallback((isEditing: boolean) => {
-    setIsEditing(isEditing);
+  const handleTitleEditing = React.useCallback((value: boolean) => {
+    setIsEditing(value);
   }, []);
 
   const handlePrefetch = React.useCallback(() => {

@@ -284,7 +284,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
                 group !== "comment" ||
                 team.getPreference(TeamPreference.Commenting)
             )
-            .map(([group, events], i) => (
+            .map(([group, groupEvents], i) => (
               <GroupWrapper key={i} isMobile={isMobile}>
                 <EventCheckbox
                   label={t(`All {{ groupName }} events`, {
@@ -293,7 +293,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
                   value={group}
                 />
                 <FieldSet disabled={selectedGroups.includes(group)}>
-                  {events.map((event) => (
+                  {groupEvents.map((event) => (
                     <EventCheckbox label={event} value={event} key={event} />
                   ))}
                 </FieldSet>

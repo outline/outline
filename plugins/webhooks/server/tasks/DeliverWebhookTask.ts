@@ -72,7 +72,7 @@ import presentWebhook, { WebhookPayload } from "../presenters/webhook";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
 
 function assertUnreachable(event: never) {
-  Logger.warn(`DeliverWebhookTask did not handle ${(event as any).name}`);
+  Logger.warn(`DeliverWebhookTask did not handle ${(event as Event).name}`);
 }
 
 type Props = {
