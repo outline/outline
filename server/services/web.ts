@@ -21,6 +21,7 @@ import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
+import environment from "@server/utils/environment";
 
 // Construct scripts CSP based on services in use by this installation
 const defaultSrc = ["'self'"];
@@ -40,6 +41,14 @@ if (!env.isProduction) {
 
 if (env.GOOGLE_ANALYTICS_ID) {
   scriptSrc.push("www.google-analytics.com");
+}
+
+if (environment.UMAMI_SCRIPT_DOMAIN) {
+  const domain = environment.UMAMI_SCRIPT_DOMAIN.replace(
+    /(^\w+:|^)\/\//,
+    ""
+  ).split("/")[0];
+  scriptSrc.push(domain);
 }
 
 if (env.CDN_URL) {

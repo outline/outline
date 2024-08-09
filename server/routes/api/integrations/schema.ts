@@ -55,6 +55,7 @@ export const IntegrationsCreateSchema = BaseSchema.extend({
         z.object({
           measurementId: z.string(),
           instanceUrl: z.string().url().optional(),
+          scriptName: z.string().optional(),
         })
       )
       .or(z.object({ serviceTeamId: z.string() }))
@@ -83,6 +84,7 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
         z.object({
           measurementId: z.string(),
           instanceUrl: z.string().url().optional(),
+          scriptName: z.string().optional(),
         })
       )
       .or(z.object({ serviceTeamId: z.string() }))
