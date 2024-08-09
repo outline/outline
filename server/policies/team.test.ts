@@ -58,7 +58,7 @@ describe("policies/team", () => {
       [UserRole.Admin, true],
       [UserRole.Member, true],
       [UserRole.Viewer, false],
-      [UserRole.Guest, false],
+      [UserRole.Guest, true],
     ]);
     for (const [role, permission] of permissions.entries()) {
       it(`check permission for ${role}`, async () => {

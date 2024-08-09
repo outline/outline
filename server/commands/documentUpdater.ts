@@ -69,7 +69,6 @@ export default async function documentUpdater({
     document.title = title.trim();
   }
   if (icon !== undefined) {
-    document.emoji = icon;
     document.icon = icon;
   }
   if (color !== undefined) {
