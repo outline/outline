@@ -45,7 +45,12 @@ export class DocumentHelper {
    * @param document The document or revision to convert
    * @returns The document content as a Prosemirror Node
    */
-  static toProsemirror(document: Document | Revision | Collection) {
+  static toProsemirror(
+    document: Document | Revision | Collection | ProsemirrorData
+  ) {
+    if ("type" in document && document.type === "doc") {
+      return Node.fromJSON(schema, document);
+    }
     if ("content" in document && document.content) {
       return Node.fromJSON(schema, document.content);
     }
@@ -139,8 +144,8 @@ export class DocumentHelper {
     const node = DocumentHelper.toProsemirror(document);
     const textSerializers = Object.fromEntries(
       Object.entries(schema.nodes)
-        .filter(([, node]) => node.spec.toPlainText)
-        .map(([name, node]) => [name, node.spec.toPlainText])
+        .filter(([, n]) => n.spec.toPlainText)
+        .map(([name, n]) => [name, n.spec.toPlainText])
     );
 
     return textBetween(node, 0, node.content.size, textSerializers);
@@ -152,7 +157,9 @@ export class DocumentHelper {
    * @param document The document or revision to convert
    * @returns The document title and content as a Markdown string
    */
-  static toMarkdown(document: Document | Revision | Collection) {
+  static toMarkdown(
+    document: Document | Revision | Collection | ProsemirrorData
+  ) {
     const text = serializer
       .serialize(DocumentHelper.toProsemirror(document))
       .replace(/\n\\(\n|$)/g, "\n\n")
@@ -166,13 +173,17 @@ export class DocumentHelper {
       return text;
     }
 
-    const iconType = determineIconType(document.icon);
+    if (document instanceof Document || document instanceof Revision) {
+      const iconType = determineIconType(document.icon);
 
-    const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${
-      document.title
-    }`;
+      const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${
+        document.title
+      }`;
 
-    return `# ${title}\n\n${text}`;
+      return `# ${title}\n\n${text}`;
+    }
+
+    return text;
   }
 
   /**
