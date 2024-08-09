@@ -114,7 +114,6 @@ const Analytics: React.FC = ({ children }: Props) => {
       }
 
       const script = document.createElement("script");
-      script.type = "text/javascript";
       script.defer = true;
       script.src = `${integration.settings?.instanceUrl}/${integration.settings?.scriptName}`;
       script.setAttribute(
