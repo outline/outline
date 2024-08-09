@@ -72,11 +72,13 @@ export class DocumentHelper {
     document: Document | Revision | Collection,
     options?: {
       /** The team context */
-      teamId: string;
+      teamId?: string;
       /** Whether to sign attachment urls, and if so for how many seconds is the signature valid */
-      signedUrls: number;
+      signedUrls?: number;
       /** Marks to remove from the document */
       removeMarks?: string[];
+      /** The base path to use for internal links (will replace /doc/) */
+      internalUrlBase?: string;
     }
   ): Promise<ProsemirrorData> {
     let doc: Node | null;
@@ -84,7 +86,11 @@ export class DocumentHelper {
 
     if ("content" in document && document.content) {
       // Optimized path for documents with content available and no transformation required.
-      if (!options?.removeMarks && !options?.signedUrls) {
+      if (
+        !options?.removeMarks &&
+        !options?.signedUrls &&
+        !options?.internalUrlBase
+      ) {
         return document.content;
       }
       doc = Node.fromJSON(schema, document.content);
@@ -98,7 +104,7 @@ export class DocumentHelper {
       doc = parser.parse(document.text);
     }
 
-    if (doc && options?.signedUrls) {
+    if (doc && options?.signedUrls && options?.teamId) {
       json = await ProsemirrorHelper.signAttachmentUrls(
         doc,
         options.teamId,
@@ -106,6 +112,13 @@ export class DocumentHelper {
       );
     } else {
       json = doc?.toJSON() ?? {};
+    }
+
+    if (options?.internalUrlBase) {
+      json = ProsemirrorHelper.replaceInternalUrls(
+        json,
+        options.internalUrlBase
+      );
     }
 
     if (options?.removeMarks) {
