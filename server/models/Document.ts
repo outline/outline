@@ -873,7 +873,8 @@ class Document extends ParanoidModel<
     return this.save(options);
   };
 
-  isCollectionDeleted = async () => {
+  isCollectionDeleted = async (options?: FindOptions<Collection>) => {
+    const { transaction } = { ...options };
     if (this.deletedAt || this.archivedAt) {
       if (this.collectionId) {
         const collection =
@@ -881,6 +882,7 @@ class Document extends ParanoidModel<
           (await Collection.findByPk(this.collectionId, {
             attributes: ["deletedAt"],
             paranoid: false,
+            transaction,
           }));
 
         return !!collection?.deletedAt;
@@ -923,68 +925,72 @@ class Document extends ParanoidModel<
 
   // Moves a document from being visible to the team within a collection
   // to the archived area, where it can be subsequently restored.
-  archive = async (user: User) => {
-    await this.sequelize.transaction(async (transaction: Transaction) => {
-      const collection = this.collectionId
-        ? await Collection.findByPk(this.collectionId, {
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-          })
-        : undefined;
+  archive = async (user: User, options?: FindOptions) => {
+    const { transaction } = { ...options };
+    const collection = this.collectionId
+      ? await Collection.findByPk(this.collectionId, {
+          transaction,
+          lock: transaction?.LOCK.UPDATE,
+        })
+      : undefined;
 
-      if (collection) {
-        await collection.removeDocumentInStructure(this, { transaction });
-        if (this.collection) {
-          this.collection.documentStructure = collection.documentStructure;
-        }
+    if (collection) {
+      await collection.removeDocumentInStructure(this, { transaction });
+      if (this.collection) {
+        this.collection.documentStructure = collection.documentStructure;
       }
-    });
+    }
 
-    await this.archiveWithChildren(user);
+    await this.archiveWithChildren(user, { transaction });
     return this;
   };
 
   // Restore an archived document back to being visible to the team
-  unarchive = async (user: User) => {
-    await this.sequelize.transaction(async (transaction: Transaction) => {
-      const collection = this.collectionId
-        ? await Collection.findByPk(this.collectionId, {
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-          })
-        : undefined;
-
-      // check to see if the documents parent hasn't been archived also
-      // If it has then restore the document to the collection root.
-      if (this.parentDocumentId) {
-        const parent = await (this.constructor as typeof Document).findOne({
-          where: {
-            id: this.parentDocumentId,
-          },
-        });
-        if (parent?.isDraft || !parent?.isActive) {
-          this.parentDocumentId = null;
-        }
-      }
-
-      if (!this.template && this.publishedAt && collection) {
-        await collection.addDocumentToStructure(this, undefined, {
+  restoreTo = async (
+    collectionId: string,
+    options: FindOptions & { user: User }
+  ) => {
+    const { transaction } = { ...options };
+    const collection = collectionId
+      ? await Collection.findByPk(collectionId, {
           transaction,
-        });
-        if (this.collection) {
-          this.collection.documentStructure = collection.documentStructure;
-        }
+          lock: transaction?.LOCK.UPDATE,
+        })
+      : undefined;
+
+    // check to see if the documents parent hasn't been archived also
+    // If it has then restore the document to the collection root.
+    if (this.parentDocumentId) {
+      const parent = await (this.constructor as typeof Document).findOne({
+        where: {
+          id: this.parentDocumentId,
+        },
+        transaction,
+      });
+      if (parent?.isDraft || !parent?.isActive) {
+        this.parentDocumentId = null;
       }
-    });
+    }
+
+    if (!this.template && this.publishedAt && collection?.isActive) {
+      await collection.addDocumentToStructure(this, undefined, {
+        transaction,
+      });
+    }
 
     if (this.deletedAt) {
-      await this.restore();
+      await this.restore({ transaction });
     }
 
     this.archivedAt = null;
-    this.lastModifiedById = user.id;
-    this.updatedBy = user;
-    await this.save();
+    this.lastModifiedById = options.user.id;
+    this.updatedBy = options.user;
+    this.collectionId = collectionId;
+    await this.save({ transaction });
+    await this.reload({ transaction });
+    if (this.collection && collection) {
+      this.collection.documentStructure = collection.documentStructure;
+    }
     return this;
   };
 
@@ -1093,6 +1099,7 @@ class Document extends ParanoidModel<
         where: {
           parentDocumentId,
         },
+        ...options,
       });
       for (const child of childDocuments) {
         await archiveChildren(child.id);

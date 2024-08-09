@@ -75,7 +75,9 @@ async function presentDocument(
   if (!options.isPublic) {
     const source = await document.$get("import");
 
-    data.isCollectionDeleted = await document.isCollectionDeleted();
+    data.isCollectionDeleted = await document.isCollectionDeleted({
+      transaction: ctx?.state.transaction,
+    });
     data.collectionId = document.collectionId;
     data.parentDocumentId = document.parentDocumentId;
     data.createdBy = presentUser(document.createdBy);

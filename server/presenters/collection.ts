@@ -24,5 +24,6 @@ export default async function presentCollection(
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,
+    archivedAt: collection.archivedAt,
   };
 }

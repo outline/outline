@@ -309,6 +309,30 @@ class User extends ParanoidModel<
   // instance methods
 
   /**
+   * Whether the user belongs to a given team.
+   *
+   * @param team The team to check
+   * @returns Whether the user belongs to the team
+   */
+  public isMemberOf(team?: Team | string | null) {
+    if (!team) {
+      return false;
+    }
+    const teamId = typeof team === "string" ? team : team.id;
+    return this.teamId === teamId;
+  }
+
+  /**
+   * Whether the user is a given team's admin.
+   *
+   * @param team The team to check
+   * @returns Whether the user is an admin of the team
+   */
+  public isTeamAdmin(team?: Team | string | null) {
+    return this.isAdmin && this.isMemberOf(team);
+  }
+
+  /**
    * Sets a preference for the users notification settings.
    *
    * @param type The type of notification event

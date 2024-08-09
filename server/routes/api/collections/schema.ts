@@ -196,6 +196,22 @@ export const CollectionsDeleteSchema = BaseSchema.extend({
 
 export type CollectionsDeleteReq = z.infer<typeof CollectionsDeleteSchema>;
 
+export const CollectionsArchiveSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type CollectionsArchiveReq = z.infer<typeof CollectionsArchiveSchema>;
+
+export const CollectionsRestoreSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type CollectionsRestoreReq = z.infer<typeof CollectionsRestoreSchema>;
+
+export const CollectionsArchivedSchema = BaseSchema;
+
+export type CollectionsArchivedReq = z.infer<typeof CollectionsArchivedSchema>;
+
 export const CollectionsMoveSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     index: z
