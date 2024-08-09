@@ -386,31 +386,6 @@ export class Environment {
   );
 
   /**
-   * A Umami analytics domain to track user interactions.
-   */
-  @Public
-  @IsOptional()
-  public UMAMI_SCRIPT_DOMAIN = this.toOptionalString(
-    environment.UMAMI_ANALYTICS_DOMAIN
-  );
-
-  /**
-   * A Umami analytics script name to track user interactions.
-   */
-  @Public
-  @IsOptional()
-  public UMAMI_SCRIPT_NAME = this.toOptionalString(
-    environment.UMAMI_SCRIPT_NAME
-  );
-
-  /**
-   * A Umami analytics website ID to track user interactions.
-   */
-  @Public
-  @IsOptional()
-  public UMAMI_WEBSITE_ID = this.toOptionalString(environment.UMAMI_WEBSITE_ID);
-
-  /**
    * A DataDog API key for tracking server metrics.
    */
   public DD_API_KEY = environment.DD_API_KEY;
