@@ -394,6 +394,27 @@ export const DocumentsRemoveUserSchema = BaseSchema.extend({
 
 export type DocumentsRemoveUserReq = z.infer<typeof DocumentsRemoveUserSchema>;
 
+export const DocumentsAddGroupSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    groupId: z.string().uuid(),
+    permission: z
+      .nativeEnum(DocumentPermission)
+      .default(DocumentPermission.ReadWrite),
+  }),
+});
+
+export type DocumentsAddGroupsReq = z.infer<typeof DocumentsAddGroupSchema>;
+
+export const DocumentsRemoveGroupSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    groupId: z.string().uuid(),
+  }),
+});
+
+export type DocumentsRemoveGroupReq = z.infer<
+  typeof DocumentsRemoveGroupSchema
+>;
+
 export const DocumentsSharedWithUserSchema = BaseSchema.extend({
   body: DocumentsSortParamsSchema,
 });
@@ -403,8 +424,7 @@ export type DocumentsSharedWithUserReq = z.infer<
 >;
 
 export const DocumentsMembershipsSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     query: z.string().optional(),
     permission: z.nativeEnum(DocumentPermission).optional(),
   }),

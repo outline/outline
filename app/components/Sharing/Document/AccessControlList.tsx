@@ -11,7 +11,6 @@ import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import Share from "~/models/Share";
 import Flex from "~/components/Flex";
-import LoadingIndicator from "~/components/LoadingIndicator";
 import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -58,10 +57,11 @@ export const AccessControlList = observer(
     const collection = document.collection;
     const usersInCollection = useUsersInCollection(collection);
     const user = useCurrentUser();
-    const { userMemberships } = useStores();
+    const { userMemberships, groupMemberships } = useStores();
     const collectionSharingDisabled = document.collection?.sharing === false;
     const team = useCurrentTeam();
     const can = usePolicy(document);
+    const documentId = document.id;
 
     const containerRef = React.useRef<HTMLDivElement | null>(null);
     const { maxHeight, calcMaxHeight } = useMaxHeight({
@@ -70,34 +70,36 @@ export const AccessControlList = observer(
       margin: 24,
     });
 
-    const {
-      loading: loadingDocumentMembers,
-      request: fetchDocumentMembers,
-      data,
-    } = useRequest(
-      React.useCallback(
-        () =>
-          userMemberships.fetchDocumentMemberships({
-            id: document.id,
-            limit: Pagination.defaultLimit,
-          }),
-        [userMemberships, document.id]
-      )
-    );
+    const { data: userMembershipData, request: fetchUserMemberships } =
+      useRequest(
+        React.useCallback(
+          () =>
+            userMemberships.fetchDocumentMemberships({
+              id: documentId,
+              limit: Pagination.defaultLimit,
+            }),
+          [userMemberships, documentId]
+        )
+      );
+
+    const { data: groupMembershipData, request: fetchGroupMemberships } =
+      useRequest(
+        React.useCallback(
+          () => groupMemberships.fetchAll({ documentId }),
+          [groupMemberships, documentId]
+        )
+      );
 
     React.useEffect(() => {
-      void fetchDocumentMembers();
-    }, [fetchDocumentMembers]);
+      void fetchUserMemberships();
+      void fetchGroupMemberships();
+    }, [fetchUserMemberships, fetchGroupMemberships]);
 
     React.useEffect(() => {
       calcMaxHeight();
     });
 
-    if (loadingDocumentMembers) {
-      return <LoadingIndicator />;
-    }
-
-    if (!data) {
+    if (!userMembershipData || !groupMembershipData) {
       return null;
     }
 

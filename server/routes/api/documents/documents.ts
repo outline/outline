@@ -43,6 +43,8 @@ import {
   User,
   View,
   UserMembership,
+  Group,
+  GroupMembership,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -57,6 +59,8 @@ import {
   presentMembership,
   presentPublicTeam,
   presentUser,
+  presentGroupMembership,
+  presentGroup,
 } from "@server/presenters";
 import DocumentImportTask, {
   DocumentImportTaskResponse,
@@ -1490,7 +1494,9 @@ router.post(
       transaction,
     });
 
-    document.collection = collection;
+    if (collection) {
+      document.collection = collection;
+    }
 
     ctx.body = {
       data: await presentDocument(ctx, document),
@@ -1657,6 +1663,129 @@ router.post(
 );
 
 router.post(
+  "documents.add_group",
+  auth(),
+  validate(T.DocumentsAddGroupSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsAddGroupsReq>) => {
+    const { id, groupId, permission } = ctx.input.body;
+    const { transaction } = ctx.state;
+    const { user } = ctx.state.auth;
+
+    const [document, group] = await Promise.all([
+      Document.findByPk(id, {
+        userId: user.id,
+        rejectOnEmpty: true,
+        transaction,
+      }),
+      Group.findByPk(groupId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
+    authorize(user, "update", document);
+    authorize(user, "read", group);
+
+    const [membership, isNew] = await GroupMembership.findOrCreate({
+      where: {
+        documentId: id,
+        groupId,
+      },
+      defaults: {
+        permission: permission || user.defaultDocumentPermission,
+        createdById: user.id,
+      },
+      lock: transaction.LOCK.UPDATE,
+      transaction,
+    });
+
+    if (permission) {
+      membership.permission = permission;
+
+      // disconnect from the source if the permission is manually updated
+      membership.sourceId = null;
+
+      await membership.save({ transaction });
+    }
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "documents.add_group",
+        documentId: document.id,
+        modelId: groupId,
+        data: {
+          title: document.title,
+          isNew,
+          permission: membership.permission,
+        },
+      },
+      { transaction }
+    );
+
+    ctx.body = {
+      data: {
+        groupMemberships: [presentGroupMembership(membership)],
+      },
+    };
+  }
+);
+
+router.post(
+  "documents.remove_group",
+  auth(),
+  validate(T.DocumentsRemoveGroupSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsRemoveGroupReq>) => {
+    const { id, groupId } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const [document, group] = await Promise.all([
+      Document.findByPk(id, {
+        userId: user.id,
+        rejectOnEmpty: true,
+        transaction,
+      }),
+      Group.findByPk(groupId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
+    authorize(user, "update", document);
+    authorize(user, "read", group);
+
+    const [membership] = await document.$get("groupMemberships", {
+      where: { groupId },
+      transaction,
+    });
+
+    if (!membership) {
+      ctx.throw(400, "This Group is not a part of the document");
+    }
+
+    await document.$remove("group", group, { transaction });
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "documents.remove_group",
+        documentId: document.id,
+        modelId: groupId,
+        data: {
+          name: group.name,
+          membershipId: membership.id,
+        },
+      },
+      { transaction }
+    );
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
   "documents.memberships",
   auth(),
   pagination(),
@@ -1712,6 +1841,69 @@ router.post(
       data: {
         memberships: memberships.map(presentMembership),
         users: memberships.map((membership) => presentUser(membership.user)),
+      },
+    };
+  }
+);
+
+router.post(
+  "documents.group_memberships",
+  auth(),
+  pagination(),
+  validate(T.DocumentsMembershipsSchema),
+  async (ctx: APIContext<T.DocumentsMembershipsReq>) => {
+    const { id, query, permission } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, { userId: user.id });
+    authorize(user, "update", document);
+
+    let where: WhereOptions<GroupMembership> = {
+      documentId: id,
+    };
+    let groupWhere;
+
+    if (query) {
+      groupWhere = {
+        name: {
+          [Op.iLike]: `%${query}%`,
+        },
+      };
+    }
+
+    if (permission) {
+      where = { ...where, permission };
+    }
+
+    const options = {
+      where,
+      include: [
+        {
+          model: Group,
+          as: "group",
+          where: groupWhere,
+          required: true,
+        },
+      ],
+    };
+
+    const [total, memberships] = await Promise.all([
+      GroupMembership.count(options),
+      GroupMembership.findAll({
+        ...options,
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+    ]);
+
+    const groupMemberships = memberships.map(presentGroupMembership);
+
+    ctx.body = {
+      pagination: { ...ctx.state.pagination, total },
+      data: {
+        groupMemberships,
+        groups: memberships.map((membership) => presentGroup(membership.group)),
       },
     };
   }

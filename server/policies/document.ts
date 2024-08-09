@@ -1,10 +1,6 @@
 import invariant from "invariant";
 import some from "lodash/some";
-import {
-  CollectionPermission,
-  DocumentPermission,
-  TeamPreference,
-} from "@shared/types";
+import { DocumentPermission, TeamPreference } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, _cannot as cannot, _can as can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
@@ -285,7 +281,7 @@ allow(User, "unpublish", Document, (user, document) => {
 
 function includesMembership(
   document: Document | null,
-  permissions: (DocumentPermission | CollectionPermission)[]
+  permissions: DocumentPermission[]
 ) {
   if (!document) {
     return false;
@@ -293,7 +289,13 @@ function includesMembership(
 
   invariant(
     document.memberships,
-    "document memberships should be preloaded, did you forget withMembership scope?"
+    "Development: document memberships should be preloaded, did you forget withMembership scope?"
   );
-  return some(document.memberships, (m) => permissions.includes(m.permission));
+  invariant(
+    document.groupMemberships,
+    "Development: document groupMemberships should be preloaded, did you forget withMembership scope?"
+  );
+  return some([...document.memberships, ...document.groupMemberships], (m) =>
+    permissions.includes(m.permission as DocumentPermission)
+  );
 }

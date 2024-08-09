@@ -1,4 +1,5 @@
 import { subHours } from "date-fns";
+import uniq from "lodash/uniq";
 import { Op } from "sequelize";
 import { Server } from "socket.io";
 import {
@@ -29,6 +30,7 @@ import {
   presentTeam,
   presentMembership,
   presentUser,
+  presentGroupUser,
 } from "@server/presenters";
 import presentNotification from "@server/presenters/notification";
 import { Event } from "../../types";
@@ -166,6 +168,46 @@ export default class WebsocketsProcessor {
           userId: event.userId,
           documentId: event.documentId,
         });
+        return;
+      }
+
+      case "documents.add_group": {
+        const [document, membership] = await Promise.all([
+          Document.findByPk(event.documentId),
+          UserMembership.findByPk(event.modelId),
+        ]);
+        if (!document || !membership) {
+          return;
+        }
+
+        const channels = await this.getDocumentEventChannels(event, document);
+        socketio.to(channels).emit(event.name, presentMembership(membership));
+        return;
+      }
+
+      case "documents.remove_group": {
+        const [document, group] = await Promise.all([
+          Document.findByPk(event.documentId),
+          Group.findByPk(event.modelId),
+        ]);
+        if (!document || !group) {
+          return;
+        }
+
+        const channels = await this.getDocumentEventChannels(event, document);
+        const groupUserIds = (await group.$get("groupUsers")).map(
+          (groupUser) => groupUser.userId
+        );
+        const groupUserChannels = groupUserIds.map(
+          (userId) => `user-${userId}`
+        );
+        socketio
+          .to(uniq([...channels, ...groupUserChannels]))
+          .emit(event.name, {
+            id: event.modelId,
+            groupId: event.modelId,
+            documentId: event.documentId,
+          });
         return;
       }
 
@@ -486,16 +528,31 @@ export default class WebsocketsProcessor {
       }
 
       case "groups.add_user": {
-        // do an add user for every collection that the group is a part of
-        const groupMemberships = await GroupMembership.findAll({
-          where: {
-            groupId: event.modelId,
-          },
-        });
+        const [groupUser, groupMemberships] = await Promise.all([
+          GroupUser.scope("withGroup").findOne({
+            where: {
+              groupId: event.modelId,
+              userId: event.userId,
+            },
+          }),
+          GroupMembership.findAll({
+            where: {
+              groupId: event.modelId,
+            },
+          }),
+        ]);
+
+        if (groupUser) {
+          socketio
+            .to(`team-${groupUser.group.teamId}`)
+            .emit(event.name, presentGroupUser(groupUser));
+        }
 
         for (const groupMembership of groupMemberships) {
-          // the user being added isn't yet in the websocket channel for the collection
-          // so they need to be notified separately
+          if (!groupMembership.collectionId) {
+            continue;
+          }
+          // the user being added needs to know they were added
           socketio.to(`user-${event.userId}`).emit("collections.add_user", {
             event: event.name,
             userId: event.userId,
@@ -509,7 +566,7 @@ export default class WebsocketsProcessor {
               userId: event.userId,
               collectionId: groupMembership.collectionId,
             });
-          // tell any user clients to connect to the websocket channel for the collection
+          // tell clients from the user to connect to the websocket channel for the collection
           socketio.to(`user-${event.userId}`).emit("join", {
             event: event.name,
             collectionId: groupMembership.collectionId,
@@ -520,11 +577,22 @@ export default class WebsocketsProcessor {
       }
 
       case "groups.remove_user": {
-        const groupMemberships = await GroupMembership.findAll({
-          where: {
+        const [group, groupMemberships] = await Promise.all([
+          Group.findByPk(event.modelId),
+          GroupMembership.findAll({
+            where: {
+              groupId: event.modelId,
+            },
+          }),
+        ]);
+
+        if (group) {
+          socketio.to(`team-${group.teamId}`).emit(event.name, {
+            event: event.name,
+            userId: event.userId,
             groupId: event.modelId,
-          },
-        });
+          });
+        }
 
         for (const groupMembership of groupMemberships) {
           // if the user has any memberships remaining on the collection
@@ -589,9 +657,7 @@ export default class WebsocketsProcessor {
             },
           },
         });
-        const groupMemberships = await GroupMembership.scope(
-          "withCollection"
-        ).findAll({
+        const groupMemberships = await GroupMembership.findAll({
           paranoid: false,
           where: {
             groupId: event.modelId,
@@ -602,9 +668,12 @@ export default class WebsocketsProcessor {
         });
 
         for (const groupMembership of groupMemberships) {
-          const membershipUserIds = groupMembership.collectionId
-            ? await Collection.membershipUserIds(groupMembership.collectionId)
-            : [];
+          if (!groupMembership.collectionId) {
+            continue;
+          }
+          const membershipUserIds = await Collection.membershipUserIds(
+            groupMembership.collectionId
+          );
 
           for (const groupUser of groupUsers) {
             if (membershipUserIds.includes(groupUser.userId)) {
@@ -708,16 +777,32 @@ export default class WebsocketsProcessor {
       channels.push(`collection-${document.collectionId}`);
     }
 
-    const memberships = await UserMembership.findAll({
-      where: {
-        documentId: document.id,
-      },
-    });
+    const [userMemberships, groupMemberships] = await Promise.all([
+      UserMembership.findAll({
+        where: {
+          documentId: document.id,
+        },
+      }),
+      GroupMembership.scope("withGroup").findAll({
+        where: {
+          documentId: document.id,
+        },
+      }),
+    ]);
 
-    for (const membership of memberships) {
+    for (const membership of userMemberships) {
       channels.push(`user-${membership.userId}`);
     }
 
-    return channels;
+    await Promise.all(
+      groupMemberships.map(async (groupMembership) => {
+        const groupUsers = await groupMembership.group.$get("groupUsers");
+        for (const groupUser of groupUsers) {
+          channels.push(`user-${groupUser.userId}`);
+        }
+      })
+    );
+
+    return uniq(channels);
   }
 }

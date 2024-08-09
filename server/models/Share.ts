@@ -48,7 +48,12 @@ import Length from "./validators/Length";
   withCollectionPermissions: (userId: string) => ({
     include: [
       {
-        model: Document.scope("withDrafts"),
+        model: Document.scope([
+          "withDrafts",
+          {
+            method: ["withMembership", userId],
+          },
+        ]),
         paranoid: true,
         as: "document",
         include: [
@@ -58,13 +63,6 @@ import Length from "./validators/Length";
               method: ["withMembership", userId],
             }),
             as: "collection",
-          },
-          {
-            association: "memberships",
-            where: {
-              userId,
-            },
-            required: false,
           },
         ],
       },

@@ -13,6 +13,8 @@ import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import FileOperation from "~/models/FileOperation";
 import Group from "~/models/Group";
+import GroupMembership from "~/models/GroupMembership";
+import GroupUser from "~/models/GroupUser";
 import Notification from "~/models/Notification";
 import Pin from "~/models/Pin";
 import Star from "~/models/Star";
@@ -85,6 +87,8 @@ class WebsocketProvider extends React.Component<Props> {
       documents,
       collections,
       groups,
+      groupMemberships,
+      groupUsers,
       pins,
       stars,
       memberships,
@@ -252,7 +256,6 @@ class WebsocketProvider extends React.Component<Props> {
       }
     );
 
-    // received when a user is given access to a document
     this.socket.on(
       "documents.add_user",
       (event: PartialWithId<UserMembership>) => {
@@ -262,31 +265,63 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "documents.remove_user",
-      (event: PartialWithId<UserMembership>) => {
-        if (event.userId) {
-          const userMembership = userMemberships.get(event.id);
+      (event: Pick<UserMembership, "id" | "userId" | "documentId">) => {
+        const userMembership = userMemberships.get(event.id);
 
-          // TODO: Possibly replace this with a one-to-many relation decorator.
-          if (userMembership) {
-            userMemberships
-              .filter({
-                userId: event.userId,
-                sourceId: userMembership.id,
-              })
-              .forEach((m) => {
-                m.documentId && documents.remove(m.documentId);
-              });
-          }
-
-          userMemberships.removeAll({
-            userId: event.userId,
-            documentId: event.documentId,
-          });
+        // TODO: Possibly replace this with a one-to-many relation decorator.
+        if (userMembership) {
+          userMemberships
+            .filter({
+              userId: event.userId,
+              sourceId: userMembership.id,
+            })
+            .forEach((m) => {
+              m.documentId && documents.remove(m.documentId);
+            });
         }
+
+        userMemberships.removeAll({
+          userId: event.userId,
+          documentId: event.documentId,
+        });
 
         if (event.documentId && event.userId === auth.user?.id) {
+          // TODO: This removes the document even if the user retains access through other means.
           documents.remove(event.documentId);
         }
+      }
+    );
+
+    this.socket.on(
+      "documents.add_group",
+      (event: PartialWithId<GroupMembership>) => {
+        groupMemberships.add(event);
+      }
+    );
+
+    this.socket.on(
+      "documents.remove_group",
+      (event: Pick<GroupMembership, "id" | "groupId" | "documentId">) => {
+        const groupMembership = groupMemberships.get(event.id);
+
+        // TODO: Possibly replace this with a one-to-many relation decorator.
+        if (groupMembership) {
+          groupMemberships
+            .filter({
+              groupId: event.groupId,
+              sourceId: groupMembership.id,
+            })
+            .forEach((m) => {
+              m.documentId && documents.remove(m.documentId);
+            });
+        }
+
+        groupMemberships.removeAll({
+          groupId: event.groupId,
+          documentId: event.documentId,
+        });
+
+        // TODO: Clean up document if user no longer has access.
       }
     );
 
@@ -312,6 +347,17 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on("groups.delete", (event: WebsocketEntityDeletedEvent) => {
       groups.remove(event.modelId);
+    });
+
+    this.socket.on("groups.add_user", (event: PartialWithId<GroupUser>) => {
+      groupUsers.add(event);
+    });
+
+    this.socket.on("groups.remove_user", (event: PartialWithId<GroupUser>) => {
+      groupUsers.removeAll({
+        groupId: event.groupId,
+        userId: event.userId,
+      });
     });
 
     this.socket.on("collections.create", (event: PartialWithId<Collection>) => {

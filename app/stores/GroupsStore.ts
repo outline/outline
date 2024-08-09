@@ -41,6 +41,13 @@ export default class GroupsStore extends Store<Group> {
     }
   };
 
+  /**
+   * Returns groups that are in the given collection, optionally filtered by a query.
+   *
+   * @param collectionId
+   * @param query
+   * @returns A list of groups that are in the given collection.
+   */
   inCollection = (collectionId: string, query?: string) => {
     const memberships = filter(
       this.rootStore.groupMemberships.orderedData,
@@ -50,12 +57,38 @@ export default class GroupsStore extends Store<Group> {
     const groups = filter(this.orderedData, (group) =>
       groupIds.includes(group.id)
     );
-    if (!query) {
-      return groups;
-    }
-    return queriedGroups(groups, query);
+
+    return query ? queriedGroups(groups, query) : groups;
   };
 
+  /**
+   * Returns groups that are not in the given document, optionally filtered by a query.
+   *
+   * @param documentId
+   * @param query
+   * @returns A list of groups that are not in the given document.
+   */
+  notInDocument = (documentId: string, query = "") => {
+    const memberships = filter(
+      this.rootStore.groupMemberships.orderedData,
+      (member) => member.documentId === documentId
+    );
+    const groupIds = memberships.map((member) => member.groupId);
+    const groups = filter(
+      this.orderedData,
+      (group) => !groupIds.includes(group.id)
+    );
+
+    return query ? queriedGroups(groups, query) : groups;
+  };
+
+  /**
+   * Returns groups that are not in the given collection, optionally filtered by a query.
+   *
+   * @param collectionId
+   * @param query
+   * @returns A list of groups that are not in the given collection.
+   */
   notInCollection = (collectionId: string, query = "") => {
     const memberships = filter(
       this.rootStore.groupMemberships.orderedData,
@@ -66,10 +99,8 @@ export default class GroupsStore extends Store<Group> {
       this.orderedData,
       (group) => !groupIds.includes(group.id)
     );
-    if (!query) {
-      return groups;
-    }
-    return queriedGroups(groups, query);
+
+    return query ? queriedGroups(groups, query) : groups;
   };
 }
 

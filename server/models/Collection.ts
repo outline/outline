@@ -72,7 +72,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         separate: true,
         // include for groups that are members of this collection,
         // of which userId is a member of, resulting in:
-        // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
+        // GroupMembership [inner join] Group [inner join] GroupUser [where] userId
         include: [
           {
             model: Group,
@@ -99,47 +99,52 @@ import NotContainsUrl from "./validators/NotContainsUrl";
       },
     ],
   }),
-  withMembership: (userId: string) => ({
-    include: [
-      {
-        model: UserMembership,
-        as: "memberships",
-        where: {
-          userId,
-        },
-        required: false,
-      },
-      {
-        model: GroupMembership,
-        as: "groupMemberships",
-        required: false,
-        // use of "separate" property: sequelize breaks when there are
-        // nested "includes" with alternating values for "required"
-        // see https://github.com/sequelize/sequelize/issues/9869
-        separate: true,
-        // include for groups that are members of this collection,
-        // of which userId is a member of, resulting in:
-        // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
-        include: [
-          {
-            model: Group,
-            as: "group",
-            required: true,
-            include: [
-              {
-                model: GroupUser,
-                as: "groupUsers",
-                required: true,
-                where: {
-                  userId,
-                },
-              },
-            ],
+  withMembership: (userId: string) => {
+    if (!userId) {
+      return {};
+    }
+
+    return {
+      include: [
+        {
+          association: "memberships",
+          where: {
+            userId,
           },
-        ],
-      },
-    ],
-  }),
+          required: false,
+        },
+        {
+          model: GroupMembership,
+          as: "groupMemberships",
+          required: false,
+          // use of "separate" property: sequelize breaks when there are
+          // nested "includes" with alternating values for "required"
+          // see https://github.com/sequelize/sequelize/issues/9869
+          separate: true,
+          // include for groups that are members of this collection,
+          // of which userId is a member of, resulting in:
+          // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
+          include: [
+            {
+              model: Group,
+              as: "group",
+              required: true,
+              include: [
+                {
+                  model: GroupUser,
+                  as: "groupUsers",
+                  required: true,
+                  where: {
+                    userId,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+  },
 }))
 @Table({ tableName: "collections", modelName: "collection" })
 @Fix
@@ -353,7 +358,7 @@ class Collection extends ParanoidModel<
 
   /**
    * Returns an array of unique userIds that are members of a collection,
-   * either via group or direct membership
+   * either via group or direct membership.
    *
    * @param collectionId
    * @returns userIds
@@ -362,13 +367,12 @@ class Collection extends ParanoidModel<
     const collection = await this.scope("withAllMemberships").findByPk(
       collectionId
     );
-
     if (!collection) {
       return [];
     }
 
     const groupMemberships = collection.groupMemberships
-      .map((cgm) => cgm.group.groupUsers)
+      .map((gm) => gm.group.groupUsers)
       .flat();
     const membershipUserIds = [
       ...groupMemberships,

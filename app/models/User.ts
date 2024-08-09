@@ -127,6 +127,12 @@ class User extends ParanoidModel {
     );
   }
 
+  /**
+   * Returns the direct user memberships that this user has to other documents. Documents that the
+   * user already has access to through a collection are not included.
+   *
+   * @returns A list of user memberships
+   */
   @computed
   get memberships(): UserMembership[] {
     return this.store.rootStore.userMemberships.orderedData
