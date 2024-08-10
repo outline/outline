@@ -12,6 +12,40 @@ describe("DocumentHelper", () => {
     jest.useRealTimers();
   });
 
+  describe("replaceInternalUrls", () => {
+    it("should replace internal urls", async () => {
+      const document = await buildDocument({
+        text: `[link](/doc/internal-123)`,
+      });
+      const result = await DocumentHelper.toJSON(document, {
+        internalUrlBase: "/s/share-123",
+      });
+      expect(result).toEqual({
+        content: [
+          {
+            content: [
+              {
+                marks: [
+                  {
+                    attrs: {
+                      href: "/s/share-123/doc/internal-123",
+                      title: null,
+                    },
+                    type: "link",
+                  },
+                ],
+                text: "link",
+                type: "text",
+              },
+            ],
+            type: "paragraph",
+          },
+        ],
+        type: "doc",
+      });
+    });
+  });
+
   describe("toJSON", () => {
     it("should return content directly if no transformation required", async () => {
       const document = await buildDocument();

@@ -441,6 +441,7 @@ router.post(
     const isPublic = cannot(user, "read", document);
     const serializedDocument = await presentDocument(ctx, document, {
       isPublic,
+      shareId,
     });
 
     const team = await document.$get("team");
@@ -891,6 +892,7 @@ router.post(
       results.map(async (result) => {
         const document = await presentDocument(ctx, result.document, {
           isPublic,
+          shareId,
         });
         return { ...result, document };
       })
