@@ -162,7 +162,7 @@ export class DocumentHelper {
   ) {
     const text = serializer
       .serialize(DocumentHelper.toProsemirror(document))
-      .replace(/\n\\(\n|$)/g, "\n\n")
+      .replace(/(^|\n)\\(\n|$)/g, "\n\n")
       .replace(/“/g, '"')
       .replace(/”/g, '"')
       .replace(/‘/g, "'")
