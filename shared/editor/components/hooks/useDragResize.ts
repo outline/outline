@@ -1,4 +1,5 @@
 import * as React from "react";
+import { EditorStyleHelper } from "../../styles/EditorStyleHelper";
 
 type DragDirection = "left" | "right";
 
@@ -113,7 +114,8 @@ export default function useDragResize(props: Params): ReturnValue {
             getComputedStyle(props.ref.current).getPropertyValue(
               "--document-width"
             )
-          )
+          ) -
+          EditorStyleHelper.padding * 2
         : Infinity;
       setMaxWidth(max);
       setSizeAtDragStart({
