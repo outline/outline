@@ -510,17 +510,22 @@ export default class DocumentsStore extends Store<Document> {
         this.data.get(id) || this.getByUrl(id);
       const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
 
-      if (doc && policy && !options.force) {
-        if (!options.shareId) {
-          return {
-            document: doc,
-          };
-        } else if (this.sharedCache.has(options.shareId)) {
-          return {
-            document: doc,
-            ...this.sharedCache.get(options.shareId),
-          };
-        }
+      if (doc && policy && !options.shareId && !options.force) {
+        return {
+          document: doc,
+        };
+      }
+
+      if (
+        doc &&
+        options.shareId &&
+        !options.force &&
+        this.sharedCache.has(options.shareId)
+      ) {
+        return {
+          document: doc,
+          ...this.sharedCache.get(options.shareId),
+        };
       }
 
       const res = await client.post("/documents.info", {
