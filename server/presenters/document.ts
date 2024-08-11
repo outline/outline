@@ -1,13 +1,14 @@
 import { traceFunction } from "@server/logging/tracing";
 import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { TextHelper } from "@server/models/helpers/TextHelper";
 import { APIContext } from "@server/types";
 import presentUser from "./user";
 
 type Options = {
   /** Whether to render the document's public fields. */
   isPublic?: boolean;
+  /** The root share ID when presenting a shared document. */
+  shareId?: string;
   /** Always include the text of the document in the payload. */
   includeText?: boolean;
   /** Always include the data of the document in the payload. */
@@ -25,28 +26,27 @@ async function presentDocument(
   };
 
   const asData = !ctx || Number(ctx?.headers["x-api-version"] ?? 0) >= 3;
-  const text = options.isPublic
-    ? await TextHelper.attachmentsToSignedUrls(document.text, document.teamId)
-    : document.text;
 
-  const data: Record<string, any> = {
+  const data = await DocumentHelper.toJSON(
+    document,
+    options.isPublic
+      ? {
+          signedUrls: 60,
+          teamId: document.teamId,
+          removeMarks: ["comment"],
+          internalUrlBase: `/s/${options.shareId}`,
+        }
+      : undefined
+  );
+
+  const text = DocumentHelper.toMarkdown(data);
+
+  const res: Record<string, any> = {
     id: document.id,
-    url: document.url,
+    url: document.path,
     urlId: document.urlId,
     title: document.title,
-    data:
-      asData || options.includeData
-        ? await DocumentHelper.toJSON(
-            document,
-            options.isPublic
-              ? {
-                  signedUrls: 60,
-                  teamId: document.teamId,
-                  removeMarks: ["comment"],
-                }
-              : undefined
-          )
-        : undefined,
+    data: asData || options?.includeData ? data : undefined,
     text: !asData || options?.includeText ? text : undefined,
     icon: document.icon,
     color: document.color,
@@ -69,22 +69,22 @@ async function presentDocument(
   };
 
   if (!!document.views && document.views.length > 0) {
-    data.lastViewedAt = document.views[0].updatedAt;
+    res.lastViewedAt = document.views[0].updatedAt;
   }
 
   if (!options.isPublic) {
     const source = await document.$get("import");
 
-    data.isCollectionDeleted = await document.isCollectionDeleted();
-    data.collectionId = document.collectionId;
-    data.parentDocumentId = document.parentDocumentId;
-    data.createdBy = presentUser(document.createdBy);
-    data.updatedBy = presentUser(document.updatedBy);
-    data.collaboratorIds = document.collaboratorIds;
-    data.templateId = document.templateId;
-    data.template = document.template;
-    data.insightsEnabled = document.insightsEnabled;
-    data.sourceMetadata = document.sourceMetadata
+    res.isCollectionDeleted = await document.isCollectionDeleted();
+    res.collectionId = document.collectionId;
+    res.parentDocumentId = document.parentDocumentId;
+    res.createdBy = presentUser(document.createdBy);
+    res.updatedBy = presentUser(document.updatedBy);
+    res.collaboratorIds = document.collaboratorIds;
+    res.templateId = document.templateId;
+    res.template = document.template;
+    res.insightsEnabled = document.insightsEnabled;
+    res.sourceMetadata = document.sourceMetadata
       ? {
           importedAt: source?.createdAt ?? document.createdAt,
           importType: source?.format,
@@ -94,7 +94,7 @@ async function presentDocument(
       : undefined;
   }
 
-  return data;
+  return res;
 }
 
 export default traceFunction({

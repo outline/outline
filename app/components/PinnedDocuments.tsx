@@ -59,9 +59,9 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
       const { active, over } = event;
 
       if (over && active.id !== over.id) {
-        setItems((items) => {
-          const activePos = items.indexOf(active.id as string);
-          const overPos = items.indexOf(over.id as string);
+        setItems((existing) => {
+          const activePos = existing.indexOf(active.id as string);
+          const overPos = existing.indexOf(over.id as string);
 
           const overIndex = pins[overPos]?.index || null;
           const nextIndex = pins[overPos + 1]?.index || null;
@@ -78,10 +78,10 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
                   ? fractionalIndex(prevIndex, overIndex)
                   : fractionalIndex(overIndex, nextIndex),
             })
-            .catch(() => setItems(items));
+            .catch(() => setItems(existing));
 
           // Update the order in state immediately
-          return arrayMove(items, activePos, overPos);
+          return arrayMove(existing, activePos, overPos);
         });
       }
     },
@@ -112,7 +112,7 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
             <AnimatePresence initial={false}>
               {items.map((documentId) => {
                 const document = documents.get(documentId);
-                const pin = pins.find((pin) => pin.documentId === documentId);
+                const pin = pins.find((p) => p.documentId === documentId);
 
                 return document ? (
                   <DocumentCard

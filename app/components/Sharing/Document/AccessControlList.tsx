@@ -11,6 +11,7 @@ import type Collection from "~/models/Collection";
 import type Document from "~/models/Document";
 import Share from "~/models/Share";
 import Flex from "~/components/Flex";
+import LoadingIndicator from "~/components/LoadingIndicator";
 import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -99,16 +100,13 @@ export const AccessControlList = observer(
       calcMaxHeight();
     });
 
-    if (!userMembershipData || !groupMembershipData) {
-      return null;
-    }
-
     return (
       <ScrollableContainer
         ref={containerRef}
         hiddenScrollbars
         style={{ maxHeight }}
       >
+        {(!userMembershipData || !groupMembershipData) && <LoadingIndicator />}
         {collection ? (
           <>
             {collection.permission ? (

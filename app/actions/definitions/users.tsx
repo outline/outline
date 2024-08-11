@@ -18,7 +18,7 @@ export const inviteUser = createAction({
   icon: <PlusIcon />,
   keywords: "team member workspace user",
   section: UserSection,
-  visible: ({ stores }) =>
+  visible: () =>
     stores.policies.abilities(stores.auth.team?.id || "").inviteUser,
   perform: ({ t }) => {
     stores.dialogs.openModal({
@@ -40,7 +40,7 @@ export const updateUserRoleActionFactory = (user: User, role: UserRole) =>
           })}…`,
     analyticsName: "Update user role",
     section: UserSection,
-    visible: ({ stores }) => {
+    visible: () => {
       const can = stores.policies.abilities(user.id);
 
       return UserRoleHelper.isRoleHigher(role, user.role)
@@ -70,7 +70,7 @@ export const deleteUserActionFactory = (userId: string) =>
     keywords: "leave",
     dangerous: true,
     section: UserSection,
-    visible: ({ stores }) => stores.policies.abilities(userId).delete,
+    visible: () => stores.policies.abilities(userId).delete,
     perform: ({ t }) => {
       const user = stores.users.get(userId);
       if (!user) {

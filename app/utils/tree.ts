@@ -16,14 +16,14 @@ export const flattenTree = (root: NavigationNode) => {
 };
 
 export const ancestors = (node: NavigationNode | null) => {
-  const ancestors: NavigationNode[] = [];
+  const nodes: NavigationNode[] = [];
   if (node) {
     while (node.parent !== null) {
-      ancestors.unshift(node.parent as NavigationNode);
+      nodes.unshift(node.parent as NavigationNode);
       node = node.parent as NavigationNode;
     }
   }
-  return ancestors;
+  return nodes;
 };
 
 export const descendants = (node: NavigationNode, depth = 0) => {

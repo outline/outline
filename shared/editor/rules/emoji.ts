@@ -2,6 +2,10 @@ import MarkdownIt from "markdown-it";
 import emojiPlugin from "markdown-it-emoji";
 import { nameToEmoji } from "../lib/emoji";
 
+type Options = MarkdownIt.Options & {
+  emoji: boolean;
+};
+
 export default function emoji(md: MarkdownIt) {
   // Ideally this would be an empty object, but due to a bug in markdown-it-emoji
   // passing an empty object results in newlines becoming emojis. Until this is
@@ -12,7 +16,7 @@ export default function emoji(md: MarkdownIt) {
   };
 
   return emojiPlugin(md, {
-    defs: (md.options as any).emoji === false ? noMapping : nameToEmoji,
+    defs: (md.options as Options).emoji === false ? noMapping : nameToEmoji,
     shortcuts: {},
   });
 }

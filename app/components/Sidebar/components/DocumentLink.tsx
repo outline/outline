@@ -128,13 +128,13 @@ function InnerDocumentLink(
   }, [prefetchDocument, node]);
 
   const handleTitleChange = React.useCallback(
-    async (title: string) => {
+    async (value: string) => {
       if (!document) {
         return;
       }
       await documents.update({
         id: document.id,
-        title,
+        title: value,
       });
     },
     [documents, document]

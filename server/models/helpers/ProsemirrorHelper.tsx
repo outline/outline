@@ -15,6 +15,7 @@ import light from "@shared/styles/theme";
 import { ProsemirrorData } from "@shared/types";
 import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { isRTL } from "@shared/utils/rtl";
+import { isInternalUrl } from "@shared/utils/urls";
 import { schema, parser } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
@@ -161,7 +162,9 @@ export class ProsemirrorHelper {
    * @param marks The mark types to remove
    * @returns The content with marks removed
    */
-  static removeMarks(data: ProsemirrorData, marks: string[]) {
+  static removeMarks(doc: Node | ProsemirrorData, marks: string[]) {
+    const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
+
     function removeMarksInner(node: ProsemirrorData) {
       if (node.marks) {
         node.marks = node.marks.filter((mark) => !marks.includes(mark.type));
@@ -171,7 +174,7 @@ export class ProsemirrorHelper {
       }
       return node;
     }
-    return removeMarksInner(data);
+    return removeMarksInner(json);
   }
 
   /**
@@ -195,6 +198,44 @@ export class ProsemirrorHelper {
     }
 
     return replace(data);
+  }
+
+  static async replaceInternalUrls(
+    doc: Node | ProsemirrorData,
+    basePath: string
+  ) {
+    const json = "toJSON" in doc ? (doc.toJSON() as ProsemirrorData) : doc;
+
+    if (basePath.endsWith("/")) {
+      throw new Error("internalUrlBase must not end with a slash");
+    }
+
+    function replaceUrl(url: string) {
+      return url.replace(`/doc/`, `${basePath}/doc/`);
+    }
+
+    function replaceInternalUrlsInner(node: ProsemirrorData) {
+      if (typeof node.attrs?.href === "string") {
+        node.attrs.href = replaceUrl(node.attrs.href);
+      } else if (node.marks) {
+        node.marks.forEach((mark) => {
+          if (
+            typeof mark.attrs?.href === "string" &&
+            isInternalUrl(mark.attrs?.href)
+          ) {
+            mark.attrs.href = replaceUrl(mark.attrs.href);
+          }
+        });
+      }
+
+      if (node.content) {
+        node.content.forEach(replaceInternalUrlsInner);
+      }
+
+      return node;
+    }
+
+    return replaceInternalUrlsInner(json);
   }
 
   /**

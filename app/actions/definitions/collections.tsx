@@ -72,7 +72,7 @@ export const editCollection = createAction({
   analyticsName: "Edit collection",
   section: CollectionSection,
   icon: <EditIcon />,
-  visible: ({ stores, activeCollectionId }) =>
+  visible: ({ activeCollectionId }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
   perform: ({ t, activeCollectionId }) => {
@@ -98,10 +98,10 @@ export const editCollectionPermissions = createAction({
   analyticsName: "Collection permissions",
   section: CollectionSection,
   icon: <PadlockIcon />,
-  visible: ({ stores, activeCollectionId }) =>
+  visible: ({ activeCollectionId }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
-  perform: ({ t, stores, activeCollectionId }) => {
+  perform: ({ t, activeCollectionId }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -143,7 +143,7 @@ export const starCollection = createAction({
   section: CollectionSection,
   icon: <StarredIcon />,
   keywords: "favorite bookmark",
-  visible: ({ activeCollectionId, stores }) => {
+  visible: ({ activeCollectionId }) => {
     if (!activeCollectionId) {
       return false;
     }
@@ -153,7 +153,7 @@ export const starCollection = createAction({
       stores.policies.abilities(activeCollectionId).star
     );
   },
-  perform: async ({ activeCollectionId, stores }) => {
+  perform: async ({ activeCollectionId }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -170,7 +170,7 @@ export const unstarCollection = createAction({
   section: CollectionSection,
   icon: <UnstarredIcon />,
   keywords: "unfavorite unbookmark",
-  visible: ({ activeCollectionId, stores }) => {
+  visible: ({ activeCollectionId }) => {
     if (!activeCollectionId) {
       return false;
     }
@@ -180,7 +180,7 @@ export const unstarCollection = createAction({
       stores.policies.abilities(activeCollectionId).unstar
     );
   },
-  perform: async ({ activeCollectionId, stores }) => {
+  perform: async ({ activeCollectionId }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -196,13 +196,13 @@ export const deleteCollection = createAction({
   section: CollectionSection,
   dangerous: true,
   icon: <TrashIcon />,
-  visible: ({ activeCollectionId, stores }) => {
+  visible: ({ activeCollectionId }) => {
     if (!activeCollectionId) {
       return false;
     }
     return stores.policies.abilities(activeCollectionId).delete;
   },
-  perform: ({ activeCollectionId, stores, t }) => {
+  perform: ({ activeCollectionId, t }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -230,7 +230,7 @@ export const createTemplate = createAction({
   section: CollectionSection,
   icon: <ShapesIcon />,
   keywords: "new create template",
-  visible: ({ activeCollectionId, stores }) =>
+  visible: ({ activeCollectionId }) =>
     !!(
       !!activeCollectionId &&
       stores.policies.abilities(activeCollectionId).createDocument
