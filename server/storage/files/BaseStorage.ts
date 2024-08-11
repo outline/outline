@@ -216,6 +216,10 @@ export default abstract class BaseStorage {
     }
   }
 
+  public abstract getFileExists(key: string): Promise<boolean>;
+
+  public abstract moveFile(fromKey: string, toKey: string): Promise<void>;
+
   /**
    * Delete a file from the storage provider.
    *
