@@ -8,6 +8,7 @@ import Collection from "~/models/Collection";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import InputSelectPermission from "~/components/InputSelectPermission";
+import LoadingIndicator from "~/components/LoadingIndicator";
 import Scrollable from "~/components/Scrollable";
 import useMaxHeight from "~/hooks/useMaxHeight";
 import usePolicy from "~/hooks/usePolicy";
@@ -86,16 +87,13 @@ export function AccessControlList({ collection, invitedInSession }: Props) {
     [t]
   );
 
-  if (!membershipData || !groupMembershipData) {
-    return null;
-  }
-
   return (
     <ScrollableContainer
       ref={containerRef}
       hiddenScrollbars
       style={{ maxHeight }}
     >
+      {(!membershipData || !groupMembershipData) && <LoadingIndicator />}
       <ListItem
         image={
           <Squircle color={theme.accent} size={AvatarSize.Medium}>

@@ -70,20 +70,17 @@ export const AccessControlList = observer(
       margin: 24,
     });
 
-    const {
-      loading: loadingDocumentMembers,
-      request: fetchDocumentMembers,
-      data,
-    } = useRequest(
-      React.useCallback(
-        () =>
-          userMemberships.fetchDocumentMemberships({
-            id: document.id,
-            limit: Pagination.defaultLimit,
-          }),
-        [userMemberships, document.id]
-      )
-    );
+    const { loading: loadingDocumentMembers, request: fetchDocumentMembers } =
+      useRequest(
+        React.useCallback(
+          () =>
+            userMemberships.fetchDocumentMemberships({
+              id: document.id,
+              limit: Pagination.defaultLimit,
+            }),
+          [userMemberships, document.id]
+        )
+      );
 
     React.useEffect(() => {
       void fetchDocumentMembers();
@@ -93,20 +90,13 @@ export const AccessControlList = observer(
       calcMaxHeight();
     });
 
-    if (loadingDocumentMembers) {
-      return <LoadingIndicator />;
-    }
-
-    if (!data) {
-      return null;
-    }
-
     return (
       <ScrollableContainer
         ref={containerRef}
         hiddenScrollbars
         style={{ maxHeight }}
       >
+        {loadingDocumentMembers && <LoadingIndicator />}
         {collection ? (
           <>
             {collection.permission ? (
