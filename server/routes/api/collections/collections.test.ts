@@ -1751,6 +1751,8 @@ describe("#collections.archive", () => {
     ]);
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).not.toBe(null);
+    expect(body.data.archivedBy).toBeTruthy();
+    expect(body.data.archivedBy.id).toBe(collection.archivedById);
     expect(document.archivedAt).not.toBe(null);
   });
 });
@@ -1799,7 +1801,7 @@ describe("#collections.archived", () => {
   it("should return archived collections", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
-    await buildCollection({
+    const collection = await buildCollection({
       teamId: team.id,
       archivedAt: new Date(),
     });
@@ -1812,5 +1814,7 @@ describe("#collections.archived", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].archivedAt).toBeTruthy();
+    expect(body.data[0].archivedBy).toBeTruthy();
+    expect(body.data[0].archivedBy.id).toBe(collection.archivedById);
   });
 });

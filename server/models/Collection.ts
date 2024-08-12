@@ -30,6 +30,7 @@ import {
   Length as SimpleLength,
   BeforeDestroy,
   IsDate,
+  AllowNull,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";
@@ -97,6 +98,13 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         model: User,
         required: true,
         as: "user",
+      },
+    ],
+  }),
+  withArchivedBy: () => ({
+    include: [
+      {
+        association: "archivedBy",
       },
     ],
   }),
@@ -336,6 +344,14 @@ class Collection extends ParanoidModel<
   @ForeignKey(() => FileOperation)
   @Column(DataType.UUID)
   importId: string | null;
+
+  @BelongsTo(() => User, "archivedById")
+  archivedBy?: User | null;
+
+  @AllowNull
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  archivedById?: string | null;
 
   @HasMany(() => Document, "collectionId")
   documents: Document[];
