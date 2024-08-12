@@ -482,7 +482,7 @@ export default class WebsocketsProcessor {
         }
         return socketio
           .to(`team-${group.teamId}`)
-          .emit(event.name, presentGroup(group));
+          .emit(event.name, await presentGroup(group));
       }
 
       case "groups.add_user": {

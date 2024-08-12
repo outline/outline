@@ -60,7 +60,7 @@ router.post(
     ctx.body = {
       pagination: ctx.state.pagination,
       data: {
-        groups: groups.map(presentGroup),
+        groups: await Promise.all(groups.map(presentGroup)),
         groupMemberships: groups
           .map((group) =>
             group.groupUsers
@@ -89,7 +89,7 @@ router.post(
     authorize(user, "read", group);
 
     ctx.body = {
-      data: presentGroup(group),
+      data: await presentGroup(group),
       policies: presentPolicies(user, [group]),
     };
   }
@@ -134,7 +134,7 @@ router.post(
     );
 
     ctx.body = {
-      data: presentGroup(group),
+      data: await presentGroup(group),
       policies: presentPolicies(user, [group]),
     };
   }
@@ -171,7 +171,7 @@ router.post(
     }
 
     ctx.body = {
-      data: presentGroup(group),
+      data: await presentGroup(group),
       policies: presentPolicies(user, [group]),
     };
   }
@@ -321,7 +321,7 @@ router.post(
       data: {
         users: [presentUser(user)],
         groupMemberships: [presentGroupUser(groupUser, { includeUser: true })],
-        groups: [presentGroup(group)],
+        groups: [await presentGroup(group)],
       },
     };
   }
@@ -362,7 +362,7 @@ router.post(
 
     ctx.body = {
       data: {
-        groups: [presentGroup(group)],
+        groups: [await presentGroup(group)],
       },
     };
   }

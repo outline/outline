@@ -1,4 +1,9 @@
-import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  Op,
+  type DestroyOptions,
+} from "sequelize";
 import {
   AfterDestroy,
   BelongsTo,
@@ -11,6 +16,7 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
+import { CacheHelper } from "@server/utils/CacheHelper";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
@@ -81,7 +87,7 @@ class Group extends ParanoidModel<
   // hooks
 
   @AfterDestroy
-  static async deleteGroupUsers(model: Group) {
+  static async deleteGroupUsers(model: Group, options?: DestroyOptions<Group>) {
     if (!model.deletedAt) {
       return;
     }
@@ -89,11 +95,13 @@ class Group extends ParanoidModel<
       where: {
         groupId: model.id,
       },
+      transaction: options?.transaction,
     });
     await GroupMembership.destroy({
       where: {
         groupId: model.id,
       },
+      transaction: options?.transaction,
     });
   }
 
@@ -128,6 +136,34 @@ class Group extends ParanoidModel<
 
   @BelongsToMany(() => User, () => GroupUser)
   users: User[];
+
+  async memberCount() {
+    const value = await CacheHelper.getData<number>(
+      Group.memberCountCacheKey(this.id)
+    );
+
+    return value ?? Group.cacheMemberCount(this.id);
+  }
+
+  // static methods
+
+  static memberCountCacheKey(groupId: string) {
+    return `group-member-count-${groupId}`;
+  }
+
+  static async clearMemberCount(groupId: string) {
+    await CacheHelper.clearData(Group.memberCountCacheKey(groupId));
+  }
+
+  static async cacheMemberCount(groupId: string) {
+    const count = await GroupUser.count({
+      where: {
+        groupId,
+      },
+    });
+    await CacheHelper.setData(Group.memberCountCacheKey(groupId), count);
+    return count;
+  }
 }
 
 export default Group;
