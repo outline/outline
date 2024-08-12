@@ -311,7 +311,7 @@
     "@types/refractor": "^3.4.0",
     "@types/resolve-path": "^1.4.2",
     "@types/semver": "^7.5.8",
-    "@types/sequelize": "^4.28.19",
+    "@types/sequelize": "^4.28.20",
     "@types/slug": "^5.0.7",
     "@types/stoppable": "^1.1.3",
     "@types/styled-components": "^5.1.32",
