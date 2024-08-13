@@ -6,6 +6,7 @@ import Redis from "@server/storage/redis";
  * A Helper class for server-side cache management
  */
 export class CacheHelper {
+  // Default expiry time for cache data in ms
   private static defaultDataExpiry = Day;
 
   /**
@@ -48,16 +49,6 @@ export class CacheHelper {
   }
 
   /**
-   * Gets key against which unfurl response for the given url is stored
-   *
-   * @param teamId The team ID to generate a key for
-   * @param url The url to generate a key for
-   */
-  public static getUnfurlKey(teamId: string, url = "") {
-    return `unfurl:${teamId}:${url}`;
-  }
-
-  /**
    * Clears all cache data with the given prefix
    *
    * @param prefix Prefix to clear cache data
@@ -70,5 +61,17 @@ export class CacheHelper {
         await Redis.defaultClient.del(key);
       })
     );
+  }
+
+  // keys
+
+  /**
+   * Gets key against which unfurl response for the given url is stored
+   *
+   * @param teamId The team ID to generate a key for
+   * @param url The url to generate a key for
+   */
+  public static getUnfurlKey(teamId: string, url = "") {
+    return `unfurl:${teamId}:${url}`;
   }
 }

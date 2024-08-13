@@ -1,11 +1,5 @@
+import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
 import {
-  InferAttributes,
-  InferCreationAttributes,
-  Op,
-  type DestroyOptions,
-} from "sequelize";
-import {
-  AfterDestroy,
   BelongsTo,
   Column,
   ForeignKey,
@@ -16,12 +10,12 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
-import { CacheHelper } from "@server/utils/CacheHelper";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
+import { CounterCache } from "./decorators/CounterCache";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
@@ -84,27 +78,6 @@ class Group extends ParanoidModel<
   @Column
   name: string;
 
-  // hooks
-
-  @AfterDestroy
-  static async deleteGroupUsers(model: Group, options?: DestroyOptions<Group>) {
-    if (!model.deletedAt) {
-      return;
-    }
-    await GroupUser.destroy({
-      where: {
-        groupId: model.id,
-      },
-      transaction: options?.transaction,
-    });
-    await GroupMembership.destroy({
-      where: {
-        groupId: model.id,
-      },
-      transaction: options?.transaction,
-    });
-  }
-
   static filterByMember(memberId: string | undefined) {
     return memberId
       ? this.scope({ method: ["withMember", memberId] })
@@ -137,33 +110,8 @@ class Group extends ParanoidModel<
   @BelongsToMany(() => User, () => GroupUser)
   users: User[];
 
-  async memberCount() {
-    const value = await CacheHelper.getData<number>(
-      Group.memberCountCacheKey(this.id)
-    );
-
-    return value ?? Group.cacheMemberCount(this.id);
-  }
-
-  // static methods
-
-  static memberCountCacheKey(groupId: string) {
-    return `group-member-count-${groupId}`;
-  }
-
-  static async clearMemberCount(groupId: string) {
-    await CacheHelper.clearData(Group.memberCountCacheKey(groupId));
-  }
-
-  static async cacheMemberCount(groupId: string) {
-    const count = await GroupUser.count({
-      where: {
-        groupId,
-      },
-    });
-    await CacheHelper.setData(Group.memberCountCacheKey(groupId), count);
-    return count;
-  }
+  @CounterCache(() => GroupUser, { as: "members", foreignKey: "groupId" })
+  memberCount: Promise<number>;
 }
 
 export default Group;

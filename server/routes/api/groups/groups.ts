@@ -284,12 +284,16 @@ router.post(
     });
 
     if (!groupUser) {
-      await group.$add("user", user, {
-        through: {
+      await GroupUser.create(
+        {
+          groupId: group.id,
+          userId,
           createdById: actor.id,
         },
-        transaction,
-      });
+        {
+          transaction,
+        }
+      );
       // reload to get default scope
       groupUser = await GroupUser.findOne({
         where: {
@@ -343,19 +347,30 @@ router.post(
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
 
-    await group.$remove("user", user, { transaction });
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "groups.remove_user",
+    const groupUser = await GroupUser.unscoped().findOne({
+      where: {
+        groupId: id,
         userId,
-        modelId: group.id,
-        data: {
-          name: user.name,
-        },
       },
-      { transaction }
-    );
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    if (groupUser) {
+      await groupUser.destroy({ transaction });
+      await Event.createFromContext(
+        ctx,
+        {
+          name: "groups.remove_user",
+          userId,
+          modelId: group.id,
+          data: {
+            name: user.name,
+          },
+        },
+        { transaction }
+      );
+    }
 
     // reload to get default scope
     group = await Group.findByPk(id, { transaction, rejectOnEmpty: true });
