@@ -1,6 +1,5 @@
 import { InferAttributes } from "sequelize";
 import { ModelClassGetter } from "sequelize-typescript";
-import { Day } from "@shared/utils/time";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import Model from "../base/Model";
 
@@ -38,7 +37,7 @@ export function CounterCache<
               [options.foreignKey]: model[options.foreignKey],
             },
           });
-          await CacheHelper.setData(cacheKey, count + offset, Day * 7);
+          await CacheHelper.setData(cacheKey, count + offset);
         };
 
       // Because the transaction is not complete until after the response is sent, we need to
