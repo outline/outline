@@ -74,6 +74,7 @@ router.post(
           )
         )
           .flat()
+          .filter((groupUser) => groupUser.user)
           .map((groupUser) =>
             presentGroupUser(groupUser, { includeUser: true })
           ),
