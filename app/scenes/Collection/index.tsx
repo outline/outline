@@ -41,6 +41,7 @@ import Actions from "./components/Actions";
 import DropToImport from "./components/DropToImport";
 import Empty from "./components/Empty";
 import MembershipPreview from "./components/MembershipPreview";
+import Notices from "./components/Notices";
 import ShareButton from "./components/ShareButton";
 
 const IconPicker = React.lazy(() => import("~/components/IconPicker"));
@@ -163,6 +164,7 @@ function CollectionScene() {
         collectionId={collection.id}
       >
         <CenteredContent withStickyHeader>
+          <Notices collection={collection} />
           <CollectionHeading>
             <IconTitleWrapper>
               {can.update ? (

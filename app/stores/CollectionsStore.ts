@@ -1,11 +1,12 @@
 import invariant from "invariant";
 import find from "lodash/find";
 import isEmpty from "lodash/isEmpty";
+import orderBy from "lodash/orderBy";
 import sortBy from "lodash/sortBy";
-import { computed, action } from "mobx";
+import { computed, action, runInAction } from "mobx";
 import { CollectionPermission, FileOperationFormat } from "@shared/types";
 import Collection from "~/models/Collection";
-import { Properties } from "~/types";
+import { PaginationParams, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store from "./base/Store";
@@ -25,6 +26,11 @@ export default class CollectionsStore extends Store<Collection> {
     return this.rootStore.ui.activeCollectionId
       ? this.data.get(this.rootStore.ui.activeCollectionId)
       : undefined;
+  }
+
+  @computed
+  get allActive() {
+    return this.orderedData.filter((c) => c.isActive);
   }
 
   @computed
@@ -117,6 +123,47 @@ export default class CollectionsStore extends Store<Collection> {
     const model = await super.fetch(id, options);
     await model.fetchDocuments(options);
     return model;
+  }
+
+  @action
+  fetchNamedPage = async (
+    request = "list",
+    options: PaginationParams | undefined
+  ): Promise<Collection[]> => {
+    this.isFetching = true;
+
+    try {
+      const res = await client.post(`/collections.${request}`, options);
+      invariant(res?.data, "Collection list not available");
+      runInAction("CollectionsStore#fetchNamedPage", () => {
+        res.data.forEach(this.add);
+        this.addPolicies(res.policies);
+        this.isLoaded = true;
+      });
+      return res.data;
+    } finally {
+      this.isFetching = false;
+    }
+  };
+
+  @action
+  fetchArchived = async (options?: PaginationParams): Promise<Collection[]> =>
+    this.fetchNamedPage("archived", options);
+
+  @computed
+  get archived(): Collection[] {
+    return orderBy(this.orderedData, "archivedAt", "desc").filter(
+      (c) => c.isArchived && !c.isDeleted
+    );
+  }
+
+  @computed
+  get publicCollections() {
+    return this.orderedData.filter(
+      (collection) =>
+        collection.permission &&
+        Object.values(CollectionPermission).includes(collection.permission)
+    );
   }
 
   star = async (collection: Collection, index?: string) => {
