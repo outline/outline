@@ -18,10 +18,7 @@ import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Encrypted, {
-  getEncryptedColumn,
-  setEncryptedColumn,
-} from "./decorators/Encrypted";
+import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "user_authentications", modelName: "user_authentication" })
@@ -35,23 +32,11 @@ class UserAuthentication extends IdModel<
 
   @Column(DataType.BLOB)
   @Encrypted
-  get accessToken() {
-    return getEncryptedColumn(this, "accessToken");
-  }
-
-  set accessToken(value: string) {
-    setEncryptedColumn(this, "accessToken", value);
-  }
+  accessToken: string;
 
   @Column(DataType.BLOB)
   @Encrypted
-  get refreshToken() {
-    return getEncryptedColumn(this, "refreshToken");
-  }
-
-  set refreshToken(value: string) {
-    setEncryptedColumn(this, "refreshToken", value);
-  }
+  refreshToken: string;
 
   @Column
   providerId: string;

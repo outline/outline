@@ -10,10 +10,7 @@ import { IntegrationService } from "@shared/types";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Encrypted, {
-  getEncryptedColumn,
-  setEncryptedColumn,
-} from "./decorators/Encrypted";
+import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "authentications", modelName: "authentication" })
@@ -30,23 +27,11 @@ class IntegrationAuthentication extends IdModel<
 
   @Column(DataType.BLOB)
   @Encrypted
-  get token() {
-    return getEncryptedColumn(this, "token");
-  }
-
-  set token(value: string) {
-    setEncryptedColumn(this, "token", value);
-  }
+  token: string;
 
   @Column(DataType.BLOB)
   @Encrypted
-  get refreshToken() {
-    return getEncryptedColumn(this, "refreshToken");
-  }
-
-  set refreshToken(value: string) {
-    setEncryptedColumn(this, "refreshToken", value);
-  }
+  refreshToken: string;
 
   // associations
 
