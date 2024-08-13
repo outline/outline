@@ -9,8 +9,7 @@ const key = "sequelize:vault";
 /**
  * A decorator that stores the encrypted vault for a particular database column
  * so that it can be used by getters and setters. Must be accompanied by a
- * @Column(DataType.BLOB) annotation and be the last decorator applied to the
- * property.
+ * @Column(DataType.BLOB) annotation.
  */
 export default function Encrypted(target: any, propertyKey: string) {
   // Ensure that the Encrypted decorator is the first decorator applied to the property, we can check
