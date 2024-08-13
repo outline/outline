@@ -52,7 +52,7 @@ export function CounterCache<
         const cacheKey = `${cacheKeyPrefix}:${this.id}`;
 
         return CacheHelper.getData<number>(cacheKey).then((value) => {
-          if (value) {
+          if (value !== null) {
             return value;
           }
 

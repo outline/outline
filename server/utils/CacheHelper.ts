@@ -17,7 +17,7 @@ export class CacheHelper {
   public static async getData<T>(key: string): Promise<T | undefined> {
     try {
       const data = await Redis.defaultClient.get(key);
-      if (data) {
+      if (data !== null) {
         return JSON.parse(data);
       }
     } catch (err) {
