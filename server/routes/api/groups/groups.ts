@@ -61,12 +61,18 @@ router.post(
       pagination: ctx.state.pagination,
       data: {
         groups: await Promise.all(groups.map(presentGroup)),
-        groupMemberships: groups
-          .map((group) =>
-            group.groupUsers
-              .filter((groupUser) => !!groupUser.user)
-              .slice(0, MAX_AVATAR_DISPLAY)
+        groupMemberships: (
+          await Promise.all(
+            groups.map((group) =>
+              GroupUser.findAll({
+                where: {
+                  groupId: group.id,
+                },
+                limit: MAX_AVATAR_DISPLAY,
+              })
+            )
           )
+        )
           .flat()
           .map((groupUser) =>
             presentGroupUser(groupUser, { includeUser: true })
@@ -106,7 +112,7 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     authorize(user, "createGroup", user.team);
-    const g = await Group.create(
+    const group = await Group.create(
       {
         name,
         teamId: user.teamId,
@@ -114,12 +120,6 @@ router.post(
       },
       { transaction }
     );
-
-    // reload to get default scope
-    const group = await Group.findByPk(g.id, {
-      transaction,
-      rejectOnEmpty: true,
-    });
 
     await Event.createFromContext(
       ctx,
@@ -272,7 +272,7 @@ router.post(
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
 
-    let group = await Group.findByPk(id, { transaction });
+    const group = await Group.findByPk(id, { transaction });
     authorize(actor, "update", group);
 
     let groupUser = await GroupUser.findOne({
@@ -284,7 +284,7 @@ router.post(
     });
 
     if (!groupUser) {
-      await GroupUser.create(
+      groupUser = await GroupUser.create(
         {
           groupId: group.id,
           userId,
@@ -294,18 +294,7 @@ router.post(
           transaction,
         }
       );
-      // reload to get default scope
-      groupUser = await GroupUser.findOne({
-        where: {
-          groupId: id,
-          userId,
-        },
-        rejectOnEmpty: true,
-        transaction,
-      });
-
-      // reload to get default scope
-      group = await Group.findByPk(id, { transaction, rejectOnEmpty: true });
+      groupUser.user = user;
 
       await Event.createFromContext(
         ctx,
@@ -341,7 +330,7 @@ router.post(
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
-    let group = await Group.findByPk(id, { transaction });
+    const group = await Group.findByPk(id, { transaction });
     authorize(actor, "update", group);
 
     const user = await User.findByPk(userId, { transaction });
@@ -371,9 +360,6 @@ router.post(
         { transaction }
       );
     }
-
-    // reload to get default scope
-    group = await Group.findByPk(id, { transaction, rejectOnEmpty: true });
 
     ctx.body = {
       data: {

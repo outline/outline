@@ -6,7 +6,6 @@ import {
   Table,
   HasMany,
   BelongsToMany,
-  DefaultScope,
   DataType,
   Scopes,
 } from "sequelize-typescript";
@@ -20,26 +19,14 @@ import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
-@DefaultScope(() => ({
-  include: [
-    {
-      association: "groupUsers",
-      required: false,
-    },
-  ],
-}))
 @Scopes(() => ({
-  withMember: (memberId: string) => ({
+  withMembership: (userId: string) => ({
     include: [
       {
         association: "groupUsers",
         required: true,
-      },
-      {
-        association: "members",
-        required: true,
         where: {
-          userId: memberId,
+          userId,
         },
       },
     ],
@@ -78,16 +65,15 @@ class Group extends ParanoidModel<
   @Column
   name: string;
 
-  static filterByMember(memberId: string | undefined) {
-    return memberId
-      ? this.scope({ method: ["withMember", memberId] })
+  static filterByMember(userId: string | undefined) {
+    return userId
+      ? this.scope({ method: ["withMembership", userId] })
       : this.scope("defaultScope");
   }
 
   // associations
 
   @HasMany(() => GroupUser, "groupId")
-  @HasMany(() => GroupUser, { as: "members", foreignKey: "groupId" })
   groupUsers: GroupUser[];
 
   @HasMany(() => GroupMembership, "groupId")
