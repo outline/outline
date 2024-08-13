@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import isEmpty from "lodash/isEmpty";
+import isNil from "lodash/isNil";
 import {
   InferAttributes,
   InferCreationAttributes,
@@ -64,7 +64,7 @@ class WebhookSubscription extends ParanoidModel<
   @AllowNull
   @Column(DataType.BLOB)
   @Encrypted
-  secret: string;
+  secret: string | null;
 
   // associations
 
@@ -139,7 +139,7 @@ class WebhookSubscription extends ParanoidModel<
    * @returns the signature as a string
    */
   public signature = (payload: string) => {
-    if (isEmpty(this.secret)) {
+    if (isNil(this.secret)) {
       return;
     }
 
