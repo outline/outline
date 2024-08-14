@@ -1074,6 +1074,26 @@ describe("#collections.memberships", () => {
 });
 
 describe("#collections.info", () => {
+  it("should return archivedBy for archived collections", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+      archivedAt: new Date(),
+      archivedById: user.id,
+    });
+    const res = await server.post("/api/collections.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.archivedBy.id).toEqual(collection.archivedById);
+  });
+
   it("should return collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
