@@ -1028,7 +1028,10 @@ router.post(
     const { user } = ctx.state.auth;
     const collectionIds = await user.collectionIds({ transaction });
     const [collections, total] = await Promise.all([
-      Collection.scope("withArchivedBy").findAll({
+      Collection.scope([
+        { method: ["withMembership", user.id] },
+        "withArchivedBy",
+      ]).findAll({
         where: {
           teamId: user.teamId,
           id: collectionIds,
