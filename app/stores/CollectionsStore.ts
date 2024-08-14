@@ -103,6 +103,30 @@ export default class CollectionsStore extends Store<Collection> {
     }
   };
 
+  @action
+  archive = async (collection: Collection) => {
+    const res = await client.post("/collections.archive", {
+      id: collection.id,
+    });
+    runInAction("Collection#archive", () => {
+      invariant(res?.data, "Data should be available");
+      this.add(res.data);
+      this.addPolicies(res.policies);
+    });
+  };
+
+  @action
+  restore = async (collection: Collection) => {
+    const res = await client.post("/collections.restore", {
+      id: collection.id,
+    });
+    runInAction("Collection#restore", () => {
+      invariant(res?.data, "Data should be available");
+      this.add(res.data);
+      this.addPolicies(res.policies);
+    });
+  };
+
   async update(params: Properties<Collection>): Promise<Collection> {
     const result = await super.update(params);
 

@@ -341,6 +341,10 @@ export default class Collection extends ParanoidModel {
   @action
   unstar = async () => this.store.unstar(this);
 
+  archive = () => this.store.archive(this);
+
+  restore = () => this.store.restore(this);
+
   export = (format: FileOperationFormat, includeAttachments: boolean) =>
     client.post("/collections.export", {
       id: this.id,

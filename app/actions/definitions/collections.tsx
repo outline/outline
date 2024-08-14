@@ -1,8 +1,10 @@
 import {
+  ArchiveIcon,
   CollectionIcon,
   EditIcon,
   PadlockIcon,
   PlusIcon,
+  RestoreIcon,
   SearchIcon,
   ShapesIcon,
   StarredIcon,
@@ -10,6 +12,7 @@ import {
   UnstarredIcon,
 } from "outline-icons";
 import * as React from "react";
+import { toast } from "sonner";
 import stores from "~/stores";
 import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
@@ -187,6 +190,54 @@ export const unstarCollection = createAction({
 
     const collection = stores.collections.get(activeCollectionId);
     await collection?.unstar();
+  },
+});
+
+export const archiveCollection = createAction({
+  name: ({ t }) => t("Archive"),
+  analyticsName: "Archive collection",
+  section: CollectionSection,
+  icon: <ArchiveIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeCollectionId).archive;
+  },
+  perform: async ({ activeCollectionId, stores, t }) => {
+    if (activeCollectionId) {
+      const collection = stores.collections.get(activeCollectionId);
+      if (!collection) {
+        return;
+      }
+
+      await collection.archive();
+      toast.success(t("Collection archived"));
+    }
+  },
+});
+
+export const restoreCollection = createAction({
+  name: ({ t }) => t("Restore"),
+  analyticsName: "Restore collection",
+  section: CollectionSection,
+  icon: <RestoreIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeCollectionId).restore;
+  },
+  perform: async ({ activeCollectionId, stores, t }) => {
+    if (activeCollectionId) {
+      const collection = stores.collections.get(activeCollectionId);
+      if (!collection) {
+        return;
+      }
+
+      await collection.restore();
+      toast.success(t("Collection restored"));
+    }
   },
 });
 
