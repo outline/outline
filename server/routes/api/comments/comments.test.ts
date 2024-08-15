@@ -116,6 +116,7 @@ describe("#comments.list", () => {
     expect(body.policies.length).toEqual(2);
     expect(body.policies[0].abilities.read).toEqual(true);
     expect(body.policies[1].abilities.read).toEqual(true);
+    expect(body.pagination.total).toEqual(2);
   });
 
   it("should return unresolved comments for a collection", async () => {
@@ -147,6 +148,7 @@ describe("#comments.list", () => {
     expect(body.data[0].id).toEqual(comment.id);
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.pagination.total).toEqual(1);
   });
 
   it("should return unresolved comments for a parentCommentId", async () => {
@@ -178,6 +180,7 @@ describe("#comments.list", () => {
     expect(body.data[0].id).toEqual(childComment.id);
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.pagination.total).toEqual(1);
   });
 
   it("should return resolved comments for a statusFilter", async () => {
@@ -211,6 +214,7 @@ describe("#comments.list", () => {
     expect(body.policies[0].abilities.read).toEqual(true);
     expect(body.policies[0].abilities.unresolve).toEqual(true);
     expect(body.policies[0].abilities.resolve).toEqual(false);
+    expect(body.pagination.total).toEqual(1);
   });
 
   it("should return all unresolved comments", async () => {
@@ -257,6 +261,7 @@ describe("#comments.list", () => {
     expect(body.policies.length).toEqual(2);
     expect(body.policies[0].abilities.read).toEqual(true);
     expect(body.policies[1].abilities.read).toEqual(true);
+    expect(body.pagination.total).toEqual(2);
   });
 });
 

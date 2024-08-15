@@ -127,46 +127,63 @@ router.post(
       limit: ctx.state.pagination.limit,
     };
 
-    let comments;
+    let comments, total;
     if (documentId) {
       const document = await Document.findByPk(documentId, { userId: user.id });
       authorize(user, "read", document);
-      comments = await Comment.findAll(params);
+      [comments, total] = await Promise.all([
+        Comment.findAll(params),
+        Comment.count({ where }),
+      ]);
     } else if (collectionId) {
       const collection = await Collection.findByPk(collectionId);
       authorize(user, "read", collection);
-      comments = await Comment.findAll({
-        include: [
-          {
-            model: Document,
-            required: true,
-            where: {
-              teamId: user.teamId,
-              collectionId,
-            },
+      const include = [
+        {
+          model: Document,
+          required: true,
+          where: {
+            teamId: user.teamId,
+            collectionId,
           },
-        ],
-        ...params,
-      });
+        },
+      ];
+      [comments, total] = await Promise.all([
+        Comment.findAll({
+          include,
+          ...params,
+        }),
+        Comment.count({
+          include,
+          where,
+        }),
+      ]);
     } else {
       const accessibleCollectionIds = await user.collectionIds();
-      comments = await Comment.findAll({
-        include: [
-          {
-            model: Document,
-            required: true,
-            where: {
-              teamId: user.teamId,
-              collectionId: { [Op.in]: accessibleCollectionIds },
-            },
+      const include = [
+        {
+          model: Document,
+          required: true,
+          where: {
+            teamId: user.teamId,
+            collectionId: { [Op.in]: accessibleCollectionIds },
           },
-        ],
-        ...params,
-      });
+        },
+      ];
+      [comments, total] = await Promise.all([
+        Comment.findAll({
+          include,
+          ...params,
+        }),
+        Comment.count({
+          include,
+          where,
+        }),
+      ]);
     }
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: comments.map(presentComment),
       policies: presentPolicies(user, comments),
     };
