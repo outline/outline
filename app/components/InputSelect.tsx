@@ -352,7 +352,7 @@ const Wrapper = styled.label<{ short?: boolean }>`
 `;
 
 export const Positioner = styled(Position)`
-  &.focus-visible {
+  &:focus-visible {
     ${StyledSelectOption} {
       &[aria-selected="true"] {
         color: ${(props) => props.theme.white};

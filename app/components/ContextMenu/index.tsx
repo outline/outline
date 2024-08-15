@@ -223,7 +223,7 @@ export const Position = styled.div`
   position: absolute;
   z-index: ${depths.menu};
 
-  &.focus-visible {
+  &:focus-visible {
     transition-delay: 250ms;
     transition-property: outline-width;
     transition-duration: 0;
