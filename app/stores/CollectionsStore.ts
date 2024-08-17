@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import concat from "lodash/concat";
 import find from "lodash/find";
+import isEmpty from "lodash/isEmpty";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
 import { computed, action } from "mobx";
@@ -54,10 +55,10 @@ export default class CollectionsStore extends Store<Collection> {
     let collections = Array.from(this.data.values());
     collections = collections
       .filter((collection) => !collection.deletedAt)
-      .filter(
-        (collection) =>
-          this.rootStore.policies.abilities(collection.id).readDocument
-      );
+      .filter((collection) => {
+        const can = this.rootStore.policies.abilities(collection.id);
+        return isEmpty(can) || can.readDocument;
+      });
     return collections.sort((a, b) => {
       if (a.index === b.index) {
         return a.updatedAt > b.updatedAt ? -1 : 1;

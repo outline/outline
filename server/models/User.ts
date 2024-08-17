@@ -56,10 +56,7 @@ import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
-import Encrypted, {
-  setEncryptedColumn,
-  getEncryptedColumn,
-} from "./decorators/Encrypted";
+import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
@@ -143,13 +140,7 @@ class User extends ParanoidModel<
 
   @Column(DataType.BLOB)
   @Encrypted
-  get jwtSecret() {
-    return getEncryptedColumn(this, "jwtSecret");
-  }
-
-  set jwtSecret(value: string) {
-    setEncryptedColumn(this, "jwtSecret", value);
-  }
+  jwtSecret: string;
 
   @IsDate
   @Column

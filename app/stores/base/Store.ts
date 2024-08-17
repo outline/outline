@@ -298,7 +298,7 @@ export default abstract class Store<T extends Model> {
 
   @action
   fetchAll = async (params?: Record<string, any>): Promise<T[]> => {
-    const limit = Pagination.defaultLimit;
+    const limit = params?.limit ?? Pagination.defaultLimit;
     const response = await this.fetchPage({ ...params, limit });
     const pages = Math.ceil(response[PAGINATION_SYMBOL].total / limit);
     const fetchPages = [];

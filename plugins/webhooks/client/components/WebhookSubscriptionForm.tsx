@@ -154,7 +154,7 @@ type Props = {
 interface FormData {
   name: string;
   url: string;
-  secret: string;
+  secret: string | null;
   events: string[];
 }
 
@@ -177,7 +177,9 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
       events: webhookSubscription ? [...webhookSubscription.events] : [],
       name: webhookSubscription?.name,
       url: webhookSubscription?.url,
-      secret: webhookSubscription?.secret ?? generateSigningSecret(),
+      secret: webhookSubscription
+        ? webhookSubscription?.secret
+        : generateSigningSecret(),
     },
   });
 

@@ -274,14 +274,12 @@ const hoverStyles = (props: ContainerProps) => `
 `;
 
 const Container = styled(Flex)<ContainerProps>`
-  opacity: ${(props) => (props.$hidden ? 0 : 1)};
   position: fixed;
   top: 0;
   bottom: 0;
   width: 100%;
   background: ${s("sidebarBackground")};
-  transition: box-shadow 150ms ease-in-out, opacity 150ms ease-in-out,
-    transform 150ms ease-out,
+  transition: box-shadow 150ms ease-in-out, transform 150ms ease-out,
     ${s("backgroundTransition")}
       ${(props: ContainerProps) =>
         props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
@@ -299,7 +297,9 @@ const Container = styled(Flex)<ContainerProps>`
   }
 
   & > div {
-    opacity: ${(props) => (props.$collapsed && !props.$isHovering ? "0" : "1")};
+    transition: opacity 150ms ease-in-out;
+    opacity: ${(props) =>
+      props.$hidden || (props.$collapsed && !props.$isHovering) ? "0" : "1"};
   }
 
   ${breakpoint("tablet")`

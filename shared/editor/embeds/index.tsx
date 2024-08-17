@@ -172,7 +172,7 @@ const embeds: EmbedDescriptor[] = [
     title: "Canva",
     keywords: "design",
     regexMatch: [
-      /^https:\/\/(?:www\.)?canva\.com\/design\/([a-zA-Z0-9]*)\/(.*)$/,
+      /^https:\/\/(?:www\.)?canva\.com\/design\/([a-zA-Z0-9_]*)\/(.*)$/,
     ],
     transformMatch: (matches: RegExpMatchArray) =>
       `https://www.canva.com/design/${matches[1]}/view?embed`,
