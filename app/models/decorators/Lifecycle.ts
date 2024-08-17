@@ -53,10 +53,10 @@ export function AfterUpdate(target: any, propertyKey: string) {
   LifecycleManager.registerHook(target, propertyKey, "afterUpdate");
 }
 
-export function BeforeDestroy(target: any, propertyKey: string) {
-  LifecycleManager.registerHook(target, propertyKey, "beforeDestroy");
+export function BeforeDelete(target: any, propertyKey: string) {
+  LifecycleManager.registerHook(target, propertyKey, "beforeDelete");
 }
 
-export function AfterDestroy(target: any, propertyKey: string) {
-  LifecycleManager.registerHook(target, propertyKey, "afterDestroy");
+export function AfterDelete(target: any, propertyKey: string) {
+  LifecycleManager.registerHook(target, propertyKey, "afterDelete");
 }

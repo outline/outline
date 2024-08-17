@@ -85,6 +85,7 @@ export default abstract class Model {
     params?: Record<string, any>,
     options?: Record<string, string | boolean | number | undefined>
   ): Promise<Model> => {
+    const isNew = this.isNew;
     this.isSaving = true;
 
     try {
@@ -93,7 +94,11 @@ export default abstract class Model {
         params = this.toAPI();
       }
 
-      LifecycleManager.executeHooks(this.constructor, "beforeUpdate", this);
+      if (isNew) {
+        LifecycleManager.executeHooks(this.constructor, "beforeCreate", this);
+      } else {
+        LifecycleManager.executeHooks(this.constructor, "beforeUpdate", this);
+      }
 
       const model = await this.store.save(
         {
@@ -102,7 +107,7 @@ export default abstract class Model {
         },
         {
           ...options,
-          isNew: this.isNew,
+          isNew,
         }
       );
 
@@ -110,7 +115,12 @@ export default abstract class Model {
       set(this, { ...params, ...model, isNew: false });
 
       this.persistedAttributes = this.toAPI();
-      LifecycleManager.executeHooks(this.constructor, "afterUpdate", this);
+
+      if (isNew) {
+        LifecycleManager.executeHooks(this.constructor, "afterCreate", this);
+      } else {
+        LifecycleManager.executeHooks(this.constructor, "afterUpdate", this);
+      }
 
       return model;
     } finally {
@@ -142,7 +152,10 @@ export default abstract class Model {
     this.isSaving = true;
 
     try {
-      return await this.store.delete(this);
+      LifecycleManager.executeHooks(this.constructor, "beforeDelete", this);
+      const response = await this.store.delete(this);
+      LifecycleManager.executeHooks(this.constructor, "afterDelete", this);
+      return response;
     } finally {
       this.isSaving = false;
     }
