@@ -12,7 +12,7 @@ import validate from "@server/middlewares/validate";
 import { Document, Share, Team, User } from "@server/models";
 import { authorize } from "@server/policies";
 import presentUnfurl from "@server/presenters/unfurl";
-import { APIContext } from "@server/types";
+import { APIContext, Unfurl } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
@@ -84,7 +84,7 @@ router.post(
     }
 
     // External resources
-    const cachedData = await CacheHelper.getData(
+    const cachedData = await CacheHelper.getData<Unfurl>(
       CacheHelper.getUnfurlKey(actor.teamId, url)
     );
     if (cachedData) {
@@ -138,11 +138,11 @@ router.post(
     let addresses;
     try {
       addresses = await new Promise<string[]>((resolve, reject) => {
-        dns.resolveCname(hostname, (err, addresses) => {
+        dns.resolveCname(hostname, (err, res) => {
           if (err) {
             return reject(err);
           }
-          return resolve(addresses);
+          return resolve(res);
         });
       });
     } catch (err) {

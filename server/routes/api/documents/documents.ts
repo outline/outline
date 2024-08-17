@@ -1905,7 +1905,9 @@ router.post(
       pagination: { ...ctx.state.pagination, total },
       data: {
         groupMemberships,
-        groups: memberships.map((membership) => presentGroup(membership.group)),
+        groups: await Promise.all(
+          memberships.map((membership) => presentGroup(membership.group))
+        ),
       },
     };
   }
