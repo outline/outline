@@ -44,6 +44,7 @@ const Row = ({ index, style, data }: ListChildComponentProps<RowProps>) => {
 
 const Container = styled(FixedSizeList<RowProps>)`
   padding: 0px 12px;
+  overflow-x: hidden !important;
 
   // Needed for the absolutely positioned children
   // to respect the VirtualList's padding
