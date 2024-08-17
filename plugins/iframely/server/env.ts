@@ -14,7 +14,7 @@ class IframelyPluginEnvironment extends Environment {
     allow_underscores: true,
     protocols: ["http", "https"],
   })
-  public IFRAMELY_URL = environment.IFRAMELY_URL ?? "https://iframe.ly";
+  public IFRAMELY_URL = environment.IFRAMELY_URL || "https://iframe.ly";
 
   /**
    * Iframely API key
