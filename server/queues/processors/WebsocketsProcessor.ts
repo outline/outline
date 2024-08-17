@@ -235,6 +235,22 @@ export default class WebsocketsProcessor {
           });
       }
 
+      case "collections.archive":
+      case "collections.restore": {
+        const collection = await Collection.findByPk(event.collectionId);
+        if (!collection) {
+          return;
+        }
+
+        return socketio
+          .to(
+            collection.permission
+              ? `collection-${event.collectionId}`
+              : `team-${collection.teamId}`
+          )
+          .emit(event.name, { modelId: event.collectionId });
+      }
+
       case "collections.move": {
         return socketio
           .to(`collection-${event.collectionId}`)

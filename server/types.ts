@@ -294,7 +294,11 @@ export type CollectionEvent = BaseEvent<Collection> &
         };
       }
     | {
-        name: "collections.update" | "collections.delete";
+        name:
+          | "collections.update"
+          | "collections.delete"
+          | "collections.archive"
+          | "collections.restore";
         collectionId: string;
         data: {
           name: string;
