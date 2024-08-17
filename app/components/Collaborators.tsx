@@ -82,7 +82,7 @@ function Collaborators(props: Props) {
       <PopoverDisclosure {...popover}>
         {(popoverProps) => (
           <NudeButton
-            width={Math.max(collaborators.length, limit) * 32}
+            width={Math.min(collaborators.length, limit) * 32}
             height={32}
             {...popoverProps}
           >
