@@ -88,7 +88,7 @@ export default class WebsocketsProcessor {
 
       case "documents.create": {
         const document = await Document.findByPk(event.documentId);
-        if (!document) {
+        if (!document || document.importId) {
           return;
         }
 
