@@ -4,6 +4,7 @@ import { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "../decorators/Field";
+import { LifecycleManager } from "../decorators/Lifecycle";
 import { getRelationsForModelClass } from "../decorators/Relation";
 
 export default abstract class Model {
@@ -92,6 +93,8 @@ export default abstract class Model {
         params = this.toAPI();
       }
 
+      LifecycleManager.executeHooks(this.constructor, "beforeUpdate", this);
+
       const model = await this.store.save(
         {
           ...params,
@@ -107,6 +110,7 @@ export default abstract class Model {
       set(this, { ...params, ...model, isNew: false });
 
       this.persistedAttributes = this.toAPI();
+      LifecycleManager.executeHooks(this.constructor, "afterUpdate", this);
 
       return model;
     } finally {
