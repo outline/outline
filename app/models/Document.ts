@@ -602,6 +602,8 @@ export default class Document extends ParanoidModel {
     return {
       id: this.id,
       title: this.title,
+      color: this.color ?? undefined,
+      icon: this.icon ?? undefined,
       children: this.childDocuments.map((doc) => doc.asNavigationNode),
       url: this.url,
       isDraft: this.isDraft,
