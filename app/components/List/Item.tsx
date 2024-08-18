@@ -142,10 +142,14 @@ const ListItem = (
       $hover={!!rest.onClick}
       {...rest}
       {...rovingTabIndex}
-      onClick={(ev) => {
-        rest.onClick?.(ev);
-        rovingTabIndex.onClick(ev);
-      }}
+      onClick={
+        rest.onClick
+          ? (ev) => {
+              rest.onClick?.(ev);
+              rovingTabIndex.onClick(ev);
+            }
+          : undefined
+      }
       onKeyDown={(ev) => {
         rest.onKeyDown?.(ev);
         rovingTabIndex.onKeyDown(ev);
