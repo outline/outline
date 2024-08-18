@@ -32,15 +32,18 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
             id: collectionId,
             ...params,
           })
-        : await client.post(`/documents.group_memberships`, {
+        : documentId
+        ? await client.post(`/documents.group_memberships`, {
             id: documentId,
             ...params,
-          });
+          })
+        : await client.post(`/groupMemberships.list`, params);
       invariant(res?.data, "Data not available");
 
       let response: GroupMembership[] = [];
       runInAction(`GroupMembershipsStore#fetchPage`, () => {
-        res.data.groups.forEach(this.rootStore.groups.add);
+        res.data.groups?.forEach(this.rootStore.groups.add);
+        res.data.documents?.forEach(this.rootStore.documents.add);
         response = res.data.groupMemberships.map(this.add);
         this.isLoaded = true;
       });

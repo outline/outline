@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Pagination } from "@shared/constants";
+import GroupMembership from "~/models/GroupMembership";
 import UserMembership from "~/models/UserMembership";
 import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
@@ -20,7 +21,7 @@ import SidebarLink from "./SidebarLink";
 import { useDropToReorderUserMembership } from "./useDragAndDrop";
 
 function SharedWithMe() {
-  const { userMemberships } = useStores();
+  const { userMemberships, groupMemberships } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser();
 
@@ -28,6 +29,10 @@ function SharedWithMe() {
     usePaginatedRequest<UserMembership>(userMemberships.fetchPage, {
       limit: Pagination.sidebarLimit,
     });
+
+  usePaginatedRequest<GroupMembership>(groupMemberships.fetchPage, {
+    limit: Pagination.sidebarLimit,
+  });
 
   // Drop to reorder document
   const [reorderMonitor, dropToReorderRef] = useDropToReorderUserMembership(
@@ -40,9 +45,9 @@ function SharedWithMe() {
     }
   }, [error, t]);
 
-  if (!user.memberships.length) {
-    return null;
-  }
+  // if (!user.memberships.length) {
+  //   return null;
+  // }
 
   return (
     <SharedContext.Provider value={true}>
@@ -56,6 +61,12 @@ function SharedWithMe() {
                 position="top"
               />
             )}
+            {groupMemberships.orderedData.map((membership) => (
+              <SharedWithMeLink
+                key={membership.id}
+                userMembership={membership}
+              />
+            ))}
             {user.memberships
               .slice(0, page * Pagination.sidebarLimit)
               .map((membership) => (

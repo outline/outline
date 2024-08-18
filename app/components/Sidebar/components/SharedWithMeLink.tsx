@@ -4,6 +4,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { IconType, NotificationEventType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import GroupMembership from "~/models/GroupMembership";
 import UserMembership from "~/models/UserMembership";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
@@ -21,7 +22,7 @@ import {
 import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 
 type Props = {
-  userMembership: UserMembership;
+  userMembership: UserMembership | GroupMembership;
 };
 
 function SharedWithMeLink({ userMembership }: Props) {
