@@ -89,6 +89,7 @@ export enum IntegrationService {
   GoogleAnalytics = "google-analytics",
   Matomo = "matomo",
   GitHub = "github",
+  Mattermost = "mattermost",
 }
 
 export type UserCreatableIntegrationService = Extract<
@@ -148,6 +149,15 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       | { serviceTeamId: string }
       | { measurementId: string }
       | { slack: { serviceTeamId: string; serviceUserId: string } }
+      | {
+          url: string;
+          apiKey: string;
+          user: {
+            id: string;
+            displayName: string;
+            email: string;
+          };
+        }
       | undefined;
 
 export enum UserPreference {
