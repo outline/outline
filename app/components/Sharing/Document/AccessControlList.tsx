@@ -62,6 +62,7 @@ export const AccessControlList = observer(
     const collectionSharingDisabled = document.collection?.sharing === false;
     const team = useCurrentTeam();
     const can = usePolicy(document);
+    const canCollection = usePolicy(collection);
     const documentId = document.id;
 
     const containerRef = React.useRef<HTMLDivElement | null>(null);
@@ -107,7 +108,7 @@ export const AccessControlList = observer(
         style={{ maxHeight }}
       >
         {(!userMembershipData || !groupMembershipData) && <LoadingIndicator />}
-        {collection ? (
+        {collection && canCollection.readDocument ? (
           <>
             {collection.permission ? (
               <ListItem
