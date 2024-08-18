@@ -126,10 +126,10 @@ function AppSidebar() {
               )}
             </Section>
             <Section>
-              <SharedWithMe />
+              <Starred />
             </Section>
             <Section>
-              <Starred />
+              <SharedWithMe />
             </Section>
             <Section auto>
               <Collections />
