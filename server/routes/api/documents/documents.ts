@@ -44,6 +44,7 @@ import {
   View,
   UserMembership,
   Group,
+  GroupUser,
   GroupMembership,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
@@ -146,14 +147,36 @@ router.post(
     }
 
     if (parentDocumentId) {
-      const membership = await UserMembership.findOne({
-        where: {
-          userId: user.id,
-          documentId: parentDocumentId,
-        },
-      });
+      const [groupMembership, membership] = await Promise.all([
+        GroupMembership.findOne({
+          where: {
+            documentId: parentDocumentId,
+          },
+          include: [
+            {
+              model: Group,
+              required: true,
+              include: [
+                {
+                  model: GroupUser,
+                  required: true,
+                  where: {
+                    userId: user.id,
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+        UserMembership.findOne({
+          where: {
+            userId: user.id,
+            documentId: parentDocumentId,
+          },
+        }),
+      ]);
 
-      if (membership) {
+      if (groupMembership || membership) {
         delete where.collectionId;
       }
 
