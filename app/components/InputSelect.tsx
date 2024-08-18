@@ -352,6 +352,8 @@ const Wrapper = styled.label<{ short?: boolean }>`
 `;
 
 export const Positioner = styled(Position)`
+  pointer-events: all;
+
   &:focus-visible {
     ${StyledSelectOption} {
       &[aria-selected="true"] {
