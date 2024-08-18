@@ -1046,7 +1046,7 @@
   "Webhook updated": "Webhook を更新しました",
   "Update": "更新",
   "Updating": "更新中",
-  "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Webhookを作成するには、マッチングイベントが発生した際にOutlineがPOSTリクエストを送信すべきURLを指定してください。また、Webhook の説明的な名前も指定してください。",
+  "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Webhookを作成するには、合致するイベントが発生した際にOutlineがPOSTリクエストを送信すべきURLを指定してください。また、Webhook の説明的な名前も指定してください。",
   "A memorable identifer": "覚えやすい識別子",
   "URL": "URL",
   "Signing secret": "署名用シークレット",
