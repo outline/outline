@@ -59,12 +59,12 @@ describe("groupMemberships.list", () => {
     expect(body.data).not.toBeFalsy();
     expect(body.data.documents).not.toBeFalsy();
     expect(body.data.documents).toHaveLength(1);
-    expect(body.data.memberships).not.toBeFalsy();
-    expect(body.data.memberships).toHaveLength(1);
+    expect(body.data.groupMemberships).not.toBeFalsy();
+    expect(body.data.groupMemberships).toHaveLength(1);
     const sharedDoc = body.data.documents[0];
     expect(sharedDoc.id).toEqual(document.id);
-    expect(sharedDoc.id).toEqual(body.data.memberships[0].documentId);
-    expect(body.data.memberships[0].groupId).toEqual(group.id);
+    expect(sharedDoc.id).toEqual(body.data.groupMemberships[0].documentId);
+    expect(body.data.groupMemberships[0].groupId).toEqual(group.id);
     expect(body.policies).not.toBeFalsy();
   });
 });
