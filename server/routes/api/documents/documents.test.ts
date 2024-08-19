@@ -3154,6 +3154,7 @@ describe("#documents.update", () => {
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
+      icon: "library",
     });
     const res = await server.post("/api/documents.update", {
       body: {
@@ -3168,6 +3169,7 @@ describe("#documents.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.title).toBe("Updated title");
     expect(body.data.text).toBe("Updated text");
+    expect(body.data.icon).toBe("library");
     const events = await Event.findAll({
       where: {
         teamId: document.teamId,
