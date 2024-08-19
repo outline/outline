@@ -14,7 +14,7 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 import MattermostIcon from "./Icon";
-import ConnectForm from "./components/ConnectForm";
+import AddConnectionDialog from "./components/connection/AddConnectionDialog";
 
 const MatterMost = () => {
   const { t } = useTranslation();
@@ -30,7 +30,7 @@ const MatterMost = () => {
   const handleConnect = React.useCallback(() => {
     dialogs.openModal({
       title: t("Connect to Mattermost"),
-      content: <ConnectForm onSubmit={dialogs.closeAllModals} />,
+      content: <AddConnectionDialog onSubmit={dialogs.closeAllModals} />,
     });
   }, [dialogs]);
 

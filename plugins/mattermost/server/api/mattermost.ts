@@ -23,7 +23,8 @@ router.post(
     const {
       url,
       apiKey,
-      user: { id, email, displayName },
+      user: mattermostUser,
+      team: mattermostTeam,
     } = ctx.input.body;
 
     const authentication = await IntegrationAuthentication.create(
@@ -44,11 +45,8 @@ router.post(
         authenticationId: authentication.id,
         settings: {
           url,
-          user: {
-            id,
-            email,
-            displayName,
-          },
+          user: mattermostUser,
+          team: mattermostTeam,
         },
       },
       { transaction }

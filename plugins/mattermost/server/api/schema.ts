@@ -7,8 +7,12 @@ export const MattermostConnectSchema = BaseSchema.extend({
     apiKey: z.string(),
     user: z.object({
       id: z.string(),
+      name: z.string(),
       email: z.string(),
-      displayName: z.string(),
+    }),
+    team: z.object({
+      id: z.string(),
+      name: z.string(),
     }),
   }),
 });

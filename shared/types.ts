@@ -154,8 +154,12 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
           apiKey: string;
           user: {
             id: string;
-            displayName: string;
+            name: string;
             email: string;
+          };
+          team: {
+            id: string;
+            name: string;
           };
         }
       | undefined;
