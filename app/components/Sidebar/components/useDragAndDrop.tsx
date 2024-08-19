@@ -4,6 +4,7 @@ import * as React from "react";
 import { ConnectDragSource, useDrag, useDrop } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useTheme } from "styled-components";
+import GroupMembership from "~/models/GroupMembership";
 import Star from "~/models/Star";
 import UserMembership from "~/models/UserMembership";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -90,8 +91,8 @@ export function useDropToReorderStar(getIndex?: () => string) {
   });
 }
 
-export function useDragUserMembership(
-  userMembership: UserMembership
+export function useDragMembership(
+  userMembership: UserMembership | GroupMembership
 ): [{ isDragging: boolean }, ConnectDragSource] {
   const id = userMembership.id;
   const { label: title, icon } = useSidebarLabelAndIcon(userMembership);

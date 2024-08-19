@@ -1,6 +1,8 @@
 import fractionalIndex from "fractional-index";
+import { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { IconType, NotificationEventType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
@@ -16,7 +18,7 @@ import Folder from "./Folder";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import {
-  useDragUserMembership,
+  useDragMembership,
   useDropToReorderUserMembership,
 } from "./useDragAndDrop";
 import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
@@ -25,21 +27,33 @@ type Props = {
   userMembership: UserMembership | GroupMembership;
 };
 
+function useLocationState() {
+  const location = useLocation<{
+    sharedWithMe?: boolean;
+  }>();
+  return location.state?.sharedWithMe;
+}
+
 function SharedWithMeLink({ userMembership }: Props) {
   const { ui, collections, documents } = useStores();
   const { fetchChildDocuments } = documents;
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId } = userMembership;
   const isActiveDocument = documentId === ui.activeDocumentId;
+  const locationStateStarred = useLocationState();
+
   const [expanded, setExpanded] = React.useState(
-    userMembership.documentId === ui.activeDocumentId
+    userMembership.documentId === ui.activeDocumentId && !!locationStateStarred
   );
 
   React.useEffect(() => {
-    if (userMembership.documentId === ui.activeDocumentId) {
+    if (
+      userMembership.documentId === ui.activeDocumentId &&
+      locationStateStarred
+    ) {
       setExpanded(true);
     }
-  }, [userMembership.documentId, ui.activeDocumentId]);
+  }, [userMembership.documentId, ui.activeDocumentId, locationStateStarred]);
 
   React.useEffect(() => {
     if (documentId) {
@@ -63,11 +77,17 @@ function SharedWithMeLink({ userMembership }: Props) {
   );
 
   const { icon } = useSidebarLabelAndIcon(userMembership);
-  const [{ isDragging }, draggableRef] = useDragUserMembership(userMembership);
+  const [{ isDragging }, draggableRef] = useDragMembership(userMembership);
 
   const getIndex = () => {
-    const next = userMembership?.next();
-    return fractionalIndex(userMembership?.index || null, next?.index || null);
+    if (userMembership instanceof UserMembership) {
+      const next = userMembership?.next();
+      return fractionalIndex(
+        userMembership?.index || null,
+        next?.index || null
+      );
+    }
+    return "";
   };
   const [reorderMonitor, dropToReorderRef] =
     useDropToReorderUserMembership(getIndex);
@@ -104,11 +124,14 @@ function SharedWithMeLink({ userMembership }: Props) {
             depth={0}
             to={{
               pathname: document.path,
-              state: { starred: true },
+              state: { sharedWithMe: true },
             }}
             expanded={hasChildDocuments && !isDragging ? expanded : undefined}
             onDisclosureClick={handleDisclosureClick}
             icon={icon}
+            isActive={(match, location: Location<{ sharedWithMe?: boolean }>) =>
+              !!match && location.state?.sharedWithMe === true
+            }
             label={label}
             exact={false}
             unreadBadge={

@@ -29,7 +29,7 @@ type Props = {
   star: Star;
 };
 
-function useLocationStateStarred() {
+function useLocationState() {
   const location = useLocation<{
     starred?: boolean;
   }>();
@@ -42,7 +42,7 @@ function StarredLink({ star }: Props) {
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId, collectionId } = star;
   const collection = collections.get(collectionId);
-  const locationStateStarred = useLocationStateStarred();
+  const locationStateStarred = useLocationState();
   const [expanded, setExpanded] = useState(
     star.collectionId === ui.activeCollectionId && !!locationStateStarred
   );

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const StarredContext = React.createContext<boolean | undefined>(undefined);
+const StarredContext = React.createContext<boolean>(false);
 
 export const useStarredContext = () => React.useContext(StarredContext);
 

@@ -339,6 +339,7 @@ function InnerDocumentLink(
                   state: {
                     title: node.title,
                     starred: inStarredSection,
+                    sharedWithMe: inSharedSection,
                   },
                 }}
                 icon={icon && <Icon value={icon} color={color} />}
@@ -352,16 +353,29 @@ function InnerDocumentLink(
                     ref={editableTitleRef}
                   />
                 }
-                isActive={(match, location: Location<{ starred?: boolean }>) =>
-                  ((document && location.pathname.endsWith(document.urlId)) ||
-                    !!match) &&
-                  location.state?.starred === inStarredSection
-                }
+                isActive={(
+                  match,
+                  location: Location<{
+                    starred?: boolean;
+                    sharedWithMe?: boolean;
+                  }>
+                ) => {
+                  if (inStarredSection !== location.state?.starred) {
+                    return false;
+                  }
+                  if (inSharedSection !== location.state?.sharedWithMe) {
+                    return false;
+                  }
+                  return (
+                    (document && location.pathname.endsWith(document.urlId)) ||
+                    !!match
+                  );
+                }}
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
                 exact={false}
                 showActions={menuOpen}
-                scrollIntoViewIfNeeded={!inStarredSection}
+                scrollIntoViewIfNeeded={!inStarredSection && !inSharedSection}
                 isDraft={isDraft}
                 ref={ref}
                 menu={
