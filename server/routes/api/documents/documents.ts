@@ -1788,7 +1788,13 @@ router.post(
       ctx.throw(400, "This Group is not a part of the document");
     }
 
-    await document.$remove("group", group, { transaction });
+    await GroupMembership.destroy({
+      where: {
+        documentId: id,
+        groupId,
+      },
+      transaction,
+    });
     await Event.createFromContext(
       ctx,
       {

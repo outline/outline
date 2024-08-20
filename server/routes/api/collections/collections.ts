@@ -306,7 +306,13 @@ router.post(
       ctx.throw(400, "This Group is not a part of the collection");
     }
 
-    await collection.$remove("group", group, { transaction });
+    await GroupMembership.destroy({
+      where: {
+        collectionId: id,
+        groupId,
+      },
+      transaction,
+    });
     await Event.createFromContext(
       ctx,
       {
