@@ -180,6 +180,7 @@ export type WebsocketEntityDeletedEvent = {
 };
 
 export type WebsocketEntitiesEvent = {
+  fetchIfMissing?: boolean;
   documentIds: { id: string; updatedAt?: string }[];
   collectionIds: { id: string; updatedAt?: string }[];
   groupIds: { id: string; updatedAt?: string }[];

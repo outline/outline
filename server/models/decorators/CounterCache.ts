@@ -1,3 +1,4 @@
+import isNil from "lodash/isNil";
 import { InferAttributes } from "sequelize";
 import { ModelClassGetter } from "sequelize-typescript";
 import { CacheHelper } from "@server/utils/CacheHelper";
@@ -52,7 +53,7 @@ export function CounterCache<
         const cacheKey = `${cacheKeyPrefix}:${this.id}`;
 
         return CacheHelper.getData<number>(cacheKey).then((value) => {
-          if (value !== null) {
+          if (!isNil(value)) {
             return value;
           }
 

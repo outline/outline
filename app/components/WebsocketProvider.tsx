@@ -139,6 +139,9 @@ class WebsocketProvider extends React.Component<Props> {
             if (document?.updatedAt === documentDescriptor.updatedAt) {
               continue;
             }
+            if (!document && !event.fetchIfMissing) {
+              continue;
+            }
 
             // otherwise, grab the latest version of the document
             try {
@@ -182,6 +185,9 @@ class WebsocketProvider extends React.Component<Props> {
             // if we already have the latest version (it was us that performed
             // the change) then we don't need to update anything either.
             if (collection?.updatedAt === collectionDescriptor.updatedAt) {
+              continue;
+            }
+            if (!collection?.documents?.length && !event.fetchIfMissing) {
               continue;
             }
 

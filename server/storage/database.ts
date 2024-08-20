@@ -1,7 +1,9 @@
 import path from "path";
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
 import { Umzug, SequelizeStorage, MigrationError } from "umzug";
 import env from "@server/env";
+import Model from "@server/models/base/Model";
 import Logger from "../logging/Logger";
 import * as models from "../models";
 
@@ -11,8 +13,16 @@ const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
 const url = env.DATABASE_CONNECTION_POOL_URL || env.DATABASE_URL;
 const schema = env.DATABASE_SCHEMA;
 
-export function createDatabaseInstance() {
-  return new Sequelize(url, {
+export function createDatabaseInstance(
+  databaseUrl: string,
+  input: {
+    [key: string]: typeof Model<
+      InferAttributes<Model>,
+      InferCreationAttributes<Model>
+    >;
+  }
+) {
+  return new Sequelize(databaseUrl, {
     logging: (msg) =>
       process.env.DEBUG?.includes("database") && Logger.debug("database", msg),
     typeValidation: true,
@@ -26,7 +36,7 @@ export function createDatabaseInstance() {
             }
           : false,
     },
-    models: Object.values(models),
+    models: Object.values(input),
     pool: {
       max: poolMax,
       min: poolMin,
@@ -105,7 +115,7 @@ export function createMigrationRunner(
   });
 }
 
-export const sequelize = createDatabaseInstance();
+export const sequelize = createDatabaseInstance(url, models);
 
 export const migrations = createMigrationRunner(sequelize, [
   "migrations/*.js",
