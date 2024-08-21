@@ -237,7 +237,7 @@ function DocumentMenu({
               visible:
                 ((document.isWorkspaceTemplate || !!collection) &&
                   can.restore) ||
-                can.unarchive,
+                !!can.unarchive,
               onClick: (ev) => handleRestore(ev),
               icon: <RestoreIcon />,
             },
