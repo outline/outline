@@ -270,9 +270,9 @@ export default class SearchHelper {
           id: map(results, "id"),
         },
       }),
-      results.length < limit || offset !== 0
-        ? countQuery
-        : Promise.resolve(results.length),
+      results.length < limit && offset === 0
+        ? Promise.resolve(results.length)
+        : countQuery,
     ]);
 
     return this.buildResponse(query, results, documents, count);
