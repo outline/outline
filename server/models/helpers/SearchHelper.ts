@@ -69,12 +69,7 @@ export default class SearchHelper {
     query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const {
-      snippetMinWords = 20,
-      snippetMaxWords = 30,
-      limit = 15,
-      offset = 0,
-    } = options;
+    const { limit = 15, offset = 0 } = options;
 
     const where = await this.buildWhere(team, query, {
       ...options,
@@ -96,9 +91,8 @@ export default class SearchHelper {
       });
     }
 
-    const queryReplacements = {
+    const replacements = {
       query: this.webSearchQuery(query),
-      headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
     };
 
     const resultsQuery = Document.unscoped().findAll({
@@ -111,7 +105,7 @@ export default class SearchHelper {
           "searchRanking",
         ],
       ],
-      replacements: queryReplacements,
+      replacements,
       where,
       order: [
         ["searchRanking", "DESC"],
@@ -123,7 +117,7 @@ export default class SearchHelper {
 
     const countQuery = Document.unscoped().count({
       // @ts-expect-error Types are incorrect for count
-      replacements: queryReplacements,
+      replacements,
       where,
     }) as any as Promise<number>;
     const [results, count] = await Promise.all([resultsQuery, countQuery]);
@@ -207,18 +201,12 @@ export default class SearchHelper {
     query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const {
-      snippetMinWords = 20,
-      snippetMaxWords = 30,
-      limit = 15,
-      offset = 0,
-    } = options;
+    const { limit = 15, offset = 0 } = options;
 
     const where = await this.buildWhere(user, query, options);
 
     const queryReplacements = {
       query: this.webSearchQuery(query),
-      headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
     };
 
     const include = [
