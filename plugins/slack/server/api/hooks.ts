@@ -235,7 +235,7 @@ router.post(
       return;
     }
 
-    const { results, totalCount } = await SearchHelper.searchForUser(
+    const { results, total } = await SearchHelper.searchForUser(
       user,
       text,
       options
@@ -246,7 +246,7 @@ router.post(
       teamId: user.teamId,
       source: "slack",
       query: text,
-      results: totalCount,
+      results: total,
     });
 
     // Map search results to the format expected by the Slack API
