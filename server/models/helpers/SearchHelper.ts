@@ -25,7 +25,7 @@ type SearchResponse = {
     document: Document;
   }[];
   /** The total number of results for the search query without pagination */
-  totalCount: number;
+  total: number;
 };
 
 type SearchOptions = {
@@ -220,7 +220,7 @@ export default class SearchHelper {
       },
     ];
 
-    const resultsQuery = Document.unscoped().findAll({
+    const results = (await Document.unscoped().findAll({
       attributes: [
         "id",
         [
@@ -240,7 +240,7 @@ export default class SearchHelper {
       ],
       limit,
       offset,
-    }) as any as Promise<RankedDocument[]>;
+    })) as any as RankedDocument[];
 
     const countQuery = Document.unscoped().count({
       // @ts-expect-error Types are incorrect for count
@@ -249,27 +249,31 @@ export default class SearchHelper {
       replacements: queryReplacements,
       where,
     }) as any as Promise<number>;
-    const [results, count] = await Promise.all([resultsQuery, countQuery]);
 
     // Final query to get associated document data
-    const documents = await Document.scope([
-      "withState",
-      "withDrafts",
-      {
-        method: ["withViews", user.id],
-      },
-      {
-        method: ["withCollectionPermissions", user.id],
-      },
-      {
-        method: ["withMembership", user.id],
-      },
-    ]).findAll({
-      where: {
-        teamId: user.teamId,
-        id: map(results, "id"),
-      },
-    });
+    const [documents, count] = await Promise.all([
+      Document.scope([
+        "withState",
+        "withDrafts",
+        {
+          method: ["withViews", user.id],
+        },
+        {
+          method: ["withCollectionPermissions", user.id],
+        },
+        {
+          method: ["withMembership", user.id],
+        },
+      ]).findAll({
+        where: {
+          teamId: user.teamId,
+          id: map(results, "id"),
+        },
+      }),
+      results.length < limit || offset !== 0
+        ? countQuery
+        : Promise.resolve(results.length),
+    ]);
 
     return this.buildResponse(query, results, documents, count);
   }
@@ -509,7 +513,7 @@ export default class SearchHelper {
           document,
         };
       }),
-      totalCount: count,
+      total: count,
     };
   }
 
