@@ -1,12 +1,21 @@
-import {
+import type {
+  ApiKey,
   Attachment,
-  FileOperation,
-  Team,
-  User,
+  AuthenticationProvider,
   Collection,
   Comment,
   Document,
+  FileOperation,
+  Integration,
+  Pin,
+  SearchQuery,
+  Share,
+  Star,
+  Subscription,
+  User,
+  Team,
   Group,
+  WebhookSubscription,
   Notification,
   UserMembership,
 } from "@server/models";
@@ -51,14 +60,23 @@ export const abilities = _abilities;
 export function serialize(
   model: User,
   target:
+    | ApiKey
     | Attachment
+    | AuthenticationProvider
     | Collection
     | Comment
-    | FileOperation
-    | Team
     | Document
+    | FileOperation
+    | Integration
+    | Pin
+    | SearchQuery
+    | Share
+    | Star
+    | Subscription
     | User
+    | Team
     | Group
+    | WebhookSubscription
     | Notification
     | UserMembership
     | null
