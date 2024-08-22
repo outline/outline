@@ -530,6 +530,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       }
 
       if (event.key === "Escape") {
+        event.preventDefault();
         close();
       }
     };
