@@ -791,6 +791,8 @@
   "Author": "Author",
   "We were unable to find the page you’re looking for.": "We were unable to find the page you’re looking for.",
   "Search titles only": "Search titles only",
+  "Something went wrong": "Something went wrong",
+  "Please try again or contact support if the problem persists": "Please try again or contact support if the problem persists",
   "No documents found for your search filters.": "No documents found for your search filters.",
   "API key copied to clipboard": "API key copied to clipboard",
   "Create personal API keys to authenticate with the API and programatically control\n          your workspace's data. API keys have the same permissions as your user account.\n          For more details see the <em>developer documentation</em>.": "Create personal API keys to authenticate with the API and programatically control\n          your workspace's data. API keys have the same permissions as your user account.\n          For more details see the <em>developer documentation</em>.",
