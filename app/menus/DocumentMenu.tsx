@@ -109,17 +109,12 @@ function DocumentMenu({
     })
   );
 
-  React.useEffect(() => {
-    if (
-      menu.visible &&
-      isUndefined(data ?? error) &&
-      !loading &&
-      !documents.isFetching
-    ) {
+  const handleMouseEnter = React.useCallback(() => {
+    if (isUndefined(data ?? error) && !loading && !documents.isFetching) {
       void request();
       void document.loadRelations();
     }
-  }, [menu.visible, request, loading, data, error, document, documents]);
+  }, [data, error, loading, request, document, documents]);
 
   const handleRestore = React.useCallback(
     async (
@@ -217,160 +212,164 @@ function DocumentMenu({
         </label>
       </VisuallyHidden>
       {label ? (
-        <MenuButton {...menu}>{label}</MenuButton>
+        <MenuButton {...menu} onMouseEnter={handleMouseEnter}>
+          {label}
+        </MenuButton>
       ) : (
         <OverflowMenuButton
           className={className}
           aria-label={t("Show menu")}
+          onMouseEnter={handleMouseEnter}
           {...menu}
         />
       )}
-      <ContextMenu
-        {...menu}
-        aria-label={t("Document options")}
-        onOpen={onOpen}
-        onClose={onClose}
-        loading={loading || documents.isFetching}
-      >
-        <Template
+      {data && !loading && !documents.isFetching ? (
+        <ContextMenu
           {...menu}
-          items={[
-            {
-              type: "button",
-              title: t("Restore"),
-              visible:
-                ((document.isWorkspaceTemplate || !!collection) &&
-                  can.restore) ||
-                !!can.unarchive,
-              onClick: (ev) => handleRestore(ev),
-              icon: <RestoreIcon />,
-            },
-            {
-              type: "submenu",
-              title: t("Restore"),
-              visible:
-                !document.isWorkspaceTemplate &&
-                !collection &&
-                !!can.restore &&
-                restoreItems.length !== 0,
-              style: {
-                left: -170,
-                position: "relative",
-                top: -40,
+          aria-label={t("Document options")}
+          onOpen={onOpen}
+          onClose={onClose}
+        >
+          <Template
+            {...menu}
+            items={[
+              {
+                type: "button",
+                title: t("Restore"),
+                visible:
+                  ((document.isWorkspaceTemplate || !!collection) &&
+                    can.restore) ||
+                  !!can.unarchive,
+                onClick: (ev) => handleRestore(ev),
+                icon: <RestoreIcon />,
               },
-              icon: <RestoreIcon />,
-              hover: true,
-              items: [
-                {
-                  type: "heading",
-                  title: t("Choose a collection"),
+              {
+                type: "submenu",
+                title: t("Restore"),
+                visible:
+                  !document.isWorkspaceTemplate &&
+                  !collection &&
+                  !!can.restore &&
+                  restoreItems.length !== 0,
+                style: {
+                  left: -170,
+                  position: "relative",
+                  top: -40,
                 },
-                ...restoreItems,
-              ],
-            },
-            actionToMenuItem(starDocument, context),
-            actionToMenuItem(unstarDocument, context),
-            actionToMenuItem(subscribeDocument, context),
-            actionToMenuItem(unsubscribeDocument, context),
-            ...(isMobile ? [actionToMenuItem(shareDocument, context)] : []),
-            {
-              type: "button",
-              title: `${t("Find and replace")}…`,
-              visible: !!onFindAndReplace && isMobile,
-              onClick: () => onFindAndReplace?.(),
-              icon: <SearchIcon />,
-            },
-            {
-              type: "separator",
-            },
-            {
-              type: "route",
-              title: t("Edit"),
-              to: documentEditPath(document),
-              visible:
-                !!can.update && user.separateEditMode && !document.template,
-              icon: <EditIcon />,
-            },
-            {
-              type: "button",
-              title: `${t("Rename")}…`,
-              visible: !!can.update && !user.separateEditMode && !!onRename,
-              onClick: () => onRename?.(),
-              icon: <InputIcon />,
-            },
-            actionToMenuItem(createNestedDocument, context),
-            actionToMenuItem(importDocument, context),
-            actionToMenuItem(createTemplateFromDocument, context),
-            actionToMenuItem(duplicateDocument, context),
-            actionToMenuItem(publishDocument, context),
-            actionToMenuItem(unpublishDocument, context),
-            actionToMenuItem(archiveDocument, context),
-            actionToMenuItem(moveDocument, context),
-            actionToMenuItem(moveTemplate, context),
-            actionToMenuItem(pinDocument, context),
-            actionToMenuItem(createDocumentFromTemplate, context),
-            {
-              type: "separator",
-            },
-            actionToMenuItem(openDocumentComments, context),
-            actionToMenuItem(openDocumentHistory, context),
-            actionToMenuItem(openDocumentInsights, context),
-            actionToMenuItem(downloadDocument, context),
-            actionToMenuItem(copyDocument, context),
-            actionToMenuItem(printDocument, context),
-            actionToMenuItem(searchInDocument, context),
-            {
-              type: "separator",
-            },
-            actionToMenuItem(deleteDocument, context),
-            actionToMenuItem(permanentlyDeleteDocument, context),
-          ]}
-        />
-        {(showDisplayOptions || showToggleEmbeds) && can.update && (
-          <>
-            <Separator />
-            <DisplayOptions>
-              {showToggleEmbeds && (
-                <Style>
-                  <ToggleMenuItem
-                    width={26}
-                    height={14}
-                    label={t("Enable embeds")}
-                    labelPosition="left"
-                    checked={!document.embedsDisabled}
-                    onChange={
-                      document.embedsDisabled
-                        ? document.enableEmbeds
-                        : document.disableEmbeds
-                    }
-                  />
-                </Style>
-              )}
-              {showDisplayOptions && !isMobile && (
-                <Style>
-                  <ToggleMenuItem
-                    width={26}
-                    height={14}
-                    label={t("Full width")}
-                    labelPosition="left"
-                    checked={document.fullWidth}
-                    onChange={(ev) => {
-                      const fullWidth = ev.currentTarget.checked;
-                      user.setPreference(
-                        UserPreference.FullWidthDocuments,
-                        fullWidth
-                      );
-                      void user.save();
-                      document.fullWidth = fullWidth;
-                      void document.save();
-                    }}
-                  />
-                </Style>
-              )}
-            </DisplayOptions>
-          </>
-        )}
-      </ContextMenu>
+                icon: <RestoreIcon />,
+                hover: true,
+                items: [
+                  {
+                    type: "heading",
+                    title: t("Choose a collection"),
+                  },
+                  ...restoreItems,
+                ],
+              },
+              actionToMenuItem(starDocument, context),
+              actionToMenuItem(unstarDocument, context),
+              actionToMenuItem(subscribeDocument, context),
+              actionToMenuItem(unsubscribeDocument, context),
+              ...(isMobile ? [actionToMenuItem(shareDocument, context)] : []),
+              {
+                type: "button",
+                title: `${t("Find and replace")}…`,
+                visible: !!onFindAndReplace && isMobile,
+                onClick: () => onFindAndReplace?.(),
+                icon: <SearchIcon />,
+              },
+              {
+                type: "separator",
+              },
+              {
+                type: "route",
+                title: t("Edit"),
+                to: documentEditPath(document),
+                visible:
+                  !!can.update && user.separateEditMode && !document.template,
+                icon: <EditIcon />,
+              },
+              {
+                type: "button",
+                title: `${t("Rename")}…`,
+                visible: !!can.update && !user.separateEditMode && !!onRename,
+                onClick: () => onRename?.(),
+                icon: <InputIcon />,
+              },
+              actionToMenuItem(createNestedDocument, context),
+              actionToMenuItem(importDocument, context),
+              actionToMenuItem(createTemplateFromDocument, context),
+              actionToMenuItem(duplicateDocument, context),
+              actionToMenuItem(publishDocument, context),
+              actionToMenuItem(unpublishDocument, context),
+              actionToMenuItem(archiveDocument, context),
+              actionToMenuItem(moveDocument, context),
+              actionToMenuItem(moveTemplate, context),
+              actionToMenuItem(pinDocument, context),
+              actionToMenuItem(createDocumentFromTemplate, context),
+              {
+                type: "separator",
+              },
+              actionToMenuItem(openDocumentComments, context),
+              actionToMenuItem(openDocumentHistory, context),
+              actionToMenuItem(openDocumentInsights, context),
+              actionToMenuItem(downloadDocument, context),
+              actionToMenuItem(copyDocument, context),
+              actionToMenuItem(printDocument, context),
+              actionToMenuItem(searchInDocument, context),
+              {
+                type: "separator",
+              },
+              actionToMenuItem(deleteDocument, context),
+              actionToMenuItem(permanentlyDeleteDocument, context),
+            ]}
+          />
+          {(showDisplayOptions || showToggleEmbeds) && can.update && (
+            <>
+              <Separator />
+              <DisplayOptions>
+                {showToggleEmbeds && (
+                  <Style>
+                    <ToggleMenuItem
+                      width={26}
+                      height={14}
+                      label={t("Enable embeds")}
+                      labelPosition="left"
+                      checked={!document.embedsDisabled}
+                      onChange={
+                        document.embedsDisabled
+                          ? document.enableEmbeds
+                          : document.disableEmbeds
+                      }
+                    />
+                  </Style>
+                )}
+                {showDisplayOptions && !isMobile && (
+                  <Style>
+                    <ToggleMenuItem
+                      width={26}
+                      height={14}
+                      label={t("Full width")}
+                      labelPosition="left"
+                      checked={document.fullWidth}
+                      onChange={(ev) => {
+                        const fullWidth = ev.currentTarget.checked;
+                        user.setPreference(
+                          UserPreference.FullWidthDocuments,
+                          fullWidth
+                        );
+                        void user.save();
+                        document.fullWidth = fullWidth;
+                        void document.save();
+                      }}
+                    />
+                  </Style>
+                )}
+              </DisplayOptions>
+            </>
+          )}
+        </ContextMenu>
+      ) : null}
     </>
   );
 }

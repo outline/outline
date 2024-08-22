@@ -19,7 +19,6 @@ import {
   fadeAndSlideDown,
   mobileContextMenu,
 } from "~/styles/animations";
-import PlaceholderText from "../PlaceholderText";
 
 export type Placement =
   | "auto-start"
@@ -53,7 +52,6 @@ type Props = MenuStateReturn & {
   /** The maximum width of the context menu. */
   maxWidth?: number;
   children?: React.ReactNode;
-  loading?: boolean;
 };
 
 const ContextMenu: React.FC<Props> = ({
@@ -62,7 +60,6 @@ const ContextMenu: React.FC<Props> = ({
   onOpen,
   onClose,
   parentMenuState,
-  loading,
   ...rest
 }: Props) => {
   const previousVisible = usePrevious(rest.visible);
@@ -122,7 +119,6 @@ const ContextMenu: React.FC<Props> = ({
           <InnerContextMenu
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             menuProps={props as any}
-            loading={loading}
             {...rest}
             isSubMenu={isSubMenu}
           >
@@ -134,20 +130,11 @@ const ContextMenu: React.FC<Props> = ({
   );
 };
 
-const Loader: React.FC = () => (
-  <>
-    <PlaceholderText delay={0.2} />
-    <PlaceholderText delay={0.4} />
-    <PlaceholderText delay={0.6} />
-  </>
-);
-
 type InnerContextMenuProps = MenuStateReturn & {
   isSubMenu: boolean;
   menuProps: { style?: React.CSSProperties; placement: string };
   children: React.ReactNode;
   maxWidth?: number;
-  loading?: boolean;
 };
 
 /**
@@ -239,11 +226,7 @@ const InnerContextMenu = (props: InnerContextMenuProps) => {
           hiddenScrollbars
           style={style}
         >
-          {props.loading ? (
-            <Loader />
-          ) : props.visible || props.animating ? (
-            props.children
-          ) : null}
+          {props.visible || props.animating ? props.children : null}
         </Background>
       </Position>
     </>
