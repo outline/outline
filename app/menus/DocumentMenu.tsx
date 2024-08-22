@@ -110,11 +110,11 @@ function DocumentMenu({
   );
 
   const handleMouseEnter = React.useCallback(() => {
-    if (isUndefined(data ?? error) && !loading && !documents.isFetching) {
+    if (isUndefined(data ?? error) && !loading) {
       void request();
       void document.loadRelations();
     }
-  }, [data, error, loading, request, document, documents]);
+  }, [data, error, loading, request, document]);
 
   const handleRestore = React.useCallback(
     async (
@@ -223,7 +223,7 @@ function DocumentMenu({
           {...menu}
         />
       )}
-      {data && !loading && !documents.isFetching ? (
+      {data && !loading ? (
         <ContextMenu
           {...menu}
           aria-label={t("Document options")}
