@@ -5602,11 +5602,6 @@ arraybuffer.prototype.slice@^1.0.3:
     is-array-buffer "^3.0.4"
     is-shared-array-buffer "^1.0.2"
 
-arrify@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/arrify/-/arrify-1.0.1.tgz#898508da2226f380df904728456849c1501a4b0d"
-  integrity "sha1-iYUI2iIm84DfkEcoRWhJwVAaSw0= sha512-3CYzex9M9FGQjCGMGyi6/31c8GJbgb0qGyrx5HWxPd0aCwh4cB2YjMb2Xf9UuoogrMrlO9cTqnB5rI5GHZTcUA=="
-
 asap@^2.0.0:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/asap/-/asap-2.0.6.tgz#e50347611d7e690943208bbdafebcbc2fb866d46"
@@ -5641,11 +5636,6 @@ attr-accept@^2.2.2:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-2.2.2.tgz#646613809660110749e92f2c10833b70968d929b"
   integrity "sha1-ZGYTgJZgEQdJ6S8sEIM7cJaNkps= sha512-7prDjvt9HmqiZ0cl5CRjtS84sEyhsHP2coDkaZKRKVfCDo9s7iw7ChVmar78Gu9pC4SoR/28wFu/G5JJhTnqEg=="
-
-auto-bind@^1.1.0:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/auto-bind/-/auto-bind-1.2.1.tgz#807f7910b0210db9eefe133f3492c28e89698b96"
-  integrity "sha1-gH95ELAhDbnu/hM/NJLCjolpi5Y= sha512-/W9yj1yKmBLwpexwAujeD9YHwYmRuWFGV8HWE7smQab797VeHa4/cnE2NFeDhA+E+5e/OGBI8763EhLjfZ/MXA=="
 
 autotrack@^2.4.1:
   version "2.4.1"
@@ -6232,15 +6222,6 @@ camelize@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/camelize/-/camelize-1.0.0.tgz#164a5483e630fa4321e5af07020e531831b2609b"
   integrity "sha1-FkpUg+Yw+kMh5a8HAg5TGDGyYJs= sha512-W2lPwkBkMZwFlPCXhIlYgxu+7gC/NUlCtdK652DAJ1JdgV0sTrvuPFshNPrFa1TY2JOkLhgdeEBplB4ezEa+xg=="
-
-cancan@3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/cancan/-/cancan-3.1.0.tgz#4d148e73795324f689a9b1002e61839c17ea821e"
-  integrity "sha1-TRSOc3lTJPaJqbEALmGDnBfqgh4= sha512-Glz6HEEOfQ5Cv5yWx2Zu4zPtDBJzNcIAE/pSzE3XTncA2ZvfwA5w8wLvJ455Ud4qKEGpHay4Z0KduGNWCoKPXA=="
-  dependencies:
-    arrify "^1.0.1"
-    auto-bind "^1.1.0"
-    is-plain-obj "^1.1.0"
 
 caniuse-lite@^1.0.30001629:
   version "1.0.30001639"
@@ -9720,11 +9701,6 @@ is-path-inside@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/is-path-inside/-/is-path-inside-3.0.3.tgz#d231362e53a07ff2b0e0ea7fed049161ffd16283"
   integrity "sha1-0jE2LlOgf/Kw4Op/7QSRYf/RYoM= sha512-Fd4gABb+ycGAmKou8eMftCupSir5lRxqf4aD/vd0cD2qc4HL07OjCeuHMr8Ro4CoMaeCKDB0/ECBOVWjTwUvPQ=="
-
-is-plain-obj@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/is-plain-obj/-/is-plain-obj-1.1.0.tgz#71a50c8429dfca773c92a390a4a03b39fcd51d3e"
-  integrity "sha1-caUMhCnfync8kqOQpKA7OfzVHT4= sha512-yvkRyxmFKEOQ4pNXCmJG5AEQNlXJS5LaONXo5/cLdTZdWvsZ1ioJEonLGAosKlMWE8lwUy/bJzMjcw8az73+Fg=="
 
 is-plain-obj@^4.0.0:
   version "4.0.0"
