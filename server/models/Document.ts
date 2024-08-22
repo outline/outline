@@ -281,7 +281,7 @@ class Document extends ParanoidModel<
    * The content of the document as JSON, this is a snapshot at the last time the state was saved.
    */
   @Column(DataType.JSONB)
-  content: ProsemirrorData;
+  content: ProsemirrorData | null;
 
   /**
    * The content of the document as YJS collaborative state, this column can be quite large and

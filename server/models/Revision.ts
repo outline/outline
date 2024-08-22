@@ -69,7 +69,7 @@ class Revision extends IdModel<
    * The content of the revision as JSON.
    */
   @Column(DataType.JSONB)
-  content: ProsemirrorData;
+  content: ProsemirrorData | null;
 
   /** An icon to use as the document icon. */
   @Length({
