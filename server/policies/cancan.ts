@@ -24,6 +24,14 @@ type Ability = {
 export class CanCan {
   public abilities: Ability[] = [];
 
+  /**
+   * Define an authorized ability for a model, action, and target.
+   *
+   * @param model The model that the ability is for.
+   * @param actions The action or actions that are allowed.
+   * @param targets The target or targets that the ability applies to.
+   * @param condition The condition that must be met for the ability to apply
+   */
   public allow = <T extends Constructor, P extends Constructor>(
     model: P,
     actions: string | ReadonlyArray<string>,
@@ -51,6 +59,15 @@ export class CanCan {
     });
   };
 
+  /**
+   * Check if a performer can perform an action on a target.
+   *
+   * @param performer The performer that is trying to perform the action.
+   * @param action The action that the performer is trying to perform.
+   * @param target The target that the action is upon.
+   * @param options Additional options to pass to the condition function.
+   * @returns Whether the performer can perform the action on the target.
+   */
   public can = (
     performer: Model,
     action: string,
@@ -74,6 +91,15 @@ export class CanCan {
     );
   };
 
+  /**
+   * Check if a performer cannot perform an action on a target, which is the opposite of `can`.
+   *
+   * @param performer The performer that is trying to perform the action.
+   * @param action The action that the performer is trying to perform.
+   * @param target The target that the action is upon.
+   * @param options Additional options to pass to the condition function.
+   * @returns Whether the performer cannot perform the action on the target.
+   */
   public cannot = (
     performer: Model,
     action: string,
@@ -81,6 +107,15 @@ export class CanCan {
     options = {}
   ) => !this.can(performer, action, target, options);
 
+  /**
+   * Guard if a performer can perform an action on a target, throwing an error if they cannot.
+   *
+   * @param performer The performer that is trying to perform the action.
+   * @param action The action that the performer is trying to perform.
+   * @param target The target that the action is upon.
+   * @param options Additional options to pass to the condition function.
+   * @throws AuthorizationError If the performer cannot perform the action on the target.
+   */
   public authorize = (
     performer: Model,
     action: string,
@@ -91,6 +126,8 @@ export class CanCan {
       throw AuthorizationError("Authorization error");
     }
   };
+
+  // Private methods
 
   private get = (obj: object, key: string) =>
     "get" in obj && typeof obj.get === "function" ? obj.get(key) : obj[key];
