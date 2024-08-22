@@ -1,4 +1,5 @@
 import capitalize from "lodash/capitalize";
+import isUndefined from "lodash/isUndefined";
 import { observer } from "mobx-react";
 import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
@@ -101,22 +102,24 @@ function DocumentMenu({
   const { t } = useTranslation();
   const isMobile = useMobile();
   const file = React.useRef<HTMLInputElement>(null);
-  const { data, loading, request } = useRequest(() =>
+  const { data, loading, error, request } = useRequest(() =>
     subscriptions.fetchPage({
       documentId: document.id,
       event: "documents.update",
     })
   );
 
-  const handleOpen = React.useCallback(async () => {
-    if (!data && !loading) {
-      await request();
+  React.useEffect(() => {
+    if (
+      menu.visible &&
+      isUndefined(data ?? error) &&
+      !loading &&
+      !documents.isFetching
+    ) {
+      void request();
+      void document.loadRelations();
     }
-
-    if (onOpen) {
-      onOpen();
-    }
-  }, [data, loading, onOpen, request]);
+  }, [menu.visible, request, loading, data, error, document, documents]);
 
   const handleRestore = React.useCallback(
     async (
@@ -225,8 +228,9 @@ function DocumentMenu({
       <ContextMenu
         {...menu}
         aria-label={t("Document options")}
-        onOpen={handleOpen}
+        onOpen={onOpen}
         onClose={onClose}
+        loading={loading || documents.isFetching}
       >
         <Template
           {...menu}
