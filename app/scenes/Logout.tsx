@@ -8,7 +8,9 @@ const Logout = () => {
 
   void auth.logout().then(() => {
     if (env.OIDC_LOGOUT_URI) {
-      window.location.replace(env.OIDC_LOGOUT_URI);
+      setTimeout(() => {
+        window.location.replace(env.OIDC_LOGOUT_URI);
+      });
     }
   });
 
