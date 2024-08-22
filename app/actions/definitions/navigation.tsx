@@ -218,7 +218,7 @@ export const logout = createAction({
     if (env.OIDC_LOGOUT_URI) {
       setTimeout(() => {
         window.location.replace(env.OIDC_LOGOUT_URI);
-      });
+      }, 200);
     }
   },
 });
