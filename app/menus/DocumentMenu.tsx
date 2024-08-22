@@ -1,4 +1,5 @@
 import capitalize from "lodash/capitalize";
+import isEmpty from "lodash/isEmpty";
 import isUndefined from "lodash/isUndefined";
 import { observer } from "mobx-react";
 import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
@@ -223,7 +224,7 @@ function DocumentMenu({
           {...menu}
         />
       )}
-      {data && !loading ? (
+      {!isEmpty(can) ? (
         <ContextMenu
           {...menu}
           aria-label={t("Document options")}
