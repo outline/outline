@@ -35,6 +35,7 @@ import Tooltip from "~/components/Tooltip";
 import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
+import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
@@ -53,7 +54,7 @@ function CollectionScene() {
   const match = useRouteMatch();
   const location = useLocation();
   const { t } = useTranslation();
-  const { documents, pins, collections, ui } = useStores();
+  const { documents, collections, ui } = useStores();
   const [isFetching, setFetching] = React.useState(false);
   const [error, setError] = React.useState<Error | undefined>();
   const currentPath = location.pathname;
@@ -63,6 +64,7 @@ function CollectionScene() {
   const collection: Collection | null | undefined =
     collections.getByUrl(id) || collections.get(id);
   const can = usePolicy(collection);
+  const { pins, count } = usePinnedDocuments(id, collection?.id);
 
   const handleIconChange = React.useCallback(
     async (icon: string | null, color: string | null) => {
@@ -92,16 +94,6 @@ function CollectionScene() {
 
     return () => ui.setActiveCollection(undefined);
   }, [ui, collection]);
-
-  React.useEffect(() => {
-    setError(undefined);
-
-    if (collection) {
-      void pins.fetchPage({
-        collectionId: collection.id,
-      });
-    }
-  }, [pins, collection]);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -215,8 +207,9 @@ function CollectionScene() {
               </CollectionHeading>
 
               <PinnedDocuments
-                pins={pins.inCollection(collection.id)}
+                pins={pins}
                 canUpdate={can.update}
+                placeholderCount={count}
               />
               <CollectionDescription collection={collection} />
 

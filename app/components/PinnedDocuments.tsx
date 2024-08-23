@@ -30,13 +30,24 @@ type Props = {
   pins: Pin[];
   /** Maximum number of pins to display */
   limit?: number;
+  /** Number of placeholder pins to display */
+  placeholderCount?: number;
   /** Whether the user has permission to update pins */
   canUpdate?: boolean;
 };
 
-function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
-  const { documents, collections } = useStores();
+function PinnedDocuments({
+  limit,
+  pins,
+  placeholderCount,
+  canUpdate,
+  ...rest
+}: Props) {
+  const { documents } = useStores();
   const [items, setItems] = React.useState(pins.map((pin) => pin.documentId));
+  const showPlaceholderRef = React.useRef(true);
+  const showPlaceholder =
+    placeholderCount && !items.length && showPlaceholderRef.current;
 
   React.useEffect(() => {
     setItems(pins.map((pin) => pin.documentId));
@@ -88,10 +99,6 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
     [pins]
   );
 
-  if (collections.orderedData.length === 0) {
-    return null;
-  }
-
   return (
     <DndContext
       sensors={sensors}
@@ -109,23 +116,34 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
       >
         <SortableContext items={items} strategy={rectSortingStrategy}>
           <List>
-            <AnimatePresence initial={false}>
-              {items.map((documentId) => {
-                const document = documents.get(documentId);
-                const pin = pins.find((p) => p.documentId === documentId);
+            {showPlaceholder ? (
+              Array(placeholderCount)
+                .fill(undefined)
+                .map((_, index) => (
+                  <div key={index} style={{ width: 170, height: 180 }} />
+                ))
+            ) : (
+              <AnimatePresence initial={false}>
+                {items.map((documentId) => {
+                  const document = documents.get(documentId);
+                  const pin = pins.find((p) => p.documentId === documentId);
 
-                return document ? (
-                  <DocumentCard
-                    key={documentId}
-                    document={document}
-                    canUpdatePin={canUpdate}
-                    isDraggable={items.length > 1}
-                    pin={pin}
-                    {...rest}
-                  />
-                ) : null;
-              })}
-            </AnimatePresence>
+                  // Once any document is loaded, never render the placeholder again
+                  showPlaceholderRef.current = false;
+
+                  return document ? (
+                    <DocumentCard
+                      key={documentId}
+                      document={document}
+                      canUpdatePin={canUpdate}
+                      isDraggable={items.length > 1}
+                      pin={pin}
+                      {...rest}
+                    />
+                  ) : null;
+                })}
+              </AnimatePresence>
+            )}
           </List>
         </SortableContext>
       </ResizingHeightContainer>
