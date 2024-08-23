@@ -1,4 +1,4 @@
-import { Day, Second } from "@shared/utils/time";
+import { Day } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import Redis from "@server/storage/redis";
 
@@ -7,7 +7,7 @@ import Redis from "@server/storage/redis";
  */
 export class CacheHelper {
   // Default expiry time for cache data in seconds
-  private static defaultDataExpiry = Day / Second;
+  private static defaultDataExpiry = Day / 1000;
 
   /**
    * Given a key, gets the data from cache store
