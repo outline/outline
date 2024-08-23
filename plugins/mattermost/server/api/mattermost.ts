@@ -1,60 +1,27 @@
 import Router from "koa-router";
-import { IntegrationService, IntegrationType, UserRole } from "@shared/types";
+import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
-import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Integration, IntegrationAuthentication } from "@server/models";
-import { presentIntegration, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { getUser, getUserTeams } from "../mattermost/client";
 import * as T from "./schema";
 
 const router = new Router();
 
 router.post(
-  "mattermost.connect",
-  auth({ role: UserRole.Member }),
-  validate(T.MattermostConnectSchema),
-  transaction(),
-  async (ctx: APIContext<T.MattermostConnectReq>) => {
-    const {
-      auth: { user },
-      transaction,
-    } = ctx.state;
-    const {
-      url,
-      apiKey,
-      user: mattermostUser,
-      team: mattermostTeam,
-    } = ctx.input.body;
+  "mattermost.user_teams",
+  auth({ role: UserRole.Admin }),
+  validate(T.MattermostGetUserTeamsSchema),
+  async (ctx: APIContext<T.MattermostGetUserTeamsReq>) => {
+    const { url, apiKey } = ctx.input.body;
 
-    const authentication = await IntegrationAuthentication.create(
-      {
-        service: IntegrationService.Mattermost,
-        userId: user.id,
-        teamId: user.teamId,
-        token: apiKey,
-      },
-      { transaction }
-    );
-    const integration = await Integration.create(
-      {
-        service: IntegrationService.Mattermost,
-        type: IntegrationType.LinkedAccount,
-        userId: user.id,
-        teamId: user.teamId,
-        authenticationId: authentication.id,
-        settings: {
-          url,
-          user: mattermostUser,
-          team: mattermostTeam,
-        },
-      },
-      { transaction }
-    );
+    const [user, teams] = await Promise.all([
+      getUser({ serverUrl: url, apiKey }),
+      getUserTeams({ serverUrl: url, apiKey }),
+    ]);
 
     ctx.body = {
-      data: presentIntegration(integration),
-      policies: presentPolicies(user, [integration]),
+      data: { user, teams },
     };
   }
 );

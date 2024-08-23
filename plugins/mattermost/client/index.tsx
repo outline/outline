@@ -11,6 +11,6 @@ PluginManager.add({
     group: "Integrations",
     icon: MattermostIcon,
     component: React.lazy(() => import("./Settings")),
-    enabled: (_, user) => [UserRole.Admin, UserRole.Member].includes(user.role),
+    enabled: (_, user) => [UserRole.Admin].includes(user.role),
   },
 });

@@ -3,7 +3,6 @@ import React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import Integration from "~/models/Integration";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Button from "~/components/Button";
@@ -34,13 +33,12 @@ const MatterMost = () => {
     });
   }, [dialogs]);
 
-  const handleDisconnect = React.useCallback(
-    async (integration: Integration<unknown>) => {
-      await integration.delete();
+  const handleDisconnect = React.useCallback(async () => {
+    if (linkedAccountIntegration) {
+      await linkedAccountIntegration.delete();
       toast.success(t("Mattermost connection removed"));
-    },
-    []
-  );
+    }
+  }, [linkedAccountIntegration]);
 
   React.useEffect(() => {
     void integrations.fetchPage({
@@ -67,7 +65,7 @@ const MatterMost = () => {
         <Flex align="flex-end" column>
           {linkedAccountIntegration ? (
             <ConnectedButton
-              onClick={() => handleDisconnect(linkedAccountIntegration)}
+              onClick={handleDisconnect}
               confirmationMessage={<DisconnectMessage />}
             />
           ) : (

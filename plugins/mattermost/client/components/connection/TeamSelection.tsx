@@ -1,46 +1,43 @@
-import invariant from "invariant";
-import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import Integration from "~/models/Integration";
+import { IntegrationService, IntegrationType } from "@shared/types";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import InputSelect, { Option } from "~/components/InputSelect";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import { client } from "~/utils/ApiClient";
-import { ServerData, TeamData, UserAndTeamsData } from "../../utils/types";
+import { Team, UserTeams } from "../../../shared/types";
+import { Server } from "../../utils/zod";
 
 type Props = {
-  serverData: ServerData;
-  userAndTeams: UserAndTeamsData;
+  server: Server;
+  userTeams: UserTeams;
   onSave: () => void;
   onBack: () => void;
 };
 
-const TeamSelection = ({ serverData, userAndTeams, onSave, onBack }: Props) => {
-  const { user, teams } = userAndTeams;
+const TeamSelection = ({ server, userTeams, onSave, onBack }: Props) => {
+  const { user, teams } = userTeams;
 
   const { t } = useTranslation();
   const { integrations } = useStores();
   const [saving, setSaving] = React.useState(false);
-  const [selectedTeam, setSelectedTeam] = React.useState<TeamData>(teams[0]);
+  const [selectedTeam, setSelectedTeam] = React.useState<Team>(teams[0]);
 
   const handleSave = React.useCallback(async () => {
-    setSaving(true);
     try {
-      const res = await client.post("/mattermost.connect", {
-        url: serverData.url,
-        apiKey: serverData.apiKey,
-        user,
-        team: selectedTeam,
-      });
-      runInAction(`create#${Integration.modelName}`, () => {
-        invariant(res?.data, "Data should be available");
-        integrations.add(res.data);
-        integrations.addPolicies(res.policies);
+      setSaving(true);
+      await integrations.create({
+        type: IntegrationType.LinkedAccount,
+        service: IntegrationService.Mattermost,
+        settings: {
+          url: server.url,
+          team: selectedTeam,
+          user,
+        },
+        accessToken: server.apiKey,
       });
       toast.success(t("Mattermost connection successful"));
       onSave();
@@ -54,7 +51,9 @@ const TeamSelection = ({ serverData, userAndTeams, onSave, onBack }: Props) => {
   return (
     <Flex column gap={12}>
       <div>
-        <Text as="h3">Account details</Text>
+        <Text as="h3">
+          <Trans>Account details</Trans>
+        </Text>
         <Text as="p" type="secondary">
           <Trans>
             Please ensure that this account has access to create{" "}
@@ -76,10 +75,10 @@ const TeamSelection = ({ serverData, userAndTeams, onSave, onBack }: Props) => {
       <SelectTeam
         teams={teams}
         selectedTeam={selectedTeam}
-        onSelect={(team: TeamData) => setSelectedTeam(team)}
+        onSelect={setSelectedTeam}
       />
       <Flex justify="flex-end" gap={12} style={{ marginTop: "12px" }}>
-        <Button neutral onClick={() => onBack()}>
+        <Button neutral onClick={onBack}>
           {t("Back")}
         </Button>
         <Button onClick={handleSave} disabled={saving}>
@@ -102,9 +101,9 @@ const SelectTeam = ({
   selectedTeam,
   onSelect,
 }: {
-  teams: TeamData[];
-  selectedTeam: TeamData;
-  onSelect: (team: TeamData) => void;
+  teams: Team[];
+  selectedTeam: Team;
+  onSelect: (team: Team) => void;
 }) => {
   const { t } = useTranslation();
 
@@ -113,12 +112,15 @@ const SelectTeam = ({
     value: team.id,
   }));
 
-  const handleChange = React.useCallback((teamId: string) => {
-    const team = teams.find((tm) => tm.id === teamId);
-    if (team) {
-      onSelect(team);
-    }
-  }, []);
+  const handleChange = React.useCallback(
+    (teamId: string) => {
+      const team = teams.find((tm) => tm.id === teamId);
+      if (team) {
+        onSelect(team);
+      }
+    },
+    [teams]
+  );
 
   return (
     <InputSelect

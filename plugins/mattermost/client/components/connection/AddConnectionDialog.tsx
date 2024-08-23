@@ -1,7 +1,8 @@
 import { observer } from "mobx-react";
 import React, { useRef, useState } from "react";
-import { ServerData, UserAndTeamsData } from "../../utils/types";
-import ServerDetailsForm from "./ServerDetailsForm";
+import { UserTeams } from "../../../shared/types";
+import { Server } from "../../utils/zod";
+import ServerForm from "./ServerForm";
 import TeamSelection from "./TeamSelection";
 
 type Props = {
@@ -9,24 +10,24 @@ type Props = {
 };
 
 const ConnectForm = ({ onSubmit }: Props) => {
-  const [userAndTeams, setUserAndTeams] = useState<UserAndTeamsData>();
-  const serverDataRef = useRef<ServerData>({
+  const [userTeams, setUserTeams] = useState<UserTeams>();
+  const serverRef = useRef<Server>({
     url: "",
     apiKey: "",
   });
 
-  return userAndTeams ? (
+  return userTeams ? (
     <TeamSelection
-      serverData={serverDataRef.current}
-      userAndTeams={userAndTeams}
+      server={serverRef.current}
+      userTeams={userTeams}
       onSave={onSubmit}
-      onBack={() => setUserAndTeams(undefined)}
+      onBack={() => setUserTeams(undefined)}
     />
   ) : (
-    <ServerDetailsForm
-      serverData={serverDataRef.current}
-      setServerData={(data: ServerData) => (serverDataRef.current = data)}
-      setUserAndTeams={setUserAndTeams}
+    <ServerForm
+      server={serverRef.current}
+      setServer={(data: Server) => (serverRef.current = data)}
+      setUserTeams={setUserTeams}
     />
   );
 };

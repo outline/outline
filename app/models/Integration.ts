@@ -33,6 +33,10 @@ class Integration<T = unknown> extends Model {
 
   @observable
   settings: IntegrationSettings<T>;
+
+  accessToken?: string;
+
+  refreshToken?: string;
 }
 
 export default Integration;

@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import invariant from "invariant";
 import { observer } from "mobx-react";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -8,52 +9,44 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
-import { MattermostClient } from "../../utils/mattermost";
-import {
-  serverData as zodServerInfo,
-  ServerData,
-  UserAndTeamsData,
-} from "../../utils/types";
-import useDictionary from "../../utils/useDictionary";
+import { client } from "~/utils/ApiClient";
+import { BadRequestError } from "~/utils/errors";
+import { UserTeams } from "../../../shared/types";
+import { server as zodServer, Server } from "../../utils/zod";
 
 type Props = {
-  serverData: ServerData;
-  setServerData: (data: ServerData) => void;
-  setUserAndTeams: (userAndTeams: UserAndTeamsData) => void;
+  server: Server;
+  setServer: (data: Server) => void;
+  setUserTeams: (userTeams: UserTeams) => void;
 };
 
-const ServerDetailsForm = ({
-  serverData,
-  setServerData,
-  setUserAndTeams,
-}: Props) => {
+const ServerForm = ({ server, setServer, setUserTeams }: Props) => {
   const { t } = useTranslation();
-  const dictionary = useDictionary();
 
-  const { register, formState, handleSubmit } = useForm<ServerData>({
+  const { register, formState, handleSubmit } = useForm<Server>({
     mode: "all",
     defaultValues: {
-      url: serverData.url,
-      apiKey: serverData.apiKey,
+      url: server.url,
+      apiKey: server.apiKey,
     },
-    resolver: zodResolver(zodServerInfo),
+    resolver: zodResolver(zodServer),
   });
 
-  const fetchUserAndTeams = React.useCallback(async (data: ServerData) => {
-    setServerData(data);
+  const fetchUserAndTeams = React.useCallback(async (data: Server) => {
+    setServer(data);
     try {
-      const mattermost = new MattermostClient({
-        serverUrl: data.url,
+      const res = await client.post("/mattermost.user_teams", {
+        url: data.url,
         apiKey: data.apiKey,
-        dictionary,
       });
-      const [userData, teamsData] = await Promise.all([
-        mattermost.getUserData(),
-        mattermost.getUserTeams(),
-      ]);
-      setUserAndTeams({ user: userData, teams: teamsData });
+      invariant(res?.data, "Data should be available");
+      setUserTeams(res.data);
     } catch (err) {
-      toast.error(err.message);
+      if (err instanceof BadRequestError) {
+        toast.error(t("Invalid API key"));
+      } else {
+        toast.error(t("Server error - please check the url"));
+      }
     }
   }, []);
 
@@ -95,4 +88,4 @@ const ServerDetailsForm = ({
   );
 };
 
-export default observer(ServerDetailsForm);
+export default observer(ServerForm);
