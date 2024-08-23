@@ -189,6 +189,7 @@ function DataLoader({ match, children }: Props) {
           void comments.fetchAll({
             documentId: document.id,
             limit: 100,
+            direction: "ASC",
           });
         }
 

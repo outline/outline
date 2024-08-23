@@ -34,16 +34,18 @@ import TrashLink from "./components/TrashLink";
 
 function AppSidebar() {
   const { t } = useTranslation();
-  const { documents, ui } = useStores();
+  const { documents, ui, collections } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
 
   React.useEffect(() => {
+    void collections.fetchAll();
+
     if (!user.isViewer) {
       void documents.fetchDrafts();
     }
-  }, [documents, user.isViewer]);
+  }, [documents, collections, user.isViewer]);
 
   const [dndArea, setDndArea] = React.useState();
   const handleSidebarRef = React.useCallback((node) => setDndArea(node), []);
@@ -124,10 +126,10 @@ function AppSidebar() {
               )}
             </Section>
             <Section>
-              <SharedWithMe />
+              <Starred />
             </Section>
             <Section>
-              <Starred />
+              <SharedWithMe />
             </Section>
             <Section auto>
               <Collections />

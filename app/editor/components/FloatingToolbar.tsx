@@ -304,6 +304,10 @@ const MobileWrapper = styled.div`
     height: 100px;
     background-color: ${s("menuBackground")};
   }
+
+  @media print {
+    display: none;
+  }
 `;
 
 const Wrapper = styled.div<WrapperProps>`

@@ -20,6 +20,7 @@ import {
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
+import styled from "styled-components";
 import Highlight from "@shared/editor/marks/Highlight";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInCode } from "@shared/editor/queries/isInCode";
@@ -89,13 +90,26 @@ export default function formattingMenuItems(
       ),
       active: () => !!highlight,
       visible: !isCode && (!isMobile || !isEmpty),
-      children: Highlight.colors.map((color, index) => ({
-        name: "highlight",
-        label: Highlight.colorNames[index],
-        icon: <CircleIcon retainColor color={color} />,
-        active: isMarkActive(schema.marks.highlight, { color }),
-        attrs: { color },
-      })),
+      children: [
+        ...(highlight
+          ? [
+              {
+                name: "highlight",
+                label: dictionary.none,
+                icon: <DottedCircleIcon retainColor color="transparent" />,
+                active: () => false,
+                attrs: { color: highlight.mark.attrs.color },
+              },
+            ]
+          : []),
+        ...Highlight.colors.map((color, index) => ({
+          name: "highlight",
+          label: Highlight.colorNames[index],
+          icon: <CircleIcon retainColor color={color} />,
+          active: isMarkActive(schema.marks.highlight, { color }),
+          attrs: { color },
+        })),
+      ],
     },
     {
       name: "code_inline",
@@ -224,3 +238,10 @@ export default function formattingMenuItems(
     },
   ];
 }
+
+const DottedCircleIcon = styled(CircleIcon)`
+  circle {
+    stroke: ${(props) => props.theme.textSecondary};
+    stroke-dasharray: 2, 2;
+  }
+`;

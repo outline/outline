@@ -1,18 +1,15 @@
 import { isEmail } from "class-validator";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { BackIcon, UserIcon } from "outline-icons";
+import { BackIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useTheme } from "styled-components";
-import Squircle from "@shared/components/Squircle";
 import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
-import InputSelectPermission from "~/components/InputSelectPermission";
 import NudeButton from "~/components/NudeButton";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
@@ -22,15 +19,14 @@ import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
-import { EmptySelectValue, Permission } from "~/types";
+import { Permission } from "~/types";
 import { collectionPath, urlify } from "~/utils/routeHelpers";
 import { Wrapper, presence } from "../components";
 import { CopyLinkButton } from "../components/CopyLinkButton";
-import { ListItem } from "../components/ListItem";
 import { PermissionAction } from "../components/PermissionAction";
 import { SearchInput } from "../components/SearchInput";
 import { Suggestions } from "../components/Suggestions";
-import CollectionMemberList from "./CollectionMemberList";
+import { AccessControlList } from "./AccessControlList";
 
 type Props = {
   /** The collection to share. */
@@ -42,7 +38,6 @@ type Props = {
 };
 
 function SharePopover({ collection, visible, onRequestClose }: Props) {
-  const theme = useTheme();
   const team = useCurrentTeam();
   const { groupMemberships, users, groups, memberships } = useStores();
   const { t } = useTranslation();
@@ -367,35 +362,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       )}
 
       <div style={{ display: picker ? "none" : "block" }}>
-        <ListItem
-          image={
-            <Squircle color={theme.accent} size={AvatarSize.Medium}>
-              <UserIcon color={theme.accentText} size={16} />
-            </Squircle>
-          }
-          title={t("All members")}
-          subtitle={t("Everyone in the workspace")}
-          actions={
-            <div style={{ marginRight: -8 }}>
-              <InputSelectPermission
-                style={{ margin: 0 }}
-                onChange={(
-                  value: CollectionPermission | typeof EmptySelectValue
-                ) => {
-                  void collection.save({
-                    permission: value === EmptySelectValue ? null : value,
-                  });
-                }}
-                disabled={!can.update}
-                value={collection?.permission}
-                labelHidden
-                nude
-              />
-            </div>
-          }
-        />
-
-        <CollectionMemberList
+        <AccessControlList
           collection={collection}
           invitedInSession={invitedInSession}
         />

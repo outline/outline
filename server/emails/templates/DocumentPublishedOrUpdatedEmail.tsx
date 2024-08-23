@@ -108,6 +108,10 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     return `${actorName} ${this.eventName(eventType)} a document`;
   }
 
+  protected fromName({ actorName }: Props) {
+    return actorName;
+  }
+
   protected renderAsText({
     actorName,
     teamUrl,

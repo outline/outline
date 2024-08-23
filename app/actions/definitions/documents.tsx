@@ -714,11 +714,11 @@ export const openRandomDocument = createAction({
     const documentPaths = stores.collections.pathsToDocuments.filter(
       (path) => path.type === "document" && path.id !== activeDocumentId
     );
-    const documentPath =
+    const randomPath =
       documentPaths[Math.round(Math.random() * documentPaths.length)];
 
-    if (documentPath) {
-      history.push(documentPath.url);
+    if (randomPath) {
+      history.push(randomPath.url);
     }
   },
 });

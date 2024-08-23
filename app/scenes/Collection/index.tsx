@@ -34,7 +34,7 @@ import Tabs from "~/components/Tabs";
 import Tooltip from "~/components/Tooltip";
 import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
-import useLastVisitedPath from "~/hooks/useLastVisitedPath";
+import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { Feature, FeatureFlags } from "~/utils/FeatureFlags";

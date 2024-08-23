@@ -5,6 +5,8 @@ import { useAgent } from "request-filtering-agent";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 
+export type { RequestInit } from "node-fetch";
+
 /**
  * Wrapper around fetch that uses the request-filtering-agent in cloud hosted
  * environments to filter malicious requests, and the fetch-with-proxy library

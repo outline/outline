@@ -17,7 +17,7 @@ export const restoreRevision = createAction({
   analyticsName: "Restore revision",
   icon: <RestoreIcon />,
   section: RevisionSection,
-  visible: ({ activeDocumentId, stores }) =>
+  visible: ({ activeDocumentId }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).update,
   perform: async ({ event, location, activeDocumentId }) => {
     event?.preventDefault();
@@ -47,7 +47,7 @@ export const copyLinkToRevision = createAction({
   analyticsName: "Copy link to revision",
   icon: <LinkIcon />,
   section: RevisionSection,
-  perform: async ({ activeDocumentId, stores, t }) => {
+  perform: async ({ activeDocumentId, t }) => {
     if (!activeDocumentId) {
       return;
     }

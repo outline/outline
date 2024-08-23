@@ -379,7 +379,9 @@ router.post(
         // `collectionGroupMemberships` retained for backwards compatibility – remove after version v0.79.0
         collectionGroupMemberships: groupMemberships,
         groupMemberships,
-        groups: memberships.map((membership) => presentGroup(membership.group)),
+        groups: await Promise.all(
+          memberships.map((membership) => presentGroup(membership.group))
+        ),
       },
     };
   }

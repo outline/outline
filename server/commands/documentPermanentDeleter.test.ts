@@ -4,7 +4,9 @@ import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { buildAttachment, buildDocument } from "@server/test/factories";
 import documentPermanentDeleter from "./documentPermanentDeleter";
 
-jest.mock("@server/queues/tasks/DeleteAttachmentTask");
+jest.mock("@server/queues/tasks/DeleteAttachmentTask", () => ({
+  schedule: jest.fn(),
+}));
 
 describe("documentPermanentDeleter", () => {
   it("should destroy documents", async () => {

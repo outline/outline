@@ -5,7 +5,6 @@ import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { RouteComponentProps, useLocation } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
-import { setCookie } from "tiny-cookie";
 import { s } from "@shared/styles";
 import { NavigationNode, PublicTeam, TOCPosition } from "@shared/types";
 import type { Theme } from "~/stores/UiStore";
@@ -19,6 +18,7 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useBuildTheme from "~/hooks/useBuildTheme";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import useStores from "~/hooks/useStores";
 import { AuthorizationError, OfflineError } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
@@ -30,7 +30,7 @@ import Loading from "./components/Loading";
 const EMPTY_OBJECT = {};
 
 type Response = {
-  document: DocumentModel;
+  document?: DocumentModel;
   team?: PublicTeam;
   sharedTree?: NavigationNode | undefined;
 };
@@ -94,6 +94,7 @@ function SharedDocumentScene(props: Props) {
   const [response, setResponse] = React.useState<Response>();
   const [error, setError] = React.useState<Error | null | undefined>();
   const { documents } = useStores();
+  const [, setPostLoginPath] = usePostLoginPath();
   const { shareId = env.ROOT_SHARE_ID, documentSlug } = props.match.params;
   const documentId = useDocumentId(documentSlug, response);
   const themeOverride = ["dark", "light"].includes(
@@ -124,6 +125,11 @@ function SharedDocumentScene(props: Props) {
   React.useEffect(() => {
     async function fetchData() {
       try {
+        setResponse((state) => ({
+          ...state,
+          document: undefined,
+        }));
+
         const res = await documents.fetchWithSharedTree(documentSlug, {
           shareId,
         });
@@ -139,7 +145,7 @@ function SharedDocumentScene(props: Props) {
     if (error instanceof OfflineError) {
       return <ErrorOffline />;
     } else if (error instanceof AuthorizationError) {
-      setCookie("postLoginRedirectPath", props.location.pathname);
+      setPostLoginPath(props.location.pathname);
       return (
         <Login>
           {(config) =>
@@ -177,21 +183,23 @@ function SharedDocumentScene(props: Props) {
       <TeamContext.Provider value={response.team}>
         <ThemeProvider theme={theme}>
           <Layout
-            title={response.document.title}
+            title={response.document?.title}
             sidebar={
               response.sharedTree?.children.length ? (
                 <Sidebar rootNode={response.sharedTree} shareId={shareId!} />
               ) : undefined
             }
           >
-            <Document
-              abilities={EMPTY_OBJECT}
-              document={response.document}
-              sharedTree={response.sharedTree}
-              shareId={shareId}
-              tocPosition={tocPosition}
-              readOnly
-            />
+            {response.document && (
+              <Document
+                abilities={EMPTY_OBJECT}
+                document={response.document}
+                sharedTree={response.sharedTree}
+                shareId={shareId}
+                tocPosition={tocPosition}
+                readOnly
+              />
+            )}
           </Layout>
         </ThemeProvider>
       </TeamContext.Provider>

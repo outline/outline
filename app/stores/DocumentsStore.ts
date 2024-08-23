@@ -286,10 +286,9 @@ export default class DocumentsStore extends Store<Document> {
       parentDocumentId: documentId,
     });
     invariant(res?.data, "Document list not available");
-    const { data } = res;
 
     runInAction("DocumentsStore#fetchChildDocuments", () => {
-      data.forEach(this.add);
+      res.data.forEach(this.add);
       this.addPolicies(res.policies);
     });
   };
@@ -390,8 +389,10 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    res.data.forEach(this.add);
-    this.addPolicies(res.policies);
+    runInAction("DocumentsStore#searchTitles", () => {
+      res.data.forEach(this.add);
+      this.addPolicies(res.policies);
+    });
 
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
@@ -423,8 +424,10 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    res.data.forEach((result: SearchResult) => this.add(result.document));
-    this.addPolicies(res.policies);
+    runInAction("DocumentsStore#search", () => {
+      res.data.forEach((result: SearchResult) => this.add(result.document));
+      this.addPolicies(res.policies);
+    });
 
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
@@ -510,17 +513,22 @@ export default class DocumentsStore extends Store<Document> {
         this.data.get(id) || this.getByUrl(id);
       const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
 
-      if (doc && policy && !options.force) {
-        if (!options.shareId) {
-          return {
-            document: doc,
-          };
-        } else if (this.sharedCache.has(options.shareId)) {
-          return {
-            document: doc,
-            ...this.sharedCache.get(options.shareId),
-          };
-        }
+      if (doc && policy && !options.shareId && !options.force) {
+        return {
+          document: doc,
+        };
+      }
+
+      if (
+        doc &&
+        options.shareId &&
+        !options.force &&
+        this.sharedCache.has(options.shareId)
+      ) {
+        return {
+          document: doc,
+          ...this.sharedCache.get(options.shareId),
+        };
       }
 
       const res = await client.post("/documents.info", {
@@ -804,7 +812,7 @@ export default class DocumentsStore extends Store<Document> {
 
   unstar = (document: Document) => {
     const star = this.rootStore.stars.orderedData.find(
-      (star) => star.documentId === document.id
+      (s) => s.documentId === document.id
     );
     return star?.delete();
   };
@@ -817,9 +825,7 @@ export default class DocumentsStore extends Store<Document> {
 
   unsubscribe = (userId: string, document: Document) => {
     const subscription = this.rootStore.subscriptions.orderedData.find(
-      (subscription) =>
-        subscription.documentId === document.id &&
-        subscription.userId === userId
+      (s) => s.documentId === document.id && s.userId === userId
     );
 
     return subscription?.delete();

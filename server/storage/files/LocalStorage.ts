@@ -2,6 +2,7 @@ import { Blob } from "buffer";
 import { mkdir, unlink, rmdir } from "fs/promises";
 import path from "path";
 import { Readable } from "stream";
+import { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import fs from "fs-extra";
 import invariant from "invariant";
 import JWT from "jsonwebtoken";
@@ -17,16 +18,16 @@ export default class LocalStorage extends BaseStorage {
     acl: string,
     maxUploadSize: number,
     contentType = "image"
-  ) {
+  ): Promise<Partial<PresignedPost>> {
     return Promise.resolve({
       url: this.getUrlForKey(key),
       fields: {
         key,
         acl,
-        maxUploadSize,
+        maxUploadSize: String(maxUploadSize),
         contentType,
       },
-    } as any);
+    });
   }
 
   public getUploadUrl() {

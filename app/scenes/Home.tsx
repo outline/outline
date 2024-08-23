@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { HomeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { Action } from "~/components/Actions";
@@ -18,6 +18,7 @@ import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
@@ -26,14 +27,20 @@ function Home() {
   const { documents, pins, ui } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
-  const userId = user?.id;
   const { t } = useTranslation();
+  const [spendPostLoginPath] = usePostLoginPath();
+  const userId = user?.id;
 
   React.useEffect(() => {
     void pins.fetchPage();
   }, [pins]);
 
   const can = usePolicy(team);
+
+  const postLoginPath = spendPostLoginPath();
+  if (postLoginPath) {
+    return <Redirect to={postLoginPath} />;
+  }
 
   return (
     <Scene

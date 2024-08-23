@@ -48,6 +48,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, can, cannot } from "@server/policies";
 import {
   presentCollection,
@@ -440,6 +441,7 @@ router.post(
     const isPublic = cannot(user, "read", document);
     const serializedDocument = await presentDocument(ctx, document, {
       isPublic,
+      shareId,
     });
 
     const team = await document.$get("team");
@@ -883,13 +885,14 @@ router.post(
       });
     }
 
-    const { results, totalCount } = response;
+    const { results, total } = response;
     const documents = results.map((result) => result.document);
 
     const data = await Promise.all(
       results.map(async (result) => {
         const document = await presentDocument(ctx, result.document, {
           isPublic,
+          shareId,
         });
         return { ...result, document };
       })
@@ -904,12 +907,12 @@ router.post(
         shareId: share?.id,
         source: ctx.state.auth.type || "app", // we'll consider anything that isn't "api" to be "app"
         query,
-        results: totalCount,
+        results: total,
       });
     }
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data,
       policies: user ? presentPolicies(user, documents) : null,
     };
@@ -952,7 +955,6 @@ router.post(
         lastModifiedById: user.id,
         createdById: user.id,
         template: true,
-        emoji: original.emoji,
         icon: original.icon,
         color: original.color,
         title: original.title,
@@ -1054,7 +1056,6 @@ router.post(
       document,
       user,
       ...input,
-      icon: input.icon ?? input.emoji ?? null,
       publish,
       collectionId,
       insightsEnabled,
@@ -1403,7 +1404,6 @@ router.post(
     const {
       title,
       text,
-      emoji,
       icon,
       color,
       publish,
@@ -1470,8 +1470,13 @@ router.post(
 
     const document = await documentCreator({
       title,
-      text,
-      icon: icon ?? emoji,
+      text: await TextHelper.replaceImagesWithAttachments(
+        text,
+        user,
+        ctx.request.ip,
+        transaction
+      ),
+      icon,
       color,
       createdAt,
       publish,

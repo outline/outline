@@ -69,8 +69,8 @@ function CommandBarItem(
               ) : (
                 ""
               )}
-              {sc.split("+").map((s) => (
-                <Key key={s}>{s}</Key>
+              {sc.split("+").map((key) => (
+                <Key key={key}>{key}</Key>
               ))}
             </React.Fragment>
           ))}
