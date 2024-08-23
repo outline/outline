@@ -29,7 +29,7 @@ const TeamSelection = ({ server, userTeams, onSave, onBack }: Props) => {
   const handleSave = React.useCallback(async () => {
     try {
       setSaving(true);
-      await integrations.create({
+      await integrations.save({
         type: IntegrationType.LinkedAccount,
         service: IntegrationService.Mattermost,
         settings: {
