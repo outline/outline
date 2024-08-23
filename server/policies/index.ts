@@ -1,25 +1,11 @@
-import type {
-  ApiKey,
-  Attachment,
-  AuthenticationProvider,
-  Collection,
-  Comment,
-  Document,
-  FileOperation,
-  Integration,
-  Pin,
-  SearchQuery,
-  Share,
-  Star,
-  Subscription,
-  User,
-  Team,
-  Group,
-  WebhookSubscription,
-  Notification,
-  UserMembership,
-} from "@server/models";
-import { _abilities, _can, _cannot, _authorize } from "./cancan";
+import type { Model } from "sequelize-typescript";
+import type { User } from "@server/models";
+import { abilities, can } from "./cancan";
+
+// export everything from cancan
+export * from "./cancan";
+
+// Import all policies
 import "./apiKey";
 import "./attachment";
 import "./authenticationProvider";
@@ -42,48 +28,18 @@ import "./userMembership";
 
 type Policy = Record<string, boolean>;
 
-// this should not be needed but is a workaround for this TypeScript issue:
-// https://github.com/microsoft/TypeScript/issues/36931
-export const authorize: typeof _authorize = _authorize;
-
-export const can = _can;
-
-export const cannot = _cannot;
-
-export const abilities = _abilities;
-
 /*
  * Given a user and a model – output an object which describes the actions the
  * user may take against the model. This serialized policy is used for testing
  * and sent in API responses to allow clients to adjust which UI is displayed.
  */
-export function serialize(
-  model: User,
-  target:
-    | ApiKey
-    | Attachment
-    | AuthenticationProvider
-    | Collection
-    | Comment
-    | Document
-    | FileOperation
-    | Integration
-    | Pin
-    | SearchQuery
-    | Share
-    | Star
-    | Subscription
-    | User
-    | Team
-    | Group
-    | WebhookSubscription
-    | Notification
-    | UserMembership
-    | null
-): Policy {
+export function serialize(model: User, target: Model | null): Policy {
   const output = {};
   abilities.forEach((ability) => {
-    if (model instanceof ability.model && target instanceof ability.target) {
+    if (
+      model instanceof ability.model &&
+      target instanceof (ability.target as any)
+    ) {
       let response = true;
 
       try {
