@@ -1,18 +1,18 @@
 export class Second {
   /** Milliseconds in a second */
-  public static milliseconds = 1000;
+  public static ms = 1000;
 }
 
 export class Minute {
   /** Milliseconds in a minute */
-  public static milliseconds = 60 * Second.milliseconds;
+  public static ms = 60 * Second.ms;
   /** Seconds in a minute */
   public static seconds = 60;
 }
 
 export class Hour {
   /** Milliseconds in an hour */
-  public static milliseconds = 60 * Minute.milliseconds;
+  public static ms = 60 * Minute.ms;
   /** Seconds in an hour */
   public static seconds = 60 * Minute.seconds;
   /** Minutes in an hour */
@@ -21,7 +21,7 @@ export class Hour {
 
 export class Day {
   /** Milliseconds in a day */
-  public static milliseconds = 24 * Hour.milliseconds;
+  public static ms = 24 * Hour.ms;
   /** Seconds in a day */
   public static seconds = 24 * Hour.seconds;
   /** Minutes in a day */

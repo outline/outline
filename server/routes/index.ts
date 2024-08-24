@@ -35,7 +35,7 @@ router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
       done = await send(ctx, ctx.path, {
         root: path.resolve(__dirname, "../../../public"),
         // 7 day expiry, these assets are mostly static but do not contain a hash
-        maxAge: Day.milliseconds * 7,
+        maxAge: Day.ms * 7,
         setHeaders: (res) => {
           res.setHeader("Access-Control-Allow-Origin", "*");
         },
@@ -71,7 +71,7 @@ if (env.isProduction) {
       await send(ctx, pathname, {
         root: path.join(__dirname, "../../app/"),
         // Hashed static assets get 1 year expiry plus immutable flag
-        maxAge: Day.milliseconds * 365,
+        maxAge: Day.ms * 365,
         immutable: true,
         setHeaders: (res) => {
           res.setHeader("Service-Worker-Allowed", "/");
