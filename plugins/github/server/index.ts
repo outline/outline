@@ -22,7 +22,7 @@ if (enabled) {
     },
     {
       type: Hook.UnfurlProvider,
-      value: { unfurl: GitHub.unfurl, cacheExpiry: Minute / 1000 },
+      value: { unfurl: GitHub.unfurl, cacheExpiry: Minute.seconds },
     },
     {
       type: Hook.Uninstall,

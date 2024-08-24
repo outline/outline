@@ -60,7 +60,7 @@ export default class EmailsProcessor extends BaseProcessor {
           },
           { notificationId }
         ).schedule({
-          delay: Minute,
+          delay: Minute.milliseconds,
         });
         return;
       }
@@ -76,7 +76,7 @@ export default class EmailsProcessor extends BaseProcessor {
           },
           { notificationId }
         ).schedule({
-          delay: Minute,
+          delay: Minute.milliseconds,
         });
         return;
       }
@@ -107,7 +107,7 @@ export default class EmailsProcessor extends BaseProcessor {
           },
           { notificationId: notification.id }
         ).schedule({
-          delay: Minute,
+          delay: Minute.milliseconds,
         });
         return;
       }
@@ -122,7 +122,7 @@ export default class EmailsProcessor extends BaseProcessor {
           },
           { notificationId: notification.id }
         ).schedule({
-          delay: Minute,
+          delay: Minute.milliseconds,
         });
         return;
       }
@@ -139,7 +139,7 @@ export default class EmailsProcessor extends BaseProcessor {
           },
           { notificationId: notification.id }
         ).schedule({
-          delay: Minute,
+          delay: Minute.milliseconds,
         });
       }
     }

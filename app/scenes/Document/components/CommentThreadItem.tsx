@@ -53,7 +53,7 @@ function useShowTime(
 
   return (
     !msSincePreviousComment ||
-    (msSincePreviousComment > 15 * Minute &&
+    (msSincePreviousComment > 15 * Minute.milliseconds &&
       previousTimeStamp !== currentTimeStamp)
   );
 }
