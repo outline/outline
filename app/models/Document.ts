@@ -175,7 +175,10 @@ export default class Document extends ParanoidModel {
   @observable
   parentDocumentId: string | undefined;
 
-  @Relation(() => Document)
+  /**
+   * Parent document that this is a child of, if any.
+   */
+  @Relation(() => Document, { onArchive: "cascade" })
   parentDocument?: Document;
 
   @observable

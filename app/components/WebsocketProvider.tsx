@@ -229,8 +229,7 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on(
       "documents.archive",
       action((event: PartialWithId<Document>) => {
-        documents.add(event);
-        policies.remove(event.id);
+        documents.addToArchive(event);
 
         if (event.collectionId) {
           const collection = collections.get(event.collectionId);
