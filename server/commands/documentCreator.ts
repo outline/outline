@@ -59,7 +59,7 @@ export default async function documentCreator({
   sourceMetadata,
   ctx,
 }: Props): Promise<Document> {
-  const { transaction, ip } = ctx;
+  const { transaction, ip } = ctx.context;
   const templateId = templateDocument ? templateDocument.id : undefined;
 
   if (state && templateDocument) {
