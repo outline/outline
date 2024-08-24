@@ -1,4 +1,5 @@
 import { IntegrationType } from "@shared/types";
+import { IMIntegrationServices } from "@shared/utils/integrations";
 import { Integration } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import { IntegrationEvent, Event } from "@server/types";
@@ -16,6 +17,11 @@ export default class IntegrationDeletedProcessor extends BaseProcessor {
       paranoid: false,
     });
     if (!integration) {
+      return;
+    }
+
+    // IM integrations have their own processor to handle deleted integration.
+    if (IMIntegrationServices.includes(integration.service)) {
       return;
     }
 
