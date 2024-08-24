@@ -1,7 +1,6 @@
 import JSZip from "jszip";
 import omit from "lodash/omit";
 import { NavigationNode } from "@shared/types";
-import { parser } from "@server/editor";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -10,12 +9,12 @@ import {
   Document,
   FileOperation,
 } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { presentAttachment, presentCollection } from "@server/presenters";
 import { CollectionJSONExport, JSONExportMetadata } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
-import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import packageJson from "../../../package.json";
 import ExportTask from "./ExportTask";
 
@@ -28,7 +27,7 @@ export default class ExportJSONTask extends ExportTask {
       await this.addCollectionToArchive(
         zip,
         collection,
-        fileOperation.includeAttachments
+        fileOperation.options?.includeAttachments ?? true
       );
     }
 
@@ -63,10 +62,10 @@ export default class ExportJSONTask extends ExportTask {
   ) {
     const output: CollectionJSONExport = {
       collection: {
-        ...omit(presentCollection(collection), ["url"]),
-        description: collection.description
-          ? parser.parse(collection.description)
-          : null,
+        ...omit(await presentCollection(undefined, collection), [
+          "url",
+          "description",
+        ]),
         documentStructure: collection.documentStructure,
       },
       documents: {},
@@ -87,7 +86,9 @@ export default class ExportJSONTask extends ExportTask {
           ? await Attachment.findAll({
               where: {
                 teamId: document.teamId,
-                id: parseAttachmentIds(document.text),
+                id: ProsemirrorHelper.parseAttachmentIds(
+                  DocumentHelper.toProsemirror(document)
+                ),
               },
             })
           : [];
@@ -123,8 +124,11 @@ export default class ExportJSONTask extends ExportTask {
           id: document.id,
           urlId: document.urlId,
           title: document.title,
+          icon: document.icon,
+          color: document.color,
           data: DocumentHelper.toProsemirror(document),
           createdById: document.createdById,
+          createdByName: document.createdBy.name,
           createdByEmail: document.createdBy.email,
           createdAt: document.createdAt.toISOString(),
           updatedAt: document.updatedAt.toISOString(),

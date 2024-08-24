@@ -34,6 +34,7 @@ export default class ViewsStore extends Store<View> {
     if (!view) {
       return;
     }
+
     view.touch();
   }
 }

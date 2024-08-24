@@ -1,6 +1,8 @@
 import path from "path";
 import fs from "fs-extra";
+import chunk from "lodash/chunk";
 import truncate from "lodash/truncate";
+import { InferCreationAttributes } from "sequelize";
 import tmp from "tmp";
 import {
   AttachmentPreset,
@@ -25,6 +27,7 @@ import {
 } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import ZipHelper from "@server/utils/ZipHelper";
+import { generateUrlId } from "@server/utils/url";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -38,7 +41,7 @@ export type StructuredImportData = {
   collections: {
     id: string;
     urlId?: string;
-    color?: string;
+    color?: string | null;
     icon?: string | null;
     sort?: CollectionSort;
     permission?: CollectionPermission | null;
@@ -60,7 +63,9 @@ export type StructuredImportData = {
     id: string;
     urlId?: string;
     title: string;
-    emoji?: string;
+    emoji?: string | null;
+    icon?: string | null;
+    color?: string | null;
     /**
      * The document text. To reference an attachment or image use the special
      * formatting <<attachmentId>>. It will be replaced with a reference to the
@@ -78,6 +83,7 @@ export type StructuredImportData = {
     publishedAt?: Date | null;
     parentDocumentId?: string | null;
     createdById?: string;
+    createdByName?: string;
     createdByEmail?: string | null;
     path: string;
     mimeType: string;
@@ -294,38 +300,21 @@ export default abstract class ImportTask extends BaseTask<Props> {
     const documents = new Map<string, Document>();
     const attachments = new Map<string, Attachment>();
 
+    const user = await User.findByPk(fileOperation.userId, {
+      rejectOnEmpty: true,
+    });
+    const ip = user.lastActiveIp || undefined;
+
     try {
-      return await sequelize.transaction(async (transaction) => {
-        const user = await User.findByPk(fileOperation.userId, {
-          transaction,
-          rejectOnEmpty: true,
-        });
+      await this.preprocessDocUrlIds(data);
 
-        const ip = user.lastActiveIp || undefined;
-
-        // Attachments
-        await Promise.all(
-          data.attachments.map(async (item) => {
-            Logger.debug("task", `ImportTask persisting attachment ${item.id}`);
-            const attachment = await attachmentCreator({
-              source: "import",
-              preset: AttachmentPreset.DocumentAttachment,
-              id: item.id,
-              name: item.name,
-              type: item.mimeType,
-              buffer: await item.buffer(),
-              user,
-              ctx: createContext(user, transaction),
-            });
-            if (attachment) {
-              attachments.set(item.id, attachment);
-            }
-          })
-        );
-
-        // Collections
-        for (const item of data.collections) {
-          Logger.debug("task", `ImportTask persisting collection ${item.id}`);
+      // Collections
+      for (const item of data.collections) {
+        await sequelize.transaction(async (transaction) => {
+          Logger.debug(
+            "task",
+            `ImportTask persisting collection ${item.name} (${item.id})`
+          );
           let description = item.description;
 
           // Description can be markdown text or a Prosemirror object if coming
@@ -338,24 +327,18 @@ export default abstract class ImportTask extends BaseTask<Props> {
             // Check all of the attachments we've created against urls in the text
             // and replace them out with attachment redirect urls before saving.
             for (const aitem of data.attachments) {
-              const attachment = attachments.get(aitem.id);
-              if (!attachment) {
-                continue;
-              }
               description = description.replace(
-                new RegExp(`<<${attachment.id}>>`, "g"),
-                attachment.redirectUrl
+                new RegExp(`<<${aitem.id}>>`, "g"),
+                Attachment.getRedirectUrl(aitem.id)
               );
             }
 
             // Check all of the document we've created against urls in the text
-            // and replace them out with a valid internal link. Because we are doing
-            // this before saving, we can't use the document slug, but we can take
-            // advantage of the fact that the document id will redirect in the client
+            // and replace them out with a valid internal link.
             for (const ditem of data.documents) {
               description = description.replace(
                 new RegExp(`<<${ditem.id}>>`, "g"),
-                `/doc/${ditem.id}`
+                Document.getPath({ title: ditem.title, urlId: ditem.urlId! })
               );
             }
           }
@@ -382,20 +365,28 @@ export default abstract class ImportTask extends BaseTask<Props> {
               })
             : null;
 
+          const sharedDefaults: Partial<InferCreationAttributes<Collection>> = {
+            ...options,
+            id: item.id,
+            description: truncatedDescription,
+            color: item.color,
+            icon: item.icon,
+            sort: item.sort,
+            createdById: fileOperation.userId,
+            permission:
+              item.permission ?? fileOperation.options?.permission !== undefined
+                ? fileOperation.options?.permission
+                : CollectionPermission.ReadWrite,
+            importId: fileOperation.id,
+          };
+
           // check if collection with name exists
           const response = await Collection.findOrCreate({
             where: {
               teamId: fileOperation.teamId,
               name: item.name,
             },
-            defaults: {
-              ...options,
-              id: item.id,
-              description: truncatedDescription,
-              createdById: fileOperation.userId,
-              permission: CollectionPermission.ReadWrite,
-              importId: fileOperation.id,
-            },
+            defaults: sharedDefaults,
             transaction,
           });
 
@@ -409,17 +400,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
             const name = `${item.name} (Imported)`;
             collection = await Collection.create(
               {
-                ...options,
-                id: item.id,
-                description: truncatedDescription,
-                color: item.color,
-                icon: item.icon,
-                sort: item.sort,
-                teamId: fileOperation.teamId,
-                createdById: fileOperation.userId,
+                ...sharedDefaults,
                 name,
-                permission: item.permission ?? CollectionPermission.ReadWrite,
-                importId: fileOperation.id,
+                teamId: fileOperation.teamId,
               },
               { transaction }
             );
@@ -442,88 +425,95 @@ export default abstract class ImportTask extends BaseTask<Props> {
           );
 
           collections.set(item.id, collection);
-        }
 
-        // Documents
-        for (const item of data.documents) {
-          Logger.debug("task", `ImportTask persisting document ${item.id}`);
-          let text = item.text;
+          // Documents
+          for (const item of data.documents.filter(
+            (d) => d.collectionId === collection.id
+          )) {
+            Logger.debug(
+              "task",
+              `ImportTask persisting document ${item.title} (${item.id})`
+            );
+            let text = item.text;
 
-          // Check all of the attachments we've created against urls in the text
-          // and replace them out with attachment redirect urls before saving.
-          for (const aitem of data.attachments) {
-            const attachment = attachments.get(aitem.id);
-            if (!attachment) {
-              continue;
+            // Check all of the attachments we've created against urls in the text
+            // and replace them out with attachment redirect urls before saving.
+            for (const aitem of data.attachments) {
+              text = text.replace(
+                new RegExp(`<<${aitem.id}>>`, "g"),
+                Attachment.getRedirectUrl(aitem.id)
+              );
             }
-            text = text.replace(
-              new RegExp(`<<${attachment.id}>>`, "g"),
-              attachment.redirectUrl
-            );
-          }
 
-          // Check all of the document we've created against urls in the text
-          // and replace them out with a valid internal link. Because we are doing
-          // this before saving, we can't use the document slug, but we can take
-          // advantage of the fact that the document id will redirect in the client
-          for (const ditem of data.documents) {
-            text = text.replace(
-              new RegExp(`<<${ditem.id}>>`, "g"),
-              `/doc/${ditem.id}`
-            );
-          }
+            // Check all of the document we've created against urls in the text
+            // and replace them out with a valid internal link.
+            for (const ditem of data.documents) {
+              text = text.replace(
+                new RegExp(`<<${ditem.id}>>`, "g"),
+                Document.getPath({ title: ditem.title, urlId: ditem.urlId! })
+              );
+            }
 
-          const options: { urlId?: string } = {};
-          if (item.urlId) {
-            const existing = await Document.unscoped().findOne({
-              attributes: ["id"],
-              paranoid: false,
-              transaction,
-              where: {
-                urlId: item.urlId,
+            const document = await documentCreator({
+              sourceMetadata: {
+                fileName: path.basename(item.path),
+                mimeType: item.mimeType,
+                externalId: item.externalId,
+                createdByName: item.createdByName,
               },
+              id: item.id,
+              title: item.title,
+              urlId: item.urlId,
+              text,
+              collectionId: item.collectionId,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt ?? item.createdAt,
+              publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
+              parentDocumentId: item.parentDocumentId,
+              importId: fileOperation.id,
+              user,
+              ctx: createContext(user, transaction),
             });
+            documents.set(item.id, document);
 
-            if (!existing) {
-              options.urlId = item.urlId;
-            }
-          }
-
-          const document = await documentCreator({
-            ...options,
-            sourceMetadata: {
-              fileName: path.basename(item.path),
-              mimeType: item.mimeType,
-              externalId: item.externalId,
-            },
-            id: item.id,
-            title: item.title,
-            text,
-            collectionId: item.collectionId,
-            createdAt: item.createdAt,
-            updatedAt: item.updatedAt ?? item.createdAt,
-            publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
-            parentDocumentId: item.parentDocumentId,
-            importId: fileOperation.id,
-            user,
-            ctx: createContext(user, transaction),
-          });
-          documents.set(item.id, document);
-
-          const collection = collections.get(item.collectionId);
-          if (collection) {
             await collection.addDocumentToStructure(document, 0, {
               transaction,
+              save: false,
             });
           }
-        }
 
-        // Return value is only used for testing
-        return {
-          collections,
-          documents,
-          attachments,
-        };
+          await collection.save({ transaction });
+        });
+      }
+
+      // Attachments
+      await sequelize.transaction(async (transaction) => {
+        const chunks = chunk(data.attachments, 10);
+
+        for (const chunk of chunks) {
+          // Parallelize 10 uploads at a time
+          await Promise.all(
+            chunk.map(async (item) => {
+              Logger.debug(
+                "task",
+                `ImportTask persisting attachment ${item.name} (${item.id})`
+              );
+              const attachment = await attachmentCreator({
+                source: "import",
+                preset: AttachmentPreset.DocumentAttachment,
+                id: item.id,
+                name: item.name,
+                type: item.mimeType,
+                buffer: await item.buffer(),
+                user,
+                ctx: createContext(user, transaction),
+              });
+              if (attachment) {
+                attachments.set(item.id, attachment);
+              }
+            })
+          );
+        }
       });
     } catch (err) {
       Logger.info(
@@ -538,6 +528,13 @@ export default abstract class ImportTask extends BaseTask<Props> {
       );
       throw err;
     }
+
+    // Return value is only used for testing
+    return {
+      collections,
+      documents,
+      attachments,
+    };
   }
 
   /**
@@ -548,5 +545,26 @@ export default abstract class ImportTask extends BaseTask<Props> {
       priority: TaskPriority.Low,
       attempts: 1,
     };
+  }
+
+  private async preprocessDocUrlIds(data: StructuredImportData) {
+    for (const doc of data.documents) {
+      // check DB only if urlId is present in the input.
+      if (doc.urlId) {
+        const existing = await Document.unscoped().findOne({
+          attributes: ["id"],
+          paranoid: false,
+          where: {
+            urlId: doc.urlId,
+          },
+        });
+
+        if (!existing) {
+          continue;
+        }
+      }
+
+      doc.urlId = generateUrlId();
+    }
   }
 }

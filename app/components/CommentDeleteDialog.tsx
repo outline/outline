@@ -33,7 +33,7 @@ function CommentDeleteDialog({ comment, onSubmit }: Props) {
       savingText={`${t("Deleting")}…`}
       danger
     >
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         {hasChildComments ? (
           <Trans>
             Are you sure you want to permanently delete this entire comment

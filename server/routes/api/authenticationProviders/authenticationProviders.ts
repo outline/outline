@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -16,7 +17,7 @@ const router = new Router();
 
 router.post(
   "authenticationProviders.info",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.AuthenticationProvidersInfoSchema),
   async (ctx: APIContext<T.AuthenticationProvidersInfoReq>) => {
     const { id } = ctx.input.body;
@@ -34,7 +35,7 @@ router.post(
 
 router.post(
   "authenticationProviders.update",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.AuthenticationProvidersUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.AuthenticationProvidersUpdateReq>) => {
@@ -56,16 +57,14 @@ router.post(
       await authenticationProvider.disable({ transaction });
     }
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "authenticationProviders.update",
         data: {
           enabled,
         },
         modelId: id,
-        teamId: user.teamId,
-        actorId: user.id,
-        ip: ctx.request.ip,
       },
       { transaction }
     );
@@ -79,7 +78,7 @@ router.post(
 
 router.post(
   "authenticationProviders.list",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
     authorize(user, "read", user.team);
@@ -89,13 +88,15 @@ router.post(
     )) as AuthenticationProvider[];
 
     const data = AuthenticationHelper.providers
-      .filter((p) => p.id !== "email")
+      .filter((p) => p.value.id !== "email")
       .map((p) => {
-        const row = teamAuthenticationProviders.find((t) => t.name === p.id);
+        const row = teamAuthenticationProviders.find(
+          (t) => t.name === p.value.id
+        );
 
         return {
-          id: p.id,
-          name: p.id,
+          id: p.value.id,
+          name: p.value.id,
           displayName: p.name,
           isEnabled: false,
           isConnected: false,

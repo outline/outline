@@ -6,6 +6,7 @@ import styled from "styled-components";
 import type { NavigationNode } from "@shared/types";
 import Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
+import Icon from "~/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
 import { MenuInternalLink } from "~/types";
@@ -15,7 +16,6 @@ import {
   settingsPath,
   trashPath,
 } from "~/utils/routeHelpers";
-import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
   children?: React.ReactNode;
@@ -79,14 +79,14 @@ const DocumentBreadcrumb: React.FC<Props> = ({
       type: "route",
       title: collection.name,
       icon: <CollectionIcon collection={collection} expanded />,
-      to: collectionPath(collection.url),
+      to: collectionPath(collection.path),
     };
-  } else if (document.collectionId && !collection) {
+  } else if (document.isCollectionDeleted) {
     collectionNode = {
       type: "route",
       title: t("Deleted Collection"),
       icon: undefined,
-      to: collectionPath("deleted-collection"),
+      to: "",
     };
   }
 
@@ -106,9 +106,9 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     path.slice(0, -1).forEach((node: NavigationNode) => {
       output.push({
         type: "route",
-        title: node.emoji ? (
+        title: node.icon ? (
           <>
-            <EmojiIcon emoji={node.emoji} /> {node.title}
+            <StyledIcon value={node.icon} color={node.color} /> {node.title}
           </>
         ) : (
           node.title
@@ -143,6 +143,10 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     </Breadcrumb>
   );
 };
+
+const StyledIcon = styled(Icon)`
+  margin-right: 2px;
+`;
 
 const SmallSlash = styled(GoToIcon)`
   width: 12px;

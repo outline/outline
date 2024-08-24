@@ -56,6 +56,34 @@ describe("#team.update", () => {
     expect(body.data.name).toEqual(name);
   });
 
+  it("should add avatar", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        avatarUrl: "https://random-url.com",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.avatarUrl).toEqual("https://random-url.com");
+  });
+
+  it("should remove avatar", async () => {
+    const team = await buildTeam({ avatarUrl: "https://random-url.com" });
+    const admin = await buildAdmin({ teamId: team.id });
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        avatarUrl: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.avatarUrl).toBeNull();
+  });
+
   it("should not invalidate request if subdomain is sent as null", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/team.update", {

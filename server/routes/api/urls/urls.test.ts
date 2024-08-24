@@ -1,8 +1,9 @@
+import { UnfurlResourceType } from "@shared/types";
 import env from "@server/env";
 import { User } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import resolvers from "@server/utils/unfurl";
+import Iframely from "plugins/iframely/server/iframely";
 
 jest.mock("dns", () => ({
   resolveCname: (
@@ -18,8 +19,8 @@ jest.mock("dns", () => ({
 }));
 
 jest
-  .spyOn(resolvers.Iframely, "unfurl")
-  .mockImplementation(async (_: string) => false);
+  .spyOn(Iframely, "requestResource")
+  .mockImplementation(() => Promise.resolve(undefined));
 
 const server = getTestServer();
 
@@ -133,9 +134,8 @@ describe("#urls.unfurl", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.type).toEqual("mention");
-    expect(body.title).toEqual(mentionedUser.name);
-    expect(body.meta.id).toEqual(mentionedUser.id);
+    expect(body.type).toEqual(UnfurlResourceType.Mention);
+    expect(body.name).toEqual(mentionedUser.name);
   });
 
   it("should succeed with status 200 ok when valid document url is supplied", async () => {
@@ -152,13 +152,13 @@ describe("#urls.unfurl", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.type).toEqual("document");
+    expect(body.type).toEqual(UnfurlResourceType.Document);
     expect(body.title).toEqual(document.titleWithDefault);
-    expect(body.meta.id).toEqual(document.id);
+    expect(body.id).toEqual(document.id);
   });
 
   it("should succeed with status 200 ok for a valid external url", async () => {
-    (resolvers.Iframely.unfurl as jest.Mock).mockResolvedValue(
+    (Iframely.requestResource as jest.Mock).mockResolvedValue(
       Promise.resolve({
         url: "https://www.flickr.com",
         type: "rich",
@@ -180,12 +180,9 @@ describe("#urls.unfurl", () => {
     expect(res.status).toEqual(200);
     const body = await res.json();
 
-    expect(resolvers.Iframely.unfurl).toHaveBeenCalledWith(
-      "https://www.flickr.com"
-    );
     expect(res.status).toEqual(200);
     expect(body.url).toEqual("https://www.flickr.com");
-    expect(body.type).toEqual("rich");
+    expect(body.type).toEqual(UnfurlResourceType.OEmbed);
     expect(body.title).toEqual("Flickr");
     expect(body.description).toEqual(
       "The safest and most inclusive global community of photography enthusiasts. The best place for inspiration, connection, and sharing!"
@@ -196,7 +193,7 @@ describe("#urls.unfurl", () => {
   });
 
   it("should succeed with status 204 no content for a non-existing external url", async () => {
-    (resolvers.Iframely.unfurl as jest.Mock).mockResolvedValue(
+    (Iframely.requestResource as jest.Mock).mockResolvedValue(
       Promise.resolve({
         status: 404,
         error:
@@ -211,9 +208,6 @@ describe("#urls.unfurl", () => {
       },
     });
 
-    expect(resolvers.Iframely.unfurl).toHaveBeenCalledWith(
-      "https://random.url"
-    );
     expect(res.status).toEqual(204);
   });
 });

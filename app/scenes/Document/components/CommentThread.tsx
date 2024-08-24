@@ -2,7 +2,7 @@ import throttle from "lodash/throttle";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -11,6 +11,7 @@ import { ProsemirrorData } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import Avatar from "~/components/Avatar";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
@@ -63,17 +64,24 @@ function CommentThread({
   recessed,
   focused,
 }: Props) {
+  const { editor } = useDocumentContext();
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
   const { t } = useTranslation();
   const history = useHistory();
+  const location = useLocation();
   const [autoFocus, setAutoFocus] = React.useState(thread.isNew);
   const [, setIsTyping] = useTypingIndicator({
     document,
     comment: thread,
   });
   const can = usePolicy(document);
+
+  const highlightedCommentMarks = editor
+    ?.getComments()
+    .filter((comment) => comment.id === thread.id);
+  const highlightedText = highlightedCommentMarks?.map((c) => c.text).join("");
 
   const commentsInThread = comments
     .inThread(thread.id)
@@ -85,7 +93,8 @@ function CommentThread({
       !(event.target as HTMLElement).classList.contains("comment")
     ) {
       history.replace({
-        pathname: window.location.pathname,
+        search: location.search,
+        pathname: location.pathname,
         state: { commentId: undefined },
       });
     }
@@ -93,7 +102,8 @@ function CommentThread({
 
   const handleClickThread = () => {
     history.replace({
-      pathname: window.location.pathname.replace(/\/history$/, ""),
+      search: location.search,
+      pathname: location.pathname.replace(/\/history$/, ""),
       state: { commentId: thread.id },
     });
   };
@@ -108,7 +118,7 @@ function CommentThread({
     if (focused) {
       // If the thread is already visible, scroll it into view immediately,
       // otherwise wait for the sidebar to appear.
-      const isVisible =
+      const isThreadVisible =
         (topRef.current?.getBoundingClientRect().left ?? 0) < window.innerWidth;
 
       setTimeout(
@@ -125,18 +135,22 @@ function CommentThread({
               parent.id !== "comments",
           });
         },
-        isVisible ? 0 : sidebarAppearDuration
+        isThreadVisible ? 0 : sidebarAppearDuration
       );
 
-      setTimeout(() => {
-        const commentMarkElement = window.document?.getElementById(
-          `comment-${thread.id}`
-        );
-        commentMarkElement?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }, 0);
+      const getCommentMarkElement = () =>
+        window.document?.getElementById(`comment-${thread.id}`);
+      const isMarkVisible = !!getCommentMarkElement();
+
+      setTimeout(
+        () => {
+          getCommentMarkElement()?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        },
+        isMarkVisible ? 0 : sidebarAppearDuration
+      );
     }
   }, [focused, thread.id]);
 
@@ -163,7 +177,10 @@ function CommentThread({
 
         return (
           <CommentThreadItem
+            highlightedText={index === 0 ? highlightedText : undefined}
             comment={comment}
+            onDelete={() => editor?.removeComment(comment.id)}
+            onUpdate={(attrs) => editor?.updateComment(comment.id, attrs)}
             key={comment.id}
             firstOfThread={index === 0}
             lastOfThread={index === commentsInThread.length - 1 && !draft}
@@ -197,6 +214,9 @@ function CommentThread({
               standalone={commentsInThread.length === 0}
               dir={document.dir}
               autoFocus={autoFocus}
+              highlightedText={
+                commentsInThread.length === 0 ? highlightedText : undefined
+              }
             />
           </Fade>
         )}

@@ -14,7 +14,12 @@ type FormData = {
   code: string;
 };
 
-function UserDelete() {
+type Props = {
+  /** Callback to close the dialog when user deletion completes. */
+  onSubmit: () => void;
+};
+
+function UserDelete({ onSubmit }: Props) {
   const [isWaitingCode, setWaitingCode] = React.useState(false);
   const { auth } = useStores();
   const { t } = useTranslation();
@@ -43,15 +48,16 @@ function UserDelete() {
       try {
         await auth.deleteUser(data);
         await auth.logout();
+        onSubmit();
       } catch (err) {
         toast.error(err.message);
       }
     },
-    [auth]
+    [auth, onSubmit]
   );
 
   const inputProps = register("code", {
-    required: true,
+    required: env.EMAIL_ENABLED,
   });
   const appName = env.APP_NAME;
 
@@ -59,7 +65,7 @@ function UserDelete() {
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       {isWaitingCode ? (
         <>
-          <Text type="secondary">
+          <Text as="p" type="secondary">
             <Trans>
               A confirmation code has been sent to your email address, please
               enter the code below to permanently destroy your account.
@@ -76,7 +82,7 @@ function UserDelete() {
         </>
       ) : (
         <>
-          <Text type="secondary">
+          <Text as="p" type="secondary">
             <Trans>
               Are you sure? Deleting your account will destroy identifying data
               associated with your user and cannot be undone. You will be

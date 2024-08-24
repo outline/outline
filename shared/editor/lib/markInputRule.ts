@@ -1,25 +1,18 @@
 import { InputRule } from "prosemirror-inputrules";
-import { MarkType, Mark } from "prosemirror-model";
+import { MarkType } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
+import { getMarksBetween } from "../queries/getMarksBetween";
 
-function getMarksBetween(start: number, end: number, state: EditorState) {
-  let marks: { start: number; end: number; mark: Mark }[] = [];
-
-  state.doc.nodesBetween(start, end, (node, pos) => {
-    marks = [
-      ...marks,
-      ...node.marks.map((mark) => ({
-        start: pos,
-        end: pos + node.nodeSize,
-        mark,
-      })),
-    ];
-  });
-
-  return marks;
-}
-
-export default function (
+/**
+ * A factory function for creating Prosemirror plugins that automatically apply a mark to text
+ * that matches a given regular expression.
+ *
+ * @param regexp The regular expression to match
+ * @param markType The mark type to apply
+ * @param getAttrs A function that returns the attributes to apply to the mark
+ * @returns The input rule
+ */
+export default function markInputRule(
   regexp: RegExp,
   markType: MarkType,
   getAttrs?: (match: string[]) => Record<string, unknown>
@@ -29,15 +22,14 @@ export default function (
     (state: EditorState, match: string[], start: number, end: number) => {
       const attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
       const { tr } = state;
-      const m = match.length - 1;
-      let markEnd = end;
-      let markStart = start;
+      const captureGroup = match[match.length - 1];
+      const fullMatch = match[0];
+      const startSpaces = fullMatch.search(/\S/);
 
-      if (match[m]) {
-        const matchStart = start + match[0].indexOf(match[m - 1]);
-        const matchEnd = matchStart + match[m - 1].length - 1;
-        const textStart = matchStart + match[m - 1].lastIndexOf(match[m]);
-        const textEnd = textStart + match[m].length;
+      if (captureGroup) {
+        const matchStart = start + fullMatch.indexOf(captureGroup);
+        const textStart = start + fullMatch.lastIndexOf(captureGroup);
+        const textEnd = textStart + captureGroup.length;
 
         const excludedMarks = getMarksBetween(start, end, state)
           .filter((item) => item.mark.type.excludes(markType))
@@ -47,17 +39,16 @@ export default function (
           return null;
         }
 
-        if (textEnd < matchEnd) {
-          tr.delete(textEnd, matchEnd);
+        if (textEnd < end) {
+          tr.delete(textEnd, end);
         }
-        if (textStart > matchStart) {
-          tr.delete(matchStart, textStart);
+        if (textStart > start) {
+          tr.delete(start + startSpaces, textStart);
         }
-        markStart = matchStart;
-        markEnd = markStart + match[m].length;
+        end = start + startSpaces + captureGroup.length;
       }
 
-      tr.addMark(markStart, markEnd, markType.create(attrs));
+      tr.addMark(start + startSpaces, end, markType.create(attrs));
       tr.removeStoredMark(markType);
       return tr;
     }

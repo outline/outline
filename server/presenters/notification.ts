@@ -1,8 +1,12 @@
 import { Notification } from "@server/models";
+import { APIContext } from "@server/types";
 import presentUser from "./user";
 import { presentComment, presentDocument } from ".";
 
-export default async function presentNotification(notification: Notification) {
+export default async function presentNotification(
+  ctx: APIContext | undefined,
+  notification: Notification
+) {
   return {
     id: notification.id,
     viewedAt: notification.viewedAt,
@@ -18,7 +22,7 @@ export default async function presentNotification(notification: Notification) {
       : undefined,
     documentId: notification.documentId,
     document: notification.document
-      ? await presentDocument(notification.document)
+      ? await presentDocument(ctx, notification.document)
       : undefined,
     revisionId: notification.revisionId,
     collectionId: notification.collectionId,

@@ -2,20 +2,15 @@ import fs from "fs";
 import path from "path";
 import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
-import dotenv from "dotenv";
 import { webpackStats } from "rollup-plugin-webpack-stats";
 import { CommonServerOptions, defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { viteStaticCopy } from "vite-plugin-static-copy";
-
-// Load the process environment variables
-dotenv.config({
-  silent: true,
-});
+import environment from "./server/utils/environment";
 
 let httpsConfig: CommonServerOptions["https"] | undefined;
 
-if (process.env.NODE_ENV === "development") {
+if (environment.NODE_ENV === "development") {
   try {
     httpsConfig = {
       key: fs.readFileSync("./server/config/certs/private.key"),
@@ -31,13 +26,13 @@ export default () =>
   defineConfig({
     root: "./",
     publicDir: "./server/static",
-    base: (process.env.CDN_URL ?? "") + "/static/",
+    base: (environment.CDN_URL ?? "") + "/static/",
     server: {
       port: 3001,
       host: true,
       https: httpsConfig,
       fs:
-        process.env.NODE_ENV === "development"
+        environment.NODE_ENV === "development"
           ? {
               // Allow serving files from one level up to the project root
               allow: [".."],
@@ -91,7 +86,7 @@ export default () =>
           globPatterns: ["**/*.{js,css,ico,png,svg}"],
           navigateFallback: null,
           modifyURLPrefix: {
-            "": `${process.env.CDN_URL ?? ""}/static/`,
+            "": `${environment.CDN_URL ?? ""}/static/`,
           },
           runtimeCaching: [
             {
@@ -177,6 +172,11 @@ export default () =>
         input: {
           index: "./app/index.tsx",
         },
+        output: {
+          assetFileNames: 'assets/[name].[hash][extname]',
+          chunkFileNames: 'assets/[name].[hash].js',
+          entryFileNames: 'assets/[name].[hash].js',
+        }
       },
     },
   });

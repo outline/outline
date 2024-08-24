@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/ban-types */
+import isEqual from "fast-deep-equal";
+import isArray from "lodash/isArray";
+import isObject from "lodash/isObject";
 import pick from "lodash/pick";
 import {
   CreateOptions,
@@ -6,6 +10,7 @@ import {
   InstanceDestroyOptions,
   InstanceUpdateOptions,
   ModelStatic,
+  NonAttribute,
 } from "sequelize";
 import {
   AfterCreate,
@@ -16,7 +21,10 @@ import {
 import Logger from "@server/logging/Logger";
 import { APIContext } from "@server/types";
 
-class Model extends SequelizeModel {
+class Model<
+  TModelAttributes extends {} = any,
+  TCreationAttributes extends {} = TModelAttributes
+> extends SequelizeModel<TModelAttributes, TCreationAttributes> {
   /**
    * The namespace to use for events, if none is provided the table name is used.
    */
@@ -30,7 +38,7 @@ class Model extends SequelizeModel {
   /**
    * This is the same as calling `set` and then calling `save`.
    */
-  public updateWithCtx(ctx: APIContext, keys: Partial<this>) {
+  public updateWithCtx(ctx: APIContext, keys: Partial<TModelAttributes>) {
     return this.update(keys, ctx.context as InstanceUpdateOptions);
   }
 
@@ -171,6 +179,60 @@ class Model extends SequelizeModel {
       await callback(results, query);
       query.offset += query.limit;
     } while (results.length >= query.limit);
+  }
+
+  /**
+   * Returns the attributes that have changed since the last save and their previous values.
+   *
+   * @returns An object with `attributes` and `previousAttributes` keys.
+   */
+  public get changeset(): NonAttribute<{
+    attributes: Partial<TModelAttributes>;
+    previous: Partial<TModelAttributes>;
+  }> {
+    const changes = this.changed() as Array<keyof TModelAttributes> | false;
+    const attributes: Partial<TModelAttributes> = {};
+    const previousAttributes: Partial<TModelAttributes> = {};
+
+    if (!changes) {
+      return {
+        attributes,
+        previous: previousAttributes,
+      };
+    }
+
+    for (const change of changes) {
+      const previous = this.previous(change);
+      const current = this.getDataValue(change);
+
+      if (
+        isObject(previous) &&
+        isObject(current) &&
+        !isArray(previous) &&
+        !isArray(current)
+      ) {
+        const difference = Object.keys(previous)
+          .concat(Object.keys(current))
+          .filter((key) => !isEqual(previous[key], current[key]));
+
+        previousAttributes[change] = pick(
+          previous,
+          difference
+        ) as TModelAttributes[keyof TModelAttributes];
+        attributes[change] = pick(
+          current,
+          difference
+        ) as TModelAttributes[keyof TModelAttributes];
+      } else {
+        previousAttributes[change] = previous;
+        attributes[change] = current;
+      }
+    }
+
+    return {
+      attributes,
+      previous: previousAttributes,
+    };
   }
 }
 

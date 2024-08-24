@@ -1,12 +1,6 @@
 {
+  "id": "oidc",
   "name": "OIDC",
-  "description": "Adds an OpenID compatible authentication provider.",
-  "requiredEnvVars": [
-    "OIDC_CLIENT_ID",
-    "OIDC_CLIENT_SECRET",
-    "OIDC_AUTH_URI",
-    "OIDC_TOKEN_URI",
-    "OIDC_USERINFO_URI",
-    "OIDC_DISPLAY_NAME"
-  ]
+  "priority": 10,
+  "description": "Adds an OpenID compatible authentication provider."
 }

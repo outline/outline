@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { EditIcon } from "outline-icons";
+import { DraftsIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -51,17 +51,13 @@ function Drafts() {
 
   return (
     <Scene
-      icon={<EditIcon />}
+      icon={<DraftsIcon />}
       title={t("Drafts")}
+      left={<InputSearchPage source="drafts" label={t("Search documents")} />}
       actions={
-        <>
-          <Action>
-            <InputSearchPage source="drafts" label={t("Search documents")} />
-          </Action>
-          <Action>
-            <NewDocumentMenu />
-          </Action>
-        </>
+        <Action>
+          <NewDocumentMenu />
+        </Action>
       }
     >
       <Heading>{t("Drafts")}</Heading>

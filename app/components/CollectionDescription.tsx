@@ -65,7 +65,7 @@ function CollectionDescription({ collection }: Props) {
       debounce(async (getValue) => {
         try {
           await collection.save({
-            description: getValue(),
+            data: getValue(false),
           });
           setDirty(false);
         } catch (err) {
@@ -109,7 +109,7 @@ function CollectionDescription({ collection }: Props) {
             >
               <Editor
                 key={key}
-                defaultValue={collection.description || ""}
+                defaultValue={collection.data}
                 onChange={handleChange}
                 placeholder={placeholder}
                 readOnly={!isEditing}

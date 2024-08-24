@@ -1,10 +1,11 @@
 import fractionalIndex from "fractional-index";
 import { Location } from "history";
 import { observer } from "mobx-react";
+import { StarredIcon } from "outline-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Star from "~/models/Star";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
@@ -22,7 +23,7 @@ import {
   useDropToCreateStar,
   useDropToReorderStar,
 } from "./useDragAndDrop";
-import { useStarLabelAndIcon } from "./useStarLabelAndIcon";
+import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 
 type Props = {
   star: Star;
@@ -36,6 +37,7 @@ function useLocationStateStarred() {
 }
 
 function StarredLink({ star }: Props) {
+  const theme = useTheme();
   const { ui, collections, documents } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId, collectionId } = star;
@@ -70,7 +72,10 @@ function StarredLink({ star }: Props) {
     const next = star?.next();
     return fractionalIndex(star?.index || null, next?.index || null);
   };
-  const { label, icon } = useStarLabelAndIcon(star);
+  const { label, icon } = useSidebarLabelAndIcon(
+    star,
+    <StarredIcon color={theme.yellow} />
+  );
   const [{ isDragging }, draggableRef] = useDragStar(star);
   const [reorderStarMonitor, dropToReorderRef] = useDropToReorderStar(getIndex);
   const [createStarMonitor, dropToStarRef] = useDropToCreateStar(getIndex);

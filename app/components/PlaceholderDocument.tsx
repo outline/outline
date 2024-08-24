@@ -5,13 +5,17 @@ import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import PlaceholderText from "~/components/PlaceholderText";
 
+type Props = {
+  /** Whether to include a title placeholder. */
+  includeTitle?: boolean;
+  /** Delay before mounting the component. Defaults to 500ms */
+  delay?: number;
+};
+
 export default function PlaceholderDocument({
   includeTitle,
-  delay,
-}: {
-  includeTitle?: boolean;
-  delay?: number;
-}) {
+  delay = 500,
+}: Props) {
   const content = (
     <>
       <PlaceholderText delay={0.2} />
@@ -51,5 +55,6 @@ export default function PlaceholderDocument({
 
 const Wrapper = styled(Fade)`
   display: block;
-  margin: 40px 0;
+  margin: 6vh 0;
+  padding: 12px 0;
 `;

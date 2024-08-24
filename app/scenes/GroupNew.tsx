@@ -50,7 +50,7 @@ function GroupNew({ onSubmit }: Props) {
   return (
     <>
       <form onSubmit={handleSubmit}>
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <Trans>
             Groups are for organizing your team. They work best when centered
             around a function or a responsibility — Support or Engineering for
@@ -68,7 +68,7 @@ function GroupNew({ onSubmit }: Props) {
             flex
           />
         </Flex>
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <Trans>You’ll be able to add people to the group next.</Trans>
         </Text>
 

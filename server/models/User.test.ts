@@ -1,8 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { CollectionPermission } from "@shared/types";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
-import UserAuthentication from "./UserAuthentication";
-import UserPermission from "./UserPermission";
+import UserMembership from "./UserMembership";
 
 beforeAll(() => {
   jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
@@ -19,13 +18,13 @@ describe("user model", () => {
         buildUser({
           name: "www.google.com",
         })
-      ).rejects.toThrowError();
+      ).rejects.toThrow();
 
       await expect(
         buildUser({
           name: "My name https://malicious.com",
         })
-      ).rejects.toThrowError();
+      ).rejects.toThrow();
 
       await expect(
         buildUser({
@@ -36,23 +35,11 @@ describe("user model", () => {
   });
 
   describe("destroy", () => {
-    it("should delete user authentications", async () => {
+    it("should clear PII", async () => {
       const user = await buildUser();
-      expect(
-        await UserAuthentication.count({
-          where: {
-            userId: user.id,
-          },
-        })
-      ).toBe(1);
       await user.destroy();
-      expect(
-        await UserAuthentication.count({
-          where: {
-            userId: user.id,
-          },
-        })
-      ).toBe(0);
+      expect(user.email).toBe(null);
+      expect(user.name).toBe("Unknown");
     });
   });
 
@@ -126,7 +113,7 @@ describe("user model", () => {
         teamId: team.id,
         permission: null,
       });
-      await UserPermission.create({
+      await UserMembership.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,

@@ -1,10 +1,10 @@
 import { Blob } from "buffer";
 import { Readable } from "stream";
-import { PresignedPost } from "aws-sdk/clients/s3";
+import { PresignedPost } from "@aws-sdk/s3-presigned-post";
 import { isBase64Url } from "@shared/utils/urls";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import fetch from "@server/utils/fetch";
+import fetch, { RequestInit } from "@server/utils/fetch";
 
 export default abstract class BaseStorage {
   /** The default number of seconds until a signed URL expires. */
@@ -27,11 +27,14 @@ export default abstract class BaseStorage {
   ): Promise<Partial<PresignedPost>>;
 
   /**
-   * Returns a stream for reading a file from the storage provider.
+   * Returns a promise that resolves with a stream for reading a file from the storage provider.
    *
    * @param key The path to the file
    */
-  public abstract getFileStream(key: string): NodeJS.ReadableStream | null;
+  public abstract getFileStream(
+    key: string,
+    range?: { start?: number; end?: number }
+  ): Promise<NodeJS.ReadableStream | null>;
 
   /**
    * Returns the upload URL for the storage provider.
@@ -96,12 +99,13 @@ export default abstract class BaseStorage {
   }>;
 
   /**
-   * Returns a buffer of a file from the storage provider.
+   * Returns a promise that resolves to a buffer of a file from the storage provider.
    *
    * @param key The path to the file
+   * @returns A promise that resolves with the file buffer
    */
   public async getFileBuffer(key: string) {
-    const stream = this.getFileStream(key);
+    const stream = await this.getFileStream(key);
     return new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
       if (!stream) {
@@ -124,12 +128,14 @@ export default abstract class BaseStorage {
    * @param url The URL to upload from
    * @param key The path to store the file at
    * @param acl The ACL to use
+   * @param init Optional fetch options to use
    * @returns A promise that resolves when the file is uploaded
    */
   public async storeFromUrl(
     url: string,
     key: string,
-    acl: string
+    acl: string,
+    init?: RequestInit
   ): Promise<
     | {
         url: string;
@@ -139,6 +145,8 @@ export default abstract class BaseStorage {
     | undefined
   > {
     const endpoint = this.getUploadUrl(true);
+
+    // Early return if url is already uploaded to the storage provider
     if (url.startsWith("/api") || url.startsWith(endpoint)) {
       return;
     }
@@ -156,6 +164,7 @@ export default abstract class BaseStorage {
           redirect: "follow",
           size: env.FILE_STORAGE_UPLOAD_MAX_SIZE,
           timeout: 10000,
+          ...init,
         });
 
         if (!res.ok) {
@@ -214,4 +223,43 @@ export default abstract class BaseStorage {
    * @returns A promise that resolves when the file is deleted
    */
   public abstract deleteFile(key: string): Promise<void>;
+
+  /**
+   * Returns the content disposition for a given content type.
+   *
+   * @param contentType The content type
+   * @returns The content disposition
+   */
+  public getContentDisposition(contentType?: string) {
+    if (contentType && this.safeInlineContentTypes.includes(contentType)) {
+      return "inline";
+    }
+    if (
+      contentType &&
+      this.safeInlineContentPrefixes.some((prefix) =>
+        contentType.startsWith(prefix)
+      )
+    ) {
+      return "inline";
+    }
+
+    return "attachment";
+  }
+
+  /**
+   * A list of content types considered safe to display inline in the browser. Note that
+   * SVGs are purposefully not included here as they can contain JavaScript.
+   */
+  protected safeInlineContentTypes = [
+    "application/pdf",
+    "image/png",
+    "image/jpeg",
+    "image/gif",
+    "image/webp",
+  ];
+
+  /**
+   * A list of content type prefixes considered safe to display inline in the browser.
+   */
+  protected safeInlineContentPrefixes = ["video/", "audio/"];
 }

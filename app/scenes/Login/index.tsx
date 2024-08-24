@@ -23,16 +23,21 @@ import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useLastVisitedPath from "~/hooks/useLastVisitedPath";
+import {
+  useLastVisitedPath,
+  usePostLoginPath,
+} from "~/hooks/useLastVisitedPath";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { draggableOnDesktop } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
+import { homePath } from "~/utils/routeHelpers";
 import AuthenticationProvider from "./components/AuthenticationProvider";
 import BackButton from "./components/BackButton";
 import Notices from "./components/Notices";
+import { getRedirectUrl, navigateToSubdomain } from "./urls";
 
 type Props = {
   children?: (config?: Config) => React.ReactNode;
@@ -54,6 +59,7 @@ function Login({ children }: Props) {
     UserPreference.RememberLastPath
   );
   const [lastVisitedPath] = useLastVisitedPath();
+  const [spendPostLoginPath] = usePostLoginPath();
 
   const handleReset = React.useCallback(() => {
     setEmailLinkSentTo("");
@@ -65,17 +71,7 @@ function Login({ children }: Props) {
   const handleGoSubdomain = React.useCallback(async (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target));
-    const normalizedSubdomain = data.subdomain
-      .toString()
-      .toLowerCase()
-      .trim()
-      .replace(/^https?:\/\//, "");
-    const host = `https://${normalizedSubdomain}.getoutline.com`;
-    await Desktop.bridge.addCustomHost(host);
-
-    setTimeout(() => {
-      window.location.href = host;
-    }, 500);
+    await navigateToSubdomain(data.subdomain.toString());
   }, []);
 
   React.useEffect(() => {
@@ -93,20 +89,21 @@ function Login({ children }: Props) {
     }
   }, [query]);
 
-  if (
-    auth.authenticated &&
-    rememberLastPath &&
-    lastVisitedPath !== location.pathname
-  ) {
-    return <Redirect to={lastVisitedPath} />;
-  }
-
-  if (auth.authenticated && auth.team?.defaultCollectionId) {
-    return <Redirect to={`/collection/${auth.team?.defaultCollectionId}`} />;
-  }
-
   if (auth.authenticated) {
-    return <Redirect to="/home" />;
+    const postLoginPath = spendPostLoginPath();
+    if (postLoginPath) {
+      return <Redirect to={postLoginPath} />;
+    }
+
+    if (rememberLastPath && lastVisitedPath !== location.pathname) {
+      return <Redirect to={lastVisitedPath} />;
+    }
+
+    if (auth.team?.defaultCollectionId) {
+      return <Redirect to={`/collection/${auth.team?.defaultCollectionId}`} />;
+    }
+
+    return <Redirect to={homePath()} />;
   }
 
   if (error) {
@@ -185,6 +182,8 @@ function Login({ children }: Props) {
               name="subdomain"
               style={{ textAlign: "right" }}
               placeholder={t("subdomain")}
+              pattern="^[a-z\d-]+$"
+              required
             >
               <Domain>.getoutline.com</Domain>
             </Input>
@@ -225,6 +224,17 @@ function Login({ children }: Props) {
         </Centered>
       </Background>
     );
+  }
+
+  // If there is only one provider and it's OIDC, redirect immediately.
+  if (
+    config.providers.length === 1 &&
+    config.providers[0].id === "oidc" &&
+    !env.OIDC_DISABLE_REDIRECT &&
+    !query.get("notice")
+  ) {
+    window.location.href = getRedirectUrl(config.providers[0].authUrl);
+    return null;
   }
 
   return (
@@ -294,6 +304,7 @@ function Login({ children }: Props) {
               key={provider.id}
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
+              neutral={defaultProvider && hasMultipleProviders}
               {...provider}
             />
           );
@@ -357,6 +368,8 @@ const Or = styled.hr`
   margin: 1em 0;
   position: relative;
   width: 100%;
+  border: 0;
+  border-top: 1px solid ${s("divider")};
 
   &:after {
     content: attr(data-text);
@@ -366,7 +379,8 @@ const Or = styled.hr`
     transform: translate3d(-50%, -50%, 0);
     text-transform: uppercase;
     font-size: 11px;
-    color: ${s("textSecondary")};
+    font-weight: 500;
+    color: ${s("textTertiary")};
     background: ${s("background")};
     border-radius: 2px;
     padding: 0 4px;

@@ -3,6 +3,7 @@ import { light as defaultTheme } from "@shared/styles/theme";
 import Storage from "@shared/utils/Storage";
 import Document from "~/models/Document";
 import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
+import type RootStore from "./RootStore";
 
 const UI_STORE = "UI_STORE";
 
@@ -19,6 +20,16 @@ export enum SystemTheme {
   Light = "light",
   Dark = "dark",
 }
+
+type PersistedData = {
+  languagePromptDismissed: boolean | undefined;
+  theme: Theme;
+  sidebarCollapsed: boolean;
+  sidebarWidth: number;
+  sidebarRightWidth: number;
+  tocVisible: boolean | undefined;
+  commentsExpanded: string[];
+};
 
 class UiStore {
   // has the user seen the prompt to change the UI language and actioned it
@@ -46,7 +57,7 @@ class UiStore {
   progressBarVisible = false;
 
   @observable
-  tocVisible = false;
+  tocVisible: boolean | undefined;
 
   @observable
   mobileSidebarVisible = false;
@@ -72,9 +83,21 @@ class UiStore {
   @observable
   multiplayerErrorCode?: number;
 
-  constructor() {
+  rootStore: RootStore;
+
+  constructor(rootStore: RootStore) {
+    this.rootStore = rootStore;
+
     // Rehydrate
-    const data: Partial<UiStore> = Storage.get(UI_STORE) || {};
+    const data: PersistedData = Storage.get(UI_STORE) || {};
+    this.languagePromptDismissed = data.languagePromptDismissed;
+    this.sidebarCollapsed = !!data.sidebarCollapsed;
+    this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
+    this.sidebarRightWidth =
+      data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
+    this.tocVisible = data.tocVisible;
+    this.commentsExpanded = data.commentsExpanded || [];
+    this.theme = data.theme || Theme.System;
 
     // system theme listeners
     if (window.matchMedia) {
@@ -93,15 +116,22 @@ class UiStore {
       }
     }
 
-    // persisted keys
-    this.languagePromptDismissed = data.languagePromptDismissed;
-    this.sidebarCollapsed = !!data.sidebarCollapsed;
-    this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
-    this.sidebarRightWidth =
-      data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
-    this.tocVisible = !!data.tocVisible;
-    this.commentsExpanded = data.commentsExpanded || [];
-    this.theme = data.theme || Theme.System;
+    window.addEventListener("storage", (event) => {
+      if (event.key === UI_STORE && event.newValue) {
+        const newData: PersistedData | null = JSON.parse(event.newValue);
+
+        // data may be null if key is deleted in localStorage
+        if (!newData) {
+          return;
+        }
+
+        // Note: we do not sync all properties here, sidebar widths cause fighting between windows
+        this.theme = newData.theme;
+        this.languagePromptDismissed = newData.languagePromptDismissed;
+        this.sidebarCollapsed = !!newData.sidebarCollapsed;
+        this.tocVisible = newData.tocVisible;
+      }
+    });
 
     autorun(() => {
       Storage.set(UI_STORE, this.asJson);
@@ -163,6 +193,10 @@ class UiStore {
   clearActiveDocument = (): void => {
     this.activeDocumentId = undefined;
     this.observingUserId = undefined;
+
+    // Unset when navigating away from a document (e.g. to another document, home, settings, etc.)
+    // Next document's onMount will set the right activeCollectionId.
+    this.activeCollectionId = undefined;
   };
 
   @action
@@ -245,6 +279,14 @@ class UiStore {
     this.mobileSidebarVisible = false;
   };
 
+  @computed
+  get readyToShow() {
+    return (
+      !this.rootStore.auth.user ||
+      (this.rootStore.collections.isLoaded && this.rootStore.documents.isLoaded)
+    );
+  }
+
   /**
    * Returns the current state of the sidebar taking into account user preference
    * and whether the sidebar has been hidden as part of launching in a new
@@ -265,7 +307,7 @@ class UiStore {
   }
 
   @computed
-  get asJson() {
+  get asJson(): PersistedData {
     return {
       tocVisible: this.tocVisible,
       sidebarCollapsed: this.sidebarCollapsed,

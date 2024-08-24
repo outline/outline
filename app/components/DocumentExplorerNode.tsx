@@ -120,6 +120,7 @@ export const Node = styled.span<{
       color: ${props.theme.white};
 
       svg {
+        color: ${props.theme.white};
         fill: ${props.theme.white};
       }
     `}

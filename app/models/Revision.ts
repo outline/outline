@@ -1,4 +1,5 @@
 import { computed } from "mobx";
+import { ProsemirrorData } from "@shared/types";
 import { isRTL } from "@shared/utils/rtl";
 import Document from "./Document";
 import User from "./User";
@@ -18,11 +19,14 @@ class Revision extends Model {
   /** The document title when the revision was created */
   title: string;
 
-  /** Markdown string of the content when revision was created */
-  text: string;
+  /** Prosemirror data of the content when revision was created */
+  data: ProsemirrorData;
 
-  /** The emoji of the document when the revision was created */
-  emoji: string | null;
+  /** The icon (or) emoji of the document when the revision was created */
+  icon: string | null;
+
+  /** The color of the document icon when the revision was created */
+  color: string | null;
 
   /** HTML string representing the revision as a diff from the previous version */
   html: string;

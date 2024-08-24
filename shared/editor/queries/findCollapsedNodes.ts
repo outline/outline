@@ -1,7 +1,7 @@
 import { Node } from "prosemirror-model";
 import { findBlockNodes, NodeWithPos } from "./findChildren";
 
-export default function findCollapsedNodes(doc: Node): NodeWithPos[] {
+export function findCollapsedNodes(doc: Node): NodeWithPos[] {
   const blocks = findBlockNodes(doc);
   const nodes: NodeWithPos[] = [];
 

@@ -1,5 +1,6 @@
 {
+  "id": "webhooks",
   "name": "Webhooks",
-  "description": "Adds HTTP webhooks for various events.",
-  "requiredEnvVars": []
+  "priority": 0,
+  "description": "Adds HTTP webhooks for various events."
 }

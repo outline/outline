@@ -7,14 +7,16 @@ import { JSDOM } from "jsdom";
 import { Node } from "prosemirror-model";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
-import MarkdownHelper from "@shared/utils/MarkdownHelper";
-import { parser, schema } from "@server/editor";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import { IconType, ProsemirrorData } from "@shared/types";
+import { determineIconType } from "@shared/utils/icon";
+import { parser, serializer, schema } from "@server/editor";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
-import { Document, Revision } from "@server/models";
+import { Collection, Document, Revision } from "@server/models";
 import diff from "@server/utils/diff";
-import ProsemirrorHelper from "./ProsemirrorHelper";
-import TextHelper from "./TextHelper";
+import { ProsemirrorHelper } from "./ProsemirrorHelper";
+import { TextHelper } from "./TextHelper";
 
 type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
@@ -30,41 +32,104 @@ type HTMLOptions = {
    * number then the urls will be signed for that many seconds. (defaults to false)
    */
   signedUrls?: boolean | number;
+  /** The base URL to use for relative links */
+  baseUrl?: string;
 };
 
 @trace()
-export default class DocumentHelper {
+export class DocumentHelper {
   /**
-   * Returns the document as JSON content. This method uses the collaborative state if available,
-   * otherwise it falls back to Markdown.
-   *
-   * @param document The document or revision to convert
-   * @returns The document content as JSON
-   */
-  static toJSON(document: Document | Revision) {
-    if ("state" in document && document.state) {
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, document.state);
-      return yDocToProsemirrorJSON(ydoc, "default");
-    }
-    const node = parser.parse(document.text) || Node.fromJSON(schema, {});
-    return node.toJSON();
-  }
-
-  /**
-   * Returns the document as a Prosemirror Node. This method uses the collaborative state if
-   * available, otherwise it falls back to Markdown.
+   * Returns the document as a Prosemirror Node. This method uses the derived content if available
+   * then the collaborative state, otherwise it falls back to Markdown.
    *
    * @param document The document or revision to convert
    * @returns The document content as a Prosemirror Node
    */
-  static toProsemirror(document: Document | Revision) {
+  static toProsemirror(
+    document: Document | Revision | Collection | ProsemirrorData
+  ) {
+    if ("type" in document && document.type === "doc") {
+      return Node.fromJSON(schema, document);
+    }
+    if ("content" in document && document.content) {
+      return Node.fromJSON(schema, document.content);
+    }
     if ("state" in document && document.state) {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, document.state);
       return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     }
-    return parser.parse(document.text) || Node.fromJSON(schema, {});
+
+    const text =
+      document instanceof Collection ? document.description : document.text;
+    return parser.parse(text ?? "") || Node.fromJSON(schema, {});
+  }
+
+  /**
+   * Returns the document as a plain JSON object. This method uses the derived content if available
+   * then the collaborative state, otherwise it falls back to Markdown.
+   *
+   * @param document The document or revision to convert
+   * @param options Options for the conversion
+   * @returns The document content as a plain JSON object
+   */
+  static async toJSON(
+    document: Document | Revision | Collection,
+    options?: {
+      /** The team context */
+      teamId?: string;
+      /** Whether to sign attachment urls, and if so for how many seconds is the signature valid */
+      signedUrls?: number;
+      /** Marks to remove from the document */
+      removeMarks?: string[];
+      /** The base path to use for internal links (will replace /doc/) */
+      internalUrlBase?: string;
+    }
+  ): Promise<ProsemirrorData> {
+    let doc: Node | null;
+    let data;
+
+    if ("content" in document && document.content) {
+      // Optimized path for documents with content available and no transformation required.
+      if (
+        !options?.removeMarks &&
+        !options?.signedUrls &&
+        !options?.internalUrlBase
+      ) {
+        return document.content;
+      }
+      doc = Node.fromJSON(schema, document.content);
+    } else if ("state" in document && document.state) {
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, document.state);
+      doc = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+    } else if (document instanceof Collection) {
+      doc = parser.parse(document.description ?? "");
+    } else {
+      doc = parser.parse(document.text);
+    }
+
+    if (doc && options?.signedUrls && options?.teamId) {
+      data = await ProsemirrorHelper.signAttachmentUrls(
+        doc,
+        options.teamId,
+        options.signedUrls
+      );
+    } else {
+      data = doc?.toJSON() ?? {};
+    }
+
+    if (options?.internalUrlBase) {
+      data = ProsemirrorHelper.replaceInternalUrls(
+        data,
+        options.internalUrlBase
+      );
+    }
+    if (options?.removeMarks) {
+      data = ProsemirrorHelper.removeMarks(data, options.removeMarks);
+    }
+
+    return data;
   }
 
   /**
@@ -76,29 +141,47 @@ export default class DocumentHelper {
    */
   static toPlainText(document: Document | Revision) {
     const node = DocumentHelper.toProsemirror(document);
-    const textSerializers = Object.fromEntries(
-      Object.entries(schema.nodes)
-        .filter(([, node]) => node.spec.toPlainText)
-        .map(([name, node]) => [name, node.spec.toPlainText])
-    );
 
-    return textBetween(node, 0, node.content.size, textSerializers);
+    return textBetween(node, 0, node.content.size, this.textSerializers);
   }
 
   /**
-   * Returns the document as Markdown. This is a lossy conversion and should
-   * only be used for export.
+   * Returns the document as Markdown. This is a lossy conversion and should only be used for export.
    *
    * @param document The document or revision to convert
    * @returns The document title and content as a Markdown string
    */
-  static toMarkdown(document: Document | Revision) {
-    return MarkdownHelper.toMarkdown(document);
+  static toMarkdown(
+    document: Document | Revision | Collection | ProsemirrorData
+  ) {
+    const text = serializer
+      .serialize(DocumentHelper.toProsemirror(document))
+      .replace(/(^|\n)\\(\n|$)/g, "\n\n")
+      .replace(/“/g, '"')
+      .replace(/”/g, '"')
+      .replace(/‘/g, "'")
+      .replace(/’/g, "'")
+      .trim();
+
+    if (document instanceof Collection) {
+      return text;
+    }
+
+    if (document instanceof Document || document instanceof Revision) {
+      const iconType = determineIconType(document.icon);
+
+      const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${
+        document.title
+      }`;
+
+      return `# ${title}\n\n${text}`;
+    }
+
+    return text;
   }
 
   /**
-   * Returns the document as plain HTML. This is a lossy conversion and should
-   * only be used for export.
+   * Returns the document as plain HTML. This is a lossy conversion and should only be used for export.
    *
    * @param document The document or revision to convert
    * @param options Options for the HTML output
@@ -111,6 +194,7 @@ export default class DocumentHelper {
       includeStyles: options?.includeStyles,
       includeMermaid: options?.includeMermaid,
       centered: options?.centered,
+      baseUrl: options?.baseUrl,
     });
 
     addTags({
@@ -264,7 +348,7 @@ export default class DocumentHelper {
 
         // Special case for largetables, as this block can get very large we
         // want to clip it to only the changed rows and surrounding context.
-        if (childNode.classList.contains("table-wrapper")) {
+        if (childNode.classList.contains(EditorStyleHelper.table)) {
           const rows = childNode.querySelectorAll("tr");
           if (rows.length < 3) {
             continue;
@@ -383,4 +467,32 @@ export default class DocumentHelper {
 
     return document;
   }
+
+  /**
+   * Compares two documents and returns true if the text content is equal. This does not take into account
+   * changes to other properties such as table column widths, other visual settings.
+   *
+   * @param document The document to compare
+   * @param other The other document to compare
+   * @returns True if the text content is equal
+   */
+  public static isTextContentEqual(
+    before: Document | Revision | null,
+    after: Document | Revision | null
+  ) {
+    if (!before || !after) {
+      return false;
+    }
+
+    return (
+      before.title === after.title &&
+      this.toMarkdown(before) === this.toMarkdown(after)
+    );
+  }
+
+  private static textSerializers = Object.fromEntries(
+    Object.entries(schema.nodes)
+      .filter(([, n]) => n.spec.toPlainText)
+      .map(([name, n]) => [name, n.spec.toPlainText])
+  );
 }

@@ -1,4 +1,5 @@
 import escapeRegExp from "lodash/escapeRegExp";
+import { observable } from "mobx";
 import { Node } from "prosemirror-model";
 import { Command, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -68,6 +69,11 @@ export default class FindAndReplaceExtension extends Extension {
        * Clear the current search
        */
       clearSearch: () => this.clear(),
+
+      /**
+       * Open the find and replace UI
+       */
+      openFindAndReplace: () => this.openFindAndReplace(),
     };
   }
 
@@ -142,15 +148,18 @@ export default class FindAndReplaceExtension extends Extension {
     };
   }
 
+  public openFindAndReplace(): Command {
+    return (state, dispatch) => {
+      dispatch?.(state.tr.setMeta(pluginKey, { open: true }));
+      return true;
+    };
+  }
+
   private get findRegExp() {
-    try {
-      return RegExp(
-        this.searchTerm.replace(/\\+$/, ""),
-        !this.options.caseSensitive ? "gui" : "gu"
-      );
-    } catch (err) {
-      return RegExp("");
-    }
+    return RegExp(
+      this.searchTerm.replace(/\\+$/, ""),
+      !this.options.caseSensitive ? "gui" : "gu"
+    );
   }
 
   private goToMatch(direction: number): Command {
@@ -237,15 +246,19 @@ export default class FindAndReplaceExtension extends Extension {
       const search = this.findRegExp;
       let m;
 
-      while ((m = search.exec(text))) {
-        if (m[0] === "") {
-          break;
-        }
+      try {
+        while ((m = search.exec(text))) {
+          if (m[0] === "") {
+            break;
+          }
 
-        this.results.push({
-          from: pos + m.index,
-          to: pos + m.index + m[0].length,
-        });
+          this.results.push({
+            from: pos + m.index,
+            to: pos + m.index + m[0].length,
+          });
+        }
+      } catch (e) {
+        // Invalid RegExp
       }
     });
   }
@@ -275,6 +288,9 @@ export default class FindAndReplaceExtension extends Extension {
             const action = tr.getMeta(pluginKey);
 
             if (action) {
+              if (action.open) {
+                this.open = true;
+              }
               return this.createDeco(tr.doc);
             }
 
@@ -295,8 +311,20 @@ export default class FindAndReplaceExtension extends Extension {
   }
 
   public widget = ({ readOnly }: WidgetProps) => (
-    <FindAndReplace readOnly={readOnly} />
+    <FindAndReplace
+      readOnly={readOnly}
+      open={this.open}
+      onOpen={() => {
+        this.open = true;
+      }}
+      onClose={() => {
+        this.open = false;
+      }}
+    />
   );
+
+  @observable
+  private open = false;
 
   private results: { from: number; to: number }[] = [];
   private currentResultIndex = 0;

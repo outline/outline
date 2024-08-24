@@ -8,7 +8,7 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { Command, Plugin, PluginKey } from "prosemirror-state";
+import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
 import bash from "refractor/lang/bash";
@@ -58,26 +58,28 @@ import zig from "refractor/lang/zig";
 
 import { toast } from "sonner";
 import { Primitive } from "utility-types";
-import { Dictionary } from "~/hooks/useDictionary";
+import type { Dictionary } from "~/hooks/useDictionary";
 import { UserPreferences } from "../../types";
-import Storage from "../../utils/Storage";
 import { isMac } from "../../utils/browser";
+import backspaceToParagraph from "../commands/backspaceToParagraph";
 import {
   newlineInCode,
   insertSpaceTab,
   moveToNextNewline,
   moveToPreviousNewline,
 } from "../commands/codeFence";
+import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
 import Mermaid from "../extensions/Mermaid";
 import Prism from "../extensions/Prism";
+import { getRecentCodeLanguage, setRecentCodeLanguage } from "../lib/code";
 import { isCode } from "../lib/isCode";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findParentNode } from "../queries/findParentNode";
-import isInCode from "../queries/isInCode";
+import { getMarkRange } from "../queries/getMarkRange";
+import { isInCode } from "../queries/isInCode";
 import Node from "./Node";
 
-const PERSISTENCE_KEY = "rme-code-language";
 const DEFAULT_LANGUAGE = "javascript";
 
 [
@@ -186,23 +188,44 @@ export default class CodeFence extends Node {
     return {
       code_block: (attrs: Record<string, Primitive>) => {
         if (attrs?.language) {
-          Storage.set(PERSISTENCE_KEY, attrs.language);
+          setRecentCodeLanguage(attrs.language as string);
         }
         return toggleBlockType(type, schema.nodes.paragraph, {
-          language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
+          language: getRecentCodeLanguage() ?? DEFAULT_LANGUAGE,
           ...attrs,
         });
       },
-      copyToClipboard: (): Command => (state) => {
+      copyToClipboard: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
 
-        if (!codeBlock) {
-          return false;
+        if (codeBlock) {
+          copy(codeBlock.node.textContent);
+          toast.message(this.options.dictionary.codeCopied);
+          return true;
         }
 
-        copy(codeBlock.node.textContent);
-        toast.message(this.options.dictionary.codeCopied);
-        return true;
+        const { doc, tr } = state;
+        const range =
+          getMarkRange(
+            doc.resolve(state.selection.from),
+            this.editor.schema.marks.code_inline
+          ) ||
+          getMarkRange(
+            doc.resolve(state.selection.to),
+            this.editor.schema.marks.code_inline
+          );
+
+        if (range) {
+          const $end = doc.resolve(range.to);
+          tr.setSelection(new TextSelection($end, $end));
+          dispatch?.(tr);
+
+          copy(tr.doc.textBetween(state.selection.from, state.selection.to));
+          toast.message(this.options.dictionary.codeCopied);
+          return true;
+        }
+
+        return false;
       },
     };
   }
@@ -213,6 +236,8 @@ export default class CodeFence extends Node {
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     const output: Record<string, Command> = {
+      // Both shortcuts work, but Shift-Ctrl-c matches the one in the menu
+      "Shift-Ctrl-c": toggleBlockType(type, schema.nodes.paragraph),
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),
       Tab: insertSpaceTab,
       Enter: (state, dispatch) => {
@@ -232,7 +257,9 @@ export default class CodeFence extends Node {
 
         return newlineInCode(state, dispatch);
       },
+      Backspace: backspaceToParagraph(type),
       "Shift-Enter": newlineInCode,
+      "Mod-a": selectAll(type),
     };
 
     if (isMac()) {
@@ -296,7 +323,7 @@ export default class CodeFence extends Node {
   inputRules({ type }: { type: NodeType }) {
     return [
       textblockTypeInputRule(/^```$/, type, () => ({
-        language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
+        language: getRecentCodeLanguage() ?? DEFAULT_LANGUAGE,
       })),
     ];
   }

@@ -49,6 +49,7 @@ class Logger {
         ? env.LOG_LEVEL
         : "info",
     });
+
     this.output.add(
       new winston.transports.Console({
         format: env.isProduction
@@ -64,6 +65,16 @@ class Logger {
             ),
       })
     );
+
+    if (
+      env.DEBUG &&
+      env.DEBUG !== "http" &&
+      !["silly", "debug"].includes(env.LOG_LEVEL)
+    ) {
+      this.warn(
+        `"DEBUG" set in configuration but the "LOG_LEVEL" configuration is filtering debug messages. To see all logging, set "LOG_LEVEL" to "debug".`
+      );
+    }
   }
 
   /**
@@ -84,6 +95,17 @@ class Logger {
    */
   public debug(label: LogCategory, message: string, extra?: Extra) {
     this.output.debug(message, { ...this.sanitize(extra), label });
+  }
+
+  /**
+   * Detailed information – for very detailed logs, more detailed than debug. "silly" is the
+   * lowest priority npm log level.
+   *
+   * @param category A log message category that will be prepended
+   * @param extra Arbitrary data to be logged that will appear in verbose logs
+   */
+  public silly(label: LogCategory, message: string, extra?: Extra) {
+    this.output.silly(message, { ...this.sanitize(extra), label });
   }
 
   /**

@@ -1,6 +1,7 @@
 import { Transaction } from "sequelize";
+import { ProsemirrorData } from "@shared/types";
 import { Event, Comment, User } from "@server/models";
-import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 
 type Props = {
   /** The user updating the comment */
@@ -9,8 +10,8 @@ type Props = {
   resolvedBy?: User;
   /** The existing comment */
   comment: Comment;
-  /** The index to comment the document at */
-  data: Record<string, any>;
+  /** The comment data */
+  data: ProsemirrorData;
   /** The IP address of the user creating the comment */
   ip: string;
   transaction: Transaction;

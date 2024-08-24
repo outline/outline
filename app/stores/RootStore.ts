@@ -4,7 +4,6 @@ import pluralize from "pluralize";
 import ApiKeysStore from "./ApiKeysStore";
 import AuthStore from "./AuthStore";
 import AuthenticationProvidersStore from "./AuthenticationProvidersStore";
-import CollectionGroupMembershipsStore from "./CollectionGroupMembershipsStore";
 import CollectionsStore from "./CollectionsStore";
 import CommentsStore from "./CommentsStore";
 import DialogsStore from "./DialogsStore";
@@ -13,6 +12,7 @@ import DocumentsStore from "./DocumentsStore";
 import EventsStore from "./EventsStore";
 import FileOperationsStore from "./FileOperationsStore";
 import GroupMembershipsStore from "./GroupMembershipsStore";
+import GroupUserMembershipsStore from "./GroupUserMembershipsStore";
 import GroupsStore from "./GroupsStore";
 import IntegrationsStore from "./IntegrationsStore";
 import MembershipsStore from "./MembershipsStore";
@@ -25,6 +25,7 @@ import SharesStore from "./SharesStore";
 import StarsStore from "./StarsStore";
 import SubscriptionsStore from "./SubscriptionsStore";
 import UiStore from "./UiStore";
+import UserMembershipsStore from "./UserMembershipsStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
 import WebhookSubscriptionsStore from "./WebhookSubscriptionStore";
@@ -35,13 +36,13 @@ export default class RootStore {
   auth: AuthStore;
   authenticationProviders: AuthenticationProvidersStore;
   collections: CollectionsStore;
-  collectionGroupMemberships: CollectionGroupMembershipsStore;
+  groupMemberships: GroupMembershipsStore;
   comments: CommentsStore;
   dialogs: DialogsStore;
   documents: DocumentsStore;
   events: EventsStore;
   groups: GroupsStore;
-  groupMemberships: GroupMembershipsStore;
+  groupUsers: GroupUserMembershipsStore;
   integrations: IntegrationsStore;
   memberships: MembershipsStore;
   notifications: NotificationsStore;
@@ -58,18 +59,19 @@ export default class RootStore {
   views: ViewsStore;
   fileOperations: FileOperationsStore;
   webhookSubscriptions: WebhookSubscriptionsStore;
+  userMemberships: UserMembershipsStore;
 
   constructor() {
     // Models
     this.registerStore(ApiKeysStore);
     this.registerStore(AuthenticationProvidersStore);
     this.registerStore(CollectionsStore);
-    this.registerStore(CollectionGroupMembershipsStore);
+    this.registerStore(GroupMembershipsStore);
     this.registerStore(CommentsStore);
     this.registerStore(DocumentsStore);
     this.registerStore(EventsStore);
     this.registerStore(GroupsStore);
-    this.registerStore(GroupMembershipsStore);
+    this.registerStore(GroupUserMembershipsStore);
     this.registerStore(IntegrationsStore);
     this.registerStore(MembershipsStore);
     this.registerStore(NotificationsStore);
@@ -84,6 +86,7 @@ export default class RootStore {
     this.registerStore(ViewsStore);
     this.registerStore(FileOperationsStore);
     this.registerStore(WebhookSubscriptionsStore);
+    this.registerStore(UserMembershipsStore);
 
     // Non-models
     this.registerStore(DocumentPresenceStore, "presence");

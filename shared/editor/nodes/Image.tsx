@@ -100,7 +100,9 @@ export default class Image extends SimpleImage {
       marks: "",
       group: "inline",
       selectable: true,
-      draggable: true,
+      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1289000
+      draggable: false,
+      atom: true,
       parseDOM: [
         {
           tag: "div[class~=image]",
@@ -164,6 +166,8 @@ export default class Image extends SimpleImage {
           ["p", { class: "caption" }, 0],
         ];
       },
+      toPlainText: (node) =>
+        node.attrs.alt ? `(image: ${node.attrs.alt})` : "(image)",
     };
   }
 
@@ -295,8 +299,12 @@ export default class Image extends SimpleImage {
   );
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    let markdown =
-      " ![" +
+    // Skip the preceding space for images at the start of a list item or Markdown parsers may
+    // render them as code blocks
+    let markdown = state.inList ? "" : " ";
+
+    markdown +=
+      "![" +
       state.esc((node.attrs.alt || "").replace("\n", "") || "", false) +
       "](" +
       state.esc(node.attrs.src || "", false);

@@ -37,7 +37,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const Wrapper = viewsLoadedOnMount.current ? React.Fragment : Fade;
 
   const insightsPath = documentInsightsPath(document);
-  const commentsCount = comments.inDocument(document.id).length;
+  const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);
 
   return (
     <Meta document={document} revision={revision} to={to} replace {...rest}>
@@ -55,7 +55,10 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
           </CommentLink>
         </>
       )}
-      {totalViewers && !document.isDraft && !document.isTemplate ? (
+      {totalViewers &&
+      can.listViews &&
+      !document.isDraft &&
+      !document.isTemplate ? (
         <Wrapper>
           &nbsp;•&nbsp;
           <Link

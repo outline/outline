@@ -1,4 +1,4 @@
-import { UserPermission, Revision } from "@server/models";
+import { UserMembership, Revision } from "@server/models";
 import {
   buildCollection,
   buildDocument,
@@ -105,7 +105,23 @@ describe("#revisions.diff", () => {
     });
     await Revision.createFromDocument(document);
 
-    await document.update({ text: "New text" });
+    await document.update({
+      content: {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                content: [],
+                type: "text",
+                text: "New text",
+              },
+            ],
+          },
+        ],
+      },
+    });
     const revision1 = await Revision.createFromDocument(document);
 
     const res = await server.post("/api/revisions.diff", {
@@ -175,7 +191,7 @@ describe("#revisions.list", () => {
     await Revision.createFromDocument(document);
     collection.permission = null;
     await collection.save();
-    await UserPermission.destroy({
+    await UserMembership.destroy({
       where: {
         userId: user.id,
         collectionId: collection.id,

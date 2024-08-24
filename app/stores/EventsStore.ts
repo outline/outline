@@ -1,5 +1,4 @@
-import filter from "lodash/filter";
-import sortBy from "lodash/sortBy";
+import orderBy from "lodash/orderBy";
 import { computed } from "mobx";
 import Event from "~/models/Event";
 import RootStore from "./RootStore";
@@ -14,10 +13,6 @@ export default class EventsStore extends Store<Event> {
 
   @computed
   get orderedData(): Event[] {
-    return sortBy(Array.from(this.data.values()), "createdAt").reverse();
-  }
-
-  inDocument(documentId: string): Event[] {
-    return filter(this.orderedData, (event) => event.documentId === documentId);
+    return orderBy(Array.from(this.data.values()), "createdAt", "desc");
   }
 }

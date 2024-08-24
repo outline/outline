@@ -1,5 +1,6 @@
 {
+  "id": "slack",
   "name": "Slack",
-  "description": "Adds a Slack authentication provider, support for the /outline slash command, and link unfurling.",
-  "requiredEnvVars": ["SLACK_CLIENT_ID", "SLACK_CLIENT_SECRET"]
+  "priority": 20,
+  "description": "Adds a Slack authentication provider, support for the /outline slash command, and link unfurling."
 }

@@ -3,7 +3,14 @@ import { EditorState } from "prosemirror-state";
 import { Primitive } from "utility-types";
 import { findParentNode } from "./findParentNode";
 
-const isNodeActive =
+/**
+ * Checks if a node is active in the current selection or not.
+ *
+ * @param type The node type to check.
+ * @param attrs The attributes to check.
+ * @returns A function that checks if a node is active in the current selection or not.
+ */
+export const isNodeActive =
   (type: NodeType, attrs: Record<string, Primitive> = {}) =>
   (state: EditorState) => {
     if (!type) {
@@ -14,9 +21,7 @@ const isNodeActive =
     let node = nodeAfter?.type === type ? nodeAfter : undefined;
 
     if (!node) {
-      const parent = findParentNode((node) => node.type === type)(
-        state.selection
-      );
+      const parent = findParentNode((n) => n.type === type)(state.selection);
       node = parent?.node;
     }
 
@@ -26,5 +31,3 @@ const isNodeActive =
 
     return node.hasMarkup(type, { ...node.attrs, ...attrs });
   };
-
-export default isNodeActive;

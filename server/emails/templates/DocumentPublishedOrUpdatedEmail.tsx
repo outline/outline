@@ -2,7 +2,7 @@ import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import { Document, Collection, Revision } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
@@ -69,10 +69,11 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
           includeTitle: false,
           centered: false,
           signedUrls: (4 * Day) / 1000,
+          baseUrl: props.teamUrl,
         });
 
         // inline all css so that it works in as many email providers as possible.
-        body = content ? HTMLHelper.inlineCSS(content) : undefined;
+        body = content ? await HTMLHelper.inlineCSS(content) : undefined;
       }
     }
 
@@ -105,6 +106,10 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
 
   protected preview({ actorName, eventType }: Props): string {
     return `${actorName} ${this.eventName(eventType)} a document`;
+  }
+
+  protected fromName({ actorName }: Props) {
+    return actorName;
   }
 
   protected renderAsText({

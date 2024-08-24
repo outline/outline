@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { v4 as uuidv4 } from "uuid";
+import { UserRole } from "@shared/types";
 import { TeamDomain } from "@server/models";
 import {
   buildUser,
@@ -185,8 +186,7 @@ describe("userProvisioner", () => {
     expect(authentication?.scopes.length).toEqual(1);
     expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual("test@example.com");
-    expect(user.isAdmin).toEqual(false);
-    expect(user.isViewer).toEqual(false);
+    expect(user.role).toEqual(UserRole.Member);
     expect(isNewUser).toEqual(true);
   });
 
@@ -200,7 +200,7 @@ describe("userProvisioner", () => {
       name: "Test Name",
       email: "test@example.com",
       teamId: team.id,
-      isAdmin: true,
+      role: UserRole.Admin,
       ip,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
@@ -210,12 +210,12 @@ describe("userProvisioner", () => {
       },
     });
     const { user } = result;
-    expect(user.isAdmin).toEqual(true);
+    expect(user.role).toEqual(UserRole.Admin);
   });
 
   it("should prefer defaultUserRole when isAdmin is undefined or false", async () => {
     const team = await buildTeam({
-      defaultUserRole: "viewer",
+      defaultUserRole: UserRole.Viewer,
     });
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
@@ -232,13 +232,11 @@ describe("userProvisioner", () => {
       },
     });
     const { user: tname } = result;
-    expect(tname.isAdmin).toEqual(false);
-    expect(tname.isViewer).toEqual(true);
+    expect(tname.role).toEqual(UserRole.Viewer);
     const tname2Result = await userProvisioner({
       name: "Test2 Name",
       email: "tes2@example.com",
       teamId: team.id,
-      isAdmin: false,
       ip,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
@@ -248,8 +246,7 @@ describe("userProvisioner", () => {
       },
     });
     const { user: tname2 } = tname2Result;
-    expect(tname2.isAdmin).toEqual(false);
-    expect(tname2.isViewer).toEqual(true);
+    expect(tname2.role).toEqual(UserRole.Viewer);
   });
 
   it("should create a user from an invited user", async () => {
@@ -425,7 +422,7 @@ describe("userProvisioner", () => {
     try {
       await userProvisioner({
         name: "Bad Domain User",
-        email: faker.internet.domainName(),
+        email: faker.internet.email(),
         teamId: team.id,
         ip,
         authentication: {

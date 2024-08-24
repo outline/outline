@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
-import { getCookie, setCookie, removeCookie } from "tiny-cookie";
+import { getCookie, setCookie } from "tiny-cookie";
 import { CustomTheme } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
@@ -10,15 +10,13 @@ import Policy from "~/models/Policy";
 import Team from "~/models/Team";
 import User from "~/models/User";
 import env from "~/env";
+import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
 import { PartialWithId } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import Logger from "~/utils/Logger";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Store from "./base/Store";
-
-const AUTH_STORE = "AUTH_STORE";
-const NO_REDIRECT_PATHS = ["/", "/create", "/home", "/logout"];
 
 type PersistedData = {
   user?: PartialWithId<User>;
@@ -49,21 +47,23 @@ export type Config = {
 };
 
 export default class AuthStore extends Store<Team> {
+  private name = "AUTH_STORE";
+
   /* The ID of the user that is currently signed in. */
   @observable
-  currentUserId?: string | null;
+  public currentUserId?: string | null;
 
   /* The ID of the team that is currently signed in. */
   @observable
-  currentTeamId?: string | null;
+  public currentTeamId?: string | null;
 
   /* A short-lived token to be used to authenticate with the collaboration server. */
   @observable
-  collaborationToken?: string | null;
+  public collaborationToken?: string | null;
 
   /* A list of teams that the current user has access to. */
   @observable
-  availableTeams?: {
+  public availableTeams?: {
     id: string;
     name: string;
     avatarUrl: string;
@@ -73,19 +73,19 @@ export default class AuthStore extends Store<Team> {
 
   /* The authentication provider the user signed in with. */
   @observable
-  lastSignedIn?: string | null;
+  public lastSignedIn?: string | null;
 
   /* Whether the user is currently suspended. */
   @observable
-  isSuspended = false;
+  public isSuspended = false;
 
   /* The email address to contact if the user is suspended. */
   @observable
-  suspendedContactEmail?: string | null;
+  public suspendedContactEmail?: string | null;
 
   /* The auth configuration for the current domain. */
   @observable
-  config: Config | null | undefined;
+  public config: Config | null | undefined;
 
   rootStore: RootStore;
 
@@ -93,37 +93,37 @@ export default class AuthStore extends Store<Team> {
     super(rootStore, Team);
 
     this.rootStore = rootStore;
+
     // attempt to load the previous state of this store from localstorage
-    const data: PersistedData = Storage.get(AUTH_STORE) || {};
+    const data: PersistedData = Storage.get(this.name) || {};
 
     this.rehydrate(data);
     void this.fetchAuth();
 
     // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
-      Storage.set(AUTH_STORE, this.asJson);
+      Storage.set(this.name, this.asJson);
     });
 
     // listen to the localstorage value changing in other tabs to react to
     // signin/signout events in other tabs and follow suite.
     window.addEventListener("storage", (event) => {
-      if (event.key === AUTH_STORE && event.newValue) {
-        const data: PersistedData | null | undefined = JSON.parse(
-          event.newValue
-        );
+      if (event.key === this.name && event.newValue) {
+        const newData: PersistedData | null = JSON.parse(event.newValue);
+
         // data may be null if key is deleted in localStorage
-        if (!data) {
+        if (!newData) {
           return;
         }
 
         // If we're not signed in then hydrate from the received data, otherwise if
         // we are signed in and the received data contains no user then sign out
         if (this.authenticated) {
-          if (data.user === null) {
+          if (newData.user === null) {
             void this.logout(false, false);
           }
         } else {
-          this.rehydrate(data);
+          this.rehydrate(newData);
         }
       }
     });
@@ -157,7 +157,7 @@ export default class AuthStore extends Store<Team> {
   /** The current team */
   @computed
   get team() {
-    return this.orderedData[0];
+    return this.currentTeamId ? this.get(this.currentTeamId) : undefined;
   }
 
   /** The current team's policies */
@@ -237,17 +237,6 @@ export default class AuthStore extends Store<Team> {
           window.location.href = `${data.team.url}${pathname}`;
           return;
         }
-
-        // If we came from a redirect then send the user immediately there
-        const postLoginRedirectPath = getCookie("postLoginRedirectPath");
-
-        if (postLoginRedirectPath) {
-          removeCookie("postLoginRedirectPath");
-
-          if (!NO_REDIRECT_PATHS.includes(postLoginRedirectPath)) {
-            window.location.href = postLoginRedirectPath;
-          }
-        }
       });
     } catch (err) {
       if (err.error === "user_suspended") {
@@ -304,24 +293,19 @@ export default class AuthStore extends Store<Team> {
     }
   };
 
+  /**
+   * Logs the user out and optionally revokes the authentication token.
+   *
+   * @param savePath Whether the current path should be saved and returned to after login.
+   * @param tryRevokingToken Whether the auth token should attempt to be revoked, this should be
+   * disabled with requests from ApiClient to prevent infinite loops.
+   */
   @action
-  logout = async (
-    /** Whether the current path should be saved and returned to after login */
-    savePath = false,
-    /**
-     * Whether the auth token should attempt to be revoked, this should be disabled
-     * with requests from ApiClient to prevent infinite loops.
-     */
-    tryRevokingToken = true
-  ) => {
+  logout = async (savePath = false, tryRevokingToken = true) => {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
-      const pathName = window.location.pathname;
-
-      if (!NO_REDIRECT_PATHS.includes(pathName)) {
-        setCookie("postLoginRedirectPath", pathName);
-      }
+      setPostLoginPath(window.location.pathname);
     }
 
     if (tryRevokingToken) {
@@ -348,9 +332,11 @@ export default class AuthStore extends Store<Team> {
     this.currentUserId = null;
     this.currentTeamId = null;
     this.collaborationToken = null;
+    this.rootStore.clear();
 
     // Tell the host application we logged out, if any – allows window cleanup.
-    void Desktop.bridge?.onLogout?.();
-    this.rootStore.clear();
+    if (Desktop.isElectron()) {
+      void Desktop.bridge?.onLogout?.();
+    }
   };
 }

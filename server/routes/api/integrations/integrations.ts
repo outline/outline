@@ -1,13 +1,13 @@
 import Router from "koa-router";
-import { WhereOptions } from "sequelize";
-import { IntegrationType } from "@shared/types";
+import { WhereOptions, Op } from "sequelize";
+import { IntegrationType, UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Event, IntegrationAuthentication } from "@server/models";
+import { Event } from "@server/models";
 import Integration from "@server/models/Integration";
 import { authorize } from "@server/policies";
-import { presentIntegration } from "@server/presenters";
+import { presentIntegration, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -20,37 +20,55 @@ router.post(
   pagination(),
   validate(T.IntegrationsListSchema),
   async (ctx: APIContext<T.IntegrationsListReq>) => {
-    const { direction, type, sort } = ctx.input.body;
+    const { direction, service, type, sort } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     let where: WhereOptions<Integration> = {
       teamId: user.teamId,
     };
-
     if (type) {
-      where = {
-        ...where,
-        type,
-      };
+      where = { ...where, type };
+    }
+    if (service) {
+      where = { ...where, service };
     }
 
-    const integrations = await Integration.findAll({
-      where,
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    // Linked account is special as these are user-specific, other integrations are workspace-wide.
+    where = {
+      ...where,
+      [Op.or]: [
+        { userId: user.id, type: IntegrationType.LinkedAccount },
+        {
+          type: {
+            [Op.not]: IntegrationType.LinkedAccount,
+          },
+        },
+      ],
+    };
+
+    const [integrations, total] = await Promise.all([
+      await Integration.findAll({
+        where,
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Integration.count({
+        where,
+      }),
+    ]);
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: integrations.map(presentIntegration),
+      policies: presentPolicies(user, integrations),
     };
   }
 );
 
 router.post(
   "integrations.create",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.IntegrationsCreateSchema),
   async (ctx: APIContext<T.IntegrationsCreateReq>) => {
     const { type, service, settings } = ctx.input.body;
@@ -68,19 +86,45 @@ router.post(
 
     ctx.body = {
       data: presentIntegration(integration),
+      policies: presentPolicies(user, [integration]),
+    };
+  }
+);
+
+router.post(
+  "integrations.info",
+  auth(),
+  validate(T.IntegrationsInfoSchema),
+  async (ctx: APIContext<T.IntegrationsInfoReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const integration = await Integration.findByPk(id, {
+      rejectOnEmpty: true,
+    });
+    authorize(user, "read", integration);
+
+    ctx.body = {
+      data: presentIntegration(integration),
+      policies: presentPolicies(user, [integration]),
     };
   }
 );
 
 router.post(
   "integrations.update",
-  auth({ admin: true }),
+  auth({ role: UserRole.Admin }),
   validate(T.IntegrationsUpdateSchema),
+  transaction(),
   async (ctx: APIContext<T.IntegrationsUpdateReq>) => {
     const { id, events, settings } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
-    const integration = await Integration.findByPk(id);
+    const integration = await Integration.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
     authorize(user, "update", integration);
 
     if (integration.type === IntegrationType.Post) {
@@ -91,17 +135,18 @@ router.post(
 
     integration.settings = settings;
 
-    await integration.save();
+    await integration.save({ transaction });
 
     ctx.body = {
       data: presentIntegration(integration),
+      policies: presentPolicies(user, [integration]),
     };
   }
 );
 
 router.post(
   "integrations.delete",
-  auth({ admin: true }),
+  auth(),
   validate(T.IntegrationsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.IntegrationsDeleteReq>) => {
@@ -109,27 +154,20 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
-    const integration = await Integration.findByPk(id, { transaction });
+    const integration = await Integration.findByPk(id, {
+      rejectOnEmpty: true,
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
     authorize(user, "delete", integration);
 
     await integration.destroy({ transaction });
-    // also remove the corresponding authentication if it exists
-    if (integration.authenticationId) {
-      await IntegrationAuthentication.destroy({
-        where: {
-          id: integration.authenticationId,
-        },
-        transaction,
-      });
-    }
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "integrations.delete",
         modelId: integration.id,
-        teamId: integration.teamId,
-        actorId: user.id,
-        ip: ctx.request.ip,
       },
       { transaction }
     );

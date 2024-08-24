@@ -26,6 +26,7 @@ import Tooltip from "./Tooltip";
 export type SearchResult = {
   title: string;
   subtitle?: React.ReactNode;
+  icon?: React.ReactNode;
   url: string;
 };
 
@@ -334,13 +335,13 @@ class LinkEditor extends React.Component<Props, State> {
         />
 
         <Tooltip
-          tooltip={isInternal ? dictionary.goToLink : dictionary.openLink}
+          content={isInternal ? dictionary.goToLink : dictionary.openLink}
         >
           <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
             {isInternal ? <ArrowIcon /> : <OpenIcon />}
           </ToolbarButton>
         </Tooltip>
-        <Tooltip tooltip={dictionary.removeLink}>
+        <Tooltip content={dictionary.removeLink}>
           <ToolbarButton onClick={this.handleRemoveLink}>
             <CloseIcon />
           </ToolbarButton>
@@ -359,7 +360,7 @@ class LinkEditor extends React.Component<Props, State> {
                     key={result.url}
                     title={result.title}
                     subtitle={result.subtitle}
-                    icon={<DocumentIcon />}
+                    icon={result.icon ?? <DocumentIcon />}
                     onPointerMove={() => this.handleFocusLink(index)}
                     onClick={this.handleSelectLink(result.url, result.title)}
                     selected={index === selectedIndex}

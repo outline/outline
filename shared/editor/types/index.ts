@@ -13,6 +13,10 @@ export enum EventType {
   LinkToolbarOpen = "linkMenuOpen",
 }
 
+export enum TableLayout {
+  fullWidth = "full-width",
+}
+
 export type MenuItem = {
   icon?: React.ReactElement;
   name?: string;
@@ -21,6 +25,7 @@ export type MenuItem = {
   keywords?: string;
   tooltip?: string;
   label?: string;
+  dangerous?: boolean;
   children?: MenuItem[];
   defaultHidden?: boolean;
   attrs?:

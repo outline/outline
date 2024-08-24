@@ -1,9 +1,12 @@
 import crypto from "crypto";
-import type { SaveOptions } from "sequelize";
+import type {
+  InferAttributes,
+  InferCreationAttributes,
+  SaveOptions,
+} from "sequelize";
 import {
   Table,
   ForeignKey,
-  Model,
   Column,
   PrimaryKey,
   IsUUID,
@@ -18,6 +21,7 @@ import {
 } from "sequelize-typescript";
 import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
+import Model from "@server/models/base/Model";
 import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";
@@ -68,12 +72,15 @@ import Fix from "./decorators/Fix";
   include: [
     {
       association: "document",
+      required: false,
     },
     {
       association: "comment",
+      required: false,
     },
     {
       association: "actor",
+      required: false,
     },
   ],
 }))
@@ -83,7 +90,10 @@ import Fix from "./decorators/Fix";
   updatedAt: false,
 })
 @Fix
-class Notification extends Model {
+class Notification extends Model<
+  InferAttributes<Notification>,
+  Partial<InferCreationAttributes<Notification>>
+> {
   @IsUUID(4)
   @PrimaryKey
   @Default(DataType.UUIDV4)
@@ -92,7 +102,7 @@ class Notification extends Model {
 
   @AllowNull
   @Column
-  emailedAt: Date;
+  emailedAt?: Date | null;
 
   @AllowNull
   @Column
@@ -167,14 +177,16 @@ class Notification extends Model {
   @AfterCreate
   static async createEvent(
     model: Notification,
-    options: SaveOptions<Notification>
+    options: SaveOptions<InferAttributes<Notification>>
   ) {
     const params = {
       name: "notifications.create",
       userId: model.userId,
       modelId: model.id,
       teamId: model.teamId,
+      commentId: model.commentId,
       documentId: model.documentId,
+      collectionId: model.collectionId,
       actorId: model.actorId,
     };
 

@@ -20,7 +20,7 @@ type Props = {
 };
 
 function DocumentMove({ document }: Props) {
-  const { dialogs } = useStores();
+  const { dialogs, policies } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
   const [selectedPath, selectPath] = React.useState<NavigationNode | null>(
@@ -29,9 +29,16 @@ function DocumentMove({ document }: Props) {
 
   const items = React.useMemo(() => {
     // Filter out the document itself and its existing parent doc, if any.
-    const nodes = flatten(collectionTrees.map(flattenTree)).filter(
-      (node) => node.id !== document.id && node.id !== document.parentDocumentId
-    );
+    const nodes = flatten(collectionTrees.map(flattenTree))
+      .filter(
+        (node) =>
+          node.id !== document.id && node.id !== document.parentDocumentId
+      )
+      .filter((node) =>
+        node.collectionId
+          ? policies.get(node.collectionId)?.abilities.createDocument
+          : true
+      );
 
     // If the document we're moving is a template, only show collections as
     // move targets.
@@ -42,6 +49,7 @@ function DocumentMove({ document }: Props) {
     }
     return nodes;
   }, [
+    policies,
     collectionTrees,
     document.id,
     document.parentDocumentId,
@@ -60,9 +68,9 @@ function DocumentMove({ document }: Props) {
       const collectionId = selectedPath.collectionId as string;
 
       if (type === "document") {
-        await document.move(collectionId, parentDocumentId);
+        await document.move({ collectionId, parentDocumentId });
       } else {
-        await document.move(collectionId);
+        await document.move({ collectionId });
       }
 
       toast.success(t("Document moved"));

@@ -1,27 +1,35 @@
 import * as React from "react";
-import styled from "styled-components";
+import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-const Iframe = styled.iframe`
-  margin-top: 8px;
-`;
-
 function GitLabSnippet(props: Props) {
-  const snippetUrl = new URL(props.attrs.href);
-  const id = snippetUrl.pathname.split("/").pop();
-  const snippetLink = `${snippetUrl}.js`;
-  const snippetScript = `<script type="text/javascript" src="${snippetLink}"></script>`;
-  const styles = "<style>body { margin: 0; }</style>";
-  const iframeHtml = `<html><head><base target="_parent">${styles}</head><body>${snippetScript}</body></html>`;
+  const frame = React.useRef<HTMLIFrameElement>(null);
+  const [height, setHeight] = React.useState(400);
+
+  React.useEffect(() => {
+    const handler = (event: MessageEvent<{ type: string; value: number }>) => {
+      const contentWindow =
+        frame.current?.contentWindow ||
+        frame.current?.contentDocument?.defaultView;
+      if (
+        event.data.type === "frame-resized" &&
+        event.source === contentWindow
+      ) {
+        setHeight(event.data.value);
+      }
+    };
+    window.addEventListener("message", handler);
+
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
   return (
-    <Iframe
-      src={`data:text/html;base64,${btoa(iframeHtml)}`}
+    <Frame
+      ref={frame}
+      src={`/embeds/gitlab?url=${encodeURIComponent(props.attrs.href)}`}
       className={props.isSelected ? "ProseMirror-selectednode" : ""}
-      frameBorder="0"
       width="100%"
-      height="400px"
-      id={`gitlab-snippet-${id}`}
+      height={`${height}px`}
       title="GitLab Snippet"
     />
   );

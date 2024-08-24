@@ -1,4 +1,10 @@
-import { TrashIcon, InsertAboveIcon, InsertBelowIcon } from "outline-icons";
+import {
+  TrashIcon,
+  InsertAboveIcon,
+  InsertBelowIcon,
+  MoreIcon,
+  TableHeaderRowIcon,
+} from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import { MenuItem } from "@shared/editor/types";
@@ -11,25 +17,33 @@ export default function tableRowMenuItems(
 ): MenuItem[] {
   return [
     {
-      name: "addRowAfter",
-      tooltip: dictionary.addRowBefore,
-      icon: <InsertAboveIcon />,
-      attrs: { index: index - 1 },
-      visible: index !== 0,
-    },
-    {
-      name: "addRowAfter",
-      tooltip: dictionary.addRowAfter,
-      icon: <InsertBelowIcon />,
-      attrs: { index },
-    },
-    {
-      name: "separator",
-    },
-    {
-      name: "deleteRow",
-      tooltip: dictionary.deleteRow,
-      icon: <TrashIcon />,
+      icon: <MoreIcon />,
+      children: [
+        {
+          name: "toggleHeaderRow",
+          label: dictionary.toggleHeader,
+          icon: <TableHeaderRowIcon />,
+          visible: index === 0,
+        },
+        {
+          name: "addRowBefore",
+          label: dictionary.addRowBefore,
+          icon: <InsertAboveIcon />,
+          attrs: { index },
+        },
+        {
+          name: "addRowAfter",
+          label: dictionary.addRowAfter,
+          icon: <InsertBelowIcon />,
+          attrs: { index },
+        },
+        {
+          name: "deleteRow",
+          label: dictionary.deleteRow,
+          dangerous: true,
+          icon: <TrashIcon />,
+        },
+      ],
     },
   ];
 }

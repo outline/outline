@@ -112,7 +112,7 @@ router.post(
       data: {
         stars: stars.map(presentStar),
         documents: await Promise.all(
-          documents.map((document: Document) => presentDocument(document))
+          documents.map((document: Document) => presentDocument(ctx, document))
         ),
       },
       policies,
@@ -124,11 +124,16 @@ router.post(
   "stars.update",
   auth(),
   validate(T.StarsUpdateSchema),
+  transaction(),
   async (ctx: APIContext<T.StarsUpdateReq>) => {
     const { id, index } = ctx.input.body;
-
     const { user } = ctx.state.auth;
-    let star = await Star.findByPk(id);
+    const { transaction } = ctx.state;
+
+    let star = await Star.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
     authorize(user, "update", star);
 
     star = await starUpdater({
@@ -136,6 +141,7 @@ router.post(
       star,
       ip: ctx.request.ip,
       index,
+      transaction,
     });
 
     ctx.body = {
@@ -149,14 +155,19 @@ router.post(
   "stars.delete",
   auth(),
   validate(T.StarsDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.StarsDeleteReq>) => {
     const { id } = ctx.input.body;
-
     const { user } = ctx.state.auth;
-    const star = await Star.findByPk(id);
+    const { transaction } = ctx.state;
+
+    const star = await Star.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
     authorize(user, "delete", star);
 
-    await starDestroyer({ user, star, ip: ctx.request.ip });
+    await starDestroyer({ user, star, ip: ctx.request.ip, transaction });
 
     ctx.body = {
       success: true,

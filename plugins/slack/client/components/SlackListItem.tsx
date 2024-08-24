@@ -9,7 +9,7 @@ import { s } from "@shared/styles";
 import { IntegrationType } from "@shared/types";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
-import Button from "~/components/Button";
+import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
 import ButtonLink from "~/components/ButtonLink";
 import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
@@ -80,7 +80,7 @@ function SlackListItem({ integration, collection }: Props) {
           <Popover {...popover} aria-label={t("Settings")}>
             <Events>
               <h3>{t("Notifications")}</h3>
-              <Text type="secondary">
+              <Text as="p" type="secondary">
                 {t("These events should be posted to Slack")}
               </Text>
               <Switch
@@ -100,9 +100,12 @@ function SlackListItem({ integration, collection }: Props) {
         </>
       }
       actions={
-        <Button onClick={integration.delete} neutral>
-          {t("Disconnect")}
-        </Button>
+        <ConnectedButton
+          onClick={integration.delete}
+          confirmationMessage={t(
+            "This will prevent any future updates from being posted to this Slack channel. Are you sure?"
+          )}
+        />
       }
     />
   );

@@ -20,9 +20,13 @@ import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
-import { useEditingFocus } from "~/components/DocumentContext";
+import {
+  useDocumentContext,
+  useEditingFocus,
+} from "~/components/DocumentContext";
+import Flex from "~/components/Flex";
 import Header from "~/components/Header";
-import EmojiIcon from "~/components/Icons/EmojiIcon";
+import Icon from "~/components/Icon";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import { publishDocument } from "~/actions/definitions/documents";
@@ -31,6 +35,7 @@ import { restoreRevision } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -94,6 +99,7 @@ function DocumentHeader({
   const isMobile = useMobile();
   const isRevision = !!revision;
   const isEditingFocus = useEditingFocus();
+  const { editor } = useDocumentContext();
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -110,20 +116,29 @@ function DocumentHeader({
     activeDocumentId: document?.id,
   });
 
-  const { isDeleted, isTemplate } = document;
   const can = usePolicy(document);
+  const { isDeleted, isTemplate } = document;
+  const isTemplateEditable = can.update && isTemplate;
   const canToggleEmbeds = team?.documentEmbeds;
+  const isShare = !!shareId;
+  const showContents =
+    ui.tocVisible === true || (isShare && ui.tocVisible !== false);
+
   const toc = (
     <Tooltip
-      tooltip={ui.tocVisible ? t("Hide contents") : t("Show contents")}
+      content={
+        showContents
+          ? t("Hide contents")
+          : documentHasHeadings
+          ? t("Show contents")
+          : `${t("Show contents")} (${t("available when headings are added")})`
+      }
       shortcut="ctrl+alt+h"
       delay={250}
       placement="bottom"
     >
       <Button
-        onClick={
-          ui.tocVisible ? ui.hideTableOfContents : ui.showTableOfContents
-        }
+        onClick={showContents ? ui.hideTableOfContents : ui.showTableOfContents}
         icon={<TableOfContentsIcon />}
         borderOnHover
         neutral
@@ -133,7 +148,7 @@ function DocumentHeader({
   const editAction = (
     <Action>
       <Tooltip
-        tooltip={t("Edit {{noun}}", {
+        content={t("Edit {{noun}}", {
           noun: document.noun,
         })}
         shortcut="e"
@@ -154,7 +169,7 @@ function DocumentHeader({
   const appearanceAction = (
     <Action>
       <Tooltip
-        tooltip={
+        content={
           resolvedTheme === "light" ? t("Switch to dark") : t("Switch to light")
         }
         delay={500}
@@ -172,12 +187,27 @@ function DocumentHeader({
     </Action>
   );
 
+  useKeyDown(
+    (event) => event.ctrlKey && event.altKey && event.key === "˙",
+    ui.tocVisible ? ui.hideTableOfContents : ui.showTableOfContents,
+    {
+      allowInInput: true,
+    }
+  );
+
   if (shareId) {
     return (
       <StyledHeader
         $hidden={isEditingFocus}
-        title={document.title}
-        hasSidebar={!!sharedTree}
+        title={
+          <Flex gap={4}>
+            {document.icon && (
+              <Icon value={document.icon} color={document.color ?? undefined} />
+            )}
+            {document.title}
+          </Flex>
+        }
+        hasSidebar={sharedTree && sharedTree.children?.length > 0}
         left={
           isMobile ? (
             <TableOfContentsMenu headings={headings} />
@@ -216,17 +246,13 @@ function DocumentHeader({
           )
         }
         title={
-          <>
-            {document.emoji && (
-              <>
-                <EmojiIcon size={24} emoji={document.emoji} />{" "}
-              </>
+          <Flex gap={4} align="center">
+            {document.icon && (
+              <Icon value={document.icon} color={document.color ?? undefined} />
             )}
-            {document.title}{" "}
-            {document.isArchived && (
-              <ArchivedBadge>{t("Archived")}</ArchivedBadge>
-            )}
-          </>
+            {document.title}
+            {document.isArchived && <Badge>{t("Archived")}</Badge>}
+          </Flex>
         }
         actions={
           <>
@@ -235,7 +261,9 @@ function DocumentHeader({
             {!isPublishing && isSaving && user?.separateEditMode && (
               <Status>{t("Saving")}…</Status>
             )}
-            {!isDeleted && !isRevision && <Collaborators document={document} />}
+            {!isDeleted && !isRevision && can.listViews && (
+              <Collaborators document={document} />
+            )}
             {(isEditing || !user?.separateEditMode) && !isTemplate && isNew && (
               <Action>
                 <TemplatesMenu
@@ -244,20 +272,15 @@ function DocumentHeader({
                 />
               </Action>
             )}
-            {!isEditing &&
-              !isDeleted &&
-              !isRevision &&
-              !isTemplate &&
-              !isMobile &&
-              document.collectionId && (
-                <Action>
-                  <ShareButton document={document} />
-                </Action>
-              )}
-            {(isEditing || isTemplate) && (
+            {!isEditing && !isRevision && !isTemplate && can.update && (
+              <Action>
+                <ShareButton document={document} />
+              </Action>
+            )}
+            {(isEditing || isTemplateEditable) && (
               <Action>
                 <Tooltip
-                  tooltip={t("Save")}
+                  content={t("Save")}
                   shortcut={`${metaDisplay}+enter`}
                   delay={500}
                   placement="bottom"
@@ -289,7 +312,7 @@ function DocumentHeader({
                     document={document}
                     label={(props) => (
                       <Tooltip
-                        tooltip={t("New document")}
+                        content={t("New document")}
                         shortcut="n"
                         delay={500}
                         placement="bottom"
@@ -305,7 +328,7 @@ function DocumentHeader({
             {revision && revision.createdAt !== document.updatedAt && (
               <Action>
                 <Tooltip
-                  tooltip={t("Restore version")}
+                  content={t("Restore version")}
                   delay={500}
                   placement="bottom"
                 >
@@ -320,17 +343,21 @@ function DocumentHeader({
                 </Tooltip>
               </Action>
             )}
-            <Action>
-              <Button
-                action={publishDocument}
-                context={context}
-                disabled={publishingIsDisabled}
-                hideOnActionDisabled
-                hideIcon
-              >
-                {document.collectionId ? t("Publish") : `${t("Publish")}…`}
-              </Button>
-            </Action>
+            {can.publish && (
+              <Action>
+                <Button
+                  action={publishDocument}
+                  context={context}
+                  disabled={publishingIsDisabled}
+                  hideOnActionDisabled
+                  hideIcon
+                >
+                  {document.collectionId || document.isWorkspaceTemplate
+                    ? t("Publish")
+                    : `${t("Publish")}…`}
+                </Button>
+              </Action>
+            )}
             {!isDeleted && <Separator />}
             <Action>
               <DocumentMenu
@@ -344,6 +371,7 @@ function DocumentHeader({
                     neutral
                   />
                 )}
+                onFindAndReplace={editor?.commands.openFindAndReplace}
                 showToggleEmbeds={canToggleEmbeds}
                 showDisplayOptions
               />
@@ -358,10 +386,6 @@ function DocumentHeader({
 const StyledHeader = styled(Header)<{ $hidden: boolean }>`
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
-`;
-
-const ArchivedBadge = styled(Badge)`
-  position: absolute;
 `;
 
 const Status = styled(Action)`

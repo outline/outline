@@ -15,12 +15,13 @@ const getDirectories = (source) =>
  * @return {Promise<string>}
  */
 function execAsync(cmd) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     exec(cmd, (error, stdout, stderr) => {
       if (error) {
-        console.warn(error);
+        reject(error);
+      } else {
+        resolve(stdout ? stdout : stderr);
       }
-      resolve(stdout ? stdout : stderr);
     });
   });
 }
@@ -53,6 +54,14 @@ async function build() {
           `yarn babel --extensions .ts,.tsx --quiet -d "./build/plugins/${plugin}/server" "./plugins/${plugin}/server"`
         );
       }
+
+      const hasShared = existsSync(`./plugins/${plugin}/shared`);
+
+      if (hasShared) {
+        await execAsync(
+          `yarn babel --extensions .ts,.tsx --quiet -d "./build/plugins/${plugin}/shared" "./plugins/${plugin}/shared"`
+        );
+      }
     }),
   ]);
 
@@ -71,7 +80,7 @@ async function build() {
     execAsync("cp package.json ./build"),
     ...d.map(async (plugin) =>
       execAsync(
-        `mkdir -p ./build/plugins/${plugin} && cp ./plugins/${plugin}/plugin.json ./build/plugins/${plugin}/plugin.json`
+        `mkdir -p ./build/plugins/${plugin} && cp ./plugins/${plugin}/plugin.json ./build/plugins/${plugin}/plugin.json 2>/dev/null || :`
       )
     ),
   ]);

@@ -23,7 +23,7 @@ type Props = {
 
 function GroupMembers({ group }: Props) {
   const [addModalOpen, setAddModalOpen] = React.useState(false);
-  const { users, groupMemberships } = useStores();
+  const { users, groupUsers } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(group);
 
@@ -33,7 +33,7 @@ function GroupMembers({ group }: Props) {
 
   const handleRemoveUser = async (user: User) => {
     try {
-      await groupMemberships.delete({
+      await groupUsers.delete({
         groupId: group.id,
         userId: user.id,
       });
@@ -51,7 +51,7 @@ function GroupMembers({ group }: Props) {
     <Flex column>
       {can.update ? (
         <>
-          <Text type="secondary">
+          <Text as="p" type="secondary">
             <Trans
               defaults="Add and remove members to the <em>{{groupName}}</em> group. Members of the group will have access to any collections this group has been added to."
               values={{
@@ -74,7 +74,7 @@ function GroupMembers({ group }: Props) {
           </span>
         </>
       ) : (
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <Trans
             defaults="Listing members of the <em>{{groupName}}</em> group."
             values={{
@@ -92,7 +92,7 @@ function GroupMembers({ group }: Props) {
       </Subheading>
       <PaginatedList
         items={users.inGroup(group.id)}
-        fetch={groupMemberships.fetchPage}
+        fetch={groupUsers.fetchPage}
         options={{
           id: group.id,
         }}

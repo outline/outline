@@ -67,7 +67,7 @@ export type Props<T extends MenuItem = MenuItem> = {
     index: number,
     options: {
       selected: boolean;
-      onClick: () => void;
+      onClick: (event: React.SyntheticEvent) => void;
     }
   ) => React.ReactNode;
   filterable?: boolean;
@@ -78,6 +78,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const { view, commands } = useEditor();
   const dictionary = useDictionary();
   const hasActivated = React.useRef(false);
+  const pointerRef = React.useRef<{ clientX: number; clientY: number }>({
+    clientX: 0,
+    clientY: 0,
+  });
   const menuRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [position, setPosition] = React.useState<Position>(defaultPosition);
@@ -341,7 +345,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     setInsertItem(item);
   };
 
-  const handleFilesPicked = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilesPicked = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    // Re-focus the editor as it loses focus when file picker is opened on iOS
+    view.focus();
+
     const { uploadFile, onFileUploadStart, onFileUploadStop } = props;
     const files = getEventFiles(event);
     const parent = findParentNode((node) => !!node)(view.state.selection);
@@ -353,7 +362,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     }
 
     if (parent) {
-      insertFiles(view, event, parent.pos, files, {
+      await insertFiles(view, event, parent.pos, files, {
         uploadFile,
         onFileUploadStart,
         onFileUploadStop,
@@ -424,15 +433,23 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       }
 
       return (
-        (item.title || "").toLowerCase().includes(searchInput) ||
-        (item.keywords || "").toLowerCase().includes(searchInput)
+        (item.name || "").toLocaleLowerCase().includes(searchInput) ||
+        (item.title || "").toLocaleLowerCase().includes(searchInput) ||
+        (item.keywords || "").toLocaleLowerCase().includes(searchInput)
       );
     });
 
     return filterExcessSeparators(
-      filtered.sort((item) =>
-        searchInput && item.title ? commandScore(item.title, searchInput) : 0
-      )
+      filtered
+        .map((item) => ({
+          item,
+          score:
+            searchInput && item.title
+              ? commandScore(item.title, searchInput)
+              : 0,
+        }))
+        .sort((a, b) => b.score - a.score)
+        .map(({ item }) => item)
     );
   }, [commands, props]);
 
@@ -458,7 +475,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
       if (event.key === "Enter") {
         event.preventDefault();
-        event.stopPropagation();
 
         const item = filtered[selectedIndex];
 
@@ -514,6 +530,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       }
 
       if (event.key === "Escape") {
+        event.preventDefault();
         close();
       }
     };
@@ -544,7 +561,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                 <LinkInput
                   type="text"
                   placeholder={
-                    insertItem.title
+                    "placeholder" in insertItem
+                      ? insertItem.placeholder
+                      : insertItem.title
                       ? dictionary.pasteLinkWithTitle(insertItem.title)
                       : dictionary.pasteLink
                   }
@@ -568,7 +587,23 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                     return null;
                   }
 
-                  const handlePointer = () => {
+                  const handlePointerMove = (ev: React.PointerEvent) => {
+                    if (
+                      selectedIndex !== index &&
+                      // Safari triggers pointermove with identical coordinates when the pointer has not moved.
+                      // This causes the menu selection to flicker when the pointer is over the menu but not moving.
+                      (pointerRef.current.clientX !== ev.clientX ||
+                        pointerRef.current.clientY !== ev.clientY)
+                    ) {
+                      setSelectedIndex(index);
+                    }
+                    pointerRef.current = {
+                      clientX: ev.clientX,
+                      clientY: ev.clientY,
+                    };
+                  };
+
+                  const handlePointerDown = () => {
                     if (selectedIndex !== index) {
                       setSelectedIndex(index);
                     }
@@ -577,8 +612,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                   return (
                     <ListItem
                       key={index}
-                      onPointerMove={handlePointer}
-                      onPointerDown={handlePointer}
+                      onPointerMove={handlePointerMove}
+                      onPointerDown={handlePointerDown}
                     >
                       {props.renderMenuItem(item as any, index, {
                         selected: index === selectedIndex,

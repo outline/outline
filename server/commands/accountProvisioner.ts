@@ -1,11 +1,23 @@
+import path from "path";
+import { readFile } from "fs-extra";
 import invariant from "invariant";
+import { CollectionPermission, UserRole } from "@shared/types";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
+import env from "@server/env";
 import {
   InvalidAuthenticationError,
   AuthenticationProviderDisabledError,
 } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
-import { AuthenticationProvider, Collection, Team, User } from "@server/models";
+import {
+  AuthenticationProvider,
+  Collection,
+  Document,
+  Team,
+  User,
+} from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { sequelize } from "@server/storage/database";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
 
@@ -20,6 +32,8 @@ type Props = {
     email: string;
     /** The public url of an image representing the user */
     avatarUrl?: string | null;
+    /** The language of the user, if known */
+    language?: string;
   };
   /** Details of the team the user is logging into */
   team: {
@@ -129,7 +143,8 @@ async function accountProvisioner({
   result = await userProvisioner({
     name: userParams.name,
     email: userParams.email,
-    isAdmin: isNewTeam || undefined,
+    language: userParams.language,
+    role: isNewTeam ? UserRole.Admin : undefined,
     avatarUrl: userParams.avatarUrl,
     teamId: team.id,
     ip,
@@ -149,6 +164,7 @@ async function accountProvisioner({
   if (isNewUser) {
     await new WelcomeEmail({
       to: user.email,
+      role: user.role,
       teamUrl: team.url,
     }).schedule();
   }
@@ -169,7 +185,7 @@ async function accountProvisioner({
     }
 
     if (provision) {
-      await team.provisionFirstCollection(user.id);
+      await provisionFirstCollection(team, user);
     }
   }
 
@@ -179,6 +195,61 @@ async function accountProvisioner({
     isNewUser,
     isNewTeam,
   };
+}
+
+async function provisionFirstCollection(team: Team, user: User) {
+  await sequelize.transaction(async (transaction) => {
+    const collection = await Collection.create(
+      {
+        name: "Welcome",
+        description: `This collection is a quick guide to what ${env.APP_NAME} is all about. Feel free to delete this collection once your team is up to speed with the basics!`,
+        teamId: team.id,
+        createdById: user.id,
+        sort: Collection.DEFAULT_SORT,
+        permission: CollectionPermission.ReadWrite,
+      },
+      {
+        transaction,
+      }
+    );
+
+    // For the first collection we go ahead and create some initial documents to get
+    // the team started. You can edit these in /server/onboarding/x.md
+    const onboardingDocs = [
+      "Integrations & API",
+      "Our Editor",
+      "Getting Started",
+      "What is Outline",
+    ];
+
+    for (const title of onboardingDocs) {
+      const text = await readFile(
+        path.join(process.cwd(), "server", "onboarding", `${title}.md`),
+        "utf8"
+      );
+      const document = await Document.create(
+        {
+          version: 2,
+          isWelcome: true,
+          parentDocumentId: null,
+          collectionId: collection.id,
+          teamId: collection.teamId,
+          lastModifiedById: collection.createdById,
+          createdById: collection.createdById,
+          title,
+          text,
+        },
+        { transaction }
+      );
+
+      document.content = await DocumentHelper.toJSON(document);
+
+      await document.publish(user, collection.id, {
+        silent: true,
+        transaction,
+      });
+    }
+  });
 }
 
 export default traceFunction({

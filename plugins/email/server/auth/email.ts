@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { Client, NotificationEventType } from "@shared/types";
+import { NotificationEventType } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import SigninEmail from "@server/emails/templates/SigninEmail";
@@ -7,20 +7,22 @@ import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
+import validate from "@server/middlewares/validate";
 import { User, Team } from "@server/models";
+import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { signIn } from "@server/utils/authentication";
 import { getUserForEmailSigninToken } from "@server/utils/jwt";
-import { assertEmail, assertPresent } from "@server/validation";
+import * as T from "./schema";
 
 const router = new Router();
 
 router.post(
   "email",
   rateLimiter(RateLimiterStrategy.TenPerHour),
-  async (ctx) => {
-    const { email, client } = ctx.request.body;
-    assertEmail(email, "email is required");
+  validate(T.EmailSchema),
+  async (ctx: APIContext<T.EmailReq>) => {
+    const { email, client } = ctx.input.body;
 
     const domain = parseDomain(ctx.request.hostname);
 
@@ -71,7 +73,7 @@ router.post(
       to: user.email,
       token: user.getEmailSigninToken(),
       teamUrl: team.url,
-      client: client === Client.Desktop ? Client.Desktop : Client.Web,
+      client,
     }).schedule();
 
     user.lastSigninEmailSentAt = new Date();
@@ -84,52 +86,66 @@ router.post(
   }
 );
 
-router.get("email.callback", async (ctx) => {
-  const { token, client } = ctx.request.query;
-  assertPresent(token, "token is required");
+router.get(
+  "email.callback",
+  validate(T.EmailCallbackSchema),
+  async (ctx: APIContext<T.EmailCallbackReq>) => {
+    const { token, client, follow } = ctx.input.query;
 
-  let user!: User;
+    // The link in the email does not include the follow query param, this
+    // is to help prevent anti-virus, and email clients from pre-fetching the link
+    // and spending the token before the user clicks on it. Instead we redirect
+    // to the same URL with the follow query param added from the client side.
+    if (!follow) {
+      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
+    }
 
-  try {
-    user = await getUserForEmailSigninToken(token as string);
-  } catch (err) {
-    ctx.redirect(`/?notice=expired-token`);
-    return;
-  }
+    let user!: User;
 
-  if (!user.team.emailSigninEnabled) {
-    return ctx.redirect("/?notice=auth-error");
-  }
+    try {
+      user = await getUserForEmailSigninToken(token as string);
+    } catch (err) {
+      ctx.redirect(`/?notice=expired-token`);
+      return;
+    }
 
-  if (user.isSuspended) {
-    return ctx.redirect("/?notice=user-suspended");
-  }
+    if (!user.team.emailSigninEnabled) {
+      return ctx.redirect("/?notice=auth-error");
+    }
 
-  if (user.isInvited) {
-    await new WelcomeEmail({
-      to: user.email,
-      teamUrl: user.team.url,
-    }).schedule();
+    if (user.isSuspended) {
+      return ctx.redirect("/?notice=user-suspended");
+    }
 
-    const inviter = await user.$get("invitedBy");
-    if (inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)) {
-      await new InviteAcceptedEmail({
-        to: inviter.email,
-        inviterId: inviter.id,
-        invitedName: user.name,
+    if (user.isInvited) {
+      await new WelcomeEmail({
+        to: user.email,
+        role: user.role,
         teamUrl: user.team.url,
       }).schedule();
-    }
-  }
 
-  // set cookies on response and redirect to team subdomain
-  await signIn(ctx, "email", {
-    user,
-    team: user.team,
-    isNewTeam: false,
-    isNewUser: false,
-    client: client === Client.Desktop ? Client.Desktop : Client.Web,
-  });
-});
+      const inviter = await user.$get("invitedBy");
+      if (
+        inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)
+      ) {
+        await new InviteAcceptedEmail({
+          to: inviter.email,
+          inviterId: inviter.id,
+          invitedName: user.name,
+          teamUrl: user.team.url,
+        }).schedule();
+      }
+    }
+
+    // set cookies on response and redirect to team subdomain
+    await signIn(ctx, "email", {
+      user,
+      team: user.team,
+      isNewTeam: false,
+      isNewUser: false,
+      client,
+    });
+  }
+);
 
 export default router;

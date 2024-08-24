@@ -1,9 +1,12 @@
 import { NotificationEventType } from "@shared/types";
+import { Minute } from "@shared/utils/time";
 import CollectionCreatedEmail from "@server/emails/templates/CollectionCreatedEmail";
+import CollectionSharedEmail from "@server/emails/templates/CollectionSharedEmail";
 import CommentCreatedEmail from "@server/emails/templates/CommentCreatedEmail";
 import CommentMentionedEmail from "@server/emails/templates/CommentMentionedEmail";
 import DocumentMentionedEmail from "@server/emails/templates/DocumentMentionedEmail";
 import DocumentPublishedOrUpdatedEmail from "@server/emails/templates/DocumentPublishedOrUpdatedEmail";
+import DocumentSharedEmail from "@server/emails/templates/DocumentSharedEmail";
 import { Notification } from "@server/models";
 import { Event, NotificationEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
@@ -23,9 +26,14 @@ export default class EmailsProcessor extends BaseProcessor {
 
     const notificationId = notification.id;
 
+    if (notification.user.isSuspended) {
+      return;
+    }
+
     switch (notification.event) {
       case NotificationEventType.UpdateDocument:
       case NotificationEventType.PublishDocument: {
+        // No need to delay email here as the notification itself is already delayed
         await new DocumentPublishedOrUpdatedEmail(
           {
             to: notification.user.email,
@@ -41,7 +49,40 @@ export default class EmailsProcessor extends BaseProcessor {
         return;
       }
 
+      case NotificationEventType.AddUserToDocument: {
+        await new DocumentSharedEmail(
+          {
+            to: notification.user.email,
+            userId: notification.userId,
+            documentId: notification.documentId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+          },
+          { notificationId }
+        ).schedule({
+          delay: Minute,
+        });
+        return;
+      }
+
+      case NotificationEventType.AddUserToCollection: {
+        await new CollectionSharedEmail(
+          {
+            to: notification.user.email,
+            userId: notification.userId,
+            collectionId: notification.collectionId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+          },
+          { notificationId }
+        ).schedule({
+          delay: Minute,
+        });
+        return;
+      }
+
       case NotificationEventType.MentionedInDocument: {
+        // No need to delay email here as the notification itself is already delayed
         await new DocumentMentionedEmail(
           {
             to: notification.user.email,
@@ -65,7 +106,9 @@ export default class EmailsProcessor extends BaseProcessor {
             commentId: notification.commentId,
           },
           { notificationId: notification.id }
-        ).schedule();
+        ).schedule({
+          delay: Minute,
+        });
         return;
       }
 
@@ -78,7 +121,9 @@ export default class EmailsProcessor extends BaseProcessor {
             teamUrl: notification.team.url,
           },
           { notificationId: notification.id }
-        ).schedule();
+        ).schedule({
+          delay: Minute,
+        });
         return;
       }
 
@@ -93,7 +138,9 @@ export default class EmailsProcessor extends BaseProcessor {
             commentId: notification.commentId,
           },
           { notificationId: notification.id }
-        ).schedule();
+        ).schedule({
+          delay: Minute,
+        });
       }
     }
   }

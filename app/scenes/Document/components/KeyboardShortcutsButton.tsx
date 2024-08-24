@@ -23,7 +23,7 @@ function KeyboardShortcutsButton() {
   };
 
   return (
-    <Tooltip tooltip={t("Keyboard shortcuts")} shortcut="?" delay={500}>
+    <Tooltip content={t("Keyboard shortcuts")} shortcut="?" delay={500}>
       <Button onClick={handleOpenKeyboardShortcuts} $hidden={isEditingFocus}>
         <KeyboardIcon />
       </Button>
@@ -35,7 +35,7 @@ const Button = styled(NudeButton)<{ $hidden: boolean }>`
   display: none;
   position: fixed;
   bottom: 0;
-  margin: 24px;
+  margin: 20px;
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
 

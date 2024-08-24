@@ -7,14 +7,14 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import EventBoundary from "@shared/components/EventBoundary";
 import { s } from "@shared/styles";
-import { JSONObject } from "@shared/types";
+import { ProsemirrorData } from "@shared/types";
 import { dateToRelative } from "@shared/utils/date";
 import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
-import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
@@ -22,6 +22,7 @@ import useBoolean from "~/hooks/useBoolean";
 import CommentMenu from "~/menus/CommentMenu";
 import { hover } from "~/styles";
 import CommentEditor from "./CommentEditor";
+import { HighlightedText } from "./HighlightText";
 
 /**
  * Hook to calculate if we should display a timestamp on a comment
@@ -74,6 +75,12 @@ type Props = {
   previousCommentCreatedAt?: string;
   /** Whether the user can reply in the thread */
   canReply: boolean;
+  /** Callback when the comment has been deleted */
+  onDelete: () => void;
+  /** Callback when the comment has been updated */
+  onUpdate: (attrs: { resolved: boolean }) => void;
+  /** Text to highlight at the top of the comment */
+  highlightedText?: string;
 };
 
 function CommentThreadItem({
@@ -84,19 +91,23 @@ function CommentThreadItem({
   dir,
   previousCommentCreatedAt,
   canReply,
+  onDelete,
+  onUpdate,
+  highlightedText,
 }: Props) {
-  const { editor } = useDocumentContext();
   const { t } = useTranslation();
   const [forceRender, setForceRender] = React.useState(0);
   const [data, setData] = React.useState(toJS(comment.data));
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
   const showEdited =
-    comment.updatedAt && comment.updatedAt !== comment.createdAt;
+    comment.updatedAt &&
+    comment.updatedAt !== comment.createdAt &&
+    !comment.isResolved;
   const [isEditing, setEditing, setReadOnly] = useBoolean();
   const formRef = React.useRef<HTMLFormElement>(null);
 
-  const handleChange = (value: (asString: boolean) => JSONObject) => {
+  const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
     setData(value(false));
   };
 
@@ -120,19 +131,15 @@ function CommentThreadItem({
     }
   };
 
-  const handleDelete = () => {
-    editor?.removeComment(comment.id);
-  };
-
   const handleCancel = () => {
     setData(toJS(comment.data));
     setReadOnly();
-    setForceRender((s) => ++s);
+    setForceRender((i) => ++i);
   };
 
   React.useEffect(() => {
     setData(toJS(comment.data));
-    setForceRender((s) => ++s);
+    setForceRender((i) => ++i);
   }, [comment.data]);
 
   return (
@@ -174,6 +181,9 @@ function CommentThreadItem({
             )}
           </Meta>
         )}
+        {highlightedText && (
+          <HighlightedText>{highlightedText}</HighlightedText>
+        )}
         <Body ref={formRef} onSubmit={handleSubmit}>
           <StyledCommentEditor
             key={`${forceRender}`}
@@ -194,14 +204,17 @@ function CommentThreadItem({
             </Flex>
           )}
         </Body>
-        {!isEditing && (
-          <Menu
-            comment={comment}
-            onEdit={setEditing}
-            onDelete={handleDelete}
-            dir={dir}
-          />
-        )}
+        <EventBoundary>
+          {!isEditing && (
+            <Menu
+              comment={comment}
+              onEdit={setEditing}
+              onDelete={onDelete}
+              onUpdate={onUpdate}
+              dir={dir}
+            />
+          )}
+        </EventBoundary>
       </Bubble>
     </Flex>
   );

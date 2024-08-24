@@ -1,5 +1,5 @@
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
-import { UserPermission } from "@server/models";
+import { UserMembership } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import {
   buildUser,
@@ -66,7 +66,7 @@ describe("#attachments.create", () => {
           name: "test.zip",
           contentType: "application/zip",
           size: 10000,
-          preset: AttachmentPreset.Import,
+          preset: AttachmentPreset.WorkspaceImport,
           token: user.getJwtToken(),
         },
       });
@@ -123,7 +123,7 @@ describe("#attachments.create", () => {
         collectionId: collection.id,
       });
 
-      await UserPermission.create({
+      await UserMembership.create({
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,

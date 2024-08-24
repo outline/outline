@@ -48,7 +48,7 @@ function Groups() {
       }
     >
       <Heading>{t("Groups")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Groups can be used to organize and manage the people on your team.
         </Trans>

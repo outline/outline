@@ -1,12 +1,14 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
+import env from "../../env";
 import { IntegrationService, IntegrationType } from "../../types";
 import type { IntegrationSettings } from "../../types";
 import { urlRegex } from "../../utils/urls";
 import Image from "../components/Img";
 import Berrycast from "./Berrycast";
 import Diagrams from "./Diagrams";
+import Dropbox from "./Dropbox";
 import Gist from "./Gist";
 import GitLabSnippet from "./GitLabSnippet";
 import InVision from "./InVision";
@@ -43,6 +45,8 @@ export class EmbedDescriptor {
   name?: string;
   /** The title of the embed */
   title: string;
+  /** A placeholder that will be shown in the URL input */
+  placeholder?: string;
   /** A keyboard shortcut that will trigger the embed */
   shortcut?: string;
   /** Keywords that will match this embed in menus */
@@ -51,7 +55,11 @@ export class EmbedDescriptor {
   tooltip?: string;
   /** Whether the embed should be hidden in menus by default */
   defaultHidden?: boolean;
-  /** A regex that will be used to match the embed when pasting a URL */
+  /** Whether the bottom toolbar should be hidden – use this when the embed itself includes a footer */
+  hideToolbar?: boolean;
+  /** Whether the embed should match automatically when pasting a URL (default to true) */
+  matchOnInput?: boolean;
+  /** A regex that will be used to match the embed from a URL. */
   regexMatch?: RegExp[];
   /**
    * A function that will be used to transform the URL. The resulting string is passed as the src
@@ -77,10 +85,13 @@ export class EmbedDescriptor {
     this.icon = options.icon;
     this.name = options.name;
     this.title = options.title;
+    this.placeholder = options.placeholder;
     this.shortcut = options.shortcut;
     this.keywords = options.keywords;
     this.tooltip = options.tooltip;
     this.defaultHidden = options.defaultHidden;
+    this.hideToolbar = options.hideToolbar;
+    this.matchOnInput = options.matchOnInput ?? true;
     this.regexMatch = options.regexMatch;
     this.transformMatch = options.transformMatch;
     this.attrs = options.attrs;
@@ -90,7 +101,9 @@ export class EmbedDescriptor {
 
   matcher(url: string): false | RegExpMatchArray {
     const regexes = this.regexMatch ?? [];
-    const settingsDomainRegex = urlRegex(this.settings?.url);
+    const settingsDomainRegex = this.settings?.url
+      ? urlRegex(this.settings?.url)
+      : undefined;
 
     if (settingsDomainRegex) {
       regexes.unshift(settingsDomainRegex);
@@ -151,10 +164,21 @@ const embeds: EmbedDescriptor[] = [
     icon: <Img src="/images/bilibili.png" alt="Bilibili" />,
   }),
   new EmbedDescriptor({
+    title: "Camunda Modeler",
+    keywords: "bpmn process cawemo",
+    defaultHidden: true,
+    regexMatch: [
+      new RegExp("^https?://modeler.cloud.camunda.io/(?:share|embed)/(.*)$"),
+    ],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://modeler.cloud.camunda.io/embed/${matches[1]}`,
+    icon: <Img src="/images/camunda.png" alt="Camunda" />,
+  }),
+  new EmbedDescriptor({
     title: "Canva",
     keywords: "design",
     regexMatch: [
-      /^https:\/\/(?:www\.)?canva\.com\/design\/([a-zA-Z0-9]*)\/(.*)$/,
+      /^https:\/\/(?:www\.)?canva\.com\/design\/([a-zA-Z0-9_]*)\/(.*)$/,
     ],
     transformMatch: (matches: RegExpMatchArray) =>
       `https://www.canva.com/design/${matches[1]}/view?embed`,
@@ -192,7 +216,7 @@ const embeds: EmbedDescriptor[] = [
   new EmbedDescriptor({
     title: "DBDiagram",
     keywords: "diagrams database",
-    regexMatch: [new RegExp("^https://dbdiagram.io/(embed|d)/(\\w+)$")],
+    regexMatch: [new RegExp("^https://dbdiagram.io/(embed|e|d)/(\\w+)(/.*)?$")],
     transformMatch: (matches) => `https://dbdiagram.io/embed/${matches[2]}`,
     icon: <Img src="/images/dbdiagram.png" alt="DBDiagram" />,
   }),
@@ -212,18 +236,37 @@ const embeds: EmbedDescriptor[] = [
       `https://share.descript.com/embed/${matches[1]}`,
     icon: <Img src="/images/descript.png" alt="Descript" />,
   }),
+  ...(env.DROPBOX_APP_KEY
+    ? [
+        new EmbedDescriptor({
+          title: "Dropbox",
+          keywords: "file document",
+          regexMatch: [
+            new RegExp("^https?://(www.)?dropbox.com/(s|scl)/(.*)$"),
+          ],
+          icon: <Img src="/images/dropbox.png" alt="Dropbox" />,
+          component: Dropbox,
+        }),
+      ]
+    : []),
   new EmbedDescriptor({
     title: "Figma",
     keywords: "design svg vector",
     regexMatch: [
       new RegExp(
-        "^https://([w.-]+\\.)?figma\\.com/(file|proto)/([0-9a-zA-Z]{22,128})(?:/.*)?$"
+        "^https://([w.-]+\\.)?figma\\.com/(file|proto|board|design)/([0-9a-zA-Z]{22,128})(?:/.*)?$"
       ),
+      new RegExp("^https://([w.-]+\\.)?figma\\.com/embed(.*)$"),
     ],
-    transformMatch: (matches) =>
-      `https://www.figma.com/embed?embed_host=outline&url=${encodeURIComponent(
+    transformMatch: (matches) => {
+      if (matches[0].includes("/embed")) {
+        return matches[0];
+      }
+
+      return `https://www.figma.com/embed?embed_host=outline&url=${encodeURIComponent(
         matches[0]
-      )}`,
+      )}`;
+    },
     icon: <Img src="/images/figma.png" alt="Figma" />,
   }),
   new EmbedDescriptor({
@@ -358,11 +401,13 @@ const embeds: EmbedDescriptor[] = [
     keywords: "spreadsheet",
     regexMatch: [new RegExp("^https?://([a-z.-]+\\.)?getgrist\\.com/(.+)$")],
     transformMatch: (matches: RegExpMatchArray) => {
-      if (matches[0].includes("style=singlePage")) {
-        return matches[0];
+      const input = matches.input ?? matches[0];
+
+      if (input.includes("style=singlePage")) {
+        return input;
       }
 
-      return matches[0].replace(/(\?embed=true)?$/, "?embed=true");
+      return input.replace(/(\?embed=true)?$/, "?embed=true");
     },
     icon: <Img src="/images/grist.png" alt="Grist" />,
   }),
@@ -502,6 +547,17 @@ const embeds: EmbedDescriptor[] = [
     icon: <Img src="/images/scribe.png" alt="Scribe" />,
   }),
   new EmbedDescriptor({
+    title: "SmartSuite",
+    regexMatch: [
+      new RegExp("^https?://app\\.smartsuite\\.com/shared/(.*)(?:\\?)?(?:.*)$"),
+    ],
+    icon: <Img src="/images/smartsuite.png" alt="SmartSuite" />,
+    defaultHidden: true,
+    hideToolbar: true,
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://app.smartsuite.com/shared/${matches[1]}?embed=true&header=false&toolbar=true`,
+  }),
+  new EmbedDescriptor({
     title: "Spotify",
     keywords: "music",
     regexMatch: [new RegExp("^https?://open\\.spotify\\.com/(.*)$")],
@@ -512,7 +568,7 @@ const embeds: EmbedDescriptor[] = [
     title: "Tldraw",
     keywords: "draw schematics diagrams",
     regexMatch: [
-      new RegExp("^https?://(beta|www|old)\\.tldraw\\.com/[rsv]/(.*)"),
+      new RegExp("^https?://(beta|www|old)\\.tldraw\\.com/[rsvo]+/(.*)"),
     ],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/tldraw.png" alt="Tldraw" />,
@@ -570,6 +626,18 @@ const embeds: EmbedDescriptor[] = [
     ],
     icon: <Img src="/images/youtube.png" alt="YouTube" />,
     component: YouTube,
+  }),
+  /* The generic iframe embed should always be the last one */
+  new EmbedDescriptor({
+    title: "Embed",
+    keywords: "iframe webpage",
+    placeholder: "Paste a URL to embed",
+    icon: <Img src="/images/embed.png" alt="Embed" />,
+    defaultHidden: false,
+    matchOnInput: false,
+    regexMatch: [new RegExp("^https?://(.*)$")],
+    transformMatch: (matches: RegExpMatchArray) => matches[0],
+    hideToolbar: true,
   }),
 ];
 

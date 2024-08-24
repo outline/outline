@@ -26,6 +26,7 @@ type Options = {
 
 interface FetchOptions {
   download?: boolean;
+  retry?: boolean;
   credentials?: "omit" | "same-origin" | "include";
   headers?: Record<string, string>;
 }
@@ -83,6 +84,7 @@ class ApiClient {
       Accept: "application/json",
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
+      "x-api-version": "3",
       pragma: "no-cache",
       ...options?.headers,
     };
@@ -99,14 +101,17 @@ class ApiClient {
     let response;
 
     try {
-      response = await fetchWithRetry(urlToFetch, {
-        method,
-        body,
-        headers,
-        redirect: "follow",
-        credentials: "same-origin",
-        cache: "no-cache",
-      });
+      response = await (options?.retry === false ? fetch : fetchWithRetry)(
+        urlToFetch,
+        {
+          method,
+          body,
+          headers,
+          redirect: "follow",
+          credentials: "same-origin",
+          cache: "no-cache",
+        }
+      );
     } catch (err) {
       if (window.navigator.onLine) {
         throw new NetworkError("A network error occurred, try again?");
@@ -135,6 +140,19 @@ class ApiClient {
     if (response.status === 401) {
       await stores.auth.logout(true, false);
       throw new AuthorizationError();
+    }
+
+    if (response.status === 502) {
+      const text = await response.text();
+      const err = new BadGatewayError(text);
+
+      Logger.error("BadGatewayError", err, {
+        url: urlToFetch,
+        requestTime: Math.round(timeEnd - timeStart),
+        responseText: text,
+        responseHeaders: Object.fromEntries(response.headers.entries()),
+      });
+      throw err;
     }
 
     // Handle failed responses
@@ -185,12 +203,6 @@ class ApiClient {
     if (response.status === 429) {
       throw new RateLimitExceededError(
         `Too many requests, try again in a minute.`
-      );
-    }
-
-    if (response.status === 502) {
-      throw new BadGatewayError(
-        `Request to ${urlToFetch} failed in ${timeEnd - timeStart}ms.`
       );
     }
 

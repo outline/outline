@@ -1,5 +1,7 @@
 import { Op } from "sequelize";
 import { User, Collection, Document } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { APIContext } from "@server/types";
 import documentCreator from "./documentCreator";
 
@@ -18,6 +20,7 @@ type Props = {
   publish?: boolean;
   /** Whether to duplicate child documents */
   recursive?: boolean;
+  /** The request context */
   ctx: APIContext;
 };
 
@@ -41,9 +44,14 @@ export default async function documentDuplicator({
 
   const duplicated = await documentCreator({
     parentDocumentId: parentDocumentId ?? document.parentDocumentId,
-    emoji: document.emoji,
+    icon: document.icon,
+    color: document.color,
     template: document.template,
     title: title ?? document.title,
+    content: ProsemirrorHelper.removeMarks(
+      DocumentHelper.toProsemirror(document),
+      ["comment"]
+    ),
     text: document.text,
     ...sharedProperties,
   });
@@ -71,8 +79,13 @@ export default async function documentDuplicator({
     for (const childDocument of childDocuments) {
       const duplicatedChildDocument = await documentCreator({
         parentDocumentId: duplicated.id,
-        emoji: childDocument.emoji,
+        icon: childDocument.icon,
+        color: childDocument.color,
         title: childDocument.title,
+        content: ProsemirrorHelper.removeMarks(
+          DocumentHelper.toProsemirror(childDocument),
+          ["comment"]
+        ),
         text: childDocument.text,
         ...sharedProperties,
       });

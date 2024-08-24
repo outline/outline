@@ -5,11 +5,17 @@ import MenuItem from "~/components/ContextMenu/MenuItem";
 import { usePortalContext } from "~/components/Portal";
 
 export type Props = {
+  /** Whether the item is selected */
   selected: boolean;
+  /** Whether the item is disabled */
   disabled?: boolean;
-  onClick: () => void;
+  /** Callback when the item is clicked */
+  onClick: (event: React.SyntheticEvent) => void;
+  /** An optional icon for the item */
   icon?: React.ReactElement;
+  /** The title of the item */
   title: React.ReactNode;
+  /** A string representing the keyboard shortcut for the item */
   shortcut?: string;
 };
 

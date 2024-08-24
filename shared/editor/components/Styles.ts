@@ -1,6 +1,7 @@
 /* eslint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css, keyframes } from "styled-components";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
 export type Props = {
@@ -12,6 +13,11 @@ export type Props = {
   grow?: boolean;
   theme: DefaultTheme;
 };
+
+export const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
 
 export const pulse = keyframes`
   0% { box-shadow: 0 0 0 1px rgba(255, 213, 0, 0.75) }
@@ -107,7 +113,7 @@ const mathStyle = (props: Props) => css`
     background: ${props.theme.codeBackground};
     padding: 0.75em 1em;
     font-family: ${props.theme.fontFamilyMono};
-    font-size: 90%;
+    font-size: 80%;
   }
 
   math-block.empty-math {
@@ -260,9 +266,14 @@ const emailStyle = (props: Props) => css`
     border-radius: 8px;
     padding: 6px 8px;
   }
+
+  .image > img {
+    width: auto;
+    height: auto;
+  }
 `;
 
-const style = (props: Props) => `
+const style = (props: Props) => css`
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
 color: ${props.theme.text};
@@ -282,6 +293,10 @@ width: 100%;
   font-weight: 500;
   font-size: 0.9em;
   cursor: default;
+
+  &:before {
+    content: "@";
+  }
 }
 
 > div {
@@ -324,17 +339,42 @@ width: 100%;
     margin-top: 0;
   }
 
+  h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
     margin-top: 1em;
-  }
-
-  h1 {
-    margin-top: .75em;
     margin-bottom: 0.25em;
+    font-weight: 600;
+    cursor: text;
+
+    & + p,
+    // accounts for block insert trigger and other widgets between heading and paragraph
+    & + .ProseMirror-widget + p {
+      margin-top: 0.25em;
+    }
+
+    &:not(.placeholder):before {
+      display: none;
+      font-family: ${props.theme.fontFamilyMono};
+      color: ${props.theme.textSecondary};
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 0;
+      margin-${props.rtl ? "right" : "left"}: -24px;
+      transition: opacity 150ms ease-in-out;
+      opacity: 0;
+      width: 24px;
+    }
+
+    &:hover,
+    &:focus-within {
+      .heading-actions {
+        opacity: 1;
+      }
+    }
   }
 
   // all of heading sizes are stepped down one from global styles, except h1
@@ -488,6 +528,12 @@ iframe.embed {
   }
 }
 
+.attachment-replacement-uploading {
+  .widget {
+    opacity: 0.5;
+  }
+}
+
 .image-replacement-uploading {
   img {
     opacity: 0.5;
@@ -496,7 +542,6 @@ iframe.embed {
 
 .image-right-50 {
   float: right;
-  width: 33.3%;
   margin-left: 2em;
   margin-bottom: 1em;
   clear: initial;
@@ -504,7 +549,6 @@ iframe.embed {
 
 .image-left-50 {
   float: left;
-  width: 33.3%;
   margin-right: 2em;
   margin-bottom: 1em;
   clear: initial;
@@ -515,7 +559,7 @@ iframe.embed {
   max-width: 100vw;
   clear: both;
   position: initial;
-  ${props.rtl ? `margin-right: var(--offset)` : `margin-left: var(--offset)`};
+  transform: translateX(calc(50% + var(--container-width) * -0.5));
 
   img {
     max-width: 100vw;
@@ -523,6 +567,40 @@ iframe.embed {
     object-fit: cover;
     object-position: center;
   }
+}
+
+.${EditorStyleHelper.tableFullWidth} {
+  transform: translateX(calc(50% + ${
+    EditorStyleHelper.padding
+  }px + var(--container-width) * -0.5));
+
+  .${EditorStyleHelper.tableScrollable},
+  table {
+    width: calc(var(--container-width) - ${EditorStyleHelper.padding * 2}px);
+  }
+
+  &.${EditorStyleHelper.tableShadowRight}::after {
+    left: calc(var(--container-width) - ${EditorStyleHelper.padding * 3}px);
+  }
+}
+
+.column-resize-handle {
+  animation: ${fadeIn} 150ms ease-in-out;
+  ${props.readOnly ? "display: none;" : ""}
+  position: absolute;
+  right: -1px;
+  top: 0;
+  bottom: -1px;
+  width: 2px;
+  z-index: 20;
+  background-color: ${props.theme.text};
+  pointer-events: none;
+}
+
+.resize-cursor {
+  ${props.readOnly ? "pointer-events: none;" : ""}
+  cursor: ew-resize;
+  cursor: col-resize;
 }
 
 .ProseMirror-hideselection *::selection {
@@ -538,6 +616,10 @@ iframe.embed {
 .ProseMirror-selectednode {
   outline: 2px solid
     ${props.readOnly ? "transparent" : props.theme.selected};
+
+  @media print {
+    outline: none;
+  }
 }
 
 /* Make sure li selections wrap around markers */
@@ -576,35 +658,6 @@ img.ProseMirror-separator {
   }
   .caption:empty {
     visibility: hidden;
-  }
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: 500;
-  cursor: text;
-
-  &:not(.placeholder):before {
-    display: ${props.readOnly ? "none" : "inline-block"};
-    font-family: ${props.theme.fontFamilyMono};
-    color: ${props.theme.textSecondary};
-    font-size: 13px;
-    line-height: 0;
-    margin-${props.rtl ? "right" : "left"}: -24px;
-    transition: opacity 150ms ease-in-out;
-    opacity: 0;
-    width: 24px;
-  }
-
-  &:hover,
-  &:focus-within {
-    .heading-actions {
-      opacity: 1;
-    }
   }
 }
 
@@ -698,6 +751,7 @@ h6:not(.placeholder):before {
   margin: 0;
   padding: 0;
   text-align: left;
+  font-weight: 500;
   font-family: ${props.theme.fontFamilyMono};
   font-size: 14px;
   line-height: 0;
@@ -720,7 +774,7 @@ h6:not(.placeholder):before {
   background: ${props.theme.background};
   margin-${props.rtl ? "right" : "left"}: -26px;
   flex-direction: ${props.rtl ? "row-reverse" : "row"};
-  display: inline-flex;
+  display: none;
   position: relative;
   top: -2px;
   width: 26px;
@@ -751,6 +805,22 @@ h6 {
     }
     .heading-anchor:hover {
       opacity: 1 !important;
+    }
+  }
+}
+
+.ProseMirror > {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    .heading-actions {
+      display: inline-flex;
+    }
+    &:not(.placeholder):before {
+      display: ${props.readOnly ? "none" : "inline-block"};
     }
   }
 }
@@ -787,14 +857,16 @@ h6 {
   opacity: 1;
 }
 
-.comment-marker {
-  border-bottom: 2px solid ${transparentize(0.5, props.theme.brand.marine)};
-  transition: background 100ms ease-in-out;
-  border-radius: 2px;
+.${EditorStyleHelper.comment} {
+  &:not([data-resolved]) {
+    border-bottom: 2px solid ${props.theme.commentMarkBackground};
+    transition: background 100ms ease-in-out;
+    border-radius: 2px;
 
-  &:hover {
-    ${props.readOnly ? "cursor: var(--pointer);" : ""}
-    background: ${transparentize(0.5, props.theme.brand.marine)};
+    &:hover {
+      ${props.readOnly ? "cursor: var(--pointer);" : ""}
+      background: ${props.theme.commentMarkBackground};
+    }
   }
 }
 
@@ -810,9 +882,6 @@ h6 {
 
   a {
     color: ${props.theme.noticeInfoText};
-  }
-
-  a:not(.heading-name) {
     text-decoration: underline;
   }
 
@@ -883,7 +952,6 @@ h6 {
 blockquote {
   margin: 0;
   padding: 8px 10px 8px 1.5em;
-  font-style: italic;
   overflow: hidden;
   position: relative;
 
@@ -1106,17 +1174,17 @@ code {
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
   padding: 3px 4px;
+  color: ${props.theme.codeString};
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 90%;
+  font-size: 80%;
 }
 
 mark {
   border-radius: 1px;
-  color: ${props.theme.textHighlightForeground};
-  background: ${props.theme.textHighlight};
+  color: ${props.theme.text};
 
   a {
-    color: ${props.theme.textHighlightForeground};
+    color: ${props.theme.text};
   }
 }
 
@@ -1134,18 +1202,28 @@ mark {
 }
 
 .code-block[data-language=mermaidjs] {
-  pre {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    margin-bottom: -12px;
-    overflow: hidden;
+  margin: 0.75em 0;
+
+  ${
+    !props.staticHTML &&
+    css`
+      pre {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        margin-bottom: -20px;
+        overflow: hidden;
+      }
+    `
   }
 
-  /* Hide code without display none so toolbar can still be positioned against it */
+  // Hide code without display none so toolbar can still be positioned against it
   &:not(.code-active) {
     height: ${props.staticHTML ? "auto" : "0"};
-    margin: -0.5em 0;
+    margin: -0.75em 0;
     overflow: hidden;
+
+    // Allows the margin to collapse correctly by moving div out of the flow
+    position: ${props.staticHTML ? "relative" : "absolute"};
   }
 }
 
@@ -1185,6 +1263,7 @@ mark {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0.75em 0;
   min-height: 1.6em;
   background: ${props.theme.codeBackground};
   border-radius: 6px;
@@ -1259,22 +1338,25 @@ table {
 
   tr {
     position: relative;
-    border-bottom: 1px solid ${props.theme.tableDivider};
-  }
-
-  th {
-    background: transparent;
+    border-bottom: 1px solid ${props.theme.divider};
   }
 
   td,
   th {
     position: relative;
     vertical-align: top;
-    border: 1px solid ${props.theme.tableDivider};
+    border: 1px solid ${props.theme.divider};
     position: relative;
     padding: 4px 8px;
     text-align: ${props.rtl ? "right" : "left"};
     min-width: 100px;
+    font-weight: normal;
+  }
+
+  th {
+    background: ${transparentize(0.75, props.theme.divider)};
+    color: ${props.theme.textSecondary};
+    font-weight: 500;
   }
 
   td .component-embed {
@@ -1291,7 +1373,135 @@ table {
     background-clip: padding-box;
   }
 
-  .grip-column {
+  .${EditorStyleHelper.tableAddRow},
+  .${EditorStyleHelper.tableAddColumn},
+  .${EditorStyleHelper.tableGrip},
+  .${EditorStyleHelper.tableGripColumn},
+  .${EditorStyleHelper.tableGripRow} {
+    @media print {
+      display: none;
+    }
+  }
+
+  .${EditorStyleHelper.tableAddRow},
+  .${EditorStyleHelper.tableAddColumn} {
+    display: block;
+    position: absolute;
+    background: ${props.theme.accent};
+    cursor: var(--pointer);
+
+    &:hover::after {
+      width: 16px;
+      height: 16px;
+      z-index: 20;
+      background-color: ${props.theme.accent};
+      background-size: 16px 16px;
+      background-position: 50% 50%;
+      background-image: url("data:image/svg+xml;base64,${btoa(
+        '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 5C11.4477 5 11 5.44772 11 6V11H6C5.44772 11 5 11.4477 5 12C5 12.5523 5.44772 13 6 13H11V18C11 18.5523 11.4477 19 12 19C12.5523 19 13 18.5523 13 18V13H18C18.5523 13 19 12.5523 19 12C19 11.4477 18.5523 11 18 11H13V6C13 5.44772 12.5523 5 12 5Z" fill="white"/></svg>'
+      )}")
+    }
+
+    // extra clickable area
+    &::before {
+      content: "";
+      display: block;
+      cursor: var(--pointer);
+      position: absolute;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .${EditorStyleHelper.tableAddRow} {
+    bottom: -1px;
+    left: -16px;
+    width: 0;
+    height: 2px;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: -10px;
+      width: 4px;
+      height: 4px;
+      display: ${props.readOnly ? "none" : "block"};
+      border-radius: 100%;
+      background-color: ${props.theme.divider};
+    }
+
+    &:hover {
+      width: calc(var(--table-width) - ${EditorStyleHelper.padding * 1.5}px);
+    }
+
+    &:hover::after {
+      bottom: -7.5px;
+      left: -16px;
+    }
+
+    // extra clickable area
+    &::before {
+      bottom: -12px;
+      left: -18px;
+    }
+
+    &.first {
+      bottom: auto;
+      top: -1px;
+
+      &::before {
+        bottom: auto;
+        top: -12px;
+      }
+    }
+  }
+
+  .${EditorStyleHelper.tableAddColumn} {
+    top: -16px;
+    right: -1px;
+    width: 2px;
+    height: 0;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: -10px;
+      right: -1px;
+      width: 4px;
+      height: 4px;
+      display: ${props.readOnly ? "none" : "block"};
+      border-radius: 100%;
+      background-color: ${props.theme.divider};
+    }
+
+    &:hover {
+      height: calc(var(--table-height) - ${EditorStyleHelper.padding}px + 6px);
+    }
+
+    &:hover::after {
+      top: -16px;
+      right: -7px;
+    }
+
+    // extra clickable area
+    &::before {
+      top: -16px;
+      right: -12px;
+    }
+
+    &.first {
+      right: auto;
+      left: -1px;
+
+      &::before {
+        right: auto;
+        left: -12px;
+      }
+    }
+  }
+
+  .${EditorStyleHelper.tableGripColumn} {
     /* usage of ::after for all of the table grips works around a bug in
      * prosemirror-tables that causes Safari to hang when selecting a cell
      * in an empty table:
@@ -1304,8 +1514,7 @@ table {
       ${props.rtl ? "right" : "left"}: 0;
       width: 100%;
       height: 12px;
-      background: ${props.theme.tableDivider};
-      border-bottom: 3px solid ${props.theme.background};
+      background: ${props.theme.divider};
       display: ${props.readOnly ? "none" : "block"};
     }
 
@@ -1314,16 +1523,18 @@ table {
     }
     &.first::after {
       border-top-${props.rtl ? "right" : "left"}-radius: 3px;
+      border-bottom-${props.rtl ? "right" : "left"}-radius: 3px;
     }
     &.last::after {
       border-top-${props.rtl ? "left" : "right"}-radius: 3px;
+      border-bottom-${props.rtl ? "left" : "right"}-radius: 3px;
     }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
   }
 
-  .grip-row {
+  .${EditorStyleHelper.tableGripRow} {
     &::after {
       content: "";
       cursor: var(--pointer);
@@ -1332,8 +1543,7 @@ table {
       top: 0;
       height: 100%;
       width: 12px;
-      background: ${props.theme.tableDivider};
-      border-${props.rtl ? "left" : "right"}: 3px solid;
+      background: ${props.theme.divider};
       border-color: ${props.theme.background};
       display: ${props.readOnly ? "none" : "block"};
     }
@@ -1342,21 +1552,23 @@ table {
       background: ${props.theme.text};
     }
     &.first::after {
-      border-top-${props.rtl ? "right" : "left"}-radius: 3px;
+      border-top-left-radius: 3px;
+      border-top-right-radius: 3px;
     }
     &.last::after {
-      border-bottom-${props.rtl ? "right" : "left"}-radius: 3px;
+      border-bottom-left-radius: 3px;
+      border-bottom-right-radius: 3px;
     }
     &.selected::after {
       background: ${props.theme.tableSelected};
     }
   }
 
-  .grip-table {
+  .${EditorStyleHelper.tableGrip} {
     &::after {
       content: "";
       cursor: var(--pointer);
-      background: ${props.theme.tableDivider};
+      background: ${props.theme.divider};
       width: 13px;
       height: 13px;
       border-radius: 13px;
@@ -1365,6 +1577,7 @@ table {
       top: -18px;
       ${props.rtl ? "right" : "left"}: -18px;
       display: ${props.readOnly ? "none" : "block"};
+      z-index: 10;
     }
 
     &:hover::after {
@@ -1376,11 +1589,22 @@ table {
   }
 }
 
-.scrollable-wrapper {
+.${EditorStyleHelper.table} {
   position: relative;
-  margin: 0.5em 0px;
+}
+
+.${EditorStyleHelper.tableScrollable} {
+  position: relative;
+  margin: -1em ${-EditorStyleHelper.padding}px -0.5em;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
+  overflow-y: hidden;
+  overflow-x: auto;
+  padding-top: 1em;
+  padding-bottom: .5em;
+  padding-left: ${EditorStyleHelper.padding}px;
+  padding-right: ${EditorStyleHelper.padding}px;
+  transition: border 250ms ease-in-out 0s;
 
   &:hover {
     scrollbar-color: ${props.theme.scrollbarThumb} ${
@@ -1409,37 +1633,36 @@ table {
   }
 }
 
-.scrollable {
-  overflow-y: hidden;
-  overflow-x: auto;
-  padding-${props.rtl ? "right" : "left"}: 1em;
-  margin-${props.rtl ? "right" : "left"}: -1em;
-  border-${props.rtl ? "right" : "left"}: 1px solid transparent;
-  border-${props.rtl ? "left" : "right"}: 1px solid transparent;
-  transition: border 250ms ease-in-out 0s;
-}
-
-.scrollable-shadow {
+.${EditorStyleHelper.tableShadowLeft}::before,
+.${EditorStyleHelper.tableShadowRight}::after {
+  content: "";
   position: absolute;
-  top: 0;
+  top: 1px;
   bottom: 0;
   ${props.rtl ? "right" : "left"}: -1em;
-  width: 16px;
+  width: 32px;
+  z-index: 20;
   transition: box-shadow 250ms ease-in-out;
   border: 0px solid transparent;
-  border-${props.rtl ? "right" : "left"}-width: 1em;
   pointer-events: none;
+}
 
-  &.left {
-    box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, 0.25);
-    border-left: 1em solid ${props.theme.background};
-  }
+.${EditorStyleHelper.tableShadowLeft}::before {
+  left: -${EditorStyleHelper.padding}px;
+  right: auto;
+  box-shadow: 16px 0 16px -16px inset rgba(0, 0, 0, ${
+    props.theme.isDark ? 1 : 0.25
+  });
+  border-left: ${EditorStyleHelper.padding}px solid ${props.theme.background};
+}
 
-  &.right {
-    right: 0;
-    left: auto;
-    box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, 0.25);
-  }
+.${EditorStyleHelper.tableShadowRight}::after {
+  right: -${EditorStyleHelper.padding}px;
+  left: auto;
+  box-shadow: -16px 0 16px -16px inset rgba(0, 0, 0, ${
+    props.theme.isDark ? 1 : 0.25
+  });
+  border-right: ${EditorStyleHelper.padding}px solid ${props.theme.background};
 }
 
 .block-menu-trigger {
@@ -1547,7 +1770,7 @@ del[data-operation-index] {
     page-break-inside: avoid;
   }
 
-  .comment-marker {
+  .${EditorStyleHelper.comment} {
     border: 0;
     background: none;
   }

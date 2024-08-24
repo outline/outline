@@ -21,6 +21,19 @@ export default class ImportNotionTask extends ImportTask {
     if (!tree) {
       throw new Error("Could not find valid content in zip file");
     }
+
+    // New Notion exports have a single folder with the name of the export, we must skip this
+    // folder and go directly to the children.
+    if (
+      tree.children.length === 1 &&
+      tree.children[0].children.find((child) => child.title === "index")
+    ) {
+      return this.parseFileTree(
+        fileOperation,
+        tree.children[0].children.filter((child) => child.title !== "index")
+      );
+    }
+
     return this.parseFileTree(fileOperation, tree.children);
   }
 
@@ -85,7 +98,7 @@ export default class ImportNotionTask extends ImportTask {
 
           Logger.debug("task", `Processing ${name} as ${mimeType}`);
 
-          const { title, emoji, text } = await sequelize.transaction(
+          const { title, icon, text } = await sequelize.transaction(
             async (transaction) =>
               documentImporter({
                 mimeType: mimeType || "text/markdown",
@@ -122,7 +135,7 @@ export default class ImportNotionTask extends ImportTask {
             output.documents.push({
               id,
               title,
-              emoji,
+              icon,
               text,
               collectionId,
               parentDocumentId,

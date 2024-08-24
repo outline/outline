@@ -111,6 +111,10 @@ describe("#addDocumentToStructure", () => {
     await collection.addDocumentToStructure(newDocument);
     expect(collection.documentStructure!.length).toBe(1);
     expect(collection.documentStructure![0].id).toBe(id);
+
+    // should not append multiple times
+    await collection.addDocumentToStructure(newDocument);
+    expect(collection.documentStructure!.length).toBe(1);
   });
 
   test("should add with an index", async () => {
@@ -219,11 +223,10 @@ describe("#updateDocument", () => {
     const document = await buildDocument({ collectionId: collection.id });
     await collection.reload();
 
-    const newDocument = await Document.create({
+    const newDocument = await buildDocument({
       parentDocumentId: document.id,
       collectionId: collection.id,
       teamId: collection.teamId,
-      userId: collection.createdById,
       lastModifiedById: collection.createdById,
       createdById: collection.createdById,
       title: "Child document",
@@ -273,11 +276,10 @@ describe("#removeDocument", () => {
     await collection.reload();
 
     // Add a child for testing
-    const newDocument = await Document.create({
+    const newDocument = await buildDocument({
       parentDocumentId: document.id,
       collectionId: collection.id,
       teamId: collection.teamId,
-      userId: collection.createdById,
       lastModifiedById: collection.createdById,
       createdById: collection.createdById,
       title: "Child document",
@@ -302,11 +304,10 @@ describe("#removeDocument", () => {
     await collection.reload();
 
     // Add a child for testing
-    const newDocument = await Document.create({
+    const newDocument = await buildDocument({
       parentDocumentId: document.id,
       collectionId: collection.id,
       teamId: collection.teamId,
-      userId: collection.createdById,
       lastModifiedById: collection.createdById,
       createdById: collection.createdById,
       publishedAt: new Date(),

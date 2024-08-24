@@ -1,9 +1,11 @@
+import { parser } from "@server/editor";
 import {
   View,
   Subscription,
   Event,
   Notification,
   Revision,
+  Document,
 } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import RevisionCreatedNotificationsTask from "./RevisionCreatedNotificationsTask";
@@ -14,14 +16,19 @@ beforeEach(async () => {
   jest.resetAllMocks();
 });
 
+function updateDocumentText(document: Document, text: string) {
+  document.content = parser.parse(text)?.toJSON();
+  document.updatedAt = new Date();
+  return document;
+}
+
 describe("revisions.create", () => {
   test("should send a notification to other collaborators", async () => {
     const spy = jest.spyOn(Notification, "create");
-    const document = await buildDocument();
+    let document = await buildDocument();
     await Revision.createFromDocument(document);
 
-    document.text = "Updated body content";
-    document.updatedAt = new Date();
+    document = updateDocumentText(document, "Updated body content");
     const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
@@ -42,10 +49,9 @@ describe("revisions.create", () => {
 
   test("should not send a notification if viewed since update", async () => {
     const spy = jest.spyOn(Notification, "create");
-    const document = await buildDocument();
+    let document = await buildDocument();
     await Revision.createFromDocument(document);
-    document.text = "Updated body content";
-    document.updatedAt = new Date();
+    document = updateDocumentText(document, "Updated body content");
     const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
@@ -72,13 +78,12 @@ describe("revisions.create", () => {
   test("should not send a notification to last editor", async () => {
     const spy = jest.spyOn(Notification, "create");
     const user = await buildUser();
-    const document = await buildDocument({
+    let document = await buildDocument({
       teamId: user.teamId,
       lastModifiedById: user.id,
     });
     await Revision.createFromDocument(document);
-    document.text = "Updated body content";
-    document.updatedAt = new Date();
+    document = updateDocumentText(document, "Updated body content");
     const revision = await Revision.createFromDocument(document);
 
     const task = new RevisionCreatedNotificationsTask();
@@ -96,10 +101,9 @@ describe("revisions.create", () => {
 
   test("should send a notification for subscriptions, even to collaborator", async () => {
     const spy = jest.spyOn(Notification, "create");
-    const document = await buildDocument();
+    let document = await buildDocument();
     await Revision.createFromDocument(document);
-    document.text = "Updated body content";
-    document.updatedAt = new Date();
+    document = updateDocumentText(document, "Updated body content");
     const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });
@@ -112,7 +116,6 @@ describe("revisions.create", () => {
       userId: subscriber.id,
       documentId: document.id,
       event: "documents.update",
-      enabled: true,
     });
 
     const task = new RevisionCreatedNotificationsTask();
@@ -134,13 +137,12 @@ describe("revisions.create", () => {
     const collaborator0 = await buildUser();
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
     const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
-    const document = await buildDocument({
+    let document = await buildDocument({
       teamId: collaborator0.teamId,
       userId: collaborator0.id,
     });
     await Revision.createFromDocument(document);
-    document.text = "Updated body content";
-    document.updatedAt = new Date();
+    document = updateDocumentText(document, "Updated body content");
     const revision = await Revision.createFromDocument(document);
 
     await document.update({
@@ -187,13 +189,12 @@ describe("revisions.create", () => {
     const collaborator0 = await buildUser();
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
     const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
-    const document = await buildDocument({
+    let document = await buildDocument({
       teamId: collaborator0.teamId,
       userId: collaborator0.id,
     });
     await Revision.createFromDocument(document);
-    document.text = "Updated body content";
-    document.updatedAt = new Date();
+    document = updateDocumentText(document, "Updated body content");
     const revision = await Revision.createFromDocument(document);
 
     await document.update({
@@ -223,13 +224,12 @@ describe("revisions.create", () => {
     const collaborator0 = await buildUser();
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
     const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
-    const document = await buildDocument({
+    let document = await buildDocument({
       teamId: collaborator0.teamId,
       userId: collaborator0.id,
     });
     await Revision.createFromDocument(document);
-    document.text = "Updated body content";
-    document.updatedAt = new Date();
+    document = updateDocumentText(document, "Updated body content");
     const revision = await Revision.createFromDocument(document);
 
     await document.update({
@@ -284,12 +284,11 @@ describe("revisions.create", () => {
 
   test("should send a notification for subscriptions to non-collaborators", async () => {
     const spy = jest.spyOn(Notification, "create");
-    const document = await buildDocument();
+    let document = await buildDocument();
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });
     await Revision.createFromDocument(document);
-    document.text = "Updated body content";
-    document.updatedAt = new Date();
+    document = updateDocumentText(document, "Updated body content");
     const revision = await Revision.createFromDocument(document);
 
     // `subscriber` hasn't collaborated on `document`.
@@ -303,7 +302,6 @@ describe("revisions.create", () => {
       userId: subscriber.id,
       documentId: document.id,
       event: "documents.update",
-      enabled: true,
     });
 
     const task = new RevisionCreatedNotificationsTask();
@@ -324,10 +322,9 @@ describe("revisions.create", () => {
   test("should not send a notification for subscriptions to collaborators if unsubscribed", async () => {
     const spy = jest.spyOn(Notification, "create");
 
-    const document = await buildDocument();
+    let document = await buildDocument();
     await Revision.createFromDocument(document);
-    document.text = "Updated body content";
-    document.updatedAt = new Date();
+    document = updateDocumentText(document, "Updated body content");
     const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });
@@ -343,7 +340,6 @@ describe("revisions.create", () => {
       userId: subscriber.id,
       documentId: document.id,
       event: "documents.update",
-      enabled: true,
     });
 
     await subscription.destroy();
@@ -367,10 +363,9 @@ describe("revisions.create", () => {
   test("should not send a notification for subscriptions to members outside of the team", async () => {
     const spy = jest.spyOn(Notification, "create");
 
-    const document = await buildDocument();
+    let document = await buildDocument();
     await Revision.createFromDocument(document);
-    document.text = "Updated body content";
-    document.updatedAt = new Date();
+    document = updateDocumentText(document, "Updated body content");
     const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
 
@@ -391,7 +386,6 @@ describe("revisions.create", () => {
       userId: subscriber.id,
       documentId: document.id,
       event: "documents.update",
-      enabled: true,
     });
 
     const task = new RevisionCreatedNotificationsTask();

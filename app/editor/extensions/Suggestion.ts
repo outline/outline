@@ -2,10 +2,9 @@ import { action, observable } from "mobx";
 import { InputRule } from "prosemirror-inputrules";
 import { NodeType, Schema } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
-import { isInTable } from "prosemirror-tables";
 import Extension from "@shared/editor/lib/Extension";
 import { SuggestionsMenuPlugin } from "@shared/editor/plugins/Suggestions";
-import isInCode from "@shared/editor/queries/isInCode";
+import { isInCode } from "@shared/editor/queries/isInCode";
 
 export default class Suggestion extends Extension {
   state: {
@@ -50,8 +49,7 @@ export default class Suggestion extends Extension {
           match &&
           (parent.type.name === "paragraph" ||
             parent.type.name === "heading") &&
-          (!isInCode(state) || this.options.enabledInCode) &&
-          (!isInTable(state) || this.options.enabledInTable)
+          (!isInCode(state) || this.options.enabledInCode)
         ) {
           this.state.open = true;
           this.state.query = match[1];

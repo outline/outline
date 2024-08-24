@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import concat from "lodash/concat";
 import find from "lodash/find";
+import isEmpty from "lodash/isEmpty";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
 import { computed, action } from "mobx";
@@ -54,10 +55,10 @@ export default class CollectionsStore extends Store<Collection> {
     let collections = Array.from(this.data.values());
     collections = collections
       .filter((collection) => !collection.deletedAt)
-      .filter(
-        (collection) =>
-          this.rootStore.policies.abilities(collection.id).readDocument
-      );
+      .filter((collection) => {
+        const can = this.rootStore.policies.abilities(collection.id);
+        return isEmpty(can) || can.readDocument;
+      });
     return collections.sort((a, b) => {
       if (a.index === b.index) {
         return a.updatedAt > b.updatedAt ? -1 : 1;
@@ -121,13 +122,13 @@ export default class CollectionsStore extends Store<Collection> {
 
     if (this.isLoaded) {
       this.data.forEach((collection) => {
-        const { id, name, url } = collection;
+        const { id, name, path } = collection;
         const node = {
           type: DocumentPathItemType.Collection,
           id,
           collectionId: id,
           title: name,
-          url,
+          url: path,
         };
         results.push([node]);
 
@@ -144,11 +145,13 @@ export default class CollectionsStore extends Store<Collection> {
   }
 
   @action
-  import = async (attachmentId: string, format?: string) => {
+  import = async (
+    attachmentId: string,
+    options: { format?: string; permission?: CollectionPermission | null }
+  ) => {
     await client.post("/collections.import", {
-      type: "outline",
-      format,
       attachmentId,
+      ...options,
     });
   };
 
@@ -230,11 +233,11 @@ export default class CollectionsStore extends Store<Collection> {
     return find(this.orderedData, (col: Collection) => url.endsWith(col.urlId));
   }
 
-  delete = async (collection: Collection) => {
+  async delete(collection: Collection) {
     await super.delete(collection);
     await this.rootStore.documents.fetchRecentlyUpdated();
     await this.rootStore.documents.fetchRecentlyViewed();
-  };
+  }
 
   export = (format: FileOperationFormat, includeAttachments: boolean) =>
     client.post("/collections.export_all", {

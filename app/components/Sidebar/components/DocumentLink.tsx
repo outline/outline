@@ -14,18 +14,20 @@ import { DocumentValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
+import Icon from "~/components/Icon";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
-import { newDocumentPath } from "~/utils/routeHelpers";
+import { newNestedDocumentPath } from "~/utils/routeHelpers";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle, { RefHandle } from "./EditableTitle";
 import Folder from "./Folder";
 import Relative from "./Relative";
+import { useSharedContext } from "./SharedContext";
 import SidebarLink, { DragObject } from "./SidebarLink";
 import { useStarredContext } from "./StarredContext";
 
@@ -64,12 +66,19 @@ function InnerDocumentLink(
   const [isEditing, setIsEditing] = React.useState(false);
   const editableTitleRef = React.useRef<RefHandle>(null);
   const inStarredSection = useStarredContext();
+  const inSharedSection = useSharedContext();
 
   React.useEffect(() => {
-    if (isActiveDocument && hasChildDocuments) {
+    if (isActiveDocument && (hasChildDocuments || inSharedSection)) {
       void fetchChildDocuments(node.id);
     }
-  }, [fetchChildDocuments, node.id, hasChildDocuments, isActiveDocument]);
+  }, [
+    fetchChildDocuments,
+    node.id,
+    hasChildDocuments,
+    inSharedSection,
+    isActiveDocument,
+  ]);
 
   const pathToNode = React.useMemo(
     () => collection?.pathToDocument(node.id).map((entry) => entry.id),
@@ -119,13 +128,13 @@ function InnerDocumentLink(
   }, [prefetchDocument, node]);
 
   const handleTitleChange = React.useCallback(
-    async (title: string) => {
+    async (value: string) => {
       if (!document) {
         return;
       }
       await documents.update({
         id: document.id,
-        title,
+        title: value,
       });
     },
     [documents, document]
@@ -134,6 +143,8 @@ function InnerDocumentLink(
   const isMoving = documents.movingDocumentId === node.id;
   const manualSort = collection?.sort.field === "index";
   const can = policies.abilities(node.id);
+  const icon = document?.icon || node.icon || node.emoji;
+  const color = document?.color || node.color;
 
   // Draggable
   const [{ isDragging }, drag, preview] = useDrag({
@@ -141,6 +152,7 @@ function InnerDocumentLink(
     item: () => ({
       ...node,
       depth,
+      icon: icon ? <Icon value={icon} color={color} /> : undefined,
       active: isActiveDocument,
       collectionId: collection?.id || "",
     }),
@@ -175,7 +187,11 @@ function InnerDocumentLink(
       if (!collection) {
         return;
       }
-      await documents.move(item.id, collection.id, node.id);
+      await documents.move({
+        documentId: item.id,
+        collectionId: collection.id,
+        parentDocumentId: node.id,
+      });
       setExpanded(true);
     },
     canDrop: (item, monitor) =>
@@ -237,11 +253,21 @@ function InnerDocumentLink(
       }
 
       if (expanded) {
-        void documents.move(item.id, collection.id, node.id, 0);
+        void documents.move({
+          documentId: item.id,
+          collectionId: collection.id,
+          parentDocumentId: node.id,
+          index: 0,
+        });
         return;
       }
 
-      void documents.move(item.id, collection.id, parentId, index + 1);
+      void documents.move({
+        documentId: item.id,
+        collectionId: collection.id,
+        parentDocumentId: parentId,
+        index: index + 1,
+      });
     },
     collect: (monitor) => ({
       isOverReorder: monitor.isOver(),
@@ -271,9 +297,8 @@ function InnerDocumentLink(
     node,
   ]);
 
-  const title =
-    (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
-    t("Untitled");
+  const doc = documents.get(node.id);
+  const title = doc?.title || node.title || t("Untitled");
 
   const isExpanded = expanded && !isDragging;
   const hasChildren = nodeChildren.length > 0;
@@ -316,7 +341,7 @@ function InnerDocumentLink(
                     starred: inStarredSection,
                   },
                 }}
-                emoji={document?.emoji || node.emoji}
+                icon={icon && <Icon value={icon} color={color} />}
                 label={
                   <EditableTitle
                     title={title}
@@ -346,14 +371,12 @@ function InnerDocumentLink(
                   !isDraggingAnyDocument ? (
                     <Fade>
                       {can.createChildDocument && (
-                        <Tooltip tooltip={t("New doc")} delay={500}>
+                        <Tooltip content={t("New doc")} delay={500}>
                           <NudeButton
                             type={undefined}
                             aria-label={t("New nested document")}
                             as={Link}
-                            to={newDocumentPath(document.collectionId, {
-                              parentDocumentId: document.id,
-                            })}
+                            to={newNestedDocumentPath(document.id)}
                           >
                             <PlusIcon />
                           </NudeButton>

@@ -5,6 +5,7 @@ import {
   ExportIcon,
   AlphabeticalSortIcon,
   ManualSortIcon,
+  InputIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -25,6 +26,8 @@ import {
   editCollectionPermissions,
   starCollection,
   unstarCollection,
+  searchInCollection,
+  createTemplate,
 } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -38,6 +41,7 @@ type Props = {
   placement?: Placement;
   modal?: boolean;
   label?: (props: MenuButtonHTMLProps) => React.ReactNode;
+  onRename?: () => void;
   onOpen?: () => void;
   onClose?: () => void;
 };
@@ -47,6 +51,7 @@ function CollectionMenu({
   label,
   modal = true,
   placement,
+  onRename,
   onOpen,
   onClose,
 }: Props) {
@@ -63,7 +68,6 @@ function CollectionMenu({
   const handleExport = React.useCallback(() => {
     dialogs.openModal({
       title: t("Export collection"),
-      isCentered: true,
       content: (
         <ExportDialog
           collection={collection}
@@ -167,8 +171,16 @@ function CollectionMenu({
       {
         type: "separator",
       },
+      {
+        type: "button",
+        title: `${t("Rename")}…`,
+        visible: !!can.update && !!onRename,
+        onClick: () => onRename?.(),
+        icon: <InputIcon />,
+      },
       actionToMenuItem(editCollection, context),
       actionToMenuItem(editCollectionPermissions, context),
+      actionToMenuItem(createTemplate, context),
       {
         type: "submenu",
         title: t("Sort in sidebar"),
@@ -196,6 +208,7 @@ function CollectionMenu({
         onClick: handleExport,
         icon: <ExportIcon />,
       },
+      actionToMenuItem(searchInCollection, context),
       {
         type: "separator",
       },

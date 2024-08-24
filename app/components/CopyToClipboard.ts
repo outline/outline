@@ -1,5 +1,6 @@
 import copy from "copy-to-clipboard";
 import * as React from "react";
+import { mergeRefs } from "react-merge-refs";
 import env from "~/env";
 
 type Props = {
@@ -9,32 +10,43 @@ type Props = {
   onCopy?: () => void;
 };
 
-class CopyToClipboard extends React.PureComponent<Props> {
-  onClick = (ev: React.SyntheticEvent) => {
-    const { text, onCopy, children } = this.props;
-    const elem = React.Children.only(children);
+function CopyToClipboard(props: Props, ref: React.Ref<HTMLElement>) {
+  const { text, onCopy, children, ...rest } = props;
 
-    copy(text, {
-      debug: env.ENVIRONMENT !== "production",
-      format: "text/plain",
-    });
+  const onClick = React.useCallback(
+    (ev: React.MouseEvent<HTMLElement>) => {
+      const elem = React.Children.only(children);
 
-    onCopy?.();
+      copy(text, {
+        debug: env.ENVIRONMENT !== "production",
+        format: "text/plain",
+      });
 
-    if (elem && elem.props && typeof elem.props.onClick === "function") {
-      elem.props.onClick(ev);
-    }
-  };
+      onCopy?.();
 
-  render() {
-    const { text, onCopy, children, ...rest } = this.props;
-    const elem = React.Children.only(children);
-    if (!elem) {
-      return null;
-    }
+      if (elem && elem.props && typeof elem.props.onClick === "function") {
+        elem.props.onClick(ev);
+      } else {
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+    },
+    [children, onCopy, text]
+  );
 
-    return React.cloneElement(elem, { ...rest, onClick: this.onClick });
+  const elem = React.Children.only(children);
+  if (!elem) {
+    return null;
   }
+
+  return React.cloneElement(elem, {
+    ...rest,
+    ref:
+      "ref" in elem
+        ? mergeRefs([elem.ref as React.MutableRefObject<HTMLElement>, ref])
+        : ref,
+    onClick,
+  });
 }
 
-export default CopyToClipboard;
+export default React.forwardRef(CopyToClipboard);

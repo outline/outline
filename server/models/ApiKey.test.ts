@@ -17,4 +17,26 @@ describe("#ApiKey", () => {
       expect(ApiKey.match("1234567890")).toBe(false);
     });
   });
+
+  describe("lastActiveAt", () => {
+    test("should update lastActiveAt", async () => {
+      const apiKey = await buildApiKey({
+        name: "Dev",
+      });
+      await apiKey.updateActiveAt();
+      expect(apiKey.lastActiveAt).toBeTruthy();
+    });
+
+    test("should not update lastActiveAt within 5 minutes", async () => {
+      const apiKey = await buildApiKey({
+        name: "Dev",
+      });
+      await apiKey.updateActiveAt();
+      expect(apiKey.lastActiveAt).toBeTruthy();
+
+      const lastActiveAt = apiKey.lastActiveAt;
+      await apiKey.updateActiveAt();
+      expect(apiKey.lastActiveAt).toEqual(lastActiveAt);
+    });
+  });
 });

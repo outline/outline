@@ -42,7 +42,7 @@ export function updateCollectionPath(
   // Update url to match the current one
   return oldUrl.replace(
     new RegExp("/collection/[0-9a-zA-Z-_~]*"),
-    collection.url
+    collection.path
   );
 }
 
@@ -81,26 +81,32 @@ export function updateDocumentPath(oldUrl: string, document: Document): string {
   );
 }
 
-export function newTemplatePath(collectionId: string) {
-  return settingsPath("templates") + `/new?collectionId=${collectionId}`;
+export function newTemplatePath(collectionId?: string) {
+  return collectionId
+    ? settingsPath("templates") + `/new?collectionId=${collectionId}`
+    : `${settingsPath("templates")}/new`;
 }
 
 export function newDocumentPath(
   collectionId?: string | null,
   params: {
-    parentDocumentId?: string;
     templateId?: string;
   } = {}
 ): string {
   return collectionId
     ? `/collection/${collectionId}/new?${queryString.stringify(params)}`
-    : `/doc/new`;
+    : `/doc/new?${queryString.stringify(params)}`;
+}
+
+export function newNestedDocumentPath(parentDocumentId?: string): string {
+  return `/doc/new?${queryString.stringify({ parentDocumentId })}`;
 }
 
 export function searchPath(
   query?: string,
   params: {
     collectionId?: string;
+    documentId?: string;
     ref?: string;
   } = {}
 ): string {

@@ -1,9 +1,11 @@
 import crypto from "crypto";
-import fs from "fs";
-import path from "path";
 import { URL } from "url";
-import util from "util";
-import { type SaveOptions } from "sequelize";
+import { subMinutes } from "date-fns";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  type SaveOptions,
+} from "sequelize";
 import { Op } from "sequelize";
 import {
   Column,
@@ -22,13 +24,10 @@ import {
   AllowNull,
   AfterUpdate,
   BeforeUpdate,
+  BeforeCreate,
 } from "sequelize-typescript";
 import { TeamPreferenceDefaults } from "@shared/constants";
-import {
-  CollectionPermission,
-  TeamPreference,
-  TeamPreferences,
-} from "@shared/types";
+import { TeamPreference, TeamPreferences, UserRole } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
@@ -48,8 +47,6 @@ import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
-const readFile = util.promisify(fs.readFile);
-
 @Scopes(() => ({
   withDomains: {
     include: [{ model: TeamDomain }],
@@ -65,7 +62,10 @@ const readFile = util.promisify(fs.readFile);
 }))
 @Table({ tableName: "teams", modelName: "team" })
 @Fix
-class Team extends ParanoidModel {
+class Team extends ParanoidModel<
+  InferAttributes<Team>,
+  Partial<InferCreationAttributes<Team>>
+> {
   @NotContainsUrl
   @Length({ min: 2, max: 255, msg: "name must be between 2 to 255 characters" })
   @Column
@@ -127,7 +127,6 @@ class Team extends ParanoidModel {
   @Column
   inviteRequired: boolean;
 
-  @Default(true)
   @Column(DataType.JSONB)
   signupQueryParams: { [key: string]: string } | null;
 
@@ -143,10 +142,14 @@ class Team extends ParanoidModel {
   @Column
   memberCollectionCreate: boolean;
 
-  @Default("member")
-  @IsIn([["viewer", "member"]])
+  @Default(true)
   @Column
-  defaultUserRole: string;
+  memberTeamCreate: boolean;
+
+  @Default(UserRole.Member)
+  @IsIn([[UserRole.Viewer, UserRole.Member]])
+  @Column(DataType.STRING)
+  defaultUserRole: UserRole;
 
   @AllowNull
   @Column(DataType.JSONB)
@@ -155,6 +158,10 @@ class Team extends ParanoidModel {
   @IsDate
   @Column
   suspendedAt: Date | null;
+
+  @IsDate
+  @Column
+  lastActiveAt: Date | null;
 
   // getters
 
@@ -221,8 +228,11 @@ class Team extends ParanoidModel {
     if (!this.preferences) {
       this.preferences = {};
     }
-    this.preferences[preference] = value;
-    this.changed("preferences", true);
+
+    this.preferences = {
+      ...this.preferences,
+      [preference]: value,
+    };
 
     return this.preferences;
   };
@@ -238,59 +248,28 @@ class Team extends ParanoidModel {
     TeamPreferenceDefaults[preference] ??
     false;
 
-  provisionFirstCollection = async (userId: string) => {
-    await this.sequelize!.transaction(async (transaction) => {
-      const collection = await Collection.create(
-        {
-          name: "Welcome",
-          description: `This collection is a quick guide to what ${env.APP_NAME} is all about. Feel free to delete this collection once your team is up to speed with the basics!`,
-          teamId: this.id,
-          createdById: userId,
-          sort: Collection.DEFAULT_SORT,
-          permission: CollectionPermission.ReadWrite,
-        },
-        {
-          transaction,
-        }
-      );
+  /**
+   * Updates the lastActiveAt timestamp to the current time.
+   *
+   * @param force Whether to force the update even if the last update was recent
+   * @returns A promise that resolves with the updated team
+   */
+  public updateActiveAt = async (force = false) => {
+    const fiveMinutesAgo = subMinutes(new Date(), 5);
 
-      // For the first collection we go ahead and create some intitial documents to get
-      // the team started. You can edit these in /server/onboarding/x.md
-      const onboardingDocs = [
-        "Integrations & API",
-        "Our Editor",
-        "Getting Started",
-        "What is Outline",
-      ];
+    // ensure this is updated only every few minutes otherwise
+    // we'll be constantly writing to the DB as API requests happen
+    if (!this.lastActiveAt || this.lastActiveAt < fiveMinutesAgo || force) {
+      this.lastActiveAt = new Date();
+    }
 
-      for (const title of onboardingDocs) {
-        const text = await readFile(
-          path.join(process.cwd(), "server", "onboarding", `${title}.md`),
-          "utf8"
-        );
-        const document = await Document.create(
-          {
-            version: 2,
-            isWelcome: true,
-            parentDocumentId: null,
-            collectionId: collection.id,
-            teamId: collection.teamId,
-            userId: collection.createdById,
-            lastModifiedById: collection.createdById,
-            createdById: collection.createdById,
-            title,
-            text,
-          },
-          { transaction }
-        );
-        await document.publish(collection.createdById, collection.id, {
-          transaction,
-        });
-      }
+    // Save only writes to the database if there are changes
+    return this.save({
+      hooks: false,
     });
   };
 
-  public collectionIds = async function (this: Team, paranoid = true) {
+  public collectionIds = async function (paranoid = true) {
     const models = await Collection.findAll({
       attributes: ["id"],
       where: {
@@ -342,6 +321,18 @@ class Team extends ParanoidModel {
 
   // hooks
 
+  @BeforeCreate
+  static async setPreferences(model: Team) {
+    // Set here rather than in TeamPreferenceDefaults as we only want to enable by default for new
+    // workspaces.
+    model.setPreference(TeamPreference.MembersCanInvite, true);
+
+    // Set last active at on creation.
+    model.lastActiveAt = new Date();
+
+    return model;
+  }
+
   @BeforeUpdate
   static async checkDomain(model: Team, options: SaveOptions) {
     if (!model.domain) {
@@ -366,14 +357,9 @@ class Team extends ParanoidModel {
 
   @AfterUpdate
   static deletePreviousAvatar = async (model: Team) => {
-    if (
-      model.previous("avatarUrl") &&
-      model.previous("avatarUrl") !== model.avatarUrl
-    ) {
-      const attachmentIds = parseAttachmentIds(
-        model.previous("avatarUrl"),
-        true
-      );
+    const previousAvatarUrl = model.previous("avatarUrl");
+    if (previousAvatarUrl && previousAvatarUrl !== model.avatarUrl) {
+      const attachmentIds = parseAttachmentIds(previousAvatarUrl, true);
       if (!attachmentIds.length) {
         return;
       }

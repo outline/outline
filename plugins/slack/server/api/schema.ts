@@ -8,6 +8,7 @@ export const HooksUnfurlSchema = z.object({
     .or(
       z.object({
         token: z.string(),
+        team_id: z.string(),
         event: z.object({
           channel: z.string(),
           message_ts: z.string(),

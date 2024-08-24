@@ -7,9 +7,10 @@
       "roots": ["<rootDir>/server", "<rootDir>/plugins"],
       "moduleNameMapper": {
         "^@server/(.*)$": "<rootDir>/server/$1",
-        "^@shared/(.*)$": "<rootDir>/shared/$1"
+        "^@shared/(.*)$": "<rootDir>/shared/$1",
+        "react-medium-image-zoom": "<rootDir>/__mocks__/react-medium-image-zoom.js"
       },
-      "setupFiles": ["<rootDir>/__mocks__/console.js", "<rootDir>/server/test/env.ts"],
+      "setupFiles": ["<rootDir>/__mocks__/console.js"],
       "setupFilesAfterEnv": ["<rootDir>/server/test/setup.ts"],
       "globalSetup": "<rootDir>/server/test/globalSetup.js",
       "globalTeardown": "<rootDir>/server/test/globalTeardown.js",
@@ -22,7 +23,8 @@
         "^~/(.*)$": "<rootDir>/app/$1",
         "^@shared/(.*)$": "<rootDir>/shared/$1",
         "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js",
-        "^uuid$": "<rootDir>/node_modules/uuid/dist/index.js"
+        "^uuid$": "<rootDir>/node_modules/uuid/dist/index.js",
+        "react-medium-image-zoom": "<rootDir>/__mocks__/react-medium-image-zoom.js"
       },
       "modulePaths": ["<rootDir>/app"],
       "setupFiles": ["<rootDir>/__mocks__/window.js"],
@@ -37,7 +39,8 @@
       "roots": ["<rootDir>/shared"],
       "moduleNameMapper": {
         "^@server/(.*)$": "<rootDir>/server/$1",
-        "^@shared/(.*)$": "<rootDir>/shared/$1"
+        "^@shared/(.*)$": "<rootDir>/shared/$1",
+        "react-medium-image-zoom": "<rootDir>/__mocks__/react-medium-image-zoom.js"
       },
       "setupFiles": ["<rootDir>/__mocks__/console.js"],
       "setupFilesAfterEnv": ["<rootDir>/shared/test/setup.ts"],
@@ -50,7 +53,8 @@
         "^~/(.*)$": "<rootDir>/app/$1",
         "^@shared/(.*)$": "<rootDir>/shared/$1",
         "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js",
-        "^uuid$": "<rootDir>/node_modules/uuid/dist/index.js"
+        "^uuid$": "<rootDir>/node_modules/uuid/dist/index.js",
+        "react-medium-image-zoom": "<rootDir>/__mocks__/react-medium-image-zoom.js"
       },
       "setupFiles": ["<rootDir>/__mocks__/window.js"],
       "testEnvironment": "jsdom",

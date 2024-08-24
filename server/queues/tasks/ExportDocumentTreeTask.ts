@@ -6,10 +6,10 @@ import Logger from "@server/logging/Logger";
 import { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import Document from "@server/models/Document";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
-import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import ExportTask from "./ExportTask";
 
 export default abstract class ExportDocumentTreeTask extends ExportTask {
@@ -48,7 +48,9 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         : DocumentHelper.toMarkdown(document);
 
     const attachmentIds = includeAttachments
-      ? parseAttachmentIds(document.text)
+      ? ProsemirrorHelper.parseAttachmentIds(
+          DocumentHelper.toProsemirror(document)
+        )
       : [];
     const attachments = attachmentIds.length
       ? await Attachment.findAll({
@@ -210,6 +212,10 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       }
 
       map.set(node.url, filePath);
+
+      // If this is an imported document, the references to this doc are in the 'doc/{docId}' format.
+      // Set this format to replace them with relative URLs in the zip.
+      map.set(`/doc/${node.id}`, filePath);
 
       if (node.children?.length) {
         this.addDocumentTreeToPathMap(

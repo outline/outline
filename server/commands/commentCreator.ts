@@ -1,4 +1,5 @@
 import { Transaction } from "sequelize";
+import { ProsemirrorData } from "@shared/types";
 import { Comment, User, Event } from "@server/models";
 
 type Props = {
@@ -6,7 +7,7 @@ type Props = {
   /** The user creating the comment */
   user: User;
   /** The comment as data in Prosemirror schema format */
-  data: Record<string, any>;
+  data: ProsemirrorData;
   /** The document to comment within */
   documentId: string;
   /** The parent comment we're replying to, if any */

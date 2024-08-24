@@ -18,8 +18,14 @@ type Props = {
   ctx: APIContext;
 };
 
-function getKeyForFileOp(teamId: string, name: string) {
-  return `${Buckets.uploads}/${teamId}/${uuidv4()}/${name}-export.zip`;
+function getKeyForFileOp(
+  teamId: string,
+  format: FileOperationFormat,
+  name: string
+) {
+  return `${
+    Buckets.uploads
+  }/${teamId}/${uuidv4()}/${name}-export.${format.replace(/outline-/, "")}.zip`;
 }
 
 async function collectionExporter({
@@ -31,7 +37,11 @@ async function collectionExporter({
   ctx,
 }: Props) {
   const collectionId = collection?.id;
-  const key = getKeyForFileOp(user.teamId, collection?.name || team.name);
+  const key = getKeyForFileOp(
+    user.teamId,
+    format,
+    collection?.name || team.name
+  );
   const fileOperation = await FileOperation.createWithCtx(ctx, {
     type: FileOperationType.Export,
     state: FileOperationState.Creating,
@@ -40,7 +50,9 @@ async function collectionExporter({
     url: null,
     size: 0,
     collectionId,
-    includeAttachments,
+    options: {
+      includeAttachments,
+    },
     userId: user.id,
     teamId: user.teamId,
   });

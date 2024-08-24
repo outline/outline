@@ -45,7 +45,7 @@ function GroupEdit({ group, onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           You can edit the name of this group at any time, however doing so too
           often might confuse your team mates.

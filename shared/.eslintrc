@@ -1,0 +1,30 @@
+{
+  "extends": [
+    "../.eslintrc",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended"
+  ],
+  "plugins": [
+    "eslint-plugin-react-hooks"
+  ],
+  "rules": {
+    "@typescript-eslint/no-restricted-imports": ["error", {
+      "patterns": [{
+        "group": ["@shared/*"],
+        "message": "Use relative imports."
+      }, {
+        "allowTypeImports": true,
+        "group": ["~/*"],
+        "message": "Do not reference app code from shared code."
+      }, {
+        "allowTypeImports": true,
+        "group": ["@server/*"],
+        "message": "Do not reference server code from shared code."
+      }]
+    }]
+  },
+  "env": {
+    "jest": true,
+    "browser": true
+  }
+}

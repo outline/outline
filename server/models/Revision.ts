@@ -1,4 +1,9 @@
-import { Op, SaveOptions } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  Op,
+  SaveOptions,
+} from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -15,6 +20,7 @@ import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
+import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 
 @DefaultScope(() => ({
@@ -28,10 +34,13 @@ import Length from "./validators/Length";
 }))
 @Table({ tableName: "revisions", modelName: "revision" })
 @Fix
-class Revision extends IdModel {
+class Revision extends IdModel<
+  InferAttributes<Revision>,
+  Partial<InferCreationAttributes<Revision>>
+> {
   @IsNumeric
   @Column(DataType.SMALLINT)
-  version: number;
+  version?: number | null;
 
   @SimpleLength({
     max: 255,
@@ -60,14 +69,20 @@ class Revision extends IdModel {
    * The content of the revision as JSON.
    */
   @Column(DataType.JSONB)
-  content: ProsemirrorData;
+  content: ProsemirrorData | null;
 
+  /** An icon to use as the document icon. */
   @Length({
-    max: 1,
-    msg: `Emoji must be a single character`,
+    max: 50,
+    msg: `icon must be 50 characters or less`,
   })
   @Column
-  emoji: string | null;
+  icon: string | null;
+
+  /** The color of the icon. */
+  @IsHexColor
+  @Column
+  color: string | null;
 
   // associations
 
@@ -112,7 +127,8 @@ class Revision extends IdModel {
     return this.build({
       title: document.title,
       text: document.text,
-      emoji: document.emoji,
+      icon: document.icon,
+      color: document.color,
       content: document.content,
       userId: document.lastModifiedById,
       editorVersion: document.editorVersion,
@@ -133,7 +149,7 @@ class Revision extends IdModel {
    */
   static createFromDocument(
     document: Document,
-    options?: SaveOptions<Revision>
+    options?: SaveOptions<InferAttributes<Revision>>
   ) {
     const revision = this.buildFromDocument(document);
     return revision.save(options);

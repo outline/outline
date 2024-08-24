@@ -1,7 +1,7 @@
 import { DefaultState } from "koa";
 import randomstring from "randomstring";
 import ApiKey from "@server/models/ApiKey";
-import { buildUser, buildTeam } from "@server/test/factories";
+import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
 import auth from "./authentication";
 
 describe("Authentication middleware", () => {
@@ -156,7 +156,7 @@ describe("Authentication middleware", () => {
 
   it("should return an error for suspended users", async () => {
     const state = {} as DefaultState;
-    const admin = await buildUser();
+    const admin = await buildAdmin();
     const user = await buildUser({
       suspendedAt: new Date(),
       suspendedById: admin.id,

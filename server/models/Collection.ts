@@ -3,13 +3,13 @@ import find from "lodash/find";
 import findIndex from "lodash/findIndex";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
-import randomstring from "randomstring";
 import {
   Identifier,
   Transaction,
-  Op,
   FindOptions,
   NonNullFindOptions,
+  InferAttributes,
+  InferCreationAttributes,
 } from "sequelize";
 import {
   Sequelize,
@@ -31,23 +31,25 @@ import {
   BeforeDestroy,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
-import type { CollectionSort } from "@shared/types";
+import type { CollectionSort, ProsemirrorData } from "@shared/types";
 import { CollectionPermission, NavigationNode } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
-import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
+import { generateUrlId } from "@server/utils/url";
 import Document from "./Document";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
-import GroupPermission from "./GroupPermission";
+import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
-import UserPermission from "./UserPermission";
+import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
@@ -56,23 +58,13 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withAllMemberships: {
     include: [
       {
-        model: UserPermission,
+        model: UserMembership,
         as: "memberships",
-        where: {
-          collectionId: {
-            [Op.ne]: null,
-          },
-        },
         required: false,
       },
       {
-        model: GroupPermission,
-        as: "collectionGroupMemberships",
-        where: {
-          collectionId: {
-            [Op.ne]: null,
-          },
-        },
+        model: GroupMembership,
+        as: "groupMemberships",
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -89,7 +81,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
             include: [
               {
                 model: GroupUser,
-                as: "groupMemberships",
+                as: "groupUsers",
                 required: true,
               },
             ],
@@ -110,24 +102,16 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   withMembership: (userId: string) => ({
     include: [
       {
-        model: UserPermission,
+        model: UserMembership,
         as: "memberships",
         where: {
           userId,
-          collectionId: {
-            [Op.ne]: null,
-          },
         },
         required: false,
       },
       {
-        model: GroupPermission,
-        as: "collectionGroupMemberships",
-        where: {
-          collectionId: {
-            [Op.ne]: null,
-          },
-        },
+        model: GroupMembership,
+        as: "groupMemberships",
         required: false,
         // use of "separate" property: sequelize breaks when there are
         // nested "includes" with alternating values for "required"
@@ -144,7 +128,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
             include: [
               {
                 model: GroupUser,
-                as: "groupMemberships",
+                as: "groupUsers",
                 required: true,
                 where: {
                   userId,
@@ -159,7 +143,10 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 }))
 @Table({ tableName: "collections", modelName: "collection" })
 @Fix
-class Collection extends ParanoidModel {
+class Collection extends ParanoidModel<
+  InferAttributes<Collection>,
+  Partial<InferCreationAttributes<Collection>>
+> {
   @SimpleLength({
     min: 10,
     max: 10,
@@ -177,6 +164,12 @@ class Collection extends ParanoidModel {
   @Column
   name: string;
 
+  /**
+   * The content of the collection as Markdown.
+   *
+   * @deprecated Use `content` instead, or `DocumentHelper.toMarkdown` if exporting lossy markdown.
+   * This column will be removed in a future migration.
+   */
   @Length({
     max: CollectionValidation.maxDescriptionLength,
     msg: `description must be ${CollectionValidation.maxDescriptionLength} characters or less`,
@@ -184,6 +177,13 @@ class Collection extends ParanoidModel {
   @Column
   description: string | null;
 
+  /**
+   * The content of the collection as JSON, this is a snapshot at the last time the state was saved.
+   */
+  @Column(DataType.JSONB)
+  content: ProsemirrorData | null;
+
+  /** An icon (or) emoji to use as the collection icon. */
   @Length({
     max: 50,
     msg: `icon must be 50 characters or less`,
@@ -191,13 +191,14 @@ class Collection extends ParanoidModel {
   @Column
   icon: string | null;
 
+  /** The color of the icon. */
   @IsHexColor
   @Column
   color: string | null;
 
   @Length({
-    max: 100,
-    msg: `index must be 100 characters or less`,
+    max: 256,
+    msg: `index must be 256 characters or less`,
   })
   @Column
   index: string | null;
@@ -245,7 +246,17 @@ class Collection extends ParanoidModel {
 
   // getters
 
+  /**
+   * The frontend path to this collection.
+   *
+   * @deprecated Use `path` instead.
+   */
   get url(): string {
+    return this.path;
+  }
+
+  /** The frontend path to this collection. */
+  get path(): string {
     if (!this.name) {
       return `/collection/untitled-${this.urlId}`;
     }
@@ -256,13 +267,13 @@ class Collection extends ParanoidModel {
 
   @BeforeValidate
   static async onBeforeValidate(model: Collection) {
-    model.urlId = model.urlId || randomstring.generate(10);
+    model.urlId = model.urlId || generateUrlId();
   }
 
   @BeforeSave
   static async onBeforeSave(model: Collection) {
-    if (model.icon === "collection") {
-      model.icon = null;
+    if (!model.content) {
+      model.content = await DocumentHelper.toJSON(model);
     }
   }
 
@@ -283,7 +294,7 @@ class Collection extends ParanoidModel {
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    return UserPermission.findOrCreate({
+    return UserMembership.findOrCreate({
       where: {
         collectionId: model.id,
         userId: model.createdById,
@@ -308,16 +319,16 @@ class Collection extends ParanoidModel {
   @HasMany(() => Document, "collectionId")
   documents: Document[];
 
-  @HasMany(() => UserPermission, "collectionId")
-  memberships: UserPermission[];
+  @HasMany(() => UserMembership, "collectionId")
+  memberships: UserMembership[];
 
-  @HasMany(() => GroupPermission, "collectionId")
-  collectionGroupMemberships: GroupPermission[];
+  @HasMany(() => GroupMembership, "collectionId")
+  groupMemberships: GroupMembership[];
 
-  @BelongsToMany(() => User, () => UserPermission)
+  @BelongsToMany(() => User, () => UserMembership)
   users: User[];
 
-  @BelongsToMany(() => Group, () => GroupPermission)
+  @BelongsToMany(() => Group, () => GroupMembership)
   groups: Group[];
 
   @BelongsTo(() => User, "createdById")
@@ -356,8 +367,8 @@ class Collection extends ParanoidModel {
       return [];
     }
 
-    const groupMemberships = collection.collectionGroupMemberships
-      .map((cgm) => cgm.group.groupMemberships)
+    const groupMemberships = collection.groupMemberships
+      .map((cgm) => cgm.group.groupUsers)
       .flat();
     const membershipUserIds = [
       ...groupMemberships,
@@ -398,7 +409,7 @@ class Collection extends ParanoidModel {
       });
     }
 
-    const match = id.match(SLUG_URL_REGEX);
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
       return this.findOne({
         where: {
@@ -414,13 +425,18 @@ class Collection extends ParanoidModel {
   /**
    * Find the first collection that the specified user has access to.
    *
-   * @param user User object
+   * @param user User to find the collection for
+   * @param options Additional options for the query
    * @returns collection First collection in the sidebar order
    */
-  static async findFirstCollectionForUser(user: User) {
+  static async findFirstCollectionForUser(
+    user: User,
+    options: FindOptions = {}
+  ) {
     const id = await user.collectionIds();
     return this.findOne({
       where: {
+        teamId: user.teamId,
         id,
       },
       order: [
@@ -428,6 +444,7 @@ class Collection extends ParanoidModel {
         Sequelize.literal('"collection"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
+      ...options,
     });
   }
 
@@ -645,6 +662,10 @@ class Collection extends ParanoidModel {
   ) {
     if (!this.documentStructure) {
       this.documentStructure = [];
+    }
+
+    if (this.getDocumentTree(document.id)) {
+      return this;
     }
 
     // If moving existing document with children, use existing structure

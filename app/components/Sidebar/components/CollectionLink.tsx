@@ -6,6 +6,7 @@ import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { NavigationNode } from "@shared/types";
+import { CollectionValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import DocumentReparent from "~/scenes/DocumentReparent";
@@ -19,7 +20,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import DropToImport from "./DropToImport";
-import EditableTitle from "./EditableTitle";
+import EditableTitle, { RefHandle } from "./EditableTitle";
 import Relative from "./Relative";
 import SidebarLink, { DragObject } from "./SidebarLink";
 import { useStarredContext } from "./StarredContext";
@@ -48,13 +49,14 @@ const CollectionLink: React.FC<Props> = ({
   const { t } = useTranslation();
   const history = useHistory();
   const inStarredSection = useStarredContext();
+  const editableTitleRef = React.useRef<RefHandle>(null);
 
   const handleTitleChange = React.useCallback(
     async (name: string) => {
       await collection.save({
         name,
       });
-      history.replace(collection.url, history.location.state);
+      history.replace(collection.path, history.location.state);
     },
     [collection, history]
   );
@@ -98,7 +100,7 @@ const CollectionLink: React.FC<Props> = ({
           ),
         });
       } else {
-        await documents.move(id, collection.id);
+        await documents.move({ documentId: id, collectionId: collection.id });
 
         if (!expanded) {
           onDisclosureClick();
@@ -114,8 +116,8 @@ const CollectionLink: React.FC<Props> = ({
     }),
   });
 
-  const handleTitleEditing = React.useCallback((isEditing: boolean) => {
-    setIsEditing(isEditing);
+  const handleTitleEditing = React.useCallback((value: boolean) => {
+    setIsEditing(value);
   }, []);
 
   const handlePrefetch = React.useCallback(() => {
@@ -133,7 +135,7 @@ const CollectionLink: React.FC<Props> = ({
         <DropToImport collectionId={collection.id}>
           <SidebarLink
             to={{
-              pathname: collection.url,
+              pathname: collection.path,
               state: { starred: inStarredSection },
             }}
             expanded={expanded}
@@ -153,6 +155,8 @@ const CollectionLink: React.FC<Props> = ({
                 onSubmit={handleTitleChange}
                 onEditing={handleTitleEditing}
                 canUpdate={can.update}
+                maxLength={CollectionValidation.maxNameLength}
+                ref={editableTitleRef}
               />
             }
             exact={false}
@@ -162,7 +166,7 @@ const CollectionLink: React.FC<Props> = ({
               !isDraggingAnyCollection && (
                 <Fade>
                   <NudeButton
-                    tooltip={{ tooltip: t("New doc"), delay: 500 }}
+                    tooltip={{ content: t("New doc"), delay: 500 }}
                     action={createDocument}
                     context={context}
                     hideOnActionDisabled
@@ -171,6 +175,9 @@ const CollectionLink: React.FC<Props> = ({
                   </NudeButton>
                   <CollectionMenu
                     collection={collection}
+                    onRename={() =>
+                      editableTitleRef.current?.setIsEditing(true)
+                    }
                     onOpen={handleMenuOpen}
                     onClose={handleMenuClose}
                   />

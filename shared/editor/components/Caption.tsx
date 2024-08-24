@@ -79,6 +79,10 @@ const Content = styled.p<{ $isSelected: boolean }>`
     color: ${s("placeholder")};
     content: attr(data-caption);
     pointer-events: none;
+
+    @media print {
+      display: none;
+    }
   }
 `;
 

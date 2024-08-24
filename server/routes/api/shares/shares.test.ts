@@ -1,5 +1,5 @@
 import { CollectionPermission } from "@shared/types";
-import { UserPermission, Share } from "@server/models";
+import { UserMembership, Share } from "@server/models";
 import {
   buildUser,
   buildDocument,
@@ -111,7 +111,7 @@ describe("#shares.list", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await document.delete(user.id);
+    await document.delete(user);
     const res = await server.post("/api/shares.list", {
       body: {
         token: user.getJwtToken(),
@@ -263,7 +263,7 @@ describe("#shares.create", () => {
     });
     collection.permission = null;
     await collection.save();
-    await UserPermission.update(
+    await UserMembership.update(
       {
         userId: user.id,
         permission: CollectionPermission.Read,
@@ -299,7 +299,7 @@ describe("#shares.create", () => {
     });
     collection.permission = null;
     await collection.save();
-    await UserPermission.update(
+    await UserMembership.update(
       {
         userId: user.id,
         permission: CollectionPermission.Read,
@@ -966,7 +966,7 @@ describe("#shares.revoke", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await document.delete(user.id);
+    await document.delete(user);
     const res = await server.post("/api/shares.revoke", {
       body: {
         token: user.getJwtToken(),

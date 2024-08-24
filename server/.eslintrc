@@ -13,7 +13,14 @@
       }
     ],
     "no-restricted-imports": ["error", {
-      "paths": ["fetch-with-proxy", "node-fetch"]
+      "name": "fetch-with-proxy",
+      "message": "Use `@server/utils/fetch` instead"
+    }, {
+      "name": "node-fetch",
+      "message": "Use `@server/utils/fetch` instead"
+    }, {
+      "name": "passport",
+      "message": "Use the `@outlinewiki/koa-passport` package"
     }]
   },
   "overrides": [

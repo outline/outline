@@ -2,11 +2,11 @@ import { LocationDescriptor } from "history";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import EventBoundary from "@shared/components/EventBoundary";
 import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
-import EventBoundary from "~/components/EventBoundary";
-import EmojiIcon from "~/components/Icons/EmojiIcon";
 import NudeButton from "~/components/NudeButton";
+import { UnreadBadge } from "~/components/UnreadBadge";
 import useUnmount from "~/hooks/useUnmount";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
@@ -26,9 +26,9 @@ type Props = Omit<NavLinkProps, "to"> & {
   onClickIntent?: () => void;
   onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
   icon?: React.ReactNode;
-  emoji?: string | null;
   label?: React.ReactNode;
   menu?: React.ReactNode;
+  unreadBadge?: boolean;
   showActions?: boolean;
   disabled?: boolean;
   active?: boolean;
@@ -50,7 +50,6 @@ function SidebarLink(
     onClick,
     onClickIntent,
     to,
-    emoji,
     label,
     active,
     isActiveDrop,
@@ -64,6 +63,7 @@ function SidebarLink(
     expanded,
     onDisclosureClick,
     disabled,
+    unreadBadge,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -139,8 +139,8 @@ function SidebarLink(
             />
           )}
           {icon && <IconWrapper>{icon}</IconWrapper>}
-          {emoji && <EmojiIcon emoji={emoji} />}
           <Label>{label}</Label>
+          {unreadBadge && <UnreadBadge />}
         </Content>
       </Link>
       {menu && <Actions showActions={showActions}>{menu}</Actions>}

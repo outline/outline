@@ -20,15 +20,18 @@ type Props = PopoverProps & {
   hide: () => void;
 };
 
-const Popover: React.FC<Props> = ({
-  children,
-  shrink,
-  width = 380,
-  scrollable = true,
-  flex,
-  mobilePosition,
-  ...rest
-}: Props) => {
+const Popover = (
+  {
+    children,
+    shrink,
+    width = 380,
+    scrollable = true,
+    flex,
+    mobilePosition,
+    ...rest
+  }: Props,
+  ref: React.Ref<HTMLDivElement>
+) => {
   const isMobile = useMobile();
 
   // Custom Escape handler rather than using hideOnEsc from reakit so we can
@@ -50,6 +53,7 @@ const Popover: React.FC<Props> = ({
     return (
       <Dialog {...rest} modal>
         <Contents
+          ref={ref}
           $shrink={shrink}
           $scrollable={scrollable}
           $flex={flex}
@@ -62,8 +66,9 @@ const Popover: React.FC<Props> = ({
   }
 
   return (
-    <ReakitPopover {...rest} hideOnEsc={false}>
+    <StyledPopover {...rest} hideOnEsc={false} hideOnClickOutside>
       <Contents
+        ref={ref}
         $shrink={shrink}
         $width={width}
         $scrollable={scrollable}
@@ -71,7 +76,7 @@ const Popover: React.FC<Props> = ({
       >
         {children}
       </Contents>
-    </ReakitPopover>
+    </StyledPopover>
   );
 };
 
@@ -82,6 +87,10 @@ type ContentsProps = {
   $scrollable: boolean;
   $mobilePosition?: "top" | "bottom";
 };
+
+const StyledPopover = styled(ReakitPopover)`
+  z-index: ${depths.modal};
+`;
 
 const Contents = styled.div<ContentsProps>`
   display: ${(props) => (props.$flex ? "flex" : "block")};
@@ -119,4 +128,4 @@ const Contents = styled.div<ContentsProps>`
   `};
 `;
 
-export default Popover;
+export default React.forwardRef(Popover);

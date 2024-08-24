@@ -1,8 +1,8 @@
-import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
 import { useMenuState } from "reakit";
 import { MenuButton } from "reakit/Menu";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { MenuItem } from "@shared/editor/types";
 import { s } from "@shared/styles";
 import ContextMenu from "~/components/ContextMenu";
@@ -20,41 +20,51 @@ type Props = {
 /*
  * Renders a dropdown menu in the floating toolbar.
  */
-function ToolbarDropdown(props: { item: MenuItem }) {
+function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
   const menu = useMenuState();
   const { commands, view } = useEditor();
   const { item } = props;
   const { state } = view;
 
   const items: TMenuItem[] = React.useMemo(() => {
-    const handleClick = (item: MenuItem) => () => {
-      if (!item.name) {
+    const handleClick = (menuItem: MenuItem) => () => {
+      if (!menuItem.name) {
         return;
       }
 
-      commands[item.name](
-        typeof item.attrs === "function" ? item.attrs(state) : item.attrs
+      commands[menuItem.name](
+        typeof menuItem.attrs === "function"
+          ? menuItem.attrs(state)
+          : menuItem.attrs
       );
     };
 
     return item.children
-      ? item.children.map((child) => ({
-          type: "button",
-          title: child.label,
-          icon: child.icon,
-          selected: child.active ? child.active(state) : false,
-          onClick: handleClick(child),
-        }))
+      ? item.children.map((child) => {
+          if (child.name === "separator") {
+            return { type: "separator", visible: child.visible };
+          }
+          return {
+            type: "button",
+            title: child.label,
+            icon: child.icon,
+            dangerous: child.dangerous,
+            visible: child.visible,
+            selected:
+              child.active !== undefined ? child.active(state) : undefined,
+            onClick: handleClick(child),
+          };
+        })
       : [];
   }, [item.children, commands, state]);
 
   return (
     <>
       <MenuButton {...menu}>
-        {(props) => (
-          <ToolbarButton {...props} hovering={menu.visible}>
+        {(buttonProps) => (
+          <ToolbarButton {...buttonProps} hovering={menu.visible}>
             {item.label && <Label>{item.label}</Label>}
-            <Arrow />
+            {item.icon}
           </ToolbarButton>
         )}
       </MenuButton>
@@ -93,11 +103,11 @@ function ToolbarMenu(props: Props) {
 
         return (
           <Tooltip
-            tooltip={item.label === item.tooltip ? undefined : item.tooltip}
+            content={item.label === item.tooltip ? undefined : item.tooltip}
             key={index}
           >
             {item.children ? (
-              <ToolbarDropdown item={item} />
+              <ToolbarDropdown active={isActive && !item.label} item={item} />
             ) : (
               <ToolbarButton
                 onClick={handleClick(item)}
@@ -119,11 +129,11 @@ const FlexibleWrapper = styled.div`
   overflow: hidden;
   display: flex;
   gap: 6px;
-`;
 
-const Arrow = styled(ExpandedIcon)`
-  margin-right: -4px;
-  color: ${s("textSecondary")};
+  ${breakpoint("mobile", "tablet")`
+    justify-content: space-evenly;
+    align-items: baseline;
+  `}
 `;
 
 const Label = styled.span`

@@ -33,7 +33,7 @@ const Profile = () => {
     setName(ev.target.value);
   };
 
-  const handleAvatarUpload = async (avatarUrl: string) => {
+  const handleAvatarChange = async (avatarUrl: string) => {
     await user.save({ avatarUrl });
     toast.success(t("Profile picture updated"));
   };
@@ -48,7 +48,7 @@ const Profile = () => {
   return (
     <Scene title={t("Profile")} icon={<ProfileIcon />}>
       <Heading>{t("Profile")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>Manage how you appear to other members of the workspace.</Trans>
       </Text>
 
@@ -59,7 +59,7 @@ const Profile = () => {
           description={t("Choose a photo or image to represent yourself.")}
         >
           <ImageInput
-            onSuccess={handleAvatarUpload}
+            onSuccess={handleAvatarChange}
             onError={handleAvatarError}
             model={user}
           />

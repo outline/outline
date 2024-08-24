@@ -1,5 +1,5 @@
 import { Comment, Event } from "@server/models";
-import { buildDocument, buildUser } from "@server/test/factories";
+import { buildComment, buildDocument, buildUser } from "@server/test/factories";
 import commentDestroyer from "./commentDestroyer";
 
 describe("commentDestroyer", () => {
@@ -12,24 +12,9 @@ describe("commentDestroyer", () => {
       teamId: user.teamId,
     });
 
-    const comment = await Comment.create({
-      teamId: document.teamId,
+    const comment = await buildComment({
+      userId: user.id,
       documentId: document.id,
-      data: {
-        type: "doc",
-        content: [
-          {
-            type: "paragraph",
-            content: [
-              {
-                type: "text",
-                text: "test",
-              },
-            ],
-          },
-        ],
-      },
-      createdById: user.id,
     });
 
     await commentDestroyer({

@@ -7,7 +7,10 @@ import { Event as TEvent, FileOperationEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class FileOperationDeletedProcessor extends BaseProcessor {
-  static applicableEvents: TEvent["name"][] = ["fileOperations.delete"];
+  static applicableEvents: TEvent["name"][] = [
+    "fileOperations.delete",
+    "fileOperations.update",
+  ];
 
   async perform(event: FileOperationEvent) {
     await sequelize.transaction(async (transaction) => {
@@ -16,9 +19,22 @@ export default class FileOperationDeletedProcessor extends BaseProcessor {
         paranoid: false,
         transaction,
       });
+      if (fileOperation.type === FileOperationType.Export) {
+        return;
+      }
+
       if (
-        fileOperation.type === FileOperationType.Export ||
-        fileOperation.state !== FileOperationState.Complete
+        event.name === "fileOperations.update" &&
+        fileOperation.state !== FileOperationState.Error
+      ) {
+        return;
+      }
+
+      if (
+        event.name === "fileOperations.delete" &&
+        ![FileOperationState.Complete, FileOperationState.Error].includes(
+          fileOperation.state
+        )
       ) {
         return;
       }

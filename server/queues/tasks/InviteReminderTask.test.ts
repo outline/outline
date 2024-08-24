@@ -1,4 +1,4 @@
-import { subDays } from "date-fns";
+import { subHours } from "date-fns";
 import InviteReminderEmail from "@server/emails/templates/InviteReminderEmail";
 import { buildInvite } from "@server/test/factories";
 import InviteReminderTask from "./InviteReminderTask";
@@ -9,7 +9,7 @@ describe("InviteReminderTask", () => {
 
     // too old
     await buildInvite({
-      createdAt: subDays(new Date(), 3.5),
+      createdAt: subHours(new Date(), 84),
     });
 
     // too new
@@ -19,7 +19,7 @@ describe("InviteReminderTask", () => {
 
     // should send reminder
     await buildInvite({
-      createdAt: subDays(new Date(), 2.5),
+      createdAt: subHours(new Date(), 60),
     });
 
     const task = new InviteReminderTask();

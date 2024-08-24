@@ -44,7 +44,7 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
         >
           <Content gap={8} align="center">
             {image}
-            {title && <Title as="span">{title}</Title>}
+            {title && <Title>{title}</Title>}
           </Content>
           {showMoreMenu && <StyledMoreIcon />}
         </Button>

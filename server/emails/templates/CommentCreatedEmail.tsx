@@ -4,8 +4,8 @@ import { Day } from "@shared/utils/time";
 import { Collection, Comment, Document } from "@server/models";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
-import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
-import TextHelper from "@server/models/helpers/TextHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -82,7 +82,7 @@ export default class CommentCreatedEmail extends BaseEmail<
 
     if (content) {
       // inline all css so that it works in as many email providers as possible.
-      body = HTMLHelper.inlineCSS(content);
+      body = await HTMLHelper.inlineCSS(content);
     }
 
     const isReply = !!comment.parentCommentId;

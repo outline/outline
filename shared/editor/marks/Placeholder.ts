@@ -1,6 +1,6 @@
 import { MarkSpec } from "prosemirror-model";
 import { Plugin, TextSelection } from "prosemirror-state";
-import getMarkRange from "../queries/getMarkRange";
+import { getMarkRange } from "../queries/getMarkRange";
 import markRule from "../rules/mark";
 import Mark from "./Mark";
 
@@ -38,6 +38,68 @@ export default class Placeholder extends Mark {
     return [
       new Plugin({
         props: {
+          handleDOMEvents: {
+            paste: (view) => {
+              if (this.editor.props.template || !view.editable) {
+                return false;
+              }
+              const { dispatch } = view;
+              const { schema, tr, doc, selection } = view.state;
+
+              const range =
+                getMarkRange(selection.$to, schema.marks.placeholder) ||
+                getMarkRange(
+                  doc.resolve(Math.max(0, selection.from - 1)),
+                  schema.marks.placeholder
+                );
+              if (range) {
+                dispatch(
+                  tr
+                    .removeMark(range.from, range.to, schema.marks.placeholder)
+                    .insertText("", range.from, range.to)
+                );
+              }
+              return false;
+            },
+            mousedown: (view, event) => {
+              if (this.editor.props.template || !view.editable) {
+                return false;
+              }
+              const { state, dispatch } = view;
+              const { schema, doc } = view.state;
+              const pos = view.posAtCoords({
+                left: event.clientX,
+                top: event.clientY,
+              });
+              if (!pos) {
+                return false;
+              }
+
+              const range =
+                getMarkRange(doc.resolve(pos.pos), schema.marks.placeholder) ||
+                getMarkRange(
+                  doc.resolve(Math.max(0, pos.pos - 1)),
+                  schema.marks.placeholder
+                );
+              if (!range) {
+                return false;
+              }
+
+              event.stopPropagation();
+              event.preventDefault();
+              const startOfMark = state.doc.resolve(range.from);
+              dispatch(
+                state.tr
+                  .setSelection(TextSelection.near(startOfMark))
+                  .scrollIntoView()
+              );
+
+              // Because we're preventing default, we need to focus the editor
+              view.focus();
+
+              return true;
+            },
+          },
           handleTextInput: (view, from, to, text) => {
             if (this.editor.props.template) {
               return false;
@@ -70,10 +132,7 @@ export default class Placeholder extends Mark {
             return true;
           },
           handleKeyDown: (view, event: KeyboardEvent) => {
-            if (!view.props.editable || !view.props.editable(view.state)) {
-              return false;
-            }
-            if (this.editor.props.template) {
+            if (this.editor.props.template || !view.editable) {
               return false;
             }
             if (
@@ -135,36 +194,6 @@ export default class Placeholder extends Mark {
               return true;
             }
 
-            return false;
-          },
-          handleClick: (view, pos, event: MouseEvent) => {
-            if (!view.props.editable || !view.props.editable(view.state)) {
-              return false;
-            }
-            if (this.editor.props.template) {
-              return false;
-            }
-
-            if (
-              event.target instanceof HTMLSpanElement &&
-              event.target.className.includes("template-placeholder")
-            ) {
-              const { state, dispatch } = view;
-              const range = getMarkRange(
-                state.selection.$from,
-                state.schema.marks.placeholder
-              );
-              if (!range) {
-                return false;
-              }
-
-              event.stopPropagation();
-              event.preventDefault();
-              const startOfMark = state.doc.resolve(range.from);
-              dispatch(state.tr.setSelection(TextSelection.near(startOfMark)));
-
-              return true;
-            }
             return false;
           },
         },

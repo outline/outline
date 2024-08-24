@@ -48,7 +48,10 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
       setIsSaving(true);
 
       try {
-        await documents.move(item.id, collection.id);
+        await documents.move({
+          documentId: item.id,
+          collectionId: collection.id,
+        });
         toast.message(t("Document moved"));
         onSubmit();
       } catch (err) {
@@ -63,7 +66,7 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
-        <Text type="secondary">
+        <Text as="p" type="secondary">
           <Trans
             defaults="Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}."
             values={{

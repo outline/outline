@@ -5,7 +5,6 @@ import FormData from "form-data";
 import { ensureDirSync } from "fs-extra";
 import { v4 as uuidV4 } from "uuid";
 import env from "@server/env";
-import "@server/test/env";
 import FileStorage from "@server/storage/files";
 import { buildAttachment, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";

@@ -17,6 +17,7 @@ import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 
@@ -28,9 +29,10 @@ type Props = {
 function AddPeopleToGroup(props: Props) {
   const { group } = props;
 
-  const { users, groupMemberships } = useStores();
+  const { users, groupUsers } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
+  const can = usePolicy(team);
 
   const [query, setQuery] = React.useState("");
   const [inviteModalOpen, handleInviteModalOpen, handleInviteModalClose] =
@@ -53,7 +55,7 @@ function AddPeopleToGroup(props: Props) {
 
   const handleAddUser = async (user: User) => {
     try {
-      await groupMemberships.create({
+      await groupUsers.create({
         groupId: group.id,
         userId: user.id,
       });
@@ -73,15 +75,19 @@ function AddPeopleToGroup(props: Props) {
 
   return (
     <Flex column>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         {t(
           "Add members below to give them access to the group. Need to add someone who’s not yet a member?"
         )}{" "}
-        <ButtonLink onClick={handleInviteModalOpen}>
-          {t("Invite them to {{teamName}}", {
-            teamName: team.name,
-          })}
-        </ButtonLink>
+        {can.inviteUser ? (
+          <ButtonLink onClick={handleInviteModalOpen}>
+            {t("Invite them to {{teamName}}", {
+              teamName: team.name,
+            })}
+          </ButtonLink>
+        ) : (
+          t("Ask an admin to invite them first")
+        )}
         .
       </Text>
       <Input

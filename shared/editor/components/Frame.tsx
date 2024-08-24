@@ -8,14 +8,23 @@ import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 
 type Props = Omit<Optional<HTMLIFrameElement>, "children"> & {
+  /** The URL to load in the iframe */
   src?: string;
+  /** Whether to display a border, defaults to true */
   border?: boolean;
+  /** The aria title of the frame */
   title?: string;
+  /** An icon to display under the frame representing the service */
   icon?: React.ReactNode;
+  /** The canonical URL of the content */
   canonicalUrl?: string;
+  /** Whether the node is currently selected */
   isSelected?: boolean;
+  /** The width of the frame */
   width?: string;
+  /** The height of the frame */
   height?: string;
+  /** The allow policy of the frame */
   allow?: string;
 };
 

@@ -5,10 +5,14 @@ import {
   AlignCenterIcon,
   InsertLeftIcon,
   InsertRightIcon,
+  ArrowIcon,
+  MoreIcon,
+  TableHeaderColumnIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
-import isNodeActive from "@shared/editor/queries/isNodeActive";
+import styled from "styled-components";
+import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 
@@ -58,22 +62,56 @@ export default function tableColMenuItems(
       name: "separator",
     },
     {
-      name: rtl ? "addColumnAfter" : "addColumnBefore",
-      tooltip: rtl ? dictionary.addColumnAfter : dictionary.addColumnBefore,
-      icon: <InsertLeftIcon />,
+      name: "sortTable",
+      tooltip: dictionary.sortAsc,
+      attrs: { index, direction: "asc" },
+      icon: <SortAscIcon />,
     },
     {
-      name: rtl ? "addColumnBefore" : "addColumnAfter",
-      tooltip: rtl ? dictionary.addColumnBefore : dictionary.addColumnAfter,
-      icon: <InsertRightIcon />,
+      name: "sortTable",
+      tooltip: dictionary.sortDesc,
+      attrs: { index, direction: "desc" },
+      icon: <SortDescIcon />,
     },
     {
       name: "separator",
     },
     {
-      name: "deleteColumn",
-      tooltip: dictionary.deleteColumn,
-      icon: <TrashIcon />,
+      icon: <MoreIcon />,
+      children: [
+        {
+          name: "toggleHeaderColumn",
+          label: dictionary.toggleHeader,
+          icon: <TableHeaderColumnIcon />,
+          visible: index === 0,
+        },
+        {
+          name: rtl ? "addColumnAfter" : "addColumnBefore",
+          label: rtl ? dictionary.addColumnAfter : dictionary.addColumnBefore,
+          icon: <InsertLeftIcon />,
+          attrs: { index },
+        },
+        {
+          name: rtl ? "addColumnBefore" : "addColumnAfter",
+          label: rtl ? dictionary.addColumnBefore : dictionary.addColumnAfter,
+          icon: <InsertRightIcon />,
+          attrs: { index },
+        },
+        {
+          name: "deleteColumn",
+          dangerous: true,
+          label: dictionary.deleteColumn,
+          icon: <TrashIcon />,
+        },
+      ],
     },
   ];
 }
+
+const SortAscIcon = styled(ArrowIcon)`
+  transform: rotate(-90deg);
+`;
+
+const SortDescIcon = styled(ArrowIcon)`
+  transform: rotate(90deg);
+`;

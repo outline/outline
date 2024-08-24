@@ -38,37 +38,38 @@ const uploadPlaceholder = new Plugin({
       set = set.map(mapping, tr.doc);
 
       if (action?.add) {
-        if (action.add.isImage) {
-          if (action.add.replaceExisting) {
-            const $pos = tr.doc.resolve(action.add.pos);
-
-            if ($pos.nodeAfter?.type.name === "image") {
-              const deco = Decoration.node(
-                $pos.pos,
-                $pos.pos + $pos.nodeAfter.nodeSize,
-                {
-                  class: "image-replacement-uploading",
-                },
-                {
-                  id: action.add.id,
-                }
-              );
-              set = set.add(tr.doc, [deco]);
-            }
-          } else {
-            const element = document.createElement("div");
-            element.className = "image placeholder";
-
-            const img = document.createElement("img");
-            img.src = URL.createObjectURL(action.add.file);
-
-            element.appendChild(img);
-
-            const deco = Decoration.widget(action.add.pos, element, {
-              id: action.add.id,
-            });
-            set = set.add(tr.doc, [deco]);
+        if (action.add.replaceExisting) {
+          const $pos = tr.doc.resolve(action.add.pos);
+          const nodeAfter = $pos.nodeAfter;
+          if (!nodeAfter) {
+            return;
           }
+
+          const deco = Decoration.node(
+            $pos.pos,
+            $pos.pos + nodeAfter.nodeSize,
+            {
+              class: `${nodeAfter.type.name}-replacement-uploading`,
+            },
+            {
+              id: action.add.id,
+            }
+          );
+          set = set.add(tr.doc, [deco]);
+        } else if (action.add.isImage) {
+          const element = document.createElement("div");
+          element.className = "image placeholder";
+
+          const img = document.createElement("img");
+          img.src = URL.createObjectURL(action.add.file);
+          img.style.width = `${action.add.dimensions?.width}px`;
+
+          element.appendChild(img);
+
+          const deco = Decoration.widget(action.add.pos, element, {
+            id: action.add.id,
+          });
+          set = set.add(tr.doc, [deco]);
         } else if (action.add.isVideo) {
           const element = document.createElement("div");
           element.className = "video placeholder";
@@ -77,6 +78,8 @@ const uploadPlaceholder = new Plugin({
           video.src = URL.createObjectURL(action.add.file);
           video.autoplay = false;
           video.controls = false;
+          video.width = action.add.dimensions?.width;
+          video.height = action.add.dimensions?.height;
 
           element.appendChild(video);
 

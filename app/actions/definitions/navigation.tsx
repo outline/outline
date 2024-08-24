@@ -3,7 +3,6 @@ import {
   SearchIcon,
   ArchiveIcon,
   TrashIcon,
-  EditIcon,
   OpenIcon,
   SettingsIcon,
   KeyboardIcon,
@@ -12,20 +11,17 @@ import {
   ProfileIcon,
   BrowserIcon,
   ShapesIcon,
+  DraftsIcon,
 } from "outline-icons";
 import * as React from "react";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isMac } from "@shared/utils/browser";
-import {
-  developersUrl,
-  changelogUrl,
-  feedbackUrl,
-  githubIssuesUrl,
-} from "@shared/utils/urlHelpers";
 import stores from "~/stores";
 import SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";
 import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
+import env from "~/env";
 import Desktop from "~/utils/Desktop";
 import history from "~/utils/history";
 import isCloudHosted from "~/utils/isCloudHosted";
@@ -61,7 +57,7 @@ export const navigateToDrafts = createAction({
   name: ({ t }) => t("Drafts"),
   analyticsName: "Navigate to drafts",
   section: NavigationSection,
-  icon: <EditIcon />,
+  icon: <DraftsIcon />,
   perform: () => history.push(draftsPath()),
   visible: ({ location }) => location.pathname !== draftsPath(),
 });
@@ -91,8 +87,7 @@ export const navigateToSettings = createAction({
   section: NavigationSection,
   shortcut: ["g", "s"],
   icon: <SettingsIcon />,
-  visible: ({ stores }) =>
-    stores.policies.abilities(stores.auth.team?.id || "").update,
+  visible: () => stores.policies.abilities(stores.auth.team?.id || "").update,
   perform: () => history.push(settingsPath()),
 });
 
@@ -132,13 +127,22 @@ export const navigateToAccountPreferences = createAction({
   perform: () => history.push(settingsPath("preferences")),
 });
 
+export const openDocumentation = createAction({
+  name: ({ t }) => t("Documentation"),
+  analyticsName: "Open documentation",
+  section: NavigationSection,
+  iconInContextMenu: false,
+  icon: <OpenIcon />,
+  perform: () => window.open(UrlHelper.guide),
+});
+
 export const openAPIDocumentation = createAction({
   name: ({ t }) => t("API documentation"),
   analyticsName: "Open API documentation",
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  perform: () => window.open(developersUrl()),
+  perform: () => window.open(UrlHelper.developers),
 });
 
 export const toggleSidebar = createAction({
@@ -146,7 +150,7 @@ export const toggleSidebar = createAction({
   analyticsName: "Toggle sidebar",
   keywords: "hide show navigation",
   section: NavigationSection,
-  perform: ({ stores }) => stores.ui.toggleCollapsedSidebar(),
+  perform: () => stores.ui.toggleCollapsedSidebar(),
 });
 
 export const openFeedbackUrl = createAction({
@@ -155,14 +159,14 @@ export const openFeedbackUrl = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <EmailIcon />,
-  perform: () => window.open(feedbackUrl()),
+  perform: () => window.open(UrlHelper.contact),
 });
 
 export const openBugReportUrl = createAction({
   name: ({ t }) => t("Report a bug"),
   analyticsName: "Open bug report",
   section: NavigationSection,
-  perform: () => window.open(githubIssuesUrl()),
+  perform: () => window.open(UrlHelper.github),
 });
 
 export const openChangelog = createAction({
@@ -171,7 +175,7 @@ export const openChangelog = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  perform: () => window.open(changelogUrl()),
+  perform: () => window.open(UrlHelper.changelog),
 });
 
 export const openKeyboardShortcuts = createAction({
@@ -209,7 +213,12 @@ export const logout = createAction({
   analyticsName: "Log out",
   section: NavigationSection,
   icon: <LogoutIcon />,
-  perform: () => stores.auth.logout(),
+  perform: async () => {
+    await stores.auth.logout();
+    if (env.OIDC_LOGOUT_URI) {
+      window.location.replace(env.OIDC_LOGOUT_URI);
+    }
+  },
 });
 
 export const rootNavigationActions = [
@@ -218,6 +227,7 @@ export const rootNavigationActions = [
   navigateToArchive,
   navigateToTrash,
   downloadApp,
+  openDocumentation,
   openAPIDocumentation,
   openFeedbackUrl,
   openBugReportUrl,

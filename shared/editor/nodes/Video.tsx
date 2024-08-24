@@ -39,6 +39,9 @@ export default class Video extends Node {
         title: {},
       },
       group: "block",
+      selectable: true,
+      // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1289000
+      draggable: false,
       defining: true,
       atom: true,
       parseDOM: [
@@ -68,7 +71,7 @@ export default class Video extends Node {
             width: node.attrs.width,
             height: node.attrs.height,
           },
-          node.attrs.title,
+          String(node.attrs.title),
         ],
       ],
       toPlainText: (node) => node.attrs.title,

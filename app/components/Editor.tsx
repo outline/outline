@@ -28,6 +28,7 @@ import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
+import Icon from "./Icon";
 
 const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 
@@ -89,6 +90,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
               title: document.title,
               subtitle: `Updated ${time}`,
               url: document.url,
+              icon: document.icon ? (
+                <Icon
+                  value={document.icon}
+                  color={document.color ?? undefined}
+                />
+              ) : undefined,
             },
           ];
         } catch (error) {
@@ -107,6 +114,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           title: document.title,
           subtitle: <DocumentBreadcrumb document={document} onlyText />,
           url: document.url,
+          icon: document.icon ? (
+            <Icon value={document.icon} color={document.color ?? undefined} />
+          ) : undefined,
         })),
         (document) =>
           deburr(document.title)
@@ -176,7 +186,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
       );
 
-      insertFiles(view, event, pos, files, {
+      return insertFiles(view, event, pos, files, {
         uploadFile: handleUploadFile,
         onFileUploadStart: props.onFileUploadStart,
         onFileUploadStop: props.onFileUploadStop,
@@ -218,8 +228,8 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   }, [localRef, onHeadingsChange]);
 
   const updateComments = React.useCallback(() => {
-    if (onCreateCommentMark && onDeleteCommentMark) {
-      const commentMarks = localRef.current?.getComments();
+    if (onCreateCommentMark && onDeleteCommentMark && localRef.current) {
+      const commentMarks = localRef.current.getComments();
       const commentIds = comments.orderedData.map((c) => c.id);
       const commentMarkIds = commentMarks?.map((c) => c.id);
       const newCommentIds = difference(
@@ -229,7 +239,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       );
 
       newCommentIds.forEach((commentId) => {
-        const mark = commentMarks?.find((c) => c.id === commentId);
+        const mark = commentMarks.find((c) => c.id === commentId);
         if (mark) {
           onCreateCommentMark(mark.id, mark.userId);
         }

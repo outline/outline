@@ -1,6 +1,6 @@
 import { NewDocumentIcon, ShapesIcon } from "outline-icons";
 import * as React from "react";
-import EmojiIcon from "~/components/Icons/EmojiIcon";
+import Icon from "~/components/Icon";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import history from "~/utils/history";
@@ -21,8 +21,8 @@ const useTemplatesActions = () => {
           name: item.titleWithDefault,
           analyticsName: "New document",
           section: DocumentSection,
-          icon: item.emoji ? (
-            <EmojiIcon emoji={item.emoji} />
+          icon: item.icon ? (
+            <Icon value={item.icon} color={item.color ?? undefined} />
           ) : (
             <NewDocumentIcon />
           ),

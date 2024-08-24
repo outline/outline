@@ -79,6 +79,8 @@ export default class ImportJSONTask extends ImportTask {
           // TODO: This is kind of temporary, we can import the document
           // structure directly in the future.
           text: serializer.serialize(Node.fromJSON(schema, node.data)),
+          icon: node.icon ?? node.emoji,
+          color: node.color,
           createdAt: node.createdAt ? new Date(node.createdAt) : undefined,
           updatedAt: node.updatedAt ? new Date(node.updatedAt) : undefined,
           publishedAt: node.publishedAt ? new Date(node.publishedAt) : null,
@@ -128,15 +130,14 @@ export default class ImportJSONTask extends ImportTask {
       }
 
       const collectionId = uuidv4();
+      const data = item.collection.description ?? item.collection.data;
+
       output.collections.push({
         ...item.collection,
         description:
-          item.collection.description &&
-          typeof item.collection.description === "object"
-            ? serializer.serialize(
-                Node.fromJSON(schema, item.collection.description)
-              )
-            : item.collection.description,
+          data && typeof data === "object"
+            ? serializer.serialize(Node.fromJSON(schema, data))
+            : data,
         id: collectionId,
         externalId: item.collection.id,
       });

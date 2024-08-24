@@ -3,13 +3,11 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
-import styled from "styled-components";
-import { ellipsis } from "@shared/styles";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
-import Header from "~/components/ContextMenu/Header";
 import Template from "~/components/ContextMenu/Template";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import TeamLogo from "~/components/TeamLogo";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -30,7 +28,16 @@ function NewTemplateMenu() {
     });
   }, [collections]);
 
-  const items = React.useMemo(
+  const workspaceItem: MenuItem | null = can.createTemplate
+    ? {
+        type: "route",
+        to: newTemplatePath(),
+        title: t("Save in workspace"),
+        icon: <TeamLogo model={team} />,
+      }
+    : null;
+
+  const collectionItems = React.useMemo(
     () =>
       collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
         const can = policies.abilities(collection.id);
@@ -39,7 +46,7 @@ function NewTemplateMenu() {
           filtered.push({
             type: "route",
             to: newTemplatePath(collection.id),
-            title: <CollectionName>{collection.name}</CollectionName>,
+            title: collection.name,
             icon: <CollectionIcon collection={collection} />,
           });
         }
@@ -49,7 +56,28 @@ function NewTemplateMenu() {
     [collections.orderedData, policies]
   );
 
-  if (!can.createDocument || items.length === 0) {
+  const collectionItemsWithHeader: MenuItem[] = React.useMemo(
+    () =>
+      collectionItems.length
+        ? [
+            { type: "heading", title: t("Choose a collection") },
+            ...collectionItems,
+          ]
+        : [],
+    [t, collectionItems]
+  );
+
+  const items = workspaceItem
+    ? collectionItemsWithHeader.length
+      ? [
+          workspaceItem,
+          { type: "separator" } as MenuItem,
+          ...collectionItemsWithHeader,
+        ]
+      : [workspaceItem]
+    : collectionItemsWithHeader;
+
+  if (items.length === 0) {
     return null;
   }
 
@@ -63,15 +91,10 @@ function NewTemplateMenu() {
         )}
       </MenuButton>
       <ContextMenu aria-label={t("New template")} {...menu}>
-        <Header>{t("Choose a collection")}</Header>
         <Template {...menu} items={items} />
       </ContextMenu>
     </>
   );
 }
-
-const CollectionName = styled.div`
-  ${ellipsis()}
-`;
 
 export default observer(NewTemplateMenu);

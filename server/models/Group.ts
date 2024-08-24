@@ -1,45 +1,32 @@
-import { Op } from "sequelize";
+import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
 import {
-  AfterDestroy,
   BelongsTo,
   Column,
   ForeignKey,
   Table,
   HasMany,
   BelongsToMany,
-  DefaultScope,
   DataType,
   Scopes,
 } from "sequelize-typescript";
-import GroupPermission from "./GroupPermission";
+import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
+import { CounterCache } from "./decorators/CounterCache";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
-@DefaultScope(() => ({
-  include: [
-    {
-      association: "groupMemberships",
-      required: false,
-    },
-  ],
-}))
 @Scopes(() => ({
-  withMember: (memberId: string) => ({
+  withMembership: (userId: string) => ({
     include: [
       {
-        association: "groupMemberships",
-        required: true,
-      },
-      {
-        association: "members",
+        association: "groupUsers",
         required: true,
         where: {
-          userId: memberId,
+          userId,
         },
       },
     ],
@@ -69,45 +56,28 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   },
 })
 @Fix
-class Group extends ParanoidModel {
+class Group extends ParanoidModel<
+  InferAttributes<Group>,
+  Partial<InferCreationAttributes<Group>>
+> {
   @Length({ min: 0, max: 255, msg: "name must be be 255 characters or less" })
   @NotContainsUrl
   @Column
   name: string;
 
-  // hooks
-
-  @AfterDestroy
-  static async deleteGroupUsers(model: Group) {
-    if (!model.deletedAt) {
-      return;
-    }
-    await GroupUser.destroy({
-      where: {
-        groupId: model.id,
-      },
-    });
-    await GroupPermission.destroy({
-      where: {
-        groupId: model.id,
-      },
-    });
-  }
-
-  static filterByMember(memberId: string | undefined) {
-    return memberId
-      ? this.scope({ method: ["withMember", memberId] })
+  static filterByMember(userId: string | undefined) {
+    return userId
+      ? this.scope({ method: ["withMembership", userId] })
       : this.scope("defaultScope");
   }
 
   // associations
 
   @HasMany(() => GroupUser, "groupId")
-  @HasMany(() => GroupUser, { as: "members", foreignKey: "groupId" })
-  groupMemberships: GroupUser[];
+  groupUsers: GroupUser[];
 
-  @HasMany(() => GroupPermission, "groupId")
-  collectionGroupMemberships: GroupPermission[];
+  @HasMany(() => GroupMembership, "groupId")
+  groupMemberships: GroupMembership[];
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
@@ -125,6 +95,9 @@ class Group extends ParanoidModel {
 
   @BelongsToMany(() => User, () => GroupUser)
   users: User[];
+
+  @CounterCache(() => GroupUser, { as: "members", foreignKey: "groupId" })
+  memberCount: Promise<number>;
 }
 
 export default Group;

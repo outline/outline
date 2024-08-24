@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { EditIcon, SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
+import { DraftsIcon, SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -24,6 +24,7 @@ import Collections from "./components/Collections";
 import DragPlaceholder from "./components/DragPlaceholder";
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
+import SharedWithMe from "./components/SharedWithMe";
 import SidebarAction from "./components/SidebarAction";
 import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
@@ -33,16 +34,18 @@ import TrashLink from "./components/TrashLink";
 
 function AppSidebar() {
   const { t } = useTranslation();
-  const { documents, ui } = useStores();
+  const { documents, ui, collections } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
 
   React.useEffect(() => {
+    void collections.fetchAll();
+
     if (!user.isViewer) {
       void documents.fetchDrafts();
     }
-  }, [documents, user.isViewer]);
+  }, [documents, collections, user.isViewer]);
 
   const [dndArea, setDndArea] = React.useState();
   const handleSidebarRef = React.useCallback((node) => setDndArea(node), []);
@@ -54,7 +57,7 @@ function AppSidebar() {
   );
 
   return (
-    <Sidebar ref={handleSidebarRef}>
+    <Sidebar hidden={!ui.readyToShow} ref={handleSidebarRef}>
       <HistoryNavigation />
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
@@ -75,7 +78,7 @@ function AppSidebar() {
                 }
               >
                 <Tooltip
-                  tooltip={t("Toggle sidebar")}
+                  content={t("Toggle sidebar")}
                   shortcut={`${metaDisplay}+.`}
                   delay={500}
                 >
@@ -108,7 +111,7 @@ function AppSidebar() {
               {can.createDocument && (
                 <SidebarLink
                   to={draftsPath()}
-                  icon={<EditIcon />}
+                  icon={<DraftsIcon />}
                   label={
                     <Flex align="center" justify="space-between">
                       {t("Drafts")}
@@ -124,6 +127,9 @@ function AppSidebar() {
             </Section>
             <Section>
               <Starred />
+            </Section>
+            <Section>
+              <SharedWithMe />
             </Section>
             <Section auto>
               <Collections />

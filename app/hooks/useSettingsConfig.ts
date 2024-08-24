@@ -5,7 +5,7 @@ import {
   CodeIcon,
   UserIcon,
   GroupIcon,
-  LinkIcon,
+  GlobeIcon,
   TeamIcon,
   BeakerIcon,
   BuildingBlocksIcon,
@@ -18,20 +18,20 @@ import {
 import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
-import GoogleIcon from "~/components/Icons/GoogleIcon";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
-import PluginLoader from "~/utils/PluginLoader";
+import { Hook, PluginManager } from "~/utils/PluginManager";
 import isCloudHosted from "~/utils/isCloudHosted";
 import lazy from "~/utils/lazyWithRetry";
 import { settingsPath } from "~/utils/routeHelpers";
+import { useComputed } from "./useComputed";
 import useCurrentTeam from "./useCurrentTeam";
+import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
 
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
-const GoogleAnalytics = lazy(() => import("~/scenes/Settings/GoogleAnalytics"));
 const Groups = lazy(() => import("~/scenes/Settings/Groups"));
 const Import = lazy(() => import("~/scenes/Settings/Import"));
 const Members = lazy(() => import("~/scenes/Settings/Members"));
@@ -54,11 +54,12 @@ export type ConfigItem = {
 };
 
 const useSettingsConfig = () => {
+  const user = useCurrentUser();
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const { t } = useTranslation();
 
-  const config = React.useMemo(() => {
+  const config = useComputed(() => {
     const items: ConfigItem[] = [
       // Account
       {
@@ -86,7 +87,7 @@ const useSettingsConfig = () => {
         icon: EmailIcon,
       },
       {
-        name: t("API Tokens"),
+        name: t("API"),
         path: settingsPath("tokens"),
         component: ApiKeys,
         enabled: can.createApiKey,
@@ -122,7 +123,7 @@ const useSettingsConfig = () => {
         name: t("Members"),
         path: settingsPath("members"),
         component: Members,
-        enabled: true,
+        enabled: can.listUsers,
         group: t("Workspace"),
         icon: UserIcon,
       },
@@ -130,7 +131,7 @@ const useSettingsConfig = () => {
         name: t("Groups"),
         path: settingsPath("groups"),
         component: Groups,
-        enabled: true,
+        enabled: can.listGroups,
         group: t("Workspace"),
         icon: GroupIcon,
       },
@@ -138,7 +139,7 @@ const useSettingsConfig = () => {
         name: t("Templates"),
         path: settingsPath("templates"),
         component: Templates,
-        enabled: true,
+        enabled: can.readTemplate,
         group: t("Workspace"),
         icon: ShapesIcon,
       },
@@ -146,9 +147,9 @@ const useSettingsConfig = () => {
         name: t("Shared Links"),
         path: settingsPath("shares"),
         component: Shares,
-        enabled: true,
+        enabled: can.listShares,
         group: t("Workspace"),
-        icon: LinkIcon,
+        icon: GlobeIcon,
       },
       {
         name: t("Import"),
@@ -176,14 +177,6 @@ const useSettingsConfig = () => {
         icon: BuildingBlocksIcon,
       },
       {
-        name: t("Google Analytics"),
-        path: integrationSettingsPath("google-analytics"),
-        component: GoogleAnalytics,
-        enabled: can.update,
-        group: t("Integrations"),
-        icon: GoogleIcon,
-      },
-      {
         name: "Zapier",
         path: integrationSettingsPath("zapier"),
         component: Zapier,
@@ -194,26 +187,24 @@ const useSettingsConfig = () => {
     ];
 
     // Plugins
-    Object.values(PluginLoader.plugins).map((plugin) => {
-      const hasSettings = !!plugin.settings;
-      const enabledInDeployment =
-        !plugin.config.deployments ||
-        plugin.config.deployments.length === 0 ||
-        (plugin.config.deployments.includes("cloud") && isCloudHosted) ||
-        (plugin.config.deployments.includes("enterprise") && !isCloudHosted);
-
-      const item = {
-        name: t(plugin.config.name),
-        path: integrationSettingsPath(plugin.id),
-        // TODO: Remove hardcoding of plugin id here
-        group: plugin.id === "collections" ? t("Workspace") : t("Integrations"),
-        component: plugin.settings,
-        enabled: enabledInDeployment && hasSettings && can.update,
-        icon: plugin.icon,
-      } as ConfigItem;
-
-      const insertIndex = items.findIndex((i) => i.group === t("Integrations"));
-      items.splice(insertIndex, 0, item);
+    PluginManager.getHooks(Hook.Settings).forEach((plugin) => {
+      const group = plugin.value.group ?? "Integrations";
+      const insertIndex = plugin.value.after
+        ? items.findIndex((i) => i.name === t(plugin.value.after!)) + 1
+        : items.findIndex((i) => i.group === t(group));
+      items.splice(insertIndex, 0, {
+        name: t(plugin.name),
+        path:
+          group === "Integrations"
+            ? integrationSettingsPath(plugin.id)
+            : settingsPath(plugin.id),
+        group: t(group),
+        component: plugin.value.component,
+        enabled: plugin.value.enabled
+          ? plugin.value.enabled(team, user)
+          : can.update,
+        icon: plugin.value.icon,
+      } as ConfigItem);
     });
 
     return items;

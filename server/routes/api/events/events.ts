@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
+import { EventHelper } from "@shared/utils/EventHelper";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Event, User, Collection } from "@server/models";
@@ -29,7 +30,7 @@ router.post(
     } = ctx.input.body;
 
     let where: WhereOptions<Event> = {
-      name: Event.ACTIVITY_EVENTS,
+      name: EventHelper.ACTIVITY_EVENTS,
       teamId: user.teamId,
     };
 
@@ -43,7 +44,7 @@ router.post(
 
     if (auditLog) {
       authorize(user, "audit", user.team);
-      where.name = Event.AUDIT_EVENTS;
+      where.name = EventHelper.AUDIT_EVENTS;
     }
 
     if (name && (where.name as string[]).includes(name)) {

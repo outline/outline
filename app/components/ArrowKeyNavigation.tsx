@@ -1,54 +1,50 @@
+import { RovingTabIndexProvider } from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
-import {
-  useCompositeState,
-  Composite,
-  CompositeStateReturn,
-} from "reakit/Composite";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
-  children: (composite: CompositeStateReturn) => React.ReactNode;
+  children: () => React.ReactNode;
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
+  items: unknown[];
 };
 
 function ArrowKeyNavigation(
-  { children, onEscape, ...rest }: Props,
+  { children, onEscape, items, ...rest }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
-  const composite = useCompositeState();
-
   const handleKeyDown = React.useCallback(
-    (ev) => {
+    (ev: React.KeyboardEvent<HTMLDivElement>) => {
       if (onEscape) {
         if (ev.nativeEvent.isComposing) {
           return;
         }
 
         if (ev.key === "Escape") {
+          ev.preventDefault();
           onEscape(ev);
         }
 
         if (
           ev.key === "ArrowUp" &&
-          composite.currentId === composite.items[0].id
+          // If the first item is focused and the user presses ArrowUp
+          ev.currentTarget.firstElementChild === document.activeElement
         ) {
           onEscape(ev);
         }
       }
     },
-    [composite.currentId, composite.items, onEscape]
+    [onEscape]
   );
 
   return (
-    <Composite
-      {...rest}
-      {...composite}
-      onKeyDown={handleKeyDown}
-      role="menu"
-      ref={ref}
+    <RovingTabIndexProvider
+      options={{ focusOnClick: true, direction: "both" }}
+      items={items}
     >
-      {children(composite)}
-    </Composite>
+      <div {...rest} onKeyDown={handleKeyDown} ref={ref}>
+        {children()}
+      </div>
+    </RovingTabIndexProvider>
   );
 }
 

@@ -95,7 +95,7 @@ function ExportDialog({ collection, onSubmit }: Props) {
   return (
     <ConfirmationDialog onSubmit={handleSubmit} submitText={t("Export")}>
       {collection && (
-        <Text>
+        <Text as="p">
           <Trans
             defaults="Exporting the collection <em>{{collectionName}}</em> may take some time."
             values={{
@@ -120,7 +120,7 @@ function ExportDialog({ collection, onSubmit }: Props) {
               onChange={handleFormatChange}
             />
             <div>
-              <Text size="small" weight="bold">
+              <Text as="p" size="small" weight="bold">
                 {item.title}
               </Text>
               <Text size="small">{item.description}</Text>
@@ -137,7 +137,7 @@ function ExportDialog({ collection, onSubmit }: Props) {
           onChange={handleIncludeAttachmentsChange}
         />
         <div>
-          <Text size="small" weight="bold">
+          <Text as="p" size="small" weight="bold">
             {t("Include attachments")}
           </Text>
           <Text size="small">

@@ -1,12 +1,7 @@
-import ClipboardTextSerializer from "../extensions/ClipboardTextSerializer";
 import DateTime from "../extensions/DateTime";
 import History from "../extensions/History";
-import Keys from "../extensions/Keys";
 import MaxLength from "../extensions/MaxLength";
-import PasteHandler from "../extensions/PasteHandler";
 import Placeholder from "../extensions/Placeholder";
-import PreventTab from "../extensions/PreventTab";
-import SmartText from "../extensions/SmartText";
 import TrailingNode from "../extensions/TrailingNode";
 import Extension from "../lib/Extension";
 import Bold from "../marks/Bold";
@@ -44,7 +39,7 @@ import Paragraph from "./Paragraph";
 import SimpleImage from "./SimpleImage";
 import Table from "./Table";
 import TableCell from "./TableCell";
-import TableHeadCell from "./TableHeadCell";
+import TableHeader from "./TableHeader";
 import TableRow from "./TableRow";
 import Text from "./Text";
 import Video from "./Video";
@@ -68,14 +63,27 @@ export const basicExtensions: Nodes = [
   Link,
   Strikethrough,
   History,
-  SmartText,
   TrailingNode,
-  PasteHandler,
   Placeholder,
   MaxLength,
   DateTime,
-  Keys,
-  ClipboardTextSerializer,
+];
+
+export const listExtensions: Nodes = [
+  CheckboxList,
+  CheckboxItem,
+  BulletList,
+  OrderedList,
+  ListItem,
+];
+
+export const tableExtensions: Nodes = [
+  TableCell,
+  TableHeader,
+  TableRow,
+  // Note: Table nodes comes last to ensure the table selection plugin is registered after the
+  // plugins for table grips in TableCell and TableHeader.
+  Table,
 ];
 
 /**
@@ -83,33 +91,26 @@ export const basicExtensions: Nodes = [
  * editors that need advanced formatting.
  */
 export const richExtensions: Nodes = [
-  ...basicExtensions.filter((n) => n !== SimpleImage && n !== Keys),
+  ...basicExtensions.filter((n) => n !== SimpleImage),
   Image,
   HardBreak,
   CodeBlock,
   CodeFence,
-  CheckboxList,
-  CheckboxItem,
   Blockquote,
-  BulletList,
-  OrderedList,
   Embed,
-  ListItem,
   Attachment,
   Video,
   Notice,
   Heading,
   HorizontalRule,
-  Table,
-  TableCell,
-  TableHeadCell,
-  TableRow,
   Highlight,
   TemplatePlaceholder,
   Math,
   MathBlock,
-  PreventTab,
-  Keys,
+  // Container type nodes should be last so that key handlers are registered for content inside
+  // the container nodes first.
+  ...listExtensions,
+  ...tableExtensions,
 ];
 
 /**

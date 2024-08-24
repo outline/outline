@@ -5,8 +5,8 @@ import type { Context } from "koa";
 import Router from "koa-router";
 import { Profile } from "passport";
 import { slugifyDomain } from "@shared/utils/domains";
+import { parseEmail } from "@shared/utils/email";
 import accountProvisioner from "@server/commands/accountProvisioner";
-import env from "@server/env";
 import { MicrosoftGraphError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
@@ -17,9 +17,10 @@ import {
   getTeamFromContext,
   getClientFromContext,
 } from "@server/utils/passport";
+import config from "../../plugin.json";
+import env from "../env";
 
 const router = new Router();
-const providerName = "azure";
 const scopes: string[] = [];
 
 if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
@@ -28,7 +29,8 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       clientID: env.AZURE_CLIENT_ID,
       clientSecret: env.AZURE_CLIENT_SECRET,
       callbackURL: `${env.URL}/auth/azure.callback`,
-      useCommonEndpoint: true,
+      useCommonEndpoint: env.AZURE_TENANT_ID ? false : true,
+      tenant: env.AZURE_TENANT_ID ? env.AZURE_TENANT_ID : undefined,
       passReqToCallback: true,
       resource: env.AZURE_RESOURCE_APP_ID,
       // @ts-expect-error StateStore
@@ -91,7 +93,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const team = await getTeamFromContext(ctx);
         const client = getClientFromContext(ctx);
 
-        const domain = email.split("@")[1];
+        const domain = parseEmail(email).domain;
         const subdomain = slugifyDomain(domain);
 
         const teamName = organization.displayName;
@@ -109,7 +111,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
             avatarUrl: profile.picture,
           },
           authenticationProvider: {
-            name: providerName,
+            name: config.id,
             providerId: profile.tid,
           },
           authentication: {
@@ -127,13 +129,11 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
     }
   );
   passport.use(strategy);
-
   router.get(
-    "azure",
-    passport.authenticate(providerName, { prompt: "select_account" })
+    config.id,
+    passport.authenticate(config.id, { prompt: "select_account" })
   );
-
-  router.get("azure.callback", passportMiddleware(providerName));
+  router.get(`${config.id}.callback`, passportMiddleware(config.id));
 }
 
 export default router;

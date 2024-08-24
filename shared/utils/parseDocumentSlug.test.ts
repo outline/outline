@@ -1,4 +1,7 @@
+import sharedEnv from "../env";
 import parseDocumentSlug from "./parseDocumentSlug";
+
+sharedEnv.URL = "https://app.outline.dev";
 
 describe("#parseDocumentSlug", () => {
   it("should work with fully qualified url", () => {
@@ -31,6 +34,12 @@ describe("#parseDocumentSlug", () => {
 
   it("should work with path", () => {
     expect(parseDocumentSlug("/doc/my-doc-y4j4tR4UuV")).toEqual(
+      "my-doc-y4j4tR4UuV"
+    );
+  });
+
+  it("should work with path and hash", () => {
+    expect(parseDocumentSlug("/doc/my-doc-y4j4tR4UuV#my-heading-hash")).toEqual(
       "my-doc-y4j4tR4UuV"
     );
   });

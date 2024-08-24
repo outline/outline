@@ -23,7 +23,7 @@ router.post(
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });
-    authorize(user, "read", document);
+    authorize(user, "listViews", document);
 
     if (!document.insightsEnabled) {
       throw ValidationError("Insights are not enabled for this document");
@@ -56,17 +56,14 @@ router.post(
       userId: user.id,
     });
 
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "views.create",
-      actorId: user.id,
       documentId: document.id,
       collectionId: document.collectionId,
-      teamId: user.teamId,
       modelId: view.id,
       data: {
         title: document.title,
       },
-      ip: ctx.request.ip,
     });
     view.user = user;
 

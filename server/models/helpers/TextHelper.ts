@@ -8,13 +8,16 @@ import {
   unicodeCLDRtoBCP47,
 } from "@shared/utils/date";
 import attachmentCreator from "@server/commands/attachmentCreator";
+import env from "@server/env";
+import { trace } from "@server/logging/tracing";
 import { Attachment, User } from "@server/models";
 import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import parseImages from "@server/utils/parseImages";
 
-export default class TextHelper {
+@trace()
+export class TextHelper {
   /**
    * Replaces template variables in the given text with the current date and time.
    *
@@ -30,7 +33,8 @@ export default class TextHelper {
     return text
       .replace(/{date}/g, startCase(getCurrentDateAsString(locales)))
       .replace(/{time}/g, startCase(getCurrentTimeAsString(locales)))
-      .replace(/{datetime}/g, startCase(getCurrentDateTimeAsString(locales)));
+      .replace(/{datetime}/g, startCase(getCurrentDateTimeAsString(locales)))
+      .replace(/{author}/g, user.name);
   }
 
   /**
@@ -91,13 +95,16 @@ export default class TextHelper {
   ) {
     let output = markdown;
     const images = parseImages(markdown);
+    const timeoutPerImage = Math.floor(
+      Math.min(env.REQUEST_TIMEOUT / images.length, 10000)
+    );
 
     await Promise.all(
       images.map(async (image) => {
         // Skip attempting to fetch images that are not valid urls
         try {
           new URL(image.src);
-        } catch {
+        } catch (_e) {
           return;
         }
 
@@ -106,6 +113,9 @@ export default class TextHelper {
           url: image.src,
           preset: AttachmentPreset.DocumentAttachment,
           user,
+          fetchOptions: {
+            timeout: timeoutPerImage,
+          },
           ctx,
         });
 

@@ -1,6 +1,10 @@
 import crypto from "crypto";
-import isEmpty from "lodash/isEmpty";
-import { SaveOptions } from "sequelize";
+import isNil from "lodash/isNil";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  InstanceUpdateOptions,
+} from "sequelize";
 import {
   Column,
   Table,
@@ -19,10 +23,7 @@ import { Event } from "@server/types";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
-import Encrypted, {
-  setEncryptedColumn,
-  getEncryptedColumn,
-} from "./decorators/Encrypted";
+import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
@@ -39,7 +40,10 @@ import Length from "./validators/Length";
   modelName: "webhook_subscription",
 })
 @Fix
-class WebhookSubscription extends ParanoidModel {
+class WebhookSubscription extends ParanoidModel<
+  InferAttributes<WebhookSubscription>,
+  Partial<InferCreationAttributes<WebhookSubscription>>
+> {
   @NotEmpty
   @Length({ max: 255, msg: "Webhook name be less than 255 characters" })
   @Column
@@ -58,19 +62,9 @@ class WebhookSubscription extends ParanoidModel {
   events: string[];
 
   @AllowNull
-  @Encrypted
   @Column(DataType.BLOB)
-  get secret() {
-    const val = getEncryptedColumn(this, "secret");
-    // Turns out that `val` evals to `{}` instead
-    // of `null` even if secret's value in db is `null`.
-    // https://github.com/defunctzombie/sequelize-encrypted/blob/c3854e76ae4b80318c8f10f94e6c898c67659ca6/index.js#L30-L33 explains it possibly.
-    return isEmpty(val) ? "" : val;
-  }
-
-  set secret(value: string) {
-    setEncryptedColumn(this, "secret", value);
-  }
+  @Encrypted
+  secret: string | null;
 
   // associations
 
@@ -110,7 +104,9 @@ class WebhookSubscription extends ParanoidModel {
    * @param options Save options
    * @returns Promise<WebhookSubscription>
    */
-  public async disable(options?: SaveOptions<WebhookSubscription>) {
+  public async disable(
+    options?: InstanceUpdateOptions<InferAttributes<WebhookSubscription>>
+  ) {
     return this.update({ enabled: false }, options);
   }
 
@@ -143,7 +139,7 @@ class WebhookSubscription extends ParanoidModel {
    * @returns the signature as a string
    */
   public signature = (payload: string) => {
-    if (isEmpty(this.secret)) {
+    if (isNil(this.secret)) {
       return;
     }
 

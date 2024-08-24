@@ -1,6 +1,7 @@
 import { Node, Schema } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
+import { ProsemirrorData } from "../types";
 
 export type Heading = {
   /* The heading in plain text */
@@ -16,6 +17,8 @@ export type CommentMark = {
   id: string;
   /* The id of the user who created the comment */
   userId: string;
+  /* The text of the comment */
+  text: string;
 };
 
 export type Task = {
@@ -25,7 +28,54 @@ export type Task = {
   completed: boolean;
 };
 
-export default class ProsemirrorHelper {
+export const attachmentRedirectRegex =
+  /\/api\/attachments\.redirect\?id=(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
+
+export const attachmentPublicRegex =
+  /public\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
+
+export class ProsemirrorHelper {
+  /**
+   * Get a new empty document.
+   *
+   * @returns A new empty document as JSON.
+   */
+  static getEmptyDocument(): ProsemirrorData {
+    return {
+      type: "doc",
+      content: [
+        {
+          content: [],
+          type: "paragraph",
+        },
+      ],
+    };
+  }
+
+  /**
+   * Returns true if the data looks like an empty document.
+   *
+   * @param data The ProsemirrorData to check.
+   * @returns True if the document is empty.
+   */
+  static isEmptyData(data: ProsemirrorData): boolean {
+    if (data.type !== "doc") {
+      return false;
+    }
+
+    if (data.content.length === 1) {
+      const node = data.content[0];
+      return (
+        node.type === "paragraph" &&
+        (node.content === null ||
+          node.content === undefined ||
+          node.content.length === 0)
+      );
+    }
+
+    return data.content.length === 0;
+  }
+
   /**
    * Returns the node as plain text.
    *
@@ -33,14 +83,14 @@ export default class ProsemirrorHelper {
    * @param schema The schema to use.
    * @returns The document content as plain text without formatting.
    */
-  static toPlainText(node: Node, schema: Schema) {
+  static toPlainText(root: Node, schema: Schema) {
     const textSerializers = Object.fromEntries(
       Object.entries(schema.nodes)
         .filter(([, node]) => node.spec.toPlainText)
         .map(([name, node]) => [name, node.spec.toPlainText])
     );
 
-    return textBetween(node, 0, node.content.size, textSerializers);
+    return textBetween(root, 0, root.content.size, textSerializers);
   }
 
   /**
@@ -88,18 +138,43 @@ export default class ProsemirrorHelper {
   }
 
   /**
-   * Returns true if the trimmed content of the passed document is an empty
-   * string.
+   * Returns true if the trimmed content of the passed document is an empty string.
    *
    * @returns True if the editor is empty
    */
-  static isEmpty(doc: Node) {
-    return !doc || doc.textContent.trim() === "";
+  static isEmpty(doc: Node, schema?: Schema) {
+    if (!schema) {
+      return !doc || doc.textContent.trim() === "";
+    }
+
+    const textSerializers = Object.fromEntries(
+      Object.entries(schema.nodes)
+        .filter(([, node]) => node.spec.toPlainText)
+        .map(([name, node]) => [name, node.spec.toPlainText])
+    );
+
+    let empty = true;
+    doc.descendants((child: Node) => {
+      // If we've already found non-empty data, we can stop descending further
+      if (!empty) {
+        return false;
+      }
+
+      const toPlainText = textSerializers[child.type.name];
+      if (toPlainText) {
+        empty = !toPlainText(child).trim();
+      } else if (child.isText) {
+        empty = !child.text?.trim();
+      }
+
+      return empty;
+    });
+
+    return empty;
   }
 
   /**
-   * Iterates through the document to find all of the comments that exist as
-   * marks.
+   * Iterates through the document to find all of the comments that exist as marks.
    *
    * @param doc Prosemirror document node
    * @returns Array<CommentMark>
@@ -110,7 +185,10 @@ export default class ProsemirrorHelper {
     doc.descendants((node) => {
       node.marks.forEach((mark) => {
         if (mark.type.name === "comment") {
-          comments.push(mark.attrs as CommentMark);
+          comments.push({
+            ...mark.attrs,
+            text: node.textContent,
+          } as CommentMark);
         }
       });
 
@@ -121,8 +199,27 @@ export default class ProsemirrorHelper {
   }
 
   /**
-   * Iterates through the document to find all of the tasks and their completion
-   * state.
+   * Iterates through the document to find all of the images.
+   *
+   * @param doc Prosemirror document node
+   * @returns Array<Node> of images
+   */
+  static getImages(doc: Node): Node[] {
+    const images: Node[] = [];
+
+    doc.descendants((node) => {
+      if (node.type.name === "image") {
+        images.push(node);
+      }
+
+      return true;
+    });
+
+    return images;
+  }
+
+  /**
+   * Iterates through the document to find all of the tasks and their completion state.
    *
    * @param doc Prosemirror document node
    * @returns Array<Task>
@@ -156,6 +253,21 @@ export default class ProsemirrorHelper {
     });
 
     return tasks;
+  }
+
+  /**
+   * Returns a summary of total and completed tasks in the node.
+   *
+   * @param doc Prosemirror document node
+   * @returns Object with completed and total keys
+   */
+  static getTasksSummary(doc: Node): { completed: number; total: number } {
+    const tasks = ProsemirrorHelper.getTasks(doc);
+
+    return {
+      completed: tasks.filter((t) => t.completed).length,
+      total: tasks.length,
+    };
   }
 
   /**

@@ -1,5 +1,6 @@
 {
+  "id": "google",
   "name": "Google",
-  "description": "Adds a Google authentication provider.",
-  "requiredEnvVars": ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"]
+  "priority": 0,
+  "description": "Adds a Google authentication provider."
 }

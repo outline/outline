@@ -51,17 +51,19 @@ const ConfirmationDialog: React.FC<Props> = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      <Text type="secondary">{children}</Text>
+      <Flex gap={12} column>
+        <Text type="secondary">{children}</Text>
 
-      <Flex justify="flex-end">
-        <Button
-          type="submit"
-          disabled={isSaving || disabled}
-          danger={danger}
-          autoFocus
-        >
-          {isSaving && savingText ? savingText : submitText ?? t("Confirm")}
-        </Button>
+        <Flex justify="flex-end">
+          <Button
+            type="submit"
+            disabled={isSaving || disabled}
+            danger={danger}
+            autoFocus
+          >
+            {isSaving && savingText ? savingText : submitText ?? t("Confirm")}
+          </Button>
+        </Flex>
       </Flex>
     </form>
   );

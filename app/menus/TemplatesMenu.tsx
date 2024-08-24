@@ -6,11 +6,11 @@ import { MenuButton, useMenuState } from "reakit/Menu";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
-import MenuItem from "~/components/ContextMenu/MenuItem";
-import Separator from "~/components/ContextMenu/Separator";
-import EmojiIcon from "~/components/Icons/EmojiIcon";
+import Template from "~/components/ContextMenu/Template";
+import Icon from "~/components/Icon";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { MenuItem } from "~/types";
 import { replaceTitleVariables } from "~/utils/date";
 
 type Props = {
@@ -25,31 +25,55 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
   const user = useCurrentUser();
   const { documents } = useStores();
   const { t } = useTranslation();
-  const templates = documents.templates;
 
-  if (!templates.length) {
+  const templateToMenuItem = React.useCallback(
+    (tmpl: Document): MenuItem => ({
+      type: "button",
+      title: replaceTitleVariables(tmpl.titleWithDefault, user),
+      icon: tmpl.icon ? (
+        <Icon value={tmpl.icon} color={tmpl.color ?? undefined} />
+      ) : (
+        <DocumentIcon />
+      ),
+      onClick: () => onSelectTemplate(tmpl),
+    }),
+    [user, onSelectTemplate]
+  );
+
+  const templates = documents.templates.filter((tmpl) => tmpl.publishedAt);
+
+  const collectionItems = templates
+    .filter(
+      (tmpl) =>
+        !tmpl.isWorkspaceTemplate && tmpl.collectionId === document.collectionId
+    )
+    .map(templateToMenuItem);
+
+  const workspaceTemplates = templates
+    .filter((tmpl) => tmpl.isWorkspaceTemplate)
+    .map(templateToMenuItem);
+
+  const workspaceItems: MenuItem[] = React.useMemo(
+    () =>
+      workspaceTemplates.length
+        ? [{ type: "heading", title: t("Workspace") }, ...workspaceTemplates]
+        : [],
+    [t, workspaceTemplates]
+  );
+
+  const items = collectionItems
+    ? workspaceItems.length
+      ? [
+          ...collectionItems,
+          { type: "separator" } as MenuItem,
+          ...workspaceItems,
+        ]
+      : collectionItems
+    : workspaceItems;
+
+  if (!items.length) {
     return null;
   }
-
-  const templatesInCollection = templates.filter(
-    (t) => t.collectionId === document.collectionId
-  );
-  const otherTemplates = templates.filter(
-    (t) => t.collectionId !== document.collectionId
-  );
-
-  const renderTemplate = (template: Document) => (
-    <MenuItem
-      key={template.id}
-      onClick={() => onSelectTemplate(template)}
-      icon={
-        template.emoji ? <EmojiIcon emoji={template.emoji} /> : <DocumentIcon />
-      }
-      {...menu}
-    >
-      {replaceTitleVariables(template.titleWithDefault, user)}
-    </MenuItem>
-  );
 
   return (
     <>
@@ -61,11 +85,7 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
         )}
       </MenuButton>
       <ContextMenu {...menu} aria-label={t("Templates")}>
-        {templatesInCollection.map(renderTemplate)}
-        {otherTemplates.length && templatesInCollection.length ? (
-          <Separator />
-        ) : undefined}
-        {otherTemplates.map(renderTemplate)}
+        <Template {...menu} items={items} />
       </ContextMenu>
     </>
   );

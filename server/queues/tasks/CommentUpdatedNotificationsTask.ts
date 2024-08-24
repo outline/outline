@@ -1,11 +1,16 @@
 import { NotificationEventType } from "@shared/types";
 import { Comment, Document, Notification, User } from "@server/models";
-import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { CommentEvent, CommentUpdateEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEvent> {
   public async perform(event: CommentUpdateEvent) {
+    const newMentionIds = event.data?.newMentionIds;
+    if (!newMentionIds) {
+      return;
+    }
+
     const [document, comment] = await Promise.all([
       Document.scope("withCollection").findOne({
         where: {
@@ -20,7 +25,7 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
 
     const mentions = ProsemirrorHelper.parseMentions(
       ProsemirrorHelper.toProsemirror(comment.data)
-    ).filter((mention) => event.data.newMentionIds.includes(mention.id));
+    ).filter((mention) => newMentionIds.includes(mention.id));
     const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {

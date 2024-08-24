@@ -24,6 +24,7 @@ import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useStores from "~/hooks/useStores";
 import CommentEditor from "./CommentEditor";
 import { Bubble } from "./CommentThreadItem";
+import { HighlightedText } from "./HighlightText";
 
 type Props = {
   /** Callback when the draft should be saved. */
@@ -42,6 +43,8 @@ type Props = {
   standalone?: boolean;
   /** Whether to animate the comment form in and out */
   animatePresence?: boolean;
+  /** Text to highlight at the top of the comment */
+  highlightedText?: string;
   /** The text direction of the editor */
   dir?: "rtl" | "ltr";
   /** Callback when the user is typing in the editor */
@@ -64,6 +67,7 @@ function CommentForm({
   standalone,
   placeholder,
   animatePresence,
+  highlightedText,
   dir,
   ...rest
 }: Props) {
@@ -102,6 +106,7 @@ function CommentForm({
       thread ??
       new Comment(
         {
+          createdAt: new Date().toISOString(),
           documentId,
           data: draft,
         },
@@ -135,6 +140,7 @@ function CommentForm({
 
     const comment = new Comment(
       {
+        createdAt: new Date().toISOString(),
         parentCommentId: thread?.id,
         documentId,
         data: draft,
@@ -206,7 +212,8 @@ function CommentForm({
     if (!files.length) {
       return;
     }
-    editorRef.current?.insertFiles(event, files);
+
+    return editorRef.current?.insertFiles(event, files);
   };
 
   const handleImageUpload = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -273,6 +280,9 @@ function CommentForm({
           $firstOfThread={standalone}
           column
         >
+          {highlightedText && (
+            <HighlightedText>{highlightedText}</HighlightedText>
+          )}
           <CommentEditor
             key={`${forceRender}`}
             ref={editorRef}
@@ -301,7 +311,7 @@ function CommentForm({
                   {t("Cancel")}
                 </ButtonSmall>
               </Flex>
-              <Tooltip delay={500} tooltip={t("Upload image")} placement="top">
+              <Tooltip delay={500} content={t("Upload image")} placement="top">
                 <NudeButton onClick={handleImageUpload}>
                   <ImageIcon color={theme.textTertiary} />
                 </NudeButton>

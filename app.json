@@ -33,6 +33,11 @@
       "generator": "secret",
       "required": true
     },
+    "UTILS_SECRET": {
+      "description": "A 32-character secret key, generate with openssl rand -hex 32",
+      "generator": "secret",
+      "required": true
+    },
     "ENABLE_UPDATES": {
       "value": "true",
       "required": true
@@ -78,6 +83,14 @@
       "required": false
     },
     "OIDC_USERINFO_URI": {
+      "description": "",
+      "required": false
+    },
+    "OIDC_DISABLE_REDIRECT": {
+      "description": "Prevent the app from automatically redirecting to the OIDC login page",
+      "required": false
+    },
+    "OIDC_LOGOUT_URI": {
       "description": "",
       "required": false
     },

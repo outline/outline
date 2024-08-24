@@ -88,6 +88,13 @@ export default class CheckboxItem extends Node {
     }
   };
 
+  commands({ type }: { type: NodeType }) {
+    return {
+      indentCheckboxList: () => sinkListItem(type),
+      outdentCheckboxList: () => liftListItem(type),
+    };
+  }
+
   keys({ type }: { type: NodeType }) {
     return {
       Enter: splitListItem(type, {

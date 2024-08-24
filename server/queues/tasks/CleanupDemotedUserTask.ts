@@ -1,7 +1,8 @@
 import Logger from "@server/logging/Logger";
 import { WebhookSubscription, ApiKey, User } from "@server/models";
+import { cannot } from "@server/policies";
 import { sequelize } from "@server/storage/database";
-import BaseTask from "./BaseTask";
+import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
   userId: string;
@@ -13,10 +14,12 @@ type Props = {
  */
 export default class CleanupDemotedUserTask extends BaseTask<Props> {
   public async perform(props: Props) {
-    await sequelize.transaction(async (transaction) => {
-      const user = await User.findByPk(props.userId, { rejectOnEmpty: true });
+    const user = await User.scope("withTeam").findByPk(props.userId, {
+      rejectOnEmpty: true,
+    });
 
-      if (user.isSuspended || !user.isAdmin) {
+    await sequelize.transaction(async (transaction) => {
+      if (cannot(user, "createWebhookSubscription", user.team)) {
         const subscriptions = await WebhookSubscription.findAll({
           where: {
             createdById: props.userId,
@@ -36,7 +39,7 @@ export default class CleanupDemotedUserTask extends BaseTask<Props> {
         );
       }
 
-      if (user.isSuspended || user.isViewer) {
+      if (cannot(user, "createApiKey", user.team)) {
         const apiKeys = await ApiKey.findAll({
           where: {
             userId: props.userId,
@@ -53,5 +56,11 @@ export default class CleanupDemotedUserTask extends BaseTask<Props> {
         );
       }
     });
+  }
+
+  public get options() {
+    return {
+      priority: TaskPriority.Background,
+    };
   }
 }

@@ -3,10 +3,10 @@ import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
-import getMarkRange from "@shared/editor/queries/getMarkRange";
-import isInCode from "@shared/editor/queries/isInCode";
-import isMarkActive from "@shared/editor/queries/isMarkActive";
-import isNodeActive from "@shared/editor/queries/isNodeActive";
+import { getMarkRange } from "@shared/editor/queries/getMarkRange";
+import { isInCode } from "@shared/editor/queries/isInCode";
+import { isMarkActive } from "@shared/editor/queries/isMarkActive";
+import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { getColumnIndex, getRowIndex } from "@shared/editor/queries/table";
 import { MenuItem } from "@shared/editor/types";
 import { creatingUrlPrefix } from "@shared/utils/urls";
@@ -15,6 +15,7 @@ import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
+import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
 import getFormattingMenuItems from "../menus/formatting";
@@ -66,7 +67,7 @@ function useIsActive(state: EditorState) {
   }
   if (
     selection instanceof NodeSelection &&
-    selection.node.type.name === "image"
+    ["image", "attachment"].includes(selection.node.type.name)
   ) {
     return true;
   }
@@ -99,10 +100,10 @@ export default function SelectionToolbar(props: Props) {
   const { view, commands } = useEditor();
   const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
-  const isActive = useIsActive(view.state);
+  const isMobile = useMobile();
+  const isActive = useIsActive(view.state) || isMobile;
   const isDragging = useIsDragging();
   const previousIsActive = usePrevious(isActive);
-  const isMobile = useMobile();
 
   React.useEffect(() => {
     // Trigger callbacks when the toolbar is opened or closed
@@ -219,6 +220,9 @@ export default function SelectionToolbar(props: Props) {
   const range = getMarkRange(selection.$from, state.schema.marks.link);
   const isImageSelection =
     selection instanceof NodeSelection && selection.node.type.name === "image";
+  const isAttachmentSelection =
+    selection instanceof NodeSelection &&
+    selection.node.type.name === "attachment";
   const isCodeSelection = isInCode(state, { onlyBlock: true });
 
   let items: MenuItem[] = [];
@@ -226,13 +230,15 @@ export default function SelectionToolbar(props: Props) {
   if (isCodeSelection && selection.empty) {
     items = getCodeMenuItems(state, readOnly, dictionary);
   } else if (isTableSelection) {
-    items = getTableMenuItems(dictionary);
+    items = getTableMenuItems(state, dictionary);
   } else if (colIndex !== undefined) {
     items = getTableColMenuItems(state, colIndex, rtl, dictionary);
   } else if (rowIndex !== undefined) {
     items = getTableRowMenuItems(state, rowIndex, dictionary);
   } else if (isImageSelection) {
     items = readOnly ? [] : getImageMenuItems(state, dictionary);
+  } else if (isAttachmentSelection) {
+    items = readOnly ? [] : getAttachmentMenuItems(state, dictionary);
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, dictionary);
   } else if (readOnly) {

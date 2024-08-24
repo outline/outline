@@ -1,0 +1,6 @@
+{
+  "id": "github",
+  "name": "GitHub",
+  "priority": 10,
+  "description": "Adds a GitHub integration for link unfurling."
+}

@@ -62,15 +62,15 @@ function CommandBarItem(
               {index > 0 ? (
                 <>
                   {" "}
-                  <Text size="xsmall" as="span" type="secondary">
+                  <Text size="xsmall" type="secondary">
                     then
                   </Text>{" "}
                 </>
               ) : (
                 ""
               )}
-              {sc.split("+").map((s) => (
-                <Key key={s}>{s}</Key>
+              {sc.split("+").map((key) => (
+                <Key key={key}>{key}</Key>
               ))}
             </React.Fragment>
           ))}

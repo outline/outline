@@ -99,6 +99,8 @@ router.post(
   async (ctx: APIContext<T.SharesListReq>) => {
     const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
+    authorize(user, "listShares", user.team);
+
     const where: WhereOptions<Share> = {
       teamId: user.teamId,
       userId: user.id,
@@ -169,6 +171,8 @@ router.post(
     const { documentId, published, urlId, includeChildDocuments } =
       ctx.input.body;
     const { user } = ctx.state.auth;
+    authorize(user, "createShare", user.team);
+
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });
@@ -196,20 +200,17 @@ router.post(
     });
 
     if (isCreated) {
-      await Event.create({
+      await Event.createFromContext(ctx, {
         name: "shares.create",
         documentId,
         collectionId: document.collectionId,
         modelId: share.id,
-        teamId: user.teamId,
-        actorId: user.id,
         data: {
           name: document.title,
           published,
           includeChildDocuments,
           urlId,
         },
-        ip: ctx.request.ip,
       });
     }
 
@@ -243,12 +244,8 @@ router.post(
 
     if (published !== undefined) {
       share.published = published;
-
-      // Reset nested document sharing when unpublishing a share link. So that
-      // If it's ever re-published this doesn't immediately share nested docs
-      // without forewarning the user
-      if (!published) {
-        share.includeChildDocuments = false;
+      if (published) {
+        share.includeChildDocuments = true;
       }
     }
 
@@ -261,16 +258,13 @@ router.post(
     }
 
     await share.save();
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "shares.update",
       documentId: share.documentId,
       modelId: share.id,
-      teamId: user.teamId,
-      actorId: user.id,
       data: {
         published,
       },
-      ip: ctx.request.ip,
     });
 
     ctx.body = {
@@ -297,17 +291,14 @@ router.post(
     const { document } = share;
 
     await share.revoke(user.id);
-    await Event.create({
+    await Event.createFromContext(ctx, {
       name: "shares.revoke",
       documentId: document.id,
       collectionId: document.collectionId,
       modelId: share.id,
-      teamId: user.teamId,
-      actorId: user.id,
       data: {
         name: document.title,
       },
-      ip: ctx.request.ip,
     });
 
     ctx.body = {

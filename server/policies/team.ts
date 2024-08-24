@@ -1,41 +1,64 @@
-import env from "@server/env";
-import { IncorrectEditionError } from "@server/errors";
 import { Team, User } from "@server/models";
 import { allow } from "./cancan";
+import {
+  and,
+  isCloudHosted,
+  isTeamAdmin,
+  isTeamModel,
+  isTeamMutable,
+  or,
+} from "./utils";
 
-allow(User, "read", Team, (user, team) => user.teamId === team?.id);
+allow(User, "read", Team, isTeamModel);
 
-allow(User, "share", Team, (user, team) => {
-  if (!team || user.isViewer || user.teamId !== team.id) {
-    return false;
-  }
-  return team.sharing;
-});
+allow(User, "share", Team, (actor, team) =>
+  and(
+    isTeamModel(actor, team),
+    !actor.isGuest,
+    !actor.isViewer,
+    !!team?.sharing
+  )
+);
 
-allow(User, "createTeam", Team, () => {
-  if (!env.isCloudHosted) {
-    throw IncorrectEditionError(
-      "Functionality is not available in this edition"
-    );
-  }
-  return true;
-});
+allow(User, "createTeam", Team, (actor, team) =>
+  and(
+    //
+    isCloudHosted(),
+    !actor.isGuest,
+    !actor.isViewer,
+    or(actor.isAdmin, !!team?.memberTeamCreate)
+  )
+);
 
-allow(User, "update", Team, (user, team) => {
-  if (!team || user.isViewer || user.teamId !== team.id) {
-    return false;
-  }
-  return user.isAdmin;
-});
+allow(User, "update", Team, isTeamAdmin);
 
-allow(User, ["delete", "audit"], Team, (user, team) => {
-  if (!env.isCloudHosted) {
-    throw IncorrectEditionError(
-      "Functionality is not available in this edition"
-    );
-  }
-  if (!team || user.isViewer || user.teamId !== team.id) {
-    return false;
-  }
-  return user.isAdmin;
-});
+allow(User, ["delete", "audit"], Team, (actor, team) =>
+  and(
+    //
+    isCloudHosted(),
+    isTeamAdmin(actor, team)
+  )
+);
+
+allow(User, "createTemplate", Team, (actor, team) =>
+  and(
+    //
+    !actor.isGuest,
+    !actor.isViewer,
+    isTeamModel(actor, team),
+    isTeamMutable(actor)
+  )
+);
+
+allow(User, "readTemplate", Team, (actor, team) =>
+  and(!actor.isViewer, isTeamModel(actor, team))
+);
+
+allow(User, "updateTemplate", Team, (actor, team) =>
+  and(
+    //
+    actor.isAdmin,
+    isTeamModel(actor, team),
+    isTeamMutable(actor)
+  )
+);

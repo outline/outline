@@ -28,7 +28,7 @@ function Zapier() {
           key="zapier-styles"
         />
       </Helmet>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Zapier is a platform that allows {{ appName }} to easily integrate
           with thousands of other business tools. Automate your workflows, sync

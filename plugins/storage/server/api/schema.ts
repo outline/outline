@@ -24,6 +24,7 @@ export const FilesGetSchema = z.object({
         .optional()
         .transform((val) => (val ? ValidateKey.sanitize(val) : undefined)),
       sig: z.string().optional(),
+      download: z.string().optional(),
     })
     .refine((obj) => !(isEmpty(obj.key) && isEmpty(obj.sig)), {
       message: "One of key or sig is required",

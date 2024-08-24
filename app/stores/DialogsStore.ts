@@ -6,7 +6,8 @@ type DialogDefinition = {
   title: string;
   content: React.ReactNode;
   isOpen: boolean;
-  isCentered?: boolean;
+  fullscreen?: boolean;
+  style?: React.CSSProperties;
 };
 
 export default class DialogsStore {
@@ -45,12 +46,14 @@ export default class DialogsStore {
   openModal = ({
     title,
     content,
-    isCentered,
+    fullscreen,
     replace,
+    style,
   }: {
     title: string;
-    isCentered?: boolean;
+    fullscreen?: boolean;
     content: React.ReactNode;
+    style?: React.CSSProperties;
     replace?: boolean;
   }) => {
     setTimeout(
@@ -64,8 +67,9 @@ export default class DialogsStore {
         this.modalStack.set(id, {
           title,
           content,
+          fullscreen,
+          style,
           isOpen: true,
-          isCentered,
         });
       }),
       0

@@ -8,7 +8,10 @@ import {
   SaveOptions,
   Op,
   FindOptions,
+  InferAttributes,
+  InferCreationAttributes,
 } from "sequelize";
+import { type InstanceUpdateOptions } from "sequelize";
 import {
   Table,
   Column,
@@ -26,6 +29,7 @@ import {
   IsDate,
   AllowNull,
   AfterUpdate,
+  BeforeUpdate,
 } from "sequelize-typescript";
 import { UserPreferenceDefaults } from "@shared/constants";
 import { languages } from "@shared/i18n";
@@ -37,25 +41,22 @@ import {
   NotificationEventType,
   NotificationEventDefaults,
   UserRole,
+  DocumentPermission,
 } from "@shared/types";
+import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
-import ApiKey from "./ApiKey";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
-import Star from "./Star";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
-import UserPermission from "./UserPermission";
+import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
-import Encrypted, {
-  setEncryptedColumn,
-  getEncryptedColumn,
-} from "./decorators/Encrypted";
+import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
@@ -119,7 +120,10 @@ export enum UserFlag {
 }))
 @Table({ tableName: "users", modelName: "user" })
 @Fix
-class User extends ParanoidModel {
+class User extends ParanoidModel<
+  InferAttributes<User>,
+  Partial<InferCreationAttributes<User>>
+> {
   @IsEmail
   @Length({ max: 255, msg: "User email must be 255 characters or less" })
   @Column
@@ -130,23 +134,13 @@ class User extends ParanoidModel {
   @Column
   name: string;
 
-  @Default(false)
-  @Column
-  isAdmin: boolean;
-
-  @Default(false)
-  @Column
-  isViewer: boolean;
+  @Default(UserRole.Member)
+  @Column(DataType.ENUM(...Object.values(UserRole)))
+  role: UserRole;
 
   @Column(DataType.BLOB)
   @Encrypted
-  get jwtSecret() {
-    return getEncryptedColumn(this, "jwtSecret");
-  }
-
-  set jwtSecret(value: string) {
-    setEncryptedColumn(this, "jwtSecret", value);
-  }
+  jwtSecret: string;
 
   @IsDate
   @Column
@@ -236,8 +230,39 @@ class User extends ParanoidModel {
     return !!this.suspendedAt || !!this.team?.isSuspended;
   }
 
+  /**
+   * Whether the user has been invited but not yet signed in.
+   */
   get isInvited() {
     return !this.lastActiveAt;
+  }
+
+  /**
+   * Whether the user is an admin.
+   */
+  get isAdmin() {
+    return this.role === UserRole.Admin;
+  }
+
+  /**
+   * Whether the user is a member (editor).
+   */
+  get isMember() {
+    return this.role === UserRole.Member;
+  }
+
+  /**
+   * Whether the user is a viewer.
+   */
+  get isViewer() {
+    return this.role === UserRole.Viewer;
+  }
+
+  /**
+   * Whether the user is a guest.
+   */
+  get isGuest() {
+    return this.role === UserRole.Guest;
   }
 
   get color() {
@@ -248,6 +273,12 @@ class User extends ParanoidModel {
     return this.isViewer
       ? CollectionPermission.Read
       : CollectionPermission.ReadWrite;
+  }
+
+  get defaultDocumentPermission(): DocumentPermission {
+    return this.isViewer
+      ? DocumentPermission.Read
+      : DocumentPermission.ReadWrite;
   }
 
   /**
@@ -278,8 +309,10 @@ class User extends ParanoidModel {
     type: NotificationEventType,
     value = true
   ) => {
-    this.notificationSettings[type] = value;
-    this.changed("notificationSettings", true);
+    this.notificationSettings = {
+      ...this.notificationSettings,
+      [type]: value,
+    };
   };
 
   /**
@@ -306,8 +339,10 @@ class User extends ParanoidModel {
     }
     const binary = value ? 1 : 0;
     if (this.flags[flag] !== binary) {
-      this.flags[flag] = binary;
-      this.changed("flags", true);
+      this.flags = {
+        ...this.flags,
+        [flag]: binary,
+      };
     }
 
     return this.flags;
@@ -333,9 +368,10 @@ class User extends ParanoidModel {
     if (!this.flags) {
       this.flags = {};
     }
-    this.flags[flag] = (this.flags[flag] ?? 0) + value;
-    this.changed("flags", true);
-
+    this.flags = {
+      ...this.flags,
+      [flag]: (this.flags[flag] ?? 0) + value,
+    };
     return this.flags;
   };
 
@@ -350,9 +386,10 @@ class User extends ParanoidModel {
     if (!this.preferences) {
       this.preferences = {};
     }
-    this.preferences[preference] = value;
-    this.changed("preferences", true);
-
+    this.preferences = {
+      ...this.preferences,
+      [preference]: value,
+    };
     return this.preferences;
   };
 
@@ -382,11 +419,12 @@ class User extends ParanoidModel {
     return collectionStubs
       .filter(
         (c) =>
-          Object.values(CollectionPermission).includes(
+          (Object.values(CollectionPermission).includes(
             c.permission as CollectionPermission
-          ) ||
+          ) &&
+            !this.isGuest) ||
           c.memberships.length > 0 ||
-          c.collectionGroupMemberships.length > 0
+          c.groupMemberships.length > 0
       )
       .map((c) => c.id);
   };
@@ -521,64 +559,6 @@ class User extends ParanoidModel {
       ],
     });
 
-  demote = async (to: UserRole, options?: SaveOptions<User>) => {
-    const res = await (this.constructor as typeof User).findAndCountAll({
-      where: {
-        teamId: this.teamId,
-        isAdmin: true,
-        id: {
-          [Op.ne]: this.id,
-        },
-      },
-      limit: 1,
-      ...options,
-    });
-
-    if (res.count >= 1) {
-      if (to === UserRole.Member) {
-        await this.update(
-          {
-            isAdmin: false,
-            isViewer: false,
-          },
-          options
-        );
-      } else if (to === UserRole.Viewer) {
-        await this.update(
-          {
-            isAdmin: false,
-            isViewer: true,
-          },
-          options
-        );
-        await UserPermission.update(
-          {
-            permission: CollectionPermission.Read,
-          },
-          {
-            ...options,
-            where: {
-              userId: this.id,
-            },
-          }
-        );
-      }
-
-      return undefined;
-    } else {
-      throw ValidationError("At least one admin is required");
-    }
-  };
-
-  promote = (options?: SaveOptions<User>) =>
-    this.update(
-      {
-        isAdmin: true,
-        isViewer: false,
-      },
-      options
-    );
-
   // hooks
 
   @BeforeDestroy
@@ -586,24 +566,6 @@ class User extends ParanoidModel {
     model: User,
     options: { transaction: Transaction }
   ) => {
-    await ApiKey.destroy({
-      where: {
-        userId: model.id,
-      },
-      transaction: options.transaction,
-    });
-    await Star.destroy({
-      where: {
-        userId: model.id,
-      },
-      transaction: options.transaction,
-    });
-    await UserAuthentication.destroy({
-      where: {
-        userId: model.id,
-      },
-      transaction: options.transaction,
-    });
     model.email = null;
     model.name = "Unknown";
     model.avatarUrl = null;
@@ -623,16 +585,67 @@ class User extends ParanoidModel {
     model.jwtSecret = crypto.randomBytes(64).toString("hex");
   };
 
+  @BeforeUpdate
+  static async checkRoleChange(
+    model: User,
+    options: InstanceUpdateOptions<InferAttributes<User>>
+  ) {
+    const previousRole = model.previous("role");
+
+    if (
+      model.changed("role") &&
+      previousRole === UserRole.Admin &&
+      UserRoleHelper.isRoleLower(model.role, UserRole.Admin)
+    ) {
+      const { count } = await this.findAndCountAll({
+        where: {
+          teamId: model.teamId,
+          role: UserRole.Admin,
+          id: {
+            [Op.ne]: model.id,
+          },
+        },
+        limit: 1,
+        transaction: options.transaction,
+      });
+      if (count === 0) {
+        throw ValidationError("At least one admin is required");
+      }
+    }
+  }
+
+  @AfterUpdate
+  static async updateMembershipPermissions(
+    model: User,
+    options: InstanceUpdateOptions<InferAttributes<User>>
+  ) {
+    const previousRole = model.previous("role");
+
+    if (
+      previousRole &&
+      model.changed("role") &&
+      UserRoleHelper.isRoleLower(model.role, UserRole.Member) &&
+      UserRoleHelper.isRoleHigher(previousRole, UserRole.Viewer)
+    ) {
+      await UserMembership.update(
+        {
+          permission: CollectionPermission.Read,
+        },
+        {
+          transaction: options.transaction,
+          where: {
+            userId: model.id,
+          },
+        }
+      );
+    }
+  }
+
   @AfterUpdate
   static deletePreviousAvatar = async (model: User) => {
-    if (
-      model.previous("avatarUrl") &&
-      model.previous("avatarUrl") !== model.avatarUrl
-    ) {
-      const attachmentIds = parseAttachmentIds(
-        model.previous("avatarUrl"),
-        true
-      );
+    const previousAvatarUrl = model.previous("avatarUrl");
+    if (previousAvatarUrl && previousAvatarUrl !== model.avatarUrl) {
+      const attachmentIds = parseAttachmentIds(previousAvatarUrl, true);
       if (!attachmentIds.length) {
         return;
       }
@@ -648,7 +661,7 @@ class User extends ParanoidModel {
       if (attachment) {
         await DeleteAttachmentTask.schedule({
           attachmentId: attachment.id,
-          teamId: model.id,
+          teamId: model.teamId,
         });
       }
     }
@@ -658,8 +671,8 @@ class User extends ParanoidModel {
     const countSql = `
       SELECT
         COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
-        COUNT(CASE WHEN "isAdmin" = true THEN 1 END) as "adminCount",
-        COUNT(CASE WHEN "isViewer" = true THEN 1 END) as "viewerCount",
+        COUNT(CASE WHEN "role" = :roleAdmin THEN 1 END) as "adminCount",
+        COUNT(CASE WHEN "role" = :roleViewer THEN 1 END) as "viewerCount",
         COUNT(CASE WHEN "lastActiveAt" IS NULL THEN 1 END) as "invitedCount",
         COUNT(CASE WHEN "suspendedAt" IS NULL AND "lastActiveAt" IS NOT NULL THEN 1 END) as "activeCount",
         COUNT(*) as count
@@ -671,6 +684,8 @@ class User extends ParanoidModel {
       type: QueryTypes.SELECT,
       replacements: {
         teamId,
+        roleAdmin: UserRole.Admin,
+        roleViewer: UserRole.Viewer,
       },
     });
 

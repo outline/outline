@@ -2,16 +2,14 @@ import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { Client } from "@shared/types";
-import { parseDomain } from "@shared/utils/domains";
 import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
 import PluginIcon from "~/components/PluginIcon";
-import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
+import { getRedirectUrl } from "../urls";
 
-type Props = {
+type Props = React.ComponentProps<typeof ButtonLarge> & {
   id: string;
   name: string;
   authUrl: string;
@@ -19,31 +17,12 @@ type Props = {
   onEmailSuccess: (email: string) => void;
 };
 
-function useRedirectHref(authUrl: string) {
-  // If we're on a custom domain or a subdomain then the auth must point to the
-  // apex (env.URL) for authentication so that the state cookie can be set and read.
-  // We pass the host into the auth URL so that the server can redirect on error
-  // and keep the user on the same page.
-  const { custom, teamSubdomain, host } = parseDomain(window.location.origin);
-  const url = new URL(env.URL);
-  url.pathname = authUrl;
-
-  if (custom || teamSubdomain) {
-    url.searchParams.set("host", host);
-  }
-  if (Desktop.isElectron()) {
-    url.searchParams.set("client", Client.Desktop);
-  }
-
-  return url.toString();
-}
-
 function AuthenticationProvider(props: Props) {
   const { t } = useTranslation();
   const [showEmailSignin, setShowEmailSignin] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [email, setEmail] = React.useState("");
-  const { isCreate, id, name, authUrl } = props;
+  const { isCreate, id, name, authUrl, onEmailSuccess, ...rest } = props;
 
   const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
@@ -66,7 +45,7 @@ function AuthenticationProvider(props: Props) {
         if (response.redirect) {
           window.location.href = response.redirect;
         } else {
-          props.onEmailSuccess(email);
+          onEmailSuccess(email);
         }
       } finally {
         setSubmitting(false);
@@ -76,7 +55,7 @@ function AuthenticationProvider(props: Props) {
     }
   };
 
-  const href = useRedirectHref(authUrl);
+  const href = getRedirectUrl(authUrl);
 
   if (id === "email") {
     if (isCreate) {
@@ -99,12 +78,12 @@ function AuthenticationProvider(props: Props) {
                 required
                 short
               />
-              <ButtonLarge type="submit" disabled={isSubmitting}>
+              <ButtonLarge type="submit" disabled={isSubmitting} {...rest}>
                 {t("Sign In")} →
               </ButtonLarge>
             </>
           ) : (
-            <ButtonLarge type="submit" icon={<EmailIcon />} fullwidth>
+            <ButtonLarge type="submit" icon={<EmailIcon />} fullwidth {...rest}>
               {t("Continue with Email")}
             </ButtonLarge>
           )}
@@ -114,17 +93,16 @@ function AuthenticationProvider(props: Props) {
   }
 
   return (
-    <Wrapper>
-      <ButtonLarge
-        onClick={() => (window.location.href = href)}
-        icon={<PluginIcon id={id} />}
-        fullwidth
-      >
-        {t("Continue with {{ authProviderName }}", {
-          authProviderName: name,
-        })}
-      </ButtonLarge>
-    </Wrapper>
+    <ButtonLarge
+      onClick={() => (window.location.href = href)}
+      icon={<PluginIcon id={id} />}
+      fullwidth
+      {...rest}
+    >
+      {t("Continue with {{ authProviderName }}", {
+        authProviderName: name,
+      })}
+    </ButtonLarge>
   );
 }
 

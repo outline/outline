@@ -1,0 +1,7 @@
+{
+  "id": "matomo",
+  "name": "Matomo",
+  "priority": 40,
+  "description": "Adds support for reporting analytics to a Matomo server.",
+  "deployments": ["community", "enterprise"]
+}

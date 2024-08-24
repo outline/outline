@@ -3,7 +3,6 @@ import styled, { css } from "styled-components";
 import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
-import useComponentSize from "./hooks/useComponentSize";
 import useDragResize from "./hooks/useDragResize";
 
 type Props = ComponentProps & {
@@ -16,19 +15,18 @@ export default function Video(props: Props) {
   const { isSelected, node, isEditable, children, onChangeSize } = props;
   const [naturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight] = React.useState(node.attrs.height);
-  const documentBounds = useComponentSize(props.view.dom);
+  const ref = React.useRef<HTMLDivElement>(null);
   const isResizable = !!onChangeSize;
 
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
     {
       width: node.attrs.width ?? naturalWidth,
       height: node.attrs.height ?? naturalHeight,
-      minWidth: documentBounds.width * 0.1,
-      maxWidth: documentBounds.width,
       naturalWidth,
       naturalHeight,
-      gridWidth: documentBounds.width / 20,
+      gridSnap: 5,
       onChangeSize,
+      ref,
     }
   );
 
@@ -48,7 +46,7 @@ export default function Video(props: Props) {
   };
 
   return (
-    <div contentEditable={false}>
+    <div contentEditable={false} ref={ref}>
       <VideoWrapper
         className={isSelected ? "ProseMirror-selectednode" : ""}
         style={style}

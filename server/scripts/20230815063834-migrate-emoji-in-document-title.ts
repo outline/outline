@@ -52,7 +52,7 @@ export default async function main(exit = false, limit = 1000) {
         try {
           const { emoji, strippedTitle } = parseTitle(document.title);
           if (emoji) {
-            document.emoji = emoji;
+            document.icon = emoji;
             document.title = strippedTitle;
 
             if (document.changed()) {

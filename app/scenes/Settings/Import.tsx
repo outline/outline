@@ -28,7 +28,7 @@ function Import() {
   return (
     <Scene title={t("Import")} icon={<NewDocumentIcon />}>
       <Heading>{t("Import")}</Heading>
-      <Text type="secondary">
+      <Text as="p" type="secondary">
         <Trans>
           Quickly transfer your existing documents, pages, and files from other
           tools and services into {{ appName }}. You can also drag and drop any
@@ -51,7 +51,6 @@ function Import() {
               onClick={() => {
                 dialogs.openModal({
                   title: t("Import data"),
-                  isCentered: true,
                   content: <ImportMarkdownDialog />,
                 });
               }}
@@ -77,7 +76,6 @@ function Import() {
               onClick={() => {
                 dialogs.openModal({
                   title: t("Import data"),
-                  isCentered: true,
                   content: <ImportJSONDialog />,
                 });
               }}
@@ -98,7 +96,6 @@ function Import() {
               onClick={() => {
                 dialogs.openModal({
                   title: t("Import data"),
-                  isCentered: true,
                   content: <ImportNotionDialog />,
                 });
               }}
