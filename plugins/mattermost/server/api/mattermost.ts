@@ -1,9 +1,20 @@
 import Router from "koa-router";
-import { UserRole } from "@shared/types";
+import { IntegrationService, IntegrationType, UserRole } from "@shared/types";
+import { MattermostIntegrationSettings } from "@shared/zod";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
+import { Collection, Integration } from "@server/models";
+import { authorize } from "@server/policies";
+import { presentIntegration, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { getUser, getUserTeams } from "../mattermost/client";
+import {
+  createWebhook,
+  getChannels,
+  getUser,
+  getUserTeams,
+} from "../mattermost/client";
+import { loadChannelsFromCache, storeChannelsInCache } from "../utils/cache";
 import * as T from "./schema";
 
 const router = new Router();
@@ -22,6 +33,109 @@ router.post(
 
     ctx.body = {
       data: { user, teams },
+    };
+  }
+);
+
+router.post(
+  "mattermost.channels",
+  auth({ role: UserRole.Admin }),
+  validate(T.MattermostGetChannelsSchema),
+  transaction(),
+  async (ctx: APIContext<T.MattermostGetChannelsReq>) => {
+    const { user } = ctx.state.auth;
+    const { force } = ctx.input.body;
+
+    const integration = await Integration.scope("withAuthentication").findOne({
+      where: {
+        service: IntegrationService.Mattermost,
+        type: IntegrationType.LinkedAccount,
+        userId: user.id,
+      },
+    });
+
+    authorize(user, "read", integration);
+
+    const settings = integration.settings as MattermostIntegrationSettings;
+
+    let channels = await loadChannelsFromCache({
+      teamId: settings.team.id,
+      userId: settings.user.id,
+    });
+
+    if (force || !channels) {
+      channels = await getChannels({
+        serverUrl: settings.url,
+        apiKey: integration.authentication.token,
+        teamId: settings.team.id,
+      });
+      await storeChannelsInCache({
+        teamId: settings.team.id,
+        userId: settings.user.id,
+        channels,
+      });
+    }
+
+    ctx.body = {
+      data: channels,
+    };
+  }
+);
+
+router.post(
+  "mattermost.webhook",
+  auth({ role: UserRole.Admin }),
+  validate(T.MattermostCreateWebhookSchema),
+  async (ctx: APIContext<T.MattermostCreateWebhookReq>) => {
+    const { user } = ctx.state.auth;
+    const { collectionId, channel } = ctx.input.body;
+
+    authorize(user, "update", user.team);
+
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(collectionId);
+
+    authorize(user, "read", collection);
+
+    const accountIntegration = await Integration.scope(
+      "withAuthentication"
+    ).findOne({
+      where: {
+        service: IntegrationService.Mattermost,
+        type: IntegrationType.LinkedAccount,
+        userId: user.id,
+      },
+    });
+
+    authorize(user, "read", accountIntegration);
+
+    const settings =
+      accountIntegration.settings as MattermostIntegrationSettings;
+
+    const webhook = await createWebhook({
+      serverUrl: settings.url,
+      apiKey: accountIntegration.authentication.token,
+      channel,
+    });
+
+    const postIntegration = await Integration.create({
+      service: IntegrationService.Mattermost,
+      type: IntegrationType.Post,
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId,
+      events: ["documents.update", "documents.publish"],
+      settings: {
+        url: webhook.url,
+        channel: channel.name,
+        channelId: channel.id,
+      },
+    });
+
+    ctx.body = {
+      data: presentIntegration(postIntegration),
+      policies: presentPolicies(user, [postIntegration]),
     };
   }
 );

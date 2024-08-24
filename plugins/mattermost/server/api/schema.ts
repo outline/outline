@@ -11,3 +11,28 @@ export const MattermostGetUserTeamsSchema = BaseSchema.extend({
 export type MattermostGetUserTeamsReq = z.infer<
   typeof MattermostGetUserTeamsSchema
 >;
+
+export const MattermostGetChannelsSchema = BaseSchema.extend({
+  body: z.object({
+    /** whether to skip cache and force load from Mattermost */
+    force: z.boolean().default(false),
+  }),
+});
+
+export type MattermostGetChannelsReq = z.infer<
+  typeof MattermostGetChannelsSchema
+>;
+
+export const MattermostCreateWebhookSchema = BaseSchema.extend({
+  body: z.object({
+    collectionId: z.string(),
+    channel: z.object({
+      id: z.string(),
+      name: z.string(),
+    }),
+  }),
+});
+
+export type MattermostCreateWebhookReq = z.infer<
+  typeof MattermostCreateWebhookSchema
+>;

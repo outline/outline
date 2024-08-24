@@ -1,9 +1,60 @@
+import { JSONObject } from "@shared/types";
 import { InternalError, InvalidRequestError } from "@server/errors";
-import { Team, User } from "../../shared/types";
+import { Channel, ChannelType, Team, User, Webhook } from "../../shared/types";
 
 const Endpoints = {
   User: "/api/v4/users/me",
   UserTeams: "/api/v4/users/me/teams",
+  TeamChannels: (teamId: string) => `/api/v4/users/me/teams/${teamId}/channels`,
+  CreateWebhook: "/api/v4/hooks/incoming",
+  PostWebhook: (webhookId: string) => `/hooks/${webhookId}`,
+};
+
+const Integration = {
+  Name: "Outline",
+  Description:
+    "Outline is an open source team wiki and knowledgebase for growing teams.",
+};
+
+type MattermostRequestOpts<T> =
+  | {
+      url: string;
+      apiKey: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parseResponse: (json: any) => T;
+    } & ({ method: "GET" } | { method: "POST"; data: JSONObject });
+
+const invokeMattermost = async <T>(opts: MattermostRequestOpts<T>) => {
+  let body: string | undefined;
+  let res: Response;
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${opts.apiKey}`,
+    Accept: "application/json",
+  };
+
+  if (opts.method === "POST") {
+    headers["Content-type"] = "application/json";
+    body = JSON.stringify(opts.data);
+  }
+
+  try {
+    res = await fetch(opts.url, {
+      method: opts.method,
+      headers,
+      body,
+    });
+  } catch (err) {
+    throw InternalError();
+  }
+
+  if (res.ok) {
+    return opts.parseResponse(await res.json());
+  } else if (res.status >= 400 && res.status < 500) {
+    throw InvalidRequestError();
+  } else {
+    throw InternalError();
+  }
 };
 
 export const getUser = async ({
@@ -13,7 +64,8 @@ export const getUser = async ({
   serverUrl: string;
   apiKey: string;
 }): Promise<User> =>
-  getDataFromMattermost<User>({
+  invokeMattermost<User>({
+    method: "GET",
     url: `${serverUrl}${Endpoints.User}`,
     apiKey,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,7 +83,8 @@ export const getUserTeams = async ({
   serverUrl: string;
   apiKey: string;
 }): Promise<Team[]> =>
-  getDataFromMattermost<Team[]>({
+  invokeMattermost<Team[]>({
+    method: "GET",
     url: `${serverUrl}${Endpoints.UserTeams}`,
     apiKey,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,34 +93,61 @@ export const getUserTeams = async ({
       data.map((team: any) => ({ id: team.id, name: team.display_name })),
   });
 
-const getDataFromMattermost = async <T>({
-  url,
+export const getChannels = async ({
+  serverUrl,
   apiKey,
-  parseResponse,
+  teamId,
 }: {
-  url: string;
+  serverUrl: string;
   apiKey: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parseResponse: (json: any) => T;
-}) => {
-  let res: Response;
+  teamId: string;
+}): Promise<Channel[]> =>
+  invokeMattermost<Channel[]>({
+    method: "GET",
+    url: `${serverUrl}${Endpoints.TeamChannels(teamId)}`,
+    apiKey,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parseResponse: (data: any) =>
+      data
+        .filter(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (channel: any) =>
+            channel.type === ChannelType.Public ||
+            channel.type === ChannelType.Private
+        )
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((channel: any) => ({
+          id: channel.id,
+          name: channel.display_name,
+          type:
+            channel.type === ChannelType.Public
+              ? ChannelType.Public
+              : ChannelType.Private,
+        })),
+  });
 
-  try {
-    res = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-    });
-  } catch (err) {
-    throw InternalError();
-  }
-
-  if (res.ok) {
-    return parseResponse(await res.json());
-  } else if (res.status >= 400 && res.status < 500) {
-    throw InvalidRequestError();
-  } else {
-    throw InternalError();
-  }
-};
+export const createWebhook = async ({
+  serverUrl,
+  apiKey,
+  channel,
+}: {
+  serverUrl: string;
+  apiKey: string;
+  channel: Pick<Channel, "id" | "name">;
+}): Promise<Webhook> =>
+  invokeMattermost<Webhook>({
+    method: "POST",
+    url: `${serverUrl}${Endpoints.CreateWebhook}`,
+    apiKey,
+    data: {
+      channel_id: channel.id,
+      display_name: `${Integration.Name} (${channel.name})`,
+      description: Integration.Description,
+      channel_locked: true,
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parseResponse: (data: any) => ({
+      id: data.id,
+      url: `${serverUrl}${Endpoints.PostWebhook(data.id)}`,
+    }),
+  });

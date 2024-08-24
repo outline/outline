@@ -9,31 +9,41 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import env from "~/env";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import IntegrationWebhook, {
+  RenderConnectProps,
+} from "../../shared/client/IntegrationWebhook";
 import MattermostIcon from "./Icon";
-import AddConnectionDialog from "./components/connection/AddConnectionDialog";
+import AddConnectionDialog from "./components/Connection/AddConnectionDialog";
+import DisconnectDialogMessage from "./components/DisconnectDialogMessage";
+import ConnectWebhookButton from "./components/Webhook/ConnectWebhookButton";
+import { channels } from "./utils/ChannelsStore";
 
 const MatterMost = () => {
-  const { t } = useTranslation();
-  const { dialogs, integrations } = useStores();
-
   const appName = env.APP_NAME;
+
+  const { t } = useTranslation();
+  const { collections, dialogs, integrations } = useStores();
+
+  const team = useCurrentTeam();
+  const can = usePolicy(team);
 
   const linkedAccountIntegration = integrations.find({
     service: IntegrationService.Mattermost,
     type: IntegrationType.LinkedAccount,
   });
 
-  const handleConnect = React.useCallback(() => {
+  const handleAddConnection = React.useCallback(() => {
     dialogs.openModal({
       title: t("Connect to Mattermost"),
       content: <AddConnectionDialog onSubmit={dialogs.closeAllModals} />,
     });
   }, [dialogs]);
 
-  const handleDisconnect = React.useCallback(async () => {
+  const handleRemoveConnection = React.useCallback(async () => {
     if (linkedAccountIntegration) {
       await linkedAccountIntegration.delete();
       toast.success(t("Mattermost connection removed"));
@@ -41,11 +51,20 @@ const MatterMost = () => {
   }, [linkedAccountIntegration]);
 
   React.useEffect(() => {
+    void collections.fetchPage({
+      limit: 100,
+    });
     void integrations.fetchPage({
       service: IntegrationService.Mattermost,
       limit: 100,
     });
-  }, [integrations]);
+  }, [collections, integrations]);
+
+  React.useEffect(() => {
+    if (linkedAccountIntegration) {
+      void channels.load();
+    }
+  }, [linkedAccountIntegration]);
 
   return (
     <Scene title="Mattermost" icon={<MattermostIcon />}>
@@ -65,41 +84,27 @@ const MatterMost = () => {
         <Flex align="flex-end" column>
           {linkedAccountIntegration ? (
             <ConnectedButton
-              onClick={handleDisconnect}
-              confirmationMessage={<DisconnectMessage />}
+              onClick={handleRemoveConnection}
+              confirmationMessage={<DisconnectDialogMessage />}
             />
           ) : (
-            <Button neutral onClick={handleConnect}>
+            <Button neutral onClick={handleAddConnection}>
               {t("Connect")}
             </Button>
           )}
         </Flex>
       </SettingRow>
+
+      {can.update && linkedAccountIntegration && (
+        <IntegrationWebhook
+          service={IntegrationService.Mattermost}
+          renderConnect={({ collection }: RenderConnectProps) => (
+            <ConnectWebhookButton collection={collection} />
+          )}
+        />
+      )}
     </Scene>
   );
 };
-
-const DisconnectMessage = () => (
-  <>
-    <Text type="secondary">
-      <Trans>Disconnecting your account will prevent</Trans>
-    </Text>
-    <ul>
-      <li>
-        <Text type="secondary">
-          <Trans>searching for documents from Mattermost.</Trans>
-        </Text>
-      </li>
-      <li>
-        <Text type="secondary">
-          <Trans>posting document updates to Mattermost.</Trans>
-        </Text>
-      </li>
-    </ul>
-    <Text type="secondary">
-      <Trans>Are you sure?</Trans>
-    </Text>
-  </>
-);
 
 export default observer(MatterMost);
