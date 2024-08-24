@@ -6,8 +6,8 @@ import Redis from "@server/storage/redis";
  * A Helper class for server-side cache management
  */
 export class CacheHelper {
-  // Default expiry time for cache data in ms
-  private static defaultDataExpiry = Day;
+  // Default expiry time for cache data in seconds
+  private static defaultDataExpiry = Day / 1000;
 
   /**
    * Given a key, gets the data from cache store
@@ -32,7 +32,7 @@ export class CacheHelper {
    *
    * @param key Cache key
    * @param data Data to be saved against the key
-   * @param expiry Cache data expiry
+   * @param expiry Cache data expiry in seconds
    */
   public static async setData<T>(key: string, data: T, expiry?: number) {
     try {
