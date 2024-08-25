@@ -8,7 +8,7 @@ import Spinner from "~/components/Spinner";
 import Text from "~/components/Text";
 import { channels } from "../../utils/ChannelsStore";
 
-const ReloadChannelsButton = () => {
+const ForceReloadChannels = () => {
   const { t } = useTranslation();
 
   const handleForceLoad = React.useCallback(
@@ -55,4 +55,4 @@ const RefreshCacheButton = styled.a<{ disabled: boolean }>`
   pointer-events: ${({ disabled }) => disabled && "none"};
 `;
 
-export default observer(ReloadChannelsButton);
+export default observer(ForceReloadChannels);

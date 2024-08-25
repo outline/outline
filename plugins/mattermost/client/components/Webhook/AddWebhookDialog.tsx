@@ -14,7 +14,7 @@ import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import { Channel, ChannelType } from "../../../shared/types";
 import { channels } from "../../utils/ChannelsStore";
-import ReloadChannelsButton from "./ReloadChannelsButton";
+import ForceReloadChannels from "./ForceReloadChannels";
 
 type Props = {
   collection: Collection;
@@ -92,7 +92,7 @@ const AddWebhookDialog = ({ collection, onSave }: Props) => {
         <Text as="p" type="secondary">
           <Trans>No channels available for the connected team.</Trans>
         </Text>
-        <ReloadChannelsButton />
+        <ForceReloadChannels />
       </Flex>
     );
   }
@@ -109,7 +109,7 @@ const AddWebhookDialog = ({ collection, onSave }: Props) => {
         ariaLabel={t("Channel")}
         label={t("Channel")}
       />
-      <ReloadChannelsButton />
+      <ForceReloadChannels />
       <Flex justify="end">
         <Button onClick={handleSave} disabled={saving}>
           {saving ? `${t("Saving")}…` : t("Save")}
