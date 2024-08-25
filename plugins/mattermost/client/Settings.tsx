@@ -8,14 +8,14 @@ import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
+import IntegrationWebhook, {
+  RenderConnectProps,
+} from "~/components/IntegrationWebhook";
 import Scene from "~/components/Scene";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import IntegrationWebhook, {
-  RenderConnectProps,
-} from "../../shared/client/IntegrationWebhook";
 import MattermostIcon from "./Icon";
 import AddConnectionDialog from "./components/Connection/AddConnectionDialog";
 import DisconnectDialogMessage from "./components/DisconnectDialogMessage";
