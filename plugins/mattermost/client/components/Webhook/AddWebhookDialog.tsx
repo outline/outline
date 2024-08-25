@@ -5,7 +5,6 @@ import { HashtagIcon, PadlockIcon } from "outline-icons";
 import React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -15,7 +14,7 @@ import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import { Channel, ChannelType } from "../../../shared/types";
 import { channels } from "../../utils/ChannelsStore";
-import ForceReloadChannelsButton from "./ForceReloadChannelsButton";
+import ReloadChannelsButton from "./ReloadChannelsButton";
 
 type Props = {
   collection: Collection;
@@ -36,9 +35,9 @@ const AddWebhookDialog = ({ collection, onSave }: Props) => {
         label: (
           <Flex align="center" gap={4}>
             {channel.type === ChannelType.Public ? (
-              <StyledHashtagIcon size={18} />
+              <HashtagIcon size={18} />
             ) : (
-              <StyledPadlockIcon size={18} />
+              <PadlockIcon size={18} />
             )}
             {channel.name}
           </Flex>
@@ -93,7 +92,7 @@ const AddWebhookDialog = ({ collection, onSave }: Props) => {
         <Text as="p" type="secondary">
           <Trans>No channels available for the connected team.</Trans>
         </Text>
-        <ForceReloadChannelsButton />
+        <ReloadChannelsButton />
       </Flex>
     );
   }
@@ -110,7 +109,7 @@ const AddWebhookDialog = ({ collection, onSave }: Props) => {
         ariaLabel={t("Channel")}
         label={t("Channel")}
       />
-      <ForceReloadChannelsButton />
+      <ReloadChannelsButton />
       <Flex justify="end">
         <Button onClick={handleSave} disabled={saving}>
           {saving ? `${t("Saving")}…` : t("Save")}
@@ -119,13 +118,5 @@ const AddWebhookDialog = ({ collection, onSave }: Props) => {
     </div>
   );
 };
-
-const StyledHashtagIcon = styled(HashtagIcon)`
-  margin-top: 1px;
-`;
-
-const StyledPadlockIcon = styled(PadlockIcon)`
-  margin-top: 1px;
-`;
 
 export default observer(AddWebhookDialog);
