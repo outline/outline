@@ -7,7 +7,7 @@ import Redis from "@server/storage/redis";
  */
 export class CacheHelper {
   // Default expiry time for cache data in seconds
-  private static defaultDataExpiry = Day / 1000;
+  private static defaultDataExpiry = Day.seconds;
 
   /**
    * Given a key, gets the data from cache store
