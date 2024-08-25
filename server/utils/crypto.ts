@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import CryptoJS from "crypto-js";
+import env from "@server/env";
 
 /**
  * Compare two strings in constant time to prevent timing attacks.
@@ -17,3 +19,52 @@ export function safeEqual(a?: string, b?: string) {
 
   return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
+
+const formatter: CryptoJS.lib.CipherParams["formatter"] = {
+  stringify: (cipherParams: CryptoJS.lib.CipherParams): string => {
+    const obj = {} as Record<string, string>;
+
+    obj.ct = cipherParams.ciphertext.toString(CryptoJS.enc.Base64);
+
+    if (cipherParams.iv) {
+      obj.iv = cipherParams.iv.toString();
+    }
+
+    if (cipherParams.salt) {
+      obj.s = cipherParams.salt.toString();
+    }
+
+    return JSON.stringify(obj);
+  },
+  parse: (jsonStr: string): CryptoJS.lib.CipherParams => {
+    const jsonObj = JSON.parse(jsonStr);
+
+    const cipherParams = CryptoJS.lib.CipherParams.create({
+      ciphertext: CryptoJS.enc.Base64.parse(jsonObj.ct),
+    });
+
+    if (jsonObj.iv) {
+      cipherParams.iv = CryptoJS.enc.Hex.parse(jsonObj.iv);
+    }
+
+    if (jsonObj.s) {
+      cipherParams.salt = CryptoJS.enc.Hex.parse(jsonObj.s);
+    }
+
+    return cipherParams;
+  },
+};
+
+export const encrypt = (value: string): string => {
+  const encrypted = CryptoJS.AES.encrypt(value, env.SECRET_KEY, {
+    format: formatter,
+  });
+  return encrypted.toString();
+};
+
+export const decrypt = (value: string): string => {
+  const decrypted = CryptoJS.AES.decrypt(value, env.SECRET_KEY, {
+    format: formatter,
+  });
+  return decrypted.toString(CryptoJS.enc.Utf8);
+};
