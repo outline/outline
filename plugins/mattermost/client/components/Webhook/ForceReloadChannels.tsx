@@ -30,20 +30,19 @@ const ForceReloadChannels = () => {
   return (
     <Flex>
       <Text as="p" type="tertiary">
-        <Trans>
-          This data was loaded from cache.
-          <Flex gap={4}>
-            Click{" "}
-            <RefreshCacheButton
-              disabled={channels.isLoading}
-              onClick={handleForceLoad}
-            >
-              here
-            </RefreshCacheButton>{" "}
-            to refresh.
-            {channels.isLoading && <Spinner />}
-          </Flex>
-        </Trans>
+        <Trans
+          defaults="This data was loaded from cache.<div>Click <a>here</a> to refresh.<spinner /></div>"
+          components={{
+            div: <Flex gap={4} />,
+            a: (
+              <RefreshCacheButton
+                disabled={channels.isLoading}
+                onClick={handleForceLoad}
+              />
+            ),
+            spinner: channels.isLoading ? <Spinner /> : <div />,
+          }}
+        />
       </Text>
     </Flex>
   );
