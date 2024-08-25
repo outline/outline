@@ -1,5 +1,3 @@
-import { subHours } from "date-fns";
-import { Op } from "sequelize";
 import { Server } from "socket.io";
 import {
   Comment,
@@ -495,6 +493,11 @@ export default class WebsocketsProcessor {
           });
         }
 
+        socketio.to(`user-${event.userId}`).emit("join", {
+          event: event.name,
+          groupId: event.modelId,
+        });
+
         return;
       }
 
@@ -547,6 +550,11 @@ export default class WebsocketsProcessor {
           }
         }
 
+        socketio.to(`user-${event.userId}`).emit("leave", {
+          event: event.name,
+          groupId: event.modelId,
+        });
+
         return;
       }
 
@@ -554,65 +562,10 @@ export default class WebsocketsProcessor {
         socketio.to(`team-${event.teamId}`).emit(event.name, {
           modelId: event.modelId,
         });
-
-        // we get users and collection relations that were just severed as a
-        // result of the group deletion since there are cascading deletes, we
-        // approximate this by looking for the recently deleted items in the
-        // GroupUser and CollectionGroup tables
-        const groupUsers = await GroupUser.findAll({
-          paranoid: false,
-          where: {
-            groupId: event.modelId,
-            deletedAt: {
-              [Op.gt]: subHours(new Date(), 1),
-            },
-          },
+        socketio.to(`group-${event.modelId}`).emit("leave", {
+          event: event.name,
+          groupId: event.modelId,
         });
-        const groupMemberships = await GroupMembership.scope(
-          "withCollection"
-        ).findAll({
-          paranoid: false,
-          where: {
-            groupId: event.modelId,
-            deletedAt: {
-              [Op.gt]: subHours(new Date(), 1),
-            },
-          },
-        });
-
-        for (const groupMembership of groupMemberships) {
-          const membershipUserIds = groupMembership.collectionId
-            ? await Collection.membershipUserIds(groupMembership.collectionId)
-            : [];
-
-          for (const groupUser of groupUsers) {
-            if (membershipUserIds.includes(groupUser.userId)) {
-              // the user still has access through some means...
-              // treat this like an add, so that the client re-syncs policies
-              socketio
-                .to(`user-${groupUser.userId}`)
-                .emit("collections.add_user", {
-                  event: event.name,
-                  userId: groupUser.userId,
-                  collectionId: groupMembership.collectionId,
-                });
-            } else {
-              // let everyone with access to the collection know a user was removed
-              socketio
-                .to(`collection-${groupMembership.collectionId}`)
-                .emit("collections.remove_user", {
-                  event: event.name,
-                  userId: groupUser.userId,
-                  collectionId: groupMembership.collectionId,
-                });
-              // tell any user clients to disconnect from the websocket channel for the collection
-              socketio.to(`user-${groupUser.userId}`).emit("leave", {
-                event: event.name,
-                collectionId: groupMembership.collectionId,
-              });
-            }
-          }
-        }
 
         return;
       }
