@@ -127,6 +127,7 @@ router.post(
       collectionId,
       events: ["documents.update", "documents.publish"],
       settings: {
+        id: webhook.id,
         url: webhook.url,
         channel: channel.name,
         channelId: channel.id,

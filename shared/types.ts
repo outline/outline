@@ -136,7 +136,7 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   : T extends IntegrationType.Analytics
   ? { measurementId: string; instanceUrl?: string }
   : T extends IntegrationType.Post
-  ? { url: string; channel: string; channelId: string }
+  ? { id?: string; url: string; channel: string; channelId: string }
   : T extends IntegrationType.Command
   ? { serviceTeamId: string }
   :
@@ -149,7 +149,7 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
             };
           };
         }
-      | { url: string; channel: string; channelId: string }
+      | { id?: string; url: string; channel: string; channelId: string }
       | { serviceTeamId: string }
       | { measurementId: string }
       | { slack: { serviceTeamId: string; serviceUserId: string } }

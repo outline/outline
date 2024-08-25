@@ -1,14 +1,9 @@
+import { Response } from "node-fetch";
 import { JSONObject } from "@shared/types";
 import { InternalError, InvalidRequestError } from "@server/errors";
+import fetch from "@server/utils/fetch";
 import { Channel, ChannelType, Team, User, Webhook } from "../../shared/types";
-
-const Endpoints = {
-  User: "/api/v4/users/me",
-  UserTeams: "/api/v4/users/me/teams",
-  TeamChannels: (teamId: string) => `/api/v4/users/me/teams/${teamId}/channels`,
-  CreateWebhook: "/api/v4/hooks/incoming",
-  PostWebhook: (webhookId: string) => `/hooks/${webhookId}`,
-};
+import { MattermostApi } from "./api";
 
 const Integration = {
   Name: "Outline",
@@ -66,7 +61,7 @@ export const getUser = async ({
 }): Promise<User> =>
   invokeMattermost<User>({
     method: "GET",
-    url: `${serverUrl}${Endpoints.User}`,
+    url: `${serverUrl}${MattermostApi.User}`,
     apiKey,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     parseResponse: (data: any) => ({
@@ -85,7 +80,7 @@ export const getUserTeams = async ({
 }): Promise<Team[]> =>
   invokeMattermost<Team[]>({
     method: "GET",
-    url: `${serverUrl}${Endpoints.UserTeams}`,
+    url: `${serverUrl}${MattermostApi.UserTeams}`,
     apiKey,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     parseResponse: (data: any) =>
@@ -104,7 +99,7 @@ export const getChannels = async ({
 }): Promise<Channel[]> =>
   invokeMattermost<Channel[]>({
     method: "GET",
-    url: `${serverUrl}${Endpoints.TeamChannels(teamId)}`,
+    url: `${serverUrl}${MattermostApi.TeamChannels(teamId)}`,
     apiKey,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     parseResponse: (data: any) =>
@@ -137,7 +132,7 @@ export const createWebhook = async ({
 }): Promise<Webhook> =>
   invokeMattermost<Webhook>({
     method: "POST",
-    url: `${serverUrl}${Endpoints.CreateWebhook}`,
+    url: `${serverUrl}${MattermostApi.CreateWebhook}`,
     apiKey,
     data: {
       channel_id: channel.id,
@@ -148,6 +143,6 @@ export const createWebhook = async ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     parseResponse: (data: any) => ({
       id: data.id,
-      url: `${serverUrl}${Endpoints.PostWebhook(data.id)}`,
+      url: `${serverUrl}${MattermostApi.PostWebhook(data.id)}`,
     }),
   });

@@ -3,8 +3,8 @@ import { Collection, Document, Team } from "@server/models";
 
 export const presentMessageAttachment = ({
   document,
-  collection,
   team,
+  collection,
 }: {
   document: Document;
   team: Team;
@@ -13,7 +13,7 @@ export const presentMessageAttachment = ({
   const text = document.getSummary();
 
   return {
-    color: collection?.color,
+    color: document.color ?? collection?.color,
     title: document.title,
     title_link: `${team.url}${document.path}`,
     text,

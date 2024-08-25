@@ -1,10 +1,10 @@
 import { IntegrationType } from "@shared/types";
-import { IMIntegrationServices } from "@shared/utils/integrations";
 import { Integration } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import { IntegrationEvent, Event } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
+import { isIMIntegrationService } from "@server/utils/integrations";
 
 export default class IntegrationDeletedProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = ["integrations.delete"];
@@ -21,7 +21,7 @@ export default class IntegrationDeletedProcessor extends BaseProcessor {
     }
 
     // IM integrations have their own processor to handle deleted integration.
-    if (IMIntegrationServices.includes(integration.service)) {
+    if (isIMIntegrationService(integration.service)) {
       return;
     }
 

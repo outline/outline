@@ -540,3 +540,9 @@ export type UnfurlSignature = (
 ) => Promise<Unfurl | void>;
 
 export type UninstallSignature = (integration: Integration) => Promise<void>;
+
+export type DeleteIntegrationWebhook = {
+  method: "POST" | "DELETE";
+  url: string;
+  apiKey: string;
+};
