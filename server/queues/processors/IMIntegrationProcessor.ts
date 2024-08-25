@@ -2,6 +2,7 @@ import { differenceInMilliseconds } from "date-fns";
 import { Op } from "sequelize";
 import { IntegrationService, IntegrationType, JSONObject } from "@shared/types";
 import { Minute, Second } from "@shared/utils/time";
+import env from "@server/env";
 import {
   Collection,
   Document,
@@ -141,7 +142,56 @@ export default abstract class IMIntegrationProcessor extends BaseProcessor {
     });
   }
 
-  protected abstract integrationCreated(event: IntegrationEvent): Promise<void>;
+  private async integrationCreated(event: IntegrationEvent): Promise<void> {
+    const integration = (await Integration.findOne({
+      where: {
+        id: event.modelId,
+        service: this.service,
+        type: IntegrationType.Post,
+      },
+      include: [
+        {
+          model: Team,
+          required: true,
+          as: "team",
+        },
+        {
+          model: Collection,
+          required: true,
+          as: "collection",
+        },
+      ],
+    })) as Integration<IntegrationType.Post>;
+
+    if (!integration) {
+      return;
+    }
+
+    const team = integration.team;
+    const collection = integration.collection;
+
+    if (!team || !collection) {
+      return;
+    }
+
+    await fetch(integration.settings.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text: `👋 Hey there!\nWhen documents are published or updated in the *${collection.name}* collection on ${env.APP_NAME}, they will be posted to this channel.`,
+        attachments: [
+          {
+            color: collection.color,
+            title: collection.name,
+            title_link: `${team.url}${collection.path}`,
+            text: collection.description,
+          },
+        ],
+      }),
+    });
+  }
 
   private async integrationDeleted(event: IntegrationEvent): Promise<void> {
     const integration = await Integration.findOne({

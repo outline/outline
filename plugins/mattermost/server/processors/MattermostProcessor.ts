@@ -4,11 +4,7 @@ import IMIntegrationProcessor, {
   IntegrationDataProps,
   MessageAttachmentProps,
 } from "@server/queues/processors/IMIntegrationProcessor";
-import {
-  IntegrationEvent,
-  Event,
-  DeleteIntegrationWebhook,
-} from "@server/types";
+import { Event, DeleteIntegrationWebhook } from "@server/types";
 import { MattermostApi } from "../mattermost/api";
 import { presentMessageAttachment } from "../presenters/messageAttachment";
 
@@ -22,10 +18,6 @@ export class MattermostProcessor extends IMIntegrationProcessor {
 
   constructor() {
     super(IntegrationService.Mattermost);
-  }
-
-  protected integrationCreated(event: IntegrationEvent): Promise<void> {
-    throw new Error("Method not implemented.");
   }
 
   protected getMessageAttachments(

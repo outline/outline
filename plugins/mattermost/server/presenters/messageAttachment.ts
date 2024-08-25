@@ -13,7 +13,7 @@ export const presentMessageAttachment = ({
   const text = document.getSummary();
 
   return {
-    color: document.color ?? collection?.color,
+    color: collection?.color,
     title: document.title,
     title_link: `${team.url}${document.path}`,
     text,
