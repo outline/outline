@@ -52,6 +52,7 @@ import { ValidationError } from "../errors";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
+import Group from "./Group";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import UserMembership from "./UserMembership";
@@ -404,7 +405,34 @@ class User extends ParanoidModel<
     UserPreferenceDefaults[preference] ??
     false;
 
-  collectionIds = async (options: FindOptions<Collection> = {}) => {
+  /**
+   * Returns the user's active group ids.
+   *
+   * @param options Additional options to pass to the find
+   * @returns An array of group ids
+   */
+  public groupIds = async (options: FindOptions<Group> = {}) => {
+    const groupStubs = await Group.scope({
+      method: ["withMembership", this.id],
+    }).findAll({
+      attributes: ["id"],
+      where: {
+        teamId: this.teamId,
+      },
+      ...options,
+    });
+
+    return groupStubs.map((g) => g.id);
+  };
+
+  /**
+   * Returns the user's active collection ids. This includes collections the user
+   * has access to through group memberships.
+   *
+   * @param options Additional options to pass to the find
+   * @returns An array of collection ids
+   */
+  public collectionIds = async (options: FindOptions<Collection> = {}) => {
     const collectionStubs = await Collection.scope({
       method: ["withMembership", this.id],
     }).findAll({
