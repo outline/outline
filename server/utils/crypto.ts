@@ -56,7 +56,9 @@ const formatter: CryptoJS.lib.CipherParams["formatter"] = {
 };
 
 export const encrypt = (value: string): string => {
+  const iv = crypto.randomBytes(12).toString("hex");
   const encrypted = CryptoJS.AES.encrypt(value, env.SECRET_KEY, {
+    iv: CryptoJS.enc.Hex.parse(iv),
     format: formatter,
   });
   return encrypted.toString();

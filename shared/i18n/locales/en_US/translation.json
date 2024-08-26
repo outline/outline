@@ -1048,7 +1048,7 @@
   "Setup webhook": "Setup webhook",
   "Channels could not be loaded, please retry": "Channels could not be loaded, please retry",
   "Channels loaded successfully": "Channels loaded successfully",
-  "This data was loaded from cache.<div>Click <refresh>here</refresh> to refresh.<spinner /></div>": "This data was loaded from cache.<div>Click <refresh>here</refresh> to refresh.<spinner /></div>",
+  "This data was loaded from cache.<div>Click <a>here</a> to refresh.<spinner /></div>": "This data was loaded from cache.<div>Click <a>here</a> to refresh.<spinner /></div>",
   "Connect to Mattermost": "Connect to Mattermost",
   "Mattermost connection removed": "Mattermost connection removed",
   "Link your {{appName}} account to Mattermost to enable posting document updates, searching and previewing the documents you have access to, directly within chat.": "Link your {{appName}} account to Mattermost to enable posting document updates, searching and previewing the documents you have access to, directly within chat.",
