@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import some from "lodash/some";
+import find from "lodash/find";
 import {
   CollectionPermission,
   DocumentPermission,
@@ -295,5 +295,8 @@ function includesMembership(
     document.memberships,
     "document memberships should be preloaded, did you forget withMembership scope?"
   );
-  return some(document.memberships, (m) => permissions.includes(m.permission));
+  return (
+    find(document.memberships, (m) => permissions.includes(m.permission))?.id ||
+    false
+  );
 }

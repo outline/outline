@@ -59,7 +59,7 @@ describe("#userMemberships.list", () => {
     expect(body.policies).not.toBeFalsy();
     expect(body.policies).toHaveLength(2);
     expect(body.policies[1].abilities).not.toBeFalsy();
-    expect(body.policies[1].abilities.update).toEqual(true);
+    expect(body.policies[1].abilities.update).toBeTruthy();
   });
 });
 

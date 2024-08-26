@@ -5,7 +5,7 @@ import { serialize } from "../policies";
 
 type Policy = {
   id: string;
-  abilities: Record<string, boolean>;
+  abilities: Record<string, boolean | string[]>;
 };
 
 function presentPolicy(
