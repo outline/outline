@@ -106,12 +106,13 @@ const AddWebhookDialog = ({ collection, onSave }: Props) => {
         value={selectedChannel?.id}
         options={options}
         onChange={handleSelectChannel}
+        disabled={channels.isLoading}
         ariaLabel={t("Channel")}
         label={t("Channel")}
       />
       <ForceReloadChannels />
       <Flex justify="end">
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving || channels.isLoading}>
           {saving ? `${t("Saving")}…` : t("Save")}
         </Button>
       </Flex>
