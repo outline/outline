@@ -133,6 +133,7 @@ export default abstract class IMIntegrationProcessor extends BaseProcessor {
       },
       body: JSON.stringify({
         text,
+        username: env.APP_NAME,
         attachments: this.getMessageAttachments({
           document,
           team,
@@ -181,6 +182,7 @@ export default abstract class IMIntegrationProcessor extends BaseProcessor {
       },
       body: JSON.stringify({
         text: `👋 Hey there!\nWhen documents are published or updated in the *${collection.name}* collection on ${env.APP_NAME}, they will be posted to this channel.`,
+        username: env.APP_NAME,
         attachments: [
           {
             color: collection.color,
