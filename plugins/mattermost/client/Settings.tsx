@@ -16,6 +16,7 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import useUnmount from "~/hooks/useUnmount";
 import MattermostIcon from "./Icon";
 import AddConnectionDialog from "./components/Connection/AddConnectionDialog";
 import DisconnectDialogMessage from "./components/DisconnectDialogMessage";
@@ -65,6 +66,8 @@ const MatterMost = () => {
       void channels.load();
     }
   }, [linkedAccountIntegration]);
+
+  useUnmount(() => (channels.isForceLoaded = false));
 
   return (
     <Scene title="Mattermost" icon={<MattermostIcon />}>

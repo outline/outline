@@ -277,6 +277,7 @@
   "These events should be posted to {{ integrationName }}": "These events should be posted to {{ integrationName }}",
   "Document published": "Document published",
   "Document updated": "Document updated",
+  "{{ integrationName }} webhook removed": "{{ integrationName }} webhook removed",
   "This will prevent any future updates from being posted to this {{ integrationName }} channel. Are you sure?": "This will prevent any future updates from being posted to this {{ integrationName }} channel. Are you sure?",
   "Collections": "Collections",
   "Connect {{ appName }} collections to {{ integrationName }} channels.<br>Messages will be automatically posted to {{ integrationName }} when documents are published or updated.": "Connect {{ appName }} collections to {{ integrationName }} channels.<br>Messages will be automatically posted to {{ integrationName }} when documents are published or updated.",

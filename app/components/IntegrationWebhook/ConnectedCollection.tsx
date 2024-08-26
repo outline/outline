@@ -1,3 +1,4 @@
+import capitalize from "lodash/capitalize";
 import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -104,13 +105,20 @@ function ConnectedCollection({ integration, collection }: Props) {
       }
       actions={
         <ConnectedButton
-          onClick={integration.delete}
-          confirmationMessage={
-            <Trans
-              defaults="This will prevent any future updates from being posted to this {{ integrationName }} channel. Are you sure?"
-              values={{ integrationName: integration.service }}
-            />
-          }
+          onClick={async () => {
+            await integration.delete();
+            toast.success(
+              t("{{ integrationName }} webhook removed", {
+                integrationName: capitalize(integration.service),
+              })
+            );
+          }}
+          confirmationMessage={t(
+            "This will prevent any future updates from being posted to this {{ integrationName }} channel. Are you sure?",
+            {
+              integrationName: integration.service,
+            }
+          )}
         />
       }
     />
