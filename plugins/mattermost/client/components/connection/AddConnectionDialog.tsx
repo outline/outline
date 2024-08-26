@@ -9,7 +9,7 @@ type Props = {
   onSubmit: () => void;
 };
 
-const ConnectForm = ({ onSubmit }: Props) => {
+const AddConnectionDialog = ({ onSubmit }: Props) => {
   const [userTeams, setUserTeams] = useState<UserTeams>();
   const serverRef = useRef<Server>({
     url: "",
@@ -32,4 +32,4 @@ const ConnectForm = ({ onSubmit }: Props) => {
   );
 };
 
-export default observer(ConnectForm);
+export default observer(AddConnectionDialog);
