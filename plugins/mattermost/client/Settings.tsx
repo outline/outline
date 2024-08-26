@@ -13,7 +13,7 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 import MattermostIcon from "./Icon";
-import AddConnectionDialog from "./components/connection/AddConnectionDialog";
+import AddConnectionDialog from "./components/Connection/AddConnectionDialog";
 
 const MatterMost = () => {
   const { t } = useTranslation();
