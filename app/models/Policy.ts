@@ -7,7 +7,7 @@ class Policy extends Model {
   id: string;
 
   @observable
-  abilities: Record<string, boolean>;
+  abilities: Record<string, boolean | string[]>;
 }
 
 export default Policy;

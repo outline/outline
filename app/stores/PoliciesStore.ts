@@ -1,3 +1,4 @@
+import { action } from "mobx";
 import Policy from "~/models/Policy";
 import RootStore from "./RootStore";
 import Store from "./base/Store";
@@ -9,8 +10,37 @@ export default class PoliciesStore extends Store<Policy> {
     super(rootStore, Policy);
   }
 
+  /**
+   * Remove all abilities that are linked to a specific membership ID. This is used
+   * when a user loses a membership due to being removed from eg a group, collection or
+   * document. Once all membership IDs are removed, the ability is no longer valid and
+   * is converted to false.
+   *
+   * @param id - The membership ID to remove from all policies.
+   */
+  @action
+  removeForMembership(id: string) {
+    this.data.forEach((policy) => {
+      Object.keys(policy.abilities).forEach((key) => {
+        const can = policy.abilities[key];
+        if (can === true || can === false) {
+          return;
+        }
+        if (can.includes(id)) {
+          policy.abilities[key] = can.filter((i) => i !== id);
+
+          if (can.length === 0) {
+            policy.abilities[key] = false;
+          }
+        }
+      });
+    });
+  }
+
   abilities(id: string) {
     const policy = this.get(id);
-    return policy ? policy.abilities : {};
+    return policy ? policy.abilities : this.defaultAbilities;
   }
+
+  private defaultAbilities = Object.freeze({});
 }
