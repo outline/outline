@@ -39,7 +39,10 @@ async function presentDocument(
       : undefined
   );
 
-  const text = DocumentHelper.toMarkdown(data);
+  const text =
+    !asData || options?.includeText
+      ? DocumentHelper.toMarkdown(data)
+      : undefined;
 
   const res: Record<string, any> = {
     id: document.id,
@@ -47,7 +50,7 @@ async function presentDocument(
     urlId: document.urlId,
     title: document.title,
     data: asData || options?.includeData ? data : undefined,
-    text: !asData || options?.includeText ? text : undefined,
+    text,
     icon: document.icon,
     color: document.color,
     tasks: document.tasks,

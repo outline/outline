@@ -6,7 +6,7 @@ import {
   TeamPreference,
 } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
-import { allow, _cannot as cannot, _can as can } from "./cancan";
+import { allow, cannot, can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(User, "createDocument", Team, (actor, document) =>

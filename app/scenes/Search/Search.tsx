@@ -108,7 +108,7 @@ function Search(props: Props) {
     return () => Promise.resolve([] as SearchResult[]);
   }, [query, titleFilter, filters, searches, documents]);
 
-  const { data, next, end, loading } = usePaginatedRequest(requestFn, {
+  const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,
   });
 
@@ -256,7 +256,19 @@ function Search(props: Props) {
         )}
         {query ? (
           <>
-            {showEmpty && (
+            {error ? (
+              <Fade>
+                <Centered column>
+                  <Text as="h1">{t("Something went wrong")}</Text>
+                  <Text as="p" type="secondary">
+                    {t(
+                      "Please try again or contact support if the problem persists"
+                    )}
+                    .
+                  </Text>
+                </Centered>
+              </Fade>
+            ) : showEmpty ? (
               <Fade>
                 <Centered column>
                   <Text as="p" type="secondary">
@@ -264,7 +276,7 @@ function Search(props: Props) {
                   </Text>
                 </Centered>
               </Fade>
-            )}
+            ) : null}
             <ResultList column>
               <StyledArrowKeyNavigation
                 ref={resultListRef}
@@ -273,7 +285,7 @@ function Search(props: Props) {
                 items={data ?? []}
               >
                 {() =>
-                  data?.length
+                  data?.length && !error
                     ? data.map((result) => (
                         <DocumentListItem
                           key={result.document.id}

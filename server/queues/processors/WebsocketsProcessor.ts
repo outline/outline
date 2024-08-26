@@ -36,6 +36,7 @@ import { Event } from "../../types";
 export default class WebsocketsProcessor {
   public async perform(event: Event, socketio: Server) {
     switch (event.name) {
+      case "documents.create":
       case "documents.publish":
       case "documents.unpublish":
       case "documents.restore":
@@ -46,10 +47,14 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
+        if (event.name === "documents.create" && document.importId) {
+          return;
+        }
 
         const channels = await this.getDocumentEventChannels(event, document);
         return socketio.to(channels).emit("entities", {
           event: event.name,
+          fetchIfMissing: true,
           documentIds: [
             {
               id: document.id,
@@ -84,29 +89,6 @@ export default class WebsocketsProcessor {
         const data = await presentDocument(undefined, document);
         const channels = await this.getDocumentEventChannels(event, document);
         return socketio.to(channels).emit(event.name, data);
-      }
-
-      case "documents.create": {
-        const document = await Document.findByPk(event.documentId);
-        if (!document || document.importId) {
-          return;
-        }
-
-        const channels = await this.getDocumentEventChannels(event, document);
-        return socketio.to(channels).emit("entities", {
-          event: event.name,
-          documentIds: [
-            {
-              id: document.id,
-              updatedAt: document.updatedAt,
-            },
-          ],
-          collectionIds: [
-            {
-              id: document.collectionId,
-            },
-          ],
-        });
       }
 
       case "documents.move": {

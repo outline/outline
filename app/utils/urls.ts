@@ -27,6 +27,20 @@ export function decodeURIComponentSafe(text: string) {
     : text;
 }
 
+/**
+ * Redirects to a new page
+ *
+ * @param url
+ */
 export function redirectTo(url: string) {
   window.location.href = url;
 }
+
+/**
+ * Check if the path is a valid redirect after login
+ *
+ * @param path
+ * @returns boolean indicating if the path is a valid redirect
+ */
+export const isValidPostLoginRedirect = (path: string) =>
+  !["/", "/create", "/home", "/logout"].includes(path);

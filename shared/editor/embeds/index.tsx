@@ -45,6 +45,8 @@ export class EmbedDescriptor {
   name?: string;
   /** The title of the embed */
   title: string;
+  /** A placeholder that will be shown in the URL input */
+  placeholder?: string;
   /** A keyboard shortcut that will trigger the embed */
   shortcut?: string;
   /** Keywords that will match this embed in menus */
@@ -55,7 +57,9 @@ export class EmbedDescriptor {
   defaultHidden?: boolean;
   /** Whether the bottom toolbar should be hidden – use this when the embed itself includes a footer */
   hideToolbar?: boolean;
-  /** A regex that will be used to match the embed when pasting a URL */
+  /** Whether the embed should match automatically when pasting a URL (default to true) */
+  matchOnInput?: boolean;
+  /** A regex that will be used to match the embed from a URL. */
   regexMatch?: RegExp[];
   /**
    * A function that will be used to transform the URL. The resulting string is passed as the src
@@ -81,11 +85,13 @@ export class EmbedDescriptor {
     this.icon = options.icon;
     this.name = options.name;
     this.title = options.title;
+    this.placeholder = options.placeholder;
     this.shortcut = options.shortcut;
     this.keywords = options.keywords;
     this.tooltip = options.tooltip;
     this.defaultHidden = options.defaultHidden;
     this.hideToolbar = options.hideToolbar;
+    this.matchOnInput = options.matchOnInput ?? true;
     this.regexMatch = options.regexMatch;
     this.transformMatch = options.transformMatch;
     this.attrs = options.attrs;
@@ -620,6 +626,18 @@ const embeds: EmbedDescriptor[] = [
     ],
     icon: <Img src="/images/youtube.png" alt="YouTube" />,
     component: YouTube,
+  }),
+  /* The generic iframe embed should always be the last one */
+  new EmbedDescriptor({
+    title: "Embed",
+    keywords: "iframe webpage",
+    placeholder: "Paste a URL to embed",
+    icon: <Img src="/images/embed.png" alt="Embed" />,
+    defaultHidden: false,
+    matchOnInput: false,
+    regexMatch: [new RegExp("^https?://(.*)$")],
+    transformMatch: (matches: RegExpMatchArray) => matches[0],
+    hideToolbar: true,
   }),
 ];
 

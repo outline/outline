@@ -234,12 +234,21 @@ export default abstract class BaseStorage {
     if (contentType && this.safeInlineContentTypes.includes(contentType)) {
       return "inline";
     }
+    if (
+      contentType &&
+      this.safeInlineContentPrefixes.some((prefix) =>
+        contentType.startsWith(prefix)
+      )
+    ) {
+      return "inline";
+    }
 
     return "attachment";
   }
 
   /**
-   * A list of content types considered safe to display inline in the browser.
+   * A list of content types considered safe to display inline in the browser. Note that
+   * SVGs are purposefully not included here as they can contain JavaScript.
    */
   protected safeInlineContentTypes = [
     "application/pdf",
@@ -248,4 +257,9 @@ export default abstract class BaseStorage {
     "image/gif",
     "image/webp",
   ];
+
+  /**
+   * A list of content type prefixes considered safe to display inline in the browser.
+   */
+  protected safeInlineContentPrefixes = ["video/", "audio/"];
 }
