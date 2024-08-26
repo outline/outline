@@ -1,7 +1,8 @@
 import { differenceInMilliseconds } from "date-fns";
+import random from "lodash/random";
 import { Op } from "sequelize";
 import { IntegrationService, IntegrationType, JSONObject } from "@shared/types";
-import { Minute, Second } from "@shared/utils/time";
+import { Minute } from "@shared/utils/time";
 import env from "@server/env";
 import {
   Collection,
@@ -41,7 +42,7 @@ export default abstract class IMIntegrationProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [];
 
   private service: IntegrationService;
-  private deleteWebhookTaskInterval = 5 * Second;
+  private deleteWebhookTaskDelayBound = (5 * Minute) / 1000;
 
   constructor(service: IntegrationService) {
     super();
@@ -255,10 +256,10 @@ export default abstract class IMIntegrationProcessor extends BaseProcessor {
         .filter((props) => props !== undefined);
 
       await Promise.all(
-        deleteWebhookTasksProps.map((props, idx) =>
+        deleteWebhookTasksProps.map((props) =>
           DeleteIntegrationWebhookTask.schedule(props, {
             // Space out the tasks to avoid rate-limit errors from the external API.
-            delay: idx * this.deleteWebhookTaskInterval,
+            delay: random(this.deleteWebhookTaskDelayBound) * 1000,
           })
         )
       );
