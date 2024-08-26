@@ -20,6 +20,7 @@ import {
   IntegrationEvent,
   RevisionEvent,
 } from "@server/types";
+import { encrypt } from "@server/utils/crypto";
 import fetch from "@server/utils/fetch";
 import { isIMIntegrationService } from "@server/utils/integrations";
 import { sleep } from "@server/utils/timers";
@@ -305,11 +306,25 @@ export default abstract class IMIntegrationProcessor extends BaseProcessor {
     await postIntegration.destroy({ force: true });
   }
 
+  private getDeleteWebhookTaskProps(
+    props: IntegrationDataProps
+  ): DeleteIntegrationWebhook | undefined {
+    const data = this.getDeleteWebhookTaskData(props);
+    if (!data) {
+      return;
+    }
+    return {
+      method: data.method,
+      url: encrypt(data.url),
+      apiKey: encrypt(data.apiKey),
+    };
+  }
+
   protected abstract getMessageAttachments(
     props: MessageAttachmentProps
   ): Array<JSONObject>;
 
-  protected abstract getDeleteWebhookTaskProps(
+  protected abstract getDeleteWebhookTaskData(
     props: IntegrationDataProps
   ): DeleteIntegrationWebhook | undefined;
 }

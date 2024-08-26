@@ -5,7 +5,6 @@ import IMIntegrationProcessor, {
   MessageAttachmentProps,
 } from "@server/queues/processors/IMIntegrationProcessor";
 import { Event, DeleteIntegrationWebhook } from "@server/types";
-import { encrypt } from "@server/utils/crypto";
 import { MattermostApi } from "../mattermost/api";
 import { presentMessageAttachment } from "../presenters/messageAttachment";
 
@@ -27,7 +26,7 @@ export class MattermostProcessor extends IMIntegrationProcessor {
     return [presentMessageAttachment(props)];
   }
 
-  protected getDeleteWebhookTaskProps({
+  protected getDeleteWebhookTaskData({
     accountIntegration,
     postIntegration,
     authentication,
@@ -41,14 +40,12 @@ export class MattermostProcessor extends IMIntegrationProcessor {
     const accountIntegrationSettings =
       accountIntegration.settings as MattermostIntegrationSettings;
 
-    const url = `${accountIntegrationSettings.url}${MattermostApi.DeleteWebhook(
-      webhookId
-    )}`;
-
     return {
       method: "DELETE",
-      url: encrypt(url),
-      apiKey: encrypt(authentication.token),
+      url: `${accountIntegrationSettings.url}${MattermostApi.DeleteWebhook(
+        webhookId
+      )}`,
+      apiKey: authentication.token,
     };
   }
 }
