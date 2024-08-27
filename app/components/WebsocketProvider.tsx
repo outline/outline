@@ -405,7 +405,7 @@ class WebsocketProvider extends React.Component<Props> {
       memberships.remove(event.id);
 
       const policy = policies.get(event.collectionId);
-      if (policy && policy.abilities.readDocument === false) {
+      if (policy && policy.abilities.read === false) {
         collections.remove(event.collectionId);
       }
     });
@@ -421,7 +421,7 @@ class WebsocketProvider extends React.Component<Props> {
         groupMemberships.remove(event.id);
 
         const policy = policies.get(event.collectionId!);
-        if (policy && policy.abilities.readDocument === false) {
+        if (policy && policy.abilities.read === false) {
           collections.remove(event.collectionId!);
         }
       }
@@ -431,10 +431,7 @@ class WebsocketProvider extends React.Component<Props> {
       "collections.update_index",
       action((event: WebsocketCollectionUpdateIndexEvent) => {
         const collection = collections.get(event.collectionId);
-
-        if (collection) {
-          collection.updateIndex(event.index);
-        }
+        collection?.updateIndex(event.index);
       })
     );
 

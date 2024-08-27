@@ -206,7 +206,9 @@ export default class Collection extends ParanoidModel {
    * @param document The document properties stored in the collection
    */
   @action
-  updateDocument(document: Pick<Document, "id" | "title" | "url">) {
+  updateDocument(
+    document: Pick<Document, "id" | "title" | "url" | "color" | "icon">
+  ) {
     if (!this.documents) {
       return;
     }
@@ -214,6 +216,8 @@ export default class Collection extends ParanoidModel {
     const travelNodes = (nodes: NavigationNode[]) =>
       nodes.forEach((node) => {
         if (node.id === document.id) {
+          node.color = document.color ?? undefined;
+          node.icon = document.icon ?? undefined;
           node.title = document.title;
           node.url = document.url;
         } else {
