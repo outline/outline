@@ -35,7 +35,7 @@ import type {
   View,
   Notification,
   Share,
-  GroupPermission,
+  GroupMembership,
 } from "./models";
 
 export enum AuthenticationType {
@@ -219,6 +219,12 @@ export type DocumentEvent = BaseEvent<Document> &
       }
   );
 
+export type EmptyTrashEvent = {
+  name: "documents.empty_trash";
+  teamId: string;
+  actorId: string;
+};
+
 export type RevisionEvent = BaseEvent<Revision> & {
   name: "revisions.create";
   documentId: string;
@@ -246,7 +252,7 @@ export type CollectionUserEvent = BaseEvent<UserMembership> & {
   };
 };
 
-export type CollectionGroupEvent = BaseEvent<GroupPermission> & {
+export type CollectionGroupEvent = BaseEvent<GroupMembership> & {
   name: "collections.add_group" | "collections.remove_group";
   collectionId: string;
   modelId: string;
@@ -263,6 +269,13 @@ export type DocumentUserEvent = BaseEvent<UserMembership> & {
     isNew?: boolean;
     permission?: DocumentPermission;
   };
+};
+
+export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
+  name: "documents.add_group" | "documents.remove_group";
+  documentId: string;
+  modelId: string;
+  data: { name: string };
 };
 
 export type CollectionEvent = BaseEvent<Collection> &
@@ -428,6 +441,7 @@ export type Event =
   | AuthenticationProviderEvent
   | DocumentEvent
   | DocumentUserEvent
+  | DocumentGroupEvent
   | PinEvent
   | CommentEvent
   | StarEvent
@@ -445,7 +459,8 @@ export type Event =
   | UserMembershipEvent
   | ViewEvent
   | WebhookSubscriptionEvent
-  | NotificationEvent;
+  | NotificationEvent
+  | EmptyTrashEvent;
 
 export type NotificationMetadata = {
   notificationId?: string;

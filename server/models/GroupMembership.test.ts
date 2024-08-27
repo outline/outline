@@ -1,20 +1,20 @@
 import { buildCollection, buildGroup, buildUser } from "@server/test/factories";
-import GroupPermission from "./GroupPermission";
+import GroupMembership from "./GroupMembership";
 
-describe("GroupPermission", () => {
+describe("GroupMembership", () => {
   describe("withCollection scope", () => {
     it("should return the collection", async () => {
       const collection = await buildCollection();
       const group = await buildGroup();
       const user = await buildUser({ teamId: group.teamId });
 
-      await GroupPermission.create({
+      await GroupMembership.create({
         createdById: user.id,
         groupId: group.id,
         collectionId: collection.id,
       });
 
-      const permission = await GroupPermission.scope("withCollection").findOne({
+      const permission = await GroupMembership.scope("withCollection").findOne({
         where: {
           groupId: group.id,
           collectionId: collection.id,

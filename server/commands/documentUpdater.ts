@@ -69,7 +69,6 @@ export default async function documentUpdater({
     document.title = title.trim();
   }
   if (icon !== undefined) {
-    document.emoji = icon;
     document.icon = icon;
   }
   if (color !== undefined) {
@@ -106,7 +105,7 @@ export default async function documentUpdater({
     ip,
   };
 
-  if (publish && cId) {
+  if (publish && (document.template || cId)) {
     if (!document.collectionId) {
       document.collectionId = cId;
     }

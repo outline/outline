@@ -69,18 +69,7 @@ class Revision extends IdModel<
    * The content of the revision as JSON.
    */
   @Column(DataType.JSONB)
-  content: ProsemirrorData;
-
-  /**
-   * An emoji to use as the document icon,
-   * This is used as fallback (for backward compat) when icon is not set.
-   */
-  @Length({
-    max: 50,
-    msg: `Emoji must be 50 characters or less`,
-  })
-  @Column
-  emoji: string | null;
+  content: ProsemirrorData | null;
 
   /** An icon to use as the document icon. */
   @Length({
@@ -138,7 +127,6 @@ class Revision extends IdModel<
     return this.build({
       title: document.title,
       text: document.text,
-      emoji: document.emoji,
       icon: document.icon,
       color: document.color,
       content: document.content,

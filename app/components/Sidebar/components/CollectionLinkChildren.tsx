@@ -52,7 +52,11 @@ function CollectionLinkChildren({
       if (!collection) {
         return;
       }
-      void documents.move(item.id, collection.id, undefined, 0);
+      void documents.move({
+        documentId: item.id,
+        collectionId: collection.id,
+        index: 0,
+      });
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),

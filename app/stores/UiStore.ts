@@ -193,6 +193,10 @@ class UiStore {
   clearActiveDocument = (): void => {
     this.activeDocumentId = undefined;
     this.observingUserId = undefined;
+
+    // Unset when navigating away from a document (e.g. to another document, home, settings, etc.)
+    // Next document's onMount will set the right activeCollectionId.
+    this.activeCollectionId = undefined;
   };
 
   @action

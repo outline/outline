@@ -139,6 +139,10 @@ class DocumentScene extends React.Component<Props> {
       this.props.document.isPersistedOnce
     ) {
       void this.props.document.delete();
+    } else if (this.props.document.isDirty()) {
+      void this.props.document.save(undefined, {
+        autosave: true,
+      });
     }
   }
 
@@ -238,14 +242,16 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goToEdit = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) {
-      return;
-    }
-    ev.preventDefault();
-    const { document, abilities } = this.props;
+    if (this.props.readOnly) {
+      ev.preventDefault();
+      const { document, abilities } = this.props;
 
-    if (abilities.update) {
-      this.props.history.push(documentEditPath(document));
+      if (abilities.update) {
+        this.props.history.push(documentEditPath(document));
+      }
+    } else if (this.editor.current?.isBlurred) {
+      ev.preventDefault();
+      this.editor.current?.focus();
     }
   };
 
@@ -503,12 +509,7 @@ class DocumentScene extends React.Component<Props> {
               onSave={this.onSave}
               headings={this.headings}
             />
-            <MeasuredContainer
-              as={Main}
-              name="document"
-              fullWidth={document.fullWidth}
-              tocPosition={tocPos}
-            >
+            <Main fullWidth={document.fullWidth} tocPosition={tocPos}>
               <React.Suspense
                 fallback={
                   <EditorContainer
@@ -538,7 +539,9 @@ class DocumentScene extends React.Component<Props> {
                         <Contents headings={this.headings} />
                       </ContentsContainer>
                     )}
-                    <EditorContainer
+                    <MeasuredContainer
+                      name="document"
+                      as={EditorContainer}
                       docFullWidth={document.fullWidth}
                       showContents={showContents}
                       tocPosition={tocPos}
@@ -591,11 +594,11 @@ class DocumentScene extends React.Component<Props> {
                           </>
                         )}
                       </Editor>
-                    </EditorContainer>
+                    </MeasuredContainer>
                   </>
                 )}
               </React.Suspense>
-            </MeasuredContainer>
+            </Main>
             {isShare &&
               !parseDomain(window.location.origin).custom &&
               !auth.user && (

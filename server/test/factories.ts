@@ -495,10 +495,12 @@ export async function buildAttachment(
   const acl = overrides.acl || "public-read";
   const name = fileName || faker.system.fileName();
   return Attachment.create({
+    id,
     key: AttachmentHelper.getKey({ acl, id, name, userId: overrides.userId }),
     contentType: "image/png",
     size: 100,
     acl,
+    name,
     createdAt: new Date("2018-01-02T00:00:00.000Z"),
     updatedAt: new Date("2018-01-02T00:00:00.000Z"),
     ...overrides,

@@ -91,7 +91,7 @@ export default class PasteHandler extends Extension {
           },
           handlePaste: (view, event: ClipboardEvent) => {
             // Do nothing if the document isn't currently editable
-            if (view.props.editable && !view.props.editable(view.state)) {
+            if (!view.editable) {
               return false;
             }
 
@@ -157,6 +157,9 @@ export default class PasteHandler extends Extension {
                 !isInList(state)
               ) {
                 for (const embed of embeds) {
+                  if (!embed.matchOnInput) {
+                    continue;
+                  }
                   const matches = embed.matcher(text);
                   if (matches) {
                     this.editor.commands.embed({

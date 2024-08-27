@@ -14,9 +14,9 @@ import {
   Table,
   DataType,
   Scopes,
-  AllowNull,
   AfterCreate,
   AfterUpdate,
+  Length,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
@@ -25,6 +25,9 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
+/**
+ * Represents a users's permission to access a collection or document.
+ */
 @Scopes(() => ({
   withUser: {
     include: [
@@ -69,7 +72,11 @@ class UserMembership extends IdModel<
   @Column(DataType.STRING)
   permission: CollectionPermission | DocumentPermission;
 
-  @AllowNull
+  /** The visible sort order in "shared with me" */
+  @Length({
+    max: 256,
+    msg: `index must be 256 characters or less`,
+  })
   @Column
   index: string | null;
 

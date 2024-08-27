@@ -1,4 +1,5 @@
 import * as React from "react";
+import { EditorStyleHelper } from "../../styles/EditorStyleHelper";
 
 type DragDirection = "left" | "right";
 
@@ -72,7 +73,12 @@ export default function useDragResize(props: Params): ReturnValue {
     const aspectRatio = props.naturalHeight / props.naturalWidth;
 
     setSize({
-      width: constrainedWidth,
+      width:
+        // If the natural width is the same as the constrained width, use the natural width -
+        // special case for images resized to the full width of the editor.
+        constrainedWidth === Math.min(newWidth, maxWidth)
+          ? props.naturalWidth
+          : constrainedWidth,
       height: props.naturalWidth
         ? Math.round(constrainedWidth * aspectRatio)
         : undefined,
@@ -113,7 +119,8 @@ export default function useDragResize(props: Params): ReturnValue {
             getComputedStyle(props.ref.current).getPropertyValue(
               "--document-width"
             )
-          )
+          ) -
+          EditorStyleHelper.padding * 2
         : Infinity;
       setMaxWidth(max);
       setSizeAtDragStart({

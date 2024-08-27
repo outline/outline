@@ -22,14 +22,12 @@ import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import { Permission } from "~/types";
 import { documentPath, urlify } from "~/utils/routeHelpers";
-import { Separator, Wrapper, presence } from "../components";
+import { Wrapper, presence } from "../components";
 import { CopyLinkButton } from "../components/CopyLinkButton";
 import { PermissionAction } from "../components/PermissionAction";
 import { SearchInput } from "../components/SearchInput";
 import { Suggestions } from "../components/Suggestions";
-import DocumentMembersList from "./DocumentMemberList";
-import { OtherAccess } from "./OtherAccess";
-import PublicAccess from "./PublicAccess";
+import { AccessControlList } from "./AccessControlList";
 
 type Props = {
   /** The document to share. */
@@ -60,7 +58,6 @@ function SharePopover({
   const [picker, showPicker, hidePicker] = useBoolean();
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
-  const collectionSharingDisabled = document.collection?.sharing === false;
   const [permission, setPermission] = React.useState<DocumentPermission>(
     DocumentPermission.Read
   );
@@ -341,24 +338,14 @@ function SharePopover({
       )}
 
       <div style={{ display: picker ? "none" : "block" }}>
-        <OtherAccess document={document}>
-          <DocumentMembersList
-            document={document}
-            invitedInSession={invitedInSession}
-          />
-        </OtherAccess>
-
-        {team.sharing && can.share && !collectionSharingDisabled && visible && (
-          <>
-            {document.members.length ? <Separator /> : null}
-            <PublicAccess
-              document={document}
-              share={share}
-              sharedParent={sharedParent}
-              onRequestClose={onRequestClose}
-            />
-          </>
-        )}
+        <AccessControlList
+          document={document}
+          invitedInSession={invitedInSession}
+          share={share}
+          sharedParent={sharedParent}
+          visible={visible}
+          onRequestClose={onRequestClose}
+        />
       </div>
     </Wrapper>
   );

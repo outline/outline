@@ -120,8 +120,8 @@ describe("SearchHelper", () => {
         collectionId: collection.id,
         title: "test number 2",
       });
-      const { totalCount } = await SearchHelper.searchForTeam(team, "test");
-      expect(totalCount).toBe(2);
+      const { total } = await SearchHelper.searchForTeam(team, "test");
+      expect(total).toBe(2);
     });
 
     test("should return the document when searched with their previous titles", async () => {
@@ -136,11 +136,8 @@ describe("SearchHelper", () => {
       });
       document.title = "change";
       await document.save();
-      const { totalCount } = await SearchHelper.searchForTeam(
-        team,
-        "test number"
-      );
-      expect(totalCount).toBe(1);
+      const { total } = await SearchHelper.searchForTeam(team, "test number");
+      expect(total).toBe(1);
     });
 
     test("should not return the document when searched with neither the titles nor the previous titles", async () => {
@@ -155,11 +152,11 @@ describe("SearchHelper", () => {
       });
       document.title = "change";
       await document.save();
-      const { totalCount } = await SearchHelper.searchForTeam(
+      const { total } = await SearchHelper.searchForTeam(
         team,
         "title doesn't exist"
       );
-      expect(totalCount).toBe(0);
+      expect(total).toBe(0);
     });
   });
 
@@ -417,8 +414,8 @@ describe("SearchHelper", () => {
         collectionId: collection.id,
         title: "test number 2",
       });
-      const { totalCount } = await SearchHelper.searchForUser(user, "test");
-      expect(totalCount).toBe(2);
+      const { total } = await SearchHelper.searchForUser(user, "test");
+      expect(total).toBe(2);
     });
 
     test("should return the document when searched with their previous titles", async () => {
@@ -436,11 +433,8 @@ describe("SearchHelper", () => {
       });
       document.title = "change";
       await document.save();
-      const { totalCount } = await SearchHelper.searchForUser(
-        user,
-        "test number"
-      );
-      expect(totalCount).toBe(1);
+      const { total } = await SearchHelper.searchForUser(user, "test number");
+      expect(total).toBe(1);
     });
 
     test("should not return the document when searched with neither the titles nor the previous titles", async () => {
@@ -458,11 +452,11 @@ describe("SearchHelper", () => {
       });
       document.title = "change";
       await document.save();
-      const { totalCount } = await SearchHelper.searchForUser(
+      const { total } = await SearchHelper.searchForUser(
         user,
         "title doesn't exist"
       );
-      expect(totalCount).toBe(0);
+      expect(total).toBe(0);
     });
 
     test("should find exact phrases", async () => {
@@ -480,11 +474,27 @@ describe("SearchHelper", () => {
       });
       document.title = "change";
       await document.save();
-      const { totalCount } = await SearchHelper.searchForUser(
-        user,
-        `"test number"`
-      );
-      expect(totalCount).toBe(1);
+      const { total } = await SearchHelper.searchForUser(user, `"test number"`);
+      expect(total).toBe(1);
+    });
+
+    test("should correctly handle removal of trailing spaces", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const document = await buildDocument({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        text: "env: some env",
+      });
+      document.title = "change";
+      await document.save();
+      const { total } = await SearchHelper.searchForUser(user, "env: ");
+      expect(total).toBe(1);
     });
   });
 

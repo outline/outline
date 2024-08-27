@@ -92,6 +92,7 @@ export default function useDictionary() {
       outdent: t("Outdent"),
       video: t("Video"),
       untitled: t("Untitled"),
+      none: t("None"),
     }),
     [t]
   );

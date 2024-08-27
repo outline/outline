@@ -9,6 +9,7 @@ import {
   unicodeCLDRtoBCP47,
 } from "@shared/utils/date";
 import attachmentCreator from "@server/commands/attachmentCreator";
+import env from "@server/env";
 import { trace } from "@server/logging/tracing";
 import { Attachment, User } from "@server/models";
 import FileStorage from "@server/storage/files";
@@ -95,6 +96,9 @@ export class TextHelper {
   ) {
     let output = markdown;
     const images = parseImages(markdown);
+    const timeoutPerImage = Math.floor(
+      Math.min(env.REQUEST_TIMEOUT / images.length, 10000)
+    );
 
     await Promise.all(
       images.map(async (image) => {
@@ -112,6 +116,9 @@ export class TextHelper {
           user,
           ip,
           transaction,
+          fetchOptions: {
+            timeout: timeoutPerImage,
+          },
         });
 
         if (attachment) {

@@ -70,14 +70,14 @@ function DuplicateDialog({ document, onSubmit }: Props) {
             <Text size="small">
               <Switch
                 name="publish"
-                label={t("Published")}
+                label={t("Publish")}
                 labelPosition="right"
                 checked={publish}
                 onChange={handlePublishChange}
               />
             </Text>
           )}
-          {document.publishedAt && (
+          {document.publishedAt && document.childDocuments.length > 0 && (
             <Text size="small">
               <Switch
                 name="recursive"

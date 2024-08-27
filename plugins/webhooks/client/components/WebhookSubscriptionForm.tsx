@@ -41,6 +41,8 @@ const WEBHOOK_EVENTS = {
     "documents.title_change",
     "documents.add_user",
     "documents.remove_user",
+    "documents.add_group",
+    "documents.remove_group",
   ],
   collections: [
     "collections.create",
@@ -152,7 +154,7 @@ type Props = {
 interface FormData {
   name: string;
   url: string;
-  secret: string;
+  secret: string | null;
   events: string[];
 }
 
@@ -175,7 +177,9 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
       events: webhookSubscription ? [...webhookSubscription.events] : [],
       name: webhookSubscription?.name,
       url: webhookSubscription?.url,
-      secret: webhookSubscription?.secret ?? generateSigningSecret(),
+      secret: webhookSubscription
+        ? webhookSubscription?.secret
+        : generateSigningSecret(),
     },
   });
 
@@ -282,7 +286,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
                 group !== "comment" ||
                 team.getPreference(TeamPreference.Commenting)
             )
-            .map(([group, events], i) => (
+            .map(([group, groupEvents], i) => (
               <GroupWrapper key={i} isMobile={isMobile}>
                 <EventCheckbox
                   label={t(`All {{ groupName }} events`, {
@@ -291,7 +295,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
                   value={group}
                 />
                 <FieldSet disabled={selectedGroups.includes(group)}>
-                  {events.map((event) => (
+                  {groupEvents.map((event) => (
                     <EventCheckbox label={event} value={event} key={event} />
                   ))}
                 </FieldSet>

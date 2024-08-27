@@ -22,7 +22,7 @@ class Iframely {
           env.IFRAMELY_API_KEY
         }`
       );
-      return res.json();
+      return await res.json();
     } catch (err) {
       Logger.error(`Error fetching data from Iframely for url: ${url}`, err);
       return;

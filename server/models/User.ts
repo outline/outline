@@ -56,10 +56,7 @@ import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
-import Encrypted, {
-  setEncryptedColumn,
-  getEncryptedColumn,
-} from "./decorators/Encrypted";
+import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
@@ -143,13 +140,7 @@ class User extends ParanoidModel<
 
   @Column(DataType.BLOB)
   @Encrypted
-  get jwtSecret() {
-    return getEncryptedColumn(this, "jwtSecret");
-  }
-
-  set jwtSecret(value: string) {
-    setEncryptedColumn(this, "jwtSecret", value);
-  }
+  jwtSecret: string;
 
   @IsDate
   @Column
@@ -433,7 +424,7 @@ class User extends ParanoidModel<
           ) &&
             !this.isGuest) ||
           c.memberships.length > 0 ||
-          c.collectionGroupMemberships.length > 0
+          c.groupMemberships.length > 0
       )
       .map((c) => c.id);
   };
@@ -670,7 +661,7 @@ class User extends ParanoidModel<
       if (attachment) {
         await DeleteAttachmentTask.schedule({
           attachmentId: attachment.id,
-          teamId: model.id,
+          teamId: model.teamId,
         });
       }
     }

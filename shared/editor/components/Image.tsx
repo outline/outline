@@ -147,6 +147,7 @@ function getPlaceholder(width: number, height: number) {
 }
 
 const Error = styled(Flex)`
+  max-width: 100%;
   color: ${s("textTertiary")};
   font-size: 14px;
   background: ${s("secondaryBackground")};

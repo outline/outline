@@ -46,6 +46,8 @@ export class EventHelper {
     "documents.restore",
     "documents.add_user",
     "documents.remove_user",
+    "documents.add_group",
+    "documents.remove_group",
     "groups.create",
     "groups.update",
     "groups.delete",

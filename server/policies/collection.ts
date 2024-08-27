@@ -2,7 +2,7 @@ import invariant from "invariant";
 import some from "lodash/some";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import { Collection, User, Team } from "@server/models";
-import { allow, _can as can } from "./cancan";
+import { allow, can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(User, "createCollection", Team, (actor, team) =>
@@ -161,7 +161,7 @@ function includesMembership(
     "Development: collection memberships not preloaded, did you forget `withMembership` scope?"
   );
   return some(
-    [...collection.memberships, ...collection.collectionGroupMemberships],
+    [...collection.memberships, ...collection.groupMemberships],
     (m) => permissions.includes(m.permission)
   );
 }

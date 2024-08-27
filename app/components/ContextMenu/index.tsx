@@ -6,6 +6,7 @@ import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
+import useEventListener from "~/hooks/useEventListener";
 import useMenuContext from "~/hooks/useMenuContext";
 import useMenuHeight from "~/hooks/useMenuHeight";
 import useMobile from "~/hooks/useMobile";
@@ -171,6 +172,32 @@ const InnerContextMenu = (props: InnerContextMenuProps) => {
     };
   }, [props.isSubMenu, props.visible]);
 
+  useEventListener(
+    "animationstart",
+    (event) => {
+      if (event.target instanceof HTMLElement) {
+        const parent = event.target.parentElement;
+        if (parent) {
+          parent.style.pointerEvents = "none";
+        }
+      }
+    },
+    backgroundRef.current
+  );
+
+  useEventListener(
+    "animationend",
+    (event) => {
+      if (event.target instanceof HTMLElement) {
+        const parent = event.target.parentElement;
+        if (parent) {
+          parent.style.pointerEvents = "auto";
+        }
+      }
+    },
+    backgroundRef.current
+  );
+
   const style =
     topAnchor && !isMobile
       ? {
@@ -223,7 +250,10 @@ export const Position = styled.div`
   position: absolute;
   z-index: ${depths.menu};
 
-  &.focus-visible {
+  // Note: pointer events are re-enabled after the animation ends, see event listeners above
+  pointer-events: none;
+
+  &:focus-visible {
     transition-delay: 250ms;
     transition-property: outline-width;
     transition-duration: 0;
@@ -260,7 +290,6 @@ export const Background = styled(Scrollable)<BackgroundProps>`
   min-width: 180px;
   min-height: 44px;
   max-height: 75vh;
-  pointer-events: all;
   font-weight: normal;
 
   @media print {

@@ -100,7 +100,7 @@ const CollectionLink: React.FC<Props> = ({
           ),
         });
       } else {
-        await documents.move(id, collection.id);
+        await documents.move({ documentId: id, collectionId: collection.id });
 
         if (!expanded) {
           onDisclosureClick();
@@ -116,8 +116,8 @@ const CollectionLink: React.FC<Props> = ({
     }),
   });
 
-  const handleTitleEditing = React.useCallback((isEditing: boolean) => {
-    setIsEditing(isEditing);
+  const handleTitleEditing = React.useCallback((value: boolean) => {
+    setIsEditing(value);
   }, []);
 
   const handlePrefetch = React.useCallback(() => {

@@ -349,6 +349,13 @@ export class Environment {
   public SMTP_SECURE = this.toBoolean(environment.SMTP_SECURE ?? "true");
 
   /**
+   * Dropbox app key for embedding Dropbox files
+   */
+  @Public
+  @IsOptional()
+  public DROPBOX_APP_KEY = this.toOptionalString(environment.DROPBOX_APP_KEY);
+
+  /**
    * Sentry DSN for capturing errors and frontend performance.
    */
   @Public

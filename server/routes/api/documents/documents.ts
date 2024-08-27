@@ -48,7 +48,8 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
-import { authorize, cannot } from "@server/policies";
+import { TextHelper } from "@server/models/helpers/TextHelper";
+import { authorize, can, cannot } from "@server/policies";
 import {
   presentCollection,
   presentDocument,
@@ -129,7 +130,15 @@ router.post(
       } // otherwise, filter by all collections the user has access to
     } else {
       const collectionIds = await user.collectionIds();
-      where = { ...where, collectionId: collectionIds };
+      where = {
+        ...where,
+        collectionId:
+          template && can(user, "readTemplate", user.team)
+            ? {
+                [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
+              }
+            : collectionIds,
+      };
     }
 
     if (parentDocumentId) {
@@ -432,6 +441,7 @@ router.post(
     const isPublic = cannot(user, "read", document);
     const serializedDocument = await presentDocument(ctx, document, {
       isPublic,
+      shareId,
     });
 
     const team = await document.$get("team");
@@ -875,13 +885,14 @@ router.post(
       });
     }
 
-    const { results, totalCount } = response;
+    const { results, total } = response;
     const documents = results.map((result) => result.document);
 
     const data = await Promise.all(
       results.map(async (result) => {
         const document = await presentDocument(ctx, result.document, {
           isPublic,
+          shareId,
         });
         return { ...result, document };
       })
@@ -896,12 +907,12 @@ router.post(
         shareId: share?.id,
         source: ctx.state.auth.type || "app", // we'll consider anything that isn't "api" to be "app"
         query,
-        results: totalCount,
+        results: total,
       });
     }
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data,
       policies: user ? presentPolicies(user, documents) : null,
     };
@@ -915,7 +926,7 @@ router.post(
   validate(T.DocumentsTemplatizeSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsTemplatizeReq>) => {
-    const { id } = ctx.input.body;
+    const { id, collectionId, publish } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -926,16 +937,24 @@ router.post(
 
     authorize(user, "update", original);
 
+    if (collectionId) {
+      const collection = await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(collectionId, { transaction });
+      authorize(user, "createDocument", collection);
+    } else {
+      authorize(user, "createTemplate", user.team);
+    }
+
     const document = await Document.create(
       {
         editorVersion: original.editorVersion,
-        collectionId: original.collectionId,
-        teamId: original.teamId,
-        publishedAt: new Date(),
+        collectionId,
+        teamId: user.teamId,
+        publishedAt: publish ? new Date() : null,
         lastModifiedById: user.id,
         createdById: user.id,
         template: true,
-        emoji: original.emoji,
         icon: original.icon,
         color: original.color,
         title: original.title,
@@ -1007,7 +1026,7 @@ router.post(
         authorize(user, "publish", document);
       }
 
-      if (!document.collectionId) {
+      if (!document.collectionId && !document.isWorkspaceTemplate) {
         assertPresent(
           collectionId,
           "collectionId is required to publish a draft without collection"
@@ -1026,6 +1045,8 @@ router.post(
           }
         );
         authorize(user, "createChildDocument", parentDocument, { collection });
+      } else if (document.isWorkspaceTemplate) {
+        authorize(user, "createTemplate", user.team);
       } else {
         authorize(user, "createDocument", collection);
       }
@@ -1035,7 +1056,6 @@ router.post(
       document,
       user,
       ...input,
-      icon: input.icon ?? input.emoji ?? null,
       publish,
       collectionId,
       insightsEnabled,
@@ -1076,6 +1096,8 @@ router.post(
 
     if (collection) {
       authorize(user, "updateDocument", collection);
+    } else if (document.isWorkspaceTemplate) {
+      authorize(user, "createTemplate", user.team);
     }
 
     if (parentDocumentId) {
@@ -1128,10 +1150,16 @@ router.post(
     });
     authorize(user, "move", document);
 
-    const collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(collectionId, { transaction });
-    authorize(user, "updateDocument", collection);
+    if (collectionId) {
+      const collection = await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(collectionId, { transaction });
+      authorize(user, "updateDocument", collection);
+    } else if (document.template) {
+      authorize(user, "updateTemplate", user.team);
+    } else {
+      throw InvalidRequestError("collectionId is required to move a document");
+    }
 
     if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
@@ -1148,7 +1176,7 @@ router.post(
     const { documents, collections, collectionChanged } = await documentMover({
       user,
       document,
-      collectionId,
+      collectionId: collectionId ?? null,
       parentDocumentId,
       index,
       ip: ctx.request.ip,
@@ -1376,7 +1404,6 @@ router.post(
     const {
       title,
       text,
-      emoji,
       icon,
       color,
       publish,
@@ -1427,6 +1454,8 @@ router.post(
         transaction,
       });
       authorize(user, "createDocument", collection);
+    } else if (!!template && !collectionId) {
+      authorize(user, "createTemplate", user.team);
     }
 
     let templateDocument: Document | null | undefined;
@@ -1441,8 +1470,13 @@ router.post(
 
     const document = await documentCreator({
       title,
-      text,
-      icon: icon ?? emoji,
+      text: await TextHelper.replaceImagesWithAttachments(
+        text,
+        user,
+        ctx.request.ip,
+        transaction
+      ),
+      icon,
       color,
       createdAt,
       publish,

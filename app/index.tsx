@@ -1,6 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
 import "vite/modulepreload-polyfill";
-import "focus-visible";
 import { LazyMotion } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";

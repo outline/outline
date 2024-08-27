@@ -23,13 +23,17 @@ import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useLastVisitedPath from "~/hooks/useLastVisitedPath";
+import {
+  useLastVisitedPath,
+  usePostLoginPath,
+} from "~/hooks/useLastVisitedPath";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { draggableOnDesktop } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
+import { homePath } from "~/utils/routeHelpers";
 import AuthenticationProvider from "./components/AuthenticationProvider";
 import BackButton from "./components/BackButton";
 import Notices from "./components/Notices";
@@ -55,6 +59,7 @@ function Login({ children }: Props) {
     UserPreference.RememberLastPath
   );
   const [lastVisitedPath] = useLastVisitedPath();
+  const [spendPostLoginPath] = usePostLoginPath();
 
   const handleReset = React.useCallback(() => {
     setEmailLinkSentTo("");
@@ -84,20 +89,21 @@ function Login({ children }: Props) {
     }
   }, [query]);
 
-  if (
-    auth.authenticated &&
-    rememberLastPath &&
-    lastVisitedPath !== location.pathname
-  ) {
-    return <Redirect to={lastVisitedPath} />;
-  }
-
-  if (auth.authenticated && auth.team?.defaultCollectionId) {
-    return <Redirect to={`/collection/${auth.team?.defaultCollectionId}`} />;
-  }
-
   if (auth.authenticated) {
-    return <Redirect to="/home" />;
+    const postLoginPath = spendPostLoginPath();
+    if (postLoginPath) {
+      return <Redirect to={postLoginPath} />;
+    }
+
+    if (rememberLastPath && lastVisitedPath !== location.pathname) {
+      return <Redirect to={lastVisitedPath} />;
+    }
+
+    if (auth.team?.defaultCollectionId) {
+      return <Redirect to={`/collection/${auth.team?.defaultCollectionId}`} />;
+    }
+
+    return <Redirect to={homePath()} />;
   }
 
   if (error) {

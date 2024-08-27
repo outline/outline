@@ -68,7 +68,7 @@ export const Suggestions = observer(
     const user = useCurrentUser();
     const theme = useTheme();
     const containerRef = React.useRef<HTMLDivElement | null>(null);
-    const maxHeight = useMaxHeight({
+    const { maxHeight } = useMaxHeight({
       elementRef: containerRef,
       maxViewportPercentage: 70,
     });
@@ -122,6 +122,8 @@ export const Suggestions = observer(
       getSuggestionForEmail,
       users,
       users.orderedData,
+      groups,
+      groups.orderedData,
       document?.id,
       document?.members,
       collection?.id,

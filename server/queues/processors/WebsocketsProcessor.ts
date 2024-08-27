@@ -7,7 +7,7 @@ import {
   Collection,
   FileOperation,
   Group,
-  GroupPermission,
+  GroupMembership,
   GroupUser,
   Pin,
   Star,
@@ -36,6 +36,7 @@ import { Event } from "../../types";
 export default class WebsocketsProcessor {
   public async perform(event: Event, socketio: Server) {
     switch (event.name) {
+      case "documents.create":
       case "documents.publish":
       case "documents.unpublish":
       case "documents.restore":
@@ -46,10 +47,14 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
+        if (event.name === "documents.create" && document.importId) {
+          return;
+        }
 
         const channels = await this.getDocumentEventChannels(event, document);
         return socketio.to(channels).emit("entities", {
           event: event.name,
+          fetchIfMissing: true,
           documentIds: [
             {
               id: document.id,
@@ -84,29 +89,6 @@ export default class WebsocketsProcessor {
         const data = await presentDocument(undefined, document);
         const channels = await this.getDocumentEventChannels(event, document);
         return socketio.to(channels).emit(event.name, data);
-      }
-
-      case "documents.create": {
-        const document = await Document.findByPk(event.documentId);
-        if (!document) {
-          return;
-        }
-
-        const channels = await this.getDocumentEventChannels(event, document);
-        return socketio.to(channels).emit("entities", {
-          event: event.name,
-          documentIds: [
-            {
-              id: document.id,
-              updatedAt: document.updatedAt,
-            },
-          ],
-          collectionIds: [
-            {
-              id: document.collectionId,
-            },
-          ],
-        });
       }
 
       case "documents.move": {
@@ -296,23 +278,20 @@ export default class WebsocketsProcessor {
       }
 
       case "collections.add_group": {
-        const group = await Group.findByPk(event.modelId);
-        if (!group) {
-          return;
-        }
+        const groupUsers = await GroupUser.findAll({
+          where: { groupId: event.modelId },
+        });
 
         // the users being added are not yet in the websocket channel for the collection
         // so they need to be notified separately
-        for (const groupMembership of group.groupMemberships) {
-          socketio
-            .to(`user-${groupMembership.userId}`)
-            .emit("collections.add_user", {
-              event: event.name,
-              userId: groupMembership.userId,
-              collectionId: event.collectionId,
-            });
+        for (const groupUser of groupUsers) {
+          socketio.to(`user-${groupUser.userId}`).emit("collections.add_user", {
+            event: event.name,
+            userId: groupUser.userId,
+            collectionId: event.collectionId,
+          });
           // tell any user clients to connect to the websocket channel for the collection
-          socketio.to(`user-${groupMembership.userId}`).emit("join", {
+          socketio.to(`user-${groupUser.userId}`).emit("join", {
             event: event.name,
             collectionId: event.collectionId,
           });
@@ -322,37 +301,35 @@ export default class WebsocketsProcessor {
       }
 
       case "collections.remove_group": {
-        const group = await Group.findByPk(event.modelId);
-        if (!group) {
-          return;
-        }
+        const [groupUsers, membershipUserIds] = await Promise.all([
+          GroupUser.findAll({
+            where: { groupId: event.modelId },
+          }),
+          Collection.membershipUserIds(event.collectionId),
+        ]);
 
-        const membershipUserIds = await Collection.membershipUserIds(
-          event.collectionId
-        );
-
-        for (const groupMembership of group.groupMemberships) {
-          if (membershipUserIds.includes(groupMembership.userId)) {
+        for (const groupUser of groupUsers) {
+          if (membershipUserIds.includes(groupUser.userId)) {
             // the user still has access through some means...
             // treat this like an add, so that the client re-syncs policies
             socketio
-              .to(`user-${groupMembership.userId}`)
+              .to(`user-${groupUser.userId}`)
               .emit("collections.add_user", {
                 event: event.name,
-                userId: groupMembership.userId,
+                userId: groupUser.userId,
                 collectionId: event.collectionId,
               });
           } else {
             // let users in the channel know they were removed
             socketio
-              .to(`user-${groupMembership.userId}`)
+              .to(`user-${groupUser.userId}`)
               .emit("collections.remove_user", {
                 event: event.name,
-                userId: groupMembership.userId,
+                userId: groupUser.userId,
                 collectionId: event.collectionId,
               });
             // tell any user clients to disconnect to the websocket channel for the collection
-            socketio.to(`user-${groupMembership.userId}`).emit("leave", {
+            socketio.to(`user-${groupUser.userId}`).emit("leave", {
               event: event.name,
               collectionId: event.collectionId,
             });
@@ -484,39 +461,37 @@ export default class WebsocketsProcessor {
         }
         return socketio
           .to(`team-${group.teamId}`)
-          .emit(event.name, presentGroup(group));
+          .emit(event.name, await presentGroup(group));
       }
 
       case "groups.add_user": {
         // do an add user for every collection that the group is a part of
-        const collectionGroupMemberships = await GroupPermission.scope(
-          "withCollection"
-        ).findAll({
+        const groupMemberships = await GroupMembership.findAll({
           where: {
             groupId: event.modelId,
           },
         });
 
-        for (const collectionGroup of collectionGroupMemberships) {
+        for (const groupMembership of groupMemberships) {
           // the user being added isn't yet in the websocket channel for the collection
           // so they need to be notified separately
           socketio.to(`user-${event.userId}`).emit("collections.add_user", {
             event: event.name,
             userId: event.userId,
-            collectionId: collectionGroup.collectionId,
+            collectionId: groupMembership.collectionId,
           });
           // let everyone with access to the collection know a user was added
           socketio
-            .to(`collection-${collectionGroup.collectionId}`)
+            .to(`collection-${groupMembership.collectionId}`)
             .emit("collections.add_user", {
               event: event.name,
               userId: event.userId,
-              collectionId: collectionGroup.collectionId,
+              collectionId: groupMembership.collectionId,
             });
           // tell any user clients to connect to the websocket channel for the collection
-          return socketio.to(`user-${event.userId}`).emit("join", {
+          socketio.to(`user-${event.userId}`).emit("join", {
             event: event.name,
-            collectionId: collectionGroup.collectionId,
+            collectionId: groupMembership.collectionId,
           });
         }
 
@@ -524,21 +499,19 @@ export default class WebsocketsProcessor {
       }
 
       case "groups.remove_user": {
-        const collectionGroupMemberships = await GroupPermission.scope(
-          "withCollection"
-        ).findAll({
+        const groupMemberships = await GroupMembership.findAll({
           where: {
             groupId: event.modelId,
           },
         });
 
-        for (const collectionGroup of collectionGroupMemberships) {
+        for (const groupMembership of groupMemberships) {
           // if the user has any memberships remaining on the collection
           // we need to emit add instead of remove
-          const collection = collectionGroup.collectionId
+          const collection = groupMembership.collectionId
             ? await Collection.scope({
                 method: ["withMembership", event.userId],
-              }).findByPk(collectionGroup.collectionId)
+              }).findByPk(groupMembership.collectionId)
             : null;
 
           if (!collection) {
@@ -547,7 +520,7 @@ export default class WebsocketsProcessor {
 
           const hasMemberships =
             collection.memberships.length > 0 ||
-            collection.collectionGroupMemberships.length > 0;
+            collection.groupMemberships.length > 0;
 
           if (hasMemberships) {
             // the user still has access through some means...
@@ -555,21 +528,21 @@ export default class WebsocketsProcessor {
             socketio.to(`user-${event.userId}`).emit("collections.add_user", {
               event: event.name,
               userId: event.userId,
-              collectionId: collectionGroup.collectionId,
+              collectionId: groupMembership.collectionId,
             });
           } else {
             // let everyone with access to the collection know a user was removed
             socketio
-              .to(`collection-${collectionGroup.collectionId}`)
+              .to(`collection-${groupMembership.collectionId}`)
               .emit("collections.remove_user", {
                 event: event.name,
                 userId: event.userId,
-                collectionId: collectionGroup.collectionId,
+                collectionId: groupMembership.collectionId,
               });
             // tell any user clients to disconnect from the websocket channel for the collection
             socketio.to(`user-${event.userId}`).emit("leave", {
               event: event.name,
-              collectionId: collectionGroup.collectionId,
+              collectionId: groupMembership.collectionId,
             });
           }
         }
@@ -595,7 +568,7 @@ export default class WebsocketsProcessor {
             },
           },
         });
-        const collectionGroupMemberships = await GroupPermission.scope(
+        const groupMemberships = await GroupMembership.scope(
           "withCollection"
         ).findAll({
           paranoid: false,
@@ -607,9 +580,9 @@ export default class WebsocketsProcessor {
           },
         });
 
-        for (const collectionGroup of collectionGroupMemberships) {
-          const membershipUserIds = collectionGroup.collectionId
-            ? await Collection.membershipUserIds(collectionGroup.collectionId)
+        for (const groupMembership of groupMemberships) {
+          const membershipUserIds = groupMembership.collectionId
+            ? await Collection.membershipUserIds(groupMembership.collectionId)
             : [];
 
           for (const groupUser of groupUsers) {
@@ -621,21 +594,21 @@ export default class WebsocketsProcessor {
                 .emit("collections.add_user", {
                   event: event.name,
                   userId: groupUser.userId,
-                  collectionId: collectionGroup.collectionId,
+                  collectionId: groupMembership.collectionId,
                 });
             } else {
               // let everyone with access to the collection know a user was removed
               socketio
-                .to(`collection-${collectionGroup.collectionId}`)
+                .to(`collection-${groupMembership.collectionId}`)
                 .emit("collections.remove_user", {
                   event: event.name,
                   userId: groupUser.userId,
-                  collectionId: collectionGroup.collectionId,
+                  collectionId: groupMembership.collectionId,
                 });
               // tell any user clients to disconnect from the websocket channel for the collection
               socketio.to(`user-${groupUser.userId}`).emit("leave", {
                 event: event.name,
-                collectionId: collectionGroup.collectionId,
+                collectionId: groupMembership.collectionId,
               });
             }
           }

@@ -177,7 +177,7 @@ function DataLoader({ match, children }: Props) {
 
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
-      if (!can.update && isEditRoute) {
+      if (!can.update && isEditRoute && !document.template) {
         history.push(document.url);
         return;
       }
@@ -189,6 +189,7 @@ function DataLoader({ match, children }: Props) {
           void comments.fetchAll({
             documentId: document.id,
             limit: 100,
+            direction: "ASC",
           });
         }
 

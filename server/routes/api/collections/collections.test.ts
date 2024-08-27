@@ -1,5 +1,5 @@
 import { CollectionPermission } from "@shared/types";
-import { Document, UserMembership, GroupPermission } from "@server/models";
+import { Document, UserMembership, GroupMembership } from "@server/models";
 import {
   buildUser,
   buildAdmin,
@@ -809,7 +809,7 @@ describe("#collections.group_memberships", () => {
       userId: user.id,
       permission: CollectionPermission.ReadWrite,
     });
-    await GroupPermission.create({
+    await GroupMembership.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group.id,
@@ -821,14 +821,14 @@ describe("#collections.group_memberships", () => {
         id: collection.id,
       },
     });
-    const [membership] = await collection.$get("collectionGroupMemberships");
+    const [membership] = await collection.$get("groupMemberships");
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
-    expect(body.data.collectionGroupMemberships.length).toEqual(1);
-    expect(body.data.collectionGroupMemberships[0].id).toEqual(membership.id);
-    expect(body.data.collectionGroupMemberships[0].permission).toEqual(
+    expect(body.data.groupMemberships.length).toEqual(1);
+    expect(body.data.groupMemberships[0].id).toEqual(membership.id);
+    expect(body.data.groupMemberships[0].permission).toEqual(
       CollectionPermission.ReadWrite
     );
   });
@@ -853,13 +853,13 @@ describe("#collections.group_memberships", () => {
       userId: user.id,
       permission: CollectionPermission.ReadWrite,
     });
-    await GroupPermission.create({
+    await GroupMembership.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group.id,
       permission: CollectionPermission.ReadWrite,
     });
-    await GroupPermission.create({
+    await GroupMembership.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group2.id,
@@ -896,13 +896,13 @@ describe("#collections.group_memberships", () => {
       userId: user.id,
       permission: CollectionPermission.ReadWrite,
     });
-    await GroupPermission.create({
+    await GroupMembership.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group.id,
       permission: CollectionPermission.ReadWrite,
     });
-    await GroupPermission.create({
+    await GroupMembership.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group2.id,

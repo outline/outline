@@ -98,6 +98,17 @@ class Logger {
   }
 
   /**
+   * Detailed information – for very detailed logs, more detailed than debug. "silly" is the
+   * lowest priority npm log level.
+   *
+   * @param category A log message category that will be prepended
+   * @param extra Arbitrary data to be logged that will appear in verbose logs
+   */
+  public silly(label: LogCategory, message: string, extra?: Extra) {
+    this.output.silly(message, { ...this.sanitize(extra), label });
+  }
+
+  /**
    * Log a warning
    *
    * @param message A warning message

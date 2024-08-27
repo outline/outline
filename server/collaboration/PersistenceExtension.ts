@@ -44,14 +44,14 @@ export default class PersistenceExtension implements Extension {
         },
       });
 
+      let ydoc;
       if (document.state) {
-        const ydoc = new Y.Doc();
+        ydoc = new Y.Doc();
         Logger.info("database", `Document ${documentId} is in database state`);
         Y.applyUpdate(ydoc, document.state);
         return ydoc;
       }
 
-      let ydoc;
       if (document.content) {
         Logger.info(
           "database",

@@ -1,7 +1,7 @@
 # Configuration for probot-no-response - https://github.com/probot/no-response
 
 # Number of days of inactivity before an Issue is closed for lack of response
-daysUntilClose: 14
+daysUntilClose: 7
 
 # Label requiring a response
 responseRequiredLabel: more information needed

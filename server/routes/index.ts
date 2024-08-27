@@ -35,7 +35,7 @@ router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
       done = await send(ctx, ctx.path, {
         root: path.resolve(__dirname, "../../../public"),
         // 7 day expiry, these assets are mostly static but do not contain a hash
-        maxAge: Day * 7,
+        maxAge: Day.ms * 7,
         setHeaders: (res) => {
           res.setHeader("Access-Control-Allow-Origin", "*");
         },
@@ -71,7 +71,7 @@ if (env.isProduction) {
       await send(ctx, pathname, {
         root: path.join(__dirname, "../../app/"),
         // Hashed static assets get 1 year expiry plus immutable flag
-        maxAge: Day * 365,
+        maxAge: Day.ms * 365,
         immutable: true,
         setHeaders: (res) => {
           res.setHeader("Service-Worker-Allowed", "/");
@@ -105,7 +105,7 @@ router.get("/locales/:lng.json", async (ctx) => {
   await send(ctx, path.join(lng, "translation.json"), {
     setHeaders: (res, _, stats) => {
       res.setHeader("Last-Modified", formatRFC7231(stats.mtime));
-      res.setHeader("Cache-Control", `public, max-age=${(7 * Day) / 1000}`);
+      res.setHeader("Cache-Control", `public, max-age=${7 * Day.seconds}`);
       res.setHeader(
         "ETag",
         crypto.createHash("md5").update(stats.mtime.toISOString()).digest("hex")
@@ -121,7 +121,7 @@ router.get("/robots.txt", (ctx) => {
 
 router.get("/opensearch.xml", (ctx) => {
   ctx.type = "text/xml";
-  ctx.response.set("Cache-Control", `public, max-age=${(7 * Day) / 1000}`);
+  ctx.response.set("Cache-Control", `public, max-age=${7 * Day.seconds}`);
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
@@ -131,6 +131,7 @@ router.get("/s/:shareId/*", shareDomains(), renderShare);
 
 router.get("/embeds/gitlab", renderEmbed);
 router.get("/embeds/github", renderEmbed);
+router.get("/embeds/dropbox", renderEmbed);
 
 // catch all for application
 router.get("*", shareDomains(), async (ctx, next) => {

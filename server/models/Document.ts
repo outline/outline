@@ -2,7 +2,6 @@
 import compact from "lodash/compact";
 import isNil from "lodash/isNil";
 import uniq from "lodash/uniq";
-import randomstring from "randomstring";
 import type {
   Identifier,
   InferAttributes,
@@ -52,6 +51,7 @@ import { UrlHelper } from "@shared/utils/UrlHelper";
 import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
+import { generateUrlId } from "@server/utils/url";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
@@ -255,17 +255,6 @@ class Document extends ParanoidModel<
   @Column
   editorVersion: string;
 
-  /**
-   * An emoji to use as the document icon,
-   * This is used as fallback (for backward compat) when icon is not set.
-   */
-  @Length({
-    max: 50,
-    msg: `Emoji must be 50 characters or less`,
-  })
-  @Column
-  emoji: string | null;
-
   /** An icon to use as the document icon. */
   @Length({
     max: 50,
@@ -292,7 +281,7 @@ class Document extends ParanoidModel<
    * The content of the document as JSON, this is a snapshot at the last time the state was saved.
    */
   @Column(DataType.JSONB)
-  content: ProsemirrorData;
+  content: ProsemirrorData | null;
 
   /**
    * The content of the document as YJS collaborative state, this column can be quite large and
@@ -356,12 +345,19 @@ class Document extends ParanoidModel<
     );
   }
 
+  static getPath({ title, urlId }: { title: string; urlId: string }) {
+    if (!title.length) {
+      return `/doc/untitled-${urlId}`;
+    }
+    return `/doc/${slugify(title)}-${urlId}`;
+  }
+
   // hooks
 
   @BeforeSave
   static async updateCollectionStructure(
     model: Document,
-    { transaction }: SaveOptions<Document>
+    { transaction }: SaveOptions<InferAttributes<Document>>
   ) {
     // templates, drafts, and archived documents don't appear in the structure
     // and so never need to be updated when the title changes
@@ -418,7 +414,7 @@ class Document extends ParanoidModel<
 
   @BeforeValidate
   static createUrlId(model: Document) {
-    return (model.urlId = model.urlId || randomstring.generate(10));
+    return (model.urlId = model.urlId || generateUrlId());
   }
 
   @BeforeCreate
@@ -716,6 +712,13 @@ class Document extends ParanoidModel<
   }
 
   /**
+   * Returns whether this document is a template created at the workspace level.
+   */
+  get isWorkspaceTemplate() {
+    return this.template && !this.collectionId;
+  }
+
+  /**
    * Revert the state of the document to match the passed revision.
    *
    * @param revision The revision to revert to.
@@ -728,7 +731,6 @@ class Document extends ParanoidModel<
     this.content = revision.content;
     this.text = revision.text;
     this.title = revision.title;
-    this.emoji = revision.emoji;
     this.icon = revision.icon;
     this.color = revision.color;
   };
@@ -810,20 +812,22 @@ class Document extends ParanoidModel<
 
   publish = async (
     user: User,
-    collectionId: string,
-    { transaction }: SaveOptions<Document>
-  ) => {
+    collectionId: string | null | undefined,
+    options: SaveOptions
+  ): Promise<this> => {
+    const { transaction } = options;
+
     // If the document is already published then calling publish should act like
     // a regular save
     if (this.publishedAt) {
-      return this.save({ transaction });
+      return this.save(options);
     }
 
     if (!this.collectionId) {
       this.collectionId = collectionId;
     }
 
-    if (!this.template) {
+    if (!this.template && this.collectionId) {
       const collection = await Collection.findByPk(this.collectionId, {
         transaction,
         lock: Transaction.LOCK.UPDATE,
@@ -831,7 +835,9 @@ class Document extends ParanoidModel<
 
       if (collection) {
         await collection.addDocumentToStructure(this, 0, { transaction });
-        this.collection = collection;
+        if (this.collection) {
+          this.collection.documentStructure = collection.documentStructure;
+        }
       }
     }
 
@@ -864,7 +870,7 @@ class Document extends ParanoidModel<
     this.lastModifiedById = user.id;
     this.updatedBy = user;
     this.publishedAt = new Date();
-    return this.save({ transaction });
+    return this.save(options);
   };
 
   isCollectionDeleted = async () => {
@@ -899,7 +905,9 @@ class Document extends ParanoidModel<
 
       if (collection) {
         await collection.removeDocumentInStructure(this, { transaction });
-        this.collection = collection;
+        if (this.collection) {
+          this.collection.documentStructure = collection.documentStructure;
+        }
       }
     });
 
@@ -926,7 +934,9 @@ class Document extends ParanoidModel<
 
       if (collection) {
         await collection.removeDocumentInStructure(this, { transaction });
-        this.collection = collection;
+        if (this.collection) {
+          this.collection.documentStructure = collection.documentStructure;
+        }
       }
     });
 
@@ -961,7 +971,9 @@ class Document extends ParanoidModel<
         await collection.addDocumentToStructure(this, undefined, {
           transaction,
         });
-        this.collection = collection;
+        if (this.collection) {
+          this.collection.documentStructure = collection.documentStructure;
+        }
       }
     });
 
@@ -1061,7 +1073,6 @@ class Document extends ParanoidModel<
       id: this.id,
       title: this.title,
       url: this.url,
-      emoji: isNil(this.emoji) ? undefined : this.emoji,
       icon: isNil(this.icon) ? undefined : this.icon,
       color: isNil(this.color) ? undefined : this.color,
       children,
