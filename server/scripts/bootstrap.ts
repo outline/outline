@@ -6,5 +6,6 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 require("../storage/database");
+require("../storage/redis");
 
 export {};
