@@ -508,6 +508,10 @@ export default class WebsocketsProcessor {
           },
           async (groupMemberships) => {
             for (const groupMembership of groupMemberships) {
+              if (!groupMembership.collectionId) {
+                continue;
+              }
+
               socketio
                 .to(`user-${event.userId}`)
                 .emit(
@@ -544,6 +548,11 @@ export default class WebsocketsProcessor {
           groupId: event.modelId,
         });
 
+        const user = await User.findByPk(event.userId);
+        if (!user) {
+          return;
+        }
+
         await GroupMembership.findAllInBatches<GroupMembership>(
           {
             where: {
@@ -557,16 +566,16 @@ export default class WebsocketsProcessor {
                 continue;
               }
 
-              const [collection, user] = await Promise.all([
-                Collection.scope({
-                  method: ["withMembership", event.userId],
-                }).findByPk(groupMembership.collectionId),
-                User.findByPk(event.userId),
-              ]);
+              socketio
+                .to(`user-${event.userId}`)
+                .emit(
+                  "collections.remove_group",
+                  presentGroupMembership(groupMembership)
+                );
 
-              if (!user) {
-                continue;
-              }
+              const collection = await Collection.scope({
+                method: ["withMembership", event.userId],
+              }).findByPk(groupMembership.collectionId);
 
               if (cannot(user, "read", collection)) {
                 // tell any user clients to disconnect from the websocket channel for the collection
@@ -574,13 +583,6 @@ export default class WebsocketsProcessor {
                   event: event.name,
                   collectionId: groupMembership.collectionId,
                 });
-
-                socketio
-                  .to(`user-${event.userId}`)
-                  .emit(
-                    "collections.remove_group",
-                    presentGroupMembership(groupMembership)
-                  );
               }
             }
           }
@@ -597,6 +599,53 @@ export default class WebsocketsProcessor {
           event: event.name,
           groupId: event.modelId,
         });
+
+        const groupMemberships = await GroupMembership.findAll({
+          where: {
+            groupId: event.modelId,
+          },
+        });
+
+        await GroupUser.findAllInBatches<GroupUser>(
+          {
+            where: {
+              groupId: event.modelId,
+            },
+            include: [
+              {
+                association: "user",
+                required: true,
+              },
+            ],
+            limit: 100,
+          },
+          async (groupUsers) => {
+            for (const groupMembership of groupMemberships) {
+              if (!groupMembership.collectionId) {
+                continue;
+              }
+              const payload = presentGroupMembership(groupMembership);
+
+              for (const groupUser of groupUsers) {
+                socketio
+                  .to(`user-${groupUser.userId}`)
+                  .emit("collections.remove_group", payload);
+
+                const collection = await Collection.scope({
+                  method: ["withMembership", groupUser.userId],
+                }).findByPk(groupMembership.collectionId);
+
+                if (cannot(groupUser.user, "read", collection)) {
+                  // tell any user clients to disconnect from the websocket channel for the collection
+                  socketio.to(`user-${groupUser.userId}`).emit("leave", {
+                    event: event.name,
+                    collectionId: groupMembership.collectionId,
+                  });
+                }
+              }
+            }
+          }
+        );
 
         return;
       }
