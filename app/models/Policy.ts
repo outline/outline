@@ -1,5 +1,6 @@
 import { computed, observable } from "mobx";
 import Model from "./base/Model";
+import { AfterChange } from "./decorators/Lifecycle";
 
 class Policy extends Model {
   static modelName = "Policy";
@@ -26,6 +27,27 @@ class Policy extends Model {
       }
     }
     return abilities;
+  }
+
+  @AfterChange
+  public static removeChildPolicies(model: Policy) {
+    const { documents, collections, policies } = model.store.rootStore;
+
+    const collection = collections.get(model.id);
+    if (collection) {
+      documents.inCollection(collection.id).forEach((i) => {
+        policies.remove(i.id);
+      });
+      return;
+    }
+
+    const document = documents.get(model.id);
+    if (document) {
+      document.childDocuments.forEach((i) => {
+        policies.remove(i.id);
+      });
+      return;
+    }
   }
 }
 

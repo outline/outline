@@ -101,6 +101,8 @@ class WebsocketProvider extends React.Component<Props> {
       notifications,
     } = this.props;
 
+    const currentUserId = auth?.user?.id;
+
     // on reconnection, reset the transports option, as the Websocket
     // connection may have failed (caused by proxy, firewall, browser, ...)
     this.socket.io.on("reconnect_attempt", () => {
@@ -264,7 +266,7 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on("documents.add_user", async (event: UserMembership) => {
       userMemberships.add(event);
       await documents.fetch(event.documentId!, {
-        force: true,
+        force: event.userId === currentUserId,
       });
     });
 
@@ -404,7 +406,7 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on("collections.add_user", async (event: Membership) => {
       memberships.add(event);
       await collections.fetch(event.collectionId, {
-        force: true,
+        force: event.userId === currentUserId,
       });
     });
 

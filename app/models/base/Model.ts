@@ -129,6 +129,8 @@ export default abstract class Model {
   };
 
   updateData = action((data: Partial<Model>) => {
+    LifecycleManager.executeHooks(this.constructor, "beforeChange", this);
+
     for (const key in data) {
       try {
         this[key] = data[key];
@@ -139,6 +141,8 @@ export default abstract class Model {
 
     this.isNew = false;
     this.persistedAttributes = this.toAPI();
+
+    LifecycleManager.executeHooks(this.constructor, "afterChange", this);
   });
 
   fetch = (options?: JSONObject) => this.store.fetch(this.id, options);
