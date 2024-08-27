@@ -12,6 +12,7 @@ import { type JSONObject } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Model from "~/models/base/Model";
+import { LifecycleManager } from "~/models/decorators/Lifecycle";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
 import type { PaginationParams, PartialWithId, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -103,7 +104,6 @@ export default abstract class Store<T extends Model> {
 
   @action
   remove(id: string): void {
-    Logger.debug("store", `Removing ${this.modelName} with id ${id}`);
     const inverseRelations = getInverseRelationsForModelClass(this.model);
 
     inverseRelations.forEach((relation) => {
@@ -134,7 +134,12 @@ export default abstract class Store<T extends Model> {
       this.rootStore.policies.remove(id);
     }
 
-    this.data.delete(id);
+    const model = this.data.get(id);
+    if (model) {
+      LifecycleManager.executeHooks(model.constructor, "beforeRemove", model);
+      this.data.delete(id);
+      LifecycleManager.executeHooks(model.constructor, "afterRemove", model);
+    }
   }
 
   /**

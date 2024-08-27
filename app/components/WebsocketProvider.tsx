@@ -269,7 +269,6 @@ class WebsocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("documents.remove_user", (event: UserMembership) => {
-      policies.removeForMembership(event.id);
       userMemberships.remove(event.id);
 
       const policy = policies.get(event.documentId!);
@@ -410,7 +409,6 @@ class WebsocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("collections.remove_user", (event: Membership) => {
-      policies.removeForMembership(event.id);
       memberships.remove(event.id);
 
       const policy = policies.get(event.collectionId);
@@ -427,7 +425,6 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on(
       "collections.remove_group",
       async (event: GroupMembership) => {
-        policies.removeForMembership(event.id);
         groupMemberships.remove(event.id);
 
         const policy = policies.get(event.collectionId!);
