@@ -29,6 +29,7 @@ import {
   presentMembership,
   presentUser,
   presentGroupMembership,
+  presentGroupUser,
 } from "@server/presenters";
 import presentNotification from "@server/presenters/notification";
 import { Event } from "../../types";
@@ -476,28 +477,35 @@ export default class WebsocketsProcessor {
 
       case "groups.add_user": {
         // do an add user for every collection that the group is a part of
-        const groupMemberships = await GroupMembership.findAll({
-          where: {
-            groupId: event.modelId,
-          },
-        });
+        const [groupUser, groupMemberships] = await Promise.all([
+          GroupUser.findOne({
+            where: {
+              groupId: event.modelId,
+              userId: event.userId,
+            },
+          }),
+          GroupMembership.findAll({
+            where: {
+              groupId: event.modelId,
+            },
+          }),
+        ]);
+        if (!groupUser) {
+          return;
+        }
+
+        socketio
+          .to(`group-${event.modelId}`)
+          .emit("groups.add_user", presentGroupUser(groupUser));
 
         for (const groupMembership of groupMemberships) {
-          // the user being added isn't yet in the websocket channel for the collection
-          // so they need to be notified separately
-          socketio.to(`user-${event.userId}`).emit("collections.add_user", {
-            event: event.name,
-            userId: event.userId,
-            collectionId: groupMembership.collectionId,
-          });
-          // let everyone with access to the collection know a user was added
           socketio
-            .to(`collection-${groupMembership.collectionId}`)
-            .emit("collections.add_user", {
-              event: event.name,
-              userId: event.userId,
-              collectionId: groupMembership.collectionId,
-            });
+            .to(`user-${event.userId}`)
+            .emit(
+              "collections.add_group",
+              presentGroupMembership(groupMembership)
+            );
+
           // tell any user clients to connect to the websocket channel for the collection
           socketio.to(`user-${event.userId}`).emit("join", {
             event: event.name,

@@ -9,6 +9,7 @@ type LogCategory =
   | "router"
   | "collaboration"
   | "misc"
+  | "store"
   | "plugins"
   | "policies";
 

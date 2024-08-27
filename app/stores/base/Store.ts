@@ -103,6 +103,7 @@ export default abstract class Store<T extends Model> {
 
   @action
   remove(id: string): void {
+    Logger.debug("store", `Removing ${this.modelName} with id ${id}`);
     const inverseRelations = getInverseRelationsForModelClass(this.model);
 
     inverseRelations.forEach((relation) => {

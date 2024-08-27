@@ -3,7 +3,7 @@ import { IncorrectEditionError } from "@server/errors";
 import { User, Team } from "@server/models";
 import Model from "@server/models/base/Model";
 
-type Args = boolean | string | boolean[] | string[] | Args[];
+type Args = boolean | string | Args[];
 
 export function and(...args: Args[]) {
   const filtered = args.filter(Boolean);

@@ -14,6 +14,7 @@ import Document from "~/models/Document";
 import FileOperation from "~/models/FileOperation";
 import Group from "~/models/Group";
 import GroupMembership from "~/models/GroupMembership";
+import GroupUser from "~/models/GroupUser";
 import Membership from "~/models/Membership";
 import Notification from "~/models/Notification";
 import Pin from "~/models/Pin";
@@ -89,6 +90,7 @@ class WebsocketProvider extends React.Component<Props> {
       documents,
       collections,
       groups,
+      groupUsers,
       groupMemberships,
       pins,
       stars,
@@ -304,6 +306,10 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on("groups.delete", (event: WebsocketEntityDeletedEvent) => {
       groups.remove(event.modelId);
+    });
+
+    this.socket.on("groups.add_user", (event: PartialWithId<GroupUser>) => {
+      groupUsers.add(event);
     });
 
     this.socket.on("collections.create", (event: PartialWithId<Collection>) => {
