@@ -203,6 +203,7 @@ export type WebsocketCollectionGroupEvent = {
 export type WebsocketDocumentUserEvent = {
   documentId: string;
   userId: string;
+  id: string;
 };
 
 export type WebsocketCollectionUpdateIndexEvent = {

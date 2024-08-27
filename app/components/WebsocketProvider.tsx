@@ -28,6 +28,7 @@ import {
   WebsocketCollectionGroupEvent,
   WebsocketCollectionUpdateIndexEvent,
   WebsocketCollectionUserEvent,
+  WebsocketDocumentUserEvent,
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
 } from "~/types";
@@ -261,39 +262,21 @@ class WebsocketProvider extends React.Component<Props> {
       }
     );
 
-    // received when a user is given access to a document
-    this.socket.on(
-      "documents.add_user",
-      (event: PartialWithId<UserMembership>) => {
-        userMemberships.add(event);
-      }
-    );
+    this.socket.on("documents.add_user", async (event: UserMembership) => {
+      userMemberships.add(event);
+      await documents.fetch(event.documentId!, {
+        force: true,
+      });
+    });
 
     this.socket.on(
       "documents.remove_user",
-      (event: PartialWithId<UserMembership>) => {
-        if (event.userId) {
-          const userMembership = userMemberships.get(event.id);
+      (event: WebsocketDocumentUserEvent) => {
+        policies.removeForMembership(event.id);
+        userMemberships.remove(event.id);
 
-          // TODO: Possibly replace this with a one-to-many relation decorator.
-          if (userMembership) {
-            userMemberships
-              .filter({
-                userId: event.userId,
-                sourceId: userMembership.id,
-              })
-              .forEach((m) => {
-                m.documentId && documents.remove(m.documentId);
-              });
-          }
-
-          userMemberships.removeAll({
-            userId: event.userId,
-            documentId: event.documentId,
-          });
-        }
-
-        if (event.documentId && event.userId === auth.user?.id) {
+        const policy = policies.get(event.documentId);
+        if (policy && policy.abilities.read === false) {
           documents.remove(event.documentId);
         }
       }
@@ -417,12 +400,14 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on("collections.add_user", async (event: Membership) => {
       memberships.add(event);
-      await collections.fetch(event.collectionId);
+      await collections.fetch(event.collectionId, {
+        force: true,
+      });
     });
 
     this.socket.on(
       "collections.remove_user",
-      async (event: WebsocketCollectionUserEvent) => {
+      (event: WebsocketCollectionUserEvent) => {
         policies.removeForMembership(event.id);
         memberships.remove(event.id);
 

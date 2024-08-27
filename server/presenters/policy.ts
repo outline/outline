@@ -10,11 +10,11 @@ type Policy = {
 
 function presentPolicy(
   user: User,
-  objects: (Parameters<typeof serialize>[1] | null)[]
+  models: (Parameters<typeof serialize>[1] | null)[]
 ): Policy[] {
-  return compact(objects).map((object) => ({
-    id: object.id,
-    abilities: serialize(user, object),
+  return compact(models).map((model) => ({
+    id: model.id,
+    abilities: serialize(user, model),
   }));
 }
 
