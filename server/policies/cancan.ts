@@ -85,35 +85,6 @@ export class CanCan {
     );
 
     // Check conditions only for matching abilities
-    return matchingAbilities.some(
-      (ability) =>
-        !ability.condition ||
-        ability.condition(performer, target, options || {})
-    );
-  };
-
-  /**
-   * Check if a performer can perform an action on a target.
-   *
-   * @param performer The performer that is trying to perform the action.
-   * @param action The action that the performer is trying to perform.
-   * @param target The target that the action is upon.
-   * @param options Additional options to pass to the condition function.
-   * @returns Whether the performer can perform the action on the target.
-   */
-  public matches = (
-    performer: Model,
-    action: string,
-    target: Model | null | undefined,
-    options = {}
-  ) => {
-    const matchingAbilities = this.getMatchingAbilities(
-      performer,
-      action,
-      target
-    );
-
-    // Check conditions only for matching abilities
     const conditions = uniq(
       flattenDeep(
         matchingAbilities.map((ability) => {
@@ -150,7 +121,7 @@ export class CanCan {
         let response: boolean | string[] = true;
 
         try {
-          response = this.matches(performer, ability.action, target);
+          response = this.can(performer, ability.action, target);
         } catch (err) {
           response = false;
         }

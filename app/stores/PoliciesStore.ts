@@ -46,10 +46,17 @@ export default class PoliciesStore extends Store<Policy> {
     });
   }
 
+  /**
+   * Get the abilities for a specific policy. If the policy does not exist, the default
+   * abilities are returned. Note that a policy ID is the same as the ID of the model it
+   * is related to, eg a collection, document or group.
+   *
+   * @param id - The ID of the policy to get abilities for.
+   */
   abilities(id: string) {
     const policy = this.get(id);
-    return policy ? policy.abilities : this.defaultAbilities;
+    return policy ? policy.flattenedAbilities : this.defaultAbilities;
   }
 
-  private defaultAbilities = Object.freeze({} as Policy["abilities"]);
+  private defaultAbilities = Object.freeze({} as Record<string, boolean>);
 }
