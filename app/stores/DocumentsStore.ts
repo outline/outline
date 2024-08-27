@@ -681,17 +681,6 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  removeCollectionDocuments(collectionId: string) {
-    // drafts are to be detached from collection rather than deleted, hence excluded here
-    const documents = filter(
-      this.inCollection(collectionId),
-      (d) => !!d.publishedAt
-    );
-    const documentIds = documents.map((doc) => doc.id);
-    documentIds.forEach((id) => this.remove(id));
-  }
-
-  @action
   async delete(
     document: Document,
     options?: {

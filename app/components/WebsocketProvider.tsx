@@ -13,6 +13,8 @@ import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import FileOperation from "~/models/FileOperation";
 import Group from "~/models/Group";
+import GroupMembership from "~/models/GroupMembership";
+import Membership from "~/models/Membership";
 import Notification from "~/models/Notification";
 import Pin from "~/models/Pin";
 import Star from "~/models/Star";
@@ -23,6 +25,7 @@ import UserMembership from "~/models/UserMembership";
 import withStores from "~/components/withStores";
 import {
   PartialWithId,
+  WebsocketCollectionGroupEvent,
   WebsocketCollectionUpdateIndexEvent,
   WebsocketCollectionUserEvent,
   WebsocketEntitiesEvent,
@@ -85,6 +88,7 @@ class WebsocketProvider extends React.Component<Props> {
       documents,
       collections,
       groups,
+      groupMemberships,
       pins,
       stars,
       memberships,
@@ -196,7 +200,6 @@ class WebsocketProvider extends React.Component<Props> {
                 err instanceof AuthorizationError ||
                 err instanceof NotFoundError
               ) {
-                documents.removeCollectionDocuments(collectionId);
                 memberships.removeAll({ collectionId });
                 collections.remove(collectionId);
                 return;
@@ -352,7 +355,6 @@ class WebsocketProvider extends React.Component<Props> {
           }
           policies.remove(doc.id);
         });
-        documents.removeCollectionDocuments(collectionId);
         memberships.removeAll({ collectionId });
         collections.remove(collectionId);
       })
@@ -413,56 +415,38 @@ class WebsocketProvider extends React.Component<Props> {
       }
     );
 
-    // received when a user is given access to a collection
-    // if the user is us then we go ahead and load the collection from API.
-    this.socket.on(
-      "collections.add_user",
-      async (event: WebsocketCollectionUserEvent) => {
-        if (event.userId === auth.user?.id) {
-          await collections.fetch(event.collectionId, {
-            force: true,
-          });
+    this.socket.on("collections.add_user", async (event: Membership) => {
+      memberships.add(event);
+      await collections.fetch(event.collectionId);
+    });
 
-          // Document policies might need updating as the permission changes
-          documents.inCollection(event.collectionId).forEach((document) => {
-            policies.remove(document.id);
-          });
+    this.socket.on(
+      "collections.remove_user",
+      async (event: WebsocketCollectionUserEvent) => {
+        policies.removeForMembership(event.id);
+        memberships.remove(event.id);
+
+        const policy = policies.get(event.collectionId);
+        if (policy && policy.abilities.readDocument === false) {
+          collections.remove(event.collectionId);
         }
       }
     );
 
-    // received when a user is removed from having access to a collection
-    // to keep state in sync we must update our UI if the user is us,
-    // or otherwise just remove any membership state we have for that user.
-    this.socket.on(
-      "collections.remove_user",
-      async (event: WebsocketCollectionUserEvent) => {
-        if (event.userId === auth.user?.id) {
-          // check if we still have access to the collection
-          try {
-            await collections.fetch(event.collectionId, {
-              force: true,
-            });
-          } catch (err) {
-            if (
-              err instanceof AuthorizationError ||
-              err instanceof NotFoundError
-            ) {
-              collections.remove(event.collectionId);
-              memberships.removeAll({
-                userId: event.userId,
-                collectionId: event.collectionId,
-              });
-              return;
-            }
-          }
+    this.socket.on("collections.add_group", async (event: GroupMembership) => {
+      groupMemberships.add(event);
+      await collections.fetch(event.collectionId!);
+    });
 
-          documents.removeCollectionDocuments(event.collectionId);
-        } else {
-          memberships.removeAll({
-            userId: event.userId,
-            collectionId: event.collectionId,
-          });
+    this.socket.on(
+      "collections.remove_group",
+      async (event: WebsocketCollectionGroupEvent) => {
+        policies.removeForMembership(event.id);
+        groupMemberships.remove(event.id);
+
+        const policy = policies.get(event.collectionId);
+        if (policy && policy.abilities.readDocument === false) {
+          collections.remove(event.collectionId);
         }
       }
     );

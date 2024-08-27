@@ -1,5 +1,6 @@
 import { action } from "mobx";
 import Policy from "~/models/Policy";
+import Logger from "~/utils/Logger";
 import RootStore from "./RootStore";
 import Store from "./base/Store";
 
@@ -22,16 +23,24 @@ export default class PoliciesStore extends Store<Policy> {
   removeForMembership(id: string) {
     this.data.forEach((policy) => {
       Object.keys(policy.abilities).forEach((key) => {
-        const can = policy.abilities[key];
+        let can = policy.abilities[key];
         if (can === true || can === false) {
           return;
         }
         if (can.includes(id)) {
-          policy.abilities[key] = can.filter((i) => i !== id);
+          can = can.filter((i) => i !== id);
 
           if (can.length === 0) {
             policy.abilities[key] = false;
+          } else {
+            policy.abilities[key] = can;
           }
+
+          Logger.debug("policies", "Removed membership from policy", {
+            policy: policy.id,
+            ability: key,
+            membershipId: id,
+          });
         }
       });
     });
@@ -42,5 +51,5 @@ export default class PoliciesStore extends Store<Policy> {
     return policy ? policy.abilities : this.defaultAbilities;
   }
 
-  private defaultAbilities = Object.freeze({});
+  private defaultAbilities = Object.freeze({} as Policy["abilities"]);
 }

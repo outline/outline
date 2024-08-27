@@ -191,6 +191,13 @@ export type WebsocketEntitiesEvent = {
 export type WebsocketCollectionUserEvent = {
   collectionId: string;
   userId: string;
+  id: string;
+};
+
+export type WebsocketCollectionGroupEvent = {
+  collectionId: string;
+  groupId: string;
+  id: string;
 };
 
 export type WebsocketDocumentUserEvent = {

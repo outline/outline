@@ -12,7 +12,6 @@ import { type JSONObject } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Model from "~/models/base/Model";
-import ParanoidModel from "~/models/base/ParanoidModel";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
 import type { PaginationParams, PartialWithId, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -121,11 +120,7 @@ export default abstract class Store<T extends Model> {
           }
 
           if (deleteBehavior === "cascade") {
-            if (item instanceof ParanoidModel) {
-              item.deletedAt = new Date().toISOString();
-            } else {
-              store.remove(item.id);
-            }
+            store.remove(item.id);
           } else if (deleteBehavior === "null") {
             item[relation.idKey] = null;
           }
