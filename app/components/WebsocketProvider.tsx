@@ -26,10 +26,7 @@ import UserMembership from "~/models/UserMembership";
 import withStores from "~/components/withStores";
 import {
   PartialWithId,
-  WebsocketCollectionGroupEvent,
   WebsocketCollectionUpdateIndexEvent,
-  WebsocketCollectionUserEvent,
-  WebsocketDocumentUserEvent,
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
 } from "~/types";
@@ -271,18 +268,15 @@ class WebsocketProvider extends React.Component<Props> {
       });
     });
 
-    this.socket.on(
-      "documents.remove_user",
-      (event: WebsocketDocumentUserEvent) => {
-        policies.removeForMembership(event.id);
-        userMemberships.remove(event.id);
+    this.socket.on("documents.remove_user", (event: UserMembership) => {
+      policies.removeForMembership(event.id);
+      userMemberships.remove(event.id);
 
-        const policy = policies.get(event.documentId);
-        if (policy && policy.abilities.read === false) {
-          documents.remove(event.documentId);
-        }
+      const policy = policies.get(event.documentId!);
+      if (policy && policy.abilities.read === false) {
+        documents.remove(event.documentId!);
       }
-    );
+    });
 
     this.socket.on("comments.create", (event: PartialWithId<Comment>) => {
       comments.add(event);
@@ -415,18 +409,15 @@ class WebsocketProvider extends React.Component<Props> {
       });
     });
 
-    this.socket.on(
-      "collections.remove_user",
-      (event: WebsocketCollectionUserEvent) => {
-        policies.removeForMembership(event.id);
-        memberships.remove(event.id);
+    this.socket.on("collections.remove_user", (event: Membership) => {
+      policies.removeForMembership(event.id);
+      memberships.remove(event.id);
 
-        const policy = policies.get(event.collectionId);
-        if (policy && policy.abilities.readDocument === false) {
-          collections.remove(event.collectionId);
-        }
+      const policy = policies.get(event.collectionId);
+      if (policy && policy.abilities.readDocument === false) {
+        collections.remove(event.collectionId);
       }
-    );
+    });
 
     this.socket.on("collections.add_group", async (event: GroupMembership) => {
       groupMemberships.add(event);
@@ -435,13 +426,13 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "collections.remove_group",
-      async (event: WebsocketCollectionGroupEvent) => {
+      async (event: GroupMembership) => {
         policies.removeForMembership(event.id);
         groupMemberships.remove(event.id);
 
-        const policy = policies.get(event.collectionId);
+        const policy = policies.get(event.collectionId!);
         if (policy && policy.abilities.readDocument === false) {
-          collections.remove(event.collectionId);
+          collections.remove(event.collectionId!);
         }
       }
     );

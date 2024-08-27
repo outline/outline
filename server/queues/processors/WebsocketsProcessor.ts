@@ -260,7 +260,6 @@ export default class WebsocketsProcessor {
         }
 
         const membership = {
-          event: event.name,
           userId: event.userId,
           collectionId: event.collectionId,
           id: event.modelId,
@@ -312,7 +311,6 @@ export default class WebsocketsProcessor {
         });
 
         const membership = {
-          event: event.name,
           groupId: event.modelId,
           collectionId: event.collectionId,
           id: event.data.membershipId,
@@ -323,6 +321,7 @@ export default class WebsocketsProcessor {
           .to(`collection-${event.collectionId}`)
           .emit("collections.remove_group", membership);
 
+        // let everyone in the group know they were removed
         socketio
           .to(`group-${event.modelId}`)
           .emit("collections.remove_group", membership);
