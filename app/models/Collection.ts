@@ -12,9 +12,8 @@ import type CollectionsStore from "~/stores/CollectionsStore";
 import Document from "~/models/Document";
 import ParanoidModel from "~/models/base/ParanoidModel";
 import { client } from "~/utils/ApiClient";
-import Logger from "~/utils/Logger";
 import Field from "./decorators/Field";
-import { AfterUpdate } from "./decorators/Lifecycle";
+import { AfterChange } from "./decorators/Lifecycle";
 
 export default class Collection extends ParanoidModel {
   static modelName = "Collection";
@@ -329,8 +328,17 @@ export default class Collection extends ParanoidModel {
 
   // hooks
 
-  @AfterUpdate
-  static testing(model: Collection) {
-    Logger.info("lifecycle", "AfterUpdate", { model });
+  @AfterChange
+  static removePolicies(
+    model: Collection,
+    previousAttributes: Partial<Collection>
+  ) {
+    if (previousAttributes && model.sharing !== previousAttributes?.sharing) {
+      const { documents, policies } = model.store.rootStore;
+
+      documents.inCollection(model.id).forEach((document) => {
+        policies.remove(document.id);
+      });
+    }
   }
 }

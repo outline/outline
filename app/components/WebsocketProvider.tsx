@@ -316,15 +316,6 @@ class WebsocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("collections.update", (event: PartialWithId<Collection>) => {
-      if (
-        "sharing" in event &&
-        event.sharing !== collections.get(event.id)?.sharing
-      ) {
-        documents.all.forEach((document) => {
-          policies.remove(document.id);
-        });
-      }
-
       collections.add(event);
     });
 

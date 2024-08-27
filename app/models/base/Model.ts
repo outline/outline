@@ -29,7 +29,7 @@ export default abstract class Model {
 
   constructor(fields: Record<string, any>, store: Store<Model>) {
     this.store = store;
-    this.updateData(fields);
+    this.updateData(fields, true);
     this.isNew = !this.id;
   }
 
@@ -128,8 +128,12 @@ export default abstract class Model {
     }
   };
 
-  updateData = action((data: Partial<Model>) => {
-    LifecycleManager.executeHooks(this.constructor, "beforeChange", this);
+  updateData = action((data: Partial<Model>, suppressChangeEvents = false) => {
+    if (!suppressChangeEvents) {
+      LifecycleManager.executeHooks(this.constructor, "beforeChange", this);
+    }
+
+    const previousAttributes = this.toAPI();
 
     for (const key in data) {
       try {
@@ -142,7 +146,14 @@ export default abstract class Model {
     this.isNew = false;
     this.persistedAttributes = this.toAPI();
 
-    LifecycleManager.executeHooks(this.constructor, "afterChange", this);
+    if (!suppressChangeEvents) {
+      LifecycleManager.executeHooks(
+        this.constructor,
+        "afterChange",
+        this,
+        previousAttributes
+      );
+    }
   });
 
   fetch = (options?: JSONObject) => this.store.fetch(this.id, options);
