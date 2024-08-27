@@ -12,7 +12,9 @@ import type CollectionsStore from "~/stores/CollectionsStore";
 import Document from "~/models/Document";
 import ParanoidModel from "~/models/base/ParanoidModel";
 import { client } from "~/utils/ApiClient";
+import Logger from "~/utils/Logger";
 import Field from "./decorators/Field";
+import { AfterUpdate } from "./decorators/Lifecycle";
 
 export default class Collection extends ParanoidModel {
   static modelName = "Collection";
@@ -324,4 +326,11 @@ export default class Collection extends ParanoidModel {
       format,
       includeAttachments,
     });
+
+  // hooks
+
+  @AfterUpdate
+  static testing(model: Collection) {
+    Logger.info("lifecycle", "AfterUpdate", { model });
+  }
 }

@@ -4,6 +4,7 @@ import { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "../decorators/Field";
+import { LifecycleManager } from "../decorators/Lifecycle";
 import { getRelationsForModelClass } from "../decorators/Relation";
 
 export default abstract class Model {
@@ -84,12 +85,19 @@ export default abstract class Model {
     params?: Record<string, any>,
     options?: Record<string, string | boolean | number | undefined>
   ): Promise<Model> => {
+    const isNew = this.isNew;
     this.isSaving = true;
 
     try {
       // ensure that the id is passed if the document has one
       if (!params) {
         params = this.toAPI();
+      }
+
+      if (isNew) {
+        LifecycleManager.executeHooks(this.constructor, "beforeCreate", this);
+      } else {
+        LifecycleManager.executeHooks(this.constructor, "beforeUpdate", this);
       }
 
       const model = await this.store.save(
@@ -99,7 +107,7 @@ export default abstract class Model {
         },
         {
           ...options,
-          isNew: this.isNew,
+          isNew,
         }
       );
 
@@ -107,6 +115,12 @@ export default abstract class Model {
       set(this, { ...params, ...model, isNew: false });
 
       this.persistedAttributes = this.toAPI();
+
+      if (isNew) {
+        LifecycleManager.executeHooks(this.constructor, "afterCreate", this);
+      } else {
+        LifecycleManager.executeHooks(this.constructor, "afterUpdate", this);
+      }
 
       return model;
     } finally {
@@ -138,7 +152,10 @@ export default abstract class Model {
     this.isSaving = true;
 
     try {
-      return await this.store.delete(this);
+      LifecycleManager.executeHooks(this.constructor, "beforeDelete", this);
+      const response = await this.store.delete(this);
+      LifecycleManager.executeHooks(this.constructor, "afterDelete", this);
+      return response;
     } finally {
       this.isSaving = false;
     }
