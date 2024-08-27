@@ -45,7 +45,6 @@ async function teamPermanentDeleter(team: Team) {
         teamId,
       },
       limit: 100,
-      offset: 0,
     },
     async (attachments, options) => {
       await sequelize.transaction(async (transaction) => {
@@ -74,7 +73,6 @@ async function teamPermanentDeleter(team: Team) {
         teamId,
       },
       limit: 100,
-      offset: 0,
     },
     async (users) => {
       await sequelize.transaction(async (transaction) => {
