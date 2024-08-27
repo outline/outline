@@ -312,6 +312,10 @@ class WebsocketProvider extends React.Component<Props> {
       groupUsers.add(event);
     });
 
+    this.socket.on("groups.remove_user", (event: GroupUser) => {
+      groupUsers.removeAll({ groupId: event.groupId, userId: event.userId });
+    });
+
     this.socket.on("collections.create", (event: PartialWithId<Collection>) => {
       collections.add(event);
     });

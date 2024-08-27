@@ -495,7 +495,7 @@ export default class WebsocketsProcessor {
         }
 
         socketio
-          .to(`group-${event.modelId}`)
+          .to(`team-${event.teamId}`)
           .emit("groups.add_user", presentGroupUser(groupUser));
 
         for (const groupMembership of groupMemberships) {
@@ -528,12 +528,22 @@ export default class WebsocketsProcessor {
           },
         });
 
+        const membership = {
+          event: event.name,
+          userId: event.userId,
+          groupId: event.modelId,
+        };
+
+        // let everyone with access to the group know a user was removed
+        socketio
+          .to(`team-${event.teamId}`)
+          .emit("groups.remove_user", membership);
+
         for (const groupMembership of groupMemberships) {
           if (!groupMembership.collectionId) {
             continue;
           }
-          // if the user has any memberships remaining on the collection
-          // we need to emit add instead of remove
+
           const [collection, user] = await Promise.all([
             Collection.scope({
               method: ["withMembership", event.userId],
@@ -546,27 +556,18 @@ export default class WebsocketsProcessor {
           }
 
           if (cannot(user, "read", collection)) {
-            // let everyone with access to the collection know a user was removed
-            socketio
-              .to(`collection-${groupMembership.collectionId}`)
-              .emit("collections.remove_user", {
-                event: event.name,
-                userId: event.userId,
-                collectionId: groupMembership.collectionId,
-              });
             // tell any user clients to disconnect from the websocket channel for the collection
             socketio.to(`user-${event.userId}`).emit("leave", {
               event: event.name,
               collectionId: groupMembership.collectionId,
             });
-          } else {
-            // the user still has access through some means...
-            // treat this like an add, so that the client re-syncs policies
-            socketio.to(`user-${event.userId}`).emit("collections.add_user", {
-              event: event.name,
-              userId: event.userId,
-              collectionId: groupMembership.collectionId,
-            });
+
+            socketio
+              .to(`user-${event.userId}`)
+              .emit(
+                "collections.remove_group",
+                presentGroupMembership(groupMembership)
+              );
           }
         }
 
