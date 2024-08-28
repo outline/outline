@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import some from "lodash/some";
+import filter from "lodash/filter";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import { Collection, User, Team } from "@server/models";
 import { allow, can } from "./cancan";
@@ -160,8 +160,10 @@ function includesMembership(
     collection.memberships,
     "Development: collection memberships not preloaded, did you forget `withMembership` scope?"
   );
-  return some(
+  const membershipIds = filter(
     [...collection.memberships, ...collection.groupMemberships],
     (m) => permissions.includes(m.permission)
-  );
+  ).map((m) => m.id);
+
+  return membershipIds.length > 0 ? membershipIds : false;
 }

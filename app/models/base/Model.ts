@@ -1,5 +1,5 @@
 import pick from "lodash/pick";
-import { set, observable, action } from "mobx";
+import { observable, action } from "mobx";
 import { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
@@ -31,6 +31,7 @@ export default abstract class Model {
     this.store = store;
     this.updateData(fields);
     this.isNew = !this.id;
+    this.initialized = true;
   }
 
   /**
@@ -112,9 +113,7 @@ export default abstract class Model {
       );
 
       // if saving is successful set the new values on the model itself
-      set(this, { ...params, ...model, isNew: false });
-
-      this.persistedAttributes = this.toAPI();
+      this.updateData({ ...params, ...model });
 
       if (isNew) {
         LifecycleManager.executeHooks(this.constructor, "afterCreate", this);
@@ -129,6 +128,12 @@ export default abstract class Model {
   };
 
   updateData = action((data: Partial<Model>) => {
+    if (this.initialized) {
+      LifecycleManager.executeHooks(this.constructor, "beforeChange", this);
+    }
+
+    const previousAttributes = this.toAPI();
+
     for (const key in data) {
       try {
         this[key] = data[key];
@@ -139,6 +144,15 @@ export default abstract class Model {
 
     this.isNew = false;
     this.persistedAttributes = this.toAPI();
+
+    if (!this.initialized) {
+      LifecycleManager.executeHooks(
+        this.constructor,
+        "afterChange",
+        this,
+        previousAttributes
+      );
+    }
   });
 
   fetch = (options?: JSONObject) => this.store.fetch(this.id, options);
@@ -216,8 +230,9 @@ export default abstract class Model {
 
   protected persistedAttributes: Partial<Model> = {};
 
-  /**
-   * A promise that resolves when all relations have been loaded
-   */
+  /** A promise that resolves when all relations have been loaded. */
   private loadingRelations: Promise<any[]> | undefined;
+
+  /** A boolean representing if the constructor has been called. */
+  private initialized = false;
 }

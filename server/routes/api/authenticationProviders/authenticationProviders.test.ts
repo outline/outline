@@ -22,8 +22,8 @@ describe("#authenticationProviders.info", () => {
     expect(body.data.name).toBe("slack");
     expect(body.data.isEnabled).toBe(true);
     expect(body.data.isConnected).toBe(true);
-    expect(body.policies[0].abilities.read).toBe(true);
-    expect(body.policies[0].abilities.update).toBe(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
   });
 
   it("should require authorization", async () => {

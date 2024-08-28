@@ -116,7 +116,7 @@ export default class Document extends ParanoidModel {
   collectionId?: string | null;
 
   /**
-   * The comment that this comment is a reply to.
+   * The collection that this document belongs to.
    */
   @Relation(() => Collection, { onDelete: "cascade" })
   collection?: Collection;
