@@ -14,6 +14,7 @@ type SendMailOptions = {
   to: string;
   fromName?: string;
   replyTo?: string;
+  references?: string[];
   subject: string;
   previewText?: string;
   text: string;
@@ -113,7 +114,12 @@ export class Mailer {
   `;
   };
 
-  sendMail = async (data: SendMailOptions): Promise<void> => {
+  /**
+   *
+   * @param data Email headers and body
+   * @returns Message ID header from SMTP server
+   */
+  sendMail = async (data: SendMailOptions): Promise<string | undefined> => {
     const { transporter } = this;
 
     if (!transporter) {
@@ -152,6 +158,8 @@ export class Mailer {
           : env.SMTP_FROM_EMAIL,
         replyTo: data.replyTo ?? env.SMTP_REPLY_EMAIL ?? env.SMTP_FROM_EMAIL,
         to: data.to,
+        references: data.references,
+        inReplyTo: data.references?.at(-1),
         subject: data.subject,
         html,
         text: data.text,
@@ -180,6 +188,8 @@ export class Mailer {
           `Preview Url: ${nodemailer.getTestMessageUrl(info)}`
         );
       }
+
+      return info?.messageId;
     } catch (err) {
       Logger.error(`Error sending email to ${data.to}`, err);
       throw err; // Re-throw for queue to re-try

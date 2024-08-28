@@ -118,6 +118,11 @@ class Notification extends Model<
   @Column(DataType.STRING)
   event: NotificationEventType;
 
+  // Email message id returned by SMTP server
+  @AllowNull
+  @Column(DataType.TEXT)
+  messageId: string | null;
+
   // associations
 
   @BelongsTo(() => User, "userId")
