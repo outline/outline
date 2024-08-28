@@ -321,7 +321,7 @@ export default class WebsocketsProcessor {
         await GroupUser.findAllInBatches<GroupUser>(
           {
             where: { groupId: event.modelId },
-            limit: 100,
+            batchLimit: 100,
           },
           async (groupUsers) => {
             for (const groupUser of groupUsers) {
@@ -500,7 +500,7 @@ export default class WebsocketsProcessor {
             where: {
               groupId: event.modelId,
             },
-            limit: 100,
+            batchLimit: 100,
           },
           async (groupMemberships) => {
             for (const groupMembership of groupMemberships) {
@@ -554,7 +554,7 @@ export default class WebsocketsProcessor {
             where: {
               groupId: event.modelId,
             },
-            limit: 100,
+            batchLimit: 100,
           },
           async (groupMemberships) => {
             for (const groupMembership of groupMemberships) {
@@ -613,7 +613,7 @@ export default class WebsocketsProcessor {
                 required: true,
               },
             ],
-            limit: 100,
+            batchLimit: 100,
           },
           async (groupUsers) => {
             for (const groupMembership of groupMemberships) {
