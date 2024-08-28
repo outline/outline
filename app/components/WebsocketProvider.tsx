@@ -265,6 +265,17 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on("documents.add_user", async (event: UserMembership) => {
       userMemberships.add(event);
+
+      // Any existing child policies are now invalid
+      if (event.userId === currentUserId) {
+        const document = documents.get(event.documentId!);
+        if (document) {
+          document.childDocuments.forEach((childDocument) => {
+            policies.remove(childDocument.id);
+          });
+        }
+      }
+
       await documents.fetch(event.documentId!, {
         force: event.userId === currentUserId,
       });
@@ -272,6 +283,16 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on("documents.remove_user", (event: UserMembership) => {
       userMemberships.remove(event.id);
+
+      // Any existing child policies are now invalid
+      if (event.userId === currentUserId) {
+        const document = documents.get(event.documentId!);
+        if (document) {
+          document.childDocuments.forEach((childDocument) => {
+            policies.remove(childDocument.id);
+          });
+        }
+      }
 
       const policy = policies.get(event.documentId!);
       if (policy && policy.abilities.read === false) {
