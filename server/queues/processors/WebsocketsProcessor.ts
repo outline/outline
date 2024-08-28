@@ -313,13 +313,9 @@ export default class WebsocketsProcessor {
         };
 
         // let everyone with access to the collection know a group was removed
+        // this includes those in the the group itself
         socketio
           .to(`collection-${event.collectionId}`)
-          .emit("collections.remove_group", membership);
-
-        // let everyone in the group know they were removed
-        socketio
-          .to(`group-${event.modelId}`)
           .emit("collections.remove_group", membership);
 
         await GroupUser.findAllInBatches<GroupUser>(
