@@ -128,8 +128,8 @@ export default abstract class BaseEmail<
       // This also ensures that we don't face header limit errors.
       if (lastChunk && lastChunk.length < this.maxMessagesInThread) {
         references = lastChunk
-          .map((notif) => notif.messageId)
-          .filter((msgId) => msgId !== null);
+          .filter((notif) => notif.messageId !== null)
+          .map((notif) => notif.messageId as string);
       }
     }
 
