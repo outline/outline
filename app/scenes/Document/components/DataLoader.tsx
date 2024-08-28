@@ -212,6 +212,10 @@ function DataLoader({ match, children }: Props) {
     );
   }
 
+  if (can.read === false) {
+    return <Error404 />;
+  }
+
   if (!document || (revisionId && !revision)) {
     return (
       <>
@@ -220,14 +224,16 @@ function DataLoader({ match, children }: Props) {
     );
   }
 
+  const readOnly =
+    !isEditing || !can.update || document.isArchived || !!revisionId;
+
   return (
-    <React.Fragment>
+    <React.Fragment key={readOnly ? "readOnly" : ""}>
       {children({
         document,
         revision,
         abilities: can,
-        readOnly:
-          !isEditing || !can.update || document.isArchived || !!revisionId,
+        readOnly,
         onCreateLink,
         sharedTree,
       })}

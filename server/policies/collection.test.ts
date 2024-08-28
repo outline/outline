@@ -27,8 +27,8 @@ describe("admin", () => {
     expect(abilities.updateDocument).toEqual(false);
     expect(abilities.createDocument).toEqual(false);
     expect(abilities.share).toEqual(false);
-    expect(abilities.read).toEqual(true);
-    expect(abilities.update).toEqual(true);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.update).toBeTruthy();
   });
 
   it("should allow updating documents in view only collection", async () => {
@@ -41,12 +41,12 @@ describe("admin", () => {
       permission: CollectionPermission.Read,
     });
     const abilities = serialize(user, collection);
-    expect(abilities.readDocument).toEqual(true);
-    expect(abilities.updateDocument).toEqual(true);
-    expect(abilities.createDocument).toEqual(true);
-    expect(abilities.share).toEqual(true);
-    expect(abilities.read).toEqual(true);
-    expect(abilities.update).toEqual(true);
+    expect(abilities.readDocument).toBeTruthy();
+    expect(abilities.updateDocument).toBeTruthy();
+    expect(abilities.createDocument).toBeTruthy();
+    expect(abilities.share).toBeTruthy();
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.update).toBeTruthy();
   });
 });
 
@@ -72,11 +72,11 @@ describe("member", () => {
         method: ["withMembership", user.id],
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
-      expect(abilities.read).toEqual(true);
-      expect(abilities.readDocument).toEqual(true);
-      // expect(abilities.createDocument).toEqual(true);
-      // expect(abilities.share).toEqual(true);
-      expect(abilities.update).toEqual(true);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.readDocument).toBeTruthy();
+      // expect(abilities.createDocument).toBeTruthy();
+      // expect(abilities.share).toBeTruthy();
+      expect(abilities.update).toBeTruthy();
     });
   });
 
@@ -91,9 +91,9 @@ describe("member", () => {
         permission: CollectionPermission.ReadWrite,
       });
       const abilities = serialize(user, collection);
-      expect(abilities.read).toEqual(true);
-      expect(abilities.readDocument).toEqual(true);
-      expect(abilities.share).toEqual(true);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.readDocument).toBeTruthy();
+      expect(abilities.share).toBeTruthy();
       expect(abilities.update).toEqual(false);
     });
 
@@ -117,9 +117,9 @@ describe("member", () => {
         method: ["withMembership", user.id],
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
-      expect(abilities.read).toEqual(true);
-      expect(abilities.readDocument).toEqual(true);
-      expect(abilities.share).toEqual(true);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.readDocument).toBeTruthy();
+      expect(abilities.share).toBeTruthy();
       expect(abilities.update).toEqual(false);
     });
   });
@@ -135,7 +135,7 @@ describe("member", () => {
         permission: CollectionPermission.Read,
       });
       const abilities = serialize(user, collection);
-      expect(abilities.read).toEqual(true);
+      expect(abilities.read).toBeTruthy();
       expect(abilities.update).toEqual(false);
       expect(abilities.share).toEqual(false);
     });
@@ -160,9 +160,9 @@ describe("member", () => {
         method: ["withMembership", user.id],
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
-      expect(abilities.read).toEqual(true);
-      expect(abilities.readDocument).toEqual(true);
-      expect(abilities.share).toEqual(true);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.readDocument).toBeTruthy();
+      expect(abilities.share).toBeTruthy();
       expect(abilities.update).toEqual(false);
     });
   });
@@ -205,10 +205,10 @@ describe("member", () => {
         method: ["withMembership", user.id],
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
-      expect(abilities.read).toEqual(true);
-      expect(abilities.readDocument).toEqual(true);
-      expect(abilities.createDocument).toEqual(true);
-      expect(abilities.share).toEqual(true);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.readDocument).toBeTruthy();
+      expect(abilities.createDocument).toBeTruthy();
+      expect(abilities.share).toBeTruthy();
       expect(abilities.update).toEqual(false);
     });
   });
@@ -227,8 +227,8 @@ describe("viewer", () => {
         permission: CollectionPermission.ReadWrite,
       });
       const abilities = serialize(user, collection);
-      expect(abilities.read).toEqual(true);
-      expect(abilities.readDocument).toEqual(true);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.readDocument).toBeTruthy();
       expect(abilities.createDocument).toEqual(false);
       expect(abilities.update).toEqual(false);
       expect(abilities.share).toEqual(false);
@@ -255,9 +255,9 @@ describe("viewer", () => {
         method: ["withMembership", user.id],
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
-      expect(abilities.read).toEqual(true);
-      expect(abilities.readDocument).toEqual(true);
-      expect(abilities.share).toEqual(true);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.readDocument).toBeTruthy();
+      expect(abilities.share).toBeTruthy();
       expect(abilities.update).toEqual(false);
     });
   });
@@ -284,10 +284,10 @@ describe("viewer", () => {
         method: ["withMembership", user.id],
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
-      expect(abilities.read).toEqual(true);
-      expect(abilities.readDocument).toEqual(true);
-      expect(abilities.createDocument).toEqual(true);
-      expect(abilities.share).toEqual(true);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.readDocument).toBeTruthy();
+      expect(abilities.createDocument).toBeTruthy();
+      expect(abilities.share).toBeTruthy();
       expect(abilities.update).toEqual(false);
     });
   });
@@ -330,10 +330,10 @@ describe("viewer", () => {
         method: ["withMembership", user.id],
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
-      expect(abilities.read).toEqual(true);
-      expect(abilities.readDocument).toEqual(true);
-      expect(abilities.createDocument).toEqual(true);
-      expect(abilities.share).toEqual(true);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.readDocument).toBeTruthy();
+      expect(abilities.createDocument).toBeTruthy();
+      expect(abilities.share).toBeTruthy();
       expect(abilities.update).toEqual(false);
     });
   });
@@ -381,8 +381,8 @@ describe("guest", () => {
       method: ["withMembership", user.id],
     }).findByPk(collection.id);
     const abilities = serialize(user, reloaded);
-    expect(abilities.read).toEqual(true);
-    expect(abilities.readDocument).toEqual(true);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.readDocument).toBeTruthy();
     expect(abilities.createDocument).toEqual(false);
     expect(abilities.share).toEqual(false);
     expect(abilities.update).toEqual(false);

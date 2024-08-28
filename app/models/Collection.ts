@@ -14,6 +14,7 @@ import ParanoidModel from "~/models/base/ParanoidModel";
 import { client } from "~/utils/ApiClient";
 import User from "./User";
 import Field from "./decorators/Field";
+import { AfterChange } from "./decorators/Lifecycle";
 
 export default class Collection extends ParanoidModel {
   static modelName = "Collection";
@@ -219,7 +220,9 @@ export default class Collection extends ParanoidModel {
    * @param document The document properties stored in the collection
    */
   @action
-  updateDocument(document: Pick<Document, "id" | "title" | "url">) {
+  updateDocument(
+    document: Pick<Document, "id" | "title" | "url" | "color" | "icon">
+  ) {
     if (!this.documents) {
       return;
     }
@@ -227,6 +230,8 @@ export default class Collection extends ParanoidModel {
     const travelNodes = (nodes: NavigationNode[]) =>
       nodes.forEach((node) => {
         if (node.id === document.id) {
+          node.color = document.color ?? undefined;
+          node.icon = document.icon ?? undefined;
           node.title = document.title;
           node.url = document.url;
         } else {
@@ -338,4 +343,20 @@ export default class Collection extends ParanoidModel {
       format,
       includeAttachments,
     });
+
+  // hooks
+
+  @AfterChange
+  static removePolicies(
+    model: Collection,
+    previousAttributes: Partial<Collection>
+  ) {
+    if (previousAttributes && model.sharing !== previousAttributes?.sharing) {
+      const { documents, policies } = model.store.rootStore;
+
+      documents.inCollection(model.id).forEach((document) => {
+        policies.remove(document.id);
+      });
+    }
+  }
 }

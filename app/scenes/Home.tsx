@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { HomeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { Action } from "~/components/Actions";
@@ -18,22 +18,26 @@ import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
+import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 
 function Home() {
-  const { documents, pins, ui } = useStores();
+  const { documents, ui } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
-  const userId = user?.id;
   const { t } = useTranslation();
-
-  React.useEffect(() => {
-    void pins.fetchPage();
-  }, [pins]);
-
+  const [spendPostLoginPath] = usePostLoginPath();
+  const userId = user?.id;
+  const { pins, count } = usePinnedDocuments("home");
   const can = usePolicy(team);
+
+  const postLoginPath = spendPostLoginPath();
+  if (postLoginPath) {
+    return <Redirect to={postLoginPath} />;
+  }
 
   return (
     <Scene
@@ -52,7 +56,11 @@ function Home() {
         {!ui.languagePromptDismissed && <LanguagePrompt key="language" />}
       </ResizingHeightContainer>
       <Heading>{t("Home")}</Heading>
-      <PinnedDocuments pins={pins.home} canUpdate={can.update} />
+      <PinnedDocuments
+        pins={pins}
+        canUpdate={can.update}
+        placeholderCount={count}
+      />
       <Documents>
         <Tabs>
           <Tab to="/home" exact>

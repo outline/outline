@@ -37,7 +37,7 @@ describe("#collections.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(collection.id);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
   });
 
   it("should not return private collections actor is not a member of", async () => {
@@ -83,7 +83,7 @@ describe("#collections.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
     expect(body.policies.length).toEqual(2);
-    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
   });
 
   it("should return private collections actor is a group-member of", async () => {
@@ -120,7 +120,7 @@ describe("#collections.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
     expect(body.policies.length).toEqual(2);
-    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
   });
 });
 
@@ -1431,7 +1431,7 @@ describe("#collections.update", () => {
     expect(body.data.permission).toBe(null);
     // ensure we return with a write level policy
     expect(body.policies.length).toBe(1);
-    expect(body.policies[0].abilities.update).toBe(true);
+    expect(body.policies[0].abilities.update).toBeTruthy();
   });
 
   it("allows editing from private to non-private collection", async () => {
@@ -1460,7 +1460,7 @@ describe("#collections.update", () => {
     expect(body.data.permission).toBe(CollectionPermission.ReadWrite);
     // ensure we return with a write level policy
     expect(body.policies.length).toBe(1);
-    expect(body.policies[0].abilities.update).toBe(true);
+    expect(body.policies[0].abilities.update).toBeTruthy();
   });
 
   it("allows editing by read-write collection user", async () => {

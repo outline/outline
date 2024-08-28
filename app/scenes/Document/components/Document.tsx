@@ -242,14 +242,16 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goToEdit = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) {
-      return;
-    }
-    ev.preventDefault();
-    const { document, abilities } = this.props;
+    if (this.props.readOnly) {
+      ev.preventDefault();
+      const { document, abilities } = this.props;
 
-    if (abilities.update) {
-      this.props.history.push(documentEditPath(document));
+      if (abilities.update) {
+        this.props.history.push(documentEditPath(document));
+      }
+    } else if (this.editor.current?.isBlurred) {
+      ev.preventDefault();
+      this.editor.current?.focus();
     }
   };
 

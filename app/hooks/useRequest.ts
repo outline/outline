@@ -35,6 +35,7 @@ export default function useRequest<T = unknown>(
 
       if (isMounted()) {
         setData(response);
+        setError(undefined);
       }
       return response;
     } catch (err) {

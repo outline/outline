@@ -188,16 +188,6 @@ export type WebsocketEntitiesEvent = {
   event: string;
 };
 
-export type WebsocketCollectionUserEvent = {
-  collectionId: string;
-  userId: string;
-};
-
-export type WebsocketDocumentUserEvent = {
-  documentId: string;
-  userId: string;
-};
-
 export type WebsocketCollectionUpdateIndexEvent = {
   collectionId: string;
   index: string;
@@ -208,7 +198,6 @@ export type WebsocketEvent =
   | PartialWithId<Star>
   | PartialWithId<FileOperation>
   | PartialWithId<UserMembership>
-  | WebsocketCollectionUserEvent
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent
   | WebsocketEntitiesEvent;

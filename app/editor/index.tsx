@@ -562,6 +562,14 @@ export class Editor extends React.PureComponent<
   };
 
   /**
+   * Focus the editor and scroll to the current selection.
+   */
+  public focus = () => {
+    this.view.focus();
+    this.view.dispatch(this.view.state.tr.scrollIntoView());
+  };
+
+  /**
    * Blur the editor.
    */
   public blur = () => {

@@ -284,10 +284,9 @@ export default class DocumentsStore extends Store<Document> {
       parentDocumentId: documentId,
     });
     invariant(res?.data, "Document list not available");
-    const { data } = res;
 
     runInAction("DocumentsStore#fetchChildDocuments", () => {
-      data.forEach(this.add);
+      res.data.forEach(this.add);
       this.addPolicies(res.policies);
     });
   };
@@ -388,8 +387,10 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    res.data.forEach(this.add);
-    this.addPolicies(res.policies);
+    runInAction("DocumentsStore#searchTitles", () => {
+      res.data.forEach(this.add);
+      this.addPolicies(res.policies);
+    });
 
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
@@ -421,8 +422,10 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    res.data.forEach((result: SearchResult) => this.add(result.document));
-    this.addPolicies(res.policies);
+    runInAction("DocumentsStore#search", () => {
+      res.data.forEach((result: SearchResult) => this.add(result.document));
+      this.addPolicies(res.policies);
+    });
 
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
@@ -674,17 +677,6 @@ export default class DocumentsStore extends Store<Document> {
     this.addPolicies(res.policies);
     return this.add(res.data);
   };
-
-  @action
-  removeCollectionDocuments(collectionId: string) {
-    // drafts are to be detached from collection rather than deleted, hence excluded here
-    const documents = filter(
-      this.inCollection(collectionId),
-      (d) => !!d.publishedAt
-    );
-    const documentIds = documents.map((doc) => doc.id);
-    documentIds.forEach((id) => this.remove(id));
-  }
 
   @action
   async delete(

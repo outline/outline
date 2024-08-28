@@ -15,6 +15,7 @@ import FileOperation from "~/models/FileOperation";
 import Group from "~/models/Group";
 import GroupMembership from "~/models/GroupMembership";
 import GroupUser from "~/models/GroupUser";
+import Membership from "~/models/Membership";
 import Notification from "~/models/Notification";
 import Pin from "~/models/Pin";
 import Star from "~/models/Star";
@@ -26,7 +27,6 @@ import withStores from "~/components/withStores";
 import {
   PartialWithId,
   WebsocketCollectionUpdateIndexEvent,
-  WebsocketCollectionUserEvent,
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
 } from "~/types";
@@ -87,8 +87,8 @@ class WebsocketProvider extends React.Component<Props> {
       documents,
       collections,
       groups,
-      groupMemberships,
       groupUsers,
+      groupMemberships,
       pins,
       stars,
       memberships,
@@ -100,6 +100,8 @@ class WebsocketProvider extends React.Component<Props> {
       fileOperations,
       notifications,
     } = this.props;
+
+    const currentUserId = auth?.user?.id;
 
     // on reconnection, reset the transports option, as the Websocket
     // connection may have failed (caused by proxy, firewall, browser, ...)
@@ -200,7 +202,6 @@ class WebsocketProvider extends React.Component<Props> {
                 err instanceof AuthorizationError ||
                 err instanceof NotFoundError
               ) {
-                documents.removeCollectionDocuments(collectionId);
                 memberships.removeAll({ collectionId });
                 collections.remove(collectionId);
                 return;
@@ -264,36 +265,43 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "documents.add_user",
-      (event: PartialWithId<UserMembership>) => {
+      async (event: PartialWithId<UserMembership>) => {
         userMemberships.add(event);
+
+        // Any existing child policies are now invalid
+        if (event.userId === currentUserId) {
+          const document = documents.get(event.documentId!);
+          if (document) {
+            document.childDocuments.forEach((childDocument) => {
+              policies.remove(childDocument.id);
+            });
+          }
+        }
+
+        await documents.fetch(event.documentId!, {
+          force: event.userId === currentUserId,
+        });
       }
     );
 
     this.socket.on(
       "documents.remove_user",
-      (event: Pick<UserMembership, "id" | "userId" | "documentId">) => {
-        const userMembership = userMemberships.get(event.id);
+      (event: PartialWithId<UserMembership>) => {
+        userMemberships.remove(event.id);
 
-        // TODO: Possibly replace this with a one-to-many relation decorator.
-        if (userMembership) {
-          userMemberships
-            .filter({
-              userId: event.userId,
-              sourceId: userMembership.id,
-            })
-            .forEach((m) => {
-              m.documentId && documents.remove(m.documentId);
+        // Any existing child policies are now invalid
+        if (event.userId === currentUserId) {
+          const document = documents.get(event.documentId!);
+          if (document) {
+            document.childDocuments.forEach((childDocument) => {
+              policies.remove(childDocument.id);
             });
+          }
         }
 
-        userMemberships.removeAll({
-          userId: event.userId,
-          documentId: event.documentId,
-        });
-
-        if (event.documentId && event.userId === auth.user?.id) {
-          // TODO: This removes the document even if the user retains access through other means.
-          documents.remove(event.documentId);
+        const policy = policies.get(event.documentId!);
+        if (policy && policy.abilities.read === false) {
+          documents.remove(event.documentId!);
         }
       }
     );
@@ -302,32 +310,24 @@ class WebsocketProvider extends React.Component<Props> {
       "documents.add_group",
       (event: PartialWithId<GroupMembership>) => {
         groupMemberships.add(event);
+
+        // Any existing child policies are now invalid
+        // TODO: How to determine if event is for current user?
+        // if (event.userId === currentUserId) {
+        //   const document = documents.get(event.documentId!);
+        //   if (document) {
+        //     document.childDocuments.forEach((childDocument) => {
+        //       policies.remove(childDocument.id);
+        //     });
+        //   }
+        // }
       }
     );
 
     this.socket.on(
       "documents.remove_group",
-      (event: Pick<GroupMembership, "id" | "groupId" | "documentId">) => {
-        const groupMembership = groupMemberships.get(event.id);
-
-        // TODO: Possibly replace this with a one-to-many relation decorator.
-        if (groupMembership) {
-          groupMemberships
-            .filter({
-              groupId: event.groupId,
-              sourceId: groupMembership.id,
-            })
-            .forEach((m) => {
-              m.documentId && documents.remove(m.documentId);
-            });
-        }
-
-        groupMemberships.removeAll({
-          groupId: event.groupId,
-          documentId: event.documentId,
-        });
-
-        // TODO: Clean up document if user no longer has access.
+      (event: PartialWithId<GroupMembership>) => {
+        groupMemberships.remove(event.id);
       }
     );
 
@@ -371,15 +371,6 @@ class WebsocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("collections.update", (event: PartialWithId<Collection>) => {
-      if (
-        "sharing" in event &&
-        event.sharing !== collections.get(event.id)?.sharing
-      ) {
-        documents.all.forEach((document) => {
-          policies.remove(document.id);
-        });
-      }
-
       collections.add(event);
     });
 
@@ -398,7 +389,6 @@ class WebsocketProvider extends React.Component<Props> {
           }
           policies.remove(doc.id);
         });
-        documents.removeCollectionDocuments(collectionId);
         memberships.removeAll({ collectionId });
         collections.remove(collectionId);
       })
@@ -459,56 +449,35 @@ class WebsocketProvider extends React.Component<Props> {
       }
     );
 
-    // received when a user is given access to a collection
-    // if the user is us then we go ahead and load the collection from API.
-    this.socket.on(
-      "collections.add_user",
-      async (event: WebsocketCollectionUserEvent) => {
-        if (event.userId === auth.user?.id) {
-          await collections.fetch(event.collectionId, {
-            force: true,
-          });
+    this.socket.on("collections.add_user", async (event: Membership) => {
+      memberships.add(event);
+      await collections.fetch(event.collectionId, {
+        force: event.userId === currentUserId,
+      });
+    });
 
-          // Document policies might need updating as the permission changes
-          documents.inCollection(event.collectionId).forEach((document) => {
-            policies.remove(document.id);
-          });
-        }
+    this.socket.on("collections.remove_user", (event: Membership) => {
+      memberships.remove(event.id);
+
+      const policy = policies.get(event.collectionId);
+      if (policy && policy.abilities.read === false) {
+        collections.remove(event.collectionId);
       }
-    );
+    });
 
-    // received when a user is removed from having access to a collection
-    // to keep state in sync we must update our UI if the user is us,
-    // or otherwise just remove any membership state we have for that user.
+    this.socket.on("collections.add_group", async (event: GroupMembership) => {
+      groupMemberships.add(event);
+      await collections.fetch(event.collectionId!);
+    });
+
     this.socket.on(
-      "collections.remove_user",
-      async (event: WebsocketCollectionUserEvent) => {
-        if (event.userId === auth.user?.id) {
-          // check if we still have access to the collection
-          try {
-            await collections.fetch(event.collectionId, {
-              force: true,
-            });
-          } catch (err) {
-            if (
-              err instanceof AuthorizationError ||
-              err instanceof NotFoundError
-            ) {
-              collections.remove(event.collectionId);
-              memberships.removeAll({
-                userId: event.userId,
-                collectionId: event.collectionId,
-              });
-              return;
-            }
-          }
+      "collections.remove_group",
+      async (event: GroupMembership) => {
+        groupMemberships.remove(event.id);
 
-          documents.removeCollectionDocuments(event.collectionId);
-        } else {
-          memberships.removeAll({
-            userId: event.userId,
-            collectionId: event.collectionId,
-          });
+        const policy = policies.get(event.collectionId!);
+        if (policy && policy.abilities.read === false) {
+          collections.remove(event.collectionId!);
         }
       }
     );
@@ -517,10 +486,7 @@ class WebsocketProvider extends React.Component<Props> {
       "collections.update_index",
       action((event: WebsocketCollectionUpdateIndexEvent) => {
         const collection = collections.get(event.collectionId);
-
-        if (collection) {
-          collection.updateIndex(event.index);
-        }
+        collection?.updateIndex(event.index);
       })
     );
 

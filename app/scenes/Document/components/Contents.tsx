@@ -25,7 +25,7 @@ export default function Contents({ headings }: Props) {
   });
 
   React.useEffect(() => {
-    let activeId = headings[0]?.id;
+    let activeId = headings.length > 0 ? headings[0].id : undefined;
 
     for (let key = 0; key < headings.length; key++) {
       const heading = headings[key];

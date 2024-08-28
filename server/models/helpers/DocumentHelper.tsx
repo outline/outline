@@ -87,7 +87,7 @@ export class DocumentHelper {
     }
   ): Promise<ProsemirrorData> {
     let doc: Node | null;
-    let json;
+    let data;
 
     if ("content" in document && document.content) {
       // Optimized path for documents with content available and no transformation required.
@@ -110,27 +110,26 @@ export class DocumentHelper {
     }
 
     if (doc && options?.signedUrls && options?.teamId) {
-      json = await ProsemirrorHelper.signAttachmentUrls(
+      data = await ProsemirrorHelper.signAttachmentUrls(
         doc,
         options.teamId,
         options.signedUrls
       );
     } else {
-      json = doc?.toJSON() ?? {};
+      data = doc?.toJSON() ?? {};
     }
 
     if (options?.internalUrlBase) {
-      json = ProsemirrorHelper.replaceInternalUrls(
-        json,
+      data = ProsemirrorHelper.replaceInternalUrls(
+        data,
         options.internalUrlBase
       );
     }
-
     if (options?.removeMarks) {
-      json = ProsemirrorHelper.removeMarks(json, options.removeMarks);
+      data = ProsemirrorHelper.removeMarks(data, options.removeMarks);
     }
 
-    return json;
+    return data;
   }
 
   /**
@@ -142,13 +141,8 @@ export class DocumentHelper {
    */
   static toPlainText(document: Document | Revision) {
     const node = DocumentHelper.toProsemirror(document);
-    const textSerializers = Object.fromEntries(
-      Object.entries(schema.nodes)
-        .filter(([, n]) => n.spec.toPlainText)
-        .map(([name, n]) => [name, n.spec.toPlainText])
-    );
 
-    return textBetween(node, 0, node.content.size, textSerializers);
+    return textBetween(node, 0, node.content.size, this.textSerializers);
   }
 
   /**
@@ -495,4 +489,10 @@ export class DocumentHelper {
       this.toMarkdown(before) === this.toMarkdown(after)
     );
   }
+
+  private static textSerializers = Object.fromEntries(
+    Object.entries(schema.nodes)
+      .filter(([, n]) => n.spec.toPlainText)
+      .map(([name, n]) => [name, n.spec.toPlainText])
+  );
 }

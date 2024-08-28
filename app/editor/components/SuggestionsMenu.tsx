@@ -530,6 +530,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       }
 
       if (event.key === "Escape") {
+        event.preventDefault();
         close();
       }
     };
@@ -560,7 +561,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                 <LinkInput
                   type="text"
                   placeholder={
-                    insertItem.title
+                    "placeholder" in insertItem
+                      ? insertItem.placeholder
+                      : insertItem.title
                       ? dictionary.pasteLinkWithTitle(insertItem.title)
                       : dictionary.pasteLink
                   }
