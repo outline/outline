@@ -32,7 +32,7 @@
   "Publish": "Veröffentlichen",
   "Published {{ documentName }}": "{{ documentName }} wurde veröffentlicht",
   "Publish document": "Dokument veröffentlichen",
-  "Unpublish": "Nicht veröffentlichen",
+  "Unpublish": "Veröffentlichung aufheben",
   "Unpublished {{ documentName }}": "{{ documentName }} wurde unveröffentlicht",
   "Subscribe": "Abonnieren",
   "Subscribed to document notifications": "Dokument-Benachrichtigungen abonniert",
