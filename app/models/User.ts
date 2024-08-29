@@ -129,22 +129,23 @@ class User extends ParanoidModel {
 
   /**
    * Returns the direct user memberships that this user has to other documents. Documents that the
-   * user already has access to through a collection are not included.
+   * user already has access to through a collection and trashed documents are not included.
    *
    * @returns A list of user memberships
    */
   @computed
   get memberships(): UserMembership[] {
-    return this.store.rootStore.userMemberships.orderedData
+    const { userMemberships, documents, policies } = this.store.rootStore;
+    return userMemberships.orderedData
       .filter(
         (m) => m.userId === this.id && m.sourceId === null && m.documentId
       )
       .filter((m) => {
-        const document = this.store.rootStore.documents.get(m.documentId!);
+        const document = documents.get(m.documentId!);
         const policy = document?.collectionId
-          ? this.store.rootStore.policies.get(document.collectionId)
+          ? policies.get(document.collectionId)
           : undefined;
-        return !policy?.abilities?.readDocument;
+        return !policy?.abilities?.readDocument && !document?.isDeleted;
       });
   }
 
