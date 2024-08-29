@@ -225,8 +225,8 @@ export default class WebsocketsProcessor {
         return socketio
           .to(
             collection.permission
-              ? `collection-${event.collectionId}`
-              : `team-${collection.teamId}`
+              ? `team-${collection.teamId}`
+              : `collection-${event.collectionId}`
           )
           .emit(event.name, await presentCollection(undefined, collection));
       }

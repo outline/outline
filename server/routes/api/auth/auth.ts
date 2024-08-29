@@ -15,6 +15,7 @@ import {
   presentProviderConfig,
   presentAvailableTeam,
   presentGroup,
+  presentGroupUser,
 } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import { APIContext } from "@server/types";
@@ -144,6 +145,7 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
       }),
       team: presentTeam(team),
       groups: await Promise.all(groups.map(presentGroup)),
+      groupUsers: groups.map((group) => presentGroupUser(group.groupUsers[0])),
       collaborationToken: user.getCollaborationToken(),
       availableTeams: uniqBy([...signedInTeams, ...availableTeams], "id").map(
         (availableTeam) =>

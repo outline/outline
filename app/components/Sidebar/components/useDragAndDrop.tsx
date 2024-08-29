@@ -131,7 +131,9 @@ export function useDropToReorderUserMembership(getIndex?: () => string) {
     drop: async (item: DragObject) => {
       const userMembership = userMemberships.get(item.id);
       void userMembership?.save({
-        index: getIndex?.() ?? fractionalIndex(null, user.memberships[0].index),
+        index:
+          getIndex?.() ??
+          fractionalIndex(null, user.documentMemberships[0].index),
       });
     },
     collect: (monitor) => ({

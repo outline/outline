@@ -1,5 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
+import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -12,6 +13,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useStores from "~/hooks/useStores";
 import DropCursor from "./DropCursor";
+import Folder from "./Folder";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
@@ -36,7 +38,7 @@ function SharedWithMe() {
 
   // Drop to reorder document
   const [reorderMonitor, dropToReorderRef] = useDropToReorderUserMembership(
-    () => fractionalIndex(null, user.memberships[0].index)
+    () => fractionalIndex(null, user.documentMemberships[0].index)
   );
 
   React.useEffect(() => {
@@ -47,7 +49,7 @@ function SharedWithMe() {
 
   // TODO
   if (
-    !user.memberships.length &&
+    !user.documentMemberships.length &&
     !groupMemberships.orderedData.filter((m) => m.documentId).length
   ) {
     return null;
@@ -65,19 +67,24 @@ function SharedWithMe() {
                 position="top"
               />
             )}
-            {groupMemberships.orderedData.map((membership) => (
-              <SharedWithMeLink
-                key={membership.id}
-                userMembership={membership}
-              />
+            {user.groupsWithDocumentMemberships.map((group) => (
+              <React.Fragment key={group.id}>
+                <SidebarLink label={group.name} icon={<GroupIcon />} />
+                <Folder expanded>
+                  {groupMemberships.orderedData.map((membership) => (
+                    <SharedWithMeLink
+                      key={membership.id}
+                      membership={membership}
+                      depth={1}
+                    />
+                  ))}
+                </Folder>
+              </React.Fragment>
             ))}
-            {user.memberships
+            {user.documentMemberships
               .slice(0, page * Pagination.sidebarLimit)
               .map((membership) => (
-                <SharedWithMeLink
-                  key={membership.id}
-                  userMembership={membership}
-                />
+                <SharedWithMeLink key={membership.id} membership={membership} />
               ))}
             {!end && (
               <SidebarLink

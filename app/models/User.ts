@@ -13,6 +13,7 @@ import {
 import type { NotificationSettings } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import Document from "./Document";
+import Group from "./Group";
 import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
@@ -134,7 +135,7 @@ class User extends ParanoidModel {
    * @returns A list of user memberships
    */
   @computed
-  get memberships(): UserMembership[] {
+  get documentMemberships(): UserMembership[] {
     const { userMemberships, documents, policies } = this.store.rootStore;
     return userMemberships.orderedData
       .filter(
@@ -147,6 +148,21 @@ class User extends ParanoidModel {
           : undefined;
         return !policy?.abilities?.readDocument && !document?.isDeleted;
       });
+  }
+
+  @computed
+  get groupsWithDocumentMemberships() {
+    const { groups, groupUsers, groupMemberships } = this.store.rootStore;
+
+    return groupUsers.orderedData
+      .filter((groupUser) => groupUser.userId === this.id)
+      .map((groupUser) => groups.get(groupUser.groupId))
+      .filter(Boolean)
+      .filter((group) =>
+        groupMemberships.orderedData.some(
+          (groupMembership) => groupMembership.groupId === group?.id
+        )
+      ) as Group[];
   }
 
   /**

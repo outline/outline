@@ -24,7 +24,8 @@ import {
 import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 
 type Props = {
-  userMembership: UserMembership | GroupMembership;
+  membership: UserMembership | GroupMembership;
+  depth?: number;
 };
 
 function useLocationState() {
@@ -34,26 +35,23 @@ function useLocationState() {
   return location.state?.sharedWithMe;
 }
 
-function SharedWithMeLink({ userMembership }: Props) {
+function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const { ui, collections, documents } = useStores();
   const { fetchChildDocuments } = documents;
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
-  const { documentId } = userMembership;
+  const { documentId } = membership;
   const isActiveDocument = documentId === ui.activeDocumentId;
   const locationStateStarred = useLocationState();
 
   const [expanded, setExpanded] = React.useState(
-    userMembership.documentId === ui.activeDocumentId && !!locationStateStarred
+    membership.documentId === ui.activeDocumentId && !!locationStateStarred
   );
 
   React.useEffect(() => {
-    if (
-      userMembership.documentId === ui.activeDocumentId &&
-      locationStateStarred
-    ) {
+    if (membership.documentId === ui.activeDocumentId && locationStateStarred) {
       setExpanded(true);
     }
-  }, [userMembership.documentId, ui.activeDocumentId, locationStateStarred]);
+  }, [membership.documentId, ui.activeDocumentId, locationStateStarred]);
 
   React.useEffect(() => {
     if (documentId) {
@@ -62,10 +60,10 @@ function SharedWithMeLink({ userMembership }: Props) {
   }, [documentId, documents]);
 
   React.useEffect(() => {
-    if (isActiveDocument && userMembership.documentId) {
-      void fetchChildDocuments(userMembership.documentId);
+    if (isActiveDocument && membership.documentId) {
+      void fetchChildDocuments(membership.documentId);
     }
-  }, [fetchChildDocuments, isActiveDocument, userMembership.documentId]);
+  }, [fetchChildDocuments, isActiveDocument, membership.documentId]);
 
   const handleDisclosureClick = React.useCallback(
     (ev: React.MouseEvent<HTMLButtonElement>) => {
@@ -76,16 +74,13 @@ function SharedWithMeLink({ userMembership }: Props) {
     []
   );
 
-  const { icon } = useSidebarLabelAndIcon(userMembership);
-  const [{ isDragging }, draggableRef] = useDragMembership(userMembership);
+  const { icon } = useSidebarLabelAndIcon(membership);
+  const [{ isDragging }, draggableRef] = useDragMembership(membership);
 
   const getIndex = () => {
-    if (userMembership instanceof UserMembership) {
-      const next = userMembership?.next();
-      return fractionalIndex(
-        userMembership?.index || null,
-        next?.index || null
-      );
+    if (membership instanceof UserMembership) {
+      const next = membership?.next();
+      return fractionalIndex(membership?.index || null, next?.index || null);
     }
     return "";
   };
@@ -116,12 +111,12 @@ function SharedWithMeLink({ userMembership }: Props) {
     return (
       <>
         <Draggable
-          key={userMembership.id}
+          key={membership.id}
           ref={draggableRef}
           $isDragging={isDragging}
         >
           <SidebarLink
-            depth={0}
+            depth={depth}
             to={{
               pathname: document.path,
               state: { sharedWithMe: true },
