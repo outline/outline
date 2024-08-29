@@ -45,9 +45,13 @@ function SharedWithMe() {
     }
   }, [error, t]);
 
-  // if (!user.memberships.length) {
-  //   return null;
-  // }
+  // TODO
+  if (
+    !user.memberships.length &&
+    !groupMemberships.orderedData.filter((m) => m.documentId).length
+  ) {
+    return null;
+  }
 
   return (
     <SharedContext.Provider value={true}>

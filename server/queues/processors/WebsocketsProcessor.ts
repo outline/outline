@@ -156,7 +156,7 @@ export default class WebsocketsProcessor {
       case "documents.add_group": {
         const [document, membership] = await Promise.all([
           Document.findByPk(event.documentId),
-          GroupMembership.findByPk(event.modelId),
+          GroupMembership.findByPk(event.data.membershipId),
         ]);
         if (!document || !membership) {
           return;
@@ -172,7 +172,7 @@ export default class WebsocketsProcessor {
       case "documents.remove_group": {
         const [document, group] = await Promise.all([
           Document.findByPk(event.documentId),
-          Group.findByPk(event.modelId),
+          Group.findByPk(event.data.membershipId),
         ]);
         if (!document || !group) {
           return;

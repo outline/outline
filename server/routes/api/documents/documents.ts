@@ -1742,6 +1742,7 @@ router.post(
           title: document.title,
           isNew,
           permission: membership.permission,
+          membershipId: membership.id,
         },
       },
       { transaction }

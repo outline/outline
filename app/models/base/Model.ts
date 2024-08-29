@@ -58,7 +58,10 @@ export default abstract class Model {
         properties.relationClassResolver().modelName
       );
       if ("fetch" in store) {
-        promises.push(store.fetch(this[properties.idKey]));
+        const id = this[properties.idKey];
+        if (id) {
+          promises.push(store.fetch(id));
+        }
       }
     }
 
