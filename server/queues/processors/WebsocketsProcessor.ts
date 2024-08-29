@@ -159,20 +159,13 @@ export default class WebsocketsProcessor {
         if (!collection) {
           return;
         }
+
         socketio
-          .to(
-            collection.permission
-              ? `team-${collection.teamId}`
-              : `user-${collection.createdById}`
-          )
+          .to(this.getCollectionEventChannels(event, collection))
           .emit(event.name, await presentCollection(undefined, collection));
 
         return socketio
-          .to(
-            collection.permission
-              ? `team-${collection.teamId}`
-              : `user-${collection.createdById}`
-          )
+          .to(this.getCollectionEventChannels(event, collection))
           .emit("join", {
             event: event.name,
             collectionId: collection.id,
@@ -188,11 +181,7 @@ export default class WebsocketsProcessor {
         }
 
         return socketio
-          .to(
-            collection.permission
-              ? `collection-${event.collectionId}`
-              : `team-${collection.teamId}`
-          )
+          .to(this.getCollectionEventChannels(event, collection))
           .emit(event.name, await presentCollection(undefined, collection));
       }
 
@@ -205,11 +194,7 @@ export default class WebsocketsProcessor {
         }
 
         return socketio
-          .to(
-            collection.permission
-              ? `collection-${event.collectionId}`
-              : `team-${collection.teamId}`
-          )
+          .to(this.getCollectionEventChannels(event, collection))
           .emit(event.name, {
             modelId: event.collectionId,
           });
@@ -233,10 +218,6 @@ export default class WebsocketsProcessor {
         // so they need to be notified separately
         socketio
           .to(`user-${membership.userId}`)
-          .emit(event.name, presentMembership(membership));
-
-        // let everyone with access to the collection know a user was added
-        socketio
           .to(`collection-${membership.collectionId}`)
           .emit(event.name, presentMembership(membership));
 
@@ -291,9 +272,6 @@ export default class WebsocketsProcessor {
 
         socketio
           .to(`group-${membership.groupId}`)
-          .emit(event.name, presentGroupMembership(membership));
-
-        socketio
           .to(`collection-${membership.collectionId}`)
           .emit(event.name, presentGroupMembership(membership));
 
@@ -702,6 +680,25 @@ export default class WebsocketsProcessor {
     }
   }
 
+  private getCollectionEventChannels(
+    event: Event,
+    collection: Collection
+  ): string[] {
+    const channels = [];
+
+    if (event.actorId) {
+      channels.push(`user-${event.actorId}`);
+    }
+
+    if (collection.isPrivate) {
+      channels.push(`collection-${collection.id}`);
+    } else {
+      channels.push(`team-${collection.teamId}`);
+    }
+
+    return channels;
+  }
+
   private async getDocumentEventChannels(
     event: Event,
     document: Document
@@ -713,7 +710,13 @@ export default class WebsocketsProcessor {
     }
 
     if (document.publishedAt) {
-      channels.push(`collection-${document.collectionId}`);
+      if (document.collection) {
+        channels.push(
+          ...this.getCollectionEventChannels(event, document.collection)
+        );
+      } else {
+        channels.push(`collection-${document.collectionId}`);
+      }
     }
 
     const memberships = await UserMembership.findAll({
