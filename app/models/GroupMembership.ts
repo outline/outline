@@ -34,6 +34,13 @@ class GroupMembership extends Model {
   @Relation(() => Collection, { onDelete: "cascade" })
   collection: Collection | undefined;
 
+  /** The source ID points to the root membership from which this inherits */
+  sourceId?: string;
+
+  /** The source points to the root membership from which this inherits */
+  @Relation(() => GroupMembership, { onDelete: "cascade" })
+  source?: GroupMembership;
+
   /** The permission level granted to the group. */
   @observable
   permission: CollectionPermission | DocumentPermission;

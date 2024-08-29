@@ -2,11 +2,12 @@ import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
+import { Link, useHistory } from "react-router-dom";
 import { toast } from "sonner";
-import { useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
+import { s } from "@shared/styles";
 import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
 import UserMembership from "~/models/UserMembership";
@@ -129,50 +130,67 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
             (invitedInSession.includes(a.group.id) ? "_" : "") + a.group.name
           ).localeCompare(b.group.name)
         )
-        .map((membership) => (
-          <ListItem
-            key={membership.id}
-            image={
-              <Squircle color={theme.text} size={AvatarSize.Medium}>
-                <GroupIcon color={theme.background} size={16} />
-              </Squircle>
-            }
-            title={membership.group.name}
-            subtitle={t("{{ count }} member", {
-              count: membership.group.memberCount,
-            })}
-            actions={
-              can.manageUsers ? (
-                <div style={{ marginRight: -8 }}>
-                  <InputMemberPermissionSelect
-                    style={{ margin: 0 }}
-                    permissions={permissions}
-                    onChange={async (
-                      permission: DocumentPermission | typeof EmptySelectValue
-                    ) => {
-                      if (permission === EmptySelectValue) {
-                        await groupMemberships.delete({
-                          documentId: document.id,
-                          groupId: membership.groupId,
-                        });
-                      } else {
-                        await groupMemberships.create({
-                          documentId: document.id,
-                          groupId: membership.groupId,
-                          permission,
-                        });
-                      }
-                    }}
-                    disabled={!can.update}
-                    value={membership.permission}
-                    labelHidden
-                    nude
-                  />
-                </div>
-              ) : null
-            }
-          />
-        ))}
+        .map((membership) => {
+          const MaybeLink = membership?.source ? StyledLink : React.Fragment;
+          return (
+            <ListItem
+              key={membership.id}
+              image={
+                <Squircle color={theme.text} size={AvatarSize.Medium}>
+                  <GroupIcon color={theme.background} size={16} />
+                </Squircle>
+              }
+              title={membership.group.name}
+              subtitle={
+                membership.sourceId ? (
+                  <Trans>
+                    Has access through{" "}
+                    <MaybeLink
+                      // @ts-expect-error to prop does not exist on React.Fragment
+                      to={membership.source?.document?.path ?? ""}
+                    >
+                      parent
+                    </MaybeLink>
+                  </Trans>
+                ) : (
+                  t("{{ count }} member", {
+                    count: membership.group.memberCount,
+                  })
+                )
+              }
+              actions={
+                can.manageUsers ? (
+                  <div style={{ marginRight: -8 }}>
+                    <InputMemberPermissionSelect
+                      style={{ margin: 0 }}
+                      permissions={permissions}
+                      onChange={async (
+                        permission: DocumentPermission | typeof EmptySelectValue
+                      ) => {
+                        if (permission === EmptySelectValue) {
+                          await groupMemberships.delete({
+                            documentId: document.id,
+                            groupId: membership.groupId,
+                          });
+                        } else {
+                          await groupMemberships.create({
+                            documentId: document.id,
+                            groupId: membership.groupId,
+                            permission,
+                          });
+                        }
+                      }}
+                      disabled={!can.update}
+                      value={membership.permission}
+                      labelHidden
+                      nude
+                    />
+                  </div>
+                ) : null
+              }
+            />
+          );
+        })}
       {members.map((item) => (
         <MemberListItem
           key={item.id}
@@ -192,5 +210,10 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
     </>
   );
 }
+
+const StyledLink = styled(Link)`
+  color: ${s("textTertiary")};
+  text-decoration: underline;
+`;
 
 export default observer(DocumentMembersList);
