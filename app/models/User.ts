@@ -129,7 +129,7 @@ class User extends ParanoidModel {
   }
 
   /**
-   * Returns the direct user memberships that this user has to other documents. Documents that the
+   * Returns the direct memberships that this user has to documents. Documents that the
    * user already has access to through a collection and trashed documents are not included.
    *
    * @returns A list of user memberships

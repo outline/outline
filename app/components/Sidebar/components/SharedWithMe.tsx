@@ -71,7 +71,7 @@ function SharedWithMe() {
               <React.Fragment key={group.id}>
                 <SidebarLink label={group.name} icon={<GroupIcon />} />
                 <Folder expanded>
-                  {groupMemberships.orderedData.map((membership) => (
+                  {group.documentMemberships.map((membership) => (
                     <SharedWithMeLink
                       key={membership.id}
                       membership={membership}
