@@ -113,10 +113,7 @@ function CollectionScene() {
     void fetchData();
   }, [collections, isFetching, collection, error, id, can]);
 
-  useCommandBarActions(
-    [editCollection],
-    ui.activeCollectionId ? [ui.activeCollectionId] : undefined
-  );
+  useCommandBarActions([editCollection], [ui.activeCollectionId ?? "none"]);
 
   if (!collection && error) {
     return <Search notFound />;

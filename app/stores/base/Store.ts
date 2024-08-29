@@ -104,6 +104,11 @@ export default abstract class Store<T extends Model> {
 
   @action
   remove(id: string): void {
+    const model = this.data.get(id);
+    if (!model) {
+      return;
+    }
+
     const inverseRelations = getInverseRelationsForModelClass(this.model);
 
     inverseRelations.forEach((relation) => {
@@ -134,12 +139,9 @@ export default abstract class Store<T extends Model> {
       this.rootStore.policies.remove(id);
     }
 
-    const model = this.data.get(id);
-    if (model) {
-      LifecycleManager.executeHooks(model.constructor, "beforeRemove", model);
-      this.data.delete(id);
-      LifecycleManager.executeHooks(model.constructor, "afterRemove", model);
-    }
+    LifecycleManager.executeHooks(model.constructor, "beforeRemove", model);
+    this.data.delete(id);
+    LifecycleManager.executeHooks(model.constructor, "afterRemove", model);
   }
 
   /**

@@ -8,6 +8,7 @@ import Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
 import Icon from "~/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { MenuInternalLink } from "~/types";
 import {
@@ -67,6 +68,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
+  const can = usePolicy(collection);
 
   React.useEffect(() => {
     void document.loadRelations();
@@ -74,7 +76,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
 
   let collectionNode: MenuInternalLink | undefined;
 
-  if (collection) {
+  if (collection && can.readDocument) {
     collectionNode = {
       type: "route",
       title: collection.name,
