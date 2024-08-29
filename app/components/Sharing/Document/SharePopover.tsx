@@ -1,7 +1,7 @@
 import { isEmail } from "class-validator";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { BackIcon } from "outline-icons";
+import { BackIcon, GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -178,40 +178,45 @@ function SharePopover({
             (item) => item instanceof Group
           ) as Group[];
 
-          // Special case for the common action of adding a single user.
-          if (invitedUsers.length === 1 && invited.length === 1) {
-            const user = invitedUsers[0];
-            toast.message(
-              t("{{ userName }} was added to the document", {
-                userName: user.name,
-              }),
-              {
-                icon: <Avatar model={user} size={AvatarSize.Toast} />,
-              }
-            );
-          } else if (invitedGroups.length === 1 && invited.length === 1) {
-            const group = invitedGroups[0];
-            toast.success(
-              t("{{ userName }} was added to the document", {
-                userName: group.name,
-              })
-            );
-          } else if (invitedGroups.length === 0) {
-            toast.success(
-              t("{{ count }} people added to the document", {
-                count: invitedUsers.length,
-              })
-            );
-          } else {
-            toast.success(
-              t(
-                "{{ count }} people and {{ count2 }} groups added to the document",
+          if (invitedUsers.length > 0) {
+            // Special case for the common action of adding a single user.
+            if (invitedUsers.length === 1) {
+              const user = invitedUsers[0];
+              toast.message(
+                t("{{ userName }} was added to the document", {
+                  userName: user.name,
+                }),
                 {
-                  count: invitedUsers.length,
-                  count2: invitedGroups.length,
+                  icon: <Avatar model={user} size={AvatarSize.Toast} />,
                 }
-              )
-            );
+              );
+            } else {
+              toast.message(
+                t("{{ count }} people added to the document", {
+                  count: invitedUsers.length,
+                })
+              );
+            }
+          }
+          if (invitedGroups.length > 0) {
+            // Special case for the common action of adding a single group.
+            if (invitedGroups.length === 1) {
+              const group = invitedGroups[0];
+              toast.message(
+                t("{{ userName }} was added to the document", {
+                  userName: group.name,
+                }),
+                {
+                  icon: <GroupIcon size={AvatarSize.Toast} />,
+                }
+              );
+            } else {
+              toast.message(
+                t("{{ count }} groups added to the document", {
+                  count: invitedGroups.length,
+                })
+              );
+            }
           }
 
           setInvitedInSession((prev) => [...prev, ...pendingIds]);
