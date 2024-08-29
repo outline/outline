@@ -172,7 +172,7 @@ export default class WebsocketsProcessor {
       case "documents.remove_group": {
         const [document, group] = await Promise.all([
           Document.findByPk(event.documentId),
-          Group.findByPk(event.data.membershipId),
+          Group.findByPk(event.modelId),
         ]);
         if (!document || !group) {
           return;
@@ -180,7 +180,7 @@ export default class WebsocketsProcessor {
 
         const channels = await this.getDocumentEventChannels(event, document);
         socketio.to([...channels, `group-${event.modelId}`]).emit(event.name, {
-          id: event.modelId,
+          id: event.data.membershipId,
           groupId: event.modelId,
           documentId: event.documentId,
         });
@@ -319,17 +319,15 @@ export default class WebsocketsProcessor {
       }
 
       case "collections.remove_group": {
-        const membership = {
-          groupId: event.modelId,
-          collectionId: event.collectionId,
-          id: event.data.membershipId,
-        };
-
         // let everyone with access to the collection know a group was removed
         // this includes those in the the group itself
         socketio
           .to(`collection-${event.collectionId}`)
-          .emit("collections.remove_group", membership);
+          .emit("collections.remove_group", {
+            groupId: event.modelId,
+            collectionId: event.collectionId,
+            id: event.data.membershipId,
+          });
 
         await GroupUser.findAllInBatches<GroupUser>(
           {
