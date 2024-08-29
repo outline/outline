@@ -50,7 +50,7 @@ function SharedWithMe() {
   // TODO
   if (
     !user.documentMemberships.length &&
-    !groupMemberships.orderedData.filter((m) => m.documentId).length
+    !user.groupsWithDocumentMemberships.length
   ) {
     return null;
   }
