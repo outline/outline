@@ -138,7 +138,7 @@ class User extends ParanoidModel {
         const policy = document?.collectionId
           ? this.store.rootStore.policies.get(document.collectionId)
           : undefined;
-        return !policy?.abilities?.readDocument;
+        return !policy?.abilities?.readDocument && !document?.isDeleted;
       });
   }
 
