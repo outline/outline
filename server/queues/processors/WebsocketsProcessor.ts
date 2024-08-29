@@ -179,21 +179,11 @@ export default class WebsocketsProcessor {
         }
 
         const channels = await this.getDocumentEventChannels(event, document);
-
-        // TODO
-        const groupUserIds = (await group.$get("groupUsers")).map(
-          (groupUser) => groupUser.userId
-        );
-        const groupUserChannels = groupUserIds.map(
-          (userId) => `user-${userId}`
-        );
-        socketio
-          .to(uniq([...channels, ...groupUserChannels]))
-          .emit(event.name, {
-            id: event.modelId,
-            groupId: event.modelId,
-            documentId: event.documentId,
-          });
+        socketio.to([...channels, `group-${event.modelId}`]).emit(event.name, {
+          id: event.modelId,
+          groupId: event.modelId,
+          documentId: event.documentId,
+        });
         return;
       }
 
@@ -549,23 +539,28 @@ export default class WebsocketsProcessor {
           },
           async (groupMemberships) => {
             for (const groupMembership of groupMemberships) {
-              if (!groupMembership.collectionId) {
-                // TODO
-                continue;
+              if (groupMembership.collectionId) {
+                socketio
+                  .to(`user-${event.userId}`)
+                  .emit(
+                    "collections.add_group",
+                    presentGroupMembership(groupMembership)
+                  );
+
+                // tell any user clients to connect to the websocket channel for the collection
+                socketio.to(`user-${event.userId}`).emit("join", {
+                  event: event.name,
+                  collectionId: groupMembership.collectionId,
+                });
               }
-
-              socketio
-                .to(`user-${event.userId}`)
-                .emit(
-                  "collections.add_group",
-                  presentGroupMembership(groupMembership)
-                );
-
-              // tell any user clients to connect to the websocket channel for the collection
-              socketio.to(`user-${event.userId}`).emit("join", {
-                event: event.name,
-                collectionId: groupMembership.collectionId,
-              });
+              if (groupMembership.documentId) {
+                socketio
+                  .to(`user-${event.userId}`)
+                  .emit(
+                    "documents.add_group",
+                    presentGroupMembership(groupMembership)
+                  );
+              }
             }
           }
         );
@@ -663,27 +658,33 @@ export default class WebsocketsProcessor {
           },
           async (groupUsers) => {
             for (const groupMembership of groupMemberships) {
-              if (!groupMembership.collectionId) {
-                // TODO
-                continue;
-              }
               const payload = presentGroupMembership(groupMembership);
 
-              for (const groupUser of groupUsers) {
-                socketio
-                  .to(`user-${groupUser.userId}`)
-                  .emit("collections.remove_group", payload);
+              if (groupMembership.collectionId) {
+                for (const groupUser of groupUsers) {
+                  socketio
+                    .to(`user-${groupUser.userId}`)
+                    .emit("collections.remove_group", payload);
 
-                const collection = await Collection.scope({
-                  method: ["withMembership", groupUser.userId],
-                }).findByPk(groupMembership.collectionId);
+                  const collection = await Collection.scope({
+                    method: ["withMembership", groupUser.userId],
+                  }).findByPk(groupMembership.collectionId);
 
-                if (cannot(groupUser.user, "read", collection)) {
-                  // tell any user clients to disconnect from the websocket channel for the collection
-                  socketio.to(`user-${groupUser.userId}`).emit("leave", {
-                    event: event.name,
-                    collectionId: groupMembership.collectionId,
-                  });
+                  if (cannot(groupUser.user, "read", collection)) {
+                    // tell any user clients to disconnect from the websocket channel for the collection
+                    socketio.to(`user-${groupUser.userId}`).emit("leave", {
+                      event: event.name,
+                      collectionId: groupMembership.collectionId,
+                    });
+                  }
+                }
+              }
+
+              if (groupMembership.documentId) {
+                for (const groupUser of groupUsers) {
+                  socketio
+                    .to(`user-${groupUser.userId}`)
+                    .emit("documents.remove_group", payload);
                 }
               }
             }
@@ -769,7 +770,7 @@ export default class WebsocketsProcessor {
           documentId: document.id,
         },
       }),
-      GroupMembership.scope("withGroup").findAll({
+      GroupMembership.findAll({
         where: {
           documentId: document.id,
         },
@@ -780,14 +781,9 @@ export default class WebsocketsProcessor {
       channels.push(`user-${membership.userId}`);
     }
 
-    await Promise.all(
-      groupMemberships.map(async (groupMembership) => {
-        const groupUsers = await groupMembership.group.$get("groupUsers");
-        for (const groupUser of groupUsers) {
-          channels.push(`user-${groupUser.userId}`);
-        }
-      })
-    );
+    for (const membership of groupMemberships) {
+      channels.push(`group-${membership.groupId}`);
+    }
 
     return uniq(channels);
   }
