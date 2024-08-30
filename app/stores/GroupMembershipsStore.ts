@@ -23,6 +23,7 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
     | PaginationParams & {
         documentId?: string;
         collectionId?: string;
+        groupId?: string;
       }): Promise<GroupMembership[]> => {
     this.isFetching = true;
 

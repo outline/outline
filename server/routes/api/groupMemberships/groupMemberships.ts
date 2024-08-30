@@ -22,6 +22,7 @@ router.post(
   pagination(),
   validate(T.GroupMembershipsListSchema),
   async (ctx: APIContext<T.GroupMembershipsListReq>) => {
+    const { groupId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const memberships = await GroupMembership.findAll({
@@ -37,6 +38,7 @@ router.post(
         {
           association: "group",
           required: true,
+          where: groupId ? { id: groupId } : undefined,
           include: [
             {
               association: "groupUsers",

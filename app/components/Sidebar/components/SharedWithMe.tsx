@@ -46,7 +46,6 @@ function SharedWithMe() {
     }
   }, [error, t]);
 
-  // TODO
   if (
     !user.documentMemberships.length &&
     !user.groupsWithDocumentMemberships.length
