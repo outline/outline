@@ -1,6 +1,5 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -13,7 +12,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useStores from "~/hooks/useStores";
 import DropCursor from "./DropCursor";
-import Folder from "./Folder";
+import GroupLink from "./GroupLink";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
@@ -68,18 +67,7 @@ function SharedWithMe() {
               />
             )}
             {user.groupsWithDocumentMemberships.map((group) => (
-              <React.Fragment key={group.id}>
-                <SidebarLink label={group.name} icon={<GroupIcon />} />
-                <Folder expanded>
-                  {group.documentMemberships.map((membership) => (
-                    <SharedWithMeLink
-                      key={membership.id}
-                      membership={membership}
-                      depth={1}
-                    />
-                  ))}
-                </Folder>
-              </React.Fragment>
+              <GroupLink key={group.id} group={group} />
             ))}
             {user.documentMemberships
               .slice(0, page * Pagination.sidebarLimit)
