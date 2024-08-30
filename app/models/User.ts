@@ -152,16 +152,14 @@ class User extends ParanoidModel {
 
   @computed
   get groupsWithDocumentMemberships() {
-    const { groups, groupUsers, groupMemberships } = this.store.rootStore;
+    const { groups, groupUsers } = this.store.rootStore;
 
     return groupUsers.orderedData
       .filter((groupUser) => groupUser.userId === this.id)
       .map((groupUser) => groups.get(groupUser.groupId))
       .filter(Boolean)
-      .filter((group) =>
-        groupMemberships.orderedData.some(
-          (groupMembership) => groupMembership.groupId === group?.id
-        )
+      .filter(
+        (group) => group && group.documentMemberships.length > 0
       ) as Group[];
   }
 
