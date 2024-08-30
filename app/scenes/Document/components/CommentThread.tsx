@@ -10,7 +10,7 @@ import { s } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";

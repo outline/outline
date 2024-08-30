@@ -1,7 +1,7 @@
 import { isEmail } from "class-validator";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { BackIcon, GroupIcon } from "outline-icons";
+import { BackIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -10,8 +10,7 @@ import Document from "~/models/Document";
 import Group from "~/models/Group";
 import Share from "~/models/Share";
 import User from "~/models/User";
-import Avatar from "~/components/Avatar";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
 import NudeButton from "~/components/NudeButton";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
@@ -207,7 +206,7 @@ function SharePopover({
                   userName: group.name,
                 }),
                 {
-                  icon: <GroupIcon size={AvatarSize.Toast} />,
+                  icon: <GroupAvatar group={group} size={AvatarSize.Toast} />,
                 }
               );
             } else {

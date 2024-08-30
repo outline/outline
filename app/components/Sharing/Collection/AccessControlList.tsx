@@ -1,12 +1,12 @@
 import { observer } from "mobx-react";
-import { GroupIcon, UserIcon } from "outline-icons";
+import { UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
 import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
-import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
+import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Scrollable from "~/components/Scrollable";
@@ -147,9 +147,10 @@ export const AccessControlList = observer(
                 <ListItem
                   key={membership.id}
                   image={
-                    <Squircle color={theme.text} size={AvatarSize.Medium}>
-                      <GroupIcon color={theme.background} size={16} />
-                    </Squircle>
+                    <GroupAvatar
+                      group={membership.group}
+                      backgroundColor={theme.modalBackground}
+                    />
                   }
                   title={membership.group.name}
                   subtitle={t("{{ count }} member", {

@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Share from "~/models/Share";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import TableFromParams from "~/components/TableFromParams";
 import Time from "~/components/Time";

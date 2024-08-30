@@ -1,17 +1,15 @@
 import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
-import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link, useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
-import Squircle from "@shared/components/Squircle";
 import { s } from "@shared/styles";
 import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
 import UserMembership from "~/models/UserMembership";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { GroupAvatar } from "~/components/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -136,9 +134,10 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
             <ListItem
               key={membership.id}
               image={
-                <Squircle color={theme.text} size={AvatarSize.Medium}>
-                  <GroupIcon color={theme.background} size={16} />
-                </Squircle>
+                <GroupAvatar
+                  group={membership.group}
+                  backgroundColor={theme.modalBackground}
+                />
               }
               title={membership.group.name}
               subtitle={

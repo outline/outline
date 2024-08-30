@@ -18,7 +18,7 @@ import Switch from "~/components/Switch";
 import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { AvatarSize } from "../../Avatar/Avatar";
+import { AvatarSize } from "../../Avatar";
 import CopyToClipboard from "../../CopyToClipboard";
 import NudeButton from "../../NudeButton";
 import { ResizingHeightContainer } from "../../ResizingHeightContainer";
