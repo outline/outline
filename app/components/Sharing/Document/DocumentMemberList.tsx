@@ -17,7 +17,7 @@ import useStores from "~/hooks/useStores";
 import { EmptySelectValue, Permission } from "~/types";
 import { homePath } from "~/utils/routeHelpers";
 import { ListItem } from "../components/ListItem";
-import MemberListItem from "./DocumentMemberListItem";
+import DocumentMemberListItem from "./DocumentMemberListItem";
 
 type Props = {
   /** Document to which team members are supposed to be invited */
@@ -158,40 +158,38 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
                 )
               }
               actions={
-                can.manageUsers ? (
-                  <div style={{ marginRight: -8 }}>
-                    <InputMemberPermissionSelect
-                      style={{ margin: 0 }}
-                      permissions={permissions}
-                      onChange={async (
-                        permission: DocumentPermission | typeof EmptySelectValue
-                      ) => {
-                        if (permission === EmptySelectValue) {
-                          await groupMemberships.delete({
-                            documentId: document.id,
-                            groupId: membership.groupId,
-                          });
-                        } else {
-                          await groupMemberships.create({
-                            documentId: document.id,
-                            groupId: membership.groupId,
-                            permission,
-                          });
-                        }
-                      }}
-                      disabled={!can.update}
-                      value={membership.permission}
-                      labelHidden
-                      nude
-                    />
-                  </div>
-                ) : null
+                <div style={{ marginRight: -8 }}>
+                  <InputMemberPermissionSelect
+                    style={{ margin: 0 }}
+                    permissions={permissions}
+                    onChange={async (
+                      permission: DocumentPermission | typeof EmptySelectValue
+                    ) => {
+                      if (permission === EmptySelectValue) {
+                        await groupMemberships.delete({
+                          documentId: document.id,
+                          groupId: membership.groupId,
+                        });
+                      } else {
+                        await groupMemberships.create({
+                          documentId: document.id,
+                          groupId: membership.groupId,
+                          permission,
+                        });
+                      }
+                    }}
+                    disabled={!can.manageUsers}
+                    value={membership.permission}
+                    labelHidden
+                    nude
+                  />
+                </div>
               }
             />
           );
         })}
       {members.map((item) => (
-        <MemberListItem
+        <DocumentMemberListItem
           key={item.id}
           user={item}
           membership={item.getMembership(document)}
