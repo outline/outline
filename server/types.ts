@@ -540,3 +540,7 @@ export type UnfurlSignature = (
 ) => Promise<Unfurl | void>;
 
 export type UninstallSignature = (integration: Integration) => Promise<void>;
+
+export type Replace<T, K extends keyof T, N extends string> = {
+  [P in keyof T as P extends K ? N : P]: T[P extends K ? K : P];
+};

@@ -5,6 +5,7 @@ import isObject from "lodash/isObject";
 import pick from "lodash/pick";
 import { FindOptions, NonAttribute } from "sequelize";
 import { Model as SequelizeModel } from "sequelize-typescript";
+import { Replace } from "@server/types";
 
 class Model<
   TModelAttributes extends {} = any,
@@ -17,14 +18,14 @@ class Model<
    * @param callback The function to call for each batch of results
    */
   static async findAllInBatches<T extends Model>(
-    query: FindOptions<T>,
+    query: Replace<FindOptions<T>, "limit", "batchLimit">,
     callback: (results: Array<T>, query: FindOptions<T>) => Promise<void>
   ) {
     if (!query.offset) {
       query.offset = 0;
     }
-    if (!query.limit) {
-      query.limit = 10;
+    if (!query.batchLimit) {
+      query.batchLimit = 10;
     }
     let results;
 
@@ -32,8 +33,8 @@ class Model<
       // @ts-expect-error this T
       results = await this.findAll<T>(query);
       await callback(results, query);
-      query.offset += query.limit;
-    } while (results.length >= query.limit);
+      query.offset += query.batchLimit;
+    } while (results.length >= query.batchLimit);
   }
 
   /**
