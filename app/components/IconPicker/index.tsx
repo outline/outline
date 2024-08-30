@@ -309,4 +309,4 @@ const StyledTabPanel = styled(TabPanel)`
   overflow-y: auto;
 `;
 
-export default IconPicker;
+export default React.memo(IconPicker);
