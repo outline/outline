@@ -158,9 +158,8 @@ class User extends ParanoidModel {
       .filter((groupUser) => groupUser.userId === this.id)
       .map((groupUser) => groups.get(groupUser.groupId))
       .filter(Boolean)
-      .filter(
-        (group) => group && group.documentMemberships.length > 0
-      ) as Group[];
+      .filter((group) => group && group.documentMemberships.length > 0)
+      .sort((a, b) => a!.name.localeCompare(b!.name)) as Group[];
   }
 
   /**

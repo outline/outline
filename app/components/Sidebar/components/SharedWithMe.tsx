@@ -57,6 +57,9 @@ function SharedWithMe() {
     <SharedContext.Provider value={true}>
       <Flex column>
         <Header id="shared" title={t("Shared with me")}>
+          {user.groupsWithDocumentMemberships.map((group) => (
+            <GroupLink key={group.id} group={group} />
+          ))}
           <Relative>
             {reorderMonitor.isDragging && (
               <DropCursor
@@ -65,9 +68,6 @@ function SharedWithMe() {
                 position="top"
               />
             )}
-            {user.groupsWithDocumentMemberships.map((group) => (
-              <GroupLink key={group.id} group={group} />
-            ))}
             {user.documentMemberships
               .slice(0, page * Pagination.sidebarLimit)
               .map((membership) => (
