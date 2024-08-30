@@ -17,4 +17,4 @@ export const isEmailThreadSupportedNotification = (
   event: NotificationEventType
 ) => EmailThreadSupportedNotifications.includes(event);
 
-export const buildEmailMessageId = (text: string) => `<${text}@${Domain}`;
+export const getEmailMessageId = (text: string) => `<${text}@${Domain}`;

@@ -7,7 +7,7 @@ import Notification from "@server/models/Notification";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
 import { NotificationMetadata } from "@server/types";
-import { buildEmailMessageId } from "@server/utils/emails";
+import { getEmailMessageId } from "@server/utils/emails";
 
 export interface EmailProps {
   to: string | null;
@@ -103,7 +103,7 @@ export default abstract class BaseEmail<
     }
 
     const messageId = notification
-      ? buildEmailMessageId(notification.id)
+      ? getEmailMessageId(notification.id)
       : undefined;
 
     const references = notification

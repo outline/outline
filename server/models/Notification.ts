@@ -25,7 +25,7 @@ import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
 import Model from "@server/models/base/Model";
 import {
-  buildEmailMessageId,
+  getEmailMessageId,
   isEmailThreadSupportedNotification,
   MaxMessagesInEmailThread,
 } from "@server/utils/emails";
@@ -283,7 +283,7 @@ class Notification extends Model<
     }
 
     // Return references from the last thread.
-    return lastThread.map((notif) => buildEmailMessageId(notif.id));
+    return lastThread.map((notif) => getEmailMessageId(notif.id));
   }
 }
 
