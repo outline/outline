@@ -260,12 +260,9 @@ class Notification extends Model<
         limit,
       });
 
-      if (!loadedNotifications.length) {
-        hasMore = false;
-      }
-
       prevNotifications.push(...loadedNotifications);
       offset += limit;
+      hasMore = loadedNotifications.length > 0;
     }
 
     const emailThreads = chunk(prevNotifications, MaxMessagesInEmailThread);
