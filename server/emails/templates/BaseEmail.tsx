@@ -107,7 +107,7 @@ export default abstract class BaseEmail<
       : undefined;
 
     const references = notification
-      ? await Notification.references(notification)
+      ? await Notification.emailReferences(notification)
       : undefined;
 
     try {

@@ -232,41 +232,58 @@ class Notification extends Model<
    * @param notification Notification for which the past notifications are fetched - used for determining the properties that form a thread.
    * @returns An array of email message ids that form a thread.
    */
-  static async references(
+  public static async emailReferences(
     notification: Notification
   ): Promise<string[] | undefined> {
     if (!isEmailThreadSupportedNotification(notification.event)) {
       return;
     }
 
-    const prevNotifications = await this.unscoped().findAll({
-      attributes: ["id"],
-      where: {
-        id: {
-          [Op.ne]: notification.id,
-        },
-        event: notification.event,
-        documentId: notification.documentId,
-        userId: notification.userId,
-      },
-      order: [["createdAt", "ASC"]],
-    });
+    const prevNotifications: Notification[] = [];
+    const limit = 100;
+    let offset = 0,
+      hasMore = true;
 
-    const notificationChunks = chunk(
-      prevNotifications,
-      MaxMessagesInEmailThread
-    );
-    const lastChunk = notificationChunks.at(-1);
+    while (hasMore) {
+      const loadedNotifications = await this.unscoped().findAll({
+        attributes: ["id"],
+        where: {
+          id: {
+            [Op.ne]: notification.id,
+          },
+          event: notification.event,
+          documentId: notification.documentId,
+          userId: notification.userId,
+        },
+        order: [["createdAt", "ASC"]],
+        offset,
+        limit,
+      });
+
+      if (!loadedNotifications.length) {
+        hasMore = false;
+      }
+
+      prevNotifications.push(...loadedNotifications);
+      offset += limit;
+    }
+
+    const emailThreads = chunk(prevNotifications, MaxMessagesInEmailThread);
+    const lastThread = emailThreads.at(-1);
 
     // Don't return anything if there are no past notifications (or) the limit is reached.
     // This will start a new thread in the email clients.
     // Also ensures we don't face header limit errors.
-    if (!lastChunk || lastChunk.length === MaxMessagesInEmailThread) {
+    if (
+      !lastThread ||
+      lastThread.length === 0 ||
+      lastThread.length === MaxMessagesInEmailThread
+    ) {
       return;
     }
 
-    // Return references from the last created thread.
-    return lastChunk.map((notif) => buildEmailMessageId(notif.id));
+    // Return references from the last thread.
+    return lastThread.map((notif) => buildEmailMessageId(notif.id));
   }
 }
 
