@@ -1,5 +1,4 @@
 import Bull from "bull";
-import chunk from "lodash/chunk";
 import * as React from "react";
 import mailer from "@server/emails/mailer";
 import Logger from "@server/logging/Logger";
@@ -8,6 +7,7 @@ import Notification from "@server/models/Notification";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
 import { NotificationMetadata } from "@server/types";
+import { buildEmailMessageId } from "@server/utils/emails";
 
 export interface EmailProps {
   to: string | null;
@@ -19,8 +19,6 @@ export default abstract class BaseEmail<
 > {
   private props: T;
   private metadata?: NotificationMetadata;
-  // Gmail creates a new thread for every 100 messages.
-  private maxMessagesInThread = 100;
 
   /**
    * Schedule this email type to be sent asyncronously by a worker.
@@ -104,42 +102,20 @@ export default abstract class BaseEmail<
       return;
     }
 
-    let references: string[] | undefined;
+    const messageId = notification
+      ? buildEmailMessageId(notification.id)
+      : undefined;
 
-    if (notification) {
-      const prevNotifications = await Notification.unscoped().findAll({
-        attributes: ["messageId"],
-        where: {
-          documentId: notification.documentId,
-          userId: notification.userId,
-        },
-        order: [["createdAt", "ASC"]],
-      });
-
-      const notificationChunks = chunk(
-        prevNotifications,
-        this.maxMessagesInThread
-      );
-      const lastChunk = notificationChunks.at(-1);
-
-      // Use the last created thread when the limit is not reached.
-      // Otherwise, do not populate the references - This will start a new thread in Outlook / Thunderbird.
-      //
-      // This also ensures that we don't face header limit errors.
-      if (lastChunk && lastChunk.length < this.maxMessagesInThread) {
-        references = lastChunk
-          .filter((notif) => notif.messageId !== null)
-          .map((notif) => notif.messageId as string);
-      }
-    }
-
-    let messageId: string | undefined;
+    const references = notification
+      ? await Notification.references(notification)
+      : undefined;
 
     try {
-      messageId = await mailer.sendMail({
+      await mailer.sendMail({
         to: this.props.to,
         fromName: this.fromName?.(data),
         subject: this.subject(data),
+        messageId,
         references,
         previewText: this.preview(data),
         component: (
@@ -165,7 +141,6 @@ export default abstract class BaseEmail<
     if (notification) {
       try {
         notification.emailedAt = new Date();
-        notification.messageId = messageId ?? null;
         await notification.save();
       } catch (err) {
         Logger.error(`Failed to update notification`, err, this.metadata);

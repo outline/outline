@@ -1,9 +1,11 @@
 import crypto from "crypto";
+import chunk from "lodash/chunk";
 import type {
   InferAttributes,
   InferCreationAttributes,
   SaveOptions,
 } from "sequelize";
+import { Op } from "sequelize";
 import {
   Table,
   ForeignKey,
@@ -22,6 +24,11 @@ import {
 import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
 import Model from "@server/models/base/Model";
+import {
+  buildEmailMessageId,
+  isEmailThreadSupportedNotification,
+  MaxMessagesInEmailThread,
+} from "@server/utils/emails";
 import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";
@@ -117,11 +124,6 @@ class Notification extends Model<
 
   @Column(DataType.STRING)
   event: NotificationEventType;
-
-  // Email message id returned by SMTP server
-  @AllowNull
-  @Column(DataType.TEXT)
-  messageId: string | null;
 
   // associations
 
@@ -222,6 +224,49 @@ class Notification extends Model<
    */
   public get pixelUrl() {
     return `${env.URL}/api/notifications.pixel?token=${this.pixelToken}&id=${this.id}`;
+  }
+
+  /**
+   * Returns the past message ids which are used to setup the thread chain in email clients.
+   *
+   * @param notification Notification for which the past notifications are fetched - used for determining the properties that form a thread.
+   * @returns An array of email message ids that form a thread.
+   */
+  static async references(
+    notification: Notification
+  ): Promise<string[] | undefined> {
+    if (!isEmailThreadSupportedNotification(notification.event)) {
+      return;
+    }
+
+    const prevNotifications = await this.unscoped().findAll({
+      attributes: ["id"],
+      where: {
+        id: {
+          [Op.ne]: notification.id,
+        },
+        event: notification.event,
+        documentId: notification.documentId,
+        userId: notification.userId,
+      },
+      order: [["createdAt", "ASC"]],
+    });
+
+    const notificationChunks = chunk(
+      prevNotifications,
+      MaxMessagesInEmailThread
+    );
+    const lastChunk = notificationChunks.at(-1);
+
+    // Don't return anything if there are no past notifications (or) the limit is reached.
+    // This will start a new thread in the email clients.
+    // Also ensures we don't face header limit errors.
+    if (!lastChunk || lastChunk.length === MaxMessagesInEmailThread) {
+      return;
+    }
+
+    // Return references from the last created thread.
+    return lastChunk.map((notif) => buildEmailMessageId(notif.id));
   }
 }
 
