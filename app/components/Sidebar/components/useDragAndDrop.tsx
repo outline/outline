@@ -91,11 +91,16 @@ export function useDropToReorderStar(getIndex?: () => string) {
   });
 }
 
+/**
+ * Hook for shared logic that allows dragging user memberships to reorder
+ *
+ * @param membership The UserMembership or GroupMembership model to drag.
+ */
 export function useDragMembership(
-  userMembership: UserMembership | GroupMembership
+  membership: UserMembership | GroupMembership
 ): [{ isDragging: boolean }, ConnectDragSource] {
-  const id = userMembership.id;
-  const { label: title, icon } = useSidebarLabelAndIcon(userMembership);
+  const id = membership.id;
+  const { label: title, icon } = useSidebarLabelAndIcon(membership);
 
   const [{ isDragging }, draggableRef, preview] = useDrag({
     type: "userMembership",
@@ -107,7 +112,7 @@ export function useDragMembership(
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
-    canDrag: () => true,
+    canDrag: () => membership instanceof UserMembership,
   });
 
   React.useEffect(() => {
