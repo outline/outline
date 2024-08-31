@@ -40,4 +40,4 @@ export const getEmailThreadEventGroup = (
   }
 };
 
-export const getEmailMessageId = (text: string) => `<${text}@${Domain}`;
+export const getEmailMessageId = (text: string) => `<${text}@${Domain}>`;
