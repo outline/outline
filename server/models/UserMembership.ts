@@ -197,6 +197,18 @@ class UserMembership extends IdModel<
 
   // hooks
 
+  @AfterCreate
+  static async createSourcedMemberships(
+    model: UserMembership,
+    options: SaveOptions<UserMembership>
+  ) {
+    if (model.sourceId || !model.documentId) {
+      return;
+    }
+
+    return this.recreateSourcedMemberships(model, options);
+  }
+
   @AfterUpdate
   static async updateSourcedMemberships(
     model: UserMembership,
@@ -215,24 +227,13 @@ class UserMembership extends IdModel<
         },
         {
           where: {
+            userId: model.userId,
             sourceId: model.id,
           },
           transaction,
         }
       );
     }
-  }
-
-  @AfterCreate
-  static async createSourcedMemberships(
-    model: UserMembership,
-    options: SaveOptions<UserMembership>
-  ) {
-    if (model.sourceId || !model.documentId) {
-      return;
-    }
-
-    return this.recreateSourcedMemberships(model, options);
   }
 
   /**
@@ -249,6 +250,7 @@ class UserMembership extends IdModel<
 
     await this.destroy({
       where: {
+        userId: model.userId,
         sourceId: model.id,
       },
       transaction,

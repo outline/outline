@@ -4,8 +4,9 @@ import {
   Op,
   type SaveOptions,
   type FindOptions,
+  type DestroyOptions,
+  type WhereOptions,
 } from "sequelize";
-import { WhereOptions } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -17,6 +18,7 @@ import {
   Scopes,
   AfterCreate,
   AfterUpdate,
+  AfterDestroy,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
@@ -189,6 +191,18 @@ class GroupMembership extends ParanoidModel<
 
   // hooks
 
+  @AfterCreate
+  static async createSourcedMemberships(
+    model: GroupMembership,
+    options: SaveOptions<GroupMembership>
+  ) {
+    if (model.sourceId || !model.documentId) {
+      return;
+    }
+
+    return this.recreateSourcedMemberships(model, options);
+  }
+
   @AfterUpdate
   static async updateSourcedMemberships(
     model: GroupMembership,
@@ -207,6 +221,7 @@ class GroupMembership extends ParanoidModel<
         },
         {
           where: {
+            groupId: model.groupId,
             sourceId: model.id,
           },
           transaction,
@@ -215,16 +230,23 @@ class GroupMembership extends ParanoidModel<
     }
   }
 
-  @AfterCreate
-  static async createSourcedMemberships(
+  @AfterDestroy
+  static async destroySourcedMemberships(
     model: GroupMembership,
-    options: SaveOptions<GroupMembership>
+    options: DestroyOptions<GroupMembership>
   ) {
     if (model.sourceId || !model.documentId) {
       return;
     }
 
-    return this.recreateSourcedMemberships(model, options);
+    const { transaction } = options;
+    await this.destroy({
+      where: {
+        groupId: model.groupId,
+        sourceId: model.id,
+      },
+      transaction,
+    });
   }
 
   /**
@@ -241,6 +263,7 @@ class GroupMembership extends ParanoidModel<
 
     await this.destroy({
       where: {
+        groupId: model.groupId,
         sourceId: model.id,
       },
       transaction,

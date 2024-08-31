@@ -1636,8 +1636,8 @@ router.post(
   validate(T.DocumentsRemoveUserSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRemoveUserReq>) => {
-    const { auth, transaction } = ctx.state;
-    const actor = auth.user;
+    const { transaction } = ctx.state;
+    const { user: actor } = ctx.state.auth;
     const { id, userId } = ctx.input.body;
 
     const [document, user] = await Promise.all([
@@ -1762,9 +1762,9 @@ router.post(
   validate(T.DocumentsRemoveGroupSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRemoveGroupReq>) => {
-    const { id, groupId } = ctx.input.body;
-    const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
+    const { user } = ctx.state.auth;
+    const { id, groupId } = ctx.input.body;
 
     const [document, group] = await Promise.all([
       Document.findByPk(id, {
@@ -1780,22 +1780,18 @@ router.post(
     authorize(user, "update", document);
     authorize(user, "read", group);
 
-    const [membership] = await document.$get("groupMemberships", {
-      where: { groupId },
-      transaction,
-    });
-
-    if (!membership) {
-      ctx.throw(400, "This Group is not a part of the document");
-    }
-
-    await GroupMembership.destroy({
+    const membership = await GroupMembership.findOne({
       where: {
         documentId: id,
         groupId,
       },
       transaction,
+      lock: transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
     });
+
+    await membership.destroy({ transaction });
+
     await Event.createFromContext(
       ctx,
       {
