@@ -61,6 +61,7 @@ router.post(
       pagination: ctx.state.pagination,
       data: {
         groups: await Promise.all(groups.map(presentGroup)),
+        // TODO: Deprecated, will remove in the future as language conflicts with GroupMembership
         groupMemberships: (
           await Promise.all(
             groups.map((group) =>

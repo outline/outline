@@ -406,24 +406,29 @@ class User extends ParanoidModel<
     false;
 
   /**
-   * Returns the user's active group ids.
+   * Returns the user's active groups.
    *
    * @param options Additional options to pass to the find
-   * @returns An array of group ids
+   * @returns An array of groups
    */
-  public groupIds = async (options: FindOptions<Group> = {}) => {
-    const groupStubs = await Group.scope({
+  public groups = (options: FindOptions<Group> = {}) =>
+    Group.scope({
       method: ["withMembership", this.id],
     }).findAll({
-      attributes: ["id"],
       where: {
         teamId: this.teamId,
       },
       ...options,
     });
 
-    return groupStubs.map((g) => g.id);
-  };
+  /**
+   * Returns the user's active group ids.
+   *
+   * @param options Additional options to pass to the find
+   * @returns An array of group ids
+   */
+  public groupIds = async (options: FindOptions<Group> = {}) =>
+    (await this.groups(options)).map((g) => g.id);
 
   /**
    * Returns the user's active collection ids. This includes collections the user
