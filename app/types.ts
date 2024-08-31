@@ -7,6 +7,7 @@ import {
   DocumentPermission,
 } from "@shared/types";
 import RootStore from "~/stores/RootStore";
+import { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
 import Pin from "./models/Pin";
@@ -82,7 +83,7 @@ export type ActionContext = {
   isContextMenu: boolean;
   isCommandBar: boolean;
   isButton: boolean;
-  inStarredSection?: boolean;
+  sidebarContext?: SidebarContextType;
   activeCollectionId?: string | undefined;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;

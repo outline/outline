@@ -11,8 +11,8 @@ import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
+import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
-import StarredContext from "./StarredContext";
 import StarredLink from "./StarredLink";
 import { useDropToCreateStar, useDropToReorderStar } from "./useDragAndDrop";
 
@@ -39,7 +39,7 @@ function Starred() {
   }
 
   return (
-    <StarredContext.Provider value={true}>
+    <SidebarContext.Provider value="starred">
       <Flex column>
         <Header id="starred" title={t("Starred")}>
           <Relative>
@@ -80,7 +80,7 @@ function Starred() {
           </Relative>
         </Header>
       </Flex>
-    </StarredContext.Provider>
+    </SidebarContext.Provider>
   );
 }
 

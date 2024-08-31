@@ -3,17 +3,18 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop, useDrag, DropTargetMonitor } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
-import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { useLocationState } from "../hooks/useLocationState";
 import CollectionLink from "./CollectionLink";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import DropCursor from "./DropCursor";
 import Relative from "./Relative";
+import { useSidebarContext } from "./SidebarContext";
 import { DragObject } from "./SidebarLink";
 
 type Props = {
@@ -23,23 +24,18 @@ type Props = {
   belowCollection: Collection | void;
 };
 
-function useLocationStateStarred() {
-  const location = useLocation<{
-    starred?: boolean;
-  }>();
-  return location.state?.starred;
-}
-
 function DraggableCollectionLink({
   collection,
   activeDocument,
   prefetchDocument,
   belowCollection,
 }: Props) {
-  const locationStateStarred = useLocationStateStarred();
+  const locationSidebarContext = useLocationState();
+  const sidebarContext = useSidebarContext();
   const { ui, collections } = useStores();
   const [expanded, setExpanded] = React.useState(
-    collection.id === ui.activeCollectionId && !locationStateStarred
+    collection.id === ui.activeCollectionId &&
+      sidebarContext === locationSidebarContext
   );
   const can = usePolicy(collection);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
@@ -86,10 +82,18 @@ function DraggableCollectionLink({
   // If the current collection is active and relevant to the sidebar section we
   // are in then expand it automatically
   React.useEffect(() => {
-    if (collection.id === ui.activeCollectionId && !locationStateStarred) {
+    if (
+      collection.id === ui.activeCollectionId &&
+      sidebarContext === locationSidebarContext
+    ) {
       setExpanded(true);
     }
-  }, [collection.id, ui.activeCollectionId, locationStateStarred]);
+  }, [
+    collection.id,
+    ui.activeCollectionId,
+    sidebarContext,
+    locationSidebarContext,
+  ]);
 
   const handleDisclosureClick = React.useCallback((ev) => {
     ev?.preventDefault();
