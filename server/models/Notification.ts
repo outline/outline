@@ -26,6 +26,7 @@ import env from "@server/env";
 import Model from "@server/models/base/Model";
 import {
   getEmailMessageId,
+  getEmailThreadEventGroup,
   isEmailThreadSupportedNotification,
   MaxMessagesInEmailThread,
 } from "@server/utils/emails";
@@ -239,31 +240,33 @@ class Notification extends Model<
       return;
     }
 
-    const prevNotifications: Notification[] = [];
-    const limit = 100;
-    let offset = 0,
-      hasMore = true;
+    const events = getEmailThreadEventGroup(notification.event);
 
-    while (hasMore) {
-      const loadedNotifications = await this.unscoped().findAll({
+    if (!events) {
+      return;
+    }
+
+    const prevNotifications: Notification[] = [];
+
+    await this.findAllInBatches<Notification>(
+      {
         attributes: ["id"],
         where: {
           id: {
             [Op.ne]: notification.id,
           },
-          event: notification.event,
+          event: {
+            [Op.in]: events,
+          },
           documentId: notification.documentId,
           userId: notification.userId,
         },
         order: [["createdAt", "ASC"]],
-        offset,
-        limit,
-      });
-
-      prevNotifications.push(...loadedNotifications);
-      offset += limit;
-      hasMore = loadedNotifications.length > 0;
-    }
+        offset: 0,
+        limit: 100,
+      },
+      async (notifications) => void prevNotifications.push(...notifications)
+    );
 
     const emailThreads = chunk(prevNotifications, MaxMessagesInEmailThread);
     const lastThread = emailThreads.at(-1);

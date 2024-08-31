@@ -17,4 +17,27 @@ export const isEmailThreadSupportedNotification = (
   event: NotificationEventType
 ) => EmailThreadSupportedNotifications.includes(event);
 
+export const getEmailThreadEventGroup = (
+  event: NotificationEventType
+): NotificationEventType[] | undefined => {
+  switch (event) {
+    case NotificationEventType.PublishDocument:
+    case NotificationEventType.UpdateDocument:
+      return [
+        NotificationEventType.PublishDocument,
+        NotificationEventType.UpdateDocument,
+      ];
+    case NotificationEventType.MentionedInDocument:
+    case NotificationEventType.MentionedInComment:
+      return [
+        NotificationEventType.MentionedInDocument,
+        NotificationEventType.MentionedInComment,
+      ];
+    case NotificationEventType.CreateComment:
+      return [NotificationEventType.CreateComment];
+    default:
+      return;
+  }
+};
+
 export const getEmailMessageId = (text: string) => `<${text}@${Domain}`;
