@@ -26,14 +26,12 @@ function SharedWithMe() {
   const { t } = useTranslation();
   const user = useCurrentUser();
 
+  usePaginatedRequest<GroupMembership>(groupMemberships.fetchAll);
+
   const { loading, next, end, error, page } =
     usePaginatedRequest<UserMembership>(userMemberships.fetchPage, {
       limit: Pagination.sidebarLimit,
     });
-
-  usePaginatedRequest<GroupMembership>(groupMemberships.fetchPage, {
-    limit: Pagination.sidebarLimit,
-  });
 
   // Drop to reorder document
   const [reorderMonitor, dropToReorderRef] = useDropToReorderUserMembership(
