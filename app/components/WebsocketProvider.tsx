@@ -311,16 +311,20 @@ class WebsocketProvider extends React.Component<Props> {
       (event: PartialWithId<GroupMembership>) => {
         groupMemberships.add(event);
 
+        const group = groups.get(event.groupId!);
+
         // Any existing child policies are now invalid
-        // TODO: How to determine if event is for current user?
-        // if (event.userId === currentUserId) {
-        //   const document = documents.get(event.documentId!);
-        //   if (document) {
-        //     document.childDocuments.forEach((childDocument) => {
-        //       policies.remove(childDocument.id);
-        //     });
-        //   }
-        // }
+        if (
+          currentUserId &&
+          group?.users.map((u) => u.id).includes(currentUserId)
+        ) {
+          const document = documents.get(event.documentId!);
+          if (document) {
+            document.childDocuments.forEach((childDocument) => {
+              policies.remove(childDocument.id);
+            });
+          }
+        }
       }
     );
 

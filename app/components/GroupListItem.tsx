@@ -13,7 +13,6 @@ import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
 import Modal from "~/components/Modal";
 import useBoolean from "~/hooks/useBoolean";
-import useStores from "~/hooks/useStores";
 import { hover } from "~/styles";
 import NudeButton from "./NudeButton";
 
@@ -26,15 +25,11 @@ type Props = {
 };
 
 function GroupListItem({ group, showFacepile, renderActions }: Props) {
-  const { groupUsers } = useStores();
   const { t } = useTranslation();
   const [membersModalOpen, setMembersModalOpen, setMembersModalClosed] =
     useBoolean();
   const memberCount = group.memberCount;
-  const membershipsInGroup = groupUsers.inGroup(group.id);
-  const users = membershipsInGroup
-    .slice(0, MAX_AVATAR_DISPLAY)
-    .map((gm) => gm.user);
+  const users = group.users.slice(0, MAX_AVATAR_DISPLAY);
   const overflow = memberCount - users.length;
 
   return (

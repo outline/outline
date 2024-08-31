@@ -18,6 +18,15 @@ class Group extends Model {
   memberCount: number;
 
   /**
+   * Returns the users that are members of this group.
+   */
+  @computed
+  get users() {
+    const { users } = this.store.rootStore;
+    return users.inGroup(this.id);
+  }
+
+  /**
    * Returns the direct memberships that this group has to documents. Documents that the current
    * user already has access to through a collection and trashed documents are not included.
    *
