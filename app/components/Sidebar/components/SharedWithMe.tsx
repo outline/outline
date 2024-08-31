@@ -16,8 +16,8 @@ import GroupLink from "./GroupLink";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
-import SharedContext from "./SharedContext";
 import SharedWithMeLink from "./SharedWithMeLink";
+import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import { useDropToReorderUserMembership } from "./useDragAndDrop";
 
@@ -52,7 +52,7 @@ function SharedWithMe() {
   }
 
   return (
-    <SharedContext.Provider value={true}>
+    <SidebarContext.Provider value="shared">
       <Flex column>
         <Header id="shared" title={t("Shared with me")}>
           {user.groupsWithDocumentMemberships.map((group) => (
@@ -89,7 +89,7 @@ function SharedWithMe() {
           </Relative>
         </Header>
       </Flex>
-    </SharedContext.Provider>
+    </SidebarContext.Provider>
   );
 }
 

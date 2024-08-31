@@ -22,8 +22,8 @@ import CollectionMenu from "~/menus/CollectionMenu";
 import DropToImport from "./DropToImport";
 import EditableTitle, { RefHandle } from "./EditableTitle";
 import Relative from "./Relative";
+import { SidebarContextType, useSidebarContext } from "./SidebarContext";
 import SidebarLink, { DragObject } from "./SidebarLink";
-import { useStarredContext } from "./StarredContext";
 
 type Props = {
   collection: Collection;
@@ -48,7 +48,7 @@ const CollectionLink: React.FC<Props> = ({
   const can = usePolicy(collection);
   const { t } = useTranslation();
   const history = useHistory();
-  const inStarredSection = useStarredContext();
+  const sidebarContext = useSidebarContext();
   const editableTitleRef = React.useRef<RefHandle>(null);
 
   const handleTitleChange = React.useCallback(
@@ -122,7 +122,7 @@ const CollectionLink: React.FC<Props> = ({
 
   const context = useActionContext({
     activeCollectionId: collection.id,
-    inStarredSection,
+    sidebarContext,
   });
 
   return (
@@ -131,7 +131,7 @@ const CollectionLink: React.FC<Props> = ({
         <SidebarLink
           to={{
             pathname: collection.path,
-            state: { starred: inStarredSection },
+            state: { sidebarContext },
           }}
           expanded={expanded}
           onDisclosureClick={onDisclosureClick}
@@ -139,9 +139,10 @@ const CollectionLink: React.FC<Props> = ({
           icon={<CollectionIcon collection={collection} expanded={expanded} />}
           showActions={menuOpen}
           isActiveDrop={isOver && canDrop}
-          isActive={(match, location: Location<{ starred?: boolean }>) =>
-            !!match && location.state?.starred === inStarredSection
-          }
+          isActive={(
+            match,
+            location: Location<{ sidebarContext?: SidebarContextType }>
+          ) => !!match && location.state?.sidebarContext === sidebarContext}
           label={
             <EditableTitle
               title={collection.name}

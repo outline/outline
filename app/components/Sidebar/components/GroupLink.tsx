@@ -5,6 +5,7 @@ import Group from "~/models/Group";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
+import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
@@ -29,15 +30,17 @@ const GroupLink: React.FC<Props> = ({ group }) => {
         onClick={handleDisclosureClick}
         depth={0}
       />
-      <Folder expanded={expanded}>
-        {group.documentMemberships.map((membership) => (
-          <SharedWithMeLink
-            key={membership.id}
-            membership={membership}
-            depth={1}
-          />
-        ))}
-      </Folder>
+      <SidebarContext.Provider value={group.id}>
+        <Folder expanded={expanded}>
+          {group.documentMemberships.map((membership) => (
+            <SharedWithMeLink
+              key={membership.id}
+              membership={membership}
+              depth={1}
+            />
+          ))}
+        </Folder>
+      </SidebarContext.Provider>
     </Relative>
   );
 };

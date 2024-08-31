@@ -2,7 +2,6 @@ import fractionalIndex from "fractional-index";
 import { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { IconType, NotificationEventType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
@@ -12,10 +11,12 @@ import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
+import { useLocationState } from "../hooks/useLocationState";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import Relative from "./Relative";
+import { useSidebarContext, type SidebarContextType } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import {
   useDragMembership,
@@ -28,30 +29,33 @@ type Props = {
   depth?: number;
 };
 
-function useLocationState() {
-  const location = useLocation<{
-    sharedWithMe?: boolean;
-  }>();
-  return location.state?.sharedWithMe;
-}
-
 function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const { ui, collections, documents } = useStores();
   const { fetchChildDocuments } = documents;
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId } = membership;
   const isActiveDocument = documentId === ui.activeDocumentId;
-  const locationStateStarred = useLocationState();
+  const locationSidebarContext = useLocationState();
+  const sidebarContext = useSidebarContext();
 
   const [expanded, setExpanded] = React.useState(
-    membership.documentId === ui.activeDocumentId && !!locationStateStarred
+    membership.documentId === ui.activeDocumentId &&
+      locationSidebarContext === sidebarContext
   );
 
   React.useEffect(() => {
-    if (membership.documentId === ui.activeDocumentId && locationStateStarred) {
+    if (
+      membership.documentId === ui.activeDocumentId &&
+      locationSidebarContext === sidebarContext
+    ) {
       setExpanded(true);
     }
-  }, [membership.documentId, ui.activeDocumentId, locationStateStarred]);
+  }, [
+    membership.documentId,
+    ui.activeDocumentId,
+    sidebarContext,
+    locationSidebarContext,
+  ]);
 
   React.useEffect(() => {
     if (documentId) {
@@ -119,14 +123,15 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
             depth={depth}
             to={{
               pathname: document.path,
-              state: { sharedWithMe: true },
+              state: { sidebarContext },
             }}
             expanded={hasChildDocuments && !isDragging ? expanded : undefined}
             onDisclosureClick={handleDisclosureClick}
             icon={icon}
-            isActive={(match, location: Location<{ sharedWithMe?: boolean }>) =>
-              !!match && location.state?.sharedWithMe === true
-            }
+            isActive={(
+              match,
+              location: Location<{ sidebarContext?: SidebarContextType }>
+            ) => !!match && location.state?.sidebarContext === sidebarContext}
             label={label}
             exact={false}
             unreadBadge={
