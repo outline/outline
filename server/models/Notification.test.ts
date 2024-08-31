@@ -15,6 +15,30 @@ import Notification from "./Notification";
 
 describe("Notification", () => {
   describe("emailReferences", () => {
+    it("should return no references for an unsupported notification", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: team.id,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: team.id,
+      });
+
+      const notification = await buildNotification({
+        event: NotificationEventType.AddUserToDocument,
+        documentId: document.id,
+        userId: user.id,
+        teamId: team.id,
+      });
+      const references = await Notification.emailReferences(notification);
+
+      expect(references).toBeUndefined();
+    });
+
     it("should return no references for a new notification", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
