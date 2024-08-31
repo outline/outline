@@ -178,6 +178,16 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const handleRefChanged = React.useCallback(setEditor, [setEditor]);
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
+  const childOffsetHeight = childRef.current?.offsetHeight || 0;
+  const editorStyle = React.useMemo(
+    () => ({
+      padding: "0 32px",
+      margin: "0 -32px",
+      paddingBottom: `calc(50vh - ${childOffsetHeight}px)`,
+    }),
+    [childOffsetHeight]
+  );
+
   return (
     <Flex auto column>
       <DocumentTitle
@@ -231,13 +241,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             : undefined
         }
         extensions={extensions}
-        editorStyle={{
-          padding: "0 32px",
-          margin: "0 -32px",
-          paddingBottom: `calc(50vh - ${
-            childRef.current?.offsetHeight || 0
-          }px)`,
-        }}
+        editorStyle={editorStyle}
         {...rest}
       />
       <div ref={childRef}>{children}</div>
