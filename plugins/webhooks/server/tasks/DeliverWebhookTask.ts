@@ -42,7 +42,6 @@ import {
   presentGroupMembership,
   presentComment,
 } from "@server/presenters";
-import presentDocumentGroupMembership from "@server/presenters/documentGroupMembership";
 import BaseTask from "@server/queues/tasks/BaseTask";
 import {
   CollectionEvent,
@@ -611,7 +610,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: event.modelId,
-        model: model && presentDocumentGroupMembership(model),
+        model: model && presentGroupMembership(model),
         document,
         group: model && (await presentGroup(model.group)),
       },

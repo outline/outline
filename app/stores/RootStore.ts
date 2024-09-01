@@ -12,7 +12,7 @@ import DocumentsStore from "./DocumentsStore";
 import EventsStore from "./EventsStore";
 import FileOperationsStore from "./FileOperationsStore";
 import GroupMembershipsStore from "./GroupMembershipsStore";
-import GroupUserMembershipsStore from "./GroupUserMembershipsStore";
+import GroupUsersStore from "./GroupUsersStore";
 import GroupsStore from "./GroupsStore";
 import IntegrationsStore from "./IntegrationsStore";
 import MembershipsStore from "./MembershipsStore";
@@ -42,7 +42,7 @@ export default class RootStore {
   documents: DocumentsStore;
   events: EventsStore;
   groups: GroupsStore;
-  groupUsers: GroupUserMembershipsStore;
+  groupUsers: GroupUsersStore;
   integrations: IntegrationsStore;
   memberships: MembershipsStore;
   notifications: NotificationsStore;
@@ -71,7 +71,7 @@ export default class RootStore {
     this.registerStore(DocumentsStore);
     this.registerStore(EventsStore);
     this.registerStore(GroupsStore);
-    this.registerStore(GroupUserMembershipsStore);
+    this.registerStore(GroupUsersStore);
     this.registerStore(IntegrationsStore);
     this.registerStore(MembershipsStore);
     this.registerStore(NotificationsStore);

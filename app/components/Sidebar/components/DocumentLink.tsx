@@ -27,9 +27,8 @@ import DropToImport from "./DropToImport";
 import EditableTitle, { RefHandle } from "./EditableTitle";
 import Folder from "./Folder";
 import Relative from "./Relative";
-import { useSharedContext } from "./SharedContext";
+import { SidebarContextType, useSidebarContext } from "./SidebarContext";
 import SidebarLink, { DragObject } from "./SidebarLink";
-import { useStarredContext } from "./StarredContext";
 
 type Props = {
   node: NavigationNode;
@@ -65,18 +64,20 @@ function InnerDocumentLink(
   const { fetchChildDocuments } = documents;
   const [isEditing, setIsEditing] = React.useState(false);
   const editableTitleRef = React.useRef<RefHandle>(null);
-  const inStarredSection = useStarredContext();
-  const inSharedSection = useSharedContext();
+  const sidebarContext = useSidebarContext();
 
   React.useEffect(() => {
-    if (isActiveDocument && (hasChildDocuments || inSharedSection)) {
+    if (
+      isActiveDocument &&
+      (hasChildDocuments || sidebarContext !== "collections")
+    ) {
       void fetchChildDocuments(node.id);
     }
   }, [
     fetchChildDocuments,
     node.id,
     hasChildDocuments,
-    inSharedSection,
+    sidebarContext,
     isActiveDocument,
   ]);
 
@@ -338,7 +339,7 @@ function InnerDocumentLink(
                   pathname: node.url,
                   state: {
                     title: node.title,
-                    starred: inStarredSection,
+                    sidebarContext,
                   },
                 }}
                 icon={icon && <Icon value={icon} color={color} />}
@@ -352,16 +353,25 @@ function InnerDocumentLink(
                     ref={editableTitleRef}
                   />
                 }
-                isActive={(match, location: Location<{ starred?: boolean }>) =>
-                  ((document && location.pathname.endsWith(document.urlId)) ||
-                    !!match) &&
-                  location.state?.starred === inStarredSection
-                }
+                isActive={(
+                  match,
+                  location: Location<{
+                    sidebarContext?: SidebarContextType;
+                  }>
+                ) => {
+                  if (sidebarContext !== location.state?.sidebarContext) {
+                    return false;
+                  }
+                  return (
+                    (document && location.pathname.endsWith(document.urlId)) ||
+                    !!match
+                  );
+                }}
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
                 exact={false}
                 showActions={menuOpen}
-                scrollIntoViewIfNeeded={!inStarredSection}
+                scrollIntoViewIfNeeded={sidebarContext === "collections"}
                 isDraft={isDraft}
                 ref={ref}
                 menu={

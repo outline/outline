@@ -275,7 +275,12 @@ export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
   name: "documents.add_group" | "documents.remove_group";
   documentId: string;
   modelId: string;
-  data: { name: string };
+  data: {
+    title: string;
+    isNew?: boolean;
+    permission?: DocumentPermission;
+    membershipId: string;
+  };
 };
 
 export type CollectionEvent = BaseEvent<Collection> &

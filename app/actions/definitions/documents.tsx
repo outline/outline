@@ -104,9 +104,9 @@ export const createDocument = createAction({
       !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument
     );
   },
-  perform: ({ activeCollectionId, inStarredSection }) =>
+  perform: ({ activeCollectionId, sidebarContext }) =>
     history.push(newDocumentPath(activeCollectionId), {
-      starred: inStarredSection,
+      sidebarContext,
     }),
 });
 
@@ -121,11 +121,11 @@ export const createDocumentFromTemplate = createAction({
     !!activeDocumentId &&
     !!stores.documents.get(activeDocumentId)?.template &&
     stores.policies.abilities(currentTeamId).createDocument,
-  perform: ({ activeCollectionId, activeDocumentId, inStarredSection }) =>
+  perform: ({ activeCollectionId, activeDocumentId, sidebarContext }) =>
     history.push(
       newDocumentPath(activeCollectionId, { templateId: activeDocumentId }),
       {
-        starred: inStarredSection,
+        sidebarContext,
       }
     ),
 });
@@ -141,9 +141,9 @@ export const createNestedDocument = createAction({
     !!activeDocumentId &&
     stores.policies.abilities(currentTeamId).createDocument &&
     stores.policies.abilities(activeDocumentId).createChildDocument,
-  perform: ({ activeDocumentId, inStarredSection }) =>
+  perform: ({ activeDocumentId, sidebarContext }) =>
     history.push(newNestedDocumentPath(activeDocumentId), {
-      starred: inStarredSection,
+      sidebarContext,
     }),
 });
 

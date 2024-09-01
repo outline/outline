@@ -645,8 +645,8 @@ describe("#collections.remove_group", () => {
         groupId: group.id,
       },
     });
-    let users = await collection.$get("groups");
-    expect(users.length).toEqual(1);
+    let groups = await collection.$get("groups");
+    expect(groups.length).toEqual(1);
     const res = await server.post("/api/collections.remove_group", {
       body: {
         token: user.getJwtToken(),
@@ -654,9 +654,9 @@ describe("#collections.remove_group", () => {
         groupId: group.id,
       },
     });
-    users = await collection.$get("groups");
+    groups = await collection.$get("groups");
     expect(res.status).toEqual(200);
-    expect(users.length).toEqual(0);
+    expect(groups.length).toEqual(0);
   });
 
   it("should require group in team", async () => {

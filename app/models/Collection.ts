@@ -12,6 +12,7 @@ import type CollectionsStore from "~/stores/CollectionsStore";
 import Document from "~/models/Document";
 import ParanoidModel from "~/models/base/ParanoidModel";
 import { client } from "~/utils/ApiClient";
+import User from "./User";
 import Field from "./decorators/Field";
 import { AfterChange } from "./decorators/Lifecycle";
 
@@ -174,6 +175,19 @@ export default class Collection extends ParanoidModel {
   @computed
   get path() {
     return this.url;
+  }
+
+  /**
+   * Returns users that have been individually given access to the collection.
+   *
+   * @returns A list of users that have been given access to the collection.
+   */
+  @computed
+  get members(): User[] {
+    return this.store.rootStore.memberships.orderedData
+      .filter((m) => m.collectionId === this.id)
+      .map((m) => m.user)
+      .filter(Boolean);
   }
 
   fetchDocuments = async (options?: { force: boolean }) => {

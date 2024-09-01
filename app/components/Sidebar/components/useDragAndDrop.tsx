@@ -4,6 +4,7 @@ import * as React from "react";
 import { ConnectDragSource, useDrag, useDrop } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useTheme } from "styled-components";
+import GroupMembership from "~/models/GroupMembership";
 import Star from "~/models/Star";
 import UserMembership from "~/models/UserMembership";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -90,11 +91,16 @@ export function useDropToReorderStar(getIndex?: () => string) {
   });
 }
 
-export function useDragUserMembership(
-  userMembership: UserMembership
+/**
+ * Hook for shared logic that allows dragging user memberships to reorder
+ *
+ * @param membership The UserMembership or GroupMembership model to drag.
+ */
+export function useDragMembership(
+  membership: UserMembership | GroupMembership
 ): [{ isDragging: boolean }, ConnectDragSource] {
-  const id = userMembership.id;
-  const { label: title, icon } = useSidebarLabelAndIcon(userMembership);
+  const id = membership.id;
+  const { label: title, icon } = useSidebarLabelAndIcon(membership);
 
   const [{ isDragging }, draggableRef, preview] = useDrag({
     type: "userMembership",
@@ -106,7 +112,7 @@ export function useDragUserMembership(
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
-    canDrag: () => true,
+    canDrag: () => membership instanceof UserMembership,
   });
 
   React.useEffect(() => {
@@ -130,7 +136,9 @@ export function useDropToReorderUserMembership(getIndex?: () => string) {
     drop: async (item: DragObject) => {
       const userMembership = userMemberships.get(item.id);
       void userMembership?.save({
-        index: getIndex?.() ?? fractionalIndex(null, user.memberships[0].index),
+        index:
+          getIndex?.() ??
+          fractionalIndex(null, user.documentMemberships[0].index),
       });
     },
     collect: (monitor) => ({

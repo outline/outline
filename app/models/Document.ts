@@ -175,6 +175,9 @@ export default class Document extends ParanoidModel {
   @observable
   parentDocumentId: string | undefined;
 
+  @Relation(() => Document)
+  parentDocument?: Document;
+
   @observable
   collaboratorIds: string[];
 
@@ -376,9 +379,26 @@ export default class Document extends ParanoidModel {
     return floor((this.tasks.completed / this.tasks.total) * 100);
   }
 
+  /**
+   * Returns the path to the document, using the collection structure if available.
+   * otherwise if we're viewing a shared document we can iterate up the parentDocument tree.
+   *
+   * @returns path to the document
+   */
   @computed
   get pathTo() {
-    return this.collection?.pathToDocument(this.id) ?? [];
+    if (this.collection?.documents) {
+      return this.collection.pathToDocument(this.id);
+    }
+
+    // find root parent document we have access to
+    const path: Document[] = [this];
+
+    while (path[0]?.parentDocument) {
+      path.unshift(path[0].parentDocument);
+    }
+
+    return path.map((item) => item.asNavigationNode);
   }
 
   @computed
@@ -582,6 +602,8 @@ export default class Document extends ParanoidModel {
     return {
       id: this.id,
       title: this.title,
+      color: this.color ?? undefined,
+      icon: this.icon ?? undefined,
       children: this.childDocuments.map((doc) => doc.asNavigationNode),
       url: this.url,
       isDraft: this.isDraft,

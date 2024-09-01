@@ -55,6 +55,9 @@ import { generateUrlId } from "@server/utils/url";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
+import Group from "./Group";
+import GroupMembership from "./GroupMembership";
+import GroupUser from "./GroupUser";
 import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
@@ -147,13 +150,11 @@ type AdditionalFindOptions = {
   withDrafts: {
     include: [
       {
-        model: User,
-        as: "createdBy",
+        association: "createdBy",
         paranoid: false,
       },
       {
-        model: User,
-        as: "updatedBy",
+        association: "updatedBy",
         paranoid: false,
       },
     ],
@@ -180,6 +181,7 @@ type AdditionalFindOptions = {
     if (!userId) {
       return {};
     }
+
     return {
       include: [
         {
@@ -189,6 +191,34 @@ type AdditionalFindOptions = {
           },
           required: false,
         },
+        {
+          association: "groupMemberships",
+          required: false,
+          // use of "separate" property: sequelize breaks when there are
+          // nested "includes" with alternating values for "required"
+          // see https://github.com/sequelize/sequelize/issues/9869
+          separate: true,
+          // include for groups that are members of this document,
+          // of which userId is a member of, resulting in:
+          // GroupMembership [inner join] Group [inner join] GroupUser [where] userId
+          include: [
+            {
+              model: Group,
+              as: "group",
+              required: true,
+              include: [
+                {
+                  model: GroupUser,
+                  as: "groupUsers",
+                  required: true,
+                  where: {
+                    userId,
+                  },
+                },
+              ],
+            },
+          ],
+        },
       ],
     };
   },
@@ -196,6 +226,33 @@ type AdditionalFindOptions = {
     include: [
       {
         association: "memberships",
+        required: false,
+      },
+      {
+        model: GroupMembership,
+        as: "groupMemberships",
+        required: false,
+        // use of "separate" property: sequelize breaks when there are
+        // nested "includes" with alternating values for "required"
+        // see https://github.com/sequelize/sequelize/issues/9869
+        separate: true,
+        // include for groups that are members of this collection,
+        // of which userId is a member of, resulting in:
+        // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
+        include: [
+          {
+            model: Group,
+            as: "group",
+            required: true,
+            include: [
+              {
+                model: GroupUser,
+                as: "groupUsers",
+                required: true,
+              },
+            ],
+          },
+        ],
       },
     ],
   },
@@ -534,7 +591,7 @@ class Document extends ParanoidModel<
   teamId: string;
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection | null | undefined;
+  collection: Collection | null;
 
   @BelongsToMany(() => User, () => UserMembership)
   users: User[];
@@ -545,6 +602,9 @@ class Document extends ParanoidModel<
 
   @HasMany(() => UserMembership)
   memberships: UserMembership[];
+
+  @HasMany(() => GroupMembership, "documentId")
+  groupMemberships: GroupMembership[];
 
   @HasMany(() => Revision)
   revisions: Revision[];
@@ -559,22 +619,28 @@ class Document extends ParanoidModel<
   views: View[];
 
   /**
-   * Returns an array of unique userIds that are members of a document via direct membership
+   * Returns an array of unique userIds that are members of a document
+   * either via group or direct membership.
    *
    * @param documentId
    * @returns userIds
    */
   static async membershipUserIds(documentId: string) {
     const document = await this.scope("withAllMemberships").findOne({
-      where: {
-        id: documentId,
-      },
+      where: { id: documentId },
     });
     if (!document) {
       return [];
     }
 
-    return document.memberships.map((membership) => membership.userId);
+    const groupMemberships = document.groupMemberships
+      .map((gm) => gm.group.groupUsers)
+      .flat();
+    const membershipUserIds = [
+      ...groupMemberships,
+      ...document.memberships,
+    ].map((membership) => membership.userId);
+    return uniq(membershipUserIds);
   }
 
   static defaultScopeWithUser(userId: string) {
@@ -841,31 +907,23 @@ class Document extends ParanoidModel<
       }
     }
 
-    const parentDocumentPermissions = this.parentDocumentId
-      ? await UserMembership.findAll({
-          where: {
-            documentId: this.parentDocumentId,
-          },
-          transaction,
-        })
-      : [];
-
-    await Promise.all(
-      parentDocumentPermissions.map((permission) =>
-        UserMembership.create(
-          {
-            documentId: this.id,
-            userId: permission.userId,
-            sourceId: permission.sourceId ?? permission.id,
-            permission: permission.permission,
-            createdById: permission.createdById,
-          },
-          {
-            transaction,
-          }
-        )
-      )
-    );
+    // Copy the group and user memberships from the parent document, if any
+    if (this.parentDocumentId) {
+      await GroupMembership.copy(
+        {
+          documentId: this.parentDocumentId,
+        },
+        this,
+        { transaction }
+      );
+      await UserMembership.copy(
+        {
+          documentId: this.parentDocumentId,
+        },
+        this,
+        { transaction }
+      );
+    }
 
     this.lastModifiedById = user.id;
     this.updatedBy = user;
