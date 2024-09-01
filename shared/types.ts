@@ -228,6 +228,8 @@ export type TeamPreferences = {
 export enum NavigationNodeType {
   Collection = "collection",
   Document = "document",
+  UserMembership = "userMembership",
+  GroupMembership = "groupMembership",
 }
 
 export type NavigationNode = {

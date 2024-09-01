@@ -2,11 +2,9 @@ import { Location } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import { useDrag, useDrop } from "react-dnd";
-import { getEmptyImage } from "react-dnd-html5-backend";
+import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
 import styled from "styled-components";
 import { NavigationNode } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
@@ -29,6 +27,7 @@ import Folder from "./Folder";
 import Relative from "./Relative";
 import { SidebarContextType, useSidebarContext } from "./SidebarContext";
 import SidebarLink, { DragObject } from "./SidebarLink";
+import { useDragDocument, useDropToReorderDocument } from "./useDragAndDrop";
 
 type Props = {
   node: NavigationNode;
@@ -142,30 +141,12 @@ function InnerDocumentLink(
   );
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMoving = documents.movingDocumentId === node.id;
-  const manualSort = collection?.sort.field === "index";
   const can = policies.abilities(node.id);
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
 
   // Draggable
-  const [{ isDragging }, drag, preview] = useDrag({
-    type: "document",
-    item: () => ({
-      ...node,
-      depth,
-      icon: icon ? <Icon value={icon} color={color} /> : undefined,
-      active: isActiveDocument,
-      collectionId: collection?.id || "",
-    }),
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-    canDrag: () => can.move || can.archive || can.delete,
-  });
-
-  React.useEffect(() => {
-    preview(getEmptyImage(), { captureDraggingState: true });
-  }, [preview]);
+  const [{ isDragging }, drag] = useDragDocument(node, depth, document);
 
   const hoverExpanding = React.useRef<ReturnType<typeof setTimeout>>();
 
@@ -196,10 +177,11 @@ function InnerDocumentLink(
       setExpanded(true);
     },
     canDrop: (item, monitor) =>
-      !isDraft &&
       !!pathToNode &&
       !pathToNode.includes(monitor.getItem<DragObject>().id) &&
-      item.id !== node.id,
+      item.id !== node.id &&
+      policies.abilities(node.id).update &&
+      policies.abilities(item.id).move,
     hover: (_item, monitor) => {
       // Enables expansion of document children when hovering over the document
       // for more than half a second.
@@ -234,47 +216,26 @@ function InnerDocumentLink(
   });
 
   // Drop to reorder
-  const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] = useDrop({
-    accept: "document",
-    drop: (item: DragObject) => {
-      if (!manualSort) {
-        toast.message(
-          t(
-            "You can't reorder documents in an alphabetically sorted collection"
-          )
-        );
-        return;
-      }
-
+  const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] =
+    useDropToReorderDocument(node, collection, (item) => {
       if (!collection) {
         return;
       }
-      if (item.id === node.id) {
-        return;
-      }
-
       if (expanded) {
-        void documents.move({
+        return {
           documentId: item.id,
           collectionId: collection.id,
           parentDocumentId: node.id,
           index: 0,
-        });
-        return;
+        };
       }
-
-      void documents.move({
+      return {
         documentId: item.id,
         collectionId: collection.id,
         parentDocumentId: parentId,
         index: index + 1,
-      });
-    },
-    collect: (monitor) => ({
-      isOverReorder: monitor.isOver(),
-      isDraggingAnyDocument: monitor.canDrop(),
-    }),
-  });
+      };
+    });
 
   const nodeChildren = React.useMemo(() => {
     const insertDraftDocument =
@@ -407,7 +368,7 @@ function InnerDocumentLink(
             </DropToImport>
           </div>
         </Draggable>
-        {isDraggingAnyDocument && manualSort && (
+        {isDraggingAnyDocument && collection?.isManualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
