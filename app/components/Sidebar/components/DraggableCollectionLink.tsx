@@ -7,7 +7,6 @@ import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { useLocationState } from "../hooks/useLocationState";
 import CollectionLink from "./CollectionLink";
@@ -32,12 +31,11 @@ function DraggableCollectionLink({
 }: Props) {
   const locationSidebarContext = useLocationState();
   const sidebarContext = useSidebarContext();
-  const { ui, collections } = useStores();
+  const { ui, policies, collections } = useStores();
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId &&
       sidebarContext === locationSidebarContext
   );
-  const can = usePolicy(collection);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
 
   // Drop to reorder collection
@@ -54,7 +52,8 @@ function DraggableCollectionLink({
     },
     canDrop: (item) =>
       collection.id !== item.id &&
-      (!belowCollection || item.id !== belowCollection.id),
+      (!belowCollection || item.id !== belowCollection.id) &&
+      policies.abilities(item.id)?.move,
     collect: (monitor: DropTargetMonitor<Collection, Collection>) => ({
       isCollectionDropping: monitor.isOver(),
       isDraggingAnyCollection: monitor.canDrop(),
@@ -72,7 +71,6 @@ function DraggableCollectionLink({
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    canDrag: () => can.move,
   });
 
   React.useEffect(() => {

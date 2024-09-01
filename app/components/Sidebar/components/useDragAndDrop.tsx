@@ -38,7 +38,6 @@ export function useDragStar(
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
-    canDrag: () => true,
   });
 
   React.useEffect(() => {
@@ -247,7 +246,6 @@ export function useDragMembership(
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
-    canDrag: () => true,
   });
 
   React.useEffect(() => {
