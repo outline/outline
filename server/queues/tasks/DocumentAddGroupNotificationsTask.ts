@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import { GroupUser } from "@server/models";
 import { DocumentGroupEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
@@ -8,6 +9,9 @@ export default class DocumentAddGroupNotificationsTask extends BaseTask<Document
     const groupUsers = await GroupUser.findAll({
       where: {
         groupId: event.modelId,
+        userId: {
+          [Op.ne]: event.actorId,
+        },
       },
     });
 
