@@ -1739,7 +1739,7 @@ router.post(
         documentId: document.id,
         modelId: groupId,
         data: {
-          title: document.title,
+          name: group.name,
           isNew,
           permission: membership.permission,
           membershipId: membership.id,

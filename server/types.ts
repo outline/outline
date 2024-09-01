@@ -276,7 +276,7 @@ export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
   documentId: string;
   modelId: string;
   data: {
-    title: string;
+    name: string;
     isNew?: boolean;
     permission?: DocumentPermission;
     membershipId: string;
