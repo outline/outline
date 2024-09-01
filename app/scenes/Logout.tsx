@@ -8,10 +8,15 @@ const Logout = () => {
 
   void auth.logout().then(() => {
     if (env.OIDC_LOGOUT_URI) {
-      window.location.replace(env.OIDC_LOGOUT_URI);
+      setTimeout(() => {
+        window.location.replace(env.OIDC_LOGOUT_URI);
+      }, 200);
     }
   });
 
+  if (env.OIDC_LOGOUT_URI) {
+    return null; // user will be redirected to logout URI after logout
+  }
   return <Redirect to="/" />;
 };
 
