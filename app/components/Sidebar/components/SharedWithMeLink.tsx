@@ -88,7 +88,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
     }
     return "";
   };
-  const [reorderMonitor, dropToReorderRef] =
+  const [reorderProps, dropToReorderRef] =
     useDropToReorderUserMembership(getIndex);
 
   const displayChildDocuments = expanded && !isDragging;
@@ -168,9 +168,9 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
               />
             ))}
           </Folder>
-          {reorderMonitor.isDragging && (
+          {reorderProps.isDragging && (
             <DropCursor
-              isActiveDrop={reorderMonitor.isOverCursor}
+              isActiveDrop={reorderProps.isOverCursor}
               innerRef={dropToReorderRef}
             />
           )}

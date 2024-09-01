@@ -84,22 +84,22 @@ function StarredLink({ star }: Props) {
     <StarredIcon color={theme.yellow} />
   );
   const [{ isDragging }, draggableRef] = useDragStar(star);
-  const [reorderStarMonitor, dropToReorderRef] = useDropToReorderStar(getIndex);
-  const [createStarMonitor, dropToStarRef] = useDropToCreateStar(getIndex);
+  const [reorderStarProps, dropToReorderRef] = useDropToReorderStar(getIndex);
+  const [createStarProps, dropToStarRef] = useDropToCreateStar(getIndex);
 
   const displayChildDocuments = expanded && !isDragging;
 
   const cursor = (
     <>
-      {reorderStarMonitor.isDragging && (
+      {reorderStarProps.isDragging && (
         <DropCursor
-          isActiveDrop={reorderStarMonitor.isOverCursor}
+          isActiveDrop={reorderStarProps.isOverCursor}
           innerRef={dropToReorderRef}
         />
       )}
-      {createStarMonitor.isDragging && (
+      {createStarProps.isDragging && (
         <DropCursor
-          isActiveDrop={createStarMonitor.isOverCursor}
+          isActiveDrop={createStarProps.isOverCursor}
           innerRef={dropToStarRef}
         />
       )}
@@ -183,7 +183,7 @@ function StarredLink({ star }: Props) {
             expanded={isDragging ? undefined : displayChildDocuments}
             activeDocument={documents.active}
             onDisclosureClick={handleDisclosureClick}
-            isDraggingAnyCollection={reorderStarMonitor.isDragging}
+            isDraggingAnyCollection={reorderStarProps.isDragging}
           />
         </Draggable>
         <SidebarContext.Provider value={collection.id}>

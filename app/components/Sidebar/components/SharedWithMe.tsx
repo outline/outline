@@ -34,8 +34,8 @@ function SharedWithMe() {
     });
 
   // Drop to reorder document
-  const [reorderMonitor, dropToReorderRef] = useDropToReorderUserMembership(
-    () => fractionalIndex(null, user.documentMemberships[0].index)
+  const [reorderProps, dropToReorderRef] = useDropToReorderUserMembership(() =>
+    fractionalIndex(null, user.documentMemberships[0].index)
   );
 
   React.useEffect(() => {
@@ -59,9 +59,9 @@ function SharedWithMe() {
             <GroupLink key={group.id} group={group} />
           ))}
           <Relative>
-            {reorderMonitor.isDragging && (
+            {reorderProps.isDragging && (
               <DropCursor
-                isActiveDrop={reorderMonitor.isOverCursor}
+                isActiveDrop={reorderProps.isOverCursor}
                 innerRef={dropToReorderRef}
                 position="top"
               />

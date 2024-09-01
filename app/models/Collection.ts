@@ -155,6 +155,11 @@ export default class Collection extends ParanoidModel {
   }
 
   @computed
+  get isManualSort(): boolean {
+    return this.sort.field === "index";
+  }
+
+  @computed
   get sortedDocuments(): NavigationNode[] | undefined {
     if (!this.documents) {
       return undefined;

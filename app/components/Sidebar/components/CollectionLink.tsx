@@ -5,7 +5,6 @@ import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import { NavigationNode } from "@shared/types";
 import { CollectionValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
@@ -39,9 +38,6 @@ const CollectionLink: React.FC<Props> = ({
   onDisclosureClick,
   isDraggingAnyCollection,
 }: Props) => {
-  const itemRef = React.useRef<
-    NavigationNode & { depth: number; active: boolean; collectionId: string }
-  >();
   const { dialogs, documents, collections } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [isEditing, setIsEditing] = React.useState(false);
@@ -86,8 +82,6 @@ const CollectionLink: React.FC<Props> = ({
         prevCollection.permission !== collection.permission &&
         !document?.isDraft
       ) {
-        itemRef.current = item;
-
         dialogs.openModal({
           title: t("Move document"),
           content: (
