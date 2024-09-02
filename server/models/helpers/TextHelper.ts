@@ -107,10 +107,7 @@ export class TextHelper {
         chunk.map(async (image) => {
           // Skip attempting to fetch images that are not valid urls
           try {
-            const url = new URL(image.src);
-            if (!["http:", "https:"].includes(url.protocol)) {
-              return;
-            }
+            new URL(image.src);
           } catch (_e) {
             return;
           }
