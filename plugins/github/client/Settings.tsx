@@ -4,7 +4,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { IntegrationService } from "@shared/types";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import List from "~/components/List";

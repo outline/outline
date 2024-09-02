@@ -7,6 +7,7 @@ import {
   DocumentPermission,
 } from "@shared/types";
 import RootStore from "~/stores/RootStore";
+import { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
 import Pin from "./models/Pin";
@@ -82,7 +83,7 @@ export type ActionContext = {
   isContextMenu: boolean;
   isCommandBar: boolean;
   isButton: boolean;
-  inStarredSection?: boolean;
+  sidebarContext?: SidebarContextType;
   activeCollectionId?: string | undefined;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;
@@ -188,16 +189,6 @@ export type WebsocketEntitiesEvent = {
   event: string;
 };
 
-export type WebsocketCollectionUserEvent = {
-  collectionId: string;
-  userId: string;
-};
-
-export type WebsocketDocumentUserEvent = {
-  documentId: string;
-  userId: string;
-};
-
 export type WebsocketCollectionUpdateIndexEvent = {
   collectionId: string;
   index: string;
@@ -208,7 +199,6 @@ export type WebsocketEvent =
   | PartialWithId<Star>
   | PartialWithId<FileOperation>
   | PartialWithId<UserMembership>
-  | WebsocketCollectionUserEvent
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent
   | WebsocketEntitiesEvent;

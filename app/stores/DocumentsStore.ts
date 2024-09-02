@@ -7,7 +7,6 @@ import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
 import type {
   DateFilter,
-  JSONObject,
   NavigationNode,
   PublicTeam,
   StatusFilter,
@@ -23,7 +22,6 @@ import type {
   FetchOptions,
   PaginationParams,
   PartialWithId,
-  Properties,
   SearchResult,
 } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -681,17 +679,6 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  removeCollectionDocuments(collectionId: string) {
-    // drafts are to be detached from collection rather than deleted, hence excluded here
-    const documents = filter(
-      this.inCollection(collectionId),
-      (d) => !!d.publishedAt
-    );
-    const documentIds = documents.map((doc) => doc.id);
-    documentIds.forEach((id) => this.remove(id));
-  }
-
-  @action
   async delete(
     document: Document,
     options?: {
@@ -752,34 +739,6 @@ export default class DocumentsStore extends Store<Document> {
       await collection.refresh();
     }
   };
-
-  @action
-  async update(
-    params: Properties<Document>,
-    options?: JSONObject
-  ): Promise<Document> {
-    this.isSaving = true;
-
-    try {
-      const res = await client.post(`/${this.apiEndpoint}.update`, {
-        ...params,
-        ...options,
-      });
-
-      invariant(res?.data, "Data should be available");
-
-      const collection = this.getCollectionForDocument(res.data);
-      await collection?.fetchDocuments({ force: true });
-
-      return runInAction("Document#update", () => {
-        const document = this.add(res.data);
-        this.addPolicies(res.policies);
-        return document;
-      });
-    } finally {
-      this.isSaving = false;
-    }
-  }
 
   @action
   unpublish = async (document: Document) => {

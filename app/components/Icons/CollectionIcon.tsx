@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { CollectionIcon } from "outline-icons";
+import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
 import * as React from "react";
 import { colorPalette } from "@shared/utils/collections";
@@ -40,8 +40,11 @@ function ResolvedCollectionIcon({
           : "currentColor"
         : collectionColor);
 
+    const Component = collection.isPrivate
+      ? PrivateCollectionIcon
+      : CollectionIcon;
     return (
-      <CollectionIcon
+      <Component
         color={color}
         expanded={expanded}
         size={size}

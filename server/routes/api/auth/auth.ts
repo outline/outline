@@ -14,6 +14,8 @@ import {
   presentPolicies,
   presentProviderConfig,
   presentAvailableTeam,
+  presentGroup,
+  presentGroupUser,
 } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import { APIContext } from "@server/types";
@@ -117,10 +119,11 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
   const sessions = getSessionsInCookie(ctx);
   const signedInTeamIds = Object.keys(sessions);
 
-  const [team, signedInTeams, availableTeams] = await Promise.all([
+  const [team, groups, signedInTeams, availableTeams] = await Promise.all([
     Team.scope("withDomains").findByPk(user.teamId, {
       rejectOnEmpty: true,
     }),
+    user.groups(),
     Team.findAll({
       where: {
         id: signedInTeamIds,
@@ -141,16 +144,19 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
         includeDetails: true,
       }),
       team: presentTeam(team),
+      groups: await Promise.all(groups.map(presentGroup)),
+      groupUsers: groups.map((group) => presentGroupUser(group.groupUsers[0])),
       collaborationToken: user.getCollaborationToken(),
       availableTeams: uniqBy([...signedInTeams, ...availableTeams], "id").map(
-        (team) =>
+        (availableTeam) =>
           presentAvailableTeam(
-            team,
-            signedInTeamIds.includes(team.id) || team.id === user.teamId
+            availableTeam,
+            signedInTeamIds.includes(team.id) ||
+              availableTeam.id === user.teamId
           )
       ),
     },
-    policies: presentPolicies(user, [team]),
+    policies: presentPolicies(user, [team, user, ...groups]),
   };
 });
 

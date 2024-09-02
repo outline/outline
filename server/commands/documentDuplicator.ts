@@ -59,7 +59,7 @@ export default async function documentDuplicator({
     ...sharedProperties,
   });
 
-  duplicated.collection = collection;
+  duplicated.collection = collection ?? null;
   newDocuments.push(duplicated);
 
   async function duplicateChildDocuments(
@@ -95,7 +95,7 @@ export default async function documentDuplicator({
         ...sharedProperties,
       });
 
-      duplicatedChildDocument.collection = collection;
+      duplicatedChildDocument.collection = collection ?? null;
       newDocuments.push(duplicatedChildDocument);
       await duplicateChildDocuments(childDocument, duplicatedChildDocument);
     }

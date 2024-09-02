@@ -217,46 +217,50 @@ router.post(
   "collections.add_group",
   auth(),
   validate(T.CollectionsAddGroupSchema),
+  transaction(),
   async (ctx: APIContext<T.CollectionsAddGroupsReq>) => {
     const { id, groupId, permission } = ctx.input.body;
+    const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
 
-    const collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(id);
+    const [collection, group] = await Promise.all([
+      Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(id, { transaction }),
+      Group.findByPk(groupId, { transaction }),
+    ]);
     authorize(user, "update", collection);
-
-    const group = await Group.findByPk(groupId);
     authorize(user, "read", group);
 
-    let membership = await GroupMembership.findOne({
+    const [membership] = await GroupMembership.findOrCreate({
       where: {
         collectionId: id,
         groupId,
       },
-    });
-
-    if (!membership) {
-      membership = await GroupMembership.create({
-        collectionId: id,
-        groupId,
+      defaults: {
         permission,
         createdById: user.id,
-      });
-    } else {
-      membership.permission = permission;
-      await membership.save();
-    }
-
-    await Event.createFromContext(ctx, {
-      name: "collections.add_group",
-      collectionId: collection.id,
-      modelId: groupId,
-      data: {
-        name: group.name,
-        membershipId: membership.id,
       },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
     });
+
+    membership.permission = permission;
+    await membership.save({ transaction });
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "collections.add_group",
+        collectionId: collection.id,
+        modelId: groupId,
+        data: {
+          name: group.name,
+          membershipId: membership.id,
+        },
+      },
+      { transaction }
+    );
 
     const groupMemberships = [presentGroupMembership(membership)];
 
@@ -280,12 +284,17 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
-    const collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(id, { transaction });
+    const [collection, group] = await Promise.all([
+      Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(id, {
+        transaction,
+      }),
+      Group.findByPk(groupId, {
+        transaction,
+      }),
+    ]);
     authorize(user, "update", collection);
-
-    const group = await Group.findByPk(groupId, { transaction });
     authorize(user, "read", group);
 
     const [membership] = await collection.$get("groupMemberships", {
@@ -297,7 +306,13 @@ router.post(
       ctx.throw(400, "This Group is not a part of the collection");
     }
 
-    await collection.$remove("group", group);
+    await GroupMembership.destroy({
+      where: {
+        collectionId: id,
+        groupId,
+      },
+      transaction,
+    });
     await Event.createFromContext(
       ctx,
       {
@@ -322,8 +337,8 @@ router.post(
   "collections.group_memberships",
   auth(),
   pagination(),
-  validate(T.CollectionsGroupMembershipsSchema),
-  async (ctx: APIContext<T.CollectionsGroupMembershipsReq>) => {
+  validate(T.CollectionsMembershipsSchema),
+  async (ctx: APIContext<T.CollectionsMembershipsReq>) => {
     const { id, query, permission } = ctx.input.body;
     const { user } = ctx.state.auth;
 
@@ -391,19 +406,20 @@ router.post(
   "collections.add_user",
   auth(),
   rateLimiter(RateLimiterStrategy.OneHundredPerHour),
-  transaction(),
   validate(T.CollectionsAddUserSchema),
+  transaction(),
   async (ctx: APIContext<T.CollectionsAddUserReq>) => {
     const { auth, transaction } = ctx.state;
     const actor = auth.user;
     const { id, userId, permission } = ctx.input.body;
 
-    const collection = await Collection.scope({
-      method: ["withMembership", actor.id],
-    }).findByPk(id, { transaction });
+    const [collection, user] = await Promise.all([
+      Collection.scope({
+        method: ["withMembership", actor.id],
+      }).findByPk(id, { transaction }),
+      User.findByPk(userId, { transaction }),
+    ]);
     authorize(actor, "update", collection);
-
-    const user = await User.findByPk(userId);
     authorize(actor, "read", user);
 
     const [membership, isNew] = await UserMembership.findOrCreate({
@@ -460,12 +476,13 @@ router.post(
     const actor = auth.user;
     const { id, userId } = ctx.input.body;
 
-    const collection = await Collection.scope({
-      method: ["withMembership", actor.id],
-    }).findByPk(id, { transaction });
+    const [collection, user] = await Promise.all([
+      Collection.scope({
+        method: ["withMembership", actor.id],
+      }).findByPk(id, { transaction }),
+      User.findByPk(userId, { transaction }),
+    ]);
     authorize(actor, "update", collection);
-
-    const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
 
     const [membership] = await collection.$get("memberships", {

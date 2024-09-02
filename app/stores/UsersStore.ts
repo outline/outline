@@ -138,6 +138,13 @@ export default class UsersStore extends Store<User> {
     }
   };
 
+  /**
+   * Returns users that are not in the given document, optionally filtered by a query.
+   *
+   * @param documentId
+   * @param query
+   * @returns A list of users that are not in the given document.
+   */
   notInDocument = (documentId: string, query = "") => {
     const document = this.rootStore.documents.get(documentId);
     const teamMembers = this.activeOrInvited;
@@ -150,6 +157,13 @@ export default class UsersStore extends Store<User> {
     return queriedUsers(users, query);
   };
 
+  /**
+   * Returns users that are not in the given collection, optionally filtered by a query.
+   *
+   * @param collectionId
+   * @param query
+   * @returns A list of users that are not in the given collection.
+   */
   notInCollection = (collectionId: string, query = "") => {
     const groupUsers = filter(
       this.rootStore.memberships.orderedData,

@@ -9,7 +9,7 @@ import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
 import Group from "~/models/Group";
 import User from "~/models/User";
-import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import NudeButton from "~/components/NudeButton";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
@@ -357,7 +357,6 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
           addPendingId={handleAddPendingId}
           removePendingId={handleRemovePendingId}
           onEscape={handleEscape}
-          showGroups
         />
       )}
 

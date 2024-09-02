@@ -6,11 +6,13 @@ import {
   CommentEvent,
   CollectionUserEvent,
   DocumentUserEvent,
+  DocumentGroupEvent,
 } from "@server/types";
 import CollectionAddUserNotificationsTask from "../tasks/CollectionAddUserNotificationsTask";
 import CollectionCreatedNotificationsTask from "../tasks/CollectionCreatedNotificationsTask";
 import CommentCreatedNotificationsTask from "../tasks/CommentCreatedNotificationsTask";
 import CommentUpdatedNotificationsTask from "../tasks/CommentUpdatedNotificationsTask";
+import DocumentAddGroupNotificationsTask from "../tasks/DocumentAddGroupNotificationsTask";
 import DocumentAddUserNotificationsTask from "../tasks/DocumentAddUserNotificationsTask";
 import DocumentPublishedNotificationsTask from "../tasks/DocumentPublishedNotificationsTask";
 import RevisionCreatedNotificationsTask from "../tasks/RevisionCreatedNotificationsTask";
@@ -20,6 +22,7 @@ export default class NotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",
     "documents.add_user",
+    "documents.add_group",
     "revisions.create",
     "collections.create",
     "collections.add_user",
@@ -33,6 +36,8 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.documentPublished(event);
       case "documents.add_user":
         return this.documentAddUser(event);
+      case "documents.add_group":
+        return this.documentAddGroup(event);
       case "revisions.create":
         return this.revisionCreated(event);
       case "collections.create":
@@ -65,6 +70,13 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
     await DocumentAddUserNotificationsTask.schedule(event);
+  }
+
+  async documentAddGroup(event: DocumentGroupEvent) {
+    if (!event.data.isNew) {
+      return;
+    }
+    await DocumentAddGroupNotificationsTask.schedule(event);
   }
 
   async revisionCreated(event: RevisionEvent) {

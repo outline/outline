@@ -14,7 +14,6 @@ import NavLink, { Props as NavLinkProps } from "./NavLink";
 
 export type DragObject = NavigationNode & {
   depth: number;
-  active: boolean;
   collectionId: string;
 };
 

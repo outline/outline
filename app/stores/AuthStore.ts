@@ -207,6 +207,8 @@ export default class AuthStore extends Store<Team> {
         this.addPolicies(res.policies);
         this.add(data.team);
         this.rootStore.users.add(data.user);
+        data.groups.map(this.rootStore.groups.add);
+        data.groupUsers.map(this.rootStore.groupUsers.add);
         this.currentUserId = data.user.id;
         this.currentTeamId = data.team.id;
 

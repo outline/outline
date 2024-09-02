@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { dateLocale, dateToRelative } from "@shared/utils/date";
 import Document from "~/models/Document";
 import User from "~/models/User";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import ListItem from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
 import useCurrentUser from "~/hooks/useCurrentUser";

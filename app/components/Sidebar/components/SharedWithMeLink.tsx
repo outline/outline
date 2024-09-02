@@ -1,44 +1,61 @@
 import fractionalIndex from "fractional-index";
+import { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import { IconType, NotificationEventType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import GroupMembership from "~/models/GroupMembership";
 import UserMembership from "~/models/UserMembership";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
+import { useLocationState } from "../hooks/useLocationState";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import Relative from "./Relative";
+import { useSidebarContext, type SidebarContextType } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import {
-  useDragUserMembership,
+  useDragMembership,
   useDropToReorderUserMembership,
 } from "./useDragAndDrop";
 import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 
 type Props = {
-  userMembership: UserMembership;
+  membership: UserMembership | GroupMembership;
+  depth?: number;
 };
 
-function SharedWithMeLink({ userMembership }: Props) {
+function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const { ui, collections, documents } = useStores();
   const { fetchChildDocuments } = documents;
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
-  const { documentId } = userMembership;
+  const { documentId } = membership;
   const isActiveDocument = documentId === ui.activeDocumentId;
+  const locationSidebarContext = useLocationState();
+  const sidebarContext = useSidebarContext();
+
   const [expanded, setExpanded] = React.useState(
-    userMembership.documentId === ui.activeDocumentId
+    membership.documentId === ui.activeDocumentId &&
+      locationSidebarContext === sidebarContext
   );
 
   React.useEffect(() => {
-    if (userMembership.documentId === ui.activeDocumentId) {
+    if (
+      membership.documentId === ui.activeDocumentId &&
+      locationSidebarContext === sidebarContext
+    ) {
       setExpanded(true);
     }
-  }, [userMembership.documentId, ui.activeDocumentId]);
+  }, [
+    membership.documentId,
+    ui.activeDocumentId,
+    sidebarContext,
+    locationSidebarContext,
+  ]);
 
   React.useEffect(() => {
     if (documentId) {
@@ -47,10 +64,10 @@ function SharedWithMeLink({ userMembership }: Props) {
   }, [documentId, documents]);
 
   React.useEffect(() => {
-    if (isActiveDocument && userMembership.documentId) {
-      void fetchChildDocuments(userMembership.documentId);
+    if (isActiveDocument && membership.documentId) {
+      void fetchChildDocuments(membership.documentId);
     }
-  }, [fetchChildDocuments, isActiveDocument, userMembership.documentId]);
+  }, [fetchChildDocuments, isActiveDocument, membership.documentId]);
 
   const handleDisclosureClick = React.useCallback(
     (ev: React.MouseEvent<HTMLButtonElement>) => {
@@ -61,14 +78,17 @@ function SharedWithMeLink({ userMembership }: Props) {
     []
   );
 
-  const { icon } = useSidebarLabelAndIcon(userMembership);
-  const [{ isDragging }, draggableRef] = useDragUserMembership(userMembership);
+  const { icon } = useSidebarLabelAndIcon(membership);
+  const [{ isDragging }, draggableRef] = useDragMembership(membership);
 
   const getIndex = () => {
-    const next = userMembership?.next();
-    return fractionalIndex(userMembership?.index || null, next?.index || null);
+    if (membership instanceof UserMembership) {
+      const next = membership?.next();
+      return fractionalIndex(membership?.index || null, next?.index || null);
+    }
+    return "";
   };
-  const [reorderMonitor, dropToReorderRef] =
+  const [reorderProps, dropToReorderRef] =
     useDropToReorderUserMembership(getIndex);
 
   const displayChildDocuments = expanded && !isDragging;
@@ -95,19 +115,23 @@ function SharedWithMeLink({ userMembership }: Props) {
     return (
       <>
         <Draggable
-          key={userMembership.id}
+          key={membership.id}
           ref={draggableRef}
           $isDragging={isDragging}
         >
           <SidebarLink
-            depth={0}
+            depth={depth}
             to={{
               pathname: document.path,
-              state: { starred: true },
+              state: { sidebarContext },
             }}
             expanded={hasChildDocuments && !isDragging ? expanded : undefined}
             onDisclosureClick={handleDisclosureClick}
             icon={icon}
+            isActive={(
+              match,
+              location: Location<{ sidebarContext?: SidebarContextType }>
+            ) => !!match && location.state?.sidebarContext === sidebarContext}
             label={label}
             exact={false}
             unreadBadge={
@@ -144,9 +168,9 @@ function SharedWithMeLink({ userMembership }: Props) {
               />
             ))}
           </Folder>
-          {reorderMonitor.isDragging && (
+          {reorderProps.isDragging && (
             <DropCursor
-              isActiveDrop={reorderMonitor.isOverCursor}
+              isActiveDrop={reorderProps.isOverCursor}
               innerRef={dropToReorderRef}
             />
           )}

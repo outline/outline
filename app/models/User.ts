@@ -13,6 +13,7 @@ import {
 import type { NotificationSettings } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import Document from "./Document";
+import Group from "./Group";
 import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
@@ -127,19 +128,38 @@ class User extends ParanoidModel {
     );
   }
 
+  /**
+   * Returns the direct memberships that this user has to documents. Documents that the
+   * user already has access to through a collection and trashed documents are not included.
+   *
+   * @returns A list of user memberships
+   */
   @computed
-  get memberships(): UserMembership[] {
-    return this.store.rootStore.userMemberships.orderedData
+  get documentMemberships(): UserMembership[] {
+    const { userMemberships, documents, policies } = this.store.rootStore;
+    return userMemberships.orderedData
       .filter(
         (m) => m.userId === this.id && m.sourceId === null && m.documentId
       )
       .filter((m) => {
-        const document = this.store.rootStore.documents.get(m.documentId!);
+        const document = documents.get(m.documentId!);
         const policy = document?.collectionId
-          ? this.store.rootStore.policies.get(document.collectionId)
+          ? policies.get(document.collectionId)
           : undefined;
-        return !policy?.abilities?.readDocument;
+        return !policy?.abilities?.readDocument && !document?.isDeleted;
       });
+  }
+
+  @computed
+  get groupsWithDocumentMemberships() {
+    const { groups, groupUsers } = this.store.rootStore;
+
+    return groupUsers.orderedData
+      .filter((groupUser) => groupUser.userId === this.id)
+      .map((groupUser) => groups.get(groupUser.groupId))
+      .filter(Boolean)
+      .filter((group) => group && group.documentMemberships.length > 0)
+      .sort((a, b) => a!.name.localeCompare(b!.name)) as Group[];
   }
 
   /**
