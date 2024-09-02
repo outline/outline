@@ -21,20 +21,20 @@ class Model<
     query: Replace<FindOptions<T>, "limit", "batchLimit">,
     callback: (results: Array<T>, query: FindOptions<T>) => Promise<void>
   ) {
-    if (!query.offset) {
-      query.offset = 0;
-    }
-    if (!query.batchLimit) {
-      query.batchLimit = 10;
-    }
+    const mappedQuery = {
+      ...query,
+      offset: query.offset ?? 0,
+      limit: query.batchLimit ?? 10,
+    };
+
     let results;
 
     do {
       // @ts-expect-error this T
-      results = await this.findAll<T>(query);
-      await callback(results, query);
-      query.offset += query.batchLimit;
-    } while (results.length >= query.batchLimit);
+      results = await this.findAll<T>(mappedQuery);
+      await callback(results, mappedQuery);
+      mappedQuery.offset += mappedQuery.limit;
+    } while (results.length >= mappedQuery.limit);
   }
 
   /**
