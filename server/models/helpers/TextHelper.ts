@@ -1,3 +1,4 @@
+import chunk from "lodash/chunk";
 import escapeRegExp from "lodash/escapeRegExp";
 import startCase from "lodash/startCase";
 import { Transaction } from "sequelize";
@@ -99,36 +100,42 @@ export class TextHelper {
     const timeoutPerImage = Math.floor(
       Math.min(env.REQUEST_TIMEOUT / images.length, 10000)
     );
+    const chunks = chunk(images, 10);
 
-    await Promise.all(
-      images.map(async (image) => {
-        // Skip attempting to fetch images that are not valid urls
-        try {
-          new URL(image.src);
-        } catch (_e) {
-          return;
-        }
+    for (const chunk of chunks) {
+      await Promise.all(
+        chunk.map(async (image) => {
+          // Skip attempting to fetch images that are not valid urls
+          try {
+            const url = new URL(image.src);
+            if (!["http:", "https:"].includes(url.protocol)) {
+              return;
+            }
+          } catch (_e) {
+            return;
+          }
 
-        const attachment = await attachmentCreator({
-          name: image.alt ?? "image",
-          url: image.src,
-          preset: AttachmentPreset.DocumentAttachment,
-          user,
-          ip,
-          transaction,
-          fetchOptions: {
-            timeout: timeoutPerImage,
-          },
-        });
+          const attachment = await attachmentCreator({
+            name: image.alt ?? "image",
+            url: image.src,
+            preset: AttachmentPreset.DocumentAttachment,
+            user,
+            ip,
+            transaction,
+            fetchOptions: {
+              timeout: timeoutPerImage,
+            },
+          });
 
-        if (attachment) {
-          output = output.replace(
-            new RegExp(escapeRegExp(image.src), "g"),
-            attachment.redirectUrl
-          );
-        }
-      })
-    );
+          if (attachment) {
+            output = output.replace(
+              new RegExp(escapeRegExp(image.src), "g"),
+              attachment.redirectUrl
+            );
+          }
+        })
+      );
+    }
 
     return output;
   }
