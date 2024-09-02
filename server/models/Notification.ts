@@ -263,7 +263,7 @@ class Notification extends Model<
         },
         order: [["createdAt", "ASC"]],
         offset: 0,
-        limit: 100,
+        batchLimit: 100,
       },
       async (notifications) => void prevNotifications.push(...notifications)
     );

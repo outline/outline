@@ -1,6 +1,7 @@
 import { NotificationEventType } from "@shared/types";
+import { getBaseDomain } from "@shared/utils/domains";
 
-const Domain = "outline.com";
+const Domain = getBaseDomain();
 
 const EmailThreadSupportedNotifications = [
   NotificationEventType.PublishDocument,
