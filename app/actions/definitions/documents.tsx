@@ -658,15 +658,21 @@ export const importDocument = createAction({
       const files = getEventFiles(ev);
 
       const file = files[0];
-      const document = await documents.import(
-        file,
-        activeDocumentId,
-        activeCollectionId,
-        {
-          publish: true,
-        }
-      );
-      history.push(document.url);
+
+      try {
+        const document = await documents.import(
+          file,
+          activeDocumentId,
+          activeCollectionId,
+          {
+            publish: true,
+          }
+        );
+        history.push(document.url);
+      } catch (err) {
+        toast.error(err.message);
+        throw err;
+      }
     };
 
     input.click();
