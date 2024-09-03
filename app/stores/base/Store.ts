@@ -16,7 +16,7 @@ import Model from "~/models/base/Model";
 import ParanoidModel from "~/models/base/ParanoidModel";
 import { LifecycleManager } from "~/models/decorators/Lifecycle";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
-import type { PaginationParams, PartialWithId, Properties } from "~/types";
+import type { PaginationParams, PartialExcept, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Logger from "~/utils/Logger";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
@@ -83,7 +83,7 @@ export default abstract class Store<T extends Model> {
   };
 
   @action
-  add = (item: PartialWithId<T> | T): T => {
+  add = (item: PartialExcept<T, "id"> | T): T => {
     const ModelClass = this.model;
 
     if (!(item instanceof ModelClass)) {
@@ -287,7 +287,7 @@ export default abstract class Store<T extends Model> {
   async fetch(
     id: string,
     options: JSONObject = {},
-    accessor = (res: unknown) => (res as { data: PartialWithId<T> }).data
+    accessor = (res: unknown) => (res as { data: PartialExcept<T, "id"> }).data
   ): Promise<T> {
     if (!this.actions.includes(RPCAction.Info)) {
       throw new Error(`Cannot fetch ${this.modelName}`);

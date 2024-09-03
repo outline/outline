@@ -21,7 +21,7 @@ import env from "~/env";
 import type {
   FetchOptions,
   PaginationParams,
-  PartialWithId,
+  PartialExcept,
   SearchResult,
 } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -489,7 +489,7 @@ export default class DocumentsStore extends Store<Document> {
     super.fetch(
       id,
       options,
-      (res: { data: { document: PartialWithId<Document> } }) =>
+      (res: { data: { document: PartialExcept<Document, "id"> } }) =>
         res.data.document
     );
 
