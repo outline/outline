@@ -25,7 +25,7 @@ export default function isMarkdown(text: string): boolean {
   }
 
   // table header-ish
-  const tables = text.match(/\|\s?[-]+\s?\|/gm);
+  const tables = text.match(/\|\s?[:-]+\s?\|/gm);
   if (tables && tables.length > 1) {
     return true;
   }
