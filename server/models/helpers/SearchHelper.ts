@@ -555,6 +555,8 @@ export default class SearchHelper {
       )
         // Remove any trailing join characters
         .replace(/&$/, "")
+        // Remove any trailing escape characters
+        .replace(/\\$/, "")
     );
   }
 
