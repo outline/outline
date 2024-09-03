@@ -5022,10 +5022,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/readable-stream@^4.0.14":
-  version "4.0.14"
-  resolved "https://registry.yarnpkg.com/@types/readable-stream/-/readable-stream-4.0.14.tgz#5a76a00e1e3dd6ff921ea2b3fac7485c5a492c19"
-  integrity sha512-xZn/AuUbCMShGsqH/ehZtGDwQtbx00M9rZ2ENLe4tOjFZ/JFeWMhEZkk2fEe1jAUqqEAURIkFJ7Az/go8mM1/w==
+"@types/readable-stream@^4.0.15":
+  version "4.0.15"
+  resolved "https://registry.yarnpkg.com/@types/readable-stream/-/readable-stream-4.0.15.tgz#e6ec26fe5b02f578c60baf1fa9452e90957d2bfb"
+  integrity sha512-oAZ3kw+kJFkEqyh7xORZOku1YAKvsFTogRY8kVl4vHpEKiDkfnSA/My8haRE7fvmix5Zyy+1pwzOi7yycGLBJw==
   dependencies:
     "@types/node" "*"
     safe-buffer "~5.1.1"
