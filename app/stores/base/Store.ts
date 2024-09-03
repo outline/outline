@@ -11,15 +11,12 @@ import { Pagination } from "@shared/constants";
 import { type JSONObject } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
+import ArchivableModel from "~/models/base/ArchivableModel";
 import Model from "~/models/base/Model";
+import ParanoidModel from "~/models/base/ParanoidModel";
 import { LifecycleManager } from "~/models/decorators/Lifecycle";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
-import type {
-  PaginationParams,
-  PartialWithArchivedAt,
-  PartialWithId,
-  Properties,
-} from "~/types";
+import type { PaginationParams, PartialWithId, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Logger from "~/utils/Logger";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
@@ -131,7 +128,11 @@ export default abstract class Store<T extends Model> {
           }
 
           if (deleteBehavior === "cascade") {
-            store.remove(item.id);
+            if (item instanceof ParanoidModel) {
+              item.deletedAt = new Date().toISOString();
+            } else {
+              store.remove(item.id);
+            }
           } else if (deleteBehavior === "null") {
             item[relation.idKey] = null;
           }
@@ -150,13 +151,13 @@ export default abstract class Store<T extends Model> {
   }
 
   @action
-  addToArchive(item: PartialWithArchivedAt<T>): void {
+  addToArchive(item: ArchivableModel): void {
     const inverseRelations = getInverseRelationsForModelClass(this.model);
 
     inverseRelations.forEach((relation) => {
       const store = this.rootStore.getStoreForModelName(relation.modelName);
       if ("orderedData" in store) {
-        const items = (store.orderedData as Model[]).filter(
+        const items = (store.orderedData as ArchivableModel[]).filter(
           (data) => data[relation.idKey] === item.id
         );
 
@@ -168,7 +169,7 @@ export default abstract class Store<T extends Model> {
           }
 
           if (archiveBehavior === "cascade") {
-            store.addToArchive(item as any);
+            store.addToArchive(item);
           } else if (archiveBehavior === "null") {
             item[relation.idKey] = null;
           }
@@ -182,7 +183,7 @@ export default abstract class Store<T extends Model> {
     }
 
     item.archivedAt = new Date().toISOString();
-    this.add(item);
+    (this as unknown as Store<ArchivableModel>).add(item);
   }
 
   /**

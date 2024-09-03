@@ -27,7 +27,7 @@ import { settingsPath } from "~/utils/routeHelpers";
 import Collection from "./Collection";
 import Notification from "./Notification";
 import View from "./View";
-import ParanoidModel from "./base/ParanoidModel";
+import ArchivableModel from "./base/ArchivableModel";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 
@@ -37,7 +37,7 @@ type SaveOptions = JSONObject & {
   autosave?: boolean;
 };
 
-export default class Document extends ParanoidModel {
+export default class Document extends ArchivableModel {
   static modelName = "Document";
 
   constructor(fields: Record<string, any>, store: DocumentsStore) {
@@ -192,9 +192,6 @@ export default class Document extends ParanoidModel {
 
   @observable
   publishedAt: string | undefined;
-
-  @observable
-  archivedAt: string;
 
   /**
    * @deprecated Use path instead
