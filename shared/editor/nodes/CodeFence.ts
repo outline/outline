@@ -39,6 +39,7 @@ import perl from "refractor/lang/perl";
 import php from "refractor/lang/php";
 import powershell from "refractor/lang/powershell";
 import python from "refractor/lang/python";
+import r from "refractor/lang/r";
 import ruby from "refractor/lang/ruby";
 import rust from "refractor/lang/rust";
 import sass from "refractor/lang/sass";
@@ -111,6 +112,7 @@ const DEFAULT_LANGUAGE = "javascript";
   php,
   python,
   powershell,
+  r,
   ruby,
   rust,
   scala,
