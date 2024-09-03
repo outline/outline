@@ -88,7 +88,7 @@ jobs:
       - run:
           name: test
           command: |
-            TESTFILES=$(circleci tests glob "server/**/*.test.ts" | circleci tests split)
+            TESTFILES=$(circleci tests glob "**/server/**/*.test.ts" | circleci tests split)
             yarn test --maxWorkers=2 $TESTFILES
   bundle-size:
     <<: *defaults
