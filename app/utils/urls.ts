@@ -21,10 +21,20 @@ export function isHash(href: string) {
   return false;
 }
 
+/**
+ * Decodes a URI component without throwing an error in case of invalid encoding.
+ *
+ * @param text The text to decode.
+ * @returns The decoded text.
+ */
 export function decodeURIComponentSafe(text: string) {
-  return text
-    ? decodeURIComponent(text.replace(/%(?![0-9][0-9a-fA-F]+)/g, "%25"))
-    : text;
+  try {
+    return text
+      ? decodeURIComponent(text.replace(/%(?![0-9][0-9a-fA-F]+)/g, "%25"))
+      : text;
+  } catch (_) {
+    return text;
+  }
 }
 
 /**

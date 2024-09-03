@@ -33,6 +33,7 @@ import {
   documentPath,
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
+import { decodeURIComponentSafe } from "~/utils/urls";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
@@ -224,7 +225,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         ref={mergeRefs([ref, handleRefChanged])}
         autoFocus={!!document.title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
-        scrollTo={decodeURIComponent(window.location.hash)}
+        scrollTo={decodeURIComponentSafe(window.location.hash)}
         readOnly={readOnly}
         shareId={shareId}
         userId={user?.id}
