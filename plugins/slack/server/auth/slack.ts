@@ -124,9 +124,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
 
   router.get(
     "slack.post",
-    auth({
-      optional: true,
-    }),
+    auth({ optional: true }),
     validate(T.SlackPostSchema),
     async (ctx: APIContext<T.SlackPostReq>) => {
       const { code, error, state } = ctx.input.query;

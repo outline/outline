@@ -1,17 +1,17 @@
 import { buildUser, buildWebhookSubscription } from "@server/test/factories";
-import { UserEvent } from "@server/types";
+import type { UserEvent } from "@server/types";
 import DeliverWebhookTask from "../tasks/DeliverWebhookTask";
 import WebhookProcessor from "./WebhookProcessor";
 
 jest.mock("../tasks/DeliverWebhookTask");
 const ip = "127.0.0.1";
 
-beforeEach(async () => {
+beforeEach(() => {
   jest.resetAllMocks();
 });
 
 describe("WebhookProcessor", () => {
-  test("it schedules a delivery for the event", async () => {
+  it("it schedules a delivery for the event", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",
       events: ["*"],
@@ -36,7 +36,7 @@ describe("WebhookProcessor", () => {
     });
   });
 
-  test("not schedule a delivery when not subscribed to event", async () => {
+  it("not schedule a delivery when not subscribed to event", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",
       events: ["users.create"],
@@ -56,7 +56,7 @@ describe("WebhookProcessor", () => {
     expect(DeliverWebhookTask.schedule).toHaveBeenCalledTimes(0);
   });
 
-  test("it schedules a delivery for the event for each subscription", async () => {
+  it("it schedules a delivery for the event for each subscription", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",
       events: ["*"],

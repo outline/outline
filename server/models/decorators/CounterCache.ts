@@ -1,8 +1,9 @@
 import isNil from "lodash/isNil";
 import { InferAttributes } from "sequelize";
 import { ModelClassGetter } from "sequelize-typescript";
+import env from "@server/env";
 import { CacheHelper } from "@server/utils/CacheHelper";
-import Model from "../base/Model";
+import type Model from "../base/Model";
 
 type RelationOptions = {
   /** Reference name used in cache key. */
@@ -24,6 +25,10 @@ export function CounterCache<
   options: RelationOptions
 ) {
   return function (target: InstanceType<T>, _propertyKey: string) {
+    if (env.isTest) {
+      // No-op cache in test environment
+      return;
+    }
     const modelClass = classResolver() as typeof Model;
     const cacheKeyPrefix = `count:${target.constructor.name}:${options.as}`;
 
