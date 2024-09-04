@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
 import Group from "~/models/Group";
-import { AvatarSize } from "../Avatar";
+import { AvatarSize } from "../Avatar/Avatar";
 
 type Props = {
   /** The group to show an avatar for */
