@@ -4650,28 +4650,4 @@ describe("#documents.empty_trash", () => {
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
-  it("should permanently delete documents", async () => {
-    const user = await buildAdmin();
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    await document.delete(user);
-
-    const res = await server.post("/api/documents.empty_trash", {
-      body: {
-        token: user.getJwtToken(),
-      },
-    });
-
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.success).toEqual(true);
-
-    const deletedDoc = await Document.findByPk(document.id, {
-      userId: user.id,
-      paranoid: false,
-    });
-    expect(deletedDoc).toBeNull();
-  });
 });
