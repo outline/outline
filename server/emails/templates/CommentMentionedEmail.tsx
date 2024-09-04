@@ -92,8 +92,8 @@ export default class CommentMentionedEmail extends BaseEmail<
     );
   }
 
-  protected subject({ actorName, document }: Props) {
-    return `${actorName} mentioned you in “${document.title}”`;
+  protected subject({ document }: Props) {
+    return `Mentioned you in “${document.title}”`;
   }
 
   protected preview({ actorName }: Props): string {

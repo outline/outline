@@ -7,6 +7,7 @@ import Notification from "@server/models/Notification";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
 import { NotificationMetadata } from "@server/types";
+import { getEmailMessageId } from "@server/utils/emails";
 
 export interface EmailProps {
   to: string | null;
@@ -101,11 +102,21 @@ export default abstract class BaseEmail<
       return;
     }
 
+    const messageId = notification
+      ? getEmailMessageId(notification.id)
+      : undefined;
+
+    const references = notification
+      ? await Notification.emailReferences(notification)
+      : undefined;
+
     try {
       await mailer.sendMail({
         to: this.props.to,
         fromName: this.fromName?.(data),
         subject: this.subject(data),
+        messageId,
+        references,
         previewText: this.preview(data),
         component: (
           <>
