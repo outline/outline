@@ -12,16 +12,19 @@ describe("#parseDomain", () => {
     expect(parseDomain("http://example.com")).toMatchObject({
       teamSubdomain: "",
       host: "example.com",
+      port: undefined,
       custom: false,
     });
     expect(parseDomain("//example.com")).toMatchObject({
       teamSubdomain: "",
       host: "example.com",
+      port: undefined,
       custom: false,
     });
-    expect(parseDomain("https://example.com")).toMatchObject({
+    expect(parseDomain("https://example.com:3030")).toMatchObject({
       teamSubdomain: "",
       host: "example.com",
+      port: "3030",
       custom: false,
     });
   });
