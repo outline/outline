@@ -1955,6 +1955,7 @@ router.post(
       collectionScope,
       "withDrafts",
     ]).findAll({
+      attributes: ["id"],
       where: {
         deletedAt: {
           [Op.ne]: null,
@@ -1978,6 +1979,9 @@ router.post(
 
     await EmptyTrashTask.schedule({
       documentIds: documents.map((doc) => doc.id),
+    });
+    await Event.createFromContext(ctx, {
+      name: "documents.empty_trash",
     });
 
     ctx.body = {
