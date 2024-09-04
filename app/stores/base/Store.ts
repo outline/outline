@@ -13,7 +13,6 @@ import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import ArchivableModel from "~/models/base/ArchivableModel";
 import Model from "~/models/base/Model";
-import ParanoidModel from "~/models/base/ParanoidModel";
 import { LifecycleManager } from "~/models/decorators/Lifecycle";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
 import type { PaginationParams, PartialExcept, Properties } from "~/types";
@@ -128,11 +127,7 @@ export default abstract class Store<T extends Model> {
           }
 
           if (deleteBehavior === "cascade") {
-            if (item instanceof ParanoidModel) {
-              item.deletedAt = new Date().toISOString();
-            } else {
-              store.remove(item.id);
-            }
+            store.remove(item.id);
           } else if (deleteBehavior === "null") {
             item[relation.idKey] = null;
           }
