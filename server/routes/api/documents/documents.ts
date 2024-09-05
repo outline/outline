@@ -1977,9 +1977,12 @@ router.post(
       paranoid: false,
     });
 
-    await EmptyTrashTask.schedule({
-      documentIds: documents.map((doc) => doc.id),
-    });
+    if (documents.length) {
+      await EmptyTrashTask.schedule({
+        documentIds: documents.map((doc) => doc.id),
+      });
+    }
+
     await Event.createFromContext(ctx, {
       name: "documents.empty_trash",
     });
