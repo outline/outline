@@ -32,6 +32,7 @@ export const LANGUAGES = {
   lisp: "Lisp",
   lua: "Lua",
   mermaidjs: "Mermaid Diagram",
+  nginx: "Nginx",
   nix: "Nix",
   objectivec: "Objective-C",
   ocaml: "OCaml",

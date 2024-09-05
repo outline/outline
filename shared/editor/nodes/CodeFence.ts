@@ -33,6 +33,7 @@ import kotlin from "refractor/lang/kotlin";
 import lisp from "refractor/lang/lisp";
 import lua from "refractor/lang/lua";
 import markup from "refractor/lang/markup";
+import nginx from "refractor/lang/nginx";
 import nix from "refractor/lang/nix";
 import objectivec from "refractor/lang/objectivec";
 import ocaml from "refractor/lang/ocaml";
@@ -107,6 +108,7 @@ const DEFAULT_LANGUAGE = "javascript";
   lisp,
   lua,
   markup,
+  nginx,
   nix,
   objectivec,
   ocaml,
