@@ -14,6 +14,7 @@ export const LANGUAGES = {
   cpp: "C++",
   csharp: "C#",
   css: "CSS",
+  docker: "Docker",
   elixir: "Elixir",
   erlang: "Erlang",
   go: "Go",

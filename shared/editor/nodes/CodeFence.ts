@@ -16,6 +16,7 @@ import clike from "refractor/lang/clike";
 import cpp from "refractor/lang/cpp";
 import csharp from "refractor/lang/csharp";
 import css from "refractor/lang/css";
+import docker from "refractor/lang/docker";
 import elixir from "refractor/lang/elixir";
 import erlang from "refractor/lang/erlang";
 import go from "refractor/lang/go";
@@ -89,6 +90,7 @@ const DEFAULT_LANGUAGE = "javascript";
   css,
   clike,
   csharp,
+  docker,
   elixir,
   erlang,
   go,
