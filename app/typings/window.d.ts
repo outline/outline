@@ -14,7 +14,7 @@ declare global {
 
     stores: RootStore;
 
-    DesktopBridge: {
+    DesktopBridge?: {
       /**
        * The name of the platform running on.
        */
