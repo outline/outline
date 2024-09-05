@@ -158,12 +158,17 @@ function DataLoader({ match, children }: Props) {
         throw new Error("Document not loaded yet");
       }
 
-      const newDocument = await documents.create({
-        collectionId: nested ? undefined : document.collectionId,
-        parentDocumentId: nested ? document.id : document.parentDocumentId,
-        title,
-        data: ProsemirrorHelper.getEmptyDocument(),
-      });
+      const newDocument = await documents.create(
+        {
+          collectionId: nested ? undefined : document.collectionId,
+          parentDocumentId: nested ? document.id : document.parentDocumentId,
+          title,
+          data: ProsemirrorHelper.getEmptyDocument(),
+        },
+        {
+          publish: document.isDraft ? undefined : true,
+        }
+      );
 
       return newDocument.url;
     },
