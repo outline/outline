@@ -66,7 +66,6 @@ import { documentEditPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
-  className?: string;
   isRevision?: boolean;
   /** Pass true if the document is currently being displayed */
   showDisplayOptions?: boolean;
@@ -83,16 +82,10 @@ type Props = {
 type MenuTriggerProps = {
   label?: (props: MenuButtonHTMLProps) => React.ReactNode;
   document: Document;
-  className?: string;
   menu: MenuStateReturn;
 };
 
-const MenuTrigger: React.FC<MenuTriggerProps> = ({
-  label,
-  document,
-  className,
-  menu,
-}) => {
+const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, document, menu }) => {
   const { t } = useTranslation();
 
   const { subscriptions } = useStores();
@@ -117,7 +110,6 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({
     </MenuButton>
   ) : (
     <OverflowMenuButton
-      className={className}
       aria-label={t("Show menu")}
       onMouseEnter={handleMouseEnter}
       {...menu}
@@ -354,7 +346,6 @@ const MenuContent: React.FC<MenuContentProps> = ({
 
 function DocumentMenu({
   document,
-  className,
   modal = true,
   showToggleEmbeds,
   showDisplayOptions,
@@ -431,12 +422,7 @@ function DocumentMenu({
           />
         </label>
       </VisuallyHidden>
-      <MenuTrigger
-        label={label}
-        document={document}
-        className={className}
-        menu={menu}
-      />
+      <MenuTrigger label={label} document={document} menu={menu} />
       <MenuContent
         document={document}
         menu={menu}
