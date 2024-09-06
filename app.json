@@ -204,20 +204,6 @@
       "description": "G-xxxx (optional)",
       "required": false
     },
-    "UMAMI_SCRIPT_DOMAIN": {
-      "description": "Protocols and domain names (optional)",
-      "value": "https://cloud.umami.is",
-      "required": false
-    },
-    "UMAMI_SCRIPT_NAME": {
-      "description": "Script Name (optional)",
-      "value": "script.js",
-      "required": false
-    },
-    "UMAMI_WEBSITE_ID": {
-      "description": "xxx-xxx-xxx-xxx-xxx (optional)",
-      "required": false
-    },
     "SENTRY_DSN": {
       "description": "An API key for Sentry if you wish to collect error reporting (optional)",
       "required": false
