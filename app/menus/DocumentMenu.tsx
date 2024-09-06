@@ -61,17 +61,25 @@ import { documentEditPath } from "~/utils/routeHelpers";
 import { MenuContext, useMenuContext } from "./MenuContext";
 
 type Props = {
+  /** Document for which the menu is to be shown */
   document: Document;
   isRevision?: boolean;
   /** Pass true if the document is currently being displayed */
   showDisplayOptions?: boolean;
+  /** Whether to display menu as a modal */
   modal?: boolean;
+  /** Whether to include the option of toggling embeds as menu item */
   showToggleEmbeds?: boolean;
   showPin?: boolean;
+  /** Label for menu button */
   label?: (props: MenuButtonHTMLProps) => React.ReactNode;
+  /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
+  /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
+  /** Invoked when menu is opened */
   onOpen?: () => void;
+  /** Invoked when menu is closed */
   onClose?: () => void;
 };
 
