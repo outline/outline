@@ -14,7 +14,6 @@ import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
-import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
@@ -115,7 +114,6 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label }) => {
 type MenuContentProps = {
   onOpen?: () => void;
   onClose?: () => void;
-  collection?: Collection;
   onFindAndReplace?: () => void;
   onRename?: () => void;
   showDisplayOptions?: boolean;
@@ -125,7 +123,6 @@ type MenuContentProps = {
 const MenuContent: React.FC<MenuContentProps> = ({
   onOpen,
   onClose,
-  collection,
   onFindAndReplace,
   onRename,
   showDisplayOptions,
@@ -140,6 +137,10 @@ const MenuContent: React.FC<MenuContentProps> = ({
   const { t } = useTranslation();
 
   const { policies, collections } = useStores();
+
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
 
   const context = useActionContext({
     isContextMenu: true,
@@ -420,7 +421,6 @@ function DocumentMenu({
         <MenuContent
           onOpen={onOpen}
           onClose={onClose}
-          collection={collection}
           onRename={onRename}
           showDisplayOptions={showDisplayOptions}
           showToggleEmbeds={showToggleEmbeds}
