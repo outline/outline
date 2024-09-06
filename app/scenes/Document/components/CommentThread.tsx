@@ -10,7 +10,7 @@ import { s } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -67,6 +67,7 @@ function CommentThread({
   const { editor } = useDocumentContext();
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
+  const replyRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
   const { t } = useTranslation();
   const history = useHistory();
@@ -123,13 +124,13 @@ function CommentThread({
 
       setTimeout(
         () => {
-          if (!topRef.current) {
+          if (!replyRef.current) {
             return;
           }
-          return scrollIntoView(topRef.current, {
+          return scrollIntoView(replyRef.current, {
             scrollMode: "if-needed",
             behavior: "smooth",
-            block: "end",
+            block: "center",
             boundary: (parent) =>
               // Prevents body and other parent elements from being scrolled
               parent.id !== "comments",
@@ -202,7 +203,7 @@ function CommentThread({
           </Flex>
         ))}
 
-      <ResizingHeightContainer hideOverflow={false}>
+      <ResizingHeightContainer hideOverflow={false} ref={replyRef}>
         {(focused || draft || commentsInThread.length === 0) && can.comment && (
           <Fade timing={100}>
             <CommentForm

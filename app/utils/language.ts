@@ -33,18 +33,18 @@ export function detectLanguage() {
  * if running in the desktop shell.
  *
  * @param locale The locale to change to, in CLDR format (en_US)
- * @param i18n The i18n instance to use
+ * @param instance The i18n instance to use
  */
 export async function changeLanguage(
   locale: string | null | undefined,
-  i18n: i18n
+  instance: i18n
 ) {
   // Languages are stored in en_US format in the database, however the
   // frontend translation framework (i18next) expects en-US
   const localeBCP = locale ? unicodeCLDRtoBCP47(locale) : undefined;
 
-  if (localeBCP && i18n.languages?.[0] !== localeBCP) {
-    await i18n.changeLanguage(localeBCP);
+  if (localeBCP && instance.languages?.[0] !== localeBCP) {
+    await instance.changeLanguage(localeBCP);
     await Desktop.bridge?.setSpellCheckerLanguages(["en-US", localeBCP]);
   }
 }

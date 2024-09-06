@@ -1,13 +1,11 @@
 import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
 import {
-  AfterDestroy,
   BelongsTo,
   Column,
   ForeignKey,
   Table,
   HasMany,
   BelongsToMany,
-  DefaultScope,
   DataType,
   Scopes,
 } from "sequelize-typescript";
@@ -16,30 +14,19 @@ import GroupUser from "./GroupUser";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
+import { CounterCache } from "./decorators/CounterCache";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
-@DefaultScope(() => ({
-  include: [
-    {
-      association: "groupUsers",
-      required: false,
-    },
-  ],
-}))
 @Scopes(() => ({
-  withMember: (memberId: string) => ({
+  withMembership: (userId: string) => ({
     include: [
       {
         association: "groupUsers",
         required: true,
-      },
-      {
-        association: "members",
-        required: true,
         where: {
-          userId: memberId,
+          userId,
         },
       },
     ],
@@ -78,35 +65,15 @@ class Group extends ParanoidModel<
   @Column
   name: string;
 
-  // hooks
-
-  @AfterDestroy
-  static async deleteGroupUsers(model: Group) {
-    if (!model.deletedAt) {
-      return;
-    }
-    await GroupUser.destroy({
-      where: {
-        groupId: model.id,
-      },
-    });
-    await GroupMembership.destroy({
-      where: {
-        groupId: model.id,
-      },
-    });
-  }
-
-  static filterByMember(memberId: string | undefined) {
-    return memberId
-      ? this.scope({ method: ["withMember", memberId] })
+  static filterByMember(userId: string | undefined) {
+    return userId
+      ? this.scope({ method: ["withMembership", userId] })
       : this.scope("defaultScope");
   }
 
   // associations
 
   @HasMany(() => GroupUser, "groupId")
-  @HasMany(() => GroupUser, { as: "members", foreignKey: "groupId" })
   groupUsers: GroupUser[];
 
   @HasMany(() => GroupMembership, "groupId")
@@ -128,6 +95,9 @@ class Group extends ParanoidModel<
 
   @BelongsToMany(() => User, () => GroupUser)
   users: User[];
+
+  @CounterCache(() => GroupUser, { as: "members", foreignKey: "groupId" })
+  memberCount: Promise<number>;
 }
 
 export default Group;

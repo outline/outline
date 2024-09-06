@@ -13,7 +13,7 @@ import { ProsemirrorData } from "@shared/types";
 import { dateToRelative } from "@shared/utils/date";
 import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
@@ -53,7 +53,7 @@ function useShowTime(
 
   return (
     !msSincePreviousComment ||
-    (msSincePreviousComment > 15 * Minute &&
+    (msSincePreviousComment > 15 * Minute.ms &&
       previousTimeStamp !== currentTimeStamp)
   );
 }

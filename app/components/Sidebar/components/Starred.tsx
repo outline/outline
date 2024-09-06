@@ -11,8 +11,8 @@ import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
+import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
-import StarredContext from "./StarredContext";
 import StarredLink from "./StarredLink";
 import { useDropToCreateStar, useDropToReorderStar } from "./useDragAndDrop";
 
@@ -25,8 +25,8 @@ function Starred() {
   const { loading, next, end, error, page } = usePaginatedRequest<Star>(
     stars.fetchPage
   );
-  const [reorderStarMonitor, dropToReorder] = useDropToReorderStar();
-  const [createStarMonitor, dropToStarRef] = useDropToCreateStar();
+  const [reorderStarProps, dropToReorder] = useDropToReorderStar();
+  const [createStarProps, dropToStarRef] = useDropToCreateStar();
 
   React.useEffect(() => {
     if (error) {
@@ -39,20 +39,20 @@ function Starred() {
   }
 
   return (
-    <StarredContext.Provider value={true}>
+    <SidebarContext.Provider value="starred">
       <Flex column>
         <Header id="starred" title={t("Starred")}>
           <Relative>
-            {reorderStarMonitor.isDragging && (
+            {reorderStarProps.isDragging && (
               <DropCursor
-                isActiveDrop={reorderStarMonitor.isOverCursor}
+                isActiveDrop={reorderStarProps.isOverCursor}
                 innerRef={dropToReorder}
                 position="top"
               />
             )}
-            {createStarMonitor.isDragging && (
+            {createStarProps.isDragging && (
               <DropCursor
-                isActiveDrop={createStarMonitor.isOverCursor}
+                isActiveDrop={createStarProps.isOverCursor}
                 innerRef={dropToStarRef}
                 position="top"
               />
@@ -80,7 +80,7 @@ function Starred() {
           </Relative>
         </Header>
       </Flex>
-    </StarredContext.Provider>
+    </SidebarContext.Provider>
   );
 }
 

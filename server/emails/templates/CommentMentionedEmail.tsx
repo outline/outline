@@ -69,7 +69,7 @@ export default class CommentMentionedEmail extends BaseEmail<
     content = await TextHelper.attachmentsToSignedUrls(
       content,
       document.teamId,
-      (4 * Day) / 1000
+      4 * Day.seconds
     );
 
     if (content) {
@@ -92,8 +92,8 @@ export default class CommentMentionedEmail extends BaseEmail<
     );
   }
 
-  protected subject({ actorName, document }: Props) {
-    return `${actorName} mentioned you in “${document.title}”`;
+  protected subject({ document }: Props) {
+    return `Mentioned you in “${document.title}”`;
   }
 
   protected preview({ actorName }: Props): string {

@@ -12,9 +12,11 @@ import { type JSONObject } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Model from "~/models/base/Model";
+import { LifecycleManager } from "~/models/decorators/Lifecycle";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
 import type { PaginationParams, PartialWithId, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
+import Logger from "~/utils/Logger";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 
 export enum RPCAction {
@@ -102,6 +104,11 @@ export default abstract class Store<T extends Model> {
 
   @action
   remove(id: string): void {
+    const model = this.data.get(id);
+    if (!model) {
+      return;
+    }
+
     const inverseRelations = getInverseRelationsForModelClass(this.model);
 
     inverseRelations.forEach((relation) => {
@@ -132,7 +139,9 @@ export default abstract class Store<T extends Model> {
       this.rootStore.policies.remove(id);
     }
 
+    LifecycleManager.executeHooks(model.constructor, "beforeRemove", model);
     this.data.delete(id);
+    LifecycleManager.executeHooks(model.constructor, "afterRemove", model);
   }
 
   /**
@@ -298,8 +307,15 @@ export default abstract class Store<T extends Model> {
 
   @action
   fetchAll = async (params?: Record<string, any>): Promise<T[]> => {
-    const limit = Pagination.defaultLimit;
+    const limit = params?.limit ?? Pagination.defaultLimit;
     const response = await this.fetchPage({ ...params, limit });
+
+    if (!response[PAGINATION_SYMBOL]) {
+      Logger.warn("Pagination information not available in response", {
+        params,
+      });
+    }
+
     const pages = Math.ceil(response[PAGINATION_SYMBOL].total / limit);
     const fetchPages = [];
     for (let page = 1; page < pages; page++) {
@@ -308,9 +324,10 @@ export default abstract class Store<T extends Model> {
       );
     }
 
-    const results = flatten(
-      fetchPages.length ? await Promise.all(fetchPages) : [response]
-    );
+    const results = flatten([
+      response,
+      ...(fetchPages.length ? await Promise.all(fetchPages) : []),
+    ]);
 
     if (params?.withRelations) {
       await Promise.all(

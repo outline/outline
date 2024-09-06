@@ -41,7 +41,6 @@ const Layout = React.forwardRef(function Layout_(
     <Container column auto ref={ref}>
       <Helmet>
         <title>{title ? title : env.APP_NAME}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Helmet>
 
       <SkipNavLink />

@@ -21,12 +21,36 @@ export function isHash(href: string) {
   return false;
 }
 
+/**
+ * Decodes a URI component without throwing an error in case of invalid encoding.
+ *
+ * @param text The text to decode.
+ * @returns The decoded text.
+ */
 export function decodeURIComponentSafe(text: string) {
-  return text
-    ? decodeURIComponent(text.replace(/%(?![0-9][0-9a-fA-F]+)/g, "%25"))
-    : text;
+  try {
+    return text
+      ? decodeURIComponent(text.replace(/%(?![0-9][0-9a-fA-F]+)/g, "%25"))
+      : text;
+  } catch (_) {
+    return text;
+  }
 }
 
+/**
+ * Redirects to a new page
+ *
+ * @param url
+ */
 export function redirectTo(url: string) {
   window.location.href = url;
 }
+
+/**
+ * Check if the path is a valid redirect after login
+ *
+ * @param path
+ * @returns boolean indicating if the path is a valid redirect
+ */
+export const isValidPostLoginRedirect = (path: string) =>
+  !["/", "/create", "/home", "/logout"].includes(path);

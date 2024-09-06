@@ -120,6 +120,9 @@ const Styles = createGlobalStyle`
   [data-rmiz-content="found"] [data-zoom] {
     cursor: zoom-in;
   }
+  [data-rmiz-modal] {
+    outline: none;
+  }
   [data-rmiz-modal]::backdrop {
     display: none;
   }

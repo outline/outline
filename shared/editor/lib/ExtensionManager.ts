@@ -155,7 +155,11 @@ export default class ExtensionManager {
         };
       }, {});
 
-    return new MarkdownParser(schema, makeRules({ rules, plugins }), tokens);
+    return new MarkdownParser(
+      schema,
+      makeRules({ rules, schema, plugins }),
+      tokens
+    );
   }
 
   get plugins() {

@@ -274,9 +274,10 @@ export class ProsemirrorHelper {
    * Iterates through the document to find all of the headings and their level.
    *
    * @param doc Prosemirror document node
+   * @param schema Prosemirror schema
    * @returns Array<Heading>
    */
-  static getHeadings(doc: Node) {
+  static getHeadings(doc: Node, schema: Schema) {
     const headings: Heading[] = [];
     const previouslySeen = {};
 
@@ -298,7 +299,7 @@ export class ProsemirrorHelper {
           previouslySeen[id] !== undefined ? previouslySeen[id] + 1 : 1;
 
         headings.push({
-          title: node.textContent,
+          title: ProsemirrorHelper.toPlainText(node, schema),
           level: node.attrs.level,
           id: name,
         });

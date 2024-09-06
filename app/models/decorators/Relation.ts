@@ -41,7 +41,7 @@ export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
       if (
         properties.relationClassResolver().modelName === targetClass.modelName
       ) {
-        inverseRelations.set(propertyName, {
+        inverseRelations.set(`${modelName}-${propertyName}`, {
           ...properties,
           modelName,
         });

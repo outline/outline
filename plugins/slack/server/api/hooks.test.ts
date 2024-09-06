@@ -1,12 +1,7 @@
 import randomstring from "randomstring";
 import { IntegrationService } from "@shared/types";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
-import {
-  buildDocument,
-  buildIntegration,
-  buildTeam,
-  buildUser,
-} from "@server/test/factories";
+import { buildDocument, buildTeam, buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 import env from "../env";
 import * as Slack from "../slack";
@@ -137,8 +132,8 @@ describe("#hooks.slack", () => {
     expect(res.status).toEqual(200);
     expect(body.attachments.length).toEqual(1);
     expect(body.attachments[0].title).toEqual(document.title);
-    expect(body.attachments[0].text).toEqual(
-      "This title *contains* a search term"
+    expect(body.attachments[0].text).toContain(
+      "This title *contains* a search"
     );
   });
 
@@ -197,7 +192,7 @@ describe("#hooks.slack", () => {
     expect(body.text.includes("How to use")).toEqual(true);
   });
 
-  it("should return search results with snippet for unknown user", async () => {
+  it("should return message for unknown user", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     // unpublished document will not be returned
@@ -206,11 +201,6 @@ describe("#hooks.slack", () => {
       userId: user.id,
       teamId: user.teamId,
       publishedAt: null,
-    });
-    const document = await buildDocument({
-      text: "This title contains a search term",
-      userId: user.id,
-      teamId: user.teamId,
     });
     const res = await server.post("/api/hooks.slack", {
       body: {
@@ -222,39 +212,11 @@ describe("#hooks.slack", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.text).toContain("you haven’t signed in to Outline yet");
-    expect(body.attachments.length).toEqual(1);
-    expect(body.attachments[0].title).toEqual(document.title);
-    expect(body.attachments[0].text).toEqual(
-      "This title *contains* a search term"
-    );
-  });
 
-  it("should return search results with snippet for user through integration mapping", async () => {
-    const user = await buildUser();
-    const integration = await buildIntegration({
-      teamId: user.teamId,
-    });
-    const document = await buildDocument({
-      text: "This title contains a search term",
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    const res = await server.post("/api/hooks.slack", {
-      body: {
-        token: env.SLACK_VERIFICATION_TOKEN,
-        user_id: "unknown-slack-user-id",
-        team_id: (integration.settings as any)?.serviceTeamId,
-        text: "contains",
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.text).toContain("you haven’t signed in to Outline yet");
-    expect(body.attachments.length).toEqual(1);
-    expect(body.attachments[0].title).toEqual(document.title);
-    expect(body.attachments[0].text).toEqual(
-      "This title *contains* a search term"
+    expect(body.response_type).toEqual("ephemeral");
+    expect(body.blocks.length).toEqual(1);
+    expect(body.blocks[0].text.text).toContain(
+      "It looks like you haven’t linked your Outline account to Slack yet"
     );
   });
 

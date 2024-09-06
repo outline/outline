@@ -78,7 +78,7 @@ export default class Placeholder extends Mark {
               const range =
                 getMarkRange(doc.resolve(pos.pos), schema.marks.placeholder) ||
                 getMarkRange(
-                  doc.resolve(pos.pos - 1),
+                  doc.resolve(Math.max(0, pos.pos - 1)),
                   schema.marks.placeholder
                 );
               if (!range) {

@@ -105,7 +105,7 @@ const RealButton = styled(ActionButton)<RealProps>`
         background: ${lighten(0.05, props.theme.danger)};
       }
 
-      &.focus-visible {
+      &:focus-visible {
         outline-color: ${darken(0.2, props.theme.danger)} !important;
       }
   `};

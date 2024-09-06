@@ -43,6 +43,9 @@ import {
   User,
   View,
   UserMembership,
+  Group,
+  GroupUser,
+  GroupMembership,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -57,10 +60,13 @@ import {
   presentMembership,
   presentPublicTeam,
   presentUser,
+  presentGroupMembership,
+  presentGroup,
 } from "@server/presenters";
 import DocumentImportTask, {
   DocumentImportTaskResponse,
 } from "@server/queues/tasks/DocumentImportTask";
+import EmptyTrashTask from "@server/queues/tasks/EmptyTrashTask";
 import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
@@ -142,14 +148,36 @@ router.post(
     }
 
     if (parentDocumentId) {
-      const membership = await UserMembership.findOne({
-        where: {
-          userId: user.id,
-          documentId: parentDocumentId,
-        },
-      });
+      const [groupMembership, membership] = await Promise.all([
+        GroupMembership.findOne({
+          where: {
+            documentId: parentDocumentId,
+          },
+          include: [
+            {
+              model: Group,
+              required: true,
+              include: [
+                {
+                  model: GroupUser,
+                  required: true,
+                  where: {
+                    userId: user.id,
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+        UserMembership.findOne({
+          where: {
+            userId: user.id,
+            documentId: parentDocumentId,
+          },
+        }),
+      ]);
 
-      if (membership) {
+      if (groupMembership || membership) {
         delete where.collectionId;
       }
 
@@ -441,6 +469,7 @@ router.post(
     const isPublic = cannot(user, "read", document);
     const serializedDocument = await presentDocument(ctx, document, {
       isPublic,
+      shareId,
     });
 
     const team = await document.$get("team");
@@ -884,13 +913,14 @@ router.post(
       });
     }
 
-    const { results, totalCount } = response;
+    const { results, total } = response;
     const documents = results.map((result) => result.document);
 
     const data = await Promise.all(
       results.map(async (result) => {
         const document = await presentDocument(ctx, result.document, {
           isPublic,
+          shareId,
         });
         return { ...result, document };
       })
@@ -905,12 +935,12 @@ router.post(
         shareId: share?.id,
         source: ctx.state.auth.type || "app", // we'll consider anything that isn't "api" to be "app"
         query,
-        results: totalCount,
+        results: total,
       });
     }
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data,
       policies: user ? presentPolicies(user, documents) : null,
     };
@@ -1054,7 +1084,6 @@ router.post(
       document,
       user,
       ...input,
-      icon: input.icon ?? null,
       publish,
       collectionId,
       insightsEnabled,
@@ -1490,7 +1519,9 @@ router.post(
       transaction,
     });
 
-    document.collection = collection;
+    if (collection) {
+      document.collection = collection;
+    }
 
     ctx.body = {
       data: await presentDocument(ctx, document),
@@ -1606,8 +1637,8 @@ router.post(
   validate(T.DocumentsRemoveUserSchema),
   transaction(),
   async (ctx: APIContext<T.DocumentsRemoveUserReq>) => {
-    const { auth, transaction } = ctx.state;
-    const actor = auth.user;
+    const { transaction } = ctx.state;
+    const { user: actor } = ctx.state.auth;
     const { id, userId } = ctx.input.body;
 
     const [document, user] = await Promise.all([
@@ -1646,6 +1677,132 @@ router.post(
         userId,
         modelId: membership.id,
         documentId: document.id,
+      },
+      { transaction }
+    );
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
+  "documents.add_group",
+  auth(),
+  validate(T.DocumentsAddGroupSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsAddGroupsReq>) => {
+    const { id, groupId, permission } = ctx.input.body;
+    const { transaction } = ctx.state;
+    const { user } = ctx.state.auth;
+
+    const [document, group] = await Promise.all([
+      Document.findByPk(id, {
+        userId: user.id,
+        rejectOnEmpty: true,
+        transaction,
+      }),
+      Group.findByPk(groupId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
+    authorize(user, "update", document);
+    authorize(user, "read", group);
+
+    const [membership, isNew] = await GroupMembership.findOrCreate({
+      where: {
+        documentId: id,
+        groupId,
+      },
+      defaults: {
+        permission: permission || user.defaultDocumentPermission,
+        createdById: user.id,
+      },
+      lock: transaction.LOCK.UPDATE,
+      transaction,
+    });
+
+    if (permission) {
+      membership.permission = permission;
+
+      // disconnect from the source if the permission is manually updated
+      membership.sourceId = null;
+
+      await membership.save({ transaction });
+    }
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "documents.add_group",
+        documentId: document.id,
+        modelId: groupId,
+        data: {
+          name: group.name,
+          isNew,
+          permission: membership.permission,
+          membershipId: membership.id,
+        },
+      },
+      { transaction }
+    );
+
+    ctx.body = {
+      data: {
+        groupMemberships: [presentGroupMembership(membership)],
+      },
+    };
+  }
+);
+
+router.post(
+  "documents.remove_group",
+  auth(),
+  validate(T.DocumentsRemoveGroupSchema),
+  transaction(),
+  async (ctx: APIContext<T.DocumentsRemoveGroupReq>) => {
+    const { transaction } = ctx.state;
+    const { user } = ctx.state.auth;
+    const { id, groupId } = ctx.input.body;
+
+    const [document, group] = await Promise.all([
+      Document.findByPk(id, {
+        userId: user.id,
+        rejectOnEmpty: true,
+        transaction,
+      }),
+      Group.findByPk(groupId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
+    authorize(user, "update", document);
+    authorize(user, "read", group);
+
+    const membership = await GroupMembership.findOne({
+      where: {
+        documentId: id,
+        groupId,
+      },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+    });
+
+    await membership.destroy({ transaction });
+
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "documents.remove_group",
+        documentId: document.id,
+        modelId: groupId,
+        data: {
+          name: group.name,
+          membershipId: membership.id,
+        },
       },
       { transaction }
     );
@@ -1718,6 +1875,71 @@ router.post(
 );
 
 router.post(
+  "documents.group_memberships",
+  auth(),
+  pagination(),
+  validate(T.DocumentsMembershipsSchema),
+  async (ctx: APIContext<T.DocumentsMembershipsReq>) => {
+    const { id, query, permission } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const document = await Document.findByPk(id, { userId: user.id });
+    authorize(user, "update", document);
+
+    let where: WhereOptions<GroupMembership> = {
+      documentId: id,
+    };
+    let groupWhere;
+
+    if (query) {
+      groupWhere = {
+        name: {
+          [Op.iLike]: `%${query}%`,
+        },
+      };
+    }
+
+    if (permission) {
+      where = { ...where, permission };
+    }
+
+    const options = {
+      where,
+      include: [
+        {
+          model: Group,
+          as: "group",
+          where: groupWhere,
+          required: true,
+        },
+      ],
+    };
+
+    const [total, memberships] = await Promise.all([
+      GroupMembership.count(options),
+      GroupMembership.findAll({
+        ...options,
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+    ]);
+
+    const groupMemberships = memberships.map(presentGroupMembership);
+
+    ctx.body = {
+      pagination: { ...ctx.state.pagination, total },
+      data: {
+        groupMemberships,
+        groups: await Promise.all(
+          memberships.map((membership) => presentGroup(membership.group))
+        ),
+      },
+    };
+  }
+);
+
+router.post(
   "documents.empty_trash",
   auth({ role: UserRole.Admin }),
   async (ctx: APIContext) => {
@@ -1733,6 +1955,7 @@ router.post(
       collectionScope,
       "withDrafts",
     ]).findAll({
+      attributes: ["id"],
       where: {
         deletedAt: {
           [Op.ne]: null,
@@ -1754,7 +1977,12 @@ router.post(
       paranoid: false,
     });
 
-    await documentPermanentDeleter(documents);
+    if (documents.length) {
+      await EmptyTrashTask.schedule({
+        documentIds: documents.map((doc) => doc.id),
+      });
+    }
+
     await Event.createFromContext(ctx, {
       name: "documents.empty_trash",
     });

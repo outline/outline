@@ -3,8 +3,7 @@ import { UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import Avatar from "~/components/Avatar";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import FilterOptions from "~/components/FilterOptions";
 import useStores from "~/hooks/useStores";
 

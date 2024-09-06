@@ -44,7 +44,7 @@ describe("#comments.info", () => {
     expect(body.data.id).toEqual(comment.id);
     expect(body.data.data).toEqual(comment.data);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
     expect(body.policies[0].abilities.update).toEqual(false);
     expect(body.policies[0].abilities.delete).toEqual(false);
   });
@@ -73,9 +73,9 @@ describe("#comments.info", () => {
     expect(body.data.id).toEqual(comment.id);
     expect(body.data.data).toEqual(comment.data);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.update).toEqual(true);
-    expect(body.policies[0].abilities.delete).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
+    expect(body.policies[0].abilities.delete).toBeTruthy();
   });
 });
 
@@ -114,8 +114,9 @@ describe("#comments.list", () => {
     expect(body.data.length).toEqual(2);
     expect(body.data[1].id).toEqual(comment.id);
     expect(body.policies.length).toEqual(2);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[1].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[1].abilities.read).toBeTruthy();
+    expect(body.pagination.total).toEqual(2);
   });
 
   it("should return unresolved comments for a collection", async () => {
@@ -146,7 +147,8 @@ describe("#comments.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(comment.id);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.pagination.total).toEqual(1);
   });
 
   it("should return unresolved comments for a parentCommentId", async () => {
@@ -177,7 +179,8 @@ describe("#comments.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(childComment.id);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.pagination.total).toEqual(1);
   });
 
   it("should return resolved comments for a statusFilter", async () => {
@@ -208,9 +211,10 @@ describe("#comments.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(resolved.id);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.unresolve).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.unresolve).toBeTruthy();
     expect(body.policies[0].abilities.resolve).toEqual(false);
+    expect(body.pagination.total).toEqual(1);
   });
 
   it("should return all unresolved comments", async () => {
@@ -255,8 +259,9 @@ describe("#comments.list", () => {
       [comment1.id, comment2.id].sort()
     );
     expect(body.policies.length).toEqual(2);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[1].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[1].abilities.read).toBeTruthy();
+    expect(body.pagination.total).toEqual(2);
   });
 });
 
@@ -293,9 +298,9 @@ describe("#comments.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.data).toEqual(comment.data);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.update).toEqual(true);
-    expect(body.policies[0].abilities.delete).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
+    expect(body.policies[0].abilities.delete).toBeTruthy();
   });
 
   it("should not allow empty comment data", async () => {
@@ -481,9 +486,9 @@ describe("#comments.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.data).toEqual(comment.data);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.update).toEqual(true);
-    expect(body.policies[0].abilities.delete).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
+    expect(body.policies[0].abilities.delete).toBeTruthy();
   });
 });
 
@@ -521,10 +526,10 @@ describe("#comments.resolve", () => {
     expect(body.data.resolvedById).toEqual(user.id);
     expect(body.data.resolvedBy.id).toEqual(user.id);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.update).toEqual(true);
-    expect(body.policies[0].abilities.delete).toEqual(true);
-    expect(body.policies[0].abilities.unresolve).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
+    expect(body.policies[0].abilities.delete).toBeTruthy();
+    expect(body.policies[0].abilities.unresolve).toBeTruthy();
     expect(body.policies[0].abilities.resolve).toEqual(false);
   });
 
@@ -591,10 +596,10 @@ describe("#comments.unresolve", () => {
     expect(body.data.resolvedBy).toEqual(null);
     expect(body.data.resolvedById).toEqual(null);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.update).toEqual(true);
-    expect(body.policies[0].abilities.delete).toEqual(true);
-    expect(body.policies[0].abilities.resolve).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
+    expect(body.policies[0].abilities.delete).toBeTruthy();
+    expect(body.policies[0].abilities.resolve).toBeTruthy();
     expect(body.policies[0].abilities.unresolve).toEqual(false);
   });
 });

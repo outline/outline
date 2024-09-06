@@ -42,7 +42,7 @@ const Button = styled(NudeButton)<{ $root?: boolean }>`
     props.$root &&
     css`
       opacity: 0;
-      left: -16px;
+      left: -18px;
 
       &:hover {
         opacity: 1;

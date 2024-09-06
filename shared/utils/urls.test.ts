@@ -1,3 +1,4 @@
+import env from "../env";
 import * as urlsUtils from "./urls";
 import { urlRegex } from "./urls";
 
@@ -46,8 +47,16 @@ describe("isBase64Url", () => {
 });
 
 describe("isInternalUrl", () => {
+  beforeEach(() => {
+    env.URL = "https://example.com:3000";
+  });
+
   it("should return false if empty string", () => {
     expect(urlsUtils.isInternalUrl("")).toBe(false);
+  });
+
+  it("should return false if port is different", () => {
+    expect(urlsUtils.isInternalUrl("https://example.com:4000")).toBe(false);
   });
 
   it("should return true if starting with relative path", () => {

@@ -1,13 +1,13 @@
 import filter from "lodash/filter";
 import isEqual from "lodash/isEqual";
-import sortBy from "lodash/sortBy";
+import orderBy from "lodash/orderBy";
 import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Document from "~/models/Document";
-import AvatarWithPresence from "~/components/Avatar/AvatarWithPresence";
+import { AvatarWithPresence } from "~/components/Avatar";
 import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";
 import NudeButton from "~/components/NudeButton";
@@ -16,9 +16,14 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
 type Props = {
+  /** The document to display live collaborators for */
   document: Document;
 };
 
+/**
+ * Displays a list of live collaborators for a document, including their avatars
+ * and presence status.
+ */
 function Collaborators(props: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
@@ -39,15 +44,16 @@ function Collaborators(props: Props) {
   // ensure currently present via websocket are always ordered first
   const collaborators = React.useMemo(
     () =>
-      sortBy(
+      orderBy(
         filter(
           users.orderedData,
-          (user) =>
-            (presentIds.includes(user.id) ||
-              document.collaboratorIds.includes(user.id)) &&
-            !user.isSuspended
+          (u) =>
+            (presentIds.includes(u.id) ||
+              document.collaboratorIds.includes(u.id)) &&
+            !u.isSuspended
         ),
-        (user) => presentIds.includes(user.id)
+        [(u) => presentIds.includes(u.id), "id"],
+        ["asc", "asc"]
       ),
     [document.collaboratorIds, users.orderedData, presentIds]
   );
@@ -69,12 +75,19 @@ function Collaborators(props: Props) {
     placement: "bottom-end",
   });
 
+  const limit = 8;
+
   return (
     <>
       <PopoverDisclosure {...popover}>
-        {(props) => (
-          <NudeButton width={collaborators.length * 32} height={32} {...props}>
+        {(popoverProps) => (
+          <NudeButton
+            width={Math.min(collaborators.length, limit) * 32}
+            height={32}
+            {...popoverProps}
+          >
             <Facepile
+              limit={limit}
               users={collaborators}
               renderAvatar={(collaborator) => {
                 const isPresent = presentIds.includes(collaborator.id);

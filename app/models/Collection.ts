@@ -12,7 +12,9 @@ import type CollectionsStore from "~/stores/CollectionsStore";
 import Document from "~/models/Document";
 import ParanoidModel from "~/models/base/ParanoidModel";
 import { client } from "~/utils/ApiClient";
+import User from "./User";
 import Field from "./decorators/Field";
+import { AfterChange } from "./decorators/Lifecycle";
 
 export default class Collection extends ParanoidModel {
   static modelName = "Collection";
@@ -153,6 +155,11 @@ export default class Collection extends ParanoidModel {
   }
 
   @computed
+  get isManualSort(): boolean {
+    return this.sort.field === "index";
+  }
+
+  @computed
   get sortedDocuments(): NavigationNode[] | undefined {
     if (!this.documents) {
       return undefined;
@@ -173,6 +180,19 @@ export default class Collection extends ParanoidModel {
   @computed
   get path() {
     return this.url;
+  }
+
+  /**
+   * Returns users that have been individually given access to the collection.
+   *
+   * @returns A list of users that have been given access to the collection.
+   */
+  @computed
+  get members(): User[] {
+    return this.store.rootStore.memberships.orderedData
+      .filter((m) => m.collectionId === this.id)
+      .map((m) => m.user)
+      .filter(Boolean);
   }
 
   fetchDocuments = async (options?: { force: boolean }) => {
@@ -205,7 +225,9 @@ export default class Collection extends ParanoidModel {
    * @param document The document properties stored in the collection
    */
   @action
-  updateDocument(document: Pick<Document, "id" | "title" | "url">) {
+  updateDocument(
+    document: Pick<Document, "id" | "title" | "url" | "color" | "icon">
+  ) {
     if (!this.documents) {
       return;
     }
@@ -213,6 +235,8 @@ export default class Collection extends ParanoidModel {
     const travelNodes = (nodes: NavigationNode[]) =>
       nodes.forEach((node) => {
         if (node.id === document.id) {
+          node.color = document.color ?? undefined;
+          node.icon = document.icon ?? undefined;
           node.title = document.title;
           node.url = document.url;
         } else {
@@ -324,4 +348,20 @@ export default class Collection extends ParanoidModel {
       format,
       includeAttachments,
     });
+
+  // hooks
+
+  @AfterChange
+  static removePolicies(
+    model: Collection,
+    previousAttributes: Partial<Collection>
+  ) {
+    if (previousAttributes && model.sharing !== previousAttributes?.sharing) {
+      const { documents, policies } = model.store.rootStore;
+
+      documents.inCollection(model.id).forEach((document) => {
+        policies.remove(document.id);
+      });
+    }
+  }
 }

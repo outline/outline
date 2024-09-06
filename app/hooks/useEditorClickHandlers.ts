@@ -39,16 +39,20 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           return;
         }
 
-        // If we're navigating to a share link from a non-share link then open it in a new tab
-        if (shareId && navigateTo.startsWith("/s/")) {
-          window.open(href, "_blank");
-          return;
-        }
-
         // If we're navigating to an internal document link then prepend the
         // share route to the URL so that the document is loaded in context
-        if (shareId && navigateTo.includes("/doc/")) {
+        if (
+          shareId &&
+          navigateTo.includes("/doc/") &&
+          !navigateTo.includes(shareId)
+        ) {
           navigateTo = sharedDocumentPath(shareId, navigateTo);
+        }
+
+        // If we're navigating to a share link from a non-share link then open it in a new tab
+        if (!shareId && navigateTo.startsWith("/s/")) {
+          window.open(href, "_blank");
+          return;
         }
 
         if (!isModKey(event) && !event.shiftKey) {

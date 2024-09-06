@@ -42,7 +42,6 @@ import {
   presentGroupMembership,
   presentComment,
 } from "@server/presenters";
-import presentDocumentGroupMembership from "@server/presenters/documentGroupMembership";
 import BaseTask from "@server/queues/tasks/BaseTask";
 import {
   CollectionEvent,
@@ -72,7 +71,7 @@ import presentWebhook, { WebhookPayload } from "../presenters/webhook";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
 
 function assertUnreachable(event: never) {
-  Logger.warn(`DeliverWebhookTask did not handle ${(event as any).name}`);
+  Logger.warn(`DeliverWebhookTask did not handle ${(event as Event).name}`);
 }
 
 type Props = {
@@ -394,7 +393,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: event.modelId,
-        model: model && presentGroup(model),
+        model: model && (await presentGroup(model)),
       },
     });
   }
@@ -417,7 +416,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: `${event.userId}-${event.modelId}`,
         model: model && presentGroupUser(model),
-        group: model && presentGroup(model.group),
+        group: model && (await presentGroup(model.group)),
         user: model && presentUser(model.user),
       },
     });
@@ -510,7 +509,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         id: event.modelId,
         model: model && presentGroupMembership(model),
         collection,
-        group: model && presentGroup(model.group),
+        group: model && (await presentGroup(model.group)),
       },
     });
   }
@@ -611,9 +610,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: event.modelId,
-        model: model && presentDocumentGroupMembership(model),
+        model: model && presentGroupMembership(model),
         document,
-        group: model && presentGroup(model.group),
+        group: model && (await presentGroup(model.group)),
       },
     });
   }

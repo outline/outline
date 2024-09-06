@@ -7,7 +7,6 @@ import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
 import type {
   DateFilter,
-  JSONObject,
   NavigationNode,
   PublicTeam,
   StatusFilter,
@@ -23,7 +22,6 @@ import type {
   FetchOptions,
   PaginationParams,
   PartialWithId,
-  Properties,
   SearchResult,
 } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -286,10 +284,9 @@ export default class DocumentsStore extends Store<Document> {
       parentDocumentId: documentId,
     });
     invariant(res?.data, "Document list not available");
-    const { data } = res;
 
     runInAction("DocumentsStore#fetchChildDocuments", () => {
-      data.forEach(this.add);
+      res.data.forEach(this.add);
       this.addPolicies(res.policies);
     });
   };
@@ -390,8 +387,10 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    res.data.forEach(this.add);
-    this.addPolicies(res.policies);
+    runInAction("DocumentsStore#searchTitles", () => {
+      res.data.forEach(this.add);
+      this.addPolicies(res.policies);
+    });
 
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
@@ -423,8 +422,10 @@ export default class DocumentsStore extends Store<Document> {
     invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
-    res.data.forEach((result: SearchResult) => this.add(result.document));
-    this.addPolicies(res.policies);
+    runInAction("DocumentsStore#search", () => {
+      res.data.forEach((result: SearchResult) => this.add(result.document));
+      this.addPolicies(res.policies);
+    });
 
     // store a reference to the document model in the search cache instead
     // of the original result from the API.
@@ -510,17 +511,22 @@ export default class DocumentsStore extends Store<Document> {
         this.data.get(id) || this.getByUrl(id);
       const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
 
-      if (doc && policy && !options.force) {
-        if (!options.shareId) {
-          return {
-            document: doc,
-          };
-        } else if (this.sharedCache.has(options.shareId)) {
-          return {
-            document: doc,
-            ...this.sharedCache.get(options.shareId),
-          };
-        }
+      if (doc && policy && !options.shareId && !options.force) {
+        return {
+          document: doc,
+        };
+      }
+
+      if (
+        doc &&
+        options.shareId &&
+        !options.force &&
+        this.sharedCache.has(options.shareId)
+      ) {
+        return {
+          document: doc,
+          ...this.sharedCache.get(options.shareId),
+        };
       }
 
       const res = await client.post("/documents.info", {
@@ -673,17 +679,6 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  removeCollectionDocuments(collectionId: string) {
-    // drafts are to be detached from collection rather than deleted, hence excluded here
-    const documents = filter(
-      this.inCollection(collectionId),
-      (d) => !!d.publishedAt
-    );
-    const documentIds = documents.map((doc) => doc.id);
-    documentIds.forEach((id) => this.remove(id));
-  }
-
-  @action
   async delete(
     document: Document,
     options?: {
@@ -746,34 +741,6 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  async update(
-    params: Properties<Document>,
-    options?: JSONObject
-  ): Promise<Document> {
-    this.isSaving = true;
-
-    try {
-      const res = await client.post(`/${this.apiEndpoint}.update`, {
-        ...params,
-        ...options,
-      });
-
-      invariant(res?.data, "Data should be available");
-
-      const collection = this.getCollectionForDocument(res.data);
-      await collection?.fetchDocuments({ force: true });
-
-      return runInAction("Document#update", () => {
-        const document = this.add(res.data);
-        this.addPolicies(res.policies);
-        return document;
-      });
-    } finally {
-      this.isSaving = false;
-    }
-  }
-
-  @action
   unpublish = async (document: Document) => {
     const res = await client.post("/documents.unpublish", {
       id: document.id,
@@ -804,7 +771,7 @@ export default class DocumentsStore extends Store<Document> {
 
   unstar = (document: Document) => {
     const star = this.rootStore.stars.orderedData.find(
-      (star) => star.documentId === document.id
+      (s) => s.documentId === document.id
     );
     return star?.delete();
   };
@@ -817,9 +784,7 @@ export default class DocumentsStore extends Store<Document> {
 
   unsubscribe = (userId: string, document: Document) => {
     const subscription = this.rootStore.subscriptions.orderedData.find(
-      (subscription) =>
-        subscription.documentId === document.id &&
-        subscription.userId === userId
+      (s) => s.documentId === document.id && s.userId === userId
     );
 
     return subscription?.delete();

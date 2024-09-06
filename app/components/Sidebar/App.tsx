@@ -40,9 +40,10 @@ function AppSidebar() {
   const can = usePolicy(team);
 
   React.useEffect(() => {
+    void collections.fetchAll();
+
     if (!user.isViewer) {
       void documents.fetchDrafts();
-      void collections.fetchAll();
     }
   }, [documents, collections, user.isViewer]);
 
@@ -125,10 +126,10 @@ function AppSidebar() {
               )}
             </Section>
             <Section>
-              <SharedWithMe />
+              <Starred />
             </Section>
             <Section>
-              <Starred />
+              <SharedWithMe />
             </Section>
             <Section auto>
               <Collections />

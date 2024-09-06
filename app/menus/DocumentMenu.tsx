@@ -237,7 +237,7 @@ function DocumentMenu({
               visible:
                 ((document.isWorkspaceTemplate || !!collection) &&
                   can.restore) ||
-                can.unarchive,
+                !!can.unarchive,
               onClick: (ev) => handleRestore(ev),
               icon: <RestoreIcon />,
             },
@@ -268,7 +268,6 @@ function DocumentMenu({
             actionToMenuItem(unstarDocument, context),
             actionToMenuItem(subscribeDocument, context),
             actionToMenuItem(unsubscribeDocument, context),
-            ...(isMobile ? [actionToMenuItem(shareDocument, context)] : []),
             {
               type: "button",
               title: `${t("Find and replace")}…`,
@@ -294,6 +293,7 @@ function DocumentMenu({
               onClick: () => onRename?.(),
               icon: <InputIcon />,
             },
+            actionToMenuItem(shareDocument, context),
             actionToMenuItem(createNestedDocument, context),
             actionToMenuItem(importDocument, context),
             actionToMenuItem(createTemplateFromDocument, context),

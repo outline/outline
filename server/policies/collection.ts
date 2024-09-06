@@ -1,8 +1,8 @@
 import invariant from "invariant";
-import some from "lodash/some";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import filter from "lodash/filter";
+import { CollectionPermission } from "@shared/types";
 import { Collection, User, Team } from "@server/models";
-import { allow, _can as can } from "./cancan";
+import { allow, can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(User, "createCollection", Team, (actor, team) =>
@@ -150,7 +150,7 @@ allow(User, ["update", "delete"], Collection, (user, collection) => {
 
 function includesMembership(
   collection: Collection | null,
-  permissions: (CollectionPermission | DocumentPermission)[]
+  permissions: CollectionPermission[]
 ) {
   if (!collection) {
     return false;
@@ -160,8 +160,15 @@ function includesMembership(
     collection.memberships,
     "Development: collection memberships not preloaded, did you forget `withMembership` scope?"
   );
-  return some(
-    [...collection.memberships, ...collection.groupMemberships],
-    (m) => permissions.includes(m.permission)
+  invariant(
+    collection.groupMemberships,
+    "Development: collection groupMemberships not preloaded, did you forget `withMembership` scope?"
   );
+
+  const membershipIds = filter(
+    [...collection.memberships, ...collection.groupMemberships],
+    (m) => permissions.includes(m.permission as CollectionPermission)
+  ).map((m) => m.id);
+
+  return membershipIds.length > 0 ? membershipIds : false;
 }

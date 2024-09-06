@@ -1,11 +1,10 @@
 import { isEmail } from "class-validator";
 import concat from "lodash/concat";
 import { observer } from "mobx-react";
-import { CheckmarkIcon, CloseIcon, GroupIcon } from "outline-icons";
+import { CheckmarkIcon, CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled, { useTheme } from "styled-components";
-import Squircle from "@shared/components/Squircle";
+import styled from "styled-components";
 import { s } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
 import Collection from "~/models/Collection";
@@ -13,8 +12,7 @@ import Document from "~/models/Document";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
-import Avatar from "~/components/Avatar";
-import { AvatarSize, IAvatar } from "~/components/Avatar/Avatar";
+import { Avatar, GroupAvatar, AvatarSize, IAvatar } from "~/components/Avatar";
 import Empty from "~/components/Empty";
 import Placeholder from "~/components/List/Placeholder";
 import Scrollable from "~/components/Scrollable";
@@ -42,8 +40,6 @@ type Props = {
   addPendingId: (id: string) => void;
   /** Callback to remove a user from the pending list. */
   removePendingId: (id: string) => void;
-  /** Show group suggestions. */
-  showGroups?: boolean;
   /** Handles escape from suggestions list */
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
 };
@@ -57,7 +53,6 @@ export const Suggestions = observer(
       pendingIds,
       addPendingId,
       removePendingId,
-      showGroups,
       onEscape,
     }: Props,
     ref: React.Ref<HTMLDivElement>
@@ -66,7 +61,6 @@ export const Suggestions = observer(
     const { users, groups } = useStores();
     const { t } = useTranslation();
     const user = useCurrentUser();
-    const theme = useTheme();
     const containerRef = React.useRef<HTMLDivElement | null>(null);
     const { maxHeight } = useMaxHeight({
       elementRef: containerRef,
@@ -76,10 +70,7 @@ export const Suggestions = observer(
     const fetchUsersByQuery = useThrottledCallback(
       (query: string) => {
         void users.fetchPage({ query });
-
-        if (showGroups) {
-          void groups.fetchPage({ query });
-        }
+        void groups.fetchPage({ query });
       },
       250,
       undefined,
@@ -113,11 +104,14 @@ export const Suggestions = observer(
         filtered.push(getSuggestionForEmail(query));
       }
 
-      if (collection?.id) {
-        return [...groups.notInCollection(collection.id, query), ...filtered];
-      }
-
-      return filtered;
+      return [
+        ...(document
+          ? groups.notInDocument(document.id, query)
+          : collection
+          ? groups.notInCollection(collection.id, query)
+          : []),
+        ...filtered,
+      ];
     }, [
       getSuggestionForEmail,
       users,
@@ -141,7 +135,7 @@ export const Suggestions = observer(
               : users.get(id) ?? groups.get(id)
           )
           .filter(Boolean) as User[],
-      [users, getSuggestionForEmail, pendingIds]
+      [users, groups, getSuggestionForEmail, pendingIds]
     );
 
     React.useEffect(() => {
@@ -155,11 +149,7 @@ export const Suggestions = observer(
           subtitle: t("{{ count }} member", {
             count: suggestion.memberCount,
           }),
-          image: (
-            <Squircle color={theme.text} size={AvatarSize.Medium}>
-              <GroupIcon color={theme.background} size={16} />
-            </Squircle>
-          ),
+          image: <GroupAvatar group={suggestion} />,
         };
       }
       return {

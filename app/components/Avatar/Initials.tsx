@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 
 const Initials = styled(Flex)<{
@@ -11,7 +12,7 @@ const Initials = styled(Flex)<{
   border-radius: 50%;
   width: 100%;
   height: 100%;
-  color: #fff;
+  color: ${s("white75")};
   background-color: ${(props) => props.color};
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;

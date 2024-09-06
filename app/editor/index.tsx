@@ -562,6 +562,14 @@ export class Editor extends React.PureComponent<
   };
 
   /**
+   * Focus the editor and scroll to the current selection.
+   */
+  public focus = () => {
+    this.view.focus();
+    this.view.dispatch(this.view.state.tr.scrollIntoView());
+  };
+
+  /**
    * Blur the editor.
    */
   public blur = () => {
@@ -616,7 +624,8 @@ export class Editor extends React.PureComponent<
    *
    * @returns A list of headings in the document
    */
-  public getHeadings = () => ProsemirrorHelper.getHeadings(this.view.state.doc);
+  public getHeadings = () =>
+    ProsemirrorHelper.getHeadings(this.view.state.doc, this.schema);
 
   /**
    * Return the images in the current editor.

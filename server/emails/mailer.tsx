@@ -14,6 +14,8 @@ type SendMailOptions = {
   to: string;
   fromName?: string;
   replyTo?: string;
+  messageId?: string;
+  references?: string[];
   subject: string;
   previewText?: string;
   text: string;
@@ -113,6 +115,11 @@ export class Mailer {
   `;
   };
 
+  /**
+   *
+   * @param data Email headers and body
+   * @returns Message ID header from SMTP server
+   */
   sendMail = async (data: SendMailOptions): Promise<void> => {
     const { transporter } = this;
 
@@ -152,6 +159,9 @@ export class Mailer {
           : env.SMTP_FROM_EMAIL,
         replyTo: data.replyTo ?? env.SMTP_REPLY_EMAIL ?? env.SMTP_FROM_EMAIL,
         to: data.to,
+        messageId: data.messageId,
+        references: data.references,
+        inReplyTo: data.references?.at(-1),
         subject: data.subject,
         html,
         text: data.text,

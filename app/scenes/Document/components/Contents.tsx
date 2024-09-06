@@ -6,6 +6,7 @@ import breakpoint from "styled-components-breakpoint";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, s } from "@shared/styles";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
+import { decodeURIComponentSafe } from "~/utils/urls";
 
 const HEADING_OFFSET = 20;
 
@@ -25,12 +26,12 @@ export default function Contents({ headings }: Props) {
   });
 
   React.useEffect(() => {
-    let activeId = headings[0]?.id;
+    let activeId = headings.length > 0 ? headings[0].id : undefined;
 
     for (let key = 0; key < headings.length; key++) {
       const heading = headings[key];
       const element = window.document.getElementById(
-        decodeURIComponent(heading.id)
+        decodeURIComponentSafe(heading.id)
       );
 
       if (element) {

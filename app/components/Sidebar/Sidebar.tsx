@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
+import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMenuContext from "~/hooks/useMenuContext";
@@ -13,7 +14,6 @@ import AccountMenu from "~/menus/AccountMenu";
 import { fadeOnDesktopBackgrounded } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
-import Avatar from "../Avatar";
 import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
 import ResizeBorder from "./components/ResizeBorder";
@@ -274,14 +274,12 @@ const hoverStyles = (props: ContainerProps) => `
 `;
 
 const Container = styled(Flex)<ContainerProps>`
-  opacity: ${(props) => (props.$hidden ? 0 : 1)};
   position: fixed;
   top: 0;
   bottom: 0;
   width: 100%;
   background: ${s("sidebarBackground")};
-  transition: box-shadow 150ms ease-in-out, opacity 150ms ease-in-out,
-    transform 150ms ease-out,
+  transition: box-shadow 150ms ease-in-out, transform 150ms ease-out,
     ${s("backgroundTransition")}
       ${(props: ContainerProps) =>
         props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
@@ -299,7 +297,9 @@ const Container = styled(Flex)<ContainerProps>`
   }
 
   & > div {
-    opacity: ${(props) => (props.$collapsed && !props.$isHovering ? "0" : "1")};
+    transition: opacity 150ms ease-in-out;
+    opacity: ${(props) =>
+      props.$hidden || (props.$collapsed && !props.$isHovering) ? "0" : "1"};
   }
 
   ${breakpoint("tablet")`

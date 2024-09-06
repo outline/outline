@@ -158,12 +158,17 @@ function DataLoader({ match, children }: Props) {
         throw new Error("Document not loaded yet");
       }
 
-      const newDocument = await documents.create({
-        collectionId: nested ? undefined : document.collectionId,
-        parentDocumentId: nested ? document.id : document.parentDocumentId,
-        title,
-        data: ProsemirrorHelper.getEmptyDocument(),
-      });
+      const newDocument = await documents.create(
+        {
+          collectionId: nested ? undefined : document.collectionId,
+          parentDocumentId: nested ? document.id : document.parentDocumentId,
+          title,
+          data: ProsemirrorHelper.getEmptyDocument(),
+        },
+        {
+          publish: document.isDraft ? undefined : true,
+        }
+      );
 
       return newDocument.url;
     },
@@ -189,6 +194,7 @@ function DataLoader({ match, children }: Props) {
           void comments.fetchAll({
             documentId: document.id,
             limit: 100,
+            direction: "ASC",
           });
         }
 
@@ -211,6 +217,10 @@ function DataLoader({ match, children }: Props) {
     );
   }
 
+  if (can.read === false) {
+    return <Error404 />;
+  }
+
   if (!document || (revisionId && !revision)) {
     return (
       <>
@@ -219,14 +229,16 @@ function DataLoader({ match, children }: Props) {
     );
   }
 
+  const readOnly =
+    !isEditing || !can.update || document.isArchived || !!revisionId;
+
   return (
-    <React.Fragment>
+    <React.Fragment key={readOnly ? "readOnly" : ""}>
       {children({
         document,
         revision,
         abilities: can,
-        readOnly:
-          !isEditing || !can.update || document.isArchived || !!revisionId,
+        readOnly,
         onCreateLink,
         sharedTree,
       })}

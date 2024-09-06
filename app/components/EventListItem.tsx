@@ -12,10 +12,11 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled, { css } from "styled-components";
+import EventBoundary from "@shared/components/EventBoundary";
 import { s } from "@shared/styles";
 import Document from "~/models/Document";
 import Event from "~/models/Event";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import Item, { Actions, Props as ItemProps } from "~/components/List/Item";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
@@ -158,7 +159,9 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       }
       actions={
         isRevision && isActive && event.modelId && !latest ? (
-          <RevisionMenu document={document} revisionId={event.modelId} />
+          <StyledEventBoundary>
+            <RevisionMenu document={document} revisionId={event.modelId} />
+          </StyledEventBoundary>
         ) : undefined
       }
       onMouseEnter={prefetchRevision}
@@ -174,6 +177,10 @@ const BaseItem = React.forwardRef(function _BaseItem(
 ) {
   return <ListItem to={to} ref={ref} {...rest} />;
 });
+
+const StyledEventBoundary = styled(EventBoundary)`
+  height: 24px;
+`;
 
 const Subtitle = styled.span`
   svg {
