@@ -1,8 +1,6 @@
 import { NotificationEventType } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 
-const Domain = getBaseDomain();
-
 const EmailThreadSupportedNotifications = [
   NotificationEventType.PublishDocument,
   NotificationEventType.UpdateDocument,
@@ -41,4 +39,9 @@ export const getEmailThreadEventGroup = (
   }
 };
 
-export const getEmailMessageId = (text: string) => `<${text}@${Domain}>`;
+let baseDomain;
+
+export const getEmailMessageId = (notificationId: string) => {
+  baseDomain ||= getBaseDomain();
+  return `<${notificationId}@${baseDomain}>`;
+};

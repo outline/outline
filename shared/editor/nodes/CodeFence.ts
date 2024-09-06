@@ -16,6 +16,7 @@ import clike from "refractor/lang/clike";
 import cpp from "refractor/lang/cpp";
 import csharp from "refractor/lang/csharp";
 import css from "refractor/lang/css";
+import docker from "refractor/lang/docker";
 import elixir from "refractor/lang/elixir";
 import erlang from "refractor/lang/erlang";
 import go from "refractor/lang/go";
@@ -32,6 +33,7 @@ import kotlin from "refractor/lang/kotlin";
 import lisp from "refractor/lang/lisp";
 import lua from "refractor/lang/lua";
 import markup from "refractor/lang/markup";
+import nginx from "refractor/lang/nginx";
 import nix from "refractor/lang/nix";
 import objectivec from "refractor/lang/objectivec";
 import ocaml from "refractor/lang/ocaml";
@@ -89,6 +91,7 @@ const DEFAULT_LANGUAGE = "javascript";
   css,
   clike,
   csharp,
+  docker,
   elixir,
   erlang,
   go,
@@ -105,6 +108,7 @@ const DEFAULT_LANGUAGE = "javascript";
   lisp,
   lua,
   markup,
+  nginx,
   nix,
   objectivec,
   ocaml,

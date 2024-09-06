@@ -239,7 +239,7 @@
     "uuid": "^8.3.2",
     "validator": "13.12.0",
     "vite": "^5.3.1",
-    "vite-plugin-pwa": "^0.17.4",
+    "vite-plugin-pwa": "^0.20.3",
     "winston": "^3.13.0",
     "ws": "^7.5.10",
     "y-indexeddb": "^9.0.11",
@@ -366,5 +366,5 @@
     "qs": "6.9.7",
     "rollup": "^4.5.1"
   },
-  "version": "0.78.0"
+  "version": "0.79.1"
 }

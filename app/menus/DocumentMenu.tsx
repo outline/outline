@@ -251,7 +251,6 @@ const MenuContent: React.FC<MenuContentProps> = ({
           actionToMenuItem(unstarDocument, context),
           actionToMenuItem(subscribeDocument, context),
           actionToMenuItem(unsubscribeDocument, context),
-          ...(isMobile ? [actionToMenuItem(shareDocument, context)] : []),
           {
             type: "button",
             title: `${t("Find and replace")}…`,
@@ -277,6 +276,7 @@ const MenuContent: React.FC<MenuContentProps> = ({
             onClick: () => onRename?.(),
             icon: <InputIcon />,
           },
+          actionToMenuItem(shareDocument, context),
           actionToMenuItem(createNestedDocument, context),
           actionToMenuItem(importDocument, context),
           actionToMenuItem(createTemplateFromDocument, context),

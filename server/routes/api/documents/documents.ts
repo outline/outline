@@ -66,6 +66,7 @@ import {
 import DocumentImportTask, {
   DocumentImportTaskResponse,
 } from "@server/queues/tasks/DocumentImportTask";
+import EmptyTrashTask from "@server/queues/tasks/EmptyTrashTask";
 import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
@@ -1954,6 +1955,7 @@ router.post(
       collectionScope,
       "withDrafts",
     ]).findAll({
+      attributes: ["id"],
       where: {
         deletedAt: {
           [Op.ne]: null,
@@ -1975,7 +1977,12 @@ router.post(
       paranoid: false,
     });
 
-    await documentPermanentDeleter(documents);
+    if (documents.length) {
+      await EmptyTrashTask.schedule({
+        documentIds: documents.map((doc) => doc.id),
+      });
+    }
+
     await Event.createFromContext(ctx, {
       name: "documents.empty_trash",
     });

@@ -5,6 +5,16 @@ module.exports = {
   async up (queryInterface) {
     await queryInterface.removeColumn('group_users', 'deletedAt');
 
+    // Cleanup any rows with duplicate groupId + userId
+    await queryInterface.sequelize.query(`
+      DELETE FROM group_users
+      WHERE "createdAt" NOT IN (
+        SELECT MIN("createdAt")
+        FROM group_users
+        GROUP BY "groupId", "userId"
+      )
+    `);
+
     // Add groupId + userId as primary key
     await queryInterface.addConstraint('group_users', {
       fields: ['groupId', 'userId'],
