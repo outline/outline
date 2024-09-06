@@ -6,12 +6,7 @@ import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import {
-  useMenuState,
-  MenuButton,
-  MenuButtonHTMLProps,
-  MenuStateReturn,
-} from "reakit/Menu";
+import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -63,6 +58,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { MenuItem } from "~/types";
 import { documentEditPath } from "~/utils/routeHelpers";
+import { MenuContext, useMenuContext } from "./MenuContext";
 
 type Props = {
   document: Document;
@@ -81,14 +77,13 @@ type Props = {
 
 type MenuTriggerProps = {
   label?: (props: MenuButtonHTMLProps) => React.ReactNode;
-  document: Document;
-  menu: MenuStateReturn;
 };
 
-const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, document, menu }) => {
+const MenuTrigger: React.FC<MenuTriggerProps> = ({ label }) => {
   const { t } = useTranslation();
 
   const { subscriptions } = useStores();
+  const { model: document, menuState } = useMenuContext<Document>();
 
   const { data, loading, error, request } = useRequest(() =>
     subscriptions.fetchPage({
@@ -105,21 +100,19 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, document, menu }) => {
   }, [data, error, loading, request, document]);
 
   return label ? (
-    <MenuButton {...menu} onMouseEnter={handleMouseEnter}>
+    <MenuButton {...menuState} onMouseEnter={handleMouseEnter}>
       {label}
     </MenuButton>
   ) : (
     <OverflowMenuButton
       aria-label={t("Show menu")}
       onMouseEnter={handleMouseEnter}
-      {...menu}
+      {...menuState}
     />
   );
 };
 
 type MenuContentProps = {
-  document: Document;
-  menu: MenuStateReturn;
   onOpen?: () => void;
   onClose?: () => void;
   collection?: Collection;
@@ -130,8 +123,6 @@ type MenuContentProps = {
 };
 
 const MenuContent: React.FC<MenuContentProps> = ({
-  document,
-  menu,
   onOpen,
   onClose,
   collection,
@@ -141,6 +132,8 @@ const MenuContent: React.FC<MenuContentProps> = ({
   showToggleEmbeds,
 }) => {
   const user = useCurrentUser();
+
+  const { model: document, menuState } = useMenuContext<Document>();
 
   const can = usePolicy(document);
 
@@ -198,13 +191,13 @@ const MenuContent: React.FC<MenuContentProps> = ({
 
   return !isEmpty(can) ? (
     <ContextMenu
-      {...menu}
+      {...menuState}
       aria-label={t("Document options")}
       onOpen={onOpen}
       onClose={onClose}
     >
       <Template
-        {...menu}
+        {...menuState}
         items={[
           {
             type: "button",
@@ -355,7 +348,7 @@ function DocumentMenu({
   onClose,
 }: Props) {
   const { collections, documents } = useStores();
-  const menu = useMenuState({
+  const menuState = useMenuState({
     modal,
     unstable_preventOverflow: true,
     unstable_fixed: true,
@@ -422,17 +415,17 @@ function DocumentMenu({
           />
         </label>
       </VisuallyHidden>
-      <MenuTrigger label={label} document={document} menu={menu} />
-      <MenuContent
-        document={document}
-        menu={menu}
-        onOpen={onOpen}
-        onClose={onClose}
-        collection={collection}
-        onRename={onRename}
-        showDisplayOptions={showDisplayOptions}
-        showToggleEmbeds={showToggleEmbeds}
-      />
+      <MenuContext.Provider value={{ model: document, menuState }}>
+        <MenuTrigger label={label} />
+        <MenuContent
+          onOpen={onOpen}
+          onClose={onClose}
+          collection={collection}
+          onRename={onRename}
+          showDisplayOptions={showDisplayOptions}
+          showToggleEmbeds={showToggleEmbeds}
+        />
+      </MenuContext.Provider>
     </>
   );
 }
