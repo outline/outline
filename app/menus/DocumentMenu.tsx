@@ -50,6 +50,7 @@ import {
   moveTemplate,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
+import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
@@ -76,9 +77,10 @@ type Props = {
 
 type MenuTriggerProps = {
   label?: (props: MenuButtonHTMLProps) => React.ReactNode;
+  onTrigger: () => void;
 };
 
-const MenuTrigger: React.FC<MenuTriggerProps> = ({ label }) => {
+const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
   const { t } = useTranslation();
 
   const { subscriptions } = useStores();
@@ -99,13 +101,18 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label }) => {
   }, [data, error, loading, request, document]);
 
   return label ? (
-    <MenuButton {...menuState} onMouseEnter={handleMouseEnter}>
+    <MenuButton
+      {...menuState}
+      onMouseEnter={handleMouseEnter}
+      onClick={onTrigger}
+    >
       {label}
     </MenuButton>
   ) : (
     <OverflowMenuButton
       aria-label={t("Show menu")}
       onMouseEnter={handleMouseEnter}
+      onClick={onTrigger}
       {...menuState}
     />
   );
@@ -358,6 +365,7 @@ function DocumentMenu({
   const history = useHistory();
 
   const { t } = useTranslation();
+  const [isMenuVisible, showMenu] = useBoolean(false);
   const file = React.useRef<HTMLInputElement>(null);
 
   const collection = document.collectionId
@@ -401,6 +409,10 @@ function DocumentMenu({
     [history, collection, documents, document.id]
   );
 
+  const handleMenuTrigger = React.useCallback(() => {
+    showMenu();
+  }, [showMenu]);
+
   return (
     <>
       <VisuallyHidden>
@@ -417,14 +429,16 @@ function DocumentMenu({
         </label>
       </VisuallyHidden>
       <MenuContext.Provider value={{ model: document, menuState }}>
-        <MenuTrigger label={label} />
-        <MenuContent
-          onOpen={onOpen}
-          onClose={onClose}
-          onRename={onRename}
-          showDisplayOptions={showDisplayOptions}
-          showToggleEmbeds={showToggleEmbeds}
-        />
+        <MenuTrigger label={label} onTrigger={handleMenuTrigger} />
+        {isMenuVisible ? (
+          <MenuContent
+            onOpen={onOpen}
+            onClose={onClose}
+            onRename={onRename}
+            showDisplayOptions={showDisplayOptions}
+            showToggleEmbeds={showToggleEmbeds}
+          />
+        ) : null}
       </MenuContext.Provider>
     </>
   );
