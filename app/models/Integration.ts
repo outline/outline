@@ -25,8 +25,6 @@ class Integration<T = unknown> extends Model {
   @Relation(() => User, { onDelete: "cascade" })
   user: User;
 
-  teamId: string;
-
   @Field
   @observable
   events: string[];
