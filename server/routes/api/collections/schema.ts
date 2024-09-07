@@ -19,7 +19,7 @@ export const CollectionsCreateSchema = BaseSchema.extend({
       .regex(ValidateColor.regex, { message: ValidateColor.message })
       .nullish(),
     description: z.string().nullish(),
-    data: ProsemirrorSchema.nullish(),
+    data: ProsemirrorSchema({ allowEmpty: true }).nullish(),
     permission: z
       .nativeEnum(CollectionPermission)
       .nullish()
@@ -152,7 +152,7 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     name: z.string().optional(),
     description: z.string().nullish(),
-    data: ProsemirrorSchema.nullish(),
+    data: ProsemirrorSchema({ allowEmpty: true }).nullish(),
     icon: zodIconType().nullish(),
     permission: z.nativeEnum(CollectionPermission).nullish(),
     color: z

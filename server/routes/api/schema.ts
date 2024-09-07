@@ -11,12 +11,20 @@ export const BaseSchema = z.object({
   file: z.custom<formidable.File>().optional(),
 });
 
-export const ProsemirrorSchema = z.custom<TProsemirrorData>((val) => {
-  try {
-    const node = Node.fromJSON(schema, val);
-    node.check();
-    return !ProsemirrorHelper.isEmpty(node, schema);
-  } catch (_e) {
-    return false;
-  }
-}, "not valid data");
+/**
+ * Returns a Zod schema for validating a Prosemirror document.
+ *
+ * @param allowEmpty - Whether to allow an empty document.
+ */
+export const ProsemirrorSchema = (options?: { allowEmpty: boolean }) =>
+  z.custom<TProsemirrorData>((val) => {
+    try {
+      const node = Node.fromJSON(schema, val);
+      node.check();
+      return options?.allowEmpty
+        ? true
+        : !ProsemirrorHelper.isEmpty(node, schema);
+    } catch (_e) {
+      return false;
+    }
+  }, "Invalid data");
