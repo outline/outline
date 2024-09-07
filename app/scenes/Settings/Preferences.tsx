@@ -14,6 +14,7 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import UserDelete from "../UserDelete";
 import SettingRow from "./components/SettingRow";
@@ -23,6 +24,7 @@ function Preferences() {
   const { ui, dialogs } = useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
+  const can = usePolicy(user.id);
 
   const handlePreferenceChange =
     (inverted = false) =>
@@ -166,7 +168,7 @@ function Preferences() {
         />
       </SettingRow>
 
-      {team.getPreference(TeamPreference.MembersCanDeleteAccount) && (
+      {can.delete && (
         <>
           <Heading as="h2">{t("Danger")}</Heading>
           <SettingRow
