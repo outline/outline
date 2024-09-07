@@ -965,6 +965,8 @@
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "この設定を有効にすると、チームメンバーなら誰でもインターネット上でドキュメントを公開することができます。",
   "Viewer document exports": "閲覧者によるドキュメントのエクスポート",
   "When enabled, viewers can see download options for documents": "有効にすると、閲覧者はドキュメントのダウンロードオプションを表示できます",
+  "Users can delete account": "Users can delete account",
+  "When enabled, users can delete their own account from the workspace": "When enabled, users can delete their own account from the workspace",
   "Rich service embeds": "リッチサービスの埋め込み",
   "Links to supported services are shown as rich embeds within your documents": "サポートされた URL は、ドキュメント内に埋め込みとして表示されます。",
   "Collection creation": "コレクションを作成",
