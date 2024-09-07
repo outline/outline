@@ -309,6 +309,24 @@ export default class Document extends ParanoidModel {
   }
 
   /**
+   * Returns whether the document is currently publicly shared, taking into account
+   * the document's and team's sharing settings.
+   *
+   * @returns True if the document is publicly shared, false otherwise.
+   */
+  get isPubliclyShared(): boolean {
+    const { shares, auth } = this.store.rootStore;
+    const share = shares.getByDocumentId(this.id);
+    const sharedParent = shares.getByDocumentParents(this.id);
+
+    return !!(
+      auth.team?.sharing !== false &&
+      this.collection?.sharing !== false &&
+      (share?.published || (sharedParent?.published && !this.isDraft))
+    );
+  }
+
+  /**
    * Returns users that have been individually given access to the document.
    *
    * @returns users that have been individually given access to the document

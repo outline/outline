@@ -24,9 +24,9 @@ import {
   UnpublishIcon,
   PublishIcon,
   CommentIcon,
-  GlobeIcon,
   CopyIcon,
   EyeIcon,
+  PadlockIcon,
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
@@ -334,7 +334,7 @@ export const shareDocument = createAction({
   name: ({ t }) => `${t("Permissions")}…`,
   analyticsName: "Share document",
   section: DocumentSection,
-  icon: <GlobeIcon />,
+  icon: <PadlockIcon />,
   visible: ({ stores, activeDocumentId }) => {
     const can = stores.policies.abilities(activeDocumentId!);
     return can.manageUsers || can.share;

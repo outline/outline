@@ -75,7 +75,7 @@ export default class SharesStore extends Store<Share> {
     }
   }
 
-  getByDocumentParents = (documentId: string): Share | null | undefined => {
+  getByDocumentParents = (documentId: string): Share | undefined => {
     const document = this.rootStore.documents.get(documentId);
     if (!document) {
       return;
