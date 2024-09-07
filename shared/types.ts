@@ -88,6 +88,7 @@ export enum IntegrationService {
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
   Matomo = "matomo",
+  Umami = "umami",
   GitHub = "github",
 }
 
@@ -97,6 +98,7 @@ export type UserCreatableIntegrationService = Extract<
   | IntegrationService.Grist
   | IntegrationService.GoogleAnalytics
   | IntegrationService.Matomo
+  | IntegrationService.Umami
 >;
 
 export const UserCreatableIntegrationService = {
@@ -104,6 +106,7 @@ export const UserCreatableIntegrationService = {
   Grist: IntegrationService.Grist,
   GoogleAnalytics: IntegrationService.GoogleAnalytics,
   Matomo: IntegrationService.Matomo,
+  Umami: IntegrationService.Umami,
 } as const;
 
 export enum CollectionPermission {
@@ -129,7 +132,7 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       };
     }
   : T extends IntegrationType.Analytics
-  ? { measurementId: string; instanceUrl?: string }
+  ? { measurementId: string; instanceUrl?: string; scriptName?: string }
   : T extends IntegrationType.Post
   ? { url: string; channel: string; channelId: string }
   : T extends IntegrationType.Command
