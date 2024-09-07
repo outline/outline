@@ -166,20 +166,24 @@ function Preferences() {
         />
       </SettingRow>
 
-      <Heading as="h2">{t("Danger")}</Heading>
-      <SettingRow
-        name="delete"
-        label={t("Delete account")}
-        description={t(
-          "You may delete your account at any time, note that this is unrecoverable"
-        )}
-      >
-        <span>
-          <Button onClick={showDeleteAccount} neutral>
-            {t("Delete account")}…
-          </Button>
-        </span>
-      </SettingRow>
+      {team.getPreference(TeamPreference.MembersCanDeleteAccount) && (
+        <>
+          <Heading as="h2">{t("Danger")}</Heading>
+          <SettingRow
+            name="delete"
+            label={t("Delete account")}
+            description={t(
+              "You may delete your account at any time, note that this is unrecoverable"
+            )}
+          >
+            <span>
+              <Button onClick={showDeleteAccount} neutral>
+                {t("Delete account")}…
+              </Button>
+            </span>
+          </SettingRow>
+        </>
+      )}
     </Scene>
   );
 }

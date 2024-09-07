@@ -27,7 +27,10 @@ allow(User, ["update", "delete", "readDetails"], User, (actor, user) =>
   or(
     //
     isTeamAdmin(actor, user),
-    actor.id === user?.id
+    and(
+      actor.id === user?.id,
+      !!actor.team.getPreference(TeamPreference.MembersCanDeleteAccount)
+    )
   )
 );
 
