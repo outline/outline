@@ -110,7 +110,7 @@ function Umami() {
           />
         </SettingRow>
         <SettingRow
-          label={t("Script Name")}
+          label={t("Script name")}
           name="umamiScriptName"
           description={t(
             "The name of the script file that Umami uses to track analytics."

@@ -115,7 +115,7 @@ const Analytics: React.FC = ({ children }: Props) => {
 
       const script = document.createElement("script");
       script.defer = true;
-      script.src = `${integration.settings?.instanceUrl}/${integration.settings?.scriptName}`;
+      script.src = `${integration.settings?.instanceUrl}${integration.settings?.scriptName}`;
       script.setAttribute(
         "data-website-id",
         integration.settings?.measurementId
