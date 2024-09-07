@@ -276,6 +276,19 @@ function Security() {
         />
       </SettingRow>
       <SettingRow
+        label={t("Users can delete account")}
+        name={TeamPreference.MembersCanDeleteAccount}
+        description={t(
+          "When enabled, users can delete their own account from the workspace"
+        )}
+      >
+        <Switch
+          id={TeamPreference.MembersCanDeleteAccount}
+          checked={team.getPreference(TeamPreference.MembersCanDeleteAccount)}
+          onChange={handlePreferenceChange}
+        />
+      </SettingRow>
+      <SettingRow
         label={t("Rich service embeds")}
         name="documentEmbeds"
         description={t(
