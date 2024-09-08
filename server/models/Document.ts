@@ -1063,13 +1063,6 @@ class Document extends ParanoidModel<
         });
       }
 
-      await Revision.destroy({
-        where: {
-          documentId: this.id,
-        },
-        transaction,
-      });
-
       this.lastModifiedById = user.id;
       this.updatedBy = user;
       return this.save({ transaction });
