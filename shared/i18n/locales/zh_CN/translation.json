@@ -966,7 +966,7 @@
   "Viewer document exports": "浏览者文档导出",
   "When enabled, viewers can see download options for documents": "启用时，浏览者可以看到文档的下载选项",
   "Users can delete account": "Users can delete account",
-  "When enabled, users can delete their own account from the workspace": "When enabled, users can delete their own account from the workspace",
+  "When enabled, users can delete their own account from the workspace": "如果启用，用户可以从工作区删除自己的帐户",
   "Rich service embeds": "富文本嵌入服务",
   "Links to supported services are shown as rich embeds within your documents": "受 Outline 服务支持的链接可作为富文本嵌入显示在你的文档中",
   "Collection creation": "文档集创建",
