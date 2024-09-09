@@ -101,7 +101,7 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
     })
   );
 
-  const handleMouseEnter = React.useCallback(() => {
+  const handlePointerEnter = React.useCallback(() => {
     if (isUndefined(data ?? error) && !loading) {
       void request();
       void document.loadRelations();
@@ -111,7 +111,7 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
   return label ? (
     <MenuButton
       {...menuState}
-      onMouseEnter={handleMouseEnter}
+      onPointerEnter={handlePointerEnter}
       onClick={onTrigger}
     >
       {label}
@@ -119,7 +119,7 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
   ) : (
     <OverflowMenuButton
       aria-label={t("Show document menu")}
-      onMouseEnter={handleMouseEnter}
+      onPointerEnter={handlePointerEnter}
       onClick={onTrigger}
       {...menuState}
     />
@@ -144,13 +144,9 @@ const MenuContent: React.FC<MenuContentProps> = ({
   showToggleEmbeds,
 }) => {
   const user = useCurrentUser();
-
   const { model: document, menuState } = useMenuContext<Document>();
-
   const can = usePolicy(document);
-
   const { t } = useTranslation();
-
   const { policies, collections } = useStores();
 
   const collection = document.collectionId
@@ -417,10 +413,6 @@ function DocumentMenu({
     [history, collection, documents, document.id]
   );
 
-  const handleMenuTrigger = React.useCallback(() => {
-    showMenu();
-  }, [showMenu]);
-
   return (
     <>
       <VisuallyHidden>
@@ -437,7 +429,7 @@ function DocumentMenu({
         </label>
       </VisuallyHidden>
       <MenuContext.Provider value={{ model: document, menuState }}>
-        <MenuTrigger label={label} onTrigger={handleMenuTrigger} />
+        <MenuTrigger label={label} onTrigger={showMenu} />
         {isMenuVisible ? (
           <MenuContent
             onOpen={onOpen}
