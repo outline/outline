@@ -480,6 +480,7 @@
   "Alphabetical sort": "알파벳 순 정렬",
   "Manual sort": "수동 정렬",
   "Comment options": "댓글 옵션",
+  "Show document menu": "Show document menu",
   "{{ documentName }} restored": "{{ documentName }} 복원됨",
   "Document options": "문서 옵션",
   "Restore": "복원하기",
