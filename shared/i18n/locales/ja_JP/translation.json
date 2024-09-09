@@ -480,6 +480,7 @@
   "Alphabetical sort": "アルファベット順",
   "Manual sort": "手動で並べ替え",
   "Comment options": "コメントオプション",
+  "Show document menu": "Show document menu",
   "{{ documentName }} restored": "{{ documentName }} を復元",
   "Document options": "ドキュメントオプション",
   "Restore": "復元",
