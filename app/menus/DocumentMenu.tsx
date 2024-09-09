@@ -118,7 +118,7 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
     </MenuButton>
   ) : (
     <OverflowMenuButton
-      aria-label={t("Show menu")}
+      aria-label={t("Show document menu")}
       onMouseEnter={handleMouseEnter}
       onClick={onTrigger}
       {...menuState}
