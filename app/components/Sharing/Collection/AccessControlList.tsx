@@ -137,6 +137,7 @@ export const AccessControlList = observer(
               }
             />
             {groupMembershipsInCollection
+              .filter((membership) => membership.group)
               .sort((a, b) =>
                 (
                   (invitedInSession.includes(a.group.id) ? "_" : "") +
@@ -189,6 +190,7 @@ export const AccessControlList = observer(
                 />
               ))}
             {membershipsInCollection
+              .filter((membership) => membership.user)
               .sort((a, b) =>
                 (
                   (invitedInSession.includes(a.user.id) ? "_" : "") +
