@@ -53,8 +53,7 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const { ui, views, shares, comments, documents, revisions, subscriptions } =
-    useStores();
+  const { ui, views, shares, comments, documents, revisions } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const [error, setError] = React.useState<Error | null>(null);
@@ -120,22 +119,6 @@ function DataLoader({ match, children }: Props) {
     }
     void fetchRevision();
   }, [document, revisionId, revisions]);
-
-  React.useEffect(() => {
-    async function fetchSubscription() {
-      if (document?.id && !document?.isDeleted && !revisionId) {
-        try {
-          await subscriptions.fetchPage({
-            documentId: document.id,
-            event: "documents.update",
-          });
-        } catch (err) {
-          Logger.error("Failed to fetch subscriptions", err);
-        }
-      }
-    }
-    void fetchSubscription();
-  }, [document?.id, document?.isDeleted, subscriptions, revisionId]);
 
   React.useEffect(() => {
     async function fetchViews() {
