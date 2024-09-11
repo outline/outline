@@ -80,8 +80,8 @@ const BuiltinColors = ({
     {colorPalette.map((color) => (
       <ColorButton
         key={color}
-        color={color}
-        active={color === activeColor}
+        $color={color}
+        $active={color === activeColor}
         onClick={() => onClick(color)}
       >
         <Selected />
@@ -156,22 +156,22 @@ const Selected = styled.span`
   transform: translateY(-25%) rotate(-45deg);
 `;
 
-const ColorButton = styled(NudeButton)<{ color: string; active: boolean }>`
+const ColorButton = styled(NudeButton)<{ $color: string; $active: boolean }>`
   display: inline-flex;
   justify-content: center;
   align-items: center;
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background-color: ${({ color }) => color};
+  background-color: ${({ $color }) => $color};
 
   &: ${hover} {
     outline: 2px solid ${s("menuBackground")} !important;
-    box-shadow: ${({ color }) => `0px 0px 3px 3px ${color}`};
+    box-shadow: ${({ $color }) => `0px 0px 3px 3px ${$color}`};
   }
 
   & ${Selected} {
-    display: ${({ active }) => (active ? "block" : "none")};
+    display: ${({ $active }) => ($active ? "block" : "none")};
   }
 `;
 
