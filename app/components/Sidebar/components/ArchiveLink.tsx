@@ -61,7 +61,6 @@ function ArchiveLink() {
           icon={<ArchiveIcon open={isDocumentDropping} />}
           exact={false}
           label={t("Archive")}
-          active={documents.active?.isArchived && !documents.active?.isDeleted}
           isActiveDrop={isDocumentDropping}
           depth={0}
           expanded={expanded}
