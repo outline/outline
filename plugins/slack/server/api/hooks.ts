@@ -418,6 +418,7 @@ async function findUserForRequest(
       {
         model: Team,
         as: "team",
+        required: true,
       },
     ],
   });
