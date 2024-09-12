@@ -4197,15 +4197,15 @@ describe("#documents.users", () => {
         teamId: user.teamId,
       }),
       buildUser({
-        name: "Bret Victor",
+        name: "Brët Victor",
         teamId: user.teamId,
       }),
       buildUser({
-        name: "Ken Thompson",
+        name: "Ken Thompsoń",
         teamId: user.teamId,
       }),
       buildUser({
-        name: "Jamie Zawinsky",
+        name: "Jámie Zawinsky",
         teamId: user.teamId,
       }),
     ]);
