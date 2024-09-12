@@ -38,7 +38,12 @@ export function setPostLoginPath(path: string) {
 
   if (isValidPostLoginRedirect(path)) {
     setCookie(key, path, { expires: 1 });
-    sessionStorage.setItem(key, path);
+
+    try {
+      sessionStorage.setItem(key, path);
+    } catch (e) {
+      // If the session storage is full or inaccessible, we can't do anything about it.
+    }
   }
 }
 
@@ -52,7 +57,12 @@ export function usePostLoginPath() {
   const key = "postLoginRedirectPath";
 
   const getter = React.useCallback(() => {
-    const path = sessionStorage.getItem(key) || getCookie(key);
+    let path;
+    try {
+      path = sessionStorage.getItem(key) || getCookie(key);
+    } catch (e) {
+      // If the session storage is inaccessible, we can't do anything about it.
+    }
 
     if (path) {
       Logger.info("lifecycle", "Spending post login path", { path });
