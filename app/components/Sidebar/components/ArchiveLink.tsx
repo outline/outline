@@ -1,9 +1,7 @@
 import { observer } from "mobx-react";
 import { ArchiveIcon } from "outline-icons";
 import * as React from "react";
-import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import Flex from "@shared/components/Flex";
 import Collection from "~/models/Collection";
 import PaginatedList from "~/components/PaginatedList";
@@ -14,10 +12,11 @@ import { ArchivedCollectionLink } from "./ArchivedCollectionLink";
 import { StyledError } from "./Collections";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
-import SidebarLink, { DragObject } from "./SidebarLink";
+import SidebarLink from "./SidebarLink";
+import { useDropToArchive } from "./useDragAndDrop";
 
 function ArchiveLink() {
-  const { policies, documents, collections } = useStores();
+  const { collections } = useStores();
   const { t } = useTranslation();
 
   const [expanded, setExpanded] = React.useState(false);
@@ -40,28 +39,17 @@ function ArchiveLink() {
     setExpanded(true);
   }, []);
 
-  const [{ isDocumentDropping }, dropToArchiveDocument] = useDrop({
-    accept: "document",
-    drop: async (item: DragObject) => {
-      const document = documents.get(item.id);
-      await document?.archive();
-      toast.success(t("Document archived"));
-    },
-    canDrop: (item) => policies.abilities(item.id).archive,
-    collect: (monitor) => ({
-      isDocumentDropping: monitor.isOver(),
-    }),
-  });
+  const [{ isOverArchiveSection }, dropToArchiveRef] = useDropToArchive();
 
   return (
     <Flex column>
-      <div ref={dropToArchiveDocument}>
+      <div ref={dropToArchiveRef}>
         <SidebarLink
           to={archivePath()}
-          icon={<ArchiveIcon open={isDocumentDropping} />}
+          icon={<ArchiveIcon open={isOverArchiveSection} />}
           exact={false}
           label={t("Archive")}
-          isActiveDrop={isDocumentDropping}
+          isActiveDrop={isOverArchiveSection}
           depth={0}
           expanded={expanded}
           onDisclosureClick={handleDisclosureClick}

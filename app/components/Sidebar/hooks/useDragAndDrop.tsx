@@ -427,3 +427,36 @@ export function useDropToReorderUserMembership(getIndex?: () => string) {
     }),
   });
 }
+
+/**
+ * Hook for shared logic that allows dropping documents and collections onto archive section
+ */
+export function useDropToArchive() {
+  const accept = ["document", "collection"];
+  const { documents, collections, policies } = useStores();
+  const { t } = useTranslation();
+
+  return useDrop<DragObject, Promise<void>, { isOverArchiveSection: boolean }>({
+    accept,
+    drop: async (item, monitor) => {
+      const type = monitor.getItemType();
+      let model;
+
+      if (type === "collection") {
+        model = collections.get(item.id);
+      } else {
+        model = documents.get(item.id);
+      }
+      await model?.archive();
+      toast.success(
+        type === "collection"
+          ? t("Collection archived")
+          : t("Document archived")
+      );
+    },
+    canDrop: (item) => policies.abilities(item.id).archive,
+    collect: (monitor) => ({
+      isOverArchiveSection: !!monitor.isOver(),
+    }),
+  });
+}
