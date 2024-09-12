@@ -551,9 +551,11 @@ router.post(
     if (query) {
       where = {
         ...where,
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        [Op.and]: [
+          Sequelize.literal(
+            `unaccent(LOWER(name)) like unaccent(LOWER('%${query}%'))`
+          ),
+        ],
       };
     }
 
