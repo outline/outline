@@ -20,7 +20,7 @@ afterAll(() => {
 describe("#users.list", () => {
   it("should allow filtering by user name", async () => {
     const user = await buildUser({
-      name: "Tester",
+      name: "Tèster",
     });
     // suspended user should not be returned
     await buildUser({

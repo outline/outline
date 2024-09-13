@@ -513,8 +513,6 @@ router.post(
     });
     authorize(actor, "read", document);
 
-    let users: User[] = [];
-    let total = 0;
     let where: WhereOptions<User> = {
       teamId: document.teamId,
       suspendedAt: {
@@ -553,15 +551,21 @@ router.post(
         ...where,
         [Op.and]: [
           Sequelize.literal(
-            `unaccent(LOWER(name)) like unaccent(LOWER('%${query}%'))`
+            `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
           ),
         ],
       };
     }
 
-    [users, total] = await Promise.all([
-      User.findAll({ where, offset, limit }),
-      User.count({ where }),
+    const replacements = { query: `%${query}%` };
+
+    const [users, total] = await Promise.all([
+      User.findAll({ where, replacements, offset, limit }),
+      User.count({
+        where,
+        // @ts-expect-error Types are incorrect for count
+        replacements,
+      }),
     ]);
 
     ctx.body = {

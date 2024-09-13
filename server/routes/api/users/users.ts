@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { Op, WhereOptions } from "sequelize";
+import { Op, Sequelize, WhereOptions } from "sequelize";
 import { UserPreference, UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { UserValidation } from "@shared/validations";
@@ -124,9 +124,11 @@ router.post(
     if (query) {
       where = {
         ...where,
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        [Op.and]: [
+          Sequelize.literal(
+            `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+          ),
+        ],
       };
     }
 
@@ -144,15 +146,20 @@ router.post(
       };
     }
 
+    const replacements = { query: `%${query}%` };
+
     const [users, total] = await Promise.all([
       User.findAll({
         where,
+        replacements,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
       User.count({
         where,
+        // @ts-expect-error Types are incorrect for count
+        replacements,
       }),
     ]);
 
