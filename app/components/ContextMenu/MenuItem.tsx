@@ -6,6 +6,7 @@ import { mergeRefs } from "react-merge-refs";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import Text from "../Text";
 import MenuIconWrapper from "./MenuIconWrapper";
 
@@ -74,9 +75,9 @@ const MenuItem = (
           ])}
         >
           {selected !== undefined && (
-            <MenuIconWrapper aria-hidden>
+            <SelectedWrapper aria-hidden>
               {selected ? <CheckmarkIcon /> : <Spacer />}
-            </MenuIconWrapper>
+            </SelectedWrapper>
           )}
           {icon && <MenuIconWrapper aria-hidden>{icon}</MenuIconWrapper>}
           <Title>{children}</Title>
@@ -194,6 +195,15 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
 
 export const MenuAnchor = styled.a`
   ${MenuAnchorCSS}
+`;
+
+const SelectedWrapper = styled.span`
+  width: 24px;
+  height: 24px;
+  margin-right: 4px;
+  margin-left: -8px;
+  flex-shrink: 0;
+  color: ${s("textSecondary")};
 `;
 
 export default React.forwardRef<HTMLAnchorElement, Props>(MenuItem);

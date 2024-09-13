@@ -13,9 +13,9 @@ import withStores from "~/components/withStores";
 import { dateToHeading } from "~/utils/date";
 
 export interface PaginatedItem {
-  id: string;
-  createdAt?: string;
+  id?: string;
   updatedAt?: string;
+  createdAt?: string;
 }
 
 type Props<T> = WithTranslation &
@@ -36,6 +36,7 @@ type Props<T> = WithTranslation &
     }) => React.ReactNode;
     renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
     onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
+    listRef?: React.RefObject<HTMLDivElement>;
   };
 
 @observer
@@ -196,6 +197,7 @@ class PaginatedList<T extends PaginatedItem> extends React.PureComponent<
           onEscape={onEscape}
           className={this.props.className}
           items={this.itemsToRender}
+          ref={this.props.listRef}
         >
           {() => {
             let previousHeading = "";
@@ -211,7 +213,11 @@ class PaginatedList<T extends PaginatedItem> extends React.PureComponent<
               // Our models have standard date fields, updatedAt > createdAt.
               // Get what a heading would look like for this item
               const currentDate =
-                item.updatedAt || item.createdAt || previousHeading;
+                "updatedAt" in item && item.updatedAt
+                  ? item.updatedAt
+                  : "createdAt" in item && item.createdAt
+                  ? item.createdAt
+                  : previousHeading;
               const currentHeading = dateToHeading(
                 currentDate,
                 this.props.t,
@@ -227,7 +233,9 @@ class PaginatedList<T extends PaginatedItem> extends React.PureComponent<
               ) {
                 previousHeading = currentHeading;
                 return (
-                  <React.Fragment key={item.id}>
+                  <React.Fragment
+                    key={"id" in item && item.id ? item.id : index}
+                  >
                     {renderHeading(currentHeading)}
                     {children}
                   </React.Fragment>

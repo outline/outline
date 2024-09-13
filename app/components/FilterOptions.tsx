@@ -1,4 +1,6 @@
+import deburr from "lodash/deburr";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -6,13 +8,15 @@ import Button, { Inner } from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import Text from "~/components/Text";
+import Input, { NativeInput, Outline } from "./Input";
+import PaginatedList, { PaginatedItem } from "./PaginatedList";
 
-type TFilterOption = {
+interface TFilterOption extends PaginatedItem {
   key: string;
   label: string;
   note?: string;
   icon?: React.ReactNode;
-};
+}
 
 type Props = {
   options: TFilterOption[];
@@ -21,6 +25,7 @@ type Props = {
   selectedPrefix?: string;
   className?: string;
   onSelect: (key: string | null | undefined) => void;
+  showFilter?: boolean;
 };
 
 const FilterOptions = ({
@@ -30,19 +35,105 @@ const FilterOptions = ({
   selectedPrefix = "",
   className,
   onSelect,
+  showFilter = true,
 }: Props) => {
+  const { t } = useTranslation();
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const listRef = React.useRef<HTMLDivElement | null>(null);
   const menu = useMenuState({
     modal: true,
   });
   const selectedItems = options.filter((option) =>
     selectedKeys.includes(option.key)
   );
+  const [query, setQuery] = React.useState("");
 
   const selectedLabel = selectedItems.length
     ? selectedItems
         .map((selected) => `${selectedPrefix} ${selected.label}`)
         .join(", ")
     : "";
+
+  const renderItem = React.useCallback(
+    (option: TFilterOption) => (
+      <MenuItem
+        key={option.key}
+        onClick={() => {
+          onSelect(option.key);
+          menu.hide();
+        }}
+        selected={selectedKeys.includes(option.key)}
+        {...menu}
+      >
+        {option.icon && <Icon>{option.icon}</Icon>}
+        {option.note ? (
+          <LabelWithNote>
+            {option.label}
+            <Note>{option.note}</Note>
+          </LabelWithNote>
+        ) : (
+          option.label
+        )}
+      </MenuItem>
+    ),
+    [menu, onSelect, selectedKeys]
+  );
+
+  const handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(ev.target.value);
+  };
+
+  const filteredOptions = React.useMemo(
+    () =>
+      options.filter((option) =>
+        deburr(option.label).toLowerCase().includes(deburr(query.toLowerCase()))
+      ),
+    [options, query]
+  );
+
+  const handleKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent) => {
+      if (ev.nativeEvent.isComposing || ev.shiftKey) {
+        return;
+      }
+
+      switch (ev.key) {
+        case "Escape":
+          menu.hide();
+          break;
+        case "Enter":
+          if (filteredOptions.length === 1) {
+            ev.preventDefault();
+            onSelect(filteredOptions[0].key);
+            menu.hide();
+          }
+          break;
+        case "ArrowDown":
+          ev.preventDefault();
+          (listRef.current?.firstElementChild as HTMLElement)?.focus();
+          break;
+        default:
+          break;
+      }
+    },
+    [filteredOptions, menu, onSelect]
+  );
+
+  const handleEscapeFromList = React.useCallback((ev: React.KeyboardEvent) => {
+    searchInputRef.current?.focus();
+
+    if (ev.key === "Backspace") {
+      setQuery((prev) => prev.slice(0, -1));
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (menu.visible) {
+      searchInputRef.current?.focus();
+    } else {
+      setQuery("");
+    }
+  }, [menu.visible]);
 
   return (
     <div>
@@ -54,31 +145,69 @@ const FilterOptions = ({
         )}
       </MenuButton>
       <ContextMenu aria-label={defaultLabel} {...menu}>
-        {options.map((option) => (
-          <MenuItem
-            key={option.key}
-            onClick={() => {
-              onSelect(option.key);
-              menu.hide();
-            }}
-            selected={selectedKeys.includes(option.key)}
-            {...menu}
-          >
-            {option.icon && <Icon>{option.icon}</Icon>}
-            {option.note ? (
-              <LabelWithNote>
-                {option.label}
-                <Note>{option.note}</Note>
-              </LabelWithNote>
-            ) : (
-              option.label
-            )}
-          </MenuItem>
-        ))}
+        <PaginatedList
+          listRef={listRef}
+          items={filteredOptions}
+          // fetch={paginateFetch}
+          renderItem={renderItem}
+          onEscape={handleEscapeFromList}
+          heading={<Spacer />}
+          empty={<Empty />}
+        />
+        {showFilter && (
+          <SearchInput
+            ref={searchInputRef}
+            value={query}
+            onChange={handleFilter}
+            onKeyDown={handleKeyDown}
+            placeholder={`${t("Filter")}…`}
+            autoFocus
+          />
+        )}
       </ContextMenu>
     </div>
   );
 };
+
+const Empty = () => {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <Spacer />
+      <Text size="small" type="tertiary" style={{ marginLeft: 6 }}>
+        {t("No results")}
+      </Text>
+    </>
+  );
+};
+
+const Spacer = styled.div`
+  height: 30px;
+`;
+
+const SearchInput = styled(Input)`
+  position: absolute;
+  width: 100%;
+  border: none;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  overflow: hidden;
+  margin: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  ${Outline} {
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid ${s("inputBorder")};
+  }
+
+  ${NativeInput} {
+    font-size: 14px;
+  }
+`;
 
 const Note = styled(Text)`
   display: block;
