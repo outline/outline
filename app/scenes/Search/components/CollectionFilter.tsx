@@ -33,6 +33,7 @@ function CollectionFilter(props: Props) {
       onSelect={onSelect}
       defaultLabel={t("Any collection")}
       selectedPrefix={`${t("Collection")}:`}
+      showFilter
     />
   );
 }

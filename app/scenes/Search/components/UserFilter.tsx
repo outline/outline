@@ -47,6 +47,7 @@ function UserFilter(props: Props) {
       selectedPrefix={`${t("Author")}:`}
       fetchQuery={users.fetchPage}
       fetchQueryOptions={fetchQueryOptions}
+      showFilter
     />
   );
 }
