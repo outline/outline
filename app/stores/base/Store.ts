@@ -28,7 +28,7 @@ export enum RPCAction {
   Count = "count",
 }
 
-type FetchPageParams = PaginationParams & Record<string, any>;
+export type FetchPageParams = PaginationParams & Record<string, any>;
 
 export const PAGINATION_SYMBOL = Symbol.for("pagination");
 

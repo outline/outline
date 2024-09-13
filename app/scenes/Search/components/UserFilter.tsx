@@ -17,12 +17,6 @@ function UserFilter(props: Props) {
   const { t } = useTranslation();
   const { users } = useStores();
 
-  React.useEffect(() => {
-    void users.fetchPage({
-      limit: 100,
-    });
-  }, [users]);
-
   const options = React.useMemo(() => {
     const userOptions = users.all.map((user) => ({
       key: user.id,
@@ -39,6 +33,11 @@ function UserFilter(props: Props) {
     ];
   }, [users.all, t]);
 
+  const fetchQueryOptions = React.useMemo(
+    () => ({ sort: "name", direction: "ASC" }),
+    []
+  );
+
   return (
     <FilterOptions
       options={options}
@@ -46,6 +45,8 @@ function UserFilter(props: Props) {
       onSelect={onSelect}
       defaultLabel={t("Any author")}
       selectedPrefix={`${t("Author")}:`}
+      fetchQuery={users.fetchPage}
+      fetchQueryOptions={fetchQueryOptions}
     />
   );
 }

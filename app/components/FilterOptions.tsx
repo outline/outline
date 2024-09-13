@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import type { FetchPageParams } from "~/stores/base/Store";
 import Button, { Inner } from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
@@ -26,6 +27,8 @@ type Props = {
   className?: string;
   onSelect: (key: string | null | undefined) => void;
   showFilter?: boolean;
+  fetchQuery?: (options: FetchPageParams) => Promise<PaginatedItem[]>;
+  fetchQueryOptions?: Record<string, string>;
 };
 
 const FilterOptions = ({
@@ -35,7 +38,9 @@ const FilterOptions = ({
   selectedPrefix = "",
   className,
   onSelect,
-  showFilter = true,
+  showFilter,
+  fetchQuery,
+  fetchQueryOptions,
 }: Props) => {
   const { t } = useTranslation();
   const searchInputRef = React.useRef<HTMLInputElement>(null);
@@ -135,6 +140,8 @@ const FilterOptions = ({
     }
   }, [menu.visible]);
 
+  const showFilterInput = showFilter || options.length > 10;
+
   return (
     <div>
       <MenuButton {...menu}>
@@ -147,14 +154,15 @@ const FilterOptions = ({
       <ContextMenu aria-label={defaultLabel} {...menu}>
         <PaginatedList
           listRef={listRef}
+          options={{ query, ...fetchQueryOptions }}
           items={filteredOptions}
-          // fetch={paginateFetch}
+          fetch={fetchQuery}
           renderItem={renderItem}
           onEscape={handleEscapeFromList}
-          heading={<Spacer />}
+          heading={showFilterInput ? <Spacer /> : undefined}
           empty={<Empty />}
         />
-        {showFilter && (
+        {showFilterInput && (
           <SearchInput
             ref={searchInputRef}
             value={query}
