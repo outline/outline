@@ -4,7 +4,9 @@ import { StatusFilter as TStatusFilter } from "@shared/types";
 import FilterOptions from "~/components/FilterOptions";
 
 type Props = {
+  /** The selected status filters */
   statusFilter: TStatusFilter[];
+  /** Callback when a status filter is selected */
   onSelect: (option: { statusFilter: TStatusFilter[] }) => void;
 };
 

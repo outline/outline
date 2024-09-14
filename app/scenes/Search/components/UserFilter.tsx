@@ -8,9 +8,13 @@ import FilterOptions from "~/components/FilterOptions";
 import useStores from "~/hooks/useStores";
 
 type Props = {
+  /** The currently selected user ID */
   userId: string | undefined;
+  /** Callback to call when a user is selected */
   onSelect: (key: string | undefined) => void;
 };
+
+const fetchQueryOptions = { sort: "name", direction: "ASC" };
 
 function UserFilter(props: Props) {
   const { onSelect, userId } = props;
@@ -32,11 +36,6 @@ function UserFilter(props: Props) {
       ...userOptions,
     ];
   }, [users.all, t]);
-
-  const fetchQueryOptions = React.useMemo(
-    () => ({ sort: "name", direction: "ASC" }),
-    []
-  );
 
   return (
     <FilterOptions

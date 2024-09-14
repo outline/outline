@@ -51,6 +51,8 @@ type Props = MenuStateReturn & {
   onClick?: (ev: React.MouseEvent) => void;
   /** The maximum width of the context menu. */
   maxWidth?: number;
+  /** The minimum height of the context menu. */
+  minHeight?: number;
   children?: React.ReactNode;
 };
 
@@ -135,6 +137,7 @@ type InnerContextMenuProps = MenuStateReturn & {
   menuProps: { style?: React.CSSProperties; placement: string };
   children: React.ReactNode;
   maxWidth?: number;
+  minHeight?: number;
 };
 
 /**
@@ -220,6 +223,7 @@ const InnerContextMenu = (props: InnerContextMenuProps) => {
         <Background
           dir="auto"
           maxWidth={props.maxWidth}
+          minHeight={props.minHeight}
           topAnchor={topAnchor}
           rightAnchor={rightAnchor}
           ref={backgroundRef}
@@ -294,6 +298,7 @@ type BackgroundProps = {
   topAnchor?: boolean;
   rightAnchor?: boolean;
   maxWidth?: number;
+  minHeight?: number;
   theme: DefaultTheme;
 };
 
@@ -305,7 +310,7 @@ export const Background = styled(Scrollable)<BackgroundProps>`
   border-radius: 6px;
   padding: 6px;
   min-width: 180px;
-  min-height: 44px;
+  min-height: ${(props) => props.minHeight || 44}px;
   max-height: 75vh;
   font-weight: normal;
 

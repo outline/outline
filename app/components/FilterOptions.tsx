@@ -88,13 +88,33 @@ const FilterOptions = ({
     setQuery(ev.target.value);
   };
 
-  const filteredOptions = React.useMemo(
-    () =>
-      options.filter((option) =>
-        deburr(option.label).toLowerCase().includes(deburr(query.toLowerCase()))
-      ),
-    [options, query]
-  );
+  const filteredOptions = React.useMemo(() => {
+    const normalizedQuery = deburr(query.toLowerCase());
+
+    return query
+      ? options
+          .filter((option) =>
+            deburr(option.label).toLowerCase().includes(normalizedQuery)
+          )
+          // sort options starting with query first
+          .sort((a, b) => {
+            const aStartsWith = deburr(a.label)
+              .toLowerCase()
+              .startsWith(normalizedQuery);
+            const bStartsWith = deburr(b.label)
+              .toLowerCase()
+              .startsWith(normalizedQuery);
+
+            if (aStartsWith && !bStartsWith) {
+              return -1;
+            }
+            if (!aStartsWith && bStartsWith) {
+              return 1;
+            }
+            return 0;
+          })
+      : options;
+  }, [options, query]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent) => {
@@ -151,7 +171,7 @@ const FilterOptions = ({
           </StyledButton>
         )}
       </MenuButton>
-      <ContextMenu aria-label={defaultLabel} {...menu}>
+      <ContextMenu aria-label={defaultLabel} minHeight={66} {...menu}>
         <PaginatedList
           listRef={listRef}
           options={{ query, ...fetchQueryOptions }}
