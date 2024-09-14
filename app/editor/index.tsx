@@ -766,6 +766,9 @@ export class Editor extends React.PureComponent<
   };
 
   private handleOpenLinkToolbar = () => {
+    if (this.state.selectionToolbarOpen) {
+      return;
+    }
     this.setState((state) => ({
       ...state,
       linkToolbarOpen: true,
