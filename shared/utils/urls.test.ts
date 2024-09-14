@@ -59,6 +59,10 @@ describe("isInternalUrl", () => {
     expect(urlsUtils.isInternalUrl("https://example.com:4000")).toBe(false);
   });
 
+  it("should return false if port is missing", () => {
+    expect(urlsUtils.isInternalUrl("https://example.com")).toBe(false);
+  });
+
   it("should return true if starting with relative path", () => {
     expect(urlsUtils.isInternalUrl("/drafts")).toEqual(true);
   });

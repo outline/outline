@@ -37,7 +37,9 @@ export function isInternalUrl(href: string) {
 
   return (
     (outline.host === domain.host && outline.port === domain.port) ||
-    (typeof window !== "undefined" && window.location.hostname === domain.host)
+    (typeof window !== "undefined" &&
+      window.location.hostname === domain.host &&
+      window.location.port === domain.port)
   );
 }
 
