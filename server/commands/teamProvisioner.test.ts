@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { Team } from "@server/models";
 import TeamDomain from "@server/models/TeamDomain";
 import { buildTeam, buildUser } from "@server/test/factories";
 import { setSelfHosted } from "@server/test/support";
@@ -128,8 +129,9 @@ describe("teamProvisioner", () => {
     });
   });
 
-  describe.skip("self hosted", () => {
+  describe("self hosted", () => {
     beforeEach(setSelfHosted);
+    beforeEach(() => Team.truncate());
 
     it("should allow creating first team", async () => {
       const subdomain = faker.internet.domainWord();
