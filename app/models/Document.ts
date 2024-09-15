@@ -611,7 +611,8 @@ export default class Document extends ParanoidModel {
   @computed
   get childDocuments() {
     return this.store.orderedData.filter(
-      (doc) => doc.parentDocumentId === this.id
+      (doc) =>
+        doc.parentDocumentId === this.id && this.isActive === doc.isActive
     );
   }
 
