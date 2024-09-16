@@ -378,6 +378,7 @@
   "Replacement": "Replacement",
   "Replace": "Replace",
   "Replace all": "Replace all",
+  "{{ userName }} won't by notified as they do not have access to this document": "{{ userName }} won't by notified as they do not have access to this document",
   "Profile picture": "Profile picture",
   "Add column after": "Add column after",
   "Add column before": "Add column before",
