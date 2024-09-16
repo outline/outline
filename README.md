@@ -24,6 +24,14 @@ Please see the [documentation](https://docs.getoutline.com/s/hosting/) for runni
 
 If you have questions or improvements for the docs please create a thread in [GitHub discussions](https://github.com/outline/outline/discussions).
 
+# Self-Hosting Outline
+
+### Elestio
+
+You can deploy Outline on Elestio using one-click deployment.
+
+[![Deploy on Elestio](https://elest.io/images/logos/deploy-to-elestio-btn.png)](https://elest.io/open-source/outline)
+
 # Development
 
 There is a short guide for [setting up a development environment](https://docs.getoutline.com/s/hosting/doc/local-development-5hEhFRXow7) if you wish to contribute changes, fixes, and improvements to Outline.
