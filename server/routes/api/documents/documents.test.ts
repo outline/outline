@@ -4292,6 +4292,109 @@ describe("#documents.users", () => {
     expect(memberNames).toContain(jamie.name);
   });
 
+  it("should return document users with id matching userId", async () => {
+    const user = await buildUser({
+      // Ensure the generated name doesn't match
+      name: "zzz",
+    });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      permission: null,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const [alan, bret, ken, jamie] = await Promise.all([
+      buildUser({
+        name: "Alan Kay",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Brët Victor",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Ken Thompsoń",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Jámie Zawinsky",
+        teamId: user.teamId,
+      }),
+    ]);
+    const group = await buildGroup({
+      name: "Hackers",
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+
+    // add people to group
+    await Promise.all([
+      group.$add("user", ken, {
+        through: {
+          createdById: user.id,
+        },
+      }),
+    ]);
+
+    // add people and groups to collection
+    await Promise.all([
+      UserMembership.create({
+        collectionId: collection.id,
+        userId: alan.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+      UserMembership.create({
+        collectionId: collection.id,
+        userId: bret.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+      UserMembership.create({
+        collectionId: collection.id,
+        userId: ken.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+      GroupMembership.create({
+        collectionId: collection.id,
+        groupId: group.id,
+        permission: CollectionPermission.ReadWrite,
+        createdById: user.id,
+      }),
+    ]);
+
+    const res = await server.post("/api/documents.users", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        userId: alan.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.length).toBe(1);
+    expect(body.data[0].id).toContain(alan.id);
+    expect(body.data[0].name).toBe(alan.name);
+
+    const anotherRes = await server.post("/api/documents.users", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        userId: jamie.id,
+      },
+    });
+    const anotherBody = await anotherRes.json();
+
+    expect(anotherRes.status).toBe(200);
+    expect(anotherBody.data.length).toBe(0);
+  });
+
   it("should not return suspended or guest users", async () => {
     const user = await buildUser();
     const collection = await buildCollection({

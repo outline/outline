@@ -365,6 +365,8 @@ export const DocumentsUsersSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Query term to search users by name */
     query: z.string().optional(),
+    /** Id of the user to search within document access */
+    userId: z.string().uuid().optional(),
   }),
 });
 
@@ -374,9 +376,9 @@ export const DocumentsAddUserSchema = BaseSchema.extend({
   body: z.object({
     /** Id of the document to which the user is supposed to be added */
     id: z.string().uuid(),
-    /** Id of the user who is to be added*/
+    /** Id of the user who is to be added */
     userId: z.string().uuid(),
-    /** Permission to be granted to the added user  */
+    /** Permission to be granted to the added user */
     permission: z.nativeEnum(DocumentPermission).optional(),
   }),
 });

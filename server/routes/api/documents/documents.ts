@@ -505,7 +505,7 @@ router.post(
   pagination(),
   validate(T.DocumentsUsersSchema),
   async (ctx: APIContext<T.DocumentsUsersReq>) => {
-    const { id, query } = ctx.input.body;
+    const { id, userId, query } = ctx.input.body;
     const actor = ctx.state.auth.user;
     const { offset, limit } = ctx.state.pagination;
     const document = await Document.findByPk(id, {
@@ -554,6 +554,13 @@ router.post(
             `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
           ),
         ],
+      };
+    }
+
+    if (userId) {
+      where = {
+        ...where,
+        id: userId,
       };
     }
 
