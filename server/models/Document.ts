@@ -1035,13 +1035,14 @@ class Document extends ArchivableModel<
       await this.restore({ transaction });
     }
 
-    this.archivedAt = null;
-    this.lastModifiedById = options.user.id;
-    this.updatedBy = options.user;
-    this.collectionId = collectionId;
-    await this.save({ transaction });
-    await this.reload({ transaction });
+    if (this.archivedAt) {
+      await this.restoreWithChildren(collectionId, options.user, {
+        transaction,
+      });
+    }
+
     if (this.collection && collection) {
+      // updating the document structure in memory just in case it's later accessed somewhere
       this.collection.documentStructure = collection.documentStructure;
     }
     return this;
@@ -1137,6 +1138,38 @@ class Document extends ArchivableModel<
       color: isNil(this.color) ? undefined : this.color,
       children,
     };
+  };
+
+  private restoreWithChildren = async (
+    collectionId: string,
+    user: User,
+    options?: FindOptions<Document>
+  ) => {
+    const restoreChildren = async (parentDocumentId: string) => {
+      const childDocuments = await (
+        this.constructor as typeof Document
+      ).findAll({
+        where: {
+          parentDocumentId,
+        },
+        ...options,
+      });
+      for (const child of childDocuments) {
+        await restoreChildren(child.id);
+        child.archivedAt = null;
+        child.lastModifiedById = user.id;
+        child.updatedBy = user;
+        child.collectionId = collectionId;
+        await child.save(options);
+      }
+    };
+
+    await restoreChildren(this.id);
+    this.archivedAt = null;
+    this.lastModifiedById = user.id;
+    this.updatedBy = user;
+    this.collectionId = collectionId;
+    return this.save(options);
   };
 
   private archiveWithChildren = async (
