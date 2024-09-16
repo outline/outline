@@ -149,7 +149,7 @@ export const CollectionForm = observer(function CollectionForm_({
                 field.onChange(value === EmptySelectValue ? null : value);
               }}
               note={t(
-                "The default access for workspace members, you can share with more users or groups later."
+                  "IMPORTANT! This setting determines whether this collection is visible/editable to EVERYONE in Vega. If you want this collection to be PRIVATE except to those you give access to, select 'No access'"
               )}
             />
           )}
@@ -161,6 +161,7 @@ export const CollectionForm = observer(function CollectionForm_({
           FeatureFlags.isEnabled(Feature.newCollectionSharing)) && (
           <Switch
             id="sharing"
+            checked={false}
             label={t("Public document sharing")}
             note={t(
               "Allow documents within this collection to be shared publicly on the internet."
