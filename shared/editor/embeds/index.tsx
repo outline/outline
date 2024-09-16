@@ -18,6 +18,7 @@ import Spotify from "./Spotify";
 import Trello from "./Trello";
 import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
+import EmbedMP4 from "./EmbedMP4";
 
 export type EmbedProps = {
   isSelected: boolean;
@@ -507,6 +508,16 @@ const embeds: EmbedDescriptor[] = [
     transformMatch: (matches: RegExpMatchArray) =>
       `${matches[0].replace(/\/embed$/, "")}/embed`,
     icon: <Img src="/images/mode-analytics.png" alt="Mode" />,
+  }),
+  new EmbedDescriptor({
+    title: "Embed MP4 Video URL",
+    keywords: "embed video",
+    defaultHidden: true,
+    regexMatch: [
+      /(.*\.mp4)/i,
+    ],
+    icon: <Img src="/images/youtube.png" alt="Iframe" />,
+    component: EmbedMP4,
   }),
   new EmbedDescriptor({
     title: "Otter.ai",
