@@ -161,11 +161,11 @@ Open Document: ${teamUrl}${document.url}
           </p>
           {body && (
             <>
-              <EmptySpace height={20} />
-              <Diff>
-                <div dangerouslySetInnerHTML={{ __html: body }} />
-              </Diff>
-              <EmptySpace height={20} />
+              {/*<EmptySpace height={20} />*/}
+              {/*<Diff>*/}
+              {/*  <div dangerouslySetInnerHTML={{ __html: body }} />*/}
+              {/*</Diff>*/}
+              {/*<EmptySpace height={20} />*/}
             </>
           )}
           <p>
