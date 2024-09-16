@@ -119,25 +119,6 @@ export default class UsersStore extends Store<User> {
       id: user.id,
     });
 
-  @action
-  fetchDocumentUsers = async (params: {
-    id: string;
-    query?: string;
-  }): Promise<User[]> => {
-    try {
-      const res = await client.post("/documents.users", params);
-      invariant(res?.data, "User list not available");
-      let response: User[] = [];
-      runInAction("DocumentsStore#fetchUsers", () => {
-        response = res.data.map(this.add);
-        this.addPolicies(res.policies);
-      });
-      return response;
-    } catch (err) {
-      return Promise.resolve([]);
-    }
-  };
-
   /**
    * Returns users that are not in the given document, optionally filtered by a query.
    *
