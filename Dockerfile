@@ -1,5 +1,5 @@
 ARG APP_PATH=/opt/outline
-FROM outlinewiki/outline-base AS base
+FROM local/outline-base AS base
 
 ARG APP_PATH
 WORKDIR $APP_PATH
