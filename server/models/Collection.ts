@@ -694,6 +694,7 @@ class Collection extends ParanoidModel<
     options: FindOptions & {
       save?: boolean;
       documentJson?: NavigationNode;
+      includeArchived?: boolean;
     } = {}
   ) {
     if (!this.documentStructure) {
