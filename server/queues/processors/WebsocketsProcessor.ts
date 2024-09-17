@@ -287,11 +287,7 @@ export default class WebsocketsProcessor {
         }
 
         return socketio
-          .to(
-            collection.permission
-              ? `collection-${event.collectionId}`
-              : `team-${collection.teamId}`
-          )
+          .to(this.getCollectionEventChannels(event, collection))
           .emit(event.name, { modelId: event.collectionId });
       }
 
