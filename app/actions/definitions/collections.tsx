@@ -18,6 +18,7 @@ import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import SharePopover from "~/components/Sharing/Collection/SharePopover";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
@@ -194,7 +195,7 @@ export const unstarCollection = createAction({
 });
 
 export const archiveCollection = createAction({
-  name: ({ t }) => t("Archive"),
+  name: ({ t }) => `${t("Archive")}…`,
   analyticsName: "Archive collection",
   section: CollectionSection,
   icon: <ArchiveIcon />,
@@ -205,14 +206,29 @@ export const archiveCollection = createAction({
     return !!stores.policies.abilities(activeCollectionId).archive;
   },
   perform: async ({ activeCollectionId, stores, t }) => {
+    const { dialogs, collections } = stores;
     if (activeCollectionId) {
-      const collection = stores.collections.get(activeCollectionId);
+      const collection = collections.get(activeCollectionId);
       if (!collection) {
         return;
       }
 
-      await collection.archive();
-      toast.success(t("Collection archived"));
+      dialogs.openModal({
+        title: t("Are you sure you want to archive this collection?"),
+        content: (
+          <ConfirmationDialog
+            onSubmit={async () => {
+              await collection.archive();
+              toast.success(t("Collection archived"));
+            }}
+            savingText={`${t("Archiving")}…`}
+          >
+            {t(
+              "Archiving this collection will also archive all documents within it. Archived collection and its documents will no longer be visible in search results."
+            )}
+          </ConfirmationDialog>
+        ),
+      });
     }
   },
 });
