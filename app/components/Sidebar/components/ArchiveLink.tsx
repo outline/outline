@@ -1,3 +1,4 @@
+import isUndefined from "lodash/isUndefined";
 import { observer } from "mobx-react";
 import { ArchiveIcon } from "outline-icons";
 import * as React from "react";
@@ -19,9 +20,29 @@ function ArchiveLink() {
   const { collections } = useStores();
   const { t } = useTranslation();
 
-  const [expanded, setExpanded] = React.useState(false);
+  const [disclosure, setDisclosure] = React.useState<boolean>(false);
+  const [expanded, setExpanded] = React.useState<boolean | undefined>();
 
-  const { request } = useRequest(collections.fetchArchived);
+  const { request, data, loading, error } = useRequest(
+    collections.fetchArchived,
+    true
+  );
+
+  React.useEffect(() => {
+    if (!isUndefined(data) && !loading && isUndefined(error)) {
+      setDisclosure(data.length > 0);
+    }
+  }, [data, loading, error]);
+
+  React.useEffect(() => {
+    setDisclosure(collections.archived.length > 0);
+  }, [collections.archived]);
+
+  React.useEffect(() => {
+    if (disclosure && isUndefined(expanded)) {
+      setExpanded(false);
+    }
+  }, [disclosure]);
 
   React.useEffect(() => {
     if (expanded) {
@@ -51,12 +72,12 @@ function ArchiveLink() {
           label={t("Archive")}
           isActiveDrop={isOverArchiveSection}
           depth={0}
-          expanded={expanded}
+          expanded={disclosure ? expanded : undefined}
           onDisclosureClick={handleDisclosureClick}
           onClick={handleClick}
         />
       </div>
-      {expanded ? (
+      {expanded === true ? (
         <Relative>
           <PaginatedList
             aria-label={t("Archived collections")}
