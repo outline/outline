@@ -47,6 +47,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
       const recipient = await User.findByPk(mention.modelId);
 
       if (
+        mention.actorId &&
         recipient &&
         recipient.id !== mention.actorId &&
         recipient.subscribedToEventType(
