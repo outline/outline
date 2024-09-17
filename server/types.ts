@@ -175,13 +175,22 @@ export type DocumentEvent = BaseEvent<Document> &
           | "documents.delete"
           | "documents.permanent_delete"
           | "documents.archive"
-          | "documents.unarchive"
           | "documents.restore";
         documentId: string;
         collectionId: string;
         data: {
           title: string;
           source?: "import";
+        };
+      }
+    | {
+        name: "documents.unarchive";
+        documentId: string;
+        collectionId: string;
+        data: {
+          title: string;
+          /** Id of collection from which the document is unarchived */
+          srcCollectionId: string;
         };
       }
     | {

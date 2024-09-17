@@ -805,6 +805,7 @@ router.post(
           collectionId: document.collectionId,
           data: {
             title: document.title,
+            srcCollectionId,
           },
         },
         { transaction }
