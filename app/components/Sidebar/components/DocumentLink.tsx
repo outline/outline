@@ -2,7 +2,6 @@ import { Location } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
-import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -26,8 +25,12 @@ import EditableTitle, { RefHandle } from "./EditableTitle";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import { SidebarContextType, useSidebarContext } from "./SidebarContext";
-import SidebarLink, { DragObject } from "./SidebarLink";
-import { useDragDocument, useDropToReorderDocument } from "./useDragAndDrop";
+import SidebarLink from "./SidebarLink";
+import {
+  useDragDocument,
+  useDropToReorderDocument,
+  useDropToReparentDocument,
+} from "./useDragAndDrop";
 
 type Props = {
   node: NavigationNode;
@@ -80,11 +83,6 @@ function InnerDocumentLink(
     isActiveDocument,
   ]);
 
-  const pathToNode = React.useMemo(
-    () => collection?.pathToDocument(node.id).map((entry) => entry.id),
-    [collection, node]
-  );
-
   const showChildren = React.useMemo(
     () =>
       !!(
@@ -100,27 +98,27 @@ function InnerDocumentLink(
     [hasChildDocuments, activeDocument, isActiveDocument, node, collection]
   );
 
-  const [expanded, setExpanded] = React.useState(showChildren);
+  const [expanded, setExpanded, setCollapsed] = useBoolean(showChildren);
 
   React.useEffect(() => {
     if (showChildren) {
-      setExpanded(showChildren);
+      setExpanded();
     }
-  }, [showChildren]);
+  }, [setExpanded, showChildren]);
 
   // when the last child document is removed auto-close the local folder state
   React.useEffect(() => {
     if (expanded && !hasChildDocuments) {
-      setExpanded(false);
+      setCollapsed();
     }
-  }, [expanded, hasChildDocuments]);
+  }, [setCollapsed, expanded, hasChildDocuments]);
 
   const handleDisclosureClick = React.useCallback(
     (ev) => {
       ev?.preventDefault();
-      setExpanded(!expanded);
+      expanded ? setCollapsed() : setExpanded();
     },
-    [expanded]
+    [setCollapsed, setExpanded, expanded]
   );
 
   const handlePrefetch = React.useCallback(() => {
@@ -148,72 +146,10 @@ function InnerDocumentLink(
   // Draggable
   const [{ isDragging }, drag] = useDragDocument(node, depth, document);
 
-  const hoverExpanding = React.useRef<ReturnType<typeof setTimeout>>();
-
-  // We set a timeout when the user first starts hovering over the document link,
-  // to trigger expansion of children. Clear this timeout when they stop hovering.
-  const resetHoverExpanding = React.useCallback(() => {
-    if (hoverExpanding.current) {
-      clearTimeout(hoverExpanding.current);
-      hoverExpanding.current = undefined;
-    }
-  }, []);
-
   // Drop to re-parent
-  const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
-    accept: "document",
-    drop: async (item: DragObject, monitor) => {
-      if (monitor.didDrop()) {
-        return;
-      }
-      if (!collection) {
-        return;
-      }
-      await documents.move({
-        documentId: item.id,
-        collectionId: collection.id,
-        parentDocumentId: node.id,
-      });
-      setExpanded(true);
-    },
-    canDrop: (item, monitor) =>
-      !!pathToNode &&
-      !pathToNode.includes(monitor.getItem<DragObject>().id) &&
-      item.id !== node.id &&
-      policies.abilities(node.id).update &&
-      policies.abilities(item.id).move,
-    hover: (_item, monitor) => {
-      // Enables expansion of document children when hovering over the document
-      // for more than half a second.
-      if (
-        hasChildDocuments &&
-        monitor.canDrop() &&
-        monitor.isOver({
-          shallow: true,
-        })
-      ) {
-        if (!hoverExpanding.current) {
-          hoverExpanding.current = setTimeout(() => {
-            hoverExpanding.current = undefined;
-
-            if (
-              monitor.isOver({
-                shallow: true,
-              })
-            ) {
-              setExpanded(true);
-            }
-          }, 500);
-        }
-      }
-    },
-    collect: (monitor) => ({
-      isOverReparent: monitor.isOver({
-        shallow: true,
-      }),
-      canDropToReparent: monitor.canDrop(),
-    }),
-  });
+  const parentRef = React.useRef<HTMLDivElement>(null);
+  const [{ isOverReparent, canDropToReparent }, dropToReparent] =
+    useDropToReparentDocument(node, setExpanded, parentRef);
 
   // Drop to reorder
   const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] =
@@ -271,18 +207,18 @@ function InnerDocumentLink(
         return;
       }
       if (ev.key === "ArrowRight" && !expanded) {
-        setExpanded(true);
+        setExpanded();
       }
       if (ev.key === "ArrowLeft" && expanded) {
-        setExpanded(false);
+        setCollapsed();
       }
     },
-    [hasChildren, expanded]
+    [setExpanded, setCollapsed, hasChildren, expanded]
   );
 
   return (
     <>
-      <Relative onDragLeave={resetHoverExpanding}>
+      <Relative ref={parentRef}>
         <Draggable
           key={node.id}
           ref={drag}

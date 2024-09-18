@@ -54,7 +54,6 @@ import SearchHelper from "@server/models/helpers/SearchHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize, can, cannot } from "@server/policies";
 import {
-  presentCollection,
   presentDocument,
   presentPolicies,
   presentMembership,
@@ -1216,7 +1215,7 @@ router.post(
       }
     }
 
-    const { documents, collections, collectionChanged } = await documentMover({
+    const { documents, collectionChanged } = await documentMover({
       user,
       document,
       collectionId: collectionId ?? null,
@@ -1229,11 +1228,10 @@ router.post(
     ctx.body = {
       data: {
         documents: await Promise.all(
-          documents.map((document) => presentDocument(ctx, document))
+          documents.map((doc) => presentDocument(ctx, doc))
         ),
-        collections: await Promise.all(
-          collections.map((collection) => presentCollection(ctx, collection))
-        ),
+        // Included for backwards compatibility
+        collections: [],
       },
       policies: collectionChanged ? presentPolicies(user, documents) : [],
     };

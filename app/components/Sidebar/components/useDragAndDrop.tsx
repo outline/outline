@@ -161,6 +161,96 @@ export function useDragDocument(
 }
 
 /**
+ * Hook for shared logic that allows dropping documents to reparent
+ *
+ * @param node The NavigationNode model to drop.
+ * @param setExpanded A function to expand the parent node.
+ * @param parentRef A ref to the parent element that will be used to detect when the user is no longer hovering..
+ */
+export function useDropToReparentDocument(
+  node: NavigationNode | undefined,
+  setExpanded: () => void,
+  parentRef: React.RefObject<HTMLDivElement>
+) {
+  const { documents, policies } = useStores();
+  const hasChildDocuments = !!node?.children.length;
+  const document = node ? documents.get(node.id) : undefined;
+  const pathToNode = React.useMemo(
+    () => document?.pathTo.map((item) => item.id),
+    [document]
+  );
+
+  const hoverExpanding = React.useRef<ReturnType<typeof setTimeout>>();
+
+  // We set a timeout when the user first starts hovering over the document link,
+  // to trigger expansion of children. Clear this timeout when they stop hovering.
+  React.useEffect(() => {
+    const resetHoverExpanding = () => {
+      if (hoverExpanding.current) {
+        clearTimeout(hoverExpanding.current);
+        hoverExpanding.current = undefined;
+      }
+    };
+
+    parentRef.current?.addEventListener("dragleave", resetHoverExpanding);
+
+    return () => {
+      parentRef.current?.removeEventListener("dragleave", resetHoverExpanding);
+    };
+  }, [parentRef]);
+
+  return useDrop<
+    DragObject,
+    Promise<void>,
+    { isOverReparent: boolean; canDropToReparent: boolean }
+  >({
+    accept: "document",
+    drop: async (item, monitor) => {
+      if (monitor.didDrop() || !node) {
+        return;
+      }
+      await documents.move({
+        documentId: item.id,
+        parentDocumentId: node.id,
+      });
+      setExpanded();
+    },
+    canDrop: (item, monitor) =>
+      !!node &&
+      !!pathToNode &&
+      !pathToNode.includes(monitor.getItem().id) &&
+      item.id !== node.id &&
+      policies.abilities(node.id).update &&
+      policies.abilities(item.id).move,
+    hover: (_item, monitor) => {
+      // Enables expansion of document children when hovering over the document
+      // for more than half a second.
+      if (
+        hasChildDocuments &&
+        monitor.canDrop() &&
+        monitor.isOver({
+          shallow: true,
+        })
+      ) {
+        if (!hoverExpanding.current) {
+          hoverExpanding.current = setTimeout(() => {
+            hoverExpanding.current = undefined;
+
+            if (monitor.isOver({ shallow: true })) {
+              setExpanded();
+            }
+          }, 500);
+        }
+      }
+    },
+    collect: (monitor) => ({
+      isOverReparent: monitor.isOver({ shallow: true }),
+      canDropToReparent: monitor.canDrop(),
+    }),
+  });
+}
+
+/**
  * Hook for shared logic that allows dropping documents to reorder
  *
  * @param node The NavigationNode model to drop.

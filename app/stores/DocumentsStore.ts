@@ -584,7 +584,6 @@ export default class DocumentsStore extends Store<Document> {
       });
       invariant(res?.data, "Data not available");
       res.data.documents.forEach(this.add);
-      res.data.collections.forEach(this.rootStore.collections.add);
       this.addPolicies(res.policies);
     } finally {
       this.movingDocumentId = undefined;
