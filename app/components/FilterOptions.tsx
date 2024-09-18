@@ -230,6 +230,7 @@ const SearchInput = styled(Input)`
     border: none;
     border-radius: 0;
     border-bottom: 1px solid ${s("inputBorder")};
+    background: ${s("menuBackground")};
   }
 
   ${NativeInput} {
