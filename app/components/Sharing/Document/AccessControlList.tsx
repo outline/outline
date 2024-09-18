@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
 import { Pagination } from "@shared/constants";
+import { s } from "@shared/styles";
 import { CollectionPermission, IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import type Collection from "~/models/Collection";
@@ -201,7 +202,7 @@ export const AccessControlList = observer(
           </>
         )}
         {team.sharing && can.share && !collectionSharingDisabled && visible && (
-          <>
+          <Sticky>
             {document.members.length ? <Separator /> : null}
             <PublicAccess
               document={document}
@@ -209,7 +210,7 @@ export const AccessControlList = observer(
               sharedParent={sharedParent}
               onRequestClose={onRequestClose}
             />
-          </>
+          </Sticky>
         )}
       </ScrollableContainer>
     );
@@ -273,6 +274,12 @@ function useUsersInCollection(collection?: Collection) {
       : users.inCollection(collection.id).length > 1
     : false;
 }
+
+const Sticky = styled.div`
+  background: ${s("menuBackground")};
+  position: sticky;
+  bottom: -8px;
+`;
 
 const ScrollableContainer = styled(Scrollable)`
   padding: 12px 24px;

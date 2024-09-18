@@ -203,7 +203,7 @@ const StyledInfoIcon = styled(InfoIcon)`
 `;
 
 const Wrapper = styled.div`
-  margin-bottom: 8px;
+  padding-bottom: 8px;
 `;
 
 const DomainPrefix = styled.span`
