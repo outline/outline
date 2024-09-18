@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { v4 as uuidv4 } from "uuid";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
-import { TeamDomain } from "@server/models";
+import { Team, TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
 import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
@@ -341,8 +341,9 @@ describe("accountProvisioner", () => {
     });
   });
 
-  describe.skip("self hosted", () => {
+  describe("self hosted", () => {
     beforeEach(setSelfHosted);
+    beforeEach(() => Team.truncate());
 
     it("should fail if existing team and domain not in allowed list", async () => {
       let error;
@@ -376,9 +377,7 @@ describe("accountProvisioner", () => {
         error = err;
       }
 
-      expect(error.message).toEqual(
-        "The maximum number of workspaces has been reached"
-      );
+      expect(error.message).toEqual("Invalid authentication");
     });
 
     it("should always use existing team if self-hosted", async () => {

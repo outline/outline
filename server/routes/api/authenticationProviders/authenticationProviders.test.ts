@@ -1,8 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
+import { Team } from "@server/models";
 import { buildUser, buildAdmin, buildTeam } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const server = getTestServer();
+
+beforeEach(setSelfHosted);
+beforeEach(() => Team.truncate());
 
 describe("#authenticationProviders.info", () => {
   it("should return auth provider", async () => {
