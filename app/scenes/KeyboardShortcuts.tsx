@@ -290,6 +290,14 @@ function KeyboardShortcuts() {
             label: t("Ordered list"),
           },
           {
+            shortcut: (
+              <>
+                <Key symbol>{metaDisplay}</Key> + <Key>Enter</Key>
+              </>
+            ),
+            label: t("Toggle task list item"),
+          },
+          {
             shortcut: <Key>{t("Tab")}</Key>,
             label: t("Indent list item"),
           },
