@@ -68,7 +68,7 @@ export const AccessControlList = observer(
     const containerRef = React.useRef<HTMLDivElement | null>(null);
     const { maxHeight, calcMaxHeight } = useMaxHeight({
       elementRef: containerRef,
-      maxViewportPercentage: 70,
+      maxViewportPercentage: 65,
       margin: 24,
     });
 
@@ -278,7 +278,7 @@ function useUsersInCollection(collection?: Collection) {
 const Sticky = styled.div`
   background: ${s("menuBackground")};
   position: sticky;
-  bottom: -8px;
+  bottom: -12px;
 `;
 
 const ScrollableContainer = styled(Scrollable)`
