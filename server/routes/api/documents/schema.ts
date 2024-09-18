@@ -254,7 +254,7 @@ export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateSchema>;
 export const DocumentsMoveSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Id of collection to which the doc is supposed to be moved */
-    collectionId: z.string().uuid().nullish(),
+    collectionId: z.string().uuid().optional().nullish(),
 
     /** Parent Id, in case if the doc is moved to a new parent */
     parentDocumentId: z.string().uuid().nullish(),
