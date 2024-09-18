@@ -121,12 +121,29 @@ export default class DocumentsStore extends Store<Document> {
     );
   }
 
-  archivedInCollection(collectionId: string): Document[] {
+  archivedInCollection(
+    collectionId: string,
+    options?: { archivedAt: string }
+  ): Document[] {
+    const filterCond = (document: Document) =>
+      options
+        ? document.collectionId === collectionId &&
+          document.isArchived &&
+          document.archivedAt === options.archivedAt &&
+          !document.isDeleted
+        : document.collectionId === collectionId &&
+          document.isArchived &&
+          !document.isDeleted;
+
+    return filter(this.orderedData, filterCond);
+  }
+
+  unarchivedInCollection(collectionId: string): Document[] {
     return filter(
       this.orderedData,
       (document) =>
         document.collectionId === collectionId &&
-        document.isArchived &&
+        !document.isArchived &&
         !document.isDeleted
     );
   }

@@ -311,6 +311,7 @@ export type CollectionEvent = BaseEvent<Collection> &
         collectionId: string;
         data: {
           name: string;
+          archivedAt: string;
         };
       }
     | {

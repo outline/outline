@@ -288,7 +288,10 @@ export default class WebsocketsProcessor {
 
         return socketio
           .to(this.getCollectionEventChannels(event, collection))
-          .emit(event.name, { modelId: event.collectionId });
+          .emit(event.name, {
+            id: event.collectionId,
+            archivedAt: event.data.archivedAt,
+          });
       }
 
       case "collections.move": {

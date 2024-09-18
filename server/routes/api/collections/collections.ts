@@ -947,6 +947,7 @@ router.post(
         collectionId: collection.id,
         data: {
           name: collection.name,
+          archivedAt: collection.archivedAt,
         },
       },
       { transaction }
@@ -981,6 +982,8 @@ router.post(
 
     authorize(user, "restore", collection);
 
+    const collectionArchivedAt = collection.archivedAt;
+
     await Document.update(
       {
         lastModifiedById: user.id,
@@ -990,9 +993,7 @@ router.post(
         where: {
           collectionId: collection.id,
           teamId: user.teamId,
-          archivedAt: {
-            [Op.not]: null,
-          },
+          archivedAt: collection.archivedAt,
         },
         transaction,
       }
@@ -1009,6 +1010,7 @@ router.post(
         collectionId: collection.id,
         data: {
           name: collection.name,
+          archivedAt: collectionArchivedAt,
         },
       },
       { transaction }
