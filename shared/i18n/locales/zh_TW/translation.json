@@ -730,6 +730,7 @@
   "Undo": "復原",
   "Redo": "重做",
   "Lists": "清單",
+  "Toggle task list item": "Toggle task list item",
   "Tab": "Tab",
   "Indent list item": "增加清單縮排",
   "Outdent list item": "減少清單縮排",
