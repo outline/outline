@@ -730,6 +730,7 @@
   "Undo": "실행 취소",
   "Redo": "복원하기",
   "Lists": "목록",
+  "Toggle task list item": "Toggle task list item",
   "Tab": "Tab",
   "Indent list item": "목록 항목 들여쓰기",
   "Outdent list item": "목록 항목 내어쓰기",
