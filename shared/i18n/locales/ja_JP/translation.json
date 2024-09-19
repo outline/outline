@@ -730,6 +730,7 @@
   "Undo": "元に戻す",
   "Redo": "やり直し",
   "Lists": "リスト",
+  "Toggle task list item": "Toggle task list item",
   "Tab": "タブ",
   "Indent list item": "リスト項目をインデント",
   "Outdent list item": "リスト項目をインデント解除",
