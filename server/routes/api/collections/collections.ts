@@ -580,7 +580,7 @@ router.post(
 
 router.post(
   "collections.export",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.FiftyPerHour),
   auth(),
   validate(T.CollectionsExportSchema),
   transaction(),
