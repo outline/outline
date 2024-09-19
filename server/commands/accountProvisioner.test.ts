@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { v4 as uuidv4 } from "uuid";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
-import { Team, TeamDomain } from "@server/models";
+import { TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
 import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
@@ -343,7 +343,6 @@ describe("accountProvisioner", () => {
 
   describe("self hosted", () => {
     beforeEach(setSelfHosted);
-    beforeEach(() => Team.truncate());
 
     it("should fail if existing team and domain not in allowed list", async () => {
       let error;

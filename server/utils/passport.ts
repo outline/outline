@@ -115,7 +115,7 @@ export async function getTeamFromContext(ctx: Context) {
       team = await Team.findOne({ where: { domain: env.URL } });
     } else {
       team = await Team.findOne({
-        order: [["createdAt", "ASC"]],
+        order: [["createdAt", "DESC"]],
       });
     }
   } else if (ctx.state?.rootShare) {

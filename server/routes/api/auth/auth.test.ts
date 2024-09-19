@@ -1,6 +1,5 @@
 import { faker } from "@faker-js/faker";
 import { v4 as uuidv4 } from "uuid";
-import { Team } from "@server/models";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
@@ -195,7 +194,6 @@ describe("#auth.config", () => {
 
   describe.skip("self hosted", () => {
     beforeEach(setSelfHosted);
-    beforeEach(() => Team.truncate());
 
     it("should return all configured providers but respect email setting", async () => {
       await buildTeam({
