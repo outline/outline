@@ -247,8 +247,7 @@ router.post(
   pagination(),
   validate(T.DocumentsArchivedSchema),
   async (ctx: APIContext<T.DocumentsArchivedReq>) => {
-    let { sort } = ctx.input.body;
-    const { direction, collectionId } = ctx.input.body;
+    const { sort, direction, collectionId } = ctx.input.body;
 
     const { user } = ctx.state.auth;
 
@@ -285,21 +284,22 @@ router.post(
       };
     }
 
-    // this needs to be done otherwise findAll below will throw telling
-    // that the column "document"."index" doesn't exist – value of sort
-    // is required to be a column name
-    if (sort === "index") {
-      sort = "updatedAt";
-    }
-
     const documents = await Document.defaultScopeWithUser(user.id).findAll({
       where,
-      order: [[sort, direction]],
+      order: [
+        [
+          // this needs to be done otherwise findAll will throw citing
+          // that the column "document"."index" doesn't exist – value of sort
+          // is required to be a column name
+          sort === "index" ? "updatedAt" : sort,
+          direction,
+        ],
+      ],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
 
-    if (documentIds.length) {
+    if (sort === "index") {
       // sort again so as to retain the order of documents as in collection.documentStructure
       documents.sort(
         (a, b) => documentIds.indexOf(a.id) - documentIds.indexOf(b.id)
