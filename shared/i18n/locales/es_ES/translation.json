@@ -730,6 +730,7 @@
   "Undo": "Deshacer",
   "Redo": "Rehacer",
   "Lists": "Listas",
+  "Toggle task list item": "Toggle task list item",
   "Tab": "Tabulador",
   "Indent list item": "Aumentar sangría del elemento de la lista",
   "Outdent list item": "Disminuir sangría del elemento de la lista",
