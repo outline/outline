@@ -1,6 +1,10 @@
+import { exitCode } from "prosemirror-commands";
 import { Command, TextSelection } from "prosemirror-state";
 import { findStartOfLine } from "../queries/findStartOfLine";
 import { isInCode } from "../queries/isInCode";
+
+const newline = "\n";
+const tabSize = 2;
 
 /**
  * Moves the current selection to the previous newline, this is used inside
@@ -25,7 +29,7 @@ export const moveToPreviousNewline: Command = (state, dispatch) => {
     .split("")
     .reverse()
     .join("")
-    .indexOf("\n", $pos.parent.nodeSize - $pos.parentOffset - 2);
+    .indexOf(newline, $pos.parent.nodeSize - $pos.parentOffset - 2);
   const pos =
     startOfLine === -1
       ? beginningOfNode
@@ -56,7 +60,7 @@ export const moveToNextNewline: Command = (state, dispatch) => {
 
   // find next newline or end of node
   const beginningOfNode = $pos.pos - $pos.parentOffset;
-  const endOfLine = $pos.parent.textContent.indexOf("\n", $pos.parentOffset);
+  const endOfLine = $pos.parent.textContent.indexOf(newline, $pos.parentOffset);
   const pos =
     endOfLine === -1
       ? beginningOfNode + $pos.parent.nodeSize - 2
@@ -82,10 +86,10 @@ export const newlineInCode: Command = (state, dispatch) => {
   }
   const { tr, selection } = state;
   const text = selection.$anchor.nodeBefore?.text;
-  let newText = "\n";
+  let newText = newline;
 
   if (text) {
-    const splitByNewLine = text.split("\n");
+    const splitByNewLine = text.split(newline);
     const offset = splitByNewLine[splitByNewLine.length - 1].search(/\S|$/);
     newText += " ".repeat(offset);
   }
@@ -104,7 +108,7 @@ export const indentInCode: Command = (state, dispatch) => {
     return false;
   }
 
-  const spaces = "  ";
+  const spaces = " ".repeat(tabSize);
   const { tr, selection } = state;
   const { $from, from, to } = selection;
 
@@ -120,14 +124,12 @@ export const indentInCode: Command = (state, dispatch) => {
 
   if (dispatch) {
     let line = 1;
-    const offset = spaces.length;
-
     tr.insertText(spaces, findStartOfLine($from, tr.doc));
 
     // Find all newlines in the selection and insert spaces before them.
     let index = from + 1;
-    while (index <= to - 1 + line * offset) {
-      const newLineBefore = tr.doc.textBetween(index - 1, index) === "\n";
+    while (index <= to - 1 + line * tabSize) {
+      const newLineBefore = tr.doc.textBetween(index - 1, index) === newline;
       if (newLineBefore) {
         tr.insertText(spaces, index);
         line++;
@@ -136,7 +138,7 @@ export const indentInCode: Command = (state, dispatch) => {
     }
 
     tr.setSelection(
-      TextSelection.create(tr.doc, from + offset, to + line * offset)
+      TextSelection.create(tr.doc, from + tabSize, to + line * tabSize)
     );
 
     dispatch(tr);
@@ -157,7 +159,6 @@ export const outdentInCode: Command = (state, dispatch) => {
   }
 
   if (dispatch) {
-    const offset = 2;
     const { tr, selection } = state;
     const { $from, from, to } = selection;
     const selectionLength = to - from;
@@ -170,13 +171,13 @@ export const outdentInCode: Command = (state, dispatch) => {
     let spacesRemovedOnFirstLine = 0;
     const startOfFirstLine = findStartOfLine($from, tr.doc);
 
-    while (index >= startOfFirstLine - line * offset) {
+    while (index >= startOfFirstLine - line * tabSize) {
       const newLineBefore =
-        tr.doc.textBetween(index - 1, index) === "\n" ||
+        tr.doc.textBetween(index - 1, index) === newline ||
         index === startOfFirstLine;
       if (newLineBefore) {
         // Remove upto offset spaces from the start of the line.
-        const textToConsider = tr.doc.textBetween(index, index + offset);
+        const textToConsider = tr.doc.textBetween(index, index + tabSize);
 
         // Find number of spaces in textToConsider
         let spaces = 0;
@@ -212,4 +213,27 @@ export const outdentInCode: Command = (state, dispatch) => {
   }
 
   return false;
+};
+
+/**
+ * Exit the code block by moving the cursor to the end of the code block and
+ * inserting a newline character.
+ *
+ * @returns A prosemirror command
+ */
+export const enterInCode: Command = (state, dispatch) => {
+  if (!isInCode(state, { onlyBlock: true })) {
+    return false;
+  }
+  const { selection } = state;
+  const text = selection.$anchor.nodeBefore?.text;
+  const selectionAtEnd =
+    selection.$anchor.parentOffset === selection.$anchor.parent.nodeSize - 2;
+
+  if (selectionAtEnd && text?.endsWith(newline)) {
+    exitCode(state, dispatch);
+    return true;
+  }
+
+  return newlineInCode(state, dispatch);
 };
