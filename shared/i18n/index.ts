@@ -74,6 +74,10 @@ export const languageOptions = [
     value: "tr_TR",
   },
   {
+    label: "Русский (Russian)",
+    value: "ru_RU",
+  },
+  {
     label: "Українська (Ukrainian)",
     value: "uk_UA",
   },
