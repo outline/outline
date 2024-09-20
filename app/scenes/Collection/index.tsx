@@ -13,6 +13,7 @@ import {
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
+import { StatusFilter } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Search from "~/scenes/Search";
@@ -28,6 +29,7 @@ import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
 import PlaceholderText from "~/components/PlaceholderText";
 import Scene from "~/components/Scene";
+import Subheading from "~/components/Subheading";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import { editCollection } from "~/actions/definitions/collections";
@@ -194,26 +196,28 @@ function CollectionScene() {
           <CollectionDescription collection={collection} />
 
           <Documents>
-            <Tabs>
-              <Tab to={collectionPath(collection.path)} exact>
-                {t("Documents")}
-              </Tab>
-              <Tab to={collectionPath(collection.path, "updated")} exact>
-                {t("Recently updated")}
-              </Tab>
-              <Tab to={collectionPath(collection.path, "published")} exact>
-                {t("Recently published")}
-              </Tab>
-              <Tab to={collectionPath(collection.path, "old")} exact>
-                {t("Least recently updated")}
-              </Tab>
-              <Tab to={collectionPath(collection.path, "alphabetical")} exact>
-                {t("A–Z")}
-              </Tab>
-            </Tabs>
+            {!collection.isArchived && (
+              <Tabs>
+                <Tab to={collectionPath(collection.path)} exact>
+                  {t("Documents")}
+                </Tab>
+                <Tab to={collectionPath(collection.path, "updated")} exact>
+                  {t("Recently updated")}
+                </Tab>
+                <Tab to={collectionPath(collection.path, "published")} exact>
+                  {t("Recently published")}
+                </Tab>
+                <Tab to={collectionPath(collection.path, "old")} exact>
+                  {t("Least recently updated")}
+                </Tab>
+                <Tab to={collectionPath(collection.path, "alphabetical")} exact>
+                  {t("A–Z")}
+                </Tab>
+              </Tabs>
+            )}
             {collection.isEmpty ? (
               <Empty collection={collection} />
-            ) : (
+            ) : !collection.isArchived ? (
               <Switch>
                 <Route path={collectionPath(collection.path, "alphabetical")}>
                   <PaginatedDocumentList
@@ -276,6 +280,24 @@ function CollectionScene() {
                       parentDocumentId: null,
                       sort: collection.sort.field,
                       direction: collection.sort.direction,
+                    }}
+                    showParentDocuments
+                  />
+                </Route>
+              </Switch>
+            ) : (
+              <Switch>
+                <Route path={collectionPath(collection.path)} exact>
+                  <PaginatedDocumentList
+                    documents={documents.archivedInCollection(collection.id)}
+                    fetch={documents.fetchPage}
+                    heading={<Subheading sticky>{t("Documents")}</Subheading>}
+                    options={{
+                      collectionId: collection.id,
+                      parentDocumentId: null,
+                      sort: collection.sort.field,
+                      direction: collection.sort.direction,
+                      statusFilter: [StatusFilter.Archived],
                     }}
                     showParentDocuments
                   />
