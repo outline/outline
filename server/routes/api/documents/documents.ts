@@ -247,21 +247,65 @@ router.post(
   pagination(),
   validate(T.DocumentsArchivedSchema),
   async (ctx: APIContext<T.DocumentsArchivedReq>) => {
-    const { sort, direction } = ctx.input.body;
+    const { sort, direction, collectionId } = ctx.input.body;
+
     const { user } = ctx.state.auth;
-    const collectionIds = await user.collectionIds();
-    const documents = await Document.defaultScopeWithUser(user.id).findAll({
-      where: {
-        teamId: user.teamId,
-        collectionId: collectionIds,
-        archivedAt: {
-          [Op.ne]: null,
-        },
+
+    let where: WhereOptions<Document> = {
+      teamId: user.teamId,
+      archivedAt: {
+        [Op.ne]: null,
       },
-      order: [[sort, direction]],
+    };
+
+    let documentIds: string[] = [];
+
+    // if a specific collection is passed then we need to check auth to view it
+    if (collectionId) {
+      where = { ...where, collectionId };
+      const collection = await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(collectionId);
+      authorize(user, "readDocument", collection);
+
+      // index sort is special because it uses the order of the documents in the
+      // collection.documentStructure rather than a database column
+      if (sort === "index") {
+        documentIds = (collection?.documentStructure || [])
+          .map((node) => node.id)
+          .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
+        where = { ...where, id: documentIds };
+      } // otherwise, filter by all collections the user has access to
+    } else {
+      const collectionIds = await user.collectionIds();
+      where = {
+        ...where,
+        collectionId: collectionIds,
+      };
+    }
+
+    const documents = await Document.defaultScopeWithUser(user.id).findAll({
+      where,
+      order: [
+        [
+          // this needs to be done otherwise findAll will throw citing
+          // that the column "document"."index" doesn't exist – value of sort
+          // is required to be a column name
+          sort === "index" ? "updatedAt" : sort,
+          direction,
+        ],
+      ],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
+
+    if (sort === "index") {
+      // sort again so as to retain the order of documents as in collection.documentStructure
+      documents.sort(
+        (a, b) => documentIds.indexOf(a.id) - documentIds.indexOf(b.id)
+      );
+    }
+
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
     );

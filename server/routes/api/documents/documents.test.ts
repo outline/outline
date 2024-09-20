@@ -2066,6 +2066,101 @@ describe("#documents.templatize", () => {
 });
 
 describe("#documents.archived", () => {
+  it("should succeed with 200 ok if sort parameter in request is set to index", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await document.archive(user);
+    const res = await server.post("/api/documents.archived", {
+      body: {
+        token: user.getJwtToken(),
+        sort: "index",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(document.id);
+    expect(body.data[0].archivedAt).toBeTruthy();
+  });
+
+  it("should return archived documents in a given collection", async () => {
+    const user = await buildUser();
+    const [firstCollection, secondCollection] = await Promise.all([
+      buildCollection({ teamId: user.teamId }),
+      buildCollection({ teamId: user.teamId }),
+    ]);
+
+    const [documentInFirstCollection, documentInSecondCollection] =
+      await Promise.all([
+        buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          collectionId: firstCollection.id,
+        }),
+        buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          collectionId: secondCollection.id,
+        }),
+      ]);
+
+    await Promise.all([
+      documentInFirstCollection.archive(user),
+      documentInSecondCollection.archive(user),
+    ]);
+
+    const res = await server.post("/api/documents.archived", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: firstCollection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(documentInFirstCollection.id);
+    expect(body.data[0].archivedAt).toBeTruthy();
+  });
+
+  it("should return archived documents in all user collections", async () => {
+    const user = await buildUser();
+    const [firstCollection, secondCollection] = await Promise.all([
+      buildCollection({ teamId: user.teamId }),
+      buildCollection({ teamId: user.teamId }),
+    ]);
+
+    const [documentInFirstCollection, documentInSecondCollection] =
+      await Promise.all([
+        buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          collectionId: firstCollection.id,
+        }),
+        buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+          collectionId: secondCollection.id,
+        }),
+      ]);
+
+    await Promise.all([
+      documentInFirstCollection.archive(user),
+      documentInSecondCollection.archive(user),
+    ]);
+
+    const res = await server.post("/api/documents.archived", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(2);
+  });
+
   it("should return archived documents", async () => {
     const user = await buildUser();
     const document = await buildDocument({

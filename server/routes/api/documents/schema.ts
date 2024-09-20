@@ -82,7 +82,10 @@ export const DocumentsListSchema = BaseSchema.extend({
 export type DocumentsListReq = z.infer<typeof DocumentsListSchema>;
 
 export const DocumentsArchivedSchema = BaseSchema.extend({
-  body: DocumentsSortParamsSchema.extend({}),
+  body: DocumentsSortParamsSchema.extend({
+    /** Id of the collection to which archived documents should belong */
+    collectionId: z.string().uuid().optional(),
+  }),
 });
 
 export type DocumentsArchivedReq = z.infer<typeof DocumentsArchivedSchema>;
