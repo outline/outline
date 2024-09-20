@@ -1,6 +1,5 @@
 import copy from "copy-to-clipboard";
 import Token from "markdown-it/lib/token";
-import { exitCode } from "prosemirror-commands";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import {
   NodeSpec,
@@ -67,9 +66,11 @@ import { isMac } from "../../utils/browser";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import {
   newlineInCode,
-  insertSpaceTab,
+  indentInCode,
   moveToNextNewline,
   moveToPreviousNewline,
+  outdentInCode,
+  enterInCode,
 } from "../commands/codeFence";
 import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
@@ -245,24 +246,9 @@ export default class CodeFence extends Node {
       // Both shortcuts work, but Shift-Ctrl-c matches the one in the menu
       "Shift-Ctrl-c": toggleBlockType(type, schema.nodes.paragraph),
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),
-      Tab: insertSpaceTab,
-      Enter: (state, dispatch) => {
-        if (!isInCode(state)) {
-          return false;
-        }
-        const { selection } = state;
-        const text = selection.$anchor.nodeBefore?.text;
-        const selectionAtEnd =
-          selection.$anchor.parentOffset ===
-          selection.$anchor.parent.nodeSize - 2;
-
-        if (selectionAtEnd && text?.endsWith("\n")) {
-          exitCode(state, dispatch);
-          return true;
-        }
-
-        return newlineInCode(state, dispatch);
-      },
+      "Shift-Tab": outdentInCode,
+      Tab: indentInCode,
+      Enter: enterInCode,
       Backspace: backspaceToParagraph(type),
       "Shift-Enter": newlineInCode,
       "Mod-a": selectAll(type),
