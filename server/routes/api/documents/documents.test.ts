@@ -806,6 +806,85 @@ describe("#documents.list", () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it("should return only archived documents in a collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const docs = await Promise.all([
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+      }),
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+      }),
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+      }),
+    ]);
+    await docs[0].archive(user);
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        statusFilter: [StatusFilter.Archived],
+        collectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(docs[0].id);
+  });
+
+  it("should return archived documents across all collections user has access to", async () => {
+    const user = await buildUser();
+    const collections = await Promise.all([
+      buildCollection({
+        teamId: user.teamId,
+      }),
+      buildCollection({
+        teamId: user.teamId,
+      }),
+    ]);
+    const docs = await Promise.all([
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collections[0].id,
+      }),
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collections[1].id,
+      }),
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collections[1].id,
+      }),
+    ]);
+    await Promise.all([docs[0].archive(user), docs[1].archive(user)]);
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        statusFilter: [StatusFilter.Archived],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(2);
+    const docIds = body.data.map((doc: any) => doc.id);
+    expect(docIds).toContain(docs[0].id);
+    expect(docIds).toContain(docs[1].id);
+    expect(docIds).not.toContain(docs[2].id);
+  });
+
   it("should not return documents in private collections not a member of", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });

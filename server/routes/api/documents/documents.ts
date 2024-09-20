@@ -5,11 +5,13 @@ import invariant from "invariant";
 import JSZip from "jszip";
 import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
+import has from "lodash/has";
+import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { TeamPreference, UserRole } from "@shared/types";
+import { StatusFilter, TeamPreference, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -82,43 +84,52 @@ router.post(
   pagination(),
   validate(T.DocumentsListSchema),
   async (ctx: APIContext<T.DocumentsListReq>) => {
-    let { sort } = ctx.input.body;
     const {
+      sort,
       direction,
       template,
       collectionId,
       backlinkDocumentId,
       parentDocumentId,
       userId: createdById,
+      statusFilter,
     } = ctx.input.body;
 
     // always filter by the current team
     const { user } = ctx.state.auth;
-    let where: WhereOptions<Document> = {
+    const where: WhereOptions<Document> = {
       teamId: user.teamId,
-      archivedAt: {
-        [Op.is]: null,
-      },
+      [Op.and]: [
+        {
+          deletedAt: {
+            [Op.eq]: null,
+          },
+        },
+      ],
     };
 
+    // Exclude archived docs by default
+    if (!statusFilter) {
+      where[Op.and].push({ archivedAt: { [Op.eq]: null } });
+    }
+
     if (template) {
-      where = {
-        ...where,
+      where[Op.and].push({
         template: true,
-      };
+      });
     }
 
     // if a specific user is passed then add to filters. If the user doesn't
     // exist in the team then nothing will be returned, so no need to check auth
     if (createdById) {
-      where = { ...where, createdById };
+      where[Op.and].push({ createdById });
     }
 
     let documentIds: string[] = [];
 
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
-      where = { ...where, collectionId };
+      where[Op.and].push({ collectionId: [collectionId] });
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
@@ -130,19 +141,18 @@ router.post(
         documentIds = (collection?.documentStructure || [])
           .map((node) => node.id)
           .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
-        where = { ...where, id: documentIds };
+        where[Op.and].push({ id: documentIds });
       } // otherwise, filter by all collections the user has access to
     } else {
       const collectionIds = await user.collectionIds();
-      where = {
-        ...where,
+      where[Op.and].push({
         collectionId:
           template && can(user, "readTemplate", user.team)
             ? {
                 [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
               }
             : collectionIds,
-      };
+      });
     }
 
     if (parentDocumentId) {
@@ -176,21 +186,20 @@ router.post(
       ]);
 
       if (groupMembership || membership) {
-        delete where.collectionId;
+        remove(where[Op.and], (cond) => has(cond, "collectionId"));
       }
 
-      where = { ...where, parentDocumentId };
+      where[Op.and].push({ parentDocumentId });
     }
 
     // Explicitly passing 'null' as the parentDocumentId allows listing documents
     // that have no parent document (aka they are at the root of the collection)
     if (parentDocumentId === null) {
-      where = {
-        ...where,
+      where[Op.and].push({
         parentDocumentId: {
           [Op.is]: null,
         },
-      };
+      });
     }
 
     if (backlinkDocumentId) {
@@ -200,29 +209,81 @@ router.post(
           documentId: backlinkDocumentId,
         },
       });
-      where = {
-        ...where,
+      where[Op.and].push({
         id: backlinks.map((backlink) => backlink.reverseDocumentId),
-      };
+      });
     }
 
-    if (sort === "index") {
-      sort = "updatedAt";
+    const statusQuery = [];
+    if (statusFilter?.includes(StatusFilter.Published)) {
+      statusQuery.push({
+        [Op.and]: [
+          {
+            publishedAt: {
+              [Op.ne]: null,
+            },
+            archivedAt: {
+              [Op.eq]: null,
+            },
+          },
+        ],
+      });
+    }
+
+    if (statusFilter?.includes(StatusFilter.Draft)) {
+      statusQuery.push({
+        [Op.and]: [
+          {
+            publishedAt: {
+              [Op.eq]: null,
+            },
+            archivedAt: {
+              [Op.eq]: null,
+            },
+            [Op.or]: [
+              // Only ever include draft results for the user's own documents
+              { createdById: user.id },
+              { "$memberships.id$": { [Op.ne]: null } },
+            ],
+          },
+        ],
+      });
+    }
+
+    if (statusFilter?.includes(StatusFilter.Archived)) {
+      statusQuery.push({
+        archivedAt: {
+          [Op.ne]: null,
+        },
+      });
+    }
+
+    if (statusQuery.length) {
+      where[Op.and].push({
+        [Op.or]: statusQuery,
+      });
     }
 
     const [documents, total] = await Promise.all([
       Document.defaultScopeWithUser(user.id).findAll({
         where,
-        order: [[sort, direction]],
+        order: [
+          [
+            // this needs to be done otherwise findAll will throw citing
+            // that the column "document"."index" doesn't exist – value of sort
+            // is required to be a column name
+            sort === "index" ? "updatedAt" : sort,
+            direction,
+          ],
+        ],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
       Document.count({ where }),
     ]);
 
-    // index sort is special because it uses the order of the documents in the
-    // collection.documentStructure rather than a database column
-    if (documentIds.length) {
+    if (sort === "index") {
+      // sort again so as to retain the order of documents as in collection.documentStructure
       documents.sort(
         (a, b) => documentIds.indexOf(a.id) - documentIds.indexOf(b.id)
       );
@@ -232,6 +293,7 @@ router.post(
       documents.map((document) => presentDocument(ctx, document))
     );
     const policies = presentPolicies(user, documents);
+
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data,

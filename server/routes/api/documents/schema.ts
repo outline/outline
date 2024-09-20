@@ -68,6 +68,9 @@ export const DocumentsListSchema = BaseSchema.extend({
 
     /** Boolean which denotes whether the document is a template */
     template: z.boolean().optional(),
+
+    /** Document statuses to include in results */
+    statusFilter: z.nativeEnum(StatusFilter).array().optional(),
   }),
   // Maintains backwards compatibility
 }).transform((req) => {
