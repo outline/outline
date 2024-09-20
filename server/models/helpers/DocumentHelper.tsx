@@ -1,6 +1,5 @@
 import {
   updateYFragment,
-  yDocToProsemirror,
   yDocToProsemirrorJSON,
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
@@ -442,6 +441,7 @@ export class DocumentHelper {
   ) {
     document.text = append ? document.text + text : text;
     const doc = parser.parse(document.text);
+    document.content = doc.toJSON();
 
     if (document.state) {
       const ydoc = new Y.Doc();
@@ -456,13 +456,9 @@ export class DocumentHelper {
       updateYFragment(type.doc, type, doc, new Map());
 
       const state = Y.encodeStateAsUpdate(ydoc);
-      const node = yDocToProsemirror(schema, ydoc);
 
-      document.content = node.toJSON();
       document.state = Buffer.from(state);
       document.changed("state", true);
-    } else if (doc) {
-      document.content = doc.toJSON();
     }
 
     return document;
