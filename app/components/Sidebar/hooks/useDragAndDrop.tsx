@@ -15,7 +15,7 @@ import UserMembership from "~/models/UserMembership";
 import Icon from "~/components/Icon";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import { DragObject } from "./SidebarLink";
+import { DragObject } from "../components/SidebarLink";
 import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 
 /**

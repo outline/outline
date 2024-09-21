@@ -10,7 +10,13 @@ import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
+import {
+  useDragStar,
+  useDropToCreateStar,
+  useDropToReorderStar,
+} from "../hooks/useDragAndDrop";
 import { useLocationState } from "../hooks/useLocationState";
+import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
 import CollectionLink from "./CollectionLink";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import DocumentLink from "./DocumentLink";
@@ -22,12 +28,6 @@ import SidebarContext, {
   useSidebarContext,
 } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
-import {
-  useDragStar,
-  useDropToCreateStar,
-  useDropToReorderStar,
-} from "./useDragAndDrop";
-import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 
 type Props = {
   star: Star;

@@ -12,12 +12,12 @@ import Text from "~/components/Text";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
+import useCollectionDocuments from "../hooks/useCollectionDocuments";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink, { DragObject } from "./SidebarLink";
-import useCollectionDocuments from "./useCollectionDocuments";
 
 type Props = {
   /** The collection to render the children of. */

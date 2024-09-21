@@ -19,6 +19,11 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { newNestedDocumentPath } from "~/utils/routeHelpers";
+import {
+  useDragDocument,
+  useDropToReorderDocument,
+  useDropToReparentDocument,
+} from "../hooks/useDragAndDrop";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle, { RefHandle } from "./EditableTitle";
@@ -26,11 +31,6 @@ import Folder from "./Folder";
 import Relative from "./Relative";
 import { SidebarContextType, useSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
-import {
-  useDragDocument,
-  useDropToReorderDocument,
-  useDropToReparentDocument,
-} from "./useDragAndDrop";
 
 type Props = {
   node: NavigationNode;

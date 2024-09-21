@@ -11,6 +11,7 @@ import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useStores from "~/hooks/useStores";
+import { useDropToReorderUserMembership } from "../hooks/useDragAndDrop";
 import DropCursor from "./DropCursor";
 import GroupLink from "./GroupLink";
 import Header from "./Header";
@@ -19,7 +20,6 @@ import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
 import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
-import { useDropToReorderUserMembership } from "./useDragAndDrop";
 
 function SharedWithMe() {
   const { userMemberships, groupMemberships } = useStores();

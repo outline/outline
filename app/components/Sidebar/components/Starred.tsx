@@ -7,6 +7,10 @@ import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
 import usePaginatedRequest from "~/hooks/usePaginatedRequest";
 import useStores from "~/hooks/useStores";
+import {
+  useDropToCreateStar,
+  useDropToReorderStar,
+} from "../hooks/useDragAndDrop";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
@@ -14,7 +18,6 @@ import Relative from "./Relative";
 import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import StarredLink from "./StarredLink";
-import { useDropToCreateStar, useDropToReorderStar } from "./useDragAndDrop";
 
 const STARRED_PAGINATION_LIMIT = 10;
 

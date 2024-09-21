@@ -11,19 +11,19 @@ import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
+import {
+  useDragMembership,
+  useDropToReorderUserMembership,
+  useDropToReparentDocument,
+} from "../hooks/useDragAndDrop";
 import { useLocationState } from "../hooks/useLocationState";
+import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import { useSidebarContext, type SidebarContextType } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
-import {
-  useDragMembership,
-  useDropToReorderUserMembership,
-  useDropToReparentDocument,
-} from "./useDragAndDrop";
-import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 
 type Props = {
   membership: UserMembership | GroupMembership;
