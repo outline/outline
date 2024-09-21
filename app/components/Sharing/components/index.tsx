@@ -15,7 +15,7 @@ export const Wrapper = styled.div`
 
 export const Separator = styled.div`
   border-top: 1px dashed ${s("divider")};
-  margin: 12px 0;
+  margin: 8px 0;
 `;
 
 export const HeaderInput = styled(Flex)`
