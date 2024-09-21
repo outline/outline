@@ -116,7 +116,9 @@ function AppSidebar() {
                     {t("Drafts")}
                     {documents.totalDrafts > 0 ? (
                       <Drafts size="xsmall" type="tertiary">
-                        {documents.totalDrafts}
+                        {documents.totalDrafts > 25
+                          ? "25+"
+                          : documents.totalDrafts}
                       </Drafts>
                     ) : null}
                   </Flex>

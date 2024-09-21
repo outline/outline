@@ -367,8 +367,8 @@ export default class DocumentsStore extends Store<Document> {
     this.fetchNamedPage("starred", options);
 
   @action
-  fetchDrafts = (options?: PaginationParams): Promise<Document[]> =>
-    this.fetchNamedPage("drafts", options);
+  fetchDrafts = (options: PaginationParams = {}): Promise<Document[]> =>
+    this.fetchNamedPage("drafts", { limit: 100, ...options });
 
   @action
   fetchOwned = (options?: PaginationParams): Promise<Document[]> =>
