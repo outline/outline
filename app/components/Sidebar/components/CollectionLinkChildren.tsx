@@ -8,19 +8,23 @@ import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import DocumentsLoader from "~/components/DocumentsLoader";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
+import Text from "~/components/Text";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import history from "~/utils/history";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
-import EmptyCollectionPlaceholder from "./EmptyCollectionPlaceholder";
 import Folder from "./Folder";
 import PlaceholderCollections from "./PlaceholderCollections";
-import { DragObject } from "./SidebarLink";
+import SidebarLink, { DragObject } from "./SidebarLink";
 import useCollectionDocuments from "./useCollectionDocuments";
 
 type Props = {
+  /** The collection to render the children of. */
   collection: Collection;
+  /** Whether the children are shown in an expanded state. */
   expanded: boolean;
+  /** Function to prefetch a document by ID. */
   prefetchDocument?: (documentId: string) => Promise<Document | void>;
 };
 
@@ -33,7 +37,6 @@ function CollectionLinkChildren({
   const manualSort = collection.sort.field === "index";
   const { documents } = useStores();
   const { t } = useTranslation();
-
   const childDocuments = useCollectionDocuments(collection, documents.active);
 
   // Drop to reorder document
@@ -91,7 +94,17 @@ function CollectionLinkChildren({
             index={index}
           />
         ))}
-        {childDocuments?.length === 0 && <EmptyCollectionPlaceholder />}
+        {childDocuments?.length === 0 && (
+          <SidebarLink
+            label={
+              <Text type="tertiary" size="small" italic>
+                {t("Empty")}
+              </Text>
+            }
+            onClick={() => history.push(collection.url)}
+            depth={2}
+          />
+        )}
       </DocumentsLoader>
     </Folder>
   );

@@ -1,81 +1,47 @@
 import { observer } from "mobx-react";
-import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
-import { Trans, useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Trans } from "react-i18next";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
-import Button from "~/components/Button";
+import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
-import { editCollectionPermissions } from "~/actions/definitions/collections";
-import useActionContext from "~/hooks/useActionContext";
-import usePolicy from "~/hooks/usePolicy";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
-import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
+  /** The collection to display the empty state for. */
   collection: Collection;
 };
 
 function EmptyCollection({ collection }: Props) {
-  const { t } = useTranslation();
-  const can = usePolicy(collection);
-  const context = useActionContext();
   const collectionName = collection ? collection.name : "";
 
   return (
-    <Centered column>
-      <Text as="p" type="secondary">
-        <Trans
-          defaults="<em>{{ collectionName }}</em> doesn’t contain any
+    <Fade>
+      <Centered column>
+        <Text as="p" type="secondary">
+          <Trans
+            defaults="<em>{{ collectionName }}</em> doesn’t contain any
                     documents yet."
-          values={{
-            collectionName,
-          }}
-          components={{
-            em: <strong />,
-          }}
-        />
-        <br />
-        {can.createDocument && (
-          <Trans>Get started by creating a new one!</Trans>
-        )}
-      </Text>
-      {can.createDocument && (
-        <Empty>
-          <Link to={newDocumentPath(collection.id)}>
-            <Button icon={<NewDocumentIcon />} neutral>
-              {t("Create a document")}
-            </Button>
-          </Link>
-          {FeatureFlags.isEnabled(Feature.newCollectionSharing) ? null : (
-            <Button
-              action={editCollectionPermissions}
-              context={context}
-              hideOnActionDisabled
-              neutral
-            >
-              {t("Manage permissions")}…
-            </Button>
-          )}
-        </Empty>
-      )}
-    </Centered>
+            values={{
+              collectionName,
+            }}
+            components={{
+              em: <strong />,
+            }}
+          />
+        </Text>
+      </Centered>
+    </Fade>
   );
 }
 
 const Centered = styled(Flex)`
   text-align: center;
-  margin: 40vh auto 0;
-  max-width: 380px;
-  transform: translateY(-50%);
-`;
-
-const Empty = styled(Flex)`
+  align-items: center;
   justify-content: center;
-  margin: 10px 0;
-  gap: 8px;
+  margin: 0 auto;
+  max-width: 380px;
+  height: 50vh;
 `;
 
 export default observer(EmptyCollection);

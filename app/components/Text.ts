@@ -12,6 +12,8 @@ type Props = {
   selectable?: boolean;
   /** The font weight of the text */
   weight?: "xbold" | "bold" | "normal";
+  /** Whether the text should be italic */
+  italic?: boolean;
   /** Whether the text should be truncated with an ellipsis */
   ellipsis?: boolean;
 };
@@ -55,6 +57,8 @@ const Text = styled.span<Props>`
         ? 400
         : "inherit"};
     `}
+
+  font-style: ${(props) => (props.italic ? "italic" : "normal")};
 
   white-space: normal;
   user-select: ${(props) => (props.selectable ? "text" : "none")};

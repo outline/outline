@@ -19,7 +19,6 @@ import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { EmptySelectValue } from "~/types";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 
 const IconPicker = React.lazy(() => import("~/components/IconPicker"));
 
@@ -156,18 +155,16 @@ export const CollectionForm = observer(function CollectionForm_({
         />
       )}
 
-      {team.sharing &&
-        (!collection ||
-          FeatureFlags.isEnabled(Feature.newCollectionSharing)) && (
-          <Switch
-            id="sharing"
-            label={t("Public document sharing")}
-            note={t(
-              "Allow documents within this collection to be shared publicly on the internet."
-            )}
-            {...register("sharing")}
-          />
-        )}
+      {team.sharing && (
+        <Switch
+          id="sharing"
+          label={t("Public document sharing")}
+          note={t(
+            "Allow documents within this collection to be shared publicly on the internet."
+          )}
+          {...register("sharing")}
+        />
+      )}
 
       <Flex justify="flex-end">
         <Button

@@ -116,7 +116,7 @@ function StarredLink({ star }: Props) {
       ? collections.get(document.collectionId)
       : undefined;
     const childDocuments = collection
-      ? collection.getDocumentChildren(documentId)
+      ? collection.getChildrenForDocument(documentId)
       : [];
     const hasChildDocuments = childDocuments.length > 0;
 

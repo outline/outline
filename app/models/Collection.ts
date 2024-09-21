@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { action, computed, observable, reaction, runInAction } from "mobx";
+import { action, computed, observable, runInAction } from "mobx";
 import {
   CollectionPermission,
   FileOperationFormat,
@@ -21,43 +21,27 @@ export default class Collection extends ParanoidModel {
 
   store: CollectionsStore;
 
-  @observable
-  isSaving: boolean;
-
-  isFetching = false;
-
-  @Field
-  @observable
-  id: string;
-
-  /**
-   * The name of the collection.
-   */
+  /** The name of the collection. */
   @Field
   @observable
   name: string;
 
+  /** Collection description in Prosemirror format. */
   @Field
   @observable.shallow
   data: ProsemirrorData;
 
-  /**
-   * An icon (or) emoji to use as the collection icon.
-   */
+  /** An icon (or) emoji to use as the collection icon. */
   @Field
   @observable
   icon: string;
 
-  /**
-   * The color to use for the collection icon and other highlights.
-   */
+  /** The color to use for the collection icon and other highlights. */
   @Field
   @observable
   color?: string | null;
 
-  /**
-   * The default permission for workspace users.
-   */
+  /** The default permission for workspace users. */
   @Field
   @observable
   permission?: CollectionPermission;
@@ -70,16 +54,12 @@ export default class Collection extends ParanoidModel {
   @observable
   sharing: boolean;
 
-  /**
-   * The sort index for the collection.
-   */
+  /** The sort index for the collection. */
   @Field
   @observable
   index: string;
 
-  /**
-   * The sort field and direction for documents in the collection.
-   */
+  /** The sort field and direction for documents in the collection. */
   @Field
   @observable
   sort: {
@@ -87,33 +67,19 @@ export default class Collection extends ParanoidModel {
     direction: "asc" | "desc";
   };
 
+  /** The child documents of the collection. */
   @observable
   documents?: NavigationNode[];
 
-  /**
-   * @deprecated Use path instead.
-   */
+  /** @deprecated Use path instead. */
   @observable
   url: string;
 
+  /** The ID that appears in the collection slug. */
   @observable
   urlId: string;
 
-  constructor(fields: Partial<Collection>, store: CollectionsStore) {
-    super(fields, store);
-
-    const resetDocumentPolicies = () => {
-      this.store.rootStore.documents
-        .inCollection(this.id)
-        .forEach((document) => {
-          this.store.rootStore.policies.remove(document.id);
-        });
-    };
-
-    reaction(() => this.permission, resetDocumentPolicies);
-    reaction(() => this.sharing, resetDocumentPolicies);
-  }
-
+  /** Returns whether the collection is empty, or undefined if not loaded. */
   @computed
   get isEmpty(): boolean | undefined {
     if (!this.documents) {
@@ -137,11 +103,7 @@ export default class Collection extends ParanoidModel {
     return !this.permission;
   }
 
-  /**
-   * Check whether this collection has a description.
-   *
-   * @returns boolean
-   */
+  /** Returns whether the collection description is not empty. */
   @computed
   get hasDescription(): boolean {
     return this.data ? !ProsemirrorHelper.isEmptyData(this.data) : false;
@@ -167,11 +129,7 @@ export default class Collection extends ParanoidModel {
     return sortNavigationNodes(this.documents, this.sort);
   }
 
-  /**
-   * The initial letter of the collection name.
-   *
-   * @returns string
-   */
+  /** The initial letter of the collection name as a string. */
   @computed
   get initial() {
     return (this.name ? this.name[0] : "?").toUpperCase();
@@ -277,7 +235,7 @@ export default class Collection extends ParanoidModel {
     this.index = index;
   }
 
-  getDocumentChildren(documentId: string) {
+  getChildrenForDocument(documentId: string) {
     let result: NavigationNode[] = [];
 
     const travelNodes = (nodes: NavigationNode[]) => {
@@ -356,7 +314,11 @@ export default class Collection extends ParanoidModel {
     model: Collection,
     previousAttributes: Partial<Collection>
   ) {
-    if (previousAttributes && model.sharing !== previousAttributes?.sharing) {
+    if (
+      previousAttributes &&
+      (model.sharing !== previousAttributes?.sharing ||
+        model.permission !== previousAttributes?.permission)
+    ) {
       const { documents, policies } = model.store.rootStore;
 
       documents.inCollection(model.id).forEach((document) => {
@@ -364,4 +326,6 @@ export default class Collection extends ParanoidModel {
       });
     }
   }
+
+  private isFetching = false;
 }
