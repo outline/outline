@@ -1,5 +1,5 @@
 import * as React from "react";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import { usePortalContext } from "~/components/Portal";
@@ -31,7 +31,7 @@ function SuggestionsMenuItem({
   const ref = React.useCallback(
     (node) => {
       if (selected && node) {
-        void scrollIntoView(node, {
+        scrollIntoView(node, {
           scrollMode: "if-needed",
           block: "nearest",
           boundary: (parent) =>
