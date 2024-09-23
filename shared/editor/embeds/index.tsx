@@ -160,7 +160,7 @@ const embeds: EmbedDescriptor[] = [
       /(?:https?:\/\/)?(www\.bilibili\.com)\/video\/([\w\d]+)?(\?\S+)?/i,
     ],
     transformMatch: (matches: RegExpMatchArray) =>
-      `https://player.bilibili.com/player.html?bvid=${matches[2]}&page=1&high_quality=1`,
+      `https://player.bilibili.com/player.html?bvid=${matches[2]}&page=1&high_quality=1&autoplay=0`,
     icon: <Img src="/images/bilibili.png" alt="Bilibili" />,
   }),
   new EmbedDescriptor({
