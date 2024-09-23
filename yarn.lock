@@ -7504,10 +7504,10 @@ dir-glob@^3.0.1:
   dependencies:
     path-type "^4.0.0"
 
-discord-api-types@^0.37.87:
-  version "0.37.87"
-  resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.37.87.tgz#10169b42f156f149997b8eae964cbf96e387442f"
-  integrity sha512-9KfluFS1J22RuezzouGs2t5X/Yu3jNpmRJrG+dvu1R9R+wfxlhq1RXr/OjjVL6d4rr7Ez92yNWiImf/qX3GV1g==
+discord-api-types@^0.37.101:
+  version "0.37.101"
+  resolved "https://registry.yarnpkg.com/discord-api-types/-/discord-api-types-0.37.101.tgz#1512a26e35b700b9dfb903a5747741a097f9c8bb"
+  integrity sha512-2wizd94t7G3A8U5Phr3AiuL4gSvhqistDwWnlk1VLTit8BI1jWUncFqFQNdPbHqS3661+Nx/iEyIwtVjPuBP3w==
 
 dnd-core@^16.0.1:
   version "16.0.1"
