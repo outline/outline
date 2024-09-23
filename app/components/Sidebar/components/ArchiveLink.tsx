@@ -9,12 +9,12 @@ import PaginatedList from "~/components/PaginatedList";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { archivePath } from "~/utils/routeHelpers";
+import { useDropToArchive } from "../hooks/useDragAndDrop";
 import { ArchivedCollectionLink } from "./ArchivedCollectionLink";
 import { StyledError } from "./Collections";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
-import { useDropToArchive } from "./useDragAndDrop";
 
 function ArchiveLink() {
   const { collections } = useStores();
