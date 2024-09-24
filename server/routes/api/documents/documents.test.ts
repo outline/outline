@@ -2848,6 +2848,40 @@ describe("#documents.restore", () => {
     );
   });
 
+  it("should fail if attempting to restore to a collection for which the user does not have access", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const archiveRes = await server.post("/api/collections.archive", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+      },
+    });
+
+    expect(archiveRes.status).toEqual(200);
+
+    const anotherCollection = await buildCollection();
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: anotherCollection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should require id", async () => {
     const user = await buildUser();
     const document = await buildDocument({

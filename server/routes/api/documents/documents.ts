@@ -833,6 +833,7 @@ router.post(
     }
 
     if (srcCollectionId !== destCollectionId) {
+      authorize(user, "updateDocument", srcCollection);
       await srcCollection?.removeDocumentInStructure(document, {
         save: true,
         transaction,
@@ -841,6 +842,8 @@ router.post(
 
     if (document.deletedAt) {
       authorize(user, "restore", document);
+      authorize(user, "updateDocument", destCollection);
+
       // restore a previously deleted document
       await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
       await Event.createFromContext(
@@ -857,6 +860,8 @@ router.post(
       );
     } else if (document.archivedAt) {
       authorize(user, "unarchive", document);
+      authorize(user, "updateDocument", destCollection);
+
       // restore a previously archived document
       await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
       await Event.createFromContext(

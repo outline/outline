@@ -105,9 +105,36 @@ allow(User, "share", Collection, (user, collection) => {
   return true;
 });
 
+allow(User, "updateDocument", Collection, (user, collection) => {
+  if (
+    !collection ||
+    !user.isMemberOf(collection.teamId) ||
+    !isTeamMutable(user)
+  ) {
+    return false;
+  }
+
+  if (!collection.isPrivate && user.isAdmin) {
+    return true;
+  }
+
+  if (
+    collection.permission !== CollectionPermission.ReadWrite ||
+    user.isViewer ||
+    user.isGuest
+  ) {
+    return includesMembership(collection, [
+      CollectionPermission.ReadWrite,
+      CollectionPermission.Admin,
+    ]);
+  }
+
+  return true;
+});
+
 allow(
   User,
-  ["updateDocument", "createDocument", "deleteDocument"],
+  ["createDocument", "deleteDocument"],
   Collection,
   (user, collection) => {
     if (
