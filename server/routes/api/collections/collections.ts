@@ -906,7 +906,6 @@ router.post(
       {
         method: ["withMembership", user.id],
       },
-      "withArchivedBy",
     ]).findByPk(id, {
       transaction,
     });
@@ -920,7 +919,7 @@ router.post(
     collection.archivedAt = new Date();
     collection.archivedById = user.id;
     await collection.save({ transaction });
-    await collection.reload({ transaction });
+    collection.archivedBy = user;
 
     // Archive all documents within the collection
     await Document.update(
