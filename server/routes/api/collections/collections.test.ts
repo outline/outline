@@ -140,6 +140,44 @@ describe("#collections.list", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
   });
+
+  it("should not include archived collections", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const beforeArchiveRes = await server.post("/api/collections.list", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const beforeArchiveBody = await beforeArchiveRes.json();
+    expect(beforeArchiveRes.status).toEqual(200);
+    expect(beforeArchiveBody.data).toHaveLength(1);
+    expect(beforeArchiveBody.data[0].id).toEqual(collection.id);
+
+    const archiveRes = await server.post("/api/collections.archive", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+      },
+    });
+
+    expect(archiveRes.status).toEqual(200);
+
+    const afterArchiveRes = await server.post("/api/collections.list", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+
+    const afterArchiveBody = await afterArchiveRes.json();
+    expect(afterArchiveRes.status).toEqual(200);
+    expect(afterArchiveBody.data).toHaveLength(0);
+  });
 });
 
 describe("#collections.import", () => {
