@@ -136,7 +136,11 @@ function AppSidebar() {
             <Section>
               <Collections />
             </Section>
-            <Section auto>{can.createDocument && <ArchiveLink />}</Section>
+            {can.createDocument && (
+              <Section auto>
+                <ArchiveLink />
+              </Section>
+            )}
             <Section>
               {can.createDocument && <TrashLink />}
               <SidebarAction action={inviteUser} />
