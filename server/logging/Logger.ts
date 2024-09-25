@@ -233,7 +233,7 @@ class Logger {
     }
 
     if (isArray(input)) {
-      return input.map(this.sanitize) as any as T;
+      return input.map((item) => this.sanitize(item, level + 1)) as any as T;
     }
 
     if (isObject(input)) {
