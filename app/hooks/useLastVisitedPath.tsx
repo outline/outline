@@ -63,7 +63,7 @@ export function usePostLoginPath() {
     try {
       path = sessionStorage.getItem(key) || getCookie(key);
     } catch (e) {
-      // If the session storage is inaccessible, we can't do anything about it.
+      // Expected error if the session storage is full or inaccessible.
     }
 
     if (path) {
@@ -72,6 +72,11 @@ export function usePostLoginPath() {
       // Remove the cookie once the app has been navigated to the post login path. We dont
       // do this immediately as React StrictMode will render multiple times.
       const cleanup = history.listen(() => {
+        try {
+          sessionStorage.removeItem(key);
+        } catch (e) {
+          // Expected error if the session storage is full or inaccessible.
+        }
         removeCookie(key);
         cleanup?.();
       });
