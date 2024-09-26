@@ -93,22 +93,29 @@ if (
           }
           const team = await getTeamFromContext(ctx);
           const client = getClientFromContext(ctx);
+          const { domain } = parseEmail(profile.email);
 
           // Only a single OIDC provider is supported – find the existing, if any.
           const authenticationProvider = team
-            ? await AuthenticationProvider.findOne({
+            ? (await AuthenticationProvider.findOne({
+                where: {
+                  name: "oidc",
+                  teamId: team.id,
+                  providerId: domain,
+                },
+              })) ??
+              (await AuthenticationProvider.findOne({
                 where: {
                   name: "oidc",
                   teamId: team.id,
                 },
-              })
+              }))
             : undefined;
 
           // Derive a providerId from the OIDC location if there is no existing provider.
           const oidcURL = new URL(env.OIDC_AUTH_URI!);
           const providerId =
             authenticationProvider?.providerId ?? oidcURL.hostname;
-          const { domain } = parseEmail(profile.email);
 
           if (!domain) {
             throw OIDCMalformedUserInfoError();
