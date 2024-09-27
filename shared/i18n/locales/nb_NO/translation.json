@@ -72,7 +72,7 @@
   "Move to collection": "Flytt til samling",
   "Move {{ documentType }}": "Flytt {{ documentType }}",
   "Archive": "Arkiv",
-  "Are you sure you want to archive this document?": "Er du sikker på at du vil slette dette dokumentet?",
+  "Are you sure you want to archive this document?": "Er du sikker på at du vil arkivere dette dokumentet?",
   "Document archived": "Dokument arkivert",
   "Archiving": "Arkivering",
   "Archiving this document will remove it from the collection and search results.": "Ved å arkivere dette dokumentet vil det fjernes fra samlingen og søkeresultater.",
