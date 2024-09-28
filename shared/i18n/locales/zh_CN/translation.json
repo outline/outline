@@ -646,7 +646,7 @@
   "view and edit access": "浏览和编辑权限",
   "view only access": "仅浏览权限",
   "no access": "无访问权限",
-  "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.": "注意：将文档 <em>{{ title }}</em> 移动到 <em>{{ newCollectionName }}</em> 文档集，该工作区所有成员将拥有 <em>{{ newPermission }}</em> 权限，目前他们只有 {{ prevPermission }} 权限。",
+  "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.": "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.",
   "Moving": "移动",
   "Search documents": "搜索文档",
   "No documents found for your filters.": "没有为你的筛选找到文档。",
