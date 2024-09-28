@@ -646,7 +646,7 @@
   "view and edit access": "xem và chỉnh sửa quyền truy cập",
   "view only access": "chỉ xem quyền truy cập",
   "no access": "không có quyền truy cập",
-  "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.": "Lưu ý – di chuyển tài liệu <em>{{ title }}</em> sang bộ sưu tập <em>{{ newCollectionName }}</em> sẽ cấp cho tất cả các thành viên của không gian làm việc <em>{{ newPermission }}</em>, họ hiện có {{ prevPermission }}.",
+  "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.": "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.",
   "Moving": "Đang chuyển",
   "Search documents": "Tìm kiếm tài liệu",
   "No documents found for your filters.": "Không tìm thấy tài liệu nào cho bộ lọc của bạn.",
