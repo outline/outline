@@ -2,6 +2,7 @@ import { NotificationEventType } from "@shared/types";
 import { Comment, Document, Notification, User } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { CommentEvent, CommentUpdateEvent } from "@server/types";
+import { canUserAccessDocument } from "@server/utils/policies";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEvent> {
@@ -41,7 +42,8 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
         recipient.id !== mention.actorId &&
         recipient.subscribedToEventType(
           NotificationEventType.MentionedInComment
-        )
+        ) &&
+        (await canUserAccessDocument(recipient, document.id))
       ) {
         await Notification.create({
           event: NotificationEventType.MentionedInComment,
@@ -49,6 +51,7 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
           actorId: mention.actorId,
           teamId: document.teamId,
           documentId: document.id,
+          commentId: comment.id,
         });
       }
     }

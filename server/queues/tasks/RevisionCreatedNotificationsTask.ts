@@ -8,8 +8,8 @@ import Logger from "@server/logging/Logger";
 import { Document, Revision, Notification, User, View } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
-import { authorize } from "@server/policies";
 import { RevisionEvent } from "@server/types";
+import { canUserAccessDocument } from "@server/utils/policies";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionEvent> {
@@ -54,7 +54,7 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
         recipient.subscribedToEventType(
           NotificationEventType.MentionedInDocument
         ) &&
-        (await this.canAccess(recipient, document))
+        (await canUserAccessDocument(recipient, document.id))
       ) {
         await Notification.create({
           event: NotificationEventType.MentionedInDocument,
@@ -149,18 +149,6 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
     }
 
     return true;
-  };
-
-  private canAccess = async (user: User, model: Document) => {
-    try {
-      const document = await Document.findByPk(model.id, {
-        userId: user.id,
-      });
-      authorize(user, "read", document);
-      return true;
-    } catch (err) {
-      return false;
-    }
   };
 
   public get options() {
