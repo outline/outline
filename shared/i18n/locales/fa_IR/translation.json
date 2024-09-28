@@ -646,7 +646,7 @@
   "view and edit access": "دسترسی مشاهده و ویرایش",
   "view only access": "دسترسی صرفا نمایش",
   "no access": "بدون دسترسی",
-  "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.": "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.",
+  "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.": "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.",
   "Moving": "در حال حرکت",
   "Search documents": "جستجوی اسناد",
   "No documents found for your filters.": "سندی با فیلترهای شما پیدا نشد.",
