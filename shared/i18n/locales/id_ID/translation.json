@@ -646,7 +646,7 @@
   "view and edit access": "melihat dan mengedit akses",
   "view only access": "akses hanya melihat",
   "no access": "tidak ada akses",
-  "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.": "Perhatian – memindahkan dokumen <em>{{ title }}</em> ke koleksi <em>{{ newCollectionName }}</em> akan memberikan semua anggota workspace <em>{{ newPermission }}</em>, yang saat ini mereka miliki {{ prevPermission }}.",
+  "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.": "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.",
   "Moving": "Memindahkan",
   "Search documents": "Telusuri dokumen",
   "No documents found for your filters.": "Tidak ditemukan hasil untuk filter tersebut.",
