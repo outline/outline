@@ -279,11 +279,19 @@ export function useDropToReorderDocument(
   >({
     accept: "document",
     canDrop: (item: DragObject) => {
-      if (item.id === node.id) {
+      if (item.id === node.id || !policies.abilities(item.id)?.move) {
         return false;
       }
 
-      return policies.abilities(item.id)?.move;
+      const params = getMoveParams(item);
+      if (params?.collectionId) {
+        return policies.abilities(params.collectionId)?.updateDocument;
+      }
+      if (params?.parentDocumentId) {
+        return policies.abilities(params.parentDocumentId)?.update;
+      }
+
+      return true;
     },
     drop: async (item) => {
       if (!collection?.isManualSort && item.collectionId === collection?.id) {
