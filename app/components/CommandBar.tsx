@@ -12,14 +12,21 @@ import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import useSettingsActions from "~/hooks/useSettingsActions";
 import useTemplateActions from "~/hooks/useTemplateActions";
+import useRecentDocumentActions from "./CommandBar/useRecentDocumentActions";
 
 function CommandBar() {
   const { t } = useTranslation();
+  const recentDocumentActions = useRecentDocumentActions();
   const settingsActions = useSettingsActions();
   const templateActions = useTemplateActions();
   const commandBarActions = React.useMemo(
-    () => [...rootActions, templateActions, settingsActions],
-    [settingsActions, templateActions]
+    () => [
+      ...recentDocumentActions,
+      ...rootActions,
+      templateActions,
+      settingsActions,
+    ],
+    [recentDocumentActions, settingsActions, templateActions]
   );
 
   useCommandBarActions(commandBarActions);
