@@ -23,7 +23,6 @@ import {
   BelongsTo,
   Column,
   Default,
-  PrimaryKey,
   Table,
   BeforeValidate,
   BeforeCreate,
@@ -39,6 +38,7 @@ import {
   IsDate,
   AllowNull,
   BelongsToMany,
+  Unique,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type {
@@ -268,7 +268,7 @@ class Document extends ParanoidModel<
     max: 10,
     msg: `urlId must be 10 characters`,
   })
-  @PrimaryKey
+  @Unique
   @Column
   urlId: string;
 
