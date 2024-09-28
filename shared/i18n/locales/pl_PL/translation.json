@@ -646,7 +646,7 @@
   "view and edit access": "zobacz i edytuj dostęp",
   "view only access": "dostęp tylko do podglądu",
   "no access": "brak dostępu",
-  "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.": "Uwaga – przeniesienie dokumentu <em>{{ title }}</em> do kolekcji <em>{{ newCollectionName }}</em> przyzna wszystkim członkom obszaru roboczego <em>{{ newPermission }}</em>, obecnie mają {{ prevPermission }}.",
+  "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.": "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.",
   "Moving": "Przenoszenie",
   "Search documents": "Szukaj dokumentów",
   "No documents found for your filters.": "Nie znaleziono dokumentów dla Twoich filtrów.",
