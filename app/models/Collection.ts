@@ -3,7 +3,8 @@ import { action, computed, observable, runInAction } from "mobx";
 import {
   CollectionPermission,
   FileOperationFormat,
-  NavigationNode,
+  type NavigationNode,
+  NavigationNodeType,
   type ProsemirrorData,
 } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
@@ -254,6 +255,19 @@ export default class Collection extends ParanoidModel {
     }
 
     return result;
+  }
+
+  @computed
+  get asNavigationNode(): NavigationNode {
+    return {
+      type: NavigationNodeType.Collection,
+      id: this.id,
+      title: this.name,
+      color: this.color ?? undefined,
+      icon: this.icon ?? undefined,
+      children: this.documents ?? [],
+      url: this.url,
+    };
   }
 
   pathToDocument(documentId: string) {

@@ -30,7 +30,11 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
-import { ExportContentType, TeamPreference } from "@shared/types";
+import {
+  ExportContentType,
+  TeamPreference,
+  NavigationNode,
+} from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
@@ -39,6 +43,7 @@ import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DuplicateDialog from "~/components/DuplicateDialog";
+import Icon from "~/components/Icon";
 import SharePopover from "~/components/Sharing/Document";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
@@ -67,23 +72,24 @@ export const openDocument = createAction({
   keywords: "go to",
   icon: <DocumentIcon />,
   children: ({ stores }) => {
-    const paths = stores.collections.pathsToDocuments;
+    const nodes = stores.collections.navigationNodes.reduce(
+      (acc, node) => [...acc, ...node.children],
+      [] as NavigationNode[]
+    );
 
-    return paths
-      .filter((path) => path.type === "document")
-      .map((path) => ({
-        // Note: using url which includes the slug rather than id here to bust
-        // cache if the document is renamed
-        id: path.url,
-        name: path.title,
-        icon: function _Icon() {
-          return stores.documents.get(path.id)?.isStarred ? (
-            <StarredIcon />
-          ) : null;
-        },
-        section: DocumentSection,
-        perform: () => history.push(path.url),
-      }));
+    return nodes.map((item) => ({
+      // Note: using url which includes the slug rather than id here to bust
+      // cache if the document is renamed
+      id: item.url,
+      name: item.title,
+      icon: item.icon ? (
+        <Icon value={item.icon} color={item.color ?? undefined} />
+      ) : (
+        <DocumentIcon />
+      ),
+      section: DocumentSection,
+      perform: () => history.push(item.url),
+    }));
   },
 });
 
@@ -722,14 +728,14 @@ export const openRandomDocument = createAction({
   section: DocumentSection,
   icon: <ShuffleIcon />,
   perform: ({ stores, activeDocumentId }) => {
-    const documentPaths = stores.collections.pathsToDocuments.filter(
-      (path) => path.type === "document" && path.id !== activeDocumentId
-    );
-    const randomPath =
-      documentPaths[Math.round(Math.random() * documentPaths.length)];
+    const nodes = stores.collections.navigationNodes
+      .reduce((acc, node) => [...acc, ...node.children], [] as NavigationNode[])
+      .filter((node) => node.id !== activeDocumentId);
 
-    if (randomPath) {
-      history.push(randomPath.url);
+    const random = nodes[Math.round(Math.random() * nodes.length)];
+
+    if (random) {
+      history.push(random.url);
     }
   },
 });

@@ -1,37 +1,14 @@
 import invariant from "invariant";
-import concat from "lodash/concat";
 import find from "lodash/find";
 import isEmpty from "lodash/isEmpty";
-import last from "lodash/last";
 import sortBy from "lodash/sortBy";
 import { computed, action } from "mobx";
-import {
-  CollectionPermission,
-  FileOperationFormat,
-  NavigationNode,
-} from "@shared/types";
+import { CollectionPermission, FileOperationFormat } from "@shared/types";
 import Collection from "~/models/Collection";
 import { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store from "./base/Store";
-
-enum DocumentPathItemType {
-  Collection = "collection",
-  Document = "document",
-}
-
-export type DocumentPathItem = {
-  type: DocumentPathItemType;
-  id: string;
-  collectionId: string;
-  title: string;
-  url: string;
-};
-
-export type DocumentPath = DocumentPathItem & {
-  path: DocumentPathItem[];
-};
 
 export default class CollectionsStore extends Store<Collection> {
   constructor(rootStore: RootStore) {
@@ -95,55 +72,6 @@ export default class CollectionsStore extends Store<Collection> {
     );
   }
 
-  /**
-   * List of paths to each of the documents, where paths are composed of id and title/name pairs
-   */
-  @computed
-  get pathsToDocuments(): DocumentPath[] {
-    const results: DocumentPathItem[][] = [];
-
-    const travelDocuments = (
-      documentList: NavigationNode[],
-      collectionId: string,
-      path: DocumentPathItem[]
-    ) =>
-      documentList.forEach((document: NavigationNode) => {
-        const { id, title, url } = document;
-        const node = {
-          type: DocumentPathItemType.Document,
-          id,
-          collectionId,
-          title,
-          url,
-        };
-        results.push(concat(path, node));
-        travelDocuments(document.children, collectionId, concat(path, [node]));
-      });
-
-    if (this.isLoaded) {
-      this.data.forEach((collection) => {
-        const { id, name, path } = collection;
-        const node = {
-          type: DocumentPathItemType.Collection,
-          id,
-          collectionId: id,
-          title: name,
-          url: path,
-        };
-        results.push([node]);
-
-        if (collection.documents) {
-          travelDocuments(collection.documents, id, [node]);
-        }
-      });
-    }
-
-    return results.map((result) => {
-      const tail = last(result) as DocumentPathItem;
-      return { ...tail, path: result };
-    });
-  }
-
   @action
   import = async (
     attachmentId: string,
@@ -191,15 +119,6 @@ export default class CollectionsStore extends Store<Collection> {
     return model;
   }
 
-  @computed
-  get publicCollections() {
-    return this.orderedData.filter(
-      (collection) =>
-        collection.permission &&
-        Object.values(CollectionPermission).includes(collection.permission)
-    );
-  }
-
   star = async (collection: Collection, index?: string) => {
     await this.rootStore.stars.create({
       collectionId: collection.id,
@@ -209,24 +128,14 @@ export default class CollectionsStore extends Store<Collection> {
 
   unstar = async (collection: Collection) => {
     const star = this.rootStore.stars.orderedData.find(
-      (star) => star.collectionId === collection.id
+      (s) => s.collectionId === collection.id
     );
     await star?.delete();
   };
 
-  getPathForDocument(documentId: string): DocumentPath | undefined {
-    return this.pathsToDocuments.find((path) => path.id === documentId);
-  }
-
-  titleForDocument(documentPath: string): string | undefined {
-    const path = this.pathsToDocuments.find(
-      (path) => path.url === documentPath
-    );
-    if (path) {
-      return path.title;
-    }
-
-    return;
+  @computed
+  get navigationNodes() {
+    return this.orderedData.map((collection) => collection.asNavigationNode);
   }
 
   getByUrl(url: string): Collection | null | undefined {
