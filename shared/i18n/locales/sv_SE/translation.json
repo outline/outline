@@ -646,7 +646,7 @@
   "view and edit access": "visa och redigera åtkomst",
   "view only access": "visa endast åtkomst",
   "no access": "ingen behörighet",
-  "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.": "Heads up – flytta dokumentet <em>{{ title }}</em> till <em>{{ newCollectionName }}</em> samlingen kommer att ge alla medlemmar i arbetsytan <em>{{ newPermission }}</em>, för närvarande har de {{ prevPermission }}.",
+  "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.": "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.",
   "Moving": "Flyttar",
   "Search documents": "Sök dokument",
   "No documents found for your filters.": "Inga dokument funna för dina sökfilter.",
