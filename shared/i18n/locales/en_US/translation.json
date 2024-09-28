@@ -646,7 +646,7 @@
   "view and edit access": "view and edit access",
   "view only access": "view only access",
   "no access": "no access",
-  "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.": "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.",
+  "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.": "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.",
   "Moving": "Moving",
   "Search documents": "Search documents",
   "No documents found for your filters.": "No documents found for your filters.",

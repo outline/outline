@@ -174,6 +174,9 @@ function getNewState({
         gantt: {
           useWidth: 700,
         },
+        pie: {
+          useWidth: 700,
+        },
         theme: pluginState.isDark ? "dark" : "default",
         fontFamily: "inherit",
       });
