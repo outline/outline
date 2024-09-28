@@ -54,7 +54,7 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
         recipient.subscribedToEventType(
           NotificationEventType.MentionedInDocument
         ) &&
-        (await canUserAccessDocument({ user: recipient, docId: document.id }))
+        (await canUserAccessDocument(recipient, document.id))
       ) {
         await Notification.create({
           event: NotificationEventType.MentionedInDocument,

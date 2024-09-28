@@ -35,7 +35,7 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
         recipient.subscribedToEventType(
           NotificationEventType.MentionedInDocument
         ) &&
-        (await canUserAccessDocument({ user: recipient, docId: document.id }))
+        (await canUserAccessDocument(recipient, document.id))
       ) {
         await Notification.create({
           event: NotificationEventType.MentionedInDocument,

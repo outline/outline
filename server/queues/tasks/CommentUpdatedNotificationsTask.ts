@@ -43,7 +43,7 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
         recipient.subscribedToEventType(
           NotificationEventType.MentionedInComment
         ) &&
-        (await canUserAccessDocument({ user: recipient, docId: document.id }))
+        (await canUserAccessDocument(recipient, document.id))
       ) {
         await Notification.create({
           event: NotificationEventType.MentionedInComment,
