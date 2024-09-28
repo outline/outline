@@ -113,7 +113,7 @@ export function actionToKBar(
       keywords: action.keywords ?? "",
       shortcut: action.shortcut || [],
       icon: resolvedIcon,
-      priority: (action.priority ?? 0) * (1 + sectionPriority * 0.5),
+      priority: (action.priority ?? 0) * (1 + (sectionPriority ?? 0) * 0.5),
       perform: action.perform
         ? () => performAction(action, context)
         : undefined,

@@ -2,7 +2,7 @@ import { useMatches, KBarResults } from "kbar";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import CommandBarItem from "~/components/CommandBarItem";
+import CommandBarItem from "./CommandBarItem";
 
 export default function CommandBarResults() {
   const { results, rootActionId } = useMatches();

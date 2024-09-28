@@ -2,10 +2,10 @@ import { SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { createAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
+import useSettingsConfig from "~/hooks/useSettingsConfig";
 import history from "~/utils/history";
-import useSettingsConfig from "./useSettingsConfig";
 
-const useSettingsActions = () => {
+const useSettingsAction = () => {
   const config = useSettingsConfig();
   const actions = React.useMemo(
     () =>
@@ -38,4 +38,4 @@ const useSettingsActions = () => {
   return navigateToSettings;
 };
 
-export default useSettingsActions;
+export default useSettingsAction;

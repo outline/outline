@@ -3,11 +3,11 @@ import * as React from "react";
 import Icon from "~/components/Icon";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
+import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { newDocumentPath } from "~/utils/routeHelpers";
-import useStores from "./useStores";
 
-const useTemplatesActions = () => {
+const useTemplatesAction = () => {
   const { documents } = useStores();
 
   React.useEffect(() => {
@@ -60,4 +60,4 @@ const useTemplatesActions = () => {
   return newFromTemplate;
 };
 
-export default useTemplatesActions;
+export default useTemplatesAction;
