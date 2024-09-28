@@ -6,7 +6,7 @@ export const DeveloperSection = ({ t }: ActionContext) => t("Debug");
 
 export const DocumentSection = ({ t }: ActionContext) => t("Document");
 
-export const RecentSection = ({ t }: ActionContext) => t("Recent documents");
+export const RecentSection = ({ t }: ActionContext) => t("Recently viewed");
 
 RecentSection.priority = 1;
 

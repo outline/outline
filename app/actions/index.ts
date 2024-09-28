@@ -100,7 +100,7 @@ export function actionToKBar(
 
   const sectionPriority =
     typeof action.section !== "string" && "priority" in action.section
-      ? action.section.priority ?? 0
+      ? (action.section.priority as number) ?? 0
       : 0;
 
   return [
