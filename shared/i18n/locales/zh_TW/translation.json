@@ -646,7 +646,7 @@
   "view and edit access": "可以檢視與編輯",
   "view only access": "僅供檢視",
   "no access": "無存取權限",
-  "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.": "提醒 - 移動文件 <em>{{ title }}</em> 到 <em>{{ newCollectionName }}</em> 文件集將會根據目前他們擁有的 {{ prevPermission }} ，授予工作區所有成員 <em>{{ newPermission }}</em> 的相同權限，。",
+  "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.": "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.",
   "Moving": "正在移動",
   "Search documents": "搜尋文件",
   "No documents found for your filters.": "沒有符合過篩選條件的文件。",
