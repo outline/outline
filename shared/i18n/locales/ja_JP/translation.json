@@ -646,7 +646,7 @@
   "view and edit access": "閲覧と編集",
   "view only access": "閲覧専用",
   "no access": "アクセス不可",
-  "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.": "注意 - ドキュメント<em>{{ title }}</em>を<em>{{ newCollectionName }}</em>コレクションに移動すると、現在 {{ prevPermission }} であるメンバー全員に新しい権限 <em>{{ newPermission }}</em> が付与されます。",
+  "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.": "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.",
   "Moving": "移動中",
   "Search documents": "ドキュメントの検索",
   "No documents found for your filters.": "検索結果はありませんでした。",
