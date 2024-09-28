@@ -646,7 +646,7 @@
   "view and edit access": "přístup k prohlížení a úpravám",
   "view only access": "přístup pouze pro čtení",
   "no access": "bez přístupu",
-  "Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}.": "Pozor – přesunutí dokumentu <em>{{ title }}</em> do sbírky <em>{{ newCollectionName }}</em> udělí všem členům pracovního prostoru <em>{{ newPermission }}</em>, aktuálně mají {{ prevPermission }}.",
+  "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.": "Moving the document <em>{{ title }}</em> to the {{ newCollectionName }} collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have <em>{{ prevPermission }}</em>.",
   "Moving": "Přesouvání",
   "Search documents": "Hledat v dokumentech",
   "No documents found for your filters.": "Pro zadaný požadavek nebyly nalezeny žádné dokumenty.",
