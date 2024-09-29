@@ -71,6 +71,6 @@ export const useDocumentContext = () => {
 export const DocumentContextProvider = ({
   children,
 }: PropsWithChildren<unknown>) => {
-  const context = new DocumentContext();
+  const context = React.useMemo(() => new DocumentContext(), []);
   return <Context.Provider value={context}>{children}</Context.Provider>;
 };
