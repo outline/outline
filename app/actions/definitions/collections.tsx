@@ -19,7 +19,7 @@ import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import SharePopover from "~/components/Sharing/Collection/SharePopover";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import { createAction } from "~/actions";
-import { CollectionSection } from "~/actions/sections";
+import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
 import { newTemplatePath, searchPath } from "~/utils/routeHelpers";
@@ -70,7 +70,7 @@ export const editCollection = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? `${t("Edit")}…` : t("Edit collection"),
   analyticsName: "Edit collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <EditIcon />,
   visible: ({ activeCollectionId }) =>
     !!activeCollectionId &&
@@ -96,7 +96,7 @@ export const editCollectionPermissions = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? `${t("Permissions")}…` : t("Collection permissions"),
   analyticsName: "Collection permissions",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <PadlockIcon />,
   visible: ({ activeCollectionId }) =>
     !!activeCollectionId &&
@@ -127,7 +127,7 @@ export const editCollectionPermissions = createAction({
 export const searchInCollection = createAction({
   name: ({ t }) => t("Search in collection"),
   analyticsName: "Search collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <SearchIcon />,
   visible: ({ activeCollectionId }) =>
     !!activeCollectionId &&
@@ -140,7 +140,7 @@ export const searchInCollection = createAction({
 export const starCollection = createAction({
   name: ({ t }) => t("Star"),
   analyticsName: "Star collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <StarredIcon />,
   keywords: "favorite bookmark",
   visible: ({ activeCollectionId }) => {
@@ -167,7 +167,7 @@ export const starCollection = createAction({
 export const unstarCollection = createAction({
   name: ({ t }) => t("Unstar"),
   analyticsName: "Unstar collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <UnstarredIcon />,
   keywords: "unfavorite unbookmark",
   visible: ({ activeCollectionId }) => {
@@ -193,7 +193,7 @@ export const unstarCollection = createAction({
 export const deleteCollection = createAction({
   name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   dangerous: true,
   icon: <TrashIcon />,
   visible: ({ activeCollectionId }) => {
@@ -227,7 +227,7 @@ export const deleteCollection = createAction({
 export const createTemplate = createAction({
   name: ({ t }) => t("New template"),
   analyticsName: "New template",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <ShapesIcon />,
   keywords: "new create template",
   visible: ({ activeCollectionId }) =>

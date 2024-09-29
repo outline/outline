@@ -37,7 +37,9 @@ function CommandBar() {
         <Positioner>
           <Animator>
             <SearchActions />
-            <SearchInput defaultPlaceholder={t("Type a command or search")} />
+            <SearchInput
+              defaultPlaceholder={`${t("Type a command or search")}…`}
+            />
             <CommandBarResults />
           </Animator>
         </Positioner>
@@ -67,12 +69,15 @@ const Positioner = styled(KBarPositioner)`
 `;
 
 const SearchInput = styled(KBarSearch)`
-  padding: 16px 20px;
-  width: 100%;
+  position: relative;
+  padding: 16px 12px;
+  margin: 0 8px;
+  width: calc(100% - 16px);
   outline: none;
   border: none;
   background: ${s("menuBackground")};
   color: ${s("text")};
+  border-bottom: 1px solid ${s("inputBorder")};
 
   &:disabled,
   &::placeholder {
