@@ -632,7 +632,7 @@ const Main = styled.div<MainProps>`
         ? tocPosition === TOCPosition.Left
           ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
           : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(46em + 76px)`}) 1fr`};
+        : `1fr minmax(0, ${`calc(46em + 88px)`}) 1fr`};
   `};
 
   ${breakpoint("desktopLarge")`
@@ -641,7 +641,7 @@ const Main = styled.div<MainProps>`
         ? tocPosition === TOCPosition.Left
           ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
           : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(52em + 76px)`}) 1fr`};
+        : `1fr minmax(0, ${`calc(52em + 88px)`}) 1fr`};
   `};
 `;
 
@@ -670,7 +670,7 @@ type EditorContainerProps = {
 
 const EditorContainer = styled.div<EditorContainerProps>`
   // Adds space to the gutter to make room for icon & heading annotations
-  padding: 0 40px;
+  padding: 0 44px;
 
   ${breakpoint("tablet")`
     grid-row: 1;
