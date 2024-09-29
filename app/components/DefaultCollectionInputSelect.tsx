@@ -49,7 +49,7 @@ const DefaultCollectionInputSelect = ({
 
   const options = React.useMemo(
     () =>
-      collections.publicCollections.reduce(
+      collections.nonPrivate.reduce(
         (acc, collection) => [
           ...acc,
           {
@@ -78,7 +78,7 @@ const DefaultCollectionInputSelect = ({
           },
         ]
       ),
-    [collections.publicCollections, t]
+    [collections.nonPrivate, t]
   );
 
   if (fetching) {

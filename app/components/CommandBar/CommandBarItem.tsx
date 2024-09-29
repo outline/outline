@@ -5,7 +5,7 @@ import styled, { css, useTheme } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
-import Text from "./Text";
+import Text from "~/components/Text";
 
 type Props = {
   action: ActionImpl;

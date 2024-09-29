@@ -6,20 +6,27 @@ import { Portal } from "react-portal";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
-import CommandBarResults from "~/components/CommandBarResults";
 import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
-import useSettingsActions from "~/hooks/useSettingsActions";
-import useTemplateActions from "~/hooks/useTemplateActions";
+import CommandBarResults from "./CommandBarResults";
+import useRecentDocumentActions from "./useRecentDocumentActions";
+import useSettingsAction from "./useSettingsAction";
+import useTemplatesAction from "./useTemplatesAction";
 
 function CommandBar() {
   const { t } = useTranslation();
-  const settingsActions = useSettingsActions();
-  const templateActions = useTemplateActions();
+  const recentDocumentActions = useRecentDocumentActions();
+  const settingsAction = useSettingsAction();
+  const templatesAction = useTemplatesAction();
   const commandBarActions = React.useMemo(
-    () => [...rootActions, templateActions, settingsActions],
-    [settingsActions, templateActions]
+    () => [
+      ...recentDocumentActions,
+      ...rootActions,
+      templatesAction,
+      settingsAction,
+    ],
+    [recentDocumentActions, settingsAction, templatesAction]
   );
 
   useCommandBarActions(commandBarActions);

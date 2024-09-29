@@ -103,6 +103,8 @@ export type Action = {
   shortcut?: string[];
   keywords?: string;
   dangerous?: boolean;
+  /** Higher number is higher in results, default is 0. */
+  priority?: number;
   iconInContextMenu?: boolean;
   icon?: React.ReactElement | React.FC;
   placeholder?: ((context: ActionContext) => string) | string;
@@ -138,15 +140,6 @@ export type FetchOptions = {
   revisionId?: string;
   shareId?: string;
   force?: boolean;
-};
-
-export type NavigationNode = {
-  id: string;
-  title: string;
-  emoji?: string | null;
-  url: string;
-  children: NavigationNode[];
-  isDraft?: boolean;
 };
 
 export type CollectionSort = {

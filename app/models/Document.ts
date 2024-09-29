@@ -14,6 +14,7 @@ import type {
 import {
   ExportContentType,
   FileOperationFormat,
+  NavigationNodeType,
   NotificationEventType,
 } from "@shared/types";
 import Storage from "@shared/utils/Storage";
@@ -619,6 +620,7 @@ export default class Document extends ParanoidModel {
   @computed
   get asNavigationNode(): NavigationNode {
     return {
+      type: NavigationNodeType.Document,
       id: this.id,
       title: this.title,
       color: this.color ?? undefined,

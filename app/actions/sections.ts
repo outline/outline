@@ -6,6 +6,10 @@ export const DeveloperSection = ({ t }: ActionContext) => t("Debug");
 
 export const DocumentSection = ({ t }: ActionContext) => t("Document");
 
+export const RecentSection = ({ t }: ActionContext) => t("Recently viewed");
+
+RecentSection.priority = 1;
+
 export const RevisionSection = ({ t }: ActionContext) => t("Revision");
 
 export const SettingsSection = ({ t }: ActionContext) => t("Settings");
@@ -20,5 +24,7 @@ export const TeamSection = ({ t }: ActionContext) => t("Workspace");
 
 export const RecentSearchesSection = ({ t }: ActionContext) =>
   t("Recent searches");
+
+RecentSearchesSection.priority = 0.9;
 
 export const TrashSection = ({ t }: ActionContext) => t("Trash");
