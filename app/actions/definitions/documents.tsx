@@ -44,6 +44,7 @@ import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInT
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DuplicateDialog from "~/components/DuplicateDialog";
 import Icon from "~/components/Icon";
+import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import SharePopover from "~/components/Sharing/Document";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
@@ -460,6 +461,8 @@ export const copyDocumentAsMarkdown = createAction({
   name: ({ t }) => t("Copy as Markdown"),
   section: ActiveDocumentSection,
   keywords: "clipboard",
+  icon: <MarkdownIcon />,
+  iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
   perform: ({ stores, activeDocumentId, t }) => {
@@ -477,6 +480,8 @@ export const copyDocumentLink = createAction({
   name: ({ t }) => t("Copy link"),
   section: ActiveDocumentSection,
   keywords: "clipboard",
+  icon: <CopyIcon />,
+  iconInContextMenu: false,
   visible: ({ activeDocumentId }) => !!activeDocumentId,
   perform: ({ stores, activeDocumentId, t }) => {
     const document = activeDocumentId
