@@ -808,11 +808,13 @@ class Document extends ParanoidModel<
    * @returns A promise that resolve to a list of users
    */
   collaborators = async (options?: FindOptions<User>): Promise<User[]> => {
-    const users = await Promise.all(
-      this.collaboratorIds.map((collaboratorId) =>
-        User.findByPk(collaboratorId, options)
-      )
-    );
+    const users = await User.findAll({
+      ...options,
+      where: {
+        ...options?.where,
+        id: this.collaboratorIds,
+      },
+    });
 
     return compact(users);
   };
