@@ -4,6 +4,7 @@ import {
   ImportIcon,
   ExportIcon,
   AlphabeticalSortIcon,
+  AlphabeticalReverseSortIcon,
   ManualSortIcon,
   InputIcon,
 } from "outline-icons";
@@ -127,12 +128,12 @@ function CollectionMenu({
   );
 
   const handleChangeSort = React.useCallback(
-    (field: string) => {
+    (field: string, direction = "asc") => {
       menu.hide();
       return collection.save({
         sort: {
           field,
-          direction: "asc",
+          direction,
         },
       });
     },
@@ -144,7 +145,8 @@ function CollectionMenu({
     activeCollectionId: collection.id,
   });
 
-  const alphabeticalSort = collection.sort.field === "title";
+  const sortAlphabetical = collection.sort.field === "title";
+  const sortDir = collection.sort.direction;
   const can = usePolicy(collection);
   const canUserInTeam = usePolicy(team);
   const items: MenuItem[] = React.useMemo(
@@ -185,19 +187,33 @@ function CollectionMenu({
         type: "submenu",
         title: t("Sort in sidebar"),
         visible: can.update,
-        icon: alphabeticalSort ? <AlphabeticalSortIcon /> : <ManualSortIcon />,
+        icon: sortAlphabetical ? (
+          sortDir === "asc" ? (
+            <AlphabeticalSortIcon />
+          ) : (
+            <AlphabeticalReverseSortIcon />
+          )
+        ) : (
+          <ManualSortIcon />
+        ),
         items: [
           {
             type: "button",
-            title: t("Alphabetical sort"),
-            onClick: () => handleChangeSort("title"),
-            selected: alphabeticalSort,
+            title: t("A-Z sort"),
+            onClick: () => handleChangeSort("title", "asc"),
+            selected: sortAlphabetical && sortDir === "asc",
+          },
+          {
+            type: "button",
+            title: t("Z-A sort"),
+            onClick: () => handleChangeSort("title", "desc"),
+            selected: sortAlphabetical && sortDir === "desc",
           },
           {
             type: "button",
             title: t("Manual sort"),
             onClick: () => handleChangeSort("index"),
-            selected: !alphabeticalSort,
+            selected: !sortAlphabetical,
           },
         ],
       },
@@ -216,6 +232,7 @@ function CollectionMenu({
     ],
     [
       t,
+      onRename,
       collection,
       can.createDocument,
       can.update,
@@ -223,7 +240,7 @@ function CollectionMenu({
       handleNewDocument,
       handleImportDocument,
       context,
-      alphabeticalSort,
+      sortAlphabetical,
       canUserInTeam.createExport,
       handleExport,
       handleChangeSort,

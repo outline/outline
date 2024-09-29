@@ -4,7 +4,7 @@ export const CollectionSection = ({ t }: ActionContext) => t("Collection");
 
 export const ActiveCollectionSection = ({ t, stores }: ActionContext) => {
   const activeCollection = stores.collections.active;
-  return `${t("Collection")} (${activeCollection?.name})`;
+  return `${t("Collection")} · ${activeCollection?.name}`;
 };
 
 ActiveCollectionSection.priority = 0.8;
@@ -15,7 +15,7 @@ export const DocumentSection = ({ t }: ActionContext) => t("Document");
 
 export const ActiveDocumentSection = ({ t, stores }: ActionContext) => {
   const activeDocument = stores.documents.active;
-  return `${t("Document")} (${activeDocument?.titleWithDefault})`;
+  return `${t("Document")} · ${activeDocument?.titleWithDefault}`;
 };
 
 ActiveDocumentSection.priority = 0.9;
