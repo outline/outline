@@ -8,7 +8,7 @@ import { useHistory } from "react-router-dom";
 import { CollectionValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
-import DocumentReparent from "~/scenes/DocumentReparent";
+import ConfirmMoveDialog from "~/components/ConfirmMoveDialog";
 import Fade from "~/components/Fade";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import NudeButton from "~/components/NudeButton";
@@ -78,20 +78,12 @@ const CollectionLink: React.FC<Props> = ({
 
       if (
         prevCollection &&
-        prevCollection.permission === null &&
         prevCollection.permission !== collection.permission &&
         !document?.isDraft
       ) {
         dialogs.openModal({
-          title: t("Move document"),
-          content: (
-            <DocumentReparent
-              item={item}
-              collection={collection}
-              onSubmit={dialogs.closeAllModals}
-              onCancel={dialogs.closeAllModals}
-            />
-          ),
+          title: t("Change permissions?"),
+          content: <ConfirmMoveDialog item={item} collection={collection} />,
         });
       } else {
         await documents.move({ documentId: id, collectionId: collection.id });

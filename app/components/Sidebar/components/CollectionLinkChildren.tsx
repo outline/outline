@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import ConfirmMoveDialog from "~/components/ConfirmMoveDialog";
 import DocumentsLoader from "~/components/DocumentsLoader";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Text from "~/components/Text";
@@ -35,7 +36,7 @@ function CollectionLinkChildren({
 }: Props) {
   const can = usePolicy(collection);
   const manualSort = collection.sort.field === "index";
-  const { documents } = useStores();
+  const { documents, dialogs, collections } = useStores();
   const { t } = useTranslation();
   const childDocuments = useCollectionDocuments(collection, documents.active);
 
@@ -55,11 +56,26 @@ function CollectionLinkChildren({
       if (!collection) {
         return;
       }
-      void documents.move({
-        documentId: item.id,
-        collectionId: collection.id,
-        index: 0,
-      });
+
+      const prevCollection = collections.get(item.collectionId);
+
+      if (
+        prevCollection &&
+        prevCollection.permission !== collection.permission
+      ) {
+        dialogs.openModal({
+          title: t("Change permissions?"),
+          content: (
+            <ConfirmMoveDialog item={item} collection={collection} index={0} />
+          ),
+        });
+      } else {
+        void documents.move({
+          documentId: item.id,
+          collectionId: collection.id,
+          index: 0,
+        });
+      }
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
