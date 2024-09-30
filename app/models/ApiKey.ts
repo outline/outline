@@ -31,6 +31,14 @@ class ApiKey extends ParanoidModel {
   get isExpired() {
     return this.expiresAt ? isPast(new Date(this.expiresAt)) : false;
   }
+
+  @computed
+  get obfuscatedValue() {
+    if (this.createdAt < new Date("2022-12-03").toISOString()) {
+      return `...${this.last4}`;
+    }
+    return `ol...${this.last4}`;
+  }
 }
 
 export default ApiKey;
