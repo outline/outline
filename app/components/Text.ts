@@ -16,6 +16,8 @@ type Props = {
   italic?: boolean;
   /** Whether the text should be truncated with an ellipsis */
   ellipsis?: boolean;
+  /** Whether the text should be monospaced */
+  monospace?: boolean;
 };
 
 /**
@@ -59,6 +61,8 @@ const Text = styled.span<Props>`
     `}
 
   font-style: ${(props) => (props.italic ? "italic" : "normal")};
+  font-family: ${(props) =>
+    props.monospace ? props.theme.fontFamilyMono : "inherit"};
 
   white-space: normal;
   user-select: ${(props) => (props.selectable ? "text" : "none")};
