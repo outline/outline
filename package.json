@@ -256,7 +256,7 @@
     "@relative-ci/agent": "^4.2.9",
     "@testing-library/react": "^12.0.0",
     "@types/addressparser": "^1.0.3",
-    "@types/body-scroll-lock": "^3.1.0",
+    "@types/body-scroll-lock": "^3.1.2",
     "@types/crypto-js": "^4.2.2",
     "@types/diff": "^5.0.9",
     "@types/dotenv": "^8.2.0",
