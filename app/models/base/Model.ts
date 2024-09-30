@@ -141,6 +141,10 @@ export default abstract class Model {
 
     for (const key in data) {
       try {
+        // Some models are serialized with the initialized flag, this should be ignored.
+        if (key === "initialized") {
+          continue;
+        }
         this[key] = data[key];
       } catch (error) {
         Logger.warn(`Error setting ${key} on model`, error);

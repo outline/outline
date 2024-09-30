@@ -1,5 +1,7 @@
+import isEqual from "lodash/isEqual";
 import { computed, observable } from "mobx";
 import Model from "./base/Model";
+import Field from "./decorators/Field";
 import { AfterChange } from "./decorators/Lifecycle";
 
 class Policy extends Model {
@@ -9,6 +11,7 @@ class Policy extends Model {
    * An object containing keys representing abilities and values that are either
    * a boolean or an array of membership IDs that have provided access to the ability.
    */
+  @Field
   @observable
   abilities: Record<string, boolean | string[]>;
 
@@ -30,8 +33,15 @@ class Policy extends Model {
   }
 
   @AfterChange
-  public static removeChildPolicies(model: Policy) {
+  public static removeChildPolicies(
+    model: Policy,
+    previousAttributes: Partial<Policy>
+  ) {
     const { documents, collections, policies } = model.store.rootStore;
+
+    if (isEqual(model.abilities, previousAttributes.abilities)) {
+      return;
+    }
 
     const collection = collections.get(model.id);
     if (collection) {
