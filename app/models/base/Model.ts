@@ -150,7 +150,7 @@ export default abstract class Model {
     this.isNew = false;
     this.persistedAttributes = this.toAPI();
 
-    if (!this.initialized) {
+    if (this.initialized) {
       LifecycleManager.executeHooks(
         this.constructor,
         "afterChange",
