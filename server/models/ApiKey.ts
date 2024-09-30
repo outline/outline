@@ -99,7 +99,7 @@ class ApiKey extends ParanoidModel<
    * @param key The input string to hash
    * @returns The hashed API key
    */
-  private static hash(key: string) {
+  public static hash(key: string) {
     return crypto.createHash("sha256").update(key).digest("hex");
   }
 

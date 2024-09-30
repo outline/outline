@@ -1,0 +1,28 @@
+"use strict";
+
+const { execSync } = require("child_process");
+const path = require("path");
+
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up() {
+    if (
+      process.env.NODE_ENV === "test"
+    ) {
+      return;
+    }
+
+    const scriptName = path.basename(__filename);
+    const scriptPath = path.join(
+      process.cwd(),
+      "build",
+      `server/scripts/${scriptName}`
+    );
+
+    execSync(`node ${scriptPath}`, { stdio: "inherit" });
+  },
+
+  async down() {
+    // noop
+  },
+};
