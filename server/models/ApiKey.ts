@@ -1,6 +1,8 @@
+import crypto from "crypto";
 import { subMinutes } from "date-fns";
 import randomstring from "randomstring";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
+import { type BuildOptions } from "sequelize";
 import {
   Column,
   Table,
@@ -9,6 +11,8 @@ import {
   BelongsTo,
   ForeignKey,
   IsDate,
+  DataType,
+  BeforeSave,
 } from "sequelize-typescript";
 import { ApiKeyValidation } from "@shared/validations";
 import User from "./User";
@@ -24,6 +28,18 @@ class ApiKey extends ParanoidModel<
 > {
   static prefix = "ol_api_";
 
+  constructor(
+    values?: Partial<InferCreationAttributes<ApiKey>>,
+    options?: BuildOptions
+  ) {
+    // Temporary until last4 is backfilled and secret is removed.
+    if (values?.secret) {
+      values.last4 = values.secret.slice(-4);
+    }
+
+    super(values, options);
+  }
+
   @Length({
     min: ApiKeyValidation.minNameLength,
     max: ApiKeyValidation.maxNameLength,
@@ -32,9 +48,23 @@ class ApiKey extends ParanoidModel<
   @Column
   name: string;
 
+  /** @deprecated The plain text value of the API key, removed soon. */
   @Unique
   @Column
   secret: string;
+
+  /** The cached plain text value. Only available when creating the API key */
+  @Column(DataType.VIRTUAL)
+  value: string | null;
+
+  /** The hashed value of the API key */
+  @Unique
+  @Column
+  hash: string;
+
+  /** The last 4 characters of the API key */
+  @Column
+  last4: string;
 
   @IsDate
   @Column
@@ -47,10 +77,30 @@ class ApiKey extends ParanoidModel<
   // hooks
 
   @BeforeValidate
-  static async generateSecret(model: ApiKey) {
-    if (!model.secret) {
-      model.secret = `${ApiKey.prefix}${randomstring.generate(38)}`;
+  public static async generateSecret(model: ApiKey) {
+    if (!model.hash) {
+      const secret = `${ApiKey.prefix}${randomstring.generate(38)}`;
+      model.value = model.secret || secret;
+      model.hash = this.hash(model.value);
     }
+  }
+
+  @BeforeSave
+  public static async updateLast4(model: ApiKey) {
+    const value = model.value || model.secret;
+    if (value) {
+      model.last4 = value.slice(-4);
+    }
+  }
+
+  /**
+   * Generates a hashed API key for the given input key.
+   *
+   * @param key The input string to hash
+   * @returns The hashed API key
+   */
+  private static hash(key: string) {
+    return crypto.createHash("sha256").update(key).digest("hex");
   }
 
   /**
@@ -60,8 +110,24 @@ class ApiKey extends ParanoidModel<
    * @param text The text to validate
    * @returns True if likely an API key
    */
-  static match(text: string) {
+  public static match(text: string) {
+    // cannot guarantee prefix here as older keys do not include it.
     return !!text.replace(ApiKey.prefix, "").match(/^[\w]{38}$/);
+  }
+
+  /**
+   * Finds an API key by the given input string. This will check both the
+   * secret and hash fields.
+   *
+   * @param input The input string to search for
+   * @returns The API key if found
+   */
+  public static findByToken(input: string) {
+    return this.findOne({
+      where: {
+        [Op.or]: [{ secret: input }, { hash: this.hash(input) }],
+      },
+    });
   }
 
   // associations
@@ -72,6 +138,8 @@ class ApiKey extends ParanoidModel<
   @ForeignKey(() => User)
   @Column
   userId: string;
+
+  // methods
 
   updateActiveAt = async () => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);

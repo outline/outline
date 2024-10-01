@@ -71,7 +71,11 @@ function ApiKeyNew({ onSubmit }: Props) {
           name,
           expiresAt: expiresAt?.toISOString(),
         });
-        toast.success(t("API key created"));
+        toast.success(
+          t(
+            "API key created. Please copy the value now as it will not be shown again."
+          )
+        );
         onSubmit();
       } catch (err) {
         toast.error(err.message);

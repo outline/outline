@@ -52,11 +52,21 @@ const ApiKeyListItem = ({ apiKey, isCopied, onCopy }: Props) => {
       subtitle={subtitle}
       actions={
         <Flex align="center" gap={8}>
-          <CopyToClipboard text={apiKey.secret} onCopy={handleCopy}>
-            <Button type="button" icon={<CopyIcon />} neutral borderOnHover>
-              {isCopied ? t("Copied") : t("Copy")}
-            </Button>
-          </CopyToClipboard>
+          {apiKey.value && (
+            <CopyToClipboard text={apiKey.value} onCopy={handleCopy}>
+              <Button type="button" icon={<CopyIcon />} neutral borderOnHover>
+                {isCopied ? t("Copied") : t("Copy")}
+              </Button>
+            </CopyToClipboard>
+          )}
+          <Text
+            type="tertiary"
+            size="xsmall"
+            style={{ marginRight: 8 }}
+            monospace
+          >
+            {apiKey.obfuscatedValue}
+          </Text>
           <ApiKeyMenu apiKey={apiKey} />
         </Flex>
       }
