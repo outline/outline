@@ -536,7 +536,7 @@
   "shared": "공유됨",
   "invited you to": "당신을 초대하였습니다:",
   "Choose a date": "날짜를 선택하세요",
-  "API key created": "API 키 생성됨",
+  "API key created. Please copy the value now as it will not be shown again.": "API key created. Please copy the value now as it will not be shown again.",
   "Name your key something that will help you to remember it's use in the future, for example \"local development\" or \"continuous integration\".": "키 이름을 \"로컬 개발\" 또는 \"지속적 통합\"과 같이 향후 사용하는데 도움이 되는 이름으로 지정합니다.",
   "Expiration": "만료",
   "Never expires": "만료 없음",
