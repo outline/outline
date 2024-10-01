@@ -536,7 +536,7 @@
   "shared": "compartido",
   "invited you to": "te invitó a",
   "Choose a date": "Elige una fecha",
-  "API key created": "Se ha creado la clave API",
+  "API key created. Please copy the value now as it will not be shown again.": "API key created. Please copy the value now as it will not be shown again.",
   "Name your key something that will help you to remember it's use in the future, for example \"local development\" or \"continuous integration\".": "Dale a tu token un nombre que te permita recordar su uso en el futuro, por ejemplo \"desarrollo local\", \"producción\" o \"integración continua\".",
   "Expiration": "Caducidad",
   "Never expires": "Nunca caduca",
