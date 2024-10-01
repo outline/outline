@@ -536,7 +536,7 @@
   "shared": "delt",
   "invited you to": "inviterte deg til",
   "Choose a date": "Velg en dato",
-  "API key created": "API-nøkkel opprettet",
+  "API key created. Please copy the value now as it will not be shown again.": "API key created. Please copy the value now as it will not be shown again.",
   "Name your key something that will help you to remember it's use in the future, for example \"local development\" or \"continuous integration\".": "Gi nøkkelen et navn som hjelper deg å huske dens bruk i fremtiden, for eksempel \"lokale utvikling\", \"produksjon\", eller \"kontinuerlig integrasjon\".",
   "Expiration": "Utløper",
   "Never expires": "Utløper aldri",
