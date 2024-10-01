@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -5,25 +6,18 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, s } from "@shared/styles";
+import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 import { decodeURIComponentSafe } from "~/utils/urls";
 
 const HEADING_OFFSET = 20;
 
-type Props = {
-  /** The headings to render in the contents. */
-  headings: {
-    title: string;
-    level: number;
-    id: string;
-  }[];
-};
-
-export default function Contents({ headings }: Props) {
+function Contents() {
   const [activeSlug, setActiveSlug] = React.useState<string>();
   const scrollPosition = useWindowScrollPosition({
     throttle: 100,
   });
+  const { headings } = useDocumentContext();
 
   React.useEffect(() => {
     let activeId = headings.length > 0 ? headings[0].id : undefined;
@@ -139,3 +133,5 @@ const List = styled.ol`
   padding: 0;
   list-style: none;
 `;
+
+export default observer(Contents);
