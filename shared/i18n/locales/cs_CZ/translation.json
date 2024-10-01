@@ -536,7 +536,7 @@
   "shared": "sdíleno",
   "invited you to": "vás pozval/a do",
   "Choose a date": "Vybrat datum",
-  "API key created": "API klíč byl vytvořen",
+  "API key created. Please copy the value now as it will not be shown again.": "API key created. Please copy the value now as it will not be shown again.",
   "Name your key something that will help you to remember it's use in the future, for example \"local development\" or \"continuous integration\".": "Pojmenujte svůj klíč tak, abyste si ho snadno zapamatovali pro jeho použití v budoucnu, například \"místní vývoj\" nebo \"průběžná integrace\".",
   "Expiration": "Vypršení platnosti",
   "Never expires": "Nikdy nevyprší",
