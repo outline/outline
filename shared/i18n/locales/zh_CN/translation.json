@@ -536,7 +536,7 @@
   "shared": "已共享",
   "invited you to": "邀请你加入",
   "Choose a date": "选择一个日期",
-  "API key created": "API key 已创建",
+  "API key created. Please copy the value now as it will not be shown again.": "API key created. Please copy the value now as it will not be shown again.",
   "Name your key something that will help you to remember it's use in the future, for example \"local development\" or \"continuous integration\".": "为你的 API 令牌起一个有助于你在将来使用它的名称，例如“本地开发”、“生产”或“持续集成”。",
   "Expiration": "过期时间",
   "Never expires": "永不过期",
