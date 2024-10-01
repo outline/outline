@@ -536,7 +536,7 @@
   "shared": "共有済み",
   "invited you to": "あなたを招待しました",
   "Choose a date": "日付を選択",
-  "API key created": "API キーが発行されました",
+  "API key created. Please copy the value now as it will not be shown again.": "API key created. Please copy the value now as it will not be shown again.",
   "Name your key something that will help you to remember it's use in the future, for example \"local development\" or \"continuous integration\".": "API キーには、ローカル開発、CI というように、将来何に使用されているかわかる名前をつけましょう",
   "Expiration": "有効期限",
   "Never expires": "無期限",
