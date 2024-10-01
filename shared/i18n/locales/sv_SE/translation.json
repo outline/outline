@@ -536,7 +536,7 @@
   "shared": "delad",
   "invited you to": "bjöd in dig till",
   "Choose a date": "Välj ett datum",
-  "API key created": "API-nyckel skapad",
+  "API key created. Please copy the value now as it will not be shown again.": "API key created. Please copy the value now as it will not be shown again.",
   "Name your key something that will help you to remember it's use in the future, for example \"local development\" or \"continuous integration\".": "Namnge din token med något som hjälper dig att komma ihåg att den används i framtiden, till exempel \"lokal utveckling\", \"produktion\" eller \"kontinuerlig integration\".",
   "Expiration": "Utgång",
   "Never expires": "Utgår aldrig",
