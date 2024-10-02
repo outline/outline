@@ -7,7 +7,8 @@ const path = require("path");
 module.exports = {
   async up() {
     if (
-      process.env.NODE_ENV === "test"
+      process.env.NODE_ENV === "test" ||
+      process.env.DEPLOYMENT === "hosted"
     ) {
       return;
     }
