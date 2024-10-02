@@ -133,9 +133,20 @@ export const searchInCollection = createAction({
   analyticsName: "Search collection",
   section: ActiveCollectionSection,
   icon: <SearchIcon />,
-  visible: ({ activeCollectionId }) =>
-    !!activeCollectionId &&
-    stores.policies.abilities(activeCollectionId).readDocument,
+  visible: ({ activeCollectionId }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+
+    const collection = stores.collections.get(activeCollectionId);
+
+    if (!collection?.isActive) {
+      return false;
+    }
+
+    return stores.policies.abilities(activeCollectionId).readDocument;
+  },
+
   perform: ({ activeCollectionId }) => {
     history.push(searchPath(undefined, { collectionId: activeCollectionId }));
   },
