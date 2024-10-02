@@ -1,6 +1,6 @@
 "use strict";
 
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const path = require("path");
 
 /** @type {import('sequelize-cli').Migration} */
@@ -20,7 +20,7 @@ module.exports = {
       `server/scripts/${scriptName}`
     );
 
-    execSync(`node ${scriptPath}`, { stdio: "inherit" });
+    execFileSync("node", [scriptPath], { stdio: "inherit" });
   },
 
   async down() {
