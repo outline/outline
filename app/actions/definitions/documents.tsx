@@ -27,6 +27,7 @@ import {
   CopyIcon,
   EyeIcon,
   PadlockIcon,
+  GlobeIcon,
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
@@ -476,6 +477,27 @@ export const copyDocumentAsMarkdown = createAction({
   },
 });
 
+export const copyDocumentShareLink = createAction({
+  name: ({ t }) => t("Copy public link"),
+  section: ActiveDocumentSection,
+  keywords: "clipboard share",
+  icon: <GlobeIcon />,
+  iconInContextMenu: false,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId &&
+    !!stores.shares.getByDocumentId(activeDocumentId)?.published,
+  perform: ({ stores, activeDocumentId, t }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+    const share = stores.shares.getByDocumentId(activeDocumentId);
+    if (share) {
+      copy(share.url);
+      toast.success(t("Link copied to clipboard"));
+    }
+  },
+});
+
 export const copyDocumentLink = createAction({
   name: ({ t }) => t("Copy link"),
   section: ActiveDocumentSection,
@@ -500,7 +522,7 @@ export const copyDocument = createAction({
   section: ActiveDocumentSection,
   icon: <CopyIcon />,
   keywords: "clipboard",
-  children: [copyDocumentLink, copyDocumentAsMarkdown],
+  children: [copyDocumentLink, copyDocumentShareLink, copyDocumentAsMarkdown],
 });
 
 export const duplicateDocument = createAction({
@@ -1110,6 +1132,7 @@ export const rootDocumentActions = [
   importDocument,
   downloadDocument,
   copyDocumentLink,
+  copyDocumentShareLink,
   copyDocumentAsMarkdown,
   starDocument,
   unstarDocument,

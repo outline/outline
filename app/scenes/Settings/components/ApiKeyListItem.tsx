@@ -61,11 +61,11 @@ const ApiKeyListItem = ({ apiKey, isCopied, onCopy }: Props) => {
           )}
           <Text
             type="tertiary"
-            size="small"
+            size="xsmall"
             style={{ marginRight: 8 }}
             monospace
           >
-            ol...{apiKey.last4}
+            {apiKey.obfuscatedValue}
           </Text>
           <ApiKeyMenu apiKey={apiKey} />
         </Flex>

@@ -9,6 +9,7 @@ import Revision from "~/models/Revision";
 import Error402 from "~/scenes/Error402";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
+import { useDocumentContext } from "~/components/DocumentContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -56,6 +57,7 @@ function DataLoader({ match, children }: Props) {
   const { ui, views, shares, comments, documents, revisions } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
+  const { setDocument } = useDocumentContext();
   const [error, setError] = React.useState<Error | null>(null);
   const { revisionId, shareId, documentSlug } = match.params;
 
@@ -63,6 +65,10 @@ function DataLoader({ match, children }: Props) {
   const document =
     documents.getByUrl(match.params.documentSlug) ??
     documents.get(match.params.documentSlug);
+
+  if (document) {
+    setDocument(document);
+  }
 
   const revision = revisionId
     ? revisions.get(

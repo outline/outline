@@ -175,7 +175,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     [comments]
   );
 
-  const { setEditor } = useDocumentContext();
+  const { setEditor, updateState: updateDocState } = useDocumentContext();
   const handleRefChanged = React.useCallback(setEditor, [setEditor]);
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
@@ -241,6 +241,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             ? handleRemoveComment
             : undefined
         }
+        onChange={updateDocState}
         extensions={extensions}
         editorStyle={editorStyle}
         {...rest}
