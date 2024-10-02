@@ -24,6 +24,7 @@ import Team from "~/models/Team";
 import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
 import withStores from "~/components/withStores";
+import env from "~/env";
 import {
   PartialExcept,
   WebsocketCollectionUpdateIndexEvent,
@@ -72,7 +73,7 @@ class WebsocketProvider extends React.Component<Props> {
   };
 
   createConnection = () => {
-    this.socket = io(window.location.origin, {
+    this.socket = io(env.URL, {
       path: "/realtime",
       transports: ["websocket"],
       reconnectionDelay: 1000,

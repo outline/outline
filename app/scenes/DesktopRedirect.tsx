@@ -6,6 +6,7 @@ import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import PageTitle from "~/components/PageTitle";
 import Text from "~/components/Text";
+import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 
 const DesktopRedirect = () => {
@@ -15,10 +16,7 @@ const DesktopRedirect = () => {
 
   React.useEffect(() => {
     if (token) {
-      window.open(
-        `outline://${window.location.host}/auth/redirect?token=${token}`,
-        "_self"
-      );
+      window.open(`outline://${env.URL}/auth/redirect?token=${token}`, "_self");
 
       // Clean the url after a short delay so it's not possible to hit reload, re-using the transfer token
       // will not work and changing the location immediately cancels the window.open call in Safari.
