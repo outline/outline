@@ -65,9 +65,10 @@ class ApiKey extends ParanoidModel<
   // hooks
 
   @AfterFind
-  public static async afterFindHook(models: ApiKey[]) {
-    for (const model of models) {
-      if (model.secret) {
+  public static async afterFindHook(models: ApiKey | ApiKey[]) {
+    const modelsArray = Array.isArray(models) ? models : [models];
+    for (const model of modelsArray) {
+      if (model?.secret) {
         model.last4 = model.secret.slice(-4);
       }
     }
