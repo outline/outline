@@ -227,11 +227,11 @@ function CollectionMenu({
         onClick: handleExport,
         icon: <ExportIcon />,
       },
+      actionToMenuItem(archiveCollection, context),
       actionToMenuItem(searchInCollection, context),
       {
         type: "separator",
       },
-      actionToMenuItem(archiveCollection, context),
       actionToMenuItem(deleteCollection, context),
     ],
     [
