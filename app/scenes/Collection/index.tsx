@@ -19,6 +19,7 @@ import Collection from "~/models/Collection";
 import Search from "~/scenes/Search";
 import { Action } from "~/components/Actions";
 import CenteredContent from "~/components/CenteredContent";
+import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
 import CollectionDescription from "~/components/CollectionDescription";
 import Heading from "~/components/Heading";
 import Icon, { IconTitleWrapper } from "~/components/Icon";
@@ -135,7 +136,9 @@ function CollectionScene() {
       centered={false}
       textTitle={collection.name}
       left={
-        collection.isEmpty ? undefined : (
+        collection.isArchived ? (
+          <CollectionBreadcrumb collection={collection} />
+        ) : collection.isEmpty ? undefined : (
           <InputSearchPage
             source="collection"
             placeholder={`${t("Search in collection")}…`}
