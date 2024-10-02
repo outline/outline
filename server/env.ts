@@ -147,6 +147,10 @@ export class Environment {
   })
   public URL = (environment.URL ?? "").replace(/\/$/, "");
 
+  @Public
+  @IsOptional()
+  public BASENAME = environment.BASENAME ?? "/";
+
   /**
    * If using a Cloudfront/Cloudflare distribution or similar it can be set below.
    * This will cause paths to javascript, stylesheets, and images to be updated to
