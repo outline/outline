@@ -1,5 +1,5 @@
 import * as React from "react";
-import { RouteComponentProps, Switch } from "react-router-dom";
+import { Redirect, RouteComponentProps, Switch } from "react-router-dom";
 import DocumentNew from "~/scenes/DocumentNew";
 import Error404 from "~/scenes/Error404";
 import Route from "~/components/ProfiledRoute";
@@ -22,6 +22,11 @@ export default function SettingsRoutes() {
           component={config.component}
         />
       ))}
+      {configs.map((config) =>
+        config.redirects?.map((redirect) => (
+          <Redirect exact key={redirect} from={redirect} to={config.path} />
+        ))
+      )}
       <Route
         exact
         path={`${settingsPath("templates")}/${matchDocumentSlug}`}

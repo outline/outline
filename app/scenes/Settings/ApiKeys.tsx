@@ -43,7 +43,7 @@ function ApiKeys() {
 
   return (
     <Scene
-      title={t("API")}
+      title={t("Personal Keys")}
       icon={<CodeIcon />}
       actions={
         <>
@@ -60,7 +60,7 @@ function ApiKeys() {
         </>
       }
     >
-      <Heading>{t("API")}</Heading>
+      <Heading>{t("Personal Keys")}</Heading>
       <Text as="p" type="secondary">
         <Trans
           defaults="Create personal API keys to authenticate with the API and programatically control

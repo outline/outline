@@ -49,6 +49,7 @@ export type ConfigItem = {
   path: string;
   icon: React.FC<ComponentProps<typeof Icon>>;
   component: React.ComponentType;
+  redirects?: string[];
   enabled: boolean;
   group: string;
 };
@@ -87,8 +88,9 @@ const useSettingsConfig = () => {
         icon: EmailIcon,
       },
       {
-        name: t("API"),
-        path: settingsPath("tokens"),
+        name: t("Personal Keys"),
+        path: settingsPath("personal-api-keys"),
+        redirects: [settingsPath("tokens")],
         component: ApiKeys,
         enabled: can.createApiKey,
         group: t("Account"),
