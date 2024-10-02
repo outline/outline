@@ -5,6 +5,7 @@ import styled from "styled-components";
 import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
 import PluginIcon from "~/components/PluginIcon";
+import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import { getRedirectUrl } from "../urls";
@@ -64,7 +65,11 @@ function AuthenticationProvider(props: Props) {
 
     return (
       <Wrapper>
-        <Form method="POST" action="/auth/email" onSubmit={handleSubmitEmail}>
+        <Form
+          method="POST"
+          action={`${env.URL}/auth/email`}
+          onSubmit={handleSubmitEmail}
+        >
           {showEmailSignin ? (
             <>
               <InputLarge

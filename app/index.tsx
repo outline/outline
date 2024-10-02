@@ -6,7 +6,7 @@ import { Provider } from "mobx-react";
 import * as React from "react";
 import { render } from "react-dom";
 import { HelmetProvider } from "react-helmet-async";
-import { Router } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import stores from "~/stores";
 import Analytics from "~/components/Analytics";
 import Dialogs from "~/components/Dialogs";
@@ -63,7 +63,7 @@ if (element) {
                 <KBarProvider actions={[]} options={commandBarOptions}>
                   <LazyPolyfill>
                     <LazyMotion features={loadFeatures}>
-                      <Router history={history}>
+                      <BrowserRouter basename={env.URL} history={history}>
                         <PageScroll>
                           <PageTheme />
                           <ScrollToTop>
@@ -73,7 +73,7 @@ if (element) {
                           <Dialogs />
                           <Desktop />
                         </PageScroll>
-                      </Router>
+                      </BrowserRouter>
                     </LazyMotion>
                   </LazyPolyfill>
                 </KBarProvider>
@@ -88,20 +88,7 @@ if (element) {
   render(<App />, element);
 }
 
-window.addEventListener("load", async () => {
-  // installation does not use Google Analytics, or tracking is blocked on client
-  // no point loading the rest of the analytics bundles
-  if (!env.GOOGLE_ANALYTICS_ID || !window.ga) {
-    return;
-  }
-  // https://github.com/googleanalytics/autotrack/issues/137#issuecomment-305890099
-  await import("autotrack/autotrack.js");
-  window.ga("require", "outboundLinkTracker");
-  window.ga("require", "urlChangeTracker");
-  window.ga("require", "eventTracker", {
-    attributePrefix: "data-",
-  });
-});
+window.addEventListener("load", async () => {});
 
 if ("serviceWorker" in navigator && env.ENVIRONMENT !== "development") {
   window.addEventListener("load", () => {
