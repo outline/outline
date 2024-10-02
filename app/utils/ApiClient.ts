@@ -4,6 +4,7 @@ import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import { JSONObject } from "@shared/types";
 import stores from "~/stores";
+import env from "~/env";
 import Logger from "./Logger";
 import download from "./download";
 import {
@@ -37,7 +38,7 @@ class ApiClient {
   baseUrl: string;
 
   constructor(options: Options = {}) {
-    this.baseUrl = options.baseUrl || "/api";
+    this.baseUrl = options.baseUrl || `${env.URL}/api`;
   }
 
   fetch = async <T = any>(
