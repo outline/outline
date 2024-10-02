@@ -409,7 +409,7 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "collections.archive",
-      action(async (event: PartialWithId<Collection>) => {
+      action(async (event: PartialExcept<Collection, "id">) => {
         const collectionId = event.id;
 
         // Fetch collection to update policies
@@ -429,7 +429,7 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "collections.restore",
-      action(async (event: PartialWithId<Collection>) => {
+      action(async (event: PartialExcept<Collection, "id">) => {
         const collectionId = event.id;
         documents
           .archivedInCollection(collectionId, {
