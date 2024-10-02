@@ -7,6 +7,10 @@ import CommandBarItem from "./CommandBarItem";
 export default function CommandBarResults() {
   const { results, rootActionId } = useMatches();
 
+  if (results.length === 0) {
+    return null;
+  }
+
   return (
     <Container>
       <KBarResults

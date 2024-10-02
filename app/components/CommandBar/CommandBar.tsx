@@ -77,7 +77,10 @@ const SearchInput = styled(KBarSearch)`
   border: none;
   background: ${s("menuBackground")};
   color: ${s("text")};
-  border-bottom: 1px solid ${s("inputBorder")};
+
+  &:not(:last-child) {
+    border-bottom: 1px solid ${s("inputBorder")};
+  }
 
   &:disabled,
   &::placeholder {
