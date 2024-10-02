@@ -25,6 +25,8 @@ export default async function main(exit = false, limit = 100) {
             console.log(`Migrating ${apiKey.id}…`);
             apiKey.value = apiKey.secret;
             apiKey.hash = ApiKey.hash(apiKey.secret);
+            // @ts-expect-error secret is deprecated
+            apiKey.secret = null;
             await apiKey.save({ transaction });
           }
         } catch (err) {
