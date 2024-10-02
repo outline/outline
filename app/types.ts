@@ -14,7 +14,8 @@ import Pin from "./models/Pin";
 import Star from "./models/Star";
 import UserMembership from "./models/UserMembership";
 
-export type PartialWithId<T> = Partial<T> & { id: string };
+export type PartialExcept<T, K extends keyof T> = Partial<Omit<T, K>> &
+  Required<Pick<T, K>>;
 
 export type MenuItemButton = {
   type: "button";
@@ -188,10 +189,10 @@ export type WebsocketCollectionUpdateIndexEvent = {
 };
 
 export type WebsocketEvent =
-  | PartialWithId<Pin>
-  | PartialWithId<Star>
-  | PartialWithId<FileOperation>
-  | PartialWithId<UserMembership>
+  | PartialExcept<Pin, "id">
+  | PartialExcept<Star, "id">
+  | PartialExcept<FileOperation, "id">
+  | PartialExcept<UserMembership, "id">
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent
   | WebsocketEntitiesEvent;

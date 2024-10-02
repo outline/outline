@@ -12,7 +12,7 @@ import Team from "~/models/Team";
 import User from "~/models/User";
 import env from "~/env";
 import { setPostLoginPath } from "~/hooks/useLastVisitedPath";
-import { PartialWithId } from "~/types";
+import { PartialExcept } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import Logger from "~/utils/Logger";
@@ -20,8 +20,8 @@ import isCloudHosted from "~/utils/isCloudHosted";
 import Store from "./base/Store";
 
 type PersistedData = {
-  user?: PartialWithId<User>;
-  team?: PartialWithId<Team>;
+  user?: PartialExcept<User, "id">;
+  team?: PartialExcept<Team, "id">;
   collaborationToken?: string;
   availableTeams?: {
     id: string;
