@@ -24,6 +24,7 @@ const resizeObserverScript = (
 const iframeCheckScript = (
   ctx: Context
 ) => `<script nonce="${ctx.state.cspNonce}">
+  console.log(window.location);
   if (window.self === window.top) {
     window.location.href = window.location.origin;
   }

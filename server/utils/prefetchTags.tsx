@@ -49,7 +49,7 @@ if (env.isProduction) {
       prefetchTags.push(
         <link
           rel="prefetch"
-          href={`${env.CDN_URL || ""}/static/${file}`}
+          href={`${env.CDN_URL || ""}/${file}`}
           key={file}
           as="script"
           crossOrigin="anonymous"
@@ -59,7 +59,7 @@ if (env.isProduction) {
       prefetchTags.push(
         <link
           rel="prefetch"
-          href={`${env.CDN_URL || ""}/static/${file}`}
+          href={`${env.CDN_URL || ""}/${file}`}
           key={file}
           as="style"
           crossOrigin="anonymous"

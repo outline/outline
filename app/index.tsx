@@ -107,9 +107,12 @@ if ("serviceWorker" in navigator && env.ENVIRONMENT !== "development") {
   window.addEventListener("load", () => {
     // see: https://bugs.chromium.org/p/chromium/issues/detail?id=1097616
     // In some rare (<0.1% of cases) this call can return `undefined`
-    const maybePromise = navigator.serviceWorker.register("/static/sw.js", {
-      scope: "/",
-    });
+    const maybePromise = navigator.serviceWorker.register(
+      `${env.CDN_URL}/sw.js`,
+      {
+        scope: "/",
+      }
+    );
 
     if (maybePromise?.then) {
       maybePromise

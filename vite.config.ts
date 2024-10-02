@@ -26,7 +26,7 @@ export default () =>
   defineConfig({
     root: "./",
     publicDir: "./server/static",
-    base: (environment.CDN_URL ?? "") + "/static/",
+    base: (environment.CDN_URL ?? "") + "/",
     server: {
       port: 3001,
       host: true,
@@ -87,7 +87,7 @@ export default () =>
           globPatterns: ["**/*.{js,css,ico,png,svg}"],
           navigateFallback: null,
           modifyURLPrefix: {
-            "": `${environment.CDN_URL ?? ""}/static/`,
+            "": `${environment.CDN_URL ?? ""}/`,
           },
           runtimeCaching: [
             {
@@ -111,7 +111,7 @@ export default () =>
           short_name: "Outline",
           theme_color: "#fff",
           background_color: "#fff",
-          start_url: "/",
+          start_url: environment.URL,
           scope: ".",
           display: "standalone",
           // For Chrome, you must provide at least a 192x192 pixel icon, and a 512x512 pixel icon.
@@ -120,18 +120,18 @@ export default () =>
           // pixel-perfection, provide icons in increments of 48dp.
           icons: [
             {
-              src: "/static/images/icon-192.png",
+              src: "/images/icon-192.png",
               sizes: "192x192",
               type: "image/png",
             },
             {
-              src: "/static/images/icon-512.png",
+              src: "/images/icon-512.png",
               sizes: "512x512",
               type: "image/png",
             },
             // last one duplicated for purpose: 'any maskable'
             {
-              src: "/static/images/icon-512.png",
+              src: "/images/icon-512.png",
               sizes: "512x512",
               type: "image/png",
               purpose: "any maskable",

@@ -92,9 +92,12 @@ export const renderApp = async (
   `;
 
   const scriptTags = env.isProduction
-    ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
-        env.CDN_URL || ""
-      }/static/${readManifestFile()[entry]["file"]}"></script>`
+    ? `<script 
+        type="module"
+        nonce="${ctx.state.cspNonce}" 
+        src="${env.CDN_URL || ""}/${
+        readManifestFile()[entry]["file"]
+      }"></script>`
     : `<script type="module" nonce="${ctx.state.cspNonce}">
         import RefreshRuntime from "${viteHost}/static/@react-refresh"
         RefreshRuntime.injectIntoGlobalHook(window)
@@ -114,7 +117,7 @@ export const renderApp = async (
     .replace(/\{description\}/g, escape(description))
     .replace(
       /\{manifest-url\}/g,
-      options.isShare ? "" : "/static/manifest.webmanifest"
+      options.isShare ? "" : `${env.CDN_URL}/manifest.webmanifest`
     )
     .replace(/\{canonical-url\}/g, canonical)
     .replace(/\{shortcut-icon-url\}/g, shortcutIcon)

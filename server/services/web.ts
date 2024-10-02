@@ -64,6 +64,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
           },
         })
       );
+      Logger.warn("Enforced https was enabled with FORCE_HTTPS env variable");
     } else {
       Logger.warn("Enforced https was disabled with FORCE_HTTPS env variable");
     }
