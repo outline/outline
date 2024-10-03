@@ -74,7 +74,7 @@ class WebsocketProvider extends React.Component<Props> {
 
   createConnection = () => {
     this.socket = io(env.BASENAME, {
-      path: "/realtime",
+      path: "realtime",
       transports: ["websocket"],
       reconnectionDelay: 1000,
       reconnectionDelayMax: 30000,
