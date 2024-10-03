@@ -6,7 +6,7 @@ import { Provider } from "mobx-react";
 import * as React from "react";
 import { render } from "react-dom";
 import { HelmetProvider } from "react-helmet-async";
-import { Router, Route } from "react-router-dom";
+import { Router } from "react-router-dom";
 import stores from "~/stores";
 import Analytics from "~/components/Analytics";
 import Dialogs from "~/components/Dialogs";
@@ -64,17 +64,15 @@ if (element) {
                   <LazyPolyfill>
                     <LazyMotion features={loadFeatures}>
                       <Router history={history}>
-                        <Route path={env.BASENAME}>
-                          <PageScroll>
-                            <PageTheme />
-                            <ScrollToTop>
-                              <Routes />
-                            </ScrollToTop>
-                            <Toasts />
-                            <Dialogs />
-                            <Desktop />
-                          </PageScroll>
-                        </Route>
+                        <PageScroll>
+                          <PageTheme />
+                          <ScrollToTop>
+                            <Routes />
+                          </ScrollToTop>
+                          <Toasts />
+                          <Dialogs />
+                          <Desktop />
+                        </PageScroll>
                       </Router>
                     </LazyMotion>
                   </LazyPolyfill>
