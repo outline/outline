@@ -4,6 +4,7 @@ import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
 import {
   CollectionPermission,
+  CollectionStatusFilter,
   FileOperationState,
   FileOperationType,
 } from "@shared/types";
@@ -806,29 +807,60 @@ router.post(
   auth(),
   validate(T.CollectionsListSchema),
   pagination(),
+  transaction(),
   async (ctx: APIContext<T.CollectionsListReq>) => {
-    const { includeListOnly } = ctx.input.body;
+    const { includeListOnly, statusFilter } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const collectionIds = await user.collectionIds();
-    const where: WhereOptions<Collection> =
-      includeListOnly && user.isAdmin
-        ? {
-            teamId: user.teamId,
-            archivedAt: {
-              [Op.is]: null,
-            },
-          }
-        : {
-            teamId: user.teamId,
-            archivedAt: {
-              [Op.is]: null,
-            },
-            id: collectionIds,
-          };
+    const { transaction } = ctx.state;
+    const collectionIds = await user.collectionIds({ transaction });
+
+    const where: WhereOptions<Collection> = {
+      teamId: user.teamId,
+      [Op.and]: [
+        {
+          deletedAt: {
+            [Op.eq]: null,
+          },
+        },
+      ],
+    };
+
+    if (!statusFilter) {
+      where[Op.and].push({ archivedAt: { [Op.eq]: null } });
+    }
+
+    if (!includeListOnly || !user.isAdmin) {
+      where[Op.and].push({ id: collectionIds });
+    }
+
+    const statusQuery = [];
+    if (statusFilter?.includes(CollectionStatusFilter.Archived)) {
+      statusQuery.push({
+        archivedAt: {
+          [Op.ne]: null,
+        },
+      });
+    }
+
+    if (statusQuery.length) {
+      where[Op.and].push({
+        [Op.or]: statusQuery,
+      });
+    }
+
     const [collections, total] = await Promise.all([
-      Collection.scope({
-        method: ["withMembership", user.id],
-      }).findAll({
+      Collection.scope(
+        statusFilter?.includes(CollectionStatusFilter.Archived)
+          ? [
+              {
+                method: ["withMembership", user.id],
+              },
+              "withArchivedBy",
+            ]
+          : {
+              method: ["withMembership", user.id],
+            }
+      ).findAll({
         where,
         order: [
           Sequelize.literal('"collection"."index" collate "C"'),
@@ -836,8 +868,9 @@ router.post(
         ],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
+        transaction,
       }),
-      Collection.count({ where }),
+      Collection.count({ where, transaction }),
     ]);
 
     const nullIndex = collections.findIndex(
@@ -845,7 +878,9 @@ router.post(
     );
 
     if (nullIndex !== -1) {
-      const indexedCollections = await collectionIndexing(user.teamId);
+      const indexedCollections = await collectionIndexing(user.teamId, {
+        transaction,
+      });
       collections.forEach((collection) => {
         collection.index = indexedCollections[collection.id];
       });
@@ -1018,57 +1053,6 @@ router.post(
     ctx.body = {
       data: await presentCollection(ctx, collection!),
       policies: presentPolicies(user, [collection]),
-    };
-  }
-);
-
-router.post(
-  "collections.archived",
-  auth(),
-  pagination(),
-  transaction(),
-  async (ctx: APIContext<T.CollectionsArchivedReq>) => {
-    const { transaction } = ctx.state;
-    const { user } = ctx.state.auth;
-    const collectionIds = await user.collectionIds({ transaction });
-    const [collections, total] = await Promise.all([
-      Collection.scope([
-        { method: ["withMembership", user.id] },
-        "withArchivedBy",
-      ]).findAll({
-        where: {
-          teamId: user.teamId,
-          id: collectionIds,
-          archivedAt: {
-            [Op.not]: null,
-          },
-        },
-        order: [
-          Sequelize.literal('"collection"."index" collate "C"'),
-          ["archivedAt", "DESC"],
-        ],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-        transaction,
-      }),
-      Collection.count({
-        where: {
-          teamId: user.teamId,
-          id: collectionIds,
-          archivedAt: {
-            [Op.not]: null,
-          },
-        },
-        transaction,
-      }),
-    ]);
-
-    ctx.body = {
-      pagination: { ...ctx.state.pagination, total },
-      data: await Promise.all(
-        collections.map((collection) => presentCollection(ctx, collection))
-      ),
-      policies: presentPolicies(user, collections),
     };
   }
 );

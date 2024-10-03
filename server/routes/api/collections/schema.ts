@@ -1,6 +1,10 @@
 import isUndefined from "lodash/isUndefined";
 import { z } from "zod";
-import { CollectionPermission, FileOperationFormat } from "@shared/types";
+import {
+  CollectionPermission,
+  CollectionStatusFilter,
+  FileOperationFormat,
+} from "@shared/types";
 import { Collection } from "@server/models";
 import { zodIconType } from "@server/utils/zod";
 import { ValidateColor, ValidateIndex } from "@server/validation";
@@ -174,6 +178,8 @@ export type CollectionsUpdateReq = z.infer<typeof CollectionsUpdateSchema>;
 export const CollectionsListSchema = BaseSchema.extend({
   body: z.object({
     includeListOnly: z.boolean().default(false),
+    /** Collection statuses to include in results */
+    statusFilter: z.nativeEnum(CollectionStatusFilter).array().optional(),
   }),
 });
 

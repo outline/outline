@@ -1,4 +1,4 @@
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, CollectionStatusFilter } from "@shared/types";
 import { Document, UserMembership, GroupMembership } from "@server/models";
 import {
   buildUser,
@@ -38,6 +38,44 @@ describe("#collections.list", () => {
     expect(body.data[0].id).toEqual(collection.id);
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
+  });
+
+  it("should include archived collections", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/collections.list", {
+      body: {
+        token: admin.getJwtToken(),
+        statusFilter: [CollectionStatusFilter.Archived],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].archivedAt).toBeTruthy();
+    expect(body.data[0].archivedBy).toBeTruthy();
+    expect(body.data[0].archivedBy.id).toBe(collection.archivedById);
+  });
+
+  it("should exclude archived collections", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    await buildCollection({
+      teamId: team.id,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/collections.list", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(0);
   });
 
   it("should not return private collections actor is not a member of", async () => {
@@ -1852,27 +1890,5 @@ describe("#collections.restore", () => {
     expect(res.status).toEqual(200);
     expect(body.data.archivedAt).toBe(null);
     expect(collection.documentStructure).not.toBe(null);
-  });
-});
-
-describe("#collections.archived", () => {
-  it("should return archived collections", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-    const collection = await buildCollection({
-      teamId: team.id,
-      archivedAt: new Date(),
-    });
-    const res = await server.post("/api/collections.archived", {
-      body: {
-        token: admin.getJwtToken(),
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].archivedAt).toBeTruthy();
-    expect(body.data[0].archivedBy).toBeTruthy();
-    expect(body.data[0].archivedBy.id).toBe(collection.archivedById);
   });
 });

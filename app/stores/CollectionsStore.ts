@@ -4,7 +4,11 @@ import isEmpty from "lodash/isEmpty";
 import orderBy from "lodash/orderBy";
 import sortBy from "lodash/sortBy";
 import { computed, action, runInAction } from "mobx";
-import { CollectionPermission, FileOperationFormat } from "@shared/types";
+import {
+  CollectionPermission,
+  CollectionStatusFilter,
+  FileOperationFormat,
+} from "@shared/types";
 import Collection from "~/models/Collection";
 import { PaginationParams, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -152,7 +156,9 @@ export default class CollectionsStore extends Store<Collection> {
   @action
   fetchNamedPage = async (
     request = "list",
-    options: PaginationParams | undefined
+    options:
+      | (PaginationParams & { statusFilter: CollectionStatusFilter[] })
+      | undefined
   ): Promise<Collection[]> => {
     this.isFetching = true;
 
@@ -172,7 +178,10 @@ export default class CollectionsStore extends Store<Collection> {
 
   @action
   fetchArchived = async (options?: PaginationParams): Promise<Collection[]> =>
-    this.fetchNamedPage("archived", options);
+    this.fetchNamedPage("list", {
+      ...options,
+      statusFilter: [CollectionStatusFilter.Archived],
+    });
 
   @computed
   get archived(): Collection[] {
