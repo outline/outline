@@ -2,7 +2,6 @@ import crypto from "crypto";
 import { subMinutes } from "date-fns";
 import randomstring from "randomstring";
 import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
-import { type BuildOptions } from "sequelize";
 import {
   Column,
   Table,
@@ -12,6 +11,7 @@ import {
   ForeignKey,
   IsDate,
   DataType,
+  AfterFind,
   BeforeSave,
 } from "sequelize-typescript";
 import { ApiKeyValidation } from "@shared/validations";
@@ -27,18 +27,6 @@ class ApiKey extends ParanoidModel<
   Partial<InferCreationAttributes<ApiKey>>
 > {
   static prefix = "ol_api_";
-
-  constructor(
-    values?: Partial<InferCreationAttributes<ApiKey>>,
-    options?: BuildOptions
-  ) {
-    // Temporary until last4 is backfilled and secret is removed.
-    if (values?.secret) {
-      values.last4 = values.secret.slice(-4);
-    }
-
-    super(values, options);
-  }
 
   @Length({
     min: ApiKeyValidation.minNameLength,
@@ -76,6 +64,16 @@ class ApiKey extends ParanoidModel<
 
   // hooks
 
+  @AfterFind
+  public static async afterFindHook(models: ApiKey | ApiKey[]) {
+    const modelsArray = Array.isArray(models) ? models : [models];
+    for (const model of modelsArray) {
+      if (model?.secret) {
+        model.last4 = model.secret.slice(-4);
+      }
+    }
+  }
+
   @BeforeValidate
   public static async generateSecret(model: ApiKey) {
     if (!model.hash) {
@@ -99,7 +97,7 @@ class ApiKey extends ParanoidModel<
    * @param key The input string to hash
    * @returns The hashed API key
    */
-  private static hash(key: string) {
+  public static hash(key: string) {
     return crypto.createHash("sha256").update(key).digest("hex");
   }
 

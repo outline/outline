@@ -64,7 +64,7 @@ import Team from "./Team";
 import User from "./User";
 import UserMembership from "./UserMembership";
 import View from "./View";
-import ParanoidModel from "./base/ParanoidModel";
+import ArchivableModel from "./base/ArchivableModel";
 import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
@@ -259,7 +259,7 @@ type AdditionalFindOptions = {
 }))
 @Table({ tableName: "documents", modelName: "document" })
 @Fix
-class Document extends ParanoidModel<
+class Document extends ArchivableModel<
   InferAttributes<Document>,
   Partial<InferCreationAttributes<Document>>
 > {
@@ -361,11 +361,6 @@ class Document extends ParanoidModel<
   @Default(0)
   @Column(DataType.INTEGER)
   revisionCount: number;
-
-  /** Whether the document is archvied, and if so when. */
-  @IsDate
-  @Column
-  archivedAt: Date | null;
 
   /** Whether the document is published, and if so when. */
   @IsDate

@@ -3,12 +3,16 @@ import type Model from "../base/Model";
 
 /** The behavior of a relationship on deletion */
 type DeleteBehavior = "cascade" | "null" | "ignore";
+/** The behavior of a relationship on archival */
+type ArchiveBehavior = "cascade" | "null" | "ignore";
 
 type RelationOptions<T = Model> = {
   /** Whether this relation is required. */
   required?: boolean;
   /** Behavior of this model when relationship is deleted. */
-  onDelete: DeleteBehavior | ((item: T) => DeleteBehavior);
+  onDelete?: DeleteBehavior | ((item: T) => DeleteBehavior);
+  /** Behavior of this model when relationship is archived. */
+  onArchive?: ArchiveBehavior | ((item: T) => ArchiveBehavior);
 };
 
 type RelationProperties<T = Model> = {
