@@ -24,7 +24,7 @@ import auth from "../routes/auth";
 
 // Construct scripts CSP based on services in use by this installation
 const defaultSrc = ["'self'"];
-const scriptSrc = ["'self'", "www.googletagmanager.com"];
+const scriptSrc = ["'self'"];
 const styleSrc = ["'self'", "'unsafe-inline'"];
 
 if (env.isCloudHosted) {
@@ -40,12 +40,16 @@ if (!env.isProduction) {
 
 if (env.GOOGLE_ANALYTICS_ID) {
   scriptSrc.push("www.google-analytics.com");
+  scriptSrc.push("www.googletagmanager.com");
 }
 
 if (env.CDN_URL) {
   scriptSrc.push(env.CDN_URL);
   styleSrc.push(env.CDN_URL);
   defaultSrc.push(env.CDN_URL);
+  scriptSrc.push(new URL(env.URL).origin);
+  styleSrc.push(new URL(env.URL).origin);
+  defaultSrc.push(new URL(env.URL).origin);
 }
 
 export default function init(app: Koa = new Koa(), server?: Server) {
