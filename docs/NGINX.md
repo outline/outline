@@ -50,3 +50,20 @@ location /wiki/ {
 ```
 
 ## systemd config
+Create `/etc/systemd/system/outline.service`, then `systemctl daemon-reload` and start.
+This assumes that you have a user (incl home directory) called `outline` and that you have set up nvm (node version manager) for that user and installed node v20.17.0
+```
+[Service]
+User=outline
+Group=outline
+Environment=NODE_ENV=production
+WorkingDirectory=/srv/outline
+ExecStart=/home/outline/.nvm/versions/node/v20.17.0/bin/node /srv/outline/build/server/index.js
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=outline
+
+[Install]
+WantedBy=multi-user.target
+```
