@@ -19,6 +19,7 @@ import {
   BeforeCreate,
   BeforeUpdate,
 } from "sequelize-typescript";
+import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import FileStorage from "@server/storage/files";
 import { ValidateKey } from "@server/validation";
