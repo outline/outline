@@ -153,13 +153,18 @@ async function start(_id: number, disconnect: () => void) {
 
     Logger.info(
       "lifecycle",
-      `Listening on ${useHTTPS ? "https" : "http"}://localhost:${port} / ${
-        env.URL
-      }`
+      `Listening on ${useHTTPS ? "https" : "http"}://${
+        env.HOSTNAME
+      }:${port} / ${env.URL} | ${address}`
     );
   });
 
-  server.listen(normalizedPort, env.HOSTNAME || "localhost");
+  Logger.info(
+    "lifecycle",
+    `Attempting to listen on ${env.HOSTNAME}:${env.PORT}`
+  );
+
+  server.listen(normalizedPort, env.HOSTNAME);
   server.setTimeout(env.REQUEST_TIMEOUT);
 
   ShutdownHelper.add(
