@@ -92,7 +92,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
         const user = users.get(item.attrs.modelId);
         toast.message(
           t(
-            "{{ userName }} won't by notified as they do not have access to this document",
+            "{{ userName }} won't be notified, as they do not have access to this document",
             {
               userName: item.attrs.label,
             }
