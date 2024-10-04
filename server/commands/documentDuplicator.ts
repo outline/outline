@@ -1,5 +1,7 @@
 import { Transaction, Op } from "sequelize";
 import { User, Collection, Document } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import documentCreator from "./documentCreator";
 
 type Props = {
@@ -45,15 +47,19 @@ export default async function documentDuplicator({
 
   const duplicated = await documentCreator({
     parentDocumentId: parentDocumentId ?? document.parentDocumentId,
-    emoji: document.emoji,
+    icon: document.icon,
+    color: document.color,
     template: document.template,
     title: title ?? document.title,
-    content: document.content,
+    content: ProsemirrorHelper.removeMarks(
+      DocumentHelper.toProsemirror(document),
+      ["comment"]
+    ),
     text: document.text,
     ...sharedProperties,
   });
 
-  duplicated.collection = collection;
+  duplicated.collection = collection ?? null;
   newDocuments.push(duplicated);
 
   async function duplicateChildDocuments(
@@ -78,13 +84,18 @@ export default async function documentDuplicator({
     for (const childDocument of childDocuments) {
       const duplicatedChildDocument = await documentCreator({
         parentDocumentId: duplicated.id,
-        emoji: childDocument.emoji,
+        icon: childDocument.icon,
+        color: childDocument.color,
         title: childDocument.title,
+        content: ProsemirrorHelper.removeMarks(
+          DocumentHelper.toProsemirror(childDocument),
+          ["comment"]
+        ),
         text: childDocument.text,
         ...sharedProperties,
       });
 
-      duplicatedChildDocument.collection = collection;
+      duplicatedChildDocument.collection = collection ?? null;
       newDocuments.push(duplicatedChildDocument);
       await duplicateChildDocuments(childDocument, duplicatedChildDocument);
     }

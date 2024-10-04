@@ -15,6 +15,7 @@ export const EmailCallbackSchema = BaseSchema.extend({
   query: z.object({
     token: z.string(),
     client: z.nativeEnum(Client).default(Client.Web),
+    follow: z.string().default(""),
   }),
 });
 

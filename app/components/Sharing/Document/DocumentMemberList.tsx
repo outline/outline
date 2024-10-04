@@ -1,19 +1,23 @@
 import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
+import { Link, useHistory } from "react-router-dom";
 import { toast } from "sonner";
-import { Pagination } from "@shared/constants";
+import styled, { useTheme } from "styled-components";
+import { s } from "@shared/styles";
+import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
 import UserMembership from "~/models/UserMembership";
-import LoadingIndicator from "~/components/LoadingIndicator";
+import { GroupAvatar } from "~/components/Avatar";
+import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
-import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import { EmptySelectValue, Permission } from "~/types";
 import { homePath } from "~/utils/routeHelpers";
-import MemberListItem from "./DocumentMemberListItem";
+import { ListItem } from "../components/ListItem";
+import DocumentMemberListItem from "./DocumentMemberListItem";
 
 type Props = {
   /** Document to which team members are supposed to be invited */
@@ -25,27 +29,13 @@ type Props = {
 };
 
 function DocumentMembersList({ document, invitedInSession }: Props) {
-  const { userMemberships } = useStores();
+  const { userMemberships, groupMemberships } = useStores();
+
   const user = useCurrentUser();
   const history = useHistory();
   const can = usePolicy(document);
   const { t } = useTranslation();
-
-  const { loading: loadingDocumentMembers, request: fetchDocumentMembers } =
-    useRequest(
-      React.useCallback(
-        () =>
-          userMemberships.fetchDocumentMemberships({
-            id: document.id,
-            limit: Pagination.defaultLimit,
-          }),
-        [userMemberships, document.id]
-      )
-    );
-
-  React.useEffect(() => {
-    void fetchDocumentMembers();
-  }, [fetchDocumentMembers]);
+  const theme = useTheme();
 
   const handleRemoveUser = React.useCallback(
     async (item) => {
@@ -68,7 +58,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
         toast.error(t("Could not remove user"));
       }
     },
-    [history, userMemberships, user, document]
+    [t, history, userMemberships, user, document]
   );
 
   const handleUpdateUser = React.useCallback(
@@ -88,7 +78,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
         toast.error(t("Could not update user"));
       }
     },
-    [userMemberships, document]
+    [t, userMemberships, document]
   );
 
   // Order newly added users first during the current editing session, on reload members are
@@ -105,14 +95,101 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
     [document.members, invitedInSession]
   );
 
-  if (loadingDocumentMembers) {
-    return <LoadingIndicator />;
-  }
+  const permissions = React.useMemo(
+    () =>
+      [
+        {
+          label: t("View only"),
+          value: DocumentPermission.Read,
+        },
+        {
+          label: t("Can edit"),
+          value: DocumentPermission.ReadWrite,
+        },
+        {
+          label: t("Manage"),
+          value: DocumentPermission.Admin,
+        },
+        {
+          divider: true,
+          label: t("Remove"),
+          value: EmptySelectValue,
+        },
+      ] as Permission[],
+    [t]
+  );
 
   return (
     <>
+      {groupMemberships
+        .inDocument(document.id)
+        .sort((a, b) =>
+          (
+            (invitedInSession.includes(a.group.id) ? "_" : "") + a.group.name
+          ).localeCompare(b.group.name)
+        )
+        .map((membership) => {
+          const MaybeLink = membership?.source ? StyledLink : React.Fragment;
+          return (
+            <ListItem
+              key={membership.id}
+              image={
+                <GroupAvatar
+                  group={membership.group}
+                  backgroundColor={theme.modalBackground}
+                />
+              }
+              title={membership.group.name}
+              subtitle={
+                membership.sourceId ? (
+                  <Trans>
+                    Has access through{" "}
+                    <MaybeLink
+                      // @ts-expect-error to prop does not exist on React.Fragment
+                      to={membership.source?.document?.path ?? ""}
+                    >
+                      parent
+                    </MaybeLink>
+                  </Trans>
+                ) : (
+                  t("{{ count }} member", {
+                    count: membership.group.memberCount,
+                  })
+                )
+              }
+              actions={
+                <div style={{ marginRight: -8 }}>
+                  <InputMemberPermissionSelect
+                    style={{ margin: 0 }}
+                    permissions={permissions}
+                    onChange={async (
+                      permission: DocumentPermission | typeof EmptySelectValue
+                    ) => {
+                      if (permission === EmptySelectValue) {
+                        await groupMemberships.delete({
+                          documentId: document.id,
+                          groupId: membership.groupId,
+                        });
+                      } else {
+                        await groupMemberships.create({
+                          documentId: document.id,
+                          groupId: membership.groupId,
+                          permission,
+                        });
+                      }
+                    }}
+                    disabled={!can.manageUsers}
+                    value={membership.permission}
+                    labelHidden
+                    nude
+                  />
+                </div>
+              }
+            />
+          );
+        })}
       {members.map((item) => (
-        <MemberListItem
+        <DocumentMemberListItem
           key={item.id}
           user={item}
           membership={item.getMembership(document)}
@@ -130,5 +207,10 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
     </>
   );
 }
+
+const StyledLink = styled(Link)`
+  color: ${s("textTertiary")};
+  text-decoration: underline;
+`;
 
 export default observer(DocumentMembersList);

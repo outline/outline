@@ -1,6 +1,6 @@
 {
   "id": "webhooks",
   "name": "Webhooks",
-  "priority": 200,
+  "priority": 0,
   "description": "Adds HTTP webhooks for various events."
 }

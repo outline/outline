@@ -26,3 +26,30 @@ exports[`#comments.list should require authentication 1`] = `
   "status": 401,
 }
 `;
+
+exports[`#comments.resolve should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#comments.unresolve should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#comments.update should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;

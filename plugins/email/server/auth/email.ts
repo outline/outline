@@ -90,7 +90,15 @@ router.get(
   "email.callback",
   validate(T.EmailCallbackSchema),
   async (ctx: APIContext<T.EmailCallbackReq>) => {
-    const { token, client } = ctx.input.query;
+    const { token, client, follow } = ctx.input.query;
+
+    // The link in the email does not include the follow query param, this
+    // is to help prevent anti-virus, and email clients from pre-fetching the link
+    // and spending the token before the user clicks on it. Instead we redirect
+    // to the same URL with the follow query param added from the client side.
+    if (!follow) {
+      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
+    }
 
     let user!: User;
 

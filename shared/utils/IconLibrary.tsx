@@ -1,4 +1,11 @@
 import {
+  faApple,
+  faWindows,
+  faAndroid,
+  faSquareJs,
+  faPython,
+} from "@fortawesome/free-brands-svg-icons";
+import {
   faHeart,
   faWandSparkles,
   faUmbrella,
@@ -85,6 +92,7 @@ import {
   faUmbrellaBeach,
   faGem,
   faDna,
+  faCake,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import intersection from "lodash/intersection";
@@ -210,7 +218,7 @@ export class IconLibrary {
         }
         return undefined;
       })
-      .filter(Boolean);
+      .filter((icon: string | undefined): icon is string => !!icon);
   }
 
   /**
@@ -244,7 +252,7 @@ export class IconLibrary {
       keywords: "browser web app",
     },
     collection: {
-      component: CollectionIcon,
+      component: (props) => <CollectionIcon expanded {...props} />,
       keywords: "collection",
     },
     coins: {
@@ -525,6 +533,12 @@ export class IconLibrary {
         faUmbrellaBeach,
         faGem,
         faDna,
+        faCake,
+        faApple,
+        faWindows,
+        faAndroid,
+        faSquareJs,
+        faPython,
       ].map((icon) => [
         icon.iconName,
         {

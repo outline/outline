@@ -5,6 +5,7 @@ import map from "lodash/map";
 import queryParser from "pg-tsquery";
 import { Op, Sequelize, WhereOptions } from "sequelize";
 import { DateFilter, StatusFilter } from "@shared/types";
+import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
@@ -24,7 +25,7 @@ type SearchResponse = {
     document: Document;
   }[];
   /** The total number of results for the search query without pagination */
-  totalCount: number;
+  total: number;
 };
 
 type SearchOptions = {
@@ -68,12 +69,7 @@ export default class SearchHelper {
     query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const {
-      snippetMinWords = 20,
-      snippetMaxWords = 30,
-      limit = 15,
-      offset = 0,
-    } = options;
+    const { limit = 15, offset = 0 } = options;
 
     const where = await this.buildWhere(team, query, {
       ...options,
@@ -95,9 +91,8 @@ export default class SearchHelper {
       });
     }
 
-    const queryReplacements = {
+    const replacements = {
       query: this.webSearchQuery(query),
-      headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
     };
 
     const resultsQuery = Document.unscoped().findAll({
@@ -110,7 +105,7 @@ export default class SearchHelper {
           "searchRanking",
         ],
       ],
-      replacements: queryReplacements,
+      replacements,
       where,
       order: [
         ["searchRanking", "DESC"],
@@ -122,7 +117,7 @@ export default class SearchHelper {
 
     const countQuery = Document.unscoped().count({
       // @ts-expect-error Types are incorrect for count
-      replacements: queryReplacements,
+      replacements,
       where,
     }) as any as Promise<number>;
     const [results, count] = await Promise.all([resultsQuery, countQuery]);
@@ -206,18 +201,12 @@ export default class SearchHelper {
     query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const {
-      snippetMinWords = 20,
-      snippetMaxWords = 30,
-      limit = 15,
-      offset = 0,
-    } = options;
+    const { limit = 15, offset = 0 } = options;
 
     const where = await this.buildWhere(user, query, options);
 
     const queryReplacements = {
       query: this.webSearchQuery(query),
-      headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
     };
 
     const include = [
@@ -231,7 +220,7 @@ export default class SearchHelper {
       },
     ];
 
-    const resultsQuery = Document.unscoped().findAll({
+    const results = (await Document.unscoped().findAll({
       attributes: [
         "id",
         [
@@ -251,7 +240,7 @@ export default class SearchHelper {
       ],
       limit,
       offset,
-    }) as any as Promise<RankedDocument[]>;
+    })) as any as RankedDocument[];
 
     const countQuery = Document.unscoped().count({
       // @ts-expect-error Types are incorrect for count
@@ -260,27 +249,31 @@ export default class SearchHelper {
       replacements: queryReplacements,
       where,
     }) as any as Promise<number>;
-    const [results, count] = await Promise.all([resultsQuery, countQuery]);
 
     // Final query to get associated document data
-    const documents = await Document.scope([
-      "withState",
-      "withDrafts",
-      {
-        method: ["withViews", user.id],
-      },
-      {
-        method: ["withCollectionPermissions", user.id],
-      },
-      {
-        method: ["withMembership", user.id],
-      },
-    ]).findAll({
-      where: {
-        teamId: user.teamId,
-        id: map(results, "id"),
-      },
-    });
+    const [documents, count] = await Promise.all([
+      Document.scope([
+        "withState",
+        "withDrafts",
+        {
+          method: ["withViews", user.id],
+        },
+        {
+          method: ["withCollectionPermissions", user.id],
+        },
+        {
+          method: ["withMembership", user.id],
+        },
+      ]).findAll({
+        where: {
+          teamId: user.teamId,
+          id: map(results, "id"),
+        },
+      }),
+      results.length < limit && offset === 0
+        ? Promise.resolve(results.length)
+        : countQuery,
+    ]);
 
     return this.buildResponse(query, results, documents, count);
   }
@@ -304,16 +297,39 @@ export default class SearchHelper {
       "gi"
     );
 
+    // Breaking characters
+    const breakChars = [
+      " ",
+      ".",
+      ",",
+      `"`,
+      "'",
+      "\n",
+      "。",
+      "！",
+      "？",
+      "!",
+      "?",
+      "…",
+    ];
+    const breakCharsRegex = new RegExp(`[${breakChars.join("")}]`, "g");
+
     // chop text around the first match, prefer the first full match if possible.
     const fullMatchIndex = text.search(fullMatchRegex);
     const offsetStartIndex =
       (fullMatchIndex >= 0 ? fullMatchIndex : text.search(highlightRegex)) - 65;
     const startIndex = Math.max(
       0,
-      offsetStartIndex <= 0 ? 0 : text.indexOf(" ", offsetStartIndex)
+      offsetStartIndex <= 0
+        ? 0
+        : regexIndexOf(text, breakCharsRegex, offsetStartIndex)
     );
     const context = text.replace(highlightRegex, "<b>$&</b>");
-    const endIndex = context.lastIndexOf(" ", startIndex + 250);
+    const endIndex = regexLastIndexOf(
+      context,
+      breakCharsRegex,
+      startIndex + 250
+    );
 
     return context.slice(startIndex, endIndex);
   }
@@ -497,7 +513,7 @@ export default class SearchHelper {
           document,
         };
       }),
-      totalCount: count,
+      total: count,
     };
   }
 
@@ -531,9 +547,16 @@ export default class SearchHelper {
     }
 
     return (
-      queryParser()(quotedSearch ? limitedQuery : `${limitedQuery}*`)
+      queryParser()(
+        // Although queryParser trims the query, looks like there's a
+        // bug for certain cases where it removes other characters in addition to
+        // spaces. Ref: https://github.com/caub/pg-tsquery/issues/27
+        quotedSearch ? limitedQuery.trim() : `${limitedQuery.trim()}*`
+      )
         // Remove any trailing join characters
         .replace(/&$/, "")
+        // Remove any trailing escape characters
+        .replace(/\\$/, "")
     );
   }
 

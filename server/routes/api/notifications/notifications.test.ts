@@ -32,6 +32,7 @@ describe("#notifications.list", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.UpdateDocument,
+        teamId: user.teamId,
         userId: user.id,
         viewedAt: new Date(),
         archivedAt: new Date(),
@@ -41,6 +42,7 @@ describe("#notifications.list", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.CreateComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -48,6 +50,7 @@ describe("#notifications.list", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.MentionedInComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
     ]);
@@ -95,6 +98,7 @@ describe("#notifications.list", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.UpdateDocument,
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -102,6 +106,7 @@ describe("#notifications.list", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.CreateComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -109,6 +114,7 @@ describe("#notifications.list", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.MentionedInComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
     ]);
@@ -156,6 +162,7 @@ describe("#notifications.list", () => {
         collectionId: collection.id,
         event: NotificationEventType.UpdateDocument,
         archivedAt: new Date(),
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -164,6 +171,7 @@ describe("#notifications.list", () => {
         collectionId: collection.id,
         event: NotificationEventType.CreateComment,
         archivedAt: new Date(),
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -171,6 +179,7 @@ describe("#notifications.list", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.MentionedInComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
     ]);
@@ -219,6 +228,7 @@ describe("#notifications.list", () => {
         collectionId: collection.id,
         event: NotificationEventType.UpdateDocument,
         archivedAt: new Date(),
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -227,6 +237,7 @@ describe("#notifications.list", () => {
         collectionId: collection.id,
         event: NotificationEventType.CreateComment,
         archivedAt: new Date(),
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -234,6 +245,7 @@ describe("#notifications.list", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.MentionedInComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
     ]);
@@ -365,6 +377,7 @@ describe("#notifications.update_all", () => {
         collectionId: collection.id,
         event: NotificationEventType.UpdateDocument,
         viewedAt: new Date(),
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -372,6 +385,7 @@ describe("#notifications.update_all", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.CreateComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -379,6 +393,7 @@ describe("#notifications.update_all", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.MentionedInComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
     ]);
@@ -415,6 +430,7 @@ describe("#notifications.update_all", () => {
         collectionId: collection.id,
         event: NotificationEventType.UpdateDocument,
         viewedAt: new Date(),
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -422,6 +438,7 @@ describe("#notifications.update_all", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.CreateComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -429,6 +446,7 @@ describe("#notifications.update_all", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.MentionedInComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
     ]);
@@ -466,6 +484,7 @@ describe("#notifications.update_all", () => {
         collectionId: collection.id,
         event: NotificationEventType.UpdateDocument,
         viewedAt: new Date(),
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -474,6 +493,7 @@ describe("#notifications.update_all", () => {
         collectionId: collection.id,
         event: NotificationEventType.CreateComment,
         viewedAt: new Date(),
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -481,6 +501,7 @@ describe("#notifications.update_all", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.MentionedInComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
     ]);
@@ -518,6 +539,7 @@ describe("#notifications.update_all", () => {
         collectionId: collection.id,
         event: NotificationEventType.UpdateDocument,
         archivedAt: new Date(),
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -525,6 +547,7 @@ describe("#notifications.update_all", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.CreateComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -532,6 +555,7 @@ describe("#notifications.update_all", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.MentionedInComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
     ]);
@@ -569,6 +593,7 @@ describe("#notifications.update_all", () => {
         collectionId: collection.id,
         event: NotificationEventType.UpdateDocument,
         archivedAt: new Date(),
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -577,6 +602,7 @@ describe("#notifications.update_all", () => {
         collectionId: collection.id,
         event: NotificationEventType.CreateComment,
         archivedAt: new Date(),
+        teamId: user.teamId,
         userId: user.id,
       }),
       buildNotification({
@@ -584,6 +610,7 @@ describe("#notifications.update_all", () => {
         documentId: document.id,
         collectionId: collection.id,
         event: NotificationEventType.MentionedInComment,
+        teamId: user.teamId,
         userId: user.id,
       }),
     ]);

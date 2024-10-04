@@ -1,7 +1,10 @@
+import {
+  useFocusEffect,
+  useRovingTabIndex,
+} from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s, ellipsis } from "@shared/styles";
@@ -34,10 +37,18 @@ function DocumentListItem(
 ) {
   const { document, highlight, context, shareId, ...rest } = props;
 
+  let itemRef: React.Ref<HTMLAnchorElement> =
+    React.useRef<HTMLAnchorElement>(null);
+  if (ref) {
+    itemRef = ref;
+  }
+
+  const { focused, ...rovingTabIndex } = useRovingTabIndex(itemRef, false);
+  useFocusEffect(focused, itemRef);
+
   return (
-    <CompositeItem
-      as={DocumentLink}
-      ref={ref}
+    <DocumentLink
+      ref={itemRef}
       dir={document.dir}
       to={{
         pathname: shareId
@@ -48,6 +59,13 @@ function DocumentListItem(
         },
       }}
       {...rest}
+      {...rovingTabIndex}
+      onClick={(ev) => {
+        if (rest.onClick) {
+          rest.onClick(ev);
+        }
+        rovingTabIndex.onClick(ev);
+      }}
     >
       <Content>
         <Heading dir={document.dir}>
@@ -66,7 +84,7 @@ function DocumentListItem(
           />
         }
       </Content>
-    </CompositeItem>
+    </DocumentLink>
   );
 }
 

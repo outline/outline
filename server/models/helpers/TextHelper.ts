@@ -1,3 +1,4 @@
+import chunk from "lodash/chunk";
 import escapeRegExp from "lodash/escapeRegExp";
 import startCase from "lodash/startCase";
 import { Transaction } from "sequelize";
@@ -9,6 +10,7 @@ import {
   unicodeCLDRtoBCP47,
 } from "@shared/utils/date";
 import attachmentCreator from "@server/commands/attachmentCreator";
+import env from "@server/env";
 import { trace } from "@server/logging/tracing";
 import { Attachment, User } from "@server/models";
 import FileStorage from "@server/storage/files";
@@ -32,7 +34,8 @@ export class TextHelper {
     return text
       .replace(/{date}/g, startCase(getCurrentDateAsString(locales)))
       .replace(/{time}/g, startCase(getCurrentTimeAsString(locales)))
-      .replace(/{datetime}/g, startCase(getCurrentDateTimeAsString(locales)));
+      .replace(/{datetime}/g, startCase(getCurrentDateTimeAsString(locales)))
+      .replace(/{author}/g, user.name);
   }
 
   /**
@@ -94,33 +97,42 @@ export class TextHelper {
   ) {
     let output = markdown;
     const images = parseImages(markdown);
-
-    await Promise.all(
-      images.map(async (image) => {
-        // Skip attempting to fetch images that are not valid urls
-        try {
-          new URL(image.src);
-        } catch (_e) {
-          return;
-        }
-
-        const attachment = await attachmentCreator({
-          name: image.alt ?? "image",
-          url: image.src,
-          preset: AttachmentPreset.DocumentAttachment,
-          user,
-          ip,
-          transaction,
-        });
-
-        if (attachment) {
-          output = output.replace(
-            new RegExp(escapeRegExp(image.src), "g"),
-            attachment.redirectUrl
-          );
-        }
-      })
+    const timeoutPerImage = Math.floor(
+      Math.min(env.REQUEST_TIMEOUT / images.length, 10000)
     );
+    const chunks = chunk(images, 10);
+
+    for (const chunk of chunks) {
+      await Promise.all(
+        chunk.map(async (image) => {
+          // Skip attempting to fetch images that are not valid urls
+          try {
+            new URL(image.src);
+          } catch (_e) {
+            return;
+          }
+
+          const attachment = await attachmentCreator({
+            name: image.alt ?? "image",
+            url: image.src,
+            preset: AttachmentPreset.DocumentAttachment,
+            user,
+            ip,
+            transaction,
+            fetchOptions: {
+              timeout: timeoutPerImage,
+            },
+          });
+
+          if (attachment) {
+            output = output.replace(
+              new RegExp(escapeRegExp(image.src), "g"),
+              attachment.redirectUrl
+            );
+          }
+        })
+      );
+    }
 
     return output;
   }

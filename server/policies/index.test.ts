@@ -4,8 +4,8 @@ import { serialize } from "./index";
 it("should serialize policy", async () => {
   const user = await buildUser();
   const response = serialize(user, user);
-  expect(response.update).toEqual(true);
-  expect(response.delete).toEqual(true);
+  expect(response.update).toBeTruthy();
+  expect(response.delete).toBeTruthy();
 });
 
 it("should serialize domain policies on Team", async () => {
@@ -14,6 +14,6 @@ it("should serialize domain policies on Team", async () => {
     teamId: team.id,
   });
   const response = serialize(user, team);
-  expect(response.createDocument).toEqual(true);
-  expect(response.inviteUser).toEqual(true);
+  expect(response.createTemplate).toBeTruthy();
+  expect(response.inviteUser).toBeTruthy();
 });

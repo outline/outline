@@ -7,6 +7,7 @@ type DialogDefinition = {
   content: React.ReactNode;
   isOpen: boolean;
   fullscreen?: boolean;
+  style?: React.CSSProperties;
 };
 
 export default class DialogsStore {
@@ -47,10 +48,12 @@ export default class DialogsStore {
     content,
     fullscreen,
     replace,
+    style,
   }: {
     title: string;
     fullscreen?: boolean;
     content: React.ReactNode;
+    style?: React.CSSProperties;
     replace?: boolean;
   }) => {
     setTimeout(
@@ -65,6 +68,7 @@ export default class DialogsStore {
           title,
           content,
           fullscreen,
+          style,
           isOpen: true,
         });
       }),

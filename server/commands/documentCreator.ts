@@ -1,6 +1,8 @@
 import { Transaction } from "sequelize";
 import { Optional } from "utility-types";
 import { Document, Event, User } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 
 type Props = Optional<
@@ -11,7 +13,8 @@ type Props = Optional<
     | "title"
     | "text"
     | "content"
-    | "emoji"
+    | "icon"
+    | "color"
     | "collectionId"
     | "parentDocumentId"
     | "importId"
@@ -35,13 +38,15 @@ type Props = Optional<
 export default async function documentCreator({
   title = "",
   text = "",
-  emoji,
+  icon,
+  color,
   state,
   id,
   urlId,
   publish,
   collectionId,
   parentDocumentId,
+  content,
   template,
   templateDocument,
   fullWidth,
@@ -57,6 +62,12 @@ export default async function documentCreator({
   transaction,
 }: Props): Promise<Document> {
   const templateId = templateDocument ? templateDocument.id : undefined;
+
+  if (state && templateDocument) {
+    throw new Error(
+      "State cannot be set when creating a document from a template"
+    );
+  }
 
   if (urlId) {
     const existing = await Document.unscoped().findOne({
@@ -89,20 +100,22 @@ export default async function documentCreator({
       importId,
       sourceMetadata,
       fullWidth: templateDocument ? templateDocument.fullWidth : fullWidth,
-      emoji: templateDocument ? templateDocument.emoji : emoji,
+      icon: templateDocument ? templateDocument.icon : icon,
+      color: templateDocument ? templateDocument.color : color,
       title: TextHelper.replaceTemplateVariables(
         templateDocument ? templateDocument.title : title,
         user
       ),
-      text: await TextHelper.replaceImagesWithAttachments(
-        TextHelper.replaceTemplateVariables(
-          templateDocument ? templateDocument.text : text,
-          user
-        ),
-        user,
-        ip,
-        transaction
+      text: TextHelper.replaceTemplateVariables(
+        templateDocument ? templateDocument.text : text,
+        user
       ),
+      content: templateDocument
+        ? ProsemirrorHelper.replaceTemplateVariables(
+            await DocumentHelper.toJSON(templateDocument),
+            user
+          )
+        : content,
       state,
     },
     {
@@ -130,41 +143,37 @@ export default async function documentCreator({
   );
 
   if (publish) {
-    if (!collectionId) {
+    if (!collectionId && !template) {
       throw new Error("Collection ID is required to publish");
     }
 
-    await document.publish(user.id, collectionId, { transaction });
-    await Event.create(
-      {
-        name: "documents.publish",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
-        data: {
-          source: importId ? "import" : undefined,
-          title: document.title,
+    await document.publish(user, collectionId, { silent: true, transaction });
+    if (document.title) {
+      await Event.create(
+        {
+          name: "documents.publish",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          teamId: document.teamId,
+          actorId: user.id,
+          data: {
+            source: importId ? "import" : undefined,
+            title: document.title,
+          },
+          ip,
         },
-        ip,
-      },
-      {
-        transaction,
-      }
-    );
+        {
+          transaction,
+        }
+      );
+    }
   }
 
   // reload to get all of the data needed to present (user, collection etc)
   // we need to specify publishedAt to bypass default scope that only returns
   // published documents
-  return await Document.scope([
-    "withDrafts",
-    { method: ["withMembership", user.id] },
-  ]).findOne({
-    where: {
-      id: document.id,
-      publishedAt: document.publishedAt,
-    },
+  return Document.findByPk(document.id, {
+    userId: user.id,
     rejectOnEmpty: true,
     transaction,
   });

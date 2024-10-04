@@ -68,7 +68,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
         const content = await DocumentHelper.toEmailDiff(before, revision, {
           includeTitle: false,
           centered: false,
-          signedUrls: (4 * Day) / 1000,
+          signedUrls: 4 * Day.seconds,
           baseUrl: props.teamUrl,
         });
 
@@ -106,6 +106,10 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
 
   protected preview({ actorName, eventType }: Props): string {
     return `${actorName} ${this.eventName(eventType)} a document`;
+  }
+
+  protected fromName({ actorName }: Props) {
+    return actorName;
   }
 
   protected renderAsText({

@@ -13,7 +13,7 @@ import useMobile from "~/hooks/useMobile";
 import { draggableOnDesktop } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 
-type Props = React.HTMLAttributes<HTMLDivElement> & {
+type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
   /* The title of the sidebar */
   title: React.ReactNode;
   /* The content of the sidebar */

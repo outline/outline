@@ -6,8 +6,7 @@ import { toast } from "sonner";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
-import Avatar from "~/components/Avatar";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import ButtonLink from "~/components/ButtonLink";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -29,7 +28,7 @@ type Props = {
 function AddPeopleToGroup(props: Props) {
   const { group } = props;
 
-  const { users, groupMemberships } = useStores();
+  const { users, groupUsers } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const can = usePolicy(team);
@@ -55,7 +54,7 @@ function AddPeopleToGroup(props: Props) {
 
   const handleAddUser = async (user: User) => {
     try {
-      await groupMemberships.create({
+      await groupUsers.create({
         groupId: group.id,
         userId: user.id,
       });

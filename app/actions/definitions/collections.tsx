@@ -4,6 +4,7 @@ import {
   PadlockIcon,
   PlusIcon,
   SearchIcon,
+  ShapesIcon,
   StarredIcon,
   TrashIcon,
   UnstarredIcon,
@@ -18,10 +19,10 @@ import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import SharePopover from "~/components/Sharing/Collection/SharePopover";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import { createAction } from "~/actions";
-import { CollectionSection } from "~/actions/sections";
+import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
-import { searchPath } from "~/utils/routeHelpers";
+import { newTemplatePath, searchPath } from "~/utils/routeHelpers";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
   <DynamicCollectionIcon collection={collection} />
@@ -69,9 +70,9 @@ export const editCollection = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? `${t("Edit")}…` : t("Edit collection"),
   analyticsName: "Edit collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <EditIcon />,
-  visible: ({ stores, activeCollectionId }) =>
+  visible: ({ activeCollectionId }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
   perform: ({ t, activeCollectionId }) => {
@@ -95,12 +96,12 @@ export const editCollectionPermissions = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? `${t("Permissions")}…` : t("Collection permissions"),
   analyticsName: "Collection permissions",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <PadlockIcon />,
-  visible: ({ stores, activeCollectionId }) =>
+  visible: ({ activeCollectionId }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
-  perform: ({ t, stores, activeCollectionId }) => {
+  perform: ({ t, activeCollectionId }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -111,6 +112,7 @@ export const editCollectionPermissions = createAction({
 
     stores.dialogs.openModal({
       title: t("Share this collection"),
+      style: { marginBottom: -12 },
       content: (
         <SharePopover
           collection={collection}
@@ -125,9 +127,11 @@ export const editCollectionPermissions = createAction({
 export const searchInCollection = createAction({
   name: ({ t }) => t("Search in collection"),
   analyticsName: "Search collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <SearchIcon />,
-  visible: ({ activeCollectionId }) => !!activeCollectionId,
+  visible: ({ activeCollectionId }) =>
+    !!activeCollectionId &&
+    stores.policies.abilities(activeCollectionId).readDocument,
   perform: ({ activeCollectionId }) => {
     history.push(searchPath(undefined, { collectionId: activeCollectionId }));
   },
@@ -136,10 +140,10 @@ export const searchInCollection = createAction({
 export const starCollection = createAction({
   name: ({ t }) => t("Star"),
   analyticsName: "Star collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <StarredIcon />,
   keywords: "favorite bookmark",
-  visible: ({ activeCollectionId, stores }) => {
+  visible: ({ activeCollectionId }) => {
     if (!activeCollectionId) {
       return false;
     }
@@ -149,7 +153,7 @@ export const starCollection = createAction({
       stores.policies.abilities(activeCollectionId).star
     );
   },
-  perform: async ({ activeCollectionId, stores }) => {
+  perform: async ({ activeCollectionId }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -163,10 +167,10 @@ export const starCollection = createAction({
 export const unstarCollection = createAction({
   name: ({ t }) => t("Unstar"),
   analyticsName: "Unstar collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <UnstarredIcon />,
   keywords: "unfavorite unbookmark",
-  visible: ({ activeCollectionId, stores }) => {
+  visible: ({ activeCollectionId }) => {
     if (!activeCollectionId) {
       return false;
     }
@@ -176,7 +180,7 @@ export const unstarCollection = createAction({
       stores.policies.abilities(activeCollectionId).unstar
     );
   },
-  perform: async ({ activeCollectionId, stores }) => {
+  perform: async ({ activeCollectionId }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -189,16 +193,16 @@ export const unstarCollection = createAction({
 export const deleteCollection = createAction({
   name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   dangerous: true,
   icon: <TrashIcon />,
-  visible: ({ activeCollectionId, stores }) => {
+  visible: ({ activeCollectionId }) => {
     if (!activeCollectionId) {
       return false;
     }
     return stores.policies.abilities(activeCollectionId).delete;
   },
-  perform: ({ activeCollectionId, stores, t }) => {
+  perform: ({ activeCollectionId, t }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -217,6 +221,27 @@ export const deleteCollection = createAction({
         />
       ),
     });
+  },
+});
+
+export const createTemplate = createAction({
+  name: ({ t }) => t("New template"),
+  analyticsName: "New template",
+  section: ActiveCollectionSection,
+  icon: <ShapesIcon />,
+  keywords: "new create template",
+  visible: ({ activeCollectionId }) =>
+    !!(
+      !!activeCollectionId &&
+      stores.policies.abilities(activeCollectionId).createDocument
+    ),
+  perform: ({ activeCollectionId, event }) => {
+    if (!activeCollectionId) {
+      return;
+    }
+    event?.preventDefault();
+    event?.stopPropagation();
+    history.push(newTemplatePath(activeCollectionId));
   },
 });
 

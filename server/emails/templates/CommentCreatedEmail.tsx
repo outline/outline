@@ -77,7 +77,7 @@ export default class CommentCreatedEmail extends BaseEmail<
     content = await TextHelper.attachmentsToSignedUrls(
       content,
       document.teamId,
-      (4 * Day) / 1000
+      4 * Day.seconds
     );
 
     if (content) {

@@ -18,31 +18,31 @@ import {
 import { DocumentValidation } from "@shared/validations";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
-import { Emoji, EmojiButton } from "~/components/EmojiPicker/components";
-import Flex from "~/components/Flex";
+import Icon, { IconTitleWrapper } from "~/components/Icon";
+import { PopoverButton } from "~/components/IconPicker/components/PopoverButton";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import { isModKey } from "~/utils/keyboard";
 
-const EmojiPicker = React.lazy(() => import("~/components/EmojiPicker"));
+const IconPicker = React.lazy(() => import("~/components/IconPicker"));
 
 type Props = {
   /** ID of the associated document */
   documentId: string;
   /** Title to display */
   title: string;
-  /** Emoji to display */
-  emoji?: string | null;
-  /** Position of the emoji relative to text */
-  emojiPosition: "side" | "top";
+  /** Icon to display */
+  icon?: string | null;
+  /** Icon color */
+  color: string;
   /** Placeholder to display when the document has no title */
   placeholder?: string;
   /** Should the title be editable, policies will also be considered separately */
   readOnly?: boolean;
   /** Callback called on any edits to text */
   onChangeTitle?: (text: string) => void;
-  /** Callback called when the user selects an emoji */
-  onChangeEmoji?: (emoji: string | null) => void;
+  /** Callback called when the user selects an icon */
+  onChangeIcon?: (icon: string | null, color: string | null) => void;
   /** Callback called when the user expects to move to the "next" input */
   onGoToNextInput?: (insertParagraph?: boolean) => void;
   /** Callback called when the user expects to save (CMD+S) */
@@ -58,11 +58,11 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   {
     documentId,
     title,
-    emoji,
-    emojiPosition,
+    icon,
+    color,
     readOnly,
     onChangeTitle,
-    onChangeEmoji,
+    onChangeIcon,
     onSave,
     onGoToNextInput,
     onBlur,
@@ -71,7 +71,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   externalRef: React.RefObject<RefHandle>
 ) {
   const ref = React.useRef<RefHandle>(null);
-  const [emojiPickerIsOpen, handleOpen, handleClose] = useBoolean();
+  const [iconPickerIsOpen, handleOpen, setIconPickerClosed] = useBoolean();
   const { editor } = useDocumentContext();
   const can = usePolicy(documentId);
 
@@ -137,21 +137,21 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   );
 
   const handleChange = React.useCallback(
-    (value: string) => {
-      let title = value;
+    (input: string) => {
+      let value = input;
 
-      if (/\/date\s$/.test(value)) {
-        title = getCurrentDateAsString();
+      if (/\/date\s$/.test(input)) {
+        value = getCurrentDateAsString();
         ref?.current?.focusAtEnd();
-      } else if (/\/time$/.test(value)) {
-        title = getCurrentTimeAsString();
+      } else if (/\/time$/.test(input)) {
+        value = getCurrentTimeAsString();
         ref?.current?.focusAtEnd();
-      } else if (/\/datetime$/.test(value)) {
-        title = getCurrentDateTimeAsString();
+      } else if (/\/datetime$/.test(input)) {
+        value = getCurrentDateTimeAsString();
         ref?.current?.focusAtEnd();
       }
 
-      onChangeTitle?.(title);
+      onChangeTitle?.(value);
     },
     [ref, onChangeTitle]
   );
@@ -215,19 +215,25 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
     [editor]
   );
 
-  const handleEmojiChange = React.useCallback(
-    async (value: string | null) => {
-      // Restore focus on title
-      restoreFocus();
-      if (emoji !== value) {
-        onChangeEmoji?.(value);
+  const handleClose = React.useCallback(() => {
+    setIconPickerClosed();
+    restoreFocus();
+  }, [setIconPickerClosed, restoreFocus]);
+
+  const handleIconChange = React.useCallback(
+    (chosenIcon: string | null, iconColor: string | null) => {
+      if (icon !== chosenIcon || color !== iconColor) {
+        onChangeIcon?.(chosenIcon, iconColor);
       }
     },
-    [emoji, onChangeEmoji, restoreFocus]
+    [icon, color, onChangeIcon]
   );
 
   const dir = ref.current?.getComputedDirection();
-  const emojiIcon = <Emoji size={32}>{emoji}</Emoji>;
+
+  const fallbackIcon = icon ? (
+    <Icon value={icon} color={color} size={40} />
+  ) : null;
 
   return (
     <Title
@@ -238,8 +244,8 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       onBlur={handleBlur}
       placeholder={placeholder}
       value={title}
-      $emojiPickerIsOpen={emojiPickerIsOpen}
-      $containsEmoji={!!emoji}
+      $iconPickerIsOpen={iconPickerIsOpen}
+      $containsIcon={!!icon}
       autoFocus={!title}
       maxLength={DocumentValidation.maxTitleLength}
       readOnly={readOnly}
@@ -247,66 +253,38 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
       ref={mergeRefs([ref, externalRef])}
     >
       {can.update && !readOnly ? (
-        <EmojiWrapper
-          align="center"
-          justify="center"
-          $position={emojiPosition}
-          dir={dir}
-        >
-          <React.Suspense fallback={emojiIcon}>
-            <StyledEmojiPicker
-              value={emoji}
-              onChange={handleEmojiChange}
+        <IconTitleWrapper dir={dir}>
+          <React.Suspense fallback={fallbackIcon}>
+            <StyledIconPicker
+              icon={icon ?? null}
+              color={color}
+              size={40}
+              popoverPosition="bottom-start"
+              onChange={handleIconChange}
               onOpen={handleOpen}
               onClose={handleClose}
-              onClickOutside={restoreFocus}
-              autoFocus
+              allowDelete
+              borderOnHover
             />
           </React.Suspense>
-        </EmojiWrapper>
-      ) : emoji ? (
-        <EmojiWrapper
-          align="center"
-          justify="center"
-          $position={emojiPosition}
-          dir={dir}
-        >
-          {emojiIcon}
-        </EmojiWrapper>
+        </IconTitleWrapper>
+      ) : icon ? (
+        <IconTitleWrapper dir={dir}>{fallbackIcon}</IconTitleWrapper>
       ) : null}
     </Title>
   );
 });
 
-const StyledEmojiPicker = styled(EmojiPicker)`
+type TitleProps = {
+  $containsIcon: boolean;
+  $iconPickerIsOpen: boolean;
+  readOnly?: boolean;
+};
+
+// Extra area prevents gap between icon and beginning of title
+const StyledIconPicker = styled(IconPicker)`
   ${extraArea(8)}
 `;
-
-const EmojiWrapper = styled(Flex)<{ $position: "top" | "side"; dir?: string }>`
-  height: 32px;
-  width: 32px;
-
-  // Always move above TOC
-  z-index: 1;
-
-  ${(props) =>
-    props.$position === "top"
-      ? css`
-          position: relative;
-          top: -8px;
-        `
-      : css`
-          position: absolute;
-          top: 8px;
-          ${(props: { dir?: string }) =>
-            props.dir === "rtl" ? "right: -40px" : "left: -40px"};
-        `}
-`;
-
-type TitleProps = {
-  $containsEmoji: boolean;
-  $emojiPickerIsOpen: boolean;
-};
 
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
@@ -314,7 +292,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   margin-top: 6vh;
   margin-bottom: 0.5em;
   margin-left: ${(props) =>
-    props.$containsEmoji || props.$emojiPickerIsOpen ? "40px" : "0px"};
+    props.$containsIcon || props.$iconPickerIsOpen ? "40px" : "0px"};
   font-size: ${fontSize};
   font-weight: 600;
   border: 0;
@@ -331,18 +309,22 @@ const Title = styled(ContentEditable)<TitleProps>`
     opacity: 1;
   }
 
-  &:focus-within,
-  &:focus {
-    margin-left: 40px;
+  ${(props: TitleProps) =>
+    !props.readOnly &&
+    css`
+      &:focus-within,
+      &:focus {
+        margin-left: 40px;
 
-    ${EmojiButton} {
-      opacity: 1 !important;
-    }
-  }
+        ${PopoverButton} {
+          opacity: 1 !important;
+        }
+      }
+    `};
 
-  ${EmojiButton} {
+  ${PopoverButton} {
     opacity: ${(props: TitleProps) =>
-      props.$containsEmoji ? "1 !important" : 0};
+      props.$containsIcon ? "1 !important" : 0};
   }
 
   ${breakpoint("tablet")`
@@ -354,7 +336,7 @@ const Title = styled(ContentEditable)<TitleProps>`
     }
 
     &:hover {
-      ${EmojiButton} {
+      ${PopoverButton} {
         opacity: 0.5;
 
         &:hover {

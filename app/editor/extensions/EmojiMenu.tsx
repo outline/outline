@@ -24,7 +24,6 @@ export default class EmojiMenuExtension extends Suggestion {
       ),
       closeRegex:
         /(?:^|\s|\():(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/,
-      enabledInTable: true,
     };
   }
 

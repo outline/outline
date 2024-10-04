@@ -53,15 +53,11 @@ function Drafts() {
     <Scene
       icon={<DraftsIcon />}
       title={t("Drafts")}
+      left={<InputSearchPage source="drafts" label={t("Search documents")} />}
       actions={
-        <>
-          <Action>
-            <InputSearchPage source="drafts" label={t("Search documents")} />
-          </Action>
-          <Action>
-            <NewDocumentMenu />
-          </Action>
-        </>
+        <Action>
+          <NewDocumentMenu />
+        </Action>
       }
     >
       <Heading>{t("Drafts")}</Heading>

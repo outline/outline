@@ -4,15 +4,25 @@ import { AttachmentPreset } from "@shared/types";
 import { Attachment, Event, User } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
+import { RequestInit } from "@server/utils/fetch";
 
 type BaseProps = {
+  /** The ID of the attachment */
   id?: string;
+  /** The name of the attachment */
   name: string;
+  /** The user who is creating the attachment */
   user: User;
+  /** The source of the attachment */
   source?: "import";
+  /** The preset to use for the attachment */
   preset: AttachmentPreset;
+  /** The IP address of the user creating the attachment, if available. */
   ip?: string;
+  /** The database transaction to use for the creation */
   transaction?: Transaction;
+  /** Options to pass to fetch when downloading the attachment */
+  fetchOptions?: RequestInit;
 };
 
 type UrlProps = BaseProps & {
@@ -34,6 +44,7 @@ export default async function attachmentCreator({
   preset,
   ip,
   transaction,
+  fetchOptions,
   ...rest
 }: Props): Promise<Attachment | undefined> {
   const acl = AttachmentHelper.presetToAcl(preset);
@@ -48,7 +59,7 @@ export default async function attachmentCreator({
 
   if ("url" in rest) {
     const { url } = rest;
-    const res = await FileStorage.storeFromUrl(url, key, acl);
+    const res = await FileStorage.storeFromUrl(url, key, acl, fetchOptions);
 
     if (!res) {
       return;

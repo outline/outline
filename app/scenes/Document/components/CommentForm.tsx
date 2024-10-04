@@ -12,7 +12,7 @@ import { ProsemirrorData } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation, CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
@@ -24,6 +24,7 @@ import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useStores from "~/hooks/useStores";
 import CommentEditor from "./CommentEditor";
 import { Bubble } from "./CommentThreadItem";
+import { HighlightedText } from "./HighlightText";
 
 type Props = {
   /** Callback when the draft should be saved. */
@@ -42,6 +43,8 @@ type Props = {
   standalone?: boolean;
   /** Whether to animate the comment form in and out */
   animatePresence?: boolean;
+  /** Text to highlight at the top of the comment */
+  highlightedText?: string;
   /** The text direction of the editor */
   dir?: "rtl" | "ltr";
   /** Callback when the user is typing in the editor */
@@ -64,6 +67,7 @@ function CommentForm({
   standalone,
   placeholder,
   animatePresence,
+  highlightedText,
   dir,
   ...rest
 }: Props) {
@@ -102,6 +106,7 @@ function CommentForm({
       thread ??
       new Comment(
         {
+          createdAt: new Date().toISOString(),
           documentId,
           data: draft,
         },
@@ -135,6 +140,7 @@ function CommentForm({
 
     const comment = new Comment(
       {
+        createdAt: new Date().toISOString(),
         parentCommentId: thread?.id,
         documentId,
         data: draft,
@@ -274,6 +280,9 @@ function CommentForm({
           $firstOfThread={standalone}
           column
         >
+          {highlightedText && (
+            <HighlightedText>{highlightedText}</HighlightedText>
+          )}
           <CommentEditor
             key={`${forceRender}`}
             ref={editorRef}

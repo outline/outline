@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { DisconnectedIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
@@ -11,7 +11,6 @@ import useStores from "~/hooks/useStores";
 
 function ConnectionStatus() {
   const { ui } = useStores();
-  const theme = useTheme();
   const { t } = useTranslation();
 
   const codeToMessage = {
@@ -61,7 +60,7 @@ function ConnectionStatus() {
     >
       <Button>
         <Fade>
-          <DisconnectedIcon color={theme.sidebarText} />
+          <DisconnectedIcon />
         </Fade>
       </Button>
     </Tooltip>
@@ -72,7 +71,7 @@ const Button = styled(NudeButton)`
   display: none;
   position: fixed;
   bottom: 0;
-  margin: 24px;
+  margin: 20px;
   transform: translateX(-32px);
 
   ${breakpoint("tablet")`

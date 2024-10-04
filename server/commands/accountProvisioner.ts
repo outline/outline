@@ -213,7 +213,7 @@ async function provisionFirstCollection(team: Team, user: User) {
       }
     );
 
-    // For the first collection we go ahead and create some intitial documents to get
+    // For the first collection we go ahead and create some initial documents to get
     // the team started. You can edit these in /server/onboarding/x.md
     const onboardingDocs = [
       "Integrations & API",
@@ -244,7 +244,8 @@ async function provisionFirstCollection(team: Team, user: User) {
 
       document.content = await DocumentHelper.toJSON(document);
 
-      await document.publish(collection.createdById, collection.id, {
+      await document.publish(user, collection.id, {
+        silent: true,
         transaction,
       });
     }

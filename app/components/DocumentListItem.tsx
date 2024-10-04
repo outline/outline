@@ -1,17 +1,21 @@
+import {
+  useFocusEffect,
+  useRovingTabIndex,
+} from "@getoutline/react-roving-tabindex";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { CompositeStateReturn, CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import EventBoundary from "@shared/components/EventBoundary";
 import { s } from "@shared/styles";
 import Document from "~/models/Document";
 import Badge from "~/components/Badge";
 import DocumentMeta from "~/components/DocumentMeta";
-import EventBoundary from "~/components/EventBoundary";
 import Flex from "~/components/Flex";
 import Highlight from "~/components/Highlight";
+import Icon from "~/components/Icon";
 import NudeButton from "~/components/NudeButton";
 import StarButton, { AnimatedStar } from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
@@ -20,7 +24,6 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { hover } from "~/styles";
 import { documentPath } from "~/utils/routeHelpers";
-import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
   document: Document;
@@ -32,7 +35,7 @@ type Props = {
   showPin?: boolean;
   showDraft?: boolean;
   showTemplate?: boolean;
-} & CompositeStateReturn;
+};
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
@@ -49,6 +52,15 @@ function DocumentListItem(
   const user = useCurrentUser();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
+  let itemRef: React.Ref<HTMLAnchorElement> =
+    React.useRef<HTMLAnchorElement>(null);
+  if (ref) {
+    itemRef = ref;
+  }
+
+  const { focused, ...rovingTabIndex } = useRovingTabIndex(itemRef, false);
+  useFocusEffect(focused, itemRef);
+
   const {
     document,
     showParentDocuments,
@@ -64,13 +76,11 @@ function DocumentListItem(
   const queryIsInTitle =
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
-  const canStar =
-    !document.isDraft && !document.isArchived && !document.isTemplate;
+  const canStar = !document.isArchived && !document.isTemplate;
 
   return (
-    <CompositeItem
-      as={DocumentLink}
-      ref={ref}
+    <DocumentLink
+      ref={itemRef}
       dir={document.dir}
       role="menuitem"
       $isStarred={document.isStarred}
@@ -82,12 +92,13 @@ function DocumentListItem(
         },
       }}
       {...rest}
+      {...rovingTabIndex}
     >
       <Content>
         <Heading dir={document.dir}>
-          {document.emoji && (
+          {document.icon && (
             <>
-              <EmojiIcon emoji={document.emoji} size={24} />
+              <Icon value={document.icon} color={document.color ?? undefined} />
               &nbsp;
             </>
           )}
@@ -99,11 +110,6 @@ function DocumentListItem(
           {document.isBadgedNew && document.createdBy?.id !== user.id && (
             <Badge yellow>{t("New")}</Badge>
           )}
-          {canStar && (
-            <StarPositioner>
-              <StarButton document={document} />
-            </StarPositioner>
-          )}
           {document.isDraft && showDraft && (
             <Tooltip
               content={t("Only visible to you")}
@@ -112,6 +118,11 @@ function DocumentListItem(
             >
               <Badge>{t("Draft")}</Badge>
             </Tooltip>
+          )}
+          {canStar && (
+            <StarPositioner>
+              <StarButton document={document} />
+            </StarPositioner>
           )}
           {document.isTemplate && showTemplate && (
             <Badge primary>{t("Template")}</Badge>
@@ -142,7 +153,7 @@ function DocumentListItem(
           modal={false}
         />
       </Actions>
-    </CompositeItem>
+    </DocumentLink>
   );
 }
 
@@ -263,6 +274,8 @@ const ResultContext = styled(Highlight)`
   font-size: 15px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;
+  max-height: 90px;
+  overflow: hidden;
 `;
 
 export default observer(React.forwardRef(DocumentListItem));

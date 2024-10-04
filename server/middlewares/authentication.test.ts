@@ -1,7 +1,11 @@
 import { DefaultState } from "koa";
 import randomstring from "randomstring";
-import ApiKey from "@server/models/ApiKey";
-import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
+import {
+  buildUser,
+  buildTeam,
+  buildAdmin,
+  buildApiKey,
+} from "@server/test/factories";
 import auth from "./authentication";
 
 describe("Authentication middleware", () => {
@@ -51,14 +55,12 @@ describe("Authentication middleware", () => {
       const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth();
-      const key = await ApiKey.create({
-        userId: user.id,
-      });
+      const key = await buildApiKey({ userId: user.id });
       await authMiddleware(
         {
           // @ts-expect-error mock request
           request: {
-            get: jest.fn(() => `Bearer ${key.secret}`),
+            get: jest.fn(() => `Bearer ${key.value}`),
           },
           state,
           cache: {},

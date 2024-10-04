@@ -1,21 +1,23 @@
 import { isEmail } from "class-validator";
+import concat from "lodash/concat";
 import { observer } from "mobx-react";
-import { CheckmarkIcon, CloseIcon, GroupIcon } from "outline-icons";
+import { CheckmarkIcon, CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled, { useTheme } from "styled-components";
-import Squircle from "@shared/components/Squircle";
+import styled from "styled-components";
 import { s } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Group from "~/models/Group";
 import User from "~/models/User";
-import Avatar from "~/components/Avatar";
-import { AvatarSize, IAvatar } from "~/components/Avatar/Avatar";
+import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
+import { Avatar, GroupAvatar, AvatarSize, IAvatar } from "~/components/Avatar";
 import Empty from "~/components/Empty";
 import Placeholder from "~/components/List/Placeholder";
+import Scrollable from "~/components/Scrollable";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useMaxHeight from "~/hooks/useMaxHeight";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
 import { hover } from "~/styles";
@@ -38,33 +40,37 @@ type Props = {
   addPendingId: (id: string) => void;
   /** Callback to remove a user from the pending list. */
   removePendingId: (id: string) => void;
-  /** Show group suggestions. */
-  showGroups?: boolean;
+  /** Handles escape from suggestions list */
+  onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
 };
 
 export const Suggestions = observer(
-  ({
-    document,
-    collection,
-    query,
-    pendingIds,
-    addPendingId,
-    removePendingId,
-    showGroups,
-  }: Props) => {
+  React.forwardRef(function _Suggestions(
+    {
+      document,
+      collection,
+      query,
+      pendingIds,
+      addPendingId,
+      removePendingId,
+      onEscape,
+    }: Props,
+    ref: React.Ref<HTMLDivElement>
+  ) {
     const neverRenderedList = React.useRef(false);
     const { users, groups } = useStores();
     const { t } = useTranslation();
     const user = useCurrentUser();
-    const theme = useTheme();
+    const containerRef = React.useRef<HTMLDivElement | null>(null);
+    const { maxHeight } = useMaxHeight({
+      elementRef: containerRef,
+      maxViewportPercentage: 70,
+    });
 
     const fetchUsersByQuery = useThrottledCallback(
       (query: string) => {
         void users.fetchPage({ query });
-
-        if (showGroups) {
-          void groups.fetchPage({ query });
-        }
+        void groups.fetchPage({ query });
       },
       250,
       undefined,
@@ -92,21 +98,26 @@ export const Suggestions = observer(
           : collection
           ? users.notInCollection(collection.id, query)
           : users.orderedData
-      ).filter((u) => u.id !== user.id && !u.isSuspended);
+      ).filter((u) => !u.isSuspended && u.id !== user.id);
 
       if (isEmail(query)) {
         filtered.push(getSuggestionForEmail(query));
       }
 
-      if (collection?.id) {
-        return [...groups.notInCollection(collection.id, query), ...filtered];
-      }
-
-      return filtered;
+      return [
+        ...(document
+          ? groups.notInDocument(document.id, query)
+          : collection
+          ? groups.notInCollection(collection.id, query)
+          : []),
+        ...filtered,
+      ];
     }, [
       getSuggestionForEmail,
       users,
       users.orderedData,
+      groups,
+      groups.orderedData,
       document?.id,
       document?.members,
       collection?.id,
@@ -124,7 +135,7 @@ export const Suggestions = observer(
               : users.get(id) ?? groups.get(id)
           )
           .filter(Boolean) as User[],
-      [users, getSuggestionForEmail, pendingIds]
+      [users, groups, getSuggestionForEmail, pendingIds]
     );
 
     React.useEffect(() => {
@@ -138,11 +149,7 @@ export const Suggestions = observer(
           subtitle: t("{{ count }} member", {
             count: suggestion.memberCount,
           }),
-          image: (
-            <Squircle color={theme.text} size={AvatarSize.Medium}>
-              <GroupIcon color={theme.background} size={16} />
-            </Squircle>
-          ),
+          image: <GroupAvatar group={suggestion} />,
         };
       }
       return {
@@ -174,34 +181,65 @@ export const Suggestions = observer(
     neverRenderedList.current = false;
 
     return (
-      <>
-        {pending.map((suggestion) => (
-          <PendingListItem
-            {...getListItemProps(suggestion)}
-            key={suggestion.id}
-            onClick={() => removePendingId(suggestion.id)}
-            actions={
-              <>
-                <InvitedIcon />
-                <RemoveIcon />
-              </>
-            }
-          />
-        ))}
-        {pending.length > 0 &&
-          (suggestionsWithPending.length > 0 || isEmpty) && <Separator />}
-        {suggestionsWithPending.map((suggestion) => (
-          <ListItem
-            {...getListItemProps(suggestion as User)}
-            key={suggestion.id}
-            onClick={() => addPendingId(suggestion.id)}
-            actions={<InviteIcon />}
-          />
-        ))}
-        {isEmpty && <Empty style={{ marginTop: 22 }}>{t("No matches")}</Empty>}
-      </>
+      <ScrollableContainer
+        ref={containerRef}
+        hiddenScrollbars
+        style={{ maxHeight }}
+      >
+        <ArrowKeyNavigation
+          ref={ref}
+          onEscape={onEscape}
+          aria-label={t("Suggestions for invitation")}
+          items={concat(pending, suggestionsWithPending)}
+        >
+          {() => [
+            ...pending.map((suggestion) => (
+              <PendingListItem
+                keyboardNavigation
+                {...getListItemProps(suggestion)}
+                key={suggestion.id}
+                onClick={() => removePendingId(suggestion.id)}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter") {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    removePendingId(suggestion.id);
+                  }
+                }}
+                actions={
+                  <>
+                    <InvitedIcon />
+                    <RemoveIcon />
+                  </>
+                }
+              />
+            )),
+            pending.length > 0 &&
+              (suggestionsWithPending.length > 0 || isEmpty) && <Separator />,
+            ...suggestionsWithPending.map((suggestion) => (
+              <ListItem
+                keyboardNavigation
+                {...getListItemProps(suggestion as User)}
+                key={suggestion.id}
+                onClick={() => addPendingId(suggestion.id)}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter") {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    addPendingId(suggestion.id);
+                  }
+                }}
+                actions={<InviteIcon />}
+              />
+            )),
+            isEmpty && (
+              <Empty style={{ marginTop: 22 }}>{t("No matches")}</Empty>
+            ),
+          ]}
+        </ArrowKeyNavigation>
+      </ScrollableContainer>
     );
-  }
+  })
 );
 
 const InvitedIcon = styled(CheckmarkIcon)`
@@ -227,4 +265,9 @@ const PendingListItem = styled(ListItem)`
 const Separator = styled.div`
   border-top: 1px dashed ${s("divider")};
   margin: 12px 0;
+`;
+
+const ScrollableContainer = styled(Scrollable)`
+  padding: 12px 24px;
+  margin: -12px -24px;
 `;

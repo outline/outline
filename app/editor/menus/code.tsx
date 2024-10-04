@@ -1,7 +1,9 @@
 import { CopyIcon, ExpandedIcon } from "outline-icons";
+import { Node as ProseMirrorNode } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import { LANGUAGES } from "@shared/editor/extensions/Prism";
+import { getFrequentCodeLanguages } from "@shared/editor/lib/code";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 
@@ -11,6 +13,26 @@ export default function codeMenuItems(
   dictionary: Dictionary
 ): MenuItem[] {
   const node = state.selection.$from.node();
+
+  const allLanguages = Object.entries(LANGUAGES);
+  const frequentLanguages = getFrequentCodeLanguages();
+
+  const frequentLangMenuItems = frequentLanguages.map((value) => {
+    const label = LANGUAGES[value];
+    return langToMenuItem({ node, value, label });
+  });
+
+  const remainingLangMenuItems = allLanguages
+    .filter(([value]) => !frequentLanguages.includes(value))
+    .map(([value, label]) => langToMenuItem({ node, value, label }));
+
+  const languageMenuItems = frequentLangMenuItems.length
+    ? [
+        ...frequentLangMenuItems,
+        { name: "separator" },
+        ...remainingLangMenuItems,
+      ]
+    : remainingLangMenuItems;
 
   return [
     {
@@ -28,14 +50,24 @@ export default function codeMenuItems(
       name: "code_block",
       icon: <ExpandedIcon />,
       label: LANGUAGES[node.attrs.language ?? "none"],
-      children: Object.entries(LANGUAGES).map(([value, label]) => ({
-        name: "code_block",
-        label,
-        active: () => node.attrs.language === value,
-        attrs: {
-          language: value,
-        },
-      })),
+      children: languageMenuItems,
     },
   ];
 }
+
+const langToMenuItem = ({
+  node,
+  value,
+  label,
+}: {
+  node: ProseMirrorNode;
+  value: string;
+  label: string;
+}): MenuItem => ({
+  name: "code_block",
+  label,
+  active: () => node.attrs.language === value,
+  attrs: {
+    language: value,
+  },
+});

@@ -43,6 +43,7 @@ export default function useDictionary() {
       h1: t("Big heading"),
       h2: t("Medium heading"),
       h3: t("Small heading"),
+      h4: t("Extra small heading"),
       heading: t("Heading"),
       hr: t("Divider"),
       image: t("Image"),
@@ -92,6 +93,7 @@ export default function useDictionary() {
       outdent: t("Outdent"),
       video: t("Video"),
       untitled: t("Untitled"),
+      none: t("None"),
     }),
     [t]
   );

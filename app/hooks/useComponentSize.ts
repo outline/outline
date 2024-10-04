@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useLayoutEffect } from "react";
 
 export default function useComponentSize(
   ref: React.RefObject<HTMLElement | null>
@@ -11,7 +11,7 @@ export default function useComponentSize(
     height: ref.current?.clientHeight || 0,
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const sizeObserver = new ResizeObserver((entries) => {
       entries.forEach(({ target }) => {
         if (

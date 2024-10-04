@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import scrollIntoView from "scroll-into-view-if-needed";
 import useQuery from "~/hooks/useQuery";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import type { Props } from "./Table";

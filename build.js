@@ -15,12 +15,13 @@ const getDirectories = (source) =>
  * @return {Promise<string>}
  */
 function execAsync(cmd) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     exec(cmd, (error, stdout, stderr) => {
       if (error) {
-        console.warn(error);
+        reject(error);
+      } else {
+        resolve(stdout ? stdout : stderr);
       }
-      resolve(stdout ? stdout : stderr);
     });
   });
 }

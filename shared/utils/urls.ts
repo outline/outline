@@ -1,6 +1,6 @@
 import escapeRegExp from "lodash/escapeRegExp";
 import env from "../env";
-import { RESERVED_SUBDOMAINS, getBaseDomain, parseDomain } from "./domains";
+import { parseDomain } from "./domains";
 
 /**
  * Prepends the CDN url to the given path (If a CDN is configured).
@@ -36,9 +36,10 @@ export function isInternalUrl(href: string) {
   const domain = parseDomain(href);
 
   return (
-    outline.host === domain.host ||
-    (domain.host.endsWith(getBaseDomain()) &&
-      !RESERVED_SUBDOMAINS.find((reserved) => domain.host.startsWith(reserved)))
+    (outline.host === domain.host && outline.port === domain.port) ||
+    (typeof window !== "undefined" &&
+      window.location.hostname === domain.host &&
+      window.location.port === domain.port)
   );
 }
 

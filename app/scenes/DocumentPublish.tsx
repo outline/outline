@@ -50,7 +50,7 @@ function DocumentPublish({ document }: Props) {
 
       // Also move it under if selected path corresponds to another doc
       if (type === "document") {
-        await document.move(collectionId, parentDocumentId);
+        await document.move({ collectionId, parentDocumentId });
       }
 
       document.collectionId = collectionId;

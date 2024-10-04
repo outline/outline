@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { UserRole } from "@shared/types";
+import { parseEmail } from "@shared/utils/email";
 import { UserValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -41,7 +42,7 @@ function Invite({ onSubmit }: Props) {
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const predictedDomain = user.email.split("@")[1];
+  const predictedDomain = parseEmail(user.email).domain;
   const can = usePolicy(team);
   const [role, setRole] = React.useState<UserRole>(UserRole.Member);
 

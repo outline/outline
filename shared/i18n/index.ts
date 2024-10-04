@@ -46,6 +46,10 @@ export const languageOptions = [
     value: "nl_NL",
   },
   {
+    label: "Norsk Bokmål (Norwegian)",
+    value: "nb_NO",
+  },
+  {
     label: "Português (Portuguese, Brazil)",
     value: "pt_BR",
   },
@@ -62,6 +66,10 @@ export const languageOptions = [
     value: "fa_IR",
   },
   {
+    label: "Svenska (Swedish)",
+    value: "sv_SE",
+  },
+  {
     label: "Türkçe (Turkish)",
     value: "tr_TR",
   },
@@ -75,4 +83,4 @@ export const languageOptions = [
   },
 ];
 
-export const languages: string[] = languageOptions.map((i) => i.value);
+export const languages = languageOptions.map((i) => i.value);

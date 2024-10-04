@@ -104,6 +104,10 @@ export default class TableHeader extends Node {
             },
           },
           decorations: (state) => {
+            if (!this.editor.view?.editable) {
+              return;
+            }
+
             const { doc } = state;
             const decorations: Decoration[] = [];
             const cols = getCellsInRow(0)(state);

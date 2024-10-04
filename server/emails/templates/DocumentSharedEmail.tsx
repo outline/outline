@@ -73,7 +73,7 @@ View Document: ${teamUrl}${document.path}
     const documentUrl = `${teamUrl}${document.path}?ref=notification-email`;
 
     const permission =
-      membership.permission === DocumentPermission.ReadWrite ? "edit" : "view";
+      membership.permission === DocumentPermission.Read ? "view" : "edit";
 
     return (
       <EmailTemplate

@@ -119,25 +119,13 @@ export default class UsersStore extends Store<User> {
       id: user.id,
     });
 
-  @action
-  fetchDocumentUsers = async (params: {
-    id: string;
-    query?: string;
-  }): Promise<User[]> => {
-    try {
-      const res = await client.post("/documents.users", params);
-      invariant(res?.data, "User list not available");
-      let response: User[] = [];
-      runInAction("DocumentsStore#fetchUsers", () => {
-        response = res.data.map(this.add);
-        this.addPolicies(res.policies);
-      });
-      return response;
-    } catch (err) {
-      return Promise.resolve([]);
-    }
-  };
-
+  /**
+   * Returns users that are not in the given document, optionally filtered by a query.
+   *
+   * @param documentId
+   * @param query
+   * @returns A list of users that are not in the given document.
+   */
   notInDocument = (documentId: string, query = "") => {
     const document = this.rootStore.documents.get(documentId);
     const teamMembers = this.activeOrInvited;
@@ -150,12 +138,19 @@ export default class UsersStore extends Store<User> {
     return queriedUsers(users, query);
   };
 
+  /**
+   * Returns users that are not in the given collection, optionally filtered by a query.
+   *
+   * @param collectionId
+   * @param query
+   * @returns A list of users that are not in the given collection.
+   */
   notInCollection = (collectionId: string, query = "") => {
-    const memberships = filter(
+    const groupUsers = filter(
       this.rootStore.memberships.orderedData,
       (member) => member.collectionId === collectionId
     );
-    const userIds = memberships.map((member) => member.userId);
+    const userIds = groupUsers.map((groupUser) => groupUser.userId);
     const users = filter(
       this.activeOrInvited,
       (user) => !userIds.includes(user.id)
@@ -164,11 +159,11 @@ export default class UsersStore extends Store<User> {
   };
 
   inCollection = (collectionId: string, query?: string) => {
-    const memberships = filter(
+    const groupUsers = filter(
       this.rootStore.memberships.orderedData,
       (member) => member.collectionId === collectionId
     );
-    const userIds = memberships.map((member) => member.userId);
+    const userIds = groupUsers.map((groupUser) => groupUser.userId);
     const users = filter(this.activeOrInvited, (user) =>
       userIds.includes(user.id)
     );
@@ -176,11 +171,11 @@ export default class UsersStore extends Store<User> {
   };
 
   notInGroup = (groupId: string, query = "") => {
-    const memberships = filter(
-      this.rootStore.groupMemberships.orderedData,
+    const groupUsers = filter(
+      this.rootStore.groupUsers.orderedData,
       (member) => member.groupId === groupId
     );
-    const userIds = memberships.map((member) => member.userId);
+    const userIds = groupUsers.map((groupUser) => groupUser.userId);
     const users = filter(
       this.activeOrInvited,
       (user) => !userIds.includes(user.id)
@@ -189,11 +184,11 @@ export default class UsersStore extends Store<User> {
   };
 
   inGroup = (groupId: string, query?: string) => {
-    const groupMemberships = filter(
-      this.rootStore.groupMemberships.orderedData,
+    const groupUsers = filter(
+      this.rootStore.groupUsers.orderedData,
       (member) => member.groupId === groupId
     );
-    const userIds = groupMemberships.map((member) => member.userId);
+    const userIds = groupUsers.map((groupUser) => groupUser.userId);
     const users = filter(this.activeOrInvited, (user) =>
       userIds.includes(user.id)
     );

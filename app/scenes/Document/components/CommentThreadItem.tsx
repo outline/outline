@@ -7,20 +7,22 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import EventBoundary from "@shared/components/EventBoundary";
 import { s } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
 import { dateToRelative } from "@shared/utils/date";
 import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useBoolean from "~/hooks/useBoolean";
 import CommentMenu from "~/menus/CommentMenu";
-import { hover, truncateMultiline } from "~/styles";
+import { hover } from "~/styles";
 import CommentEditor from "./CommentEditor";
+import { HighlightedText } from "./HighlightText";
 
 /**
  * Hook to calculate if we should display a timestamp on a comment
@@ -51,7 +53,7 @@ function useShowTime(
 
   return (
     !msSincePreviousComment ||
-    (msSincePreviousComment > 15 * Minute &&
+    (msSincePreviousComment > 15 * Minute.ms &&
       previousTimeStamp !== currentTimeStamp)
   );
 }
@@ -75,6 +77,8 @@ type Props = {
   canReply: boolean;
   /** Callback when the comment has been deleted */
   onDelete: () => void;
+  /** Callback when the comment has been updated */
+  onUpdate: (attrs: { resolved: boolean }) => void;
   /** Text to highlight at the top of the comment */
   highlightedText?: string;
 };
@@ -88,6 +92,7 @@ function CommentThreadItem({
   previousCommentCreatedAt,
   canReply,
   onDelete,
+  onUpdate,
   highlightedText,
 }: Props) {
   const { t } = useTranslation();
@@ -96,7 +101,9 @@ function CommentThreadItem({
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
   const showEdited =
-    comment.updatedAt && comment.updatedAt !== comment.createdAt;
+    comment.updatedAt &&
+    comment.updatedAt !== comment.createdAt &&
+    !comment.isResolved;
   const [isEditing, setEditing, setReadOnly] = useBoolean();
   const formRef = React.useRef<HTMLFormElement>(null);
 
@@ -127,12 +134,12 @@ function CommentThreadItem({
   const handleCancel = () => {
     setData(toJS(comment.data));
     setReadOnly();
-    setForceRender((s) => ++s);
+    setForceRender((i) => ++i);
   };
 
   React.useEffect(() => {
     setData(toJS(comment.data));
-    setForceRender((s) => ++s);
+    setForceRender((i) => ++i);
   }, [comment.data]);
 
   return (
@@ -197,14 +204,17 @@ function CommentThreadItem({
             </Flex>
           )}
         </Body>
-        {!isEditing && (
-          <Menu
-            comment={comment}
-            onEdit={setEditing}
-            onDelete={onDelete}
-            dir={dir}
-          />
-        )}
+        <EventBoundary>
+          {!isEditing && (
+            <Menu
+              comment={comment}
+              onEdit={setEditing}
+              onDelete={onDelete}
+              onUpdate={onUpdate}
+              dir={dir}
+            />
+          )}
+        </EventBoundary>
       </Bubble>
     </Flex>
   );
@@ -238,28 +248,6 @@ const AvatarSpacer = styled(Flex)`
 
 const Body = styled.form`
   border-radius: 2px;
-`;
-
-const HighlightedText = styled(Text)`
-  position: relative;
-  color: ${s("textSecondary")};
-  font-size: 14px;
-  padding: 0 8px;
-  margin: 4px 0;
-  display: inline-block;
-
-  ${truncateMultiline(3)}
-
-  &:after {
-    content: "";
-    width: 2px;
-    position: absolute;
-    left: 0;
-    top: 2px;
-    bottom: 2px;
-    background: ${s("commentMarkBackground")};
-    border-radius: 2px;
-  }
 `;
 
 const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`

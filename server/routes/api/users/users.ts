@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { Op, WhereOptions } from "sequelize";
+import { Op, Sequelize, WhereOptions } from "sequelize";
 import { UserPreference, UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { UserValidation } from "@shared/validations";
@@ -124,9 +124,11 @@ router.post(
     if (query) {
       where = {
         ...where,
-        name: {
-          [Op.iLike]: `%${query}%`,
-        },
+        [Op.and]: [
+          Sequelize.literal(
+            `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+          ),
+        ],
       };
     }
 
@@ -144,15 +146,20 @@ router.post(
       };
     }
 
+    const replacements = { query: `%${query}%` };
+
     const [users, total] = await Promise.all([
       User.findAll({
         where,
+        replacements,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
       User.count({
         where,
+        // @ts-expect-error Types are incorrect for count
+        replacements,
       }),
     ]);
 
@@ -160,7 +167,7 @@ router.post(
       pagination: { ...ctx.state.pagination, total },
       data: users.map((user) =>
         presentUser(user, {
-          includeDetails: can(actor, "readDetails", user),
+          includeDetails: !!can(actor, "readDetails", user),
         })
       ),
       policies: presentPolicies(actor, users),
@@ -177,7 +184,7 @@ router.post(
     const actor = ctx.state.auth.user;
     const user = id ? await User.findByPk(id) : actor;
     authorize(actor, "read", user);
-    const includeDetails = can(actor, "readDetails", user);
+    const includeDetails = !!can(actor, "readDetails", user);
 
     ctx.body = {
       data: presentUser(user, {
@@ -207,7 +214,7 @@ router.post(
       });
     }
     authorize(actor, "update", user);
-    const includeDetails = can(actor, "readDetails", user);
+    const includeDetails = !!can(actor, "readDetails", user);
 
     if (name) {
       user.name = name;
@@ -350,7 +357,7 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
     }
   );
 
-  const includeDetails = can(actor, "readDetails", user);
+  const includeDetails = !!can(actor, "readDetails", user);
 
   ctx.body = {
     data: presentUser(user, {
@@ -382,7 +389,7 @@ router.post(
       ip: ctx.request.ip,
       transaction,
     });
-    const includeDetails = can(actor, "readDetails", user);
+    const includeDetails = !!can(actor, "readDetails", user);
 
     ctx.body = {
       data: presentUser(user, {
@@ -415,7 +422,7 @@ router.post(
       transaction,
       ip: ctx.request.ip,
     });
-    const includeDetails = can(actor, "readDetails", user);
+    const includeDetails = !!can(actor, "readDetails", user);
 
     ctx.body = {
       data: presentUser(user, {
@@ -433,13 +440,20 @@ router.post(
   validate(T.UsersInviteSchema),
   async (ctx: APIContext<T.UsersInviteReq>) => {
     const { invites } = ctx.input.body;
+
+    if (invites.length > UserValidation.maxInvitesPerRequest) {
+      throw ValidationError(
+        `You can only invite up to ${UserValidation.maxInvitesPerRequest} users at a time`
+      );
+    }
+
     const { user } = ctx.state.auth;
     const team = await Team.findByPk(user.teamId);
     authorize(user, "inviteUser", team);
 
     const response = await userInviter({
       user,
-      invites: invites.slice(0, UserValidation.maxInvitesPerRequest),
+      invites,
       ip: ctx.request.ip,
     });
 

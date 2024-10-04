@@ -6,7 +6,9 @@ import styled from "styled-components";
 import type { NavigationNode } from "@shared/types";
 import Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
+import Icon from "~/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { MenuInternalLink } from "~/types";
 import {
@@ -15,7 +17,6 @@ import {
   settingsPath,
   trashPath,
 } from "~/utils/routeHelpers";
-import EmojiIcon from "./Icons/EmojiIcon";
 
 type Props = {
   children?: React.ReactNode;
@@ -67,14 +68,15 @@ const DocumentBreadcrumb: React.FC<Props> = ({
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
+  const can = usePolicy(collection);
 
   React.useEffect(() => {
-    void document.loadRelations();
+    void document.loadRelations({ withoutPolicies: true });
   }, [document]);
 
   let collectionNode: MenuInternalLink | undefined;
 
-  if (collection) {
+  if (collection && can.readDocument) {
     collectionNode = {
       type: "route",
       title: collection.name,
@@ -106,9 +108,9 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     path.slice(0, -1).forEach((node: NavigationNode) => {
       output.push({
         type: "route",
-        title: node.emoji ? (
+        title: node.icon ? (
           <>
-            <EmojiIcon emoji={node.emoji} /> {node.title}
+            <StyledIcon value={node.icon} color={node.color} /> {node.title}
           </>
         ) : (
           node.title
@@ -143,6 +145,10 @@ const DocumentBreadcrumb: React.FC<Props> = ({
     </Breadcrumb>
   );
 };
+
+const StyledIcon = styled(Icon)`
+  margin-right: 2px;
+`;
 
 const SmallSlash = styled(GoToIcon)`
   width: 12px;

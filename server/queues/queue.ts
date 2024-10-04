@@ -57,7 +57,7 @@ export function createQueue(
     setInterval(async () => {
       Metrics.gauge(`${prefix}.count`, await queue.count());
       Metrics.gauge(`${prefix}.delayed_count`, await queue.getDelayedCount());
-    }, 5 * Second);
+    }, 5 * Second.ms);
   }
 
   ShutdownHelper.add(name, ShutdownOrder.normal, async () => {

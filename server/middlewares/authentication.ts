@@ -70,16 +70,16 @@ export default function auth(options: AuthenticationOptions = {}) {
         let apiKey;
 
         try {
-          apiKey = await ApiKey.findOne({
-            where: {
-              secret: token,
-            },
-          });
+          apiKey = await ApiKey.findByToken(token);
         } catch (err) {
           throw AuthenticationError("Invalid API key");
         }
 
         if (!apiKey) {
+          throw AuthenticationError("Invalid API key");
+        }
+
+        if (apiKey.expiresAt && apiKey.expiresAt < new Date()) {
           throw AuthenticationError("Invalid API key");
         }
 
@@ -96,6 +96,8 @@ export default function auth(options: AuthenticationOptions = {}) {
         if (!user) {
           throw AuthenticationError("Invalid API key");
         }
+
+        await apiKey.updateActiveAt();
       } else {
         type = AuthenticationType.APP;
         user = await getUserForJWT(String(token));

@@ -1,5 +1,6 @@
 import escape from "escape-html";
 import { Context, Next } from "koa";
+import env from "@server/env";
 
 /**
  * Resize observer script that sends a message to the parent window when content is resized. Inject
@@ -111,6 +112,39 @@ ${iframeCheckScript(ctx)}
 </head>
 <body>
 <script type="text/javascript" src="${gistLink}"></script>
+${resizeObserverScript(ctx)}
+</body>
+`;
+    return;
+  }
+
+  if (
+    parsed.host === "www.dropbox.com" &&
+    parsed.protocol === "https:" &&
+    ctx.path === "/embeds/dropbox"
+  ) {
+    const dropboxJs = "https://www.dropbox.com/static/api/2/dropins.js";
+    const csp = ctx.response.get("Content-Security-Policy");
+
+    // Inject Dropbox domain into the script-src directive
+    ctx.set(
+      "Content-Security-Policy",
+      csp.replace("script-src", "script-src www.dropbox.com")
+    );
+    ctx.set("X-Frame-Options", "sameorigin");
+
+    ctx.type = "html";
+    ctx.body = `
+<html>
+<head>
+<style>body { margin: 0; }</style>
+<base target="_parent">
+${iframeCheckScript(ctx)}
+</head>
+<body>
+<a href="${parsed}" class="dropbox-embed">
+<script type="text/javascript" src="${dropboxJs}" 
+id="dropboxjs" data-app-key="${env.DROPBOX_APP_KEY}"></script>
 ${resizeObserverScript(ctx)}
 </body>
 `;

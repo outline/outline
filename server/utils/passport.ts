@@ -114,7 +114,9 @@ export async function getTeamFromContext(ctx: Context) {
     if (env.ENVIRONMENT === "test") {
       team = await Team.findOne({ where: { domain: env.URL } });
     } else {
-      team = await Team.findOne();
+      team = await Team.findOne({
+        order: [["createdAt", "DESC"]],
+      });
     }
   } else if (ctx.state?.rootShare) {
     team = await Team.findByPk(ctx.state.rootShare.teamId);

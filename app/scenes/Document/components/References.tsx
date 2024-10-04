@@ -27,7 +27,7 @@ function References({ document }: Props) {
     ? collections.get(document.collectionId)
     : undefined;
   const children = collection
-    ? collection.getDocumentChildren(document.id)
+    ? collection.getChildrenForDocument(document.id)
     : [];
   const showBacklinks = !!backlinks.length;
   const showChildDocuments = !!children.length;

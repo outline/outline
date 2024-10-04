@@ -142,8 +142,35 @@ export class ProsemirrorHelper {
    *
    * @returns True if the editor is empty
    */
-  static isEmpty(doc: Node) {
-    return !doc || doc.textContent.trim() === "";
+  static isEmpty(doc: Node, schema?: Schema) {
+    if (!schema) {
+      return !doc || doc.textContent.trim() === "";
+    }
+
+    const textSerializers = Object.fromEntries(
+      Object.entries(schema.nodes)
+        .filter(([, node]) => node.spec.toPlainText)
+        .map(([name, node]) => [name, node.spec.toPlainText])
+    );
+
+    let empty = true;
+    doc.descendants((child: Node) => {
+      // If we've already found non-empty data, we can stop descending further
+      if (!empty) {
+        return false;
+      }
+
+      const toPlainText = textSerializers[child.type.name];
+      if (toPlainText) {
+        empty = !toPlainText(child).trim();
+      } else if (child.isText) {
+        empty = !child.text?.trim();
+      }
+
+      return empty;
+    });
+
+    return empty;
   }
 
   /**
@@ -247,9 +274,10 @@ export class ProsemirrorHelper {
    * Iterates through the document to find all of the headings and their level.
    *
    * @param doc Prosemirror document node
+   * @param schema Prosemirror schema
    * @returns Array<Heading>
    */
-  static getHeadings(doc: Node) {
+  static getHeadings(doc: Node, schema: Schema) {
     const headings: Heading[] = [];
     const previouslySeen = {};
 
@@ -271,7 +299,7 @@ export class ProsemirrorHelper {
           previouslySeen[id] !== undefined ? previouslySeen[id] + 1 : 1;
 
         headings.push({
-          title: node.textContent,
+          title: ProsemirrorHelper.toPlainText(node, schema),
           level: node.attrs.level,
           id: name,
         });

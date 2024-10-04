@@ -18,7 +18,7 @@ import Switch from "~/components/Switch";
 import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { AvatarSize } from "../../Avatar/Avatar";
+import { AvatarSize } from "../../Avatar";
 import CopyToClipboard from "../../CopyToClipboard";
 import NudeButton from "../../NudeButton";
 import { ResizingHeightContainer } from "../../ResizingHeightContainer";
@@ -203,7 +203,7 @@ const StyledInfoIcon = styled(InfoIcon)`
 `;
 
 const Wrapper = styled.div`
-  margin-bottom: 8px;
+  padding-bottom: 8px;
 `;
 
 const DomainPrefix = styled.span`

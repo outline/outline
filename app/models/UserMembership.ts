@@ -5,6 +5,7 @@ import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
+import { AfterRemove } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
 
 class UserMembership extends Model {
@@ -19,32 +20,32 @@ class UserMembership extends Model {
   @observable
   permission: DocumentPermission;
 
-  /** The document ID that this permission grants the user access to. */
+  /** The document ID that this membership grants the user access to. */
   documentId?: string;
 
-  /** The document that this permission grants the user access to. */
+  /** The document that this membership grants the user access to. */
   @Relation(() => Document, { onDelete: "cascade" })
   document?: Document;
 
-  /** The source ID points to the root permission from which this permission inherits */
+  /** The source ID points to the root membership from which this inherits */
   sourceId?: string;
 
-  /** The source points to the root permission from which this permission inherits */
+  /** The source points to the root membership from which this inherits */
   @Relation(() => UserMembership, { onDelete: "cascade" })
   source?: UserMembership;
 
-  /** The user ID that this permission is granted to. */
+  /** The user ID that this membership is granted to. */
   userId: string;
 
-  /** The user that this permission is granted to. */
+  /** The user that this membership is granted to. */
   @Relation(() => User, { onDelete: "cascade" })
   user: User;
 
-  /** The user that created this permission. */
+  /** The user that created this membership. */
   @Relation(() => User, { onDelete: "null" })
   createdBy: User;
 
-  /** The user ID that created this permission. */
+  /** The user ID that created this membership. */
   createdById: string;
 
   store: UserMembershipsStore;
@@ -69,6 +70,13 @@ class UserMembership extends Model {
     });
     const index = memberships.indexOf(this);
     return memberships[index + 1];
+  }
+
+  // hooks
+
+  @AfterRemove
+  public static removeFromPolicies(model: UserMembership) {
+    model.store.rootStore.policies.removeForMembership(model.id);
   }
 }
 

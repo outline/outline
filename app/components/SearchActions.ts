@@ -10,7 +10,7 @@ export default function SearchActions() {
   const { searches } = useStores();
 
   React.useEffect(() => {
-    if (!searches.isLoaded) {
+    if (!searches.isLoaded && !searches.isFetching) {
       void searches.fetchPage({
         source: "app",
       });

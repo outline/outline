@@ -1,6 +1,7 @@
 import { transparentize } from "polished";
 import * as React from "react";
 import styled, { createGlobalStyle } from "styled-components";
+import EventBoundary from "../../components/EventBoundary";
 import { s } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
@@ -35,12 +36,14 @@ export const ImageZoom = ({ caption, children }: Props) => {
   return (
     <React.Suspense fallback={fallback}>
       <Styles />
-      <Zoom
-        zoomMargin={EditorStyleHelper.padding}
-        ZoomContent={(props) => <Lightbox caption={caption} {...props} />}
-      >
-        <div>{children}</div>
-      </Zoom>
+      <EventBoundary>
+        <Zoom
+          zoomMargin={EditorStyleHelper.padding}
+          ZoomContent={(props) => <Lightbox caption={caption} {...props} />}
+        >
+          <div>{children}</div>
+        </Zoom>
+      </EventBoundary>
     </React.Suspense>
   );
 };
@@ -116,6 +119,9 @@ const Styles = createGlobalStyle`
   [data-rmiz-content="found"] [role="img"],
   [data-rmiz-content="found"] [data-zoom] {
     cursor: zoom-in;
+  }
+  [data-rmiz-modal] {
+    outline: none;
   }
   [data-rmiz-modal]::backdrop {
     display: none;

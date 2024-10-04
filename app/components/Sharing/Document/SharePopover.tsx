@@ -7,10 +7,10 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
+import Group from "~/models/Group";
 import Share from "~/models/Share";
 import User from "~/models/User";
-import Avatar from "~/components/Avatar";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
 import NudeButton from "~/components/NudeButton";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
@@ -18,17 +18,16 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
+import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import { Permission } from "~/types";
 import { documentPath, urlify } from "~/utils/routeHelpers";
-import { Separator, Wrapper, presence } from "../components";
+import { Wrapper, presence } from "../components";
 import { CopyLinkButton } from "../components/CopyLinkButton";
 import { PermissionAction } from "../components/PermissionAction";
 import { SearchInput } from "../components/SearchInput";
 import { Suggestions } from "../components/Suggestions";
-import DocumentMembersList from "./DocumentMemberList";
-import { OtherAccess } from "./OtherAccess";
-import PublicAccess from "./PublicAccess";
+import { AccessControlList } from "./AccessControlList";
 
 type Props = {
   /** The document to share. */
@@ -54,19 +53,26 @@ function SharePopover({
   const { t } = useTranslation();
   const can = usePolicy(document);
   const [hasRendered, setHasRendered] = React.useState(visible);
-  const { users, userMemberships } = useStores();
+  const { users, userMemberships, groups, groupMemberships } = useStores();
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
   const [pendingIds, setPendingIds] = React.useState<string[]>([]);
-  const collectionSharingDisabled = document.collection?.sharing === false;
   const [permission, setPermission] = React.useState<DocumentPermission>(
     DocumentPermission.Read
   );
 
+  const prevPendingIds = usePrevious(pendingIds);
+
+  const suggestionsRef = React.useRef<HTMLDivElement | null>(null);
+  const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+
   useKeyDown(
     "Escape",
     (ev) => {
+      if (!visible) {
+        return;
+      }
       ev.preventDefault();
       ev.stopImmediatePropagation();
 
@@ -104,15 +110,28 @@ function SharePopover({
     }
   }, [picker]);
 
+  React.useEffect(() => {
+    if (prevPendingIds && pendingIds.length > prevPendingIds.length) {
+      setQuery("");
+      searchInputRef.current?.focus();
+    } else if (prevPendingIds && pendingIds.length < prevPendingIds.length) {
+      const firstPending = suggestionsRef.current?.firstElementChild;
+
+      if (firstPending) {
+        (firstPending as HTMLAnchorElement).focus();
+      }
+    }
+  }, [pendingIds, prevPendingIds]);
+
   const inviteAction = React.useMemo(
     () =>
       createAction({
         name: t("Invite"),
         section: UserSection,
         perform: async () => {
-          const usersInvited = await Promise.all(
+          const invited = await Promise.all(
             pendingIds.map(async (idOrEmail) => {
-              let user;
+              let user, group;
 
               // convert email to user
               if (isEmail(idOrEmail)) {
@@ -126,38 +145,77 @@ function SharePopover({
                 user = response[0];
               } else {
                 user = users.get(idOrEmail);
+                group = groups.get(idOrEmail);
               }
 
-              if (!user) {
-                return;
+              if (user) {
+                await userMemberships.create({
+                  documentId: document.id,
+                  userId: user.id,
+                  permission,
+                });
+                return user;
               }
 
-              await userMemberships.create({
-                documentId: document.id,
-                userId: user.id,
-                permission,
-              });
+              if (group) {
+                await groupMemberships.create({
+                  documentId: document.id,
+                  groupId: group.id,
+                  permission,
+                });
+                return group;
+              }
 
-              return user;
+              return;
             })
           );
 
-          if (usersInvited.length === 1) {
-            const user = usersInvited[0] as User;
-            toast.message(
-              t("{{ userName }} was invited to the document", {
-                userName: user.name,
-              }),
-              {
-                icon: <Avatar model={user} size={AvatarSize.Toast} />,
-              }
-            );
-          } else {
-            toast.success(
-              t("{{ count }} people invited to the document", {
-                count: pendingIds.length,
-              })
-            );
+          const invitedUsers = invited.filter(
+            (item) => item instanceof User
+          ) as User[];
+          const invitedGroups = invited.filter(
+            (item) => item instanceof Group
+          ) as Group[];
+
+          if (invitedUsers.length > 0) {
+            // Special case for the common action of adding a single user.
+            if (invitedUsers.length === 1) {
+              const user = invitedUsers[0];
+              toast.message(
+                t("{{ userName }} was added to the document", {
+                  userName: user.name,
+                }),
+                {
+                  icon: <Avatar model={user} size={AvatarSize.Toast} />,
+                }
+              );
+            } else {
+              toast.message(
+                t("{{ count }} people added to the document", {
+                  count: invitedUsers.length,
+                })
+              );
+            }
+          }
+          if (invitedGroups.length > 0) {
+            // Special case for the common action of adding a single group.
+            if (invitedGroups.length === 1) {
+              const group = invitedGroups[0];
+              toast.message(
+                t("{{ userName }} was added to the document", {
+                  userName: group.name,
+                }),
+                {
+                  icon: <GroupAvatar group={group} size={AvatarSize.Toast} />,
+                }
+              );
+            } else {
+              toast.message(
+                t("{{ count }} groups added to the document", {
+                  count: invitedGroups.length,
+                })
+              );
+            }
           }
 
           setInvitedInSession((prev) => [...prev, ...pendingIds]);
@@ -166,14 +224,16 @@ function SharePopover({
         },
       }),
     [
-      t,
-      pendingIds,
+      document.id,
+      groupMemberships,
+      groups,
       hidePicker,
       userMemberships,
-      document.id,
+      pendingIds,
       permission,
-      users,
+      t,
       team.defaultUserRole,
+      users,
     ]
   );
 
@@ -199,16 +259,53 @@ function SharePopover({
     [setPendingIds]
   );
 
+  const handleKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      if (ev.nativeEvent.isComposing) {
+        return;
+      }
+      if (ev.key === "ArrowDown" && !ev.shiftKey) {
+        ev.preventDefault();
+
+        if (ev.currentTarget.value) {
+          const length = ev.currentTarget.value.length;
+          const selectionStart = ev.currentTarget.selectionStart || 0;
+          if (selectionStart < length) {
+            ev.currentTarget.selectionStart = length;
+            ev.currentTarget.selectionEnd = length;
+            return;
+          }
+        }
+
+        const firstSuggestion = suggestionsRef.current?.firstElementChild;
+
+        if (firstSuggestion) {
+          (firstSuggestion as HTMLAnchorElement).focus();
+        }
+      }
+    },
+    []
+  );
+
+  const handleEscape = React.useCallback(
+    () => searchInputRef.current?.focus(),
+    []
+  );
+
   const permissions = React.useMemo(
     () =>
       [
+        {
+          label: t("View only"),
+          value: DocumentPermission.Read,
+        },
         {
           label: t("Can edit"),
           value: DocumentPermission.ReadWrite,
         },
         {
-          label: t("View only"),
-          value: DocumentPermission.Read,
+          label: t("Manage"),
+          value: DocumentPermission.Admin,
         },
       ] as Permission[],
     [t]
@@ -259,8 +356,10 @@ function SharePopover({
     <Wrapper>
       {can.manageUsers && (
         <SearchInput
+          ref={searchInputRef}
           onChange={handleQuery}
           onClick={showPicker}
+          onKeyDown={handleKeyDown}
           query={query}
           back={backButton}
           action={rightButton}
@@ -268,36 +367,26 @@ function SharePopover({
       )}
 
       {picker && (
-        <div>
-          <Suggestions
-            document={document}
-            query={query}
-            pendingIds={pendingIds}
-            addPendingId={handleAddPendingId}
-            removePendingId={handleRemovePendingId}
-          />
-        </div>
+        <Suggestions
+          ref={suggestionsRef}
+          document={document}
+          query={query}
+          pendingIds={pendingIds}
+          addPendingId={handleAddPendingId}
+          removePendingId={handleRemovePendingId}
+          onEscape={handleEscape}
+        />
       )}
 
       <div style={{ display: picker ? "none" : "block" }}>
-        <OtherAccess document={document}>
-          <DocumentMembersList
-            document={document}
-            invitedInSession={invitedInSession}
-          />
-        </OtherAccess>
-
-        {team.sharing && can.share && !collectionSharingDisabled && visible && (
-          <>
-            {document.members.length ? <Separator /> : null}
-            <PublicAccess
-              document={document}
-              share={share}
-              sharedParent={sharedParent}
-              onRequestClose={onRequestClose}
-            />
-          </>
-        )}
+        <AccessControlList
+          document={document}
+          invitedInSession={invitedInSession}
+          share={share}
+          sharedParent={sharedParent}
+          visible={visible}
+          onRequestClose={onRequestClose}
+        />
       </div>
     </Wrapper>
   );

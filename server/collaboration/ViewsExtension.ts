@@ -34,7 +34,7 @@ export class ViewsExtension implements Extension {
     const lastUpdate = this.lastViewBySocket.get(socketId);
     const [, documentId] = documentName.split(".");
 
-    if (!lastUpdate || Date.now() - lastUpdate.getTime() > Minute) {
+    if (!lastUpdate || Date.now() - lastUpdate.getTime() > Minute.ms) {
       this.lastViewBySocket.set(socketId, new Date());
 
       Logger.debug(

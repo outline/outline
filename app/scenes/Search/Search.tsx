@@ -53,8 +53,8 @@ function Search(props: Props) {
 
   // refs
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
-  const resultListCompositeRef = React.useRef<HTMLDivElement | null>(null);
-  const recentSearchesCompositeRef = React.useRef<HTMLDivElement | null>(null);
+  const resultListRef = React.useRef<HTMLDivElement | null>(null);
+  const recentSearchesRef = React.useRef<HTMLDivElement | null>(null);
 
   // filters
   const query = decodeURIComponentSafe(routeMatch.params.term ?? "");
@@ -108,7 +108,7 @@ function Search(props: Props) {
     return () => Promise.resolve([] as SearchResult[]);
   }, [query, titleFilter, filters, searches, documents]);
 
-  const { data, next, end, loading } = usePaginatedRequest(requestFn, {
+  const { data, next, end, error, loading } = usePaginatedRequest(requestFn, {
     limit: Pagination.defaultLimit,
   });
 
@@ -178,19 +178,9 @@ function Search(props: Props) {
         }
       }
 
-      const firstResultItem = (
-        resultListCompositeRef.current?.querySelectorAll(
-          "[href]"
-        ) as NodeListOf<HTMLAnchorElement>
-      )?.[0];
+      const firstItem = (resultListRef.current?.firstElementChild ??
+        recentSearchesRef.current?.firstElementChild) as HTMLAnchorElement;
 
-      const firstRecentSearchItem = (
-        recentSearchesCompositeRef.current?.querySelectorAll(
-          "li > [href]"
-        ) as NodeListOf<HTMLAnchorElement>
-      )?.[0];
-
-      const firstItem = firstResultItem ?? firstRecentSearchItem;
       firstItem?.focus();
     }
   };
@@ -266,7 +256,19 @@ function Search(props: Props) {
         )}
         {query ? (
           <>
-            {showEmpty && (
+            {error ? (
+              <Fade>
+                <Centered column>
+                  <Text as="h1">{t("Something went wrong")}</Text>
+                  <Text as="p" type="secondary">
+                    {t(
+                      "Please try again or contact support if the problem persists"
+                    )}
+                    .
+                  </Text>
+                </Centered>
+              </Fade>
+            ) : showEmpty ? (
               <Fade>
                 <Centered column>
                   <Text as="p" type="secondary">
@@ -274,15 +276,16 @@ function Search(props: Props) {
                   </Text>
                 </Centered>
               </Fade>
-            )}
+            ) : null}
             <ResultList column>
               <StyledArrowKeyNavigation
-                ref={resultListCompositeRef}
+                ref={resultListRef}
                 onEscape={handleEscape}
                 aria-label={t("Search Results")}
+                items={data ?? []}
               >
-                {(compositeProps) =>
-                  data?.length
+                {() =>
+                  data?.length && !error
                     ? data.map((result) => (
                         <DocumentListItem
                           key={result.document.id}
@@ -291,7 +294,6 @@ function Search(props: Props) {
                           context={result.context}
                           showCollection
                           showTemplate
-                          {...compositeProps}
                         />
                       ))
                     : null
@@ -305,10 +307,7 @@ function Search(props: Props) {
             </ResultList>
           </>
         ) : documentId || collectionId ? null : (
-          <RecentSearches
-            ref={recentSearchesCompositeRef}
-            onEscape={handleEscape}
-          />
+          <RecentSearches ref={recentSearchesRef} onEscape={handleEscape} />
         )}
       </ResultsWrapper>
     </Scene>

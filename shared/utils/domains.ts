@@ -4,6 +4,7 @@ import env from "../env";
 type Domain = {
   teamSubdomain: string;
   host: string;
+  port?: string;
   custom: boolean;
 };
 
@@ -44,6 +45,14 @@ export function parseDomain(url: string): Domain {
     throw new TypeError("a non-empty url is required");
   }
 
+  let port;
+  try {
+    const parsedUrl = new URL(url);
+    port = parsedUrl.port || undefined;
+  } catch (e) {
+    // ignore
+  }
+
   const host = normalizeUrl(url);
   const baseDomain = getBaseDomain();
 
@@ -51,7 +60,7 @@ export function parseDomain(url: string): Domain {
   const baseUrlStart = host === baseDomain ? 0 : host.indexOf(`.${baseDomain}`);
 
   if (baseUrlStart === -1) {
-    return { teamSubdomain: "", host, custom: true };
+    return { teamSubdomain: "", host, port: undefined, custom: true };
   }
 
   // we consider anything in front of the baseUrl to be the subdomain
@@ -61,6 +70,7 @@ export function parseDomain(url: string): Domain {
   return {
     teamSubdomain: isReservedSubdomain ? "" : subdomain,
     host,
+    port,
     custom: false,
   };
 }

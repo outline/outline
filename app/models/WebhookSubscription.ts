@@ -19,7 +19,7 @@ class WebhookSubscription extends Model {
 
   @Field
   @observable
-  secret: string;
+  secret: string | null;
 
   @Field
   @observable

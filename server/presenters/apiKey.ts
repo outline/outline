@@ -1,11 +1,14 @@
 import ApiKey from "@server/models/ApiKey";
 
-export default function presentApiKey(key: ApiKey) {
+export default function presentApiKey(apiKey: ApiKey) {
   return {
-    id: key.id,
-    name: key.name,
-    secret: key.secret,
-    createdAt: key.createdAt,
-    updatedAt: key.updatedAt,
+    id: apiKey.id,
+    name: apiKey.name,
+    value: apiKey.value,
+    last4: apiKey.last4,
+    createdAt: apiKey.createdAt,
+    updatedAt: apiKey.updatedAt,
+    expiresAt: apiKey.expiresAt,
+    lastActiveAt: apiKey.lastActiveAt,
   };
 }

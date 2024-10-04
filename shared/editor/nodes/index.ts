@@ -92,8 +92,6 @@ export const tableExtensions: Nodes = [
  */
 export const richExtensions: Nodes = [
   ...basicExtensions.filter((n) => n !== SimpleImage),
-  ...listExtensions,
-  ...tableExtensions,
   Image,
   HardBreak,
   CodeBlock,
@@ -109,6 +107,10 @@ export const richExtensions: Nodes = [
   TemplatePlaceholder,
   Math,
   MathBlock,
+  // Container type nodes should be last so that key handlers are registered for content inside
+  // the container nodes first.
+  ...listExtensions,
+  ...tableExtensions,
 ];
 
 /**

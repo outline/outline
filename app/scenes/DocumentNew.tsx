@@ -41,17 +41,21 @@ function DocumentNew({ template }: Props) {
         if (id) {
           collection = await collections.fetch(id);
         }
-        const document = await documents.create({
-          collectionId: collection?.id,
-          parentDocumentId,
-          fullWidth:
-            parentDocument?.fullWidth ||
-            user.getPreference(UserPreference.FullWidthDocuments),
-          templateId: query.get("templateId") ?? undefined,
-          template,
-          title: "",
-          data: ProsemirrorHelper.getEmptyDocument(),
-        });
+        const document = await documents.create(
+          {
+            collectionId: collection?.id,
+            parentDocumentId,
+            fullWidth:
+              parentDocument?.fullWidth ||
+              user.getPreference(UserPreference.FullWidthDocuments),
+            templateId: query.get("templateId") ?? undefined,
+            template,
+            title: "",
+            data: ProsemirrorHelper.getEmptyDocument(),
+          },
+          { publish: collection?.id || parentDocumentId ? true : undefined }
+        );
+
         history.replace(
           template || !user.separateEditMode
             ? documentPath(document)

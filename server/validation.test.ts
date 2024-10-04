@@ -48,4 +48,12 @@ describe("#ValidateKey.sanitize", () => {
       ValidateKey.sanitize(`public/${uuid1}/${uuid2}/~\.\u0000\malicious_key`)
     ).toEqual(`public/${uuid1}/${uuid2}/~.malicious_key`);
   });
+
+  it("should remove potential path traversal", () => {
+    const uuid1 = uuidv4();
+    const uuid2 = uuidv4();
+    expect(
+      ValidateKey.sanitize(`public/${uuid1}/${uuid2}/../../malicious_key`)
+    ).toEqual(`public/${uuid1}/${uuid2}/malicious_key`);
+  });
 });

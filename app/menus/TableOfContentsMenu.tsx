@@ -6,17 +6,11 @@ import { MenuButton, useMenuState } from "reakit/Menu";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
+import { useDocumentContext } from "~/components/DocumentContext";
 import { MenuItem } from "~/types";
 
-type Props = {
-  headings: {
-    title: string;
-    level: number;
-    id: string;
-  }[];
-};
-
-function TableOfContentsMenu({ headings }: Props) {
+function TableOfContentsMenu() {
+  const { headings } = useDocumentContext();
   const menu = useMenuState({
     modal: true,
     unstable_preventOverflow: true,

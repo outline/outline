@@ -69,9 +69,9 @@ export default class Math extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.write("$$");
+    state.write("$");
     state.text(node.textContent, false);
-    state.write("$$");
+    state.write("$");
   }
 
   parseMarkdown() {

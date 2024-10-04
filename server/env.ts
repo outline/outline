@@ -349,6 +349,13 @@ export class Environment {
   public SMTP_SECURE = this.toBoolean(environment.SMTP_SECURE ?? "true");
 
   /**
+   * Dropbox app key for embedding Dropbox files
+   */
+  @Public
+  @IsOptional()
+  public DROPBOX_APP_KEY = this.toOptionalString(environment.DROPBOX_APP_KEY);
+
+  /**
    * Sentry DSN for capturing errors and frontend performance.
    */
   @Public
@@ -398,6 +405,24 @@ export class Environment {
   public VERSION = this.toOptionalString(
     environment.SOURCE_COMMIT || environment.SOURCE_VERSION
   );
+
+  /**
+   * The maximum number of concurrent events processed per-worker. To get total
+   * concurrency you should multiply this by the number of workers.
+   */
+  @IsOptional()
+  @IsNumber()
+  public WORKER_CONCURRENCY_EVENTS =
+    this.toOptionalNumber(environment.WORKER_CONCURRENCY_EVENTS) ?? 10;
+
+  /**
+   * The maximum number of concurrent tasks processed per-worker. To get total
+   * concurrency you should multiply this by the number of workers.
+   */
+  @IsOptional()
+  @IsNumber()
+  public WORKER_CONCURRENCY_TASKS =
+    this.toOptionalNumber(environment.WORKER_CONCURRENCY_TASKS) ?? 10;
 
   /**
    * A boolean switch to toggle the rate limiter at application web server.
@@ -623,6 +648,10 @@ export class Environment {
 
   protected toOptionalString(value: string | undefined) {
     return value ? value : undefined;
+  }
+
+  protected toOptionalCommaList(value: string | undefined) {
+    return value ? value.split(",").map((item) => item.trim()) : undefined;
   }
 
   protected toOptionalNumber(value: string | undefined) {

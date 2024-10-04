@@ -1,4 +1,5 @@
 const depths = {
+  toc: 100,
   header: 800,
   sidebar: 900,
   editorToolbar: 925,

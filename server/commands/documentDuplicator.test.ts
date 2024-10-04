@@ -25,7 +25,8 @@ describe("documentDuplicator", () => {
     expect(response).toHaveLength(1);
     expect(response[0].title).toEqual(original.title);
     expect(response[0].text).toEqual(original.text);
-    expect(response[0].emoji).toEqual(original.emoji);
+    expect(response[0].icon).toEqual(original.icon);
+    expect(response[0].color).toEqual(original.color);
     expect(response[0].publishedAt).toBeInstanceOf(Date);
   });
 
@@ -34,7 +35,7 @@ describe("documentDuplicator", () => {
     const original = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
-      emoji: "👋",
+      icon: "👋",
     });
 
     const response = await sequelize.transaction((transaction) =>
@@ -51,7 +52,8 @@ describe("documentDuplicator", () => {
     expect(response).toHaveLength(1);
     expect(response[0].title).toEqual("New title");
     expect(response[0].text).toEqual(original.text);
-    expect(response[0].emoji).toEqual(original.emoji);
+    expect(response[0].icon).toEqual(original.icon);
+    expect(response[0].color).toEqual(original.color);
     expect(response[0].publishedAt).toBeInstanceOf(Date);
   });
 
@@ -60,7 +62,7 @@ describe("documentDuplicator", () => {
     const original = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
-      emoji: "👋",
+      icon: "👋",
     });
 
     await buildDocument({
@@ -105,7 +107,8 @@ describe("documentDuplicator", () => {
     expect(response).toHaveLength(1);
     expect(response[0].title).toEqual(original.title);
     expect(response[0].text).toEqual(original.text);
-    expect(response[0].emoji).toEqual(original.emoji);
+    expect(response[0].icon).toEqual(original.icon);
+    expect(response[0].color).toEqual(original.color);
     expect(response[0].publishedAt).toBeNull();
   });
 });

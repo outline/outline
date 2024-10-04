@@ -1,10 +1,20 @@
-import { TeamPreference } from "@shared/types";
+import { TOCPosition, TeamPreference } from "@shared/types";
 import { Team } from "@server/models";
 
-export default function presentPublicTeam(team: Team) {
+export default function presentPublicTeam(
+  /** The team to present */
+  team: Team,
+  /** Whether the branding is public */
+  isBrandingPublic: boolean
+) {
   return {
-    name: team.name,
-    avatarUrl: team.avatarUrl,
-    customTheme: team.getPreference(TeamPreference.CustomTheme),
+    ...(isBrandingPublic
+      ? {
+          name: team.name,
+          avatarUrl: team.avatarUrl,
+          customTheme: team.getPreference(TeamPreference.CustomTheme),
+        }
+      : {}),
+    tocPosition: team.getPreference(TeamPreference.TocPosition) as TOCPosition,
   };
 }

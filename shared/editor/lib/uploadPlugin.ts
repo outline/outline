@@ -7,10 +7,7 @@ const uploadPlugin = (options: Options) =>
     props: {
       handleDOMEvents: {
         paste(view, event: ClipboardEvent): boolean {
-          if (
-            (view.props.editable && !view.props.editable(view.state)) ||
-            !options.uploadFile
-          ) {
+          if (!view.editable || !options.uploadFile) {
             return false;
           }
 
@@ -51,10 +48,7 @@ const uploadPlugin = (options: Options) =>
           return true;
         },
         drop(view, event: DragEvent): boolean {
-          if (
-            (view.props.editable && !view.props.editable(view.state)) ||
-            !options.uploadFile
-          ) {
+          if (!view.editable || !options.uploadFile) {
             return false;
           }
 

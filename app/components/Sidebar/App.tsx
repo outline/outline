@@ -34,16 +34,18 @@ import TrashLink from "./components/TrashLink";
 
 function AppSidebar() {
   const { t } = useTranslation();
-  const { documents, ui } = useStores();
+  const { documents, ui, collections } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
 
   React.useEffect(() => {
+    void collections.fetchAll();
+
     if (!user.isViewer) {
       void documents.fetchDrafts();
     }
-  }, [documents, user.isViewer]);
+  }, [documents, collections, user.isViewer]);
 
   const [dndArea, setDndArea] = React.useState();
   const handleSidebarRef = React.useCallback((node) => setDndArea(node), []);
@@ -55,7 +57,7 @@ function AppSidebar() {
   );
 
   return (
-    <Sidebar ref={handleSidebarRef}>
+    <Sidebar hidden={!ui.readyToShow} ref={handleSidebarRef}>
       <HistoryNavigation />
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
@@ -92,42 +94,44 @@ function AppSidebar() {
               </SidebarButton>
             )}
           </OrganizationMenu>
+          <Section>
+            <SidebarLink
+              to={homePath()}
+              icon={<HomeIcon />}
+              exact={false}
+              label={t("Home")}
+            />
+            <SidebarLink
+              to={searchPath()}
+              icon={<SearchIcon />}
+              label={t("Search")}
+              exact={false}
+            />
+            {can.createDocument && (
+              <SidebarLink
+                to={draftsPath()}
+                icon={<DraftsIcon />}
+                label={
+                  <Flex align="center" justify="space-between">
+                    {t("Drafts")}
+                    {documents.totalDrafts > 0 ? (
+                      <Drafts size="xsmall" type="tertiary">
+                        {documents.totalDrafts > 25
+                          ? "25+"
+                          : documents.totalDrafts}
+                      </Drafts>
+                    ) : null}
+                  </Flex>
+                }
+              />
+            )}
+          </Section>
           <Scrollable flex shadow>
             <Section>
-              <SidebarLink
-                to={homePath()}
-                icon={<HomeIcon />}
-                exact={false}
-                label={t("Home")}
-              />
-              <SidebarLink
-                to={searchPath()}
-                icon={<SearchIcon />}
-                label={t("Search")}
-                exact={false}
-              />
-              {can.createDocument && (
-                <SidebarLink
-                  to={draftsPath()}
-                  icon={<DraftsIcon />}
-                  label={
-                    <Flex align="center" justify="space-between">
-                      {t("Drafts")}
-                      {documents.totalDrafts > 0 ? (
-                        <Drafts size="xsmall" type="tertiary">
-                          {documents.totalDrafts}
-                        </Drafts>
-                      ) : null}
-                    </Flex>
-                  }
-                />
-              )}
+              <Starred />
             </Section>
             <Section>
               <SharedWithMe />
-            </Section>
-            <Section>
-              <Starred />
             </Section>
             <Section auto>
               <Collections />

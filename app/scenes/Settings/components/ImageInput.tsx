@@ -2,7 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import Avatar, { AvatarSize, IAvatar } from "~/components/Avatar/Avatar";
+import { Avatar, AvatarSize, IAvatar } from "~/components/Avatar";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import ImageUpload, { Props as ImageUploadProps } from "./ImageUpload";

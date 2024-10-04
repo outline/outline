@@ -71,7 +71,7 @@ export default class Video extends Node {
             width: node.attrs.width,
             height: node.attrs.height,
           },
-          node.attrs.title,
+          String(node.attrs.title),
         ],
       ],
       toPlainText: (node) => node.attrs.title,

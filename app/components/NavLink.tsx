@@ -1,6 +1,6 @@
 import { LocationDescriptor, LocationDescriptorObject } from "history";
 import * as React from "react";
-import { match, NavLink, Route } from "react-router-dom";
+import { type match, NavLink, Route } from "react-router-dom";
 
 type Props = React.ComponentProps<typeof NavLink> & {
   children?: (

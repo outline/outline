@@ -9,13 +9,13 @@ const BaseIdSchema = z.object({
 
 export const UsersListSchema = z.object({
   body: z.object({
-    /** Groups sorting direction */
+    /** Users sorting direction */
     direction: z
       .string()
       .optional()
       .transform((val) => (val !== "ASC" ? "DESC" : val)),
 
-    /** Groups sorting column */
+    /** Users sorting column */
     sort: z
       .string()
       .refine((val) => Object.keys(User.getAttributes()).includes(val), {

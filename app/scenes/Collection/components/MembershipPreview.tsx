@@ -4,16 +4,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import Collection from "~/models/Collection";
-import Avatar from "~/components/Avatar";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
-import { editCollectionPermissions } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 
 type Props = {
   collection: Collection;
@@ -25,7 +22,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
   const [usersCount, setUsersCount] = React.useState(0);
   const [groupsCount, setGroupsCount] = React.useState(0);
   const { t } = useTranslation();
-  const { memberships, collectionGroupMemberships, users } = useStores();
+  const { memberships, groupMemberships, users } = useStores();
   const collectionUsers = users.inCollection(collection.id);
   const context = useActionContext();
   const isMobile = useMobile();
@@ -44,7 +41,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
         };
         const [users, groups] = await Promise.all([
           memberships.fetchPage(options),
-          collectionGroupMemberships.fetchPage(options),
+          groupMemberships.fetchPage(options),
         ]);
         setUsersCount(users[PAGINATION_SYMBOL].total);
         setGroupsCount(groups[PAGINATION_SYMBOL].total);
@@ -58,7 +55,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
     isMobile,
     collection.permission,
     collection.id,
-    collectionGroupMemberships,
+    groupMemberships,
     memberships,
     limit,
   ]);
@@ -72,11 +69,6 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
   return (
     <NudeButton
       context={context}
-      action={
-        FeatureFlags.isEnabled(Feature.newCollectionSharing)
-          ? undefined
-          : editCollectionPermissions
-      }
       tooltip={{
         content:
           usersCount > 0

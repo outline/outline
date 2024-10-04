@@ -44,12 +44,12 @@ function HistoryNavigation(props: React.ComponentProps<typeof Flex>) {
   return (
     <Navigation gap={4} {...props}>
       <Tooltip content={t("Go back")} delay={500}>
-        <NudeButton onClick={() => Desktop.bridge.goBack()}>
+        <NudeButton onClick={() => Desktop.bridge?.goBack()}>
           <Back $active={back} />
         </NudeButton>
       </Tooltip>
       <Tooltip content={t("Go forward")} delay={500}>
-        <NudeButton onClick={() => Desktop.bridge.goForward()}>
+        <NudeButton onClick={() => Desktop.bridge?.goForward()}>
           <Forward $active={forward} />
         </NudeButton>
       </Tooltip>

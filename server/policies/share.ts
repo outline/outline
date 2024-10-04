@@ -1,5 +1,5 @@
 import { Share, Team, User } from "@server/models";
-import { allow, _can as can } from "./cancan";
+import { allow, can } from "./cancan";
 import { and, isOwner, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(User, "createShare", Team, (actor, team) =>

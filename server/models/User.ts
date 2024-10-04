@@ -52,14 +52,12 @@ import { ValidationError } from "../errors";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
+import Group from "./Group";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import UserMembership from "./UserMembership";
 import ParanoidModel from "./base/ParanoidModel";
-import Encrypted, {
-  setEncryptedColumn,
-  getEncryptedColumn,
-} from "./decorators/Encrypted";
+import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
@@ -143,13 +141,7 @@ class User extends ParanoidModel<
 
   @Column(DataType.BLOB)
   @Encrypted
-  get jwtSecret() {
-    return getEncryptedColumn(this, "jwtSecret");
-  }
-
-  set jwtSecret(value: string) {
-    setEncryptedColumn(this, "jwtSecret", value);
-  }
+  jwtSecret: string;
 
   @IsDate
   @Column
@@ -413,7 +405,39 @@ class User extends ParanoidModel<
     UserPreferenceDefaults[preference] ??
     false;
 
-  collectionIds = async (options: FindOptions<Collection> = {}) => {
+  /**
+   * Returns the user's active groups.
+   *
+   * @param options Additional options to pass to the find
+   * @returns An array of groups
+   */
+  public groups = (options: FindOptions<Group> = {}) =>
+    Group.scope({
+      method: ["withMembership", this.id],
+    }).findAll({
+      where: {
+        teamId: this.teamId,
+      },
+      ...options,
+    });
+
+  /**
+   * Returns the user's active group ids.
+   *
+   * @param options Additional options to pass to the find
+   * @returns An array of group ids
+   */
+  public groupIds = async (options: FindOptions<Group> = {}) =>
+    (await this.groups(options)).map((g) => g.id);
+
+  /**
+   * Returns the user's active collection ids. This includes collections the user
+   * has access to through group memberships.
+   *
+   * @param options Additional options to pass to the find
+   * @returns An array of collection ids
+   */
+  public collectionIds = async (options: FindOptions<Collection> = {}) => {
     const collectionStubs = await Collection.scope({
       method: ["withMembership", this.id],
     }).findAll({
@@ -433,7 +457,7 @@ class User extends ParanoidModel<
           ) &&
             !this.isGuest) ||
           c.memberships.length > 0 ||
-          c.collectionGroupMemberships.length > 0
+          c.groupMemberships.length > 0
       )
       .map((c) => c.id);
   };
@@ -670,7 +694,7 @@ class User extends ParanoidModel<
       if (attachment) {
         await DeleteAttachmentTask.schedule({
           attachmentId: attachment.id,
-          teamId: model.id,
+          teamId: model.teamId,
         });
       }
     }

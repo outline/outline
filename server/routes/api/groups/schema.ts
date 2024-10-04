@@ -25,8 +25,11 @@ export const GroupsListSchema = z.object({
     /** Only list groups where this user is a member */
     userId: z.string().uuid().optional(),
 
-    /** Find group with matching name */
+    /** @deprecated Find group with matching name */
     name: z.string().optional(),
+
+    /** Find group matching query */
+    query: z.string().optional(),
   }),
 });
 

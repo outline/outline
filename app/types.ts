@@ -7,13 +7,15 @@ import {
   DocumentPermission,
 } from "@shared/types";
 import RootStore from "~/stores/RootStore";
+import { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
 import Pin from "./models/Pin";
 import Star from "./models/Star";
 import UserMembership from "./models/UserMembership";
 
-export type PartialWithId<T> = Partial<T> & { id: string };
+export type PartialExcept<T, K extends keyof T> = Partial<Omit<T, K>> &
+  Required<Pick<T, K>>;
 
 export type MenuItemButton = {
   type: "button";
@@ -82,7 +84,7 @@ export type ActionContext = {
   isContextMenu: boolean;
   isCommandBar: boolean;
   isButton: boolean;
-  inStarredSection?: boolean;
+  sidebarContext?: SidebarContextType;
   activeCollectionId?: string | undefined;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;
@@ -102,6 +104,8 @@ export type Action = {
   shortcut?: string[];
   keywords?: string;
   dangerous?: boolean;
+  /** Higher number is higher in results, default is 0. */
+  priority?: number;
   iconInContextMenu?: boolean;
   icon?: React.ReactElement | React.FC;
   placeholder?: ((context: ActionContext) => string) | string;
@@ -139,15 +143,6 @@ export type FetchOptions = {
   force?: boolean;
 };
 
-export type NavigationNode = {
-  id: string;
-  title: string;
-  emoji?: string | null;
-  url: string;
-  children: NavigationNode[];
-  isDraft?: boolean;
-};
-
 export type CollectionSort = {
   field: string;
   direction: "asc" | "desc";
@@ -180,21 +175,12 @@ export type WebsocketEntityDeletedEvent = {
 };
 
 export type WebsocketEntitiesEvent = {
+  fetchIfMissing?: boolean;
   documentIds: { id: string; updatedAt?: string }[];
   collectionIds: { id: string; updatedAt?: string }[];
   groupIds: { id: string; updatedAt?: string }[];
   teamIds: string[];
   event: string;
-};
-
-export type WebsocketCollectionUserEvent = {
-  collectionId: string;
-  userId: string;
-};
-
-export type WebsocketDocumentUserEvent = {
-  documentId: string;
-  userId: string;
 };
 
 export type WebsocketCollectionUpdateIndexEvent = {
@@ -203,11 +189,10 @@ export type WebsocketCollectionUpdateIndexEvent = {
 };
 
 export type WebsocketEvent =
-  | PartialWithId<Pin>
-  | PartialWithId<Star>
-  | PartialWithId<FileOperation>
-  | PartialWithId<UserMembership>
-  | WebsocketCollectionUserEvent
+  | PartialExcept<Pin, "id">
+  | PartialExcept<Star, "id">
+  | PartialExcept<FileOperation, "id">
+  | PartialExcept<UserMembership, "id">
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent
   | WebsocketEntitiesEvent;

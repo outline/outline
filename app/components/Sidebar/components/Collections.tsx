@@ -53,7 +53,6 @@ function Collections() {
       <Header id="collections" title={t("Collections")}>
         <Relative>
           <PaginatedList
-            fetch={collections.fetchPage}
             options={params}
             aria-label={t("Collections")}
             items={collections.orderedData}

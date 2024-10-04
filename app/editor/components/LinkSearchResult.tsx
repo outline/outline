@@ -1,6 +1,6 @@
 import * as React from "react";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
-import styled from "styled-components";
+import scrollIntoView from "scroll-into-view-if-needed";
+import styled, { css } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
@@ -22,7 +22,7 @@ function LinkSearchResult({
   const ref = React.useCallback(
     (node: HTMLElement | null) => {
       if (selected && node) {
-        void scrollIntoView(node, {
+        scrollIntoView(node, {
           scrollMode: "if-needed",
           block: "center",
           boundary: (parent) =>
@@ -60,7 +60,15 @@ const IconWrapper = styled.span<{ selected: boolean }>`
   margin-right: 4px;
   height: 24px;
   opacity: 0.8;
-  color: ${(props) => (props.selected ? s("accentText") : s("textSecondary"))};
+
+  ${(props) =>
+    props.selected &&
+    css`
+      svg {
+        fill: ${s("accentText")};
+        color: ${s("accentText")};
+      }
+    `};
 `;
 
 const ListItem = styled.div<{

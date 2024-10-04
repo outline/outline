@@ -29,7 +29,7 @@ function SharedSidebar({ rootNode, shareId }: Props) {
 
   return (
     <Sidebar>
-      {team && (
+      {team?.name && (
         <SidebarButton
           title={team.name}
           image={<TeamLogo model={team} size={32} alt={t("Logo")} />}

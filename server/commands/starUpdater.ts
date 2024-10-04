@@ -1,5 +1,5 @@
+import { Transaction } from "sequelize";
 import { Event, Star, User } from "@server/models";
-import { sequelize } from "@server/storage/database";
 
 type Props = {
   /** The user updating the star */
@@ -10,6 +10,8 @@ type Props = {
   index: string;
   /** The IP address of the user creating the star */
   ip: string;
+  /** Optional existing transaction */
+  transaction?: Transaction;
 };
 
 /**
@@ -24,30 +26,22 @@ export default async function starUpdater({
   star,
   index,
   ip,
+  transaction,
 }: Props): Promise<Star> {
-  const transaction = await sequelize.transaction();
+  star.index = index;
+  await star.save({ transaction });
 
-  try {
-    star.index = index;
-    await star.save({ transaction });
-
-    await Event.create(
-      {
-        name: "stars.update",
-        modelId: star.id,
-        userId: star.userId,
-        teamId: user.teamId,
-        actorId: user.id,
-        documentId: star.documentId,
-        ip,
-      },
-      { transaction }
-    );
-    await transaction.commit();
-  } catch (err) {
-    await transaction.rollback();
-    throw err;
-  }
-
+  await Event.create(
+    {
+      name: "stars.update",
+      modelId: star.id,
+      userId: star.userId,
+      teamId: user.teamId,
+      actorId: user.id,
+      documentId: star.documentId,
+      ip,
+    },
+    { transaction }
+  );
   return star;
 }

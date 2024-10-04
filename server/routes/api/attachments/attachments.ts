@@ -163,9 +163,14 @@ const handleAttachmentsRedirect = async (
     throw AuthorizationError();
   }
 
-  await attachment.update({
-    lastAccessedAt: new Date(),
-  });
+  await attachment.update(
+    {
+      lastAccessedAt: new Date(),
+    },
+    {
+      silent: true,
+    }
+  );
 
   if (attachment.isPrivate) {
     ctx.set(

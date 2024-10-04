@@ -1,6 +1,5 @@
 import { Transaction } from "sequelize";
 import { Event, Star, User } from "@server/models";
-import { sequelize } from "@server/storage/database";
 
 type Props = {
   /** The user destroying the star */
@@ -24,31 +23,21 @@ export default async function starDestroyer({
   user,
   star,
   ip,
-  transaction: t,
+  transaction,
 }: Props): Promise<Star> {
-  const transaction = t || (await sequelize.transaction());
+  await star.destroy({ transaction });
 
-  try {
-    await star.destroy({ transaction });
-
-    await Event.create(
-      {
-        name: "stars.delete",
-        modelId: star.id,
-        teamId: user.teamId,
-        actorId: user.id,
-        userId: star.userId,
-        documentId: star.documentId,
-        ip,
-      },
-      { transaction }
-    );
-
-    await transaction.commit();
-  } catch (err) {
-    await transaction.rollback();
-    throw err;
-  }
-
+  await Event.create(
+    {
+      name: "stars.delete",
+      modelId: star.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      userId: star.userId,
+      documentId: star.documentId,
+      ip,
+    },
+    { transaction }
+  );
   return star;
 }

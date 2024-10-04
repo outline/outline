@@ -30,6 +30,7 @@ type Props = Omit<MenuStateReturn, "items"> & {
   actions?: (Action | MenuSeparator | MenuHeading)[];
   context?: Partial<ActionContext>;
   items?: TMenuItem[];
+  showIcons?: boolean;
 };
 
 const Disclosure = styled(ExpandedIcon)`
@@ -98,7 +99,7 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
     });
 }
 
-function Template({ items, actions, context, ...menu }: Props) {
+function Template({ items, actions, context, showIcons, ...menu }: Props) {
   const ctx = useActionContext({
     isContextMenu: true,
   });
@@ -124,7 +125,8 @@ function Template({ items, actions, context, ...menu }: Props) {
         if (
           iconIsPresentInAnyMenuItem &&
           item.type !== "separator" &&
-          item.type !== "heading"
+          item.type !== "heading" &&
+          showIcons !== false
         ) {
           item.icon = item.icon || <MenuIconWrapper aria-hidden />;
         }
@@ -138,7 +140,7 @@ function Template({ items, actions, context, ...menu }: Props) {
               key={index}
               disabled={item.disabled}
               selected={item.selected}
-              icon={item.icon}
+              icon={showIcons !== false ? item.icon : undefined}
               {...menu}
             >
               {item.title}
@@ -156,7 +158,7 @@ function Template({ items, actions, context, ...menu }: Props) {
               selected={item.selected}
               level={item.level}
               target={item.href.startsWith("#") ? undefined : "_blank"}
-              icon={item.icon}
+              icon={showIcons !== false ? item.icon : undefined}
               {...menu}
             >
               {item.title}
@@ -174,7 +176,7 @@ function Template({ items, actions, context, ...menu }: Props) {
               selected={item.selected}
               dangerous={item.dangerous}
               key={index}
-              icon={item.icon}
+              icon={showIcons !== false ? item.icon : undefined}
               {...menu}
             >
               {item.title}
@@ -190,7 +192,12 @@ function Template({ items, actions, context, ...menu }: Props) {
               id={`${item.title}-${index}`}
               templateItems={item.items}
               parentMenuState={menu}
-              title={<Title title={item.title} icon={item.icon} />}
+              title={
+                <Title
+                  title={item.title}
+                  icon={showIcons !== false ? item.icon : undefined}
+                />
+              }
               {...menu}
             />
           );

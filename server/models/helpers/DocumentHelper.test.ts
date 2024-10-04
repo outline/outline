@@ -12,11 +12,53 @@ describe("DocumentHelper", () => {
     jest.useRealTimers();
   });
 
+  describe("replaceInternalUrls", () => {
+    it("should replace internal urls", async () => {
+      const document = await buildDocument({
+        text: `[link](/doc/internal-123)`,
+      });
+      const result = await DocumentHelper.toJSON(document, {
+        internalUrlBase: "/s/share-123",
+      });
+      expect(result).toEqual({
+        content: [
+          {
+            content: [
+              {
+                marks: [
+                  {
+                    attrs: {
+                      href: "/s/share-123/doc/internal-123",
+                      title: null,
+                    },
+                    type: "link",
+                  },
+                ],
+                text: "link",
+                type: "text",
+              },
+            ],
+            type: "paragraph",
+          },
+        ],
+        type: "doc",
+      });
+    });
+  });
+
+  describe("toJSON", () => {
+    it("should return content directly if no transformation required", async () => {
+      const document = await buildDocument();
+      const result = await DocumentHelper.toJSON(document);
+      expect(result === document.content).toBe(true);
+    });
+  });
+
   describe("parseMentions", () => {
     it("should not parse normal links as mentions", async () => {
       const document = await buildDocument({
         text: `# Header
-    
+
 [link not mention](http://google.com)`,
       });
       const result = DocumentHelper.parseMentions(document);
@@ -26,7 +68,7 @@ describe("DocumentHelper", () => {
     it("should return an array of mentions", async () => {
       const document = await buildDocument({
         text: `# Header
-    
+
 @[Alan Kay](mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/34095ac1-c808-45c0-8c6e-6c554497de64) :wink:
 
 More text

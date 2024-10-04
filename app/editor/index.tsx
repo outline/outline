@@ -562,6 +562,14 @@ export class Editor extends React.PureComponent<
   };
 
   /**
+   * Focus the editor and scroll to the current selection.
+   */
+  public focus = () => {
+    this.view.focus();
+    this.view.dispatch(this.view.state.tr.scrollIntoView());
+  };
+
+  /**
    * Blur the editor.
    */
   public blur = () => {
@@ -616,7 +624,8 @@ export class Editor extends React.PureComponent<
    *
    * @returns A list of headings in the document
    */
-  public getHeadings = () => ProsemirrorHelper.getHeadings(this.view.state.doc);
+  public getHeadings = () =>
+    ProsemirrorHelper.getHeadings(this.view.state.doc, this.schema);
 
   /**
    * Return the images in the current editor.
@@ -640,29 +649,63 @@ export class Editor extends React.PureComponent<
   public getComments = () => ProsemirrorHelper.getComments(this.view.state.doc);
 
   /**
-   * Remove a specific comment mark from the document.
+   * Remove all marks related to a specific comment from the document.
    *
    * @param commentId The id of the comment to remove
    */
   public removeComment = (commentId: string) => {
     const { state, dispatch } = this.view;
-    let found = false;
+    const tr = state.tr;
+
     state.doc.descendants((node, pos) => {
-      if (!node.isInline || found) {
+      if (!node.isInline) {
         return;
       }
 
       const mark = node.marks.find(
-        (mark) =>
-          mark.type === state.schema.marks.comment &&
-          mark.attrs.id === commentId
+        (m) => m.type === state.schema.marks.comment && m.attrs.id === commentId
       );
 
       if (mark) {
-        dispatch(state.tr.removeMark(pos, pos + node.nodeSize, mark));
-        found = true;
+        tr.removeMark(pos, pos + node.nodeSize, mark);
       }
     });
+
+    dispatch(tr);
+  };
+
+  /**
+   * Update all marks related to a specific comment in the document.
+   *
+   * @param commentId The id of the comment to remove
+   * @param attrs The attributes to update
+   */
+  public updateComment = (commentId: string, attrs: { resolved: boolean }) => {
+    const { state, dispatch } = this.view;
+    const tr = state.tr;
+
+    state.doc.descendants((node, pos) => {
+      if (!node.isInline) {
+        return;
+      }
+
+      const mark = node.marks.find(
+        (m) => m.type === state.schema.marks.comment && m.attrs.id === commentId
+      );
+
+      if (mark) {
+        const from = pos;
+        const to = pos + node.nodeSize;
+        const newMark = state.schema.marks.comment.create({
+          ...mark.attrs,
+          ...attrs,
+        });
+
+        tr.removeMark(from, to, mark).addMark(from, to, newMark);
+      }
+    });
+
+    dispatch(tr);
   };
 
   /**
@@ -723,6 +766,9 @@ export class Editor extends React.PureComponent<
   };
 
   private handleOpenLinkToolbar = () => {
+    if (this.state.selectionToolbarOpen) {
+      return;
+    }
     this.setState((state) => ({
       ...state,
       linkToolbarOpen: true,
@@ -808,6 +854,7 @@ const EditorContainer = styled(Styles)<{
     css`
       #comment-${props.focusedCommentId} {
         background: ${transparentize(0.5, props.theme.brand.marine)};
+        border-bottom: 2px solid ${props.theme.commentMarkBackground};
       }
     `}
 

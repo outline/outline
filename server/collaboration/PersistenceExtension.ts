@@ -44,14 +44,14 @@ export default class PersistenceExtension implements Extension {
         },
       });
 
+      let ydoc;
       if (document.state) {
-        const ydoc = new Y.Doc();
+        ydoc = new Y.Doc();
         Logger.info("database", `Document ${documentId} is in database state`);
         Y.applyUpdate(ydoc, document.state);
         return ydoc;
       }
 
-      let ydoc;
       if (document.content) {
         Logger.info(
           "database",
@@ -111,16 +111,14 @@ export default class PersistenceExtension implements Extension {
       return;
     }
 
-    const collaboratorIds = Array.from(documentCollaboratorIds.values());
+    const sessionCollaboratorIds = Array.from(documentCollaboratorIds.values());
     this.documentCollaboratorIds.delete(documentName);
 
     try {
       await documentCollaborativeUpdater({
         documentId,
         ydoc: document,
-        // TODO: Right now we're attributing all changes to the last editor,
-        // It would be nice in the future to have multiple editors per revision.
-        userId: collaboratorIds.pop(),
+        sessionCollaboratorIds,
         isLastConnection: clientsCount === 0,
       });
     } catch (err) {

@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { CodeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { toast } from "sonner";
 import ApiKey from "~/models/ApiKey";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
@@ -23,9 +24,26 @@ function ApiKeys() {
   const can = usePolicy(team);
   const context = useActionContext();
 
+  const [copiedKeyId, setCopiedKeyId] = React.useState<string | null>();
+  const copyTimeoutIdRef = React.useRef<ReturnType<typeof setTimeout>>();
+
+  const handleCopy = React.useCallback(
+    (keyId: string) => {
+      if (copyTimeoutIdRef.current) {
+        clearTimeout(copyTimeoutIdRef.current);
+      }
+      setCopiedKeyId(keyId);
+      copyTimeoutIdRef.current = setTimeout(() => {
+        setCopiedKeyId(null);
+      }, 3000);
+      toast.message(t("API key copied to clipboard"));
+    },
+    [t]
+  );
+
   return (
     <Scene
-      title={t("API Keys")}
+      title={t("API")}
       icon={<CodeIcon />}
       actions={
         <>
@@ -42,7 +60,7 @@ function ApiKeys() {
         </>
       }
     >
-      <Heading>{t("API Keys")}</Heading>
+      <Heading>{t("API")}</Heading>
       <Text as="p" type="secondary">
         <Trans
           defaults="Create personal API keys to authenticate with the API and programatically control
@@ -62,9 +80,14 @@ function ApiKeys() {
       <PaginatedList
         fetch={apiKeys.fetchPage}
         items={apiKeys.orderedData}
-        heading={<h2>{t("Active")}</h2>}
+        heading={<h2>{t("Personal keys")}</h2>}
         renderItem={(apiKey: ApiKey) => (
-          <ApiKeyListItem key={apiKey.id} apiKey={apiKey} />
+          <ApiKeyListItem
+            key={apiKey.id}
+            apiKey={apiKey}
+            isCopied={apiKey.id === copiedKeyId}
+            onCopy={handleCopy}
+          />
         )}
       />
     </Scene>

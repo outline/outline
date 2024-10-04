@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserRole } from "@shared/types";
+import { TOCPosition, UserRole } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 
 export const TeamsUpdateSchema = BaseSchema.extend({
@@ -7,7 +7,7 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     /** Team name */
     name: z.string().optional(),
     /** Avatar URL */
-    avatarUrl: z.string().optional(),
+    avatarUrl: z.string().nullish(),
     /** The subdomain to access the team */
     subdomain: z.string().nullish(),
     /** Whether public sharing is enabled */
@@ -41,6 +41,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         membersCanInvite: z.boolean().optional(),
         /** Whether members can create API keys. */
         membersCanCreateApiKey: z.boolean().optional(),
+        /** Whether members can delete their user account. */
+        membersCanDeleteAccount: z.boolean().optional(),
         /** Whether commenting is enabled */
         commenting: z.boolean().optional(),
         /** The custom theme for the team. */
@@ -50,6 +52,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
             accentText: z.string().min(4).max(7).regex(/^#/).optional(),
           })
           .optional(),
+        /** Side to display the document's table of contents in relation to the main content. */
+        tocPosition: z.nativeEnum(TOCPosition).optional(),
       })
       .optional(),
   }),

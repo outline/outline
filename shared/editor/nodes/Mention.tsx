@@ -33,7 +33,9 @@ export default class Mention extends Extension {
         actorId: {
           default: undefined,
         },
-        id: {},
+        id: {
+          default: undefined,
+        },
       },
       inline: true,
       content: "text*",
@@ -44,13 +46,21 @@ export default class Mention extends Extension {
         {
           tag: `span.${this.name}`,
           preserveWhitespace: "full",
-          getAttrs: (dom: HTMLElement) => ({
-            type: dom.dataset.type,
-            modelId: dom.dataset.id,
-            actorId: dom.dataset.actorId,
-            label: dom.innerText,
-            id: dom.id,
-          }),
+          getAttrs: (dom: HTMLElement) => {
+            const type = dom.dataset.type;
+            const modelId = dom.dataset.id;
+            if (!type || !modelId) {
+              return false;
+            }
+
+            return {
+              type,
+              modelId,
+              actorId: dom.dataset.actorId,
+              label: dom.innerText,
+              id: dom.id,
+            };
+          },
         },
       ],
       toDOM: (node) => [
@@ -63,7 +73,7 @@ export default class Mention extends Extension {
           "data-actorId": node.attrs.actorId,
           "data-url": `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
         },
-        node.attrs.label,
+        String(node.attrs.label),
       ],
       toPlainText: (node) => `@${node.attrs.label}`,
     };

@@ -24,8 +24,8 @@ export function initI18n(defaultLanguage = "en_US") {
       backend: {
         // this must match the path defined in routes. It's the path that the
         // frontend UI code will hit to load missing translations.
-        loadPath: (languages: string[]) =>
-          `/locales/${unicodeBCP47toCLDR(languages[0])}.json`,
+        loadPath: (locale: string[]) =>
+          `/locales/${unicodeBCP47toCLDR(locale[0])}.json`,
       },
       interpolation: {
         escapeValue: false,

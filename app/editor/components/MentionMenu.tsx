@@ -3,18 +3,17 @@ import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import { v4 } from "uuid";
 import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import User from "~/models/User";
-import Model from "~/models/base/Model";
-import Avatar from "~/components/Avatar";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import { client } from "~/utils/ApiClient";
 import MentionMenuItem from "./MentionMenuItem";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
@@ -47,7 +46,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
     React.useCallback(
       () =>
         documentId
-          ? users.fetchDocumentUsers({ id: documentId, query: search })
+          ? users.fetchPage({ id: documentId, query: search })
           : Promise.resolve([]),
       [users, documentId, search]
     )
@@ -113,6 +112,33 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
     }
   }, [auth.currentUserId, loading, data]);
 
+  const handleSelect = React.useCallback(
+    async (item: MentionItem) => {
+      // Check if the mentioned user has access to the document
+      const res = await client.post("/documents.users", {
+        id: documentId,
+        userId: item.attrs.modelId,
+      });
+
+      if (!res.data.length) {
+        const user = users.get(item.attrs.modelId);
+        toast.message(
+          t(
+            "{{ userName }} won't by notified as they do not have access to this document",
+            {
+              userName: item.attrs.label,
+            }
+          ),
+          {
+            icon: <Avatar model={user} size={AvatarSize.Toast} />,
+            duration: 10000,
+          }
+        );
+      }
+    },
+    [t, users, documentId]
+  );
+
   // Prevent showing the menu until we have data otherwise it will be positioned
   // incorrectly due to the height being unknown.
   if (!loaded) {
@@ -126,6 +152,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       filterable={false}
       trigger="@"
       search={search}
+      onSelect={handleSelect}
       renderMenuItem={(item, _index, options) => (
         <MentionMenuItem
           onClick={options.onClick}

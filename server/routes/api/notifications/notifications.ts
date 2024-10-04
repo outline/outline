@@ -76,6 +76,7 @@ router.post(
     const { eventType, archived } = ctx.input.body;
     const user = ctx.state.auth.user;
     let where: WhereOptions<Notification> = {
+      teamId: user.teamId,
       userId: user.id,
     };
     if (eventType) {
@@ -190,6 +191,7 @@ router.post(
 
     const values: { [x: string]: any } = {};
     let where: WhereOptions<Notification> = {
+      teamId: user.teamId,
       userId: user.id,
     };
     if (!isUndefined(viewedAt)) {

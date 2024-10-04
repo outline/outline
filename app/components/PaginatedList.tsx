@@ -1,10 +1,9 @@
 import isEqual from "lodash/isEqual";
-import { observable, action } from "mobx";
+import { observable, action, computed } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
-import { CompositeStateReturn } from "reakit/Composite";
 import { Pagination } from "@shared/constants";
 import RootStore from "~/stores/RootStore";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
@@ -14,9 +13,9 @@ import withStores from "~/components/withStores";
 import { dateToHeading } from "~/utils/date";
 
 export interface PaginatedItem {
-  id: string;
-  createdAt?: string;
+  id?: string;
   updatedAt?: string;
+  createdAt?: string;
 }
 
 type Props<T> = WithTranslation &
@@ -30,21 +29,20 @@ type Props<T> = WithTranslation &
     loading?: React.ReactElement;
     items?: T[];
     className?: string;
-    renderItem: (
-      item: T,
-      index: number,
-      compositeProps: CompositeStateReturn
-    ) => React.ReactNode;
+    renderItem: (item: T, index: number) => React.ReactNode;
     renderError?: (options: {
       error: Error;
       retry: () => void;
     }) => React.ReactNode;
     renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
     onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
+    listRef?: React.RefObject<HTMLDivElement>;
   };
 
 @observer
-class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
+class PaginatedList<T extends PaginatedItem> extends React.PureComponent<
+  Props<T>
+> {
   @observable
   error?: Error;
 
@@ -150,6 +148,11 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
     }
   };
 
+  @computed
+  get itemsToRender() {
+    return this.props.items?.slice(0, this.renderCount) ?? [];
+  }
+
   render() {
     const {
       items = [],
@@ -193,11 +196,13 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
           aria-label={this.props["aria-label"]}
           onEscape={onEscape}
           className={this.props.className}
+          items={this.itemsToRender}
+          ref={this.props.listRef}
         >
-          {(composite: CompositeStateReturn) => {
+          {() => {
             let previousHeading = "";
-            return items.slice(0, this.renderCount).map((item, index) => {
-              const children = this.props.renderItem(item, index, composite);
+            return this.itemsToRender.map((item, index) => {
+              const children = this.props.renderItem(item, index);
 
               // If there is no renderHeading method passed then no date
               // headings are rendered
@@ -208,7 +213,11 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
               // Our models have standard date fields, updatedAt > createdAt.
               // Get what a heading would look like for this item
               const currentDate =
-                item.updatedAt || item.createdAt || previousHeading;
+                "updatedAt" in item && item.updatedAt
+                  ? item.updatedAt
+                  : "createdAt" in item && item.createdAt
+                  ? item.createdAt
+                  : previousHeading;
               const currentHeading = dateToHeading(
                 currentDate,
                 this.props.t,
@@ -224,7 +233,9 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
               ) {
                 previousHeading = currentHeading;
                 return (
-                  <React.Fragment key={item.id}>
+                  <React.Fragment
+                    key={"id" in item && item.id ? item.id : index}
+                  >
                     {renderHeading(currentHeading)}
                     {children}
                   </React.Fragment>

@@ -341,7 +341,7 @@ describe("accountProvisioner", () => {
     });
   });
 
-  describe.skip("self hosted", () => {
+  describe("self hosted", () => {
     beforeEach(setSelfHosted);
 
     it("should fail if existing team and domain not in allowed list", async () => {
@@ -376,9 +376,7 @@ describe("accountProvisioner", () => {
         error = err;
       }
 
-      expect(error.message).toEqual(
-        "The maximum number of workspaces has been reached"
-      );
+      expect(error.message).toEqual("Invalid authentication");
     });
 
     it("should always use existing team if self-hosted", async () => {

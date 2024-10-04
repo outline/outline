@@ -36,7 +36,7 @@ import Fix from "./decorators/Fix";
     ],
   },
 }))
-@Table({ tableName: "group_users", modelName: "group_user", paranoid: true })
+@Table({ tableName: "group_users", modelName: "group_user" })
 @Fix
 class GroupUser extends Model<
   InferAttributes<GroupUser>,

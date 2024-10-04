@@ -25,7 +25,7 @@ const RealButton = styled(ActionButton)<RealProps>`
   background: ${s("accent")};
   color: ${s("accentText")};
   box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
   height: 32px;
@@ -49,8 +49,8 @@ const RealButton = styled(ActionButton)<RealProps>`
   &:disabled {
     cursor: default;
     pointer-events: none;
-    color: ${(props) => transparentize(0.5, props.theme.accentText)};
-    background: ${(props) => lighten(0.2, props.theme.accent)};
+    color: ${(props) => transparentize(0.3, props.theme.accentText)};
+    background: ${(props) => transparentize(0.1, props.theme.accent)};
 
     svg {
       fill: ${(props) => props.theme.white50};
@@ -105,7 +105,7 @@ const RealButton = styled(ActionButton)<RealProps>`
         background: ${lighten(0.05, props.theme.danger)};
       }
 
-      &.focus-visible {
+      &:focus-visible {
         outline-color: ${darken(0.2, props.theme.danger)} !important;
       }
   `};

@@ -11,19 +11,21 @@ import { CollectionValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import IconPicker from "~/components/IconPicker";
+import Icon from "~/components/Icon";
 import Input from "~/components/Input";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
+import { EmptySelectValue } from "~/types";
+
+const IconPicker = React.lazy(() => import("~/components/IconPicker"));
 
 export interface FormData {
   name: string;
   icon: string;
-  color: string;
+  color: string | null;
   sharing: boolean;
   permission: CollectionPermission | undefined;
 }
@@ -37,7 +39,16 @@ export const CollectionForm = observer(function CollectionForm_({
 }) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
+
   const [hasOpenedIconPicker, setHasOpenedIconPicker] = useBoolean(false);
+
+  const iconColor = React.useMemo(
+    () => collection?.color ?? randomElement(colorPalette),
+    [collection?.color]
+  );
+
+  const fallbackIcon = <Icon value="collection" color={iconColor} />;
+
   const {
     register,
     handleSubmit: formHandleSubmit,
@@ -53,7 +64,7 @@ export const CollectionForm = observer(function CollectionForm_({
       icon: collection?.icon,
       sharing: collection?.sharing ?? true,
       permission: collection?.permission,
-      color: collection?.color ?? randomElement(colorPalette),
+      color: iconColor,
     },
   });
 
@@ -70,20 +81,20 @@ export const CollectionForm = observer(function CollectionForm_({
           "collection"
       );
     }
-  }, [values.name, collection]);
+  }, [collection, hasOpenedIconPicker, setValue, values.name, values.icon]);
 
   React.useEffect(() => {
     setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
   }, [setFocus]);
 
-  const handleIconPickerChange = React.useCallback(
-    (color: string, icon: string) => {
+  const handleIconChange = React.useCallback(
+    (icon: string, color: string | null) => {
       if (icon !== values.icon) {
         setFocus("name");
       }
 
-      setValue("color", color);
       setValue("icon", icon);
+      setValue("color", color);
     },
     [setFocus, setValue, values.icon]
   );
@@ -105,13 +116,16 @@ export const CollectionForm = observer(function CollectionForm_({
             maxLength: CollectionValidation.maxNameLength,
           })}
           prefix={
-            <StyledIconPicker
-              onOpen={setHasOpenedIconPicker}
-              onChange={handleIconPickerChange}
-              initial={values.name[0]}
-              color={values.color}
-              icon={values.icon}
-            />
+            <React.Suspense fallback={fallbackIcon}>
+              <StyledIconPicker
+                icon={values.icon}
+                color={values.color ?? iconColor}
+                initial={values.name[0]}
+                popoverPosition="right"
+                onOpen={setHasOpenedIconPicker}
+                onChange={handleIconChange}
+              />
+            </React.Suspense>
           }
           autoComplete="off"
           autoFocus
@@ -128,8 +142,10 @@ export const CollectionForm = observer(function CollectionForm_({
             <InputSelectPermission
               ref={field.ref}
               value={field.value}
-              onChange={(value: CollectionPermission) => {
-                field.onChange(value);
+              onChange={(
+                value: CollectionPermission | typeof EmptySelectValue
+              ) => {
+                field.onChange(value === EmptySelectValue ? null : value);
               }}
               note={t(
                 "The default access for workspace members, you can share with more users or groups later."
@@ -139,18 +155,16 @@ export const CollectionForm = observer(function CollectionForm_({
         />
       )}
 
-      {team.sharing &&
-        (!collection ||
-          FeatureFlags.isEnabled(Feature.newCollectionSharing)) && (
-          <Switch
-            id="sharing"
-            label={t("Public document sharing")}
-            note={t(
-              "Allow documents within this collection to be shared publicly on the internet."
-            )}
-            {...register("sharing")}
-          />
-        )}
+      {team.sharing && (
+        <Switch
+          id="sharing"
+          label={t("Public document sharing")}
+          note={t(
+            "Allow documents within this collection to be shared publicly on the internet."
+          )}
+          {...register("sharing")}
+        />
+      )}
 
       <Flex justify="flex-end">
         <Button

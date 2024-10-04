@@ -16,7 +16,7 @@ let isReloaded = false;
 export default function useAutoRefresh() {
   const [minutes, setMinutes] = React.useState(0);
   const isVisible = usePageVisibility();
-  const isIdle = useIdle(15 * Minute);
+  const isIdle = useIdle(15 * Minute.ms);
 
   useInterval(() => {
     setMinutes((prev) => prev + 1);
@@ -39,5 +39,5 @@ export default function useAutoRefresh() {
       window.location.reload();
       isReloaded = true;
     }
-  }, Minute);
+  }, Minute.ms);
 }

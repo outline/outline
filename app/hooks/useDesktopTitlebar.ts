@@ -3,7 +3,7 @@ import Desktop from "~/utils/Desktop";
 
 export const useDesktopTitlebar = () => {
   React.useEffect(() => {
-    if (!Desktop.isElectron()) {
+    if (!Desktop.bridge) {
       return;
     }
 
@@ -19,7 +19,7 @@ export const useDesktopTitlebar = () => {
       }
 
       event.preventDefault();
-      await Desktop.bridge.onTitlebarDoubleClick();
+      await Desktop.bridge?.onTitlebarDoubleClick();
     };
 
     window.addEventListener("dblclick", handleDoubleClick);

@@ -1,5 +1,5 @@
 ARG APP_PATH=/opt/outline
-FROM node:20-alpine AS deps
+FROM node:20-slim AS deps
 
 ARG APP_PATH
 WORKDIR $APP_PATH
@@ -17,3 +17,5 @@ RUN rm -rf node_modules
 
 RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
   yarn cache clean
+
+ENV PORT=3000

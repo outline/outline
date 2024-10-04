@@ -9,7 +9,6 @@ import { mergeRefs } from "react-merge-refs";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { AttachmentPreset } from "@shared/types";
-import { Heading } from "@shared/utils/ProsemirrorHelper";
 import { dateLocale, dateToRelative } from "@shared/utils/date";
 import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
@@ -28,6 +27,7 @@ import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
+import Icon from "./Icon";
 
 const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 
@@ -42,21 +42,14 @@ export type Props = Optional<
 > & {
   shareId?: string | undefined;
   embedsDisabled?: boolean;
-  onHeadingsChange?: (headings: Heading[]) => void;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => void;
   editorStyle?: React.CSSProperties;
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
-  const {
-    id,
-    shareId,
-    onChange,
-    onHeadingsChange,
-    onCreateCommentMark,
-    onDeleteCommentMark,
-  } = props;
+  const { id, shareId, onChange, onCreateCommentMark, onDeleteCommentMark } =
+    props;
   const userLocale = useUserLocale();
   const locale = dateLocale(userLocale);
   const { comments, documents } = useStores();
@@ -64,7 +57,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const embeds = useEmbeds(!shareId);
   const localRef = React.useRef<SharedEditor>();
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
-  const previousHeadings = React.useRef<Heading[] | null>(null);
   const previousCommentIds = React.useRef<string[]>();
 
   const handleSearchLink = React.useCallback(
@@ -89,6 +81,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
               title: document.title,
               subtitle: `Updated ${time}`,
               url: document.url,
+              icon: document.icon ? (
+                <Icon
+                  value={document.icon}
+                  color={document.color ?? undefined}
+                />
+              ) : undefined,
             },
           ];
         } catch (error) {
@@ -107,6 +105,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           title: document.title,
           subtitle: <DocumentBreadcrumb document={document} onlyText />,
           url: document.url,
+          icon: document.icon ? (
+            <Icon value={document.icon} color={document.color ?? undefined} />
+          ) : undefined,
         })),
         (document) =>
           deburr(document.title)
@@ -202,21 +203,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     []
   );
 
-  // Calculate if headings have changed and trigger callback if so
-  const updateHeadings = React.useCallback(() => {
-    if (onHeadingsChange) {
-      const headings = localRef?.current?.getHeadings();
-      if (
-        headings &&
-        headings.map((h) => h.level + h.title).join("") !==
-          previousHeadings.current?.map((h) => h.level + h.title).join("")
-      ) {
-        previousHeadings.current = headings;
-        onHeadingsChange(headings);
-      }
-    }
-  }, [localRef, onHeadingsChange]);
-
   const updateComments = React.useCallback(() => {
     if (onCreateCommentMark && onDeleteCommentMark && localRef.current) {
       const commentMarks = localRef.current.getComments();
@@ -251,20 +237,18 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const handleChange = React.useCallback(
     (event) => {
       onChange?.(event);
-      updateHeadings();
       updateComments();
     },
-    [onChange, updateComments, updateHeadings]
+    [onChange, updateComments]
   );
 
   const handleRefChanged = React.useCallback(
     (node: SharedEditor | null) => {
       if (node) {
-        updateHeadings();
         updateComments();
       }
     },
-    [updateComments, updateHeadings]
+    [updateComments]
   );
 
   return (

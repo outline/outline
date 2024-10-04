@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CommentStatusFilter } from "@shared/types";
 import { BaseSchema, ProsemirrorSchema } from "@server/routes/api/schema";
 
 const BaseIdSchema = z.object({
@@ -32,7 +33,7 @@ export const CommentsCreateSchema = BaseSchema.extend({
     parentCommentId: z.string().uuid().optional(),
 
     /** Create comment with this data */
-    data: ProsemirrorSchema,
+    data: ProsemirrorSchema(),
   }),
 });
 
@@ -41,7 +42,7 @@ export type CommentsCreateReq = z.infer<typeof CommentsCreateSchema>;
 export const CommentsUpdateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Update comment with this data */
-    data: ProsemirrorSchema,
+    data: ProsemirrorSchema(),
   }),
 });
 
@@ -57,7 +58,12 @@ export const CommentsListSchema = BaseSchema.extend({
   body: CommentsSortParamsSchema.extend({
     /** Id of a document to list comments for */
     documentId: z.string().optional(),
-    collectionId: z.string().uuid().optional(),
+    /** Id of a collection to list comments for */
+    collectionId: z.string().optional(),
+    /** Id of a parent comment to list comments for */
+    parentCommentId: z.string().uuid().optional(),
+    /** Comment statuses to include in results */
+    statusFilter: z.nativeEnum(CommentStatusFilter).array().optional(),
   }),
 });
 
@@ -68,3 +74,15 @@ export const CommentsInfoSchema = z.object({
 });
 
 export type CommentsInfoReq = z.infer<typeof CommentsInfoSchema>;
+
+export const CommentsResolveSchema = z.object({
+  body: BaseIdSchema,
+});
+
+export type CommentsResolveReq = z.infer<typeof CommentsResolveSchema>;
+
+export const CommentsUnresolveSchema = z.object({
+  body: BaseIdSchema,
+});
+
+export type CommentsUnresolveReq = z.infer<typeof CommentsUnresolveSchema>;

@@ -15,7 +15,9 @@ export const ListItem = styled(BaseListItem).attrs({
   padding: 6px 16px;
   border-radius: 8px;
 
-  &: ${hover} ${InviteIcon} {
+  &: ${hover} ${InviteIcon},
+  &:focus ${InviteIcon},
+  &:focus-within ${InviteIcon} {
     opacity: 1;
   }
 `;

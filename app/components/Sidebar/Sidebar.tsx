@@ -4,16 +4,17 @@ import { useLocation } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
+import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMenuContext from "~/hooks/useMenuContext";
+import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
 import { fadeOnDesktopBackgrounded } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
-import Avatar from "../Avatar";
 import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
 import ResizeBorder from "./components/ResizeBorder";
@@ -24,11 +25,12 @@ const ANIMATION_MS = 250;
 
 type Props = {
   children: React.ReactNode;
+  hidden?: boolean;
   className?: string;
 };
 
 const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
-  { children, className }: Props,
+  { children, hidden = false, className }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
@@ -38,6 +40,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   const previousLocation = usePrevious(location);
   const { isMenuOpen } = useMenuContext();
   const user = useCurrentUser({ rejectOnEmpty: false });
+  const isMobile = useMobile();
   const width = ui.sidebarWidth;
   const collapsed = ui.sidebarIsClosed && !isMenuOpen;
   const maxWidth = theme.sidebarMaxWidth;
@@ -93,6 +96,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
   const handleMouseDown = React.useCallback(
     (event) => {
+      event.preventDefault();
       setOffset(event.pageX - width);
       setResizing(true);
       setAnimating(false);
@@ -142,8 +146,11 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
   React.useEffect(() => {
     if (isResizing) {
+      document.body.style.cursor = "col-resize";
       document.addEventListener("mousemove", handleDrag);
       document.addEventListener("mouseup", handleStopDrag);
+    } else {
+      document.body.style.cursor = "initial";
     }
 
     return () => {
@@ -178,11 +185,13 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       <Container
         ref={ref}
         style={style}
+        $hidden={hidden}
         $isHovering={isHovering}
         $isAnimating={isAnimating}
         $isSmallerThanMinimum={isSmallerThanMinimum}
         $mobileSidebarVisible={ui.mobileSidebarVisible}
         $collapsed={collapsed}
+        $isMobile={isMobile}
         className={className}
         onPointerMove={handlePointerMove}
         onPointerLeave={handlePointerLeave}
@@ -249,6 +258,8 @@ type ContainerProps = {
   $isSmallerThanMinimum: boolean;
   $isHovering: boolean;
   $collapsed: boolean;
+  $hidden: boolean;
+  $isMobile: boolean;
 };
 
 const hoverStyles = (props: ContainerProps) => `
@@ -272,8 +283,7 @@ const Container = styled(Flex)<ContainerProps>`
   bottom: 0;
   width: 100%;
   background: ${s("sidebarBackground")};
-  transition: box-shadow 100ms ease-in-out, opacity 100ms ease-in-out,
-    transform 100ms ease-out,
+  transition: box-shadow 150ms ease-in-out, transform 150ms ease-out,
     ${s("backgroundTransition")}
       ${(props: ContainerProps) =>
         props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
@@ -291,7 +301,20 @@ const Container = styled(Flex)<ContainerProps>`
   }
 
   & > div {
-    opacity: ${(props) => (props.$collapsed && !props.$isHovering ? "0" : "1")};
+    transition: opacity 150ms ease-in-out;
+    opacity: ${(props) => {
+      if (props.$hidden) {
+        return "0";
+      }
+      if (props.$isHovering) {
+        return "1";
+      }
+      if (props.$isMobile) {
+        return props.$mobileSidebarVisible ? "1" : "0";
+      } else {
+        return props.$collapsed ? "0" : "1";
+      }
+    }};
   }
 
   ${breakpoint("tablet")`
@@ -316,7 +339,7 @@ const Container = styled(Flex)<ContainerProps>`
 
       & > div {
         opacity: 1;
-      }    
+      }
     }
   `};
 `;

@@ -10,20 +10,20 @@ import { Document, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 
 type Props = {
-  /** The document ID to update */
+  /** The document ID to update. */
   documentId: string;
-  /** Current collaobrative state */
+  /** Current collaobrative state. */
   ydoc: Y.Doc;
-  /** The user ID that is performing the update, if known */
-  userId?: string;
-  /** Whether the last connection to the document left */
+  /** The user IDs that have modified the document since it was last persisted. */
+  sessionCollaboratorIds: string[];
+  /** Whether the last connection to the document left. */
   isLastConnection: boolean;
 };
 
 export default async function documentCollaborativeUpdater({
   documentId,
   ydoc,
-  userId,
+  sessionCollaboratorIds,
   isLastConnection,
 }: Props) {
   return sequelize.transaction(async (transaction) => {
@@ -47,7 +47,9 @@ export default async function documentCollaborativeUpdater({
     const node = Node.fromJSON(schema, content);
     const text = serializer.serialize(node, undefined);
     const isUnchanged = isEqual(document.content, content);
-    const lastModifiedById = userId ?? document.lastModifiedById;
+    const lastModifiedById =
+      sessionCollaboratorIds[sessionCollaboratorIds.length - 1] ??
+      document.lastModifiedById;
 
     if (isUnchanged) {
       return;
@@ -61,7 +63,11 @@ export default async function documentCollaborativeUpdater({
     // extract collaborators from doc user data
     const pud = new Y.PermanentUserData(ydoc);
     const pudIds = Array.from(pud.clients.values());
-    const collaboratorIds = uniq([...document.collaboratorIds, ...pudIds]);
+    const collaboratorIds = uniq([
+      ...document.collaboratorIds,
+      ...sessionCollaboratorIds,
+      ...pudIds,
+    ]);
 
     await document.update(
       {

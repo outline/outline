@@ -3,9 +3,8 @@ import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import User from "~/models/User";
-import Avatar from "~/components/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
-import { AvatarSize } from "./Avatar/Avatar";
 
 type Props = {
   users: User[];

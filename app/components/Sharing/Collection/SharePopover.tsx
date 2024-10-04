@@ -1,18 +1,15 @@
 import { isEmail } from "class-validator";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { BackIcon, UserIcon } from "outline-icons";
+import { BackIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useTheme } from "styled-components";
-import Squircle from "@shared/components/Squircle";
 import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
 import Group from "~/models/Group";
 import User from "~/models/User";
-import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
-import InputSelectPermission from "~/components/InputSelectPermission";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import NudeButton from "~/components/NudeButton";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
@@ -20,16 +17,16 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
+import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
-import { EmptySelectValue, Permission } from "~/types";
+import { Permission } from "~/types";
 import { collectionPath, urlify } from "~/utils/routeHelpers";
 import { Wrapper, presence } from "../components";
 import { CopyLinkButton } from "../components/CopyLinkButton";
-import { ListItem } from "../components/ListItem";
 import { PermissionAction } from "../components/PermissionAction";
 import { SearchInput } from "../components/SearchInput";
 import { Suggestions } from "../components/Suggestions";
-import CollectionMemberList from "./CollectionMemberList";
+import { AccessControlList } from "./AccessControlList";
 
 type Props = {
   /** The collection to share. */
@@ -41,10 +38,8 @@ type Props = {
 };
 
 function SharePopover({ collection, visible, onRequestClose }: Props) {
-  const theme = useTheme();
   const team = useCurrentTeam();
-  const { collectionGroupMemberships, users, groups, memberships } =
-    useStores();
+  const { groupMemberships, users, groups, memberships } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(collection);
   const [query, setQuery] = React.useState("");
@@ -56,9 +51,17 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
     CollectionPermission.Read
   );
 
+  const prevPendingIds = usePrevious(pendingIds);
+
+  const suggestionsRef = React.useRef<HTMLDivElement | null>(null);
+  const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+
   useKeyDown(
     "Escape",
     (ev) => {
+      if (!visible) {
+        return;
+      }
       ev.preventDefault();
       ev.stopImmediatePropagation();
 
@@ -94,6 +97,19 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
     }
   }, [visible]);
 
+  React.useEffect(() => {
+    if (prevPendingIds && pendingIds.length > prevPendingIds.length) {
+      setQuery("");
+      searchInputRef.current?.focus();
+    } else if (prevPendingIds && pendingIds.length < prevPendingIds.length) {
+      const firstPending = suggestionsRef.current?.firstElementChild;
+
+      if (firstPending) {
+        (firstPending as HTMLAnchorElement).focus();
+      }
+    }
+  }, [pendingIds, prevPendingIds]);
+
   const handleQuery = React.useCallback(
     (event) => {
       showPicker();
@@ -114,6 +130,39 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       setPendingIds((prev) => prev.filter((i) => i !== id));
     },
     [setPendingIds]
+  );
+
+  const handleKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      if (ev.nativeEvent.isComposing) {
+        return;
+      }
+      if (ev.key === "ArrowDown" && !ev.shiftKey) {
+        ev.preventDefault();
+
+        if (ev.currentTarget.value) {
+          const length = ev.currentTarget.value.length;
+          const selectionStart = ev.currentTarget.selectionStart || 0;
+          if (selectionStart < length) {
+            ev.currentTarget.selectionStart = length;
+            ev.currentTarget.selectionEnd = length;
+            return;
+          }
+        }
+
+        const firstSuggestion = suggestionsRef.current?.firstElementChild;
+
+        if (firstSuggestion) {
+          (firstSuggestion as HTMLAnchorElement).focus();
+        }
+      }
+    },
+    []
+  );
+
+  const handleEscape = React.useCallback(
+    () => searchInputRef.current?.focus(),
+    []
   );
 
   const inviteAction = React.useMemo(
@@ -151,10 +200,10 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
               }
 
               if (group) {
-                await collectionGroupMemberships.create({
+                await groupMemberships.create({
                   collectionId: collection.id,
                   groupId: group.id,
-                  permission: CollectionPermission.Read,
+                  permission,
                 });
                 return group;
               }
@@ -213,7 +262,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       }),
     [
       collection.id,
-      collectionGroupMemberships,
+      groupMemberships,
       groups,
       hidePicker,
       memberships,
@@ -229,16 +278,16 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
     () =>
       [
         {
-          label: t("Admin"),
-          value: CollectionPermission.Admin,
+          label: t("View only"),
+          value: CollectionPermission.Read,
         },
         {
           label: t("Can edit"),
           value: CollectionPermission.ReadWrite,
         },
         {
-          label: t("View only"),
-          value: CollectionPermission.Read,
+          label: t("Manage"),
+          value: CollectionPermission.Admin,
         },
       ] as Permission[],
     [t]
@@ -289,8 +338,10 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
     <Wrapper>
       {can.update && (
         <SearchInput
+          ref={searchInputRef}
           onChange={handleQuery}
           onClick={showPicker}
+          onKeyDown={handleKeyDown}
           query={query}
           back={backButton}
           action={rightButton}
@@ -298,47 +349,19 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       )}
 
       {picker && (
-        <div>
-          <Suggestions
-            query={query}
-            collection={collection}
-            pendingIds={pendingIds}
-            addPendingId={handleAddPendingId}
-            removePendingId={handleRemovePendingId}
-          />
-        </div>
+        <Suggestions
+          ref={suggestionsRef}
+          query={query}
+          collection={collection}
+          pendingIds={pendingIds}
+          addPendingId={handleAddPendingId}
+          removePendingId={handleRemovePendingId}
+          onEscape={handleEscape}
+        />
       )}
 
       <div style={{ display: picker ? "none" : "block" }}>
-        <ListItem
-          image={
-            <Squircle color={theme.accent} size={AvatarSize.Medium}>
-              <UserIcon color={theme.accentText} size={16} />
-            </Squircle>
-          }
-          title={t("All members")}
-          subtitle={t("Everyone in the workspace")}
-          actions={
-            <div style={{ marginRight: -8 }}>
-              <InputSelectPermission
-                style={{ margin: 0 }}
-                onChange={(
-                  value: CollectionPermission | typeof EmptySelectValue
-                ) => {
-                  void collection.save({
-                    permission: value === EmptySelectValue ? null : value,
-                  });
-                }}
-                disabled={!can.update}
-                value={collection?.permission}
-                labelHidden
-                nude
-              />
-            </div>
-          }
-        />
-
-        <CollectionMemberList
+        <AccessControlList
           collection={collection}
           invitedInSession={invitedInSession}
         />

@@ -12,13 +12,13 @@ export default function init() {
     }
   }
 
-  setInterval(() => void run(TaskSchedule.Daily), Day);
-  setInterval(() => void run(TaskSchedule.Hourly), Hour);
+  setInterval(() => void run(TaskSchedule.Daily), Day.ms);
+  setInterval(() => void run(TaskSchedule.Hourly), Hour.ms);
 
   // Just give everything time to startup before running the first time. Not
   // _technically_ required to function.
   setTimeout(() => {
     void run(TaskSchedule.Daily);
     void run(TaskSchedule.Hourly);
-  }, 30 * Second);
+  }, 30 * Second.ms);
 }

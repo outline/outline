@@ -1,5 +1,6 @@
 import { FetchError } from "node-fetch";
 import { Op } from "sequelize";
+import { colorPalette } from "@shared/utils/collections";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -19,7 +20,7 @@ import {
   View,
   Share,
   UserMembership,
-  GroupPermission,
+  GroupMembership,
   GroupUser,
   Comment,
 } from "@server/models";
@@ -37,8 +38,8 @@ import {
   presentView,
   presentShare,
   presentMembership,
+  presentGroupUser,
   presentGroupMembership,
-  presentCollectionGroupMembership,
   presentComment,
 } from "@server/presenters";
 import BaseTask from "@server/queues/tasks/BaseTask";
@@ -49,6 +50,7 @@ import {
   CommentEvent,
   DocumentEvent,
   DocumentUserEvent,
+  DocumentGroupEvent,
   Event,
   FileOperationEvent,
   GroupEvent,
@@ -69,7 +71,7 @@ import presentWebhook, { WebhookPayload } from "../presenters/webhook";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
 
 function assertUnreachable(event: never) {
-  Logger.warn(`DeliverWebhookTask did not handle ${(event as any).name}`);
+  Logger.warn(`DeliverWebhookTask did not handle ${(event as Event).name}`);
 }
 
 type Props = {
@@ -137,8 +139,13 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "documents.remove_user":
         await this.handleDocumentUserEvent(subscription, event);
         return;
+      case "documents.add_group":
+      case "documents.remove_group":
+        await this.handleDocumentGroupEvent(subscription, event);
+        return;
       case "documents.update.delayed":
       case "documents.update.debounced":
+      case "documents.empty_trash":
         // Ignored
         return;
       case "revisions.create":
@@ -386,7 +393,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: event.modelId,
-        model: model && presentGroup(model),
+        model: model && (await presentGroup(model)),
       },
     });
   }
@@ -408,8 +415,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: `${event.userId}-${event.modelId}`,
-        model: model && presentGroupMembership(model),
-        group: model && presentGroup(model.group),
+        model: model && presentGroupUser(model),
+        group: model && (await presentGroup(model.group)),
         user: model && presentUser(model.user),
       },
     });
@@ -423,12 +430,18 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       paranoid: false,
     });
 
+    const collection = model && (await presentCollection(undefined, model));
+    if (collection) {
+      // For backward compatibility, set a default color.
+      collection.color = collection.color ?? colorPalette[0];
+    }
+
     await this.sendWebhook({
       event,
       subscription,
       payload: {
         id: event.collectionId,
-        model: model && (await presentCollection(undefined, model)),
+        model: collection,
       },
     });
   }
@@ -448,14 +461,20 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       paranoid: false,
     });
 
+    const collection =
+      model && (await presentCollection(undefined, model.collection!));
+    if (collection) {
+      // For backward compatibility, set a default color.
+      collection.color = collection.color ?? colorPalette[0];
+    }
+
     await this.sendWebhook({
       event,
       subscription,
       payload: {
         id: event.modelId,
         model: model && presentMembership(model),
-        collection:
-          model && (await presentCollection(undefined, model.collection!)),
+        collection,
         user: model && presentUser(model.user),
       },
     });
@@ -465,7 +484,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CollectionGroupEvent
   ): Promise<void> {
-    const model = await GroupPermission.scope([
+    const model = await GroupMembership.scope([
       "withGroup",
       "withCollection",
     ]).findOne({
@@ -476,15 +495,21 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       paranoid: false,
     });
 
+    const collection =
+      model && (await presentCollection(undefined, model.collection!));
+    if (collection) {
+      // For backward compatibility, set a default color.
+      collection.color = collection.color ?? colorPalette[0];
+    }
+
     await this.sendWebhook({
       event,
       subscription,
       payload: {
         id: event.modelId,
-        model: model && presentCollectionGroupMembership(model),
-        collection:
-          model && (await presentCollection(undefined, model.collection!)),
-        group: model && presentGroup(model.group),
+        model: model && presentGroupMembership(model),
+        collection,
+        group: model && (await presentGroup(model.group)),
       },
     });
   }
@@ -520,7 +545,12 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       payload: {
         id: event.documentId,
-        model: model && (await presentDocument(undefined, model)),
+        model:
+          model &&
+          (await presentDocument(undefined, model, {
+            includeData: true,
+            includeText: true,
+          })),
       },
     });
   }
@@ -546,8 +576,43 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: event.modelId,
         model: model && presentMembership(model),
-        document: model && (await presentDocument(undefined, model.document!)),
+        document:
+          model &&
+          (await presentDocument(undefined, model.document!, {
+            includeData: true,
+            includeText: true,
+          })),
         user: model && presentUser(model.user),
+      },
+    });
+  }
+
+  private async handleDocumentGroupEvent(
+    subscription: WebhookSubscription,
+    event: DocumentGroupEvent
+  ): Promise<void> {
+    const model = await GroupMembership.scope([
+      "withGroup",
+      "withDocument",
+    ]).findOne({
+      where: {
+        documentId: event.documentId,
+        groupId: event.modelId,
+      },
+      paranoid: false,
+    });
+
+    const document =
+      model && (await presentDocument(undefined, model.document!));
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: event.modelId,
+        model: model && presentGroupMembership(model),
+        document,
+        group: model && (await presentGroup(model.group)),
       },
     });
   }

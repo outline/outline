@@ -1,15 +1,21 @@
 import * as React from "react";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import { usePortalContext } from "~/components/Portal";
 
 export type Props = {
+  /** Whether the item is selected */
   selected: boolean;
+  /** Whether the item is disabled */
   disabled?: boolean;
-  onClick: () => void;
+  /** Callback when the item is clicked */
+  onClick: (event: React.SyntheticEvent) => void;
+  /** An optional icon for the item */
   icon?: React.ReactElement;
+  /** The title of the item */
   title: React.ReactNode;
+  /** A string representing the keyboard shortcut for the item */
   shortcut?: string;
 };
 
@@ -25,7 +31,7 @@ function SuggestionsMenuItem({
   const ref = React.useCallback(
     (node) => {
       if (selected && node) {
-        void scrollIntoView(node, {
+        scrollIntoView(node, {
           scrollMode: "if-needed",
           block: "nearest",
           boundary: (parent) =>
