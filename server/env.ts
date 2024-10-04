@@ -201,6 +201,8 @@ export class Environment {
   @IsOptional()
   public PORT = this.toOptionalNumber(environment.PORT) ?? 3000;
 
+  public HOSTNAME = environment.HOSTNAME ?? "localhost";
+
   /**
    * Optional extra debugging. Comma separated
    */

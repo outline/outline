@@ -159,7 +159,7 @@ async function start(_id: number, disconnect: () => void) {
     );
   });
 
-  server.listen(normalizedPort);
+  server.listen(normalizedPort, env.HOSTNAME || "localhost");
   server.setTimeout(env.REQUEST_TIMEOUT);
 
   ShutdownHelper.add(
