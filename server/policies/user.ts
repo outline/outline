@@ -23,9 +23,16 @@ allow(User, "inviteUser", Team, (actor, team) =>
   )
 );
 
-allow(User, ["update", "delete", "readDetails"], User, (actor, user) =>
+allow(User, ["update", "readDetails"], User, (actor, user) =>
   or(
     //
+    isTeamAdmin(actor, user),
+    actor.id === user?.id
+  )
+);
+
+allow(User, "delete", User, (actor, user) =>
+  or(
     isTeamAdmin(actor, user),
     and(
       actor.id === user?.id,
