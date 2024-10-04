@@ -30,6 +30,7 @@ function isAttachment(token: Token) {
     href?.startsWith("/api/attachments.redirect") ||
     href?.startsWith("/api/files.get") ||
     href?.startsWith(`${env.URL}/api/files.get`) ||
+    href?.startsWith(`${env.URL}/api/attachments.redirect`) ||
     ((href?.startsWith(env.AWS_S3_UPLOAD_BUCKET_URL) ||
       href?.startsWith(env.AWS_S3_ACCELERATE_URL)) &&
       href?.includes("X-Amz-Signature"))

@@ -192,7 +192,7 @@ class Attachment extends IdModel<
    * @returns The redirect URL for the attachment.
    */
   static getRedirectUrl(id: string) {
-    return `/api/attachments.redirect?id=${id}`;
+    return `${env.URL}/api/attachments.redirect?id=${id}`;
   }
 
   // associations
