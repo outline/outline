@@ -218,29 +218,31 @@ export const archiveCollection = createAction({
   },
   perform: async ({ activeCollectionId, stores, t }) => {
     const { dialogs, collections } = stores;
-    if (activeCollectionId) {
-      const collection = collections.get(activeCollectionId);
-      if (!collection) {
-        return;
-      }
-
-      dialogs.openModal({
-        title: t("Are you sure you want to archive this collection?"),
-        content: (
-          <ConfirmationDialog
-            onSubmit={async () => {
-              await collection.archive();
-              toast.success(t("Collection archived"));
-            }}
-            savingText={`${t("Archiving")}…`}
-          >
-            {t(
-              "Archiving this collection will also archive all documents within it. Archived collection and its documents will no longer be visible in search results."
-            )}
-          </ConfirmationDialog>
-        ),
-      });
+    if (!activeCollectionId) {
+      return;
     }
+    const collection = collections.get(activeCollectionId);
+    if (!collection) {
+      return;
+    }
+
+    dialogs.openModal({
+      title: t("Are you sure you want to archive this collection?"),
+      content: (
+        <ConfirmationDialog
+          onSubmit={async () => {
+            await collection.archive();
+            toast.success(t("Collection archived"));
+          }}
+          submitText={t("Archive")}
+          savingText={`${t("Archiving")}…`}
+        >
+          {t(
+            "Archiving this collection will also archive all documents within it. Archived collection and its documents will no longer be visible in search results."
+          )}
+        </ConfirmationDialog>
+      ),
+    });
   },
 });
 
@@ -256,15 +258,16 @@ export const restoreCollection = createAction({
     return !!stores.policies.abilities(activeCollectionId).restore;
   },
   perform: async ({ activeCollectionId, stores, t }) => {
-    if (activeCollectionId) {
-      const collection = stores.collections.get(activeCollectionId);
-      if (!collection) {
-        return;
-      }
-
-      await collection.restore();
-      toast.success(t("Collection restored"));
+    if (!activeCollectionId) {
+      return;
     }
+    const collection = stores.collections.get(activeCollectionId);
+    if (!collection) {
+      return;
+    }
+
+    await collection.restore();
+    toast.success(t("Collection restored"));
   },
 });
 
