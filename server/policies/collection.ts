@@ -106,11 +106,7 @@ allow(User, "share", Collection, (user, collection) => {
 });
 
 allow(User, "updateDocument", Collection, (user, collection) => {
-  if (
-    !collection ||
-    !user.isMemberOf(collection.teamId) ||
-    !isTeamMutable(user)
-  ) {
+  if (!collection || !isTeamModel(user, collection) || !isTeamMutable(user)) {
     return false;
   }
 
@@ -140,7 +136,7 @@ allow(
     if (
       !collection ||
       !collection.isActive ||
-      !user.isMemberOf(collection.teamId) ||
+      !isTeamModel(user, collection) ||
       !isTeamMutable(user)
     ) {
       return false;
@@ -170,7 +166,7 @@ allow(User, ["update", "archive"], Collection, (user, collection) =>
     !!collection,
     !!collection?.isActive,
     or(
-      user.isTeamAdmin(collection?.teamId),
+      isTeamAdmin(user, collection),
       includesMembership(collection, [CollectionPermission.Admin])
     )
   )
@@ -181,7 +177,7 @@ allow(User, "delete", Collection, (user, collection) =>
     !!collection,
     !collection?.deletedAt,
     or(
-      user.isTeamAdmin(collection?.teamId),
+      isTeamAdmin(user, collection),
       includesMembership(collection, [CollectionPermission.Admin])
     )
   )
@@ -192,7 +188,7 @@ allow(User, "restore", Collection, (user, collection) =>
     !!collection,
     !collection?.isActive,
     or(
-      user.isTeamAdmin(collection?.teamId),
+      isTeamAdmin(user, collection),
       includesMembership(collection, [CollectionPermission.Admin])
     )
   )
