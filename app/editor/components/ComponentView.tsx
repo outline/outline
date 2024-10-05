@@ -1,29 +1,51 @@
 import { Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorView, Decoration } from "prosemirror-view";
-import * as React from "react";
-import ReactDOM from "react-dom";
-import { ThemeProvider } from "styled-components";
+import { FunctionComponent } from "react";
 import Extension from "@shared/editor/lib/Extension";
 import { ComponentProps } from "@shared/editor/types";
 import { Editor } from "~/editor";
+import { NodeViewRenderer } from "./NodeViewRenderer";
 
-type Component = (props: ComponentProps) => React.ReactElement;
+type ComponentViewConstructor = {
+  /** The editor instance. */
+  editor: Editor;
+  /** The extension the view belongs to. */
+  extension: Extension;
+  /** The node that the view is responsible for. */
+  node: ProsemirrorNode;
+  /** The editor view instance. */
+  view: EditorView;
+  /** A function that returns the current position of the node. */
+  getPos: () => number;
+  /** The decorations applied to the node. */
+  decorations: Decoration[];
+};
 
 export default class ComponentView {
-  component: Component;
+  /** The React component to render. */
+  component: FunctionComponent<ComponentProps>;
+  /** The editor instance. */
   editor: Editor;
+  /** The extension the view belongs to. */
   extension: Extension;
+  /** The node that the view is responsible for. */
   node: ProsemirrorNode;
+  /** The editor view instance. */
   view: EditorView;
+  /** A function that returns the current position of the node. */
   getPos: () => number;
+  /** The decorations applied to the node. */
   decorations: Decoration[];
-
+  /** The renderer instance. */
+  renderer: NodeViewRenderer<ComponentProps>;
+  /** Whether the node is selected. */
   isSelected = false;
+  /** The DOM element that the node is rendered into. */
   dom: HTMLElement | null;
 
   // See https://prosemirror.net/docs/ref/#view.NodeView
   constructor(
-    component: Component,
+    component: FunctionComponent<ComponentProps>,
     {
       editor,
       extension,
@@ -31,14 +53,7 @@ export default class ComponentView {
       view,
       getPos,
       decorations,
-    }: {
-      editor: Editor;
-      extension: Extension;
-      node: ProsemirrorNode;
-      view: EditorView;
-      getPos: () => number;
-      decorations: Decoration[];
-    }
+    }: ComponentViewConstructor
   ) {
     this.component = component;
     this.editor = editor;
@@ -52,29 +67,11 @@ export default class ComponentView {
       : document.createElement("div");
 
     this.dom.classList.add(`component-${node.type.name}`);
+    this.renderer = new NodeViewRenderer(this.dom, this.component, this.props);
 
-    this.renderElement();
-    window.addEventListener("theme-changed", this.renderElement);
-    window.addEventListener("location-changed", this.renderElement);
+    // Add the renderer to the editor's set of renderers so that it is included in the React tree.
+    this.editor.renderers.add(this.renderer);
   }
-
-  renderElement = () => {
-    const { theme } = this.editor.props;
-
-    const children = this.component({
-      theme,
-      node: this.node,
-      view: this.view,
-      isSelected: this.isSelected,
-      isEditable: this.view.editable,
-      getPos: this.getPos,
-    });
-
-    ReactDOM.render(
-      <ThemeProvider theme={theme}>{children}</ThemeProvider>,
-      this.dom
-    );
-  };
 
   update(node: ProsemirrorNode) {
     if (node.type !== this.node.type) {
@@ -82,21 +79,21 @@ export default class ComponentView {
     }
 
     this.node = node;
-    this.renderElement();
+    this.renderer.updateProps(this.props);
     return true;
   }
 
   selectNode() {
     if (this.view.editable) {
       this.isSelected = true;
-      this.renderElement();
+      this.renderer.updateProps(this.props);
     }
   }
 
   deselectNode() {
     if (this.view.editable) {
       this.isSelected = false;
-      this.renderElement();
+      this.renderer.updateProps(this.props);
     }
   }
 
@@ -105,16 +102,21 @@ export default class ComponentView {
   }
 
   destroy() {
-    window.removeEventListener("theme-changed", this.renderElement);
-    window.removeEventListener("location-changed", this.renderElement);
-
-    if (this.dom) {
-      ReactDOM.unmountComponentAtNode(this.dom);
-    }
+    this.editor.renderers.delete(this.renderer);
     this.dom = null;
   }
 
   ignoreMutation() {
     return true;
+  }
+
+  get props() {
+    return {
+      node: this.node,
+      view: this.view,
+      isSelected: this.isSelected,
+      isEditable: this.view.editable,
+      getPos: this.getPos,
+    } as ComponentProps;
   }
 }
