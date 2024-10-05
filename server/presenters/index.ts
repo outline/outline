@@ -10,6 +10,7 @@ import presentFileOperation from "./fileOperation";
 import presentGroup from "./group";
 import presentGroupMembership from "./groupMembership";
 import presentGroupUser from "./groupUser";
+import presentInstallationInfo from "./installation";
 import presentIntegration from "./integration";
 import presentMembership from "./membership";
 import presentPin from "./pin";
@@ -38,6 +39,7 @@ export {
   presentGroup,
   presentGroupUser,
   presentGroupMembership,
+  presentInstallationInfo,
   presentIntegration,
   presentMembership,
   presentPublicTeam,

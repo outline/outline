@@ -20,6 +20,7 @@ import events from "./events";
 import fileOperationsRoute from "./fileOperations";
 import groupMemberships from "./groupMemberships";
 import groups from "./groups";
+import installation from "./installation";
 import integrations from "./integrations";
 import apiResponse from "./middlewares/apiResponse";
 import apiTracer from "./middlewares/apiTracer";
@@ -90,6 +91,10 @@ router.use("/", groupMemberships.routes());
 router.use("/", fileOperationsRoute.routes());
 router.use("/", urls.routes());
 router.use("/", userMemberships.routes());
+
+if (!env.isCloudHosted) {
+  router.use("/", installation.routes());
+}
 
 if (env.isDevelopment) {
   router.use("/", developer.routes());
