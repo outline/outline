@@ -190,7 +190,7 @@ export type DocumentEvent = BaseEvent<Document> &
         data: {
           title: string;
           /** Id of collection from which the document is unarchived */
-          srcCollectionId: string;
+          sourceCollectionId: string;
         };
       }
     | {

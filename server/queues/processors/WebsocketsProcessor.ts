@@ -76,7 +76,9 @@ export default class WebsocketsProcessor {
       case "documents.unarchive": {
         const [document, srcCollection] = await Promise.all([
           Document.findByPk(event.documentId, { paranoid: false }),
-          Collection.findByPk(event.data.srcCollectionId, { paranoid: false }),
+          Collection.findByPk(event.data.sourceCollectionId, {
+            paranoid: false,
+          }),
         ]);
         if (!document || !srcCollection) {
           return;

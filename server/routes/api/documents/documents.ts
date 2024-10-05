@@ -811,13 +811,13 @@ router.post(
       transaction,
     });
 
-    const srcCollectionId = document.collectionId;
-    const destCollectionId = collectionId ?? srcCollectionId;
+    const sourceCollectionId = document.collectionId;
+    const destCollectionId = collectionId ?? sourceCollectionId;
 
-    const srcCollection = srcCollectionId
+    const srcCollection = sourceCollectionId
       ? await Collection.scope({
           method: ["withMembership", user.id],
-        }).findByPk(srcCollectionId)
+        }).findByPk(sourceCollectionId)
       : undefined;
 
     const destCollection = destCollectionId
@@ -832,7 +832,7 @@ router.post(
       );
     }
 
-    if (srcCollectionId !== destCollectionId) {
+    if (sourceCollectionId !== destCollectionId) {
       authorize(user, "updateDocument", srcCollection);
       await srcCollection?.removeDocumentInStructure(document, {
         save: true,
@@ -872,7 +872,7 @@ router.post(
           collectionId: document.collectionId,
           data: {
             title: document.title,
-            srcCollectionId,
+            sourceCollectionId,
           },
         },
         { transaction }
