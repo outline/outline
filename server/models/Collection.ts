@@ -10,6 +10,7 @@ import {
   NonNullFindOptions,
   InferAttributes,
   InferCreationAttributes,
+  EmptyResultError,
 } from "sequelize";
 import {
   Sequelize,
@@ -55,6 +56,10 @@ import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
+
+type AdditionalFindOptions = {
+  rejectOnEmpty?: boolean | Error;
+};
 
 @Scopes(() => ({
   withAllMemberships: {
@@ -422,37 +427,51 @@ class Collection extends ParanoidModel<
    */
   static async findByPk(
     id: Identifier,
-    options?: NonNullFindOptions<Collection>
+    options?: NonNullFindOptions<Collection> & AdditionalFindOptions
   ): Promise<Collection>;
   static async findByPk(
     id: Identifier,
-    options?: FindOptions<Collection>
+    options?: FindOptions<Collection> & AdditionalFindOptions
   ): Promise<Collection | null>;
   static async findByPk(
     id: Identifier,
-    options: FindOptions<Collection> = {}
+    options: FindOptions<Collection> & AdditionalFindOptions = {}
   ): Promise<Collection | null> {
     if (typeof id !== "string") {
       return null;
     }
 
     if (isUUID(id)) {
-      return this.findOne({
+      const collection = await this.findOne({
         where: {
           id,
         },
         ...options,
+        rejectOnEmpty: false,
       });
+
+      if (!collection && options.rejectOnEmpty) {
+        throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
+      }
+
+      return collection;
     }
 
     const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
-      return this.findOne({
+      const collection = await this.findOne({
         where: {
           urlId: match[1],
         },
         ...options,
+        rejectOnEmpty: false,
       });
+
+      if (!collection && options.rejectOnEmpty) {
+        throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
+      }
+
+      return collection;
     }
 
     return null;

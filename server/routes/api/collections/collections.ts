@@ -12,7 +12,6 @@ import collectionDestroyer from "@server/commands/collectionDestroyer";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import { parser } from "@server/editor";
-import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -943,11 +942,8 @@ router.post(
       },
     ]).findByPk(id, {
       transaction,
+      rejectOnEmpty: true,
     });
-
-    if (!collection) {
-      throw NotFoundError("Collection not found");
-    }
 
     authorize(user, "archive", collection);
 
@@ -1008,11 +1004,8 @@ router.post(
       method: ["withMembership", user.id],
     }).findByPk(id, {
       transaction,
+      rejectOnEmpty: true,
     });
-
-    if (!collection) {
-      throw NotFoundError("Collection not found");
-    }
 
     authorize(user, "restore", collection);
 
