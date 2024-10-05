@@ -10,7 +10,7 @@ import { MentionType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
-import EmojiIcon from "~/components/Icons/EmojiIcon";
+import Icon from "~/components/Icon";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
@@ -90,8 +90,8 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
         .concat(
           documents.orderedData.map((doc) => ({
             name: "mention",
-            icon: doc.emoji ? (
-              <EmojiIcon emoji={doc.emoji} />
+            icon: doc.icon ? (
+              <Icon value={doc.icon} color={doc.color ?? undefined} />
             ) : (
               <DocumentIcon />
             ),
@@ -114,6 +114,9 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
 
   const handleSelect = React.useCallback(
     async (item: MentionItem) => {
+      if (item.attrs.type === MentionType.Document) {
+        return;
+      }
       // Check if the mentioned user has access to the document
       const res = await client.post("/documents.users", {
         id: documentId,

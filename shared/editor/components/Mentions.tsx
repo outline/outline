@@ -1,10 +1,14 @@
+import { DocumentIcon } from "outline-icons";
 import * as React from "react";
+import Icon from "~/components/Icon";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
+import useStores from "./hooks/useStores";
 
 export function MentionUser(props: ComponentProps) {
-  const { isSelected, stores, node } = props;
-  const user = stores.users.get(node.attrs.modelId);
+  const { isSelected, node } = props;
+  const { users } = useStores();
+  const user = users.get(node.attrs.modelId);
 
   return (
     <span
@@ -20,8 +24,9 @@ export function MentionUser(props: ComponentProps) {
 }
 
 export function MentionDocument(props: ComponentProps) {
-  const { isSelected, stores, node } = props;
-  const doc = stores.documents.get(node.attrs.modelId);
+  const { isSelected, node } = props;
+  const { documents } = useStores();
+  const doc = documents.get(node.attrs.modelId);
 
   return (
     <a
@@ -32,7 +37,12 @@ export function MentionDocument(props: ComponentProps) {
       })}
       href={`/doc/${node.attrs.modelId}`}
     >
-      {doc?.emoji || "+"} {doc?.title || node.attrs.label}
+      {doc?.icon ? (
+        <Icon value={doc.icon} color={doc.color} size={18} />
+      ) : (
+        <DocumentIcon size={18} />
+      )}{" "}
+      {doc?.title || node.attrs.label}
     </a>
   );
 }

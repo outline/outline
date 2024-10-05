@@ -1,3 +1,4 @@
+import { Provider } from "mobx-react";
 import { Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorView, Decoration } from "prosemirror-view";
 import * as React from "react";
@@ -64,7 +65,6 @@ export default class ComponentView {
 
     const children = this.component({
       theme,
-      stores,
       node: this.node,
       view: this.view,
       isSelected: this.isSelected,
@@ -73,7 +73,9 @@ export default class ComponentView {
     });
 
     ReactDOM.render(
-      <ThemeProvider theme={theme}>{children}</ThemeProvider>,
+      <Provider {...stores}>
+        <ThemeProvider theme={theme}>{children}</ThemeProvider>
+      </Provider>,
       this.dom
     );
   };
