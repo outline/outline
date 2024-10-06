@@ -4,7 +4,6 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { CollectionValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
@@ -47,7 +46,6 @@ const CollectionLink: React.FC<Props> = ({
   const [isEditing, setIsEditing] = React.useState(false);
   const can = usePolicy(collection);
   const { t } = useTranslation();
-  const history = useHistory();
   const sidebarContext = useSidebarContext();
   const editableTitleRef = React.useRef<RefHandle>(null);
 
@@ -56,9 +54,8 @@ const CollectionLink: React.FC<Props> = ({
       await collection.save({
         name,
       });
-      history.replace(collection.path, history.location.state);
     },
-    [collection, history]
+    [collection]
   );
 
   // Drop to re-parent document

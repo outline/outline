@@ -41,16 +41,6 @@ function EditableTitle(
     setIsEditing(true);
   }, []);
 
-  const handleKeyDown = React.useCallback(
-    (event) => {
-      if (event.key === "Escape") {
-        setIsEditing(false);
-        setValue(originalValue);
-      }
-    },
-    [originalValue]
-  );
-
   const stopPropagation = React.useCallback((event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -63,6 +53,7 @@ function EditableTitle(
   const handleSave = React.useCallback(
     async (ev) => {
       ev.preventDefault();
+      ev.stopPropagation();
       setIsEditing(false);
       const trimmedValue = value.trim();
 
@@ -83,6 +74,22 @@ function EditableTitle(
       }
     },
     [originalValue, value, onSubmit]
+  );
+
+  const handleKeyDown = React.useCallback(
+    async (ev) => {
+      if (ev.nativeEvent.isComposing) {
+        return;
+      }
+      if (ev.key === "Escape") {
+        setIsEditing(false);
+        setValue(originalValue);
+      }
+      if (ev.key === "Enter") {
+        await handleSave(ev);
+      }
+    },
+    [handleSave, originalValue]
   );
 
   React.useEffect(() => {
