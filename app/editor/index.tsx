@@ -649,6 +649,14 @@ export class Editor extends React.PureComponent<
   public getComments = () => ProsemirrorHelper.getComments(this.view.state.doc);
 
   /**
+   * Return the full-width HTML elements in the current editor.
+   *
+   * @returns A list of full-width HTML elements in the document
+   */
+  public getFullWidthElements = () =>
+    ProsemirrorHelper.getFullWidthElements(this.view);
+
+  /**
    * Remove all marks related to a specific comment from the document.
    *
    * @param commentId The id of the comment to remove
