@@ -60,17 +60,18 @@ function ArchiveLink() {
     setExpanded(true);
   }, []);
 
-  const [{ isOverArchiveSection }, dropToArchiveRef] = useDropToArchive();
+  const [{ isOverArchiveSection, isDragging }, dropToArchiveRef] =
+    useDropToArchive();
 
   return (
     <Flex column>
       <div ref={dropToArchiveRef}>
         <SidebarLink
           to={archivePath()}
-          icon={<ArchiveIcon open={isOverArchiveSection} />}
+          icon={<ArchiveIcon open={isOverArchiveSection && isDragging} />}
           exact={false}
           label={t("Archive")}
-          isActiveDrop={isOverArchiveSection}
+          isActiveDrop={isOverArchiveSection && isDragging}
           depth={0}
           expanded={disclosure ? expanded : undefined}
           onDisclosureClick={handleDisclosureClick}

@@ -444,7 +444,11 @@ export function useDropToArchive() {
   const { documents, collections, policies } = useStores();
   const { t } = useTranslation();
 
-  return useDrop<DragObject, Promise<void>, { isOverArchiveSection: boolean }>({
+  return useDrop<
+    DragObject,
+    Promise<void>,
+    { isOverArchiveSection: boolean; isDragging: boolean }
+  >({
     accept,
     drop: async (item, monitor) => {
       const type = monitor.getItemType();
@@ -455,16 +459,20 @@ export function useDropToArchive() {
       } else {
         model = documents.get(item.id);
       }
-      await model?.archive();
-      toast.success(
-        type === "collection"
-          ? t("Collection archived")
-          : t("Document archived")
-      );
+
+      if (model) {
+        await model.archive();
+        toast.success(
+          type === "collection"
+            ? t("Collection archived")
+            : t("Document archived")
+        );
+      }
     },
     canDrop: (item) => policies.abilities(item.id).archive,
     collect: (monitor) => ({
       isOverArchiveSection: !!monitor.isOver(),
+      isDragging: monitor.canDrop(),
     }),
   });
 }
