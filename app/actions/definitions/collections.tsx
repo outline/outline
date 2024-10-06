@@ -227,7 +227,7 @@ export const archiveCollection = createAction({
     }
 
     dialogs.openModal({
-      title: t("Are you sure you want to archive this collection?"),
+      title: t("Archive collection"),
       content: (
         <ConfirmationDialog
           onSubmit={async () => {
@@ -238,7 +238,7 @@ export const archiveCollection = createAction({
           savingText={`${t("Archiving")}…`}
         >
           {t(
-            "Archiving this collection will also archive all documents within it. Archived collection and its documents will no longer be visible in search results."
+            "Archiving this collection will also archive all documents within it. Documents from the collection will no longer be visible in search results."
           )}
         </ConfirmationDialog>
       ),
