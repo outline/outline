@@ -925,8 +925,7 @@ class Document extends ArchivableModel<
     return this.save(options);
   };
 
-  isCollectionDeleted = async (options?: FindOptions<Collection>) => {
-    const { transaction } = { ...options };
+  isCollectionDeleted = async () => {
     if (this.deletedAt || this.archivedAt) {
       if (this.collectionId) {
         const collection =
@@ -934,7 +933,6 @@ class Document extends ArchivableModel<
           (await Collection.findByPk(this.collectionId, {
             attributes: ["deletedAt"],
             paranoid: false,
-            transaction,
           }));
 
         return !!collection?.deletedAt;

@@ -263,7 +263,7 @@ class Collection extends ParanoidModel<
   })
   sort: CollectionSort;
 
-  /** Whether the collection is archvied, and if so when. */
+  /** Whether the collection is archived, and if so when. */
   @IsDate
   @Column
   archivedAt: Date | null;
