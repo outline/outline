@@ -198,7 +198,7 @@ const IconPicker = ({
                 {...tab}
                 id={TAB_NAMES["Icon"]}
                 aria-label={t("Icons")}
-                active={tab.selectedId === TAB_NAMES["Icon"]}
+                $active={tab.selectedId === TAB_NAMES["Icon"]}
               >
                 {t("Icons")}
               </StyledTab>
@@ -206,7 +206,7 @@ const IconPicker = ({
                 {...tab}
                 id={TAB_NAMES["Emoji"]}
                 aria-label={t("Emojis")}
-                active={tab.selectedId === TAB_NAMES["Emoji"]}
+                $active={tab.selectedId === TAB_NAMES["Emoji"]}
               >
                 {t("Emojis")}
               </StyledTab>
@@ -273,7 +273,7 @@ const TabActionsWrapper = styled(Flex)`
   border-bottom: 1px solid ${s("inputBorder")};
 `;
 
-const StyledTab = styled(Tab)<{ active: boolean }>`
+const StyledTab = styled(Tab)<{ $active: boolean }>`
   position: relative;
   font-weight: 500;
   font-size: 14px;
@@ -282,15 +282,15 @@ const StyledTab = styled(Tab)<{ active: boolean }>`
   border: 0;
   padding: 8px 12px;
   user-select: none;
-  color: ${({ active }) => (active ? s("textSecondary") : s("textTertiary"))};
+  color: ${({ $active }) => ($active ? s("textSecondary") : s("textTertiary"))};
   transition: color 100ms ease-in-out;
 
   &: ${hover} {
     color: ${s("textSecondary")};
   }
 
-  ${({ active }) =>
-    active &&
+  ${({ $active }) =>
+    $active &&
     css`
       &:after {
         content: "";
