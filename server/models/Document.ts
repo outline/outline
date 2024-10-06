@@ -975,68 +975,76 @@ class Document extends ArchivableModel<
 
   // Moves a document from being visible to the team within a collection
   // to the archived area, where it can be subsequently restored.
-  archive = async (user: User) => {
-    await this.sequelize.transaction(async (transaction: Transaction) => {
-      const collection = this.collectionId
-        ? await Collection.findByPk(this.collectionId, {
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-          })
-        : undefined;
+  archive = async (user: User, options?: FindOptions) => {
+    const { transaction } = { ...options };
+    const collection = this.collectionId
+      ? await Collection.findByPk(this.collectionId, {
+          transaction,
+          lock: transaction?.LOCK.UPDATE,
+        })
+      : undefined;
 
-      if (collection) {
-        await collection.removeDocumentInStructure(this, { transaction });
-        if (this.collection) {
-          this.collection.documentStructure = collection.documentStructure;
-        }
+    if (collection) {
+      await collection.removeDocumentInStructure(this, { transaction });
+      if (this.collection) {
+        this.collection.documentStructure = collection.documentStructure;
       }
-    });
+    }
 
-    await this.archiveWithChildren(user);
+    await this.archiveWithChildren(user, { transaction });
     return this;
   };
 
   // Restore an archived document back to being visible to the team
-  unarchive = async (user: User) => {
-    await this.sequelize.transaction(async (transaction: Transaction) => {
-      const collection = this.collectionId
-        ? await Collection.findByPk(this.collectionId, {
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-          })
-        : undefined;
-
-      // check to see if the documents parent hasn't been archived also
-      // If it has then restore the document to the collection root.
-      if (this.parentDocumentId) {
-        const parent = await (this.constructor as typeof Document).findOne({
-          where: {
-            id: this.parentDocumentId,
-          },
-        });
-        if (parent?.isDraft || !parent?.isActive) {
-          this.parentDocumentId = null;
-        }
-      }
-
-      if (!this.template && this.publishedAt && collection) {
-        await collection.addDocumentToStructure(this, undefined, {
+  restoreTo = async (
+    collectionId: string,
+    options: FindOptions & { user: User }
+  ) => {
+    const { transaction } = { ...options };
+    const collection = collectionId
+      ? await Collection.findByPk(collectionId, {
           transaction,
-        });
-        if (this.collection) {
-          this.collection.documentStructure = collection.documentStructure;
-        }
-      }
-    });
+          lock: transaction?.LOCK.UPDATE,
+        })
+      : undefined;
 
-    if (this.deletedAt) {
-      await this.restore();
+    // check to see if the documents parent hasn't been archived also
+    // If it has then restore the document to the collection root.
+    if (this.parentDocumentId) {
+      const parent = await (this.constructor as typeof Document).findOne({
+        where: {
+          id: this.parentDocumentId,
+        },
+        transaction,
+      });
+      if (parent?.isDraft || !parent?.isActive) {
+        this.parentDocumentId = null;
+      }
     }
 
-    this.archivedAt = null;
-    this.lastModifiedById = user.id;
-    this.updatedBy = user;
-    await this.save();
+    if (!this.template && this.publishedAt && collection?.isActive) {
+      await collection.addDocumentToStructure(this, undefined, {
+        includeArchived: true,
+        transaction,
+      });
+    }
+
+    if (this.deletedAt) {
+      await this.restore({ transaction });
+      this.collectionId = collectionId;
+      await this.save({ transaction });
+    }
+
+    if (this.archivedAt) {
+      await this.restoreWithChildren(collectionId, options.user, {
+        transaction,
+      });
+    }
+
+    if (this.collection && collection) {
+      // updating the document structure in memory just in case it's later accessed somewhere
+      this.collection.documentStructure = collection.documentStructure;
+    }
     return this;
   };
 
@@ -1088,7 +1096,7 @@ class Document extends ArchivableModel<
    * @returns Promise resolving to a NavigationNode
    */
   toNavigationNode = async (
-    options?: FindOptions<Document>
+    options?: FindOptions<Document> & { includeArchived?: boolean }
   ): Promise<NavigationNode> => {
     // Checking if the record is new is a performance optimization – new docs cannot have children
     const childDocuments = this.isNewRecord
@@ -1097,16 +1105,24 @@ class Document extends ArchivableModel<
           .unscoped()
           .scope("withoutState")
           .findAll({
-            where: {
-              teamId: this.teamId,
-              parentDocumentId: this.id,
-              archivedAt: {
-                [Op.is]: null,
-              },
-              publishedAt: {
-                [Op.ne]: null,
-              },
-            },
+            where: options?.includeArchived
+              ? {
+                  teamId: this.teamId,
+                  parentDocumentId: this.id,
+                  publishedAt: {
+                    [Op.ne]: null,
+                  },
+                }
+              : {
+                  teamId: this.teamId,
+                  parentDocumentId: this.id,
+                  publishedAt: {
+                    [Op.ne]: null,
+                  },
+                  archivedAt: {
+                    [Op.is]: null,
+                  },
+                },
             transaction: options?.transaction,
           });
 
@@ -1124,6 +1140,38 @@ class Document extends ArchivableModel<
     };
   };
 
+  private restoreWithChildren = async (
+    collectionId: string,
+    user: User,
+    options?: FindOptions<Document>
+  ) => {
+    const restoreChildren = async (parentDocumentId: string) => {
+      const childDocuments = await (
+        this.constructor as typeof Document
+      ).findAll({
+        where: {
+          parentDocumentId,
+        },
+        ...options,
+      });
+      for (const child of childDocuments) {
+        await restoreChildren(child.id);
+        child.archivedAt = null;
+        child.lastModifiedById = user.id;
+        child.updatedBy = user;
+        child.collectionId = collectionId;
+        await child.save(options);
+      }
+    };
+
+    await restoreChildren(this.id);
+    this.archivedAt = null;
+    this.lastModifiedById = user.id;
+    this.updatedBy = user;
+    this.collectionId = collectionId;
+    return this.save(options);
+  };
+
   private archiveWithChildren = async (
     user: User,
     options?: FindOptions<Document>
@@ -1138,6 +1186,7 @@ class Document extends ArchivableModel<
         where: {
           parentDocumentId,
         },
+        ...options,
       });
       for (const child of childDocuments) {
         await archiveChildren(child.id);

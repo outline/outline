@@ -28,7 +28,7 @@ allow(User, "move", Collection, (actor, collection) =>
     //
     isTeamAdmin(actor, collection),
     isTeamMutable(actor),
-    !collection?.deletedAt
+    !!collection?.isActive
   )
 );
 
@@ -105,14 +105,38 @@ allow(User, "share", Collection, (user, collection) => {
   return true;
 });
 
+allow(User, "updateDocument", Collection, (user, collection) => {
+  if (!collection || !isTeamModel(user, collection) || !isTeamMutable(user)) {
+    return false;
+  }
+
+  if (!collection.isPrivate && user.isAdmin) {
+    return true;
+  }
+
+  if (
+    collection.permission !== CollectionPermission.ReadWrite ||
+    user.isViewer ||
+    user.isGuest
+  ) {
+    return includesMembership(collection, [
+      CollectionPermission.ReadWrite,
+      CollectionPermission.Admin,
+    ]);
+  }
+
+  return true;
+});
+
 allow(
   User,
-  ["updateDocument", "createDocument", "deleteDocument"],
+  ["createDocument", "deleteDocument"],
   Collection,
   (user, collection) => {
     if (
       !collection ||
-      user.teamId !== collection.teamId ||
+      !collection.isActive ||
+      !isTeamModel(user, collection) ||
       !isTeamMutable(user)
     ) {
       return false;
@@ -137,16 +161,38 @@ allow(
   }
 );
 
-allow(User, ["update", "delete"], Collection, (user, collection) => {
-  if (!collection || user.isGuest || user.teamId !== collection.teamId) {
-    return false;
-  }
-  if (user.isAdmin) {
-    return true;
-  }
+allow(User, ["update", "archive"], Collection, (user, collection) =>
+  and(
+    !!collection,
+    !!collection?.isActive,
+    or(
+      isTeamAdmin(user, collection),
+      includesMembership(collection, [CollectionPermission.Admin])
+    )
+  )
+);
 
-  return includesMembership(collection, [CollectionPermission.Admin]);
-});
+allow(User, "delete", Collection, (user, collection) =>
+  and(
+    !!collection,
+    !collection?.deletedAt,
+    or(
+      isTeamAdmin(user, collection),
+      includesMembership(collection, [CollectionPermission.Admin])
+    )
+  )
+);
+
+allow(User, "restore", Collection, (user, collection) =>
+  and(
+    !!collection,
+    !collection?.isActive,
+    or(
+      isTeamAdmin(user, collection),
+      includesMembership(collection, [CollectionPermission.Admin])
+    )
+  )
+);
 
 function includesMembership(
   collection: Collection | null,

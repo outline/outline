@@ -215,8 +215,8 @@ const MenuContent: React.FC<MenuContentProps> = ({
             type: "button",
             title: t("Restore"),
             visible:
-              ((document.isWorkspaceTemplate || !!collection) && can.restore) ||
-              !!can.unarchive,
+              !!(document.isWorkspaceTemplate || collection?.isActive) &&
+              !!(can.restore || can.unarchive),
             onClick: (ev) => handleRestore(ev),
             icon: <RestoreIcon />,
           },
@@ -224,9 +224,8 @@ const MenuContent: React.FC<MenuContentProps> = ({
             type: "submenu",
             title: t("Restore"),
             visible:
-              !document.isWorkspaceTemplate &&
-              !collection &&
-              !!can.restore &&
+              !(document.isWorkspaceTemplate || collection?.isActive) &&
+              !!(can.restore || can.unarchive) &&
               restoreItems.length !== 0,
             style: {
               left: -170,

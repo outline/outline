@@ -161,6 +161,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "collections.delete":
       case "collections.move":
       case "collections.permission_changed":
+      case "collections.archive":
+      case "collections.restore":
         await this.handleCollectionEvent(subscription, event);
         return;
       case "collections.add_user":

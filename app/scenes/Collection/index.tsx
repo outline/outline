@@ -13,11 +13,13 @@ import {
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
+import { StatusFilter } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Search from "~/scenes/Search";
 import { Action } from "~/components/Actions";
 import CenteredContent from "~/components/CenteredContent";
+import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
 import CollectionDescription from "~/components/CollectionDescription";
 import Heading from "~/components/Heading";
 import Icon, { IconTitleWrapper } from "~/components/Icon";
@@ -28,6 +30,7 @@ import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
 import PlaceholderText from "~/components/PlaceholderText";
 import Scene from "~/components/Scene";
+import Subheading from "~/components/Subheading";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import { editCollection } from "~/actions/definitions/collections";
@@ -41,6 +44,7 @@ import Actions from "./components/Actions";
 import DropToImport from "./components/DropToImport";
 import Empty from "./components/Empty";
 import MembershipPreview from "./components/MembershipPreview";
+import Notices from "./components/Notices";
 import ShareButton from "./components/ShareButton";
 
 const IconPicker = React.lazy(() => import("~/components/IconPicker"));
@@ -132,7 +136,9 @@ function CollectionScene() {
       centered={false}
       textTitle={collection.name}
       left={
-        collection.isEmpty ? undefined : (
+        collection.isArchived ? (
+          <CollectionBreadcrumb collection={collection} />
+        ) : collection.isEmpty ? undefined : (
           <InputSearchPage
             source="collection"
             placeholder={`${t("Search in collection")}…`}
@@ -163,6 +169,7 @@ function CollectionScene() {
         collectionId={collection.id}
       >
         <CenteredContent withStickyHeader>
+          <Notices collection={collection} />
           <CollectionHeading>
             <IconTitleWrapper>
               {can.update ? (
@@ -192,26 +199,28 @@ function CollectionScene() {
           <CollectionDescription collection={collection} />
 
           <Documents>
-            <Tabs>
-              <Tab to={collectionPath(collection.path)} exact>
-                {t("Documents")}
-              </Tab>
-              <Tab to={collectionPath(collection.path, "updated")} exact>
-                {t("Recently updated")}
-              </Tab>
-              <Tab to={collectionPath(collection.path, "published")} exact>
-                {t("Recently published")}
-              </Tab>
-              <Tab to={collectionPath(collection.path, "old")} exact>
-                {t("Least recently updated")}
-              </Tab>
-              <Tab to={collectionPath(collection.path, "alphabetical")} exact>
-                {t("A–Z")}
-              </Tab>
-            </Tabs>
+            {!collection.isArchived && (
+              <Tabs>
+                <Tab to={collectionPath(collection.path)} exact>
+                  {t("Documents")}
+                </Tab>
+                <Tab to={collectionPath(collection.path, "updated")} exact>
+                  {t("Recently updated")}
+                </Tab>
+                <Tab to={collectionPath(collection.path, "published")} exact>
+                  {t("Recently published")}
+                </Tab>
+                <Tab to={collectionPath(collection.path, "old")} exact>
+                  {t("Least recently updated")}
+                </Tab>
+                <Tab to={collectionPath(collection.path, "alphabetical")} exact>
+                  {t("A–Z")}
+                </Tab>
+              </Tabs>
+            )}
             {collection.isEmpty ? (
               <Empty collection={collection} />
-            ) : (
+            ) : !collection.isArchived ? (
               <Switch>
                 <Route path={collectionPath(collection.path, "alphabetical")}>
                   <PaginatedDocumentList
@@ -274,6 +283,24 @@ function CollectionScene() {
                       parentDocumentId: null,
                       sort: collection.sort.field,
                       direction: collection.sort.direction,
+                    }}
+                    showParentDocuments
+                  />
+                </Route>
+              </Switch>
+            ) : (
+              <Switch>
+                <Route path={collectionPath(collection.path)} exact>
+                  <PaginatedDocumentList
+                    documents={documents.archivedInCollection(collection.id)}
+                    fetch={documents.fetchPage}
+                    heading={<Subheading sticky>{t("Documents")}</Subheading>}
+                    options={{
+                      collectionId: collection.id,
+                      parentDocumentId: null,
+                      sort: collection.sort.field,
+                      direction: collection.sort.direction,
+                      statusFilter: [StatusFilter.Archived],
                     }}
                     showParentDocuments
                   />

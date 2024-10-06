@@ -3,5 +3,5 @@ import ParanoidModel from "./ParanoidModel";
 
 export default abstract class ArchivableModel extends ParanoidModel {
   @observable
-  archivedAt: string | undefined;
+  archivedAt: string | null;
 }

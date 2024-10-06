@@ -10,6 +10,7 @@ import {
   NonNullFindOptions,
   InferAttributes,
   InferCreationAttributes,
+  EmptyResultError,
 } from "sequelize";
 import {
   Sequelize,
@@ -29,6 +30,8 @@ import {
   DataType,
   Length as SimpleLength,
   BeforeDestroy,
+  IsDate,
+  AllowNull,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";
@@ -53,6 +56,10 @@ import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
+
+type AdditionalFindOptions = {
+  rejectOnEmpty?: boolean | Error;
+};
 
 @Scopes(() => ({
   withAllMemberships: {
@@ -96,6 +103,13 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         model: User,
         required: true,
         as: "user",
+      },
+    ],
+  }),
+  withArchivedBy: () => ({
+    include: [
+      {
+        association: "archivedBy",
       },
     ],
   }),
@@ -249,6 +263,11 @@ class Collection extends ParanoidModel<
   })
   sort: CollectionSort;
 
+  /** Whether the collection is archived, and if so when. */
+  @IsDate
+  @Column
+  archivedAt: Date | null;
+
   // getters
 
   /**
@@ -266,6 +285,16 @@ class Collection extends ParanoidModel<
       return `/collection/untitled-${this.urlId}`;
     }
     return `/collection/${slugify(this.name)}-${this.urlId}`;
+  }
+
+  /**
+   * Whether this collection is considered active or not. A collection is active if
+   * it has not been archived or deleted.
+   *
+   * @returns boolean
+   */
+  get isActive(): boolean {
+    return !this.archivedAt && !this.deletedAt;
   }
 
   // hooks
@@ -320,6 +349,14 @@ class Collection extends ParanoidModel<
   @ForeignKey(() => FileOperation)
   @Column(DataType.UUID)
   importId: string | null;
+
+  @BelongsTo(() => User, "archivedById")
+  archivedBy?: User | null;
+
+  @AllowNull
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  archivedById?: string | null;
 
   @HasMany(() => Document, "collectionId")
   documents: Document[];
@@ -390,37 +427,51 @@ class Collection extends ParanoidModel<
    */
   static async findByPk(
     id: Identifier,
-    options?: NonNullFindOptions<Collection>
+    options?: NonNullFindOptions<Collection> & AdditionalFindOptions
   ): Promise<Collection>;
   static async findByPk(
     id: Identifier,
-    options?: FindOptions<Collection>
+    options?: FindOptions<Collection> & AdditionalFindOptions
   ): Promise<Collection | null>;
   static async findByPk(
     id: Identifier,
-    options: FindOptions<Collection> = {}
+    options: FindOptions<Collection> & AdditionalFindOptions = {}
   ): Promise<Collection | null> {
     if (typeof id !== "string") {
       return null;
     }
 
     if (isUUID(id)) {
-      return this.findOne({
+      const collection = await this.findOne({
         where: {
           id,
         },
         ...options,
+        rejectOnEmpty: false,
       });
+
+      if (!collection && options.rejectOnEmpty) {
+        throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
+      }
+
+      return collection;
     }
 
     const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
-      return this.findOne({
+      const collection = await this.findOne({
         where: {
           urlId: match[1],
         },
         ...options,
+        rejectOnEmpty: false,
       });
+
+      if (!collection && options.rejectOnEmpty) {
+        throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
+      }
+
+      return collection;
     }
 
     return null;
@@ -662,6 +713,7 @@ class Collection extends ParanoidModel<
     options: FindOptions & {
       save?: boolean;
       documentJson?: NavigationNode;
+      includeArchived?: boolean;
     } = {}
   ) {
     if (!this.documentStructure) {

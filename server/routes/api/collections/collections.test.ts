@@ -1,4 +1,4 @@
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, CollectionStatusFilter } from "@shared/types";
 import { Document, UserMembership, GroupMembership } from "@server/models";
 import {
   buildUser,
@@ -38,6 +38,44 @@ describe("#collections.list", () => {
     expect(body.data[0].id).toEqual(collection.id);
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
+  });
+
+  it("should include archived collections", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/collections.list", {
+      body: {
+        token: admin.getJwtToken(),
+        statusFilter: [CollectionStatusFilter.Archived],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].archivedAt).toBeTruthy();
+    expect(body.data[0].archivedBy).toBeTruthy();
+    expect(body.data[0].archivedBy.id).toBe(collection.archivedById);
+  });
+
+  it("should exclude archived collections", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    await buildCollection({
+      teamId: team.id,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/collections.list", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(0);
   });
 
   it("should not return private collections actor is not a member of", async () => {
@@ -121,6 +159,62 @@ describe("#collections.list", () => {
     expect(body.data.length).toEqual(2);
     expect(body.policies.length).toEqual(2);
     expect(body.policies[0].abilities.read).toBeTruthy();
+  });
+
+  it("should not include archived collections", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/collections.list", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should not include archived collections", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+
+    const beforeArchiveRes = await server.post("/api/collections.list", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const beforeArchiveBody = await beforeArchiveRes.json();
+    expect(beforeArchiveRes.status).toEqual(200);
+    expect(beforeArchiveBody.data).toHaveLength(1);
+    expect(beforeArchiveBody.data[0].id).toEqual(collection.id);
+
+    const archiveRes = await server.post("/api/collections.archive", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+      },
+    });
+
+    expect(archiveRes.status).toEqual(200);
+
+    const afterArchiveRes = await server.post("/api/collections.list", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+
+    const afterArchiveBody = await afterArchiveRes.json();
+    expect(afterArchiveRes.status).toEqual(200);
+    expect(afterArchiveBody.data).toHaveLength(0);
   });
 });
 
@@ -1056,6 +1150,26 @@ describe("#collections.memberships", () => {
 });
 
 describe("#collections.info", () => {
+  it("should return archivedBy for archived collections", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+      archivedAt: new Date(),
+      archivedById: user.id,
+    });
+    const res = await server.post("/api/collections.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.archivedBy.id).toEqual(collection.archivedById);
+  });
+
   it("should return collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -1703,5 +1817,78 @@ describe("#collections.delete", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.success).toBe(true);
+  });
+});
+
+describe("#collections.archive", () => {
+  it("should archive collection", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({ teamId: team.id });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      publishedAt: new Date(),
+    });
+
+    await collection.reload();
+    expect(collection.documentStructure).not.toBe(null);
+    expect(document.archivedAt).toBe(null);
+    const res = await server.post("/api/collections.archive", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+      },
+    });
+    const [, , body] = await Promise.all([
+      collection.reload(),
+      document.reload(),
+      res.json(),
+    ]);
+    expect(res.status).toEqual(200);
+    expect(body.data.archivedAt).not.toBe(null);
+    expect(body.data.archivedBy).toBeTruthy();
+    expect(body.data.archivedBy.id).toBe(collection.archivedById);
+    expect(document.archivedAt).not.toBe(null);
+  });
+});
+
+describe("#collections.restore", () => {
+  it("should restore collection", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+    });
+    await buildDocument({
+      collectionId: collection.id,
+      teamId: team.id,
+      publishedAt: new Date(),
+    });
+    // reload to ensure documentStructure is set
+    await collection.reload();
+    expect(collection.documentStructure).not.toBe(null);
+    const archiveRes = await server.post("/api/collections.archive", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+      },
+    });
+    const [, archiveBody] = await Promise.all([
+      collection.reload(),
+      archiveRes.json(),
+    ]);
+    expect(archiveRes.status).toEqual(200);
+    expect(archiveBody.data.archivedAt).not.toBe(null);
+    const res = await server.post("/api/collections.restore", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+      },
+    });
+    const [, body] = await Promise.all([collection.reload(), res.json()]);
+    expect(res.status).toEqual(200);
+    expect(body.data.archivedAt).toBe(null);
+    expect(collection.documentStructure).not.toBe(null);
   });
 });

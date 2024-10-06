@@ -175,6 +175,67 @@ describe("#addDocumentToStructure", () => {
     expect(collection.documentStructure![0].children.length).toBe(2);
     expect(collection.documentStructure![0].children[0].id).toBe(id);
   });
+
+  test("should add the document along with its nested document(s)", async () => {
+    const collection = await buildCollection();
+
+    const document = await buildDocument({
+      title: "New doc",
+      teamId: collection.teamId,
+    });
+
+    // create a nested doc within New doc
+    const nestedDocument = await buildDocument({
+      title: "Nested doc",
+      parentDocumentId: document.id,
+      teamId: collection.teamId,
+    });
+
+    expect(collection.documentStructure).toBeNull();
+
+    await collection.addDocumentToStructure(document);
+
+    expect(collection.documentStructure).not.toBeNull();
+    expect(collection.documentStructure).toHaveLength(1);
+    expect(collection.documentStructure![0].id).toBe(document.id);
+    expect(collection.documentStructure![0].children).toHaveLength(1);
+    expect(collection.documentStructure![0].children[0].id).toBe(
+      nestedDocument.id
+    );
+  });
+
+  test("should add the document along with its archived nested document(s)", async () => {
+    const collection = await buildCollection();
+
+    const document = await buildDocument({
+      title: "New doc",
+      teamId: collection.teamId,
+    });
+
+    // create a nested doc within New doc
+    const nestedDocument = await buildDocument({
+      title: "Nested doc",
+      parentDocumentId: document.id,
+      teamId: collection.teamId,
+    });
+
+    nestedDocument.archivedAt = new Date();
+    await nestedDocument.save();
+
+    expect(collection.documentStructure).toBeNull();
+
+    await collection.addDocumentToStructure(document, undefined, {
+      includeArchived: true,
+    });
+
+    expect(collection.documentStructure).not.toBeNull();
+    expect(collection.documentStructure).toHaveLength(1);
+    expect(collection.documentStructure![0].id).toBe(document.id);
+    expect(collection.documentStructure![0].children).toHaveLength(1);
+    expect(collection.documentStructure![0].children[0].id).toBe(
+      nestedDocument.id
+    );
+  });
   describe("options: documentJson", () => {
     test("should append supplied json over document's own", async () => {
       const collection = await buildCollection();

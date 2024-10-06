@@ -284,6 +284,10 @@ export async function buildCollection(
     overrides.userId = user.id;
   }
 
+  if (overrides.archivedAt && !overrides.archivedById) {
+    overrides.archivedById = overrides.userId;
+  }
+
   return Collection.create({
     name: faker.lorem.words(2),
     description: faker.lorem.words(4),

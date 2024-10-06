@@ -1,9 +1,11 @@
 import fractionalIndex from "fractional-index";
+import { FindOptions } from "sequelize";
 import naturalSort from "@shared/utils/naturalSort";
 import { Collection, Document, Star } from "@server/models";
 
 export async function collectionIndexing(
-  teamId: string
+  teamId: string,
+  { transaction }: FindOptions<Collection>
 ): Promise<{ [id: string]: string }> {
   const collections = await Collection.findAll({
     where: {
@@ -12,6 +14,7 @@ export async function collectionIndexing(
       deletedAt: null,
     },
     attributes: ["id", "index", "name"],
+    transaction,
   });
 
   const sortable = naturalSort(collections, (collection) => collection.name);
@@ -23,7 +26,7 @@ export async function collectionIndexing(
   for (const collection of sortable) {
     if (collection.index === null) {
       collection.index = fractionalIndex(previousIndex, null);
-      promises.push(collection.save());
+      promises.push(collection.save({ transaction }));
     }
 
     previousIndex = collection.index;

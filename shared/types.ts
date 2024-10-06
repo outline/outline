@@ -13,6 +13,10 @@ export enum StatusFilter {
   Draft = "draft",
 }
 
+export enum CollectionStatusFilter {
+  Archived = "archived",
+}
+
 export enum CommentStatusFilter {
   Resolved = "resolved",
   Unresolved = "unresolved",

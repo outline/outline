@@ -121,6 +121,33 @@ export default class DocumentsStore extends Store<Document> {
     );
   }
 
+  archivedInCollection(
+    collectionId: string,
+    options?: { archivedAt: string }
+  ): Document[] {
+    const filterCond = (document: Document) =>
+      options
+        ? document.collectionId === collectionId &&
+          document.isArchived &&
+          document.archivedAt === options.archivedAt &&
+          !document.isDeleted
+        : document.collectionId === collectionId &&
+          document.isArchived &&
+          !document.isDeleted;
+
+    return filter(this.orderedData, filterCond);
+  }
+
+  unarchivedInCollection(collectionId: string): Document[] {
+    return filter(
+      this.orderedData,
+      (document) =>
+        document.collectionId === collectionId &&
+        !document.isArchived &&
+        !document.isDeleted
+    );
+  }
+
   templatesInCollection(collectionId: string): Document[] {
     return orderBy(
       filter(
@@ -313,8 +340,18 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  fetchArchived = async (options?: PaginationParams): Promise<Document[]> =>
-    this.fetchNamedPage("archived", options);
+  fetchArchived = async (options?: PaginationParams): Promise<Document[]> => {
+    const archivedInResponse = await this.fetchNamedPage("archived", options);
+    const archivedInMemory = this.archived;
+
+    archivedInMemory.forEach((docInMemory) => {
+      !archivedInResponse.find(
+        (docInResponse) => docInResponse.id === docInMemory.id
+      ) && this.remove(docInMemory.id);
+    });
+
+    return archivedInResponse;
+  };
 
   @action
   fetchDeleted = async (options?: PaginationParams): Promise<Document[]> =>

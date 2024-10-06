@@ -5,11 +5,13 @@ import invariant from "invariant";
 import JSZip from "jszip";
 import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
+import has from "lodash/has";
+import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { TeamPreference, UserRole } from "@shared/types";
+import { StatusFilter, TeamPreference, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -20,7 +22,6 @@ import documentPermanentDeleter from "@server/commands/documentPermanentDeleter"
 import documentUpdater from "@server/commands/documentUpdater";
 import env from "@server/env";
 import {
-  NotFoundError,
   InvalidRequestError,
   AuthenticationError,
   ValidationError,
@@ -83,43 +84,52 @@ router.post(
   pagination(),
   validate(T.DocumentsListSchema),
   async (ctx: APIContext<T.DocumentsListReq>) => {
-    let { sort } = ctx.input.body;
     const {
+      sort,
       direction,
       template,
       collectionId,
       backlinkDocumentId,
       parentDocumentId,
       userId: createdById,
+      statusFilter,
     } = ctx.input.body;
 
     // always filter by the current team
     const { user } = ctx.state.auth;
-    let where: WhereOptions<Document> = {
+    const where: WhereOptions<Document> = {
       teamId: user.teamId,
-      archivedAt: {
-        [Op.is]: null,
-      },
+      [Op.and]: [
+        {
+          deletedAt: {
+            [Op.eq]: null,
+          },
+        },
+      ],
     };
 
+    // Exclude archived docs by default
+    if (!statusFilter) {
+      where[Op.and].push({ archivedAt: { [Op.eq]: null } });
+    }
+
     if (template) {
-      where = {
-        ...where,
+      where[Op.and].push({
         template: true,
-      };
+      });
     }
 
     // if a specific user is passed then add to filters. If the user doesn't
     // exist in the team then nothing will be returned, so no need to check auth
     if (createdById) {
-      where = { ...where, createdById };
+      where[Op.and].push({ createdById });
     }
 
     let documentIds: string[] = [];
 
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
-      where = { ...where, collectionId };
+      where[Op.and].push({ collectionId: [collectionId] });
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
@@ -131,19 +141,18 @@ router.post(
         documentIds = (collection?.documentStructure || [])
           .map((node) => node.id)
           .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
-        where = { ...where, id: documentIds };
+        where[Op.and].push({ id: documentIds });
       } // otherwise, filter by all collections the user has access to
     } else {
       const collectionIds = await user.collectionIds();
-      where = {
-        ...where,
+      where[Op.and].push({
         collectionId:
           template && can(user, "readTemplate", user.team)
             ? {
                 [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
               }
             : collectionIds,
-      };
+      });
     }
 
     if (parentDocumentId) {
@@ -177,21 +186,20 @@ router.post(
       ]);
 
       if (groupMembership || membership) {
-        delete where.collectionId;
+        remove(where[Op.and], (cond) => has(cond, "collectionId"));
       }
 
-      where = { ...where, parentDocumentId };
+      where[Op.and].push({ parentDocumentId });
     }
 
     // Explicitly passing 'null' as the parentDocumentId allows listing documents
     // that have no parent document (aka they are at the root of the collection)
     if (parentDocumentId === null) {
-      where = {
-        ...where,
+      where[Op.and].push({
         parentDocumentId: {
           [Op.is]: null,
         },
-      };
+      });
     }
 
     if (backlinkDocumentId) {
@@ -201,29 +209,81 @@ router.post(
           documentId: backlinkDocumentId,
         },
       });
-      where = {
-        ...where,
+      where[Op.and].push({
         id: backlinks.map((backlink) => backlink.reverseDocumentId),
-      };
+      });
     }
 
-    if (sort === "index") {
-      sort = "updatedAt";
+    const statusQuery = [];
+    if (statusFilter?.includes(StatusFilter.Published)) {
+      statusQuery.push({
+        [Op.and]: [
+          {
+            publishedAt: {
+              [Op.ne]: null,
+            },
+            archivedAt: {
+              [Op.eq]: null,
+            },
+          },
+        ],
+      });
+    }
+
+    if (statusFilter?.includes(StatusFilter.Draft)) {
+      statusQuery.push({
+        [Op.and]: [
+          {
+            publishedAt: {
+              [Op.eq]: null,
+            },
+            archivedAt: {
+              [Op.eq]: null,
+            },
+            [Op.or]: [
+              // Only ever include draft results for the user's own documents
+              { createdById: user.id },
+              { "$memberships.id$": { [Op.ne]: null } },
+            ],
+          },
+        ],
+      });
+    }
+
+    if (statusFilter?.includes(StatusFilter.Archived)) {
+      statusQuery.push({
+        archivedAt: {
+          [Op.ne]: null,
+        },
+      });
+    }
+
+    if (statusQuery.length) {
+      where[Op.and].push({
+        [Op.or]: statusQuery,
+      });
     }
 
     const [documents, total] = await Promise.all([
       Document.defaultScopeWithUser(user.id).findAll({
         where,
-        order: [[sort, direction]],
+        order: [
+          [
+            // this needs to be done otherwise findAll will throw citing
+            // that the column "document"."index" doesn't exist – value of sort
+            // is required to be a column name
+            sort === "index" ? "updatedAt" : sort,
+            direction,
+          ],
+        ],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
       Document.count({ where }),
     ]);
 
-    // index sort is special because it uses the order of the documents in the
-    // collection.documentStructure rather than a database column
-    if (documentIds.length) {
+    if (sort === "index") {
+      // sort again so as to retain the order of documents as in collection.documentStructure
       documents.sort(
         (a, b) => documentIds.indexOf(a.id) - documentIds.indexOf(b.id)
       );
@@ -233,6 +293,7 @@ router.post(
       documents.map((document) => presentDocument(ctx, document))
     );
     const policies = presentPolicies(user, documents);
+
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data,
@@ -738,81 +799,105 @@ router.post(
   "documents.restore",
   auth({ role: UserRole.Member }),
   validate(T.DocumentsRestoreSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsRestoreReq>) => {
     const { id, collectionId, revisionId } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
     const document = await Document.findByPk(id, {
       userId: user.id,
       paranoid: false,
+      rejectOnEmpty: true,
+      transaction,
     });
 
-    if (!document) {
-      throw NotFoundError();
-    }
+    const sourceCollectionId = document.collectionId;
+    const destCollectionId = collectionId ?? sourceCollectionId;
 
-    // Passing collectionId allows restoring to a different collection than the
-    // document was originally within
-    if (collectionId) {
-      document.collectionId = collectionId;
-    }
-
-    const collection = document.collectionId
+    const srcCollection = sourceCollectionId
       ? await Collection.scope({
           method: ["withMembership", user.id],
-        }).findByPk(document.collectionId)
+        }).findByPk(sourceCollectionId)
       : undefined;
 
-    // if the collectionId was provided in the request and isn't valid then it will
-    // be caught as a 403 on the authorize call below. Otherwise we're checking here
-    // that the original collection still exists and advising to pass collectionId
-    // if not.
-    if (document.collection && !collectionId && !collection) {
+    const destCollection = destCollectionId
+      ? await Collection.scope({
+          method: ["withMembership", user.id],
+        }).findByPk(destCollectionId)
+      : undefined;
+
+    if (!destCollection?.isActive) {
       throw ValidationError(
-        "Unable to restore to original collection, it may have been deleted"
+        "Unable to restore, the collection may have been deleted or archived"
       );
+    }
+
+    if (sourceCollectionId !== destCollectionId) {
+      authorize(user, "updateDocument", srcCollection);
+      await srcCollection?.removeDocumentInStructure(document, {
+        save: true,
+        transaction,
+      });
     }
 
     if (document.deletedAt) {
       authorize(user, "restore", document);
+      authorize(user, "updateDocument", destCollection);
+
       // restore a previously deleted document
-      await document.unarchive(user);
-      await Event.createFromContext(ctx, {
-        name: "documents.restore",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
+      await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
+      await Event.createFromContext(
+        ctx,
+        {
+          name: "documents.restore",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          data: {
+            title: document.title,
+          },
         },
-      });
+        { transaction }
+      );
     } else if (document.archivedAt) {
       authorize(user, "unarchive", document);
+      authorize(user, "updateDocument", destCollection);
+
       // restore a previously archived document
-      await document.unarchive(user);
-      await Event.createFromContext(ctx, {
-        name: "documents.unarchive",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
+      await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
+      await Event.createFromContext(
+        ctx,
+        {
+          name: "documents.unarchive",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          data: {
+            title: document.title,
+            sourceCollectionId,
+          },
         },
-      });
+        { transaction }
+      );
     } else if (revisionId) {
       // restore a document to a specific revision
       authorize(user, "update", document);
-      const revision = await Revision.findByPk(revisionId);
+      const revision = await Revision.findByPk(revisionId, { transaction });
       authorize(document, "restore", revision);
 
       document.restoreFromRevision(revision);
-      await document.save();
+      await document.save({ transaction });
 
-      await Event.createFromContext(ctx, {
-        name: "documents.restore",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
+      await Event.createFromContext(
+        ctx,
+        {
+          name: "documents.restore",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          data: {
+            title: document.title,
+          },
         },
-      });
+        { transaction }
+      );
     } else {
       assertPresent(revisionId, "revisionId is required");
     }
@@ -1286,24 +1371,32 @@ router.post(
   "documents.archive",
   auth(),
   validate(T.DocumentsArchiveSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsArchiveReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const document = await Document.findByPk(id, {
       userId: user.id,
+      rejectOnEmpty: true,
+      transaction,
     });
     authorize(user, "archive", document);
 
-    await document.archive(user);
-    await Event.createFromContext(ctx, {
-      name: "documents.archive",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      data: {
-        title: document.title,
+    await document.archive(user, { transaction });
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "documents.archive",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        data: {
+          title: document.title,
+        },
       },
-    });
+      { transaction }
+    );
 
     ctx.body = {
       data: await presentDocument(ctx, document),

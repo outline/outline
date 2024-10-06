@@ -407,6 +407,48 @@ class WebsocketProvider extends React.Component<Props> {
       })
     );
 
+    this.socket.on(
+      "collections.archive",
+      async (event: PartialExcept<Collection, "id">) => {
+        const collectionId = event.id;
+
+        // Fetch collection to update policies
+        await collections.fetch(collectionId, { force: true });
+
+        documents.unarchivedInCollection(collectionId).forEach(
+          action((doc) => {
+            if (!doc.publishedAt) {
+              // draft is to be detached from collection, not archived
+              doc.collectionId = null;
+            } else {
+              doc.archivedAt = event.archivedAt as string;
+            }
+            policies.remove(doc.id);
+          })
+        );
+      }
+    );
+
+    this.socket.on(
+      "collections.restore",
+      async (event: PartialExcept<Collection, "id">) => {
+        const collectionId = event.id;
+        documents
+          .archivedInCollection(collectionId, {
+            archivedAt: event.archivedAt as string,
+          })
+          .forEach(
+            action((doc) => {
+              doc.archivedAt = null;
+              policies.remove(doc.id);
+            })
+          );
+
+        // Fetch collection to update policies
+        await collections.fetch(collectionId, { force: true });
+      }
+    );
+
     this.socket.on("teams.update", (event: PartialExcept<Team, "id">) => {
       if ("sharing" in event && event.sharing !== auth.team?.sharing) {
         documents.all.forEach((document) => {
