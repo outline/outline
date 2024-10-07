@@ -81,9 +81,9 @@ export default class ZipHelper {
                 }
               }
             )
-            .on("error", (err) => {
+            .on("error", (rErr) => {
               dest.end();
-              reject(err);
+              reject(rErr);
             })
             .pipe(dest);
         }
@@ -145,20 +145,24 @@ export default class ZipHelper {
                   // ensure parent directory exists
                   fs.mkdirp(
                     path.join(outputDir, path.dirname(fileName)),
-                    function (err1) {
-                      if (err1) {
-                        return reject(err1);
+                    function (mkErr) {
+                      if (mkErr) {
+                        return reject(mkErr);
                       }
 
-                      const writeStream = fs.createWriteStream(
-                        path.join(outputDir, fileName)
-                      );
-                      writeStream.on("error", reject);
-                      readStream.on("error", reject);
-                      readStream.on("end", function () {
-                        zipfile.readEntry();
-                      });
-                      readStream.pipe(writeStream);
+                      const dest = fs
+                        .createWriteStream(path.join(outputDir, fileName))
+                        .on("error", reject);
+
+                      readStream
+                        .on("error", (rsErr) => {
+                          dest.end();
+                          reject(rsErr);
+                        })
+                        .on("end", function () {
+                          zipfile.readEntry();
+                        })
+                        .pipe(dest);
                     }
                   );
                 });
@@ -166,8 +170,8 @@ export default class ZipHelper {
             });
             zipfile.on("close", resolve);
             zipfile.on("error", reject);
-          } catch (err) {
-            reject(err);
+          } catch (zErr) {
+            reject(zErr);
           }
         }
       );
