@@ -6,6 +6,10 @@ import yauzl, { Entry, validateFileName } from "yauzl";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
+import { trimFileAndExt } from "./fs";
+
+const MAX_FILE_NAME_LENGTH = 255;
+const MAX_PATH_LENGTH = 4096;
 
 @trace()
 export default class ZipHelper {
@@ -150,8 +154,15 @@ export default class ZipHelper {
                         return reject(mkErr);
                       }
 
+                      const location = trimFileAndExt(
+                        path.join(
+                          outputDir,
+                          trimFileAndExt(fileName, MAX_FILE_NAME_LENGTH)
+                        ),
+                        MAX_PATH_LENGTH
+                      );
                       const dest = fs
-                        .createWriteStream(path.join(outputDir, fileName))
+                        .createWriteStream(location)
                         .on("error", reject);
 
                       readStream

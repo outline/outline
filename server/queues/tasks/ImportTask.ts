@@ -225,9 +225,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
           void ZipHelper.extract(filePath, tmpDir)
             .then(() => resolve(tmpDir))
-            .catch((err) => {
-              Logger.error("Could not extract zip file", err);
-              reject(err);
+            .catch((zErr) => {
+              Logger.error("Could not extract zip file", zErr);
+              reject(zErr);
             });
         });
       });
