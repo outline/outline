@@ -129,35 +129,36 @@ export default class ZipHelper {
                 // directory file names end with '/'
                 fs.mkdirp(
                   path.join(outputDir, fileName),
-                  function (err: Error) {
-                    if (err) {
-                      throw err;
+                  function (mErr: Error) {
+                    if (mErr) {
+                      return reject(mErr);
                     }
                     zipfile.readEntry();
                   }
                 );
               } else {
                 // file entry
-                zipfile.openReadStream(entry, function (err, readStream) {
-                  if (err) {
-                    throw err;
+                zipfile.openReadStream(entry, function (rErr, readStream) {
+                  if (rErr) {
+                    return reject(rErr);
                   }
                   // ensure parent directory exists
                   fs.mkdirp(
                     path.join(outputDir, path.dirname(fileName)),
-                    function (err) {
-                      if (err) {
-                        throw err;
+                    function (err1) {
+                      if (err1) {
+                        return reject(err1);
                       }
-                      readStream.pipe(
-                        fs.createWriteStream(path.join(outputDir, fileName))
+
+                      const writeStream = fs.createWriteStream(
+                        path.join(outputDir, fileName)
                       );
+                      writeStream.on("error", reject);
+                      readStream.on("error", reject);
                       readStream.on("end", function () {
                         zipfile.readEntry();
                       });
-                      readStream.on("error", (err) => {
-                        throw err;
-                      });
+                      readStream.pipe(writeStream);
                     }
                   );
                 });
