@@ -127,9 +127,6 @@ export const DocumentsInfoSchema = BaseSchema.extend({
 
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
-
-    /** Whether to return the children document structure (sort order) */
-    includeStructure: z.boolean().optional(),
   }),
 }).refine((req) => !(isEmpty(req.body.id) && isEmpty(req.body.shareId)), {
   message: "one of id or shareId is required",

@@ -560,7 +560,7 @@ router.post(
   auth({ optional: true }),
   validate(T.DocumentsInfoSchema),
   async (ctx: APIContext<T.DocumentsInfoReq>) => {
-    const { id, shareId, includeStructure } = ctx.input.body;
+    const { id, shareId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const apiVersion = getAPIVersion(ctx);
     const teamFromCtx = await getTeamFromContext(ctx);
@@ -585,9 +585,6 @@ router.post(
       apiVersion >= 2
         ? {
             document: serializedDocument,
-            documentStructure: includeStructure
-              ? collection?.getDocumentTree(document.id)
-              : undefined,
             team: team
               ? presentPublicTeam(
                   team,
@@ -692,7 +689,7 @@ router.post(
 );
 
 router.post(
-  "documents.sub_documents",
+  "documents.child_documents",
   auth(),
   validate(T.DocumentsChildrenSchema),
   async (ctx: APIContext<T.DocumentsChildrenReq>) => {
@@ -708,8 +705,9 @@ router.post(
 
     ctx.body = {
       data: documentTree?.children,
-    }
-  });
+    };
+  }
+);
 
 router.post(
   "documents.export",

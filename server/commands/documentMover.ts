@@ -277,7 +277,7 @@ async function documentMover({
         collectionIds: result.collections.map((c) => c.id),
         documentIds: result.documents.map((d) => d.id),
         prevParentDocumentId,
-        hasParentDocumentChanged:
+        parentDocumentChanged:
           prevParentDocumentId !== document.parentDocumentId,
       },
       ip,

@@ -310,13 +310,13 @@ class WebsocketProvider extends React.Component<Props> {
             force: true,
           });
 
-          // Refresh documents structure in case this document (or) its ancestors is shared to the user.
-          const docIdsToRefreshStructure = [
+          // Refresh documents structure in case this document (or) any of its ancestors is shared to the user.
+          const documentIdsToRefresh = [
             event.documentId,
             ...document.parentDocuments.map((doc) => doc.id),
           ];
 
-          for (const documentId of docIdsToRefreshStructure) {
+          for (const documentId of documentIdsToRefresh) {
             await userMemberships
               .find({ documentId })
               ?.fetchDocuments({ force: true });
@@ -329,13 +329,13 @@ class WebsocketProvider extends React.Component<Props> {
         if (event.prevParentDocumentId) {
           const prevDocument = documents.get(event.prevParentDocumentId);
 
-          // Refresh documents structure in case the prev parent document (or) its ancestors is shared to the user.
-          const docIdsToRefreshStructure = [
+          // Refresh documents structure in case the previous parent document (or) any of its ancestors is shared to the user.
+          const documentIdsToRefresh = [
             event.prevParentDocumentId,
             ...(prevDocument?.parentDocuments.map((doc) => doc.id) ?? []),
           ];
 
-          for (const documentId of docIdsToRefreshStructure) {
+          for (const documentId of documentIdsToRefresh) {
             await userMemberships
               .find({ documentId })
               ?.fetchDocuments({ force: true });

@@ -1,10 +1,6 @@
 import invariant from "invariant";
-import { action, observable, runInAction } from "mobx";
-import {
-  CollectionPermission,
-  DocumentPermission,
-  NavigationNode,
-} from "@shared/types";
+import { action, runInAction } from "mobx";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import GroupMembership from "~/models/GroupMembership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -13,9 +9,6 @@ import Store, { PAGINATION_SYMBOL, RPCAction } from "./base/Store";
 
 export default class GroupMembershipsStore extends Store<GroupMembership> {
   actions = [RPCAction.Create, RPCAction.Delete];
-
-  @observable
-  documents: Map<string, NavigationNode[]> = new Map();
 
   constructor(rootStore: RootStore) {
     super(rootStore, GroupMembership);
@@ -52,9 +45,6 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
       runInAction(`GroupMembershipsStore#fetchPage`, () => {
         res.data.groups?.forEach(this.rootStore.groups.add);
         res.data.documents?.forEach(this.rootStore.documents.add);
-        res.data.documentsStructure?.forEach((node: NavigationNode) =>
-          this.documents.set(node.id, node.children)
-        );
         response = res.data.groupMemberships.map(this.add);
         this.isLoaded = true;
       });

@@ -164,7 +164,7 @@ export default class WebsocketsProcessor {
           })
         );
 
-        if (event.data.hasParentDocumentChanged && prevParentDocument) {
+        if (prevParentDocument && event.data.parentDocumentChanged) {
           const channels = await this.getDocumentEventChannels(
             event,
             prevParentDocument

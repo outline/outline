@@ -201,7 +201,7 @@ export type DocumentEvent = BaseEvent<Document> &
           collectionIds: string[];
           documentIds: string[];
           prevParentDocumentId: string | null;
-          hasParentDocumentChanged: boolean;
+          parentDocumentChanged: boolean;
         };
       }
     | {

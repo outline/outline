@@ -1,12 +1,9 @@
 import Router from "koa-router";
-import compact from "lodash/compact";
-import keyBy from "lodash/keyBy";
-import uniq from "lodash/uniq";
 import { Op, Sequelize } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Collection, Document, Event, UserMembership } from "@server/models";
+import { Document, Event, UserMembership } from "@server/models";
 import { authorize } from "@server/policies";
 import {
   presentDocument,
@@ -58,24 +55,6 @@ router.post(
       },
     });
 
-    const collections = await Collection.findAll({
-      attributes: ["id", "documentStructure", "sort"],
-      where: {
-        id: compact(uniq(documents.map((doc) => doc.collectionId))),
-      },
-    });
-    const collectionsMap = keyBy(collections, "id");
-
-    const documentsStructure = compact(
-      documents.map((doc) => {
-        if (!doc.collectionId) {
-          return;
-        }
-        const collection = collectionsMap[doc.collectionId];
-        return collection?.getDocumentTree(doc.id);
-      })
-    );
-
     const policies = presentPolicies(user, [...documents, ...memberships]);
 
     ctx.body = {
@@ -85,7 +64,6 @@ router.post(
         documents: await Promise.all(
           documents.map((document: Document) => presentDocument(ctx, document))
         ),
-        documentsStructure,
       },
       policies,
     };

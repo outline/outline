@@ -69,7 +69,7 @@ class GroupMembership extends Model {
     }
     try {
       this.isFetching = true;
-      const res = await client.post("/documents.sub_documents", {
+      const res = await client.post("/documents.child_documents", {
         id: this.documentId,
       });
       invariant(res?.data, "Data should be available");
