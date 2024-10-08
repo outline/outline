@@ -7,6 +7,7 @@ import { Op, Sequelize, WhereOptions } from "sequelize";
 import { DateFilter, StatusFilter } from "@shared/types";
 import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
+import { ValidationError } from "@server/errors";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
 import Share from "@server/models/Share";
@@ -95,48 +96,55 @@ export default class SearchHelper {
       query: this.webSearchQuery(query),
     };
 
-    const resultsQuery = Document.unscoped().findAll({
-      attributes: [
-        "id",
-        [
-          Sequelize.literal(
-            `ts_rank("searchVector", to_tsquery('english', :query))`
-          ),
-          "searchRanking",
+    try {
+      const resultsQuery = Document.unscoped().findAll({
+        attributes: [
+          "id",
+          [
+            Sequelize.literal(
+              `ts_rank("searchVector", to_tsquery('english', :query))`
+            ),
+            "searchRanking",
+          ],
         ],
-      ],
-      replacements,
-      where,
-      order: [
-        ["searchRanking", "DESC"],
-        ["updatedAt", "DESC"],
-      ],
-      limit,
-      offset,
-    }) as any as Promise<RankedDocument[]>;
+        replacements,
+        where,
+        order: [
+          ["searchRanking", "DESC"],
+          ["updatedAt", "DESC"],
+        ],
+        limit,
+        offset,
+      }) as any as Promise<RankedDocument[]>;
 
-    const countQuery = Document.unscoped().count({
-      // @ts-expect-error Types are incorrect for count
-      replacements,
-      where,
-    }) as any as Promise<number>;
-    const [results, count] = await Promise.all([resultsQuery, countQuery]);
+      const countQuery = Document.unscoped().count({
+        // @ts-expect-error Types are incorrect for count
+        replacements,
+        where,
+      }) as any as Promise<number>;
+      const [results, count] = await Promise.all([resultsQuery, countQuery]);
 
-    // Final query to get associated document data
-    const documents = await Document.findAll({
-      where: {
-        id: map(results, "id"),
-        teamId: team.id,
-      },
-      include: [
-        {
-          model: Collection,
-          as: "collection",
+      // Final query to get associated document data
+      const documents = await Document.findAll({
+        where: {
+          id: map(results, "id"),
+          teamId: team.id,
         },
-      ],
-    });
+        include: [
+          {
+            model: Collection,
+            as: "collection",
+          },
+        ],
+      });
 
-    return this.buildResponse(query, results, documents, count);
+      return this.buildResponse(query, results, documents, count);
+    } catch (err) {
+      if (err.message.includes("syntax error in tsquery")) {
+        throw ValidationError("Invalid search query");
+      }
+      throw err;
+    }
   }
 
   public static async searchTitlesForUser(
@@ -220,62 +228,69 @@ export default class SearchHelper {
       },
     ];
 
-    const results = (await Document.unscoped().findAll({
-      attributes: [
-        "id",
-        [
-          Sequelize.literal(
-            `ts_rank("searchVector", to_tsquery('english', :query))`
-          ),
-          "searchRanking",
+    try {
+      const results = (await Document.unscoped().findAll({
+        attributes: [
+          "id",
+          [
+            Sequelize.literal(
+              `ts_rank("searchVector", to_tsquery('english', :query))`
+            ),
+            "searchRanking",
+          ],
         ],
-      ],
-      subQuery: false,
-      include,
-      replacements: queryReplacements,
-      where,
-      order: [
-        ["searchRanking", "DESC"],
-        ["updatedAt", "DESC"],
-      ],
-      limit,
-      offset,
-    })) as any as RankedDocument[];
+        subQuery: false,
+        include,
+        replacements: queryReplacements,
+        where,
+        order: [
+          ["searchRanking", "DESC"],
+          ["updatedAt", "DESC"],
+        ],
+        limit,
+        offset,
+      })) as any as RankedDocument[];
 
-    const countQuery = Document.unscoped().count({
-      // @ts-expect-error Types are incorrect for count
-      subQuery: false,
-      include,
-      replacements: queryReplacements,
-      where,
-    }) as any as Promise<number>;
+      const countQuery = Document.unscoped().count({
+        // @ts-expect-error Types are incorrect for count
+        subQuery: false,
+        include,
+        replacements: queryReplacements,
+        where,
+      }) as any as Promise<number>;
 
-    // Final query to get associated document data
-    const [documents, count] = await Promise.all([
-      Document.scope([
-        "withState",
-        "withDrafts",
-        {
-          method: ["withViews", user.id],
-        },
-        {
-          method: ["withCollectionPermissions", user.id],
-        },
-        {
-          method: ["withMembership", user.id],
-        },
-      ]).findAll({
-        where: {
-          teamId: user.teamId,
-          id: map(results, "id"),
-        },
-      }),
-      results.length < limit && offset === 0
-        ? Promise.resolve(results.length)
-        : countQuery,
-    ]);
+      // Final query to get associated document data
+      const [documents, count] = await Promise.all([
+        Document.scope([
+          "withState",
+          "withDrafts",
+          {
+            method: ["withViews", user.id],
+          },
+          {
+            method: ["withCollectionPermissions", user.id],
+          },
+          {
+            method: ["withMembership", user.id],
+          },
+        ]).findAll({
+          where: {
+            teamId: user.teamId,
+            id: map(results, "id"),
+          },
+        }),
+        results.length < limit && offset === 0
+          ? Promise.resolve(results.length)
+          : countQuery,
+      ]);
 
-    return this.buildResponse(query, results, documents, count);
+      return this.buildResponse(query, results, documents, count);
+    } catch (err) {
+      if (err.message.includes("syntax error in tsquery")) {
+        throw ValidationError("Invalid search query");
+      }
+      throw err;
+    }
   }
 
   private static buildResultContext(document: Document, query: string) {
