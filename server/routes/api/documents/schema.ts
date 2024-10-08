@@ -127,6 +127,9 @@ export const DocumentsInfoSchema = BaseSchema.extend({
 
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
+
+    /** Whether to return the children document structure (sort order) */
+    includeStructure: z.boolean().optional(),
   }),
 }).refine((req) => !(isEmpty(req.body.id) && isEmpty(req.body.shareId)), {
   message: "one of id or shareId is required",
@@ -377,6 +380,12 @@ export const DocumentsUsersSchema = BaseSchema.extend({
 });
 
 export type DocumentsUsersReq = z.infer<typeof DocumentsUsersSchema>;
+
+export const DocumentsChildrenSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DocumentsChildrenReq = z.infer<typeof DocumentsChildrenSchema>;
 
 export const DocumentsAddUserSchema = BaseSchema.extend({
   body: z.object({

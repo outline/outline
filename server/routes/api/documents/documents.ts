@@ -560,7 +560,7 @@ router.post(
   auth({ optional: true }),
   validate(T.DocumentsInfoSchema),
   async (ctx: APIContext<T.DocumentsInfoReq>) => {
-    const { id, shareId } = ctx.input.body;
+    const { id, shareId, includeStructure } = ctx.input.body;
     const { user } = ctx.state.auth;
     const apiVersion = getAPIVersion(ctx);
     const teamFromCtx = await getTeamFromContext(ctx);
@@ -570,6 +570,7 @@ router.post(
       user,
       teamId: teamFromCtx?.id,
     });
+
     const isPublic = cannot(user, "read", document);
     const serializedDocument = await presentDocument(ctx, document, {
       isPublic,
@@ -584,6 +585,9 @@ router.post(
       apiVersion >= 2
         ? {
             document: serializedDocument,
+            documentStructure: includeStructure
+              ? collection?.getDocumentTree(document.id)
+              : undefined,
             team: team
               ? presentPublicTeam(
                   team,
@@ -686,6 +690,26 @@ router.post(
     };
   }
 );
+
+router.post(
+  "documents.sub_documents",
+  auth(),
+  validate(T.DocumentsChildrenSchema),
+  async (ctx: APIContext<T.DocumentsChildrenReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const document = await Document.findByPk(id, { userId: user.id });
+
+    authorize(user, "read", document);
+    invariant(document.collectionId, "document not part of a collection");
+
+    const collection = await Collection.findByPk(document.collectionId);
+    const documentTree = collection.getDocumentTree(document.id);
+
+    ctx.body = {
+      data: documentTree?.children,
+    }
+  });
 
 router.post(
   "documents.export",

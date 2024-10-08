@@ -618,6 +618,15 @@ export default class Document extends ArchivableModel {
   }
 
   @computed
+  get parentDocuments(): Document[] {
+    if (!this.parentDocument) {
+      return [];
+    }
+    const parentDocs = this.parentDocument.parentDocuments;
+    return [...parentDocs, this.parentDocument];
+  }
+
+  @computed
   get asNavigationNode(): NavigationNode {
     return {
       type: NavigationNodeType.Document,
