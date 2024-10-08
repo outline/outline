@@ -32,12 +32,6 @@ void PluginManager.loadPlugins();
 initI18n(env.DEFAULT_LANGUAGE);
 const element = window.document.getElementById("root");
 
-history.listen(() => {
-  requestAnimationFrame(() =>
-    window.dispatchEvent(new Event("location-changed"))
-  );
-});
-
 if (env.SENTRY_DSN) {
   initSentry(history);
 }
