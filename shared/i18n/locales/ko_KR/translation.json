@@ -459,6 +459,7 @@
   "Sort ascending": "오름차순 정렬",
   "Sort descending": "내림차순 정렬",
   "Table": "표",
+  "Export as CSV": "Export as CSV",
   "Toggle header": "토글 제목",
   "Math inline (LaTeX)": "인라인 수식 (LaTeX)",
   "Math block (LaTeX)": "수식 블록 (LaTeX)",
