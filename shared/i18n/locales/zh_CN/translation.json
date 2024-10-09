@@ -459,6 +459,7 @@
   "Sort ascending": "升序排序",
   "Sort descending": "降序排序",
   "Table": "表格",
+  "Export as CSV": "Export as CSV",
   "Toggle header": "切换标题",
   "Math inline (LaTeX)": "行内数学 (LaTeX)",
   "Math block (LaTeX)": "数学块 (LaTeX)",
