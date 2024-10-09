@@ -459,6 +459,7 @@
   "Sort ascending": "昇順に並べ替え",
   "Sort descending": "降順にソート",
   "Table": "表",
+  "Export as CSV": "Export as CSV",
   "Toggle header": "ヘッダーの切り替え",
   "Math inline (LaTeX)": "インライン数式 (LaTeX)",
   "Math block (LaTeX)": "ブロック数式 (LaTeX)",
