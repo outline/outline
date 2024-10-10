@@ -17,7 +17,7 @@ import Heading from "./components/Heading";
 
 type InputProps = EmailProps & {
   documentId: string;
-  revisionId: string;
+  revisionId: string | undefined;
   userId: string;
   actorName: string;
   teamUrl: string;
@@ -43,18 +43,24 @@ export default class DocumentMentionedEmail extends BaseEmail<
       return false;
     }
 
-    const currRevision = await Revision.findByPk(revisionId);
-    if (!currRevision) {
-      return false;
-    }
-    const prevRevision = await currRevision.before();
+    let currDoc: Document | Revision = document;
+    let prevDoc: Revision | undefined;
 
-    const currMentions = DocumentHelper.parseMentions(currRevision, {
+    if (revisionId) {
+      const revision = await Revision.findByPk(revisionId);
+      if (!revision) {
+        return false;
+      }
+      currDoc = revision;
+      prevDoc = (await revision.before()) ?? undefined;
+    }
+
+    const currMentions = DocumentHelper.parseMentions(currDoc, {
       type: "user",
       modelId: userId,
     });
-    const prevMentions = prevRevision
-      ? DocumentHelper.parseMentions(prevRevision, {
+    const prevMentions = prevDoc
+      ? DocumentHelper.parseMentions(prevDoc, {
           type: "user",
           modelId: userId,
         })
@@ -66,7 +72,7 @@ export default class DocumentMentionedEmail extends BaseEmail<
     }
 
     const node = ProsemirrorHelper.getNodeForMentionEmail(
-      DocumentHelper.toProsemirror(currRevision),
+      DocumentHelper.toProsemirror(currDoc),
       firstNewMention
     );
     if (!node) {
