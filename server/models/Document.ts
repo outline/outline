@@ -1,7 +1,6 @@
 /* eslint-disable lines-between-class-members */
 import compact from "lodash/compact";
 import isNil from "lodash/isNil";
-import omit from "lodash/omit";
 import uniq from "lodash/uniq";
 import type {
   Identifier,
@@ -744,11 +743,10 @@ class Document extends ArchivableModel<
    */
   static async findByIds(
     ids: string[],
-    options?: Omit<FindOptions<Document>, "where"> &
-      Omit<AdditionalFindOptions, "rejectOnEmpty">
+    options: Omit<FindOptions<Document>, "where"> &
+      Omit<AdditionalFindOptions, "rejectOnEmpty"> = {}
   ): Promise<Document[]> {
-    const userId = options?.userId;
-    const rest = omit(options, "userId");
+    const { userId, ...rest } = options;
 
     return await this.scope([
       "withDrafts",
