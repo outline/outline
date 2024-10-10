@@ -142,8 +142,8 @@ router.post(
           .map((node) => node.id)
           .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
         where[Op.and].push({ id: documentIds });
-      } // otherwise, filter by all collections the user has access to
-    } else {
+      } // if it's not a backlink request, filter by all collections the user has access to
+    } else if (!backlinkDocumentId) {
       const collectionIds = await user.collectionIds();
       where[Op.and].push({
         collectionId:
@@ -203,15 +203,15 @@ router.post(
     }
 
     if (backlinkDocumentId) {
-      const backlinks = await Backlink.findAll({
-        attributes: ["reverseDocumentId"],
-        where: {
-          documentId: backlinkDocumentId,
-        },
-      });
-      where[Op.and].push({
-        id: backlinks.map((backlink) => backlink.reverseDocumentId),
-      });
+      const sourceDocumentIds = await Backlink.findSourceDocumentIdsForUser(
+        backlinkDocumentId,
+        user
+      );
+
+      where[Op.and].push({ id: sourceDocumentIds });
+
+      // For safety, ensure the collectionId is not set in the query.
+      remove(where[Op.and], (cond) => has(cond, "collectionId"));
     }
 
     const statusQuery = [];

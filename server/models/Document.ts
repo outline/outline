@@ -733,6 +733,40 @@ class Document extends ArchivableModel<
     return null;
   }
 
+  /**
+   * Find many documents by their id.
+   * Supports fetching the membership data when "userId" is specified in the options
+   *
+   * @param ids array of document ids
+   * @param options FindOptions
+   * @returns A promise resolving to the list of documents
+   */
+  static async findByIds(
+    ids: string[],
+    options: Omit<FindOptions<Document>, "where"> &
+      Omit<AdditionalFindOptions, "rejectOnEmpty"> = {}
+  ): Promise<Document[]> {
+    const { userId, ...rest } = options;
+
+    return await this.scope([
+      "withDrafts",
+      {
+        method: ["withCollectionPermissions", userId, rest.paranoid],
+      },
+      {
+        method: ["withViews", userId],
+      },
+      {
+        method: ["withMembership", userId],
+      },
+    ]).findAll({
+      where: {
+        id: ids,
+      },
+      ...rest,
+    });
+  }
+
   // instance methods
 
   /**
