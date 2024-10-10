@@ -286,6 +286,47 @@ export class Environment {
   public ALLOWED_DOMAINS =
     environment.ALLOWED_DOMAINS ?? environment.GOOGLE_ALLOWED_DOMAINS;
 
+  // Header authentication
+
+  /**
+   * The header designating the user's email address.
+   */
+  public HEADER_AUTH_EMAIL = environment.HEADER_AUTH_EMAIL?.toLowerCase() || "";
+
+  /**
+   * The header designating the user's name.
+   */
+  public HEADER_AUTH_NAME = environment.HEADER_AUTH_NAME?.toLowerCase() || "";
+
+  /**
+   * The header designating the user's team ID.
+   */
+  public HEADER_AUTH_TEAM_ID =
+    environment.HEADER_AUTH_TEAM_ID?.toLowerCase() || "";
+
+  /**
+   * The header designating the user's IP address.
+   */
+  public HEADER_AUTH_IP = environment.HEADER_AUTH_IP?.toLowerCase() || "";
+
+  /**
+   * The header designating the user's language.
+   */
+  public HEADER_AUTH_LANGUAGE =
+    environment.HEADER_AUTH_LANGUAGE?.toLowerCase() || "";
+
+  /**
+   * The header designating the user's role.
+   */
+  public HEADER_AUTH_ROLE = environment.HEADER_AUTH_ROLE?.toLowerCase() || "";
+
+  @Public
+  public HEADER_AUTH_ENABLED =
+    !!this.HEADER_AUTH_EMAIL &&
+    !!this.HEADER_AUTH_NAME &&
+    !!this.HEADER_AUTH_TEAM_ID &&
+    !!this.HEADER_AUTH_IP;
+
   // Third-party services
 
   /**

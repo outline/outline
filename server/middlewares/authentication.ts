@@ -1,7 +1,10 @@
+import i18n from "i18next";
 import { Next } from "koa";
 import capitalize from "lodash/capitalize";
 import { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
+import userProvisioner from "@server/commands/userProvisioner";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import tracer, {
   addTags,
@@ -28,9 +31,57 @@ type AuthenticationOptions = {
 export default function auth(options: AuthenticationOptions = {}) {
   return async function authMiddleware(ctx: AppContext, next: Next) {
     let token;
+    let user: User | null = null;
+
+    const emailHeader = ctx.request.get(env.HEADER_AUTH_EMAIL);
+    const nameHeader = ctx.request.get(env.HEADER_AUTH_NAME);
+    const teamIdHeader = ctx.request.get(env.HEADER_AUTH_TEAM_ID);
+    const ipHeader = ctx.request.get(env.HEADER_AUTH_IP);
     const authorizationHeader = ctx.request.get("authorization");
 
-    if (authorizationHeader) {
+    if (
+      env.HEADER_AUTH_ENABLED &&
+      emailHeader &&
+      nameHeader &&
+      teamIdHeader &&
+      ipHeader
+    ) {
+      try {
+        const languageHeader = ctx.request.get(env.HEADER_AUTH_LANGUAGE);
+        const roleHeader = ctx.request.get(env.HEADER_AUTH_ROLE);
+
+        user = await User.findOne({
+          where: {
+            email: emailHeader.toLowerCase(),
+            teamId: teamIdHeader,
+          },
+        });
+
+        // Automatically provision user if they don't exist
+        if (!user) {
+          const role = roleHeader ? (roleHeader as UserRole) : UserRole.Member;
+          let language: string | undefined = languageHeader;
+          if (!i18n.languages.includes(languageHeader)) {
+            language = undefined;
+          }
+
+          const prov_result = await userProvisioner({
+            name: nameHeader,
+            email: emailHeader,
+            teamId: teamIdHeader,
+            ip: ipHeader,
+            role,
+            language,
+            avatarUrl: undefined,
+            authentication: undefined,
+          });
+
+          user = prov_result.user;
+        }
+      } catch (err) {
+        Logger.error("Failed to use proxy header auth", err);
+      }
+    } else if (authorizationHeader) {
       const parts = authorizationHeader.split(" ");
 
       if (parts.length === 2) {
@@ -58,14 +109,14 @@ export default function auth(options: AuthenticationOptions = {}) {
     }
 
     try {
-      if (!token) {
+      if (!user && !token) {
         throw AuthenticationError("Authentication required");
       }
 
-      let user: User | null;
       let type: AuthenticationType;
-
-      if (ApiKey.match(String(token))) {
+      if (user) {
+        type = AuthenticationType.HEADER;
+      } else if (ApiKey.match(String(token))) {
         type = AuthenticationType.API;
         let apiKey;
 
