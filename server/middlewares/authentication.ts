@@ -17,7 +17,7 @@ import {
 } from "../errors";
 
 type AuthenticationOptions = {
-  /** Role requuired to access the route. */
+  /** Role required to access the route. */
   role?: UserRole;
   /** Type of authentication required to access the route. */
   type?: AuthenticationType;
