@@ -1,6 +1,8 @@
-import { observable } from "mobx";
-import { DocumentPermission } from "@shared/types";
+import invariant from "invariant";
+import { action, observable, runInAction } from "mobx";
+import { DocumentPermission, NavigationNode } from "@shared/types";
 import type UserMembershipsStore from "~/stores/UserMembershipsStore";
+import { client } from "~/utils/ApiClient";
 import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
@@ -10,6 +12,8 @@ import Relation from "./decorators/Relation";
 
 class UserMembership extends Model {
   static modelName = "UserMembership";
+
+  private isFetching = false;
 
   /** The sort order of the membership (In users sidebar) */
   @Field
@@ -48,6 +52,10 @@ class UserMembership extends Model {
   /** The user ID that created this membership. */
   createdById: string;
 
+  /** The sub-documents structure, in case this membership provides access to a document. */
+  @observable
+  documents?: NavigationNode[];
+
   store: UserMembershipsStore;
 
   /**
@@ -70,6 +78,85 @@ class UserMembership extends Model {
     });
     const index = memberships.indexOf(this);
     return memberships[index + 1];
+  }
+
+  /**
+   * Fetches the sub-documents structure, in case this membership provides access to a document.
+   */
+  fetchDocuments = async (options?: { force: boolean }) => {
+    if (this.isFetching || !this.documentId) {
+      return;
+    }
+    if (this.documents && options?.force !== true) {
+      return;
+    }
+    try {
+      this.isFetching = true;
+      const res = await client.post("/documents.child_documents", {
+        id: this.documentId,
+      });
+      invariant(res?.data, "Data should be available");
+
+      runInAction("UserMembership#fetchSubDocuments", () => {
+        this.documents = res.data;
+      });
+    } finally {
+      this.isFetching = false;
+    }
+  };
+
+  /**
+   * Updates the document identified by the given id in the membership in memory.
+   * Does not update the document in the database.
+   *
+   * @param document The document properties stored in the membership
+   */
+  @action
+  updateDocument(
+    document: Pick<Document, "id" | "title" | "url" | "color" | "icon">
+  ) {
+    if (!this.documents) {
+      return;
+    }
+
+    const travelNodes = (nodes: NavigationNode[]) =>
+      nodes.forEach((node) => {
+        if (node.id === document.id) {
+          node.color = document.color ?? undefined;
+          node.icon = document.icon ?? undefined;
+          node.title = document.title;
+          node.url = document.url;
+        } else {
+          travelNodes(node.children);
+        }
+      });
+
+    travelNodes(this.documents);
+  }
+
+  /**
+   * Removes the document identified by the given id in the membership in memory.
+   * Does not remove the document from the database.
+   *
+   * @param documentId The id of the document to remove.
+   */
+  @action
+  removeDocument(documentId: string) {
+    if (!this.documents) {
+      return;
+    }
+
+    this.documents = this.documents.filter(function f(node): boolean {
+      if (node.id === documentId) {
+        return false;
+      }
+
+      if (node.children) {
+        node.children = node.children.filter(f);
+      }
+
+      return true;
+    });
   }
 
   // hooks

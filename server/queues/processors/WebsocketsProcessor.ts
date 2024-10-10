@@ -146,26 +146,38 @@ export default class WebsocketsProcessor {
           },
           paranoid: false,
         });
-        documents.forEach((document) => {
-          socketio.to(`collection-${document.collectionId}`).emit("entities", {
-            event: event.name,
-            documentIds: [
-              {
-                id: document.id,
-                updatedAt: document.updatedAt,
-              },
-            ],
+        const prevParentDocument = event.data.prevParentDocumentId
+          ? await Document.findByPk(event.data.prevParentDocumentId, {
+              paranoid: false,
+            })
+          : undefined;
+
+        await Promise.all(
+          documents.map(async (document) => {
+            const channels = await this.getDocumentEventChannels(
+              event,
+              document
+            );
+            socketio.to(channels).emit(event.name, {
+              documentId: document.id,
+            });
+          })
+        );
+
+        if (prevParentDocument && event.data.parentDocumentChanged) {
+          const channels = await this.getDocumentEventChannels(
+            event,
+            prevParentDocument
+          );
+          socketio.to(channels).emit(event.name, {
+            prevParentDocumentId: prevParentDocument.id,
           });
-        });
+        }
+
         event.data.collectionIds.forEach((collectionId) => {
-          socketio.to(`collection-${collectionId}`).emit("entities", {
-            event: event.name,
-            collectionIds: [
-              {
-                id: collectionId,
-              },
-            ],
-          });
+          socketio
+            .to(`collection-${collectionId}`)
+            .emit(event.name, { collectionId });
         });
         return;
       }

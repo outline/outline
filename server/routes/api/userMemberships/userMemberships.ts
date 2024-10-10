@@ -1,5 +1,4 @@
 import Router from "koa-router";
-
 import { Op, Sequelize } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";

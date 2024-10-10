@@ -46,6 +46,7 @@ async function documentMover({
   transaction,
 }: Props): Promise<Result> {
   const collectionChanged = collectionId !== document.collectionId;
+  const prevParentDocumentId = document.parentDocumentId;
   const previousCollectionId = document.collectionId;
   const result: Result = {
     collections: [],
@@ -273,9 +274,11 @@ async function documentMover({
       collectionId,
       teamId: document.teamId,
       data: {
-        title: document.title,
         collectionIds: result.collections.map((c) => c.id),
         documentIds: result.documents.map((d) => d.id),
+        prevParentDocumentId,
+        parentDocumentChanged:
+          prevParentDocumentId !== document.parentDocumentId,
       },
       ip,
     },
