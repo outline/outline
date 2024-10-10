@@ -1,4 +1,3 @@
-import env from "@server/env";
 import { version } from "../../package.json";
 import fetch from "./fetch";
 
@@ -6,7 +5,7 @@ const dockerhubLink =
   "https://hub.docker.com/v2/repositories/outlinewiki/outline";
 
 export function getVersion(): string {
-  return env.VERSION ? env.VERSION : version;
+  return version;
 }
 
 export async function getLatestVersion(): Promise<string> {
