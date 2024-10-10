@@ -1,20 +1,31 @@
+import differenceBy from "lodash/differenceBy";
 import * as React from "react";
-import { Document } from "@server/models";
+import { Day } from "@shared/utils/time";
+import { Document, Revision } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import HTMLHelper from "@server/models/helpers/HTMLHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
+import Diff from "./components/Diff";
 import EmailTemplate from "./components/EmailLayout";
+import EmptySpace from "./components/EmptySpace";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 type InputProps = EmailProps & {
   documentId: string;
+  revisionId: string;
+  userId: string;
   actorName: string;
   teamUrl: string;
 };
 
 type BeforeSend = {
   document: Document;
+  body: string | undefined;
 };
 
 type Props = InputProps & BeforeSend;
@@ -26,13 +37,58 @@ export default class DocumentMentionedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({ documentId }: InputProps) {
+  protected async beforeSend({ documentId, revisionId, userId }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
       return false;
     }
 
-    return { document };
+    const currRevision = await Revision.findByPk(revisionId);
+    if (!currRevision) {
+      return false;
+    }
+    const prevRevision = await currRevision.before();
+
+    const currMentions = DocumentHelper.parseMentions(currRevision, {
+      type: "user",
+      modelId: userId,
+    });
+    const prevMentions = prevRevision
+      ? DocumentHelper.parseMentions(prevRevision, {
+          type: "user",
+          modelId: userId,
+        })
+      : [];
+
+    const firstNewMention = differenceBy(currMentions, prevMentions, "id")[0];
+    if (!firstNewMention) {
+      return false;
+    }
+
+    const node = ProsemirrorHelper.getNodeForMentionEmail(
+      DocumentHelper.toProsemirror(currRevision),
+      firstNewMention
+    );
+    if (!node) {
+      return false;
+    }
+
+    let body;
+    let content = ProsemirrorHelper.toHTML(node, {
+      centered: false,
+    });
+
+    content = await TextHelper.attachmentsToSignedUrls(
+      content,
+      document.teamId,
+      4 * Day.seconds
+    );
+    if (content) {
+      // inline all css so that it works in as many email providers as possible.
+      body = await HTMLHelper.inlineCSS(content);
+    }
+
+    return { document, body };
   }
 
   protected subject({ document }: Props) {
@@ -58,7 +114,7 @@ Open Document: ${teamUrl}${document.url}
   }
 
   protected render(props: Props) {
-    const { document, actorName, teamUrl } = props;
+    const { document, actorName, teamUrl, body } = props;
     const documentLink = `${teamUrl}${document.url}?ref=notification-email`;
 
     return (
@@ -74,6 +130,15 @@ Open Document: ${teamUrl}${document.url}
             {actorName} mentioned you in the document{" "}
             <a href={documentLink}>{document.title}</a>.
           </p>
+          {body && (
+            <>
+              <EmptySpace height={20} />
+              <Diff>
+                <div dangerouslySetInnerHTML={{ __html: body }} />
+              </Diff>
+              <EmptySpace height={20} />
+            </>
+          )}
           <p>
             <Button href={documentLink}>Open Document</Button>
           </p>
