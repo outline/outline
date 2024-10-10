@@ -1,6 +1,8 @@
 import { Node, Schema } from "prosemirror-model";
+import { EditorView } from "prosemirror-view";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
+import { EditorStyleHelper } from "../editor/styles/EditorStyleHelper";
 import { ProsemirrorData } from "../types";
 
 export type Heading = {
@@ -306,5 +308,37 @@ export class ProsemirrorHelper {
       }
     });
     return headings;
+  }
+
+  static getFullWidthElements(view: EditorView) {
+    const fullWidthElements: HTMLElement[] = [];
+
+    const isFullWidthNode = (node: globalThis.Node) => {
+      const classList = Array.from((node as HTMLElement).classList.values());
+
+      const hasFullWidthCls = classList.some(
+        (cls) =>
+          cls === EditorStyleHelper.imageFullWidth ||
+          cls === EditorStyleHelper.tableFullWidth
+      );
+      if (hasFullWidthCls) {
+        return true;
+      }
+
+      return Array.from(node.childNodes.values())
+        .filter((childNode) => childNode instanceof HTMLElement)
+        .some(isFullWidthNode);
+    };
+
+    view.state.doc.descendants((node, pos) => {
+      if (node.type.name === "table" || node.type.name === "image") {
+        const domNode = view.nodeDOM(pos);
+        if (domNode && isFullWidthNode(domNode)) {
+          fullWidthElements.push(domNode as HTMLElement);
+        }
+      }
+    });
+
+    return fullWidthElements;
   }
 }
