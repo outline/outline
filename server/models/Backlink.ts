@@ -37,6 +37,31 @@ class Backlink extends IdModel<
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
   reverseDocumentId: string;
+
+  /**
+   * Find all backlinks for a document that the user has access to
+   *
+   * @param documentId The document ID to find backlinks for
+   * @param user The user to check access for
+   */
+  public static async findSourceDocumentIdsForUser(
+    documentId: string,
+    user: User
+  ) {
+    const backlinks = await this.findAll({
+      attributes: ["reverseDocumentId"],
+      where: {
+        documentId,
+      },
+    });
+
+    const documents = await Document.findByIds(
+      backlinks.map((backlink) => backlink.reverseDocumentId),
+      { userId: user.id }
+    );
+
+    return documents.map((doc) => doc.id);
+  }
 }
 
 export default Backlink;
