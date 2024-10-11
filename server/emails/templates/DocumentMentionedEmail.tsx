@@ -67,31 +67,27 @@ export default class DocumentMentionedEmail extends BaseEmail<
       : [];
 
     const firstNewMention = differenceBy(currMentions, prevMentions, "id")[0];
-    if (!firstNewMention) {
-      return false;
-    }
 
-    const node = ProsemirrorHelper.getNodeForMentionEmail(
-      DocumentHelper.toProsemirror(currDoc),
-      firstNewMention
-    );
-    if (!node) {
-      return false;
-    }
+    let body: string | undefined;
 
-    let body;
-    let content = ProsemirrorHelper.toHTML(node, {
-      centered: false,
-    });
+    if (firstNewMention) {
+      const node = ProsemirrorHelper.getNodeForMentionEmail(
+        DocumentHelper.toProsemirror(currDoc),
+        firstNewMention
+      );
 
-    content = await TextHelper.attachmentsToSignedUrls(
-      content,
-      document.teamId,
-      4 * Day.seconds
-    );
-    if (content) {
-      // inline all css so that it works in as many email providers as possible.
-      body = await HTMLHelper.inlineCSS(content);
+      if (node) {
+        const content = await TextHelper.attachmentsToSignedUrls(
+          ProsemirrorHelper.toHTML(node, { centered: false }),
+          document.teamId,
+          4 * Day.seconds
+        );
+
+        if (content) {
+          // inline all css so that it works in as many email providers as possible.
+          body = await HTMLHelper.inlineCSS(content);
+        }
+      }
     }
 
     return { document, body };

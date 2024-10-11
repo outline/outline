@@ -169,6 +169,13 @@ export class ProsemirrorHelper {
     return mentions;
   }
 
+  /**
+   * Find the nearest ancestor block node which contains the mention.
+   *
+   * @param doc The top-level doc node of a document / revision.
+   * @param mention The mention for which the ancestor node is needed.
+   * @returns A new top-level doc node with the ancestor node as the only child.
+   */
   static getNodeForMentionEmail(doc: Node, mention: MentionAttrs) {
     let blockNode: Node | undefined;
     const potentialBlockNodes = ["table", "checkbox_list", "paragraph"];
