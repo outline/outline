@@ -54,14 +54,7 @@ class Backlink extends IdModel<
       { userId: user.id }
     );
 
-    return documents
-      .filter(
-        (doc) =>
-          (doc.collection?.memberships.length || 0) > 0 ||
-          doc.memberships.length > 0 ||
-          doc.groupMemberships.length > 0
-      )
-      .map((doc) => doc.id);
+    return documents.map((doc) => doc.id);
   }
 }
 

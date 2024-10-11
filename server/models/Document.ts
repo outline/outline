@@ -748,7 +748,7 @@ class Document extends ArchivableModel<
   ): Promise<Document[]> {
     const { userId, ...rest } = options;
 
-    return await this.scope([
+    const documents = await this.scope([
       "withDrafts",
       {
         method: ["withCollectionPermissions", userId, rest.paranoid],
@@ -765,6 +765,17 @@ class Document extends ArchivableModel<
       },
       ...rest,
     });
+
+    if (!userId) {
+      return documents;
+    }
+
+    return documents.filter(
+      (doc) =>
+        (doc.collection?.memberships.length || 0) > 0 ||
+        doc.memberships.length > 0 ||
+        doc.groupMemberships.length > 0
+    );
   }
 
   // instance methods
