@@ -55,6 +55,13 @@ export default function auth(options: AuthenticationOptions = {}) {
             email: emailHeader.toLowerCase(),
             teamId: teamIdHeader,
           },
+          include: [
+            {
+              model: Team,
+              as: "team",
+              required: true,
+            },
+          ],
         });
 
         // Automatically provision user if they don't exist
