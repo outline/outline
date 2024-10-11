@@ -1,4 +1,5 @@
 import Storage from "../../utils/Storage";
+import { LANGUAGES } from "../extensions/Prism";
 
 const RecentStorageKey = "rme-code-language";
 const StorageKey = "frequent-code-languages";
@@ -44,9 +45,10 @@ export const getRecentCodeLanguage = () => Storage.get(RecentStorageKey);
 
 export const getFrequentCodeLanguages = () => {
   const recentLang = Storage.get(RecentStorageKey);
-  const frequentLangEntries = Object.entries(
-    (Storage.get(StorageKey) ?? {}) as Record<string, number>
-  );
+  const frequentLangEntries = Object.entries(Storage.get(StorageKey) ?? {}) as [
+    keyof typeof LANGUAGES,
+    number
+  ][];
 
   const frequentLangs = sortFrequencies(frequentLangEntries)
     .slice(0, FrequentlyUsedCount.Get)
@@ -61,5 +63,5 @@ export const getFrequentCodeLanguages = () => {
   return frequentLangs;
 };
 
-const sortFrequencies = (freqs: [string, number][]) =>
+const sortFrequencies = <T>(freqs: [T, number][]) =>
   freqs.sort((a, b) => (a[1] >= b[1] ? -1 : 1));

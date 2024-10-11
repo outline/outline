@@ -5,7 +5,11 @@ import GroupMembership from "~/models/GroupMembership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
-import Store, { PAGINATION_SYMBOL, RPCAction } from "./base/Store";
+import Store, {
+  PAGINATION_SYMBOL,
+  PaginatedResponse,
+  RPCAction,
+} from "./base/Store";
 
 export default class GroupMembershipsStore extends Store<GroupMembership> {
   actions = [RPCAction.Create, RPCAction.Delete];
@@ -24,7 +28,7 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
         documentId?: string;
         collectionId?: string;
         groupId?: string;
-      }): Promise<GroupMembership[]> => {
+      }): Promise<PaginatedResponse<GroupMembership>> => {
     this.isFetching = true;
 
     try {
@@ -41,7 +45,7 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
         : await client.post(`/groupMemberships.list`, params);
       invariant(res?.data, "Data not available");
 
-      let response: GroupMembership[] = [];
+      let response: PaginatedResponse<GroupMembership> = [];
       runInAction(`GroupMembershipsStore#fetchPage`, () => {
         res.data.groups?.forEach(this.rootStore.groups.add);
         res.data.documents?.forEach(this.rootStore.documents.add);

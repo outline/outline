@@ -21,11 +21,13 @@ function ConfirmMoveDialog({ collection, item, ...rest }: Props) {
   const { documents, dialogs, collections } = useStores();
   const { t } = useTranslation();
   const prevCollection = collections.get(item.collectionId!);
-  const accessMapping = {
-    [CollectionPermission.ReadWrite]: t("view and edit access"),
-    [CollectionPermission.Read]: t("view only access"),
-    null: t("no access"),
-  };
+  const accessMapping: Record<Partial<CollectionPermission> | "null", string> =
+    {
+      [CollectionPermission.Admin]: t("manage access"),
+      [CollectionPermission.ReadWrite]: t("view and edit access"),
+      [CollectionPermission.Read]: t("view only access"),
+      null: t("no access"),
+    };
 
   const handleSubmit = async () => {
     await documents.move({

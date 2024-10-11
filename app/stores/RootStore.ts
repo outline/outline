@@ -102,14 +102,11 @@ export default class RootStore {
    *
    * @param modelName
    */
-  public getStoreForModelName<K extends keyof RootStore>(
-    modelName: string
-  ): RootStore[K] {
+  public getStoreForModelName<K extends keyof RootStore>(modelName: string) {
     const storeName = this.getStoreNameForModelName(modelName);
     const store = this[storeName];
     invariant(store, `No store found for model name "${modelName}"`);
-
-    return store;
+    return store as RootStore[K];
   }
 
   /**
@@ -118,8 +115,9 @@ export default class RootStore {
   public clear() {
     Object.getOwnPropertyNames(this)
       .filter((key) => ["auth", "ui"].includes(key) === false)
-      .forEach((key) => {
-        this[key]?.clear?.();
+      .forEach((key: keyof RootStore) => {
+        // @ts-expect-error clear exists on all stores
+        "clear" in this[key] && this[key].clear();
       });
   }
 
@@ -128,7 +126,10 @@ export default class RootStore {
    *
    * @param StoreClass
    */
-  private registerStore<T = typeof Store>(StoreClass: T, name?: string) {
+  private registerStore<T = typeof Store>(
+    StoreClass: T,
+    name?: keyof RootStore
+  ) {
     // @ts-expect-error TS thinks we are instantiating an abstract class.
     const store = new StoreClass(this);
     const storeName = name ?? this.getStoreNameForModelName(store.modelName);
@@ -136,6 +137,6 @@ export default class RootStore {
   }
 
   private getStoreNameForModelName(modelName: string) {
-    return pluralize(lowerFirst(modelName));
+    return pluralize(lowerFirst(modelName)) as keyof RootStore;
   }
 }

@@ -14,7 +14,10 @@ export default function codeMenuItems(
 ): MenuItem[] {
   const node = state.selection.$from.node();
 
-  const allLanguages = Object.entries(LANGUAGES);
+  const allLanguages = Object.entries(LANGUAGES) as [
+    keyof typeof LANGUAGES,
+    string
+  ][];
   const frequentLanguages = getFrequentCodeLanguages();
 
   const frequentLangMenuItems = frequentLanguages.map((value) => {
@@ -49,6 +52,7 @@ export default function codeMenuItems(
       visible: !readOnly,
       name: "code_block",
       icon: <ExpandedIcon />,
+      // @ts-expect-error We have a fallback for incorrect mapping
       label: LANGUAGES[node.attrs.language ?? "none"],
       children: languageMenuItems,
     },

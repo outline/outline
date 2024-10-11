@@ -33,6 +33,7 @@ export default async function main(exit = false) {
         user.notificationSettings = {};
 
         for (const eventType of eventTypes) {
+          // @ts-expect-error old migration
           user.notificationSettings[eventType] = true;
           user.changed("notificationSettings", true);
         }

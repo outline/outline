@@ -85,7 +85,10 @@ describe("DeliverWebhookTask", () => {
       event,
     });
 
-    const headers = fetchMock.mock.calls[0]![1]!.headers!;
+    const headers = fetchMock.mock.calls[0]![1]!.headers! as Record<
+      string,
+      string
+    >;
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(headers["Outline-Signature"]).toMatch(/^t=[0-9]+,s=[a-z0-9]+$/);

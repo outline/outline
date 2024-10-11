@@ -220,7 +220,7 @@ export default class Heading extends Node {
   get plugins() {
     const getAnchors = (doc: ProsemirrorNode) => {
       const decorations: Decoration[] = [];
-      const previouslySeen = {};
+      const previouslySeen: Record<string, number> = {};
 
       doc.descendants((node, pos) => {
         if (node.type.name !== this.name) {

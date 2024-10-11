@@ -40,7 +40,7 @@ function SlackListItem({ integration, collection }: Props) {
     toast.success(t("Settings saved"));
   };
 
-  const mapping = {
+  const mapping: Record<string, string> = {
     "documents.publish": t("document published"),
     "documents.update": t("document updated"),
   };

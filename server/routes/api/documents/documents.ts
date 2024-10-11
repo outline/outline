@@ -97,7 +97,9 @@ router.post(
 
     // always filter by the current team
     const { user } = ctx.state.auth;
-    const where: WhereOptions<Document> = {
+    const where: WhereOptions<Document> & {
+      [Op.and]: WhereOptions<Document>[];
+    } = {
       teamId: user.teamId,
       [Op.and]: [
         {
