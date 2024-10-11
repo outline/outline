@@ -113,7 +113,7 @@ export default class SearchHelper {
 
       const countQuery = Document.unscoped().count({
         // @ts-expect-error Types are incorrect for count
-        replacements,
+        replacements: findOptions.replacements,
         where,
       }) as any as Promise<number>;
       const [results, count] = await Promise.all([resultsQuery, countQuery]);

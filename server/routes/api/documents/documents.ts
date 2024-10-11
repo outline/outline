@@ -914,8 +914,8 @@ router.post(
   auth(),
   pagination(),
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
-  validate(T.DocumentsSearchSchema),
-  async (ctx: APIContext<T.DocumentsSearchReq>) => {
+  validate(T.DocumentsSearchTitlesSchema),
+  async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
     const { query, statusFilter, dateFilter, collectionId, userId } =
       ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
