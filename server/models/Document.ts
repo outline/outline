@@ -734,10 +734,10 @@ class Document extends ArchivableModel<
   }
 
   /**
-   * Find many documents by their id.
-   * Supports fetching the membership data when "userId" is specified in the options
+   * Find many documents by their id, supports filtering by user memberships when `userId`
+   * is specified in the options.
    *
-   * @param ids array of document ids
+   * @param ids An array of document ids
    * @param options FindOptions
    * @returns A promise resolving to the list of documents
    */

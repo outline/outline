@@ -38,6 +38,12 @@ class Backlink extends IdModel<
   @Column(DataType.UUID)
   reverseDocumentId: string;
 
+  /**
+   * Find all backlinks for a document that the user has access to
+   *
+   * @param documentId The document ID to find backlinks for
+   * @param user The user to check access for
+   */
   public static async findSourceDocumentIdsForUser(
     documentId: string,
     user: User
