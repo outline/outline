@@ -55,6 +55,59 @@ describe("ProseMirrorHelper", () => {
       expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
     });
 
+    it("should return the heading node", () => {
+      const mentionAttrs: MentionAttrs = {
+        id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
+        type: "user",
+        label: "test.user",
+        actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
+        modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
+      };
+
+      const mentionedHeading: DeepPartial<ProsemirrorData> = {
+        type: "heading",
+        attrs: {
+          level: 2,
+        },
+        content: [
+          {
+            type: "text",
+            text: "a heading with ",
+          },
+          {
+            type: "mention",
+            attrs: mentionAttrs,
+          },
+          {
+            type: "text",
+            text: " mentioned",
+          },
+        ],
+      };
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "some content in a paragraph",
+            },
+          ],
+        },
+        mentionedHeading,
+      ]);
+
+      const expectedDoc = buildProseMirrorDoc([mentionedHeading]);
+
+      const newDoc = ProsemirrorHelper.getNodeForMentionEmail(
+        doc,
+        mentionAttrs
+      );
+
+      expect(newDoc?.toJSON()).toEqual(expectedDoc.toJSON());
+    });
+
     it("should return the table node with the mentioned row only", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",

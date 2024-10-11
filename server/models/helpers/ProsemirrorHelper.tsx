@@ -178,7 +178,12 @@ export class ProsemirrorHelper {
    */
   static getNodeForMentionEmail(doc: Node, mention: MentionAttrs) {
     let blockNode: Node | undefined;
-    const potentialBlockNodes = ["table", "checkbox_list", "paragraph"];
+    const potentialBlockNodes = [
+      "table",
+      "checkbox_list",
+      "heading",
+      "paragraph",
+    ];
 
     const isNodeContainingMention = (node: Node) => {
       let foundMention = false;
@@ -221,7 +226,7 @@ export class ProsemirrorHelper {
 
     // Use the containing block node to maintain structure during serialization.
     // Minify to include mentioned child only.
-    if (blockNode && blockNode.type.name !== "paragraph") {
+    if (blockNode && !["heading", "paragraph"].includes(blockNode.type.name)) {
       const children: Node[] = [];
 
       blockNode.forEach((child: Node) => {
