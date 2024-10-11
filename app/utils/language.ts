@@ -1,5 +1,5 @@
 import { i18n } from "i18next";
-import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
+import { locales, unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Desktop from "./Desktop";
 
 /**
@@ -25,7 +25,7 @@ export function formatNumber(number: number, locale: string) {
 export function detectLanguage() {
   const [ln, r] = navigator.language.split("-");
   const region = (r || ln).toUpperCase();
-  return `${ln}_${region}`;
+  return `${ln}_${region}` as keyof typeof locales;
 }
 
 /**

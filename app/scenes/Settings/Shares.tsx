@@ -47,7 +47,9 @@ function Shares() {
           sort,
           direction,
         });
-        setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
+        if (response[PAGINATION_SYMBOL]) {
+          setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
+        }
         setShareIds(response.map((u: Share) => u.id));
       } finally {
         setIsLoading(false);

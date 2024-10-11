@@ -279,7 +279,7 @@ export class ProsemirrorHelper {
    */
   static getHeadings(doc: Node, schema: Schema) {
     const headings: Heading[] = [];
-    const previouslySeen = {};
+    const previouslySeen: Record<string, number> = {};
 
     doc.forEach((node) => {
       if (node.type.name === "heading") {

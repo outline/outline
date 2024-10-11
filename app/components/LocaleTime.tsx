@@ -39,12 +39,15 @@ const LocaleTime: React.FC<Props> = ({
   relative,
   tooltipDelay,
 }: Props) => {
-  const userLocale: string = useUserLocale() || "";
-  const dateFormatLong = {
+  const userLocale = useUserLocale();
+  const dateFormatLong: Record<string, string> = {
     en_US: "MMMM do, yyyy h:mm a",
     fr_FR: "'Le 'd MMMM yyyy 'à' H:mm",
   };
-  const formatLocaleLong = dateFormatLong[userLocale] ?? "MMMM do, yyyy h:mm a";
+  const formatLocaleLong =
+    (userLocale ? dateFormatLong[userLocale] : undefined) ??
+    "MMMM do, yyyy h:mm a";
+  // @ts-expect-error fallback to formatLocaleLong
   const formatLocale = format?.[userLocale] ?? formatLocaleLong;
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line @typescript-eslint/no-unused-vars
   const callback = React.useRef<() => void>();

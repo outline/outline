@@ -6,7 +6,7 @@ import { Collection, Document, Star } from "@server/models";
 export async function collectionIndexing(
   teamId: string,
   { transaction }: FindOptions<Collection>
-): Promise<{ [id: string]: string }> {
+) {
   const collections = await Collection.findAll({
     where: {
       teamId,
@@ -34,16 +34,14 @@ export async function collectionIndexing(
 
   await Promise.all(promises);
 
-  const indexedCollections = {};
+  const indexedCollections: Record<string, string | null> = {};
   sortable.forEach((collection) => {
     indexedCollections[collection.id] = collection.index;
   });
   return indexedCollections;
 }
 
-export async function starIndexing(
-  userId: string
-): Promise<{ [id: string]: string }> {
+export async function starIndexing(userId: string) {
   const stars = await Star.findAll({
     where: { userId },
   });
@@ -77,7 +75,7 @@ export async function starIndexing(
 
   await Promise.all(promises);
 
-  const indexedStars = {};
+  const indexedStars: Record<string, string | null> = {};
   sortable.forEach((star) => {
     indexedStars[star.id] = star.index;
   });

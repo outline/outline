@@ -1,5 +1,9 @@
 import { computed, observable } from "mobx";
-import { FileOperationFormat, FileOperationType } from "@shared/types";
+import {
+  FileOperationFormat,
+  FileOperationState,
+  FileOperationType,
+} from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import User from "./User";
 import Model from "./base/Model";
@@ -10,7 +14,7 @@ class FileOperation extends Model {
   id: string;
 
   @observable
-  state: string;
+  state: FileOperationState;
 
   name: string;
 

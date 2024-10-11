@@ -17,13 +17,14 @@ import {
   getCurrentTimeAsString,
   unicodeCLDRtoBCP47,
   dateLocale,
+  locales,
 } from "@shared/utils/date";
 import User from "~/models/User";
 
 export function dateToHeading(
   dateTime: string,
   t: TFunction,
-  userLocale: string | null | undefined
+  userLocale: keyof typeof locales | undefined
 ) {
   const date = Date.parse(dateTime);
   const now = new Date();
@@ -84,7 +85,7 @@ export function dateToHeading(
 export function dateToExpiry(
   dateTime: string,
   t: TFunction,
-  userLocale: string | null | undefined
+  userLocale: keyof typeof locales | null | undefined
 ) {
   const date = Date.parse(dateTime);
   const now = new Date();

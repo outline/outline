@@ -35,7 +35,7 @@ function ConnectionStatus() {
   };
 
   const message = ui.multiplayerErrorCode
-    ? codeToMessage[ui.multiplayerErrorCode]
+    ? codeToMessage[ui.multiplayerErrorCode as keyof typeof codeToMessage]
     : undefined;
 
   return ui.multiplayerStatus === "connecting" ||

@@ -19,7 +19,8 @@ export interface PaginatedItem {
 }
 
 type Props<T> = WithTranslation &
-  RootStore & {
+  RootStore &
+  React.HTMLAttributes<HTMLDivElement> & {
     fetch?: (
       options: Record<string, any> | undefined
     ) => Promise<T[] | undefined> | undefined;

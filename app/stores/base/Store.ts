@@ -17,7 +17,6 @@ import { LifecycleManager } from "~/models/decorators/Lifecycle";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
 import type { PaginationParams, PartialExcept, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
-import Logger from "~/utils/Logger";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 
 export enum RPCAction {
@@ -29,9 +28,18 @@ export enum RPCAction {
   Count = "count",
 }
 
-export type FetchPageParams = PaginationParams & Record<string, any>;
-
 export const PAGINATION_SYMBOL = Symbol.for("pagination");
+
+export type PaginatedResponse<T> = T[] & {
+  [PAGINATION_SYMBOL]?: {
+    total: number;
+    limit: number;
+    offset: number;
+    nextPath: string;
+  };
+};
+
+export type FetchPageParams = PaginationParams & Record<string, any>;
 
 export default abstract class Store<T extends Model> {
   @observable
@@ -129,6 +137,7 @@ export default abstract class Store<T extends Model> {
           if (deleteBehavior === "cascade") {
             store.remove(item.id);
           } else if (deleteBehavior === "null") {
+            // @ts-expect-error TODO
             item[relation.idKey] = null;
           }
         });
@@ -166,6 +175,7 @@ export default abstract class Store<T extends Model> {
           if (archiveBehavior === "cascade") {
             store.addToArchive(item);
           } else if (archiveBehavior === "null") {
+            // @ts-expect-error TODO
             item[relation.idKey] = null;
           }
         });
@@ -316,7 +326,9 @@ export default abstract class Store<T extends Model> {
   }
 
   @action
-  fetchPage = async (params?: FetchPageParams | undefined): Promise<T[]> => {
+  fetchPage = async (
+    params?: FetchPageParams | undefined
+  ): Promise<PaginatedResponse<T>> => {
     if (!this.actions.includes(RPCAction.List)) {
       throw new Error(`Cannot list ${this.modelName}`);
     }
@@ -327,7 +339,7 @@ export default abstract class Store<T extends Model> {
       const res = await client.post(`/${this.apiEndpoint}.list`, params);
       invariant(res?.data, "Data not available");
 
-      let response: T[] = [];
+      let response: PaginatedResponse<T> = [];
 
       runInAction(`list#${this.modelName}`, () => {
         this.addPolicies(res.policies);
@@ -343,15 +355,16 @@ export default abstract class Store<T extends Model> {
   };
 
   @action
-  fetchAll = async (params?: Record<string, any>): Promise<T[]> => {
+  fetchAll = async (
+    params?: Record<string, any>
+  ): Promise<PaginatedResponse<T>> => {
     const limit = params?.limit ?? Pagination.defaultLimit;
     const response = await this.fetchPage({ ...params, limit });
 
-    if (!response[PAGINATION_SYMBOL]) {
-      Logger.warn("Pagination information not available in response", {
-        params,
-      });
-    }
+    invariant(
+      response[PAGINATION_SYMBOL],
+      "Pagination information not available in response"
+    );
 
     const pages = Math.ceil(response[PAGINATION_SYMBOL].total / limit);
     const fetchPages = [];
