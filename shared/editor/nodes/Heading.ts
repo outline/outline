@@ -77,6 +77,9 @@ export default class Heading extends Node {
 
         return [
           `h${node.attrs.level + (this.options.offset || 0)}`,
+          {
+            dir: "auto",
+          },
           [
             "span",
             {
