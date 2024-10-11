@@ -748,6 +748,7 @@ class Document extends ArchivableModel<
   ): Promise<Document[]> {
     const { userId, ...rest } = options;
 
+    const user = userId ? await User.findByPk(userId) : null;
     const documents = await this.scope([
       "withDrafts",
       {
@@ -761,6 +762,7 @@ class Document extends ArchivableModel<
       },
     ]).findAll({
       where: {
+        ...(user && { teamId: user.teamId }),
         id: ids,
       },
       ...rest,
@@ -772,6 +774,7 @@ class Document extends ArchivableModel<
 
     return documents.filter(
       (doc) =>
+        (!doc.collection?.isPrivate && !user?.isGuest) ||
         (doc.collection?.memberships.length || 0) > 0 ||
         doc.memberships.length > 0 ||
         doc.groupMemberships.length > 0

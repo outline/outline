@@ -167,6 +167,7 @@ export async function buildGuestUser(overrides: Partial<User> = {}) {
     name: faker.person.fullName(),
     createdAt: new Date("2018-01-01T00:00:00.000Z"),
     lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
+    role: UserRole.Guest,
     ...overrides,
   });
 }
