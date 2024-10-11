@@ -38,7 +38,7 @@ const DateFilterSchema = z.object({
 
 const SearchQuerySchema = z.object({
   /** Query for search */
-  query: z.string().refine((v) => v.trim() !== ""),
+  query: z.string().optional(),
 });
 
 const BaseIdSchema = z.object({
