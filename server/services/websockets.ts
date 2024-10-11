@@ -9,7 +9,8 @@ import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
-import { Collection, Group, User } from "@server/models";
+import { Collection, Group, Team, User } from "@server/models";
+import env from "@server/env";
 import { can } from "@server/policies";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
@@ -218,13 +219,36 @@ async function authenticate(socket: SocketWithAuth) {
   const cookies = socket.request.headers.cookie
     ? cookie.parse(socket.request.headers.cookie)
     : {};
-  const { accessToken } = cookies;
+  let user: User | null = null;
 
-  if (!accessToken) {
-    throw AuthenticationError("No access token");
+  if (env.HEADER_AUTH_ENABLED) {
+    const emailHeader = cookies[env.HEADER_AUTH_EMAIL];
+    const teamIdHeader = cookies[env.HEADER_AUTH_TEAM_ID];
+
+    user = await User.findOne({
+      where: {
+        email: emailHeader.toLowerCase(),
+        teamId: teamIdHeader,
+      },
+      include: [
+        {
+          model: Team,
+          as: "team",
+          required: true,
+        },
+      ],
+    });
   }
 
-  const user = await getUserForJWT(accessToken);
+  if (!user) {
+    const accessToken = cookies.accessToken;
+    if (!accessToken) {
+      throw AuthenticationError("No access token");
+    }
+
+    user = await getUserForJWT(accessToken);
+  }
+  
   socket.client.user = user;
   return user;
 }
