@@ -70,10 +70,18 @@ function Search(props: Props) {
     : [TStatusFilter.Published, TStatusFilter.Draft];
   const titleFilter = params.get("titleFilter") === "true";
 
-  const isSearchWithoutQuery = !!(collectionId || userId);
-  const isSearchable = !!query || isSearchWithoutQuery;
+  const isSearchable = !!(query || collectionId || userId);
 
   const document = documentId ? documents.get(documentId) : undefined;
+
+  const filterVisibility = {
+    document: !!document,
+    collection: !document,
+    user: !document || !!(document && query),
+    documentType: isSearchable,
+    date: isSearchable,
+    title: !!query && !document,
+  };
 
   const filters = React.useMemo(
     () => ({
@@ -234,14 +242,15 @@ function Search(props: Props) {
           />
 
           <Filters>
-            {document ? (
+            {filterVisibility.document && (
               <DocumentFilter
-                document={document}
+                document={document!}
                 onClick={() => {
                   handleFilterChange({ documentId: undefined });
                 }}
               />
-            ) : (
+            )}
+            {filterVisibility.collection && (
               <CollectionFilter
                 collectionId={collectionId}
                 onSelect={(collectionId) =>
@@ -249,25 +258,27 @@ function Search(props: Props) {
                 }
               />
             )}
-            <UserFilter
-              userId={userId}
-              onSelect={(userId) => handleFilterChange({ userId })}
-            />
-            {(isSearchable || document) && (
-              <>
-                <DocumentTypeFilter
-                  statusFilter={statusFilter}
-                  onSelect={({ statusFilter }) =>
-                    handleFilterChange({ statusFilter })
-                  }
-                />
-                <DateFilter
-                  dateFilter={dateFilter}
-                  onSelect={(dateFilter) => handleFilterChange({ dateFilter })}
-                />
-              </>
+            {filterVisibility.user && (
+              <UserFilter
+                userId={userId}
+                onSelect={(userId) => handleFilterChange({ userId })}
+              />
             )}
-            {query && !document && (
+            {filterVisibility.documentType && (
+              <DocumentTypeFilter
+                statusFilter={statusFilter}
+                onSelect={({ statusFilter }) =>
+                  handleFilterChange({ statusFilter })
+                }
+              />
+            )}
+            {filterVisibility.date && (
+              <DateFilter
+                dateFilter={dateFilter}
+                onSelect={(dateFilter) => handleFilterChange({ dateFilter })}
+              />
+            )}
+            {filterVisibility.title && (
               <SearchTitlesFilter
                 width={26}
                 height={14}
