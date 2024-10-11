@@ -216,31 +216,41 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
  * duration of the session.
  */
 async function authenticate(socket: SocketWithAuth) {
-  const cookies = socket.request.headers.cookie
-    ? cookie.parse(socket.request.headers.cookie)
-    : {};
   let user: User | null = null;
 
   if (env.HEADER_AUTH_ENABLED) {
-    const emailHeader = cookies[env.HEADER_AUTH_EMAIL];
-    const teamIdHeader = cookies[env.HEADER_AUTH_TEAM_ID];
+    const emailHeaderValues = socket.request.headers[env.HEADER_AUTH_EMAIL];
+    const teamIdHeaderValues = socket.request.headers[env.HEADER_AUTH_TEAM_ID];
 
-    user = await User.findOne({
-      where: {
-        email: emailHeader.toLowerCase(),
-        teamId: teamIdHeader,
-      },
-      include: [
-        {
-          model: Team,
-          as: "team",
-          required: true,
+    const emailHeader = Array.isArray(emailHeaderValues)
+      ? emailHeaderValues[emailHeaderValues.length - 1]
+      : emailHeaderValues;
+
+    const teamIdHeader = Array.isArray(teamIdHeaderValues)
+      ? teamIdHeaderValues[teamIdHeaderValues.length - 1]
+      : teamIdHeaderValues;
+
+    if (emailHeader && teamIdHeader) {
+      user = await User.findOne({
+        where: {
+          email: emailHeader.toLowerCase(),
+          teamId: teamIdHeader,
         },
-      ],
-    });
+        include: [
+          {
+            model: Team,
+            as: "team",
+            required: true,
+          },
+        ],
+      });
+    }
   }
 
   if (!user) {
+    const cookies = socket.request.headers.cookie
+      ? cookie.parse(socket.request.headers.cookie)
+      : {};
     const accessToken = cookies.accessToken;
     if (!accessToken) {
       throw AuthenticationError("No access token");
@@ -248,7 +258,7 @@ async function authenticate(socket: SocketWithAuth) {
 
     user = await getUserForJWT(accessToken);
   }
-  
+
   socket.client.user = user;
   return user;
 }
