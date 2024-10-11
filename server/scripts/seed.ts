@@ -41,7 +41,10 @@ export default async function main(exit = false) {
       }/auth/email.callback?token=${user.getEmailSigninToken()}`
     );
   } else {
-    console.log("Team already exists, aborting");
+    const teams = await Team.findAll({ attributes: ["id"] });
+    const teamIds = teams.map((team) => team.id);
+    
+    console.log("Team already exists, aborting. Existing team IDs:", teamIds);
   }
 
   if (exit) {
