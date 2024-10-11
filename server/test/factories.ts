@@ -1,8 +1,10 @@
 import { faker } from "@faker-js/faker";
 import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
+import { Node } from "prosemirror-model";
 import randomstring from "randomstring";
 import { InferCreationAttributes } from "sequelize";
+import { DeepPartial } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import {
   CollectionPermission,
@@ -11,9 +13,10 @@ import {
   IntegrationService,
   IntegrationType,
   NotificationEventType,
+  ProsemirrorData,
   UserRole,
 } from "@shared/types";
-import { parser } from "@server/editor";
+import { parser, schema } from "@server/editor";
 import {
   Share,
   Team,
@@ -640,4 +643,11 @@ export async function buildPin(overrides: Partial<Pin> = {}): Promise<Pin> {
   }
 
   return Pin.create(overrides);
+}
+
+export function buildProseMirrorDoc(content: DeepPartial<ProsemirrorData>[]) {
+  return Node.fromJSON(schema, {
+    type: "doc",
+    content,
+  });
 }
