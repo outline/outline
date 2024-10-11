@@ -167,6 +167,7 @@ router.post(
       pagination: { ...ctx.state.pagination, total },
       data: users.map((user) =>
         presentUser(user, {
+          includeEmail: !!can(actor, "readEmail", user),
           includeDetails: !!can(actor, "readDetails", user),
         })
       ),
