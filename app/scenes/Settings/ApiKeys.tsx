@@ -81,7 +81,7 @@ function ApiKeys() {
       </Text>
       <PaginatedList
         fetch={apiKeys.fetchPage}
-        items={apiKeys.orderedData}
+        items={apiKeys.personalApiKeys}
         options={{ userId: user.id }}
         heading={<h2>{t("Personal keys")}</h2>}
         renderItem={(apiKey: ApiKey) => (
