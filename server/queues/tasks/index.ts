@@ -2,9 +2,9 @@ import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { requireDirectory } from "@server/utils/fs";
 import BaseTask from "./BaseTask";
 
-const tasks = {};
+const tasks: Record<string, typeof BaseTask> = {};
 
-requireDirectory<{ default: BaseTask<any> }>(__dirname).forEach(
+requireDirectory<{ default: typeof BaseTask }>(__dirname).forEach(
   ([module, id]) => {
     if (id === "index") {
       return;

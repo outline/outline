@@ -10,7 +10,7 @@ import {
   match,
 } from "react-router";
 import { Link } from "react-router-dom";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import scrollIntoView from "scroll-into-view-if-needed";
 import history from "~/utils/history";
 
 const resolveToLocation = (

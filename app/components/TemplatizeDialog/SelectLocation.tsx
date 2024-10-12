@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { AvatarSize } from "~/components/Avatar";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import InputSelect, { Option } from "~/components/InputSelect";
 import TeamLogo from "~/components/TeamLogo";

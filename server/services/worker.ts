@@ -1,7 +1,9 @@
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { setResource, addTags } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import HealthMonitor from "@server/queues/HealthMonitor";
+import { Event } from "@server/types";
 import { initI18n } from "@server/utils/i18n";
 import {
   globalEventQueue,
@@ -18,12 +20,13 @@ export default function init() {
   // This queue processes the global event bus
   globalEventQueue
     .process(
+      env.WORKER_CONCURRENCY_EVENTS,
       traceFunction({
         serviceName: "worker",
         spanName: "process",
         isRoot: true,
       })(async function (job) {
-        const event = job.data;
+        const event = job.data as Event;
         let err;
 
         setResource(`Event.${event.name}`);
@@ -79,6 +82,7 @@ export default function init() {
   // as unapplicable events were filtered in the global event queue above.
   processorEventQueue
     .process(
+      env.WORKER_CONCURRENCY_EVENTS,
       traceFunction({
         serviceName: "worker",
         spanName: "process",
@@ -96,6 +100,7 @@ export default function init() {
           );
         }
 
+        // @ts-expect-error We will not instantiate an abstract class
         const processor = new ProcessorClass();
 
         if (processor.perform) {
@@ -123,6 +128,7 @@ export default function init() {
   // Jobs for async tasks are processed here.
   taskQueue
     .process(
+      env.WORKER_CONCURRENCY_TASKS,
       traceFunction({
         serviceName: "worker",
         spanName: "process",
@@ -142,6 +148,7 @@ export default function init() {
 
         Logger.info("worker", `${name} running`, props);
 
+        // @ts-expect-error We will not instantiate an abstract class
         const task = new TaskClass();
 
         try {

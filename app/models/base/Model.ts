@@ -1,9 +1,10 @@
 import pick from "lodash/pick";
-import { set, observable, action } from "mobx";
+import { observable, action } from "mobx";
 import { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "../decorators/Field";
+import { LifecycleManager } from "../decorators/Lifecycle";
 import { getRelationsForModelClass } from "../decorators/Relation";
 
 export default abstract class Model {
@@ -30,6 +31,7 @@ export default abstract class Model {
     this.store = store;
     this.updateData(fields);
     this.isNew = !this.id;
+    this.initialized = true;
   }
 
   /**
@@ -37,7 +39,10 @@ export default abstract class Model {
    *
    * @returns A promise that resolves when loading is complete.
    */
-  async loadRelations(): Promise<any> {
+  async loadRelations(
+    this: Model,
+    options: { withoutPolicies?: boolean } = {}
+  ): Promise<any> {
     const relations = getRelationsForModelClass(
       this.constructor as typeof Model
     );
@@ -56,12 +61,15 @@ export default abstract class Model {
         properties.relationClassResolver().modelName
       );
       if ("fetch" in store) {
-        promises.push(store.fetch(this[properties.idKey]));
+        const id = this[properties.idKey];
+        if (id) {
+          promises.push(store.fetch(id as string));
+        }
       }
     }
 
     const policy = this.store.rootStore.policies.get(this.id);
-    if (!policy) {
+    if (!policy && !options.withoutPolicies) {
       promises.push(this.store.fetch(this.id, { force: true }));
     }
 
@@ -84,12 +92,19 @@ export default abstract class Model {
     params?: Record<string, any>,
     options?: Record<string, string | boolean | number | undefined>
   ): Promise<Model> => {
+    const isNew = this.isNew;
     this.isSaving = true;
 
     try {
       // ensure that the id is passed if the document has one
       if (!params) {
         params = this.toAPI();
+      }
+
+      if (isNew) {
+        LifecycleManager.executeHooks(this.constructor, "beforeCreate", this);
+      } else {
+        LifecycleManager.executeHooks(this.constructor, "beforeUpdate", this);
       }
 
       const model = await this.store.save(
@@ -99,14 +114,18 @@ export default abstract class Model {
         },
         {
           ...options,
-          isNew: this.isNew,
+          isNew,
         }
       );
 
       // if saving is successful set the new values on the model itself
-      set(this, { ...params, ...model, isNew: false });
+      this.updateData({ ...params, ...model });
 
-      this.persistedAttributes = this.toAPI();
+      if (isNew) {
+        LifecycleManager.executeHooks(this.constructor, "afterCreate", this);
+      } else {
+        LifecycleManager.executeHooks(this.constructor, "afterUpdate", this);
+      }
 
       return model;
     } finally {
@@ -115,8 +134,19 @@ export default abstract class Model {
   };
 
   updateData = action((data: Partial<Model>) => {
+    if (this.initialized) {
+      LifecycleManager.executeHooks(this.constructor, "beforeChange", this);
+    }
+
+    const previousAttributes = this.toAPI();
+
     for (const key in data) {
       try {
+        // Some models are serialized with the initialized flag, this should be ignored.
+        if (key === "initialized") {
+          continue;
+        }
+        // @ts-expect-error TODO
         this[key] = data[key];
       } catch (error) {
         Logger.warn(`Error setting ${key} on model`, error);
@@ -125,6 +155,15 @@ export default abstract class Model {
 
     this.isNew = false;
     this.persistedAttributes = this.toAPI();
+
+    if (this.initialized) {
+      LifecycleManager.executeHooks(
+        this.constructor,
+        "afterChange",
+        this,
+        previousAttributes
+      );
+    }
   });
 
   fetch = (options?: JSONObject) => this.store.fetch(this.id, options);
@@ -138,7 +177,10 @@ export default abstract class Model {
     this.isSaving = true;
 
     try {
-      return await this.store.delete(this);
+      LifecycleManager.executeHooks(this.constructor, "beforeDelete", this);
+      const response = await this.store.delete(this);
+      LifecycleManager.executeHooks(this.constructor, "afterDelete", this);
+      return response;
     } finally {
       this.isSaving = false;
     }
@@ -199,8 +241,9 @@ export default abstract class Model {
 
   protected persistedAttributes: Partial<Model> = {};
 
-  /**
-   * A promise that resolves when all relations have been loaded
-   */
+  /** A promise that resolves when all relations have been loaded. */
   private loadingRelations: Promise<any[]> | undefined;
+
+  /** A boolean representing if the constructor has been called. */
+  private initialized = false;
 }

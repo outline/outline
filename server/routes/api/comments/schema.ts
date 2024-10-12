@@ -33,7 +33,7 @@ export const CommentsCreateSchema = BaseSchema.extend({
     parentCommentId: z.string().uuid().optional(),
 
     /** Create comment with this data */
-    data: ProsemirrorSchema,
+    data: ProsemirrorSchema(),
   }),
 });
 
@@ -42,7 +42,7 @@ export type CommentsCreateReq = z.infer<typeof CommentsCreateSchema>;
 export const CommentsUpdateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Update comment with this data */
-    data: ProsemirrorSchema,
+    data: ProsemirrorSchema(),
   }),
 });
 

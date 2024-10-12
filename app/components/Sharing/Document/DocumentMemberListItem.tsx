@@ -7,9 +7,9 @@ import { s } from "@shared/styles";
 import { DocumentPermission } from "@shared/types";
 import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
-import Avatar from "~/components/Avatar";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
+import Time from "~/components/Time";
 import { EmptySelectValue, Permission } from "~/types";
 import { ListItem } from "../components/ListItem";
 
@@ -68,7 +68,6 @@ const DocumentMemberListItem = ({
   if (!currentPermission) {
     return null;
   }
-  const disabled = !onUpdate && !onLeave;
   const MaybeLink = membership?.source ? StyledLink : React.Fragment;
 
   return (
@@ -90,36 +89,35 @@ const DocumentMemberListItem = ({
           </Trans>
         ) : user.isSuspended ? (
           t("Suspended")
-        ) : user.email ? (
-          user.email
         ) : user.isInvited ? (
           t("Invited")
-        ) : user.isViewer ? (
-          t("Viewer")
+        ) : user.lastActiveAt ? (
+          <Trans>
+            Active <Time dateTime={user.lastActiveAt} /> ago
+          </Trans>
         ) : (
-          t("Editor")
+          t("Never signed in")
         )
       }
       actions={
-        disabled ? null : (
-          <div style={{ marginRight: -8 }}>
-            <InputMemberPermissionSelect
-              permissions={
-                onLeave
-                  ? [
-                      currentPermission,
-                      {
-                        label: `${t("Leave")}…`,
-                        value: EmptySelectValue,
-                      },
-                    ]
-                  : permissions
-              }
-              value={membership?.permission}
-              onChange={handleChange}
-            />
-          </div>
-        )
+        <div style={{ marginRight: -8 }}>
+          <InputMemberPermissionSelect
+            permissions={
+              onLeave
+                ? [
+                    currentPermission,
+                    {
+                      label: `${t("Leave")}…`,
+                      value: EmptySelectValue,
+                    },
+                  ]
+                : permissions
+            }
+            value={membership?.permission}
+            onChange={handleChange}
+            disabled={!onUpdate && !onLeave}
+          />
+        </div>
       }
     />
   );

@@ -7,7 +7,6 @@ import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
 import type {
   DateFilter,
-  JSONObject,
   NavigationNode,
   PublicTeam,
   StatusFilter,
@@ -22,8 +21,7 @@ import env from "~/env";
 import type {
   FetchOptions,
   PaginationParams,
-  PartialWithId,
-  Properties,
+  PartialExcept,
   SearchResult,
 } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -120,6 +118,33 @@ export default class DocumentsStore extends Store<Document> {
     return filter(
       this.all,
       (document) => document.collectionId === collectionId
+    );
+  }
+
+  archivedInCollection(
+    collectionId: string,
+    options?: { archivedAt: string }
+  ): Document[] {
+    const filterCond = (document: Document) =>
+      options
+        ? document.collectionId === collectionId &&
+          document.isArchived &&
+          document.archivedAt === options.archivedAt &&
+          !document.isDeleted
+        : document.collectionId === collectionId &&
+          document.isArchived &&
+          !document.isDeleted;
+
+    return filter(this.orderedData, filterCond);
+  }
+
+  unarchivedInCollection(collectionId: string): Document[] {
+    return filter(
+      this.orderedData,
+      (document) =>
+        document.collectionId === collectionId &&
+        !document.isArchived &&
+        !document.isDeleted
     );
   }
 
@@ -315,8 +340,18 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  fetchArchived = async (options?: PaginationParams): Promise<Document[]> =>
-    this.fetchNamedPage("archived", options);
+  fetchArchived = async (options?: PaginationParams): Promise<Document[]> => {
+    const archivedInResponse = await this.fetchNamedPage("archived", options);
+    const archivedInMemory = this.archived;
+
+    archivedInMemory.forEach((docInMemory) => {
+      !archivedInResponse.find(
+        (docInResponse) => docInResponse.id === docInMemory.id
+      ) && this.remove(docInMemory.id);
+    });
+
+    return archivedInResponse;
+  };
 
   @action
   fetchDeleted = async (options?: PaginationParams): Promise<Document[]> =>
@@ -369,8 +404,8 @@ export default class DocumentsStore extends Store<Document> {
     this.fetchNamedPage("starred", options);
 
   @action
-  fetchDrafts = (options?: PaginationParams): Promise<Document[]> =>
-    this.fetchNamedPage("drafts", options);
+  fetchDrafts = (options: PaginationParams = {}): Promise<Document[]> =>
+    this.fetchNamedPage("drafts", { limit: 100, ...options });
 
   @action
   fetchOwned = (options?: PaginationParams): Promise<Document[]> =>
@@ -491,7 +526,7 @@ export default class DocumentsStore extends Store<Document> {
     super.fetch(
       id,
       options,
-      (res: { data: { document: PartialWithId<Document> } }) =>
+      (res: { data: { document: PartialExcept<Document, "id"> } }) =>
         res.data.document
     );
 
@@ -586,7 +621,6 @@ export default class DocumentsStore extends Store<Document> {
       });
       invariant(res?.data, "Data not available");
       res.data.documents.forEach(this.add);
-      res.data.collections.forEach(this.rootStore.collections.add);
       this.addPolicies(res.policies);
     } finally {
       this.movingDocumentId = undefined;
@@ -681,17 +715,6 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  removeCollectionDocuments(collectionId: string) {
-    // drafts are to be detached from collection rather than deleted, hence excluded here
-    const documents = filter(
-      this.inCollection(collectionId),
-      (d) => !!d.publishedAt
-    );
-    const documentIds = documents.map((doc) => doc.id);
-    documentIds.forEach((id) => this.remove(id));
-  }
-
-  @action
   async delete(
     document: Document,
     options?: {
@@ -752,34 +775,6 @@ export default class DocumentsStore extends Store<Document> {
       await collection.refresh();
     }
   };
-
-  @action
-  async update(
-    params: Properties<Document>,
-    options?: JSONObject
-  ): Promise<Document> {
-    this.isSaving = true;
-
-    try {
-      const res = await client.post(`/${this.apiEndpoint}.update`, {
-        ...params,
-        ...options,
-      });
-
-      invariant(res?.data, "Data should be available");
-
-      const collection = this.getCollectionForDocument(res.data);
-      await collection?.fetchDocuments({ force: true });
-
-      return runInAction("Document#update", () => {
-        const document = this.add(res.data);
-        this.addPolicies(res.policies);
-        return document;
-      });
-    } finally {
-      this.isSaving = false;
-    }
-  }
 
   @action
   unpublish = async (document: Document) => {

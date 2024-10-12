@@ -7,5 +7,6 @@ export default function presentGroupMembership(membership: GroupMembership) {
     documentId: membership.documentId,
     collectionId: membership.collectionId,
     permission: membership.permission,
+    sourceId: membership.sourceId,
   };
 }

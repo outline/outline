@@ -11,7 +11,7 @@ import {
   AuthenticationError,
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { User } from "@server/models";
+import { AuthenticationProvider, User } from "@server/models";
 import { AuthenticationResult } from "@server/types";
 import {
   StateStore,
@@ -95,6 +95,28 @@ if (
           const client = getClientFromContext(ctx);
           const { domain } = parseEmail(profile.email);
 
+          // Only a single OIDC provider is supported – find the existing, if any.
+          const authenticationProvider = team
+            ? (await AuthenticationProvider.findOne({
+                where: {
+                  name: "oidc",
+                  teamId: team.id,
+                  providerId: domain,
+                },
+              })) ??
+              (await AuthenticationProvider.findOne({
+                where: {
+                  name: "oidc",
+                  teamId: team.id,
+                },
+              }))
+            : undefined;
+
+          // Derive a providerId from the OIDC location if there is no existing provider.
+          const oidcURL = new URL(env.OIDC_AUTH_URI!);
+          const providerId =
+            authenticationProvider?.providerId ?? oidcURL.hostname;
+
           if (!domain) {
             throw OIDCMalformedUserInfoError();
           }
@@ -106,7 +128,7 @@ if (
           // Default is 'preferred_username' as per OIDC spec.
           const username = get(profile, env.OIDC_USERNAME_CLAIM);
           const name = profile.name || username || profile.username;
-          const providerId = profile.sub ? profile.sub : profile.id;
+          const profileId = profile.sub ? profile.sub : profile.id;
 
           if (!name) {
             throw AuthenticationError(
@@ -118,8 +140,7 @@ if (
             ip: ctx.ip,
             team: {
               teamId: team?.id,
-              // https://github.com/outline/outline/pull/2388#discussion_r681120223
-              name: "Wiki",
+              name: env.APP_NAME,
               domain,
               subdomain,
             },
@@ -130,10 +151,10 @@ if (
             },
             authenticationProvider: {
               name: config.id,
-              providerId: domain,
+              providerId,
             },
             authentication: {
-              providerId,
+              providerId: profileId,
               accessToken,
               refreshToken,
               expiresIn: params.expires_in,

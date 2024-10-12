@@ -13,6 +13,9 @@ import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import FileOperation from "~/models/FileOperation";
 import Group from "~/models/Group";
+import GroupMembership from "~/models/GroupMembership";
+import GroupUser from "~/models/GroupUser";
+import Membership from "~/models/Membership";
 import Notification from "~/models/Notification";
 import Pin from "~/models/Pin";
 import Star from "~/models/Star";
@@ -22,9 +25,8 @@ import User from "~/models/User";
 import UserMembership from "~/models/UserMembership";
 import withStores from "~/components/withStores";
 import {
-  PartialWithId,
+  PartialExcept,
   WebsocketCollectionUpdateIndexEvent,
-  WebsocketCollectionUserEvent,
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
 } from "~/types";
@@ -85,6 +87,8 @@ class WebsocketProvider extends React.Component<Props> {
       documents,
       collections,
       groups,
+      groupUsers,
+      groupMemberships,
       pins,
       stars,
       memberships,
@@ -96,6 +100,8 @@ class WebsocketProvider extends React.Component<Props> {
       fileOperations,
       notifications,
     } = this.props;
+
+    const currentUserId = auth?.user?.id;
 
     // on reconnection, reset the transports option, as the Websocket
     // connection may have failed (caused by proxy, firewall, browser, ...)
@@ -196,7 +202,6 @@ class WebsocketProvider extends React.Component<Props> {
                 err instanceof AuthorizationError ||
                 err instanceof NotFoundError
               ) {
-                documents.removeCollectionDocuments(collectionId);
                 memberships.removeAll({ collectionId });
                 collections.remove(collectionId);
                 return;
@@ -209,23 +214,20 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "documents.update",
-      action(
-        (event: PartialWithId<Document> & { title: string; url: string }) => {
-          documents.add(event);
+      action((event: PartialExcept<Document, "id" | "title" | "url">) => {
+        documents.add(event);
 
-          if (event.collectionId) {
-            const collection = collections.get(event.collectionId);
-            collection?.updateDocument(event);
-          }
+        if (event.collectionId) {
+          const collection = collections.get(event.collectionId);
+          collection?.updateDocument(event);
         }
-      )
+      })
     );
 
     this.socket.on(
       "documents.archive",
-      action((event: PartialWithId<Document>) => {
-        documents.add(event);
-        policies.remove(event.id);
+      action((event: PartialExcept<Document, "id">) => {
+        documents.addToArchive(event as Document);
 
         if (event.collectionId) {
           const collection = collections.get(event.collectionId);
@@ -236,7 +238,7 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "documents.delete",
-      action((event: PartialWithId<Document>) => {
+      action((event: PartialExcept<Document, "id">) => {
         documents.add(event);
         policies.remove(event.id);
 
@@ -258,49 +260,83 @@ class WebsocketProvider extends React.Component<Props> {
       }
     );
 
-    // received when a user is given access to a document
     this.socket.on(
       "documents.add_user",
-      (event: PartialWithId<UserMembership>) => {
+      async (event: PartialExcept<UserMembership, "id">) => {
         userMemberships.add(event);
+
+        // Any existing child policies are now invalid
+        if (event.userId === currentUserId) {
+          const document = documents.get(event.documentId!);
+          if (document) {
+            document.childDocuments.forEach((childDocument) => {
+              policies.remove(childDocument.id);
+            });
+          }
+        }
+
+        await documents.fetch(event.documentId!, {
+          force: event.userId === currentUserId,
+        });
       }
     );
 
     this.socket.on(
       "documents.remove_user",
-      (event: PartialWithId<UserMembership>) => {
-        if (event.userId) {
-          const userMembership = userMemberships.get(event.id);
+      (event: PartialExcept<UserMembership, "id">) => {
+        userMemberships.remove(event.id);
 
-          // TODO: Possibly replace this with a one-to-many relation decorator.
-          if (userMembership) {
-            userMemberships
-              .filter({
-                userId: event.userId,
-                sourceId: userMembership.id,
-              })
-              .forEach((m) => {
-                m.documentId && documents.remove(m.documentId);
-              });
+        // Any existing child policies are now invalid
+        if (event.userId === currentUserId) {
+          const document = documents.get(event.documentId!);
+          if (document) {
+            document.childDocuments.forEach((childDocument) => {
+              policies.remove(childDocument.id);
+            });
           }
-
-          userMemberships.removeAll({
-            userId: event.userId,
-            documentId: event.documentId,
-          });
         }
 
-        if (event.documentId && event.userId === auth.user?.id) {
-          documents.remove(event.documentId);
+        const policy = policies.get(event.documentId!);
+        if (policy && policy.abilities.read === false) {
+          documents.remove(event.documentId!);
         }
       }
     );
 
-    this.socket.on("comments.create", (event: PartialWithId<Comment>) => {
+    this.socket.on(
+      "documents.add_group",
+      (event: PartialExcept<GroupMembership, "id">) => {
+        groupMemberships.add(event);
+
+        const group = groups.get(event.groupId!);
+
+        // Any existing child policies are now invalid
+        if (
+          currentUserId &&
+          group?.users.map((u) => u.id).includes(currentUserId)
+        ) {
+          const document = documents.get(event.documentId!);
+          if (document) {
+            document.childDocuments.forEach((childDocument) => {
+              policies.remove(childDocument.id);
+            });
+          }
+        }
+      }
+    );
+
+    this.socket.on(
+      "documents.remove_group",
+      (event: PartialExcept<GroupMembership, "id">) => {
+        groupMemberships.remove(event.id);
+      }
+    );
+
+    this.socket.on("comments.create", (event: PartialExcept<Comment, "id">) => {
       comments.add(event);
     });
 
-    this.socket.on("comments.update", (event: PartialWithId<Comment>) => {
+    this.socket.on("comments.update", (event: PartialExcept<Comment, "id">) => {
       comments.add(event);
     });
 
@@ -308,11 +344,11 @@ class WebsocketProvider extends React.Component<Props> {
       comments.remove(event.modelId);
     });
 
-    this.socket.on("groups.create", (event: PartialWithId<Group>) => {
+    this.socket.on("groups.create", (event: PartialExcept<Group, "id">) => {
       groups.add(event);
     });
 
-    this.socket.on("groups.update", (event: PartialWithId<Group>) => {
+    this.socket.on("groups.update", (event: PartialExcept<Group, "id">) => {
       groups.add(event);
     });
 
@@ -320,22 +356,36 @@ class WebsocketProvider extends React.Component<Props> {
       groups.remove(event.modelId);
     });
 
-    this.socket.on("collections.create", (event: PartialWithId<Collection>) => {
-      collections.add(event);
-    });
+    this.socket.on(
+      "groups.add_user",
+      (event: PartialExcept<GroupUser, "id">) => {
+        groupUsers.add(event);
+      }
+    );
 
-    this.socket.on("collections.update", (event: PartialWithId<Collection>) => {
-      if (
-        "sharing" in event &&
-        event.sharing !== collections.get(event.id)?.sharing
-      ) {
-        documents.all.forEach((document) => {
-          policies.remove(document.id);
+    this.socket.on(
+      "groups.remove_user",
+      (event: PartialExcept<GroupUser, "id">) => {
+        groupUsers.removeAll({
+          groupId: event.groupId,
+          userId: event.userId,
         });
       }
+    );
 
-      collections.add(event);
-    });
+    this.socket.on(
+      "collections.create",
+      (event: PartialExcept<Collection, "id">) => {
+        collections.add(event);
+      }
+    );
+
+    this.socket.on(
+      "collections.update",
+      (event: PartialExcept<Collection, "id">) => {
+        collections.add(event);
+      }
+    );
 
     this.socket.on(
       "collections.delete",
@@ -352,13 +402,54 @@ class WebsocketProvider extends React.Component<Props> {
           }
           policies.remove(doc.id);
         });
-        documents.removeCollectionDocuments(collectionId);
         memberships.removeAll({ collectionId });
         collections.remove(collectionId);
       })
     );
 
-    this.socket.on("teams.update", (event: PartialWithId<Team>) => {
+    this.socket.on(
+      "collections.archive",
+      async (event: PartialExcept<Collection, "id">) => {
+        const collectionId = event.id;
+
+        // Fetch collection to update policies
+        await collections.fetch(collectionId, { force: true });
+
+        documents.unarchivedInCollection(collectionId).forEach(
+          action((doc) => {
+            if (!doc.publishedAt) {
+              // draft is to be detached from collection, not archived
+              doc.collectionId = null;
+            } else {
+              doc.archivedAt = event.archivedAt as string;
+            }
+            policies.remove(doc.id);
+          })
+        );
+      }
+    );
+
+    this.socket.on(
+      "collections.restore",
+      async (event: PartialExcept<Collection, "id">) => {
+        const collectionId = event.id;
+        documents
+          .archivedInCollection(collectionId, {
+            archivedAt: event.archivedAt as string,
+          })
+          .forEach(
+            action((doc) => {
+              doc.archivedAt = null;
+              policies.remove(doc.id);
+            })
+          );
+
+        // Fetch collection to update policies
+        await collections.fetch(collectionId, { force: true });
+      }
+    );
+
+    this.socket.on("teams.update", (event: PartialExcept<Team, "id">) => {
       if ("sharing" in event && event.sharing !== auth.team?.sharing) {
         documents.all.forEach((document) => {
           policies.remove(document.id);
@@ -370,23 +461,23 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "notifications.create",
-      (event: PartialWithId<Notification>) => {
+      (event: PartialExcept<Notification, "id">) => {
         notifications.add(event);
       }
     );
 
     this.socket.on(
       "notifications.update",
-      (event: PartialWithId<Notification>) => {
+      (event: PartialExcept<Notification, "id">) => {
         notifications.add(event);
       }
     );
 
-    this.socket.on("pins.create", (event: PartialWithId<Pin>) => {
+    this.socket.on("pins.create", (event: PartialExcept<Pin, "id">) => {
       pins.add(event);
     });
 
-    this.socket.on("pins.update", (event: PartialWithId<Pin>) => {
+    this.socket.on("pins.update", (event: PartialExcept<Pin, "id">) => {
       pins.add(event);
     });
 
@@ -394,11 +485,11 @@ class WebsocketProvider extends React.Component<Props> {
       pins.remove(event.modelId);
     });
 
-    this.socket.on("stars.create", (event: PartialWithId<Star>) => {
+    this.socket.on("stars.create", (event: PartialExcept<Star, "id">) => {
       stars.add(event);
     });
 
-    this.socket.on("stars.update", (event: PartialWithId<Star>) => {
+    this.socket.on("stars.update", (event: PartialExcept<Star, "id">) => {
       stars.add(event);
     });
 
@@ -413,56 +504,35 @@ class WebsocketProvider extends React.Component<Props> {
       }
     );
 
-    // received when a user is given access to a collection
-    // if the user is us then we go ahead and load the collection from API.
-    this.socket.on(
-      "collections.add_user",
-      async (event: WebsocketCollectionUserEvent) => {
-        if (event.userId === auth.user?.id) {
-          await collections.fetch(event.collectionId, {
-            force: true,
-          });
+    this.socket.on("collections.add_user", async (event: Membership) => {
+      memberships.add(event);
+      await collections.fetch(event.collectionId, {
+        force: event.userId === currentUserId,
+      });
+    });
 
-          // Document policies might need updating as the permission changes
-          documents.inCollection(event.collectionId).forEach((document) => {
-            policies.remove(document.id);
-          });
-        }
+    this.socket.on("collections.remove_user", (event: Membership) => {
+      memberships.remove(event.id);
+
+      const policy = policies.get(event.collectionId);
+      if (policy && policy.abilities.read === false) {
+        collections.remove(event.collectionId);
       }
-    );
+    });
 
-    // received when a user is removed from having access to a collection
-    // to keep state in sync we must update our UI if the user is us,
-    // or otherwise just remove any membership state we have for that user.
+    this.socket.on("collections.add_group", async (event: GroupMembership) => {
+      groupMemberships.add(event);
+      await collections.fetch(event.collectionId!);
+    });
+
     this.socket.on(
-      "collections.remove_user",
-      async (event: WebsocketCollectionUserEvent) => {
-        if (event.userId === auth.user?.id) {
-          // check if we still have access to the collection
-          try {
-            await collections.fetch(event.collectionId, {
-              force: true,
-            });
-          } catch (err) {
-            if (
-              err instanceof AuthorizationError ||
-              err instanceof NotFoundError
-            ) {
-              collections.remove(event.collectionId);
-              memberships.removeAll({
-                userId: event.userId,
-                collectionId: event.collectionId,
-              });
-              return;
-            }
-          }
+      "collections.remove_group",
+      async (event: GroupMembership) => {
+        groupMemberships.remove(event.id);
 
-          documents.removeCollectionDocuments(event.collectionId);
-        } else {
-          memberships.removeAll({
-            userId: event.userId,
-            collectionId: event.collectionId,
-          });
+        const policy = policies.get(event.collectionId!);
+        if (policy && policy.abilities.read === false) {
+          collections.remove(event.collectionId!);
         }
       }
     );
@@ -471,23 +541,20 @@ class WebsocketProvider extends React.Component<Props> {
       "collections.update_index",
       action((event: WebsocketCollectionUpdateIndexEvent) => {
         const collection = collections.get(event.collectionId);
-
-        if (collection) {
-          collection.updateIndex(event.index);
-        }
+        collection?.updateIndex(event.index);
       })
     );
 
     this.socket.on(
       "fileOperations.create",
-      (event: PartialWithId<FileOperation>) => {
+      (event: PartialExcept<FileOperation, "id">) => {
         fileOperations.add(event);
       }
     );
 
     this.socket.on(
       "fileOperations.update",
-      (event: PartialWithId<FileOperation>) => {
+      (event: PartialExcept<FileOperation, "id">) => {
         fileOperations.add(event);
 
         if (
@@ -504,7 +571,7 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "subscriptions.create",
-      (event: PartialWithId<Subscription>) => {
+      (event: PartialExcept<Subscription, "id">) => {
         subscriptions.add(event);
       }
     );
@@ -516,11 +583,11 @@ class WebsocketProvider extends React.Component<Props> {
       }
     );
 
-    this.socket.on("users.update", (event: PartialWithId<User>) => {
+    this.socket.on("users.update", (event: PartialExcept<User, "id">) => {
       users.add(event);
     });
 
-    this.socket.on("users.demote", async (event: PartialWithId<User>) => {
+    this.socket.on("users.demote", async (event: PartialExcept<User, "id">) => {
       if (event.id === auth.user?.id) {
         documents.all.forEach((document) => policies.remove(document.id));
         await collections.fetchAll();
@@ -529,7 +596,7 @@ class WebsocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "userMemberships.update",
-      async (event: PartialWithId<UserMembership>) => {
+      async (event: PartialExcept<UserMembership, "id">) => {
         userMemberships.add(event);
       }
     );

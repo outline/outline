@@ -7,10 +7,9 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
-import Share from "~/models/Share";
+import Group from "~/models/Group";
 import User from "~/models/User";
-import Avatar from "~/components/Avatar";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
 import NudeButton from "~/components/NudeButton";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
@@ -32,28 +31,21 @@ import { AccessControlList } from "./AccessControlList";
 type Props = {
   /** The document to share. */
   document: Document;
-  /** The existing share model, if any. */
-  share: Share | null | undefined;
-  /** The existing share parent model, if any. */
-  sharedParent: Share | null | undefined;
   /** Callback fired when the popover requests to be closed. */
   onRequestClose: () => void;
   /** Whether the popover is visible. */
   visible: boolean;
 };
 
-function SharePopover({
-  document,
-  share,
-  sharedParent,
-  onRequestClose,
-  visible,
-}: Props) {
+function SharePopover({ document, onRequestClose, visible }: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const can = usePolicy(document);
+  const { shares } = useStores();
+  const share = shares.getByDocumentId(document.id);
+  const sharedParent = shares.getByDocumentParents(document.id);
   const [hasRendered, setHasRendered] = React.useState(visible);
-  const { users, userMemberships } = useStores();
+  const { users, userMemberships, groups, groupMemberships } = useStores();
   const [query, setQuery] = React.useState("");
   const [picker, showPicker, hidePicker] = useBoolean();
   const [invitedInSession, setInvitedInSession] = React.useState<string[]>([]);
@@ -129,9 +121,9 @@ function SharePopover({
         name: t("Invite"),
         section: UserSection,
         perform: async () => {
-          const usersInvited = await Promise.all(
+          const invited = await Promise.all(
             pendingIds.map(async (idOrEmail) => {
-              let user;
+              let user, group;
 
               // convert email to user
               if (isEmail(idOrEmail)) {
@@ -145,38 +137,77 @@ function SharePopover({
                 user = response[0];
               } else {
                 user = users.get(idOrEmail);
+                group = groups.get(idOrEmail);
               }
 
-              if (!user) {
-                return;
+              if (user) {
+                await userMemberships.create({
+                  documentId: document.id,
+                  userId: user.id,
+                  permission,
+                });
+                return user;
               }
 
-              await userMemberships.create({
-                documentId: document.id,
-                userId: user.id,
-                permission,
-              });
+              if (group) {
+                await groupMemberships.create({
+                  documentId: document.id,
+                  groupId: group.id,
+                  permission,
+                });
+                return group;
+              }
 
-              return user;
+              return;
             })
           );
 
-          if (usersInvited.length === 1) {
-            const user = usersInvited[0] as User;
-            toast.message(
-              t("{{ userName }} was invited to the document", {
-                userName: user.name,
-              }),
-              {
-                icon: <Avatar model={user} size={AvatarSize.Toast} />,
-              }
-            );
-          } else {
-            toast.success(
-              t("{{ count }} people invited to the document", {
-                count: pendingIds.length,
-              })
-            );
+          const invitedUsers = invited.filter(
+            (item) => item instanceof User
+          ) as User[];
+          const invitedGroups = invited.filter(
+            (item) => item instanceof Group
+          ) as Group[];
+
+          if (invitedUsers.length > 0) {
+            // Special case for the common action of adding a single user.
+            if (invitedUsers.length === 1) {
+              const user = invitedUsers[0];
+              toast.message(
+                t("{{ userName }} was added to the document", {
+                  userName: user.name,
+                }),
+                {
+                  icon: <Avatar model={user} size={AvatarSize.Toast} />,
+                }
+              );
+            } else {
+              toast.message(
+                t("{{ count }} people added to the document", {
+                  count: invitedUsers.length,
+                })
+              );
+            }
+          }
+          if (invitedGroups.length > 0) {
+            // Special case for the common action of adding a single group.
+            if (invitedGroups.length === 1) {
+              const group = invitedGroups[0];
+              toast.message(
+                t("{{ userName }} was added to the document", {
+                  userName: group.name,
+                }),
+                {
+                  icon: <GroupAvatar group={group} size={AvatarSize.Toast} />,
+                }
+              );
+            } else {
+              toast.message(
+                t("{{ count }} groups added to the document", {
+                  count: invitedGroups.length,
+                })
+              );
+            }
           }
 
           setInvitedInSession((prev) => [...prev, ...pendingIds]);
@@ -185,14 +216,16 @@ function SharePopover({
         },
       }),
     [
-      t,
-      pendingIds,
+      document.id,
+      groupMemberships,
+      groups,
       hidePicker,
       userMemberships,
-      document.id,
+      pendingIds,
       permission,
-      users,
+      t,
       team.defaultUserRole,
+      users,
     ]
   );
 

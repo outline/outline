@@ -1,8 +1,10 @@
 import {
+  ArchiveIcon,
   CollectionIcon,
   EditIcon,
   PadlockIcon,
   PlusIcon,
+  RestoreIcon,
   SearchIcon,
   ShapesIcon,
   StarredIcon,
@@ -10,16 +12,18 @@ import {
   UnstarredIcon,
 } from "outline-icons";
 import * as React from "react";
+import { toast } from "sonner";
 import stores from "~/stores";
 import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import SharePopover from "~/components/Sharing/Collection/SharePopover";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import { createAction } from "~/actions";
-import { CollectionSection } from "~/actions/sections";
+import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
 import { newTemplatePath, searchPath } from "~/utils/routeHelpers";
@@ -70,7 +74,7 @@ export const editCollection = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? `${t("Edit")}…` : t("Edit collection"),
   analyticsName: "Edit collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <EditIcon />,
   visible: ({ activeCollectionId }) =>
     !!activeCollectionId &&
@@ -96,7 +100,7 @@ export const editCollectionPermissions = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? `${t("Permissions")}…` : t("Collection permissions"),
   analyticsName: "Collection permissions",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <PadlockIcon />,
   visible: ({ activeCollectionId }) =>
     !!activeCollectionId &&
@@ -127,11 +131,22 @@ export const editCollectionPermissions = createAction({
 export const searchInCollection = createAction({
   name: ({ t }) => t("Search in collection"),
   analyticsName: "Search collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <SearchIcon />,
-  visible: ({ activeCollectionId }) =>
-    !!activeCollectionId &&
-    stores.policies.abilities(activeCollectionId).readDocument,
+  visible: ({ activeCollectionId }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+
+    const collection = stores.collections.get(activeCollectionId);
+
+    if (!collection?.isActive) {
+      return false;
+    }
+
+    return stores.policies.abilities(activeCollectionId).readDocument;
+  },
+
   perform: ({ activeCollectionId }) => {
     history.push(searchPath(undefined, { collectionId: activeCollectionId }));
   },
@@ -140,7 +155,7 @@ export const searchInCollection = createAction({
 export const starCollection = createAction({
   name: ({ t }) => t("Star"),
   analyticsName: "Star collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <StarredIcon />,
   keywords: "favorite bookmark",
   visible: ({ activeCollectionId }) => {
@@ -167,7 +182,7 @@ export const starCollection = createAction({
 export const unstarCollection = createAction({
   name: ({ t }) => t("Unstar"),
   analyticsName: "Unstar collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <UnstarredIcon />,
   keywords: "unfavorite unbookmark",
   visible: ({ activeCollectionId }) => {
@@ -190,10 +205,76 @@ export const unstarCollection = createAction({
   },
 });
 
+export const archiveCollection = createAction({
+  name: ({ t }) => `${t("Archive")}…`,
+  analyticsName: "Archive collection",
+  section: CollectionSection,
+  icon: <ArchiveIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeCollectionId).archive;
+  },
+  perform: async ({ activeCollectionId, stores, t }) => {
+    const { dialogs, collections } = stores;
+    if (!activeCollectionId) {
+      return;
+    }
+    const collection = collections.get(activeCollectionId);
+    if (!collection) {
+      return;
+    }
+
+    dialogs.openModal({
+      title: t("Archive collection"),
+      content: (
+        <ConfirmationDialog
+          onSubmit={async () => {
+            await collection.archive();
+            toast.success(t("Collection archived"));
+          }}
+          submitText={t("Archive")}
+          savingText={`${t("Archiving")}…`}
+        >
+          {t(
+            "Archiving this collection will also archive all documents within it. Documents from the collection will no longer be visible in search results."
+          )}
+        </ConfirmationDialog>
+      ),
+    });
+  },
+});
+
+export const restoreCollection = createAction({
+  name: ({ t }) => t("Restore"),
+  analyticsName: "Restore collection",
+  section: CollectionSection,
+  icon: <RestoreIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeCollectionId).restore;
+  },
+  perform: async ({ activeCollectionId, stores, t }) => {
+    if (!activeCollectionId) {
+      return;
+    }
+    const collection = stores.collections.get(activeCollectionId);
+    if (!collection) {
+      return;
+    }
+
+    await collection.restore();
+    toast.success(t("Collection restored"));
+  },
+});
+
 export const deleteCollection = createAction({
   name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete collection",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   dangerous: true,
   icon: <TrashIcon />,
   visible: ({ activeCollectionId }) => {
@@ -227,7 +308,7 @@ export const deleteCollection = createAction({
 export const createTemplate = createAction({
   name: ({ t }) => t("New template"),
   analyticsName: "New template",
-  section: CollectionSection,
+  section: ActiveCollectionSection,
   icon: <ShapesIcon />,
   keywords: "new create template",
   visible: ({ activeCollectionId }) =>

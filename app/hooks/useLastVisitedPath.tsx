@@ -3,7 +3,7 @@ import { getCookie, removeCookie, setCookie } from "tiny-cookie";
 import usePersistedState from "~/hooks/usePersistedState";
 import Logger from "~/utils/Logger";
 import history from "~/utils/history";
-import { isValidPostLoginRedirect } from "~/utils/urls";
+import { isAllowedLoginRedirect } from "~/utils/urls";
 
 /**
  * Hook to set locally and return the document or collection that the user last visited. This is
@@ -20,7 +20,9 @@ export function useLastVisitedPath(): [string, (path: string) => void] {
 
   const setPathAsLastVisitedPath = React.useCallback(
     (path: string) => {
-      path !== lastVisitedPath && setLastVisitedPath(path);
+      if (isAllowedLoginRedirect(path) && path !== lastVisitedPath) {
+        setLastVisitedPath(path);
+      }
     },
     [lastVisitedPath, setLastVisitedPath]
   );
@@ -34,8 +36,16 @@ export function useLastVisitedPath(): [string, (path: string) => void] {
  * @param path The path to set as the post login path.
  */
 export function setPostLoginPath(path: string) {
-  if (isValidPostLoginRedirect(path)) {
-    setCookie("postLoginRedirectPath", path, { expires: 1 });
+  const key = "postLoginRedirectPath";
+
+  if (isAllowedLoginRedirect(path)) {
+    setCookie(key, path, { expires: 1 });
+
+    try {
+      sessionStorage.setItem(key, path);
+    } catch (e) {
+      // If the session storage is full or inaccessible, we can't do anything about it.
+    }
   }
 }
 
@@ -49,7 +59,12 @@ export function usePostLoginPath() {
   const key = "postLoginRedirectPath";
 
   const getter = React.useCallback(() => {
-    const path = getCookie(key);
+    let path;
+    try {
+      path = sessionStorage.getItem(key) || getCookie(key);
+    } catch (e) {
+      // Expected error if the session storage is full or inaccessible.
+    }
 
     if (path) {
       Logger.info("lifecycle", "Spending post login path", { path });
@@ -57,11 +72,16 @@ export function usePostLoginPath() {
       // Remove the cookie once the app has been navigated to the post login path. We dont
       // do this immediately as React StrictMode will render multiple times.
       const cleanup = history.listen(() => {
+        try {
+          sessionStorage.removeItem(key);
+        } catch (e) {
+          // Expected error if the session storage is full or inaccessible.
+        }
         removeCookie(key);
         cleanup?.();
       });
 
-      if (isValidPostLoginRedirect(path)) {
+      if (isAllowedLoginRedirect(path)) {
         return path;
       }
     }

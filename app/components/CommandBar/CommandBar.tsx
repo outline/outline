@@ -6,20 +6,27 @@ import { Portal } from "react-portal";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
-import CommandBarResults from "~/components/CommandBarResults";
 import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
-import useSettingsActions from "~/hooks/useSettingsActions";
-import useTemplateActions from "~/hooks/useTemplateActions";
+import CommandBarResults from "./CommandBarResults";
+import useRecentDocumentActions from "./useRecentDocumentActions";
+import useSettingsAction from "./useSettingsAction";
+import useTemplatesAction from "./useTemplatesAction";
 
 function CommandBar() {
   const { t } = useTranslation();
-  const settingsActions = useSettingsActions();
-  const templateActions = useTemplateActions();
+  const recentDocumentActions = useRecentDocumentActions();
+  const settingsAction = useSettingsAction();
+  const templatesAction = useTemplatesAction();
   const commandBarActions = React.useMemo(
-    () => [...rootActions, templateActions, settingsActions],
-    [settingsActions, templateActions]
+    () => [
+      ...recentDocumentActions,
+      ...rootActions,
+      templatesAction,
+      settingsAction,
+    ],
+    [recentDocumentActions, settingsAction, templatesAction]
   );
 
   useCommandBarActions(commandBarActions);
@@ -30,7 +37,9 @@ function CommandBar() {
         <Positioner>
           <Animator>
             <SearchActions />
-            <SearchInput defaultPlaceholder={t("Type a command or search")} />
+            <SearchInput
+              defaultPlaceholder={`${t("Type a command or search")}…`}
+            />
             <CommandBarResults />
           </Animator>
         </Positioner>
@@ -60,12 +69,18 @@ const Positioner = styled(KBarPositioner)`
 `;
 
 const SearchInput = styled(KBarSearch)`
-  padding: 16px 20px;
-  width: 100%;
+  position: relative;
+  padding: 16px 12px;
+  margin: 0 8px;
+  width: calc(100% - 16px);
   outline: none;
   border: none;
   background: ${s("menuBackground")};
   color: ${s("text")};
+
+  &:not(:last-child) {
+    border-bottom: 1px solid ${s("inputBorder")};
+  }
 
   &:disabled,
   &::placeholder {

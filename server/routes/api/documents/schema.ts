@@ -68,6 +68,9 @@ export const DocumentsListSchema = BaseSchema.extend({
 
     /** Boolean which denotes whether the document is a template */
     template: z.boolean().optional(),
+
+    /** Document statuses to include in results */
+    statusFilter: z.nativeEnum(StatusFilter).array().optional(),
   }),
   // Maintains backwards compatibility
 }).transform((req) => {
@@ -82,7 +85,10 @@ export const DocumentsListSchema = BaseSchema.extend({
 export type DocumentsListReq = z.infer<typeof DocumentsListSchema>;
 
 export const DocumentsArchivedSchema = BaseSchema.extend({
-  body: DocumentsSortParamsSchema.extend({}),
+  body: DocumentsSortParamsSchema.extend({
+    /** Id of the collection to which archived documents should belong */
+    collectionId: z.string().uuid().optional(),
+  }),
 });
 
 export type DocumentsArchivedReq = z.infer<typeof DocumentsArchivedSchema>;
@@ -254,7 +260,7 @@ export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateSchema>;
 export const DocumentsMoveSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Id of collection to which the doc is supposed to be moved */
-    collectionId: z.string().uuid().nullish(),
+    collectionId: z.string().uuid().optional().nullish(),
 
     /** Parent Id, in case if the doc is moved to a new parent */
     parentDocumentId: z.string().uuid().nullish(),
@@ -365,6 +371,8 @@ export const DocumentsUsersSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Query term to search users by name */
     query: z.string().optional(),
+    /** Id of the user to search within document access */
+    userId: z.string().uuid().optional(),
   }),
 });
 
@@ -374,9 +382,9 @@ export const DocumentsAddUserSchema = BaseSchema.extend({
   body: z.object({
     /** Id of the document to which the user is supposed to be added */
     id: z.string().uuid(),
-    /** Id of the user who is to be added*/
+    /** Id of the user who is to be added */
     userId: z.string().uuid(),
-    /** Permission to be granted to the added user  */
+    /** Permission to be granted to the added user */
     permission: z.nativeEnum(DocumentPermission).optional(),
   }),
 });
@@ -394,6 +402,27 @@ export const DocumentsRemoveUserSchema = BaseSchema.extend({
 
 export type DocumentsRemoveUserReq = z.infer<typeof DocumentsRemoveUserSchema>;
 
+export const DocumentsAddGroupSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    groupId: z.string().uuid(),
+    permission: z
+      .nativeEnum(DocumentPermission)
+      .default(DocumentPermission.ReadWrite),
+  }),
+});
+
+export type DocumentsAddGroupsReq = z.infer<typeof DocumentsAddGroupSchema>;
+
+export const DocumentsRemoveGroupSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    groupId: z.string().uuid(),
+  }),
+});
+
+export type DocumentsRemoveGroupReq = z.infer<
+  typeof DocumentsRemoveGroupSchema
+>;
+
 export const DocumentsSharedWithUserSchema = BaseSchema.extend({
   body: DocumentsSortParamsSchema,
 });
@@ -403,8 +432,7 @@ export type DocumentsSharedWithUserReq = z.infer<
 >;
 
 export const DocumentsMembershipsSchema = BaseSchema.extend({
-  body: z.object({
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     query: z.string().optional(),
     permission: z.nativeEnum(DocumentPermission).optional(),
   }),

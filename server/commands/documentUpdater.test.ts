@@ -48,4 +48,37 @@ describe("documentUpdater", () => {
 
     expect(document.lastModifiedById).not.toEqual(user.id);
   });
+
+  it("should update document content when changing text", async () => {
+    const user = await buildUser();
+    let document = await buildDocument({
+      teamId: user.teamId,
+    });
+
+    document = await sequelize.transaction(async (transaction) =>
+      documentUpdater({
+        text: "Changed",
+        document,
+        user,
+        ip,
+        transaction,
+      })
+    );
+
+    expect(document.text).toEqual("Changed");
+    expect(document.content).toEqual({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "Changed",
+            },
+          ],
+        },
+      ],
+    });
+  });
 });

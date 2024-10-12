@@ -23,7 +23,6 @@ import {
   BelongsTo,
   Column,
   Default,
-  PrimaryKey,
   Table,
   BeforeValidate,
   BeforeCreate,
@@ -39,6 +38,7 @@ import {
   IsDate,
   AllowNull,
   BelongsToMany,
+  Unique,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type {
@@ -55,13 +55,16 @@ import { generateUrlId } from "@server/utils/url";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
+import Group from "./Group";
+import GroupMembership from "./GroupMembership";
+import GroupUser from "./GroupUser";
 import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
 import UserMembership from "./UserMembership";
 import View from "./View";
-import ParanoidModel from "./base/ParanoidModel";
+import ArchivableModel from "./base/ArchivableModel";
 import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
@@ -147,13 +150,11 @@ type AdditionalFindOptions = {
   withDrafts: {
     include: [
       {
-        model: User,
-        as: "createdBy",
+        association: "createdBy",
         paranoid: false,
       },
       {
-        model: User,
-        as: "updatedBy",
+        association: "updatedBy",
         paranoid: false,
       },
     ],
@@ -180,6 +181,7 @@ type AdditionalFindOptions = {
     if (!userId) {
       return {};
     }
+
     return {
       include: [
         {
@@ -189,6 +191,34 @@ type AdditionalFindOptions = {
           },
           required: false,
         },
+        {
+          association: "groupMemberships",
+          required: false,
+          // use of "separate" property: sequelize breaks when there are
+          // nested "includes" with alternating values for "required"
+          // see https://github.com/sequelize/sequelize/issues/9869
+          separate: true,
+          // include for groups that are members of this document,
+          // of which userId is a member of, resulting in:
+          // GroupMembership [inner join] Group [inner join] GroupUser [where] userId
+          include: [
+            {
+              model: Group,
+              as: "group",
+              required: true,
+              include: [
+                {
+                  model: GroupUser,
+                  as: "groupUsers",
+                  required: true,
+                  where: {
+                    userId,
+                  },
+                },
+              ],
+            },
+          ],
+        },
       ],
     };
   },
@@ -196,13 +226,40 @@ type AdditionalFindOptions = {
     include: [
       {
         association: "memberships",
+        required: false,
+      },
+      {
+        model: GroupMembership,
+        as: "groupMemberships",
+        required: false,
+        // use of "separate" property: sequelize breaks when there are
+        // nested "includes" with alternating values for "required"
+        // see https://github.com/sequelize/sequelize/issues/9869
+        separate: true,
+        // include for groups that are members of this collection,
+        // of which userId is a member of, resulting in:
+        // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
+        include: [
+          {
+            model: Group,
+            as: "group",
+            required: true,
+            include: [
+              {
+                model: GroupUser,
+                as: "groupUsers",
+                required: true,
+              },
+            ],
+          },
+        ],
       },
     ],
   },
 }))
 @Table({ tableName: "documents", modelName: "document" })
 @Fix
-class Document extends ParanoidModel<
+class Document extends ArchivableModel<
   InferAttributes<Document>,
   Partial<InferCreationAttributes<Document>>
 > {
@@ -211,7 +268,7 @@ class Document extends ParanoidModel<
     max: 10,
     msg: `urlId must be 10 characters`,
   })
-  @PrimaryKey
+  @Unique
   @Column
   urlId: string;
 
@@ -304,11 +361,6 @@ class Document extends ParanoidModel<
   @Default(0)
   @Column(DataType.INTEGER)
   revisionCount: number;
-
-  /** Whether the document is archvied, and if so when. */
-  @IsDate
-  @Column
-  archivedAt: Date | null;
 
   /** Whether the document is published, and if so when. */
   @IsDate
@@ -534,7 +586,7 @@ class Document extends ParanoidModel<
   teamId: string;
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection | null | undefined;
+  collection: Collection | null;
 
   @BelongsToMany(() => User, () => UserMembership)
   users: User[];
@@ -545,6 +597,9 @@ class Document extends ParanoidModel<
 
   @HasMany(() => UserMembership)
   memberships: UserMembership[];
+
+  @HasMany(() => GroupMembership, "documentId")
+  groupMemberships: GroupMembership[];
 
   @HasMany(() => Revision)
   revisions: Revision[];
@@ -559,22 +614,28 @@ class Document extends ParanoidModel<
   views: View[];
 
   /**
-   * Returns an array of unique userIds that are members of a document via direct membership
+   * Returns an array of unique userIds that are members of a document
+   * either via group or direct membership.
    *
    * @param documentId
    * @returns userIds
    */
   static async membershipUserIds(documentId: string) {
     const document = await this.scope("withAllMemberships").findOne({
-      where: {
-        id: documentId,
-      },
+      where: { id: documentId },
     });
     if (!document) {
       return [];
     }
 
-    return document.memberships.map((membership) => membership.userId);
+    const groupMemberships = document.groupMemberships
+      .map((gm) => gm.group.groupUsers)
+      .flat();
+    const membershipUserIds = [
+      ...groupMemberships,
+      ...document.memberships,
+    ].map((membership) => membership.userId);
+    return uniq(membershipUserIds);
   }
 
   static defaultScopeWithUser(userId: string) {
@@ -672,6 +733,54 @@ class Document extends ParanoidModel<
     return null;
   }
 
+  /**
+   * Find many documents by their id, supports filtering by user memberships when `userId`
+   * is specified in the options.
+   *
+   * @param ids An array of document ids
+   * @param options FindOptions
+   * @returns A promise resolving to the list of documents
+   */
+  static async findByIds(
+    ids: string[],
+    options: Omit<FindOptions<Document>, "where"> &
+      Omit<AdditionalFindOptions, "rejectOnEmpty"> = {}
+  ): Promise<Document[]> {
+    const { userId, ...rest } = options;
+
+    const user = userId ? await User.findByPk(userId) : null;
+    const documents = await this.scope([
+      "withDrafts",
+      {
+        method: ["withCollectionPermissions", userId, rest.paranoid],
+      },
+      {
+        method: ["withViews", userId],
+      },
+      {
+        method: ["withMembership", userId],
+      },
+    ]).findAll({
+      where: {
+        ...(user && { teamId: user.teamId }),
+        id: ids,
+      },
+      ...rest,
+    });
+
+    if (!userId) {
+      return documents;
+    }
+
+    return documents.filter(
+      (doc) =>
+        (!doc.collection?.isPrivate && !user?.isGuest) ||
+        (doc.collection?.memberships.length || 0) > 0 ||
+        doc.memberships.length > 0 ||
+        doc.groupMemberships.length > 0
+    );
+  }
+
   // instance methods
 
   /**
@@ -741,15 +850,14 @@ class Document extends ParanoidModel<
    * @param options FindOptions
    * @returns A promise that resolve to a list of users
    */
-  collaborators = async (options?: FindOptions<User>): Promise<User[]> => {
-    const users = await Promise.all(
-      this.collaboratorIds.map((collaboratorId) =>
-        User.findByPk(collaboratorId, options)
-      )
-    );
-
-    return compact(users);
-  };
+  collaborators = async (options?: FindOptions<User>): Promise<User[]> =>
+    await User.findAll({
+      ...options,
+      where: {
+        ...options?.where,
+        id: this.collaboratorIds,
+      },
+    });
 
   /**
    * Find all of the child documents for this document
@@ -841,31 +949,23 @@ class Document extends ParanoidModel<
       }
     }
 
-    const parentDocumentPermissions = this.parentDocumentId
-      ? await UserMembership.findAll({
-          where: {
-            documentId: this.parentDocumentId,
-          },
-          transaction,
-        })
-      : [];
-
-    await Promise.all(
-      parentDocumentPermissions.map((permission) =>
-        UserMembership.create(
-          {
-            documentId: this.id,
-            userId: permission.userId,
-            sourceId: permission.sourceId ?? permission.id,
-            permission: permission.permission,
-            createdById: permission.createdById,
-          },
-          {
-            transaction,
-          }
-        )
-      )
-    );
+    // Copy the group and user memberships from the parent document, if any
+    if (this.parentDocumentId) {
+      await GroupMembership.copy(
+        {
+          documentId: this.parentDocumentId,
+        },
+        this,
+        { transaction }
+      );
+      await UserMembership.copy(
+        {
+          documentId: this.parentDocumentId,
+        },
+        this,
+        { transaction }
+      );
+    }
 
     this.lastModifiedById = user.id;
     this.updatedBy = user;
@@ -923,68 +1023,76 @@ class Document extends ParanoidModel<
 
   // Moves a document from being visible to the team within a collection
   // to the archived area, where it can be subsequently restored.
-  archive = async (user: User) => {
-    await this.sequelize.transaction(async (transaction: Transaction) => {
-      const collection = this.collectionId
-        ? await Collection.findByPk(this.collectionId, {
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-          })
-        : undefined;
+  archive = async (user: User, options?: FindOptions) => {
+    const { transaction } = { ...options };
+    const collection = this.collectionId
+      ? await Collection.findByPk(this.collectionId, {
+          transaction,
+          lock: transaction?.LOCK.UPDATE,
+        })
+      : undefined;
 
-      if (collection) {
-        await collection.removeDocumentInStructure(this, { transaction });
-        if (this.collection) {
-          this.collection.documentStructure = collection.documentStructure;
-        }
+    if (collection) {
+      await collection.removeDocumentInStructure(this, { transaction });
+      if (this.collection) {
+        this.collection.documentStructure = collection.documentStructure;
       }
-    });
+    }
 
-    await this.archiveWithChildren(user);
+    await this.archiveWithChildren(user, { transaction });
     return this;
   };
 
   // Restore an archived document back to being visible to the team
-  unarchive = async (user: User) => {
-    await this.sequelize.transaction(async (transaction: Transaction) => {
-      const collection = this.collectionId
-        ? await Collection.findByPk(this.collectionId, {
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-          })
-        : undefined;
-
-      // check to see if the documents parent hasn't been archived also
-      // If it has then restore the document to the collection root.
-      if (this.parentDocumentId) {
-        const parent = await (this.constructor as typeof Document).findOne({
-          where: {
-            id: this.parentDocumentId,
-          },
-        });
-        if (parent?.isDraft || !parent?.isActive) {
-          this.parentDocumentId = null;
-        }
-      }
-
-      if (!this.template && this.publishedAt && collection) {
-        await collection.addDocumentToStructure(this, undefined, {
+  restoreTo = async (
+    collectionId: string,
+    options: FindOptions & { user: User }
+  ) => {
+    const { transaction } = { ...options };
+    const collection = collectionId
+      ? await Collection.findByPk(collectionId, {
           transaction,
-        });
-        if (this.collection) {
-          this.collection.documentStructure = collection.documentStructure;
-        }
-      }
-    });
+          lock: transaction?.LOCK.UPDATE,
+        })
+      : undefined;
 
-    if (this.deletedAt) {
-      await this.restore();
+    // check to see if the documents parent hasn't been archived also
+    // If it has then restore the document to the collection root.
+    if (this.parentDocumentId) {
+      const parent = await (this.constructor as typeof Document).findOne({
+        where: {
+          id: this.parentDocumentId,
+        },
+        transaction,
+      });
+      if (parent?.isDraft || !parent?.isActive) {
+        this.parentDocumentId = null;
+      }
     }
 
-    this.archivedAt = null;
-    this.lastModifiedById = user.id;
-    this.updatedBy = user;
-    await this.save();
+    if (!this.template && this.publishedAt && collection?.isActive) {
+      await collection.addDocumentToStructure(this, undefined, {
+        includeArchived: true,
+        transaction,
+      });
+    }
+
+    if (this.deletedAt) {
+      await this.restore({ transaction });
+      this.collectionId = collectionId;
+      await this.save({ transaction });
+    }
+
+    if (this.archivedAt) {
+      await this.restoreWithChildren(collectionId, options.user, {
+        transaction,
+      });
+    }
+
+    if (this.collection && collection) {
+      // updating the document structure in memory just in case it's later accessed somewhere
+      this.collection.documentStructure = collection.documentStructure;
+    }
     return this;
   };
 
@@ -1004,13 +1112,6 @@ class Document extends ParanoidModel<
           transaction,
         });
       }
-
-      await Revision.destroy({
-        where: {
-          documentId: this.id,
-        },
-        transaction,
-      });
 
       this.lastModifiedById = user.id;
       this.updatedBy = user;
@@ -1043,7 +1144,7 @@ class Document extends ParanoidModel<
    * @returns Promise resolving to a NavigationNode
    */
   toNavigationNode = async (
-    options?: FindOptions<Document>
+    options?: FindOptions<Document> & { includeArchived?: boolean }
   ): Promise<NavigationNode> => {
     // Checking if the record is new is a performance optimization – new docs cannot have children
     const childDocuments = this.isNewRecord
@@ -1052,16 +1153,24 @@ class Document extends ParanoidModel<
           .unscoped()
           .scope("withoutState")
           .findAll({
-            where: {
-              teamId: this.teamId,
-              parentDocumentId: this.id,
-              archivedAt: {
-                [Op.is]: null,
-              },
-              publishedAt: {
-                [Op.ne]: null,
-              },
-            },
+            where: options?.includeArchived
+              ? {
+                  teamId: this.teamId,
+                  parentDocumentId: this.id,
+                  publishedAt: {
+                    [Op.ne]: null,
+                  },
+                }
+              : {
+                  teamId: this.teamId,
+                  parentDocumentId: this.id,
+                  publishedAt: {
+                    [Op.ne]: null,
+                  },
+                  archivedAt: {
+                    [Op.is]: null,
+                  },
+                },
             transaction: options?.transaction,
           });
 
@@ -1079,6 +1188,38 @@ class Document extends ParanoidModel<
     };
   };
 
+  private restoreWithChildren = async (
+    collectionId: string,
+    user: User,
+    options?: FindOptions<Document>
+  ) => {
+    const restoreChildren = async (parentDocumentId: string) => {
+      const childDocuments = await (
+        this.constructor as typeof Document
+      ).findAll({
+        where: {
+          parentDocumentId,
+        },
+        ...options,
+      });
+      for (const child of childDocuments) {
+        await restoreChildren(child.id);
+        child.archivedAt = null;
+        child.lastModifiedById = user.id;
+        child.updatedBy = user;
+        child.collectionId = collectionId;
+        await child.save(options);
+      }
+    };
+
+    await restoreChildren(this.id);
+    this.archivedAt = null;
+    this.lastModifiedById = user.id;
+    this.updatedBy = user;
+    this.collectionId = collectionId;
+    return this.save(options);
+  };
+
   private archiveWithChildren = async (
     user: User,
     options?: FindOptions<Document>
@@ -1093,6 +1234,7 @@ class Document extends ParanoidModel<
         where: {
           parentDocumentId,
         },
+        ...options,
       });
       for (const child of childDocuments) {
         await archiveChildren(child.id);

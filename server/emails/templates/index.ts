@@ -2,9 +2,9 @@ import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { requireDirectory } from "@server/utils/fs";
 import BaseEmail from "./BaseEmail";
 
-const emails = {};
+const emails: Record<string, typeof BaseEmail> = {};
 
-requireDirectory<{ default: BaseEmail<any> }>(__dirname).forEach(
+requireDirectory<{ default: typeof BaseEmail }>(__dirname).forEach(
   ([module, id]) => {
     if (id === "index") {
       return;

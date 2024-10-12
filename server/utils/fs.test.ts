@@ -1,4 +1,9 @@
-import { serializeFilename, deserializeFilename } from "./fs";
+import {
+  serializeFilename,
+  deserializeFilename,
+  trimFileAndExt,
+  stringByteLength,
+} from "./fs";
 
 describe("serializeFilename", () => {
   it("should serialize forward slashes", () => {
@@ -29,5 +34,23 @@ describe("deserializeFilename", () => {
     expect(deserializeFilename("this %5C and %5C this")).toBe(
       `this \\ and \\ this`
     );
+  });
+});
+
+describe("stringByteLength", () => {
+  it("should return byte length of string", () => {
+    expect(stringByteLength("")).toBe(0);
+    expect(stringByteLength("a")).toBe(1);
+    expect(stringByteLength("🦄")).toBe(4);
+    expect(stringByteLength("你好")).toBe(6);
+  });
+});
+
+describe("trimFileAndExt", () => {
+  it("should trim filename", () => {
+    expect(trimFileAndExt("file.txt", 6)).toBe("fi.txt");
+    expect(trimFileAndExt("file.txt", 8)).toBe("file.txt");
+    expect(trimFileAndExt("file.md", 9)).toBe("file.md");
+    expect(trimFileAndExt("你好.md", 2)).toBe("你.md");
   });
 });

@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
 import { ellipsis } from "@shared/styles";
 import { Node as SearchResult } from "~/components/DocumentExplorerNode";

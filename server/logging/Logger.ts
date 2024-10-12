@@ -233,11 +233,11 @@ class Logger {
     }
 
     if (isArray(input)) {
-      return input.map(this.sanitize) as any as T;
+      return input.map((item) => this.sanitize(item, level + 1)) as any as T;
     }
 
     if (isObject(input)) {
-      const output = { ...input };
+      const output: Record<string, any> = { ...input };
 
       for (const key of Object.keys(output)) {
         if (isObject(output[key])) {
@@ -252,7 +252,7 @@ class Logger {
           output[key] = this.sanitize(output[key], level + 1);
         }
       }
-      return output;
+      return output as T;
     }
 
     return input;

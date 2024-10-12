@@ -10,6 +10,7 @@ import {
   NonNullFindOptions,
   InferAttributes,
   InferCreationAttributes,
+  EmptyResultError,
 } from "sequelize";
 import {
   Sequelize,
@@ -29,6 +30,8 @@ import {
   DataType,
   Length as SimpleLength,
   BeforeDestroy,
+  IsDate,
+  AllowNull,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";
@@ -54,6 +57,10 @@ import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
+type AdditionalFindOptions = {
+  rejectOnEmpty?: boolean | Error;
+};
+
 @Scopes(() => ({
   withAllMemberships: {
     include: [
@@ -72,7 +79,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
         separate: true,
         // include for groups that are members of this collection,
         // of which userId is a member of, resulting in:
-        // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
+        // GroupMembership [inner join] Group [inner join] GroupUser [where] userId
         include: [
           {
             model: Group,
@@ -99,47 +106,59 @@ import NotContainsUrl from "./validators/NotContainsUrl";
       },
     ],
   }),
-  withMembership: (userId: string) => ({
+  withArchivedBy: () => ({
     include: [
       {
-        model: UserMembership,
-        as: "memberships",
-        where: {
-          userId,
-        },
-        required: false,
-      },
-      {
-        model: GroupMembership,
-        as: "groupMemberships",
-        required: false,
-        // use of "separate" property: sequelize breaks when there are
-        // nested "includes" with alternating values for "required"
-        // see https://github.com/sequelize/sequelize/issues/9869
-        separate: true,
-        // include for groups that are members of this collection,
-        // of which userId is a member of, resulting in:
-        // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
-        include: [
-          {
-            model: Group,
-            as: "group",
-            required: true,
-            include: [
-              {
-                model: GroupUser,
-                as: "groupUsers",
-                required: true,
-                where: {
-                  userId,
-                },
-              },
-            ],
-          },
-        ],
+        association: "archivedBy",
       },
     ],
   }),
+  withMembership: (userId: string) => {
+    if (!userId) {
+      return {};
+    }
+
+    return {
+      include: [
+        {
+          association: "memberships",
+          where: {
+            userId,
+          },
+          required: false,
+        },
+        {
+          model: GroupMembership,
+          as: "groupMemberships",
+          required: false,
+          // use of "separate" property: sequelize breaks when there are
+          // nested "includes" with alternating values for "required"
+          // see https://github.com/sequelize/sequelize/issues/9869
+          separate: true,
+          // include for groups that are members of this collection,
+          // of which userId is a member of, resulting in:
+          // CollectionGroup [inner join] Group [inner join] GroupUser [where] userId
+          include: [
+            {
+              model: Group,
+              as: "group",
+              required: true,
+              include: [
+                {
+                  model: GroupUser,
+                  as: "groupUsers",
+                  required: true,
+                  where: {
+                    userId,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+  },
 }))
 @Table({ tableName: "collections", modelName: "collection" })
 @Fix
@@ -244,6 +263,11 @@ class Collection extends ParanoidModel<
   })
   sort: CollectionSort;
 
+  /** Whether the collection is archived, and if so when. */
+  @IsDate
+  @Column
+  archivedAt: Date | null;
+
   // getters
 
   /**
@@ -261,6 +285,16 @@ class Collection extends ParanoidModel<
       return `/collection/untitled-${this.urlId}`;
     }
     return `/collection/${slugify(this.name)}-${this.urlId}`;
+  }
+
+  /**
+   * Whether this collection is considered active or not. A collection is active if
+   * it has not been archived or deleted.
+   *
+   * @returns boolean
+   */
+  get isActive(): boolean {
+    return !this.archivedAt && !this.deletedAt;
   }
 
   // hooks
@@ -316,6 +350,14 @@ class Collection extends ParanoidModel<
   @Column(DataType.UUID)
   importId: string | null;
 
+  @BelongsTo(() => User, "archivedById")
+  archivedBy?: User | null;
+
+  @AllowNull
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  archivedById?: string | null;
+
   @HasMany(() => Document, "collectionId")
   documents: Document[];
 
@@ -353,7 +395,7 @@ class Collection extends ParanoidModel<
 
   /**
    * Returns an array of unique userIds that are members of a collection,
-   * either via group or direct membership
+   * either via group or direct membership.
    *
    * @param collectionId
    * @returns userIds
@@ -362,13 +404,12 @@ class Collection extends ParanoidModel<
     const collection = await this.scope("withAllMemberships").findByPk(
       collectionId
     );
-
     if (!collection) {
       return [];
     }
 
     const groupMemberships = collection.groupMemberships
-      .map((cgm) => cgm.group.groupUsers)
+      .map((gm) => gm.group.groupUsers)
       .flat();
     const membershipUserIds = [
       ...groupMemberships,
@@ -386,37 +427,51 @@ class Collection extends ParanoidModel<
    */
   static async findByPk(
     id: Identifier,
-    options?: NonNullFindOptions<Collection>
+    options?: NonNullFindOptions<Collection> & AdditionalFindOptions
   ): Promise<Collection>;
   static async findByPk(
     id: Identifier,
-    options?: FindOptions<Collection>
+    options?: FindOptions<Collection> & AdditionalFindOptions
   ): Promise<Collection | null>;
   static async findByPk(
     id: Identifier,
-    options: FindOptions<Collection> = {}
+    options: FindOptions<Collection> & AdditionalFindOptions = {}
   ): Promise<Collection | null> {
     if (typeof id !== "string") {
       return null;
     }
 
     if (isUUID(id)) {
-      return this.findOne({
+      const collection = await this.findOne({
         where: {
           id,
         },
         ...options,
+        rejectOnEmpty: false,
       });
+
+      if (!collection && options.rejectOnEmpty) {
+        throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
+      }
+
+      return collection;
     }
 
     const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
-      return this.findOne({
+      const collection = await this.findOne({
         where: {
           urlId: match[1],
         },
         ...options,
+        rejectOnEmpty: false,
       });
+
+      if (!collection && options.rejectOnEmpty) {
+        throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
+      }
+
+      return collection;
     }
 
     return null;
@@ -658,6 +713,7 @@ class Collection extends ParanoidModel<
     options: FindOptions & {
       save?: boolean;
       documentJson?: NavigationNode;
+      includeArchived?: boolean;
     } = {}
   ) {
     if (!this.documentStructure) {

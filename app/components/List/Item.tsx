@@ -4,7 +4,7 @@ import {
 } from "@getoutline/react-roving-tabindex";
 import { LocationDescriptor } from "history";
 import * as React from "react";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";

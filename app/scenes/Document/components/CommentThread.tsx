@@ -3,14 +3,14 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -64,9 +64,11 @@ function CommentThread({
   recessed,
   focused,
 }: Props) {
+  const [focusedOnMount] = React.useState(focused);
   const { editor } = useDocumentContext();
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
+  const replyRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
   const { t } = useTranslation();
   const history = useHistory();
@@ -102,7 +104,8 @@ function CommentThread({
 
   const handleClickThread = () => {
     history.replace({
-      search: location.search,
+      // Clear any commentId from the URL when explicitly focusing a thread
+      search: "",
       pathname: location.pathname.replace(/\/history$/, ""),
       state: { commentId: thread.id },
     });
@@ -116,27 +119,35 @@ function CommentThread({
 
   React.useEffect(() => {
     if (focused) {
-      // If the thread is already visible, scroll it into view immediately,
-      // otherwise wait for the sidebar to appear.
-      const isThreadVisible =
-        (topRef.current?.getBoundingClientRect().left ?? 0) < window.innerWidth;
-
-      setTimeout(
-        () => {
+      if (focusedOnMount) {
+        setTimeout(() => {
           if (!topRef.current) {
             return;
           }
-          return scrollIntoView(topRef.current, {
+          scrollIntoView(topRef.current, {
             scrollMode: "if-needed",
-            behavior: "smooth",
-            block: "end",
+            behavior: "auto",
+            block: "nearest",
             boundary: (parent) =>
               // Prevents body and other parent elements from being scrolled
               parent.id !== "comments",
           });
-        },
-        isThreadVisible ? 0 : sidebarAppearDuration
-      );
+        }, sidebarAppearDuration);
+      } else {
+        setTimeout(() => {
+          if (!replyRef.current) {
+            return;
+          }
+          scrollIntoView(replyRef.current, {
+            scrollMode: "if-needed",
+            behavior: "smooth",
+            block: "center",
+            boundary: (parent) =>
+              // Prevents body and other parent elements from being scrolled
+              parent.id !== "comments",
+          });
+        }, 0);
+      }
 
       const getCommentMarkElement = () =>
         window.document?.getElementById(`comment-${thread.id}`);
@@ -152,7 +163,7 @@ function CommentThread({
         isMarkVisible ? 0 : sidebarAppearDuration
       );
     }
-  }, [focused, thread.id]);
+  }, [focused, focusedOnMount, thread.id]);
 
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
     `draft-${document.id}-${thread.id}`,
@@ -202,7 +213,7 @@ function CommentThread({
           </Flex>
         ))}
 
-      <ResizingHeightContainer hideOverflow={false}>
+      <ResizingHeightContainer hideOverflow={false} ref={replyRef}>
         {(focused || draft || commentsInThread.length === 0) && can.comment && (
           <Fade timing={100}>
             <CommentForm

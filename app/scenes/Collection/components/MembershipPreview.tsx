@@ -4,16 +4,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import Collection from "~/models/Collection";
-import Avatar from "~/components/Avatar";
-import { AvatarSize } from "~/components/Avatar/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
-import { editCollectionPermissions } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
-import { Feature, FeatureFlags } from "~/utils/FeatureFlags";
 
 type Props = {
   collection: Collection;
@@ -46,8 +43,12 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
           memberships.fetchPage(options),
           groupMemberships.fetchPage(options),
         ]);
-        setUsersCount(users[PAGINATION_SYMBOL].total);
-        setGroupsCount(groups[PAGINATION_SYMBOL].total);
+        if (users[PAGINATION_SYMBOL]) {
+          setUsersCount(users[PAGINATION_SYMBOL].total);
+        }
+        if (groups[PAGINATION_SYMBOL]) {
+          setGroupsCount(groups[PAGINATION_SYMBOL].total);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -72,11 +73,6 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
   return (
     <NudeButton
       context={context}
-      action={
-        FeatureFlags.isEnabled(Feature.newCollectionSharing)
-          ? undefined
-          : editCollectionPermissions
-      }
       tooltip={{
         content:
           usersCount > 0

@@ -6,6 +6,10 @@ import yauzl, { Entry, validateFileName } from "yauzl";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
+import { trimFileAndExt } from "./fs";
+
+const MAX_FILE_NAME_LENGTH = 255;
+const MAX_PATH_LENGTH = 4096;
 
 @trace()
 export default class ZipHelper {
@@ -81,9 +85,9 @@ export default class ZipHelper {
                 }
               }
             )
-            .on("error", (err) => {
+            .on("error", (rErr) => {
               dest.end();
-              reject(err);
+              reject(rErr);
             })
             .pipe(dest);
         }
@@ -129,35 +133,47 @@ export default class ZipHelper {
                 // directory file names end with '/'
                 fs.mkdirp(
                   path.join(outputDir, fileName),
-                  function (err: Error) {
-                    if (err) {
-                      throw err;
+                  function (mErr: Error) {
+                    if (mErr) {
+                      return reject(mErr);
                     }
                     zipfile.readEntry();
                   }
                 );
               } else {
                 // file entry
-                zipfile.openReadStream(entry, function (err, readStream) {
-                  if (err) {
-                    throw err;
+                zipfile.openReadStream(entry, function (rErr, readStream) {
+                  if (rErr) {
+                    return reject(rErr);
                   }
                   // ensure parent directory exists
                   fs.mkdirp(
                     path.join(outputDir, path.dirname(fileName)),
-                    function (err) {
-                      if (err) {
-                        throw err;
+                    function (mkErr) {
+                      if (mkErr) {
+                        return reject(mkErr);
                       }
-                      readStream.pipe(
-                        fs.createWriteStream(path.join(outputDir, fileName))
+
+                      const location = trimFileAndExt(
+                        path.join(
+                          outputDir,
+                          trimFileAndExt(fileName, MAX_FILE_NAME_LENGTH)
+                        ),
+                        MAX_PATH_LENGTH
                       );
-                      readStream.on("end", function () {
-                        zipfile.readEntry();
-                      });
-                      readStream.on("error", (err) => {
-                        throw err;
-                      });
+                      const dest = fs
+                        .createWriteStream(location)
+                        .on("error", reject);
+
+                      readStream
+                        .on("error", (rsErr) => {
+                          dest.end();
+                          reject(rsErr);
+                        })
+                        .on("end", function () {
+                          zipfile.readEntry();
+                        })
+                        .pipe(dest);
                     }
                   );
                 });
@@ -165,8 +181,8 @@ export default class ZipHelper {
             });
             zipfile.on("close", resolve);
             zipfile.on("error", reject);
-          } catch (err) {
-            reject(err);
+          } catch (zErr) {
+            reject(zErr);
           }
         }
       );

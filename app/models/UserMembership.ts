@@ -5,6 +5,7 @@ import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
+import { AfterRemove } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
 
 class UserMembership extends Model {
@@ -69,6 +70,13 @@ class UserMembership extends Model {
     });
     const index = memberships.indexOf(this);
     return memberships[index + 1];
+  }
+
+  // hooks
+
+  @AfterRemove
+  public static removeFromPolicies(model: UserMembership) {
+    model.store.rootStore.policies.removeForMembership(model.id);
   }
 }
 

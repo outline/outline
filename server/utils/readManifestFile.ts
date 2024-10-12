@@ -4,6 +4,7 @@ import Logger from "@server/logging/Logger";
 
 export type Chunk = {
   file: string;
+  imports: string[];
   src: string;
   isEntry?: boolean;
 };

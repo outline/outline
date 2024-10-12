@@ -71,7 +71,7 @@ const GridTemplate = (
             <IconButton
               key={item.name}
               onClick={() => onIconSelect({ id: item.name, value: item.name })}
-              delay={item.delay}
+              style={{ "--delay": `${item.delay}ms` } as React.CSSProperties}
             >
               <Icon as={IconLibrary.getComponent(item.name)} color={item.color}>
                 {item.initial}

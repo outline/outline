@@ -31,7 +31,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
     ? collections.get(document.collectionId)
     : undefined;
   const nestedDocumentsCount = collection
-    ? collection.getDocumentChildren(document.id).length
+    ? collection.getChildrenForDocument(document.id).length
     : 0;
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {

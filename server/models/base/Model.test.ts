@@ -1,6 +1,8 @@
+import { faker } from "@faker-js/faker";
 import { v4 as uuid } from "uuid";
 import { TeamPreference } from "@shared/types";
 import { buildDocument, buildTeam } from "@server/test/factories";
+import User from "../User";
 
 describe("Model", () => {
   describe("changeset", () => {
@@ -47,6 +49,29 @@ describe("Model", () => {
         document.collaboratorIds
       );
       expect(document.changeset.previous.collaboratorIds).toEqual(prev);
+    });
+  });
+  describe("batch load", () => {
+    it("should return data in batches", async () => {
+      const team = await buildTeam();
+      await User.bulkCreate(
+        [...Array(105)].map(() => ({
+          email: faker.internet.email().toLowerCase(),
+          name: faker.person.fullName(),
+          teamId: team.id,
+        }))
+      );
+
+      const usersBatch: User[][] = [];
+
+      await User.findAllInBatches<User>(
+        { where: { teamId: team.id }, batchLimit: 100 },
+        async (foundUsers) => void usersBatch.push(foundUsers)
+      );
+
+      expect(usersBatch.length).toEqual(2);
+      expect(usersBatch[0].length).toEqual(100);
+      expect(usersBatch[1].length).toEqual(5);
     });
   });
 });

@@ -16,7 +16,7 @@ import EventBoundary from "@shared/components/EventBoundary";
 import { s } from "@shared/styles";
 import Document from "~/models/Document";
 import Event from "~/models/Event";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import Item, { Actions, Props as ItemProps } from "~/components/List/Item";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";

@@ -140,6 +140,9 @@ export default class ListItem extends Node {
           },
           handleDOMEvents: {
             mouseover: (view, event) => {
+              if (!view.editable) {
+                return false;
+              }
               const { state, dispatch } = view;
               const target = event.target as HTMLElement;
               const li = target?.closest("li");
@@ -164,6 +167,9 @@ export default class ListItem extends Node {
               return false;
             },
             mouseout: (view, event) => {
+              if (!view.editable) {
+                return false;
+              }
               const { state, dispatch } = view;
               const target = event.target as HTMLElement;
               const li = target?.closest("li");

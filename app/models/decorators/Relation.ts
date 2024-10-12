@@ -3,17 +3,21 @@ import type Model from "../base/Model";
 
 /** The behavior of a relationship on deletion */
 type DeleteBehavior = "cascade" | "null" | "ignore";
+/** The behavior of a relationship on archival */
+type ArchiveBehavior = "cascade" | "null" | "ignore";
 
 type RelationOptions<T = Model> = {
   /** Whether this relation is required. */
   required?: boolean;
   /** Behavior of this model when relationship is deleted. */
-  onDelete: DeleteBehavior | ((item: T) => DeleteBehavior);
+  onDelete?: DeleteBehavior | ((item: T) => DeleteBehavior);
+  /** Behavior of this model when relationship is archived. */
+  onArchive?: ArchiveBehavior | ((item: T) => ArchiveBehavior);
 };
 
 type RelationProperties<T = Model> = {
   /** The name of the property on the model that stores the ID of the relation. */
-  idKey: string;
+  idKey: keyof T;
   /** A function that returns the class of the relation. */
   relationClassResolver: () => typeof Model;
   /** Options for the relation. */
@@ -41,7 +45,7 @@ export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
       if (
         properties.relationClassResolver().modelName === targetClass.modelName
       ) {
-        inverseRelations.set(propertyName, {
+        inverseRelations.set(`${modelName}-${propertyName}`, {
           ...properties,
           modelName,
         });

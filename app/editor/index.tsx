@@ -38,7 +38,7 @@ import Mark from "@shared/editor/marks/Mark";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
-import { EventType } from "@shared/editor/types";
+import { ComponentProps, EventType } from "@shared/editor/types";
 import { ProsemirrorData, UserPreferences } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
@@ -50,6 +50,7 @@ import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
+import { NodeViewRenderer } from "./components/NodeViewRenderer";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
 
@@ -192,6 +193,7 @@ export class Editor extends React.PureComponent<
   };
 
   widgets: { [name: string]: (props: WidgetProps) => React.ReactElement };
+  renderers: Set<NodeViewRenderer<ComponentProps>> = new Set();
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
@@ -624,7 +626,8 @@ export class Editor extends React.PureComponent<
    *
    * @returns A list of headings in the document
    */
-  public getHeadings = () => ProsemirrorHelper.getHeadings(this.view.state.doc);
+  public getHeadings = () =>
+    ProsemirrorHelper.getHeadings(this.view.state.doc, this.schema);
 
   /**
    * Return the images in the current editor.
@@ -765,6 +768,9 @@ export class Editor extends React.PureComponent<
   };
 
   private handleOpenLinkToolbar = () => {
+    if (this.state.selectionToolbarOpen) {
+      return;
+    }
     this.setState((state) => ({
       ...state,
       linkToolbarOpen: true,
@@ -834,6 +840,7 @@ export class Editor extends React.PureComponent<
               Object.values(this.widgets).map((Widget, index) => (
                 <Widget key={String(index)} rtl={isRTL} readOnly={readOnly} />
               ))}
+            {Array.from(this.renderers).map((view) => view.content)}
           </Flex>
         </EditorContext.Provider>
       </PortalContext.Provider>

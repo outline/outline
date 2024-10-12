@@ -1,11 +1,15 @@
 import { useMatches, KBarResults } from "kbar";
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
-import CommandBarItem from "~/components/CommandBarItem";
+import Text from "~/components/Text";
+import CommandBarItem from "./CommandBarItem";
 
 export default function CommandBarResults() {
   const { results, rootActionId } = useMatches();
+
+  if (results.length === 0) {
+    return null;
+  }
 
   return (
     <Container>
@@ -14,7 +18,9 @@ export default function CommandBarResults() {
         maxHeight={400}
         onRender={({ item, active }) =>
           typeof item === "string" ? (
-            <Header>{item}</Header>
+            <Header type="tertiary" size="xsmall" ellipsis>
+              {item}
+            </Header>
           ) : (
             <CommandBarItem
               action={item}
@@ -35,11 +41,10 @@ const Container = styled.div`
   }
 `;
 
-const Header = styled.h3`
-  font-size: 13px;
-  letter-spacing: 0.04em;
+const Header = styled(Text).attrs({ as: "h3" })`
+  letter-spacing: 0.03em;
   margin: 0;
   padding: 16px 0 4px 20px;
-  color: ${s("textTertiary")};
   height: 36px;
+  cursor: default;
 `;

@@ -15,6 +15,10 @@ export enum StatusFilter {
   Draft = "draft",
 }
 
+export enum CollectionStatusFilter {
+  Archived = "archived",
+}
+
 export enum CommentStatusFilter {
   Resolved = "resolved",
   Unresolved = "unresolved",
@@ -90,6 +94,7 @@ export enum IntegrationService {
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
   Matomo = "matomo",
+  Umami = "umami",
   GitHub = "github",
   Mattermost = "mattermost",
 }
@@ -101,6 +106,7 @@ export type UserCreatableIntegrationService = Extract<
   | IntegrationService.GoogleAnalytics
   | IntegrationService.Matomo
   | IntegrationService.Mattermost
+  | IntegrationService.Umami
 >;
 
 export const UserCreatableIntegrationService = {
@@ -109,6 +115,7 @@ export const UserCreatableIntegrationService = {
   GoogleAnalytics: IntegrationService.GoogleAnalytics,
   Matomo: IntegrationService.Matomo,
   Mattermost: IntegrationService.Mattermost,
+  Umami: IntegrationService.Umami,
 } as const;
 
 export enum CollectionPermission {
@@ -134,7 +141,7 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       };
     }
   : T extends IntegrationType.Analytics
-  ? { measurementId: string; instanceUrl?: string }
+  ? { measurementId: string; instanceUrl?: string; scriptName?: string }
   : T extends IntegrationType.Post
   ? { url: string; channel: string; channelId: string }
   : T extends IntegrationType.Command
@@ -212,6 +219,8 @@ export enum TeamPreference {
   MembersCanInvite = "membersCanInvite",
   /** Whether members can create API keys. */
   MembersCanCreateApiKey = "membersCanCreateApiKey",
+  /** Whether members can delete their user account. */
+  MembersCanDeleteAccount = "membersCanDeleteAccount",
   /** Whether users can comment on documents. */
   Commenting = "commenting",
   /** The custom theme for the team. */
@@ -226,6 +235,7 @@ export type TeamPreferences = {
   [TeamPreference.ViewersCanExport]?: boolean;
   [TeamPreference.MembersCanInvite]?: boolean;
   [TeamPreference.MembersCanCreateApiKey]?: boolean;
+  [TeamPreference.MembersCanDeleteAccount]?: boolean;
   [TeamPreference.Commenting]?: boolean;
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
@@ -234,6 +244,8 @@ export type TeamPreferences = {
 export enum NavigationNodeType {
   Collection = "collection",
   Document = "document",
+  UserMembership = "userMembership",
+  GroupMembership = "groupMembership",
 }
 
 export type NavigationNode = {
@@ -286,20 +298,22 @@ export type NotificationSettings = {
     | boolean;
 };
 
-export const NotificationEventDefaults = {
-  [NotificationEventType.PublishDocument]: false,
-  [NotificationEventType.UpdateDocument]: true,
-  [NotificationEventType.CreateCollection]: false,
-  [NotificationEventType.CreateComment]: true,
-  [NotificationEventType.MentionedInDocument]: true,
-  [NotificationEventType.MentionedInComment]: true,
-  [NotificationEventType.InviteAccepted]: true,
-  [NotificationEventType.Onboarding]: true,
-  [NotificationEventType.Features]: true,
-  [NotificationEventType.ExportCompleted]: true,
-  [NotificationEventType.AddUserToDocument]: true,
-  [NotificationEventType.AddUserToCollection]: true,
-};
+export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
+  {
+    [NotificationEventType.PublishDocument]: false,
+    [NotificationEventType.UpdateDocument]: true,
+    [NotificationEventType.CreateCollection]: false,
+    [NotificationEventType.CreateComment]: true,
+    [NotificationEventType.CreateRevision]: false,
+    [NotificationEventType.MentionedInDocument]: true,
+    [NotificationEventType.MentionedInComment]: true,
+    [NotificationEventType.InviteAccepted]: true,
+    [NotificationEventType.Onboarding]: true,
+    [NotificationEventType.Features]: true,
+    [NotificationEventType.ExportCompleted]: true,
+    [NotificationEventType.AddUserToDocument]: true,
+    [NotificationEventType.AddUserToCollection]: true,
+  };
 
 export enum UnfurlResourceType {
   OEmbed = "oembed",

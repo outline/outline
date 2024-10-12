@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { getLuminance } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { IconType } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
@@ -118,12 +117,7 @@ export const IconTitleWrapper = styled(Flex)<{ dir?: string }>`
   z-index: 1;
 
   ${(props: { dir?: string }) =>
-    props.dir === "rtl" ? "right: -40px" : "left: -40px"};
-
-  ${breakpoint("desktop")`
-    ${(props: { dir?: string }) =>
-      props.dir === "rtl" ? "right: -44px" : "left: -44px"};
-  `}
+    props.dir === "rtl" ? "right: -44px" : "left: -44px"};
 `;
 
 export default Icon;

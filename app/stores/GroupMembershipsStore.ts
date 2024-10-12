@@ -5,7 +5,11 @@ import GroupMembership from "~/models/GroupMembership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
-import Store, { PAGINATION_SYMBOL, RPCAction } from "./base/Store";
+import Store, {
+  PAGINATION_SYMBOL,
+  PaginatedResponse,
+  RPCAction,
+} from "./base/Store";
 
 export default class GroupMembershipsStore extends Store<GroupMembership> {
   actions = [RPCAction.Create, RPCAction.Delete];
@@ -15,18 +19,36 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
   }
 
   @action
-  fetchPage = async (
-    params: PaginationParams | undefined
-  ): Promise<GroupMembership[]> => {
+  fetchPage = async ({
+    collectionId,
+    documentId,
+    ...params
+  }:
+    | PaginationParams & {
+        documentId?: string;
+        collectionId?: string;
+        groupId?: string;
+      }): Promise<PaginatedResponse<GroupMembership>> => {
     this.isFetching = true;
 
     try {
-      const res = await client.post(`/collections.group_memberships`, params);
+      const res = collectionId
+        ? await client.post(`/collections.group_memberships`, {
+            id: collectionId,
+            ...params,
+          })
+        : documentId
+        ? await client.post(`/documents.group_memberships`, {
+            id: documentId,
+            ...params,
+          })
+        : await client.post(`/groupMemberships.list`, params);
       invariant(res?.data, "Data not available");
 
-      let response: GroupMembership[] = [];
+      let response: PaginatedResponse<GroupMembership> = [];
       runInAction(`GroupMembershipsStore#fetchPage`, () => {
-        res.data.groups.forEach(this.rootStore.groups.add);
+        res.data.groups?.forEach(this.rootStore.groups.add);
+        res.data.documents?.forEach(this.rootStore.documents.add);
         response = res.data.groupMemberships.map(this.add);
         this.isLoaded = true;
       });

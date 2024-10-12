@@ -84,6 +84,67 @@ function createTableInner(
   return types.table.createChecked(null, rows);
 }
 
+export function exportTable({
+  fileName,
+}: {
+  format: string;
+  fileName: string;
+}): Command {
+  return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
+    if (dispatch) {
+      const rect = selectedRect(state);
+      const table: Node[][] = [];
+
+      for (let r = 0; r < rect.map.height; r++) {
+        const cells = [];
+        for (let c = 0; c < rect.map.width; c++) {
+          const cell = state.doc.nodeAt(
+            rect.tableStart + rect.map.map[r * rect.map.width + c]
+          );
+          if (cell) {
+            cells.push(cell);
+          }
+        }
+        table.push(cells);
+      }
+
+      const csv = table
+        .map((row) =>
+          row
+            .map((cell) => {
+              let value = cell.textContent;
+
+              // Escape double quotes by doubling them
+              if (value.includes('"')) {
+                value = value.replace(new RegExp('"', "g"), '""');
+              }
+
+              // Avoid cell content being interpreted as formulas by adding a leading single quote
+              value = value.trimStart().replace(/^([+\-=@])/, "'$1");
+
+              return `"${value}"`;
+            })
+            .join(",")
+        )
+        .join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    return true;
+  };
+}
+
 export function sortTable({
   index,
   direction,
@@ -119,8 +180,12 @@ export function sortTable({
         return cell === "" ? false : isNaN(parseFloat(cell));
       });
 
+      const hasHeaderRow = table[0].every(
+        (cell) => cell.type === state.schema.nodes.th
+      );
+
       // remove the header row
-      const header = table.shift();
+      const header = hasHeaderRow ? table.shift() : undefined;
 
       // column data before sort
       const columnData = table.map((row) => row[index]?.textContent ?? "");

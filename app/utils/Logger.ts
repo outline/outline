@@ -9,7 +9,9 @@ type LogCategory =
   | "router"
   | "collaboration"
   | "misc"
-  | "plugins";
+  | "store"
+  | "plugins"
+  | "policies";
 
 type Extra = Record<string, any>;
 

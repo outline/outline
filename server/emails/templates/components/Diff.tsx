@@ -8,8 +8,8 @@ type Props = {
 
 export default ({ children, ...rest }: Props) => {
   const style = {
+    border: `1.5px solid ${theme.secondaryBackground}`,
     borderRadius: "4px",
-    background: theme.secondaryBackground,
     padding: ".75em 1em",
     color: theme.text,
     display: "block",

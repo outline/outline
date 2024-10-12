@@ -189,7 +189,7 @@ const locales = {
  * @param language The user language
  * @returns The date-fns locale.
  */
-export function dateLocale(language: string | null | undefined) {
+export function dateLocale(language: keyof typeof locales | undefined | null) {
   return language ? locales[language] : undefined;
 }
 

@@ -175,13 +175,22 @@ export type DocumentEvent = BaseEvent<Document> &
           | "documents.delete"
           | "documents.permanent_delete"
           | "documents.archive"
-          | "documents.unarchive"
           | "documents.restore";
         documentId: string;
         collectionId: string;
         data: {
           title: string;
           source?: "import";
+        };
+      }
+    | {
+        name: "documents.unarchive";
+        documentId: string;
+        collectionId: string;
+        data: {
+          title: string;
+          /** Id of collection from which the document is unarchived */
+          sourceCollectionId: string;
         };
       }
     | {
@@ -256,7 +265,7 @@ export type CollectionGroupEvent = BaseEvent<GroupMembership> & {
   name: "collections.add_group" | "collections.remove_group";
   collectionId: string;
   modelId: string;
-  data: { name: string };
+  data: { name: string; membershipId: string };
 };
 
 export type DocumentUserEvent = BaseEvent<UserMembership> & {
@@ -275,7 +284,12 @@ export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
   name: "documents.add_group" | "documents.remove_group";
   documentId: string;
   modelId: string;
-  data: { name: string };
+  data: {
+    name: string;
+    isNew?: boolean;
+    permission?: DocumentPermission;
+    membershipId: string;
+  };
 };
 
 export type CollectionEvent = BaseEvent<Collection> &
@@ -289,10 +303,15 @@ export type CollectionEvent = BaseEvent<Collection> &
         };
       }
     | {
-        name: "collections.update" | "collections.delete";
+        name:
+          | "collections.update"
+          | "collections.delete"
+          | "collections.archive"
+          | "collections.restore";
         collectionId: string;
         data: {
           name: string;
+          archivedAt: string;
         };
       }
     | {
@@ -540,3 +559,7 @@ export type UnfurlSignature = (
 ) => Promise<Unfurl | void>;
 
 export type UninstallSignature = (integration: Integration) => Promise<void>;
+
+export type Replace<T, K extends keyof T, N extends string> = {
+  [P in keyof T as P extends K ? N : P]: T[P extends K ? K : P];
+};

@@ -1,14 +1,18 @@
+import flattenDeep from "lodash/flattenDeep";
 import isObject from "lodash/isPlainObject";
+import uniq from "lodash/uniq";
 import { Model } from "sequelize-typescript";
 import { AuthorizationError } from "@server/errors";
 
 type Constructor = new (...args: any) => any;
 
+type Policy = Record<string, boolean | string[]>;
+
 type Condition<T extends Constructor, P extends Constructor> = (
   performer: InstanceType<P>,
   target: InstanceType<T> | null,
   options?: any
-) => boolean;
+) => boolean | string;
 
 type Ability = {
   model: Constructor;
@@ -74,21 +78,58 @@ export class CanCan {
     target: Model | null | undefined,
     options = {}
   ) => {
-    const matchingAbilities = this.abilities.filter(
-      (ability) =>
-        performer instanceof ability.model &&
-        (ability.target === "all" ||
-          target === ability.target ||
-          target instanceof (ability.target as any)) &&
-        (ability.action === "manage" || action === ability.action)
+    const matchingAbilities = this.getMatchingAbilities(
+      performer,
+      action,
+      target
     );
 
     // Check conditions only for matching abilities
-    return matchingAbilities.some(
-      (ability) =>
-        !ability.condition ||
-        ability.condition(performer, target, options || {})
+    const conditions = uniq(
+      flattenDeep(
+        matchingAbilities.map((ability) => {
+          if (!ability.condition) {
+            return false;
+          }
+          return ability.condition(performer, target, options || {});
+        })
+      )
     );
+
+    const matchingConditions = conditions.filter(Boolean);
+    const matchingMembershipIds = matchingConditions.filter(
+      (m) => typeof m === "string"
+    ) as string[];
+
+    return matchingMembershipIds.length > 0
+      ? matchingMembershipIds
+      : matchingConditions.length > 0;
+  };
+
+  /*
+   * Given a user and a model – output an object which describes the actions the
+   * user may take against the model. This serialized policy is used for testing
+   * and sent in API responses to allow clients to adjust which UI is displayed.
+   */
+  public serialize = (performer: Model, target: Model | null): Policy => {
+    const output: Record<string, boolean | string[]> = {};
+    abilities.forEach((ability) => {
+      if (
+        performer instanceof ability.model &&
+        target instanceof (ability.target as any)
+      ) {
+        let response: boolean | string[] = true;
+
+        try {
+          response = this.can(performer, ability.action, target);
+        } catch (err) {
+          response = false;
+        }
+
+        output[ability.action] = response;
+      }
+    });
+    return output;
   };
 
   /**
@@ -129,11 +170,28 @@ export class CanCan {
 
   // Private methods
 
-  private get = (obj: object, key: string) =>
+  private getMatchingAbilities = (
+    performer: Model,
+    action: string,
+    target: Model | null | undefined
+  ) =>
+    this.abilities.filter(
+      (ability) =>
+        performer instanceof ability.model &&
+        (ability.target === "all" ||
+          target === ability.target ||
+          target instanceof (ability.target as any)) &&
+        (ability.action === "manage" || action === ability.action)
+    );
+
+  private get = <T extends object>(obj: T, key: keyof T) =>
     "get" in obj && typeof obj.get === "function" ? obj.get(key) : obj[key];
 
-  private isPartiallyEqual = (target: object, obj: object) =>
-    Object.keys(obj).every((key) => this.get(target, key) === obj[key]);
+  private isPartiallyEqual = <T extends object>(target: T, obj: T) =>
+    Object.keys(obj).every(
+      // @ts-expect-error TODO
+      (key: keyof T) => this.get(target, key) === obj[key]
+    );
 
   private getConditionFn =
     (condition: object) => (performer: Model, target: Model) =>
@@ -149,6 +207,7 @@ export class CanCan {
     if (typeof value === "string") {
       return [value];
     }
+    // @ts-expect-error - TS doesn't know that value is iterable
     if (typeof value[Symbol.iterator] === "function") {
       // @ts-expect-error - TS doesn't know that value is iterable
       return [...value];
@@ -160,7 +219,7 @@ export class CanCan {
 
 const cancan = new CanCan();
 
-export const { allow, can, cannot, abilities } = cancan;
+export const { allow, can, cannot, abilities, serialize } = cancan;
 
 // This is exported separately as a workaround for the following issue:
 // https://github.com/microsoft/TypeScript/issues/36931
