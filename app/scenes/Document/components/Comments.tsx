@@ -6,12 +6,14 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import styled, { css } from "styled-components";
-import { ProsemirrorData } from "@shared/types";
+import { ProsemirrorData, UserPreference } from "@shared/types";
 import Button from "~/components/Button";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import Tooltip from "~/components/Tooltip";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePersistedState from "~/hooks/usePersistedState";
@@ -19,12 +21,16 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { bigPulse } from "~/styles/animations";
+import { CommentSortOption, CommentSortType } from "~/types";
 import CommentForm from "./CommentForm";
+import CommentSortMenu from "./CommentSortMenu";
 import CommentThread from "./CommentThread";
 import Sidebar from "./SidebarLayout";
 
 function Comments() {
   const { ui, comments, documents } = useStores();
+  const user = useCurrentUser();
+  const { editor } = useDocumentContext();
   const { t } = useTranslation();
   const location = useLocation();
   const history = useHistory();
@@ -42,11 +48,31 @@ function Comments() {
     undefined
   );
 
+  const sortOption: CommentSortOption = user.getPreference(
+    UserPreference.SortCommentsByPosition
+  )
+    ? {
+        type: CommentSortType.Position,
+        referencedCommentIds: editor?.getComments().map((c) => c.id) ?? [],
+      }
+    : { type: CommentSortType.Chrono };
+
   const viewingResolved = params.get("resolved") === "";
   const resolvedThreads = document
-    ? comments.resolvedThreadsInDocument(document.id)
+    ? comments.resolvedThreadsInDocument(document.id, sortOption)
     : [];
   const resolvedThreadsCount = resolvedThreads.length;
+
+  const handleSortTypeChange = React.useCallback(
+    (type: CommentSortType) => {
+      user.setPreference(
+        UserPreference.SortCommentsByPosition,
+        type === CommentSortType.Position
+      );
+      void user.save();
+    },
+    [user]
+  );
 
   React.useEffect(() => {
     setPulse(true);
@@ -64,7 +90,7 @@ function Comments() {
 
   const threads = viewingResolved
     ? resolvedThreads
-    : comments.unresolvedThreadsInDocument(document.id);
+    : comments.unresolvedThreadsInDocument(document.id, sortOption);
   const hasComments = threads.length > 0;
 
   const toggleViewingResolved = () => {
@@ -81,32 +107,31 @@ function Comments() {
     <Sidebar
       title={
         <Flex align="center" justify="space-between" auto>
-          {viewingResolved ? (
-            <React.Fragment key="resolved">
-              <span>{t("Resolved comments")}</span>
-              <Tooltip delay={500} content={t("View comments")}>
-                <ResolvedButton
-                  neutral
-                  borderOnHover
-                  icon={<DoneIcon />}
-                  onClick={toggleViewingResolved}
-                />
-              </Tooltip>
-            </React.Fragment>
-          ) : (
-            <React.Fragment>
-              <span>{t("Comments")}</span>
-              <Tooltip delay={250} content={t("View resolved comments")}>
-                <ResolvedButton
-                  neutral
-                  borderOnHover
-                  icon={<DoneIcon outline />}
-                  onClick={toggleViewingResolved}
-                  $pulse={pulse}
-                />
-              </Tooltip>
-            </React.Fragment>
-          )}
+          <span>
+            {viewingResolved ? t("Resolved comments") : t("Comments")}
+          </span>
+          <Flex gap={4}>
+            <CommentSortMenu
+              value={sortOption.type}
+              onSelect={handleSortTypeChange}
+            />
+            <Tooltip
+              delay={250}
+              content={
+                viewingResolved
+                  ? t("View comments")
+                  : t("View resolved comments")
+              }
+            >
+              <ResolvedButton
+                neutral
+                borderOnHover
+                icon={<DoneIcon outline={!viewingResolved} />}
+                onClick={toggleViewingResolved}
+                $pulse={viewingResolved ? undefined : pulse}
+              />
+            </Tooltip>
+          </Flex>
         </Flex>
       }
       onClose={() => ui.collapseComments(document?.id)}
@@ -158,7 +183,7 @@ function Comments() {
   );
 }
 
-const ResolvedButton = styled(Button)<{ $pulse: boolean }>`
+const ResolvedButton = styled(Button)<{ $pulse?: boolean }>`
   ${(props) =>
     props.$pulse &&
     css`
