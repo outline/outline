@@ -323,7 +323,8 @@ export class Environment {
   /**
    * The name of your custom authentication service.
    */
-  public HEADER_AUTH_LOGIN_NAME = environment.HEADER_AUTH_LOGIN_NAME || "custom provider";
+  public HEADER_AUTH_LOGIN_NAME =
+    environment.HEADER_AUTH_LOGIN_NAME || "custom provider";
 
   /**
    * The login url of your custom authentication service.
