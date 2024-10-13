@@ -43,7 +43,7 @@ export default async function main(exit = false) {
   } else {
     const teams = await Team.findAll({ attributes: ["id"] });
     const teamIds = teams.map((team) => team.id);
-    
+
     console.log("Team already exists, aborting. Existing team IDs:", teamIds);
   }
 
