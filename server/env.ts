@@ -320,6 +320,16 @@ export class Environment {
    */
   public HEADER_AUTH_ROLE = environment.HEADER_AUTH_ROLE?.toLowerCase() || "";
 
+  /**
+   * The name of your custom authentication service.
+   */
+  public HEADER_AUTH_LOGIN_NAME = environment.HEADER_AUTH_LOGIN_NAME || "custom provider";
+
+  /**
+   * The login url of your custom authentication service.
+   */
+  public HEADER_AUTH_LOGIN_URL = environment.HEADER_AUTH_LOGIN_URL;
+
   @Public
   public HEADER_AUTH_ENABLED =
     !!this.HEADER_AUTH_EMAIL &&
