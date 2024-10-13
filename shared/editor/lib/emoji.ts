@@ -21,6 +21,7 @@ export const nameToEmoji: Record<string, string> = Object.values(
   (data as EmojiMartData).emojis
 ).reduce((acc, emoji) => {
   const convertedId = snakeCase(emoji.id);
+  // @ts-expect-error emojiMartToGemoji is a valid map
   acc[emojiMartToGemoji[convertedId] ?? convertedId] = emoji.skins[0].native;
   return acc;
 }, {});

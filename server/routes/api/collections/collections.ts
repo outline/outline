@@ -813,7 +813,9 @@ router.post(
     const { transaction } = ctx.state;
     const collectionIds = await user.collectionIds({ transaction });
 
-    const where: WhereOptions<Collection> = {
+    const where: WhereOptions<Collection> & {
+      [Op.and]: WhereOptions<Collection>[];
+    } = {
       teamId: user.teamId,
       [Op.and]: [
         {

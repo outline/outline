@@ -29,6 +29,7 @@ const EmojiMenu = (props: Props) => {
         .map((item) => {
           // We snake_case the shortcode for backwards compatability with gemoji to
           // avoid multiple formats being written into documents.
+          // @ts-expect-error emojiMartToGemoji key
           const shortcode = snakeCase(emojiMartToGemoji[item.id] || item.id);
           const emoji = item.value;
 

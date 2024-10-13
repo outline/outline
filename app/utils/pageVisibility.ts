@@ -19,5 +19,5 @@ export function getVisibilityListener(): string {
 }
 
 export function getPageVisible(): boolean {
-  return !document[hidden];
+  return !document[hidden as keyof Document];
 }

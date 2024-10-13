@@ -43,8 +43,12 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
           memberships.fetchPage(options),
           groupMemberships.fetchPage(options),
         ]);
-        setUsersCount(users[PAGINATION_SYMBOL].total);
-        setGroupsCount(groups[PAGINATION_SYMBOL].total);
+        if (users[PAGINATION_SYMBOL]) {
+          setUsersCount(users[PAGINATION_SYMBOL].total);
+        }
+        if (groups[PAGINATION_SYMBOL]) {
+          setGroupsCount(groups[PAGINATION_SYMBOL].total);
+        }
       } finally {
         setIsLoading(false);
       }

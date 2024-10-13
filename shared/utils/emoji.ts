@@ -51,7 +51,9 @@ type GetVariantsProps = {
 
 const getVariants = ({ id, name, skins }: GetVariantsProps): EmojiVariants =>
   skins.reduce((obj, skin) => {
-    const skinToneCode = skin.unified.split("-")[1];
+    const skinToneCode = skin.unified.split(
+      "-"
+    )[1] as keyof typeof SKINTONE_CODE_TO_ENUM;
     const skinToneType =
       SKINTONE_CODE_TO_ENUM[skinToneCode] ?? EmojiSkinTone.Default;
     obj[skinToneType] = { id, name, value: skin.native } satisfies Emoji;
@@ -72,7 +74,8 @@ const EMOJI_ID_TO_VARIANTS = Object.entries(Emojis).reduce(
 
 const CATEGORY_TO_EMOJI_IDS: Record<EmojiCategory, string[]> =
   Categories.reduce((obj, { id, emojis }) => {
-    const category = EmojiCategory[capitalize(id)];
+    const key = capitalize(id) as EmojiCategory;
+    const category = EmojiCategory[key];
     if (!category) {
       return obj;
     }

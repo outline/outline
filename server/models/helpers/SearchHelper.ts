@@ -355,7 +355,10 @@ export default class SearchHelper {
     options: SearchOptions
   ) {
     const teamId = model instanceof Team ? model.id : model.teamId;
-    const where: WhereOptions<Document> = {
+    const where: WhereOptions<Document> & {
+      [Op.or]: WhereOptions<Document>[];
+      [Op.and]: WhereOptions<Document>[];
+    } = {
       teamId,
       [Op.or]: [],
       [Op.and]: [

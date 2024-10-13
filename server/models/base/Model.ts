@@ -69,6 +69,7 @@ class Model<
       ) {
         const difference = Object.keys(previous)
           .concat(Object.keys(current))
+          // @ts-expect-error TODO
           .filter((key) => !isEqual(previous[key], current[key]));
 
         previousAttributes[change] = pick(

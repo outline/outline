@@ -45,6 +45,7 @@ import {
 } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { stringToColor } from "@shared/utils/color";
+import { locales } from "@shared/utils/date";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
@@ -179,8 +180,8 @@ class User extends ParanoidModel<
 
   @Default(env.DEFAULT_LANGUAGE)
   @IsIn([languages])
-  @Column
-  language: string;
+  @Column(DataType.STRING)
+  language: keyof typeof locales | null;
 
   @AllowNull
   @IsUrlOrRelativePath

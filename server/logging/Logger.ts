@@ -237,7 +237,7 @@ class Logger {
     }
 
     if (isObject(input)) {
-      const output = { ...input };
+      const output: Record<string, any> = { ...input };
 
       for (const key of Object.keys(output)) {
         if (isObject(output[key])) {
@@ -252,7 +252,7 @@ class Logger {
           output[key] = this.sanitize(output[key], level + 1);
         }
       }
-      return output;
+      return output as T;
     }
 
     return input;

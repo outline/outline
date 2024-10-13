@@ -23,7 +23,6 @@
     "noEmit": true,
     "skipLibCheck": true,
     "ignoreDeprecations": "5.0",
-    "suppressImplicitAnyIndexErrors": true,
     "target": "es2020",
     "paths": {
       "@server/*": ["./server/*"],

@@ -733,6 +733,54 @@ class Document extends ArchivableModel<
     return null;
   }
 
+  /**
+   * Find many documents by their id, supports filtering by user memberships when `userId`
+   * is specified in the options.
+   *
+   * @param ids An array of document ids
+   * @param options FindOptions
+   * @returns A promise resolving to the list of documents
+   */
+  static async findByIds(
+    ids: string[],
+    options: Omit<FindOptions<Document>, "where"> &
+      Omit<AdditionalFindOptions, "rejectOnEmpty"> = {}
+  ): Promise<Document[]> {
+    const { userId, ...rest } = options;
+
+    const user = userId ? await User.findByPk(userId) : null;
+    const documents = await this.scope([
+      "withDrafts",
+      {
+        method: ["withCollectionPermissions", userId, rest.paranoid],
+      },
+      {
+        method: ["withViews", userId],
+      },
+      {
+        method: ["withMembership", userId],
+      },
+    ]).findAll({
+      where: {
+        ...(user && { teamId: user.teamId }),
+        id: ids,
+      },
+      ...rest,
+    });
+
+    if (!userId) {
+      return documents;
+    }
+
+    return documents.filter(
+      (doc) =>
+        (!doc.collection?.isPrivate && !user?.isGuest) ||
+        (doc.collection?.memberships.length || 0) > 0 ||
+        doc.memberships.length > 0 ||
+        doc.groupMemberships.length > 0
+    );
+  }
+
   // instance methods
 
   /**

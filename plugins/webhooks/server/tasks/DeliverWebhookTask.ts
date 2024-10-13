@@ -692,7 +692,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         "user-agent": `Outline-Webhooks${
           env.VERSION ? `/${env.VERSION.slice(0, 7)}` : ""
         }`,
-      };
+      } as Record<string, string>;
 
       const signature = subscription.signature(JSON.stringify(requestBody));
       if (signature) {
