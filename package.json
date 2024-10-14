@@ -329,7 +329,7 @@
     "babel-plugin-tsconfig-paths-module-resolver": "^1.0.4",
     "browserslist-to-esbuild": "^1.2.0",
     "concurrently": "^8.2.2",
-    "discord-api-types": "^0.37.101",
+    "discord-api-types": "^0.37.102",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.10.0",
     "eslint-import-resolver-typescript": "^3.6.3",
