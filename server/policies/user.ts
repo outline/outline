@@ -23,7 +23,7 @@ allow(User, "inviteUser", Team, (actor, team) =>
   )
 );
 
-allow(User, ["update", "readDetails"], User, (actor, user) =>
+allow(User, ["update", "readDetails", "listApiKeys"], User, (actor, user) =>
   or(
     //
     isTeamAdmin(actor, user),
