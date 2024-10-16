@@ -30,7 +30,7 @@ import Sidebar from "./SidebarLayout";
 function Comments() {
   const { ui, comments, documents } = useStores();
   const user = useCurrentUser();
-  const { editor } = useDocumentContext();
+  const { editor, isEditorInitialized } = useDocumentContext();
   const { t } = useTranslation();
   const location = useLocation();
   const history = useHistory();
@@ -84,7 +84,7 @@ function Comments() {
     };
   }, [resolvedThreadsCount]);
 
-  if (!document) {
+  if (!document || !isEditorInitialized) {
     return null;
   }
 

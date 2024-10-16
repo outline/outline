@@ -91,6 +91,10 @@ export type Props = {
   scrollTo?: string;
   /** Callback for handling uploaded images, should return the url of uploaded file */
   uploadFile?: (file: File) => Promise<string>;
+  /** Callback when prosemirror nodes are initialized on document mount. */
+  onInit?: () => void;
+  /** Callback when prosemirror nodes are destroyed on document unmount. */
+  onDestroy?: () => void;
   /** Callback when editor is blurred, as native input */
   onBlur?: () => void;
   /** Callback when editor is focused, as native input */
@@ -176,6 +180,7 @@ export class Editor extends React.PureComponent<
     linkToolbarOpen: false,
   };
 
+  isInitialized = false;
   isBlurred = true;
   extensions: ExtensionManager;
   elementRef = React.createRef<HTMLDivElement>();
@@ -283,6 +288,7 @@ export class Editor extends React.PureComponent<
     window.removeEventListener("theme-changed", this.dispatchThemeChanged);
     this.view?.destroy();
     this.mutationObserver?.disconnect();
+    this.handleEditorDestroy();
   }
 
   private init() {
@@ -480,6 +486,9 @@ export class Editor extends React.PureComponent<
             (self.props.canComment && transactions.some(isEditingComment)))
         ) {
           self.handleChange();
+          // Wait for the first transaction to initialize the nodes.
+          // This is bound to happen always - New / empty document has a "paragraph" node in it.
+          self.handleEditorInit();
         }
 
         self.calculateDir();
@@ -738,6 +747,22 @@ export class Editor extends React.PureComponent<
     this.props.onChange((asString = true, trim = false) =>
       this.view ? this.value(asString, trim) : undefined
     );
+  };
+
+  private handleEditorInit = () => {
+    if (!this.props.onInit || this.isInitialized) {
+      return;
+    }
+
+    this.props.onInit();
+    this.isInitialized = true;
+  };
+
+  private handleEditorDestroy = () => {
+    if (!this.props.onDestroy) {
+      return;
+    }
+    this.props.onDestroy();
   };
 
   private handleEditorBlur = () => {
