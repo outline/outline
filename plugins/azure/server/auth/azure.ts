@@ -8,6 +8,7 @@ import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import { MicrosoftGraphError } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
 import { AuthenticationResult } from "@server/types";
@@ -72,6 +73,18 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         if (!organizationResponse) {
           throw MicrosoftGraphError(
             "Unable to load organization info from Microsoft Graph API"
+          );
+        }
+
+        if (!organizationResponse.value) {
+          Logger.info(
+            "authentication",
+            "API response missing value key",
+            organizationResponse
+          );
+
+          throw MicrosoftGraphError(
+            "Unable to load organization value from Microsoft Graph API"
           );
         }
 
