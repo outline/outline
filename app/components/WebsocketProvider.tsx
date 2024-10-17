@@ -339,12 +339,12 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on("comments.update", (event: PartialExcept<Comment, "id">) => {
       const comment = comments.get(event.id);
 
-      // Fetch the latest version to update policies when the resolution status has changed and we don't have the latest version.
+      // Existing policy becomes invalid when the resolution status has changed and we don't have the latest version.
       if (comment?.resolvedAt !== event.resolvedAt) {
-        void comments.fetch(event.id, { force: true });
-      } else {
-        comments.add(event);
+        policies.remove(event.id);
       }
+
+      comments.add(event);
     });
 
     this.socket.on("comments.delete", (event: WebsocketEntityDeletedEvent) => {
