@@ -2,8 +2,11 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 
 type Props = {
+  /** Width of the containing element. */
   width?: number | string;
+  /** Height of the containing element. */
   height?: number | string;
+  /** Controls the rendered emoji size. */
   size?: number;
 };
 

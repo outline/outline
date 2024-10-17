@@ -56,6 +56,9 @@ class Comment extends ParanoidModel<
   @Column(DataType.JSONB)
   data: ProsemirrorData;
 
+  @Column(DataType.JSONB)
+  reactions: Reaction[] | null;
+
   // associations
 
   @BelongsTo(() => User, "createdById")
@@ -88,9 +91,6 @@ class Comment extends ParanoidModel<
   @ForeignKey(() => Comment)
   @Column(DataType.UUID)
   parentCommentId: string;
-
-  @Column(DataType.JSONB)
-  reactions: Reaction[] | null;
 
   // methods
 
@@ -125,6 +125,15 @@ class Comment extends ParanoidModel<
     this.resolvedAt = null;
   }
 
+  /**
+   * Update the `reactions` column and save the comment to the database.
+   *
+   * @param {Object} reaction - The reaction data.
+   * @param {string} reaction.type - The type of the action.
+   * @param {string} reaction.emoji - The emoji to update as a reaction.
+   * @param {string} reaction.userId - The id of the user who performed this action.
+   * @param {Transaction} [reaction.transaction] - The SQL transaction context to perform this action.
+   */
   public updateReactions = async ({
     type,
     emoji,

@@ -13,6 +13,7 @@ import { hover } from "~/styles";
 import { EmojiReactedUsers, ReactionData } from "~/types";
 
 type Props = {
+  /** Callback to fetch the detailed reaction data (incl. users' info) */
   fetchReactionData: () => Promise<ReactionData[]>;
 };
 

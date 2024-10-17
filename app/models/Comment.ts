@@ -86,6 +86,9 @@ class Comment extends Model {
    */
   resolvedById: string | null;
 
+  /**
+   * Active reactions for this comment.
+   */
   @observable
   reactions: Reaction[];
 
@@ -130,6 +133,15 @@ class Comment extends Model {
     return this.store.rootStore.comments.unresolve(this.id);
   }
 
+  /**
+   * Add an emoji as a reaction to this comment.
+   *
+   * Optimistically updates the `reactions` cache and invokes the backend API.
+   *
+   * @param {Object} reaction - The reaction data.
+   * @param {string} reaction.emoji - The emoji to add as a reaction.
+   * @param {string} reaction.userId - The id of the user who added this reaction.
+   */
   @action
   public addReaction = async ({
     emoji,
@@ -149,6 +161,15 @@ class Comment extends Model {
     }
   };
 
+  /**
+   * Remove an emoji as a reaction from this comment.
+   *
+   * Optimistically updates the `reactions` cache and invokes the backend API.
+   *
+   * @param {Object} reaction - The reaction data.
+   * @param {string} reaction.emoji - The emoji to remove as a reaction.
+   * @param {string} reaction.userId - The id of the user who removed this reaction.
+   */
   @action
   public removeReaction = async ({
     emoji,
@@ -168,6 +189,14 @@ class Comment extends Model {
     }
   };
 
+  /**
+   * Update the `reactions` cache.
+   *
+   * @param {Object} reaction - The reaction data.
+   * @param {string} reaction.type - The type of the action.
+   * @param {string} reaction.emoji - The emoji to update as a reaction.
+   * @param {string} reaction.userId - The id of the user who performed this action.
+   */
   @action
   public updateReaction = ({
     type,

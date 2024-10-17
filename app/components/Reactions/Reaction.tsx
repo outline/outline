@@ -19,9 +19,13 @@ import { ReactionData } from "~/types";
 const MaxUsernamesInTooltip = 3;
 
 type Props = {
+  /** The reaction data - has the emoji & active user ids for this reaction. */
   reaction: TReaction;
+  /** Data of the users who have reacted using this emoji. */
   reactedUsers: ReactionData["user"][];
+  /** Callback when the user intends to add the reaction. */
   onAddReaction: (emoji: string) => Promise<void>;
+  /** Callback when the user intends to remove the reaction. */
   onRemoveReaction: (emoji: string) => Promise<void>;
 };
 
