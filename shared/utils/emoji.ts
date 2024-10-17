@@ -137,3 +137,6 @@ export const search = ({
     return query === nlc ? -1 : nlc.startsWith(queryLowercase) ? 0 : 1;
   });
 };
+
+export const getEmojiId = (emoji: string): string | undefined =>
+  searcher.search(emoji)[0]?.id;

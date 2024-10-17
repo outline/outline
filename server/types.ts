@@ -378,6 +378,14 @@ export type CommentUpdateEvent = BaseEvent<Comment> & {
   };
 };
 
+export type CommentReactionEvent = BaseEvent<Comment> & {
+  name: "comments.add_reaction" | "comments.remove_reaction";
+  modelId: string;
+  data: {
+    emoji: string;
+  };
+};
+
 export type CommentEvent =
   | (BaseEvent<Comment> & {
       name: "comments.create";
@@ -392,7 +400,8 @@ export type CommentEvent =
       documentId: string;
       actorId: string;
       collectionId: string;
-    });
+    })
+  | CommentReactionEvent;
 
 export type StarEvent = BaseEvent<Star> & {
   name: "stars.create" | "stars.update" | "stars.delete";

@@ -1,8 +1,10 @@
 import { subSeconds } from "date-fns";
-import { computed, observable } from "mobx";
+import uniq from "lodash/uniq";
+import { action, computed, observable } from "mobx";
 import { now } from "mobx-utils";
-import type { ProsemirrorData } from "@shared/types";
+import type { ProsemirrorData, Reaction } from "@shared/types";
 import User from "~/models/User";
+import { client } from "~/utils/ApiClient";
 import Document from "./Document";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
@@ -84,6 +86,9 @@ class Comment extends Model {
    */
   resolvedById: string | null;
 
+  @observable
+  reactions: Reaction[];
+
   /**
    * An array of users that are currently typing a reply in this comments thread.
    */
@@ -124,6 +129,82 @@ class Comment extends Model {
   public unresolve() {
     return this.store.rootStore.comments.unresolve(this.id);
   }
+
+  @action
+  public addReaction = async ({
+    emoji,
+    userId,
+  }: {
+    emoji: string;
+    userId: string;
+  }) => {
+    this.updateReaction({ type: "add", emoji, userId });
+    try {
+      await client.post("/comments.add_reaction", {
+        id: this.id,
+        emoji,
+      });
+    } catch {
+      this.updateReaction({ type: "remove", emoji, userId });
+    }
+  };
+
+  @action
+  public removeReaction = async ({
+    emoji,
+    userId,
+  }: {
+    emoji: string;
+    userId: string;
+  }) => {
+    this.updateReaction({ type: "remove", emoji, userId });
+    try {
+      await client.post("/comments.remove_reaction", {
+        id: this.id,
+        emoji,
+      });
+    } catch {
+      this.updateReaction({ type: "add", emoji, userId });
+    }
+  };
+
+  @action
+  public updateReaction = ({
+    type,
+    emoji,
+    userId,
+  }: {
+    type: "add" | "remove";
+    emoji: string;
+    userId: string;
+  }) => {
+    const reaction = this.reactions.find((r) => r.emoji === emoji);
+
+    if (type === "add") {
+      if (!reaction) {
+        this.reactions.push({ emoji, userIds: [userId] });
+      } else {
+        reaction.userIds = uniq([...reaction.userIds, userId]);
+      }
+    } else {
+      if (reaction) {
+        reaction.userIds = reaction.userIds.filter((id) => id !== userId);
+      }
+
+      if (reaction?.userIds.length === 0) {
+        this.reactions = this.reactions.filter(
+          (r) => r.emoji !== reaction.emoji
+        );
+      }
+    }
+  };
+
+  fetchReactions = async () => {
+    const res = await client.post("/reactions.list", {
+      commentId: this.id,
+    });
+    return res.data;
+  };
 }
 
 export default Comment;
