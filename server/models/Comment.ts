@@ -133,6 +133,8 @@ class Comment extends ParanoidModel<
    * @param {string} reaction.emoji - The emoji to update as a reaction.
    * @param {string} reaction.userId - The id of the user who performed this action.
    * @param {Transaction} [reaction.transaction] - The SQL transaction context to perform this action.
+   *
+   * @returns {Promise<boolean>} Promise object indicating whether the comment was updated.
    */
   public updateReactions = async ({
     type,
@@ -175,7 +177,7 @@ class Comment extends ParanoidModel<
 
     this.reactions = reactions;
     this.changed("reactions", true);
-    await this.save({ fields: ["reactions"], transaction });
+    await this.save({ fields: ["reactions"], transaction, silent: true });
 
     return true;
   };

@@ -144,6 +144,7 @@ function CommentForm({
         parentCommentId: thread?.id,
         documentId,
         data: draft,
+        reactions: [],
       },
       comments
     );
