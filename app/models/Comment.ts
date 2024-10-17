@@ -99,8 +99,8 @@ class Comment extends Model {
    * Whether the comment is resolved
    */
   @computed
-  public get isResolved() {
-    return !!this.resolvedAt;
+  public get isResolved(): boolean {
+    return !!this.resolvedAt || !!this.parentComment?.isResolved;
   }
 
   /**

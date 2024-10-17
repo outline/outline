@@ -25,7 +25,9 @@ export function settingsPath(section?: string): string {
 }
 
 export function commentPath(document: Document, comment: Comment): string {
-  return `${documentPath(document)}?commentId=${comment.id}`;
+  return `${documentPath(document)}?commentId=${comment.id}${
+    comment.isResolved ? "&resolved=" : ""
+  }`;
 }
 
 export function collectionPath(url: string, section?: string): string {
