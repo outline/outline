@@ -1,7 +1,7 @@
 import "./bootstrap";
-import { yDocToProsemirrorJSON } from "@getoutline/y-prosemirror";
 import { Node } from "prosemirror-model";
 import { Op } from "sequelize";
+import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import { schema, serializer } from "@server/editor";
 import { Document } from "@server/models";

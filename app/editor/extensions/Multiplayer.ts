@@ -1,11 +1,11 @@
+import { keymap } from "prosemirror-keymap";
 import {
   ySyncPlugin,
   yCursorPlugin,
   yUndoPlugin,
   undo,
   redo,
-} from "@getoutline/y-prosemirror";
-import { keymap } from "prosemirror-keymap";
+} from "y-prosemirror";
 import * as Y from "yjs";
 import Extension from "@shared/editor/lib/Extension";
 
