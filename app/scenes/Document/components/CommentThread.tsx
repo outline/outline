@@ -80,6 +80,8 @@ function CommentThread({
   });
   const can = usePolicy(document);
 
+  const canReply = can.comment && !thread.isResolved;
+
   const highlightedCommentMarks = editor
     ?.getComments()
     .filter((comment) => comment.id === thread.id);
@@ -105,7 +107,7 @@ function CommentThread({
   const handleClickThread = () => {
     history.replace({
       // Clear any commentId from the URL when explicitly focusing a thread
-      search: "",
+      search: thread.isResolved ? "resolved=" : "",
       pathname: location.pathname.replace(/\/history$/, ""),
       state: { commentId: thread.id },
     });
@@ -214,7 +216,7 @@ function CommentThread({
         ))}
 
       <ResizingHeightContainer hideOverflow={false} ref={replyRef}>
-        {(focused || draft || commentsInThread.length === 0) && can.comment && (
+        {(focused || draft || commentsInThread.length === 0) && canReply && (
           <Fade timing={100}>
             <CommentForm
               onSaveDraft={onSaveDraft}
@@ -232,7 +234,7 @@ function CommentThread({
           </Fade>
         )}
       </ResizingHeightContainer>
-      {!focused && !recessed && !draft && can.comment && (
+      {!focused && !recessed && !draft && canReply && (
         <Reply onClick={() => setAutoFocus(true)}>{t("Reply")}…</Reply>
       )}
     </Thread>
