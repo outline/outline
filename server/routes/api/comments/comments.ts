@@ -403,6 +403,7 @@ router.post(
         {
           name: "comments.add_reaction",
           modelId: comment.id,
+          documentId: comment.documentId,
           data: {
             emoji,
           },
@@ -459,6 +460,7 @@ router.post(
         {
           name: "comments.remove_reaction",
           modelId: comment.id,
+          documentId: comment.documentId,
           data: {
             emoji,
           },

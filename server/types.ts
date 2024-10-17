@@ -381,6 +381,7 @@ export type CommentUpdateEvent = BaseEvent<Comment> & {
 export type CommentReactionEvent = BaseEvent<Comment> & {
   name: "comments.add_reaction" | "comments.remove_reaction";
   modelId: string;
+  documentId: string;
   data: {
     emoji: string;
   };
