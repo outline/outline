@@ -200,6 +200,8 @@ export type DocumentEvent = BaseEvent<Document> &
         data: {
           collectionIds: string[];
           documentIds: string[];
+          prevParentDocumentId: string | null;
+          parentDocumentChanged: boolean;
         };
       }
     | {
