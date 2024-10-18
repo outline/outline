@@ -6,6 +6,9 @@ export class EditorStyleHelper {
 
   static readonly imageHandle = "image-handle";
 
+  /** Full-width image layout */
+  static readonly imageFullWidth = "image-full-width";
+
   // Comments
 
   static readonly comment = "comment-marker";
