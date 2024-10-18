@@ -24,7 +24,6 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
 import { hover } from "~/styles";
-import { ReactionData } from "~/types";
 import CommentEditor from "./CommentEditor";
 import { HighlightedText } from "./HighlightText";
 
@@ -132,26 +131,6 @@ function CommentThreadItem({
     [comment, user]
   );
 
-  const fetchReactionData = React.useCallback(async () => {
-    const allReactions = await comment.fetchReactions();
-    return allReactions.map(
-      // @ts-expect-error reaction data from server
-      (reaction) =>
-        ({
-          emoji: reaction.emoji,
-          user: {
-            id: reaction.user.id,
-            name: reaction.user.name,
-            initial: reaction.user.name
-              ? reaction.user.name[0].toUpperCase()
-              : "?",
-            color: reaction.user.color,
-            avatarUrl: reaction.user.avatarUrl,
-          },
-        } as ReactionData)
-    ) as ReactionData[];
-  }, [comment]);
-
   const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
     setData(value(false));
   };
@@ -250,10 +229,9 @@ function CommentThreadItem({
           )}
           {!!comment.reactions.length && (
             <StyledReactionList
-              reactions={comment.reactions}
+              model={comment}
               onAddReaction={handleAddReaction}
               onRemoveReaction={handleRemoveReaction}
-              fetchReactionData={fetchReactionData}
             />
           )}
         </Body>

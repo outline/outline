@@ -1,59 +1,49 @@
+import { observer } from "mobx-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Tab, TabPanel, useTabState } from "reakit";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
+import Comment from "~/models/Comment";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
 import PlaceholderText from "~/components/PlaceholderText";
 import Text from "~/components/Text";
 import { hover } from "~/styles";
-import { EmojiReactedUsers, ReactionData } from "~/types";
 
 type Props = {
-  /** Callback to fetch the detailed reaction data (incl. users' info) */
-  fetchReactionData: () => Promise<ReactionData[]>;
+  /** Model for which to show the reactions. */
+  model: Comment;
 };
 
-const ViewReactionsDialog: React.FC<Props> = ({ fetchReactionData }) => {
+const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
   const { t } = useTranslation();
   const tab = useTabState();
 
-  const [emojiReactedUsers, setEmojiReactedUsers] =
-    React.useState<EmojiReactedUsers>({});
+  const { reactionsData } = model;
 
   React.useEffect(() => {
-    const fetchReactions = async () => {
+    const fetchReactionsData = async () => {
       try {
-        const reactionData = await fetchReactionData();
-
-        const transformedData = reactionData.reduce((acc, data) => {
-          const emoji = data.emoji;
-          const users = (acc[emoji] ?? []) as EmojiReactedUsers[number];
-          users.push(data.user);
-          acc[emoji] = users;
-          return acc;
-        }, {} as EmojiReactedUsers);
-
-        setEmojiReactedUsers(transformedData);
+        await model.fetchReactionsData();
       } catch (err) {
         toast.error(t("Could not load reactions"));
       }
     };
 
-    void fetchReactions();
-  }, [t, setEmojiReactedUsers, fetchReactionData]);
+    void fetchReactionsData();
+  }, [t, model]);
 
-  if (!emojiReactedUsers) {
+  if (!reactionsData) {
     return <PlaceHolder />;
   }
 
   return (
     <>
       <TabActionsWrapper>
-        {Object.keys(emojiReactedUsers).map((emoji) => (
+        {[...reactionsData.keys()].map((emoji) => (
           <StyledTab
             {...tab}
             key={emoji}
@@ -65,7 +55,7 @@ const ViewReactionsDialog: React.FC<Props> = ({ fetchReactionData }) => {
           </StyledTab>
         ))}
       </TabActionsWrapper>
-      {Object.entries(emojiReactedUsers).map(([emoji, users]) => (
+      {[...reactionsData.entries()].map(([emoji, users]) => (
         <StyledTabPanel {...tab} key={emoji}>
           {users.map((user) => (
             <UserInfo key={user.name} align="center" gap={8}>
@@ -145,4 +135,4 @@ const UserInfo = styled(Flex)`
   padding: 10px 8px;
 `;
 
-export default ViewReactionsDialog;
+export default observer(ViewReactionsDialog);

@@ -1,9 +1,11 @@
 import { subSeconds } from "date-fns";
+import invariant from "invariant";
 import uniq from "lodash/uniq";
 import { action, computed, observable } from "mobx";
 import { now } from "mobx-utils";
-import type { ProsemirrorData, Reaction } from "@shared/types";
+import type { ProsemirrorData, ThinReaction } from "@shared/types";
 import User from "~/models/User";
+import type { ReactedUser } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Document from "./Document";
 import Model from "./base/Model";
@@ -88,9 +90,19 @@ class Comment extends Model {
 
   /**
    * Active reactions for this comment.
+   *
+   * Note: This contains just the emoji with the associated user-ids.
    */
   @observable
-  reactions: Reaction[];
+  reactions: ThinReaction[];
+
+  /**
+   * Mapping of emoji to users who reacted to it.
+   *
+   * Note: This contains the detailed info about the reacted users.
+   */
+  @observable
+  reactionsData?: Map<string, ReactedUser[]>;
 
   /**
    * An array of users that are currently typing a reply in this comments thread.
@@ -228,11 +240,30 @@ class Comment extends Model {
     }
   };
 
-  fetchReactions = async () => {
+  @action
+  fetchReactionsData = async () => {
+    if (this.reactionsData) {
+      return;
+    }
+
     const res = await client.post("/reactions.list", {
       commentId: this.id,
     });
-    return res.data;
+    invariant(res?.data, "Data not available");
+
+    this.reactionsData = new Map();
+
+    for (const reaction of res.data) {
+      const existingUsers = this.reactionsData.get(reaction.emoji) ?? [];
+      existingUsers.push({
+        id: reaction.user.id,
+        name: reaction.user.name,
+        initial: reaction.user.name ? reaction.user.name[0].toUpperCase() : "?",
+        color: reaction.user.color,
+        avatarUrl: reaction.user.avatarUrl,
+      });
+      this.reactionsData.set(reaction.emoji, existingUsers);
+    }
   };
 }
 

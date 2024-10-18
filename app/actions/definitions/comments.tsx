@@ -5,7 +5,6 @@ import stores from "~/stores";
 import Comment from "~/models/Comment";
 import CommentDeleteDialog from "~/components/CommentDeleteDialog";
 import ViewReactionsDialog from "~/components/Reactions/ViewReactionsDialog";
-import { ReactionData } from "~/types";
 import history from "~/utils/history";
 import { createAction } from "..";
 import { DocumentSection } from "../sections";
@@ -93,10 +92,8 @@ export const unresolveCommentFactory = ({
 
 export const viewCommentReactionsFactory = ({
   comment,
-  fetchReactionData,
 }: {
   comment: Comment;
-  fetchReactionData: () => Promise<ReactionData[]>;
 }) =>
   createAction({
     name: ({ t }) => `${t("View reactions")}`,
@@ -112,7 +109,7 @@ export const viewCommentReactionsFactory = ({
 
       stores.dialogs.openModal({
         title: t("Reactions"),
-        content: <ViewReactionsDialog fetchReactionData={fetchReactionData} />,
+        content: <ViewReactionsDialog model={comment} />,
       });
     },
   });

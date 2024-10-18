@@ -224,10 +224,4 @@ export type Properties<C> = {
     : never]?: C[Property];
 };
 
-export type ReactionData = {
-  emoji: string;
-  user: Omit<IAvatar, "id"> & { id: string; name: string };
-};
-
-/** Mapping of emoji to users who reacted to it. */
-export type EmojiReactedUsers = Record<string, ReactionData["user"][]>;
+export type ReactedUser = Omit<IAvatar, "id"> & { id: string; name: string };

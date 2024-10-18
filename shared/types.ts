@@ -467,7 +467,7 @@ export type EmojiVariants = {
   [EmojiSkinTone.Dark]?: Emoji;
 };
 
-export type Reaction = {
+export type ThinReaction = {
   emoji: string;
   userIds: string[];
 };

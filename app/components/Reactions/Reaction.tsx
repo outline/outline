@@ -4,7 +4,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
-import type { Reaction as TReaction } from "@shared/types";
+import type { ThinReaction } from "@shared/types";
 import { getEmojiId } from "@shared/utils/emoji";
 import User from "~/models/User";
 import { Emoji } from "~/components/Emoji";
@@ -14,15 +14,15 @@ import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { hover } from "~/styles";
-import { ReactionData } from "~/types";
+import { ReactedUser } from "~/types";
 
 const MaxUsernamesInTooltip = 3;
 
 type Props = {
-  /** The reaction data - has the emoji & active user ids for this reaction. */
-  reaction: TReaction;
+  /** Thin reaction data - contains the emoji & active user ids for this reaction. */
+  reaction: ThinReaction;
   /** Data of the users who have reacted using this emoji. */
-  reactedUsers: ReactionData["user"][];
+  reactedUsers: ReactedUser[];
   /** Callback when the user intends to add the reaction. */
   onAddReaction: (emoji: string) => Promise<void>;
   /** Callback when the user intends to remove the reaction. */

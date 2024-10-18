@@ -2,21 +2,20 @@ import React from "react";
 import useUnmount from "./useUnmount";
 
 type Props = {
-  /** Denotes the duration to wait until it's considered as a hover event. */
+  /** Ref to the element that needs to be observed. */
+  ref: React.RefObject<HTMLElement>;
+  /** Duration to wait until it's considered as a hover event. */
   duration: number;
 };
 
 /**
  * Hook to detect if an element is hovered by the user.
  *
- * This signals the hover only on the first time an element is hovered.
+ * This signals only on the first time an element is hovered.
  *
- * @returns {Object} object - The returned object.
- * @returns {boolean} object.hovered - Signals when an element is hovered by the user.
- * @returns {function(): void} object.onMouseEnter - Attach this function to the observed element's onMouseEnter event handler.
- * @returns {function(): void} object.onMouseLeave - Attach this function to the observed element's onMouseLeave event handler.
+ * @returns {boolean} hovered - Signals when an element is hovered by the user.
  */
-const useHover = ({ duration }: Props) => {
+const useHover = ({ ref, duration }: Props): boolean => {
   const [hovered, setHovered] = React.useState(false);
   const timer = React.useRef<number>();
 
@@ -40,7 +39,14 @@ const useHover = ({ duration }: Props) => {
     }
   });
 
-  return { hovered, onMouseEnter, onMouseLeave };
+  React.useEffect(() => {
+    if (ref.current) {
+      ref.current.onmouseenter = onMouseEnter;
+      ref.current.onmouseleave = onMouseLeave;
+    }
+  }, [ref, onMouseEnter, onMouseLeave]);
+
+  return hovered;
 };
 
 export default useHover;

@@ -1,5 +1,12 @@
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import uniq from "lodash/uniq";
 import {
+  InferAttributes,
+  InferCreationAttributes,
+  Transaction,
+} from "sequelize";
+import {
+  AfterCreate,
+  AfterDestroy,
   BelongsTo,
   Column,
   DataType,
@@ -40,6 +47,70 @@ class Reaction extends IdModel<
   @ForeignKey(() => Comment)
   @Column(DataType.UUID)
   commentId: string;
+
+  @AfterCreate
+  public static async addReactionToCommentCache(
+    model: Reaction,
+    { transaction }: { transaction: Transaction }
+  ) {
+    const comment = await Comment.findByPk(model.commentId, {
+      transaction,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
+    });
+
+    if (!comment) {
+      return;
+    }
+
+    const reactions = comment.reactions ?? [];
+    const reaction = reactions.find((r) => r.emoji === model.emoji);
+
+    if (!reaction) {
+      reactions.push({ emoji: model.emoji, userIds: [model.userId] });
+    } else {
+      reaction.userIds = uniq([...reaction.userIds, model.userId]);
+    }
+
+    comment.reactions = reactions;
+    comment.changed("reactions", true);
+    await comment.save({ fields: ["reactions"], transaction, silent: true });
+  }
+
+  @AfterDestroy
+  public static async removeReactionFromCommentCache(
+    model: Reaction,
+    { transaction }: { transaction: Transaction }
+  ) {
+    const comment = await Comment.findByPk(model.commentId, {
+      transaction,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
+    });
+
+    if (!comment) {
+      return;
+    }
+
+    let reactions = comment.reactions ?? [];
+    const reaction = reactions.find((r) => r.emoji === model.emoji);
+
+    if (reaction) {
+      reaction.userIds = reaction.userIds.filter((id) => id !== model.userId);
+
+      if (reaction.userIds.length === 0) {
+        reactions = reactions.filter((r) => r.emoji !== model.emoji);
+      }
+    }
+
+    comment.reactions = reactions;
+    comment.changed("reactions", true);
+    await comment.save({ fields: ["reactions"], transaction, silent: true });
+  }
 }
 
 export default Reaction;

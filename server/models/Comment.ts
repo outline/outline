@@ -14,7 +14,7 @@ import {
   Length,
   DefaultScope,
 } from "sequelize-typescript";
-import type { ProsemirrorData, Reaction } from "@shared/types";
+import type { ProsemirrorData, ThinReaction } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
 import { schema } from "@server/editor";
@@ -57,7 +57,7 @@ class Comment extends ParanoidModel<
   data: ProsemirrorData;
 
   @Column(DataType.JSONB)
-  reactions: Reaction[] | null;
+  reactions: ThinReaction[] | null;
 
   // associations
 

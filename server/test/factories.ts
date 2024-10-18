@@ -14,7 +14,7 @@ import {
   IntegrationType,
   NotificationEventType,
   ProsemirrorData,
-  Reaction,
+  ThinReaction,
   UserRole,
 } from "@shared/types";
 import { parser, schema } from "@server/editor";
@@ -414,7 +414,7 @@ export async function buildComment(overrides: {
   documentId: string;
   parentCommentId?: string;
   resolvedById?: string;
-  reactions?: Reaction[];
+  reactions?: ThinReaction[];
 }) {
   const comment = await Comment.create({
     resolvedById: overrides.resolvedById,

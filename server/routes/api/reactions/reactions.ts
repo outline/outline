@@ -1,7 +1,7 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
-import { Comment, Reaction } from "@server/models";
+import { Comment, Document, Reaction } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentReaction } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -20,8 +20,12 @@ router.post(
     const comment = await Comment.findByPk(commentId, {
       rejectOnEmpty: true,
     });
+    const document = await Document.findByPk(comment.documentId, {
+      userId: user.id,
+    });
 
     authorize(user, "readReaction", comment);
+    authorize(user, "read", document);
 
     const reactions: Reaction[] = [];
 

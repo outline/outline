@@ -375,14 +375,15 @@ router.post(
     const comment = await Comment.findByPk(id, {
       transaction,
       rejectOnEmpty: true,
-      lock: {
-        level: transaction.LOCK.UPDATE,
-        of: Comment,
-      },
     });
+    const document = await Document.findByPk(comment.documentId, {
+      userId: user.id,
+    });
+
+    authorize(user, "comment", document);
     authorize(user, "addReaction", comment);
 
-    await Reaction.findOrCreate({
+    const [, created] = await Reaction.findOrCreate({
       where: {
         emoji,
         userId: user.id,
@@ -390,14 +391,8 @@ router.post(
       },
       transaction,
     });
-    const added = await comment.updateReactions({
-      type: "add",
-      emoji,
-      userId: user.id,
-      transaction,
-    });
 
-    if (added) {
+    if (created) {
       await Event.createFromContext(
         ctx,
         {
@@ -433,11 +428,12 @@ router.post(
     const comment = await Comment.findByPk(id, {
       transaction,
       rejectOnEmpty: true,
-      lock: {
-        level: transaction.LOCK.UPDATE,
-        of: Comment,
-      },
     });
+    const document = await Document.findByPk(comment.documentId, {
+      userId: user.id,
+    });
+
+    authorize(user, "comment", document);
     authorize(user, "removeReaction", comment);
 
     const reaction = await Reaction.findOne({
@@ -447,27 +443,19 @@ router.post(
     authorize(user, "delete", reaction);
 
     await reaction.destroy({ transaction });
-    const removed = await comment.updateReactions({
-      type: "remove",
-      emoji: reaction.emoji,
-      userId: user.id,
-      transaction,
-    });
 
-    if (removed) {
-      await Event.createFromContext(
-        ctx,
-        {
-          name: "comments.remove_reaction",
-          modelId: comment.id,
-          documentId: comment.documentId,
-          data: {
-            emoji,
-          },
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "comments.remove_reaction",
+        modelId: comment.id,
+        documentId: comment.documentId,
+        data: {
+          emoji,
         },
-        { transaction }
-      );
-    }
+      },
+      { transaction }
+    );
 
     ctx.body = {
       success: true,
