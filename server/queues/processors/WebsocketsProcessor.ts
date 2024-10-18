@@ -505,6 +505,32 @@ export default class WebsocketsProcessor {
         });
       }
 
+      case "comments.add_reaction":
+      case "comments.remove_reaction": {
+        const comment = await Comment.findByPk(event.modelId, {
+          include: [
+            {
+              model: Document.scope(["withoutState", "withDrafts"]),
+              as: "document",
+              required: true,
+            },
+          ],
+        });
+        if (!comment) {
+          return;
+        }
+
+        const channels = await this.getDocumentEventChannels(
+          event,
+          comment.document
+        );
+        return socketio.to(channels).emit(event.name, {
+          emoji: event.data.emoji,
+          userId: event.actorId,
+          commentId: event.modelId,
+        });
+      }
+
       case "notifications.create":
       case "notifications.update": {
         const notification = await Notification.findByPk(event.modelId);

@@ -7,6 +7,7 @@ import {
   DocumentPermission,
 } from "@shared/types";
 import RootStore from "~/stores/RootStore";
+import { IAvatar } from "./components/Avatar";
 import { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
@@ -188,6 +189,12 @@ export type WebsocketCollectionUpdateIndexEvent = {
   index: string;
 };
 
+export type WebsocketCommentReactionEvent = {
+  emoji: string;
+  commentId: string;
+  userId: string;
+};
+
 export type WebsocketEvent =
   | PartialExcept<Pin, "id">
   | PartialExcept<Star, "id">
@@ -195,7 +202,8 @@ export type WebsocketEvent =
   | PartialExcept<UserMembership, "id">
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent
-  | WebsocketEntitiesEvent;
+  | WebsocketEntitiesEvent
+  | WebsocketCommentReactionEvent;
 
 export type AwarenessChangeEvent = {
   states: { user?: { id: string }; cursor: any; scrollY: number | undefined }[];
@@ -215,3 +223,11 @@ export type Properties<C> = {
     ? Property
     : never]?: C[Property];
 };
+
+export type ReactionData = {
+  emoji: string;
+  user: Omit<IAvatar, "id"> & { id: string; name: string };
+};
+
+/** Mapping of emoji to users who reacted to it. */
+export type EmojiReactedUsers = Record<string, ReactionData["user"][]>;

@@ -1,8 +1,10 @@
 import { subSeconds } from "date-fns";
-import { computed, observable } from "mobx";
+import uniq from "lodash/uniq";
+import { action, computed, observable } from "mobx";
 import { now } from "mobx-utils";
-import type { ProsemirrorData } from "@shared/types";
+import type { ProsemirrorData, Reaction } from "@shared/types";
 import User from "~/models/User";
+import { client } from "~/utils/ApiClient";
 import Document from "./Document";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
@@ -85,6 +87,12 @@ class Comment extends Model {
   resolvedById: string | null;
 
   /**
+   * Active reactions for this comment.
+   */
+  @observable
+  reactions: Reaction[];
+
+  /**
    * An array of users that are currently typing a reply in this comments thread.
    */
   @computed
@@ -124,6 +132,108 @@ class Comment extends Model {
   public unresolve() {
     return this.store.rootStore.comments.unresolve(this.id);
   }
+
+  /**
+   * Add an emoji as a reaction to this comment.
+   *
+   * Optimistically updates the `reactions` cache and invokes the backend API.
+   *
+   * @param {Object} reaction - The reaction data.
+   * @param {string} reaction.emoji - The emoji to add as a reaction.
+   * @param {string} reaction.userId - The id of the user who added this reaction.
+   */
+  @action
+  public addReaction = async ({
+    emoji,
+    userId,
+  }: {
+    emoji: string;
+    userId: string;
+  }) => {
+    this.updateReaction({ type: "add", emoji, userId });
+    try {
+      await client.post("/comments.add_reaction", {
+        id: this.id,
+        emoji,
+      });
+    } catch {
+      this.updateReaction({ type: "remove", emoji, userId });
+    }
+  };
+
+  /**
+   * Remove an emoji as a reaction from this comment.
+   *
+   * Optimistically updates the `reactions` cache and invokes the backend API.
+   *
+   * @param {Object} reaction - The reaction data.
+   * @param {string} reaction.emoji - The emoji to remove as a reaction.
+   * @param {string} reaction.userId - The id of the user who removed this reaction.
+   */
+  @action
+  public removeReaction = async ({
+    emoji,
+    userId,
+  }: {
+    emoji: string;
+    userId: string;
+  }) => {
+    this.updateReaction({ type: "remove", emoji, userId });
+    try {
+      await client.post("/comments.remove_reaction", {
+        id: this.id,
+        emoji,
+      });
+    } catch {
+      this.updateReaction({ type: "add", emoji, userId });
+    }
+  };
+
+  /**
+   * Update the `reactions` cache.
+   *
+   * @param {Object} reaction - The reaction data.
+   * @param {string} reaction.type - The type of the action.
+   * @param {string} reaction.emoji - The emoji to update as a reaction.
+   * @param {string} reaction.userId - The id of the user who performed this action.
+   */
+  @action
+  public updateReaction = ({
+    type,
+    emoji,
+    userId,
+  }: {
+    type: "add" | "remove";
+    emoji: string;
+    userId: string;
+  }) => {
+    const reaction = this.reactions.find((r) => r.emoji === emoji);
+
+    if (type === "add") {
+      if (!reaction) {
+        this.reactions.push({ emoji, userIds: [userId] });
+      } else {
+        reaction.userIds = uniq([...reaction.userIds, userId]);
+      }
+    } else {
+      if (reaction) {
+        reaction.userIds = reaction.userIds.filter((id) => id !== userId);
+      }
+
+      if (reaction?.userIds.length === 0) {
+        this.reactions = this.reactions.filter(
+          (r) => r.emoji !== reaction.emoji
+        );
+      }
+    }
+  };
+
+  fetchReactions = async () => {
+    const res = await client.post("/reactions.list", {
+      commentId: this.id,
+    });
+    return res.data;
+  };
 }
 
 export default Comment;
