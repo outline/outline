@@ -16,8 +16,6 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import { hover } from "~/styles";
 import { ReactedUser } from "~/types";
 
-const MaxUsernamesInTooltip = 3;
-
 type Props = {
   /** Thin reaction data - contains the emoji & active user ids for this reaction. */
   reaction: ThinReaction;
@@ -46,39 +44,75 @@ const useTooltipContent = ({
     return;
   }
 
-  const usernames: string[] = [];
-
-  if (active) {
-    usernames.push(t("You"));
-  }
-
-  const otherUsernames = reactedUsers
-    .filter((user) => user.id !== currUser.id)
-    .map((user) => user.name);
-
-  usernames.push(
-    ...otherUsernames.slice(
-      0,
-      active ? MaxUsernamesInTooltip - 1 : MaxUsernamesInTooltip
-    )
-  );
-
-  const diff = reactedUsers.length - usernames.length;
-  if (diff > 0) {
-    usernames.push(`${diff} ` + (diff === 1 ? t("other") : t("others")));
-  }
-
-  const joinedUsernames = usernames.reduce((content, name, idx) => {
-    if (idx === 0) {
-      return name;
-    } else if (idx === usernames.length - 1) {
-      return `${content} ${t("and")} ${name}`;
-    } else {
-      return `${content}, ${name}`;
+  switch (reactedUsers.length) {
+    case 1: {
+      return t("{{ username }} reacted with {{ emoji }}", {
+        username: active ? t("You") : reactedUsers[0].name,
+        emoji: `:${getEmojiId(emoji)}:`,
+      });
     }
-  }, "");
 
-  return `${joinedUsernames} ${t("reacted with")} :${getEmojiId(emoji)}:`;
+    case 2: {
+      const firstUsername = active ? t("You") : reactedUsers[0].name;
+      const secondUsername = active
+        ? reactedUsers.find((user) => user.id !== currUser.id)?.name
+        : reactedUsers[1].name;
+
+      return t(
+        "{{ firstUsername }} and {{ secondUsername }} reacted with {{ emoji }}",
+        {
+          firstUsername,
+          secondUsername,
+          emoji: `:${getEmojiId(emoji)}:`,
+        }
+      );
+    }
+
+    case 3: {
+      const firstUsername = active ? t("You") : reactedUsers[0].name;
+
+      const otherUsers = active
+        ? reactedUsers.filter((user) => user.id !== currUser.id)
+        : reactedUsers.slice(1);
+
+      const secondUsername = otherUsers[0].name;
+      const thirdUsername = otherUsers[1].name;
+
+      return t(
+        "{{ firstUsername }}, {{ secondUsername }} and {{ thirdUsername }} reacted with {{ emoji }}",
+        {
+          firstUsername,
+          secondUsername,
+          thirdUsername,
+          emoji: `:${getEmojiId(emoji)}:`,
+        }
+      );
+    }
+
+    default: {
+      const firstUsername = active ? t("You") : reactedUsers[0].name;
+
+      const otherUsers = active
+        ? reactedUsers.filter((user) => user.id !== currUser.id)
+        : reactedUsers.slice(1);
+
+      const secondUsername = otherUsers[0].name;
+      const thirdUsername = otherUsers[1].name;
+
+      const count = reactedUsers.length - 3;
+
+      return t(
+        "{{ firstUsername }}, {{ secondUsername }}, {{ thirdUsername }} and {{ count }} others reacted with {{ emoji }}",
+        {
+          firstUsername,
+          secondUsername,
+          thirdUsername,
+          count,
+          emoji: `:${getEmojiId(emoji)}:`,
+        }
+      );
+    }
+  }
 };
 
 const Reaction: React.FC<Props> = ({
