@@ -178,6 +178,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "comments.delete":
         await this.handleCommentEvent(subscription, event);
         return;
+      case "comments.add_reaction":
+      case "comments.remove_reaction":
+        // Ignored
+        return;
       case "groups.create":
       case "groups.update":
       case "groups.delete":
