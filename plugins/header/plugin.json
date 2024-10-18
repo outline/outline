@@ -1,0 +1,6 @@
+{
+  "id": "header",
+  "name": "custom provider",
+  "priority": 300,
+  "description": "Adds a custom authentication provider."
+}
