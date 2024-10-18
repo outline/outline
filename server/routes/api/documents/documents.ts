@@ -916,8 +916,8 @@ router.post(
   auth(),
   pagination(),
   rateLimiter(RateLimiterStrategy.OneHundredPerMinute),
-  validate(T.DocumentsSearchSchema),
-  async (ctx: APIContext<T.DocumentsSearchReq>) => {
+  validate(T.DocumentsSearchTitlesSchema),
+  async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
     const { query, statusFilter, dateFilter, collectionId, userId } =
       ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
@@ -935,7 +935,8 @@ router.post(
       collaboratorIds = [userId];
     }
 
-    const documents = await SearchHelper.searchTitlesForUser(user, query, {
+    const documents = await SearchHelper.searchTitlesForUser(user, {
+      query,
       dateFilter,
       statusFilter,
       collectionId,
@@ -1001,7 +1002,8 @@ router.post(
       const team = await share.$get("team");
       invariant(team, "Share must belong to a team");
 
-      response = await SearchHelper.searchForTeam(team, query, {
+      response = await SearchHelper.searchForTeam(team, {
+        query,
         collectionId: document.collectionId,
         share,
         dateFilter,
@@ -1043,7 +1045,8 @@ router.post(
         collaboratorIds = [userId];
       }
 
-      response = await SearchHelper.searchForUser(user, query, {
+      response = await SearchHelper.searchForUser(user, {
+        query,
         collaboratorIds,
         collectionId,
         documentIds,
@@ -1071,7 +1074,7 @@ router.post(
 
     // When requesting subsequent pages of search results we don't want to record
     // duplicate search query records
-    if (offset === 0) {
+    if (query && offset === 0) {
       await SearchQuery.create({
         userId: user?.id,
         teamId,

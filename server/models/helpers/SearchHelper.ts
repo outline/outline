@@ -3,7 +3,15 @@ import escapeRegExp from "lodash/escapeRegExp";
 import find from "lodash/find";
 import map from "lodash/map";
 import queryParser from "pg-tsquery";
-import { Op, Sequelize, WhereOptions } from "sequelize";
+import {
+  BindOrReplacements,
+  FindAttributeOptions,
+  FindOptions,
+  Op,
+  Order,
+  Sequelize,
+  WhereOptions,
+} from "sequelize";
 import { DateFilter, StatusFilter } from "@shared/types";
 import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
@@ -21,7 +29,7 @@ type SearchResponse = {
     /** The search ranking, for sorting results */
     ranking: number;
     /** A snippet of contextual text around the search result */
-    context: string;
+    context?: string;
     /** The document result */
     document: Document;
   }[];
@@ -34,6 +42,8 @@ type SearchOptions = {
   limit?: number;
   /** The query offset for pagination */
   offset?: number;
+  /** The text to search for */
+  query?: string;
   /** Limit results to a collection. Authorization is presumed to have been done before passing to this helper. */
   collectionId?: string | null;
   /** Limit results to a shared document. */
@@ -67,12 +77,11 @@ export default class SearchHelper {
 
   public static async searchForTeam(
     team: Team,
-    query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const { limit = 15, offset = 0 } = options;
+    const { limit = 15, offset = 0, query } = options;
 
-    const where = await this.buildWhere(team, query, {
+    const where = await this.buildWhere(team, {
       ...options,
       statusFilter: [...(options.statusFilter || []), StatusFilter.Published],
     });
@@ -92,34 +101,19 @@ export default class SearchHelper {
       });
     }
 
-    const replacements = {
-      query: this.webSearchQuery(query),
-    };
+    const findOptions = this.buildFindOptions(query);
 
     try {
       const resultsQuery = Document.unscoped().findAll({
-        attributes: [
-          "id",
-          [
-            Sequelize.literal(
-              `ts_rank("searchVector", to_tsquery('english', :query))`
-            ),
-            "searchRanking",
-          ],
-        ],
-        replacements,
+        ...findOptions,
         where,
-        order: [
-          ["searchRanking", "DESC"],
-          ["updatedAt", "DESC"],
-        ],
         limit,
         offset,
       }) as any as Promise<RankedDocument[]>;
 
       const countQuery = Document.unscoped().count({
         // @ts-expect-error Types are incorrect for count
-        replacements,
+        replacements: findOptions.replacements,
         where,
       }) as any as Promise<number>;
       const [results, count] = await Promise.all([resultsQuery, countQuery]);
@@ -138,7 +132,12 @@ export default class SearchHelper {
         ],
       });
 
-      return this.buildResponse(query, results, documents, count);
+      return this.buildResponse({
+        query,
+        results,
+        documents,
+        count,
+      });
     } catch (err) {
       if (err.message.includes("syntax error in tsquery")) {
         throw ValidationError("Invalid search query");
@@ -149,17 +148,18 @@ export default class SearchHelper {
 
   public static async searchTitlesForUser(
     user: User,
-    query: string,
     options: SearchOptions = {}
   ): Promise<Document[]> {
-    const { limit = 15, offset = 0 } = options;
-    const where = await this.buildWhere(user, undefined, options);
+    const { limit = 15, offset = 0, query, ...rest } = options;
+    const where = await this.buildWhere(user, rest);
 
-    where[Op.and].push({
-      title: {
-        [Op.iLike]: `%${query}%`,
-      },
-    });
+    if (query) {
+      where[Op.and].push({
+        title: {
+          [Op.iLike]: `%${query}%`,
+        },
+      });
+    }
 
     const include = [
       {
@@ -206,16 +206,13 @@ export default class SearchHelper {
 
   public static async searchForUser(
     user: User,
-    query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const { limit = 15, offset = 0 } = options;
+    const { limit = 15, offset = 0, query } = options;
 
-    const where = await this.buildWhere(user, query, options);
+    const where = await this.buildWhere(user, options);
 
-    const queryReplacements = {
-      query: this.webSearchQuery(query),
-    };
+    const findOptions = this.buildFindOptions(query);
 
     const include = [
       {
@@ -230,23 +227,10 @@ export default class SearchHelper {
 
     try {
       const results = (await Document.unscoped().findAll({
-        attributes: [
-          "id",
-          [
-            Sequelize.literal(
-              `ts_rank("searchVector", to_tsquery('english', :query))`
-            ),
-            "searchRanking",
-          ],
-        ],
+        ...findOptions,
         subQuery: false,
         include,
-        replacements: queryReplacements,
         where,
-        order: [
-          ["searchRanking", "DESC"],
-          ["updatedAt", "DESC"],
-        ],
         limit,
         offset,
       })) as any as RankedDocument[];
@@ -255,7 +239,7 @@ export default class SearchHelper {
         // @ts-expect-error Types are incorrect for count
         subQuery: false,
         include,
-        replacements: queryReplacements,
+        replacements: findOptions.replacements,
         where,
       }) as any as Promise<number>;
 
@@ -284,13 +268,37 @@ export default class SearchHelper {
           : countQuery,
       ]);
 
-      return this.buildResponse(query, results, documents, count);
+      return this.buildResponse({
+        query,
+        results,
+        documents,
+        count,
+      });
     } catch (err) {
       if (err.message.includes("syntax error in tsquery")) {
         throw ValidationError("Invalid search query");
       }
       throw err;
     }
+  }
+
+  private static buildFindOptions(query?: string): FindOptions {
+    const attributes: FindAttributeOptions = ["id"];
+    const replacements: BindOrReplacements = {};
+    const order: Order = [["updatedAt", "DESC"]];
+
+    if (query) {
+      attributes.push([
+        Sequelize.literal(
+          `ts_rank("searchVector", to_tsquery('english', :query))`
+        ),
+        "searchRanking",
+      ]);
+      replacements["query"] = this.webSearchQuery(query);
+      order.unshift(["searchRanking", "DESC"]);
+    }
+
+    return { attributes, replacements, order };
   }
 
   private static buildResultContext(document: Document, query: string) {
@@ -349,11 +357,7 @@ export default class SearchHelper {
     return context.slice(startIndex, endIndex);
   }
 
-  private static async buildWhere(
-    model: User | Team,
-    query: string | undefined,
-    options: SearchOptions
-  ) {
+  private static async buildWhere(model: User | Team, options: SearchOptions) {
     const teamId = model instanceof Team ? model.id : model.teamId;
     const where: WhereOptions<Document> & {
       [Op.or]: WhereOptions<Document>[];
@@ -462,15 +466,15 @@ export default class SearchHelper {
       });
     }
 
-    if (query) {
+    if (options.query) {
       // find words that look like urls, these should be treated separately as the postgres full-text
       // index will generally not match them.
-      const likelyUrls = getUrls(query);
+      const likelyUrls = getUrls(options.query);
 
       // remove likely urls, and escape the rest of the query.
       const limitedQuery = this.escapeQuery(
         likelyUrls
-          .reduce((q, url) => q.replace(url, ""), query)
+          .reduce((q, url) => q.replace(url, ""), options.query)
           .slice(0, this.maxQueryLength)
           .trim()
       );
@@ -513,12 +517,17 @@ export default class SearchHelper {
     return where;
   }
 
-  private static buildResponse(
-    query: string,
-    results: RankedDocument[],
-    documents: Document[],
-    count: number
-  ): SearchResponse {
+  private static buildResponse({
+    query,
+    results,
+    documents,
+    count,
+  }: {
+    query?: string;
+    results: RankedDocument[];
+    documents: Document[];
+    count: number;
+  }): SearchResponse {
     return {
       results: map(results, (result) => {
         const document = find(documents, {
@@ -527,7 +536,7 @@ export default class SearchHelper {
 
         return {
           ranking: result.dataValues.searchRanking,
-          context: this.buildResultContext(document, query),
+          context: query ? this.buildResultContext(document, query) : undefined,
           document,
         };
       }),
