@@ -63,8 +63,9 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   React.useEffect(() => {
     if (documentId) {
       void documents.fetch(documentId);
+      void membership.fetchDocuments();
     }
-  }, [documentId, documents]);
+  }, [documentId, documents, membership]);
 
   React.useEffect(() => {
     if (isActiveDocument && membership.documentId) {
@@ -115,9 +116,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       ? collections.get(document.collectionId)
       : undefined;
 
-    const node = document.asNavigationNode;
-    const childDocuments = node.children;
-    const hasChildDocuments = childDocuments.length > 0;
+    const hasChildDocuments = (membership.documents?.length || 0) > 0;
 
     return (
       <>
@@ -172,13 +171,13 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
           </Draggable>
         </Relative>
         <Folder expanded={displayChildDocuments}>
-          {childDocuments.map((node, index) => (
+          {membership.documents?.map((childNode, index) => (
             <DocumentLink
-              key={node.id}
-              node={node}
+              key={childNode.id}
+              node={childNode}
               collection={collection}
               activeDocument={documents.active}
-              isDraft={node.isDraft}
+              isDraft={childNode.isDraft}
               depth={2}
               index={index}
             />

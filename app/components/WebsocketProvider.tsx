@@ -27,6 +27,7 @@ import withStores from "~/components/withStores";
 import {
   PartialExcept,
   WebsocketCollectionUpdateIndexEvent,
+  WebsocketDocumentMovedEvent,
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
 } from "~/types";
@@ -147,9 +148,7 @@ class WebsocketProvider extends React.Component<Props> {
 
             // otherwise, grab the latest version of the document
             try {
-              document = await documents.fetch(documentId, {
-                force: true,
-              });
+              document = await documents.fetch(documentId, { force: true });
             } catch (err) {
               if (
                 err instanceof AuthorizationError ||
@@ -175,6 +174,16 @@ class WebsocketProvider extends React.Component<Props> {
                   id: document.collectionId,
                 });
               }
+            }
+
+            const parentDocuments = document?.parentDocuments ?? [];
+            for (const parentDoc of parentDocuments) {
+              await userMemberships
+                .find({ documentId: parentDoc.id })
+                ?.fetchDocuments({ force: true });
+              await groupMemberships
+                .find({ documentId: parentDoc.id })
+                ?.fetchDocuments({ force: true });
             }
           }
         }
@@ -221,6 +230,17 @@ class WebsocketProvider extends React.Component<Props> {
           const collection = collections.get(event.collectionId);
           collection?.updateDocument(event);
         }
+
+        const document = documents.get(event.id);
+        const parentDocuments = document?.parentDocuments ?? [];
+        for (const parentDoc of parentDocuments) {
+          userMemberships
+            .find({ documentId: parentDoc.id })
+            ?.updateDocument(event);
+          groupMemberships
+            .find({ documentId: parentDoc.id })
+            ?.updateDocument(event);
+        }
       })
     );
 
@@ -232,6 +252,17 @@ class WebsocketProvider extends React.Component<Props> {
         if (event.collectionId) {
           const collection = collections.get(event.collectionId);
           collection?.removeDocument(event.id);
+        }
+
+        const document = documents.get(event.id);
+        const parentDocuments = document?.parentDocuments ?? [];
+        for (const parentDoc of parentDocuments) {
+          userMemberships
+            .find({ documentId: parentDoc.id })
+            ?.removeDocument(event.id);
+          groupMemberships
+            .find({ documentId: parentDoc.id })
+            ?.removeDocument(event.id);
         }
       })
     );
@@ -250,6 +281,17 @@ class WebsocketProvider extends React.Component<Props> {
         userMemberships.orderedData
           .filter((m) => m.documentId === event.id)
           .forEach((m) => userMemberships.remove(m.id));
+
+        const document = documents.get(event.id);
+        const parentDocuments = document?.parentDocuments ?? [];
+        for (const parentDoc of parentDocuments) {
+          userMemberships
+            .find({ documentId: parentDoc.id })
+            ?.removeDocument(event.id);
+          groupMemberships
+            .find({ documentId: parentDoc.id })
+            ?.removeDocument(event.id);
+        }
       })
     );
 
@@ -258,6 +300,56 @@ class WebsocketProvider extends React.Component<Props> {
       (event: WebsocketEntityDeletedEvent) => {
         documents.remove(event.modelId);
       }
+    );
+
+    this.socket.on(
+      "documents.move",
+      action(async (event: WebsocketDocumentMovedEvent) => {
+        if (event.documentId) {
+          const document = await documents.fetch(event.documentId, {
+            force: true,
+          });
+
+          // Refresh documents structure in case this document (or) any of its ancestors is shared to the user.
+          const documentIdsToRefresh = [
+            event.documentId,
+            ...document.parentDocuments.map((doc) => doc.id),
+          ];
+
+          for (const documentId of documentIdsToRefresh) {
+            await userMemberships
+              .find({ documentId })
+              ?.fetchDocuments({ force: true });
+            await groupMemberships
+              .find({ documentId })
+              ?.fetchDocuments({ force: true });
+          }
+        }
+
+        if (event.prevParentDocumentId) {
+          const prevDocument = documents.get(event.prevParentDocumentId);
+
+          // Refresh documents structure in case the previous parent document (or) any of its ancestors is shared to the user.
+          const documentIdsToRefresh = [
+            event.prevParentDocumentId,
+            ...(prevDocument?.parentDocuments.map((doc) => doc.id) ?? []),
+          ];
+
+          for (const documentId of documentIdsToRefresh) {
+            await userMemberships
+              .find({ documentId })
+              ?.fetchDocuments({ force: true });
+            await groupMemberships
+              .find({ documentId })
+              ?.fetchDocuments({ force: true });
+          }
+        }
+
+        if (event.collectionId) {
+          const collection = collections.get(event.collectionId);
+          await collection?.fetchDocuments({ force: true });
+        }
+      })
     );
 
     this.socket.on(

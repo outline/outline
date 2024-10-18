@@ -188,11 +188,18 @@ export type WebsocketCollectionUpdateIndexEvent = {
   index: string;
 };
 
+export type WebsocketDocumentMovedEvent = {
+  documentId?: string;
+  prevParentDocumentId?: string;
+  collectionId?: string;
+};
+
 export type WebsocketEvent =
   | PartialExcept<Pin, "id">
   | PartialExcept<Star, "id">
   | PartialExcept<FileOperation, "id">
   | PartialExcept<UserMembership, "id">
+  | WebsocketDocumentMovedEvent
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent
   | WebsocketEntitiesEvent;
