@@ -77,9 +77,15 @@ export default class TableCell extends Node {
             // behavior, both in and outside the app.
             if (slice.content.childCount === 1) {
               const table = slice.content.firstChild;
-              if (table?.type.name === "table" && table.childCount === 1) {
+              if (
+                table?.type.spec.tableRole === "table" &&
+                table.childCount === 1
+              ) {
                 const row = table.firstChild;
-                if (row?.type.name === "tr" && row.childCount === 1) {
+                if (
+                  row?.type.spec.tableRole === "row" &&
+                  row.childCount === 1
+                ) {
                   const cell = row.firstChild;
                   if (cell?.type.spec.tableRole === "cell") {
                     return new Slice(
