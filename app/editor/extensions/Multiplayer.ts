@@ -12,7 +12,7 @@ import Extension from "@shared/editor/lib/Extension";
 import { Second } from "@shared/utils/time";
 
 type UserAwareness = {
-  user: {
+  user?: {
     id: string;
   };
   anchor: object;
@@ -65,9 +65,12 @@ export default class Multiplayer extends Extension {
         return false;
       }
 
-      const cached = userAwarenessCache.get(aw.user.id);
+      const userId = aw.user?.id;
+      const cached = userId ? userAwarenessCache.get(userId) : undefined;
       if (!cached || !isEqual(cached?.aw, aw)) {
-        userAwarenessCache.set(aw.user.id, { aw, changedAt: new Date() });
+        if (userId) {
+          userAwarenessCache.set(userId, { aw, changedAt: new Date() });
+        }
       }
 
       return true;
