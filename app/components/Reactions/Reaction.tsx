@@ -21,6 +21,8 @@ type Props = {
   reaction: ThinReaction;
   /** Data of the users who have reacted using this emoji. */
   reactedUsers: ReactedUser[];
+  /** Whether the emoji button should be disabled (prevents add/remove events). */
+  disabled: boolean;
   /** Callback when the user intends to add the reaction. */
   onAddReaction: (emoji: string) => Promise<void>;
   /** Callback when the user intends to remove the reaction. */
@@ -118,6 +120,7 @@ const useTooltipContent = ({
 const Reaction: React.FC<Props> = ({
   reaction,
   reactedUsers,
+  disabled,
   onAddReaction,
   onRemoveReaction,
 }) => {
@@ -144,14 +147,14 @@ const Reaction: React.FC<Props> = ({
 
   const DisplayedEmoji = React.useMemo(
     () => (
-      <EmojiButton $active={active} onClick={handleClick}>
+      <EmojiButton disabled={disabled} $active={active} onClick={handleClick}>
         <Flex gap={6} justify="center" align="center">
           <Emoji size={13}>{reaction.emoji}</Emoji>
           <Count weight="bold">{reaction.userIds.length}</Count>
         </Flex>
       </EmojiButton>
     ),
-    [reaction.emoji, reaction.userIds, active, handleClick]
+    [reaction.emoji, reaction.userIds, disabled, active, handleClick]
   );
 
   return tooltipContent ? (
@@ -163,15 +166,19 @@ const Reaction: React.FC<Props> = ({
   );
 };
 
-const EmojiButton = styled(NudeButton)<{ $active: boolean }>`
+const EmojiButton = styled(NudeButton)<{
+  $active: boolean;
+  disabled: boolean;
+}>`
   width: auto;
   height: 28px;
   padding: 8px;
   border-radius: 12px;
   border: 1px solid transparent;
   transition: ${s("backgroundTransition")};
+  cursor: ${({ disabled }) => disabled && "default"};
 
-  ${({ $active, theme }) =>
+  ${({ $active, disabled, theme }) =>
     $active
       ? theme.isDark
         ? css`
@@ -179,7 +186,7 @@ const EmojiButton = styled(NudeButton)<{ $active: boolean }>`
             border-color: ${darken(0.08, theme.accent)};
 
             &: ${hover} {
-              background-color: ${darken(0.2, theme.accent)};
+              background-color: ${!disabled && darken(0.2, theme.accent)};
             }
           `
         : css`
@@ -187,7 +194,7 @@ const EmojiButton = styled(NudeButton)<{ $active: boolean }>`
             border-color: ${lighten(0.34, theme.accent)};
 
             &: ${hover} {
-              background-color: ${lighten(0.3, theme.accent)};
+              background-color: ${!disabled && lighten(0.3, theme.accent)};
             }
           `
       : css`
@@ -195,7 +202,7 @@ const EmojiButton = styled(NudeButton)<{ $active: boolean }>`
           border-color: ${s("buttonNeutralBorder")};
 
           &: ${hover} {
-            background-color: ${s("buttonNeutralBackground")};
+            background-color: ${!disabled && s("buttonNeutralBackground")};
           }
         `}
 `;

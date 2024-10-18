@@ -238,11 +238,13 @@ function CommentThreadItem({
         <EventBoundary>
           {!isEditing && (
             <Actions dir={dir}>
-              <StyledReactionPicker
-                onSelect={handleAddReaction}
-                onOpen={disableScroll}
-                onClose={enableScroll}
-              />
+              {!comment.isResolved && (
+                <StyledReactionPicker
+                  onSelect={handleAddReaction}
+                  onOpen={disableScroll}
+                  onClose={enableScroll}
+                />
+              )}
               <StyledMenu
                 comment={comment}
                 onEdit={setEditing}

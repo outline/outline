@@ -121,6 +121,7 @@ function Comments() {
         hiddenScrollbars
         topShadow
         overflow={scrollable ? "auto" : "hidden"}
+        style={{ overflowX: "hidden" }}
       >
         <Wrapper $hasComments={hasComments}>
           {hasComments ? (

@@ -52,6 +52,7 @@ const ReactionList: React.FC<Props> = ({
           key={reaction.emoji}
           reaction={reaction}
           reactedUsers={reactedUsers?.get(reaction.emoji) ?? []}
+          disabled={model.isResolved}
           onAddReaction={onAddReaction}
           onRemoveReaction={onRemoveReaction}
         />
