@@ -215,3 +215,12 @@ export type Properties<C> = {
     ? Property
     : never]?: C[Property];
 };
+
+export enum CommentSortType {
+  Chrono = "chronological",
+  Position = "position",
+}
+
+export type CommentSortOption =
+  | { type: CommentSortType.Chrono }
+  | { type: CommentSortType.Position; referencedCommentIds: string[] };
