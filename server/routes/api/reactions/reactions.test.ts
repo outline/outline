@@ -46,5 +46,6 @@ describe("#reactions.list", () => {
     expect(body.data[0].commentId).toEqual(comment.id);
     expect(body.data[0].user.id).toEqual(user.id);
     expect(body.data[0].user.name).toEqual(user.name);
+    expect(body.pagination.total).toEqual(2);
   });
 });

@@ -3,6 +3,7 @@ import invariant from "invariant";
 import uniq from "lodash/uniq";
 import { action, computed, observable } from "mobx";
 import { now } from "mobx-utils";
+import { Pagination } from "@shared/constants";
 import type { ProsemirrorData, ThinReaction } from "@shared/types";
 import User from "~/models/User";
 import type { ReactedUser } from "~/types";
@@ -241,29 +242,49 @@ class Comment extends Model {
   };
 
   @action
-  fetchReactionsData = async () => {
+  fetchReactionsData = async (
+    { limit }: { limit: number } = { limit: Pagination.defaultLimit }
+  ) => {
     if (this.reactionsData) {
       return;
     }
 
-    const res = await client.post("/reactions.list", {
-      commentId: this.id,
-    });
-    invariant(res?.data, "Data not available");
-
     this.reactionsData = new Map();
 
-    for (const reaction of res.data) {
-      const existingUsers = this.reactionsData.get(reaction.emoji) ?? [];
-      existingUsers.push({
-        id: reaction.user.id,
-        name: reaction.user.name,
-        initial: reaction.user.name ? reaction.user.name[0].toUpperCase() : "?",
-        color: reaction.user.color,
-        avatarUrl: reaction.user.avatarUrl,
+    const fetchPage = async (offset: number = 0) => {
+      const res = await client.post("/reactions.list", {
+        commentId: this.id,
+        offset,
+        limit,
       });
-      this.reactionsData.set(reaction.emoji, existingUsers);
+      invariant(res?.data, "Data not available");
+
+      for (const reaction of res.data) {
+        const existingUsers = this.reactionsData?.get(reaction.emoji) ?? [];
+        existingUsers.push({
+          id: reaction.user.id,
+          name: reaction.user.name,
+          initial: reaction.user.name
+            ? reaction.user.name[0].toUpperCase()
+            : "?",
+          color: reaction.user.color,
+          avatarUrl: reaction.user.avatarUrl,
+        });
+        this.reactionsData?.set(reaction.emoji, existingUsers);
+      }
+
+      return res.pagination;
+    };
+
+    const { total } = await fetchPage();
+
+    const pages = Math.ceil(total / limit);
+    const fetchPages = [];
+    for (let page = 1; page < pages; page++) {
+      fetchPages.push(fetchPage(page * limit));
     }
+
+    await Promise.all(fetchPages);
   };
 }
 
