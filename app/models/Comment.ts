@@ -103,7 +103,7 @@ class Comment extends Model {
    * Note: This contains the detailed info about the reacted users.
    */
   @observable
-  reactionsData?: Map<string, ReactedUser[]>;
+  reactedUsers?: Map<string, ReactedUser[]>;
 
   /**
    * An array of users that are currently typing a reply in this comments thread.
@@ -242,14 +242,14 @@ class Comment extends Model {
   };
 
   @action
-  fetchReactionsData = async (
+  loadReactedUsersData = async (
     { limit }: { limit: number } = { limit: Pagination.defaultLimit }
   ) => {
-    if (this.reactionsData) {
+    if (this.reactedUsers) {
       return;
     }
 
-    this.reactionsData = new Map();
+    this.reactedUsers = new Map();
 
     const fetchPage = async (offset: number = 0) => {
       const res = await client.post("/reactions.list", {
@@ -260,7 +260,7 @@ class Comment extends Model {
       invariant(res?.data, "Data not available");
 
       for (const reaction of res.data) {
-        const existingUsers = this.reactionsData?.get(reaction.emoji) ?? [];
+        const existingUsers = this.reactedUsers?.get(reaction.emoji) ?? [];
         existingUsers.push({
           id: reaction.user.id,
           name: reaction.user.name,
@@ -270,7 +270,7 @@ class Comment extends Model {
           color: reaction.user.color,
           avatarUrl: reaction.user.avatarUrl,
         });
-        this.reactionsData?.set(reaction.emoji, existingUsers);
+        this.reactedUsers?.set(reaction.emoji, existingUsers);
       }
 
       return res.pagination;

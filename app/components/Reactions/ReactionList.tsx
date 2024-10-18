@@ -24,7 +24,7 @@ const ReactionList: React.FC<Props> = ({
   className,
 }) => {
   const listRef = React.useRef<HTMLDivElement>(null);
-  const { reactionsData } = model;
+  const { reactedUsers } = model;
 
   const hovered = useHover({
     ref: listRef,
@@ -32,16 +32,16 @@ const ReactionList: React.FC<Props> = ({
   });
 
   React.useEffect(() => {
-    const fetchReactionsData = async () => {
+    const loadReactedUsersData = async () => {
       try {
-        await model.fetchReactionsData();
+        await model.loadReactedUsersData();
       } catch (err) {
         Logger.warn("Could not prefetch reaction data");
       }
     };
 
     if (hovered) {
-      void fetchReactionsData();
+      void loadReactedUsersData();
     }
   }, [hovered, model]);
 
@@ -51,7 +51,7 @@ const ReactionList: React.FC<Props> = ({
         <Reaction
           key={reaction.emoji}
           reaction={reaction}
-          reactedUsers={reactionsData?.get(reaction.emoji) ?? []}
+          reactedUsers={reactedUsers?.get(reaction.emoji) ?? []}
           onAddReaction={onAddReaction}
           onRemoveReaction={onRemoveReaction}
         />

@@ -22,28 +22,28 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
   const { t } = useTranslation();
   const tab = useTabState();
 
-  const { reactionsData } = model;
+  const { reactedUsers } = model;
 
   React.useEffect(() => {
-    const fetchReactionsData = async () => {
+    const loadReactedUsersData = async () => {
       try {
-        await model.fetchReactionsData();
+        await model.loadReactedUsersData();
       } catch (err) {
         toast.error(t("Could not load reactions"));
       }
     };
 
-    void fetchReactionsData();
+    void loadReactedUsersData();
   }, [t, model]);
 
-  if (!reactionsData) {
+  if (!reactedUsers) {
     return <PlaceHolder />;
   }
 
   return (
     <>
       <TabActionsWrapper>
-        {[...reactionsData.keys()].map((emoji) => (
+        {[...reactedUsers.keys()].map((emoji) => (
           <StyledTab
             {...tab}
             key={emoji}
@@ -55,7 +55,7 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
           </StyledTab>
         ))}
       </TabActionsWrapper>
-      {[...reactionsData.entries()].map(([emoji, users]) => (
+      {[...reactedUsers.entries()].map(([emoji, users]) => (
         <StyledTabPanel {...tab} key={emoji}>
           {users.map((user) => (
             <UserInfo key={user.name} align="center" gap={8}>
