@@ -520,14 +520,19 @@ export default class WebsocketsProcessor {
           return;
         }
 
+        const user = await User.findByPk(event.actorId);
+        if (!user) {
+          return;
+        }
+
         const channels = await this.getDocumentEventChannels(
           event,
           comment.document
         );
         return socketio.to(channels).emit(event.name, {
           emoji: event.data.emoji,
-          userId: event.actorId,
           commentId: event.modelId,
+          user: presentUser(user),
         });
       }
 

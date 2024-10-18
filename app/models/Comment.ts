@@ -1,5 +1,6 @@
 import { subSeconds } from "date-fns";
 import invariant from "invariant";
+import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import { action, computed, observable } from "mobx";
 import { now } from "mobx-utils";
@@ -237,6 +238,48 @@ class Comment extends Model {
         this.reactions = this.reactions.filter(
           (r) => r.emoji !== reaction.emoji
         );
+      }
+    }
+  };
+
+  @action
+  updateReactedUser = ({
+    type,
+    emoji,
+    user,
+  }: {
+    type: "add" | "remove";
+    emoji: string;
+    user: User;
+  }) => {
+    // No need to update when the data is not loaded.
+    if (!this.reactedUsers) {
+      return;
+    }
+
+    const reactedUser: ReactedUser = {
+      id: user.id,
+      name: user.name,
+      initial: user.name ? user.name[0].toUpperCase() : "?",
+      color: user.color,
+      avatarUrl: user.avatarUrl,
+    };
+
+    const existingUsers = this.reactedUsers.get(emoji);
+
+    if (type === "add") {
+      if (!existingUsers) {
+        this.reactedUsers.set(emoji, [reactedUser]);
+      } else {
+        existingUsers.push(reactedUser);
+      }
+    } else {
+      if (existingUsers) {
+        remove(existingUsers, (u) => u.id === reactedUser.id);
+      }
+
+      if (existingUsers?.length === 0) {
+        this.reactedUsers.delete(emoji);
       }
     }
   };

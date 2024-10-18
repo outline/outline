@@ -13,6 +13,7 @@ import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
 import Pin from "./models/Pin";
 import Star from "./models/Star";
+import User from "./models/User";
 import UserMembership from "./models/UserMembership";
 
 export type PartialExcept<T, K extends keyof T> = Partial<Omit<T, K>> &
@@ -192,7 +193,7 @@ export type WebsocketCollectionUpdateIndexEvent = {
 export type WebsocketCommentReactionEvent = {
   emoji: string;
   commentId: string;
-  userId: string;
+  user: User;
 };
 
 export type WebsocketEvent =

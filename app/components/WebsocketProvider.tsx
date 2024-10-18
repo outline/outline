@@ -352,7 +352,12 @@ class WebsocketProvider extends React.Component<Props> {
         comment?.updateReaction({
           type: "add",
           emoji: event.emoji,
-          userId: event.userId,
+          userId: event.user.id,
+        });
+        comment?.updateReactedUser({
+          type: "add",
+          emoji: event.emoji,
+          user: event.user,
         });
       }
     );
@@ -364,7 +369,12 @@ class WebsocketProvider extends React.Component<Props> {
         comment?.updateReaction({
           type: "remove",
           emoji: event.emoji,
-          userId: event.userId,
+          userId: event.user.id,
+        });
+        comment?.updateReactedUser({
+          type: "remove",
+          emoji: event.emoji,
+          user: event.user,
         });
       }
     );
