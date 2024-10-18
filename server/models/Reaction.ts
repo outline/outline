@@ -2,7 +2,7 @@ import uniq from "lodash/uniq";
 import {
   InferAttributes,
   InferCreationAttributes,
-  Transaction,
+  type SaveOptions,
 } from "sequelize";
 import {
   AfterCreate,
@@ -51,14 +51,20 @@ class Reaction extends IdModel<
   @AfterCreate
   public static async addReactionToCommentCache(
     model: Reaction,
-    { transaction }: { transaction: Transaction }
+    options: SaveOptions<Reaction>
   ) {
+    const { transaction } = options;
+
+    const lock = transaction
+      ? {
+          level: transaction.LOCK.UPDATE,
+          of: Comment,
+        }
+      : undefined;
+
     const comment = await Comment.findByPk(model.commentId, {
       transaction,
-      lock: {
-        level: transaction.LOCK.UPDATE,
-        of: Comment,
-      },
+      lock,
     });
 
     if (!comment) {
@@ -82,14 +88,20 @@ class Reaction extends IdModel<
   @AfterDestroy
   public static async removeReactionFromCommentCache(
     model: Reaction,
-    { transaction }: { transaction: Transaction }
+    options: SaveOptions<Reaction>
   ) {
+    const { transaction } = options;
+
+    const lock = transaction
+      ? {
+          level: transaction.LOCK.UPDATE,
+          of: Comment,
+        }
+      : undefined;
+
     const comment = await Comment.findByPk(model.commentId, {
       transaction,
-      lock: {
-        level: transaction.LOCK.UPDATE,
-        of: Comment,
-      },
+      lock,
     });
 
     if (!comment) {
