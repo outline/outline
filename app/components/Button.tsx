@@ -1,5 +1,5 @@
 import { LocationDescriptor } from "history";
-import { ExpandedIcon } from "outline-icons";
+import { DisclosureIcon } from "outline-icons";
 import { darken, lighten, transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
@@ -189,10 +189,14 @@ const Button = <T extends React.ElementType = "button">(
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
         {hasIcon && ic}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
-        {disclosure && <ExpandedIcon />}
+        {disclosure && <StyledDisclosureIcon />}
       </Inner>
     </RealButton>
   );
 };
+
+const StyledDisclosureIcon = styled(DisclosureIcon)`
+  opacity: 0.8;
+`;
 
 export default React.forwardRef(Button);
