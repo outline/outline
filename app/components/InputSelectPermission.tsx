@@ -49,6 +49,6 @@ function InputSelectPermission(
 
 const Select = styled(InputSelect)`
   color: ${s("textSecondary")};
-` as React.ComponentType<Props>;
+`;
 
 export default React.forwardRef(InputSelectPermission);
