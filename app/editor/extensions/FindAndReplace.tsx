@@ -1,3 +1,4 @@
+import deburr from "lodash/deburr";
 import escapeRegExp from "lodash/escapeRegExp";
 import { observable } from "mobx";
 import { Node } from "prosemirror-model";
@@ -247,7 +248,7 @@ export default class FindAndReplaceExtension extends Extension {
       let m;
 
       try {
-        while ((m = search.exec(text))) {
+        while ((m = search.exec(deburr(text)))) {
           if (m[0] === "") {
             break;
           }
