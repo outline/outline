@@ -1,61 +1,86 @@
-import { ManualSortIcon } from "outline-icons";
+import queryString from "query-string";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { MenuButton, useMenuState } from "reakit";
-import Button from "~/components/Button";
-import ContextMenu from "~/components/ContextMenu";
-import Template from "~/components/ContextMenu/Template";
-import { CommentSortType, MenuItem } from "~/types";
+import { useHistory, useLocation } from "react-router-dom";
+import styled from "styled-components";
+import { s } from "@shared/styles";
+import { UserPreference } from "@shared/types";
+import InputSelect from "~/components/InputSelect";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import useQuery from "~/hooks/useQuery";
+import { CommentSortType } from "~/types";
 
-type Props = {
-  value: CommentSortType;
-  onSelect: (type: CommentSortType) => void;
-};
-
-const CommentSortMenu: React.FC<Props> = ({ value, onSelect }) => {
+const CommentSortMenu = () => {
   const { t } = useTranslation();
-  const menu = useMenuState({ modal: true });
+  const location = useLocation();
+  const history = useHistory();
+  const user = useCurrentUser();
+  const params = useQuery();
 
-  const items: MenuItem[] = React.useMemo(
-    () => [
-      {
-        type: "button",
-        title: t("Chronological sort"),
-        visible: true,
-        selected: value === CommentSortType.Chrono,
-        onClick: () => {
-          if (value !== CommentSortType.Chrono) {
-            onSelect(CommentSortType.Chrono);
-          }
-        },
-      },
-      {
-        type: "button",
-        title: t("Positional sort"),
-        visible: true,
-        selected: value === CommentSortType.Position,
-        onClick: () => {
-          if (value !== CommentSortType.Position) {
-            onSelect(CommentSortType.Position);
-          }
-        },
-      },
-    ],
-    [t, value, onSelect]
-  );
+  const viewingResolved = params.get("resolved") === "";
+  const value = viewingResolved
+    ? "resolved"
+    : user.getPreference(UserPreference.SortCommentsByPosition)
+    ? CommentSortType.Position
+    : CommentSortType.Chrono;
+
+  const handleSortTypeChange = (type: CommentSortType) => {
+    user.setPreference(
+      UserPreference.SortCommentsByPosition,
+      type === CommentSortType.Position
+    );
+    void user.save();
+  };
+
+  const showResolved = () => {
+    history.push({
+      search: queryString.stringify({
+        ...queryString.parse(location.search),
+        resolved: "",
+      }),
+      pathname: location.pathname,
+    });
+  };
+
+  const showUnresolved = () => {
+    history.push({
+      search: queryString.stringify({
+        ...queryString.parse(location.search),
+        resolved: undefined,
+      }),
+      pathname: location.pathname,
+    });
+  };
 
   return (
-    <>
-      <MenuButton {...menu} aria-label={t("Sort comments")}>
-        {(props) => (
-          <Button {...props} neutral borderOnHover icon={<ManualSortIcon />} />
-        )}
-      </MenuButton>
-      <ContextMenu {...menu} aria-label={t("Sort comments")}>
-        <Template {...menu} items={items} />
-      </ContextMenu>
-    </>
+    <Select
+      style={{ margin: 0 }}
+      ariaLabel={t("Sort comments")}
+      value={value}
+      onChange={(ev) => {
+        if (ev === "resolved") {
+          showResolved();
+        } else {
+          handleSortTypeChange(ev as CommentSortType);
+          showUnresolved();
+        }
+      }}
+      borderOnHover
+      options={[
+        { value: CommentSortType.Chrono, label: t("Most recent") },
+        { value: CommentSortType.Position, label: t("Order in doc") },
+        {
+          divider: true,
+          value: "resolved",
+          label: t("Resolved"),
+        },
+      ]}
+    />
   );
 };
+
+const Select = styled(InputSelect)`
+  color: ${s("textSecondary")};
+`;
 
 export default CommentSortMenu;

@@ -10,7 +10,7 @@ import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
-import Button, { Inner } from "~/components/Button";
+import Button, { Props as ButtonProps, Inner } from "~/components/Button";
 import Text from "~/components/Text";
 import useMenuHeight from "~/hooks/useMenuHeight";
 import useMobile from "~/hooks/useMobile";
@@ -33,7 +33,7 @@ export type Option = {
   divider?: boolean;
 };
 
-export type Props = {
+export type Props = Omit<ButtonProps<any>, "onChange"> & {
   id?: string;
   name?: string;
   value?: string | null;
@@ -313,7 +313,7 @@ const StyledButton = styled(Button)<{ $nude?: boolean }>`
   margin-bottom: 16px;
   display: block;
   width: 100%;
-  cursor: default;
+  cursor: var(--pointer);
 
   &:hover:not(:disabled) {
     background: ${s("buttonNeutralBackground")};
