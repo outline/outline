@@ -27,9 +27,35 @@ describe("SearchHelper", () => {
         collectionId: collection.id,
         title: "test",
       });
-      const { results } = await SearchHelper.searchForTeam(team, "test");
+      const { results } = await SearchHelper.searchForTeam(team, {
+        query: "test",
+      });
       expect(results.length).toBe(1);
       expect(results[0].document?.id).toBe(document.id);
+    });
+
+    test("should return search results from a collection without search term", async () => {
+      const team = await buildTeam();
+      const collection = await buildCollection({
+        teamId: team.id,
+      });
+      const documents = await Promise.all([
+        buildDocument({
+          teamId: team.id,
+          collectionId: collection.id,
+          title: "document 1",
+        }),
+        buildDocument({
+          teamId: team.id,
+          collectionId: collection.id,
+          title: "document 2",
+        }),
+      ]);
+      const { results } = await SearchHelper.searchForTeam(team);
+      expect(results.length).toBe(2);
+      expect(results.map((r) => r.document.id).sort()).toEqual(
+        documents.map((doc) => doc.id).sort()
+      );
     });
 
     test("should not return results from private collections without providing collectionId", async () => {
@@ -43,7 +69,9 @@ describe("SearchHelper", () => {
         collectionId: collection.id,
         title: "test",
       });
-      const { results } = await SearchHelper.searchForTeam(team, "test");
+      const { results } = await SearchHelper.searchForTeam(team, {
+        query: "test",
+      });
       expect(results.length).toBe(0);
     });
 
@@ -58,7 +86,8 @@ describe("SearchHelper", () => {
         collectionId: collection.id,
         title: "test",
       });
-      const { results } = await SearchHelper.searchForTeam(team, "test", {
+      const { results } = await SearchHelper.searchForTeam(team, {
+        query: "test",
         collectionId: collection.id,
       });
       expect(results.length).toBe(1);
@@ -86,7 +115,8 @@ describe("SearchHelper", () => {
         includeChildDocuments: true,
       });
 
-      const { results } = await SearchHelper.searchForTeam(team, "test", {
+      const { results } = await SearchHelper.searchForTeam(team, {
+        query: "test",
         collectionId: collection.id,
         share,
       });
@@ -95,13 +125,17 @@ describe("SearchHelper", () => {
 
     test("should handle no collections", async () => {
       const team = await buildTeam();
-      const { results } = await SearchHelper.searchForTeam(team, "test");
+      const { results } = await SearchHelper.searchForTeam(team, {
+        query: "test",
+      });
       expect(results.length).toBe(0);
     });
 
     test("should handle backslashes in search term", async () => {
       const team = await buildTeam();
-      const { results } = await SearchHelper.searchForTeam(team, "\\\\");
+      const { results } = await SearchHelper.searchForTeam(team, {
+        query: "\\\\",
+      });
       expect(results.length).toBe(0);
     });
 
@@ -120,7 +154,9 @@ describe("SearchHelper", () => {
         collectionId: collection.id,
         title: "test number 2",
       });
-      const { total } = await SearchHelper.searchForTeam(team, "test");
+      const { total } = await SearchHelper.searchForTeam(team, {
+        query: "test",
+      });
       expect(total).toBe(2);
     });
 
@@ -136,7 +172,9 @@ describe("SearchHelper", () => {
       });
       document.title = "change";
       await document.save();
-      const { total } = await SearchHelper.searchForTeam(team, "test number");
+      const { total } = await SearchHelper.searchForTeam(team, {
+        query: "test number",
+      });
       expect(total).toBe(1);
     });
 
@@ -152,10 +190,9 @@ describe("SearchHelper", () => {
       });
       document.title = "change";
       await document.save();
-      const { total } = await SearchHelper.searchForTeam(
-        team,
-        "title doesn't exist"
-      );
+      const { total } = await SearchHelper.searchForTeam(team, {
+        query: "title doesn't exist",
+      });
       expect(total).toBe(0);
     });
   });
@@ -181,16 +218,78 @@ describe("SearchHelper", () => {
         deletedAt: new Date(),
         title: "test",
       });
-      const { results } = await SearchHelper.searchForUser(user, "test");
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "test",
+      });
       expect(results.length).toBe(1);
       expect(results[0].ranking).toBeTruthy();
       expect(results[0].document?.id).toBe(document.id);
     });
 
+    test("should return search results for a user without search term", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const documents = await Promise.all([
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection.id,
+          title: "document 1",
+        }),
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection.id,
+          title: "document 2",
+        }),
+      ]);
+      const { results } = await SearchHelper.searchForUser(user);
+      expect(results.length).toBe(2);
+      expect(results.map((r) => r.document.id).sort()).toEqual(
+        documents.map((doc) => doc.id).sort()
+      );
+    });
+
+    test("should return search results from a collection without search term", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+      });
+      const documents = await Promise.all([
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection.id,
+          title: "document 1",
+        }),
+        buildDocument({
+          teamId: team.id,
+          userId: user.id,
+          collectionId: collection.id,
+          title: "document 2",
+        }),
+      ]);
+      const { results } = await SearchHelper.searchForUser(user, {
+        collectionId: collection.id,
+      });
+      expect(results.length).toBe(2);
+      expect(results.map((r) => r.document.id).sort()).toEqual(
+        documents.map((doc) => doc.id).sort()
+      );
+    });
+
     test("should handle no collections", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
-      const { results } = await SearchHelper.searchForUser(user, "test");
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "test",
+      });
       expect(results.length).toBe(0);
     });
 
@@ -218,7 +317,8 @@ describe("SearchHelper", () => {
         title: "test",
         archivedAt: new Date(),
       });
-      const { results } = await SearchHelper.searchForUser(user, "test", {
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "test",
         statusFilter: [StatusFilter.Draft],
       });
       expect(results.length).toBe(1);
@@ -242,7 +342,8 @@ describe("SearchHelper", () => {
         permission: DocumentPermission.Read,
       });
 
-      const { results } = await SearchHelper.searchForUser(user, "test", {
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "test",
         statusFilter: [StatusFilter.Published, StatusFilter.Archived],
       });
       expect(results.length).toBe(0);
@@ -272,7 +373,8 @@ describe("SearchHelper", () => {
         title: "test",
         archivedAt: new Date(),
       });
-      const { results } = await SearchHelper.searchForUser(user, "test", {
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "test",
         statusFilter: [StatusFilter.Published],
       });
       expect(results.length).toBe(1);
@@ -308,7 +410,8 @@ describe("SearchHelper", () => {
         title: "test",
         archivedAt: new Date(),
       });
-      const { results } = await SearchHelper.searchForUser(user, "test", {
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "test",
         statusFilter: [StatusFilter.Archived],
       });
       expect(results.length).toBe(1);
@@ -335,7 +438,8 @@ describe("SearchHelper", () => {
         title: "test",
         archivedAt: new Date(),
       });
-      const { results } = await SearchHelper.searchForUser(user, "test", {
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "test",
         statusFilter: [StatusFilter.Archived, StatusFilter.Published],
       });
       expect(results.length).toBe(2);
@@ -362,7 +466,8 @@ describe("SearchHelper", () => {
         title: "archived not draft",
         archivedAt: new Date(),
       });
-      const { results } = await SearchHelper.searchForUser(user, "draft", {
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "draft",
         statusFilter: [StatusFilter.Published, StatusFilter.Draft],
       });
       expect(results.length).toBe(2);
@@ -389,7 +494,8 @@ describe("SearchHelper", () => {
         title: "archived not draft",
         archivedAt: new Date(),
       });
-      const { results } = await SearchHelper.searchForUser(user, "draft", {
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "draft",
         statusFilter: [StatusFilter.Draft, StatusFilter.Archived],
       });
       expect(results.length).toBe(2);
@@ -414,7 +520,9 @@ describe("SearchHelper", () => {
         collectionId: collection.id,
         title: "test number 2",
       });
-      const { total } = await SearchHelper.searchForUser(user, "test");
+      const { total } = await SearchHelper.searchForUser(user, {
+        query: "test",
+      });
       expect(total).toBe(2);
     });
 
@@ -433,7 +541,9 @@ describe("SearchHelper", () => {
       });
       document.title = "change";
       await document.save();
-      const { total } = await SearchHelper.searchForUser(user, "test number");
+      const { total } = await SearchHelper.searchForUser(user, {
+        query: "test number",
+      });
       expect(total).toBe(1);
     });
 
@@ -452,10 +562,9 @@ describe("SearchHelper", () => {
       });
       document.title = "change";
       await document.save();
-      const { total } = await SearchHelper.searchForUser(
-        user,
-        "title doesn't exist"
-      );
+      const { total } = await SearchHelper.searchForUser(user, {
+        query: "title doesn't exist",
+      });
       expect(total).toBe(0);
     });
 
@@ -474,7 +583,9 @@ describe("SearchHelper", () => {
       });
       document.title = "change";
       await document.save();
-      const { total } = await SearchHelper.searchForUser(user, `"test number"`);
+      const { total } = await SearchHelper.searchForUser(user, {
+        query: `"test number"`,
+      });
       expect(total).toBe(1);
     });
 
@@ -493,7 +604,9 @@ describe("SearchHelper", () => {
       });
       document.title = "change";
       await document.save();
-      const { total } = await SearchHelper.searchForUser(user, "env: ");
+      const { total } = await SearchHelper.searchForUser(user, {
+        query: "env: ",
+      });
       expect(total).toBe(1);
     });
   });
@@ -512,7 +625,9 @@ describe("SearchHelper", () => {
         collectionId: collection.id,
         title: "test",
       });
-      const documents = await SearchHelper.searchTitlesForUser(user, "test");
+      const documents = await SearchHelper.searchTitlesForUser(user, {
+        query: "test",
+      });
       expect(documents.length).toBe(1);
       expect(documents[0]?.id).toBe(document.id);
     });
@@ -545,7 +660,8 @@ describe("SearchHelper", () => {
         collectionId: collection1.id,
         title: "test",
       });
-      const documents = await SearchHelper.searchTitlesForUser(user, "test", {
+      const documents = await SearchHelper.searchTitlesForUser(user, {
+        query: "test",
         collectionId: collection.id,
       });
       expect(documents.length).toBe(1);
@@ -555,7 +671,9 @@ describe("SearchHelper", () => {
     test("should handle no collections", async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id });
-      const documents = await SearchHelper.searchTitlesForUser(user, "test");
+      const documents = await SearchHelper.searchTitlesForUser(user, {
+        query: "test",
+      });
       expect(documents.length).toBe(0);
     });
 
@@ -583,7 +701,8 @@ describe("SearchHelper", () => {
         title: "test",
         archivedAt: new Date(),
       });
-      const documents = await SearchHelper.searchTitlesForUser(user, "test", {
+      const documents = await SearchHelper.searchTitlesForUser(user, {
+        query: "test",
         statusFilter: [StatusFilter.Draft],
       });
       expect(documents.length).toBe(1);
@@ -613,7 +732,8 @@ describe("SearchHelper", () => {
         title: "test",
         archivedAt: new Date(),
       });
-      const documents = await SearchHelper.searchTitlesForUser(user, "test", {
+      const documents = await SearchHelper.searchTitlesForUser(user, {
+        query: "test",
         statusFilter: [StatusFilter.Published],
       });
       expect(documents.length).toBe(1);
@@ -649,7 +769,8 @@ describe("SearchHelper", () => {
         title: "test",
         archivedAt: new Date(),
       });
-      const documents = await SearchHelper.searchTitlesForUser(user, "test", {
+      const documents = await SearchHelper.searchTitlesForUser(user, {
+        query: "test",
         statusFilter: [StatusFilter.Archived],
       });
       expect(documents.length).toBe(1);
@@ -676,7 +797,8 @@ describe("SearchHelper", () => {
         title: "test",
         archivedAt: new Date(),
       });
-      const documents = await SearchHelper.searchTitlesForUser(user, "test", {
+      const documents = await SearchHelper.searchTitlesForUser(user, {
+        query: "test",
         statusFilter: [StatusFilter.Archived, StatusFilter.Published],
       });
       expect(documents.length).toBe(2);
@@ -703,7 +825,8 @@ describe("SearchHelper", () => {
         title: "archived not draft",
         archivedAt: new Date(),
       });
-      const documents = await SearchHelper.searchTitlesForUser(user, "draft", {
+      const documents = await SearchHelper.searchTitlesForUser(user, {
+        query: "draft",
         statusFilter: [StatusFilter.Published, StatusFilter.Draft],
       });
       expect(documents.length).toBe(2);
@@ -730,7 +853,8 @@ describe("SearchHelper", () => {
         title: "archived not draft",
         archivedAt: new Date(),
       });
-      const documents = await SearchHelper.searchTitlesForUser(user, "draft", {
+      const documents = await SearchHelper.searchTitlesForUser(user, {
+        query: "draft",
         statusFilter: [StatusFilter.Draft, StatusFilter.Archived],
       });
       expect(documents.length).toBe(2);
