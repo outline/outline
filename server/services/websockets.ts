@@ -4,12 +4,13 @@ import cookie from "cookie";
 import Koa from "koa";
 import IO from "socket.io";
 import { createAdapter } from "socket.io-redis";
+import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
-import { Collection, Group, User } from "@server/models";
+import { Collection, Group, Team, User } from "@server/models";
 import { can } from "@server/policies";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
@@ -217,16 +218,49 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
  * duration of the session.
  */
 async function authenticate(socket: SocketWithAuth) {
-  const cookies = socket.request.headers.cookie
-    ? cookie.parse(socket.request.headers.cookie)
-    : {};
-  const { accessToken } = cookies;
+  let user: User | null = null;
 
-  if (!accessToken) {
-    throw AuthenticationError("No access token");
+  if (env.HEADER_AUTH_ENABLED) {
+    const emailHeaderValues = socket.request.headers[env.HEADER_AUTH_EMAIL];
+    const teamIdHeaderValues = socket.request.headers[env.HEADER_AUTH_TEAM_ID];
+
+    const emailHeader = Array.isArray(emailHeaderValues)
+      ? emailHeaderValues[emailHeaderValues.length - 1]
+      : emailHeaderValues;
+
+    const teamIdHeader = Array.isArray(teamIdHeaderValues)
+      ? teamIdHeaderValues[teamIdHeaderValues.length - 1]
+      : teamIdHeaderValues;
+
+    if (emailHeader && teamIdHeader) {
+      user = await User.findOne({
+        where: {
+          email: emailHeader.toLowerCase(),
+          teamId: teamIdHeader,
+        },
+        include: [
+          {
+            model: Team,
+            as: "team",
+            required: true,
+          },
+        ],
+      });
+    }
   }
 
-  const user = await getUserForJWT(accessToken);
+  if (!user) {
+    const cookies = socket.request.headers.cookie
+      ? cookie.parse(socket.request.headers.cookie)
+      : {};
+    const accessToken = cookies.accessToken;
+    if (!accessToken) {
+      throw AuthenticationError("No access token");
+    }
+
+    user = await getUserForJWT(accessToken);
+  }
+
   socket.client.user = user;
   return user;
 }
