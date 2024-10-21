@@ -1,10 +1,5 @@
-import uniq from "lodash/uniq";
 import { Node } from "prosemirror-model";
-import {
-  InferAttributes,
-  InferCreationAttributes,
-  Transaction,
-} from "sequelize";
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -124,63 +119,6 @@ class Comment extends ParanoidModel<
     this.resolvedBy = null;
     this.resolvedAt = null;
   }
-
-  /**
-   * Update the `reactions` column and save the comment to the database.
-   *
-   * @param {Object} reaction - The reaction data.
-   * @param {string} reaction.type - The type of the action.
-   * @param {string} reaction.emoji - The emoji to update as a reaction.
-   * @param {string} reaction.userId - The id of the user who performed this action.
-   * @param {Transaction} [reaction.transaction] - The SQL transaction context to perform this action.
-   *
-   * @returns {Promise<boolean>} Promise object indicating whether the comment was updated.
-   */
-  public updateReactions = async ({
-    type,
-    emoji,
-    userId,
-    transaction,
-  }: {
-    type: "add" | "remove";
-    emoji: string;
-    userId: string;
-    transaction?: Transaction;
-  }): Promise<boolean> => {
-    let reactions = this.reactions ?? [];
-    const reaction = reactions.find((r) => r.emoji === emoji);
-
-    const updatable =
-      type === "add"
-        ? !reaction?.userIds.includes(userId)
-        : reaction?.userIds.includes(userId);
-
-    if (!updatable) {
-      return false;
-    }
-
-    if (type === "add") {
-      if (!reaction) {
-        reactions.push({ emoji, userIds: [userId] });
-      } else {
-        reaction.userIds = uniq([...reaction.userIds, userId]);
-      }
-    } else {
-      if (reaction) {
-        reaction.userIds = reaction.userIds.filter((id) => id !== userId);
-      }
-
-      if (reaction?.userIds.length === 0) {
-        reactions = reactions.filter((r) => r.emoji !== reaction.emoji);
-      }
-    }
-
-    this.reactions = reactions;
-    this.changed("reactions", true);
-    await this.save({ fields: ["reactions"], transaction, silent: true });
-
-    return true;
-  };
 
   /**
    * Whether the comment is resolved

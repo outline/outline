@@ -154,7 +154,7 @@ class Comment extends Model {
    *
    * @param {Object} reaction - The reaction data.
    * @param {string} reaction.emoji - The emoji to add as a reaction.
-   * @param {string} reaction.userId - The id of the user who added this reaction.
+   * @param {string} reaction.user - The user who added this reaction.
    */
   @action
   public addReaction = async ({
@@ -182,7 +182,7 @@ class Comment extends Model {
    *
    * @param {Object} reaction - The reaction data.
    * @param {string} reaction.emoji - The emoji to remove as a reaction.
-   * @param {string} reaction.userId - The id of the user who removed this reaction.
+   * @param {string} reaction.user - The user who removed this reaction.
    */
   @action
   public removeReaction = async ({
@@ -209,7 +209,7 @@ class Comment extends Model {
    * @param {Object} reaction - The reaction data.
    * @param {string} reaction.type - The type of the action.
    * @param {string} reaction.emoji - The emoji to update as a reaction.
-   * @param {string} reaction.userId - The id of the user who performed this action.
+   * @param {string} reaction.user - The user who performed this action.
    */
   @action
   public updateReaction = ({
@@ -277,6 +277,14 @@ class Comment extends Model {
     }
   };
 
+  /**
+   * Load the `reactedUsers` data.
+   *
+   * This contains the detailed user info for each emoji.
+   *
+   * @param {Object} options - Options for loading the data.
+   * @param {string} options.limit - Per request limit for pagination.
+   */
   @action
   loadReactedUsersData = async (
     { limit }: { limit: number } = { limit: Pagination.defaultLimit }
